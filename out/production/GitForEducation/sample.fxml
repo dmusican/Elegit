@@ -13,7 +13,7 @@
     <Label text="Repo location:"
            GridPane.columnIndex="0" GridPane.rowIndex="1"/>
 
-    <Label fx:id="repoLocation"
+    <Label fx:id="repoPathLabel"
            GridPane.columnIndex="1" GridPane.rowIndex="1"/>
 
     <Button text="Choose..." onAction="#handleChooseRepoLocationButton"
@@ -22,7 +22,7 @@
     <Label text="File name:"
            GridPane.columnIndex="0" GridPane.rowIndex="2"/>
 
-    <Label fx:id="fileLocation"
+    <Label fx:id="fileNameLabel"
             GridPane.columnIndex="1" GridPane.rowIndex="2"/>
 
     <Button text="Choose..." onAction="#handleChooseFileButton"
@@ -41,7 +41,7 @@
                 onAction="#handleSubmitButtonAction"/>
     </HBox>
 
-    <Text fx:id="actionTarget"
+    <Text fx:id="actionTargetText"
           GridPane.columnIndex="1" GridPane.rowIndex="5"/>
 
     <stylesheets>

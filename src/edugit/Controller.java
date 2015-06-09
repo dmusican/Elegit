@@ -14,9 +14,9 @@ public class Controller {
 
     public final String defaultPath = System.getProperty("user.home")+File.separator+"Desktop"+File.separator+"TestClone";
 
-    @FXML private Text actionTarget;
-    @FXML private Label repoLocation;
-    @FXML private Label fileLocation;
+    @FXML private Text actionTargetText;
+    @FXML private Label repoPathLabel;
+    @FXML private Label fileNameLabel;
     @FXML private TextField commitText;
 
     public Controller(){}
@@ -30,7 +30,7 @@ public class Controller {
             chooser.setTitle(title);
             chooser.setInitialDirectory(path.getParentFile());
 
-            returnFile = chooser.showDialog(actionTarget.getScene().getWindow());
+            returnFile = chooser.showDialog(actionTargetText.getScene().getWindow());
         }else{
             FileChooser fileChooser = new FileChooser();
             fileChooser.setTitle(title);
@@ -38,30 +38,30 @@ public class Controller {
                     new FileChooser.ExtensionFilter("Text Files", "*.txt"),
                     new FileChooser.ExtensionFilter("All Files", "*.*"));
 
-            returnFile = fileChooser.showOpenDialog(actionTarget.getScene().getWindow());
+            returnFile = fileChooser.showOpenDialog(actionTargetText.getScene().getWindow());
         }
         return returnFile;
     }
 
     public void handleSubmitButtonAction(ActionEvent actionEvent) {
-        String fileName = fileLocation.getText();
+        String repoPath = repoPathLabel.getText();
+        String filePath = fileNameLabel.getText();
         String commitMessage = commitText.getText();
 
-        RepoModel repo = new RepoModel(SECRET_CONSTANTS.TEST_GITHUB_TOKEN, new File(this.repoLocation.getText()));
+        RepoModel repo = new RepoModel(new File(repoPath), SECRET_CONSTANTS.TEST_GITHUB_TOKEN, true);
 
-        repo.cloneRepo();
-//        repo.findRepo();
-        repo.pushNewFile(new File(path, fileName), commitMessage);
+        repo.pushNewFile(new File(filePath), commitMessage);
+
         repo.closeRepo();
 
-        this.actionTarget.setText(fileName+" added");
+        this.actionTargetText.setText(filePath+" added");
     }
 
     public void handleChooseRepoLocationButton(ActionEvent actionEvent) {
         File selectedDirectory = this.getPathFromChooser(true, "Git Repositories");
 
         if(selectedDirectory != null){
-            this.repoLocation.setText(selectedDirectory.toString());
+            this.repoPathLabel.setText(selectedDirectory.toString());
         }
     }
 
@@ -69,7 +69,7 @@ public class Controller {
         File selectedFile = this.getPathFromChooser(false, "Repo Files");
 
         if(selectedFile != null){
-            this.fileLocation.setText(selectedFile.getName());
+            this.fileNameLabel.setText(selectedFile.toString());
         }
     }
 }

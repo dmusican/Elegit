@@ -21,18 +21,25 @@ public class RepoModel {
 
     private File localPath;
 
-    public RepoModel(String ownerToken, File directoryPath) {
+    public RepoModel(File directoryPath, String ownerToken, boolean directoryContainsRepo) {
         this.ownerAuth = new UsernamePasswordCredentialsProvider(ownerToken,"");
         this.remoteURL = "https://github.com/grahamearley/jgit-test.git"; // TODO: pass this in!
 
         this.localPath = directoryPath;
 
         // This ensures that the path is a directory, not a folder
-        //  (.delete will delete any file at the end of the path)
+        //  ( .delete() will delete any file at the end of the path )
         this.localPath.delete();
+
+        if (directoryContainsRepo) {
+            this.repo = this.findExistingRepo();
+        } else {
+            this.repo = this.cloneRepo();
+        }
+
     }
 
-    public void cloneRepo() {
+    private Repository cloneRepo() {
         // TODO: make this not just clone a dummy repo...
 
         CloneCommand cloneCommand = Git.cloneRepository();
@@ -49,17 +56,20 @@ public class RepoModel {
             // TODO: better error handling
         }
 
-        this.repo = cloneCall.getRepository();
+        return cloneCall.getRepository();
     }
 
-    public void findRepo() {
+    private Repository findExistingRepo() {
+        // TODO: for now, make there be only two options: clone *or* have a repo already cloned
+        //  Then, figure out how to create a repo from scratch...
         FileRepositoryBuilder builder = new FileRepositoryBuilder();
         try {
-            this.repo = builder.findGitDir(this.localPath)
-                    .readEnvironment() // scan environment GIT_* variables
+            return builder.findGitDir(this.localPath)
+                    .readEnvironment()
                     .build();
         } catch (IOException e) {
             e.printStackTrace();
+            return null;
         }
     }
 
@@ -96,6 +106,5 @@ public class RepoModel {
     public void closeRepo() {
         this.repo.close();
     }
-
 
 }
