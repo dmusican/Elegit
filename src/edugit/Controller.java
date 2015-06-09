@@ -17,11 +17,9 @@ public class Controller {
         String fileName = fileNameText.getText();
         String commitMessage = commitText.getText();
 
-        File path = new File(System.getProperty("user.home")+File.separator+"Desktop"+File.separator+"TestClone");
+        File path = new File(System.getProperty("user.home")+File.separator+"Desktop"+File.separator+"TestNonClone");
 
-        RepoModel repo = new RepoModel(SECRET_CONSTANTS.TEST_GITHUB_TOKEN, path);
-        repo.cloneRepo();
-//        repo.findRepo();
+        RepoModel repo = new RepoModel(path, SECRET_CONSTANTS.TEST_GITHUB_TOKEN, true);
         repo.pushNewFile(new File(path, fileName), commitMessage);
         repo.closeRepo();
 
