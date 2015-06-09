@@ -5,6 +5,7 @@ import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
 import java.io.File;
@@ -19,21 +20,23 @@ public class RepoModel {
     private Repository repo;
     private String remoteURL;
 
+    private File localPath = new File("/Users/grahamearley/Documents/School/Git research/repos/Clone2");
+
     public RepoModel(String ownerToken) {
         this.ownerAuth = new UsernamePasswordCredentialsProvider(SECRET_CONSTANTS.TEST_GITHUB_TOKEN,"");
         this.remoteURL = "https://github.com/grahamearley/jgit-test.git"; // TODO: pass this in!
+
+        this.localPath.delete();
     }
 
     public void cloneRepo() {
         // TODO: make this not just clone a dummy repo...
-        File localPath = new File("/Users/grahamearley/Documents/School/Git research/repos2/cloned-github-repo");
-        localPath.delete();
 
         CloneCommand cloneCommand = Git.cloneRepository();
         cloneCommand.setURI(this.remoteURL);
         cloneCommand.setCredentialsProvider(this.ownerAuth);
 
-        cloneCommand.setDirectory(localPath);
+        cloneCommand.setDirectory(this.localPath);
         Git cloneCall = null;
 
         try {
@@ -44,6 +47,17 @@ public class RepoModel {
         }
 
         this.repo = cloneCall.getRepository();
+    }
+
+    public void findRepo() {
+        FileRepositoryBuilder builder = new FileRepositoryBuilder();
+        try {
+            this.repo = builder.findGitDir(this.localPath)
+                    .readEnvironment() // scan environment GIT_* variables
+                    .build();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public void pushNewFile(String fileNameString, String commitMessage) {

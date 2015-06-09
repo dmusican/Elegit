@@ -25,8 +25,9 @@ Resources I've been using:
  */
     public static void main(String args[]) throws GitAPIException, IOException {
         RepoModel repo = new RepoModel(SECRET_CONSTANTS.TEST_GITHUB_TOKEN);
-        repo.cloneRepo();
-        repo.pushNewFile("FileFileFile.txt", "Added another great file to this repo");
+//        repo.cloneRepo();
+        repo.findRepo();
+        repo.pushNewFile("another.txt", "great commit messages");
         repo.closeRepo();
     }
 }
