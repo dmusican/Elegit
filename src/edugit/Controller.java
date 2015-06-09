@@ -5,6 +5,7 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.Tab;
 import javafx.scene.control.TextField;
 import javafx.scene.text.Text;
 import javafx.stage.DirectoryChooser;
@@ -18,10 +19,13 @@ public class Controller {
 
     private ThreadController threadController;
 
+    @FXML private Tab addFileTab;
+    @FXML private Tab createRepoTab;
+
     private File selectedRepo;
     private File selectedFile;
 
-    @FXML private Text actionTargetText;
+    @FXML private Text messageText;
     @FXML private Label repoPathLabel;
     @FXML private Label fileNameLabel;
     @FXML private TextField commitText;
@@ -29,6 +33,14 @@ public class Controller {
     @FXML private Button chooseRepoButton;
     @FXML private Button chooseFileButton;
     @FXML private Button commitButton;
+
+    private File newRepo;
+
+    @FXML private Label createRepoPathLabel;
+    @FXML private TextField createRepoNameText;
+    @FXML private Text createMessageText;
+    @FXML private Button createRepoPathButton;
+    @FXML private Button createButton;
 
     public Controller(){
         this.threadController = new ThreadController(this);
@@ -43,7 +55,7 @@ public class Controller {
             chooser.setTitle(title);
             chooser.setInitialDirectory(path.getParentFile());
 
-            returnFile = chooser.showDialog(actionTargetText.getScene().getWindow());
+            returnFile = chooser.showDialog(messageText.getScene().getWindow());
         }else{
             FileChooser fileChooser = new FileChooser();
             fileChooser.setTitle(title);
@@ -51,7 +63,7 @@ public class Controller {
                     new FileChooser.ExtensionFilter("All Files", "*.*"),
                     new FileChooser.ExtensionFilter("Text Files", "*.txt"));
 
-            returnFile = fileChooser.showOpenDialog(actionTargetText.getScene().getWindow());
+            returnFile = fileChooser.showOpenDialog(messageText.getScene().getWindow());
         }
         return returnFile;
     }
@@ -60,19 +72,41 @@ public class Controller {
         return parent.toURI().relativize(file.toURI()).getPath();
     }
 
-    private void updateButtonDisables() {
-        if(threadController.isLoadingUIThreadRunning()){
-            chooseRepoButton.setDisable(true);
-            chooseFileButton.setDisable(true);
-            commitButton.setDisable(true);
-        }else {
-            chooseRepoButton.setDisable(false);
-            chooseFileButton.setDisable(selectedRepo == null);
-            commitButton.setDisable(selectedRepo == null || selectedFile == null);
+    @FXML private void updateButtonDisables() {
+        if(addFileTab.isSelected()) {
+            if (threadController.isLoadingUIThreadRunning()) {
+                chooseRepoButton.setDisable(true);
+                chooseFileButton.setDisable(true);
+                commitButton.setDisable(true);
+            } else {
+                chooseRepoButton.setDisable(false);
+                chooseFileButton.setDisable(selectedRepo == null);
+                commitButton.setDisable(selectedRepo == null || selectedFile == null);
+            }
+        }else if(createRepoTab.isSelected()){
+            if (threadController.isLoadingUIThreadRunning()) {
+                createRepoPathButton.setDisable(true);
+                createButton.setDisable(true);
+            } else {
+                createRepoPathButton.setDisable(false);
+                createButton.setDisable(newRepo == null || createRepoNameText.getText().equals(""));
+            }
         }
     }
 
-    public void handleSubmitButtonAction(ActionEvent actionEvent) {
+    public void handleCommitButtonAction(ActionEvent actionEvent) {
+        Task task = new Task<Boolean>() {
+            @Override
+            public Boolean call() throws Exception {
+                return addFileAndPush();
+            }
+        };
+        Thread th = new Thread(task);
+        th.setDaemon(false);
+        th.start();
+    }
+
+    public void handleCreateButtonAction(ActionEvent actionEvent) {
         Task task = new Task<Boolean>() {
             @Override
             public Boolean call() throws Exception {
@@ -85,7 +119,37 @@ public class Controller {
     }
 
     private boolean cloneRepoAndPush() {
-        threadController.startLoadingUIThread(this.actionTargetText);
+        threadController.startLoadingUIThread(this.createMessageText);
+
+        this.updateButtonDisables();
+
+        String repoPath = createRepoPathLabel.getText();
+        String repoName = createRepoNameText.getText();
+
+        RepoModel repo;
+
+        try {
+            repo = new RepoModel(new File(repoPath, repoName), SECRET_CONSTANTS.TEST_GITHUB_TOKEN, Constants.DIRECTORY_NEEDS_NEW_REPO);
+        }catch (Exception e){
+            e.printStackTrace();
+            threadController.endLoadingUIThread();
+            this.updateButtonDisables();
+            return false;
+        }
+
+        repo.closeRepo();
+
+        threadController.endLoadingUIThread();
+
+        this.createMessageText.setText(repoName + " created");
+
+        this.updateButtonDisables();
+
+        return true;
+    }
+
+    private boolean addFileAndPush(){
+        threadController.startLoadingUIThread(this.messageText);
 
         this.updateButtonDisables();
 
@@ -110,7 +174,7 @@ public class Controller {
 
         threadController.endLoadingUIThread();
 
-        this.actionTargetText.setText(filePath + " added");
+        this.messageText.setText(filePath + " added");
 
         this.updateButtonDisables();
 
@@ -133,6 +197,16 @@ public class Controller {
         if(newSelectedFile != null){
             this.selectedFile = newSelectedFile;
             this.fileNameLabel.setText(getRelativePath(selectedRepo, selectedFile));
+            this.updateButtonDisables();
+        }
+    }
+
+    public void handleCreateRepoLocationButton(ActionEvent actionEvent) {
+        File newRepo = this.getPathFromChooser(true, "Choose a location");
+
+        if(newRepo != null){
+            this.newRepo = newRepo;
+            this.createRepoPathLabel.setText(newRepo.toString());
             this.updateButtonDisables();
         }
     }
