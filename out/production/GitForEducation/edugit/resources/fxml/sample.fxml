@@ -16,7 +16,8 @@
     <Label fx:id="repoPathLabel"
            GridPane.columnIndex="1" GridPane.rowIndex="1"/>
 
-    <Button text="Choose..." onAction="#handleChooseRepoLocationButton"
+    <Button fx:id="chooseRepoButton" text="Choose..."
+            onAction="#handleChooseRepoLocationButton"
             GridPane.columnIndex="2" GridPane.rowIndex="1"/>
 
     <Label text="File name:"
@@ -25,7 +26,8 @@
     <Label fx:id="fileNameLabel"
             GridPane.columnIndex="1" GridPane.rowIndex="2"/>
 
-    <Button text="Choose..." onAction="#handleChooseFileButton"
+    <Button fx:id="chooseFileButton" text="Choose..."
+            onAction="#handleChooseFileButton" disable="true"
             GridPane.columnIndex="2" GridPane.rowIndex="2"/>
 
     <Label text="Commit message:"
@@ -37,8 +39,8 @@
 
     <HBox spacing="10" alignment="bottom_right"
           GridPane.columnIndex="2" GridPane.rowIndex="4">
-        <Button text="Commit"
-                onAction="#handleSubmitButtonAction"/>
+        <Button fx:id="commitButton" text="Commit"
+                onAction="#handleSubmitButtonAction" disable="true"/>
     </HBox>
 
     <Text fx:id="actionTargetText"
