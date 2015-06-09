@@ -1,6 +1,5 @@
 package edugit;
 
-import com.sun.tools.javac.util.FatalError;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -20,7 +19,7 @@ public class RepoModel {
     private Repository repo;
     private String remoteURL;
 
-    private File localPath = new File("/Users/grahamearley/Documents/School/Git research/repos/Clone2");
+    private File localPath = new File("/Accounts/makik/Desktop/testGitRepo");
 
     public RepoModel(String ownerToken) {
         this.ownerAuth = new UsernamePasswordCredentialsProvider(SECRET_CONSTANTS.TEST_GITHUB_TOKEN,"");
