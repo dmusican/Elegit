@@ -61,12 +61,12 @@ public class Controller {
         commitButton.setDisable(selectedRepo == null || selectedFile == null);
     }
 
-    public void handleSubmitButtonAction(ActionEvent actionEvent) {
+    public void handleSubmitButtonAction(ActionEvent actionEvent) throws Exception {
         String repoPath = repoPathLabel.getText();
         String filePath = fileNameLabel.getText();
         String commitMessage = commitText.getText();
 
-        RepoModel repo = new RepoModel(new File(repoPath), SECRET_CONSTANTS.TEST_GITHUB_TOKEN, true);
+        RepoModel repo = new RepoModel(new File(repoPath), SECRET_CONSTANTS.TEST_GITHUB_TOKEN, Constants.DIRECTORY_READY_FOR_CLONING);
 
         repo.pushNewFile(new File(filePath), commitMessage);
 
