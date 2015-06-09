@@ -35,7 +35,7 @@ public class RepoModel {
             this.repo = this.findExistingRepo();
         } else if (directoryRepoStatus == Constants.DIRECTORY_READY_FOR_CLONING) {
             this.repo = this.cloneRepo();
-        } else if (directoryRepoStatus == Constants.DIRECTORY_NEEDS_NEW_GIT_REPO) {
+        } else if (directoryRepoStatus == Constants.DIRECTORY_NEEDS_NEW_REPO) {
             this.repo = this.createNewRepo();
         } else {
             throw new Exception("Invalid string passed in for Repo Status! See Constants.java for possible options");
