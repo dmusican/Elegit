@@ -19,12 +19,16 @@ public class RepoModel {
     private Repository repo;
     private String remoteURL;
 
-    private File localPath = new File(System.getProperty("user.home")+File.separator+"Desktop"+File.separator+"TestClone");
+    private File localPath;
 
-    public RepoModel(String ownerToken) {
-        this.ownerAuth = new UsernamePasswordCredentialsProvider(SECRET_CONSTANTS.TEST_GITHUB_TOKEN,"");
+    public RepoModel(String ownerToken, File directoryPath) {
+        this.ownerAuth = new UsernamePasswordCredentialsProvider(ownerToken,"");
         this.remoteURL = "https://github.com/grahamearley/jgit-test.git"; // TODO: pass this in!
 
+        this.localPath = directoryPath;
+
+        // This ensures that the path is a directory, not a folder
+        //  (.delete will delete any file at the end of the path)
         this.localPath.delete();
     }
 
