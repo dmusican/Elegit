@@ -13,13 +13,13 @@ public class Controller {
     @FXML private TextField fileNameText;
     @FXML private TextField commitText;
 
-    public void handleSubmitButtonAction(ActionEvent actionEvent) {
+    public void handleSubmitButtonAction(ActionEvent actionEvent) throws Exception {
         String fileName = fileNameText.getText();
         String commitMessage = commitText.getText();
 
-        File path = new File(System.getProperty("user.home")+File.separator+"Desktop"+File.separator+"TestNonClone");
+        File path = new File(System.getProperty("user.home")+File.separator+"Desktop"+File.separator+"TestClone3");
 
-        RepoModel repo = new RepoModel(path, SECRET_CONSTANTS.TEST_GITHUB_TOKEN, true);
+        RepoModel repo = new RepoModel(path, SECRET_CONSTANTS.TEST_GITHUB_TOKEN, Constants.DIRECTORY_READY_FOR_CLONING);
         repo.pushNewFile(new File(path, fileName), commitMessage);
         repo.closeRepo();
 
