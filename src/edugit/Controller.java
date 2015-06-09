@@ -1,5 +1,6 @@
 package edugit;
 
+import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -15,6 +16,8 @@ public class Controller {
 
     public final String defaultPath = System.getProperty("user.home")+File.separator+"Desktop"+File.separator+"TestClone";
 
+    private ThreadController threadController;
+
     private File selectedRepo;
     private File selectedFile;
 
@@ -27,7 +30,9 @@ public class Controller {
     @FXML private Button chooseFileButton;
     @FXML private Button commitButton;
 
-    public Controller(){}
+    public Controller(){
+        this.threadController = new ThreadController(this);
+    }
 
     private File getPathFromChooser(boolean isDirectory, String title){
         File path = new File(defaultPath);
@@ -56,12 +61,34 @@ public class Controller {
     }
 
     private void updateButtonDisables() {
-        chooseRepoButton.setDisable(false);
-        chooseFileButton.setDisable(selectedRepo == null);
-        commitButton.setDisable(selectedRepo == null || selectedFile == null);
+        if(threadController.isLoadingUIThreadRunning()){
+            chooseRepoButton.setDisable(true);
+            chooseFileButton.setDisable(true);
+            commitButton.setDisable(true);
+        }else {
+            chooseRepoButton.setDisable(false);
+            chooseFileButton.setDisable(selectedRepo == null);
+            commitButton.setDisable(selectedRepo == null || selectedFile == null);
+        }
     }
 
     public void handleSubmitButtonAction(ActionEvent actionEvent) {
+        Task task = new Task<Boolean>() {
+            @Override
+            public Boolean call() throws Exception {
+                return cloneRepoAndPush();
+            }
+        };
+        Thread th = new Thread(task);
+        th.setDaemon(false);
+        th.start();
+    }
+
+    private boolean cloneRepoAndPush() {
+        threadController.startLoadingUIThread(this.actionTargetText);
+
+        this.updateButtonDisables();
+
         String repoPath = repoPathLabel.getText();
         String filePath = fileNameLabel.getText();
         String commitMessage = commitText.getText();
@@ -72,7 +99,13 @@ public class Controller {
 
         repo.closeRepo();
 
-        this.actionTargetText.setText(filePath+" added");
+        threadController.endLoadingUIThread();
+
+        this.actionTargetText.setText(filePath + " added");
+
+        this.updateButtonDisables();
+
+        return true;
     }
 
     public void handleChooseRepoLocationButton(ActionEvent actionEvent) {
