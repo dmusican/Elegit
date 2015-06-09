@@ -51,7 +51,7 @@ public class Controller {
 
         repo.cloneRepo();
 //        repo.findRepo();
-        repo.pushNewFile(fileName, commitMessage);
+        repo.pushNewFile(new File(path, fileName), commitMessage);
         repo.closeRepo();
 
         this.actionTarget.setText(fileName+" added");
