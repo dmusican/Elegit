@@ -22,23 +22,27 @@
     <Label text="File name:"
            GridPane.columnIndex="0" GridPane.rowIndex="2"/>
 
-    <TextField fx:id="fileNameText"
+    <Label fx:id="fileLocation"
             GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+
+    <Button text="Choose..." onAction="#handleChooseFileButton"
+            GridPane.columnIndex="2" GridPane.rowIndex="2"/>
 
     <Label text="Commit message:"
            GridPane.columnIndex="0" GridPane.rowIndex="3"/>
 
     <TextField fx:id="commitText"
-           GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+           GridPane.columnIndex="1" GridPane.rowIndex="3"
+            GridPane.columnSpan="2"/>
 
     <HBox spacing="10" alignment="bottom_right"
-          GridPane.columnIndex="1" GridPane.rowIndex="4">
+          GridPane.columnIndex="2" GridPane.rowIndex="4">
         <Button text="Commit"
                 onAction="#handleSubmitButtonAction"/>
     </HBox>
 
     <Text fx:id="actionTarget"
-          GridPane.columnIndex="1" GridPane.rowIndex="6"/>
+          GridPane.columnIndex="1" GridPane.rowIndex="5"/>
 
     <stylesheets>
         <URL value="@../css/MainView.css" />
