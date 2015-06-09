@@ -10,26 +10,41 @@
           GridPane.columnIndex="0" GridPane.rowIndex="0"
           GridPane.columnSpan="2"/>
 
-    <Label text="File name:"
+    <Label text="Repo location:"
            GridPane.columnIndex="0" GridPane.rowIndex="1"/>
 
-    <TextField fx:id="fileNameText"
-            GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+    <Label fx:id="repoPathLabel"
+           GridPane.columnIndex="1" GridPane.rowIndex="1"/>
 
-    <Label text="Commit message:"
+    <Button fx:id="chooseRepoButton" text="Choose..."
+            onAction="#handleChooseRepoLocationButton"
+            GridPane.columnIndex="2" GridPane.rowIndex="1"/>
+
+    <Label text="File name:"
            GridPane.columnIndex="0" GridPane.rowIndex="2"/>
 
+    <Label fx:id="fileNameLabel"
+            GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+
+    <Button fx:id="chooseFileButton" text="Choose..."
+            onAction="#handleChooseFileButton" disable="true"
+            GridPane.columnIndex="2" GridPane.rowIndex="2"/>
+
+    <Label text="Commit message:"
+           GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+
     <TextField fx:id="commitText"
-           GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+           GridPane.columnIndex="1" GridPane.rowIndex="3"
+            GridPane.columnSpan="2"/>
 
     <HBox spacing="10" alignment="bottom_right"
-          GridPane.columnIndex="1" GridPane.rowIndex="4">
-        <Button text="Commit"
-                onAction="#handleSubmitButtonAction"/>
+          GridPane.columnIndex="2" GridPane.rowIndex="4">
+        <Button fx:id="commitButton" text="Commit"
+                onAction="#handleSubmitButtonAction" disable="true"/>
     </HBox>
 
-    <Text fx:id="actionTarget"
-          GridPane.columnIndex="1" GridPane.rowIndex="6"/>
+    <Text fx:id="actionTargetText"
+          GridPane.columnIndex="1" GridPane.rowIndex="5"/>
 
     <stylesheets>
         <URL value="@../css/MainView.css" />
