@@ -93,7 +93,16 @@ public class Controller {
         String filePath = fileNameLabel.getText();
         String commitMessage = commitText.getText();
 
-        RepoModel repo = new RepoModel(new File(repoPath), SECRET_CONSTANTS.TEST_GITHUB_TOKEN, true);
+        RepoModel repo;
+
+        try {
+            repo = new RepoModel(new File(repoPath), SECRET_CONSTANTS.TEST_GITHUB_TOKEN, Constants.DIRECTORY_READY_FOR_CLONING);
+        }catch (Exception e){
+            e.printStackTrace();
+            threadController.endLoadingUIThread();
+            this.updateButtonDisables();
+            return false;
+        }
 
         repo.pushNewFile(new File(filePath), commitMessage);
 
