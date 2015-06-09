@@ -63,22 +63,14 @@ public class RepoModel {
         }
     }
 
-    public void pushNewFile(String fileNameString, String commitMessage) {
+    public void pushNewFile(File file, String commitMessage) {
         Git git = new Git(this.repo);
-        String fileName = fileNameString;
 
-        // Create file
-        File myfile = new File(repo.getDirectory().getParent(), fileName);
-        try {
-            myfile.createNewFile();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
 
         // git add:
         try {
             git.add()
-                    .addFilepattern(fileName)
+                    .addFilepattern(file.getName())
                     .call();
         } catch (GitAPIException e) {
             e.printStackTrace();

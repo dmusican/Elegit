@@ -22,7 +22,7 @@ public class Controller {
         RepoModel repo = new RepoModel(SECRET_CONSTANTS.TEST_GITHUB_TOKEN, path);
         repo.cloneRepo();
 //        repo.findRepo();
-        repo.pushNewFile(fileName, commitMessage);
+        repo.pushNewFile(new File(path, fileName), commitMessage);
         repo.closeRepo();
 
         actionTarget.setText(fileName + " added");
