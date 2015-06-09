@@ -12,29 +12,19 @@ import java.io.File;
  */
 public class ClonedRepoModel extends AbstractRepoModel {
 
-    String destinationFolderName = "";
-
     public ClonedRepoModel(File directoryPath, String ownerToken) throws Exception {
         super(directoryPath, ownerToken);
-    }
-
-    public void setDestinationFolderName(String destinationFolderName) {
-        // The destination folder is the name of the new folder you want
-        //  to store the cloned repo.
-        this.destinationFolderName = destinationFolderName;
     }
 
     @Override
     protected Repository obtainRepository() {
         // TODO: make this not just clone a dummy repo...
 
-        File destinationDirectory = new File(this.localPath.toString(), this.destinationFolderName);
-
         CloneCommand cloneCommand = Git.cloneRepository();
         cloneCommand.setURI(this.remoteURL);
         cloneCommand.setCredentialsProvider(this.ownerAuth);
 
-        cloneCommand.setDirectory(destinationDirectory);
+        cloneCommand.setDirectory(this.localPath);
         Git cloneCall = null;
 
         try {

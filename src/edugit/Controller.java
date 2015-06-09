@@ -66,7 +66,7 @@ public class Controller {
         String filePath = fileNameLabel.getText();
         String commitMessage = commitText.getText();
 
-        AbstractRepoModel repo = new ClonedRepoModel(new File(repoPath), SECRET_CONSTANTS.TEST_GITHUB_TOKEN);
+        ClonedRepoModel repo = new ClonedRepoModel(new File(repoPath), SECRET_CONSTANTS.TEST_GITHUB_TOKEN);
 
         repo.pushNewFile(new File(filePath), commitMessage);
 
