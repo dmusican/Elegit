@@ -32,6 +32,6 @@
           GridPane.columnIndex="1" GridPane.rowIndex="6"/>
 
     <stylesheets>
-        <URL value="@MainView.css" />
+        <URL value="@../css/MainView.css" />
     </stylesheets>
 </GridPane>
