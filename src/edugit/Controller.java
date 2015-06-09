@@ -1,4 +1,4 @@
-package sample;
+package edugit;
 
 public class Controller {
 }
