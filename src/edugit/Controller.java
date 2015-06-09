@@ -126,10 +126,10 @@ public class Controller {
         String repoPath = createRepoPathLabel.getText();
         String repoName = createRepoNameText.getText();
 
-        RepoModel repo;
+        NewRepoModel repo;
 
         try {
-            repo = new RepoModel(new File(repoPath, repoName), SECRET_CONSTANTS.TEST_GITHUB_TOKEN, Constants.DIRECTORY_NEEDS_NEW_REPO);
+            repo = new NewRepoModel(new File(repoPath, repoName), SECRET_CONSTANTS.TEST_GITHUB_TOKEN);
         }catch (Exception e){
             e.printStackTrace();
             threadController.endLoadingUIThread();
@@ -157,10 +157,10 @@ public class Controller {
         String filePath = fileNameLabel.getText();
         String commitMessage = commitText.getText();
 
-        RepoModel repo;
+        ClonedRepoModel repo;
 
         try {
-            repo = new RepoModel(new File(repoPath), SECRET_CONSTANTS.TEST_GITHUB_TOKEN, Constants.DIRECTORY_READY_FOR_CLONING);
+            repo = new ClonedRepoModel(new File(repoPath), SECRET_CONSTANTS.TEST_GITHUB_TOKEN);
         }catch (Exception e){
             e.printStackTrace();
             threadController.endLoadingUIThread();
