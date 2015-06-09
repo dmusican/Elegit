@@ -10,17 +10,26 @@
           GridPane.columnIndex="0" GridPane.rowIndex="0"
           GridPane.columnSpan="2"/>
 
-    <Label text="File name:"
+    <Label text="Repo location:"
            GridPane.columnIndex="0" GridPane.rowIndex="1"/>
 
-    <TextField fx:id="fileNameText"
-            GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+    <Label fx:id="repoLocation"
+           GridPane.columnIndex="1" GridPane.rowIndex="1"/>
 
-    <Label text="Commit message:"
+    <Button text="Choose..." onAction="#handleChooseRepoLocationButton"
+            GridPane.columnIndex="2" GridPane.rowIndex="1"/>
+
+    <Label text="File name:"
            GridPane.columnIndex="0" GridPane.rowIndex="2"/>
 
+    <TextField fx:id="fileNameText"
+            GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+
+    <Label text="Commit message:"
+           GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+
     <TextField fx:id="commitText"
-           GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+           GridPane.columnIndex="1" GridPane.rowIndex="3"/>
 
     <HBox spacing="10" alignment="bottom_right"
           GridPane.columnIndex="1" GridPane.rowIndex="4">

@@ -28,6 +28,10 @@ public class RepoModel {
         this.localPath.delete();
     }
 
+    public File getLocalPath(){
+        return localPath;
+    }
+
     public void cloneRepo() {
         // TODO: make this not just clone a dummy repo...
 
