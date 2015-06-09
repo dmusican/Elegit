@@ -19,7 +19,7 @@ public class RepoModel {
     private Repository repo;
     private String remoteURL;
 
-    private File localPath = new File("/Accounts/makik/Desktop/testGitRepo");
+    private File localPath = new File(System.getProperty("user.home")+File.separator+"Desktop"+File.separator+"TestClone");
 
     public RepoModel(String ownerToken) {
         this.ownerAuth = new UsernamePasswordCredentialsProvider(SECRET_CONSTANTS.TEST_GITHUB_TOKEN,"");
