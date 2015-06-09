@@ -21,7 +21,7 @@ public class RepoModel {
 
     private File localPath;
 
-    public RepoModel(File directoryPath, String ownerToken, boolean directoryContainsRepo) {
+    public RepoModel(File directoryPath, String ownerToken, String directoryRepoStatus) throws Exception {
         this.ownerAuth = new UsernamePasswordCredentialsProvider(ownerToken,"");
         this.remoteURL = "https://github.com/grahamearley/jgit-test.git"; // TODO: pass this in!
 
@@ -31,10 +31,14 @@ public class RepoModel {
         //  ( .delete() will delete any file at the end of the path )
         this.localPath.delete();
 
-        if (directoryContainsRepo) {
+        if (directoryRepoStatus == Constants.DIRECTORY_CONTAINS_REPO) {
             this.repo = this.findExistingRepo();
-        } else {
+        } else if (directoryRepoStatus == Constants.DIRECTORY_READY_FOR_CLONING) {
             this.repo = this.cloneRepo();
+        } else if (directoryRepoStatus == Constants.DIRECTORY_NEEDS_NEW_GIT_REPO) {
+            this.repo = this.createNewRepo();
+        } else {
+            throw new Exception("Invalid string passed in for Repo Status! See Constants.java for possible options");
         }
 
     }
@@ -56,12 +60,11 @@ public class RepoModel {
             // TODO: better error handling
         }
 
+        cloneCall.close();
         return cloneCall.getRepository();
     }
 
     private Repository findExistingRepo() {
-        // TODO: for now, make there be only two options: clone *or* have a repo already cloned
-        //  Then, figure out how to create a repo from scratch...
         FileRepositoryBuilder builder = new FileRepositoryBuilder();
         try {
             return builder.findGitDir(this.localPath)
@@ -73,10 +76,15 @@ public class RepoModel {
         }
     }
 
+    private Repository createNewRepo() throws GitAPIException {
+        // create the directory
+        Git git = Git.init().setDirectory(this.localPath).call();
+        git.close();
+        return git.getRepository();
+    }
+
     public void pushNewFile(File file, String commitMessage) {
         Git git = new Git(this.repo);
-
-
         // git add:
         try {
             git.add()
