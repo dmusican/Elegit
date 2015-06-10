@@ -12,7 +12,7 @@ public class InitRepoView extends Stage{
 
     public InitRepoView() throws Exception{
         Parent root = FXMLLoader.load(getClass().getResource("resources/fxml/InitRepoView.fxml"));
-        this.setTitle("Hello World");
+        this.setTitle("EduGit");
 
         Scene scene = new Scene(root, 400, 300);
         this.setScene(scene);
