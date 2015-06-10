@@ -8,11 +8,10 @@ import org.eclipse.jgit.lib.Repository;
 import java.io.File;
 
 /**
- * Created by grahamearley on 6/9/15.
+ * A RepoHelper for a repository cloned into an empty folder
  */
-public class ClonedRepoModel extends AbstractRepoModel {
-
-    public ClonedRepoModel(File directoryPath, String ownerToken) throws Exception {
+public class ClonedRepoHelper extends RepoHelper {
+    public ClonedRepoHelper(File directoryPath, String ownerToken) throws Exception {
         super(directoryPath, ownerToken);
     }
 

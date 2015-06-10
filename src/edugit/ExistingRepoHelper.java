@@ -7,11 +7,10 @@ import java.io.File;
 import java.io.IOException;
 
 /**
- * Created by grahamearley on 6/9/15.
+ * A RepoHelper for pre-existing repositories
  */
-public class ExistingRepoModel extends AbstractRepoModel {
-
-    public ExistingRepoModel(File directoryPath, String ownerToken) throws Exception {
+public class ExistingRepoHelper extends RepoHelper {
+    public ExistingRepoHelper(File directoryPath, String ownerToken) throws Exception {
         super(directoryPath, ownerToken);
     }
 

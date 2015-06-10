@@ -7,11 +7,10 @@ import org.eclipse.jgit.lib.Repository;
 import java.io.File;
 
 /**
- * Created by grahamearley on 6/9/15.
+ * A RepoHelper for newly instantiated repositories in an empty folder
  */
-public class NewRepoModel extends AbstractRepoModel {
-
-    public NewRepoModel(File directoryPath, String ownerToken) throws Exception {
+public class NewRepoHelper extends RepoHelper {
+    public NewRepoHelper(File directoryPath, String ownerToken) throws Exception {
         super(directoryPath, ownerToken);
     }
 
