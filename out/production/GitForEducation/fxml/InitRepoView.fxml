@@ -1,0 +1,31 @@
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Text?>
+<?import java.net.URL?>
+
+<TabPane fx:controller="edugit.InitRepoController" xmlns:fx="http://javafx.com/fxml"
+         tabClosingPolicy="UNAVAILABLE" tabMinWidth="100">
+
+    <Tab text="Clone" fx:id="cloneRepoTab">
+        <tooltip>
+            <Tooltip text="Clone a repository from a remote source (Github, Bitbucket, etc)"/>
+        </tooltip>
+    </Tab>
+
+    <Tab text="New" fx:id="createRepoTab">
+        <tooltip>
+            <Tooltip text="Create a new repository in your local file system"/>
+        </tooltip>
+    </Tab>
+
+    <Tab text="Find existing" fx:id="findRepoTab">
+        <tooltip>
+            <Tooltip text="Use an existing repository in the local file system"/>
+        </tooltip>
+    </Tab>
+
+    <stylesheets>
+        <URL value="@../css/BaseStyle.css"/>
+        <URL value="@../css/MainView.css" />
+    </stylesheets>
+</TabPane>

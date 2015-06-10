@@ -4,7 +4,7 @@
 <?import java.net.URL?>
 
 <TabPane fx:controller="edugit.Controller" xmlns:fx="http://javafx.com/fxml"
-        tabClosingPolicy="UNAVAILABLE">
+        tabClosingPolicy="UNAVAILABLE" tabMinWidth="90">
 
     <Tab text="Add File" fx:id="addFileTab">
         <tooltip>
@@ -105,6 +105,7 @@
     </Tab>
 
     <stylesheets>
+        <URL value="@../css/BaseStyle.css"/>
         <URL value="@../css/MainView.css" />
     </stylesheets>
 </TabPane>
