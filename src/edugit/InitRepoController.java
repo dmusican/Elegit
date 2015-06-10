@@ -12,6 +12,9 @@ import java.io.File;
 
 /**
  * Created by makik on 6/10/15.
+ *
+ * The controller that handles the creation of a session with a repository either cloned, created, or located.
+ * This controller works with the InitRepoView and adds repositories to the SessionModel
  */
 public class InitRepoController extends Controller {
 
@@ -40,6 +43,11 @@ public class InitRepoController extends Controller {
     private File cloneRepoFile;
     private File createRepoFile;
     private File findRepoFile;
+
+    /**
+    * The following methods handle the buttons for selecting a file or directory location. They each
+    * present the user with a chooser, then store the result and update the UI appropriately
+    */
 
     public void handleCloneRepoLocationButton(ActionEvent actionEvent){
         cloneRepoFile = getPathFromChooser(true, "Choose a Location", ((Button)actionEvent.getSource()).getScene().getWindow());
@@ -77,6 +85,17 @@ public class InitRepoController extends Controller {
         }
     }
 
+    /**
+     * Clones a repository into the selected file location (stored in this.cloneRepoFile) and then
+     * adds it to the SessionModel.
+     *
+     * This method spawns two threads, one for the actual cloning and one for updating the UI
+     * with progress reports.
+     *
+     * Currently (as of 6/10/15) uses the test repository every time.
+     *
+     * @param actionEvent ignored
+     */
     public void handleCloneRepoGoButton(ActionEvent actionEvent){
 
         Runnable r = () -> {
@@ -99,6 +118,12 @@ public class InitRepoController extends Controller {
         ThreadHelper.startThread(r);
     }
 
+    /**
+     * Creates a directory at the given location (stored in this.createRepoFile) with the given
+     * name and initializes a git repository there, then adds it to the SessionModel.
+     *
+     * @param actionEvent ignored
+     */
     public void handleCreateRepoGoButton(ActionEvent actionEvent){
         try{
             RepoHelper repo = new NewRepoHelper((new File(createRepoFile, createRepoNameTextField.getText())).toPath(), SECRET_CONSTANTS.TEST_GITHUB_TOKEN);
@@ -108,6 +133,12 @@ public class InitRepoController extends Controller {
         }
     }
 
+    /**
+     * Adds the repository at the given location (stored in this.findRepoFile) to the
+     * SessionModel.
+     *
+     * @param actionEvent ignored
+     */
     public void handleFindRepoGoButton(ActionEvent actionEvent){
         try{
             RepoHelper repo = new ExistingRepoHelper(findRepoFile.toPath(), SECRET_CONSTANTS.TEST_GITHUB_TOKEN);
@@ -117,6 +148,9 @@ public class InitRepoController extends Controller {
         }
     }
 
+    /**
+     * Unused -> updates which buttons are enabled based on how much information the user has input
+     */
     @FXML private void updateButtonDisables() {
 //        if(cloneRepoTab.isSelected()) {
 //            if (threadController.isLoadingUIThreadRunning()) {

@@ -16,5 +16,6 @@ public class SessionController extends Controller{
     }
 
     public void handleFetchButton(ActionEvent actionEvent){
+
     }
 }
