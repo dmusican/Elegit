@@ -15,8 +15,6 @@ public class MainController extends Controller{
 
     public final String defaultPath = System.getProperty("user.home")+File.separator+"Desktop"+File.separator+"TestClone";
 
-    private ThreadController threadController;
-
     @FXML private Tab addFileTab;
     @FXML private Tab createRepoTab;
 
@@ -41,12 +39,11 @@ public class MainController extends Controller{
     @FXML private Button createButton;
 
     public MainController(){
-        this.threadController = new ThreadController(this);
     }
 
     @FXML private void updateButtonDisables() {
         if(addFileTab.isSelected()) {
-            if (threadController.isLoadingUIThreadRunning()) {
+            if (ThreadHelper.isProgressThreadRunning()) {
                 chooseRepoButton.setDisable(true);
                 chooseFileButton.setDisable(true);
                 commitButton.setDisable(true);
@@ -56,7 +53,7 @@ public class MainController extends Controller{
                 commitButton.setDisable(selectedRepo == null || selectedFile == null);
             }
         }else if(createRepoTab.isSelected()){
-            if (threadController.isLoadingUIThreadRunning()) {
+            if (ThreadHelper.isProgressThreadRunning()) {
                 createRepoPathButton.setDisable(true);
                 createButton.setDisable(true);
             } else {
@@ -91,7 +88,7 @@ public class MainController extends Controller{
     }
 
     private boolean cloneRepoAndPush() {
-        threadController.startLoadingUIThread(this.createMessageText);
+//        threadHelper.startProgressThread(this.createMessageText);
 
         this.updateButtonDisables();
 
@@ -104,14 +101,14 @@ public class MainController extends Controller{
             repo = new NewRepoHelper(new File(repoPath, repoName).toPath(), SECRET_CONSTANTS.TEST_GITHUB_TOKEN);
         }catch (Exception e){
             e.printStackTrace();
-            threadController.endLoadingUIThread();
+            ThreadHelper.endProgressThread();
             this.updateButtonDisables();
             return false;
         }
 
         repo.closeRepo();
 
-        threadController.endLoadingUIThread();
+        ThreadHelper.endProgressThread();
 
         this.createMessageText.setText(repoName + " created");
 
@@ -121,7 +118,7 @@ public class MainController extends Controller{
     }
 
     private boolean addFileAndPush(){
-        threadController.startLoadingUIThread(this.messageText);
+//        threadHelper.startProgressThread(this.messageText);
 
         this.updateButtonDisables();
 
@@ -135,7 +132,7 @@ public class MainController extends Controller{
             repo = new ClonedRepoHelper(new File(repoPath).toPath(), SECRET_CONSTANTS.TEST_GITHUB_TOKEN);
         }catch (Exception e){
             e.printStackTrace();
-            threadController.endLoadingUIThread();
+            ThreadHelper.endProgressThread();
             this.updateButtonDisables();
             return false;
         }
@@ -144,7 +141,7 @@ public class MainController extends Controller{
 
         repo.closeRepo();
 
-        threadController.endLoadingUIThread();
+        ThreadHelper.endProgressThread();
 
         this.messageText.setText(filePath + " added");
 

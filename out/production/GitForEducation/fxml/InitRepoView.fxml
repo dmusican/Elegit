@@ -36,8 +36,11 @@
                     onAction="#handleCloneRepoLocationButton" visible="false"
                     GridPane.columnIndex="2" GridPane.rowIndex="0"/>
 
-            <Button fx:id="cloneRepoGoButton" text="Clone..."
+            <Button fx:id="cloneRepoGoButton" text="Clone!"
                     onAction="#handleCloneRepoGoButton"
+                    GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+
+            <ProgressIndicator fx:id="cloneRepoProgressIndicator" visible="false"
                     GridPane.columnIndex="1" GridPane.rowIndex="1"/>
 
         </GridPane>
@@ -79,7 +82,7 @@
             <TextField fx:id="createRepoNameTextField"
                        GridPane.columnIndex="1" GridPane.rowIndex="1"/>
 
-            <Button fx:id="createRepoGoButton" text="Create"
+            <Button fx:id="createRepoGoButton" text="Create!"
                     onAction="#handleCreateRepoGoButton"
                     GridPane.columnIndex="2" GridPane.rowIndex="1"/>
 
@@ -91,6 +94,37 @@
         <tooltip>
             <Tooltip text="Use an existing repository in the local file system"/>
         </tooltip>
+
+        <GridPane alignment="center" hgap="10" vgap="30">
+            <columnConstraints>
+                <ColumnConstraints halignment="RIGHT" percentWidth="15"/>
+            </columnConstraints>
+            <columnConstraints>
+                <ColumnConstraints halignment="CENTER" percentWidth="60"/>
+            </columnConstraints>
+            <columnConstraints>
+                <ColumnConstraints halignment="CENTER" percentWidth="25"/>
+            </columnConstraints>
+
+            <Label text="Location:"
+                   GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+
+            <Text fx:id="findRepoLocationText" visible="false"
+                  GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+
+            <Button fx:id="findRepoLocationButton" text="Select location..."
+                    onAction="#handleFindRepoLocationButton" visible="true"
+                    GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+
+            <Button fx:id="findRepoChangeLocationButton" text="Change..."
+                    onAction="#handleFindRepoLocationButton" visible="false"
+                    GridPane.columnIndex="2" GridPane.rowIndex="0"/>
+
+            <Button fx:id="findRepoGoButton" text="Get Started!"
+                    onAction="#handleFindRepoGoButton"
+                    GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+
+        </GridPane>
     </Tab>
 
     <stylesheets>
