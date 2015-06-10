@@ -4,7 +4,24 @@
 <?import javafx.scene.layout.*?>
 <?import java.net.URL?>
 <?import javafx.scene.control.Button?>
-<GridPane alignment="center" hgap="10" vgap="10" fx:controller="edugit.SessionController" xmlns:fx="http://javafx.com/fxml" id="gridPane">
+<GridPane alignment="CENTER" hgap="5" vgap="5" fx:controller="edugit.SessionController" xmlns:fx="http://javafx.com/fxml" id="gridPane"
+        gridLinesVisible="true">
+    <columnConstraints>
+        <ColumnConstraints halignment="CENTER" percentWidth="26"/>
+        <ColumnConstraints halignment="CENTER" percentWidth="11"/>
+        <ColumnConstraints halignment="CENTER" percentWidth="26"/>
+        <ColumnConstraints halignment="CENTER" percentWidth="11"/>
+        <ColumnConstraints halignment="CENTER" percentWidth="26"/>
+    </columnConstraints>
+    <rowConstraints>
+        <RowConstraints valignment="CENTER" percentHeight="9"/>
+        <RowConstraints valignment="CENTER" percentHeight="9"/>
+        <RowConstraints valignment="CENTER" percentHeight="15"/>
+        <RowConstraints valignment="CENTER" percentHeight="9"/>
+        <RowConstraints valignment="CENTER" percentHeight="15"/>
+        <RowConstraints valignment="CENTER" percentHeight="9"/>
+        <RowConstraints valignment="CENTER" percentHeight="9"/>
+    </rowConstraints>
 
     <WorkingTreePanelView GridPane.rowIndex="0" GridPane.columnIndex="0" GridPane.rowSpan="7" id="workingTreePanelView"/>
 
