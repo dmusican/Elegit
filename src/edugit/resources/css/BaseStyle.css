@@ -21,6 +21,10 @@
     -fx-background-color: linear-gradient(#2A5058, #61a2b1);
 }
 
+.tab:hover {
+    -fx-background-color: linear-gradient(#2A5058, #61a2b1);
+}
+
 .tab .tab-label {
     -fx-alignment: CENTER;
     -fx-text-fill: white;

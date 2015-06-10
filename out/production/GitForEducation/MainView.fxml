@@ -3,7 +3,7 @@
 <?import javafx.scene.text.Text?>
 <?import java.net.URL?>
 
-<TabPane fx:controller="edugit.Controller" xmlns:fx="http://javafx.com/fxml"
+<TabPane fx:controller="edugit.MainController" xmlns:fx="http://javafx.com/fxml"
         tabClosingPolicy="UNAVAILABLE" tabMinWidth="90">
 
     <Tab text="Add File" fx:id="addFileTab">
@@ -11,7 +11,7 @@
             <Tooltip text="Add a file to an already created repository"/>
         </tooltip>
 
-        <GridPane alignment="center" hgap="10" vgap="10" styleClass="root">
+        <GridPane alignment="center" hgap="10" vgap="10">
 
             <Text id="title-text" text="Add a File"
                   GridPane.columnIndex="0" GridPane.rowIndex="0"
@@ -66,7 +66,7 @@
             <Tooltip text="Select where you want to create a new repository and its name"/>
         </tooltip>
 
-        <GridPane alignment="center" hgap="10" vgap="10" styleClass="root">
+        <GridPane alignment="center" hgap="10" vgap="10">
 
             <Text id="title-text" text="Create a Repository"
                   GridPane.columnIndex="0" GridPane.rowIndex="0"

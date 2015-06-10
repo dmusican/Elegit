@@ -10,12 +10,81 @@
         <tooltip>
             <Tooltip text="Clone a repository from a remote source (Github, Bitbucket, etc)"/>
         </tooltip>
+
+        <GridPane alignment="center" hgap="10" vgap="30">
+            <columnConstraints>
+                <ColumnConstraints halignment="RIGHT" percentWidth="15"/>
+            </columnConstraints>
+            <columnConstraints>
+                <ColumnConstraints halignment="CENTER" percentWidth="60"/>
+            </columnConstraints>
+            <columnConstraints>
+                <ColumnConstraints halignment="CENTER" percentWidth="25"/>
+            </columnConstraints>
+
+            <Label text="Location:"
+                   GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+
+            <Text fx:id="cloneRepoLocationText" visible="false"
+                  GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+
+            <Button fx:id="cloneRepoLocationButton" text="Choose location..."
+                onAction="#handleCloneRepoLocationButton" visible="true"
+                GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+
+            <Button fx:id="cloneRepoChangeLocationButton" text="Change..."
+                    onAction="#handleCloneRepoLocationButton" visible="false"
+                    GridPane.columnIndex="2" GridPane.rowIndex="0"/>
+
+            <Button fx:id="cloneRepoGoButton" text="Clone..."
+                    onAction="#handleCloneRepoGoButton"
+                    GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+
+        </GridPane>
     </Tab>
 
     <Tab text="New" fx:id="createRepoTab">
         <tooltip>
             <Tooltip text="Create a new repository in your local file system"/>
         </tooltip>
+
+        <GridPane alignment="center" hgap="10" vgap="30">
+            <columnConstraints>
+                <ColumnConstraints halignment="RIGHT" percentWidth="15"/>
+            </columnConstraints>
+            <columnConstraints>
+                <ColumnConstraints halignment="CENTER" percentWidth="60"/>
+            </columnConstraints>
+            <columnConstraints>
+                <ColumnConstraints halignment="CENTER" percentWidth="25"/>
+            </columnConstraints>
+
+            <Label text="Location:"
+                   GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+
+            <Text fx:id="createRepoLocationText" visible="false"
+                  GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+
+            <Button fx:id="createRepoLocationButton" text="Choose location..."
+                    onAction="#handleCreateRepoLocationButton" visible="true"
+                    GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+
+            <Button fx:id="createRepoChangeLocationButton" text="Change..."
+                    onAction="#handleCreateRepoLocationButton" visible="false"
+                    GridPane.columnIndex="2" GridPane.rowIndex="0"/>
+
+            <Label text="Name:"
+                   GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+
+            <TextField fx:id="createRepoNameTextField"
+                       GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+
+            <Button fx:id="createRepoGoButton" text="Create"
+                    onAction="#handleCreateRepoGoButton"
+                    GridPane.columnIndex="2" GridPane.rowIndex="1"/>
+
+        </GridPane>
+
     </Tab>
 
     <Tab text="Find existing" fx:id="findRepoTab">
