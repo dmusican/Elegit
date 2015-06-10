@@ -66,9 +66,11 @@ public class Controller {
         String filePath = fileNameLabel.getText();
         String commitMessage = commitText.getText();
 
-        ClonedRepoModel repo = new ClonedRepoModel(new File(repoPath), SECRET_CONSTANTS.TEST_GITHUB_TOKEN);
+        ClonedRepoHelper repo = new ClonedRepoHelper(new File(repoPath).toPath(), SECRET_CONSTANTS.TEST_GITHUB_TOKEN);
 
-        repo.pushNewFile(new File(filePath), commitMessage);
+        repo.addFilePath(new File(filePath).toPath()); // TODO: clean up these File to Path conversions...
+        repo.commitFile(commitMessage);
+        repo.pushAll();
 
         repo.closeRepo();
 

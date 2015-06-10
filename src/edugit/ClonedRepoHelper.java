@@ -23,7 +23,7 @@ public class ClonedRepoHelper extends RepoHelper {
         cloneCommand.setURI(this.remoteURL);
         cloneCommand.setCredentialsProvider(this.ownerAuth);
 
-        cloneCommand.setDirectory(this.localPath);
+        cloneCommand.setDirectory(this.localPath.toFile());
         Git cloneCall = null;
 
         try {

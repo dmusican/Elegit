@@ -26,7 +26,7 @@ public class SessionModel {
     }
 
     public File[] getFilesInCurrentDirectory() {
-        return this.openRepoHelper.getDirectory().listFiles();
+        return this.openRepoHelper.getDirectory().toFile().listFiles();
     }
 
     public void addRepo(RepoHelper anotherRepoHelper) {

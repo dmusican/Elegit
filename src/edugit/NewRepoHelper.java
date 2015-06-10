@@ -17,7 +17,7 @@ public class NewRepoHelper extends RepoHelper {
     @Override
     protected Repository obtainRepository() throws GitAPIException {
         // create the directory
-        Git git = Git.init().setDirectory(this.localPath).call();
+        Git git = Git.init().setDirectory(this.localPath.toFile()).call();
         git.close();
         return git.getRepository();
     }

@@ -18,6 +18,7 @@ public abstract class RepoHelper {
     protected String remoteURL;
 
     protected Path localPath;
+    private DirectoryWatcher directoryWatcher;
 
     public RepoHelper(Path directoryPath, String ownerToken) throws Exception {
         this.ownerAuth = new UsernamePasswordCredentialsProvider(ownerToken,"");
@@ -26,6 +27,9 @@ public abstract class RepoHelper {
         this.localPath = directoryPath;
 
         this.repo = this.obtainRepository();
+
+        this.directoryWatcher = new DirectoryWatcher(this.localPath);
+//        this.directoryWatcher.beginProcessingEvents();
 
     }
 

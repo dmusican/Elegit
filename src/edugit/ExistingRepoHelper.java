@@ -18,7 +18,7 @@ public class ExistingRepoHelper extends RepoHelper {
     protected Repository obtainRepository() {
         FileRepositoryBuilder builder = new FileRepositoryBuilder();
         try {
-            return builder.findGitDir(this.localPath)
+            return builder.findGitDir(this.localPath.toFile())
                     .readEnvironment()
                     .build();
         } catch (IOException e) {
