@@ -5,13 +5,13 @@ import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Repository;
 
-import java.io.File;
+import java.nio.file.Path;
 
 /**
  * A RepoHelper for a repository cloned into an empty folder
  */
 public class ClonedRepoHelper extends RepoHelper {
-    public ClonedRepoHelper(File directoryPath, String ownerToken) throws Exception {
+    public ClonedRepoHelper(Path directoryPath, String ownerToken) throws Exception {
         super(directoryPath, ownerToken);
     }
 
@@ -23,7 +23,7 @@ public class ClonedRepoHelper extends RepoHelper {
         cloneCommand.setURI(this.remoteURL);
         cloneCommand.setCredentialsProvider(this.ownerAuth);
 
-        cloneCommand.setDirectory(this.localPath);
+        cloneCommand.setDirectory(this.localPath.toFile());
         Git cloneCall = null;
 
         try {

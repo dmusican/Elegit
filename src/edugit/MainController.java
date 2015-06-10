@@ -101,7 +101,7 @@ public class MainController extends Controller{
         NewRepoHelper repo;
 
         try {
-            repo = new NewRepoHelper(new File(repoPath, repoName), SECRET_CONSTANTS.TEST_GITHUB_TOKEN);
+            repo = new NewRepoHelper(new File(repoPath, repoName).toPath(), SECRET_CONSTANTS.TEST_GITHUB_TOKEN);
         }catch (Exception e){
             e.printStackTrace();
             threadController.endLoadingUIThread();
@@ -132,7 +132,7 @@ public class MainController extends Controller{
         ClonedRepoHelper repo;
 
         try {
-            repo = new ClonedRepoHelper(new File(repoPath), SECRET_CONSTANTS.TEST_GITHUB_TOKEN);
+            repo = new ClonedRepoHelper(new File(repoPath).toPath(), SECRET_CONSTANTS.TEST_GITHUB_TOKEN);
         }catch (Exception e){
             e.printStackTrace();
             threadController.endLoadingUIThread();

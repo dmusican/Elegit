@@ -57,8 +57,8 @@ public class InitRepoController extends Controller {
 
     public void handleCloneRepoGoButton(ActionEvent actionEvent){
         try{
-            RepoHelper repo = new ClonedRepoHelper(cloneRepoFile, SECRET_CONSTANTS.TEST_GITHUB_TOKEN);
-            new SessionModel(repo);
+            RepoHelper repo = new ClonedRepoHelper(cloneRepoFile.toPath(), SECRET_CONSTANTS.TEST_GITHUB_TOKEN);
+            SessionModel.getSessionModel().addRepo(repo);
         }catch(Exception e){
             e.printStackTrace();
             return;
@@ -67,8 +67,8 @@ public class InitRepoController extends Controller {
 
     public void handleCreateRepoGoButton(ActionEvent actionEvent){
         try{
-            RepoHelper repo = new NewRepoHelper(new File(createRepoFile, createRepoNameTextField.getText()), SECRET_CONSTANTS.TEST_GITHUB_TOKEN);
-            new SessionModel(repo);
+            RepoHelper repo = new NewRepoHelper((new File(createRepoFile, createRepoNameTextField.getText())).toPath(), SECRET_CONSTANTS.TEST_GITHUB_TOKEN);
+            SessionModel.getSessionModel().addRepo(repo);
         }catch(Exception e){
             e.printStackTrace();
             return;

@@ -5,7 +5,7 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
-import java.io.File;
+import java.nio.file.Path;
 
 /**
  * The abstract RepoHelper class, used for interacting with a repository.
@@ -16,30 +16,30 @@ public abstract class RepoHelper {
     private Repository repo;
     protected String remoteURL;
 
-    protected File localPath;
+    protected Path localPath;
+    private DirectoryWatcher directoryWatcher;
 
-    public RepoHelper(File directoryPath, String ownerToken) throws Exception {
+    public RepoHelper(Path directoryPath, String ownerToken) throws Exception {
         this.ownerAuth = new UsernamePasswordCredentialsProvider(ownerToken,"");
         this.remoteURL = "https://github.com/grahamearley/jgit-test.git"; // TODO: pass this in!
 
         this.localPath = directoryPath;
 
-        // This ensures that the path is a directory, not a folder
-        //  ( .delete() will delete any file at the end of the path )
-        this.localPath.delete();
-
         this.repo = this.obtainRepository();
+
+        this.directoryWatcher = new DirectoryWatcher(this.localPath);
+//        this.directoryWatcher.beginProcessingEvents();
 
     }
 
     protected abstract Repository obtainRepository() throws GitAPIException;
 
-    public void addFile(File file) {
+    public void addFilePath(Path filePath) {
         Git git = new Git(this.repo);
         // git add:
         try {
             git.add()
-                    .addFilepattern(file.getName())
+                    .addFilepattern(filePath.getFileName().toString())
                     .call();
         } catch (GitAPIException e) {
             e.printStackTrace();
@@ -79,7 +79,7 @@ public abstract class RepoHelper {
         return this.repo;
     }
 
-    public File getDirectory() {
+    public Path getDirectory() {
         return this.localPath;
     }
 
