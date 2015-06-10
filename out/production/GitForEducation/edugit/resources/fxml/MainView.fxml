@@ -1,111 +1,27 @@
-<?import javafx.scene.control.*?>
+<?import edugit.LocalPanelView?>
+<?import edugit.RemotePanelView?>
+<?import edugit.WorkingTreePanelView?>
 <?import javafx.scene.layout.*?>
-<?import javafx.scene.text.Text?>
 <?import java.net.URL?>
+<?import javafx.scene.control.Button?>
+<GridPane alignment="center" hgap="10" vgap="10" fx:controller="edugit.SessionController" xmlns:fx="http://javafx.com/fxml" id="gridPane">
 
-<TabPane fx:controller="edugit.MainController" xmlns:fx="http://javafx.com/fxml"
-        tabClosingPolicy="UNAVAILABLE" tabMinWidth="90">
+    <WorkingTreePanelView GridPane.rowIndex="0" GridPane.columnIndex="0" GridPane.rowSpan="7" id="workingTreePanelView"/>
 
-    <Tab text="Add File" fx:id="addFileTab">
-        <tooltip>
-            <Tooltip text="Add a file to an already created repository"/>
-        </tooltip>
+    <LocalPanelView GridPane.rowIndex="0" GridPane.columnIndex="2" GridPane.rowSpan="7" id="localPanelView"/>
 
-        <GridPane alignment="center" hgap="10" vgap="10">
+    <RemotePanelView GridPane.rowIndex="0" GridPane.columnIndex="4" GridPane.rowSpan="7" id="remotePanelView"/>
 
-            <Text id="title-text" text="Add a File"
-                  GridPane.columnIndex="0" GridPane.rowIndex="0"
-                  GridPane.columnSpan="3" GridPane.halignment="CENTER"/>
+    <Button GridPane.rowIndex="2" GridPane.columnIndex="1" text="Commit" onAction="#handleCommitButton"/>
 
-            <AnchorPane GridPane.columnIndex="0" GridPane.rowIndex="1">
-                <Label text="Repo location:" AnchorPane.rightAnchor="1.0"
-                AnchorPane.bottomAnchor="1.0" AnchorPane.topAnchor="1.0"/>
-            </AnchorPane>
+    <Button GridPane.rowIndex="4" GridPane.columnIndex="1" text="Merge" onAction="#handleMergeButton"/>
 
-            <Label fx:id="repoPathLabel"
-                   GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+    <Button GridPane.rowIndex="2" GridPane.columnIndex="3" text="Push" onAction="#handlePushButton"/>
 
-            <Button fx:id="chooseRepoButton" text="Choose..."
-                    onAction="#handleChooseRepoLocationButton"
-                    GridPane.columnIndex="2" GridPane.rowIndex="1"/>
-
-            <AnchorPane GridPane.columnIndex="0" GridPane.rowIndex="2">
-                <Label text="File name:" AnchorPane.rightAnchor="1.0"
-                AnchorPane.bottomAnchor="1.0" AnchorPane.topAnchor="1.0"/>
-            </AnchorPane>
-
-            <Label fx:id="fileNameLabel"
-                    GridPane.columnIndex="1" GridPane.rowIndex="2"/>
-
-            <Button fx:id="chooseFileButton" text="Choose..."
-                    onAction="#handleChooseFileButton" disable="true"
-                    GridPane.columnIndex="2" GridPane.rowIndex="2"/>
-
-            <AnchorPane GridPane.columnIndex="0" GridPane.rowIndex="3">
-                <Label text="Commit message:" AnchorPane.rightAnchor="1.0"
-                       AnchorPane.bottomAnchor="1.0" AnchorPane.topAnchor="1.0"/>
-            </AnchorPane>
-
-            <TextField fx:id="commitText"
-                   GridPane.columnIndex="1" GridPane.rowIndex="3"
-                    GridPane.columnSpan="2"/>
-
-            <HBox spacing="10" alignment="bottom_right"
-                  GridPane.columnIndex="2" GridPane.rowIndex="4">
-                <Button fx:id="commitButton" text="Commit"
-                        onAction="#handleCommitButtonAction" disable="true"/>
-            </HBox>
-
-            <Text fx:id="messageText"
-                  GridPane.columnIndex="1" GridPane.rowIndex="5"/>
-        </GridPane>
-    </Tab>
-
-    <Tab text="Create Repo" fx:id="createRepoTab">
-        <tooltip>
-            <Tooltip text="Select where you want to create a new repository and its name"/>
-        </tooltip>
-
-        <GridPane alignment="center" hgap="10" vgap="10">
-
-            <Text id="title-text" text="Create a Repository"
-                  GridPane.columnIndex="0" GridPane.rowIndex="0"
-                  GridPane.columnSpan="3" GridPane.halignment="CENTER"/>
-
-            <AnchorPane GridPane.columnIndex="0" GridPane.rowIndex="1">
-                <Label text="Repository location:" AnchorPane.rightAnchor="1.0"
-                       AnchorPane.bottomAnchor="1.0" AnchorPane.topAnchor="1.0"/>
-            </AnchorPane>
-
-            <Label fx:id="createRepoPathLabel"
-                   GridPane.columnIndex="1" GridPane.rowIndex="1"/>
-
-            <Button fx:id="createRepoPathButton" text="Choose..."
-                    onAction="#handleCreateRepoLocationButton"
-                    GridPane.columnIndex="2" GridPane.rowIndex="1"/>
-
-            <AnchorPane GridPane.columnIndex="0" GridPane.rowIndex="2">
-                <Label text="Repository name:" AnchorPane.rightAnchor="1.0"
-                       AnchorPane.bottomAnchor="1.0" AnchorPane.topAnchor="1.0"/>
-            </AnchorPane>
-
-            <TextField fx:id="createRepoNameText" onKeyTyped="#updateButtonDisables"
-                       GridPane.columnIndex="1" GridPane.rowIndex="2"
-                       GridPane.columnSpan="2"/>
-
-            <HBox spacing="10" alignment="bottom_right"
-                  GridPane.columnIndex="2" GridPane.rowIndex="3">
-                <Button fx:id="createButton" text="Create"
-                        onAction="#handleCreateButtonAction" disable="true"/>
-            </HBox>
-
-            <Text fx:id="createMessageText"
-                  GridPane.columnIndex="1" GridPane.rowIndex="4"/>
-        </GridPane>
-    </Tab>
+    <Button GridPane.rowIndex="4" GridPane.columnIndex="3" text="Fetch" onAction="#handleFetchButton"/>
 
     <stylesheets>
         <URL value="@../css/BaseStyle.css"/>
         <URL value="@../css/MainView.css" />
     </stylesheets>
-</TabPane>
+</GridPane>

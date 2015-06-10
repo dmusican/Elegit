@@ -14,11 +14,7 @@
         <GridPane alignment="center" hgap="10" vgap="30">
             <columnConstraints>
                 <ColumnConstraints halignment="RIGHT" percentWidth="15"/>
-            </columnConstraints>
-            <columnConstraints>
                 <ColumnConstraints halignment="CENTER" percentWidth="60"/>
-            </columnConstraints>
-            <columnConstraints>
                 <ColumnConstraints halignment="CENTER" percentWidth="25"/>
             </columnConstraints>
 

@@ -11,13 +11,13 @@ public class MainView extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception{
         Parent root = FXMLLoader.load(getClass().getResource("resources/fxml/MainView.fxml"));
-        primaryStage.setTitle("Hello World");
+        primaryStage.setTitle("EduGit");
 
         Scene scene = new Scene(root, 400, 300);
         primaryStage.setScene(scene);
-//        primaryStage.show();
+        primaryStage.show();
 
-        new InitRepoView();
+//        new InitRepoView();
     }
 
 
