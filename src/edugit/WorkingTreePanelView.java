@@ -35,7 +35,7 @@ public class WorkingTreePanelView extends Group {
     }
 
     private void drawDirectoryView() {
-        Path dirpath = Paths.get(System.getProperty("user.home")); //this.sessionModel.openRepoHelper.getDirectory().toString();
+        Path dirpath = Paths.get(System.getProperty("user.home")+"/Documents/School"); //this.sessionModel.openRepoHelper.getDirectory().toString();
 
         // example-based:
         // http://www.adam-bien.com/roller/abien/entry/listing_directory_contents_with_jdk
@@ -61,25 +61,33 @@ public class WorkingTreePanelView extends Group {
         try {
             DirectoryStream<Path> directoryStream = Files.newDirectoryStream(superDirectory);
             for (Path path : directoryStream) {
-                if (Files.isDirectory(path))
-                    subdirectoriesInDirectory.add(path);
-                else
-                    filesInDirectory.add(path);
+                if (Files.isDirectory(path)) {
+                    // Recurse!
+                    TreeItem<Path> subdirectoryTreeItem = new TreeItem<Path>(path.getFileName());
+                    walkThroughDirectoryToGetTreeItem(path, subdirectoryTreeItem);
+                    superDirectoryTreeItem.getChildren().add(subdirectoryTreeItem);
+                }
+                else {
+                    // So, it's just a file
+                    TreeItem<Path> fileTreeItem = new TreeItem<Path>(path.getFileName());
+                    superDirectoryTreeItem.getChildren().add(fileTreeItem);
+                }
+
             }
         } catch (IOException ex) {}
 
-        // Add the directory's files as children of the directory tree item
-        for (Path file : filesInDirectory) {
-            TreeItem<Path> fileTreeItem = new TreeItem<Path>(file.getFileName());
-            superDirectoryTreeItem.getChildren().add(fileTreeItem);
-        }
-
-        // Recurse through each subdirectory and populate their tree items
-        for (Path subdirectory : subdirectoriesInDirectory) {
-            TreeItem<Path> subdirectoryTreeItem = new TreeItem<Path>(subdirectory.getFileName());
-            walkThroughDirectoryToGetTreeItem(subdirectory, subdirectoryTreeItem);
-            superDirectoryTreeItem.getChildren().add(subdirectoryTreeItem);
-        }
+//        // Add the directory's files as children of the directory tree item
+//        for (Path file : filesInDirectory) {
+//            TreeItem<Path> fileTreeItem = new TreeItem<Path>(file.getFileName());
+//            superDirectoryTreeItem.getChildren().add(fileTreeItem);
+//        }
+//
+//        // Recurse through each subdirectory and populate their tree items
+//        for (Path subdirectory : subdirectoriesInDirectory) {
+//            TreeItem<Path> subdirectoryTreeItem = new TreeItem<Path>(subdirectory.getFileName());
+//            walkThroughDirectoryToGetTreeItem(subdirectory, subdirectoryTreeItem);
+//            superDirectoryTreeItem.getChildren().add(subdirectoryTreeItem);
+//        }
 
         return superDirectoryTreeItem;
     }
