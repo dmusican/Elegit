@@ -4,7 +4,8 @@ import java.io.File;
 import java.util.ArrayList;
 
 /**
- * Created by grahamearley on 6/10/15.
+ * The SessionModel stores all the Repos in the session and lets the user
+ * switch between repos.
  */
 public class SessionModel {
 

@@ -7,7 +7,7 @@ import java.io.File;
 import java.io.IOException;
 
 /**
- * Created by grahamearley on 6/10/15.
+ * A RepoHelper for pre-existing repositories
  */
 public class ExistingRepoHelper extends RepoHelper {
     public ExistingRepoHelper(File directoryPath, String ownerToken) throws Exception {

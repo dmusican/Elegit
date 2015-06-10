@@ -8,7 +8,7 @@ import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import java.io.File;
 
 /**
- * Created by grahamearley on 6/10/15.
+ * The abstract RepoHelper class, used for interacting with a repository.
  */
 public abstract class RepoHelper {
 
