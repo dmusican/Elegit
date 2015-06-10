@@ -13,17 +13,16 @@ public class SessionModel {
     ArrayList<RepoHelper> allRepoHelpers;
     SessionModel sessionModel;
 
-    public SessionModel getSessionModel(RepoHelper repoHelper) {
+    public SessionModel getSessionModel() {
         if (this.sessionModel == null) {
-            this.sessionModel = new SessionModel(repoHelper);
+            this.sessionModel = new SessionModel();
         }
 
         return this.sessionModel;
     }
 
-    private SessionModel(RepoHelper repoHelper) {
-        this.openRepoHelper = repoHelper;
-        this.allRepoHelpers.add(repoHelper);
+    private SessionModel() {
+        this.allRepoHelpers = new ArrayList<RepoHelper>();
     }
 
     public File[] getFilesInCurrentDirectory() {
@@ -36,6 +35,15 @@ public class SessionModel {
 
     public void openRepoAtIndex(int index) {
         this.openRepoHelper = this.allRepoHelpers.get(index);
+    }
+
+    public void openRepoFromHelper(RepoHelper repoHelperToLoad) {
+        if (this.allRepoHelpers.contains(repoHelperToLoad)) {
+            this.openRepoAtIndex(this.allRepoHelpers.indexOf(repoHelperToLoad));
+        } else {
+            this.allRepoHelpers.add(repoHelperToLoad);
+            this.openRepoAtIndex(this.allRepoHelpers.size() - 1);
+        }
     }
 
 }
