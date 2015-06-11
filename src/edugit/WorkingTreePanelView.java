@@ -25,18 +25,16 @@ public class WorkingTreePanelView extends Group {
 
     public WorkingTreePanelView() {
         this.fileLeafs = new ArrayList<>();
-        // The displays should always be initialized
-        this.drawDirectoryView();
     }
 
     public void drawDirectoryView() {
-        Path dirpath = Paths.get(System.getProperty("user.home")+"/Desktop/cl"); //this.sessionModel.currentRepoHelper.getDirectory().toString();
+        Path directoryPath = this.sessionModel.currentRepoHelper.getDirectory();
 
         // example-based:
         // http://www.adam-bien.com/roller/abien/entry/listing_directory_contents_with_jdk
 
-        CheckBoxTreeItem<Path> directoryLeaf = new CheckBoxTreeItem<Path>(dirpath.getFileName());
-        CheckBoxTreeItem<Path> rootItem = this.walkThroughDirectoryToGetTreeItem(dirpath, directoryLeaf);
+        CheckBoxTreeItem<Path> directoryLeaf = new CheckBoxTreeItem<Path>(directoryPath.getFileName());
+        CheckBoxTreeItem<Path> rootItem = this.walkThroughDirectoryToGetTreeItem(directoryPath, directoryLeaf);
         rootItem.setExpanded(true);
 
         // TODO: Write a custom tree cell? Somehow, show only the fileName, not the whole path.

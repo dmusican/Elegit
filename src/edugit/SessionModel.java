@@ -30,13 +30,6 @@ public class SessionModel {
 
     private SessionModel() {
         this.allRepoHelpers = new ArrayList<RepoHelper>();
-        // TODO: remove this horribly out-of-place line
-        Path dirpath = Paths.get(System.getProperty("user.home") + "/Desktop/cl"); //this.sessionModel.currentRepoHelper.getDirectory().toString();
-        try {
-            openRepoFromHelper(new ExistingRepoHelper(dirpath, SECRET_CONSTANTS.TEST_GITHUB_TOKEN));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
     public File[] getFilesInCurrentDirectory() {

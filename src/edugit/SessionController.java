@@ -1,7 +1,10 @@
 package edugit;
 
 import javafx.event.ActionEvent;
+import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
+
+import java.io.File;
 
 /**
  * Created by makik on 6/10/15.
@@ -49,5 +52,15 @@ public class SessionController extends Controller {
 
     public void handleReloadButton(ActionEvent actionEvent) {
         this.workingTreePanelView.drawDirectoryView();
+    }
+
+    public void handleCloneToDestinationButton(ActionEvent actionEvent) {
+        File cloneRepoFile = getPathFromChooser(true, "Choose a Location", ((Button)actionEvent.getSource()).getScene().getWindow());
+        try{
+            RepoHelper repoHelper = new ClonedRepoHelper(cloneRepoFile.toPath(), SECRET_CONSTANTS.TEST_GITHUB_TOKEN);
+            this.theModel.openRepoFromHelper(repoHelper);
+        } catch(Exception e){
+            e.printStackTrace();
+        }
     }
 }
