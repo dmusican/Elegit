@@ -1,9 +1,6 @@
 package edugit;
 
 import edugit.treefx.Graph;
-import edugit.treefx.Layout;
-import edugit.treefx.Model;
-import edugit.treefx.RandomLayout;
 import javafx.scene.Group;
 
 /**
@@ -13,6 +10,8 @@ import javafx.scene.Group;
  * namely the drawing of a tree structure
  */
 public class TreePanelView extends Group{
+
+    Graph graph;
 
     public TreePanelView(){
 //        Canvas c = new Canvas(50,300);
@@ -24,34 +23,5 @@ public class TreePanelView extends Group{
 //            Circle c = new Circle(Math.random()*50+i*5,Math.random()*300+i*40,Math.random()*40+10, Color.BLUE);
 //            this.getChildren().add(c);
 //        }
-
-        Graph graph = new Graph();
-
-        this.getChildren().add(graph.getScrollPane());
-
-        Model model = graph.getModel();
-
-        graph.beginUpdate();
-
-        model.addCell("Cell A");
-        model.addCell("Cell B");
-        model.addCell("Cell C");
-        model.addCell("Cell D");
-        model.addCell("Cell E");
-        model.addCell("Cell F");
-        model.addCell("Cell G");
-
-        model.addEdge("Cell A", "Cell B");
-        model.addEdge("Cell A", "Cell C");
-        model.addEdge("Cell B", "Cell C");
-        model.addEdge("Cell C", "Cell D");
-        model.addEdge("Cell B", "Cell E");
-        model.addEdge("Cell D", "Cell F");
-        model.addEdge("Cell D", "Cell G");
-
-        graph.endUpdate();
-
-        Layout layout = new RandomLayout(graph);
-        layout.execute();
     }
 }

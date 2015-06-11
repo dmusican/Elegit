@@ -1,5 +1,6 @@
 package edugit.treefx;
 
+import edugit.MatchedScrollPane;
 import javafx.scene.Group;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.Pane;
@@ -13,7 +14,7 @@ public class Graph {
 
     private Group canvas;
 
-    private ScrollPane scrollPane;
+    private MatchedScrollPane scrollPane;
 
     MouseGestures mouseGestures;
 
@@ -35,10 +36,13 @@ public class Graph {
 
         mouseGestures = new MouseGestures(this);
 
-        scrollPane = new ScrollPane(canvas);
+        scrollPane = new MatchedScrollPane(canvas);
 
         scrollPane.setFitToWidth(true);
         scrollPane.setFitToHeight(true);
+
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
     }
 
     public ScrollPane getScrollPane() {
@@ -67,9 +71,9 @@ public class Graph {
         getCellLayer().getChildren().removeAll(model.getRemovedEdges());
 
         // enable dragging of cells
-        for (Cell cell : model.getAddedCells()) {
-            mouseGestures.makeDraggable(cell);
-        }
+//        for (Cell cell : model.getAddedCells()) {
+//            mouseGestures.makeDraggable(cell);
+//        }
 
         // every cell must have a parent, if it doesn't, then the graphParent is
         // the parent
