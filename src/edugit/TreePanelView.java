@@ -43,7 +43,7 @@ public class TreePanelView extends Group{
 
         model.addCell("L","I");
         model.addCell("M");
-        model.addCell("N");
+        model.addCell("N","M","K");
         model.addCell("O");
         model.addCell("P");
 

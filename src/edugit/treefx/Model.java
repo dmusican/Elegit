@@ -94,6 +94,16 @@ public class Model {
         prevAddedId = newId;
     }
 
+    public void addCell(String newId, String parent1Id, String parent2Id){
+        Cell cell = new Cell(newId, cellMap.get(parent1Id), cellMap.get(parent2Id));
+        addCell(cell);
+
+        this.addEdge(parent1Id, newId);
+        this.addEdge(parent2Id, newId);
+
+        prevAddedId = newId;
+    }
+
     private void addCell( Cell cell) {
 
         addedCells.add(cell);

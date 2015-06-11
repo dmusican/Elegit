@@ -9,7 +9,7 @@ public class TreeLayout extends Layout{
 
     public static int V_SPACING = 50;
     public static int H_SPACING = 25;
-    public static int V_PAD = 100;
+    public static int V_PAD = 25;
     public static int H_PAD = 10;
 
     Graph graph;
@@ -29,7 +29,7 @@ public class TreeLayout extends Layout{
         Cell rootCell = model.getRoot();
 
         depthCounts = new int[cells.size()];
-        int rootHeight = rootCell.height;
+        rootHeight = rootCell.height + 1;
 
         relocate(rootCell, 0);
     }

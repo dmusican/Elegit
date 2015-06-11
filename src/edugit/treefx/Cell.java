@@ -16,14 +16,18 @@ public class Cell extends Pane implements Comparable<Cell>{
     String cellId;
 
     List<Cell> children = new ArrayList<>();
-    Cell parent;
+    Parent parent;
     int height;
 
     Node view;
 
     public Cell(String cellId, Cell parent){
+        this(cellId, parent, null);
+    }
+
+    public Cell(String cellId, Cell parent1, Cell parent2){
         this.cellId = cellId;
-        this.parent = parent;
+        this.parent = new Parent(parent1, parent2);
 
         setView(new Rectangle(10,10, Color.BLUE));
 //        setView(new Text(cellId));
@@ -35,17 +39,14 @@ public class Cell extends Pane implements Comparable<Cell>{
         this.setOnMouseClicked(event -> {
             System.out.println("Node "+cellId);
         });
+
     }
 
     public void updateHeight(){
         for(Cell c : children){
-            if(c.height == this.height){
-                this.height = c.height+1;
-            }
+            this.height = (this.height <= c.height) ? (c.height + 1) : this.height;
         }
-        if(parent != null){
-            parent.updateHeight();
-        }
+        parent.updateHeight();
     }
 
     public void addCellChild(Cell cell) {
@@ -57,10 +58,10 @@ public class Cell extends Pane implements Comparable<Cell>{
     }
 
     public void addCellParent(Cell cell) {
-        this.parent = cell;
+        parent.add(cell);
     }
 
-    public Cell getCellParent() {
+    public Parent getCellParent() {
         return parent;
     }
 
@@ -84,5 +85,32 @@ public class Cell extends Pane implements Comparable<Cell>{
     @Override
     public int compareTo(Cell c){
         return Double.compare(c.height, this.height);
+    }
+
+    private class Parent{
+
+        private Cell mom,dad;
+
+        public Parent(Cell mom, Cell dad){
+            this.mom = mom;
+            this.dad = dad;
+        }
+
+        public void updateHeight(){
+            if(mom != null){
+                mom.updateHeight();
+            }
+            if(dad != null){
+                dad.updateHeight();
+            }
+        }
+
+        public void add(Cell cell){
+            if(mom != null){
+                this.mom = cell;
+            }else if(dad != null){
+                this.dad = cell;
+            }
+        }
     }
 }
