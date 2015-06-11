@@ -4,6 +4,9 @@ import javafx.event.ActionEvent;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 
+import java.nio.file.Path;
+import java.util.ArrayList;
+
 /**
  * Created by makik on 6/10/15.
  */
@@ -26,6 +29,11 @@ public class SessionController extends Controller {
     }
 
     public void handleCommitButton(ActionEvent actionEvent){
+        String commitMessage = commitMessageField.getText();
+
+        System.out.println(commitMessage);
+        System.out.println(this.workingTreePanelView.getCheckedFilesInDirectory());
+
     }
 
     public void handleMergeButton(ActionEvent actionEvent){

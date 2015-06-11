@@ -1,11 +1,10 @@
 package edugit;
 
 import javafx.scene.Group;
-import javafx.scene.control.TextField;
-import javafx.scene.control.TreeItem;
+import javafx.scene.control.CheckBoxTreeItem;
 import javafx.scene.control.TreeView;
+import javafx.scene.control.cell.CheckBoxTreeCell;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
@@ -19,19 +18,15 @@ import java.util.ArrayList;
 public class WorkingTreePanelView extends Group {
 
     private SessionModel sessionModel;
+    private ArrayList<CheckBoxTreeItem> fileLeafs;
 
     // The views within the view
-    private TreeView directoryView;
-    private TextField commitMessageBox;
+    private TreeView<Path> directoryTreeView;
 
     public WorkingTreePanelView() {
+        this.fileLeafs = new ArrayList<>();
         // The displays should always be initialized
-        this.initializeDisplays();
-    }
-
-    public void initializeDisplays() {
         this.drawDirectoryView();
-        this.drawCommitMessageBox();
     }
 
     private void drawDirectoryView() {
@@ -40,40 +35,47 @@ public class WorkingTreePanelView extends Group {
         // example-based:
         // http://www.adam-bien.com/roller/abien/entry/listing_directory_contents_with_jdk
 
-        TreeItem<Path> dirTreeItem = new TreeItem<Path>(dirpath.getFileName());
-        TreeItem<Path> rootItem = this.walkThroughDirectoryToGetTreeItem(dirpath, dirTreeItem);
+        CheckBoxTreeItem<Path> directoryLeaf = new CheckBoxTreeItem<Path>(dirpath.getFileName());
+        CheckBoxTreeItem<Path> rootItem = this.walkThroughDirectoryToGetTreeItem(dirpath, directoryLeaf);
         rootItem.setExpanded(true);
 
-        this.directoryView = new TreeView<Path>(rootItem);
-        this.getChildren().add(directoryView);
+        this.directoryTreeView = new TreeView<Path>(rootItem);
+        this.directoryTreeView.setCellFactory(CheckBoxTreeCell.<Path>forTreeView());
+        this.getChildren().add(directoryTreeView);
 
     }
 
-    private void drawCommitMessageBox() {
-
-    }
-
-    private TreeItem<Path> walkThroughDirectoryToGetTreeItem(Path superDirectory, TreeItem<Path> superDirectoryTreeItem) {
+    private CheckBoxTreeItem<Path> walkThroughDirectoryToGetTreeItem(Path superDirectory, CheckBoxTreeItem<Path> superDirectoryLeaf) {
         // Get the directories and subdirectories
         try {
             DirectoryStream<Path> directoryStream = Files.newDirectoryStream(superDirectory);
             for (Path path : directoryStream) {
                 if (Files.isDirectory(path)) {
                     // Recurse!
-                    TreeItem<Path> subdirectoryTreeItem = new TreeItem<Path>(path.getFileName());
-                    walkThroughDirectoryToGetTreeItem(path, subdirectoryTreeItem);
-                    superDirectoryTreeItem.getChildren().add(subdirectoryTreeItem);
+                    CheckBoxTreeItem<Path> subdirectoryLeaf = new CheckBoxTreeItem<Path>(path.getFileName());
+                    walkThroughDirectoryToGetTreeItem(path, subdirectoryLeaf);
+                    superDirectoryLeaf.getChildren().add(subdirectoryLeaf);
                 }
                 else {
-                    // So, it's just a file
-                    TreeItem<Path> fileTreeItem = new TreeItem<Path>(path.getFileName());
-                    superDirectoryTreeItem.getChildren().add(fileTreeItem);
+                    // So, it's a file, not a directory.
+                    CheckBoxTreeItem<Path> fileLeaf = new CheckBoxTreeItem<Path>(path.getFileName());
+                    superDirectoryLeaf.getChildren().add(fileLeaf);
+                    this.fileLeafs.add(fileLeaf);
                 }
             }
-            directoryStream.close();
+            directoryStream.close(); // Have to close this to prevent overflow!
         } catch (IOException ex) {}
 
-        return superDirectoryTreeItem;
+        return superDirectoryLeaf;
+    }
+
+    public ArrayList<Path> getCheckedFilesInDirectory() {
+        ArrayList<Path> checkedFiles = new ArrayList<>();
+        for (CheckBoxTreeItem fileLeaf : this.fileLeafs) {
+            if (fileLeaf.isSelected())
+                checkedFiles.add((Path)fileLeaf.getValue());
+        }
+        return checkedFiles;
     }
 
     public void setSessionModel(SessionModel sessionModel) {
