@@ -10,55 +10,64 @@ import javafx.scene.control.ScrollPane;
  * Super class for the local and remote panel views that handles the common functionality,
  * namely the drawing of a tree structure
  */
-public class TreePanelView extends Group{
+public abstract class TreePanelView extends Group{
 
-    Graph graph;
+    SessionModel model;
+    TreeGraph treeGraph;
 
-    public TreePanelView(){
+    public void setSessionModel(SessionModel model){
+        this.model = model;
+        if(this.model != null && this.model.currentRepoHelper != null){
+            this.drawTreeFromCurrentRepo();
+        }
+    }
 
-        Model model = new Model("root");
+    public abstract void drawTreeFromCurrentRepo();
 
-        graph = new Graph(model);
+    private void drawTestGraph(){
+        TreeGraphModel treeGraphModel = new TreeGraphModel("root");
 
-        ScrollPane sp = graph.getScrollPane();
+        treeGraph = new TreeGraph(treeGraphModel);
+
+        ScrollPane sp = treeGraph.getScrollPane();
         sp.setPannable(true);
         sp.setPrefSize(200, 600);
         this.getChildren().add(sp);
 
-        graph.beginUpdate();
+        treeGraph.beginUpdate();
 
-        model.addCell("A");
-        model.addCell("B", "root");
-        model.addCell("C");
-        model.addCell("D", "A");
-        model.addCell("E");
-        model.addCell("F","D");
+        treeGraphModel.addCell("A");
+        treeGraphModel.addCell("B", "root");
+        treeGraphModel.addCell("C");
+        treeGraphModel.addCell("D", "A");
+        treeGraphModel.addCell("E");
+        treeGraphModel.addCell("F","D");
 
-        model.addCell("G");
-        model.addCell("H");
+        treeGraphModel.addCell("G");
+        treeGraphModel.addCell("H");
 
-        model.addCell("I","G");
-        model.addCell("J");
-        model.addCell("K","I");
+        treeGraphModel.addCell("I","G");
+        treeGraphModel.addCell("J");
+        treeGraphModel.addCell("K","I");
 
-        model.addCell("L","I");
-        model.addCell("M");
-        model.addCell("N","M","K");
-        model.addCell("O");
+        treeGraphModel.addCell("L","I");
+        treeGraphModel.addCell("M");
+        treeGraphModel.addCell("N","M","K");
+        treeGraphModel.addCell("O");
 
-        model.addCell("P","root");
-        model.addCell("Q");
+        treeGraphModel.addCell("P","root");
+        treeGraphModel.addCell("Q");
 
-        model.addCell("R","J");
-        model.addCell("S");
-        model.addCell("T");
+        treeGraphModel.addCell("R","J");
+        treeGraphModel.addCell("S");
+        treeGraphModel.addCell("T");
 
-        model.addCell("U","O","T");
-        model.addCell("V");
+        treeGraphModel.addCell("U","O","T");
+        treeGraphModel.addCell("V");
 
-        graph.endUpdate();
+        treeGraph.endUpdate();
 
-        Layout layout = new TreeLayout(graph);
+        Layout layout = new TreeLayout(treeGraph);
         layout.execute();
     }
 }

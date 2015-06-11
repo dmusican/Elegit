@@ -8,9 +8,9 @@ import javafx.scene.layout.Pane;
 /**
  * Created by makik on 6/10/15.
  */
-public class Graph {
+public class TreeGraph{
 
-    private Model model;
+    private TreeGraphModel treeGraphModel;
 
     private Group canvas;
 
@@ -23,9 +23,9 @@ public class Graph {
      */
     CellLayer cellLayer;
 
-    public Graph(Model m) {
+    public TreeGraph(TreeGraphModel m) {
 
-        this.model = m;
+        this.treeGraphModel = m;
 
         canvas = new Group();
         cellLayer = new CellLayer();
@@ -49,23 +49,23 @@ public class Graph {
         return this.cellLayer;
     }
 
-    public Model getModel() {
-        return model;
+    public TreeGraphModel getTreeGraphModel() {
+        return treeGraphModel;
     }
 
     public void beginUpdate() {
     }
 
     public void endUpdate() {
-        // add components to graph pane
-        getCellLayer().getChildren().addAll(model.getAddedEdges());
-        getCellLayer().getChildren().addAll(model.getAddedCells());
+        // add components to treeGraph pane
+        getCellLayer().getChildren().addAll(treeGraphModel.getAddedEdges());
+        getCellLayer().getChildren().addAll(treeGraphModel.getAddedCells());
 
-        // remove components from graph pane
-        getCellLayer().getChildren().removeAll(model.getRemovedCells());
-        getCellLayer().getChildren().removeAll(model.getRemovedEdges());
+        // remove components from treeGraph pane
+        getCellLayer().getChildren().removeAll(treeGraphModel.getRemovedCells());
+        getCellLayer().getChildren().removeAll(treeGraphModel.getRemovedEdges());
 
         // merge added & removed cells with all cells
-        getModel().merge();
+        getTreeGraphModel().merge();
     }
 }

@@ -58,9 +58,9 @@
 
     </GridPane>
 
-    <LocalPanelView GridPane.rowIndex="1" GridPane.columnIndex="2" GridPane.rowSpan="7" id="localPanelView"/>
+    <LocalPanelView GridPane.rowIndex="1" GridPane.columnIndex="2" GridPane.rowSpan="7" fx:id="localPanelView"/>
 
-    <RemotePanelView GridPane.rowIndex="1" GridPane.columnIndex="4" GridPane.rowSpan="7" id="remotePanelView"/>
+    <RemotePanelView GridPane.rowIndex="1" GridPane.columnIndex="4" GridPane.rowSpan="7" fx:id="remotePanelView"/>
 
     <Button GridPane.rowIndex="2" GridPane.columnIndex="1" text="Commit" onAction="#handleCommitButton"/>
 

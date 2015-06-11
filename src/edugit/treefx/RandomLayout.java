@@ -8,19 +8,19 @@ import java.util.Random;
  */
 public class RandomLayout extends Layout {
 
-    Graph graph;
+    TreeGraph treeGraph;
 
     Random rnd = new Random();
 
-    public RandomLayout(Graph graph) {
+    public RandomLayout(TreeGraph treeGraph) {
 
-        this.graph = graph;
+        this.treeGraph = treeGraph;
 
     }
 
     public void execute() {
 
-        List<Cell> cells = graph.getModel().getAllCells();
+        List<Cell> cells = treeGraph.getTreeGraphModel().getAllCells();
 
         for (Cell cell : cells) {
 

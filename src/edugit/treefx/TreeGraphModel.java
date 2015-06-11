@@ -8,7 +8,7 @@ import java.util.Map;
 /**
  * Created by makik on 6/10/15.
  */
-public class Model {
+public class TreeGraphModel{
 
     Cell rootCell;
 
@@ -24,7 +24,7 @@ public class Model {
 
     private String prevAddedId;
 
-    public Model(String rootCellId) {
+    public TreeGraphModel(String rootCellId) {
 
         // clear model, create lists
         clear();

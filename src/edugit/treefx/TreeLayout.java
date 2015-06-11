@@ -13,18 +13,18 @@ public class TreeLayout extends Layout{
     public static int V_PAD = 25;
     public static int H_PAD = 10;
 
-    Graph graph;
+    TreeGraph treeGraph;
     int rootHeight;
     int[] depthCounts;
     List<String> visited;
 
-    public TreeLayout(Graph g){
-        this.graph = g;
+    public TreeLayout(TreeGraph g){
+        this.treeGraph = g;
     }
     @Override
     public void execute(){
-        Model model = graph.getModel();
-        Cell rootCell = model.getRoot();
+        TreeGraphModel treeGraphModel = treeGraph.getTreeGraphModel();
+        Cell rootCell = treeGraphModel.getRoot();
 
         relocateCell(rootCell);
     }
@@ -41,7 +41,7 @@ public class TreeLayout extends Layout{
         visited.add(c.getCellId());
         double x = (depthCounts[depth]) * H_SPACING + H_PAD;
         double y = (rootHeight - depth) * V_SPACING + V_PAD;
-        c.relocate(x,y);
+        c.relocate(x, y);
 
         depthCounts[depth] += 1;
 
