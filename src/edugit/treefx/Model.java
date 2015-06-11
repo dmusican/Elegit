@@ -82,17 +82,7 @@ public class Model {
     }
 
     public void addCell(String newId){
-        this.addCell(newId, false);
-    }
-
-    public void addCell(String newId, boolean keepSameParent){
-        String temp = prevAddedId;
         this.addCell(newId, prevAddedId);
-        if(!keepSameParent){
-            this.prevAddedId = newId;
-        }else{
-            this.prevAddedId = temp;
-        }
     }
 
     public void addCell(String newId, String parentId){

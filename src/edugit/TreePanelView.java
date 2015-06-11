@@ -28,12 +28,27 @@ public class TreePanelView extends Group{
         graph.beginUpdate();
 
         model.addCell("A");
-        model.addCell("B","root");
+        model.addCell("B", "root");
         model.addCell("C");
         model.addCell("D","A");
-        model.addCell("E",true);
-        model.addCell("F");
+        model.addCell("E");
+        model.addCell("F","D");
+
         model.addCell("G");
+        model.addCell("H");
+
+        model.addCell("I","G");
+        model.addCell("J");
+        model.addCell("K","I");
+
+        model.addCell("L","I");
+        model.addCell("M");
+        model.addCell("N");
+        model.addCell("O");
+        model.addCell("P");
+
+        model.addCell("Q","root");
+        model.addCell("R");
 
         graph.endUpdate();
 
