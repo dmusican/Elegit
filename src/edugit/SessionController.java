@@ -27,6 +27,7 @@ public class SessionController extends Controller {
     public void handleCommitButton(ActionEvent actionEvent){
         String commitMessage = commitMessageField.getText();
 
+        // TODO: delete print statements
         System.out.println(commitMessage);
         System.out.println(this.workingTreePanelView.getCheckedFilesInDirectory());
 
@@ -44,5 +45,9 @@ public class SessionController extends Controller {
 
     public void handleFetchButton(ActionEvent actionEvent){
 
+    }
+
+    public void handleReloadButton(ActionEvent actionEvent) {
+        this.workingTreePanelView.drawDirectoryView();
     }
 }

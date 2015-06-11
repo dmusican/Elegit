@@ -29,7 +29,7 @@ public class WorkingTreePanelView extends Group {
         this.drawDirectoryView();
     }
 
-    private void drawDirectoryView() {
+    public void drawDirectoryView() {
         Path dirpath = Paths.get(System.getProperty("user.home")+"/Desktop/cl"); //this.sessionModel.currentRepoHelper.getDirectory().toString();
 
         // example-based:
