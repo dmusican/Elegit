@@ -35,7 +35,7 @@ public class WorkingTreePanelView extends Group {
     }
 
     private void drawDirectoryView() {
-        Path dirpath = Paths.get(System.getProperty("user.home")+"/Documents/School"); //this.sessionModel.openRepoHelper.getDirectory().toString();
+        Path dirpath = Paths.get(System.getProperty("user.home")+"/Documents"); //this.sessionModel.openRepoHelper.getDirectory().toString();
 
         // example-based:
         // http://www.adam-bien.com/roller/abien/entry/listing_directory_contents_with_jdk
@@ -54,9 +54,6 @@ public class WorkingTreePanelView extends Group {
     }
 
     private TreeItem<Path> walkThroughDirectoryToGetTreeItem(Path superDirectory, TreeItem<Path> superDirectoryTreeItem) {
-        ArrayList<Path> filesInDirectory = new ArrayList<>();
-        ArrayList<Path> subdirectoriesInDirectory = new ArrayList<>();
-
         // Get the directories and subdirectories
         try {
             DirectoryStream<Path> directoryStream = Files.newDirectoryStream(superDirectory);
@@ -72,22 +69,9 @@ public class WorkingTreePanelView extends Group {
                     TreeItem<Path> fileTreeItem = new TreeItem<Path>(path.getFileName());
                     superDirectoryTreeItem.getChildren().add(fileTreeItem);
                 }
-
             }
+            directoryStream.close();
         } catch (IOException ex) {}
-
-//        // Add the directory's files as children of the directory tree item
-//        for (Path file : filesInDirectory) {
-//            TreeItem<Path> fileTreeItem = new TreeItem<Path>(file.getFileName());
-//            superDirectoryTreeItem.getChildren().add(fileTreeItem);
-//        }
-//
-//        // Recurse through each subdirectory and populate their tree items
-//        for (Path subdirectory : subdirectoriesInDirectory) {
-//            TreeItem<Path> subdirectoryTreeItem = new TreeItem<Path>(subdirectory.getFileName());
-//            walkThroughDirectoryToGetTreeItem(subdirectory, subdirectoryTreeItem);
-//            superDirectoryTreeItem.getChildren().add(subdirectoryTreeItem);
-//        }
 
         return superDirectoryTreeItem;
     }
