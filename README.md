@@ -1,5 +1,6 @@
 # Git for Education
 A graphics-based Git client for teaching people both how to work Git and how Git works.
+Cool name coming soon.
 
 ### Running the source code:
 1. Clone this repository.
