@@ -31,6 +31,10 @@ public class Cell extends Pane implements Comparable<Cell>{
         this.height = 0;
 
         updateHeight();
+
+        this.setOnMouseClicked(event -> {
+            System.out.println("Node "+cellId);
+        });
     }
 
     public void updateHeight(){

@@ -32,4 +32,7 @@ public class MatchedScrollPane extends ScrollPane{
             sp.setVvalue(vPos);
         }
     }
+
+    public void requestFocus(){}
+
 }
