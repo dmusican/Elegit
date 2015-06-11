@@ -3,9 +3,15 @@ package edugit;
 import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.revplot.PlotCommitList;
+import org.eclipse.jgit.revplot.PlotLane;
+import org.eclipse.jgit.revplot.PlotWalk;
+import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 
@@ -102,5 +108,21 @@ public abstract class RepoHelper {
         return this.localPath;
     }
 
+
+    public ArrayList<String> getAllCommitMessages() throws IOException{
+        PlotWalk w = new PlotWalk(repo);
+        ObjectId rootId = repo.resolve("HEAD");
+        RevCommit root = w.parseCommit(rootId);
+        w.markStart(root);
+        PlotCommitList<PlotLane> plotCommitList = new PlotCommitList<PlotLane>();
+        plotCommitList.source(w);
+        plotCommitList.fillTo(Integer.MAX_VALUE);
+
+        ArrayList<String> m = new ArrayList<>(plotCommitList.size());
+        for(int i = 0; i<plotCommitList.size(); i++){
+            m.add(plotCommitList.get(i).getFullMessage());
+        }
+        return m;
+    }
 }
 
