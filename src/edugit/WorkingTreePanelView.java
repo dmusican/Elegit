@@ -39,6 +39,7 @@ public class WorkingTreePanelView extends Group {
         CheckBoxTreeItem<Path> rootItem = this.walkThroughDirectoryToGetTreeItem(dirpath, directoryLeaf);
         rootItem.setExpanded(true);
 
+        // TODO: Write a custom tree cell? Somehow, show only the fileName, not the whole path.
         this.directoryTreeView = new TreeView<Path>(rootItem);
         this.directoryTreeView.setCellFactory(CheckBoxTreeCell.<Path>forTreeView());
         this.getChildren().add(directoryTreeView);
