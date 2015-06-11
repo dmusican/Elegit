@@ -17,9 +17,6 @@ public class Edge extends Group {
         this.source = source;
         this.target = target;
 
-        source.addCellChild(target);
-        target.addCellParent(source);
-
         line = new DirectedLine();
 
         line.startXProperty().bind(source.layoutXProperty().add(source.getBoundsInParent().getWidth() / 2.0));

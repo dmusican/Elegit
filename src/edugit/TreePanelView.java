@@ -30,7 +30,7 @@ public class TreePanelView extends Group{
         model.addCell("A");
         model.addCell("B", "root");
         model.addCell("C");
-        model.addCell("D","A");
+        model.addCell("D", "A");
         model.addCell("E");
         model.addCell("F","D");
 
@@ -45,10 +45,16 @@ public class TreePanelView extends Group{
         model.addCell("M");
         model.addCell("N","M","K");
         model.addCell("O");
-        model.addCell("P");
 
-        model.addCell("Q","root");
-        model.addCell("R");
+        model.addCell("P","root");
+        model.addCell("Q");
+
+        model.addCell("R","J");
+        model.addCell("S");
+        model.addCell("T");
+
+        model.addCell("U","O","T");
+        model.addCell("V");
 
         graph.endUpdate();
 

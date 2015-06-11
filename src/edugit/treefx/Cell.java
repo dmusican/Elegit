@@ -28,8 +28,9 @@ public class Cell extends Pane implements Comparable<Cell>{
     public Cell(String cellId, Cell parent1, Cell parent2){
         this.cellId = cellId;
         this.parent = new Parent(parent1, parent2);
+        this.parent.setChild(this);
 
-        setView(new Rectangle(10,10, Color.BLUE));
+        setView(new Rectangle(10, 10, Color.BLUE));
 //        setView(new Text(cellId));
 
         this.height = 0;
@@ -84,7 +85,21 @@ public class Cell extends Pane implements Comparable<Cell>{
 
     @Override
     public int compareTo(Cell c){
-        return Double.compare(c.height, this.height);
+        int i = Double.compare(c.height, this.height);
+        if(i != 0){
+            return i;
+        }
+        return i;
+//        int childMaxHeight = 0;
+//        for(Cell child : this.getCellChildren()){
+//            childMaxHeight = Math.max(childMaxHeight, child.height);
+//        }
+//
+//        int cChildMaxHeight = 0;
+//        for(Cell child : this.getCellChildren()){
+//            cChildMaxHeight = Math.max(cChildMaxHeight, child.height);
+//        }
+//        return Integer.compare(cChildMaxHeight, childMaxHeight);
     }
 
     private class Parent{
@@ -97,19 +112,28 @@ public class Cell extends Pane implements Comparable<Cell>{
         }
 
         public void updateHeight(){
-            if(mom != null){
-                mom.updateHeight();
+            if(this.mom != null){
+                this.mom.updateHeight();
             }
-            if(dad != null){
-                dad.updateHeight();
+            if(this.dad != null){
+                this.dad.updateHeight();
             }
         }
 
         public void add(Cell cell){
-            if(mom != null){
+            if(this.mom != null){
                 this.mom = cell;
-            }else if(dad != null){
+            }else if(this.dad != null){
                 this.dad = cell;
+            }
+        }
+
+        public void setChild(Cell cell){
+            if(this.mom != null){
+                this.mom.addCellChild(cell);
+            }
+            if(this.dad != null){
+                this.dad.addCellChild(cell);
             }
         }
     }
