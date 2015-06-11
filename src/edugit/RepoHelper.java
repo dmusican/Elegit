@@ -21,9 +21,9 @@ public abstract class RepoHelper {
     protected Path localPath;
     private DirectoryWatcher directoryWatcher;
 
-    public RepoHelper(Path directoryPath, String ownerToken) throws Exception {
-        this.ownerAuth = new UsernamePasswordCredentialsProvider(ownerToken,"");
-        this.remoteURL = "https://github.com/grahamearley/jgit-test.git"; // TODO: pass this in!
+    public RepoHelper(Path directoryPath, String remoteURL, String username, String password) throws Exception {
+        this.ownerAuth = new UsernamePasswordCredentialsProvider(username, password);
+        this.remoteURL = remoteURL; //"https://github.com/grahamearley/jgit-test.git"; // TODO: pass this in!
 
         this.localPath = directoryPath;
 

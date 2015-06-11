@@ -10,8 +10,8 @@ import java.nio.file.Path;
  * A RepoHelper for newly instantiated repositories in an empty folder
  */
 public class NewRepoHelper extends RepoHelper {
-    public NewRepoHelper(Path directoryPath, String ownerToken) throws Exception {
-        super(directoryPath, ownerToken);
+    public NewRepoHelper(Path directoryPath, String remoteURL, String username, String password) throws Exception {
+        super(directoryPath, remoteURL, username, password);
     }
 
     @Override

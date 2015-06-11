@@ -11,8 +11,8 @@ import java.nio.file.Path;
  * A RepoHelper for a repository cloned into an empty folder
  */
 public class ClonedRepoHelper extends RepoHelper {
-    public ClonedRepoHelper(Path directoryPath, String ownerToken) throws Exception {
-        super(directoryPath, ownerToken);
+    public ClonedRepoHelper(Path directoryPath, String remoteURL, String username, String password) throws Exception {
+        super(directoryPath, remoteURL, username, password);
     }
 
     @Override
