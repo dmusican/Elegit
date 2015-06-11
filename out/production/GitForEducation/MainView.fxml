@@ -6,6 +6,8 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.MenuBar?>
+
 <GridPane alignment="CENTER" hgap="5" vgap="5" fx:controller="edugit.SessionController" xmlns:fx="http://javafx.com/fxml" id="gridPane">
     <columnConstraints>
         <ColumnConstraints halignment="CENTER" percentWidth="26"/>
@@ -24,10 +26,14 @@
         <RowConstraints valignment="CENTER" percentHeight="9"/>
     </rowConstraints>
 
+    <MenuBar fx:id="menuBar"
+            GridPane.rowIndex="0"
+            GridPane.columnSpan="5" />
+
     <GridPane alignment="center"
               hgap="10"
               vgap="10"
-              GridPane.rowIndex="0"
+              GridPane.rowIndex="1"
               GridPane.columnIndex="0"
               GridPane.rowSpan="7">
 
@@ -41,11 +47,20 @@
                     prefRowCount="3"
                     text="Commit message..." />
 
+        <Button GridPane.rowIndex="2"
+                text="(Re)Load Directory Contents"
+                onAction="#handleReloadButton"/>
+
+        <Button fx:id="cloneRepoLocationButton"
+                text="Clone a Repo"
+                onAction="#handleCloneToDestinationButton"
+                GridPane.rowIndex="3"/>
+
     </GridPane>
 
-    <LocalPanelView GridPane.rowIndex="0" GridPane.columnIndex="2" GridPane.rowSpan="7" id="localPanelView"/>
+    <LocalPanelView GridPane.rowIndex="1" GridPane.columnIndex="2" GridPane.rowSpan="7" id="localPanelView"/>
 
-    <RemotePanelView GridPane.rowIndex="0" GridPane.columnIndex="4" GridPane.rowSpan="7" id="remotePanelView"/>
+    <RemotePanelView GridPane.rowIndex="1" GridPane.columnIndex="4" GridPane.rowSpan="7" id="remotePanelView"/>
 
     <Button GridPane.rowIndex="2" GridPane.columnIndex="1" text="Commit" onAction="#handleCommitButton"/>
 
