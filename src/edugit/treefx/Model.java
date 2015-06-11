@@ -10,7 +10,7 @@ import java.util.Map;
  */
 public class Model {
 
-    Cell graphParent;
+    Cell rootCell;
 
     List<Cell> allCells;
     List<Cell> addedCells;
@@ -22,12 +22,16 @@ public class Model {
 
     Map<String,Cell> cellMap; // <id,cell>
 
-    public Model() {
+    private String prevAddedId;
 
-        graphParent = new Cell( "_ROOT_");
+    public Model(String rootCellId) {
 
         // clear model, create lists
         clear();
+
+        this.rootCell = new Cell(rootCellId, null);
+        this.prevAddedId = rootCellId;
+        this.addCell(rootCell);
     }
 
     public void clear() {
@@ -42,6 +46,10 @@ public class Model {
 
         cellMap = new HashMap<>(); // <id,cell>
 
+    }
+
+    public Cell getRoot(){
+        return this.rootCell;
     }
 
     public void clearAddedLists() {
@@ -73,17 +81,32 @@ public class Model {
         return allEdges;
     }
 
-    public void addCell(String id) {
+    public void addCell(String newId){
+        this.addCell(newId, false);
+    }
 
-        Cell cell = new Cell(id);
+    public void addCell(String newId, boolean keepSameParent){
+        String temp = prevAddedId;
+        this.addCell(newId, prevAddedId);
+        if(!keepSameParent){
+            this.prevAddedId = newId;
+        }else{
+            this.prevAddedId = temp;
+        }
+    }
+
+    public void addCell(String newId, String parentId){
+        Cell cell = new Cell(newId, cellMap.get(parentId));
         addCell(cell);
 
+        this.addEdge(parentId, newId);
+
+        prevAddedId = newId;
     }
 
     private void addCell( Cell cell) {
 
         addedCells.add(cell);
-
         cellMap.put( cell.getCellId(), cell);
 
     }
@@ -97,31 +120,6 @@ public class Model {
 
         addedEdges.add( edge);
 
-    }
-
-    /**
-     * Attach all cells which don't have a parent to graphParent
-     * @param cellList
-     */
-    public void attachOrphansToGraphParent( List<Cell> cellList) {
-
-        for( Cell cell: cellList) {
-            if( cell.getCellParents().size() == 0) {
-                graphParent.addCellChild( cell);
-            }
-        }
-
-    }
-
-    /**
-     * Remove the graphParent reference if it is set
-     * @param cellList
-     */
-    public void disconnectFromGraphParent( List<Cell> cellList) {
-
-        for( Cell cell: cellList) {
-            graphParent.removeCellChild( cell);
-        }
     }
 
     public void merge() {

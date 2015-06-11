@@ -16,13 +16,13 @@ public class TreePanelView extends Group{
 
     public TreePanelView(){
 
-        TreeModel model = new TreeModel("root");
+        Model model = new Model("root");
 
         graph = new Graph(model);
 
         ScrollPane sp = graph.getScrollPane();
         sp.setPannable(true);
-        sp.setPrefSize(200,600);
+        sp.setPrefSize(200, 600);
         this.getChildren().add(sp);
 
         graph.beginUpdate();

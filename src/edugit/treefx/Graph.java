@@ -23,9 +23,9 @@ public class Graph {
      */
     CellLayer cellLayer;
 
-    public Graph() {
+    public Graph(Model m) {
 
-        this.model = new Model();
+        this.model = m;
 
         canvas = new Group();
         cellLayer = new CellLayer();
@@ -39,11 +39,6 @@ public class Graph {
 
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
         scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-    }
-
-    public Graph(Model m){
-        this();
-        this.model = m;
     }
 
     public ScrollPane getScrollPane() {
@@ -62,7 +57,6 @@ public class Graph {
     }
 
     public void endUpdate() {
-
         // add components to graph pane
         getCellLayer().getChildren().addAll(model.getAddedEdges());
         getCellLayer().getChildren().addAll(model.getAddedCells());
@@ -71,20 +65,7 @@ public class Graph {
         getCellLayer().getChildren().removeAll(model.getRemovedCells());
         getCellLayer().getChildren().removeAll(model.getRemovedEdges());
 
-        // enable dragging of cells
-//        for (Cell cell : model.getAddedCells()) {
-//            mouseGestures.makeDraggable(cell);
-//        }
-
-        // every cell must have a parent, if it doesn't, then the graphParent is
-        // the parent
-        getModel().attachOrphansToGraphParent(model.getAddedCells());
-
-        // remove reference to graphParent
-        getModel().disconnectFromGraphParent(model.getRemovedCells());
-
         // merge added & removed cells with all cells
         getModel().merge();
-
     }
 }

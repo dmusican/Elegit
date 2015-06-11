@@ -2,6 +2,8 @@ package edugit.treefx;
 
 import javafx.scene.Node;
 import javafx.scene.layout.Pane;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,12 +16,15 @@ public class Cell extends Pane {
     String cellId;
 
     List<Cell> children = new ArrayList<>();
-    List<Cell> parents = new ArrayList<>();
+    Cell parent;
 
     Node view;
 
-    public Cell(String cellId) {
+    public Cell(String cellId, Cell parent){
         this.cellId = cellId;
+        this.parent = parent;
+
+        setView(new Rectangle(10,10, Color.BLUE));
     }
 
     public void addCellChild(Cell cell) {
@@ -31,11 +36,11 @@ public class Cell extends Pane {
     }
 
     public void addCellParent(Cell cell) {
-        parents.add(cell);
+        this.parent = cell;
     }
 
-    public List<Cell> getCellParents() {
-        return parents;
+    public Cell getCellParent() {
+        return parent;
     }
 
     public void removeCellChild(Cell cell) {

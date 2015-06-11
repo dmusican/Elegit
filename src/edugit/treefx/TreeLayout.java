@@ -19,11 +19,11 @@ public class TreeLayout extends Layout{
     @Override
     public void execute(){
 
-        TreeModel model = (TreeModel)graph.getModel();
+        Model model = graph.getModel();
 
         List<Cell> cells = model.getAllCells();
 
-        TreeCell rootCell = model.getRoot();
+        Cell rootCell = model.getRoot();
 
         depthCounts = new int[cells.size()];
 
