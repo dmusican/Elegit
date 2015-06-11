@@ -1,8 +1,8 @@
 package edugit;
 
 import javafx.event.ActionEvent;
-import javafx.scene.control.Button;
-import javafx.scene.control.TextArea;
+import javafx.event.EventHandler;
+import javafx.scene.control.*;
 
 import java.io.File;
 
@@ -11,6 +11,7 @@ import java.io.File;
  */
 public class SessionController extends Controller {
 
+    public MenuBar menuBar;
     private SessionModel theModel;
 
     public TextArea commitMessageField;
@@ -25,14 +26,49 @@ public class SessionController extends Controller {
     public void initialize() {
         this.theModel = SessionModel.getSessionModel();
         this.workingTreePanelView.setSessionModel(this.theModel);
+        this.initializeMenuBar();
+    }
+
+    private void initializeMenuBar() {
+        // TODO: break this out into a separate controller
+        Menu openMenu = new Menu("New Repository");
+
+        MenuItem cloneOption = new MenuItem("Clone");
+        cloneOption.setOnAction(new EventHandler<ActionEvent>() {
+            public void handle(ActionEvent t) {
+                File cloneRepoDirectory = getPathFromChooser(true, "Choose a Location", null);
+                try{
+                    RepoHelper repoHelper = new ClonedRepoHelper(cloneRepoDirectory.toPath(), SECRET_CONSTANTS.TEST_GITHUB_TOKEN);
+                    SessionModel.getSessionModel().openRepoFromHelper(repoHelper);
+                } catch(Exception e){
+                    e.printStackTrace();
+                }
+            }
+        });
+
+        MenuItem existingOption = new MenuItem("Load existing repository");
+        existingOption.setOnAction(new EventHandler<ActionEvent>() {
+            public void handle(ActionEvent t) {
+                File existingRepoDirectory = getPathFromChooser(true, "Choose a Location", null);
+                try{
+                    RepoHelper repoHelper = new ExistingRepoHelper(existingRepoDirectory.toPath(), SECRET_CONSTANTS.TEST_GITHUB_TOKEN);
+                    SessionModel.getSessionModel().openRepoFromHelper(repoHelper);
+                } catch(Exception e){
+                    e.printStackTrace();
+                }
+            }
+        });
+
+        MenuItem newOption = new MenuItem("Start a new repository");
+        newOption.setDisable(true);
+
+        openMenu.getItems().addAll(cloneOption, existingOption, newOption);
+        menuBar.getMenus().addAll(openMenu);
+
     }
 
     public void handleCommitButton(ActionEvent actionEvent){
         String commitMessage = commitMessageField.getText();
-
-        // TODO: delete print statements
-        System.out.println(commitMessage);
-        System.out.println(this.workingTreePanelView.getCheckedFilesInDirectory());
 
         this.theModel.currentRepoHelper.addFilePaths(this.workingTreePanelView.getCheckedFilesInDirectory());
         this.theModel.currentRepoHelper.commitFile(commitMessage);

@@ -2,8 +2,10 @@ package edugit;
 
 import javafx.scene.Group;
 import javafx.scene.control.CheckBoxTreeItem;
+import javafx.scene.control.MenuBar;
 import javafx.scene.control.TreeView;
 import javafx.scene.control.cell.CheckBoxTreeCell;
+import javafx.scene.layout.BorderPane;
 
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
@@ -25,6 +27,8 @@ public class WorkingTreePanelView extends Group {
 
     public WorkingTreePanelView() {
         this.fileLeafs = new ArrayList<>();
+        this.directoryTreeView = new TreeView<Path>();
+        this.getChildren().add(this.directoryTreeView);
     }
 
     public void drawDirectoryView() {
@@ -40,8 +44,9 @@ public class WorkingTreePanelView extends Group {
         // TODO: Write a custom tree cell? Somehow, show only the fileName, not the whole path.
         this.directoryTreeView = new TreeView<Path>(rootItem);
         this.directoryTreeView.setCellFactory(CheckBoxTreeCell.<Path>forTreeView());
-        this.getChildren().add(directoryTreeView);
 
+        this.getChildren().clear();
+        this.getChildren().add(directoryTreeView);
     }
 
     private CheckBoxTreeItem<Path> walkThroughDirectoryToGetTreeItem(Path superDirectory, CheckBoxTreeItem<Path> superDirectoryLeaf) {
