@@ -31,7 +31,7 @@ public class SessionController extends Controller {
 
     private void initializeMenuBar() {
         // TODO: break this out into a separate controller
-        Menu openMenu = new Menu("New Repository");
+        Menu openMenu = new Menu("Load a Repository");
 
         MenuItem cloneOption = new MenuItem("Clone");
         cloneOption.setOnAction(new EventHandler<ActionEvent>() {
