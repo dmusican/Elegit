@@ -1,6 +1,8 @@
 package edugit;
 
 import javafx.event.ActionEvent;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 
 /**
  * Created by makik on 6/10/15.
@@ -8,6 +10,8 @@ import javafx.event.ActionEvent;
 public class SessionController extends Controller {
 
     private SessionModel theModel;
+
+    public TextArea commitMessageField;
     public WorkingTreePanelView workingTreePanelView;
 
     /**
