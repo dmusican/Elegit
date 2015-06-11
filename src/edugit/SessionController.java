@@ -2,10 +2,6 @@ package edugit;
 
 import javafx.event.ActionEvent;
 import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
-
-import java.nio.file.Path;
-import java.util.ArrayList;
 
 /**
  * Created by makik on 6/10/15.
@@ -33,6 +29,10 @@ public class SessionController extends Controller {
 
         System.out.println(commitMessage);
         System.out.println(this.workingTreePanelView.getCheckedFilesInDirectory());
+
+        this.theModel.currentRepoHelper.addFilePaths(this.workingTreePanelView.getCheckedFilesInDirectory());
+        this.theModel.currentRepoHelper.commitFile(commitMessage);
+        this.theModel.currentRepoHelper.pushAll();
 
     }
 

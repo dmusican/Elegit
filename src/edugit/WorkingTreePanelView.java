@@ -30,7 +30,7 @@ public class WorkingTreePanelView extends Group {
     }
 
     private void drawDirectoryView() {
-        Path dirpath = Paths.get(System.getProperty("user.home")+"/Documents"); //this.sessionModel.openRepoHelper.getDirectory().toString();
+        Path dirpath = Paths.get(System.getProperty("user.home")+"/Desktop/cl"); //this.sessionModel.currentRepoHelper.getDirectory().toString();
 
         // example-based:
         // http://www.adam-bien.com/roller/abien/entry/listing_directory_contents_with_jdk
@@ -52,13 +52,13 @@ public class WorkingTreePanelView extends Group {
             for (Path path : directoryStream) {
                 if (Files.isDirectory(path)) {
                     // Recurse!
-                    CheckBoxTreeItem<Path> subdirectoryLeaf = new CheckBoxTreeItem<Path>(path.getFileName());
+                    CheckBoxTreeItem<Path> subdirectoryLeaf = new CheckBoxTreeItem<Path>(path);
                     walkThroughDirectoryToGetTreeItem(path, subdirectoryLeaf);
                     superDirectoryLeaf.getChildren().add(subdirectoryLeaf);
                 }
                 else {
                     // So, it's a file, not a directory.
-                    CheckBoxTreeItem<Path> fileLeaf = new CheckBoxTreeItem<Path>(path.getFileName());
+                    CheckBoxTreeItem<Path> fileLeaf = new CheckBoxTreeItem<Path>(path);
                     superDirectoryLeaf.getChildren().add(fileLeaf);
                     this.fileLeafs.add(fileLeaf);
                 }
