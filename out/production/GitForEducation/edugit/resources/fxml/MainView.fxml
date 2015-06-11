@@ -25,6 +25,10 @@
                     prefRowCount="3"
                     text="Commit message..." />
 
+        <Button GridPane.rowIndex="2"
+                text="Reload Directory Contents"
+                onAction="#handleReloadButton"/>
+
     </GridPane>
 
     <LocalPanelView GridPane.rowIndex="0" GridPane.columnIndex="2" GridPane.rowSpan="7" id="localPanelView"/>

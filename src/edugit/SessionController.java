@@ -46,4 +46,8 @@ public class SessionController extends Controller {
     public void handleFetchButton(ActionEvent actionEvent){
 
     }
+
+    public void handleReloadButton(ActionEvent actionEvent) {
+        this.workingTreePanelView.drawDirectoryView();
+    }
 }
