@@ -1,6 +1,8 @@
 package edugit;
 
 import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 
 /**
@@ -9,7 +11,7 @@ import java.util.ArrayList;
  */
 public class SessionModel {
 
-    RepoHelper openRepoHelper;
+    RepoHelper currentRepoHelper;
     ArrayList<RepoHelper> allRepoHelpers;
     private static SessionModel sessionModel;
 
@@ -23,10 +25,17 @@ public class SessionModel {
 
     private SessionModel() {
         this.allRepoHelpers = new ArrayList<RepoHelper>();
+        // TODO: remove this horribly out-of-place line
+        Path dirpath = Paths.get(System.getProperty("user.home") + "/Desktop/cl"); //this.sessionModel.currentRepoHelper.getDirectory().toString();
+        try {
+            openRepoFromHelper(new ExistingRepoHelper(dirpath, SECRET_CONSTANTS.TEST_GITHUB_TOKEN));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public File[] getFilesInCurrentDirectory() {
-        return this.openRepoHelper.getDirectory().toFile().listFiles();
+        return this.currentRepoHelper.getDirectory().toFile().listFiles();
     }
 
     public void addRepo(RepoHelper anotherRepoHelper) {
@@ -34,7 +43,7 @@ public class SessionModel {
     }
 
     public void openRepoAtIndex(int index) {
-        this.openRepoHelper = this.allRepoHelpers.get(index);
+        this.currentRepoHelper = this.allRepoHelpers.get(index);
     }
 
     public void openRepoFromHelper(RepoHelper repoHelperToLoad) {

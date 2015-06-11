@@ -4,6 +4,8 @@
 <?import javafx.scene.layout.*?>
 <?import java.net.URL?>
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.TextArea?>
 <GridPane alignment="CENTER" hgap="5" vgap="5" fx:controller="edugit.SessionController" xmlns:fx="http://javafx.com/fxml" id="gridPane">
     <columnConstraints>
         <ColumnConstraints halignment="CENTER" percentWidth="26"/>
@@ -22,7 +24,24 @@
         <RowConstraints valignment="CENTER" percentHeight="9"/>
     </rowConstraints>
 
-    <WorkingTreePanelView GridPane.rowIndex="0" GridPane.columnIndex="0" GridPane.rowSpan="7" id="workingTreePanelView"/>
+    <GridPane alignment="center"
+              hgap="10"
+              vgap="10"
+              GridPane.rowIndex="0"
+              GridPane.columnIndex="0"
+              GridPane.rowSpan="7">
+
+        <WorkingTreePanelView
+                GridPane.rowIndex="0"
+                fx:id="workingTreePanelView"/>
+
+        <TextArea  GridPane.rowIndex="1"
+                    fx:id="commitMessageField"
+                    prefColumnCount="1"
+                    prefRowCount="3"
+                    text="Commit message..." />
+
+    </GridPane>
 
     <LocalPanelView GridPane.rowIndex="0" GridPane.columnIndex="2" GridPane.rowSpan="7" id="localPanelView"/>
 

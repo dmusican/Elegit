@@ -1,11 +1,13 @@
 package edugit;
 
+import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
 
 /**
  * The abstract RepoHelper class, used for interacting with a repository.
@@ -38,9 +40,26 @@ public abstract class RepoHelper {
         Git git = new Git(this.repo);
         // git add:
         try {
+            Path relativizedFilePath = this.localPath.relativize(filePath);
             git.add()
-                    .addFilepattern(filePath.getFileName().toString())
+                    .addFilepattern(relativizedFilePath.toString())
                     .call();
+        } catch (GitAPIException e) {
+            e.printStackTrace();
+        }
+        git.close();
+    }
+
+    public void addFilePaths(ArrayList<Path> filePaths) {
+        Git git = new Git(this.repo);
+        // git add:
+        try {
+            AddCommand adder = git.add();
+            for (Path filePath : filePaths) {
+                Path localizedFilePath = this.localPath.relativize(filePath);
+                adder.addFilepattern(localizedFilePath.toString());
+            }
+            adder.call();
         } catch (GitAPIException e) {
             e.printStackTrace();
         }
