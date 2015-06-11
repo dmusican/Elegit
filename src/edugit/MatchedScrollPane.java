@@ -1,7 +1,5 @@
 package edugit;
 
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.scene.Group;
 import javafx.scene.control.ScrollPane;
 
@@ -12,20 +10,19 @@ import java.util.ArrayList;
  */
 public class MatchedScrollPane extends ScrollPane{
 
-    private static double vPos;
+    private static double vPos = 0.0;
+
     private static ArrayList<MatchedScrollPane> instances = new ArrayList<>(2);
 
     public MatchedScrollPane(Group g){
         super(g);
+
         this.setVvalue(vPos);
 
         instances.add(this);
 
-        vvalueProperty().addListener(new ChangeListener<Number>(){
-            @Override
-            public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue){
-                updateVerticalPosition(newValue.doubleValue());
-            }
+        vvalueProperty().addListener((observable, oldValue, newValue) -> {
+            updateVerticalPosition(newValue.doubleValue());
         });
     }
 

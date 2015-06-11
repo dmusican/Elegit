@@ -77,6 +77,7 @@ public class Model {
 
         Cell cell = new Cell(id);
         addCell(cell);
+
     }
 
     private void addCell( Cell cell) {

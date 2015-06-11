@@ -1,7 +1,8 @@
 package edugit;
 
-import edugit.treefx.Graph;
+import edugit.treefx.*;
 import javafx.scene.Group;
+import javafx.scene.control.ScrollPane;
 
 /**
  * Created by makik on 6/10/15.
@@ -14,14 +15,29 @@ public class TreePanelView extends Group{
     Graph graph;
 
     public TreePanelView(){
-//        Canvas c = new Canvas(50,300);
-//        GraphicsContext gc = c.getGraphicsContext2D();
-//        gc.setFill(Color.BLUE);
-//        gc.fillOval(25,25,10,10);
 
-//        for(int i=0; i<Math.random()*10; i++){
-//            Circle c = new Circle(Math.random()*50+i*5,Math.random()*300+i*40,Math.random()*40+10, Color.BLUE);
-//            this.getChildren().add(c);
-//        }
+        TreeModel model = new TreeModel("root");
+
+        graph = new Graph(model);
+
+        ScrollPane sp = graph.getScrollPane();
+        sp.setPannable(true);
+        sp.setPrefSize(200,600);
+        this.getChildren().add(sp);
+
+        graph.beginUpdate();
+
+        model.addCell("A");
+        model.addCell("B","root");
+        model.addCell("C");
+        model.addCell("D","A");
+        model.addCell("E",true);
+        model.addCell("F");
+        model.addCell("G");
+
+        graph.endUpdate();
+
+        Layout layout = new TreeLayout(graph);
+        layout.execute();
     }
 }

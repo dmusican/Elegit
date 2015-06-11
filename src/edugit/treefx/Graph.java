@@ -16,8 +16,6 @@ public class Graph {
 
     private MatchedScrollPane scrollPane;
 
-    MouseGestures mouseGestures;
-
     /**
      * the pane wrapper is necessary or else the scrollpane would always align
      * the top-most and left-most child to the top and left eg when you drag the
@@ -34,15 +32,18 @@ public class Graph {
 
         canvas.getChildren().add(cellLayer);
 
-        mouseGestures = new MouseGestures(this);
-
         scrollPane = new MatchedScrollPane(canvas);
 
         scrollPane.setFitToWidth(true);
         scrollPane.setFitToHeight(true);
 
-        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
         scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+    }
+
+    public Graph(Model m){
+        this();
+        this.model = m;
     }
 
     public ScrollPane getScrollPane() {
