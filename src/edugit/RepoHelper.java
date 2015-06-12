@@ -152,10 +152,10 @@ public abstract class RepoHelper {
         return strings;
     }
 
-    public RevCommit getCurrentHeadCommit() throws IOException{
+    public CommitHelper getCurrentHeadCommit() throws IOException{
         PlotWalk w = new PlotWalk(repo);
         ObjectId commitId = repo.resolve("HEAD");
-        return w.parseCommit(commitId);
+        return new CommitHelper(w.parseCommit(commitId));
     }
 }
 

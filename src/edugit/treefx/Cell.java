@@ -27,8 +27,7 @@ public class Cell extends Pane implements Comparable<Cell>{
 
     public Cell(String cellId, Cell parent1, Cell parent2){
         this.cellId = cellId;
-        this.parent = new Parent(parent1, parent2);
-        this.parent.setChild(this);
+        this.parent = new Parent(this, parent1, parent2);
 
         setView(new Rectangle(10, 10, Color.BLUE));
 //        setView(new Text(cellId));
@@ -56,10 +55,6 @@ public class Cell extends Pane implements Comparable<Cell>{
 
     public List<Cell> getCellChildren() {
         return children;
-    }
-
-    public void addCellParent(Cell cell) {
-        parent.add(cell);
     }
 
     public Parent getCellParent() {
@@ -106,9 +101,10 @@ public class Cell extends Pane implements Comparable<Cell>{
 
         private Cell mom,dad;
 
-        public Parent(Cell mom, Cell dad){
+        public Parent(Cell child, Cell mom, Cell dad){
             this.mom = mom;
             this.dad = dad;
+            this.setChild(child);
         }
 
         public void updateHeight(){
@@ -117,14 +113,6 @@ public class Cell extends Pane implements Comparable<Cell>{
             }
             if(this.dad != null){
                 this.dad.updateHeight();
-            }
-        }
-
-        public void add(Cell cell){
-            if(this.mom != null){
-                this.mom = cell;
-            }else if(this.dad != null){
-                this.dad = cell;
             }
         }
 
