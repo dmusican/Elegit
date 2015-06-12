@@ -1,6 +1,7 @@
 package edugit;
 
 import javafx.scene.control.CheckBoxTreeItem;
+import org.eclipse.jgit.lib.Repository;
 
 import java.io.File;
 import java.io.IOException;
@@ -51,6 +52,10 @@ public class SessionModel {
             this.allRepoHelpers.add(repoHelperToLoad);
             this.openRepoAtIndex(this.allRepoHelpers.size() - 1);
         }
+    }
+
+    public Repository getCurrentRepo() {
+        return this.currentRepoHelper.getRepo();
     }
 
 }

@@ -72,7 +72,7 @@ public abstract class RepoHelper {
         git.close();
     }
 
-    public void commitFile(String commitMessage) {
+    public void commit(String commitMessage) {
         // should this Git instance be class-level?
         Git git = new Git(this.repo);
         // git commit:

@@ -3,6 +3,7 @@ package edugit;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.control.*;
+import org.eclipse.jgit.api.errors.GitAPIException;
 
 import java.io.File;
 
@@ -72,11 +73,14 @@ public class SessionController extends Controller {
 
     }
 
-    public void handleCommitButton(ActionEvent actionEvent){
+    public void handleCommitButton(ActionEvent actionEvent) throws GitAPIException {
         String commitMessage = commitMessageField.getText();
 
-        this.theModel.currentRepoHelper.addFilePaths(this.workingTreePanelView.getCheckedFilesInDirectory());
-        this.theModel.currentRepoHelper.commitFile(commitMessage);
+        for (RepoFile checkedFile : this.workingTreePanelView.getCheckedFilesInDirectory()) {
+            checkedFile.updateFileStatusInRepo();
+        }
+
+        this.theModel.currentRepoHelper.commit(commitMessage);
         this.theModel.currentRepoHelper.pushAll();
 
     }
@@ -91,7 +95,7 @@ public class SessionController extends Controller {
 
     }
 
-    public void handleReloadButton(ActionEvent actionEvent) {
+    public void handleReloadButton(ActionEvent actionEvent) throws GitAPIException {
         this.workingTreePanelView.drawDirectoryView();
         this.localPanelView.drawTreeFromCurrentRepo();
         this.remotePanelView.drawTreeFromCurrentRepo();
