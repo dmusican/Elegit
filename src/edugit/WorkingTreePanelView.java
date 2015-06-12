@@ -39,11 +39,6 @@ public class WorkingTreePanelView extends Group {
     public void drawDirectoryView() throws GitAPIException {
         Path directoryPath = this.sessionModel.currentRepoHelper.getDirectory();
 
-//        CheckBoxTreeItem<Path> directoryLeaf = new CheckBoxTreeItem<Path>(directoryPath.getFileName());
-//        CheckBoxTreeItem<Path> rootItem = this.walkThroughDirectoryToGetTreeItem(directoryPath, directoryLeaf);
-//        rootItem.setExpanded(true);
-
-
         // just for convenience
         Repository repo = this.sessionModel.getCurrentRepo();
 
@@ -81,7 +76,8 @@ public class WorkingTreePanelView extends Group {
 
         rootItem.getChildren().addAll(untrackedFilesRoot, missingFilesRoot, modifiedFilesRoot);
 
-        // TODO: Write a custom tree cell? Somehow, show only the fileName, not the whole path.
+        // TODO: Write a custom tree cell?
+        //  Show icons for NEW, MODIFIED, or MISSING
         this.directoryTreeView = new TreeView<RepoFile>(rootItem);
         this.directoryTreeView.setCellFactory(CheckBoxTreeCell.<RepoFile>forTreeView());
 
