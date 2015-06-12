@@ -2,12 +2,8 @@ package edugit;
 
 import javafx.scene.Group;
 import javafx.scene.control.CheckBoxTreeItem;
-import javafx.scene.control.MenuBar;
 import javafx.scene.control.TreeView;
 import javafx.scene.control.cell.CheckBoxTreeCell;
-import javafx.scene.layout.BorderPane;
-import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Repository;
 
@@ -15,9 +11,7 @@ import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Set;
 
 /**
  * Created by makik on 6/10/15.
@@ -39,45 +33,14 @@ public class WorkingTreePanelView extends Group {
     public void drawDirectoryView() throws GitAPIException {
         Path directoryPath = this.sessionModel.currentRepoHelper.getDirectory();
 
-        // just for convenience
-        Repository repo = this.sessionModel.getCurrentRepo();
+        DirectoryRepoFile parentDirectoryRepoFile = this.sessionModel.getParentDirectoryRepoFile();
 
-        // TODO: make these headers cleaner. Right now "Test" isn't a filePathString like it should be... it's just a string.
-        CheckBoxTreeItem<RepoFile> rootItem = new CheckBoxTreeItem<RepoFile>(new UntrackedRepoFile("Git Status", repo));
+        CheckBoxTreeItem<RepoFile> rootItem = new CheckBoxTreeItem<RepoFile>(parentDirectoryRepoFile);
         rootItem.setExpanded(true);
 
-        // TODO: consider changing the constant switching from Path to String...
-        CheckBoxTreeItem<RepoFile> untrackedFilesRoot = new CheckBoxTreeItem<RepoFile>(new UntrackedRepoFile("Untracked Files", repo));
-        for (String untrackedFile : this.sessionModel.getUntrackedFiles()){
-            UntrackedRepoFile untrackedRepoFile = new UntrackedRepoFile(untrackedFile, repo);
-            CheckBoxTreeItem<RepoFile> untrackedFileLeaf = new CheckBoxTreeItem<>(untrackedRepoFile);
-            untrackedFilesRoot.getChildren().add(untrackedFileLeaf);
+        rootItem = this.populateRepoFileTreeLeaf(rootItem);
 
-            this.fileLeafs.add(untrackedFileLeaf);
-        }
-
-        CheckBoxTreeItem<RepoFile> missingFilesRoot = new CheckBoxTreeItem<RepoFile>(new MissingRepoFile("Missing Files", repo));
-        for (String missingFile : this.sessionModel.getMissingFiles()){
-            MissingRepoFile missingRepoFile = new MissingRepoFile(missingFile, repo);
-            CheckBoxTreeItem<RepoFile> missingFileLeaf = new CheckBoxTreeItem<>(missingRepoFile);
-            missingFilesRoot.getChildren().add(missingFileLeaf);
-
-            this.fileLeafs.add(missingFileLeaf);
-        }
-
-        CheckBoxTreeItem<RepoFile> modifiedFilesRoot = new CheckBoxTreeItem<RepoFile>(new UntrackedRepoFile("Modified Files", repo));
-        for (String modifiedFile : this.sessionModel.getModifiedFiles()){
-            ModifiedRepoFile modifiedRepoFile = new ModifiedRepoFile(modifiedFile, repo);
-            CheckBoxTreeItem<RepoFile> modifiedFileLeaf = new CheckBoxTreeItem<>(modifiedRepoFile);
-            modifiedFilesRoot.getChildren().add(modifiedFileLeaf);
-
-            this.fileLeafs.add(modifiedFileLeaf);
-        }
-
-        rootItem.getChildren().addAll(untrackedFilesRoot, missingFilesRoot, modifiedFilesRoot);
-
-        // TODO: Write a custom tree cell?
-        //  Show icons for NEW, MODIFIED, or MISSING
+        // TODO: Write a custom tree cell? Show icons for NEW, MODIFIED, or MISSING
         this.directoryTreeView = new TreeView<RepoFile>(rootItem);
         this.directoryTreeView.setCellFactory(CheckBoxTreeCell.<RepoFile>forTreeView());
 
@@ -86,6 +49,25 @@ public class WorkingTreePanelView extends Group {
 
         this.getChildren().clear();
         this.getChildren().add(directoryTreeView);
+    }
+
+    public CheckBoxTreeItem<RepoFile> populateRepoFileTreeLeaf(CheckBoxTreeItem<RepoFile> parentLeaf) {
+        RepoFile parentLeafRepoFile = parentLeaf.getValue();
+
+        // TODO: change this if statement to check if null, and make non-directory RepoFiles have that arraylist be null
+        if (!parentLeafRepoFile.getChildren().isEmpty()) {
+            for (RepoFile childRepoFile : parentLeafRepoFile.getChildren()) {
+                CheckBoxTreeItem<RepoFile> childLeaf = new CheckBoxTreeItem<>(childRepoFile);
+                if (!childRepoFile.getChildren().isEmpty()) {
+                    // Populate the child leaf, then add it to the parent
+                    childLeaf = populateRepoFileTreeLeaf(childLeaf);
+                }
+                parentLeaf.getChildren().add(childLeaf);
+                this.fileLeafs.add(childLeaf);
+            }
+        }
+
+        return parentLeaf;
     }
 
 

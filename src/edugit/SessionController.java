@@ -27,7 +27,7 @@ public class SessionController extends Controller {
      *
      * This method is automatically called by JavaFX.
      */
-    public void initialize() {
+    public void initialize() throws GitAPIException {
         this.theModel = SessionModel.getSessionModel();
         this.workingTreePanelView.setSessionModel(this.theModel);
         this.localPanelView.setSessionModel(this.theModel);

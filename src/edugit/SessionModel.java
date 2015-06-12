@@ -1,6 +1,5 @@
 package edugit;
 
-import javafx.scene.control.CheckBoxTreeItem;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -11,7 +10,6 @@ import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Set;
 
@@ -25,7 +23,7 @@ public class SessionModel {
     ArrayList<RepoHelper> allRepoHelpers;
     private static SessionModel sessionModel;
 
-    public static SessionModel getSessionModel() {
+    public static SessionModel getSessionModel() throws GitAPIException {
         if (sessionModel == null) {
             sessionModel = new SessionModel();
         }
@@ -81,6 +79,61 @@ public class SessionModel {
         Set<String> modifiedFiles = status.getModified();
 
         return modifiedFiles;
+    }
+
+    private DirectoryRepoFile populateDirectoryRepoFile(DirectoryRepoFile superDirectory) throws GitAPIException {
+        // Get the directories and subdirectories
+        Set<String> modifiedFiles = getModifiedFiles();
+        Set<String> missingFiles = getMissingFiles();
+        Set<String> untrackedFiles = getUntrackedFiles();
+
+        System.out.println(missingFiles.toString());
+
+        try {
+            DirectoryStream<Path> directoryStream = Files.newDirectoryStream(superDirectory.getFilePath());
+            for (Path path : directoryStream) {
+                if (Files.isDirectory(path)) {
+                    // Recurse!
+                    DirectoryRepoFile subdirectory = new DirectoryRepoFile(path, superDirectory.getRepo());
+                    populateDirectoryRepoFile(subdirectory);
+                    superDirectory.addChildFile(subdirectory);
+                }
+                else { // So it's a file, not a directory.
+                    // Relativize the path to the repository, because that's the file structure JGit
+                    //  looks for in an 'add' command
+                    Path repoDirectory = this.sessionModel.getCurrentRepo().getWorkTree().toPath();
+                    Path relativizedPath = repoDirectory.relativize(path);
+
+                    if (modifiedFiles.contains(relativizedPath.toString())) {
+                        ModifiedRepoFile modifiedFile = new ModifiedRepoFile(path, this.getCurrentRepo());
+                        superDirectory.addChildFile(modifiedFile);
+                    } else if (missingFiles.contains(relativizedPath.toString())) {
+                        MissingRepoFile missingFile = new MissingRepoFile(path, this.getCurrentRepo());
+                        superDirectory.addChildFile(missingFile);
+                    } else if (untrackedFiles.contains(relativizedPath.toString())) {
+                        UntrackedRepoFile untrackedFile = new UntrackedRepoFile(path, this.getCurrentRepo());
+                        superDirectory.addChildFile(untrackedFile);
+                    } else {
+                        RepoFile boringRepoFile = new RepoFile(path, this.getCurrentRepo());
+                        superDirectory.addChildFile(boringRepoFile);
+                    }
+                }
+            }
+            directoryStream.close(); // Have to close this to prevent overflow!
+        } catch (IOException ex) {}
+
+        return superDirectory;
+    }
+
+    public DirectoryRepoFile getParentDirectoryRepoFile() throws GitAPIException {
+        Path fullPath = this.currentRepoHelper.localPath;
+
+        //FIXME: what should the pathString be for this file?
+        // NOTE: well, this works, so maybe it's correct...
+        DirectoryRepoFile parentDirectoryRepoFile = new DirectoryRepoFile(fullPath, this.getCurrentRepo());
+        parentDirectoryRepoFile = this.populateDirectoryRepoFile(parentDirectoryRepoFile);
+
+        return parentDirectoryRepoFile;
     }
 
 }
