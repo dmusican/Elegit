@@ -4,21 +4,19 @@ import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.ObjectId;
-import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.jgit.lib.Repository;
-import org.eclipse.jgit.revplot.PlotCommit;
 import org.eclipse.jgit.revplot.PlotCommitList;
 import org.eclipse.jgit.revplot.PlotLane;
 import org.eclipse.jgit.revplot.PlotWalk;
 import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * The abstract RepoHelper class, used for interacting with a repository.
@@ -32,6 +30,9 @@ public abstract class RepoHelper {
     protected Path localPath;
     private DirectoryWatcher directoryWatcher;
 
+    private ArrayList<CommitHelper> localCommits;
+    private Map<ObjectId, CommitHelper> localCommitIdMap;
+
     public RepoHelper(Path directoryPath, String ownerToken) throws Exception {
         this.ownerAuth = new UsernamePasswordCredentialsProvider(ownerToken,"");
         this.remoteURL = "https://github.com/grahamearley/jgit-test.git"; // TODO: pass this in!
@@ -43,6 +44,8 @@ public abstract class RepoHelper {
         this.directoryWatcher = new DirectoryWatcher(this.localPath);
 //        this.directoryWatcher.beginProcessingEvents();
 
+        this.localCommitIdMap = new HashMap<>();
+        this.localCommits = this.parseLocalCommits();
     }
 
     protected abstract Repository obtainRepository() throws GitAPIException;
@@ -113,8 +116,50 @@ public abstract class RepoHelper {
         return this.localPath;
     }
 
+    public ArrayList<CommitHelper> getLocalCommits(){
+        return this.localCommits;
+    }
 
-    public PlotCommitList<PlotLane> getAllCommits() throws IOException{
+    public CommitHelper getCurrentHeadCommit(){
+        try{
+            ObjectId commitId = repo.resolve("HEAD");
+            return this.localCommitIdMap.get(commitId);
+        }catch(Exception e){
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    /**
+     * Constructs a list of all local commits found by parsing the repository using getAllCommits(), each
+     * wrapped into a CommitHelper with the appropriate parents and children
+     *
+     * @return a list of CommitHelpers for all local commits
+     * @throws IOException
+     */
+    private ArrayList<CommitHelper> parseLocalCommits() throws IOException{
+        PlotCommitList<PlotLane> commitList = this.parseRawLocalCommits();
+
+        this.localCommitIdMap = new HashMap<>(commitList.size());
+        ArrayList<CommitHelper> commitHelperList = new ArrayList<>(commitList.size());
+        for(int i = commitList.size()-1; i >= 0; i--){
+            RevCommit curCommit = commitList.get(i);
+
+            CommitHelper curCommitHelper = new CommitHelper(curCommit, this);
+            localCommitIdMap.put(curCommit.getId(), curCommitHelper);
+
+            RevCommit[] parents = curCommit.getParents();
+            for(RevCommit p : parents){
+                CommitHelper parentCommitHelper = localCommitIdMap.get(p.getId());
+                curCommitHelper.addParent(parentCommitHelper);
+            }
+
+            commitHelperList.add(curCommitHelper);
+        }
+        return commitHelperList;
+    }
+
+    public PlotCommitList<PlotLane> parseRawLocalCommits() throws IOException{
         PlotWalk w = new PlotWalk(repo);
         ObjectId rootId = repo.resolve("HEAD");
         RevCommit root = w.parseCommit(rootId);
@@ -126,36 +171,9 @@ public abstract class RepoHelper {
         return plotCommitList;
     }
 
-    public ArrayList<String> getAllCommitsInfo() throws IOException{
-        PlotCommitList<PlotLane> commits = this.getAllCommits();
-        ArrayList<String> strings = new ArrayList<>(commits.size());
-        for(int i = 0; i<commits.size(); i++){
-            PlotCommit<PlotLane> commit = commits.get(i);
-
-            DateFormat formatter = new SimpleDateFormat("h:mm a MMM dd yyyy");
-
-            PersonIdent authorIdent = commit.getAuthorIdent();
-            Date date = authorIdent.getWhen();
-            String dateFormatted = formatter.format(date);
-
-            PlotLane lane = commit.getLane();
-
-            String s = commit.getName();
-            s = s + " - " + authorIdent.getName();
-            s = s + " - " + dateFormatted;
-            s = s + " - Children: " + commit.getChildCount();
-            s = s + " - Parents: " + commit.getParentCount();
-            s = s + " - Lane: " + lane.getPosition();
-            s = s + " - " + commit.getShortMessage();
-            strings.add(s);
-        }
-        return strings;
-    }
-
-    public CommitHelper getCurrentHeadCommit() throws IOException{
-        PlotWalk w = new PlotWalk(repo);
-        ObjectId commitId = repo.resolve("HEAD");
-        return new CommitHelper(w.parseCommit(commitId));
+    public RevCommit parseRawCommit(ObjectId id) throws IOException{
+        RevWalk w = new RevWalk(repo);
+        return w.parseCommit(id);
     }
 }
 

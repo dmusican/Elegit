@@ -3,7 +3,6 @@ package edugit;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.jgit.revwalk.RevCommit;
-import org.eclipse.jgit.revwalk.RevWalk;
 
 import java.io.IOException;
 import java.text.DateFormat;
@@ -16,9 +15,9 @@ import java.util.Date;
  */
 public class CommitHelper{
 
-    static RepoHelper repoHelper;
     static ArrayList<ObjectId> parsedIds = new ArrayList<>();
 
+    RepoHelper repoHelper;
     RevCommit commit;
     PersonIdent author;
 
@@ -32,19 +31,20 @@ public class CommitHelper{
      *
      * @param c a fully parsed commit
      */
-    public CommitHelper(RevCommit c) throws IOException{
+    public CommitHelper(RevCommit c, RepoHelper repoHelper) throws IOException{
+        this.repoHelper = repoHelper;
         this.commit = c;
         this.author = c.getAuthorIdent();
         this.children = new ArrayList<>();
-        this.constructParents();
+        this.parents = new ParentCommitHelper(this, null, null);
     }
 
-    public CommitHelper(ObjectId id) throws IOException{
-        this(parseInfo(id));
+    public CommitHelper(ObjectId id, RepoHelper repoHelper) throws IOException{
+        this(repoHelper.parseRawCommit(id), repoHelper);
     }
 
-    public CommitHelper(String refString) throws IOException{
-        this(repoHelper.getRepo().resolve(refString));
+    public CommitHelper(String refString, RepoHelper repoHelper) throws IOException{
+        this(repoHelper.getRepo().resolve(refString), repoHelper);
     }
 
     public String getName(){
@@ -75,14 +75,15 @@ public class CommitHelper{
         return author.getWhen();
     }
 
-    private void constructParents() throws IOException{
+    public void setParents(CommitHelper parent1, CommitHelper parent2){
+        this.parents = new ParentCommitHelper(this, parent1, parent2);
+    }
+
+    public void addParent(CommitHelper parent){
         if(parents == null){
-            int count = this.commit.getParentCount();
-            CommitHelper parent1 = null;
-            CommitHelper parent2 = null;
-            if(count > 0) parent1 = new CommitHelper(this.commit.getParent(0).getId());
-            if(count > 1) parent2 = new CommitHelper(this.commit.getParent(1).getId());
-            this.parents = new ParentCommitHelper(this, parent1, parent2);
+            this.parents = new ParentCommitHelper(this, parent, null);
+        }else{
+            this.parents.addParent(this, parent);
         }
     }
 
@@ -124,23 +125,9 @@ public class CommitHelper{
         String s = this.getName();
         s = s + " - " + this.getAuthorName();
         s = s + " - " + dateFormatted;
-        s = s + " - Parents: " + this.getParentCount();
         s = s + " - " + this.getMessage(false);
 
         return s;
-    }
-
-    public static RevCommit parseInfo(ObjectId id) throws IOException{
-        if(parsedIds.contains(id)){
-            // ??
-        }
-        RevWalk w = new RevWalk(repoHelper.getRepo());
-        parsedIds.add(id);
-        return w.parseCommit(id);
-    }
-
-    public static void setRepoHelper(RepoHelper newRepoHelper){
-        repoHelper = newRepoHelper;
     }
 
     private class ParentCommitHelper{
@@ -172,6 +159,16 @@ public class CommitHelper{
                 this.mom.addChild(child);
             }
             if(this.dad != null){
+                this.dad.addChild(child);
+            }
+        }
+
+        public void addParent(CommitHelper child, CommitHelper parent){
+            if(this.mom == null){
+                this.mom = parent;
+                this.mom.addChild(child);
+            }else if(this.dad == null){
+                this.dad = parent;
                 this.dad.addChild(child);
             }
         }
