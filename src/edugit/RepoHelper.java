@@ -4,7 +4,9 @@ import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.ObjectId;
+import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.revplot.PlotCommit;
 import org.eclipse.jgit.revplot.PlotCommitList;
 import org.eclipse.jgit.revplot.PlotLane;
 import org.eclipse.jgit.revplot.PlotWalk;
@@ -13,7 +15,10 @@ import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 /**
  * The abstract RepoHelper class, used for interacting with a repository.
@@ -109,20 +114,48 @@ public abstract class RepoHelper {
     }
 
 
-    public ArrayList<String> getAllCommitMessages() throws IOException{
+    public PlotCommitList<PlotLane> getAllCommits() throws IOException{
         PlotWalk w = new PlotWalk(repo);
         ObjectId rootId = repo.resolve("HEAD");
         RevCommit root = w.parseCommit(rootId);
         w.markStart(root);
-        PlotCommitList<PlotLane> plotCommitList = new PlotCommitList<PlotLane>();
+        PlotCommitList<PlotLane> plotCommitList = new PlotCommitList<>();
         plotCommitList.source(w);
         plotCommitList.fillTo(Integer.MAX_VALUE);
 
-        ArrayList<String> m = new ArrayList<>(plotCommitList.size());
-        for(int i = 0; i<plotCommitList.size(); i++){
-            m.add(plotCommitList.get(i).getFullMessage());
+        return plotCommitList;
+    }
+
+    public ArrayList<String> getAllCommitsInfo() throws IOException{
+        PlotCommitList<PlotLane> commits = this.getAllCommits();
+        ArrayList<String> strings = new ArrayList<>(commits.size());
+        for(int i = 0; i<commits.size(); i++){
+            PlotCommit<PlotLane> commit = commits.get(i);
+
+            DateFormat formatter = new SimpleDateFormat("h:mm a MMM dd yyyy");
+
+            PersonIdent authorIdent = commit.getAuthorIdent();
+            Date date = authorIdent.getWhen();
+            String dateFormatted = formatter.format(date);
+
+            PlotLane lane = commit.getLane();
+
+            String s = commit.getName();
+            s = s + " - " + authorIdent.getName();
+            s = s + " - " + dateFormatted;
+            s = s + " - Children: " + commit.getChildCount();
+            s = s + " - Parents: " + commit.getParentCount();
+            s = s + " - Lane: " + lane.getPosition();
+            s = s + " - " + commit.getShortMessage();
+            strings.add(s);
         }
-        return m;
+        return strings;
+    }
+
+    public RevCommit getCurrentHeadCommit() throws IOException{
+        PlotWalk w = new PlotWalk(repo);
+        ObjectId commitId = repo.resolve("HEAD");
+        return w.parseCommit(commitId);
     }
 }
 
