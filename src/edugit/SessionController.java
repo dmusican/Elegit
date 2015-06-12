@@ -17,8 +17,11 @@ public class SessionController extends Controller {
     public TextArea commitMessageField;
     public WorkingTreePanelView workingTreePanelView;
 
-    public LocalPanelView localPanelView;
-    public RemotePanelView remotePanelView;
+    public CommitTreePanelView localCommitTreePanelView;
+    public CommitTreePanelView remoteCommitTreePanelView;
+
+    CommitTreeModel localCommitTreeModel;
+    CommitTreeModel remoteCommitTreeModel;
 
     /**
      * Initialize the environment by creating the model
@@ -29,8 +32,8 @@ public class SessionController extends Controller {
     public void initialize() {
         this.theModel = SessionModel.getSessionModel();
         this.workingTreePanelView.setSessionModel(this.theModel);
-        this.localPanelView.setSessionModel(this.theModel);
-        this.remotePanelView.setSessionModel(this.theModel);
+        this.localCommitTreeModel = new LocalCommitTreeModel(this.theModel, this.localCommitTreePanelView);
+        this.remoteCommitTreeModel = new RemoteCommitTreeModel(this.theModel, this.remoteCommitTreePanelView);
         this.initializeMenuBar();
     }
 
@@ -93,8 +96,8 @@ public class SessionController extends Controller {
 
     public void handleReloadButton(ActionEvent actionEvent) {
         this.workingTreePanelView.drawDirectoryView();
-        this.localPanelView.drawTreeFromCurrentRepo();
-        this.remotePanelView.drawTreeFromCurrentRepo();
+        this.localCommitTreeModel.update();
+        this.remoteCommitTreeModel.update();
     }
 
     public void handleCloneToDestinationButton(ActionEvent actionEvent) {

@@ -10,8 +10,14 @@ import javafx.scene.shape.Path;
 
 /**
  * Created by makik on 6/11/15.
+ *
+ * Represents a line with an arrow at the end. The arrow is constructed using a three-point Path
+ * object that has its vertices bound to the end of the line.
  */
 public class DirectedLine extends Group{
+
+    public static final int ARROW_WIDTH = 5;
+    public static final int ARROW_VERTICAL_OFFSET = Cell.BOX_SIZE / 2;
 
     private final DoubleProperty startX;
     private final DoubleProperty startY;
@@ -24,6 +30,10 @@ public class DirectedLine extends Group{
     Line line;
     Path arrow;
 
+    /**
+     * Constructs and binds the appropriate properties for the line and
+     * the arrow
+     */
     public DirectedLine(){
         this.line = new Line();
         this.getChildren().add(line);
@@ -37,21 +47,21 @@ public class DirectedLine extends Group{
         tipY = new SimpleDoubleProperty();
 
         tipX.bind(endX);
-        tipY.bind(endY.add(5));
+        tipY.bind(endY.add(ARROW_VERTICAL_OFFSET));
 
         this.arrow = new Path();
 
         MoveTo left = new MoveTo();
-        left.xProperty().bind(tipX.add(-5));
-        left.yProperty().bind(tipY.add(5));
+        left.xProperty().bind(tipX.add(ARROW_WIDTH * -1));
+        left.yProperty().bind(tipY.add(ARROW_WIDTH));
 
         LineTo tip = new LineTo();
         tip.xProperty().bind(tipX);
         tip.yProperty().bind(tipY);
 
         LineTo right = new LineTo();
-        right.xProperty().bind(tipX.add(5));
-        right.yProperty().bind(tipY.add(5));
+        right.xProperty().bind(tipX.add(ARROW_WIDTH));
+        right.yProperty().bind(tipY.add(ARROW_WIDTH));
 
         arrow.getElements().add(left);
         arrow.getElements().add(tip);

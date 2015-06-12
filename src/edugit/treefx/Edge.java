@@ -4,6 +4,8 @@ import javafx.scene.Group;
 
 /**
  * Created by makik on 6/10/15.
+ *
+ * Connects two cells in the TreeGraph using a DirectedLine
  */
 public class Edge extends Group {
 
@@ -12,6 +14,12 @@ public class Edge extends Group {
 
     DirectedLine line;
 
+    /**
+     * Constructs a directed line between the source and target cells and binds
+     * properties to handle relocation smoothly
+     * @param source the source (parent) cell
+     * @param target the target (child) cell
+     */
     public Edge(Cell source, Cell target) {
 
         this.source = source;

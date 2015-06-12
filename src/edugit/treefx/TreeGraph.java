@@ -11,28 +11,31 @@ import javafx.scene.layout.Pane;
  * Thanks to Roland for providing this graph structure:
  * http://stackoverflow.com/questions/30679025/graph-visualisation-like-yfiles-in-javafx/30696075#30696075
  *
+ * Constructs a hold a tree graph represented by parent and children cells with directed edges between them
+ *
  */
 public class TreeGraph{
 
+    // The underlying model of the graph
     private TreeGraphModel treeGraphModel;
 
     private Group canvas;
 
     private MatchedScrollPane scrollPane;
 
-    /**
-     * the pane wrapper is necessary or else the scrollpane would always align
-     * the top-most and left-most child to the top and left eg when you drag the
-     * top child down, the entire scrollpane would move down
-     */
-    CellLayer cellLayer;
+    // The layer within which the cells will be added
+    Pane cellLayer;
 
+    /**
+     * Constructs a new graph using the given model
+     * @param m the model of the graph
+     */
     public TreeGraph(TreeGraphModel m) {
 
         this.treeGraphModel = m;
 
         canvas = new Group();
-        cellLayer = new CellLayer();
+        cellLayer = new Pane();
 
         canvas.getChildren().add(cellLayer);
 
@@ -57,9 +60,15 @@ public class TreeGraph{
         return treeGraphModel;
     }
 
-    public void beginUpdate() {
-    }
+    /**
+     * Should always be called before modifying the underlying model
+     */
+    public void beginUpdate() {}
 
+    /**
+     * Must be called after modifying the underlying model to update
+     * everything appropriately
+     */
     public void endUpdate() {
         // add components to treeGraph pane
         getCellLayer().getChildren().addAll(treeGraphModel.getAddedEdges());
