@@ -81,6 +81,9 @@ public class WorkingTreePanelView extends Group {
         this.directoryTreeView = new TreeView<RepoFile>(rootItem);
         this.directoryTreeView.setCellFactory(CheckBoxTreeCell.<RepoFile>forTreeView());
 
+        // TreeViews must all have ONE root to hold the leafs. Don't show that root
+        this.directoryTreeView.setShowRoot(false);
+
         this.getChildren().clear();
         this.getChildren().add(directoryTreeView);
     }

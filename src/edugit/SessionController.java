@@ -100,14 +100,4 @@ public class SessionController extends Controller {
         this.localPanelView.drawTreeFromCurrentRepo();
         this.remotePanelView.drawTreeFromCurrentRepo();
     }
-
-    public void handleCloneToDestinationButton(ActionEvent actionEvent) {
-        File cloneRepoFile = getPathFromChooser(true, "Choose a Location", ((Button)actionEvent.getSource()).getScene().getWindow());
-        try{
-            RepoHelper repoHelper = new ClonedRepoHelper(cloneRepoFile.toPath(), SECRET_CONSTANTS.TEST_GITHUB_TOKEN);
-            this.theModel.openRepoFromHelper(repoHelper);
-        } catch(Exception e){
-            e.printStackTrace();
-        }
-    }
 }
