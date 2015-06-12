@@ -48,7 +48,7 @@ public class WorkingTreePanelView extends Group {
 
         // TODO: consider changing the constant switching from Path to String...
         CheckBoxTreeItem<RepoFile> untrackedFilesRoot = new CheckBoxTreeItem<RepoFile>(new UntrackedRepoFile("Untracked Files", repo));
-        for (String untrackedFile : this.getUntrackedFiles()){
+        for (String untrackedFile : this.sessionModel.getUntrackedFiles()){
             UntrackedRepoFile untrackedRepoFile = new UntrackedRepoFile(untrackedFile, repo);
             CheckBoxTreeItem<RepoFile> untrackedFileLeaf = new CheckBoxTreeItem<>(untrackedRepoFile);
             untrackedFilesRoot.getChildren().add(untrackedFileLeaf);
@@ -57,7 +57,7 @@ public class WorkingTreePanelView extends Group {
         }
 
         CheckBoxTreeItem<RepoFile> missingFilesRoot = new CheckBoxTreeItem<RepoFile>(new MissingRepoFile("Missing Files", repo));
-        for (String missingFile : this.getMissingFiles()){
+        for (String missingFile : this.sessionModel.getMissingFiles()){
             MissingRepoFile missingRepoFile = new MissingRepoFile(missingFile, repo);
             CheckBoxTreeItem<RepoFile> missingFileLeaf = new CheckBoxTreeItem<>(missingRepoFile);
             missingFilesRoot.getChildren().add(missingFileLeaf);
@@ -66,7 +66,7 @@ public class WorkingTreePanelView extends Group {
         }
 
         CheckBoxTreeItem<RepoFile> modifiedFilesRoot = new CheckBoxTreeItem<RepoFile>(new UntrackedRepoFile("Modified Files", repo));
-        for (String modifiedFile : this.getModifiedFiles()){
+        for (String modifiedFile : this.sessionModel.getModifiedFiles()){
             ModifiedRepoFile modifiedRepoFile = new ModifiedRepoFile(modifiedFile, repo);
             CheckBoxTreeItem<RepoFile> modifiedFileLeaf = new CheckBoxTreeItem<>(modifiedRepoFile);
             modifiedFilesRoot.getChildren().add(modifiedFileLeaf);
@@ -85,26 +85,7 @@ public class WorkingTreePanelView extends Group {
         this.getChildren().add(directoryTreeView);
     }
 
-    private Set<String> getUntrackedFiles() throws GitAPIException {
-        Status status = new Git(this.sessionModel.getCurrentRepo()).status().call();
-        Set<String> untrackedFiles = status.getUntracked();
 
-        return untrackedFiles;
-    }
-
-    private Set<String> getMissingFiles() throws GitAPIException {
-        Status status = new Git(this.sessionModel.getCurrentRepo()).status().call();
-        Set<String> missingFiles = status.getMissing();
-
-        return missingFiles;
-    }
-
-    private Set<String> getModifiedFiles() throws GitAPIException {
-        Status status = new Git(this.sessionModel.getCurrentRepo()).status().call();
-        Set<String> modifiedFiles = status.getModified();
-
-        return modifiedFiles;
-    }
 
     // Currently not in use.
     // This was for displaying the whole directory structure in the WorkingTreePanelView.

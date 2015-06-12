@@ -1,6 +1,9 @@
 package edugit;
 
 import javafx.scene.control.CheckBoxTreeItem;
+import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.Status;
+import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Repository;
 
 import java.io.File;
@@ -10,6 +13,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Set;
 
 /**
  * The Singleton SessionModel stores all the Repos in the session and lets the user
@@ -56,6 +60,27 @@ public class SessionModel {
 
     public Repository getCurrentRepo() {
         return this.currentRepoHelper.getRepo();
+    }
+
+    public Set<String> getUntrackedFiles() throws GitAPIException {
+        Status status = new Git(this.getCurrentRepo()).status().call();
+        Set<String> untrackedFiles = status.getUntracked();
+
+        return untrackedFiles;
+    }
+
+    public Set<String> getMissingFiles() throws GitAPIException {
+        Status status = new Git(this.getCurrentRepo()).status().call();
+        Set<String> missingFiles = status.getMissing();
+
+        return missingFiles;
+    }
+
+    public Set<String> getModifiedFiles() throws GitAPIException {
+        Status status = new Git(this.getCurrentRepo()).status().call();
+        Set<String> modifiedFiles = status.getModified();
+
+        return modifiedFiles;
     }
 
 }
