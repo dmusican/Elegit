@@ -13,8 +13,11 @@ public class UntrackedRepoFile extends RepoFile {
         super(filePathString, repo);
     }
 
-    @Override
-    public void updateFileStatusInRepo() throws GitAPIException {
+    /*
+    When the checkbox is checked for an untracked file, we assume the user wants to
+    add it to the repo.
+     */
+    @Override public void updateFileStatusInRepo() throws GitAPIException {
         AddCommand add = new Git(this.repo).add().addFilepattern(this.filePath.toString());
         add.call();
     }

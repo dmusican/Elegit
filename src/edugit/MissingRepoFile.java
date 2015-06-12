@@ -13,8 +13,11 @@ public class MissingRepoFile extends RepoFile {
         super(filePathString, repo);
     }
 
-    @Override
-    public void updateFileStatusInRepo() throws GitAPIException {
+    /*
+    When the checkbox is checked for a missing file, we assume the user wants to
+    remove it from the repo.
+     */
+    @Override public void updateFileStatusInRepo() throws GitAPIException {
         RmCommand rm = new Git(this.repo).rm().addFilepattern(this.filePath.toString());
         rm.call();
     }
