@@ -3,28 +3,31 @@ package edugit;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.control.*;
+import org.eclipse.jgit.api.errors.GitAPIException;
 
 import java.io.File;
+import java.io.IOException;
 
 /**
  * Created by makik on 6/10/15.
  */
 public class SessionController extends Controller {
 
-    public MenuBar menuBar;
     private SessionModel theModel;
 
+    public MenuBar menuBar;
     public TextArea commitMessageField;
     public WorkingTreePanelView workingTreePanelView;
-
-    public CommitTreePanelView localCommitTreePanelView;
+	public CommitTreePanelView localCommitTreePanelView;
     public CommitTreePanelView remoteCommitTreePanelView;
+    public LocalPanelView localPanelView;
+    public RemotePanelView remotePanelView;
 
     CommitTreeModel localCommitTreeModel;
     CommitTreeModel remoteCommitTreeModel;
 
     /**
-     * Initialize the environment by creating the model
+     * Initializes the environment by obtaining the model
      * and putting the views on display.
      *
      * This method is automatically called by JavaFX.
@@ -34,39 +37,46 @@ public class SessionController extends Controller {
         this.workingTreePanelView.setSessionModel(this.theModel);
         this.localCommitTreeModel = new LocalCommitTreeModel(this.theModel, this.localCommitTreePanelView);
         this.remoteCommitTreeModel = new RemoteCommitTreeModel(this.theModel, this.remoteCommitTreePanelView);
+
         this.initializeMenuBar();
     }
 
+    /**
+     * Sets up the MenuBar by adding some options to it (for cloning).
+     *
+     * Each option offers a different way of loading a repository, and each
+     * option instantiates the appropriate RepoHelper class for the chosen
+     * loading method.
+     */
     private void initializeMenuBar() {
-        // TODO: break this out into a separate controller
+        // TODO: break this out into a separate controller?
         Menu openMenu = new Menu("Load a Repository");
 
         MenuItem cloneOption = new MenuItem("Clone");
-        cloneOption.setOnAction(new EventHandler<ActionEvent>() {
-            public void handle(ActionEvent t) {
-                File cloneRepoDirectory = getPathFromChooser(true, "Choose a Location", null);
-                try{
-                    RepoHelper repoHelper = new ClonedRepoHelper(cloneRepoDirectory.toPath(), SECRET_CONSTANTS.TEST_GITHUB_TOKEN);
-                    SessionModel.getSessionModel().openRepoFromHelper(repoHelper);
-                } catch(Exception e){
-                    e.printStackTrace();
-                }
+
+        // TODO: understand lambda expressions...
+        cloneOption.setOnAction(t -> {
+            File cloneRepoDirectory = getPathFromChooser(true, "Choose a Location", null);
+            try{
+                RepoHelper repoHelper = new ClonedRepoHelper(cloneRepoDirectory.toPath(), SECRET_CONSTANTS.TEST_GITHUB_TOKEN);
+                SessionModel.getSessionModel().openRepoFromHelper(repoHelper);
+            } catch(Exception e){
+                e.printStackTrace();
             }
         });
 
         MenuItem existingOption = new MenuItem("Load existing repository");
-        existingOption.setOnAction(new EventHandler<ActionEvent>() {
-            public void handle(ActionEvent t) {
-                File existingRepoDirectory = getPathFromChooser(true, "Choose a Location", null);
-                try{
-                    RepoHelper repoHelper = new ExistingRepoHelper(existingRepoDirectory.toPath(), SECRET_CONSTANTS.TEST_GITHUB_TOKEN);
-                    SessionModel.getSessionModel().openRepoFromHelper(repoHelper);
-                } catch(Exception e){
-                    e.printStackTrace();
-                }
+        existingOption.setOnAction(t -> {
+            File existingRepoDirectory = getPathFromChooser(true, "Choose a Location", null);
+            try{
+                RepoHelper repoHelper = new ExistingRepoHelper(existingRepoDirectory.toPath(), SECRET_CONSTANTS.TEST_GITHUB_TOKEN);
+                SessionModel.getSessionModel().openRepoFromHelper(repoHelper);
+            } catch(Exception e){
+                e.printStackTrace();
             }
         });
 
+        // TODO: implement New Repository option.
         MenuItem newOption = new MenuItem("Start a new repository");
         newOption.setDisable(true);
 
@@ -75,11 +85,23 @@ public class SessionController extends Controller {
 
     }
 
-    public void handleCommitButton(ActionEvent actionEvent){
+    /**
+     * Perform the updateFileStatusInRepo() method for each file whose
+     * checkbox is checked. Then commit with the commit message and push.
+     *
+     * TODO: Separate push into different button. Work this in with the local tree view.
+     *
+     * @param actionEvent the button click event.
+     * @throws GitAPIException if the updateFileStatusInRepo() call fails.
+     */
+    public void handleCommitButton(ActionEvent actionEvent) throws GitAPIException {
         String commitMessage = commitMessageField.getText();
 
-        this.theModel.currentRepoHelper.addFilePaths(this.workingTreePanelView.getCheckedFilesInDirectory());
-        this.theModel.currentRepoHelper.commitFile(commitMessage);
+        for (RepoFile checkedFile : this.workingTreePanelView.getCheckedFilesInDirectory()) {
+            checkedFile.updateFileStatusInRepo();
+        }
+
+        this.theModel.currentRepoHelper.commit(commitMessage);
         this.theModel.currentRepoHelper.pushAll();
 
     }
@@ -94,19 +116,18 @@ public class SessionController extends Controller {
 
     }
 
-    public void handleReloadButton(ActionEvent actionEvent) {
+    /**
+     * Reloads the panel views when the button is clicked.
+     *
+     * TODO: Implement automatic refresh!
+     *
+     * @param actionEvent the button click event.
+     * @throws GitAPIException if the drawDirectoryView() call fails.
+     * @throws IOException if the drawDirectoryView() call fails.
+     */
+    public void handleReloadButton(ActionEvent actionEvent) throws GitAPIException, IOException {
         this.workingTreePanelView.drawDirectoryView();
         this.localCommitTreeModel.update();
         this.remoteCommitTreeModel.update();
-    }
-
-    public void handleCloneToDestinationButton(ActionEvent actionEvent) {
-        File cloneRepoFile = getPathFromChooser(true, "Choose a Location", ((Button)actionEvent.getSource()).getScene().getWindow());
-        try{
-            RepoHelper repoHelper = new ClonedRepoHelper(cloneRepoFile.toPath(), SECRET_CONSTANTS.TEST_GITHUB_TOKEN);
-            this.theModel.openRepoFromHelper(repoHelper);
-        } catch(Exception e){
-            e.printStackTrace();
-        }
     }
 }
