@@ -142,7 +142,11 @@ public class SessionModel {
         try {
             DirectoryStream<Path> directoryStream = Files.newDirectoryStream(superDirectory.getFilePath());
             for (Path path : directoryStream) {
-                if (Files.isDirectory(path)) {
+                if (path.equals(this.getCurrentRepo().getDirectory().toPath())) {
+
+                    // If the path is the Repository's .git folder, don't populate it.
+
+                } else if (Files.isDirectory(path)) {
                     // Recurse! Populate the directory.
                     DirectoryRepoFile subdirectory = new DirectoryRepoFile(path, superDirectory.getRepo());
                     populateDirectoryRepoFile(subdirectory);
