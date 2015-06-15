@@ -43,8 +43,7 @@ public abstract class RepoHelper {
      * @throws IOException if the obtainRepository() call throws this exception.
      */
     public RepoHelper(Path directoryPath, String remoteURL, String username, String password) throws GitAPIException, IOException {
-//        this.ownerAuth = new UsernamePasswordCredentialsProvider(username, password);
-        this.ownerAuth = new UsernamePasswordCredentialsProvider(SECRET_CONSTANTS.TEST_GITHUB_TOKEN, "");
+        this.ownerAuth = new UsernamePasswordCredentialsProvider(username, password);
         this.remoteURL = remoteURL; //"https://github.com/grahamearley/jgit-test.git"; // TODO: pass this in!
 
         this.localPath = directoryPath;
