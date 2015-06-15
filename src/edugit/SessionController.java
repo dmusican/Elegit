@@ -20,8 +20,6 @@ public class SessionController extends Controller {
     public WorkingTreePanelView workingTreePanelView;
 	public CommitTreePanelView localCommitTreePanelView;
     public CommitTreePanelView remoteCommitTreePanelView;
-    public LocalPanelView localPanelView;
-    public RemotePanelView remotePanelView;
 
     CommitTreeModel localCommitTreeModel;
     CommitTreeModel remoteCommitTreeModel;

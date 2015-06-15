@@ -33,6 +33,9 @@ public abstract class RepoHelper {
     protected Path localPath;
     private DirectoryWatcher directoryWatcher;
 
+    private ArrayList<CommitHelper> localCommits;
+    private Map<ObjectId, CommitHelper> localCommitIdMap;
+
     /**
      * Creates a RepoHelper object for holding a Repository and interacting with it
      * through JGit.
