@@ -212,7 +212,7 @@ public class SessionController extends Controller {
      * @param actionEvent the button click event.
      * @throws GitAPIException if the updateFileStatusInRepo() call fails.
      */
-    public void handleCommitButton(ActionEvent actionEvent) throws GitAPIException {
+    public void handleCommitButton(ActionEvent actionEvent) throws GitAPIException{
         String commitMessage = commitMessageField.getText();
 
         for (RepoFile checkedFile : this.workingTreePanelView.getCheckedFilesInDirectory()) {
@@ -243,7 +243,7 @@ public class SessionController extends Controller {
      * @throws GitAPIException if the drawDirectoryView() call fails.
      * @throws IOException if the drawDirectoryView() call fails.
      */
-    public void handleReloadButton(ActionEvent actionEvent) throws GitAPIException, IOException {
+    public void handleReloadButton(ActionEvent actionEvent) throws GitAPIException, IOException{
         this.workingTreePanelView.drawDirectoryView();
         this.localCommitTreeModel.update();
         this.remoteCommitTreeModel.update();
