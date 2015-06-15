@@ -42,7 +42,6 @@ public abstract class RepoHelper {
      * through JGit.
      *
      * @param directoryPath the path of the repository.
-     * @param ownerToken the user's login information. // TODO: make things less hardcoded.
      * @throws GitAPIException if the obtainRepository() call throws this exception..
      * @throws IOException if the obtainRepository() call throws this exception.
      */
