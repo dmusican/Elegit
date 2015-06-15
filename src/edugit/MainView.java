@@ -6,17 +6,18 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
-public class Main extends Application {
+public class MainView extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception{
-        Parent root = FXMLLoader.load(getClass().getResource("sample.fxml"));
-        primaryStage.setTitle("Hello World");
+        Parent root = FXMLLoader.load(getClass().getResource("resources/fxml/MainView.fxml"));
+        primaryStage.setTitle("EduGit");
 
-        Scene scene = new Scene(root, 300, 275);
+        Scene scene = new Scene(root, 1000, 700);
         primaryStage.setScene(scene);
-//        scene.getStylesheets().add(Main.class.getResource("Sample.css").toExternalForm());
         primaryStage.show();
+
+//        new InitRepoView();
     }
 
 
