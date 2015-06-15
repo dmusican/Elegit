@@ -46,11 +46,6 @@
                 text="(Re)Load Directory Contents"
                 onAction="#handleReloadButton"/>
 
-        <Button fx:id="cloneRepoLocationButton"
-                text="Clone a Repo"
-                onAction="#handleCloneToDestinationButton"
-                GridPane.rowIndex="3"/>
-
     </GridPane>
 
     <CommitTreePanelView GridPane.rowIndex="1" GridPane.columnIndex="2" GridPane.rowSpan="7" fx:id="localCommitTreePanelView"/>

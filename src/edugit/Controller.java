@@ -11,7 +11,7 @@ import java.io.File;
 public abstract class Controller{
 
     // For testing purposes, a default path to a directory on the users desktop (Mac only)
-    public final String defaultPath = System.getProperty("user.home")+File.separator+"Desktop"+File.separator+"TestClone";
+    public final String defaultPath = System.getProperty("user.home");
 
     /**
     * Pops up a file or directory chooser for the user and returns the selected File object

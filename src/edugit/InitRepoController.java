@@ -96,27 +96,27 @@ public class InitRepoController extends Controller {
      *
      * @param actionEvent ignored
      */
-    public void handleCloneRepoGoButton(ActionEvent actionEvent){
-
-        Runnable r = () -> {
-            cloneRepoGoButton.setVisible(false);
-            cloneRepoProgressIndicator.setVisible(true);
-            ThreadHelper.startProgressThread(cloneRepoProgressIndicator);
-
-            try{
-                RepoHelper repo = new ClonedRepoHelper(cloneRepoFile.toPath(), SECRET_CONSTANTS.TEST_GITHUB_TOKEN);
-                SessionModel.getSessionModel().addRepo(repo);
-            }catch(Exception e){
-                e.printStackTrace();
-            }
-
-            ThreadHelper.endProgressThread();
-            cloneRepoProgressIndicator.setVisible(false);
-            cloneRepoGoButton.setVisible(true);
-        };
-
-        ThreadHelper.startThread(r);
-    }
+//    public void handleCloneRepoGoButton(ActionEvent actionEvent){
+//
+//        Runnable r = () -> {
+//            cloneRepoGoButton.setVisible(false);
+//            cloneRepoProgressIndicator.setVisible(true);
+//            ThreadHelper.startProgressThread(cloneRepoProgressIndicator);
+//
+//            try{
+//                RepoHelper repo = new ClonedRepoHelper(cloneRepoFile.toPath(), SECRET_CONSTANTS.TEST_GITHUB_TOKEN);
+//                SessionModel.getSessionModel().addRepo(repo);
+//            }catch(Exception e){
+//                e.printStackTrace();
+//            }
+//
+//            ThreadHelper.endProgressThread();
+//            cloneRepoProgressIndicator.setVisible(false);
+//            cloneRepoGoButton.setVisible(true);
+//        };
+//
+//        ThreadHelper.startThread(r);
+//    }
 
     /**
      * Creates a directory at the given location (stored in this.createRepoFile) with the given
@@ -124,14 +124,14 @@ public class InitRepoController extends Controller {
      *
      * @param actionEvent ignored
      */
-    public void handleCreateRepoGoButton(ActionEvent actionEvent){
-        try{
-            RepoHelper repo = new NewRepoHelper((new File(createRepoFile, createRepoNameTextField.getText())).toPath(), SECRET_CONSTANTS.TEST_GITHUB_TOKEN);
-            SessionModel.getSessionModel().addRepo(repo);
-        }catch(Exception e){
-            e.printStackTrace();
-        }
-    }
+//    public void handleCreateRepoGoButton(ActionEvent actionEvent){
+//        try{
+//            RepoHelper repo = new NewRepoHelper((new File(createRepoFile, createRepoNameTextField.getText())).toPath(), SECRET_CONSTANTS.TEST_GITHUB_TOKEN);
+//            SessionModel.getSessionModel().addRepo(repo);
+//        }catch(Exception e){
+//            e.printStackTrace();
+//        }
+//    }
 
     /**
      * Adds the repository at the given location (stored in this.findRepoFile) to the
@@ -139,14 +139,14 @@ public class InitRepoController extends Controller {
      *
      * @param actionEvent ignored
      */
-    public void handleFindRepoGoButton(ActionEvent actionEvent){
-        try{
-            RepoHelper repo = new ExistingRepoHelper(findRepoFile.toPath(), SECRET_CONSTANTS.TEST_GITHUB_TOKEN);
-            SessionModel.getSessionModel().addRepo(repo);
-        }catch(Exception e){
-            e.printStackTrace();
-        }
-    }
+//    public void handleFindRepoGoButton(ActionEvent actionEvent){
+//        try{
+//            RepoHelper repo = new ExistingRepoHelper(findRepoFile.toPath(), SECRET_CONSTANTS.TEST_GITHUB_TOKEN);
+//            SessionModel.getSessionModel().addRepo(repo);
+//        }catch(Exception e){
+//            e.printStackTrace();
+//        }
+//    }
 
     /**
      * Unused -> updates which buttons are enabled based on how much information the user has input

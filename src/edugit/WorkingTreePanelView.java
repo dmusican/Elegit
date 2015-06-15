@@ -2,82 +2,102 @@ package edugit;
 
 import javafx.scene.Group;
 import javafx.scene.control.CheckBoxTreeItem;
-import javafx.scene.control.MenuBar;
 import javafx.scene.control.TreeView;
 import javafx.scene.control.cell.CheckBoxTreeCell;
-import javafx.scene.layout.BorderPane;
+import org.eclipse.jgit.api.errors.GitAPIException;
 
 import java.io.IOException;
-import java.nio.file.DirectoryStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 
 /**
- * Created by makik on 6/10/15.
+ * Git for Education, 2015
+ *
+ * WorkingTreePanelView displays the current working tree's directory and
+ * lets the user mark checkboxes on files to commit. The 'commit action' to
+ * be performed on a checkboxed file is determined by that file's status:
+ * untracked/new, modified, or deleted.
+ *
  */
 public class WorkingTreePanelView extends Group {
 
-    private SessionModel sessionModel;
+    // fileLeafs stores all 'leafs' in the directory TreeView:
     private ArrayList<CheckBoxTreeItem> fileLeafs;
-
-    // The views within the view
-    private TreeView<Path> directoryTreeView;
+    private TreeView<RepoFile> directoryTreeView;
+    private SessionModel sessionModel;
 
     public WorkingTreePanelView() {
         this.fileLeafs = new ArrayList<>();
-        this.directoryTreeView = new TreeView<Path>();
+        this.directoryTreeView = new TreeView<RepoFile>();
         this.getChildren().add(this.directoryTreeView);
     }
 
-    public void drawDirectoryView() {
+    /**
+     * Draws the directory TreeView by getting the parent directory's RepoFile,
+     * populating it with the files it contains, and adding it to the display.
+     *
+     * @throws GitAPIException if the SessionModel can't get the ParentDirectoryRepoFile.
+     * @throws IOException if populating the parentDirectoryRepoFile fails.
+     */
+    public void drawDirectoryView() throws GitAPIException, IOException {
         Path directoryPath = this.sessionModel.currentRepoHelper.getDirectory();
 
-        // example-based:
-        // http://www.adam-bien.com/roller/abien/entry/listing_directory_contents_with_jdk
+        DirectoryRepoFile parentDirectoryRepoFile = this.sessionModel.getParentDirectoryRepoFile();
 
-        CheckBoxTreeItem<Path> directoryLeaf = new CheckBoxTreeItem<Path>(directoryPath.getFileName());
-        CheckBoxTreeItem<Path> rootItem = this.walkThroughDirectoryToGetTreeItem(directoryPath, directoryLeaf);
+        CheckBoxTreeItem<RepoFile> rootItem = new CheckBoxTreeItem<RepoFile>(parentDirectoryRepoFile);
         rootItem.setExpanded(true);
 
-        // TODO: Write a custom tree cell? Somehow, show only the fileName, not the whole path.
-        this.directoryTreeView = new TreeView<Path>(rootItem);
-        this.directoryTreeView.setCellFactory(CheckBoxTreeCell.<Path>forTreeView());
+        rootItem = this.populateRepoFileTreeLeaf(rootItem);
+
+        // TODO: Write a custom tree cell? Show icons for NEW, MODIFIED, or MISSING
+        this.directoryTreeView = new TreeView<RepoFile>(rootItem);
+        this.directoryTreeView.setCellFactory(CheckBoxTreeCell.<RepoFile>forTreeView());
+
+        // TreeViews must all have ONE root to hold the leafs. Don't show that root:
+        this.directoryTreeView.setShowRoot(false);
 
         this.getChildren().clear();
         this.getChildren().add(directoryTreeView);
     }
 
-    private CheckBoxTreeItem<Path> walkThroughDirectoryToGetTreeItem(Path superDirectory, CheckBoxTreeItem<Path> superDirectoryLeaf) {
-        // Get the directories and subdirectories
-        try {
-            DirectoryStream<Path> directoryStream = Files.newDirectoryStream(superDirectory);
-            for (Path path : directoryStream) {
-                if (Files.isDirectory(path)) {
-                    // Recurse!
-                    CheckBoxTreeItem<Path> subdirectoryLeaf = new CheckBoxTreeItem<Path>(path);
-                    walkThroughDirectoryToGetTreeItem(path, subdirectoryLeaf);
-                    superDirectoryLeaf.getChildren().add(subdirectoryLeaf);
-                }
-                else {
-                    // So, it's a file, not a directory.
-                    CheckBoxTreeItem<Path> fileLeaf = new CheckBoxTreeItem<Path>(path);
-                    superDirectoryLeaf.getChildren().add(fileLeaf);
-                    this.fileLeafs.add(fileLeaf);
-                }
-            }
-            directoryStream.close(); // Have to close this to prevent overflow!
-        } catch (IOException ex) {}
+    /**
+     * Adds children to a directory's CheckBoxTreeItem by checking the CheckBoxTreeItem's inner RepoFile
+     * for children and then making CheckBoxTreeItems for those children and populating them recursively
+     * using this method.
+     *
+     * @param parentLeaf A RepoFile's CheckBoxTreeItem to be populated with its children.
+     * @return the populated parent leaf.
+     */
+    public CheckBoxTreeItem<RepoFile> populateRepoFileTreeLeaf(CheckBoxTreeItem<RepoFile> parentLeaf) {
+        RepoFile parentLeafRepoFile = parentLeaf.getValue();
 
-        return superDirectoryLeaf;
+        // Check for nullness, since non-directory RepoFiles will a null-valued
+        // children list.
+        if (parentLeafRepoFile.getChildren() != null) {
+            for (RepoFile childRepoFile : parentLeafRepoFile.getChildren()) {
+                CheckBoxTreeItem<RepoFile> childLeaf = new CheckBoxTreeItem<>(childRepoFile);
+                if (childRepoFile.getChildren() != null) {
+                    // Recursively populate the child leaf, then add it to the parent
+                    childLeaf = populateRepoFileTreeLeaf(childLeaf);
+                }
+                parentLeaf.getChildren().add(childLeaf);
+                // Store each leaf that we're adding to this directory tree:
+                this.fileLeafs.add(childLeaf);
+            }
+        }
+        return parentLeaf;
     }
 
-    public ArrayList<Path> getCheckedFilesInDirectory() {
-        ArrayList<Path> checkedFiles = new ArrayList<>();
+    /**
+     * Checks through all the file leafs and finds all leafs whose checkbox is checked.
+     *
+     * @return an array of RepoFiles whose CheckBoxTreeItem cells are checked.
+     */
+    public ArrayList<RepoFile> getCheckedFilesInDirectory() {
+        ArrayList<RepoFile> checkedFiles = new ArrayList<>();
         for (CheckBoxTreeItem fileLeaf : this.fileLeafs) {
             if (fileLeaf.isSelected())
-                checkedFiles.add((Path)fileLeaf.getValue());
+                checkedFiles.add((RepoFile)fileLeaf.getValue());
         }
         return checkedFiles;
     }
