@@ -6,7 +6,6 @@ import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.scene.Group;
-import javafx.scene.shape.Line;
 import javafx.scene.shape.LineTo;
 import javafx.scene.shape.MoveTo;
 import javafx.scene.shape.Path;
@@ -17,65 +16,59 @@ import javafx.scene.shape.Path;
  * Represents a line with an arrow at the end. The arrow is constructed using a three-point Path
  * object that has its vertices bound to the end of the line.
  */
-public class DirectedLine extends Group{
+public class DirectedPath extends Group{
 
     public static final IntegerProperty ARROW_LENGTH = new SimpleIntegerProperty(Cell.BOX_SIZE / 3);
-    public static final IntegerProperty ARROW_VERTICAL_OFFSET = new SimpleIntegerProperty(Cell.BOX_SIZE / 2);
 
-    private final DoubleProperty startX;
-    private final DoubleProperty startY;
-    private final DoubleProperty endX;
-    private final DoubleProperty endY;
-
-    private final DoubleProperty rise;
-    private final DoubleProperty run;
-    private final DoubleProperty slope;
-
-    private final DoubleProperty tipX;
-    private final DoubleProperty tipY;
-
-    Line line;
     Path arrow;
+    Path path;
 
     /**
      * Constructs and binds the appropriate properties for the line and
      * the arrow
      */
-    public DirectedLine(){
-        this.line = new Line();
-        this.getChildren().add(line);
+    public DirectedPath(DoubleBinding x1, DoubleBinding y1,
+                        DoubleBinding x2, DoubleBinding y2,
+                        DoubleBinding x3,DoubleBinding y3){
 
-        startX = line.startXProperty();
-        startY = line.startYProperty();
-        endX = line.endXProperty();
-        endY = line.endYProperty();
+        this.path = new Path();
 
-        slope = new SimpleDoubleProperty(0.0);
-        rise = new SimpleDoubleProperty(0.0);
-        run = new SimpleDoubleProperty(0.0);
+        MoveTo start = new MoveTo();
+        start.xProperty().bind(x1);
+        start.yProperty().bind(y1);
 
-        rise.bind(endY.subtract(startY));
-        run.bind(endX.subtract(startX));
-        slope.bind(rise.divide(run));
+        LineTo mid = new LineTo();
+        mid.xProperty().bind(x2);
+        mid.yProperty().bind(y2);
 
-        tipX = new SimpleDoubleProperty();
-        tipY = new SimpleDoubleProperty();
+        LineTo end = new LineTo();
+        end.xProperty().bind(x3);
+        end.yProperty().bind(y3);
 
-        tipX.bind(endX.add(ARROW_VERTICAL_OFFSET.divide(slope)));
-        tipY.bind(endY.add(ARROW_VERTICAL_OFFSET));
+        path.getElements().add(start);
+        path.getElements().add(mid);
+        path.getElements().add(end);
 
-        // http://www.dbp-consulting.com/tutorials/canvas/CanvasArrow.html
-        // Position of the endpoints of the arrow on either side are given respectively by
-        //
-        // x = tipX+Math.cos((3*pi/4)+atan2(slope))*arrow_length
-        // y = tipY+Math.sin((3*pi/4)+atan2(slope))*arrow_length
-        //
-        //and
-        //
-        // x = tipX+Math.cos((5*pi/4)+atan2(slope))*arrow_length
-        // y = tipY+Math.sin((5*pi/4)+atan2(slope))*arrow_length
+        this.arrow = getArrow(x2, y2, x3, y3);
 
-        this.arrow = new Path();
+        this.getChildren().add(path);
+        this.getChildren().add(arrow);
+    }
+
+    /**
+    * http://www.dbp-consulting.com/tutorials/canvas/CanvasArrow.html
+    * Position of the endpoints of the arrow on either side are given respectively by
+    * x = tipX+Math.cos((3*pi/4)+atan2(slope))*arrow_length
+    * y = tipY+Math.sin((3*pi/4)+atan2(slope))*arrow_length
+    * and
+    * x = tipX+Math.cos((5*pi/4)+atan2(slope))*arrow_length
+    * y = tipY+Math.sin((5*pi/4)+atan2(slope))*arrow_length
+    */
+    private Path getArrow(DoubleBinding buttX, DoubleBinding buttY, DoubleBinding tipX, DoubleBinding tipY){
+        DoubleProperty rise = new SimpleDoubleProperty();
+        DoubleProperty run = new SimpleDoubleProperty();
+        rise.bind(tipY.subtract(buttY));
+        run.bind(tipX.subtract(buttX));
 
         MoveTo left = new MoveTo();
         left.xProperty().bind(tipX.add(new CosBinding(new ArcTanBinding(rise, run).add(Math.PI + Math.PI / 4)).multiply(ARROW_LENGTH)));
@@ -89,27 +82,12 @@ public class DirectedLine extends Group{
         right.xProperty().bind(tipX.add(new CosBinding(new ArcTanBinding(rise, run).add(Math.PI - Math.PI / 4)).multiply(ARROW_LENGTH)));
         right.yProperty().bind(tipY.add(new SinBinding(new ArcTanBinding(rise, run).add(Math.PI - Math.PI / 4)).multiply(ARROW_LENGTH)));
 
-        arrow.getElements().add(left);
-        arrow.getElements().add(tip);
-        arrow.getElements().add(right);
+        Path temp = new Path();
+        temp.getElements().add(left);
+        temp.getElements().add(tip);
+        temp.getElements().add(right);
 
-        this.getChildren().add(arrow);
-    }
-
-    public DoubleProperty startXProperty(){
-        return startX;
-    }
-
-    public DoubleProperty startYProperty(){
-        return startY;
-    }
-
-    public DoubleProperty endXProperty(){
-        return endX;
-    }
-
-    public DoubleProperty endYProperty(){
-        return endY;
+        return temp;
     }
 
     private class ArcTanBinding extends DoubleBinding{

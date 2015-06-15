@@ -1,12 +1,12 @@
 package edugit.treefx;
 
+import javafx.beans.binding.DoubleBinding;
 import javafx.scene.Group;
-import javafx.scene.shape.Line;
 
 /**
  * Created by makik on 6/10/15.
  *
- * Connects two cells in the TreeGraph using a DirectedLine
+ * Connects two cells in the TreeGraph using a DirectedPath
  */
 public class Edge extends Group {
 
@@ -24,21 +24,15 @@ public class Edge extends Group {
         this.source = source;
         this.target = target;
 
-        Line startLine = new Line();
-        DirectedLine endLine = new DirectedLine();
+        DoubleBinding startX = source.layoutXProperty().add(source.getBoundsInParent().getWidth() / 2.0);
+        DoubleBinding startY = source.layoutYProperty().add(source.getBoundsInParent().getHeight() / 2.0);
 
-        startLine.startXProperty().bind(source.layoutXProperty().add(source.getBoundsInParent().getWidth() / 2.0));
-        startLine.startYProperty().bind(source.layoutYProperty().add(source.getBoundsInParent().getHeight() / 2.0));
-        startLine.endXProperty().bind(endLine.endXProperty());
-        startLine.endYProperty().bind(startLine.startYProperty().subtract(TreeLayout.V_SPACING / 2.));
+        DoubleBinding endX = target.layoutXProperty().add(target.getBoundsInParent().getWidth() / 2.0);
+        DoubleBinding endY = target.layoutYProperty().add(target.getBoundsInParent().getHeight());
 
-        endLine.startXProperty().bind(startLine.endXProperty());
-        endLine.startYProperty().bind(startLine.endYProperty());
-        endLine.endXProperty().bind(target.layoutXProperty().add(target.getBoundsInParent().getWidth() / 2.0));
-        endLine.endYProperty().bind(target.layoutYProperty().add(target.getBoundsInParent().getHeight() / 2.0));
+        DirectedPath path = new DirectedPath(startX, startY, endX, startY.subtract(TreeLayout.V_SPACING / 2.), endX, endY);
 
-        getChildren().add(startLine);
-        getChildren().add(endLine);
+        getChildren().add(path);
 
     }
 
