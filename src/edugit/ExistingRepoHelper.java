@@ -10,8 +10,8 @@ import java.nio.file.Path;
  * A RepoHelper implementation for pre-existing repositories.
  */
 public class ExistingRepoHelper extends RepoHelper {
-    public ExistingRepoHelper(Path directoryPath, String ownerToken) throws Exception {
-        super(directoryPath, ownerToken);
+    public ExistingRepoHelper(Path directoryPath, String remoteURL, String username, String password) throws Exception {
+        super(directoryPath, remoteURL, username, password);
     }
 
     /**
