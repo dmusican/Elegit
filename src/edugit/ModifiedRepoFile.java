@@ -28,10 +28,10 @@ public class ModifiedRepoFile extends RepoFile {
         // TODO: Unify this relativization! This code is copied from the SessionModel. Do things in one place only!
         // Relativize the path to the repository, because that's the file structure JGit
         //  looks for in an 'add' command
-        Path repoDirectory = this.repo.getWorkTree().toPath();
-        Path relativizedPath = repoDirectory.relativize(this.filePath);
+//        Path repoDirectory = this.repo.getWorkTree().toPath();
+//        Path relativizedPath = repoDirectory.relativize(this.filePath);
 
-        AddCommand add = new Git(this.repo).add().addFilepattern(relativizedPath.toString());
+        AddCommand add = new Git(this.repo).add().addFilepattern(this.filePath.toString());
         add.call();
     }
 

@@ -138,7 +138,6 @@ public class SessionModel {
      * @throws IOException if the DirectoryStream fails.
      */
     private DirectoryRepoFile populateDirectoryRepoFile(DirectoryRepoFile superDirectory) throws GitAPIException, IOException {
-//        try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(superDirectory.getFilePath())) {
         try {
             DirectoryStream<Path> directoryStream = Files.newDirectoryStream(superDirectory.getFilePath());
             for (Path path : directoryStream) {
@@ -186,5 +185,38 @@ public class SessionModel {
             System.out.println(e.getStackTrace());
         }
         return superDirectory;
+    }
+
+    /**
+     * Assembles all the changed files (modified, missing, untracked) into RepoFiles
+     * and returns a list of them.
+     *
+     * @return a list of changed files, contained in RepoFile objects.
+     * @throws GitAPIException if the `git status` calls fail.
+     */
+    public ArrayList<RepoFile> getAllChangedRepoFiles() throws GitAPIException {
+        Set<String> modifiedFiles = getModifiedFiles();
+        Set<String> missingFiles = getMissingFiles();
+        Set<String> untrackedFiles = getUntrackedFiles();
+
+        ArrayList<RepoFile> changedRepoFiles = new ArrayList<>();
+
+
+        for (String modifiedFileString : modifiedFiles) {
+            ModifiedRepoFile modifiedRepoFile = new ModifiedRepoFile(modifiedFileString, this.getCurrentRepo());
+            changedRepoFiles.add(modifiedRepoFile);
+        }
+
+        for (String missingFileString : missingFiles) {
+            MissingRepoFile missingRepoFile = new MissingRepoFile(missingFileString, this.getCurrentRepo());
+            changedRepoFiles.add(missingRepoFile);
+        }
+
+        for (String untrackedFileString : untrackedFiles) {
+            UntrackedRepoFile untrackedRepoFile = new UntrackedRepoFile(untrackedFileString, this.getCurrentRepo());
+            changedRepoFiles.add(untrackedRepoFile);
+        }
+
+        return changedRepoFiles;
     }
 }
