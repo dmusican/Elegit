@@ -8,7 +8,7 @@ import org.eclipse.jgit.lib.Repository;
 import java.nio.file.Path;
 
 /**
- * Created by grahamearley on 6/12/15.
+ * A subclass of RepoFile that contains a file that Git reports as missing.
  */
 public class MissingRepoFile extends RepoFile {
     public MissingRepoFile(String filePathString, Repository repo) {
@@ -19,10 +19,10 @@ public class MissingRepoFile extends RepoFile {
         super(filePath, repo);
     }
 
-
-    /*
-    When the checkbox is checked for a missing file, we assume the user wants to
-    remove it from the repo.
+    /**
+     * When this RepoFile is checkboxed and the user commits, we remove this file from the repository.
+     *
+     * @throws GitAPIException if the `git rm` command fails.
      */
     @Override public void updateFileStatusInRepo() throws GitAPIException {
         // TODO: Unify this relativization! This code is copied from the SessionModel. Do things in one place only!

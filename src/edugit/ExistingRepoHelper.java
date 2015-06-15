@@ -7,23 +7,25 @@ import java.io.IOException;
 import java.nio.file.Path;
 
 /**
- * A RepoHelper for pre-existing repositories
+ * A RepoHelper implementation for pre-existing repositories.
  */
 public class ExistingRepoHelper extends RepoHelper {
     public ExistingRepoHelper(Path directoryPath, String ownerToken) throws Exception {
         super(directoryPath, ownerToken);
     }
 
+    /**
+     * Builds a repository by searching the directory for .git files
+     * and then returns the JGit Repository object.
+     *
+     * @return the RepoHelper's associated Repository object.
+     * @throws IOException if building the repository fails.
+     */
     @Override
-    protected Repository obtainRepository() {
+    protected Repository obtainRepository() throws IOException {
         FileRepositoryBuilder builder = new FileRepositoryBuilder();
-        try {
-            return builder.findGitDir(this.localPath.toFile())
-                    .readEnvironment()
-                    .build();
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
-        }
+        return builder.findGitDir(this.localPath.toFile())
+                .readEnvironment()
+                .build();
     }
 }

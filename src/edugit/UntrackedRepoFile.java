@@ -8,7 +8,7 @@ import org.eclipse.jgit.lib.Repository;
 import java.nio.file.Path;
 
 /**
- * Created by grahamearley on 6/12/15.
+ * A subclass of RepoFile that contains a file that Git reports as untracked.
  */
 public class UntrackedRepoFile extends RepoFile {
     public UntrackedRepoFile(String filePathString, Repository repo) {
@@ -19,9 +19,10 @@ public class UntrackedRepoFile extends RepoFile {
         super(filePath, repo);
     }
 
-    /*
-    When the checkbox is checked for an untracked file, we assume the user wants to
-    add it to the repo.
+    /**
+     * When this RepoFile is checkboxed and the user commits, we add this file to the repository.
+     *
+     * @throws GitAPIException if the `git add` command fails.
      */
     @Override public void updateFileStatusInRepo() throws GitAPIException {
         // TODO: Unify this relativization! This code is copied from the SessionModel. Do things in one place only!
