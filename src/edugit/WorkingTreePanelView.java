@@ -41,9 +41,10 @@ public class WorkingTreePanelView extends Group {
      */
     public void drawDirectoryView() throws GitAPIException, IOException {
         // TODO: getters
-        Path directoryPath = this.sessionModel.currentRepoHelper.getDirectory();
+        Path directoryPath = this.sessionModel.getCurrentRepoHelper().getDirectory();
 
         // NOTE: performance stuff with recursion
+        // #old: This is commented out since we're no longer loading the whole directory.
 //        DirectoryRepoFile parentDirectoryRepoFile = this.sessionModel.getParentDirectoryRepoFile();
 
         DirectoryRepoFile rootDirectory = new DirectoryRepoFile("", this.sessionModel.getCurrentRepo());
@@ -75,8 +76,11 @@ public class WorkingTreePanelView extends Group {
      * for children and then making CheckBoxTreeItems for those children and populating them recursively
      * using this method.
      *
+     * #old: This is unused since we're no longer loading the whole directory.
+     *
      * @param parentLeaf A RepoFile's CheckBoxTreeItem to be populated with its children.
      * @return the populated parent leaf.
+     *
      */
     public CheckBoxTreeItem<RepoFile> populateRepoFileTreeLeaf(CheckBoxTreeItem<RepoFile> parentLeaf) {
         RepoFile parentLeafRepoFile = parentLeaf.getValue();

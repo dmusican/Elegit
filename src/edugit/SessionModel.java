@@ -219,4 +219,8 @@ public class SessionModel {
 
         return changedRepoFiles;
     }
+
+    public RepoHelper getCurrentRepoHelper() {
+        return currentRepoHelper;
+    }
 }
