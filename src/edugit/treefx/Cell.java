@@ -17,7 +17,7 @@ import java.util.List;
 public class Cell extends Pane implements Comparable<Cell>{
 
     // The size of the rectangle being drawn
-    public static final int BOX_SIZE = 15;
+    public static final int BOX_SIZE = 20;
 
     // The displayed view
     Node view;

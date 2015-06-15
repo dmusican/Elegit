@@ -10,8 +10,8 @@ import java.util.List;
  */
 public class TreeLayout{
 
-    public static int V_SPACING = 50;
-    public static int H_SPACING = 25;
+    public static int V_SPACING = Cell.BOX_SIZE * 3 + 5;
+    public static int H_SPACING = Cell.BOX_SIZE + 10;
     public static int V_PAD = 25;
     public static int H_PAD = 10;
 
