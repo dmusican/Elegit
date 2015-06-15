@@ -1,9 +1,6 @@
 package edugit.treefx;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by makik on 6/10/15.
@@ -151,7 +148,7 @@ public class TreeGraphModel{
      */
     private void addCell( Cell cell) {
         addedCells.add(cell);
-        cellMap.put( cell.getCellId(), cell);
+        cellMap.put(cell.getCellId(), cell);
     }
 
     /**
@@ -166,7 +163,7 @@ public class TreeGraphModel{
 
         Edge edge = new Edge( sourceCell, targetCell);
 
-        addedEdges.add( edge);
+        addedEdges.add(edge);
     }
 
     /**

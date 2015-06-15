@@ -33,8 +33,6 @@ public class DirectedLine extends Group{
 
     private final DoubleProperty tipX;
     private final DoubleProperty tipY;
-    private final DoubleProperty arrowOffsetX;
-    private final DoubleProperty arrowOffsetY;
 
     Line line;
     Path arrow;
@@ -65,9 +63,6 @@ public class DirectedLine extends Group{
 
         tipX.bind(endX.add(ARROW_VERTICAL_OFFSET.divide(slope)));
         tipY.bind(endY.add(ARROW_VERTICAL_OFFSET));
-
-        arrowOffsetX = new SimpleDoubleProperty(ARROW_LENGTH.doubleValue());
-        arrowOffsetY = new SimpleDoubleProperty(ARROW_LENGTH.doubleValue());
 
         // http://www.dbp-consulting.com/tutorials/canvas/CanvasArrow.html
         // Position of the endpoints of the arrow on either side are given respectively by

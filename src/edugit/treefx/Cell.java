@@ -25,7 +25,7 @@ public class Cell extends Pane implements Comparable<Cell>{
     Tooltip tooltip;
 
     // The unique ID of this cell
-    String cellId;
+    private final String cellId;
 
     // The list of children of this cell
     List<Cell> children = new ArrayList<>();

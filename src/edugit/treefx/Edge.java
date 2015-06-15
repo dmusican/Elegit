@@ -1,6 +1,7 @@
 package edugit.treefx;
 
 import javafx.scene.Group;
+import javafx.scene.shape.Line;
 
 /**
  * Created by makik on 6/10/15.
@@ -11,8 +12,6 @@ public class Edge extends Group {
 
     protected Cell source;
     protected Cell target;
-
-    DirectedLine line;
 
     /**
      * Constructs a directed line between the source and target cells and binds
@@ -25,15 +24,21 @@ public class Edge extends Group {
         this.source = source;
         this.target = target;
 
-        line = new DirectedLine();
+        Line startLine = new Line();
+        DirectedLine endLine = new DirectedLine();
 
-        line.startXProperty().bind(source.layoutXProperty().add(source.getBoundsInParent().getWidth() / 2.0));
-        line.startYProperty().bind(source.layoutYProperty().add(source.getBoundsInParent().getHeight() / 2.0));
+        startLine.startXProperty().bind(source.layoutXProperty().add(source.getBoundsInParent().getWidth() / 2.0));
+        startLine.startYProperty().bind(source.layoutYProperty().add(source.getBoundsInParent().getHeight() / 2.0));
+        startLine.endXProperty().bind(endLine.endXProperty());
+        startLine.endYProperty().bind(startLine.startYProperty().subtract(TreeLayout.V_SPACING / 2.));
 
-        line.endXProperty().bind(target.layoutXProperty().add(target.getBoundsInParent().getWidth() / 2.0));
-        line.endYProperty().bind(target.layoutYProperty().add(target.getBoundsInParent().getHeight() / 2.0));
+        endLine.startXProperty().bind(startLine.endXProperty());
+        endLine.startYProperty().bind(startLine.endYProperty());
+        endLine.endXProperty().bind(target.layoutXProperty().add(target.getBoundsInParent().getWidth() / 2.0));
+        endLine.endYProperty().bind(target.layoutYProperty().add(target.getBoundsInParent().getHeight() / 2.0));
 
-        getChildren().add(line);
+        getChildren().add(startLine);
+        getChildren().add(endLine);
 
     }
 
