@@ -19,8 +19,6 @@ import java.util.Date;
  */
 public class CommitHelper{
 
-    static ArrayList<ObjectId> parsedIds = new ArrayList<>();
-
     RevCommit commit;
     PersonIdent author;
 

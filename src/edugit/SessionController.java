@@ -244,7 +244,7 @@ public class SessionController extends Controller {
      * @throws IOException if the drawDirectoryView() call fails.
      */
     public void handleReloadButton(ActionEvent actionEvent) throws GitAPIException, IOException{
-        this.workingTreePanelView.drawDirectoryView();
+//        this.workingTreePanelView.drawDirectoryView();
         this.localCommitTreeModel.update();
         this.remoteCommitTreeModel.update();
     }

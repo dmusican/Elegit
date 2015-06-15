@@ -53,7 +53,7 @@ public abstract class CommitTreeModel{
 
         CommitHelper root = commits.get(0);
 
-        TreeGraphModel graphModel = new TreeGraphModel(this.getTreeCellId(root));
+        TreeGraphModel graphModel = new TreeGraphModel(this.getTreeCellId(root), this.getTreeCellLabel(root));
 
         treeGraph = new TreeGraph(graphModel);
 

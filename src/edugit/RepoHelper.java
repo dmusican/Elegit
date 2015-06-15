@@ -3,9 +3,6 @@ package edugit;
 import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.api.errors.InvalidRemoteException;
-import org.eclipse.jgit.api.errors.NoMessageException;
-import org.eclipse.jgit.api.errors.WrongRepositoryStateException;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revplot.PlotCommitList;
@@ -46,7 +43,8 @@ public abstract class RepoHelper {
      * @throws IOException if the obtainRepository() call throws this exception.
      */
     public RepoHelper(Path directoryPath, String remoteURL, String username, String password) throws GitAPIException, IOException {
-        this.ownerAuth = new UsernamePasswordCredentialsProvider(username, password);
+//        this.ownerAuth = new UsernamePasswordCredentialsProvider(username, password);
+        this.ownerAuth = new UsernamePasswordCredentialsProvider(SECRET_CONSTANTS.TEST_GITHUB_TOKEN, "");
         this.remoteURL = remoteURL; //"https://github.com/grahamearley/jgit-test.git"; // TODO: pass this in!
 
         this.localPath = directoryPath;
@@ -150,6 +148,9 @@ public abstract class RepoHelper {
         return this.localCommits;
     }
 
+    /**
+     * @return the CommitHelper that contains the current HEAD
+     */
     public CommitHelper getCurrentHeadCommit(){
         try{
             ObjectId commitId = repo.resolve("HEAD");
@@ -189,6 +190,13 @@ public abstract class RepoHelper {
         return commitHelperList;
     }
 
+    /**
+     * Utilizes JGit to walk through the repo and create raw commit objects - more
+     * specifically, JGit objects of (super)type RevCommit. This is an expensive
+     * operation and should only be called when necessary
+     * @return a list of raw commits
+     * @throws IOException
+     */
     public PlotCommitList<PlotLane> parseRawLocalCommits() throws IOException{
         PlotWalk w = new PlotWalk(repo);
         ObjectId rootId = repo.resolve("HEAD");
@@ -201,6 +209,13 @@ public abstract class RepoHelper {
         return plotCommitList;
     }
 
+    /**
+     * Utilizes JGit to parse a commit with the given ID and returns it in
+     * raw format
+     * @param id the ID of the commit
+     * @return the raw commit corresponding to the given ID
+     * @throws IOException
+     */
     public RevCommit parseRawCommit(ObjectId id) throws IOException{
         RevWalk w = new RevWalk(repo);
         return w.parseCommit(id);

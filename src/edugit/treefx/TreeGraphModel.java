@@ -37,12 +37,13 @@ public class TreeGraphModel{
      * Constructs a new model with a cell with the given ID as the root
      * @param rootCellId the root cell's id
      */
-    public TreeGraphModel(String rootCellId) {
+    public TreeGraphModel(String rootCellId, String rootCellLabel) {
 
         // clear model, create lists
         clear();
 
         this.rootCell = new Cell(rootCellId, null);
+        this.rootCell.setDisplayLabel(rootCellLabel);
         this.prevAddedId = rootCellId;
         this.addCell(rootCell);
     }
