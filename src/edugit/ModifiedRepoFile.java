@@ -1,5 +1,6 @@
 package edugit;
 
+import javafx.scene.text.Text;
 import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -13,10 +14,14 @@ import java.nio.file.Path;
 public class ModifiedRepoFile extends RepoFile {
     public ModifiedRepoFile(String filePathString, Repository repo) {
         super(filePathString, repo);
+        this.textLabel = new Text("MODIFIED");
+        textLabel.setId("modifiedText");
     }
 
     public ModifiedRepoFile(Path filePath, Repository repo) {
         super(filePath, repo);
+        this.textLabel = new Text("MODIFIED");
+        textLabel.setId("modifiedText");
     }
 
     /**
@@ -33,10 +38,5 @@ public class ModifiedRepoFile extends RepoFile {
 
         AddCommand add = new Git(this.repo).add().addFilepattern(this.filePath.toString());
         add.call();
-    }
-
-    // TODO: modified icon instead of text
-    @Override public String toString() {
-        return "MODIFIED:" + super.toString();
     }
 }

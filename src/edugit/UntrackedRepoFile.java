@@ -1,5 +1,6 @@
 package edugit;
 
+import javafx.scene.text.Text;
 import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -13,10 +14,16 @@ import java.nio.file.Path;
 public class UntrackedRepoFile extends RepoFile {
     public UntrackedRepoFile(String filePathString, Repository repo) {
         super(filePathString, repo);
+        this.textLabel = new Text("UNTRACKED");
+        textLabel.setId("untrackedText");
     }
 
     public UntrackedRepoFile(Path filePath, Repository repo) {
         super(filePath, repo);
+        this.textLabel = new Text("UNTRACKED");
+        textLabel.setId("untrackedText");
+
+        // TODO: Have one *parent* constructor, so you don't have to have duplicate code here..
     }
 
     /**
@@ -33,10 +40,5 @@ public class UntrackedRepoFile extends RepoFile {
 
         AddCommand add = new Git(this.repo).add().addFilepattern(this.filePath.toString());
         add.call();
-    }
-
-    // TODO: Untracked icon instead of text
-    @Override public String toString() {
-        return "UNTRACKED:" + super.toString();
     }
 }

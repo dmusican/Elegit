@@ -55,7 +55,7 @@ public class WorkingTreePanelView extends Group {
 //        rootItem = this.populateRepoFileTreeLeaf(rootItem);
 
         for (RepoFile changedRepoFile : this.sessionModel.getAllChangedRepoFiles()) {
-            CheckBoxTreeItem<RepoFile> leaf = new CheckBoxTreeItem<>(changedRepoFile);
+            CheckBoxTreeItem<RepoFile> leaf = new CheckBoxTreeItem<>(changedRepoFile, changedRepoFile.textLabel);
             rootItem.getChildren().add(leaf);
             this.fileLeafs.add(leaf);
         }
