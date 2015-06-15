@@ -40,8 +40,10 @@ public class WorkingTreePanelView extends Group {
      * @throws IOException if populating the parentDirectoryRepoFile fails.
      */
     public void drawDirectoryView() throws GitAPIException, IOException {
+        // TODO: getters
         Path directoryPath = this.sessionModel.currentRepoHelper.getDirectory();
 
+        // NOTE: performance stuff with recursion
         DirectoryRepoFile parentDirectoryRepoFile = this.sessionModel.getParentDirectoryRepoFile();
 
         CheckBoxTreeItem<RepoFile> rootItem = new CheckBoxTreeItem<RepoFile>(parentDirectoryRepoFile);

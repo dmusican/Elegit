@@ -47,6 +47,8 @@ public abstract class RepoHelper {
      */
     public RepoHelper(Path directoryPath, String remoteURL, String username, String password) throws GitAPIException, IOException {
         this.ownerAuth = new UsernamePasswordCredentialsProvider(username, password);
+
+        // TODO: use when needed only (not in existing repos)
         this.remoteURL = remoteURL; //"https://github.com/grahamearley/jgit-test.git"; // TODO: pass this in!
 
         this.localPath = directoryPath;
@@ -57,6 +59,7 @@ public abstract class RepoHelper {
 //        this.directoryWatcher = new DirectoryWatcher(this.localPath);
 //        this.directoryWatcher.beginProcessingEvents();
 
+        // TODO: performance? depth limit for parsing commits or something
         this.localCommitIdMap = new HashMap<>();
         this.localCommits = this.parseLocalCommits();
     }
