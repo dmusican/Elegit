@@ -16,7 +16,7 @@ public class TreeLayout{
     public static int H_PAD = 10;
 
     private static int rootHeight;
-    private static int[] depthCounts;
+    private static int[] heightCounts;
     private static List<String> visited;
 
     /**
@@ -39,10 +39,10 @@ public class TreeLayout{
      */
     private static void relocateCell(Cell root){
         rootHeight = root.height;
-        depthCounts = new int[rootHeight+1];
+        heightCounts = new int[rootHeight+1];
         visited = new ArrayList<>();
 
-        relocateCell(root, 0);
+        relocateCell(root, rootHeight);
     }
 
     /**
@@ -51,22 +51,30 @@ public class TreeLayout{
      * depth. Gets called recursively on the children of the given cell by
      * order of their respective heights
      * @param c the cell to relocate
-     * @param depth the current depth of the cell
+     * @param lastHeight the height of the previously added cell
      */
-    private static void relocateCell(Cell c, int depth){
+    private static void relocateCell(Cell c, int lastHeight){
         visited.add(c.getCellId());
-        double x = (depthCounts[depth]) * H_SPACING + H_PAD;
-        double y = (rootHeight - depth) * V_SPACING + V_PAD;
+        double x = heightCounts[c.height] * H_SPACING + H_PAD;
+        double y = c.height * V_SPACING + V_PAD;
         c.relocate(x, y);
 
-        depthCounts[depth] += 1;
+        heightCounts[c.height] += 1;
+
+//        for(int i = c.height; i < lastHeight; i++){
+//            System.out.println("Is it useful?");
+//            if(heightCounts[i] <= heightCounts[lastHeight]){
+//                System.out.println("Yes");
+//                heightCounts[i] += 1;
+//            }
+//        }
 
         List<Cell> list = c.getCellChildren();
         list.sort(null);
 
         for(Cell child : list){
             if(!visited.contains(child.getCellId())){
-                relocateCell(child, depth + 1);
+                relocateCell(child, c.height);
             }
         }
     }

@@ -62,9 +62,7 @@ public class Cell extends Pane implements Comparable<Cell>{
 
         updateHeight();
 
-        this.setOnMouseClicked(event -> {
-            System.out.println("ID: " + cellId + "\n" + tooltip.getText());
-        });
+        this.setOnMouseClicked(event -> System.out.println("ID: " + cellId + "\n" + "Height: " + this.height + "\n" + tooltip.getText()));
 
         tooltip = new Tooltip(cellId);
         Tooltip.install(this, tooltip);
@@ -130,10 +128,24 @@ public class Cell extends Pane implements Comparable<Cell>{
 
     @Override
     public int compareTo(Cell c){
-        int i = Double.compare(c.height, this.height);
+        int i = Double.compare(this.height, c.height);
         if(i != 0){
             return i;
         }
+        int minHeightCChild = c.height;
+        for(Cell child : c.getCellChildren()){
+            if(child.height < minHeightCChild){
+                minHeightCChild = child.height;
+            }
+        }
+
+        int minHeightChild = this.height;
+        for(Cell child : this.getCellChildren()){
+            if(child.height < minHeightChild){
+                minHeightChild = child.height;
+            }
+        }
+        i = Integer.compare(minHeightCChild, minHeightChild);
         return i;
     }
 
