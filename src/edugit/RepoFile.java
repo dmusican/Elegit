@@ -1,5 +1,6 @@
 package edugit;
 
+import javafx.scene.text.Text;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Repository;
 
@@ -32,15 +33,18 @@ public class RepoFile {
     Repository repo;
     protected ArrayList<RepoFile> children; // Only directories will use this!
 
+    Text textLabel;
 
     public RepoFile(String filePathString, Repository repo) {
         this.repo = repo;
         this.filePath = Paths.get(filePathString);
+        this.textLabel = new Text("");
     }
 
     public RepoFile(Path filePath, Repository repo) {
         this.repo = repo;
         this.filePath = filePath;
+        this.textLabel = new Text("");
     }
 
     /**

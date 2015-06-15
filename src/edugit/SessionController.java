@@ -237,15 +237,14 @@ public class SessionController extends Controller {
     }
 
     /**
-     * Reloads the panel views when the button is clicked.
+     * Loads the panel views when the "git status" button is clicked.
      *
      * TODO: Implement automatic refresh!
      *
-     * @param actionEvent the button click event.
      * @throws GitAPIException if the drawDirectoryView() call fails.
      * @throws IOException if the drawDirectoryView() call fails.
      */
-    public void handleReloadButton(ActionEvent actionEvent) throws GitAPIException, IOException{
+    public void loadPanelViews() throws GitAPIException, IOException{
         this.workingTreePanelView.drawDirectoryView();
         this.localCommitTreeModel.update();
         this.remoteCommitTreeModel.update();
