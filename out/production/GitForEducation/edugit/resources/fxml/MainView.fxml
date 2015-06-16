@@ -5,28 +5,29 @@
 <?import java.net.URL?>
 <?import javafx.scene.text.Text?>
 <GridPane
-        alignment="CENTER"
+        alignment="TOP_CENTER"
         hgap="5" vgap="5"
         fx:controller="edugit.SessionController"
         xmlns:fx="http://javafx.com/fxml"
         id="gridPane"
-        stylesheets="/edugit/resources/css/MainView.css">
+        stylesheets="/edugit/resources/css/BaseStyle.css">
     <columnConstraints>
-        <ColumnConstraints halignment="CENTER" percentWidth="26"/>
-        <ColumnConstraints halignment="CENTER" percentWidth="11"/>
-        <ColumnConstraints halignment="CENTER" percentWidth="26"/>
-        <ColumnConstraints halignment="CENTER" percentWidth="11"/>
-        <ColumnConstraints halignment="CENTER" percentWidth="26"/>
+        <ColumnConstraints halignment="LEFT" percentWidth="26"/>
+        <ColumnConstraints halignment="LEFT" percentWidth="11"/>
+        <ColumnConstraints halignment="LEFT" percentWidth="26"/>
+        <ColumnConstraints halignment="LEFT" percentWidth="11"/>
+        <ColumnConstraints halignment="LEFT" percentWidth="26"/>
     </columnConstraints>
     <rowConstraints>
-        <RowConstraints valignment="CENTER" percentHeight="9"/>
-        <RowConstraints valignment="CENTER" percentHeight="9"/>
-        <RowConstraints valignment="CENTER" percentHeight="15"/>
-        <RowConstraints valignment="CENTER" percentHeight="9"/>
-        <RowConstraints valignment="CENTER" percentHeight="15"/>
-        <RowConstraints valignment="CENTER" percentHeight="9"/>
-        <RowConstraints valignment="CENTER" percentHeight="9"/>
+        <RowConstraints valignment="TOP" percentHeight="9"/>
+        <RowConstraints valignment="TOP" percentHeight="9"/>
+        <RowConstraints valignment="TOP" percentHeight="15"/>
+        <RowConstraints valignment="TOP" percentHeight="9"/>
+        <RowConstraints valignment="TOP" percentHeight="15"/>
+        <RowConstraints valignment="TOP" percentHeight="9"/>
+        <RowConstraints valignment="TOP" percentHeight="9"/>
     </rowConstraints>
+    <!-- TODO: resizing window should eventually just cut off the views. don't keep scrunching -->
 
     <MenuBar fx:id="menuBar"
             GridPane.rowIndex="0"
@@ -35,43 +36,47 @@
     <GridPane alignment="center"
               hgap="10"
               vgap="10"
-              GridPane.rowIndex="1"
+              GridPane.rowIndex="0"
               GridPane.columnIndex="0"
               GridPane.rowSpan="7">
 
+        <Button GridPane.rowIndex="0"
+                GridPane.columnIndex="0"
+                text="git status"
+                onAction="#loadPanelViews"/>
+
         <Text GridPane.rowIndex="0"
-              fx:id="repoNameText" />
+              GridPane.columnIndex="1"
+              fx:id="repoNameText"
+              id="title-text"/>
 
         <WorkingTreePanelView
                 GridPane.rowIndex="1"
+                GridPane.columnSpan="2"
                 fx:id="workingTreePanelView"/>
 
         <TextArea  GridPane.rowIndex="2"
                     fx:id="commitMessageField"
+                    GridPane.columnSpan="2"
                     prefColumnCount="1"
                     prefRowCount="3"
                     promptText="Commit message..." />
 
-        <Button GridPane.rowIndex="3"
-                text="git status"
-                onAction="#loadPanelViews"/>
-
     </GridPane>
 
-    <CommitTreePanelView GridPane.rowIndex="1" GridPane.columnIndex="2" GridPane.rowSpan="7" fx:id="localCommitTreePanelView"/>
+    <CommitTreePanelView GridPane.rowIndex="0" GridPane.columnIndex="2" GridPane.rowSpan="7" fx:id="localCommitTreePanelView"/>
 
-    <CommitTreePanelView GridPane.rowIndex="1" GridPane.columnIndex="4" GridPane.rowSpan="7" fx:id="remoteCommitTreePanelView"/>
+    <CommitTreePanelView GridPane.rowIndex="0" GridPane.columnIndex="4" GridPane.rowSpan="7" fx:id="remoteCommitTreePanelView"/>
 
-    <Button GridPane.rowIndex="2" GridPane.columnIndex="1" text="Commit" onAction="#handleCommitButton"/>
+    <Button GridPane.rowIndex="1" GridPane.columnIndex="1" text="Commit" onAction="#handleCommitButton"/>
 
-    <Button GridPane.rowIndex="4" GridPane.columnIndex="1" text="Merge" onAction="#handleMergeButton"/>
+    <Button GridPane.rowIndex="3" GridPane.columnIndex="1" text="Merge" onAction="#handleMergeButton"/>
 
-    <Button GridPane.rowIndex="2" GridPane.columnIndex="3" text="Push" onAction="#handlePushButton"/>
+    <Button GridPane.rowIndex="1" GridPane.columnIndex="3" text="Push" onAction="#handlePushButton"/>
 
-    <Button GridPane.rowIndex="4" GridPane.columnIndex="3" text="Fetch" onAction="#handleFetchButton"/>
+    <Button GridPane.rowIndex="3" GridPane.columnIndex="3" text="Fetch" onAction="#handleFetchButton"/>
 
     <stylesheets>
         <URL value="@../css/BaseStyle.css"/>
-        <URL value="@../css/MainView.css" />
     </stylesheets>
 </GridPane>

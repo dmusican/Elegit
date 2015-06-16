@@ -1,70 +1,56 @@
 .root {
-    -fx-background-image: url("../background.jpg");
-}
-
-.tab-pane .tab-header-area .tab-header-background {
-    -fx-opacity: 0;
-}
-
-.tab-pane:top *.tab-header-area {
-    -fx-background-insets: 0, 0 0 1 0;
-    /* -fx-padding: 0.416667em 0.166667em 0.0em 0.833em; /* 5 2 0 10 */
-    -fx-padding: 0.0em 0.166667em 0.0em 0.0em; /* overriden as 5 2 0 0 */
-}
-
-.tab{
-    -fx-background-insets: 0 1 0 1,0,0;
-    -fx-background-color: linear-gradient(#61a2b1, #2A5058);
-}
-
-.tab:selected{
-    -fx-background-color: linear-gradient(#2A5058, #61a2b1);
-}
-
-.tab:hover {
-    -fx-background-color: linear-gradient(#2A5058, #61a2b1);
-}
-
-.tab .tab-label {
-    -fx-alignment: CENTER;
-    -fx-text-fill: white;
-    -fx-font-size: 12px;
-    -fx-font-weight: bold;
-}
-
-.tab:selected .tab-label {
-    -fx-alignment: CENTER;
-    -fx-text-fill: white;
+    -fx-background-color: #F2F1EF;
+    -fx-font-family: "Avenir";
 }
 
 .label {
     -fx-font-size: 12px;
     -fx-font-weight: bold;
     -fx-text-fill: #333333;
-    -fx-effect: dropshadow( gaussian , rgba(255,255,255,0.5) , 0,0,0,1 );
 }
 
 .button {
+    -fx-font-family: "Menlo";
     -fx-text-fill: white;
-    -fx-font-family: "Arial Narrow";
-    -fx-font-weight: bold;
-    -fx-background-color: linear-gradient(#61a2b1, #2A5058);
-    -fx-effect: dropshadow( three-pass-box , rgba(0,0,0,0.6) , 5, 0.0 , 0 , 1 );
+    -fx-background-color: #52B3D9;
 }
 
 .button:hover {
-    -fx-background-color: linear-gradient(#2A5058, #61a2b1);
+    -fx-background-color: #81CFE0;
+}
+
+.button:pressed, .button:selected {
+    -fx-background-color: #3498DB;
+}
+
+.menu-bar {
+    -fx-use-system-menu-bar: true;
+    -fx-background-color: #3498DB;
 }
 
 #title-text {
-    -fx-font-size: 32px;
-    -fx-font-family: "Arial Black";
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
     -fx-fill: #818181;
-    -fx-effect: innershadow( three-pass-box , rgba(0,0,0,0.7) , 6, 0.0 , 0 , 2 );
 }
 
-#actionTarget {
-    -fx-fill: FIREBRICK;
-    -fx-font-weight: bold;
-    -fx-effect: dropshadow( gaussian , rgba(255,255,255,0.5) , 0,0,0,1 );
+#missingText {
+    -fx-font-weight: BOLD;
+    -fx-font-family: "Avenir";
+    -fx-fill: #e67e22;
+    -fx-stroke-width: 0;
+}
+
+#modifiedText {
+    -fx-font-weight: BOLD;
+    -fx-font-family: "Avenir";
+    -fx-fill: #16a085;
+    -fx-stroke-width: 0;
+}
+
+#untrackedText {
+    -fx-font-weight: BOLD;
+    -fx-font-family: "Avenir";
+    -fx-fill: #9b59b6;
+    -fx-stroke-width: 0;
 }
