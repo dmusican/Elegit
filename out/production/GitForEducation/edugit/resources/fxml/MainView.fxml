@@ -3,6 +3,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import java.net.URL?>
+<?import javafx.scene.text.Text?>
 <GridPane
         alignment="CENTER"
         hgap="5" vgap="5"
@@ -38,17 +39,20 @@
               GridPane.columnIndex="0"
               GridPane.rowSpan="7">
 
+        <Text GridPane.rowIndex="0"
+              fx:id="repoNameText" />
+
         <WorkingTreePanelView
-                GridPane.rowIndex="0"
+                GridPane.rowIndex="1"
                 fx:id="workingTreePanelView"/>
 
-        <TextArea  GridPane.rowIndex="1"
+        <TextArea  GridPane.rowIndex="2"
                     fx:id="commitMessageField"
                     prefColumnCount="1"
                     prefRowCount="3"
                     promptText="Commit message..." />
 
-        <Button GridPane.rowIndex="2"
+        <Button GridPane.rowIndex="3"
                 text="git status"
                 onAction="#loadPanelViews"/>
 

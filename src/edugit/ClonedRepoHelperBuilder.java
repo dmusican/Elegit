@@ -21,7 +21,7 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
     }
 
     @Override
-    public void presentDialogsToConstructRepoHelper() {
+    public void presentDialogsAndSetRepoHelper() {
         // NOTE: This is all stuff that uses pretty new Java features,
         // so make sure you have JDK 8u40 or later!
         //  Largely copied from: http://code.makery.ch/blog/javafx-dialogs-official/

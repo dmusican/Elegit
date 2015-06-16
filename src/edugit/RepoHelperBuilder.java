@@ -17,7 +17,7 @@ public abstract class RepoHelperBuilder {
         this.sessionModel = sessionModel;
     }
 
-    public abstract void presentDialogsToConstructRepoHelper() throws Exception;
+    public abstract void presentDialogsAndSetRepoHelper() throws Exception;
 
     public File getDirectoryPathFromChooser(String title, Window parent) {
         File path = new File(this.defaultFilePickerStartFolder); // start the file browser in the user's home folder

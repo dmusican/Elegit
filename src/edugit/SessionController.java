@@ -1,19 +1,11 @@
 package edugit;
 
-import com.jcraft.jsch.Session;
-import javafx.application.Platform;
 import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
-import javafx.geometry.Insets;
-import javafx.scene.Node;
 import javafx.scene.control.*;
-import javafx.scene.layout.GridPane;
-import javafx.util.Pair;
+import javafx.scene.text.Text;
 import org.eclipse.jgit.api.errors.GitAPIException;
 
-import java.io.File;
 import java.io.IOException;
-import java.util.Optional;
 
 /**
  * Created by makik on 6/10/15.
@@ -22,6 +14,7 @@ import java.util.Optional;
  */
 public class SessionController extends Controller {
 
+    public Text repoNameText;
     private SessionModel theModel;
 
     public MenuBar menuBar;
@@ -61,14 +54,16 @@ public class SessionController extends Controller {
         MenuItem cloneOption = new MenuItem("Clone");
         cloneOption.setOnAction(t -> {
             ClonedRepoHelperBuilder builder = new ClonedRepoHelperBuilder(this.theModel);
-            builder.presentDialogsToConstructRepoHelper();
+            builder.presentDialogsAndSetRepoHelper(); // this creates and sets the RepoHelper
+            this.repoNameText.setText(this.theModel.getCurrentRepoHelper().getDirectory().getFileName().toString());
         });
 
         MenuItem existingOption = new MenuItem("Load existing repository");
         existingOption.setOnAction(t -> {
             ExistingRepoHelperBuilder builder = new ExistingRepoHelperBuilder(this.theModel);
             try { // TODO: figure out why this needs a try/catch... and remove it
-                builder.presentDialogsToConstructRepoHelper();
+                builder.presentDialogsAndSetRepoHelper();
+                this.repoNameText.setText(this.theModel.getCurrentRepoHelper().getDirectory().getFileName().toString());
             } catch (Exception e) {
                 e.printStackTrace();
             }

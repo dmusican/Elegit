@@ -24,7 +24,7 @@ public class ExistingRepoHelperBuilder extends RepoHelperBuilder {
      * @throws Exception (I think this happens if the user presses cancel on the directory chooser)
      */
     @Override
-    public void presentDialogsToConstructRepoHelper() throws Exception {
+    public void presentDialogsAndSetRepoHelper() throws Exception {
         Path existingRepoDirectory = this.getDirectoryPathFromChooser("Choose existing repository directory", null).toPath();
         RepoHelper existingRepoHelper = new ExistingRepoHelper(existingRepoDirectory, this.sessionModel.getOwner());
         this.sessionModel.openRepoFromHelper(existingRepoHelper);
