@@ -23,7 +23,7 @@ import java.util.Map;
  */
 public abstract class RepoHelper {
 
-    protected UsernamePasswordCredentialsProvider ownerAuth; // TODO: Make an Owner object?
+    protected UsernamePasswordCredentialsProvider ownerAuth;
     private Repository repo;
     protected String remoteURL;
 
@@ -45,8 +45,7 @@ public abstract class RepoHelper {
     public RepoHelper(Path directoryPath, String remoteURL, RepoOwner owner) throws GitAPIException, IOException {
         this.ownerAuth = new UsernamePasswordCredentialsProvider(owner.getUsername(), owner.getPassword());
 
-        // TODO: use when needed only (not in existing repos)
-        this.remoteURL = remoteURL; //"https://github.com/grahamearley/jgit-test.git"; // TODO: pass this in!
+        this.remoteURL = remoteURL;
 
         this.localPath = directoryPath;
 
@@ -68,7 +67,6 @@ public abstract class RepoHelper {
 
         this.repo = this.obtainRepository();
 
-        // TODO: performance? depth limit for parsing commits or something
         this.localCommitIdMap = new HashMap<>();
         this.localCommits = this.parseLocalCommits();
     }

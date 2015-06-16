@@ -25,8 +25,6 @@ public class ClonedRepoHelper extends RepoHelper {
      */
     @Override
     protected Repository obtainRepository() throws GitAPIException {
-        // TODO: make this not just clone a dummy repo...
-
         CloneCommand cloneCommand = Git.cloneRepository();
         cloneCommand.setURI(this.remoteURL);
         cloneCommand.setCredentialsProvider(this.ownerAuth);
