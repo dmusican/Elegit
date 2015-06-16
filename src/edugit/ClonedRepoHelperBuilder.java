@@ -78,9 +78,8 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
         result.ifPresent(destinationRemoteURL -> {
             try {
                 Path destinationPath = Paths.get(destinationRemoteURL.getKey());
-                RepoOwner owner = this.sessionModel.getOwner();
-                RepoHelper repoHelper = new ClonedRepoHelper(destinationPath, destinationRemoteURL.getValue(), owner.getUsername(), owner.getPassword());
-               this.sessionModel.openRepoFromHelper(repoHelper);
+                RepoHelper repoHelper = new ClonedRepoHelper(destinationPath, destinationRemoteURL.getValue(), this.sessionModel.getOwner());
+                this.sessionModel.openRepoFromHelper(repoHelper);
             } catch(Exception e){
                 e.printStackTrace();
             }
