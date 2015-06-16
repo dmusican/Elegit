@@ -5,10 +5,12 @@ import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
+import javafx.collections.ObservableList;
 import javafx.scene.Group;
 import javafx.scene.shape.LineTo;
 import javafx.scene.shape.MoveTo;
 import javafx.scene.shape.Path;
+import javafx.scene.shape.PathElement;
 
 /**
  * Created by makik on 6/11/15.
@@ -23,33 +25,62 @@ public class DirectedPath extends Group{
     Path arrow;
     Path path;
 
+    private final DoubleBinding endX;
+    private final DoubleBinding endY;
+
     /**
      * Constructs and binds the appropriate properties for the line and
      * the arrow
      */
-    public DirectedPath(DoubleBinding x1, DoubleBinding y1,
-                        DoubleBinding x2, DoubleBinding y2,
-                        DoubleBinding x3,DoubleBinding y3){
+    public DirectedPath(DoubleBinding startX, DoubleBinding startY,
+                        DoubleBinding endX,DoubleBinding endY){
 
         this.path = new Path();
 
         MoveTo start = new MoveTo();
-        start.xProperty().bind(x1);
-        start.yProperty().bind(y1);
-
-        LineTo mid = new LineTo();
-        mid.xProperty().bind(x2);
-        mid.yProperty().bind(y2);
+        start.xProperty().bind(startX);
+        start.yProperty().bind(startY);
 
         LineTo end = new LineTo();
-        end.xProperty().bind(x3);
-        end.yProperty().bind(y3);
+        end.xProperty().bind(endX);
+        end.yProperty().bind(endY);
+
+        this.endX = endX;
+        this.endY = endY;
 
         path.getElements().add(start);
-        path.getElements().add(mid);
         path.getElements().add(end);
 
-        this.arrow = getArrow(x2, y2, x3, y3);
+        this.arrow = getArrow();
+
+        this.getChildren().add(path);
+        this.getChildren().add(arrow);
+    }
+
+    public void addPoint(DoubleBinding newX, DoubleBinding newY, int index){
+        this.getChildren().remove(path);
+        this.getChildren().remove(arrow);
+
+        LineTo newLine = new LineTo();
+        newLine.xProperty().bind(newX);
+        newLine.yProperty().bind(newY);
+
+        path.getElements().add(index, newLine);
+        this.arrow = getArrow();
+
+        this.getChildren().add(path);
+        this.getChildren().add(arrow);
+    }
+
+    public void addPoint(DoubleBinding newX, DoubleBinding newY){
+        this.addPoint(newX, newY, path.getElements().size() - 1);
+    }
+
+    public void removePoint(int index){
+        this.getChildren().remove(path);
+        this.getChildren().remove(arrow);
+
+        path.getElements().remove(index);
 
         this.getChildren().add(path);
         this.getChildren().add(arrow);
@@ -64,7 +95,22 @@ public class DirectedPath extends Group{
     * x = tipX+Math.cos((5*pi/4)+atan2(slope))*arrow_length
     * y = tipY+Math.sin((5*pi/4)+atan2(slope))*arrow_length
     */
-    private Path getArrow(DoubleBinding buttX, DoubleBinding buttY, DoubleBinding tipX, DoubleBinding tipY){
+    private Path getArrow(){
+        ObservableList<PathElement> list =  this.path.getElements();
+        DoubleBinding tipX = ((LineTo) list.get(list.size()-1)).xProperty().add(0);
+        DoubleBinding tipY = ((LineTo) list.get(list.size()-1)).yProperty().add(0);
+
+        DoubleBinding buttX;
+        DoubleBinding buttY;
+        if(list.size()>2){
+            buttX = ((LineTo) list.get(list.size()-2)).xProperty().add(0);
+            buttY = ((LineTo) list.get(list.size()-2)).yProperty().add(0);
+        }else{
+            buttX = ((MoveTo) list.get(list.size()-2)).xProperty().add(0);
+            buttY = ((MoveTo) list.get(list.size()-2)).yProperty().add(0);
+        }
+
+
         DoubleProperty rise = new SimpleDoubleProperty();
         DoubleProperty run = new SimpleDoubleProperty();
         rise.bind(tipY.subtract(buttY));

@@ -63,11 +63,11 @@ public class TreeLayout{
 
         heightCounts[h] += 1;
 
-        for(int i = h; i < lastHeight; i++){
-            if(heightCounts[i] < heightCounts[lastHeight]){
-                heightCounts[i] += 1;
-            }
-        }
+//        for(int i = h; i < lastHeight; i++){
+//            if(heightCounts[i] < heightCounts[lastHeight]){
+//                heightCounts[i] += 1;
+//            }
+//        }
 
         List<Cell> list = c.getCellChildren();
         list.sort(null);

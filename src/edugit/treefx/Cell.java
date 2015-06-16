@@ -1,10 +1,13 @@
 package edugit.treefx;
 
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.scene.Node;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.shape.Shape;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,6 +21,8 @@ public class Cell extends Pane implements Comparable<Cell>{
 
     // The size of the rectangle being drawn
     public static final int BOX_SIZE = 20;
+    private static final Color STANDARD_COLOR = Color.BLUE;
+    private static final Color HIGHLIGHT_COLOR = Color.RED;
 
     // The displayed view
     Node view;
@@ -33,8 +38,11 @@ public class Cell extends Pane implements Comparable<Cell>{
     // The parent object that holds the parents of this cell
     ParentCell parent;
 
+    List<Edge> edges = new ArrayList<>();
+
     // The number of generations away from the furthest leaf cell
     int height;
+    IntegerProperty heightProperty;
 
     /**
      * Constructs a node with the given ID and a single parent node
@@ -55,17 +63,23 @@ public class Cell extends Pane implements Comparable<Cell>{
         this.cellId = cellId;
         this.parent = new ParentCell(this, parent1, parent2);
 
-        setView(new Rectangle(BOX_SIZE, BOX_SIZE, Color.BLUE));
+        setView(new Rectangle(BOX_SIZE, BOX_SIZE, STANDARD_COLOR));
 //        setView(new Text(cellId));
 
         this.height = 0;
+        this.heightProperty = new SimpleIntegerProperty(this.height);
 
         updateHeight();
 
         this.setOnMouseClicked(event -> System.out.println("ID: " + cellId + "\n" + "Height: " + this.height + "\n" + tooltip.getText()));
 
         tooltip = new Tooltip(cellId);
+        tooltip.setWrapText(true);
+        tooltip.setMaxWidth(200);
         Tooltip.install(this, tooltip);
+
+        this.setOnMouseEntered(event -> highlight(true, true));
+        this.setOnMouseExited(event -> highlight(false, true));
     }
 
     /**
@@ -83,6 +97,7 @@ public class Cell extends Pane implements Comparable<Cell>{
     public void updateHeight(){
         for(Cell c : children){
             this.height = (this.height <= c.height) ? (c.height + 1) : this.height;
+            this.heightProperty.set(this.height);
         }
         parent.updateHeight();
     }
@@ -93,6 +108,7 @@ public class Cell extends Pane implements Comparable<Cell>{
      */
     public void addCellChild(Cell cell) {
         children.add(cell);
+        updateHeight();
     }
 
     /**
@@ -117,6 +133,29 @@ public class Cell extends Pane implements Comparable<Cell>{
     public void setView(Node view) {
         this.view = view;
         getChildren().add(view);
+    }
+
+    public void highlight(boolean enable, boolean enableRelatives){
+        if(enableRelatives){
+            Edge.allVisible.set(!enable);
+            this.highlightEdges(enable);
+            parent.highlight(enable);
+            for(Cell child : children){
+                child.highlight(enable, false);
+            }
+        }
+        Shape s = (Shape) view;
+        if(enable){
+            s.setFill(HIGHLIGHT_COLOR);
+        }else{
+            s.setFill(STANDARD_COLOR);
+        }
+    }
+
+    private void highlightEdges(boolean enable){
+        for(Edge e : edges){
+            e.setHighlighted(enable);
+        }
     }
 
     /**
@@ -190,6 +229,15 @@ public class Cell extends Pane implements Comparable<Cell>{
             }
             if(this.dad != null){
                 this.dad.addCellChild(cell);
+            }
+        }
+
+        public void highlight(boolean enable){
+            if(this.mom != null){
+                this.mom.highlight(enable, false);
+            }
+            if(this.dad != null){
+                this.dad.highlight(enable, false);
             }
         }
     }
