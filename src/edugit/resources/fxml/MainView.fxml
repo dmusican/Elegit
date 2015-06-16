@@ -46,7 +46,7 @@
                     fx:id="commitMessageField"
                     prefColumnCount="1"
                     prefRowCount="3"
-                    text="Commit message..." />
+                    promptText="Commit message..." />
 
         <Button GridPane.rowIndex="2"
                 text="git status"
