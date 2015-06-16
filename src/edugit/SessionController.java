@@ -14,8 +14,15 @@ import java.io.IOException;
  */
 public class SessionController extends Controller {
 
-    public Text repoNameText;
     private SessionModel theModel;
+
+    public Text repoNameText;
+
+    public Button gitStatusButton;
+    public Button commitButton;
+    public Button mergeButton;
+    public Button pushButton;
+    public Button fetchButton;
 
     public MenuBar menuBar;
     public TextArea commitMessageField;

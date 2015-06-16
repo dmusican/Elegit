@@ -42,6 +42,7 @@
 
         <Button GridPane.rowIndex="0"
                 GridPane.columnIndex="0"
+                fx:id="gitStatusButton"
                 text="git status"
                 onAction="#loadPanelViews"/>
 
@@ -68,13 +69,29 @@
 
     <CommitTreePanelView GridPane.rowIndex="0" GridPane.columnIndex="4" GridPane.rowSpan="7" fx:id="remoteCommitTreePanelView"/>
 
-    <Button GridPane.rowIndex="1" GridPane.columnIndex="1" text="Commit" onAction="#handleCommitButton"/>
+    <Button GridPane.rowIndex="1"
+            GridPane.columnIndex="1"
+            fx:id="commitButton"
+            text="Commit"
+            onAction="#handleCommitButton"/>
 
-    <Button GridPane.rowIndex="3" GridPane.columnIndex="1" text="Merge" onAction="#handleMergeButton"/>
+    <Button GridPane.rowIndex="3"
+            GridPane.columnIndex="1"
+            fx:id="mergeButton"
+            text="Merge"
+            onAction="#handleMergeButton"/>
 
-    <Button GridPane.rowIndex="1" GridPane.columnIndex="3" text="Push" onAction="#handlePushButton"/>
+    <Button GridPane.rowIndex="1"
+            GridPane.columnIndex="3"
+            fx:id="pushButton"
+            text="Push"
+            onAction="#handlePushButton"/>
 
-    <Button GridPane.rowIndex="3" GridPane.columnIndex="3" text="Fetch" onAction="#handleFetchButton"/>
+    <Button GridPane.rowIndex="3"
+            GridPane.columnIndex="3"
+            fx:id="fetchButton"
+            text="Fetch"
+            onAction="#handleFetchButton"/>
 
     <stylesheets>
         <URL value="@../css/BaseStyle.css"/>
