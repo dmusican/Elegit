@@ -16,7 +16,7 @@ public class RemoteCommitTreeModel extends CommitTreeModel{
     @Override
     public ArrayList<CommitHelper> getCommits(){
         if(this.model.currentRepoHelper != null){
-            return this.model.currentRepoHelper.getLocalCommits(); // TODO: change to track remote commits
+            return this.model.currentRepoHelper.getRemoteCommits();
         }
         return new ArrayList<>();
     }

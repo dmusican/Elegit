@@ -39,6 +39,8 @@ public class TreeGraphModel{
         // clear model, create lists
         clear();
 
+        Highlighter.trackedModels.add(this);
+
         this.rootCell = new Cell(rootCellId, null);
         this.rootCell.setDisplayLabel(rootCellLabel);
         this.prevAddedId = rootCellId;

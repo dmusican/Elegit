@@ -14,20 +14,22 @@ public class Highlighter{
     public static final Color SELECT_COLOR = Color.DARKRED;
     public static final Color[] HIGHLIGHT_COLORS = {Color.RED, Color.MEDIUMSEAGREEN};
 
-    private static Cell selectedCell = null;
+    private static String selectedCellID = null;
+
+    public static List<TreeGraphModel> trackedModels = new ArrayList<>();
 
     public static void handleMouseClicked(Cell cell){
         if(!isSelected(cell)){
-            if(selectedCell == null){
-                selectCell(cell, true);
+            if(selectedCellID == null){
+                selectCell(cell.getCellId(), true);
             }else{
-                selectCell(selectedCell, false);
-                selectCell(cell, true);
+                selectCell(selectedCellID, false);
+                selectCell(cell.getCellId(), true);
             }
         }else{
-            selectCell(cell, false);
+            selectCell(cell.getCellId(), false);
         }
-        Edge.allVisible.set(selectedCell == null);
+        Edge.allVisible.set(selectedCellID == null);
     }
 
     public static void handleMouseover(Cell cell, boolean isOverCell){
@@ -38,65 +40,87 @@ public class Highlighter{
             for(Cell c : relatives){
                 if(!isRelativeSelected(c)){
                     if(isOverCell){
-                        highlightCell(c, HIGHLIGHT_COLORS[selectedCell == null ? 0 : 1], false);
+                        highlightCell(c.getCellId(), HIGHLIGHT_COLORS[selectedCellID == null ? 0 : 1], false);
                     }else{
-                        highlightCell(c, STANDARD_COLOR, false);
+                        highlightCell(c.getCellId(), STANDARD_COLOR, false);
                     }
                 }
             }
-            updateCellEdges(cell, isOverCell);
+            updateCellEdges(cell.getCellId(), isOverCell);
         }
     }
 
     private static boolean isSelected(Cell c){
-        return selectedCell != null && selectedCell.equals(c);
+        return isSelected(c.getCellId());
     }
 
-    private static void selectCell(Cell cell, boolean enable){
+    private static boolean isSelected(String cellID){
+        return selectedCellID != null && selectedCellID.equals(cellID);
+    }
+
+    private static void selectCell(String cellID, boolean enable){
         Color color;
         if(enable){
             color = SELECT_COLOR;
-            selectedCell = cell;
+            selectedCellID = cellID;
         }else{
             color = STANDARD_COLOR;
-            selectedCell = null;
-        }
-        cell.setColor(color);
-
-        List<Cell> relatives = cell.getCellParents();
-        relatives.addAll(cell.getCellChildren());
-        highlightAllCells(relatives, color, false);
-
-        updateCellEdges(cell, enable);
-    }
-
-    private static void updateCellEdges(Cell cell, boolean enable){
-        List<Edge> list = new ArrayList<>(cell.edges);
-        if(!enable && selectedCell != null){
-            for(Edge e :selectedCell.edges){
-                list.remove(e);
-            }
-        }
-        for(Edge e : list){
-            e.setHighlighted(enable);
-        }
-    }
-
-    private static void highlightCell(Cell cell, Color c, boolean highlightRelatives){
-        if(!isSelected(cell)){
-            cell.setColor(c);
+            selectedCellID = null;
         }
 
-        if(highlightRelatives){
+        for(TreeGraphModel m : trackedModels){
+            Cell cell = m.cellMap.get(cellID);
+            if(cell == null) continue;
+
+            cell.setColor(color);
+
             List<Cell> relatives = cell.getCellParents();
             relatives.addAll(cell.getCellChildren());
-            highlightAllCells(relatives, c, false);
+            highlightAllCells(relatives, color, false);
+        }
+
+        updateCellEdges(cellID, enable);
+    }
+
+    private static void updateCellEdges(String cellID, boolean enable){
+        for(TreeGraphModel m : trackedModels){
+            Cell selectedCell = m.cellMap.get(selectedCellID);
+            if(selectedCell == null) continue;
+            Cell cell = m.cellMap.get(cellID);
+            if(cell == null) continue;
+
+            List<Edge> list = new ArrayList<>(cell.edges);
+            if(!enable && selectedCellID != null){
+                for(Edge e : selectedCell.edges){
+                    list.remove(e);
+                }
+            }
+            for(Edge e : list){
+                e.setHighlighted(enable);
+            }
+        }
+    }
+
+    private static void highlightCell(String cellID, Color c, boolean highlightRelatives){
+        for(TreeGraphModel m : trackedModels){
+            Cell cell = m.cellMap.get(cellID);
+            if(cell == null) continue;
+
+            if(!isSelected(cellID)){
+                cell.setColor(c);
+            }
+
+            if(highlightRelatives){
+                List<Cell> relatives = cell.getCellParents();
+                relatives.addAll(cell.getCellChildren());
+                highlightAllCells(relatives, c, false);
+            }
         }
     }
 
     private static void highlightAllCells(List<Cell> cells, Color c, boolean highlightRelatives){
-        for(Cell child : cells){
-            highlightCell(child, c, highlightRelatives);
+        for(Cell cell : cells){
+            highlightCell(cell.getCellId(), c, highlightRelatives);
         }
     }
 
@@ -104,7 +128,7 @@ public class Highlighter{
         List<Cell> relatives = cell.getCellParents();
         relatives.addAll(cell.getCellChildren());
         for(Cell c : relatives){
-            if(isSelected(c)){
+            if(isSelected(cell)){
                 return true;
             }
         }
