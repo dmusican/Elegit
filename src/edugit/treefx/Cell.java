@@ -21,8 +21,11 @@ public class Cell extends Pane implements Comparable<Cell>{
 
     // The size of the rectangle being drawn
     public static final int BOX_SIZE = 20;
+
     private static final Color STANDARD_COLOR = Color.BLUE;
-    private static final Color HIGHLIGHT_COLOR = Color.RED;
+    private static final Color[] HIGHLIGHT_COLORS = {Color.RED, Color.DARKGREEN, Color.VIOLET, Color.BLACK, Color.ORANGE};
+
+    private Color currentColor;
 
     // The displayed view
     Node view;
@@ -36,13 +39,16 @@ public class Cell extends Pane implements Comparable<Cell>{
     List<Cell> children = new ArrayList<>();
 
     // The parent object that holds the parents of this cell
-    ParentCell parent;
+    ParentCell parents;
 
     List<Edge> edges = new ArrayList<>();
 
     // The number of generations away from the furthest leaf cell
     int height;
     IntegerProperty heightProperty;
+
+    private boolean isSelected = false;
+    private static int selectedCount = 0;
 
     /**
      * Constructs a node with the given ID and a single parent node
@@ -61,9 +67,10 @@ public class Cell extends Pane implements Comparable<Cell>{
      */
     public Cell(String cellId, Cell parent1, Cell parent2){
         this.cellId = cellId;
-        this.parent = new ParentCell(this, parent1, parent2);
+        this.parents = new ParentCell(this, parent1, parent2);
 
-        setView(new Rectangle(BOX_SIZE, BOX_SIZE, STANDARD_COLOR));
+        currentColor = STANDARD_COLOR;
+        setView(new Rectangle(BOX_SIZE, BOX_SIZE, currentColor));
 //        setView(new Text(cellId));
 
         this.height = 0;
@@ -71,15 +78,30 @@ public class Cell extends Pane implements Comparable<Cell>{
 
         updateHeight();
 
-        this.setOnMouseClicked(event -> System.out.println("ID: " + cellId + "\n" + "Height: " + this.height + "\n" + tooltip.getText()));
-
         tooltip = new Tooltip(cellId);
         tooltip.setWrapText(true);
         tooltip.setMaxWidth(200);
         Tooltip.install(this, tooltip);
 
-        this.setOnMouseEntered(event -> highlight(true, true));
-        this.setOnMouseExited(event -> highlight(false, true));
+        this.setOnMouseClicked(event -> handleMouseClicked());
+//        this.setOnMouseEntered(event -> highlight(true, true));
+//        this.setOnMouseExited(event -> highlight(false, true));
+    }
+
+    private void handleMouseClicked(){
+        System.out.println("ID: " + cellId + "\n" + "Height: " + this.height + "\n" + tooltip.getText());
+
+        isSelected = !isSelected;
+
+        if(isSelected){
+            this.currentColor = HIGHLIGHT_COLORS[selectedCount%HIGHLIGHT_COLORS.length];
+            selectedCount++;
+            highlight(true, true);
+        }else{
+            selectedCount--;
+            this.currentColor = STANDARD_COLOR;
+            highlight(false, true);
+        }
     }
 
     /**
@@ -99,7 +121,7 @@ public class Cell extends Pane implements Comparable<Cell>{
             this.height = (this.height <= c.height) ? (c.height + 1) : this.height;
             this.heightProperty.set(this.height);
         }
-        parent.updateHeight();
+        parents.updateHeight();
     }
 
     /**
@@ -136,20 +158,43 @@ public class Cell extends Pane implements Comparable<Cell>{
     }
 
     public void highlight(boolean enable, boolean enableRelatives){
+        boolean isHighlighted =  enable || isSelected;
         if(enableRelatives){
-            Edge.allVisible.set(!enable);
-            this.highlightEdges(enable);
-            parent.highlight(enable);
+            Edge.allVisible.set(selectedCount == 0);
+            this.highlightEdges(isHighlighted);
+            parents.highlight(isHighlighted);
             for(Cell child : children){
-                child.highlight(enable, false);
+                child.highlight(isHighlighted, false);
             }
         }
-        Shape s = (Shape) view;
-        if(enable){
-            s.setFill(HIGHLIGHT_COLOR);
-        }else{
-            s.setFill(STANDARD_COLOR);
+        if(!isSelected && isRelativeSelected()){
+            this.currentColor = getRelativesColor();
+        }else if(!isHighlighted){
+            this.currentColor = STANDARD_COLOR;
         }
+        Shape s = (Shape) view;
+        s.setFill(this.currentColor);
+    }
+
+    private Color getRelativesColor(){
+        Color c = parents.getColor();
+        if(c.equals(STANDARD_COLOR)){
+            for(Cell child : children){
+                Color childColor = child.currentColor;
+                if(!childColor.equals(STANDARD_COLOR)){
+                    return childColor;
+                }
+            }
+        }
+        return c;
+    }
+
+    private boolean isRelativeSelected(){
+        boolean childSelected = false;
+        for(Cell c : children){
+            childSelected = childSelected || c.isSelected;
+        }
+        return parents.isSelected() || childSelected;
     }
 
     private void highlightEdges(boolean enable){
@@ -167,10 +212,11 @@ public class Cell extends Pane implements Comparable<Cell>{
 
     @Override
     public int compareTo(Cell c){
-        int i = Double.compare(this.height, c.height);
+        int i = Integer.compare(this.height, c.height);
         if(i != 0){
             return i;
         }
+
         int minHeightCChild = c.height;
         for(Cell child : c.getCellChildren()){
             if(child.height < minHeightCChild){
@@ -185,7 +231,12 @@ public class Cell extends Pane implements Comparable<Cell>{
             }
         }
         i = Integer.compare(minHeightCChild, minHeightChild);
-        return i;
+        if(i != 0){
+            return i;
+        }
+
+        int cParentCount = c.parents.count();
+        return Integer.compare(parents.count(), cParentCount);
     }
 
     /**
@@ -208,15 +259,23 @@ public class Cell extends Pane implements Comparable<Cell>{
         }
 
         /**
-         * Updates the heights of each held parent cell
+         * @return the number of parent commits associated with this object
          */
-        public void updateHeight(){
-            if(this.mom != null){
-                this.mom.updateHeight();
-            }
-            if(this.dad != null){
-                this.dad.updateHeight();
-            }
+        public int count(){
+            int count = 0;
+            if(mom != null) count++;
+            if(dad != null) count++;
+            return count;
+        }
+
+        /**
+         * @return the stored parent commits in list form
+         */
+        public ArrayList<Cell> toList(){
+            ArrayList<Cell> list = new ArrayList<>(2);
+            if(mom != null) list.add(mom);
+            if(dad != null) list.add(dad);
+            return list;
         }
 
         /**
@@ -232,6 +291,18 @@ public class Cell extends Pane implements Comparable<Cell>{
             }
         }
 
+        /**
+         * Updates the heights of each held parent cell
+         */
+        public void updateHeight(){
+            if(this.mom != null){
+                this.mom.updateHeight();
+            }
+            if(this.dad != null){
+                this.dad.updateHeight();
+            }
+        }
+
         public void highlight(boolean enable){
             if(this.mom != null){
                 this.mom.highlight(enable, false);
@@ -239,6 +310,20 @@ public class Cell extends Pane implements Comparable<Cell>{
             if(this.dad != null){
                 this.dad.highlight(enable, false);
             }
+        }
+
+        public boolean isSelected(){
+            return (this.mom != null && this.mom.isSelected) || (this.dad != null && this.dad.isSelected);
+        }
+
+        public Color getColor(){
+            if(this.mom != null && this.mom.isSelected){
+                return this.mom.currentColor;
+            }
+            if(this.dad != null && this.dad.isSelected){
+                return this.dad.currentColor;
+            }
+            return STANDARD_COLOR;
         }
     }
 }

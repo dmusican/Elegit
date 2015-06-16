@@ -22,6 +22,8 @@ public class Edge extends Group {
     private boolean addedMidPoints;
     private boolean visible;
 
+    private double midPointOffset = 0;
+
     /**
      * Constructs a directed line between the source and target cells and binds
      * properties to handle relocation smoothly
@@ -51,6 +53,14 @@ public class Edge extends Group {
             checkAndAddMidPoints(startX, startY, endX, endY);
         });
 
+        startX.addListener((observable, oldValue, newValue) -> {
+            checkMidPointOffset(endX.get(), newValue.doubleValue());
+        });
+
+        endX.addListener((observable, oldValue, newValue) -> {
+            checkMidPointOffset(newValue.doubleValue(), startX.get());
+        });
+
         getChildren().add(path);
 
         allVisible.addListener((observable, oldValue, newValue) -> checkVisible());
@@ -59,11 +69,21 @@ public class Edge extends Group {
         target.edges.add(this);
     }
 
+    private void checkMidPointOffset(double startX, double endX){
+        if(startX > endX){
+            midPointOffset = TreeLayout.H_SPACING / -2.;
+        }else if(startX < endX){
+            midPointOffset = TreeLayout.H_SPACING / 2.;
+        }else{
+            midPointOffset = 0;
+        }
+    }
+
     private void checkAndAddMidPoints(DoubleBinding startX, DoubleBinding startY, DoubleBinding endX, DoubleBinding endY){
         if(source.height - target.height > 1){
             if(!addedMidPoints){
-                path.addPoint(endX.add(TreeLayout.H_SPACING / 2.), startY.subtract(TreeLayout.V_SPACING / 3.), 1);
-                path.addPoint(endX.add(TreeLayout.H_SPACING / 2.), endY.add(TreeLayout.V_SPACING / 2.), 2);
+                path.addPoint(endX.add(midPointOffset), startY.subtract(TreeLayout.V_SPACING / 3.), 1);
+                path.addPoint(endX.add(midPointOffset), endY.add(TreeLayout.V_SPACING / 2.), 2);
                 this.addedMidPoints = true;
             }
         }else{
