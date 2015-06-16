@@ -26,6 +26,8 @@ public class SessionModel {
     public static SessionModel getSessionModel() {
         if (sessionModel == null) {
             sessionModel = new SessionModel();
+            sessionModel.owner = new RepoOwner();
+            sessionModel.owner.presentLoginDialogsToSetValues();
         }
         return sessionModel;
     }
@@ -201,7 +203,6 @@ public class SessionModel {
         Set<String> untrackedFiles = getUntrackedFiles();
 
         ArrayList<RepoFile> changedRepoFiles = new ArrayList<>();
-
 
         for (String modifiedFileString : modifiedFiles) {
             ModifiedRepoFile modifiedRepoFile = new ModifiedRepoFile(modifiedFileString, this.getCurrentRepo());

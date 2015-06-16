@@ -56,9 +56,6 @@ public class SessionController extends Controller {
      * loading method.
      */
     private void initializeMenuBar() {
-        // TODO: dynamic owner setting..
-        this.theModel.setOwner(new RepoOwner("da810f551f862a3d9d860f663c54337332b3af1a", ""));
-
         Menu openMenu = new Menu("Load a Repository");
 
         MenuItem cloneOption = new MenuItem("Clone");
