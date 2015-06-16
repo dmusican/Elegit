@@ -31,12 +31,6 @@ public class MissingRepoFile extends RepoFile {
      * @throws GitAPIException if the `git rm` command fails.
      */
     @Override public void updateFileStatusInRepo() throws GitAPIException {
-        // TODO: Unify this relativization! This code is copied from the SessionModel. Do things in one place only!
-        // Relativize the path to the repository, because that's the file structure JGit
-        //  looks for in an 'add' command
-//        Path repoDirectory = this.repo.getWorkTree().toPath();
-//        Path relativizedPath = repoDirectory.relativize(this.filePath);
-
         RmCommand rm = new Git(this.repo).rm().addFilepattern(this.filePath.toString());
         rm.call();
     }

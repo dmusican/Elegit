@@ -21,10 +21,13 @@ public class SessionModel {
     RepoHelper currentRepoHelper;
     ArrayList<RepoHelper> allRepoHelpers; // for when we support multiple repositories!
     private static SessionModel sessionModel;
+    private RepoOwner owner;
 
     public static SessionModel getSessionModel() {
         if (sessionModel == null) {
             sessionModel = new SessionModel();
+            sessionModel.owner = new RepoOwner();
+            sessionModel.owner.presentLoginDialogsToSetValues();
         }
         return sessionModel;
     }
@@ -201,7 +204,6 @@ public class SessionModel {
 
         ArrayList<RepoFile> changedRepoFiles = new ArrayList<>();
 
-
         for (String modifiedFileString : modifiedFiles) {
             ModifiedRepoFile modifiedRepoFile = new ModifiedRepoFile(modifiedFileString, this.getCurrentRepo());
             changedRepoFiles.add(modifiedRepoFile);
@@ -222,5 +224,13 @@ public class SessionModel {
 
     public RepoHelper getCurrentRepoHelper() {
         return currentRepoHelper;
+    }
+
+    public RepoOwner getOwner() {
+        return owner;
+    }
+
+    public void setOwner(RepoOwner owner) {
+        this.owner = owner;
     }
 }

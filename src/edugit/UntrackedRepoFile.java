@@ -32,12 +32,6 @@ public class UntrackedRepoFile extends RepoFile {
      * @throws GitAPIException if the `git add` command fails.
      */
     @Override public void updateFileStatusInRepo() throws GitAPIException {
-        // TODO: Unify this relativization! This code is copied from the SessionModel. Do things in one place only!
-        // Relativize the path to the repository, because that's the file structure JGit
-        //  looks for in an 'add' command
-//        Path repoDirectory = this.repo.getWorkTree().toPath();
-//        Path relativizedPath = repoDirectory.relativize(this.filePath);
-
         AddCommand add = new Git(this.repo).add().addFilepattern(this.filePath.toString());
         add.call();
     }
