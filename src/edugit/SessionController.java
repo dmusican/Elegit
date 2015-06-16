@@ -1,9 +1,11 @@
 package edugit;
 
+import com.sun.jdi.InvocationException;
 import javafx.event.ActionEvent;
 import javafx.scene.control.*;
 import javafx.scene.text.Text;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.api.errors.JGitInternalException;
 
 import java.io.IOException;
 
@@ -45,6 +47,9 @@ public class SessionController extends Controller {
         this.localCommitTreeModel = new LocalCommitTreeModel(this.theModel, this.localCommitTreePanelView);
         this.remoteCommitTreeModel = new RemoteCommitTreeModel(this.theModel, this.remoteCommitTreePanelView);
 
+        // Buttons start out disabled, since no repo is loaded
+        this.setButtonsDisabled(true);
+
         this.initializeMenuBar();
     }
 
@@ -60,18 +65,38 @@ public class SessionController extends Controller {
 
         MenuItem cloneOption = new MenuItem("Clone");
         cloneOption.setOnAction(t -> {
-            ClonedRepoHelperBuilder builder = new ClonedRepoHelperBuilder(this.theModel);
-            builder.presentDialogsAndSetRepoHelper(); // this creates and sets the RepoHelper
-            this.repoNameText.setText(this.theModel.getCurrentRepoHelper().getDirectory().getFileName().toString());
+            try {
+                ClonedRepoHelperBuilder builder = new ClonedRepoHelperBuilder(this.theModel);
+                builder.presentDialogsAndSetRepoHelper(); // this creates and sets the RepoHelper
+                this.repoNameText.setText(this.theModel.getCurrentRepoHelper().getDirectory().getFileName().toString());
+
+                // After loading (cloning) a repo, activate the buttons
+                this.setButtonsDisabled(false);
+            } catch (IllegalArgumentException e) {
+                ERROR_ALERT_CONSTANTS.invalidRepo().showAndWait();
+            } catch (Exception e) {
+                // FIXME: when the clone-to directory isn't empty, a null pointer exception still gets through
+                ERROR_ALERT_CONSTANTS.genericError().showAndWait();
+                e.printStackTrace();
+            }
         });
 
         MenuItem existingOption = new MenuItem("Load existing repository");
         existingOption.setOnAction(t -> {
             ExistingRepoHelperBuilder builder = new ExistingRepoHelperBuilder(this.theModel);
-            try { // TODO: figure out why this needs a try/catch... and remove it
+            try {
                 builder.presentDialogsAndSetRepoHelper();
                 this.repoNameText.setText(this.theModel.getCurrentRepoHelper().getDirectory().getFileName().toString());
+
+                // After loading a repo, activate the buttons
+                this.setButtonsDisabled(false);
+            } catch (IllegalArgumentException e) {
+                ERROR_ALERT_CONSTANTS.invalidRepo().showAndWait();
+            } catch (org.eclipse.jgit.api.errors.JGitInternalException e) {
+                ERROR_ALERT_CONSTANTS.nonemptyFolder().showAndWait();
             } catch (Exception e) {
+                ERROR_ALERT_CONSTANTS.genericError().showAndWait();
+                System.out.println("***** FIGURE OUT WHY THIS EXCEPTION IS NEEDED *******");
                 e.printStackTrace();
             }
         });
@@ -95,18 +120,25 @@ public class SessionController extends Controller {
      * @throws IOException if the loadPanelViews() fails.
      */
     public void handleCommitButton(ActionEvent actionEvent) throws GitAPIException, IOException {
-        String commitMessage = commitMessageField.getText();
+        try {
+            String commitMessage = commitMessageField.getText();
 
-        for (RepoFile checkedFile : this.workingTreePanelView.getCheckedFilesInDirectory()) {
-            checkedFile.updateFileStatusInRepo();
+            for (RepoFile checkedFile : this.workingTreePanelView.getCheckedFilesInDirectory()) {
+                checkedFile.updateFileStatusInRepo();
+            }
+
+            this.theModel.currentRepoHelper.commit(commitMessage);
+            this.theModel.currentRepoHelper.pushAll();
+
+            // Now clear the commit text and a view reload ( or `git status`) to show that something happened
+            commitMessageField.clear();
+            this.loadPanelViews();
+        } catch (NullPointerException e) {
+            ERROR_ALERT_CONSTANTS.noRepoLoaded().showAndWait();
+        } catch (org.eclipse.jgit.api.errors.TransportException e) {
+            ERROR_ALERT_CONSTANTS.notAuthorized().showAndWait();
+            // FIXME: TransportExceptions don't *only* indicate a permissions issue... Figure out what else they do
         }
-
-        this.theModel.currentRepoHelper.commit(commitMessage);
-        this.theModel.currentRepoHelper.pushAll();
-
-        // Now clear the commit text and a view reload ( or `git status`) to show that something happened
-        commitMessageField.clear();
-        this.loadPanelViews();
 
     }
 
@@ -129,18 +161,20 @@ public class SessionController extends Controller {
      * @throws IOException if the drawDirectoryView() call fails.
      */
     public void loadPanelViews() throws GitAPIException, IOException{
-        this.workingTreePanelView.drawDirectoryView();
-        this.localCommitTreeModel.update();
-        this.remoteCommitTreeModel.update();
+        try {
+            this.workingTreePanelView.drawDirectoryView();
+            this.localCommitTreeModel.update();
+            this.remoteCommitTreeModel.update();
+        } catch (NullPointerException e) {
+            ERROR_ALERT_CONSTANTS.noRepoLoaded().showAndWait();
+        }
     }
 
-//    public void handleCloneToDestinationButton(ActionEvent actionEvent) {
-//        File cloneRepoFile = getPathFromChooser(true, "Choose a Location", ((Button)actionEvent.getSource()).getScene().getWindow());
-//        try{
-//            RepoHelper repoHelper = new ClonedRepoHelper(cloneRepoFile.toPath(), SECRET_CONSTANTS.TEST_GITHUB_TOKEN);
-//            this.theModel.openRepoFromHelper(repoHelper);
-//        } catch(Exception e){
-//            e.printStackTrace();
-//        }
-//    }
+    private void setButtonsDisabled(boolean disable) {
+        gitStatusButton.setDisable(disable);
+        commitButton.setDisable(disable);
+        mergeButton.setDisable(disable);
+        pushButton.setDisable(disable);
+        fetchButton.setDisable(disable);
+    }
 }

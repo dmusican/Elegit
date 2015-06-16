@@ -5,6 +5,7 @@ import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.util.Pair;
+import org.eclipse.jgit.api.errors.JGitInternalException;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -80,7 +81,10 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
                 Path destinationPath = Paths.get(destinationRemoteURL.getKey());
                 RepoHelper repoHelper = new ClonedRepoHelper(destinationPath, destinationRemoteURL.getValue(), this.sessionModel.getOwner());
                 this.sessionModel.openRepoFromHelper(repoHelper);
-            } catch(Exception e){
+            } catch (JGitInternalException e) {
+                ERROR_ALERT_CONSTANTS.nonemptyFolder().showAndWait();
+                // TODO handle this error higher up?
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         });
