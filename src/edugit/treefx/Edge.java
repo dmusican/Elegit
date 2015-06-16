@@ -2,7 +2,9 @@ package edugit.treefx;
 
 import javafx.beans.binding.DoubleBinding;
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.scene.Group;
 
 /**
@@ -22,7 +24,7 @@ public class Edge extends Group {
     private boolean addedMidPoints;
     private boolean visible;
 
-    private double midPointOffset = 0;
+    private DoubleProperty midPointOffset;
 
     /**
      * Constructs a directed line between the source and target cells and binds
@@ -35,6 +37,7 @@ public class Edge extends Group {
         this.source = source;
         this.target = target;
         this.addedMidPoints = false;
+        midPointOffset = new SimpleDoubleProperty(0);
 
         DoubleBinding startX = source.layoutXProperty().add(source.getBoundsInParent().getWidth() / 2.0);
         DoubleBinding startY = source.layoutYProperty().add(0);
@@ -71,11 +74,11 @@ public class Edge extends Group {
 
     private void checkMidPointOffset(double startX, double endX){
         if(startX > endX){
-            midPointOffset = TreeLayout.H_SPACING / -2.;
+            midPointOffset.set(TreeLayout.H_SPACING / -2.);
         }else if(startX < endX){
-            midPointOffset = TreeLayout.H_SPACING / 2.;
+            midPointOffset.set(TreeLayout.H_SPACING / 2.);
         }else{
-            midPointOffset = 0;
+            midPointOffset.set(0);
         }
     }
 

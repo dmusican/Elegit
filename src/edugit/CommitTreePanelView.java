@@ -16,17 +16,24 @@ public class CommitTreePanelView extends Group{
 
     public static int TREE_PANEL_WIDTH = 200;
     public static int TREE_PANEL_HEIGHT = 600;
-
     /**
      * Handles the layout and display of the treeGraph
      * @param treeGraph the graph to be displayed
      */
     public void displayTreeGraph(TreeGraph treeGraph){
+        TreeLayout.doTreeLayout(treeGraph);
+
         ScrollPane sp = treeGraph.getScrollPane();
         sp.setPannable(true);
         sp.setPrefSize(TREE_PANEL_WIDTH, TREE_PANEL_HEIGHT);
+        this.getChildren().clear();
         this.getChildren().add(sp);
+    }
 
-        TreeLayout.doTreeLayout(treeGraph);
+    public void displayEmptyView(){
+        ScrollPane sp = new ScrollPane();
+        sp.setPrefSize(TREE_PANEL_WIDTH, TREE_PANEL_HEIGHT);
+        this.getChildren().clear();
+        this.getChildren().add(sp);
     }
 }
