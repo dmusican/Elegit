@@ -21,6 +21,7 @@ public class SessionModel {
     RepoHelper currentRepoHelper;
     ArrayList<RepoHelper> allRepoHelpers; // for when we support multiple repositories!
     private static SessionModel sessionModel;
+    private RepoOwner owner;
 
     public static SessionModel getSessionModel() {
         if (sessionModel == null) {
@@ -222,5 +223,13 @@ public class SessionModel {
 
     public RepoHelper getCurrentRepoHelper() {
         return currentRepoHelper;
+    }
+
+    public RepoOwner getOwner() {
+        return owner;
+    }
+
+    public void setOwner(RepoOwner owner) {
+        this.owner = owner;
     }
 }
