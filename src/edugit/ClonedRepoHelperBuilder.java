@@ -5,7 +5,6 @@ import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.util.Pair;
-import org.eclipse.jgit.api.errors.JGitInternalException;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -21,11 +20,14 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
         super(sessionModel);
     }
 
+    /**
+     *
+     * @return
+     * @throws Exception when constructing the new ClonedRepoHelper
+     */
     @Override
-    public void presentDialogsAndSetRepoHelper() {
-        // NOTE: This is all stuff that uses pretty new Java features,
-        // so make sure you have JDK 8u40 or later!
-        //  Largely copied from: http://code.makery.ch/blog/javafx-dialogs-official/
+    public RepoHelper getRepoHelperFromDialogs() throws Exception {
+        // Inspired by: http://code.makery.ch/blog/javafx-dialogs-official/
 
         // Create the custom dialog.
         Dialog<Pair<String, String>> dialog = new Dialog<>();
@@ -69,24 +71,18 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
         // Convert the result to a destination-remote pair when the clone button is clicked.
         dialog.setResultConverter(dialogButton -> {
             if (dialogButton == cloneButtonType) {
-                return new Pair<String, String>(destinationPathField.getText(), remoteURLField.getText());
+                return new Pair<>(destinationPathField.getText(), remoteURLField.getText());
             }
             return null;
         });
 
         Optional<Pair<String, String>> result = dialog.showAndWait();
 
-        result.ifPresent(destinationRemoteURL -> {
-            try {
-                Path destinationPath = Paths.get(destinationRemoteURL.getKey());
-                RepoHelper repoHelper = new ClonedRepoHelper(destinationPath, destinationRemoteURL.getValue(), this.sessionModel.getOwner());
-                this.sessionModel.openRepoFromHelper(repoHelper);
-            } catch (JGitInternalException e) {
-                ERROR_ALERT_CONSTANTS.nonemptyFolder().showAndWait();
-                // TODO handle this error higher up?
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        });
+        if (result.isPresent()) {
+            Path destinationPath = Paths.get(result.get().getKey());
+            RepoHelper repoHelper = new ClonedRepoHelper(destinationPath, result.get().getValue(), this.sessionModel.getOwner());
+            return repoHelper;
+        }
+        return null;
     }
 }

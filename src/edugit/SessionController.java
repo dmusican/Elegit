@@ -1,10 +1,10 @@
 package edugit;
 
-import com.sun.jdi.InvocationException;
 import javafx.event.ActionEvent;
 import javafx.scene.control.*;
 import javafx.scene.text.Text;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.api.errors.InvalidRemoteException;
 import org.eclipse.jgit.api.errors.JGitInternalException;
 
 import java.io.IOException;
@@ -67,15 +67,22 @@ public class SessionController extends Controller {
         cloneOption.setOnAction(t -> {
             try {
                 ClonedRepoHelperBuilder builder = new ClonedRepoHelperBuilder(this.theModel);
-                builder.presentDialogsAndSetRepoHelper(); // this creates and sets the RepoHelper
+                RepoHelper repoHelper = builder.getRepoHelperFromDialogs(); // this creates and sets the RepoHelper
+
+                this.theModel.openRepoFromHelper(repoHelper);
+
                 this.repoNameText.setText(this.theModel.getCurrentRepoHelper().getDirectory().getFileName().toString());
 
                 // After loading (cloning) a repo, activate the buttons
                 this.setButtonsDisabled(false);
             } catch (IllegalArgumentException e) {
                 ERROR_ALERT_CONSTANTS.invalidRepo().showAndWait();
+            } catch (JGitInternalException e) {
+                ERROR_ALERT_CONSTANTS.nonemptyFolder().showAndWait();
+            } catch (InvalidRemoteException e) {
+                ERROR_ALERT_CONSTANTS.invalidRemote().showAndWait();
             } catch (Exception e) {
-                // FIXME: when the clone-to directory isn't empty, a null pointer exception still gets through
+                // The generic error is totally unhelpful, so try not to ever reach this catch statement
                 ERROR_ALERT_CONSTANTS.genericError().showAndWait();
                 e.printStackTrace();
             }
@@ -85,15 +92,14 @@ public class SessionController extends Controller {
         existingOption.setOnAction(t -> {
             ExistingRepoHelperBuilder builder = new ExistingRepoHelperBuilder(this.theModel);
             try {
-                builder.presentDialogsAndSetRepoHelper();
+                RepoHelper repoHelper = builder.getRepoHelperFromDialogs();
+                this.theModel.openRepoFromHelper(repoHelper);
                 this.repoNameText.setText(this.theModel.getCurrentRepoHelper().getDirectory().getFileName().toString());
 
                 // After loading a repo, activate the buttons
                 this.setButtonsDisabled(false);
             } catch (IllegalArgumentException e) {
                 ERROR_ALERT_CONSTANTS.invalidRepo().showAndWait();
-            } catch (org.eclipse.jgit.api.errors.JGitInternalException e) {
-                ERROR_ALERT_CONSTANTS.nonemptyFolder().showAndWait();
             } catch (Exception e) {
                 ERROR_ALERT_CONSTANTS.genericError().showAndWait();
                 System.out.println("***** FIGURE OUT WHY THIS EXCEPTION IS NEEDED *******");

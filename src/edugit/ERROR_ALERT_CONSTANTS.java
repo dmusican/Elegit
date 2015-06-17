@@ -46,4 +46,12 @@ public class ERROR_ALERT_CONSTANTS {
         alert.setContentText("Sorry, there was an error.");
         return alert;
     }
+
+    public static Alert invalidRemote() {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle("Invalid remote");
+        alert.setHeaderText("Can't clone from that remote");
+        alert.setContentText("Make sure you entered the correct remote URL.");
+        return alert;
+    }
 }
