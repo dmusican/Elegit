@@ -3,7 +3,6 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import java.net.URL?>
-<?import javafx.scene.text.Text?>
 <GridPane
         alignment="TOP_CENTER"
         hgap="5" vgap="5"
