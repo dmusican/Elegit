@@ -78,7 +78,7 @@ public class TreeLayout{
         }
 
         List<Cell> list = c.getCellChildren();
-        list.sort(null);
+        list.sort((c1, c2) -> Long.compare(c2.getTime(), c1.getTime()));
 
         for(Cell child : list){
             if(!visited.contains(child.getCellId())){
