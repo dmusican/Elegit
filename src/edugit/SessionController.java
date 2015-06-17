@@ -11,8 +11,6 @@ import java.io.IOException;
 
 /**
  * Created by makik on 6/10/15.
- *
- * TODO: Handle errors here?
  */
 public class SessionController extends Controller {
 
