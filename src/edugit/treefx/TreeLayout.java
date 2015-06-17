@@ -18,6 +18,8 @@ public class TreeLayout{
     private static int[] heightCounts;
     private static List<String> visited;
 
+    private static List<Cell> allCellsSortedByTime;
+
     /**
      * Recursively rearranges the given graph into a tree layout
      * @param g the graph to layout
@@ -26,6 +28,9 @@ public class TreeLayout{
 
         TreeGraphModel treeGraphModel = g.getTreeGraphModel();
         Cell rootCell = treeGraphModel.getRoot();
+
+        allCellsSortedByTime = treeGraphModel.allCells;
+        allCellsSortedByTime.sort((c1, c2) -> Long.compare(c2.getTime(), c1.getTime()));
 
         relocateCell(rootCell);
     }
@@ -37,8 +42,8 @@ public class TreeLayout{
      * @param root the root of the tree upon which the tree is built
      */
     private static void relocateCell(Cell root){
-        rootHeight = root.height;
-        heightCounts = new int[rootHeight+1];
+        rootHeight = getHeightOfCell(root);
+        heightCounts = new int[allCellsSortedByTime.size()+1];
         visited = new ArrayList<>();
 
         relocateCell(root, rootHeight);
@@ -56,8 +61,12 @@ public class TreeLayout{
         visited.add(c.getCellId());
 
         int h = getHeightOfCell(c);
-        double x = heightCounts[h] * H_SPACING + H_PAD;
-        double y = h * V_SPACING + V_PAD;
+
+        c.xLocationProperty.set(heightCounts[h]);
+        c.yLocationProperty.set(h);
+
+        double x = c.xLocationProperty.get() * H_SPACING + H_PAD;
+        double y = c.yLocationProperty.get() * V_SPACING + V_PAD;
         c.relocate(x, y);
 
         heightCounts[h] += 1;
@@ -79,10 +88,8 @@ public class TreeLayout{
     }
 
     private static int getHeightOfCell(Cell c){
-        return c.height;
-//        long timeFromMostRecent = (minTime - c.getTimeInMillis());
-//        double ratio = ((double)Math.max(1,timeFromMostRecent))/intervalSize;
-//        int pos = (int)(ratio * numSteps);
-//        return pos;
+//        return c.height;
+
+        return allCellsSortedByTime.indexOf(c);
     }
 }

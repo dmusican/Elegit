@@ -12,13 +12,13 @@ import javafx.scene.shape.StrokeType;
  */
 public class InvisibleCell extends Cell{
 
-    public InvisibleCell(String cellId, Cell parent){
-        super(cellId, parent);
+    public InvisibleCell(String cellId, long time, Cell parent){
+        super(cellId, time, parent);
 
     }
 
-    public InvisibleCell(String cellId, Cell parent1, Cell parent2){
-        super(cellId, parent1, parent2);
+    public InvisibleCell(String cellId, long time, Cell parent1, Cell parent2){
+        super(cellId, time, parent1, parent2);
     }
 
     @Override

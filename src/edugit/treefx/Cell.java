@@ -30,6 +30,8 @@ public class Cell extends Pane implements Comparable<Cell>{
 
     // The unique ID of this cell
     private final String cellId;
+    // The assigned time of this commit
+    private final long time;
 
     // The list of children of this cell
     List<Cell> children = new ArrayList<>();
@@ -43,15 +45,16 @@ public class Cell extends Pane implements Comparable<Cell>{
     int height;
     IntegerProperty heightProperty;
 
-    private long time;
+    IntegerProperty xLocationProperty;
+    IntegerProperty yLocationProperty;
 
     /**
      * Constructs a node with the given ID and a single parent node
      * @param cellId the ID of this node
      * @param parent the parent of this node
      */
-    public Cell(String cellId, Cell parent){
-        this(cellId, parent, null);
+    public Cell(String cellId, long time, Cell parent){
+        this(cellId, time, parent, null);
     }
 
     /**
@@ -60,8 +63,9 @@ public class Cell extends Pane implements Comparable<Cell>{
      * @param parent1 the first parent of this node
      * @param parent2 the second parent of this node
      */
-    public Cell(String cellId, Cell parent1, Cell parent2){
+    public Cell(String cellId, long time, Cell parent1, Cell parent2){
         this.cellId = cellId;
+        this.time = time;
         this.parents = new ParentCell(this, parent1, parent2);
 
         setView(getBaseView());
@@ -69,6 +73,9 @@ public class Cell extends Pane implements Comparable<Cell>{
         this.height = 0;
         this.heightProperty = new SimpleIntegerProperty(this.height);
         updateHeight();
+
+        this.xLocationProperty = new SimpleIntegerProperty(0);
+        this.yLocationProperty = new SimpleIntegerProperty(0);
 
         tooltip = new Tooltip(cellId);
         tooltip.setWrapText(true);
@@ -177,6 +184,10 @@ public class Cell extends Pane implements Comparable<Cell>{
      */
     public String getCellId() {
         return cellId;
+    }
+
+    public long getTime(){
+        return time;
     }
 
     @Override

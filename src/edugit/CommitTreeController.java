@@ -15,7 +15,6 @@ public class CommitTreeController{
 
     public static void handleMouseClicked(Cell cell){
         selectCommit(cell.getCellId());
-        System.out.println(cell.getCellId());
     }
 
     public static void handleMouseover(Cell cell, boolean isOverCell){

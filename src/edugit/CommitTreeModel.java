@@ -96,7 +96,7 @@ public abstract class CommitTreeModel{
      * @return the newly created graph
      */
     private TreeGraph createNewTreeGraph(CommitHelper root){
-        TreeGraphModel graphModel = new TreeGraphModel(getId(root), getTreeCellLabel(root));
+        TreeGraphModel graphModel = new TreeGraphModel(getId(root), root.getWhen().getTime(), getTreeCellLabel(root));
         treeGraph = new TreeGraph(graphModel);
         return treeGraph;
     }
@@ -110,13 +110,13 @@ public abstract class CommitTreeModel{
     private void addCommitToTree(CommitHelper commitHelper, ArrayList<CommitHelper> parents, TreeGraphModel graphModel, boolean visible){
         switch(parents.size()){
             case 1:
-                graphModel.addCell(getId(commitHelper), getTreeCellLabel(commitHelper), getId(parents.get(0)), visible);
+                graphModel.addCell(getId(commitHelper), commitHelper.getWhen().getTime(), getTreeCellLabel(commitHelper), getId(parents.get(0)), visible);
                 break;
             case 2:
-                graphModel.addCell(getId(commitHelper), getTreeCellLabel(commitHelper), getId(parents.get(0)), getId(parents.get(1)), visible);
+                graphModel.addCell(getId(commitHelper), commitHelper.getWhen().getTime(), getTreeCellLabel(commitHelper), getId(parents.get(0)), getId(parents.get(1)), visible);
                 break;
             default:
-                graphModel.addCell(getId(commitHelper), getTreeCellLabel(commitHelper), visible);
+                graphModel.addCell(getId(commitHelper), commitHelper.getWhen().getTime(), getTreeCellLabel(commitHelper), visible);
         }
     }
 

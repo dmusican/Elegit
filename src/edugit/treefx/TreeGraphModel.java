@@ -34,12 +34,12 @@ public class TreeGraphModel{
      * Constructs a new model with a cell with the given ID as the root
      * @param rootCellId the root cell's id
      */
-    public TreeGraphModel(String rootCellId, String rootCellLabel) {
+    public TreeGraphModel(String rootCellId, long time, String rootCellLabel) {
 
         // clear model, create lists
         clear();
 
-        this.rootCell = new Cell(rootCellId, null);
+        this.rootCell = new Cell(rootCellId, time, null);
         this.rootCell.setDisplayLabel(rootCellLabel);
         this.prevAddedId = rootCellId;
         this.addCell(rootCell);
@@ -110,8 +110,8 @@ public class TreeGraphModel{
      * @param newId the id of the new cell
      * @param label the label of the new cell
      */
-    public void addCell(String newId, String label, boolean visible){
-        this.addCell(newId, label, prevAddedId, visible);
+    public void addCell(String newId, long time, String label, boolean visible){
+        this.addCell(newId, time, label, prevAddedId, visible);
     }
 
     /**
@@ -121,12 +121,12 @@ public class TreeGraphModel{
      * @param label the label of the new cell
      * @param parentId the ID of the parent of this new cell
      */
-    public void addCell(String newId, String label, String parentId, boolean visible){
+    public void addCell(String newId, long time, String label, String parentId, boolean visible){
         Cell cell;
         if(visible){
-            cell = new Cell(newId, cellMap.get(parentId));
+            cell = new Cell(newId, time, cellMap.get(parentId));
         }else{
-            cell = new InvisibleCell(newId, cellMap.get(parentId));
+            cell = new InvisibleCell(newId, time, cellMap.get(parentId));
         }
         cell.setDisplayLabel(label);
         addCell(cell);
@@ -144,12 +144,12 @@ public class TreeGraphModel{
      * @param parent1Id the ID of the first parent of this new cell
      * @param parent2Id the ID of the second parent of this new cell
      */
-    public void addCell(String newId, String label, String parent1Id, String parent2Id, boolean visible){
+    public void addCell(String newId, long time, String label, String parent1Id, String parent2Id, boolean visible){
         Cell cell;
         if(visible){
-            cell = new Cell(newId, cellMap.get(parent1Id), cellMap.get(parent2Id));
+            cell = new Cell(newId, time, cellMap.get(parent1Id), cellMap.get(parent2Id));
         }else{
-            cell = new InvisibleCell(newId, cellMap.get(parent1Id), cellMap.get(parent2Id));
+            cell = new InvisibleCell(newId, time, cellMap.get(parent1Id), cellMap.get(parent2Id));
         }
         cell.setDisplayLabel(label);
         addCell(cell);
