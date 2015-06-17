@@ -3,8 +3,8 @@ package edugit;
 import com.sun.jdi.InvocationException;
 import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.api.errors.JGitInternalException;
+import org.eclipse.jgit.api.errors.*;
+import org.eclipse.jgit.errors.AmbiguousObjectException;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revplot.PlotCommitList;
@@ -139,6 +139,23 @@ public abstract class RepoHelper {
         git.push().setPushAll()
                 .setCredentialsProvider(this.ownerAuth)
                 .call();
+        git.close();
+    }
+
+    public void fetch() throws GitAPIException {
+        Git git = new Git(this.repo);
+
+        // The JGit docs say that if setCheckFetchedObjects
+        //  is set to true, objects received will be checked for validity.
+        //  Not sure what that means, but sounds good so I'm doing it...
+        git.fetch().setCheckFetchedObjects(true).call();
+        git.close();
+    }
+
+    public void mergeFromFetch() throws IOException, GitAPIException {
+        Git git = new Git(this.repo);
+        git.merge().include(this.repo.resolve("FETCH_HEAD")).call();
+        System.out.println("Merged the fetch head, I think");
         git.close();
     }
 

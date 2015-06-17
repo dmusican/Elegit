@@ -82,9 +82,9 @@
 
     <Button GridPane.rowIndex="4"
             GridPane.columnIndex="1"
-            fx:id="mergeButton"
+            fx:id="mergeFromFetchButton"
             text="Merge"
-            onAction="#handleMergeButton"/>
+            onAction="#handleMergeFromFetchButton"/>
 
     <Button GridPane.rowIndex="2"
             GridPane.columnIndex="3"

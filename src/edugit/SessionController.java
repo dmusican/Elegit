@@ -150,7 +150,7 @@ public class SessionController extends Controller {
      * @param actionEvent the button click event.
      * @throws GitAPIException if the updateFileStatusInRepo() call fails.
      * @throws IOException if the loadPanelViews() fails.
-     */
+     */ //todo: since there's a try/catch, should this method signature not throw exceptions?
     public void handleCommitButton(ActionEvent actionEvent) throws GitAPIException, IOException {
         try {
             String commitMessage = commitMessageField.getText();
@@ -173,7 +173,18 @@ public class SessionController extends Controller {
 
     }
 
-    public void handleMergeFromFetchButton(ActionEvent actionEvent){
+    public void handleMergeFromFetchButton(ActionEvent actionEvent) throws IOException, GitAPIException {
+        try {
+            this.theModel.currentRepoHelper.mergeFromFetch();
+            // Refresh panel views
+            this.loadPanelViews();
+        } catch (NullPointerException e) {
+            ERROR_ALERT_CONSTANTS.noRepoLoaded().showAndWait();
+        } catch (TransportException e) {
+            ERROR_ALERT_CONSTANTS.notAuthorized().showAndWait();
+            // FIXME: TransportExceptions don't *only* indicate a permissions issue... Figure out what else they do
+        }
+
     }
 
     public void handlePushButton(ActionEvent actionEvent) throws GitAPIException, IOException {
@@ -190,8 +201,18 @@ public class SessionController extends Controller {
         }
     }
 
-    public void handleFetchButton(ActionEvent actionEvent){
-
+    public void handleFetchButton(ActionEvent actionEvent) throws GitAPIException, IOException {
+        try {
+            this.theModel.currentRepoHelper.fetch();
+            // Refresh panel views
+            this.loadPanelViews();
+        } catch (NullPointerException e) {
+            ERROR_ALERT_CONSTANTS.noRepoLoaded().showAndWait();
+        } catch (TransportException e) {
+            ERROR_ALERT_CONSTANTS.notAuthorized().showAndWait();
+            e.printStackTrace();
+            // FIXME: TransportExceptions don't *only* indicate a permissions issue... Figure out what else they do
+        }
     }
 
     /**
