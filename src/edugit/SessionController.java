@@ -11,7 +11,7 @@ import org.eclipse.jgit.api.errors.TransportException;
 import java.io.IOException;
 
 /**
- * Created by makik on 6/10/15.
+ * The controller for the entire session.
  */
 public class SessionController extends Controller {
 
@@ -58,6 +58,8 @@ public class SessionController extends Controller {
      * Each option offers a different way of loading a repository, and each
      * option instantiates the appropriate RepoHelper class for the chosen
      * loading method.
+     *
+     * Since each option creates a new repo, this method handles errors.
      */
     private void initializeMenuBar() {
         Menu openMenu = new Menu("Load a Repository");
