@@ -36,20 +36,19 @@
     <GridPane alignment="center"
               hgap="10"
               vgap="10"
-              GridPane.rowIndex="0"
+              GridPane.rowIndex="1"
               GridPane.columnIndex="0"
               GridPane.rowSpan="7">
 
+        <ComboBox fx:id="comboBox"
+                  GridPane.rowIndex="0"
+                  GridPane.columnIndex="0" />
+
         <Button GridPane.rowIndex="0"
-                GridPane.columnIndex="0"
+                GridPane.columnIndex="1"
                 fx:id="gitStatusButton"
                 text="git status"
                 onAction="#loadPanelViews"/>
-
-        <Text GridPane.rowIndex="0"
-              GridPane.columnIndex="1"
-              fx:id="repoNameText"
-              id="title-text"/>
 
         <WorkingTreePanelView
                 GridPane.rowIndex="1"
@@ -65,29 +64,37 @@
 
     </GridPane>
 
-    <CommitTreePanelView GridPane.rowIndex="0" GridPane.columnIndex="2" GridPane.rowSpan="7" fx:id="localCommitTreePanelView"/>
+    <CommitTreePanelView
+            GridPane.rowIndex="1"
+            GridPane.columnIndex="2"
+            GridPane.rowSpan="7"
+            fx:id="localCommitTreePanelView"/>
 
-    <CommitTreePanelView GridPane.rowIndex="0" GridPane.columnIndex="4" GridPane.rowSpan="7" fx:id="remoteCommitTreePanelView"/>
+    <CommitTreePanelView
+            GridPane.rowIndex="1"
+            GridPane.columnIndex="4"
+            GridPane.rowSpan="7"
+            fx:id="remoteCommitTreePanelView"/>
 
-    <Button GridPane.rowIndex="1"
+    <Button GridPane.rowIndex="2"
             GridPane.columnIndex="1"
             fx:id="commitButton"
             text="Commit"
             onAction="#handleCommitButton"/>
 
-    <Button GridPane.rowIndex="3"
+    <Button GridPane.rowIndex="4"
             GridPane.columnIndex="1"
             fx:id="mergeButton"
             text="Merge"
             onAction="#handleMergeButton"/>
 
-    <Button GridPane.rowIndex="1"
+    <Button GridPane.rowIndex="2"
             GridPane.columnIndex="3"
             fx:id="pushButton"
             text="Push"
             onAction="#handlePushButton"/>
 
-    <Button GridPane.rowIndex="3"
+    <Button GridPane.rowIndex="4"
             GridPane.columnIndex="3"
             fx:id="fetchButton"
             text="Fetch"
