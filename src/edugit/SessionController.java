@@ -1,12 +1,7 @@
 package edugit;
 
-import javafx.beans.InvalidationListener;
-import javafx.collections.FXCollections;
-import javafx.collections.ListChangeListener;
-import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.scene.control.*;
-import javafx.scene.text.Text;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
 import org.eclipse.jgit.api.errors.JGitInternalException;
@@ -25,7 +20,7 @@ public class SessionController extends Controller {
 
     public Button gitStatusButton;
     public Button commitButton;
-    public Button mergeButton;
+    public Button mergeFromFetchButton;
     public Button pushButton;
     public Button fetchButton;
 
@@ -165,24 +160,34 @@ public class SessionController extends Controller {
             }
 
             this.theModel.currentRepoHelper.commit(commitMessage);
-            this.theModel.currentRepoHelper.pushAll();
 
             // Now clear the commit text and a view reload ( or `git status`) to show that something happened
             commitMessageField.clear();
             this.loadPanelViews();
         } catch (NullPointerException e) {
             ERROR_ALERT_CONSTANTS.noRepoLoaded().showAndWait();
-        } catch (org.eclipse.jgit.api.errors.TransportException e) {
+        } catch (TransportException e) {
             ERROR_ALERT_CONSTANTS.notAuthorized().showAndWait();
             // FIXME: TransportExceptions don't *only* indicate a permissions issue... Figure out what else they do
         }
 
     }
 
-    public void handleMergeButton(ActionEvent actionEvent){
+    public void handleMergeFromFetchButton(ActionEvent actionEvent){
     }
 
-    public void handlePushButton(ActionEvent actionEvent){
+    public void handlePushButton(ActionEvent actionEvent) throws GitAPIException, IOException {
+        try {
+            this.theModel.currentRepoHelper.pushAll();
+
+            // Refresh panel views
+            this.loadPanelViews();
+        } catch (NullPointerException e) {
+            ERROR_ALERT_CONSTANTS.noRepoLoaded().showAndWait();
+        } catch (TransportException e) {
+            ERROR_ALERT_CONSTANTS.notAuthorized().showAndWait();
+            // FIXME: TransportExceptions don't *only* indicate a permissions issue... Figure out what else they do
+        }
     }
 
     public void handleFetchButton(ActionEvent actionEvent){
@@ -213,7 +218,7 @@ public class SessionController extends Controller {
     private void setButtonsDisabled(boolean disable) {
         gitStatusButton.setDisable(disable);
         commitButton.setDisable(disable);
-        mergeButton.setDisable(disable);
+        mergeFromFetchButton.setDisable(disable);
         pushButton.setDisable(disable);
         fetchButton.setDisable(disable);
     }
