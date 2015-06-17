@@ -58,7 +58,6 @@
         <TextArea  GridPane.rowIndex="2"
                     fx:id="commitMessageField"
                     GridPane.columnSpan="2"
-                    prefColumnCount="1"
                     prefRowCount="3"
                     promptText="Commit message..." />
 
