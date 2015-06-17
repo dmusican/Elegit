@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -31,10 +32,10 @@ public abstract class RepoHelper {
     private DirectoryWatcher directoryWatcher;
 
 	private ArrayList<CommitHelper> localCommits;
-    private Map<ObjectId, CommitHelper> localCommitIdMap;
-
     private ArrayList<CommitHelper> remoteCommits;
-    private Map<ObjectId, CommitHelper> remoteCommitIdMap;
+
+    private Map<String, CommitHelper> commitIdMap;
+    private Map<ObjectId, String> idMap;
 
 
     /**
@@ -58,6 +59,9 @@ public abstract class RepoHelper {
 //        this.directoryWatcher = new DirectoryWatcher(this.localPath);
 //        this.directoryWatcher.beginProcessingEvents();
 
+        this.commitIdMap = new HashMap<>();
+        this.idMap = new HashMap<>();
+
         // TODO: performance? depth limit for parsing commits or something
         this.localCommits = this.parseAllLocalCommits();
         this.remoteCommits = this.parseAllRemoteCommits();
@@ -69,6 +73,9 @@ public abstract class RepoHelper {
         this.localPath = directoryPath;
 
         this.repo = this.obtainRepository();
+
+        this.commitIdMap = new HashMap<>();
+        this.idMap = new HashMap<>();
 
         this.localCommits = this.parseAllLocalCommits();
         this.remoteCommits = this.parseAllRemoteCommits();
@@ -159,12 +166,20 @@ public abstract class RepoHelper {
         return this.localPath;
     }
 
-    public ArrayList<CommitHelper> getLocalCommits(){
+    public List<CommitHelper> getLocalCommits(){
         return this.localCommits;
     }
 
-    public ArrayList<CommitHelper> getRemoteCommits(){
+    public List<CommitHelper> getRemoteCommits(){
         return this.remoteCommits;
+    }
+
+    public CommitHelper getCommit(String id){
+        return commitIdMap.get(id);
+    }
+
+    public List<String> getAllCommitIDs(){
+        return new ArrayList<>(commitIdMap.keySet());
     }
 
     /**
@@ -173,7 +188,7 @@ public abstract class RepoHelper {
     public CommitHelper getLocalHeadCommit(){
         try{
             ObjectId commitId = repo.resolve("HEAD");
-            return this.localCommitIdMap.get(commitId);
+            return this.commitIdMap.get(commitId);
         }catch(Exception e){
             e.printStackTrace();
             return null;
@@ -189,8 +204,7 @@ public abstract class RepoHelper {
      */
     private ArrayList<CommitHelper> parseAllLocalCommits() throws IOException{
         PlotCommitList<PlotLane> commitList = this.parseAllRawLocalCommits();
-        this.localCommitIdMap = new HashMap<>(commitList.size());
-        return wrapRawCommits(commitList, localCommitIdMap);
+        return wrapRawCommits(commitList, commitIdMap);
     }
 
     /**
@@ -202,8 +216,7 @@ public abstract class RepoHelper {
      */
     private ArrayList<CommitHelper> parseAllRemoteCommits() throws IOException{
         PlotCommitList<PlotLane> commitList = this.parseAllRawRemoteCommits();
-        this.remoteCommitIdMap = new HashMap<>(commitList.size());
-        return wrapRawCommits(commitList, remoteCommitIdMap);
+        return wrapRawCommits(commitList, commitIdMap);
     }
 
     /**
@@ -215,17 +228,18 @@ public abstract class RepoHelper {
      * @throws IOException
      */
     private ArrayList<CommitHelper> wrapRawCommits(PlotCommitList<PlotLane> commitList,
-                                                   Map<ObjectId, CommitHelper> commitIdMap) throws IOException{
+                                                   Map<String, CommitHelper> commitIdMap) throws IOException{
         ArrayList<CommitHelper> commitHelperList = new ArrayList<>(commitList.size());
         for(int i = commitList.size()-1; i >= 0; i--){
             RevCommit curCommit = commitList.get(i);
 
             CommitHelper curCommitHelper = new CommitHelper(curCommit, this);
-            commitIdMap.put(curCommit.getId(), curCommitHelper);
+            commitIdMap.put(CommitTreeModel.getId(curCommitHelper), curCommitHelper);
+            idMap.put(curCommit.getId(),CommitTreeModel.getId(curCommitHelper));
 
             RevCommit[] parents = curCommit.getParents();
             for(RevCommit p : parents){
-                CommitHelper parentCommitHelper = commitIdMap.get(p.getId());
+                CommitHelper parentCommitHelper = commitIdMap.get(idMap.get(p.getId()));
                 curCommitHelper.addParent(parentCommitHelper);
             }
 

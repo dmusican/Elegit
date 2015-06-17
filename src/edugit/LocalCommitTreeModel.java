@@ -1,6 +1,7 @@
 package edugit;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by makik on 6/12/15.
@@ -14,7 +15,7 @@ public class LocalCommitTreeModel extends CommitTreeModel{
     }
 
     @Override
-    public ArrayList<CommitHelper> getCommits(){
+    public List<CommitHelper> getCommits(){
         if(this.sessionModel.currentRepoHelper != null){
             return this.sessionModel.currentRepoHelper.getLocalCommits();
         }

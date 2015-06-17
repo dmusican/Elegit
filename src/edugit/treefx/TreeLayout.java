@@ -1,7 +1,6 @@
 package edugit.treefx;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by makik on 6/11/15.

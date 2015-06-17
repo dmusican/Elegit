@@ -64,6 +64,9 @@ public class Edge extends Group {
             checkMidPointOffset(newValue.doubleValue(), startX.get());
         });
 
+        if(source instanceof InvisibleCell || target instanceof InvisibleCell){
+            path.setDashed(true);
+        }
         getChildren().add(path);
 
         allVisible.addListener((observable, oldValue, newValue) -> checkVisible());

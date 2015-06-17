@@ -1,9 +1,6 @@
 package edugit;
 
-import edugit.treefx.Cell;
-import edugit.treefx.Edge;
-import edugit.treefx.Highlighter;
-import edugit.treefx.TreeGraphModel;
+import edugit.treefx.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,6 +15,7 @@ public class CommitTreeController{
 
     public static void handleMouseClicked(Cell cell){
         selectCommit(cell.getCellId());
+        System.out.println(cell.getCellId());
     }
 
     public static void handleMouseover(Cell cell, boolean isOverCell){
@@ -71,5 +69,20 @@ public class CommitTreeController{
 
     private static boolean isSelected(String cellID){
         return selectedCellID != null && selectedCellID.equals(cellID);
+    }
+
+    public static void update(RepoHelper repo){
+        List<String> commitIDs = repo.getAllCommitIDs();
+        for(CommitTreeModel model : allCommitTreeModels){
+            if(model.treeGraph != null){
+                for(String id : commitIDs){
+                    if(!model.containsID(id)){
+                        model.addInvisibleCommit(id);
+                    }
+                }
+                model.treeGraph.update();
+                model.view.displayTreeGraph(model.treeGraph);
+            }
+        }
     }
 }

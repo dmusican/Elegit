@@ -4,6 +4,7 @@ import edugit.treefx.TreeGraph;
 import edugit.treefx.TreeGraphModel;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by makik on 6/12/15.
@@ -33,11 +34,33 @@ public abstract class CommitTreeModel{
     /**
      * @return a list of the commits to be put into a tree
      */
-    public abstract ArrayList<CommitHelper> getCommits();
+    protected abstract List<CommitHelper> getCommits();
+
+    public List<String> getCommitIDs(){
+        if(treeGraph != null){
+            return treeGraph.getTreeGraphModel().getCellIDs();
+        }else{
+            return new ArrayList<>();
+        }
+    }
+
+    public boolean containsID(String id){
+        return treeGraph != null && treeGraph.getTreeGraphModel().containsID(id);
+    }
 
     public void update(){
         this.addCommitsToTree();
         this.updateView();
+    }
+
+    public void addInvisibleCommit(String id){
+        CommitHelper invisComimt = sessionModel.currentRepoHelper.getCommit(id);
+        for(CommitHelper c : invisComimt.getParents()){
+            if(!treeGraph.getTreeGraphModel().containsID(c.getId())){
+                addInvisibleCommit(c.getId());
+            }
+        }
+        addCommitToTree(invisComimt, invisComimt.getParents(), treeGraph.getTreeGraphModel(), false);
     }
 
     /**
@@ -47,7 +70,7 @@ public abstract class CommitTreeModel{
      * @return true if the tree was updated, otherwise false
      */
     private boolean addCommitsToTree(){
-        ArrayList<CommitHelper> commits = this.getCommits();
+        List<CommitHelper> commits = this.getCommits();
 
         if(commits.size() == 0) return false;
 
@@ -58,10 +81,11 @@ public abstract class CommitTreeModel{
         for(int i = 1; i < commits.size(); i++){
             CommitHelper curCommitHelper = commits.get(i);
             ArrayList<CommitHelper> parents = curCommitHelper.getParents();
-            this.addCommitToTree(curCommitHelper, parents, treeGraph.getTreeGraphModel());
+            this.addCommitToTree(curCommitHelper, parents, treeGraph.getTreeGraphModel(), true);
         }
         treeGraph.update();
 
+        CommitTreeController.update(sessionModel.currentRepoHelper);
         return true;
     }
 
@@ -72,7 +96,7 @@ public abstract class CommitTreeModel{
      * @return the newly created graph
      */
     private TreeGraph createNewTreeGraph(CommitHelper root){
-        TreeGraphModel graphModel = new TreeGraphModel(getTreeCellId(root), getTreeCellLabel(root));
+        TreeGraphModel graphModel = new TreeGraphModel(getId(root), getTreeCellLabel(root));
         treeGraph = new TreeGraph(graphModel);
         return treeGraph;
     }
@@ -83,16 +107,16 @@ public abstract class CommitTreeModel{
      * @param parents a list of this commit's parents
      * @param graphModel the treeGraphModel to add the commit to
      */
-    private void addCommitToTree(CommitHelper commitHelper, ArrayList<CommitHelper> parents, TreeGraphModel graphModel){
+    private void addCommitToTree(CommitHelper commitHelper, ArrayList<CommitHelper> parents, TreeGraphModel graphModel, boolean visible){
         switch(parents.size()){
             case 1:
-                graphModel.addCell(getTreeCellId(commitHelper), getTreeCellLabel(commitHelper), getTreeCellId(parents.get(0)));
+                graphModel.addCell(getId(commitHelper), getTreeCellLabel(commitHelper), getId(parents.get(0)), visible);
                 break;
             case 2:
-                graphModel.addCell(getTreeCellId(commitHelper), getTreeCellLabel(commitHelper), getTreeCellId(parents.get(0)), getTreeCellId(parents.get(1)));
+                graphModel.addCell(getId(commitHelper), getTreeCellLabel(commitHelper), getId(parents.get(0)), getId(parents.get(1)), visible);
                 break;
             default:
-                graphModel.addCell(getTreeCellId(commitHelper), getTreeCellLabel(commitHelper));
+                graphModel.addCell(getId(commitHelper), getTreeCellLabel(commitHelper), visible);
         }
     }
 
@@ -112,7 +136,7 @@ public abstract class CommitTreeModel{
      * @param commitHelper the commit to get an ID for
      * @return a unique identifying string to be used as a key in the tree's map
      */
-    private static String getTreeCellId(CommitHelper commitHelper){
+    public static String getId(CommitHelper commitHelper){
         return commitHelper.getName();
     }
 

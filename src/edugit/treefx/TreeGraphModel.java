@@ -69,6 +69,14 @@ public class TreeGraphModel{
         return this.rootCell;
     }
 
+    public List<String> getCellIDs(){
+        return new ArrayList<>(cellMap.keySet());
+    }
+
+    public boolean containsID(String id){
+        return cellMap.containsKey(id);
+    }
+
     /**
      * @return the cells added since the last update
      */
@@ -102,8 +110,8 @@ public class TreeGraphModel{
      * @param newId the id of the new cell
      * @param label the label of the new cell
      */
-    public void addCell(String newId, String label){
-        this.addCell(newId, label, prevAddedId);
+    public void addCell(String newId, String label, boolean visible){
+        this.addCell(newId, label, prevAddedId, visible);
     }
 
     /**
@@ -113,8 +121,13 @@ public class TreeGraphModel{
      * @param label the label of the new cell
      * @param parentId the ID of the parent of this new cell
      */
-    public void addCell(String newId, String label, String parentId){
-        Cell cell = new Cell(newId, cellMap.get(parentId));
+    public void addCell(String newId, String label, String parentId, boolean visible){
+        Cell cell;
+        if(visible){
+            cell = new Cell(newId, cellMap.get(parentId));
+        }else{
+            cell = new InvisibleCell(newId, cellMap.get(parentId));
+        }
         cell.setDisplayLabel(label);
         addCell(cell);
 
@@ -131,8 +144,13 @@ public class TreeGraphModel{
      * @param parent1Id the ID of the first parent of this new cell
      * @param parent2Id the ID of the second parent of this new cell
      */
-    public void addCell(String newId, String label, String parent1Id, String parent2Id){
-        Cell cell = new Cell(newId, cellMap.get(parent1Id), cellMap.get(parent2Id));
+    public void addCell(String newId, String label, String parent1Id, String parent2Id, boolean visible){
+        Cell cell;
+        if(visible){
+            cell = new Cell(newId, cellMap.get(parent1Id), cellMap.get(parent2Id));
+        }else{
+            cell = new InvisibleCell(newId, cellMap.get(parent1Id), cellMap.get(parent2Id));
+        }
         cell.setDisplayLabel(label);
         addCell(cell);
 
@@ -158,7 +176,7 @@ public class TreeGraphModel{
      * @param targetId the child cell
      */
     public void addEdge( String sourceId, String targetId) {
-        Cell sourceCell = cellMap.get( sourceId);
+        Cell sourceCell = cellMap.get(sourceId);
         Cell targetCell = cellMap.get( targetId);
 
         Edge edge = new Edge( sourceCell, targetCell);
