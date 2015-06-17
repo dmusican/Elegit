@@ -18,7 +18,7 @@ public class ERROR_ALERT_CONSTANTS {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle("Access denied");
         alert.setHeaderText("Not authorized");
-        alert.setContentText("You are not authorized to modify this repository.");
+        alert.setContentText("The login information you gave does not allow you to modify this repository.");
         return alert;
     }
 
@@ -52,6 +52,14 @@ public class ERROR_ALERT_CONSTANTS {
         alert.setTitle("Invalid remote");
         alert.setHeaderText("Can't clone from that remote");
         alert.setContentText("Make sure you entered the correct remote URL.");
+        return alert;
+    }
+
+    public static Alert notLoggedIn() {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle("Not logged in");
+        alert.setHeaderText("Not logged in");
+        alert.setContentText("You need to log in to do that.");
         return alert;
     }
 }

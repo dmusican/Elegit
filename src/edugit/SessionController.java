@@ -6,6 +6,7 @@ import javafx.scene.text.Text;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
 import org.eclipse.jgit.api.errors.JGitInternalException;
+import org.eclipse.jgit.api.errors.TransportException;
 
 import java.io.IOException;
 
@@ -79,6 +80,11 @@ public class SessionController extends Controller {
                 ERROR_ALERT_CONSTANTS.nonemptyFolder().showAndWait();
             } catch (InvalidRemoteException e) {
                 ERROR_ALERT_CONSTANTS.invalidRemote().showAndWait();
+            } catch (TransportException e) {
+                ERROR_ALERT_CONSTANTS.notAuthorized().showAndWait();
+                // FIXME: TransportExceptions don't *only* indicate a permissions issue... Figure out what else they do
+            } catch (NullPointerException e) {
+                ERROR_ALERT_CONSTANTS.notLoggedIn().showAndWait();
             } catch (Exception e) {
                 // The generic error is totally unhelpful, so try not to ever reach this catch statement
                 ERROR_ALERT_CONSTANTS.genericError().showAndWait();
@@ -98,6 +104,8 @@ public class SessionController extends Controller {
                 this.setButtonsDisabled(false);
             } catch (IllegalArgumentException e) {
                 ERROR_ALERT_CONSTANTS.invalidRepo().showAndWait();
+            } catch (NullPointerException e) {
+                // Do nothing. This means the user didn't choose an existing repo folder.
             } catch (Exception e) {
                 ERROR_ALERT_CONSTANTS.genericError().showAndWait();
                 System.out.println("***** FIGURE OUT WHY THIS EXCEPTION IS NEEDED *******");
