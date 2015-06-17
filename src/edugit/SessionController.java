@@ -1,5 +1,9 @@
 package edugit;
 
+import javafx.beans.InvalidationListener;
+import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.scene.control.*;
 import javafx.scene.text.Text;
@@ -9,15 +13,15 @@ import org.eclipse.jgit.api.errors.JGitInternalException;
 import org.eclipse.jgit.api.errors.TransportException;
 
 import java.io.IOException;
+import java.util.*;
 
 /**
  * The controller for the entire session.
  */
 public class SessionController extends Controller {
 
+    public ComboBox<RepoHelper> comboBox;
     private SessionModel theModel;
-
-    public Text repoNameText;
 
     public Button gitStatusButton;
     public Button commitButton;
@@ -50,6 +54,19 @@ public class SessionController extends Controller {
         this.setButtonsDisabled(true);
 
         this.initializeMenuBar();
+        this.updateRepoDropdownSelector();
+    }
+
+    private void updateRepoDropdownSelector() {
+        // TODO: let users *delete* repos from this list
+        ArrayList<RepoHelper> items = this.theModel.getAllRepoHelpers();
+        this.comboBox.getItems().setAll(items);
+
+        if (items.size() != 0) {
+            // Load and display the most recently added value
+            this.theModel.openRepoFromHelper(items.get(items.size()-1));
+            this.comboBox.setValue(items.get(items.size()-1));
+        }
     }
 
     /**
@@ -72,10 +89,10 @@ public class SessionController extends Controller {
 
                 this.theModel.openRepoFromHelper(repoHelper);
 
-                this.repoNameText.setText(this.theModel.getCurrentRepoHelper().getDirectory().getFileName().toString());
-
                 // After loading (cloning) a repo, activate the buttons
                 this.setButtonsDisabled(false);
+
+                this.updateRepoDropdownSelector();
             } catch (IllegalArgumentException e) {
                 ERROR_ALERT_CONSTANTS.invalidRepo().showAndWait();
             } catch (JGitInternalException e) {
@@ -87,6 +104,7 @@ public class SessionController extends Controller {
                 // FIXME: TransportExceptions don't *only* indicate a permissions issue... Figure out what else they do
             } catch (NullPointerException e) {
                 ERROR_ALERT_CONSTANTS.notLoggedIn().showAndWait();
+                e.printStackTrace();
 
                 // Re-prompt the user to log in:
                 this.theModel.getOwner().presentLoginDialogsToSetValues();
@@ -103,14 +121,16 @@ public class SessionController extends Controller {
             try {
                 RepoHelper repoHelper = builder.getRepoHelperFromDialogs();
                 this.theModel.openRepoFromHelper(repoHelper);
-                this.repoNameText.setText(this.theModel.getCurrentRepoHelper().getDirectory().getFileName().toString());
 
                 // After loading a repo, activate the buttons
                 this.setButtonsDisabled(false);
+
+                this.updateRepoDropdownSelector();
             } catch (IllegalArgumentException e) {
                 ERROR_ALERT_CONSTANTS.invalidRepo().showAndWait();
             } catch (NullPointerException e) {
                 ERROR_ALERT_CONSTANTS.repoWasNotLoaded().showAndWait();
+                e.printStackTrace();
             } catch (Exception e) {
                 ERROR_ALERT_CONSTANTS.genericError().showAndWait();
                 System.out.println("***** FIGURE OUT WHY THIS EXCEPTION IS NEEDED *******");
@@ -179,6 +199,9 @@ public class SessionController extends Controller {
      */
     public void loadPanelViews() throws GitAPIException, IOException{
         try {
+            RepoHelper selectedRepoHelper = this.comboBox.getValue();
+            this.theModel.openRepoFromHelper(selectedRepoHelper);
+
             this.workingTreePanelView.drawDirectoryView();
             this.localCommitTreeModel.update();
             this.remoteCommitTreeModel.update();

@@ -19,6 +19,7 @@ import java.util.Set;
 public class SessionModel {
 
     RepoHelper currentRepoHelper;
+
     ArrayList<RepoHelper> allRepoHelpers; // for when we support multiple repositories!
     private static SessionModel sessionModel;
     private RepoOwner owner;
@@ -232,5 +233,9 @@ public class SessionModel {
 
     public void setOwner(RepoOwner owner) {
         this.owner = owner;
+    }
+
+    public ArrayList<RepoHelper> getAllRepoHelpers() {
+        return allRepoHelpers;
     }
 }
