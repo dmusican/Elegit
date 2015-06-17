@@ -234,5 +234,10 @@ public abstract class RepoHelper {
     public Path getLocalPath() {
         return localPath;
     }
+
+    @Override
+    public String toString() {
+        return this.localPath.getFileName().toString();
+    }
 }
 
