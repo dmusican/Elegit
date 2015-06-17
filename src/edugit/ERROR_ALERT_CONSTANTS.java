@@ -60,6 +60,15 @@ public class ERROR_ALERT_CONSTANTS {
         alert.setTitle("Not logged in");
         alert.setHeaderText("Not logged in");
         alert.setContentText("You need to log in to do that.");
+
+        return alert;
+    }
+
+    public static Alert repoWasNotLoaded() {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle("Load failed");
+        alert.setHeaderText("Repository was not loaded");
+        alert.setContentText("No repository was loaded.");
         return alert;
     }
 }

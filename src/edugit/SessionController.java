@@ -85,6 +85,9 @@ public class SessionController extends Controller {
                 // FIXME: TransportExceptions don't *only* indicate a permissions issue... Figure out what else they do
             } catch (NullPointerException e) {
                 ERROR_ALERT_CONSTANTS.notLoggedIn().showAndWait();
+
+                // Re-prompt the user to log in:
+                this.theModel.getOwner().presentLoginDialogsToSetValues();
             } catch (Exception e) {
                 // The generic error is totally unhelpful, so try not to ever reach this catch statement
                 ERROR_ALERT_CONSTANTS.genericError().showAndWait();
@@ -105,7 +108,7 @@ public class SessionController extends Controller {
             } catch (IllegalArgumentException e) {
                 ERROR_ALERT_CONSTANTS.invalidRepo().showAndWait();
             } catch (NullPointerException e) {
-                // Do nothing. This means the user didn't choose an existing repo folder.
+                ERROR_ALERT_CONSTANTS.repoWasNotLoaded().showAndWait();
             } catch (Exception e) {
                 ERROR_ALERT_CONSTANTS.genericError().showAndWait();
                 System.out.println("***** FIGURE OUT WHY THIS EXCEPTION IS NEEDED *******");
