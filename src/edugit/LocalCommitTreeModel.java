@@ -15,8 +15,8 @@ public class LocalCommitTreeModel extends CommitTreeModel{
 
     @Override
     public ArrayList<CommitHelper> getCommits(){
-        if(this.model.currentRepoHelper != null){
-            return this.model.currentRepoHelper.getLocalCommits();
+        if(this.sessionModel.currentRepoHelper != null){
+            return this.sessionModel.currentRepoHelper.getLocalCommits();
         }
         return new ArrayList<>();
     }

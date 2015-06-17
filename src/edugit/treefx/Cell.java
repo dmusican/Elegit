@@ -1,5 +1,6 @@
 package edugit.treefx;
 
+import edugit.CommitTreeController;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.scene.Node;
@@ -73,9 +74,9 @@ public class Cell extends Pane implements Comparable<Cell>{
         tooltip.setMaxWidth(200);
         Tooltip.install(this, tooltip);
 
-        this.setOnMouseClicked(event -> Highlighter.handleMouseClicked(this));
-        this.setOnMouseEntered(event -> Highlighter.handleMouseover(this, true));
-        this.setOnMouseExited(event -> Highlighter.handleMouseover(this, false));
+        this.setOnMouseClicked(event -> CommitTreeController.handleMouseClicked(this));
+        this.setOnMouseEntered(event -> CommitTreeController.handleMouseover(this, true));
+        this.setOnMouseExited(event -> CommitTreeController.handleMouseover(this, false));
     }
 
     /**

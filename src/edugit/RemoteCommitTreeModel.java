@@ -15,8 +15,8 @@ public class RemoteCommitTreeModel extends CommitTreeModel{
 
     @Override
     public ArrayList<CommitHelper> getCommits(){
-        if(this.model.currentRepoHelper != null){
-            return this.model.currentRepoHelper.getRemoteCommits();
+        if(this.sessionModel.currentRepoHelper != null){
+            return this.sessionModel.currentRepoHelper.getRemoteCommits();
         }
         return new ArrayList<>();
     }
