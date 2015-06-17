@@ -1,7 +1,9 @@
 package edugit;
 
+import javafx.scene.control.Dialog;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Window;
+import javafx.util.Pair;
 
 import java.io.File;
 
@@ -17,7 +19,7 @@ public abstract class RepoHelperBuilder {
         this.sessionModel = sessionModel;
     }
 
-    public abstract void presentDialogsAndSetRepoHelper() throws Exception;
+    public abstract RepoHelper getRepoHelperFromDialogs() throws Exception;
 
     public File getDirectoryPathFromChooser(String title, Window parent) {
         File path = new File(this.defaultFilePickerStartFolder); // start the file browser in the user's home folder

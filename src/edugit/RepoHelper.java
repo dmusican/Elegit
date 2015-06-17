@@ -1,8 +1,10 @@
 package edugit;
 
+import com.sun.jdi.InvocationException;
 import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.api.errors.JGitInternalException;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revplot.PlotCommitList;
@@ -50,14 +52,11 @@ public abstract class RepoHelper {
         this.localPath = directoryPath;
 
         this.repo = this.obtainRepository();
-
-        // TODO: Use DirectoryWatcher for auto-refreshes.
-//        this.directoryWatcher = new DirectoryWatcher(this.localPath);
-//        this.directoryWatcher.beginProcessingEvents();
-
-        // TODO: performance? depth limit for parsing commits or something
         this.localCommitIdMap = new HashMap<>();
         this.localCommits = this.parseLocalCommits();
+
+        // TODO: Use DirectoryWatcher for auto-refreshes.
+        // TODO: performance? depth limit for parsing commits or something
     }
 
     /// Constructor for EXISTING repos to inherit (they don't need the Remote URL)
@@ -66,7 +65,6 @@ public abstract class RepoHelper {
         this.localPath = directoryPath;
 
         this.repo = this.obtainRepository();
-
         this.localCommitIdMap = new HashMap<>();
         this.localCommits = this.parseLocalCommits();
     }
