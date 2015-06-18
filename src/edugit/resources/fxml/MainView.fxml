@@ -11,65 +11,67 @@
         xmlns:fx="http://javafx.com/fxml"
         id="gridPane"
         stylesheets="/edugit/resources/css/BaseStyle.css">
-    <columnConstraints>
-        <ColumnConstraints halignment="LEFT" percentWidth="26"/>
-        <ColumnConstraints halignment="LEFT" percentWidth="11"/>
-        <ColumnConstraints halignment="LEFT" percentWidth="26"/>
-        <ColumnConstraints halignment="LEFT" percentWidth="11"/>
-        <ColumnConstraints halignment="LEFT" percentWidth="26"/>
-    </columnConstraints>
-    <rowConstraints>
-        <RowConstraints valignment="TOP" percentHeight="9"/>
-        <RowConstraints valignment="TOP" percentHeight="9"/>
-        <RowConstraints valignment="TOP" percentHeight="15"/>
-        <RowConstraints valignment="TOP" percentHeight="9"/>
-        <RowConstraints valignment="TOP" percentHeight="15"/>
-        <RowConstraints valignment="TOP" percentHeight="9"/>
-        <RowConstraints valignment="TOP" percentHeight="9"/>
-    </rowConstraints>
+    <!--<columnConstraints>-->
+        <!--<ColumnConstraints halignment="LEFT" percentWidth="26"/>-->
+        <!--<ColumnConstraints halignment="LEFT" percentWidth="11"/>-->
+        <!--<ColumnConstraints halignment="LEFT" percentWidth="26"/>-->
+        <!--<ColumnConstraints halignment="LEFT" percentWidth="11"/>-->
+        <!--<ColumnConstraints halignment="LEFT" percentWidth="26"/>-->
+    <!--</columnConstraints>-->
+    <!--<rowConstraints>-->
+        <!--<RowConstraints valignment="TOP" percentHeight="9"/>-->
+        <!--<RowConstraints valignment="TOP" percentHeight="9"/>-->
+        <!--<RowConstraints valignment="TOP" percentHeight="15"/>-->
+        <!--<RowConstraints valignment="TOP" percentHeight="9"/>-->
+        <!--<RowConstraints valignment="TOP" percentHeight="15"/>-->
+        <!--<RowConstraints valignment="TOP" percentHeight="9"/>-->
+        <!--<RowConstraints valignment="TOP" percentHeight="9"/>-->
+    <!--</rowConstraints>-->
     <!-- TODO: resizing window should eventually just cut off the views. don't keep scrunching -->
 
     <MenuBar fx:id="menuBar"
             GridPane.rowIndex="0"
             GridPane.columnSpan="5" />
 
-    <ComboBox fx:id="branchSelector"
-              GridPane.columnIndex="0"
-              GridPane.rowIndex="0" />
+    <Text fx:id="currentRepoLabel"
+          id="repoLabelText"
+          GridPane.rowIndex="0"
+          GridPane.columnIndex="0" />
 
-    <Button fx:id="loadBranchButton"
-              GridPane.columnIndex="1"
-              GridPane.rowIndex="0"
-              text="Checkout Branch"
-              onAction="#loadSelectedBranch"/>
-
-    <GridPane alignment="center"
+    <GridPane alignment="TOP_CENTER"
               hgap="10"
               vgap="10"
               GridPane.rowIndex="1"
               GridPane.columnIndex="0"
               GridPane.rowSpan="7">
 
-        <Text fx:id="currentRepoLabel"
-                  GridPane.rowIndex="0"
-                  GridPane.columnIndex="0" />
+        <ComboBox fx:id="branchSelector"
+                  GridPane.columnIndex="0"
+                  GridPane.rowIndex="0" />
 
-        <Button GridPane.rowIndex="0"
-                GridPane.columnIndex="1"
+        <Button fx:id="loadBranchButton"
+                GridPane.columnIndex="0"
+                GridPane.rowIndex="1"
+                text="Checkout Branch"
+                onAction="#loadSelectedBranch"/>
+
+        <Button GridPane.columnIndex="0"
+                GridPane.rowIndex="2"
                 fx:id="gitStatusButton"
                 text="git status"
                 onAction="#loadPanelViews"/>
 
         <WorkingTreePanelView
-                GridPane.rowIndex="1"
-                GridPane.columnSpan="2"
+                GridPane.rowIndex="3"
                 fx:id="workingTreePanelView"/>
 
-        <TextArea  GridPane.rowIndex="2"
-                    fx:id="commitMessageField"
-                    GridPane.columnSpan="2"
-                    prefRowCount="3"
-                    promptText="Commit message..." />
+        <TextArea
+                GridPane.rowIndex="4"
+                fx:id="commitMessageField"
+                prefRowCount="3"
+                prefColumnCount="1"
+                promptText="Commit message..."
+                wrapText="true" />
 
     </GridPane>
 
