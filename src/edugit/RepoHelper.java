@@ -148,7 +148,7 @@ public abstract class RepoHelper {
         // The JGit docs say that if setCheckFetchedObjects
         //  is set to true, objects received will be checked for validity.
         //  Not sure what that means, but sounds good so I'm doing it...
-        git.fetch().setCheckFetchedObjects(true).call();
+        git.fetch().setCredentialsProvider(this.ownerAuth).setCheckFetchedObjects(true).call();
         git.close();
     }
 
