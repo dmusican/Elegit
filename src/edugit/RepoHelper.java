@@ -1,11 +1,9 @@
 package edugit;
 
-import com.sun.jdi.InvocationException;
 import org.eclipse.jgit.api.AddCommand;
-import org.eclipse.jgit.api.CheckoutCommand;
 import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.errors.*;
-import org.eclipse.jgit.errors.AmbiguousObjectException;
+import org.eclipse.jgit.api.ListBranchCommand;
+import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
@@ -35,8 +33,8 @@ public abstract class RepoHelper {
     protected Path localPath;
     private DirectoryWatcher directoryWatcher;
 
-	private ArrayList<CommitHelper> localCommits;
-    private ArrayList<CommitHelper> remoteCommits;
+	private List<CommitHelper> localCommits;
+    private List<CommitHelper> remoteCommits;
 
     private Map<String, CommitHelper> commitIdMap;
     private Map<ObjectId, String> idMap;
@@ -210,7 +208,7 @@ public abstract class RepoHelper {
     public CommitHelper getLocalHeadCommit(){
         try{
             ObjectId commitId = repo.resolve("HEAD");
-            return this.commitIdMap.get(commitId);
+            return commitIdMap.get(idMap.get(commitId));
         }catch(Exception e){
             e.printStackTrace();
             return null;
@@ -224,7 +222,7 @@ public abstract class RepoHelper {
      * @return a list of CommitHelpers for all local commits
      * @throws IOException
      */
-    private ArrayList<CommitHelper> parseAllLocalCommits() throws IOException{
+    private List<CommitHelper> parseAllLocalCommits() throws IOException, GitAPIException{
         PlotCommitList<PlotLane> commitList = this.parseAllRawLocalCommits();
         return wrapRawCommits(commitList, commitIdMap);
     }
@@ -236,7 +234,7 @@ public abstract class RepoHelper {
      * @return a list of CommitHelpers for all remote commits
      * @throws IOException
      */
-    private ArrayList<CommitHelper> parseAllRemoteCommits() throws IOException{
+    private List<CommitHelper> parseAllRemoteCommits() throws IOException, GitAPIException{
         PlotCommitList<PlotLane> commitList = this.parseAllRawRemoteCommits();
         return wrapRawCommits(commitList, commitIdMap);
     }
@@ -249,15 +247,22 @@ public abstract class RepoHelper {
      * @return a list of CommitHelpers for the given commits
      * @throws IOException
      */
-    private ArrayList<CommitHelper> wrapRawCommits(PlotCommitList<PlotLane> commitList,
+    private List<CommitHelper> wrapRawCommits(PlotCommitList<PlotLane> commitList,
                                                    Map<String, CommitHelper> commitIdMap) throws IOException{
-        ArrayList<CommitHelper> commitHelperList = new ArrayList<>(commitList.size());
+        List<CommitHelper> commitHelperList = new ArrayList<>();
+        List<ObjectId> wrappedIDs = new ArrayList<>();
         for(int i = commitList.size()-1; i >= 0; i--){
             RevCommit curCommit = commitList.get(i);
+            ObjectId curCommitID = curCommit.getId();
+            if(wrappedIDs.contains(curCommitID)){
+                continue;
+            }
 
             CommitHelper curCommitHelper = new CommitHelper(curCommit, this);
+
             commitIdMap.put(CommitTreeModel.getId(curCommitHelper), curCommitHelper);
-            idMap.put(curCommit.getId(),CommitTreeModel.getId(curCommitHelper));
+            idMap.put(curCommitID,CommitTreeModel.getId(curCommitHelper));
+            wrappedIDs.add(curCommitID);
 
             RevCommit[] parents = curCommit.getParents();
             for(RevCommit p : parents){
@@ -277,11 +282,23 @@ public abstract class RepoHelper {
      * @return a list of raw local commits
      * @throws IOException
      */
-    private PlotCommitList<PlotLane> parseAllRawLocalCommits() throws IOException{
+    private PlotCommitList<PlotLane> parseAllRawLocalCommits() throws IOException, GitAPIException{
         // TODO: maybe resolve different branches (e.g. "refs/heads/master")?
         ObjectId headId = repo.resolve("HEAD");
-        return parseAllRawCommits(headId);
+        List<RevCommit> examinedCommits = new ArrayList<>();
+        PlotCommitList<PlotLane> rawLocalCommits = parseAllRawCommits(headId, examinedCommits);
+        examinedCommits.add(rawLocalCommits.get(0));
+
+        List<String> branchNames = getLocalBranchNames();
+        for(String branch : branchNames){
+            ObjectId branchId = repo.resolve(branch);
+            PlotCommitList<PlotLane> toAdd = parseAllRawCommits(branchId, examinedCommits);
+            rawLocalCommits.addAll(toAdd);
+            examinedCommits.add(toAdd.get(0));
+        }
+        return rawLocalCommits;
     }
+
     /**
      * Utilizes JGit to walk through the repo and create raw commit objects - more
      * specifically, JGit objects of (super)type RevCommit. This is an expensive
@@ -289,13 +306,20 @@ public abstract class RepoHelper {
      * @return a list of raw remote commits
      * @throws IOException
      */
-    private PlotCommitList<PlotLane> parseAllRawRemoteCommits() throws IOException{
-        ObjectId originHeadId = repo.resolve("refs/remotes/origin/HEAD");
-        if(originHeadId == null){
-            originHeadId = repo.resolve("refs/remotes/origin/master");
+    private PlotCommitList<PlotLane> parseAllRawRemoteCommits() throws IOException, GitAPIException{
+        List<RevCommit> examinedCommits = new ArrayList<>();
+        PlotCommitList<PlotLane> rawRemoteCommits = new PlotCommitList<>();
+
+        List<String> branchNames = getRemoteBranchNames();
+        for(String branch : branchNames){
+            ObjectId branchId = repo.resolve(branch);
+            PlotCommitList<PlotLane> toAdd = parseAllRawCommits(branchId, examinedCommits);
+            rawRemoteCommits.addAll(toAdd);
+            examinedCommits.add(toAdd.get(0));
         }
-        return parseAllRawCommits(originHeadId);
+        return rawRemoteCommits;
     }
+
     /**
      * Utilizes JGit to walk through the repo and create raw commit objects - more
      * specifically, JGit objects of (super)type RevCommit. This is an expensive
@@ -304,10 +328,13 @@ public abstract class RepoHelper {
      * @return a list of raw commits starting from the given id
      * @throws IOException
      */
-    private PlotCommitList<PlotLane> parseAllRawCommits(ObjectId id) throws IOException{
+    private PlotCommitList<PlotLane> parseAllRawCommits(ObjectId id, List<RevCommit> stopPoints) throws IOException{
         PlotWalk w = new PlotWalk(repo);
         RevCommit start = w.parseCommit(id);
         w.markStart(start);
+        for(RevCommit stopCommit : stopPoints){
+            w.markUninteresting(stopCommit);
+        }
         PlotCommitList<PlotLane> plotCommitList = new PlotCommitList<>();
         plotCommitList.source(w);
         plotCommitList.fillTo(Integer.MAX_VALUE);
@@ -339,6 +366,19 @@ public abstract class RepoHelper {
     public ArrayList<String> getLocalBranchNames() throws GitAPIException {
         // see JGit cookbook for how to get Remote branches too
         List<Ref> getBranchesCall = new Git(this.repo).branchList().call();
+
+        ArrayList<String> branchNames = new ArrayList<>();
+
+        for (Ref ref : getBranchesCall) {
+            branchNames.add(ref.getName());
+        }
+
+        return branchNames;
+    }
+
+    public ArrayList<String> getRemoteBranchNames() throws GitAPIException {
+        // see JGit cookbook for how to get Remote branches too
+        List<Ref> getBranchesCall = new Git(this.repo).branchList().setListMode(ListBranchCommand.ListMode.REMOTE).call();
 
         ArrayList<String> branchNames = new ArrayList<>();
 

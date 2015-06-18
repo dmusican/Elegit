@@ -18,7 +18,7 @@ import java.util.List;
  *
  * A class that represents a node in a TreeGraph
  */
-public class Cell extends Pane implements Comparable<Cell>{
+public class Cell extends Pane{
 
     // The size of the rectangle being drawn
     public static final int BOX_SIZE = 20;
@@ -40,10 +40,6 @@ public class Cell extends Pane implements Comparable<Cell>{
     ParentCell parents;
 
     List<Edge> edges = new ArrayList<>();
-
-    // The number of generations away from the furthest leaf cell
-    int height;
-    IntegerProperty heightProperty;
 
     IntegerProperty xLocationProperty;
     IntegerProperty yLocationProperty;
@@ -69,10 +65,6 @@ public class Cell extends Pane implements Comparable<Cell>{
         this.parents = new ParentCell(this, parent1, parent2);
 
         setView(getBaseView());
-
-        this.height = 0;
-        this.heightProperty = new SimpleIntegerProperty(this.height);
-        updateHeight();
 
         this.xLocationProperty = new SimpleIntegerProperty(0);
         this.yLocationProperty = new SimpleIntegerProperty(0);
@@ -101,24 +93,11 @@ public class Cell extends Pane implements Comparable<Cell>{
     }
 
     /**
-     * Updates the height of this cell based on the height of its children, then tells
-     * its parents to update
-     */
-    public void updateHeight(){
-        for(Cell c : children){
-            this.height = (this.height <= c.height) ? (c.height + 1) : this.height;
-            this.heightProperty.set(this.height);
-        }
-        parents.updateHeight();
-    }
-
-    /**
      * Adds a child to this cell
      * @param cell the new child
      */
     public void addCellChild(Cell cell) {
         children.add(cell);
-        updateHeight();
     }
 
     /**
@@ -155,10 +134,8 @@ public class Cell extends Pane implements Comparable<Cell>{
         if(children.contains(cell)) return true;
         else if(depth != 0){
             for(Cell child : children){
-                if(child.height > cell.height){
-                    if(child.isChild(cell, depth)){
-                        return true;
-                    }
+                if(child.isChild(cell, depth)){
+                    return true;
                 }
             }
         }
@@ -188,36 +165,6 @@ public class Cell extends Pane implements Comparable<Cell>{
 
     public long getTime(){
         return time;
-    }
-
-    @Override
-    public int compareTo(Cell c){
-
-        int i = Integer.compare(this.height, c.height);
-        if(i != 0){
-            return i;
-        }
-
-        int minHeightCChild = c.height;
-        for(Cell child : c.getCellChildren()){
-            if(child.height < minHeightCChild){
-                minHeightCChild = child.height;
-            }
-        }
-
-        int minHeightChild = this.height;
-        for(Cell child : this.getCellChildren()){
-            if(child.height < minHeightChild){
-                minHeightChild = child.height;
-            }
-        }
-        i = Integer.compare(minHeightCChild, minHeightChild);
-        if(i != 0){
-            return i;
-        }
-
-        int cParentCount = c.parents.count();
-        return Integer.compare(parents.count(), cParentCount);
     }
 
     /**
@@ -269,18 +216,6 @@ public class Cell extends Pane implements Comparable<Cell>{
             }
             if(this.dad != null){
                 this.dad.addCellChild(cell);
-            }
-        }
-
-        /**
-         * Updates the heights of each held parent cell
-         */
-        public void updateHeight(){
-            if(this.mom != null){
-                this.mom.updateHeight();
-            }
-            if(this.dad != null){
-                this.dad.updateHeight();
             }
         }
     }
