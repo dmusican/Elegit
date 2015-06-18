@@ -1,6 +1,7 @@
 .root {
     -fx-background-color: #F2F1EF;
     -fx-font-family: "Avenir";
+    -fx-focus-color: #BFBFBF;
 }
 
 .label {
@@ -28,16 +29,8 @@
     -fx-background-color: #3498DB;
 }
 
-.tree-view {
-    -fx-focus-color: #BFBFBF;
-}
-
 .tree-cell:selected {
   -fx-background-color: #BFBFBF;
-}
-
-.text-area {
-    -fx-focus-color: #BFBFBF;
 }
 
 #title-text {
