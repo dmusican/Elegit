@@ -1,5 +1,6 @@
 package edugit;
 
+import com.sun.jdi.InvocationException;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 
@@ -10,8 +11,8 @@ import java.nio.file.Path;
  * A RepoHelper implementation for pre-existing repositories.
  */
 public class ExistingRepoHelper extends RepoHelper {
-    public ExistingRepoHelper(Path directoryPath, String remoteURL, String username, String password) throws Exception {
-        super(directoryPath, remoteURL, username, password);
+    public ExistingRepoHelper(Path directoryPath, RepoOwner owner) throws Exception {
+        super(directoryPath, owner);
     }
 
     /**

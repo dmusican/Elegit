@@ -35,9 +35,8 @@ public abstract class CommitTreeModel{
     public abstract ArrayList<CommitHelper> getCommits();
 
     public void update(){
-        if(this.addCommitsToTree()){
-            this.updateView();
-        }
+        this.addCommitsToTree();
+        this.updateView();
     }
 
     /**
@@ -53,7 +52,7 @@ public abstract class CommitTreeModel{
 
         CommitHelper root = commits.get(0);
 
-        TreeGraphModel graphModel = new TreeGraphModel(this.getTreeCellId(root));
+        TreeGraphModel graphModel = new TreeGraphModel(this.getTreeCellId(root), this.getTreeCellLabel(root));
 
         treeGraph = new TreeGraph(graphModel);
 
@@ -113,6 +112,8 @@ public abstract class CommitTreeModel{
     private void updateView(){
         if(this.model != null && this.model.currentRepoHelper != null){
             view.displayTreeGraph(treeGraph);
+        }else{
+            view.displayEmptyView();
         }
     }
 }

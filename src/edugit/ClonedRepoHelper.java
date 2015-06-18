@@ -12,8 +12,8 @@ import java.nio.file.Path;
  * A RepoHelper implementation for a repository cloned into an empty folder.
  */
 public class ClonedRepoHelper extends RepoHelper {
-    public ClonedRepoHelper(Path directoryPath, String remoteURL, String username, String password) throws Exception {
-        super(directoryPath, remoteURL, username, password);
+    public ClonedRepoHelper(Path directoryPath, String remoteURL, RepoOwner owner) throws Exception {
+        super(directoryPath, remoteURL, owner);
     }
 
     /**
@@ -25,8 +25,6 @@ public class ClonedRepoHelper extends RepoHelper {
      */
     @Override
     protected Repository obtainRepository() throws GitAPIException {
-        // TODO: make this not just clone a dummy repo...
-
         CloneCommand cloneCommand = Git.cloneRepository();
         cloneCommand.setURI(this.remoteURL);
         cloneCommand.setCredentialsProvider(this.ownerAuth);

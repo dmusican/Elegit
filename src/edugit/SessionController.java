@@ -1,27 +1,31 @@
 package edugit;
 
-import javafx.application.Platform;
 import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
-import javafx.geometry.Insets;
-import javafx.scene.Node;
 import javafx.scene.control.*;
-import javafx.scene.layout.GridPane;
-import javafx.util.Pair;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.api.errors.InvalidRemoteException;
+import org.eclipse.jgit.api.errors.JGitInternalException;
+import org.eclipse.jgit.api.errors.TransportException;
+import org.eclipse.jgit.lib.Ref;
 
-import java.io.File;
 import java.io.IOException;
-import java.util.Optional;
+import java.util.*;
 
 /**
- * Created by makik on 6/10/15.
- *
- * TODO: Handle errors here?
+ * The controller for the entire session.
  */
 public class SessionController extends Controller {
 
+    public ComboBox<RepoHelper> repositorySelector;
+    public ComboBox<String> branchSelector;
+    public Button loadBranchButton;
     private SessionModel theModel;
+
+    public Button gitStatusButton;
+    public Button commitButton;
+    public Button mergeFromFetchButton;
+    public Button pushButton;
+    public Button fetchButton;
 
     public MenuBar menuBar;
     public TextArea commitMessageField;
@@ -44,7 +48,41 @@ public class SessionController extends Controller {
         this.localCommitTreeModel = new LocalCommitTreeModel(this.theModel, this.localCommitTreePanelView);
         this.remoteCommitTreeModel = new RemoteCommitTreeModel(this.theModel, this.remoteCommitTreePanelView);
 
+        // Buttons start out disabled, since no repo is loaded
+        this.setButtonsDisabled(true);
+
+        // Branch selector and trigger button starts invisible, since there's no repo and no branches
+        this.branchSelector.setVisible(false);
+        this.loadBranchButton.setVisible(false);
+
         this.initializeMenuBar();
+        this.updateRepoDropdown();
+    }
+
+    private void updateRepoDropdown() {
+        // TODO: let users *delete* repos from this list
+        ArrayList<RepoHelper> items = this.theModel.getAllRepoHelpers();
+        this.repositorySelector.getItems().setAll(items);
+
+        if (items.size() != 0) {
+            // Load and display the most recently added value
+            this.theModel.openRepoFromHelper(items.get(items.size()-1));
+            this.repositorySelector.setValue(items.get(items.size() - 1));
+        }
+    }
+
+    private void updateBranchDropdown() throws GitAPIException, IOException {
+        this.branchSelector.setVisible(true);
+        this.loadBranchButton.setVisible(true);
+
+        List<String> branches = this.theModel.getCurrentRepoHelper().getLocalBranchNames();
+        this.branchSelector.getItems().setAll(branches);
+
+        if (branches.size() != 0) {
+            // Set the dropdown to be selecting the current branch
+            String currentBranchName = this.theModel.getCurrentRepoHelper().getCurrentBranchName();
+            this.branchSelector.setValue(currentBranchName);
+        }
     }
 
     /**
@@ -53,156 +91,77 @@ public class SessionController extends Controller {
      * Each option offers a different way of loading a repository, and each
      * option instantiates the appropriate RepoHelper class for the chosen
      * loading method.
+     *
+     * Since each option creates a new repo, this method handles errors.
      */
     private void initializeMenuBar() {
-        // TODO: break this out into a separate controller?
         Menu openMenu = new Menu("Load a Repository");
 
         MenuItem cloneOption = new MenuItem("Clone");
-        cloneOption.setOnAction(new EventHandler<ActionEvent>() {
-            public void handle(ActionEvent t) {
-                File cloneRepoDirectory = getPathFromChooser(true, "Choose a Location", null);
+        cloneOption.setOnAction(t -> {
+            try {
+                ClonedRepoHelperBuilder builder = new ClonedRepoHelperBuilder(this.theModel);
+                RepoHelper repoHelper = builder.getRepoHelperFromDialogs(); // this creates and sets the RepoHelper
 
-                // NOTE: This is all stuff that uses pretty new Java features,
-                // so make sure you have JDK 8u40 or later!
-                //  Largely copied from: http://code.makery.ch/blog/javafx-dialogs-official/
+                this.theModel.openRepoFromHelper(repoHelper);
 
-                // Create the custom dialog.
-                Dialog<Pair<String, String>> dialog = new Dialog<>();
-                dialog.setTitle("Login");
-                dialog.setHeaderText("Enter your credentials.");
+                // After loading (cloning) a repo, activate the buttons
+                this.setButtonsDisabled(false);
 
-                // Set the button types.
-                ButtonType loginButtonType = new ButtonType("Login", ButtonBar.ButtonData.OK_DONE);
-                dialog.getDialogPane().getButtonTypes().addAll(loginButtonType, ButtonType.CANCEL);
+                this.updateRepoDropdown();
+                this.updateBranchDropdown();
+            } catch (IllegalArgumentException e) {
+                ERROR_ALERT_CONSTANTS.invalidRepo().showAndWait();
+            } catch (JGitInternalException e) {
+                ERROR_ALERT_CONSTANTS.nonemptyFolder().showAndWait();
+            } catch (InvalidRemoteException e) {
+                ERROR_ALERT_CONSTANTS.invalidRemote().showAndWait();
+            } catch (TransportException e) {
+                ERROR_ALERT_CONSTANTS.notAuthorized().showAndWait();
+                // FIXME: TransportExceptions don't *only* indicate a permissions issue... Figure out what else they do
+            } catch (NullPointerException e) {
+                ERROR_ALERT_CONSTANTS.notLoggedIn().showAndWait();
+                e.printStackTrace();
 
-                // Create the username and password labels and fields.
-                GridPane grid = new GridPane();
-                grid.setHgap(10);
-                grid.setVgap(10);
-                grid.setPadding(new Insets(20, 150, 10, 10));
-
-                TextField username = new TextField();
-                username.setPromptText("Username");
-                PasswordField password = new PasswordField();
-                password.setPromptText("Password");
-
-                grid.add(new Label("Username:"), 0, 0);
-                grid.add(username, 1, 0);
-                grid.add(new Label("Password:"), 0, 1);
-                grid.add(password, 1, 1);
-
-                // Enable/Disable login button depending on whether a username was entered.
-                Node loginButton = dialog.getDialogPane().lookupButton(loginButtonType);
-                loginButton.setDisable(true);
-
-                // Do some validation (using the Java 8 lambda syntax).
-                username.textProperty().addListener((observable, oldValue, newValue) -> {
-                    loginButton.setDisable(newValue.trim().isEmpty());
-                });
-
-                dialog.getDialogPane().setContent(grid);
-
-                // Request focus on the username field by default.
-                Platform.runLater(() -> username.requestFocus());
-
-                // Convert the result to a username-password-pair when the login button is clicked.
-                dialog.setResultConverter(dialogButton -> {
-                    if (dialogButton == loginButtonType) {
-                        return new Pair<>(username.getText(), password.getText());
-                    }
-                    return null;
-                });
-
-                Optional<Pair<String, String>> result = dialog.showAndWait();
-
-                result.ifPresent(usernamePassword -> {
-                    try{
-                        RepoHelper repoHelper = new ClonedRepoHelper(cloneRepoDirectory.toPath(), "https://github.com/grahamearley/jgit-test.git", usernamePassword.getKey(), usernamePassword.getValue());
-                        SessionModel.getSessionModel().openRepoFromHelper(repoHelper);
-                    } catch(Exception e){
-                        e.printStackTrace();
-                    }
-                });
+                // Re-prompt the user to log in:
+                this.theModel.getOwner().presentLoginDialogsToSetValues();
+            } catch (Exception e) {
+                // The generic error is totally unhelpful, so try not to ever reach this catch statement
+                ERROR_ALERT_CONSTANTS.genericError().showAndWait();
+                e.printStackTrace();
             }
         });
 
-        // TODO: understand lambda expressions...
         MenuItem existingOption = new MenuItem("Load existing repository");
-        existingOption.setOnAction(new EventHandler<ActionEvent>() {
-           public void handle(ActionEvent t) {
-               File existingRepoDirectory = getPathFromChooser(true, "Choose a Location", null);
+        existingOption.setOnAction(t -> {
+            ExistingRepoHelperBuilder builder = new ExistingRepoHelperBuilder(this.theModel);
+            try {
+                RepoHelper repoHelper = builder.getRepoHelperFromDialogs();
+                this.theModel.openRepoFromHelper(repoHelper);
 
-               // NOTE: This is all stuff that uses pretty new Java features,
-               // so make sure you have JDK 8u40 or later!
-               //  Largely copied from: http://code.makery.ch/blog/javafx-dialogs-official/
+                // After loading a repo, activate the buttons
+                this.setButtonsDisabled(false);
 
-               // Create the custom dialog.
-               Dialog<Pair<String, String>> dialog = new Dialog<>();
-               dialog.setTitle("Login");
-               dialog.setHeaderText("Enter your credentials.");
+                this.updateRepoDropdown();
+                this.updateBranchDropdown();
+            } catch (IllegalArgumentException e) {
+                ERROR_ALERT_CONSTANTS.invalidRepo().showAndWait();
+            } catch (NullPointerException e) {
+                ERROR_ALERT_CONSTANTS.repoWasNotLoaded().showAndWait();
+                e.printStackTrace();
+            } catch (Exception e) {
+                ERROR_ALERT_CONSTANTS.genericError().showAndWait();
+                System.out.println("***** FIGURE OUT WHY THIS EXCEPTION IS NEEDED *******");
+                e.printStackTrace();
+            }
+        });
 
-               // Set the button types.
-               ButtonType loginButtonType = new ButtonType("Login", ButtonBar.ButtonData.OK_DONE);
-               dialog.getDialogPane().getButtonTypes().addAll(loginButtonType, ButtonType.CANCEL);
+        // TODO: implement New Repository option.
+        MenuItem newOption = new MenuItem("Start a new repository");
+        newOption.setDisable(true);
 
-               // Create the username and password labels and fields.
-               GridPane grid = new GridPane();
-               grid.setHgap(10);
-               grid.setVgap(10);
-               grid.setPadding(new Insets(20, 150, 10, 10));
-
-               TextField username = new TextField();
-               username.setPromptText("Username");
-               PasswordField password = new PasswordField();
-               password.setPromptText("Password");
-
-               grid.add(new Label("Username:"), 0, 0);
-               grid.add(username, 1, 0);
-               grid.add(new Label("Password:"), 0, 1);
-               grid.add(password, 1, 1);
-
-               // Enable/Disable login button depending on whether a username was entered.
-               Node loginButton = dialog.getDialogPane().lookupButton(loginButtonType);
-               loginButton.setDisable(true);
-
-               // Do some validation (using the Java 8 lambda syntax).
-               username.textProperty().addListener((observable, oldValue, newValue) -> {
-                   loginButton.setDisable(newValue.trim().isEmpty());
-               });
-
-               dialog.getDialogPane().setContent(grid);
-
-               // Request focus on the username field by default.
-               Platform.runLater(() -> username.requestFocus());
-
-               // Convert the result to a username-password-pair when the login button is clicked.
-               dialog.setResultConverter(dialogButton -> {
-                   if (dialogButton == loginButtonType) {
-                       return new Pair<>(username.getText(), password.getText());
-                   }
-                   return null;
-               });
-
-               Optional<Pair<String, String>> result = dialog.showAndWait();
-
-               result.ifPresent(usernamePassword -> {
-                   try {
-                       RepoHelper repoHelper = new ExistingRepoHelper(existingRepoDirectory.toPath(), "https://github.com/grahamearley/jgit-test.git", usernamePassword.getKey(), usernamePassword.getValue());
-                       SessionModel.getSessionModel().openRepoFromHelper(repoHelper);
-                   } catch (Exception e) {
-                       e.printStackTrace();
-                   }
-               });
-           }
-       });
-
-    // TODO: implement New Repository option.
-    MenuItem newOption = new MenuItem("Start a new repository");
-    newOption.setDisable(true);
-
-    openMenu.getItems().addAll(cloneOption, existingOption, newOption);
-    menuBar.getMenus().addAll(openMenu);
+        openMenu.getItems().addAll(cloneOption, existingOption, newOption);
+        menuBar.getMenus().addAll(openMenu);
     }
 
     /**
@@ -213,51 +172,112 @@ public class SessionController extends Controller {
      *
      * @param actionEvent the button click event.
      * @throws GitAPIException if the updateFileStatusInRepo() call fails.
-     */
-    public void handleCommitButton(ActionEvent actionEvent) throws GitAPIException{
-        String commitMessage = commitMessageField.getText();
+     * @throws IOException if the loadPanelViews() fails.
+     */ //todo: since there's a try/catch, should this method signature not throw exceptions?
+    public void handleCommitButton(ActionEvent actionEvent) throws GitAPIException, IOException {
+        try {
+            String commitMessage = commitMessageField.getText();
 
-        for (RepoFile checkedFile : this.workingTreePanelView.getCheckedFilesInDirectory()) {
-            checkedFile.updateFileStatusInRepo();
+            for (RepoFile checkedFile : this.workingTreePanelView.getCheckedFilesInDirectory()) {
+                checkedFile.updateFileStatusInRepo();
+            }
+
+            this.theModel.currentRepoHelper.commit(commitMessage);
+
+            // Now clear the commit text and a view reload ( or `git status`) to show that something happened
+            commitMessageField.clear();
+            this.loadPanelViews();
+        } catch (NullPointerException e) {
+            ERROR_ALERT_CONSTANTS.noRepoLoaded().showAndWait();
+        } catch (TransportException e) {
+            ERROR_ALERT_CONSTANTS.notAuthorized().showAndWait();
+            // FIXME: TransportExceptions don't *only* indicate a permissions issue... Figure out what else they do
         }
 
-        this.theModel.currentRepoHelper.commit(commitMessage);
-        this.theModel.currentRepoHelper.pushAll();
+    }
+
+    public void handleMergeFromFetchButton(ActionEvent actionEvent) throws IOException, GitAPIException {
+        try {
+            this.theModel.currentRepoHelper.mergeFromFetch();
+            // Refresh panel views
+            this.loadPanelViews();
+        } catch (NullPointerException e) {
+            ERROR_ALERT_CONSTANTS.noRepoLoaded().showAndWait();
+        } catch (TransportException e) {
+            ERROR_ALERT_CONSTANTS.notAuthorized().showAndWait();
+            // FIXME: TransportExceptions don't *only* indicate a permissions issue... Figure out what else they do
+        }
 
     }
 
-    public void handleMergeButton(ActionEvent actionEvent){
+    public void handlePushButton(ActionEvent actionEvent) throws GitAPIException, IOException {
+        try {
+            this.theModel.currentRepoHelper.pushAll();
+
+            // Refresh panel views
+            this.loadPanelViews();
+        } catch (NullPointerException e) {
+            ERROR_ALERT_CONSTANTS.noRepoLoaded().showAndWait();
+        } catch (TransportException e) {
+            ERROR_ALERT_CONSTANTS.notAuthorized().showAndWait();
+            // FIXME: TransportExceptions don't *only* indicate a permissions issue... Figure out what else they do
+        }
     }
 
-    public void handlePushButton(ActionEvent actionEvent){
-    }
-
-    public void handleFetchButton(ActionEvent actionEvent){
-
+    public void handleFetchButton(ActionEvent actionEvent) throws GitAPIException, IOException {
+        try {
+            this.theModel.currentRepoHelper.fetch();
+            // Refresh panel views
+            this.loadPanelViews();
+        } catch (NullPointerException e) {
+            ERROR_ALERT_CONSTANTS.noRepoLoaded().showAndWait();
+        } catch (TransportException e) {
+            ERROR_ALERT_CONSTANTS.notAuthorized().showAndWait();
+            e.printStackTrace();
+            // FIXME: TransportExceptions don't *only* indicate a permissions issue... Figure out what else they do
+        }
     }
 
     /**
-     * Reloads the panel views when the button is clicked.
+     * Loads the panel views when the "git status" button is clicked.
      *
      * TODO: Implement automatic refresh!
      *
-     * @param actionEvent the button click event.
      * @throws GitAPIException if the drawDirectoryView() call fails.
      * @throws IOException if the drawDirectoryView() call fails.
      */
-    public void handleReloadButton(ActionEvent actionEvent) throws GitAPIException, IOException{
-        this.workingTreePanelView.drawDirectoryView();
-        this.localCommitTreeModel.update();
-        this.remoteCommitTreeModel.update();
+    public void loadPanelViews() throws GitAPIException, IOException{
+        try {
+            RepoHelper selectedRepoHelper = this.repositorySelector.getValue();
+            this.theModel.openRepoFromHelper(selectedRepoHelper);
+
+            this.workingTreePanelView.drawDirectoryView();
+            this.localCommitTreeModel.update();
+            this.remoteCommitTreeModel.update();
+
+            this.updateBranchDropdown();
+        } catch (NullPointerException e) {
+            ERROR_ALERT_CONSTANTS.noRepoLoaded().showAndWait();
+        }
     }
 
-//    public void handleCloneToDestinationButton(ActionEvent actionEvent) {
-//        File cloneRepoFile = getPathFromChooser(true, "Choose a Location", ((Button)actionEvent.getSource()).getScene().getWindow());
-//        try{
-//            RepoHelper repoHelper = new ClonedRepoHelper(cloneRepoFile.toPath(), SECRET_CONSTANTS.TEST_GITHUB_TOKEN);
-//            this.theModel.openRepoFromHelper(repoHelper);
-//        } catch(Exception e){
-//            e.printStackTrace();
-//        }
-//    }
+    private void setButtonsDisabled(boolean disable) {
+        gitStatusButton.setDisable(disable);
+        commitButton.setDisable(disable);
+        mergeFromFetchButton.setDisable(disable);
+        pushButton.setDisable(disable);
+        fetchButton.setDisable(disable);
+    }
+
+    /**
+     *
+     * @param actionEvent
+     * @throws GitAPIException
+     * @throws IOException from updateBranchDropdown()
+     */
+    public void loadSelectedBranch(ActionEvent actionEvent) throws GitAPIException, IOException {
+        String branchName = this.branchSelector.getValue();
+        this.theModel.getCurrentRepoHelper().checkoutBranch(branchName);
+        this.updateBranchDropdown();
+    }
 }

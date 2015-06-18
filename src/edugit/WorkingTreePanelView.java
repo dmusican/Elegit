@@ -40,18 +40,25 @@ public class WorkingTreePanelView extends Group {
      * @throws IOException if populating the parentDirectoryRepoFile fails.
      */
     public void drawDirectoryView() throws GitAPIException, IOException {
-        // TODO: getters
-        Path directoryPath = this.sessionModel.currentRepoHelper.getDirectory();
+        Path directoryPath = this.sessionModel.getCurrentRepoHelper().getDirectory();
 
         // NOTE: performance stuff with recursion
-        DirectoryRepoFile parentDirectoryRepoFile = this.sessionModel.getParentDirectoryRepoFile();
+        // #old: This is commented out since we're no longer loading the whole directory.
+//        DirectoryRepoFile parentDirectoryRepoFile = this.sessionModel.getParentDirectoryRepoFile();
 
-        CheckBoxTreeItem<RepoFile> rootItem = new CheckBoxTreeItem<RepoFile>(parentDirectoryRepoFile);
+        DirectoryRepoFile rootDirectory = new DirectoryRepoFile("", this.sessionModel.getCurrentRepo());
+
+        CheckBoxTreeItem<RepoFile> rootItem = new CheckBoxTreeItem<RepoFile>(rootDirectory);
         rootItem.setExpanded(true);
 
-        rootItem = this.populateRepoFileTreeLeaf(rootItem);
+//        rootItem = this.populateRepoFileTreeLeaf(rootItem);
 
-        // TODO: Write a custom tree cell? Show icons for NEW, MODIFIED, or MISSING
+        for (RepoFile changedRepoFile : this.sessionModel.getAllChangedRepoFiles()) {
+            CheckBoxTreeItem<RepoFile> leaf = new CheckBoxTreeItem<>(changedRepoFile, changedRepoFile.textLabel);
+            rootItem.getChildren().add(leaf);
+            this.fileLeafs.add(leaf);
+        }
+
         this.directoryTreeView = new TreeView<RepoFile>(rootItem);
         this.directoryTreeView.setCellFactory(CheckBoxTreeCell.<RepoFile>forTreeView());
 
@@ -67,8 +74,11 @@ public class WorkingTreePanelView extends Group {
      * for children and then making CheckBoxTreeItems for those children and populating them recursively
      * using this method.
      *
+     * #old: This is unused since we're no longer loading the whole directory.
+     *
      * @param parentLeaf A RepoFile's CheckBoxTreeItem to be populated with its children.
      * @return the populated parent leaf.
+     *
      */
     public CheckBoxTreeItem<RepoFile> populateRepoFileTreeLeaf(CheckBoxTreeItem<RepoFile> parentLeaf) {
         RepoFile parentLeafRepoFile = parentLeaf.getValue();

@@ -1,12 +1,13 @@
 package edugit;
 
+import com.sun.jdi.InvocationException;
 import org.eclipse.jgit.api.AddCommand;
+import org.eclipse.jgit.api.CheckoutCommand;
 import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.api.errors.InvalidRemoteException;
-import org.eclipse.jgit.api.errors.NoMessageException;
-import org.eclipse.jgit.api.errors.WrongRepositoryStateException;
+import org.eclipse.jgit.api.errors.*;
+import org.eclipse.jgit.errors.AmbiguousObjectException;
 import org.eclipse.jgit.lib.ObjectId;
+import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revplot.PlotCommitList;
 import org.eclipse.jgit.revplot.PlotLane;
@@ -19,6 +20,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -26,7 +28,7 @@ import java.util.Map;
  */
 public abstract class RepoHelper {
 
-    protected UsernamePasswordCredentialsProvider ownerAuth; // TODO: Make an Owner object?
+    protected UsernamePasswordCredentialsProvider ownerAuth;
     private Repository repo;
     protected String remoteURL;
 
@@ -35,6 +37,7 @@ public abstract class RepoHelper {
 
 	private ArrayList<CommitHelper> localCommits;
     private Map<ObjectId, CommitHelper> localCommitIdMap;
+    private ArrayList<String> branchStrings;
 
 
     /**
@@ -45,21 +48,27 @@ public abstract class RepoHelper {
      * @throws GitAPIException if the obtainRepository() call throws this exception..
      * @throws IOException if the obtainRepository() call throws this exception.
      */
-    public RepoHelper(Path directoryPath, String remoteURL, String username, String password) throws GitAPIException, IOException {
-        this.ownerAuth = new UsernamePasswordCredentialsProvider(username, password);
+    public RepoHelper(Path directoryPath, String remoteURL, RepoOwner owner) throws GitAPIException, IOException {
+        this.ownerAuth = new UsernamePasswordCredentialsProvider(owner.getUsername(), owner.getPassword());
 
-        // TODO: use when needed only (not in existing repos)
-        this.remoteURL = remoteURL; //"https://github.com/grahamearley/jgit-test.git"; // TODO: pass this in!
+        this.remoteURL = remoteURL;
 
         this.localPath = directoryPath;
 
         this.repo = this.obtainRepository();
+        this.localCommitIdMap = new HashMap<>();
+        this.localCommits = this.parseLocalCommits();
 
         // TODO: Use DirectoryWatcher for auto-refreshes.
-//        this.directoryWatcher = new DirectoryWatcher(this.localPath);
-//        this.directoryWatcher.beginProcessingEvents();
-
         // TODO: performance? depth limit for parsing commits or something
+    }
+
+    /// Constructor for EXISTING repos to inherit (they don't need the Remote URL)
+    public RepoHelper(Path directoryPath, RepoOwner owner) throws GitAPIException, IOException {
+        this.ownerAuth = new UsernamePasswordCredentialsProvider(owner.getUsername(), owner.getPassword());
+        this.localPath = directoryPath;
+
+        this.repo = this.obtainRepository();
         this.localCommitIdMap = new HashMap<>();
         this.localCommits = this.parseLocalCommits();
     }
@@ -137,6 +146,22 @@ public abstract class RepoHelper {
         git.close();
     }
 
+    public void fetch() throws GitAPIException {
+        Git git = new Git(this.repo);
+
+        // The JGit docs say that if setCheckFetchedObjects
+        //  is set to true, objects received will be checked for validity.
+        //  Not sure what that means, but sounds good so I'm doing it...
+        git.fetch().setCredentialsProvider(this.ownerAuth).setCheckFetchedObjects(true).call();
+        git.close();
+    }
+
+    public void mergeFromFetch() throws IOException, GitAPIException {
+        Git git = new Git(this.repo);
+        git.merge().include(this.repo.resolve("FETCH_HEAD")).call();
+        git.close();
+    }
+
     public void closeRepo() {
         this.repo.close();
     }
@@ -153,6 +178,9 @@ public abstract class RepoHelper {
         return this.localCommits;
     }
 
+    /**
+     * @return the CommitHelper that contains the current HEAD
+     */
     public CommitHelper getCurrentHeadCommit(){
         try{
             ObjectId commitId = repo.resolve("HEAD");
@@ -192,6 +220,13 @@ public abstract class RepoHelper {
         return commitHelperList;
     }
 
+    /**
+     * Utilizes JGit to walk through the repo and create raw commit objects - more
+     * specifically, JGit objects of (super)type RevCommit. This is an expensive
+     * operation and should only be called when necessary
+     * @return a list of raw commits
+     * @throws IOException
+     */
     public PlotCommitList<PlotLane> parseRawLocalCommits() throws IOException{
         PlotWalk w = new PlotWalk(repo);
         ObjectId rootId = repo.resolve("HEAD");
@@ -204,6 +239,13 @@ public abstract class RepoHelper {
         return plotCommitList;
     }
 
+    /**
+     * Utilizes JGit to parse a commit with the given ID and returns it in
+     * raw format
+     * @param id the ID of the commit
+     * @return the raw commit corresponding to the given ID
+     * @throws IOException
+     */
     public RevCommit parseRawCommit(ObjectId id) throws IOException{
         RevWalk w = new RevWalk(repo);
         return w.parseCommit(id);
@@ -211,6 +253,32 @@ public abstract class RepoHelper {
 
     public Path getLocalPath() {
         return localPath;
+    }
+
+    @Override
+    public String toString() {
+        return this.localPath.getFileName().toString();
+    }
+
+    public ArrayList<String> getLocalBranchNames() throws GitAPIException {
+        // see JGit cookbook for how to get Remote branches too
+        List<Ref> getBranchesCall = new Git(this.repo).branchList().call();
+
+        ArrayList<String> branchNames = new ArrayList<>();
+
+        for (Ref ref : getBranchesCall) {
+            branchNames.add(ref.getName());
+        }
+
+        return branchNames;
+    }
+
+    public void checkoutBranch(String branchName) throws GitAPIException {
+        new Git(this.repo).checkout().setName(branchName).call();
+    }
+
+    public String getCurrentBranchName() throws IOException {
+        return this.repo.getBranch();
     }
 }
 

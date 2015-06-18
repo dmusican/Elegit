@@ -19,12 +19,16 @@ import java.util.Set;
 public class SessionModel {
 
     RepoHelper currentRepoHelper;
+
     ArrayList<RepoHelper> allRepoHelpers; // for when we support multiple repositories!
     private static SessionModel sessionModel;
+    private RepoOwner owner;
 
     public static SessionModel getSessionModel() {
         if (sessionModel == null) {
             sessionModel = new SessionModel();
+            sessionModel.owner = new RepoOwner();
+            sessionModel.owner.presentLoginDialogsToSetValues();
         }
         return sessionModel;
     }
@@ -83,6 +87,13 @@ public class SessionModel {
         return untrackedFiles;
     }
 
+    public Set<String> getConflictingFiles() throws GitAPIException {
+        Status status = new Git(this.getCurrentRepo()).status().call();
+        Set<String> conflictingFiles = status.getConflicting();
+
+        return conflictingFiles;
+    }
+
     /**
      * Calls `git status` and returns the set of missing files that Git reports.
      *
@@ -138,7 +149,6 @@ public class SessionModel {
      * @throws IOException if the DirectoryStream fails.
      */
     private DirectoryRepoFile populateDirectoryRepoFile(DirectoryRepoFile superDirectory) throws GitAPIException, IOException {
-//        try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(superDirectory.getFilePath())) {
         try {
             DirectoryStream<Path> directoryStream = Files.newDirectoryStream(superDirectory.getFilePath());
             for (Path path : directoryStream) {
@@ -158,6 +168,7 @@ public class SessionModel {
                     Set<String> modifiedFiles = getModifiedFiles();
                     Set<String> missingFiles = getMissingFiles();
                     Set<String> untrackedFiles = getUntrackedFiles();
+                    Set<String> conflictingFiles = getConflictingFiles();
 
                     // Relativize the path to the repository, because that's the file structure JGit
                     //  looks for in an 'add' command
@@ -176,6 +187,9 @@ public class SessionModel {
                     } else if (untrackedFiles.contains(relativizedPath.toString())) {
                         UntrackedRepoFile untrackedFile = new UntrackedRepoFile(path, this.getCurrentRepo());
                         superDirectory.addChild(untrackedFile);
+                    } else if (conflictingFiles.contains(relativizedPath.toString())) {
+                        ConflictingRepoFile conflictingFile = new ConflictingRepoFile(path, this.getCurrentRepo());
+                        superDirectory.addChild(conflictingFile);
                     } else {
                         RepoFile plainRepoFile = new RepoFile(path, this.getCurrentRepo());
                         superDirectory.addChild(plainRepoFile);
@@ -186,5 +200,59 @@ public class SessionModel {
             System.out.println(e.getStackTrace());
         }
         return superDirectory;
+    }
+
+    /**
+     * Assembles all the changed files (modified, missing, untracked) into RepoFiles
+     * and returns a list of them.
+     *
+     * @return a list of changed files, contained in RepoFile objects.
+     * @throws GitAPIException if the `git status` calls fail.
+     */
+    public ArrayList<RepoFile> getAllChangedRepoFiles() throws GitAPIException {
+        Set<String> modifiedFiles = getModifiedFiles();
+        Set<String> missingFiles = getMissingFiles();
+        Set<String> untrackedFiles = getUntrackedFiles();
+        Set<String> conflictingFiles = getConflictingFiles();
+
+        ArrayList<RepoFile> changedRepoFiles = new ArrayList<>();
+
+        for (String modifiedFileString : modifiedFiles) {
+            ModifiedRepoFile modifiedRepoFile = new ModifiedRepoFile(modifiedFileString, this.getCurrentRepo());
+            changedRepoFiles.add(modifiedRepoFile);
+        }
+
+        for (String missingFileString : missingFiles) {
+            MissingRepoFile missingRepoFile = new MissingRepoFile(missingFileString, this.getCurrentRepo());
+            changedRepoFiles.add(missingRepoFile);
+        }
+
+        for (String untrackedFileString : untrackedFiles) {
+            UntrackedRepoFile untrackedRepoFile = new UntrackedRepoFile(untrackedFileString, this.getCurrentRepo());
+            changedRepoFiles.add(untrackedRepoFile);
+        }
+
+        for (String conflictingFileString : conflictingFiles) {
+            ConflictingRepoFile conflictingRepoFile = new ConflictingRepoFile(conflictingFileString, this.getCurrentRepo());
+            changedRepoFiles.add(conflictingRepoFile);
+        }
+
+        return changedRepoFiles;
+    }
+
+    public RepoHelper getCurrentRepoHelper() {
+        return currentRepoHelper;
+    }
+
+    public RepoOwner getOwner() {
+        return owner;
+    }
+
+    public void setOwner(RepoOwner owner) {
+        this.owner = owner;
+    }
+
+    public ArrayList<RepoHelper> getAllRepoHelpers() {
+        return allRepoHelpers;
     }
 }

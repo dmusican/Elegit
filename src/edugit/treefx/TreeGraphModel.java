@@ -1,9 +1,6 @@
 package edugit.treefx;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by makik on 6/10/15.
@@ -37,12 +34,13 @@ public class TreeGraphModel{
      * Constructs a new model with a cell with the given ID as the root
      * @param rootCellId the root cell's id
      */
-    public TreeGraphModel(String rootCellId) {
+    public TreeGraphModel(String rootCellId, String rootCellLabel) {
 
         // clear model, create lists
         clear();
 
         this.rootCell = new Cell(rootCellId, null);
+        this.rootCell.setDisplayLabel(rootCellLabel);
         this.prevAddedId = rootCellId;
         this.addCell(rootCell);
     }
@@ -150,7 +148,7 @@ public class TreeGraphModel{
      */
     private void addCell( Cell cell) {
         addedCells.add(cell);
-        cellMap.put( cell.getCellId(), cell);
+        cellMap.put(cell.getCellId(), cell);
     }
 
     /**
@@ -165,7 +163,7 @@ public class TreeGraphModel{
 
         Edge edge = new Edge( sourceCell, targetCell);
 
-        addedEdges.add( edge);
+        addedEdges.add(edge);
     }
 
     /**

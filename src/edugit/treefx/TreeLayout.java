@@ -55,27 +55,35 @@ public class TreeLayout{
      */
     private static void relocateCell(Cell c, int lastHeight){
         visited.add(c.getCellId());
-        double x = heightCounts[c.height] * H_SPACING + H_PAD;
-        double y = c.height * V_SPACING + V_PAD;
+
+        int h = getHeightOfCell(c);
+        double x = heightCounts[h] * H_SPACING + H_PAD;
+        double y = h * V_SPACING + V_PAD;
         c.relocate(x, y);
 
-        heightCounts[c.height] += 1;
+        heightCounts[h] += 1;
 
-//        for(int i = c.height; i < lastHeight; i++){
-//            System.out.println("Is it useful?");
-//            if(heightCounts[i] <= heightCounts[lastHeight]){
-//                System.out.println("Yes");
-//                heightCounts[i] += 1;
-//            }
-//        }
+        for(int i = h; i < lastHeight; i++){
+            if(heightCounts[i] < heightCounts[lastHeight]){
+                heightCounts[i] += 1;
+            }
+        }
 
         List<Cell> list = c.getCellChildren();
         list.sort(null);
 
         for(Cell child : list){
             if(!visited.contains(child.getCellId())){
-                relocateCell(child, c.height);
+                relocateCell(child, h);
             }
         }
+    }
+
+    private static int getHeightOfCell(Cell c){
+        return c.height;
+//        long timeFromMostRecent = (minTime - c.getTimeInMillis());
+//        double ratio = ((double)Math.max(1,timeFromMostRecent))/intervalSize;
+//        int pos = (int)(ratio * numSteps);
+//        return pos;
     }
 }

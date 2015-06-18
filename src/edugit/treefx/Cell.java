@@ -1,10 +1,13 @@
 package edugit.treefx;
 
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.scene.Node;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.shape.Shape;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,16 +28,19 @@ public class Cell extends Pane implements Comparable<Cell>{
     Tooltip tooltip;
 
     // The unique ID of this cell
-    String cellId;
+    private final String cellId;
 
     // The list of children of this cell
     List<Cell> children = new ArrayList<>();
 
     // The parent object that holds the parents of this cell
-    ParentCell parent;
+    ParentCell parents;
+
+    List<Edge> edges = new ArrayList<>();
 
     // The number of generations away from the furthest leaf cell
     int height;
+    IntegerProperty heightProperty;
 
     /**
      * Constructs a node with the given ID and a single parent node
@@ -53,19 +59,23 @@ public class Cell extends Pane implements Comparable<Cell>{
      */
     public Cell(String cellId, Cell parent1, Cell parent2){
         this.cellId = cellId;
-        this.parent = new ParentCell(this, parent1, parent2);
+        this.parents = new ParentCell(this, parent1, parent2);
 
-        setView(new Rectangle(BOX_SIZE, BOX_SIZE, Color.BLUE));
+        setView(new Rectangle(BOX_SIZE, BOX_SIZE, Highlighter.STANDARD_COLOR));
 //        setView(new Text(cellId));
 
         this.height = 0;
-
+        this.heightProperty = new SimpleIntegerProperty(this.height);
         updateHeight();
 
-        this.setOnMouseClicked(event -> System.out.println("ID: " + cellId + "\n" + "Height: " + this.height + "\n" + tooltip.getText()));
-
         tooltip = new Tooltip(cellId);
+        tooltip.setWrapText(true);
+        tooltip.setMaxWidth(200);
         Tooltip.install(this, tooltip);
+
+        this.setOnMouseClicked(event -> Highlighter.handleMouseClicked(this));
+        this.setOnMouseEntered(event -> Highlighter.handleMouseover(this, true));
+        this.setOnMouseExited(event -> Highlighter.handleMouseover(this, false));
     }
 
     /**
@@ -83,8 +93,9 @@ public class Cell extends Pane implements Comparable<Cell>{
     public void updateHeight(){
         for(Cell c : children){
             this.height = (this.height <= c.height) ? (c.height + 1) : this.height;
+            this.heightProperty.set(this.height);
         }
-        parent.updateHeight();
+        parents.updateHeight();
     }
 
     /**
@@ -93,6 +104,7 @@ public class Cell extends Pane implements Comparable<Cell>{
      */
     public void addCellChild(Cell cell) {
         children.add(cell);
+        updateHeight();
     }
 
     /**
@@ -100,6 +112,10 @@ public class Cell extends Pane implements Comparable<Cell>{
      */
     public List<Cell> getCellChildren() {
         return children;
+    }
+
+    public List<Cell> getCellParents(){
+        return parents.toList();
     }
 
     /**
@@ -119,6 +135,11 @@ public class Cell extends Pane implements Comparable<Cell>{
         getChildren().add(view);
     }
 
+    public void setColor(Color color){
+        Shape s = (Shape) view;
+        s.setFill(color);
+    }
+
     /**
      * @return the unique ID of this cell
      */
@@ -128,10 +149,11 @@ public class Cell extends Pane implements Comparable<Cell>{
 
     @Override
     public int compareTo(Cell c){
-        int i = Double.compare(this.height, c.height);
+        int i = Integer.compare(this.height, c.height);
         if(i != 0){
             return i;
         }
+
         int minHeightCChild = c.height;
         for(Cell child : c.getCellChildren()){
             if(child.height < minHeightCChild){
@@ -146,7 +168,12 @@ public class Cell extends Pane implements Comparable<Cell>{
             }
         }
         i = Integer.compare(minHeightCChild, minHeightChild);
-        return i;
+        if(i != 0){
+            return i;
+        }
+
+        int cParentCount = c.parents.count();
+        return Integer.compare(parents.count(), cParentCount);
     }
 
     /**
@@ -169,15 +196,23 @@ public class Cell extends Pane implements Comparable<Cell>{
         }
 
         /**
-         * Updates the heights of each held parent cell
+         * @return the number of parent commits associated with this object
          */
-        public void updateHeight(){
-            if(this.mom != null){
-                this.mom.updateHeight();
-            }
-            if(this.dad != null){
-                this.dad.updateHeight();
-            }
+        public int count(){
+            int count = 0;
+            if(mom != null) count++;
+            if(dad != null) count++;
+            return count;
+        }
+
+        /**
+         * @return the stored parent commits in list form
+         */
+        public ArrayList<Cell> toList(){
+            ArrayList<Cell> list = new ArrayList<>(2);
+            if(mom != null) list.add(mom);
+            if(dad != null) list.add(dad);
+            return list;
         }
 
         /**
@@ -190,6 +225,18 @@ public class Cell extends Pane implements Comparable<Cell>{
             }
             if(this.dad != null){
                 this.dad.addCellChild(cell);
+            }
+        }
+
+        /**
+         * Updates the heights of each held parent cell
+         */
+        public void updateHeight(){
+            if(this.mom != null){
+                this.mom.updateHeight();
+            }
+            if(this.dad != null){
+                this.dad.updateHeight();
             }
         }
     }
