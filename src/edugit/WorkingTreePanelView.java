@@ -29,6 +29,7 @@ public class WorkingTreePanelView extends Group {
     public WorkingTreePanelView() {
         this.fileLeafs = new ArrayList<>();
         this.directoryTreeView = new TreeView<RepoFile>();
+
         this.getChildren().add(this.directoryTreeView);
     }
 

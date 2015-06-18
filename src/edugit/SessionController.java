@@ -1,12 +1,13 @@
 package edugit;
 
 import javafx.event.ActionEvent;
+import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.text.Text;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
 import org.eclipse.jgit.api.errors.JGitInternalException;
 import org.eclipse.jgit.api.errors.TransportException;
-import org.eclipse.jgit.lib.Ref;
 
 import java.io.IOException;
 import java.util.*;
@@ -16,9 +17,8 @@ import java.util.*;
  */
 public class SessionController extends Controller {
 
-    public ComboBox<RepoHelper> repositorySelector;
     public ComboBox<String> branchSelector;
-    public Button loadBranchButton;
+    public Text currentRepoLabel;
     private SessionModel theModel;
 
     public Button gitStatusButton;
@@ -27,7 +27,6 @@ public class SessionController extends Controller {
     public Button pushButton;
     public Button fetchButton;
 
-    public MenuBar menuBar;
     public TextArea commitMessageField;
     public WorkingTreePanelView workingTreePanelView;
 	public CommitTreePanelView localCommitTreePanelView;
@@ -35,6 +34,11 @@ public class SessionController extends Controller {
 
     CommitTreeModel localCommitTreeModel;
     CommitTreeModel remoteCommitTreeModel;
+
+    // The menu bar
+    public MenuBar menuBar;
+    private Menu newRepoMenu;
+    private Menu openRecentRepoMenu;
 
     /**
      * Initializes the environment by obtaining the model
@@ -53,36 +57,22 @@ public class SessionController extends Controller {
 
         // Branch selector and trigger button starts invisible, since there's no repo and no branches
         this.branchSelector.setVisible(false);
-        this.loadBranchButton.setVisible(false);
 
         this.initializeMenuBar();
-        this.updateRepoDropdown();
-    }
-
-    private void updateRepoDropdown() {
-        // TODO: let users *delete* repos from this list
-        ArrayList<RepoHelper> items = this.theModel.getAllRepoHelpers();
-        this.repositorySelector.getItems().setAll(items);
-
-        if (items.size() != 0) {
-            // Load and display the most recently added value
-            this.theModel.openRepoFromHelper(items.get(items.size()-1));
-            this.repositorySelector.setValue(items.get(items.size() - 1));
-        }
     }
 
     private void updateBranchDropdown() throws GitAPIException, IOException {
         this.branchSelector.setVisible(true);
-        this.loadBranchButton.setVisible(true);
 
         List<String> branches = this.theModel.getCurrentRepoHelper().getLocalBranchNames();
         this.branchSelector.getItems().setAll(branches);
 
-        if (branches.size() != 0) {
-            // Set the dropdown to be selecting the current branch
-            String currentBranchName = this.theModel.getCurrentRepoHelper().getCurrentBranchName();
-            this.branchSelector.setValue(currentBranchName);
-        }
+        // TODO: Unify branch name display:
+        //      getCurrentBranchName() gives just the name,
+        //      but the list is populated with "ref/head/master" etc.
+        //  make a BranchHelper?
+        String currentBranchName = this.theModel.getCurrentRepoHelper().getCurrentBranchName();
+        this.branchSelector.setValue(currentBranchName);
     }
 
     /**
@@ -93,9 +83,11 @@ public class SessionController extends Controller {
      * loading method.
      *
      * Since each option creates a new repo, this method handles errors.
+     *
+     * TODO: split this method up or something. it's getting too big?
      */
     private void initializeMenuBar() {
-        Menu openMenu = new Menu("Load a Repository");
+        this.newRepoMenu = new Menu("Load new Repository");
 
         MenuItem cloneOption = new MenuItem("Clone");
         cloneOption.setOnAction(t -> {
@@ -105,11 +97,11 @@ public class SessionController extends Controller {
 
                 this.theModel.openRepoFromHelper(repoHelper);
 
-                // After loading (cloning) a repo, activate the buttons
+                // After loading (cloning) a repo, activate the buttons and update stuff
                 this.setButtonsDisabled(false);
-
-                this.updateRepoDropdown();
                 this.updateBranchDropdown();
+                this.updateMenuBarWithRecentRepos();
+                this.updateCurrentRepoLabel();
             } catch (IllegalArgumentException e) {
                 ERROR_ALERT_CONSTANTS.invalidRepo().showAndWait();
             } catch (JGitInternalException e) {
@@ -139,11 +131,11 @@ public class SessionController extends Controller {
                 RepoHelper repoHelper = builder.getRepoHelperFromDialogs();
                 this.theModel.openRepoFromHelper(repoHelper);
 
-                // After loading a repo, activate the buttons
+                // After loading a repo, activate the buttons and update stuff
                 this.setButtonsDisabled(false);
-
-                this.updateRepoDropdown();
                 this.updateBranchDropdown();
+                this.updateMenuBarWithRecentRepos();
+                this.updateCurrentRepoLabel();
             } catch (IllegalArgumentException e) {
                 ERROR_ALERT_CONSTANTS.invalidRepo().showAndWait();
             } catch (NullPointerException e) {
@@ -160,8 +152,41 @@ public class SessionController extends Controller {
         MenuItem newOption = new MenuItem("Start a new repository");
         newOption.setDisable(true);
 
-        openMenu.getItems().addAll(cloneOption, existingOption, newOption);
-        menuBar.getMenus().addAll(openMenu);
+        this.newRepoMenu.getItems().addAll(cloneOption, existingOption, newOption);
+
+        this.openRecentRepoMenu = new Menu("Open recent repository");
+        MenuItem noOptionsAvailable = new MenuItem("No recent repositories");
+        noOptionsAvailable.setDisable(true);
+        this.openRecentRepoMenu.getItems().add(noOptionsAvailable);
+
+        this.menuBar.getMenus().addAll(newRepoMenu, openRecentRepoMenu);
+    }
+
+    private void updateMenuBarWithRecentRepos() throws GitAPIException, IOException {
+        this.openRecentRepoMenu.getItems().clear();
+
+        ArrayList<RepoHelper> repoHelpers = this.theModel.getAllRepoHelpers();
+        for (RepoHelper repoHelper : repoHelpers) {
+            MenuItem recentRepoHelperMenuItem = new MenuItem(repoHelper.toString());
+            recentRepoHelperMenuItem.setOnAction(t -> {
+                this.theModel.openRepoFromHelper(repoHelper);
+
+                // Updates
+                this.setButtonsDisabled(false);
+                try {
+                    this.updateBranchDropdown();
+                } catch (GitAPIException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                this.updateCurrentRepoLabel();
+            });
+            openRecentRepoMenu.getItems().add(recentRepoHelperMenuItem);
+        }
+
+        this.menuBar.getMenus().clear();
+        this.menuBar.getMenus().addAll(this.newRepoMenu, this.openRecentRepoMenu);
     }
 
     /**
@@ -248,9 +273,6 @@ public class SessionController extends Controller {
      */
     public void loadPanelViews() throws GitAPIException, IOException{
         try {
-            RepoHelper selectedRepoHelper = this.repositorySelector.getValue();
-            this.theModel.openRepoFromHelper(selectedRepoHelper);
-
             this.workingTreePanelView.drawDirectoryView();
             this.localCommitTreeModel.update();
             this.remoteCommitTreeModel.update();
@@ -278,6 +300,10 @@ public class SessionController extends Controller {
     public void loadSelectedBranch(ActionEvent actionEvent) throws GitAPIException, IOException {
         String branchName = this.branchSelector.getValue();
         this.theModel.getCurrentRepoHelper().checkoutBranch(branchName);
-        this.updateBranchDropdown();
+    }
+
+    private void updateCurrentRepoLabel() {
+        String name = this.theModel.getCurrentRepoHelper().toString();
+        this.currentRepoLabel.setText(name);
     }
 }
