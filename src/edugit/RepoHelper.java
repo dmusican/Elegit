@@ -377,8 +377,8 @@ public abstract class RepoHelper {
     }
 
     public ArrayList<String> getRemoteBranchNames() throws GitAPIException {
-        // see JGit cookbook for how to get Remote branches too
-        List<Ref> getBranchesCall = new Git(this.repo).branchList().setListMode(ListBranchCommand.ListMode.REMOTE).call();
+        // I think this is getting remote branches too (ListMode.ALL)
+        List<Ref> getBranchesCall = new Git(this.repo).branchList().setListMode(ListBranchCommand.ListMode.ALL).call();
 
         ArrayList<String> branchNames = new ArrayList<>();
 
