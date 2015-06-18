@@ -15,7 +15,7 @@ import javafx.scene.control.ScrollPane;
 public class CommitTreePanelView extends Group{
 
     public static int TREE_PANEL_WIDTH = 200;
-    public static int TREE_PANEL_HEIGHT = 600;
+    public static int TREE_PANEL_HEIGHT = 500;
     /**
      * Handles the layout and display of the treeGraph
      * @param treeGraph the graph to be displayed

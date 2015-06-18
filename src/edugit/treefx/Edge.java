@@ -1,6 +1,7 @@
 package edugit.treefx;
 
 import javafx.beans.binding.DoubleBinding;
+import javafx.beans.binding.When;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -24,7 +25,7 @@ public class Edge extends Group {
     private boolean addedMidPoints;
     private boolean visible;
 
-    private DoubleProperty midPointOffset;
+    private DoubleProperty midLineX;
 
     /**
      * Constructs a directed line between the source and target cells and binds
@@ -37,7 +38,7 @@ public class Edge extends Group {
         this.source = source;
         this.target = target;
         this.addedMidPoints = false;
-        midPointOffset = new SimpleDoubleProperty(0);
+        midLineX = new SimpleDoubleProperty(0);
 
         DoubleBinding startX = source.layoutXProperty().add(source.getBoundsInParent().getWidth() / 2.0);
         DoubleBinding startY = source.layoutYProperty().add(0);
@@ -49,27 +50,12 @@ public class Edge extends Group {
         checkAndAddMidPoints(startX, startY, endX, endY);
         path.addPoint(endX, endY.add(TreeLayout.V_SPACING / 4.));
 
-//        target.heightProperty.addListener((observable, oldValue, newValue) -> {
-//            checkAndAddMidPoints(startX, startY, endX, endY);
-//        });
-//        source.heightProperty.addListener((observable, oldValue, newValue) -> {
-//            checkAndAddMidPoints(startX, startY, endX, endY);
-//        });
-
-//        startX.addListener((observable, oldValue, newValue) -> {
-//            checkMidPointOffset(endX.get(), newValue.doubleValue());
-//        });
-//
-//        endX.addListener((observable, oldValue, newValue) -> {
-//            checkMidPointOffset(newValue.doubleValue(), startX.get());
-//        });
-
         source.xLocationProperty.addListener((observable, oldValue, newValue) -> {
-            checkMidPointOffset(newValue.intValue(), target.xLocationProperty.get());
+            checkAndAddMidPoints(startX, startY, endX, endY);
         });
 
         target.xLocationProperty.addListener((observable, oldValue, newValue) -> {
-            checkMidPointOffset(source.xLocationProperty.get(), newValue.intValue());
+            checkAndAddMidPoints(startX, startY, endX, endY);
         });
 
         source.yLocationProperty.addListener((observable, oldValue, newValue) -> {
@@ -78,6 +64,13 @@ public class Edge extends Group {
         target.yLocationProperty.addListener((observable, oldValue, newValue) -> {
             checkAndAddMidPoints(startX, startY, endX, endY);
         });
+
+        midLineX.bind(new When(target.xLocationProperty.subtract(source.xLocationProperty).greaterThan(0))
+                .then(endX.subtract(TreeLayout.H_SPACING / 2.))
+                .otherwise(new When(target.xLocationProperty.subtract(source.xLocationProperty).lessThan(0))
+                .then(startX.subtract(TreeLayout.H_SPACING / 2.))
+                .otherwise(startX)));
+
 
         if(source instanceof InvisibleCell || target instanceof InvisibleCell){
             path.setDashed(true);
@@ -90,22 +83,11 @@ public class Edge extends Group {
         target.edges.add(this);
     }
 
-    private void checkMidPointOffset(int startX, int endX){
-        if(startX < endX){
-            midPointOffset.set(TreeLayout.H_SPACING / -2.);
-        }else if(startX > endX){
-            midPointOffset.set(TreeLayout.H_SPACING / 2.);
-        }else{
-            midPointOffset.set(0);
-        }
-    }
-
     private void checkAndAddMidPoints(DoubleBinding startX, DoubleBinding startY, DoubleBinding endX, DoubleBinding endY){
-//        if(source.height - target.height > 1){
         if(source.yLocationProperty.get() - target.yLocationProperty.get() > 1){
             if(!addedMidPoints){
-                path.addPoint(endX.add(midPointOffset), startY.subtract(TreeLayout.V_SPACING / 3.), 1);
-                path.addPoint(endX.add(midPointOffset), endY.add(TreeLayout.V_SPACING / 2.), 2);
+                path.addPoint(midLineX.add(0), startY.subtract(TreeLayout.V_SPACING / 3.), 1);
+                path.addPoint(midLineX.add(0), endY.add(TreeLayout.V_SPACING / 2.), 2);
                 this.addedMidPoints = true;
             }
         }else{
