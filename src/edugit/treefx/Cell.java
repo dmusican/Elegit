@@ -1,5 +1,6 @@
 package edugit.treefx;
 
+import edugit.CommitTreeController;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.scene.Node;
@@ -29,6 +30,8 @@ public class Cell extends Pane implements Comparable<Cell>{
 
     // The unique ID of this cell
     private final String cellId;
+    // The assigned time of this commit
+    private final long time;
 
     // The list of children of this cell
     List<Cell> children = new ArrayList<>();
@@ -42,13 +45,16 @@ public class Cell extends Pane implements Comparable<Cell>{
     int height;
     IntegerProperty heightProperty;
 
+    IntegerProperty xLocationProperty;
+    IntegerProperty yLocationProperty;
+
     /**
      * Constructs a node with the given ID and a single parent node
      * @param cellId the ID of this node
      * @param parent the parent of this node
      */
-    public Cell(String cellId, Cell parent){
-        this(cellId, parent, null);
+    public Cell(String cellId, long time, Cell parent){
+        this(cellId, time, parent, null);
     }
 
     /**
@@ -57,25 +63,33 @@ public class Cell extends Pane implements Comparable<Cell>{
      * @param parent1 the first parent of this node
      * @param parent2 the second parent of this node
      */
-    public Cell(String cellId, Cell parent1, Cell parent2){
+    public Cell(String cellId, long time, Cell parent1, Cell parent2){
         this.cellId = cellId;
+        this.time = time;
         this.parents = new ParentCell(this, parent1, parent2);
 
-        setView(new Rectangle(BOX_SIZE, BOX_SIZE, Highlighter.STANDARD_COLOR));
-//        setView(new Text(cellId));
+        setView(getBaseView());
 
         this.height = 0;
         this.heightProperty = new SimpleIntegerProperty(this.height);
         updateHeight();
+
+        this.xLocationProperty = new SimpleIntegerProperty(0);
+        this.yLocationProperty = new SimpleIntegerProperty(0);
 
         tooltip = new Tooltip(cellId);
         tooltip.setWrapText(true);
         tooltip.setMaxWidth(200);
         Tooltip.install(this, tooltip);
 
-        this.setOnMouseClicked(event -> Highlighter.handleMouseClicked(this));
-        this.setOnMouseEntered(event -> Highlighter.handleMouseover(this, true));
-        this.setOnMouseExited(event -> Highlighter.handleMouseover(this, false));
+        this.setOnMouseClicked(event -> CommitTreeController.handleMouseClicked(this));
+        this.setOnMouseEntered(event -> CommitTreeController.handleMouseover(this, true));
+        this.setOnMouseExited(event -> CommitTreeController.handleMouseover(this, false));
+    }
+
+    protected Node getBaseView(){
+        return new Rectangle(BOX_SIZE, BOX_SIZE, Highlighter.STANDARD_COLOR);
+//        setView(new Text(cellId));
     }
 
     /**
@@ -127,6 +141,31 @@ public class Cell extends Pane implements Comparable<Cell>{
     }
 
     /**
+     * Checks to see if the given cell has this cell as an ancestor,
+     * up to the given number of generations.
+     *
+     * Entering zero or a negative number will search all descendants
+     *
+     * @param cell the commit to check
+     * @param depth how many generations down to check
+     * @return true if cell is a descendant of this cell, otherwise false
+     */
+    public boolean isChild(Cell cell, int depth){
+        depth--;
+        if(children.contains(cell)) return true;
+        else if(depth != 0){
+            for(Cell child : children){
+                if(child.height > cell.height){
+                    if(child.isChild(cell, depth)){
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
      * Sets the look of this cell
      * @param view the new view
      */
@@ -147,8 +186,13 @@ public class Cell extends Pane implements Comparable<Cell>{
         return cellId;
     }
 
+    public long getTime(){
+        return time;
+    }
+
     @Override
     public int compareTo(Cell c){
+
         int i = Integer.compare(this.height, c.height);
         if(i != 0){
             return i;

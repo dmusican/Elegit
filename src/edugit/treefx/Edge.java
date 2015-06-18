@@ -49,21 +49,39 @@ public class Edge extends Group {
         checkAndAddMidPoints(startX, startY, endX, endY);
         path.addPoint(endX, endY.add(TreeLayout.V_SPACING / 4.));
 
-        target.heightProperty.addListener((observable, oldValue, newValue) -> {
+//        target.heightProperty.addListener((observable, oldValue, newValue) -> {
+//            checkAndAddMidPoints(startX, startY, endX, endY);
+//        });
+//        source.heightProperty.addListener((observable, oldValue, newValue) -> {
+//            checkAndAddMidPoints(startX, startY, endX, endY);
+//        });
+
+//        startX.addListener((observable, oldValue, newValue) -> {
+//            checkMidPointOffset(endX.get(), newValue.doubleValue());
+//        });
+//
+//        endX.addListener((observable, oldValue, newValue) -> {
+//            checkMidPointOffset(newValue.doubleValue(), startX.get());
+//        });
+
+        source.xLocationProperty.addListener((observable, oldValue, newValue) -> {
+            checkMidPointOffset(newValue.intValue(), target.xLocationProperty.get());
+        });
+
+        target.xLocationProperty.addListener((observable, oldValue, newValue) -> {
+            checkMidPointOffset(source.xLocationProperty.get(), newValue.intValue());
+        });
+
+        source.yLocationProperty.addListener((observable, oldValue, newValue) -> {
             checkAndAddMidPoints(startX, startY, endX, endY);
         });
-        source.heightProperty.addListener((observable, oldValue, newValue) -> {
+        target.yLocationProperty.addListener((observable, oldValue, newValue) -> {
             checkAndAddMidPoints(startX, startY, endX, endY);
         });
 
-        startX.addListener((observable, oldValue, newValue) -> {
-            checkMidPointOffset(endX.get(), newValue.doubleValue());
-        });
-
-        endX.addListener((observable, oldValue, newValue) -> {
-            checkMidPointOffset(newValue.doubleValue(), startX.get());
-        });
-
+        if(source instanceof InvisibleCell || target instanceof InvisibleCell){
+            path.setDashed(true);
+        }
         getChildren().add(path);
 
         allVisible.addListener((observable, oldValue, newValue) -> checkVisible());
@@ -72,10 +90,10 @@ public class Edge extends Group {
         target.edges.add(this);
     }
 
-    private void checkMidPointOffset(double startX, double endX){
-        if(startX > endX){
+    private void checkMidPointOffset(int startX, int endX){
+        if(startX < endX){
             midPointOffset.set(TreeLayout.H_SPACING / -2.);
-        }else if(startX < endX){
+        }else if(startX > endX){
             midPointOffset.set(TreeLayout.H_SPACING / 2.);
         }else{
             midPointOffset.set(0);
@@ -83,7 +101,8 @@ public class Edge extends Group {
     }
 
     private void checkAndAddMidPoints(DoubleBinding startX, DoubleBinding startY, DoubleBinding endX, DoubleBinding endY){
-        if(source.height - target.height > 1){
+//        if(source.height - target.height > 1){
+        if(source.yLocationProperty.get() - target.yLocationProperty.get() > 1){
             if(!addedMidPoints){
                 path.addPoint(endX.add(midPointOffset), startY.subtract(TreeLayout.V_SPACING / 3.), 1);
                 path.addPoint(endX.add(midPointOffset), endY.add(TreeLayout.V_SPACING / 2.), 2);

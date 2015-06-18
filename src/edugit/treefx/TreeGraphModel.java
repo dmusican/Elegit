@@ -34,12 +34,12 @@ public class TreeGraphModel{
      * Constructs a new model with a cell with the given ID as the root
      * @param rootCellId the root cell's id
      */
-    public TreeGraphModel(String rootCellId, String rootCellLabel) {
+    public TreeGraphModel(String rootCellId, long time, String rootCellLabel) {
 
         // clear model, create lists
         clear();
 
-        this.rootCell = new Cell(rootCellId, null);
+        this.rootCell = new Cell(rootCellId, time, null);
         this.rootCell.setDisplayLabel(rootCellLabel);
         this.prevAddedId = rootCellId;
         this.addCell(rootCell);
@@ -67,6 +67,14 @@ public class TreeGraphModel{
      */
     public Cell getRoot(){
         return this.rootCell;
+    }
+
+    public List<String> getCellIDs(){
+        return new ArrayList<>(cellMap.keySet());
+    }
+
+    public boolean containsID(String id){
+        return cellMap.containsKey(id);
     }
 
     /**
@@ -102,8 +110,8 @@ public class TreeGraphModel{
      * @param newId the id of the new cell
      * @param label the label of the new cell
      */
-    public void addCell(String newId, String label){
-        this.addCell(newId, label, prevAddedId);
+    public void addCell(String newId, long time, String label, boolean visible){
+        this.addCell(newId, time, label, prevAddedId, visible);
     }
 
     /**
@@ -113,8 +121,13 @@ public class TreeGraphModel{
      * @param label the label of the new cell
      * @param parentId the ID of the parent of this new cell
      */
-    public void addCell(String newId, String label, String parentId){
-        Cell cell = new Cell(newId, cellMap.get(parentId));
+    public void addCell(String newId, long time, String label, String parentId, boolean visible){
+        Cell cell;
+        if(visible){
+            cell = new Cell(newId, time, cellMap.get(parentId));
+        }else{
+            cell = new InvisibleCell(newId, time, cellMap.get(parentId));
+        }
         cell.setDisplayLabel(label);
         addCell(cell);
 
@@ -131,8 +144,13 @@ public class TreeGraphModel{
      * @param parent1Id the ID of the first parent of this new cell
      * @param parent2Id the ID of the second parent of this new cell
      */
-    public void addCell(String newId, String label, String parent1Id, String parent2Id){
-        Cell cell = new Cell(newId, cellMap.get(parent1Id), cellMap.get(parent2Id));
+    public void addCell(String newId, long time, String label, String parent1Id, String parent2Id, boolean visible){
+        Cell cell;
+        if(visible){
+            cell = new Cell(newId, time, cellMap.get(parent1Id), cellMap.get(parent2Id));
+        }else{
+            cell = new InvisibleCell(newId, time, cellMap.get(parent1Id), cellMap.get(parent2Id));
+        }
         cell.setDisplayLabel(label);
         addCell(cell);
 
@@ -158,12 +176,42 @@ public class TreeGraphModel{
      * @param targetId the child cell
      */
     public void addEdge( String sourceId, String targetId) {
-        Cell sourceCell = cellMap.get( sourceId);
+        Cell sourceCell = cellMap.get(sourceId);
         Cell targetCell = cellMap.get( targetId);
 
         Edge edge = new Edge( sourceCell, targetCell);
 
         addedEdges.add(edge);
+    }
+
+    /**
+     * Checks to see if the two cells referenced by the given IDs are direct
+     * neighbors
+     * @param cellID the id of the first cell
+     * @param neighborID the id of the second cell
+     * @return true if direct neighbors, else false
+     */
+    public boolean isNeighbor(String cellID, String neighborID){
+        List<Cell> relatives = getRelatives(cellID);
+        for(Cell c : relatives){
+            if(c.getCellId().equals(neighborID)){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Gets a list of a cell's parents and children
+     * @param cellID the ID of the cell
+     * @return all direct neighbors of the cell
+     */
+    public List<Cell> getRelatives(String cellID){
+        Cell cell = cellMap.get(cellID);
+        if(cell == null) return new ArrayList<>();
+        List<Cell> relatives = cell.getCellParents();
+        relatives.addAll(cell.getCellChildren());
+        return relatives;
     }
 
     /**

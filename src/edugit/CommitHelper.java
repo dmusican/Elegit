@@ -71,8 +71,15 @@ public class CommitHelper{
     /**
      * @return the unique ObjectId of the commit
      */
-    public ObjectId getId(){
+    public ObjectId getObjectId(){
         return this.commit.getId();
+    }
+
+    /**
+     * @return the unique identifying string for this commit
+     */
+    public String getId(){
+        return CommitTreeModel.getId(this);
     }
 
     /**
@@ -155,23 +162,33 @@ public class CommitHelper{
     }
 
     /**
-     * Checks to see if the given commit is a child of this commit.
+     * Checks to see if the given commit has this commit as an ancestor,
+     * up to the given number of generations.
      *
-     * NOTE: DOES NOT CHECK BEYOND THIS COMMITS CHILDREN. GRANDCHILDREN
-     * AND BEYOND WILL NOT BE DETECTED
+     * Entering zero or a negative number will search all descendants
      *
      * @param commit the commit to check
+     * @param depth how many generations down to check
      * @return true if commit is a child of this commit, otherwise false
      */
-    public boolean isChild(CommitHelper commit){
-        return children.contains(commit);
+    public boolean isChild(CommitHelper commit, int depth){
+        depth--;
+        if(children.contains(commit)) return true;
+        else if(depth != 0){
+            for(CommitHelper child : children){
+                if(child.isChild(commit, depth)){
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     /**
      * @param child the new child of this commit
      */
     public void addChild(CommitHelper child){
-        if(!isChild(child)){
+        if(!isChild(child, 1)){
             children.add(child);
         }
     }

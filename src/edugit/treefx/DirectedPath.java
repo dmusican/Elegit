@@ -57,6 +57,14 @@ public class DirectedPath extends Group{
         this.getChildren().add(arrow);
     }
 
+    public void setDashed(boolean isDashed){
+        if(isDashed){
+            this.path.getStrokeDashArray().addAll(3.,5.);
+        }else{
+            this.path.getStrokeDashArray().clear();
+        }
+    }
+
     public void addPoint(DoubleBinding newX, DoubleBinding newY, int index){
         this.getChildren().remove(path);
         this.getChildren().remove(arrow);

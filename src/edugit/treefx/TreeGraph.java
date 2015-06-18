@@ -61,15 +61,11 @@ public class TreeGraph{
     }
 
     /**
-     * Should always be called before modifying the underlying model
+     * Must be called after modifying the underlying model to add and
+     * remove the appropriate cells and edges and keep the view up to
+     * date
      */
-    public void beginUpdate() {}
-
-    /**
-     * Must be called after modifying the underlying model to update
-     * everything appropriately
-     */
-    public void endUpdate() {
+    public void update() {
         // add components to treeGraph pane
         getCellLayer().getChildren().addAll(treeGraphModel.getAddedEdges());
         getCellLayer().getChildren().addAll(treeGraphModel.getAddedCells());

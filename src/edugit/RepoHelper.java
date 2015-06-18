@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -33,7 +34,10 @@ public abstract class RepoHelper {
     private DirectoryWatcher directoryWatcher;
 
 	private ArrayList<CommitHelper> localCommits;
-    private Map<ObjectId, CommitHelper> localCommitIdMap;
+    private ArrayList<CommitHelper> remoteCommits;
+
+    private Map<String, CommitHelper> commitIdMap;
+    private Map<ObjectId, String> idMap;
 
 
     /**
@@ -52,11 +56,17 @@ public abstract class RepoHelper {
         this.localPath = directoryPath;
 
         this.repo = this.obtainRepository();
-        this.localCommitIdMap = new HashMap<>();
-        this.localCommits = this.parseLocalCommits();
 
         // TODO: Use DirectoryWatcher for auto-refreshes.
+//        this.directoryWatcher = new DirectoryWatcher(this.localPath);
+//        this.directoryWatcher.beginProcessingEvents();
+
+        this.commitIdMap = new HashMap<>();
+        this.idMap = new HashMap<>();
+
         // TODO: performance? depth limit for parsing commits or something
+        this.localCommits = this.parseAllLocalCommits();
+        this.remoteCommits = this.parseAllRemoteCommits();
     }
 
     /// Constructor for EXISTING repos to inherit (they don't need the Remote URL)
@@ -65,8 +75,12 @@ public abstract class RepoHelper {
         this.localPath = directoryPath;
 
         this.repo = this.obtainRepository();
-        this.localCommitIdMap = new HashMap<>();
-        this.localCommits = this.parseLocalCommits();
+
+        this.commitIdMap = new HashMap<>();
+        this.idMap = new HashMap<>();
+
+        this.localCommits = this.parseAllLocalCommits();
+        this.remoteCommits = this.parseAllRemoteCommits();
     }
 
     /**
@@ -170,17 +184,29 @@ public abstract class RepoHelper {
         return this.localPath;
     }
 
-    public ArrayList<CommitHelper> getLocalCommits(){
+    public List<CommitHelper> getLocalCommits(){
         return this.localCommits;
+    }
+
+    public List<CommitHelper> getRemoteCommits(){
+        return this.remoteCommits;
+    }
+
+    public CommitHelper getCommit(String id){
+        return commitIdMap.get(id);
+    }
+
+    public List<String> getAllCommitIDs(){
+        return new ArrayList<>(commitIdMap.keySet());
     }
 
     /**
      * @return the CommitHelper that contains the current HEAD
      */
-    public CommitHelper getCurrentHeadCommit(){
+    public CommitHelper getLocalHeadCommit(){
         try{
             ObjectId commitId = repo.resolve("HEAD");
-            return this.localCommitIdMap.get(commitId);
+            return this.commitIdMap.get(commitId);
         }catch(Exception e){
             e.printStackTrace();
             return null;
@@ -188,26 +214,50 @@ public abstract class RepoHelper {
     }
 
     /**
-     * Constructs a list of all local commits found by parsing the repository using getAllCommits(), each
-     * wrapped into a CommitHelper with the appropriate parents and children
+     * Constructs a list of all local commits found by parsing the repository for raw RevCommit objects,
+     * then wrapping them into a CommitHelper with the appropriate parents and children
      *
      * @return a list of CommitHelpers for all local commits
      * @throws IOException
      */
-    private ArrayList<CommitHelper> parseLocalCommits() throws IOException{
-        PlotCommitList<PlotLane> commitList = this.parseRawLocalCommits();
+    private ArrayList<CommitHelper> parseAllLocalCommits() throws IOException{
+        PlotCommitList<PlotLane> commitList = this.parseAllRawLocalCommits();
+        return wrapRawCommits(commitList, commitIdMap);
+    }
 
-        this.localCommitIdMap = new HashMap<>(commitList.size());
+    /**
+     * Constructs a list of all remote commits found by parsing the repository for raw RevCommit objects,
+     * then wrapping them into a CommitHelper with the appropriate parents and children
+     *
+     * @return a list of CommitHelpers for all remote commits
+     * @throws IOException
+     */
+    private ArrayList<CommitHelper> parseAllRemoteCommits() throws IOException{
+        PlotCommitList<PlotLane> commitList = this.parseAllRawRemoteCommits();
+        return wrapRawCommits(commitList, commitIdMap);
+    }
+
+    /**
+     * Given a list of raw JGit commit objects, constructs CommitHelper objects to wrap them and gives
+     * them the appropriate parents and children
+     * @param commitList the raw commits to wrap
+     * @param commitIdMap the map for placing ids and commits into
+     * @return a list of CommitHelpers for the given commits
+     * @throws IOException
+     */
+    private ArrayList<CommitHelper> wrapRawCommits(PlotCommitList<PlotLane> commitList,
+                                                   Map<String, CommitHelper> commitIdMap) throws IOException{
         ArrayList<CommitHelper> commitHelperList = new ArrayList<>(commitList.size());
         for(int i = commitList.size()-1; i >= 0; i--){
             RevCommit curCommit = commitList.get(i);
 
             CommitHelper curCommitHelper = new CommitHelper(curCommit, this);
-            localCommitIdMap.put(curCommit.getId(), curCommitHelper);
+            commitIdMap.put(CommitTreeModel.getId(curCommitHelper), curCommitHelper);
+            idMap.put(curCommit.getId(),CommitTreeModel.getId(curCommitHelper));
 
             RevCommit[] parents = curCommit.getParents();
             for(RevCommit p : parents){
-                CommitHelper parentCommitHelper = localCommitIdMap.get(p.getId());
+                CommitHelper parentCommitHelper = commitIdMap.get(idMap.get(p.getId()));
                 curCommitHelper.addParent(parentCommitHelper);
             }
 
@@ -220,14 +270,40 @@ public abstract class RepoHelper {
      * Utilizes JGit to walk through the repo and create raw commit objects - more
      * specifically, JGit objects of (super)type RevCommit. This is an expensive
      * operation and should only be called when necessary
-     * @return a list of raw commits
+     * @return a list of raw local commits
      * @throws IOException
      */
-    public PlotCommitList<PlotLane> parseRawLocalCommits() throws IOException{
+    private PlotCommitList<PlotLane> parseAllRawLocalCommits() throws IOException{
+        // TODO: maybe resolve different branches (e.g. "refs/heads/master")?
+        ObjectId headId = repo.resolve("HEAD");
+        return parseAllRawCommits(headId);
+    }
+    /**
+     * Utilizes JGit to walk through the repo and create raw commit objects - more
+     * specifically, JGit objects of (super)type RevCommit. This is an expensive
+     * operation and should only be called when necessary
+     * @return a list of raw remote commits
+     * @throws IOException
+     */
+    private PlotCommitList<PlotLane> parseAllRawRemoteCommits() throws IOException{
+        ObjectId originHeadId = repo.resolve("refs/remotes/origin/HEAD");
+        if(originHeadId == null){
+            originHeadId = repo.resolve("refs/remotes/origin/master");
+        }
+        return parseAllRawCommits(originHeadId);
+    }
+    /**
+     * Utilizes JGit to walk through the repo and create raw commit objects - more
+     * specifically, JGit objects of (super)type RevCommit. This is an expensive
+     * operation and should only be called when necessary
+     * @param id the starting point to parse from
+     * @return a list of raw commits starting from the given id
+     * @throws IOException
+     */
+    private PlotCommitList<PlotLane> parseAllRawCommits(ObjectId id) throws IOException{
         PlotWalk w = new PlotWalk(repo);
-        ObjectId rootId = repo.resolve("HEAD");
-        RevCommit root = w.parseCommit(rootId);
-        w.markStart(root);
+        RevCommit start = w.parseCommit(id);
+        w.markStart(start);
         PlotCommitList<PlotLane> plotCommitList = new PlotCommitList<>();
         plotCommitList.source(w);
         plotCommitList.fillTo(Integer.MAX_VALUE);
