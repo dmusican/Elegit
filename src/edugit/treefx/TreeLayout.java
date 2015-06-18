@@ -43,16 +43,15 @@ public class TreeLayout{
         visited = new ArrayList<>();
         minRowUsedInColumn = new ArrayList<>();
 
-        int currentColumn;
         for(int i = allCellsSortedByTime.size() - 1; i >= 0; i--){
             Cell c = allCellsSortedByTime.get(i);
             if(!visited.contains(c.getCellId())){
-                currentColumn = getColumnOfCell(c);
-                int minHeight = relocateCellColumn(c);
-                if(minRowUsedInColumn.size()-1 < currentColumn){
-                    minRowUsedInColumn.add(currentColumn, minHeight);
-                }else if(minHeight < minRowUsedInColumn.get(currentColumn)){
-                    minRowUsedInColumn.set(currentColumn, minHeight);
+                int minRow = relocateCellAndChildColumn(c);
+                int columnOfMinRow = getColumnOfCellInRow(minRow);
+                if(minRowUsedInColumn.size()-1 < columnOfMinRow){
+                    minRowUsedInColumn.add(columnOfMinRow, minRow);
+                }else if(minRow < minRowUsedInColumn.get(columnOfMinRow)){
+                    minRowUsedInColumn.set(columnOfMinRow, minRow);
                 }
             }
         }
@@ -68,11 +67,11 @@ public class TreeLayout{
      * @return the minimum row in which a cell was placed before
      * it had no non-visited children
      */
-    private static int relocateCellColumn(Cell c){
+    private static int relocateCellAndChildColumn(Cell c){
         visited.add(c.getCellId());
 
-        int w = getColumnOfCell(c);
         int h = getRowOfCell(c);
+        int w = getColumnOfCellInRow(h);
 
         c.xLocationProperty.set(w);
         c.yLocationProperty.set(h);
@@ -86,7 +85,7 @@ public class TreeLayout{
 
         for(Cell child : list){
             if(!visited.contains(child.getCellId())){
-                return relocateCellColumn(child);
+                return relocateCellAndChildColumn(child);
             }
         }
         return h;
@@ -96,13 +95,12 @@ public class TreeLayout{
      * Calculates the column closest to the left of the screen to place the
      * given cell based on the cell's row and the minimum heights recorded
      * for each column
-     * @param c the cell to examine
+     * @param cellRow the row the cell to examine is in
      * @return the lowest indexed column in which to place c
      */
-    private static int getColumnOfCell(Cell c){
+    private static int getColumnOfCellInRow(int cellRow){
         int column = 0;
-        int cellRow = getRowOfCell(c);
-        while(minRowUsedInColumn.size() > column && cellRow > minRowUsedInColumn.get(column)){
+        while(minRowUsedInColumn.size() > column && (cellRow > minRowUsedInColumn.get(column))){
             column++;
         }
         return column;
