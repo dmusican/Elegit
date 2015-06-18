@@ -87,6 +87,13 @@ public class SessionModel {
         return untrackedFiles;
     }
 
+    public Set<String> getConflictingFiles() throws GitAPIException {
+        Status status = new Git(this.getCurrentRepo()).status().call();
+        Set<String> conflictingFiles = status.getConflicting();
+
+        return conflictingFiles;
+    }
+
     /**
      * Calls `git status` and returns the set of missing files that Git reports.
      *
@@ -161,6 +168,7 @@ public class SessionModel {
                     Set<String> modifiedFiles = getModifiedFiles();
                     Set<String> missingFiles = getMissingFiles();
                     Set<String> untrackedFiles = getUntrackedFiles();
+                    Set<String> conflictingFiles = getConflictingFiles();
 
                     // Relativize the path to the repository, because that's the file structure JGit
                     //  looks for in an 'add' command
@@ -179,6 +187,9 @@ public class SessionModel {
                     } else if (untrackedFiles.contains(relativizedPath.toString())) {
                         UntrackedRepoFile untrackedFile = new UntrackedRepoFile(path, this.getCurrentRepo());
                         superDirectory.addChild(untrackedFile);
+                    } else if (conflictingFiles.contains(relativizedPath.toString())) {
+                        ConflictingRepoFile conflictingFile = new ConflictingRepoFile(path, this.getCurrentRepo());
+                        superDirectory.addChild(conflictingFile);
                     } else {
                         RepoFile plainRepoFile = new RepoFile(path, this.getCurrentRepo());
                         superDirectory.addChild(plainRepoFile);
@@ -202,6 +213,7 @@ public class SessionModel {
         Set<String> modifiedFiles = getModifiedFiles();
         Set<String> missingFiles = getMissingFiles();
         Set<String> untrackedFiles = getUntrackedFiles();
+        Set<String> conflictingFiles = getConflictingFiles();
 
         ArrayList<RepoFile> changedRepoFiles = new ArrayList<>();
 
@@ -218,6 +230,11 @@ public class SessionModel {
         for (String untrackedFileString : untrackedFiles) {
             UntrackedRepoFile untrackedRepoFile = new UntrackedRepoFile(untrackedFileString, this.getCurrentRepo());
             changedRepoFiles.add(untrackedRepoFile);
+        }
+
+        for (String conflictingFileString : conflictingFiles) {
+            ConflictingRepoFile conflictingRepoFile = new ConflictingRepoFile(conflictingFileString, this.getCurrentRepo());
+            changedRepoFiles.add(conflictingRepoFile);
         }
 
         return changedRepoFiles;

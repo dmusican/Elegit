@@ -28,6 +28,18 @@
     -fx-background-color: #3498DB;
 }
 
+.tree-view {
+    -fx-focus-color: #BFBFBF;
+}
+
+.tree-cell:selected {
+  -fx-background-color: #BFBFBF;
+}
+
+.text-area {
+    -fx-focus-color: #BFBFBF;
+}
+
 #title-text {
     -fx-font-size: 20px;
     -fx-font-weight: bold;
@@ -52,5 +64,12 @@
     -fx-font-weight: BOLD;
     -fx-font-family: "Avenir";
     -fx-fill: #9b59b6;
+    -fx-stroke-width: 0;
+}
+
+#conflictingText {
+    -fx-font-weight: BOLD;
+    -fx-font-family: "Avenir";
+    -fx-fill: #F22613;
     -fx-stroke-width: 0;
 }
