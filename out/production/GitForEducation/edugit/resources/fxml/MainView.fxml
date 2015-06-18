@@ -3,6 +3,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import java.net.URL?>
+<?import javafx.scene.text.Text?>
 <GridPane
         alignment="TOP_CENTER"
         hgap="5" vgap="5"
@@ -49,10 +50,9 @@
               GridPane.columnIndex="0"
               GridPane.rowSpan="7">
 
-        <ComboBox fx:id="repositorySelector"
+        <Text fx:id="currentRepoLabel"
                   GridPane.rowIndex="0"
-                  GridPane.columnIndex="0"
-                  value="Choose a repository..."/>
+                  GridPane.columnIndex="0" />
 
         <Button GridPane.rowIndex="0"
                 GridPane.columnIndex="1"
