@@ -6,6 +6,7 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
 import org.eclipse.jgit.api.errors.JGitInternalException;
 import org.eclipse.jgit.api.errors.TransportException;
+import org.eclipse.jgit.lib.Ref;
 
 import java.io.IOException;
 import java.util.*;
@@ -15,7 +16,9 @@ import java.util.*;
  */
 public class SessionController extends Controller {
 
-    public ComboBox<RepoHelper> comboBox;
+    public ComboBox<RepoHelper> repositorySelector;
+    public ComboBox<String> branchSelector;
+    public Button loadBranchButton;
     private SessionModel theModel;
 
     public Button gitStatusButton;
@@ -48,19 +51,37 @@ public class SessionController extends Controller {
         // Buttons start out disabled, since no repo is loaded
         this.setButtonsDisabled(true);
 
+        // Branch selector and trigger button starts invisible, since there's no repo and no branches
+        this.branchSelector.setVisible(false);
+        this.loadBranchButton.setVisible(false);
+
         this.initializeMenuBar();
-        this.updateRepoDropdownSelector();
+        this.updateRepoDropdown();
     }
 
-    private void updateRepoDropdownSelector() {
+    private void updateRepoDropdown() {
         // TODO: let users *delete* repos from this list
         ArrayList<RepoHelper> items = this.theModel.getAllRepoHelpers();
-        this.comboBox.getItems().setAll(items);
+        this.repositorySelector.getItems().setAll(items);
 
         if (items.size() != 0) {
             // Load and display the most recently added value
             this.theModel.openRepoFromHelper(items.get(items.size()-1));
-            this.comboBox.setValue(items.get(items.size()-1));
+            this.repositorySelector.setValue(items.get(items.size() - 1));
+        }
+    }
+
+    private void updateBranchDropdown() throws GitAPIException, IOException {
+        this.branchSelector.setVisible(true);
+        this.loadBranchButton.setVisible(true);
+
+        List<String> branches = this.theModel.getCurrentRepoHelper().getLocalBranchNames();
+        this.branchSelector.getItems().setAll(branches);
+
+        if (branches.size() != 0) {
+            // Set the dropdown to be selecting the current branch
+            String currentBranchName = this.theModel.getCurrentRepoHelper().getCurrentBranchName();
+            this.branchSelector.setValue(currentBranchName);
         }
     }
 
@@ -87,7 +108,8 @@ public class SessionController extends Controller {
                 // After loading (cloning) a repo, activate the buttons
                 this.setButtonsDisabled(false);
 
-                this.updateRepoDropdownSelector();
+                this.updateRepoDropdown();
+                this.updateBranchDropdown();
             } catch (IllegalArgumentException e) {
                 ERROR_ALERT_CONSTANTS.invalidRepo().showAndWait();
             } catch (JGitInternalException e) {
@@ -120,7 +142,8 @@ public class SessionController extends Controller {
                 // After loading a repo, activate the buttons
                 this.setButtonsDisabled(false);
 
-                this.updateRepoDropdownSelector();
+                this.updateRepoDropdown();
+                this.updateBranchDropdown();
             } catch (IllegalArgumentException e) {
                 ERROR_ALERT_CONSTANTS.invalidRepo().showAndWait();
             } catch (NullPointerException e) {
@@ -225,12 +248,14 @@ public class SessionController extends Controller {
      */
     public void loadPanelViews() throws GitAPIException, IOException{
         try {
-            RepoHelper selectedRepoHelper = this.comboBox.getValue();
+            RepoHelper selectedRepoHelper = this.repositorySelector.getValue();
             this.theModel.openRepoFromHelper(selectedRepoHelper);
 
             this.workingTreePanelView.drawDirectoryView();
             this.localCommitTreeModel.update();
             this.remoteCommitTreeModel.update();
+
+            this.updateBranchDropdown();
         } catch (NullPointerException e) {
             ERROR_ALERT_CONSTANTS.noRepoLoaded().showAndWait();
         }
@@ -242,5 +267,17 @@ public class SessionController extends Controller {
         mergeFromFetchButton.setDisable(disable);
         pushButton.setDisable(disable);
         fetchButton.setDisable(disable);
+    }
+
+    /**
+     *
+     * @param actionEvent
+     * @throws GitAPIException
+     * @throws IOException from updateBranchDropdown()
+     */
+    public void loadSelectedBranch(ActionEvent actionEvent) throws GitAPIException, IOException {
+        String branchName = this.branchSelector.getValue();
+        this.theModel.getCurrentRepoHelper().checkoutBranch(branchName);
+        this.updateBranchDropdown();
     }
 }

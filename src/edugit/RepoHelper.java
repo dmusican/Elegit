@@ -2,10 +2,12 @@ package edugit;
 
 import com.sun.jdi.InvocationException;
 import org.eclipse.jgit.api.AddCommand;
+import org.eclipse.jgit.api.CheckoutCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.errors.AmbiguousObjectException;
 import org.eclipse.jgit.lib.ObjectId;
+import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revplot.PlotCommitList;
 import org.eclipse.jgit.revplot.PlotLane;
@@ -38,6 +40,8 @@ public abstract class RepoHelper {
 
     private Map<String, CommitHelper> commitIdMap;
     private Map<ObjectId, String> idMap;
+
+    private ArrayList<String> branchStrings;
 
 
     /**
@@ -330,6 +334,27 @@ public abstract class RepoHelper {
     @Override
     public String toString() {
         return this.localPath.getFileName().toString();
+    }
+
+    public ArrayList<String> getLocalBranchNames() throws GitAPIException {
+        // see JGit cookbook for how to get Remote branches too
+        List<Ref> getBranchesCall = new Git(this.repo).branchList().call();
+
+        ArrayList<String> branchNames = new ArrayList<>();
+
+        for (Ref ref : getBranchesCall) {
+            branchNames.add(ref.getName());
+        }
+
+        return branchNames;
+    }
+
+    public void checkoutBranch(String branchName) throws GitAPIException {
+        new Git(this.repo).checkout().setName(branchName).call();
+    }
+
+    public String getCurrentBranchName() throws IOException {
+        return this.repo.getBranch();
     }
 }
 
