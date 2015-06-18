@@ -32,6 +32,16 @@
             GridPane.rowIndex="0"
             GridPane.columnSpan="5" />
 
+    <ComboBox fx:id="branchSelector"
+              GridPane.columnIndex="0"
+              GridPane.rowIndex="0" />
+
+    <Button fx:id="loadBranchButton"
+              GridPane.columnIndex="1"
+              GridPane.rowIndex="0"
+              text="Checkout Branch"
+              onAction="#loadSelectedBranch"/>
+
     <GridPane alignment="center"
               hgap="10"
               vgap="10"
@@ -39,9 +49,10 @@
               GridPane.columnIndex="0"
               GridPane.rowSpan="7">
 
-        <ComboBox fx:id="comboBox"
+        <ComboBox fx:id="repositorySelector"
                   GridPane.rowIndex="0"
-                  GridPane.columnIndex="0" />
+                  GridPane.columnIndex="0"
+                  value="Choose a repository..."/>
 
         <Button GridPane.rowIndex="0"
                 GridPane.columnIndex="1"
