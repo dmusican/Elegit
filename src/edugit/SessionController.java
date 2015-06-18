@@ -1,6 +1,7 @@
 package edugit;
 
 import javafx.event.ActionEvent;
+import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.text.Text;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -17,7 +18,6 @@ import java.util.*;
 public class SessionController extends Controller {
 
     public ComboBox<String> branchSelector;
-    public Button loadBranchButton;
     public Text currentRepoLabel;
     private SessionModel theModel;
 
@@ -57,23 +57,22 @@ public class SessionController extends Controller {
 
         // Branch selector and trigger button starts invisible, since there's no repo and no branches
         this.branchSelector.setVisible(false);
-        this.loadBranchButton.setVisible(false);
 
         this.initializeMenuBar();
     }
 
     private void updateBranchDropdown() throws GitAPIException, IOException {
         this.branchSelector.setVisible(true);
-        this.loadBranchButton.setVisible(true);
 
         List<String> branches = this.theModel.getCurrentRepoHelper().getLocalBranchNames();
         this.branchSelector.getItems().setAll(branches);
 
-        if (branches.size() != 0) {
-            // Set the dropdown to be selecting the current branch
-            String currentBranchName = this.theModel.getCurrentRepoHelper().getCurrentBranchName();
-            this.branchSelector.setValue(currentBranchName);
-        }
+        // TODO: Unify branch name display:
+        //      getCurrentBranchName() gives just the name,
+        //      but the list is populated with "ref/head/master" etc.
+        //  make a BranchHelper?
+        String currentBranchName = this.theModel.getCurrentRepoHelper().getCurrentBranchName();
+        this.branchSelector.setValue(currentBranchName);
     }
 
     /**
@@ -85,7 +84,7 @@ public class SessionController extends Controller {
      *
      * Since each option creates a new repo, this method handles errors.
      *
-     * TODO: split this method up or something. it's getting too big
+     * TODO: split this method up or something. it's getting too big?
      */
     private void initializeMenuBar() {
         this.newRepoMenu = new Menu("Load new Repository");
@@ -301,7 +300,6 @@ public class SessionController extends Controller {
     public void loadSelectedBranch(ActionEvent actionEvent) throws GitAPIException, IOException {
         String branchName = this.branchSelector.getValue();
         this.theModel.getCurrentRepoHelper().checkoutBranch(branchName);
-        this.updateBranchDropdown();
     }
 
     private void updateCurrentRepoLabel() {

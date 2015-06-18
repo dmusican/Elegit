@@ -10,7 +10,10 @@
         fx:controller="edugit.SessionController"
         xmlns:fx="http://javafx.com/fxml"
         id="gridPane"
-        stylesheets="/edugit/resources/css/BaseStyle.css">
+        stylesheets="/edugit/resources/css/BaseStyle.css" >
+
+    <!--TODO: make git action buttons center -->
+
     <!--<columnConstraints>-->
         <!--<ColumnConstraints halignment="LEFT" percentWidth="26"/>-->
         <!--<ColumnConstraints halignment="LEFT" percentWidth="11"/>-->
@@ -43,30 +46,25 @@
               vgap="10"
               GridPane.rowIndex="1"
               GridPane.columnIndex="0"
-              GridPane.rowSpan="7">
+              GridPane.rowSpan="4">
 
         <ComboBox fx:id="branchSelector"
                   GridPane.columnIndex="0"
-                  GridPane.rowIndex="0" />
-
-        <Button fx:id="loadBranchButton"
-                GridPane.columnIndex="0"
-                GridPane.rowIndex="1"
-                text="Checkout Branch"
-                onAction="#loadSelectedBranch"/>
+                  GridPane.rowIndex="0"
+                  onAction="#loadSelectedBranch"/>
 
         <Button GridPane.columnIndex="0"
-                GridPane.rowIndex="2"
+                GridPane.rowIndex="1"
                 fx:id="gitStatusButton"
                 text="git status"
                 onAction="#loadPanelViews"/>
 
         <WorkingTreePanelView
-                GridPane.rowIndex="3"
+                GridPane.rowIndex="2"
                 fx:id="workingTreePanelView"/>
 
         <TextArea
-                GridPane.rowIndex="4"
+                GridPane.rowIndex="3"
                 fx:id="commitMessageField"
                 prefRowCount="3"
                 prefColumnCount="1"
@@ -74,18 +72,6 @@
                 wrapText="true" />
 
     </GridPane>
-
-    <CommitTreePanelView
-            GridPane.rowIndex="1"
-            GridPane.columnIndex="2"
-            GridPane.rowSpan="7"
-            fx:id="localCommitTreePanelView"/>
-
-    <CommitTreePanelView
-            GridPane.rowIndex="1"
-            GridPane.columnIndex="4"
-            GridPane.rowSpan="7"
-            fx:id="remoteCommitTreePanelView"/>
 
     <Button GridPane.rowIndex="2"
             GridPane.columnIndex="1"
@@ -98,6 +84,18 @@
             fx:id="mergeFromFetchButton"
             text="Merge"
             onAction="#handleMergeFromFetchButton"/>
+
+    <CommitTreePanelView
+            GridPane.rowIndex="1"
+            GridPane.columnIndex="2"
+            GridPane.rowSpan="4"
+            fx:id="localCommitTreePanelView"/>
+
+    <CommitTreePanelView
+            GridPane.rowIndex="1"
+            GridPane.columnIndex="4"
+            GridPane.rowSpan="4"
+            fx:id="remoteCommitTreePanelView"/>
 
     <Button GridPane.rowIndex="2"
             GridPane.columnIndex="3"
