@@ -155,7 +155,6 @@ public abstract class RepoHelper {
     public void mergeFromFetch() throws IOException, GitAPIException {
         Git git = new Git(this.repo);
         git.merge().include(this.repo.resolve("FETCH_HEAD")).call();
-        System.out.println("Merged the fetch head, I think");
         git.close();
     }
 
