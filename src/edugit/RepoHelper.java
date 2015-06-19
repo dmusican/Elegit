@@ -447,5 +447,9 @@ public abstract class RepoHelper {
     public String getCurrentBranchName() throws IOException {
         return this.repo.getBranch();
     }
+
+    public void setOwner(RepoOwner owner) {
+        this.ownerAuth = new UsernamePasswordCredentialsProvider(owner.getUsername(), owner.getPassword());
+    }
 }
 

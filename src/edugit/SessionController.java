@@ -363,4 +363,11 @@ public class SessionController extends Controller {
 
         this.theModel.clearStoredPreferences();
     }
+
+    public void switchUser(ActionEvent actionEvent) {
+        RepoOwner newOwner = new RepoOwner();
+        newOwner.presentLoginDialogsToSetValues();
+
+        this.theModel.getCurrentRepoHelper().setOwner(newOwner);
+    }
 }

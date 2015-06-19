@@ -47,6 +47,11 @@
             onAction="#clearSavedStuff"
             id="warningButton"/>
 
+    <Button GridPane.columnIndex="2"
+            GridPane.rowIndex="0"
+            text="Switch user"
+            onAction="#switchUser" />
+
     <GridPane alignment="TOP_CENTER"
               hgap="10"
               vgap="10"
