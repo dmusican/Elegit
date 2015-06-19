@@ -39,6 +39,8 @@ public abstract class RepoHelper {
     private Map<String, CommitHelper> commitIdMap;
     private Map<ObjectId, String> idMap;
 
+    private CommitHelper localHead;
+
     private ArrayList<String> branchStrings;
 
 
@@ -224,7 +226,7 @@ public abstract class RepoHelper {
      */
     private List<CommitHelper> parseAllLocalCommits() throws IOException, GitAPIException{
         PlotCommitList<PlotLane> commitList = this.parseAllRawLocalCommits();
-        return wrapRawCommits(commitList, commitIdMap);
+        return wrapRawCommits(commitList);
     }
 
     /**
@@ -236,29 +238,29 @@ public abstract class RepoHelper {
      */
     private List<CommitHelper> parseAllRemoteCommits() throws IOException, GitAPIException{
         PlotCommitList<PlotLane> commitList = this.parseAllRawRemoteCommits();
-        return wrapRawCommits(commitList, commitIdMap);
+        return wrapRawCommits(commitList);
     }
 
     /**
      * Given a list of raw JGit commit objects, constructs CommitHelper objects to wrap them and gives
      * them the appropriate parents and children
      * @param commitList the raw commits to wrap
-     * @param commitIdMap the map for placing ids and commits into
      * @return a list of CommitHelpers for the given commits
      * @throws IOException
      */
-    private List<CommitHelper> wrapRawCommits(PlotCommitList<PlotLane> commitList,
-                                                   Map<String, CommitHelper> commitIdMap) throws IOException{
+    private List<CommitHelper> wrapRawCommits(PlotCommitList<PlotLane> commitList) throws IOException{
         List<CommitHelper> commitHelperList = new ArrayList<>();
         List<ObjectId> wrappedIDs = new ArrayList<>();
+        List<CommitHelper> commitsWithMissingParents = new ArrayList<>();
         for(int i = commitList.size()-1; i >= 0; i--){
             RevCommit curCommit = commitList.get(i);
             ObjectId curCommitID = curCommit.getId();
+
             if(wrappedIDs.contains(curCommitID)){
                 continue;
             }
 
-            CommitHelper curCommitHelper = new CommitHelper(curCommit, this);
+            CommitHelper curCommitHelper = new CommitHelper(curCommit);
 
             commitIdMap.put(CommitTreeModel.getId(curCommitHelper), curCommitHelper);
             idMap.put(curCommitID,CommitTreeModel.getId(curCommitHelper));
@@ -267,10 +269,26 @@ public abstract class RepoHelper {
             RevCommit[] parents = curCommit.getParents();
             for(RevCommit p : parents){
                 CommitHelper parentCommitHelper = commitIdMap.get(idMap.get(p.getId()));
-                curCommitHelper.addParent(parentCommitHelper);
+                if(parentCommitHelper == null){
+                    commitsWithMissingParents.add(curCommitHelper);
+                }else{
+                    curCommitHelper.addParent(parentCommitHelper);
+                }
             }
 
             commitHelperList.add(curCommitHelper);
+        }
+        while(!commitsWithMissingParents.isEmpty()){
+            CommitHelper curCommitHelper = commitsWithMissingParents.remove(0);
+            RevCommit[] parents = curCommitHelper.commit.getParents();
+            for(RevCommit p : parents){
+                CommitHelper parentCommitHelper = commitIdMap.get(idMap.get(p.getId()));
+                if(parentCommitHelper == null){
+                    commitsWithMissingParents.add(curCommitHelper);
+                }else if(!curCommitHelper.getParents().contains(parentCommitHelper)){
+                    curCommitHelper.addParent(parentCommitHelper);
+                }
+            }
         }
         return commitHelperList;
     }
@@ -285,16 +303,18 @@ public abstract class RepoHelper {
     private PlotCommitList<PlotLane> parseAllRawLocalCommits() throws IOException, GitAPIException{
         // TODO: maybe resolve different branches (e.g. "refs/heads/master")?
         ObjectId headId = repo.resolve("HEAD");
-        List<RevCommit> examinedCommits = new ArrayList<>();
-        PlotCommitList<PlotLane> rawLocalCommits = parseAllRawCommits(headId, examinedCommits);
-        examinedCommits.add(rawLocalCommits.get(0));
+        List<ObjectId> examinedCommitIDs = new ArrayList<>();
+        PlotCommitList<PlotLane> rawLocalCommits = parseAllRawCommits(headId, examinedCommitIDs);
+        examinedCommitIDs.add(headId);
 
         List<String> branchNames = getLocalBranchNames();
         for(String branch : branchNames){
             ObjectId branchId = repo.resolve(branch);
-            PlotCommitList<PlotLane> toAdd = parseAllRawCommits(branchId, examinedCommits);
-            rawLocalCommits.addAll(toAdd);
-            examinedCommits.add(toAdd.get(0));
+            PlotCommitList<PlotLane> toAdd = parseAllRawCommits(branchId, examinedCommitIDs);
+            if(toAdd.size() > 0){
+                rawLocalCommits.addAll(toAdd);
+                examinedCommitIDs.add(toAdd.get(0).getId());
+            }
         }
         return rawLocalCommits;
     }
@@ -307,15 +327,17 @@ public abstract class RepoHelper {
      * @throws IOException
      */
     private PlotCommitList<PlotLane> parseAllRawRemoteCommits() throws IOException, GitAPIException{
-        List<RevCommit> examinedCommits = new ArrayList<>();
+        List<ObjectId> examinedCommitIDs = new ArrayList<>();
         PlotCommitList<PlotLane> rawRemoteCommits = new PlotCommitList<>();
 
         List<String> branchNames = getRemoteBranchNames();
         for(String branch : branchNames){
             ObjectId branchId = repo.resolve(branch);
-            PlotCommitList<PlotLane> toAdd = parseAllRawCommits(branchId, examinedCommits);
-            rawRemoteCommits.addAll(toAdd);
-            examinedCommits.add(toAdd.get(0));
+            PlotCommitList<PlotLane> toAdd = parseAllRawCommits(branchId, examinedCommitIDs);
+            if(toAdd.size() > 0){
+                rawRemoteCommits.addAll(toAdd);
+                examinedCommitIDs.add(toAdd.get(0).getId());
+            }
         }
         return rawRemoteCommits;
     }
@@ -324,16 +346,16 @@ public abstract class RepoHelper {
      * Utilizes JGit to walk through the repo and create raw commit objects - more
      * specifically, JGit objects of (super)type RevCommit. This is an expensive
      * operation and should only be called when necessary
-     * @param id the starting point to parse from
+     * @param startingID the starting point to parse from
      * @return a list of raw commits starting from the given id
      * @throws IOException
      */
-    private PlotCommitList<PlotLane> parseAllRawCommits(ObjectId id, List<RevCommit> stopPoints) throws IOException{
+    private PlotCommitList<PlotLane> parseAllRawCommits(ObjectId startingID, List<ObjectId> stopPoints) throws IOException{
         PlotWalk w = new PlotWalk(repo);
-        RevCommit start = w.parseCommit(id);
+        RevCommit start = w.parseCommit(startingID);
         w.markStart(start);
-        for(RevCommit stopCommit : stopPoints){
-            w.markUninteresting(stopCommit);
+        for(ObjectId stopId : stopPoints){
+            w.markUninteresting(w.parseCommit(stopId));
         }
         PlotCommitList<PlotLane> plotCommitList = new PlotCommitList<>();
         plotCommitList.source(w);

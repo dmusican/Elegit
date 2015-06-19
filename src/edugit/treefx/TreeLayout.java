@@ -73,11 +73,11 @@ public class TreeLayout{
         int h = getRowOfCell(c);
         int w = getColumnOfCellInRow(h);
 
-        c.xLocationProperty.set(w);
-        c.yLocationProperty.set(h);
+        c.columnLocationProperty.set(w);
+        c.rowLocationProperty.set(h);
 
-        double x = c.xLocationProperty.get() * H_SPACING + H_PAD;
-        double y = c.yLocationProperty.get() * V_SPACING + V_PAD;
+        double x = c.columnLocationProperty.get() * H_SPACING + H_PAD;
+        double y = c.rowLocationProperty.get() * V_SPACING + V_PAD;
         c.relocate(x, y);
 
         List<Cell> list = c.getCellChildren();

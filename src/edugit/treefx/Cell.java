@@ -41,8 +41,8 @@ public class Cell extends Pane{
 
     List<Edge> edges = new ArrayList<>();
 
-    IntegerProperty xLocationProperty;
-    IntegerProperty yLocationProperty;
+    IntegerProperty columnLocationProperty;
+    IntegerProperty rowLocationProperty;
 
     /**
      * Constructs a node with the given ID and a single parent node
@@ -66,8 +66,8 @@ public class Cell extends Pane{
 
         setView(getBaseView());
 
-        this.xLocationProperty = new SimpleIntegerProperty(0);
-        this.yLocationProperty = new SimpleIntegerProperty(0);
+        this.columnLocationProperty = new SimpleIntegerProperty(0);
+        this.rowLocationProperty = new SimpleIntegerProperty(0);
 
         tooltip = new Tooltip(cellId);
         tooltip.setWrapText(true);

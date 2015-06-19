@@ -14,7 +14,6 @@ import java.util.*;
 public class TreeGraphModel{
 
     // The root of the tree
-    Cell rootCell;
 
     List<Cell> allCells;
     List<Cell> addedCells;
@@ -27,22 +26,13 @@ public class TreeGraphModel{
     // Map of each cell's id to the cell itself
     Map<String,Cell> cellMap;
 
-    // the previously added id, for use with implicit parents
-    private String prevAddedId;
-
     /**
-     * Constructs a new model with a cell with the given ID as the root
-     * @param rootCellId the root cell's id
+     * Constructs a new model for a tree graph
      */
-    public TreeGraphModel(String rootCellId, long time, String rootCellLabel) {
+    public TreeGraphModel() {
 
         // clear model, create lists
         clear();
-
-        this.rootCell = new Cell(rootCellId, time, null);
-        this.rootCell.setDisplayLabel(rootCellLabel);
-        this.prevAddedId = rootCellId;
-        this.addCell(rootCell);
     }
 
     /**
@@ -60,13 +50,6 @@ public class TreeGraphModel{
 
         cellMap = new HashMap<>(); // <id,cell>
 
-    }
-
-    /**
-     * @return the root of this tree
-     */
-    public Cell getRoot(){
-        return this.rootCell;
     }
 
     public List<String> getCellIDs(){
@@ -104,14 +87,15 @@ public class TreeGraphModel{
         return removedEdges;
     }
 
-    /**
-     * Adds a new cell with the given ID and label to the tree whose
-     * parent is the most recently added cell previous to this one
-     * @param newId the id of the new cell
-     * @param label the label of the new cell
-     */
     public void addCell(String newId, long time, String label, boolean visible){
-        this.addCell(newId, time, label, prevAddedId, visible);
+        Cell cell;
+        if(visible){
+            cell = new Cell(newId, time, null);
+        }else{
+            cell = new InvisibleCell(newId, time, null);
+        }
+        cell.setDisplayLabel(label);
+        addCell(cell);
     }
 
     /**
@@ -132,8 +116,6 @@ public class TreeGraphModel{
         addCell(cell);
 
         this.addEdge(parentId, newId);
-
-        prevAddedId = newId;
     }
 
     /**
@@ -156,13 +138,11 @@ public class TreeGraphModel{
 
         this.addEdge(parent1Id, newId);
         this.addEdge(parent2Id, newId);
-
-        prevAddedId = newId;
     }
 
     /**
      * Adds a cell to both the addedCells list and the cell map
-     * @param cell
+     * @param cell the cell to add
      */
     private void addCell( Cell cell) {
         addedCells.add(cell);
@@ -175,11 +155,11 @@ public class TreeGraphModel{
      * @param sourceId the parent cell
      * @param targetId the child cell
      */
-    public void addEdge( String sourceId, String targetId) {
+    public void addEdge(String sourceId, String targetId) {
         Cell sourceCell = cellMap.get(sourceId);
-        Cell targetCell = cellMap.get( targetId);
+        Cell targetCell = cellMap.get(targetId);
 
-        Edge edge = new Edge( sourceCell, targetCell);
+        Edge edge = new Edge(sourceCell, targetCell);
 
         addedEdges.add(edge);
     }

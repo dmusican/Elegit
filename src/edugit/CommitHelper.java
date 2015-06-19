@@ -25,6 +25,9 @@ public class CommitHelper{
     ParentCommitHelper parents;
     ArrayList<CommitHelper> children;
 
+    String shortMessage;
+    String fullMessage;
+
     /**
      * Constructs a helper for the given commit. Note that if c is not a fully parsed commit
      * this constructor will fail and throw errors. Using one of the other constructors will
@@ -37,6 +40,8 @@ public class CommitHelper{
         this.author = c.getAuthorIdent();
         this.children = new ArrayList<>();
         this.parents = new ParentCommitHelper(this, null, null);
+        this.fullMessage = c.getFullMessage();
+        this.shortMessage = c.getShortMessage();
     }
 
     /**
@@ -88,9 +93,9 @@ public class CommitHelper{
      */
     public String getMessage(boolean fullMessage){
         if(fullMessage){
-            return commit.getFullMessage();
+            return this.fullMessage;
         }else{
-            return commit.getShortMessage();
+            return this.shortMessage;
         }
     }
 
@@ -120,8 +125,7 @@ public class CommitHelper{
      */
     public String getFormattedWhen(){
         DateFormat formatter = new SimpleDateFormat("h:mm a MMM dd yyyy");
-        String dateFormatted = formatter.format(this.getWhen());
-        return dateFormatted;
+        return formatter.format(this.getWhen());
     }
 
     /**

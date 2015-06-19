@@ -74,11 +74,9 @@ public abstract class CommitTreeModel{
 
         if(commits.size() == 0) return false;
 
-        CommitHelper root = commits.get(0);
+        treeGraph = this.createNewTreeGraph();
 
-        treeGraph = this.createNewTreeGraph(root);
-
-        for(int i = 1; i < commits.size(); i++){
+        for(int i = 0; i < commits.size(); i++){
             CommitHelper curCommitHelper = commits.get(i);
             ArrayList<CommitHelper> parents = curCommitHelper.getParents();
             this.addCommitToTree(curCommitHelper, parents, treeGraph.getTreeGraphModel(), true);
@@ -90,13 +88,12 @@ public abstract class CommitTreeModel{
     }
 
     /**
-     * Creates a new TreeGraph with a new model starting at the given root commit. Updates the list
+     * Creates a new TreeGraph with a new model. Updates the list
      * of all models accordingly
-     * @param root the root of the new graph
      * @return the newly created graph
      */
-    private TreeGraph createNewTreeGraph(CommitHelper root){
-        TreeGraphModel graphModel = new TreeGraphModel(getId(root), root.getWhen().getTime(), getTreeCellLabel(root));
+    private TreeGraph createNewTreeGraph(){
+        TreeGraphModel graphModel = new TreeGraphModel();
         treeGraph = new TreeGraph(graphModel);
         return treeGraph;
     }
@@ -108,6 +105,14 @@ public abstract class CommitTreeModel{
      * @param graphModel the treeGraphModel to add the commit to
      */
     private void addCommitToTree(CommitHelper commitHelper, ArrayList<CommitHelper> parents, TreeGraphModel graphModel, boolean visible){
+        for(CommitHelper parent : parents){
+            if(!graphModel.containsID(getId(parent))){
+                addCommitToTree(parent, parent.getParents(), graphModel, visible);
+            }
+        }
+        if(graphModel.containsID(getId(commitHelper))){
+            return;
+        }
         switch(parents.size()){
             case 1:
                 graphModel.addCell(getId(commitHelper), commitHelper.getWhen().getTime(), getTreeCellLabel(commitHelper), getId(parents.get(0)), visible);

@@ -47,29 +47,29 @@ public class Edge extends Group {
         DoubleBinding endY = target.layoutYProperty().add(target.getBoundsInParent().getHeight());
 
         path = new DirectedPath(startX, startY, endX, endY);
-        checkAndAddMidPoints(startX, startY, endX, endY);
+        checkAndAddMidPoints(startY, endY);
         path.addPoint(endX, endY.add(TreeLayout.V_SPACING / 4.));
 
-        source.xLocationProperty.addListener((observable, oldValue, newValue) -> {
-            checkAndAddMidPoints(startX, startY, endX, endY);
+        source.columnLocationProperty.addListener((observable, oldValue, newValue) -> {
+            checkAndAddMidPoints(startY, endY);
         });
 
-        target.xLocationProperty.addListener((observable, oldValue, newValue) -> {
-            checkAndAddMidPoints(startX, startY, endX, endY);
+        target.columnLocationProperty.addListener((observable, oldValue, newValue) -> {
+            checkAndAddMidPoints(startY, endY);
         });
 
-        source.yLocationProperty.addListener((observable, oldValue, newValue) -> {
-            checkAndAddMidPoints(startX, startY, endX, endY);
+        source.rowLocationProperty.addListener((observable, oldValue, newValue) -> {
+            checkAndAddMidPoints(startY, endY);
         });
-        target.yLocationProperty.addListener((observable, oldValue, newValue) -> {
-            checkAndAddMidPoints(startX, startY, endX, endY);
+        target.rowLocationProperty.addListener((observable, oldValue, newValue) -> {
+            checkAndAddMidPoints(startY, endY);
         });
 
-        midLineX.bind(new When(target.xLocationProperty.subtract(source.xLocationProperty).greaterThan(0))
+        midLineX.bind(new When(target.columnLocationProperty.subtract(source.columnLocationProperty).greaterThan(0))
                 .then(endX.subtract(TreeLayout.H_SPACING / 2.))
-                .otherwise(new When(target.xLocationProperty.subtract(source.xLocationProperty).lessThan(0))
-                .then(startX.subtract(TreeLayout.H_SPACING / 2.))
-                .otherwise(startX)));
+                .otherwise(new When(target.columnLocationProperty.subtract(source.columnLocationProperty).lessThan(0))
+                        .then(startX.subtract(TreeLayout.H_SPACING / 2.))
+                        .otherwise(startX)));
 
 
         if(source instanceof InvisibleCell || target instanceof InvisibleCell){
@@ -83,8 +83,8 @@ public class Edge extends Group {
         target.edges.add(this);
     }
 
-    private void checkAndAddMidPoints(DoubleBinding startX, DoubleBinding startY, DoubleBinding endX, DoubleBinding endY){
-        if(source.yLocationProperty.get() - target.yLocationProperty.get() > 1){
+    private void checkAndAddMidPoints(DoubleBinding startY, DoubleBinding endY){
+        if(source.rowLocationProperty.get() - target.rowLocationProperty.get() > 1){
             if(!addedMidPoints){
                 path.addPoint(midLineX.add(0), startY.subtract(TreeLayout.V_SPACING / 3.), 1);
                 path.addPoint(midLineX.add(0), endY.add(TreeLayout.V_SPACING / 2.), 2);
