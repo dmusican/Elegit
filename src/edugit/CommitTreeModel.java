@@ -22,8 +22,6 @@ public abstract class CommitTreeModel{
     SessionModel sessionModel;
     TreeGraph treeGraph;
 
-    private List<CommitHelper> commits;
-
     /**
      * @param model the model with which this class accesses the commits
      * @param view the view that will be updated with the new graph
@@ -48,6 +46,8 @@ public abstract class CommitTreeModel{
 
     public void init(){
         treeGraph = this.createNewTreeGraph();
+
+        CommitTreeController.resetSelection();
 
         this.addAllCommitsToTree();
         this.updateView();
@@ -91,8 +91,8 @@ public abstract class CommitTreeModel{
             ArrayList<CommitHelper> parents = curCommitHelper.getParents();
             this.addCommitToTree(curCommitHelper, parents, treeGraph.getTreeGraphModel(), true);
         }
-        treeGraph.update();
 
+        treeGraph.update();
         return true;
     }
 

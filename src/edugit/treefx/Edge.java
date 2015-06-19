@@ -50,18 +50,18 @@ public class Edge extends Group {
         checkAndAddMidPoints(startY, endY);
         path.addPoint(endX, endY.add(TreeLayout.V_SPACING / 4.));
 
-        source.columnLocationProperty.addListener((observable, oldValue, newValue) -> {
+        source.layoutXProperty().addListener((observable, oldValue, newValue) -> {
             checkAndAddMidPoints(startY, endY);
         });
 
-        target.columnLocationProperty.addListener((observable, oldValue, newValue) -> {
+        target.layoutYProperty().addListener((observable, oldValue, newValue) -> {
             checkAndAddMidPoints(startY, endY);
         });
 
-        source.rowLocationProperty.addListener((observable, oldValue, newValue) -> {
+        source.layoutXProperty().addListener((observable, oldValue, newValue) -> {
             checkAndAddMidPoints(startY, endY);
         });
-        target.rowLocationProperty.addListener((observable, oldValue, newValue) -> {
+        target.layoutYProperty().addListener((observable, oldValue, newValue) -> {
             checkAndAddMidPoints(startY, endY);
         });
 
