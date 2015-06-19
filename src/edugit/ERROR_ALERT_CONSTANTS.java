@@ -2,6 +2,8 @@ package edugit;
 
 import javafx.scene.control.Alert;
 
+import java.util.List;
+
 /**
  * A static class for holding all our error alert dialogs.
  */
@@ -69,6 +71,20 @@ public class ERROR_ALERT_CONSTANTS {
         alert.setTitle("Load failed");
         alert.setHeaderText("Repository was not loaded");
         alert.setContentText("No repository was loaded.");
+        return alert;
+    }
+
+    public static Alert checkoutConflictWithPaths(List<String> conflictingPaths) {
+        String conflictList = "";
+        for (String pathName : conflictingPaths) {
+            conflictList += "\n" + pathName;
+        }
+
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle("Checkout error");
+        alert.setHeaderText("Can't checkout that branch");
+        alert.setContentText("You can't switch to that branch because of the following conflicting files: "
+                + conflictList);
         return alert;
     }
 }

@@ -3,10 +3,7 @@ package edugit;
 import javafx.event.ActionEvent;
 import javafx.scene.control.*;
 import javafx.scene.text.Text;
-import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.api.errors.InvalidRemoteException;
-import org.eclipse.jgit.api.errors.JGitInternalException;
-import org.eclipse.jgit.api.errors.TransportException;
+import org.eclipse.jgit.api.errors.*;
 
 import java.io.IOException;
 import java.util.*;
@@ -327,7 +324,12 @@ public class SessionController extends Controller {
      */
     public void loadSelectedBranch(ActionEvent actionEvent) throws GitAPIException, IOException {
         String branchName = this.branchSelector.getValue();
-        this.theModel.getCurrentRepoHelper().checkoutBranch(branchName);
+        try {
+            this.theModel.getCurrentRepoHelper().checkoutBranch(branchName);
+        } catch (CheckoutConflictException e) {
+            ERROR_ALERT_CONSTANTS.checkoutConflictWithPaths(e.getConflictingPaths()).showAndWait();
+            this.updateBranchDropdown();
+        }
     }
 
     /**
