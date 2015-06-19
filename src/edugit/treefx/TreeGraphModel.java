@@ -60,6 +60,10 @@ public class TreeGraphModel{
         return cellMap.containsKey(id);
     }
 
+    public boolean isVisible(String id){
+        return containsID(id) && !(cellMap.get(id) instanceof InvisibleCell);
+    }
+
     /**
      * @return the cells added since the last update
      */
@@ -141,10 +145,20 @@ public class TreeGraphModel{
     }
 
     /**
-     * Adds a cell to both the addedCells list and the cell map
+     * Adds a cell to both the addedCells list and the cell map, and removes
+     * any cell with a conflicting ID
      * @param cell the cell to add
      */
-    private void addCell( Cell cell) {
+    private void addCell(Cell cell) {
+        if(cellMap.containsKey(cell.getCellId())){
+            Cell oldCell = cellMap.remove(cell.getCellId());
+            for(Cell p : cell.getCellParents()){
+                p.removeCellChild(oldCell);
+            }
+            removedCells.add(oldCell);
+            this.removeEdges(oldCell);
+        }
+
         addedCells.add(cell);
         cellMap.put(cell.getCellId(), cell);
     }
@@ -162,6 +176,12 @@ public class TreeGraphModel{
         Edge edge = new Edge(sourceCell, targetCell);
 
         addedEdges.add(edge);
+    }
+
+    private void removeEdges(Cell cell){
+        for(Edge e : cell.edges){
+            removedEdges.add(e);
+        }
     }
 
     /**

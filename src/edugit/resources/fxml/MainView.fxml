@@ -58,7 +58,7 @@
                 GridPane.columnIndex="1"
                 fx:id="gitStatusButton"
                 text="git status"
-                onAction="#loadPanelViews"/>
+                onAction="#reloadAllViews"/>
 
         <WorkingTreePanelView
                 GridPane.rowIndex="1"
