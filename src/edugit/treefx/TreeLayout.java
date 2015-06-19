@@ -1,5 +1,6 @@
 package edugit.treefx;
 
+import javafx.application.Platform;
 import javafx.concurrent.Task;
 
 import java.util.ArrayList;
@@ -86,6 +87,16 @@ public class TreeLayout{
                 c.columnLocationProperty.set(w);
                 c.rowLocationProperty.set(h);
 
+                Platform.runLater(new Task<Void>(){
+                    @Override
+                    protected Void call(){
+                        double x = c.columnLocationProperty.get() * H_SPACING + H_PAD;
+                        double y = c.rowLocationProperty.get() * V_SPACING + V_PAD;
+                        c.moveTo(x, y, false);
+                        return null;
+                    }
+                });
+
                 List<Cell> list = c.getCellChildren();
                 list.sort((c1, c2) -> Long.compare(c2.getTime(), c1.getTime()));
 
@@ -122,13 +133,5 @@ public class TreeLayout{
                 return allCellsSortedByTime.indexOf(c);
             }
         };
-    }
-
-    public static void moveCells(TreeGraph g){
-        for(Cell c : g.getTreeGraphModel().allCells){
-            double x = c.columnLocationProperty.get() * H_SPACING + H_PAD;
-            double y = c.rowLocationProperty.get() * V_SPACING + V_PAD;
-            c.relocate(x, y);
-        }
     }
 }

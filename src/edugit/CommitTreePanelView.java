@@ -55,8 +55,6 @@ public class CommitTreePanelView extends Group{
                     e.printStackTrace();
                 }
 
-                TreeLayout.moveCells(treeGraph);
-
                 ScrollPane sp = treeGraph.getScrollPane();
                 sp.setPannable(true);
                 sp.setPrefSize(TREE_PANEL_WIDTH, TREE_PANEL_HEIGHT);

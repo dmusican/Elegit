@@ -16,14 +16,14 @@ import javafx.scene.Group;
 public class Edge extends Group {
 
     public static BooleanProperty allVisible = new SimpleBooleanProperty(true);
+    private BooleanProperty visible;
 
-    protected Cell source;
-    protected Cell target;
+    private Cell source;
+    private Cell target;
 
     private DirectedPath path;
 
     private boolean addedMidPoints;
-    private boolean visible;
 
     private DoubleProperty midLineX;
 
@@ -40,28 +40,28 @@ public class Edge extends Group {
         this.addedMidPoints = false;
         midLineX = new SimpleDoubleProperty(0);
 
-        DoubleBinding startX = source.layoutXProperty().add(source.getBoundsInParent().getWidth() / 2.0);
-        DoubleBinding startY = source.layoutYProperty().add(0);
+        DoubleBinding startX = source.translateXProperty().add(source.getBoundsInParent().getWidth() / 2.0);
+        DoubleBinding startY = source.translateYProperty().add(0);
 
-        DoubleBinding endX = target.layoutXProperty().add(target.getBoundsInParent().getWidth() / 2.0);
-        DoubleBinding endY = target.layoutYProperty().add(target.getBoundsInParent().getHeight());
+        DoubleBinding endX = target.translateXProperty().add(target.getBoundsInParent().getWidth() / 2.0);
+        DoubleBinding endY = target.translateYProperty().add(target.getBoundsInParent().getHeight());
 
         path = new DirectedPath(startX, startY, endX, endY);
         checkAndAddMidPoints(startY, endY);
         path.addPoint(endX, endY.add(TreeLayout.V_SPACING / 4.));
 
-        source.layoutXProperty().addListener((observable, oldValue, newValue) -> {
+        source.translateXProperty().addListener((observable, oldValue, newValue) -> {
             checkAndAddMidPoints(startY, endY);
         });
 
-        target.layoutYProperty().addListener((observable, oldValue, newValue) -> {
+        target.translateYProperty().addListener((observable, oldValue, newValue) -> {
             checkAndAddMidPoints(startY, endY);
         });
 
-        source.layoutXProperty().addListener((observable, oldValue, newValue) -> {
+        source.translateXProperty().addListener((observable, oldValue, newValue) -> {
             checkAndAddMidPoints(startY, endY);
         });
-        target.layoutYProperty().addListener((observable, oldValue, newValue) -> {
+        target.translateYProperty().addListener((observable, oldValue, newValue) -> {
             checkAndAddMidPoints(startY, endY);
         });
 
@@ -77,7 +77,9 @@ public class Edge extends Group {
         }
         getChildren().add(path);
 
-        allVisible.addListener((observable, oldValue, newValue) -> checkVisible());
+        visible = new SimpleBooleanProperty(false);
+        visibleProperty().bind(source.visibleProperty().and(target.visibleProperty())
+                .and(allVisible.or(visible)));
 
         source.edges.add(this);
         target.edges.add(this);
@@ -100,20 +102,7 @@ public class Edge extends Group {
     }
 
     public void setHighlighted(boolean enable){
-        this.visible = enable;
-        checkVisible();
-    }
-
-    private void checkVisible(){
-        if(allVisible.get()){
-            this.setVisible(true);
-        }else{
-            if(this.visible){
-                this.setVisible(true);
-            }else{
-                this.setVisible(false);
-            }
-        }
+        this.visible.set(enable);
     }
 
     public Cell getSource() {

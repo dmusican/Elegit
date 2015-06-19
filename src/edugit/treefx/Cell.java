@@ -1,7 +1,11 @@
 package edugit.treefx;
 
 import edugit.CommitTreeController;
+import edugit.CommitTreePanelView;
+import javafx.animation.*;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.scene.Node;
 import javafx.scene.control.Tooltip;
@@ -9,6 +13,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
+import javafx.util.Duration;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,6 +49,8 @@ public class Cell extends Pane{
     IntegerProperty columnLocationProperty;
     IntegerProperty rowLocationProperty;
 
+    private BooleanProperty hasUpdatedPosition;
+
     /**
      * Constructs a node with the given ID and a single parent node
      * @param cellId the ID of this node
@@ -65,9 +72,16 @@ public class Cell extends Pane{
         this.parents = new ParentCell(this, parent1, parent2);
 
         setView(getBaseView());
+        super.setTranslateX(CommitTreePanelView.TREE_PANEL_WIDTH / 2. - getBoundsInParent().getWidth() / 2.);
 
         this.columnLocationProperty = new SimpleIntegerProperty(0);
         this.rowLocationProperty = new SimpleIntegerProperty(0);
+
+        this.hasUpdatedPosition = new SimpleBooleanProperty(false);
+        visibleProperty().bind(this.hasUpdatedPosition);
+
+        columnLocationProperty.addListener((observable, oldValue, newValue) -> hasUpdatedPosition.set(oldValue.intValue()==newValue.intValue()));
+        rowLocationProperty.addListener((observable, oldValue, newValue) -> hasUpdatedPosition.set(oldValue.intValue()==newValue.intValue()));
 
         tooltip = new Tooltip(cellId);
         tooltip.setWrapText(true);
@@ -79,9 +93,38 @@ public class Cell extends Pane{
         this.setOnMouseExited(event -> CommitTreeController.handleMouseover(this, false));
     }
 
+    public void moveTo(double x, double y, boolean animate){
+        if(animate){
+            TranslateTransition t = new TranslateTransition(Duration.millis(500), this);
+            t.setToX(x);
+            t.setToY(y);
+            t.setCycleCount(1);
+            t.play();
+        }else{
+            setTranslateX(x);
+            setTranslateY(y);
+        }
+        this.hasUpdatedPosition.set(true);
+    }
+
     protected Node getBaseView(){
-        return new Rectangle(BOX_SIZE, BOX_SIZE, Highlighter.STANDARD_COLOR);
-//        setView(new Text(cellId));
+        Rectangle rect = new Rectangle(BOX_SIZE, BOX_SIZE, Highlighter.STANDARD_COLOR);
+        FillTransition ft1 = new FillTransition(Duration.millis(1000), rect, Highlighter.STANDARD_COLOR, Color.FORESTGREEN);
+        ft1.setCycleCount(1);
+
+        FillTransition ft2 = new FillTransition(Duration.millis(1500), rect, Color.FORESTGREEN, Highlighter.STANDARD_COLOR);
+        ft2.setCycleCount(1);
+
+        SequentialTransition st = new SequentialTransition(ft1, new PauseTransition(Duration.millis(2500)), ft2);
+        st.setCycleCount(1);
+
+        RotateTransition rt = new RotateTransition(Duration.millis(5000), rect);
+        rt.setCycleCount(1);
+        rt.setByAngle(180);
+
+        ParallelTransition pt = new ParallelTransition(st, rt);
+        pt.play();
+        return rect;
     }
 
     /**
