@@ -41,6 +41,8 @@ public class WorkingTreePanelView extends Group {
      * @throws IOException if populating the parentDirectoryRepoFile fails.
      */
     public void drawDirectoryView() throws GitAPIException, IOException {
+        if(this.sessionModel.getCurrentRepoHelper() == null) return;
+
         Path directoryPath = this.sessionModel.getCurrentRepoHelper().getDirectory();
 
         // NOTE: performance stuff with recursion

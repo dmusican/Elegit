@@ -125,6 +125,5 @@
 
     <stylesheets>
         <URL value="@../css/BaseStyle.css"/>
-        <URL value="@../css/MainView.css" />
     </stylesheets>
 </TabPane>
