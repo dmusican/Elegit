@@ -9,8 +9,11 @@ import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Set;
+import java.util.prefs.BackingStoreException;
+import java.util.prefs.Preferences;
 
 /**
  * The singleton SessionModel stores all the Repos (contained in RepoHelper objects)
@@ -20,21 +23,43 @@ public class SessionModel {
 
     RepoHelper currentRepoHelper;
 
-    ArrayList<RepoHelper> allRepoHelpers; // for when we support multiple repositories!
+    ArrayList<RepoHelper> allRepoHelpers;
     private static SessionModel sessionModel;
     private RepoOwner owner;
 
-    public static SessionModel getSessionModel() {
+    Preferences preferences;
+
+    public static SessionModel getSessionModel() throws Exception {
         if (sessionModel == null) {
-            sessionModel = new SessionModel();
-            sessionModel.owner = new RepoOwner();
-            sessionModel.owner.presentLoginDialogsToSetValues();
+            // Need to spawn an owner before creating a session model
+            // so that we can load stored repos that require an owner
+            RepoOwner owner = new RepoOwner();
+            owner.presentLoginDialogsToSetValues();
+
+            sessionModel = new SessionModel(owner);
         }
         return sessionModel;
     }
 
-    private SessionModel() {
+    private SessionModel(RepoOwner owner) throws Exception {
+        this.owner = owner;
+
         this.allRepoHelpers = new ArrayList<RepoHelper>();
+        this.preferences = Preferences.userNodeForPackage(this.getClass());
+
+        ArrayList<String> storedRepoPathStrings = (ArrayList<String>) PrefObj.getObject(this.preferences, "RECENT_REPOS_LIST");
+        if (storedRepoPathStrings != null) {
+            this.loadRepoHelpersFromStoredPathStrings(storedRepoPathStrings);
+        }
+    }
+
+    /// todo: check in on all these exceptions being passed around in here
+    private void loadRepoHelpersFromStoredPathStrings(ArrayList<String> storedRepoPathStrings) throws Exception {
+        for (String pathString : storedRepoPathStrings) {
+            Path path = Paths.get(pathString);
+            ExistingRepoHelper existingRepoHelper = new ExistingRepoHelper(path, this.owner);
+            this.allRepoHelpers.add(existingRepoHelper);
+        }
     }
 
     /**
@@ -52,8 +77,9 @@ public class SessionModel {
      *
      * @param index the index of the repository to open.
      */
-    public void openRepoAtIndex(int index) {
+    public void openRepoAtIndex(int index) throws BackingStoreException, IOException, ClassNotFoundException {
         this.currentRepoHelper = this.allRepoHelpers.get(index);
+        this.saveListOfRepoPathStrings();
     }
 
     /**
@@ -61,7 +87,7 @@ public class SessionModel {
      *
      * @param repoHelperToLoad the RepoHelper to be loaded.
      */
-    public void openRepoFromHelper(RepoHelper repoHelperToLoad) {
+    public void openRepoFromHelper(RepoHelper repoHelperToLoad) throws BackingStoreException, IOException, ClassNotFoundException {
         if (this.allRepoHelpers.contains(repoHelperToLoad)) {
             this.openRepoAtIndex(this.allRepoHelpers.indexOf(repoHelperToLoad));
         } else {
@@ -197,7 +223,7 @@ public class SessionModel {
                 }
             }
         } catch (Exception e) {
-            System.out.println(e.getStackTrace());
+            e.printStackTrace();
         }
         return superDirectory;
     }
@@ -254,5 +280,25 @@ public class SessionModel {
 
     public ArrayList<RepoHelper> getAllRepoHelpers() {
         return allRepoHelpers;
+    }
+
+    /**
+     * NOTE: we have to reduce this to a list of strings instead of Paths
+     *  because Paths aren't serializable.
+     *
+     * @throws BackingStoreException
+     * @throws IOException
+     * @throws ClassNotFoundException
+     */
+    private void saveListOfRepoPathStrings() throws BackingStoreException, IOException, ClassNotFoundException {
+        ArrayList<String> repoPathStrings = new ArrayList<>();
+        for (RepoHelper repoHelper : this.allRepoHelpers) {
+            Path path = repoHelper.getLocalPath();
+            repoPathStrings.add(path.toString());
+        }
+
+        // Store the list object using IBM's PrefObj helper class:
+        PrefObj.putObject(preferences, "RECENT_REPOS_LIST", repoPathStrings);
+        // todo: add constants for key strings
     }
 }

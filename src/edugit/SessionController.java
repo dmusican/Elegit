@@ -11,6 +11,7 @@ import org.eclipse.jgit.api.errors.TransportException;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.prefs.BackingStoreException;
 
 /**
  * The controller for the entire session.
@@ -46,7 +47,7 @@ public class SessionController extends Controller {
      *
      * This method is automatically called by JavaFX.
      */
-    public void initialize() {
+    public void initialize() throws Exception {
         this.theModel = SessionModel.getSessionModel();
         this.workingTreePanelView.setSessionModel(this.theModel);
         this.localCommitTreeModel = new LocalCommitTreeModel(this.theModel, this.localCommitTreePanelView);
@@ -86,7 +87,7 @@ public class SessionController extends Controller {
      *
      * TODO: split this method up or something. it's getting too big?
      */
-    private void initializeMenuBar() {
+    private void initializeMenuBar() throws GitAPIException, IOException {
         this.newRepoMenu = new Menu("Load new Repository");
 
         MenuItem cloneOption = new MenuItem("Clone");
@@ -160,6 +161,12 @@ public class SessionController extends Controller {
         this.openRecentRepoMenu.getItems().add(noOptionsAvailable);
 
         this.menuBar.getMenus().addAll(newRepoMenu, openRecentRepoMenu);
+
+        if (this.theModel.getAllRepoHelpers().size() != 0) {
+            // If there are repos from previous sessions, put them in the menu bar
+            this.updateMenuBarWithRecentRepos();
+        }
+
     }
 
     private void updateMenuBarWithRecentRepos() throws GitAPIException, IOException {
@@ -169,7 +176,15 @@ public class SessionController extends Controller {
         for (RepoHelper repoHelper : repoHelpers) {
             MenuItem recentRepoHelperMenuItem = new MenuItem(repoHelper.toString());
             recentRepoHelperMenuItem.setOnAction(t -> {
-                this.theModel.openRepoFromHelper(repoHelper);
+                try {
+                    this.theModel.openRepoFromHelper(repoHelper);
+                } catch (BackingStoreException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (ClassNotFoundException e) {
+                    e.printStackTrace();
+                }
 
                 // Updates
                 this.setButtonsDisabled(false);
