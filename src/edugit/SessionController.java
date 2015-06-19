@@ -10,7 +10,8 @@ import org.eclipse.jgit.api.errors.JGitInternalException;
 import org.eclipse.jgit.api.errors.TransportException;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * The controller for the entire session.
@@ -99,6 +100,8 @@ public class SessionController extends Controller {
 
                 // After loading (cloning) a repo, activate the buttons and update stuff
                 this.setButtonsDisabled(false);
+
+                this.initPanelViews();
                 this.updateBranchDropdown();
                 this.updateMenuBarWithRecentRepos();
                 this.updateCurrentRepoLabel();
@@ -133,6 +136,8 @@ public class SessionController extends Controller {
 
                 // After loading a repo, activate the buttons and update stuff
                 this.setButtonsDisabled(false);
+
+                this.initPanelViews();
                 this.updateBranchDropdown();
                 this.updateMenuBarWithRecentRepos();
                 this.updateCurrentRepoLabel();
@@ -211,7 +216,7 @@ public class SessionController extends Controller {
 
             // Now clear the commit text and a view reload ( or `git status`) to show that something happened
             commitMessageField.clear();
-            this.loadPanelViews();
+            this.reloadAllViews();
         } catch (NullPointerException e) {
             ERROR_ALERT_CONSTANTS.noRepoLoaded().showAndWait();
         } catch (TransportException e) {
@@ -225,7 +230,7 @@ public class SessionController extends Controller {
         try {
             this.theModel.currentRepoHelper.mergeFromFetch();
             // Refresh panel views
-            this.loadPanelViews();
+            this.reloadAllViews();
         } catch (NullPointerException e) {
             ERROR_ALERT_CONSTANTS.noRepoLoaded().showAndWait();
         } catch (TransportException e) {
@@ -240,7 +245,7 @@ public class SessionController extends Controller {
             this.theModel.currentRepoHelper.pushAll();
 
             // Refresh panel views
-            this.loadPanelViews();
+            this.reloadAllViews();
         } catch (NullPointerException e) {
             ERROR_ALERT_CONSTANTS.noRepoLoaded().showAndWait();
         } catch (TransportException e) {
@@ -253,7 +258,7 @@ public class SessionController extends Controller {
         try {
             this.theModel.currentRepoHelper.fetch();
             // Refresh panel views
-            this.loadPanelViews();
+            this.reloadAllViews();
         } catch (NullPointerException e) {
             ERROR_ALERT_CONSTANTS.noRepoLoaded().showAndWait();
         } catch (TransportException e) {
@@ -271,7 +276,7 @@ public class SessionController extends Controller {
      * @throws GitAPIException if the drawDirectoryView() call fails.
      * @throws IOException if the drawDirectoryView() call fails.
      */
-    public void loadPanelViews() throws GitAPIException, IOException{
+    public void reloadAllViews() throws GitAPIException, IOException{
         try {
             this.workingTreePanelView.drawDirectoryView();
             this.localCommitTreeModel.update();
@@ -281,6 +286,12 @@ public class SessionController extends Controller {
         } catch (NullPointerException e) {
             ERROR_ALERT_CONSTANTS.noRepoLoaded().showAndWait();
         }
+    }
+
+    private void initPanelViews() throws GitAPIException, IOException{
+        this.workingTreePanelView.drawDirectoryView();
+        this.localCommitTreeModel.init();
+        this.remoteCommitTreeModel.init();
     }
 
     private void setButtonsDisabled(boolean disable) {

@@ -2,7 +2,9 @@ package edugit;
 
 import edugit.treefx.TreeGraph;
 import edugit.treefx.TreeGraphModel;
+import org.eclipse.jgit.api.errors.GitAPIException;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,6 +22,8 @@ public abstract class CommitTreeModel{
     SessionModel sessionModel;
     TreeGraph treeGraph;
 
+    private List<CommitHelper> commits;
+
     /**
      * @param model the model with which this class accesses the commits
      * @param view the view that will be updated with the new graph
@@ -27,40 +31,42 @@ public abstract class CommitTreeModel{
     public CommitTreeModel(SessionModel model, CommitTreePanelView view){
         this.sessionModel = model;
         this.view = view;
-        this.update();
+        this.init();
         CommitTreeController.allCommitTreeModels.add(this);
     }
 
     /**
      * @return a list of the commits to be put into a tree
      */
-    protected abstract List<CommitHelper> getCommits();
+    protected abstract List<CommitHelper> getAllCommits();
 
-    public List<String> getCommitIDs(){
-        if(treeGraph != null){
-            return treeGraph.getTreeGraphModel().getCellIDs();
-        }else{
-            return new ArrayList<>();
-        }
-    }
+    protected abstract List<CommitHelper> getNewCommits() throws GitAPIException, IOException;
 
     public boolean containsID(String id){
         return treeGraph != null && treeGraph.getTreeGraphModel().containsID(id);
     }
 
-    public void update(){
-        this.addCommitsToTree();
+    public void init(){
+        treeGraph = this.createNewTreeGraph();
+
+        this.addAllCommitsToTree();
         this.updateView();
     }
 
+    public void update() throws GitAPIException, IOException{
+        if(this.checkForChanges()){
+            this.updateView();
+        }
+    }
+
     public void addInvisibleCommit(String id){
-        CommitHelper invisComimt = sessionModel.currentRepoHelper.getCommit(id);
-        for(CommitHelper c : invisComimt.getParents()){
+        CommitHelper invisCommit = sessionModel.currentRepoHelper.getCommit(id);
+        for(CommitHelper c : invisCommit.getParents()){
             if(!treeGraph.getTreeGraphModel().containsID(c.getId())){
                 addInvisibleCommit(c.getId());
             }
         }
-        addCommitToTree(invisComimt, invisComimt.getParents(), treeGraph.getTreeGraphModel(), false);
+        this.addCommitToTree(invisCommit, invisCommit.getParents(), treeGraph.getTreeGraphModel(), false);
     }
 
     /**
@@ -69,34 +75,34 @@ public abstract class CommitTreeModel{
      * relations are preserved
      * @return true if the tree was updated, otherwise false
      */
-    private boolean addCommitsToTree(){
-        List<CommitHelper> commits = this.getCommits();
+    private boolean addAllCommitsToTree(){
+        return this.addCommitsToTree(this.getAllCommits());
+    }
 
+    private boolean checkForChanges() throws GitAPIException, IOException{
+        return this.addCommitsToTree(this.getNewCommits());
+    }
+
+    private boolean addCommitsToTree(List<CommitHelper> commits){
         if(commits.size() == 0) return false;
 
-        CommitHelper root = commits.get(0);
-
-        treeGraph = this.createNewTreeGraph(root);
-
-        for(int i = 1; i < commits.size(); i++){
+        for(int i = 0; i < commits.size(); i++){
             CommitHelper curCommitHelper = commits.get(i);
             ArrayList<CommitHelper> parents = curCommitHelper.getParents();
             this.addCommitToTree(curCommitHelper, parents, treeGraph.getTreeGraphModel(), true);
         }
         treeGraph.update();
 
-        CommitTreeController.update(sessionModel.currentRepoHelper);
         return true;
     }
 
     /**
-     * Creates a new TreeGraph with a new model starting at the given root commit. Updates the list
+     * Creates a new TreeGraph with a new model. Updates the list
      * of all models accordingly
-     * @param root the root of the new graph
      * @return the newly created graph
      */
-    private TreeGraph createNewTreeGraph(CommitHelper root){
-        TreeGraphModel graphModel = new TreeGraphModel(getId(root), root.getWhen().getTime(), getTreeCellLabel(root));
+    private TreeGraph createNewTreeGraph(){
+        TreeGraphModel graphModel = new TreeGraphModel();
         treeGraph = new TreeGraph(graphModel);
         return treeGraph;
     }
@@ -108,15 +114,24 @@ public abstract class CommitTreeModel{
      * @param graphModel the treeGraphModel to add the commit to
      */
     private void addCommitToTree(CommitHelper commitHelper, ArrayList<CommitHelper> parents, TreeGraphModel graphModel, boolean visible){
+        for(CommitHelper parent : parents){
+            if(!graphModel.containsID(getId(parent))){
+                addCommitToTree(parent, parent.getParents(), graphModel, visible);
+            }
+        }
+        String commitID = getId(commitHelper);
+        if(graphModel.containsID(commitID) && graphModel.isVisible(commitID)){
+            return;
+        }
         switch(parents.size()){
             case 1:
-                graphModel.addCell(getId(commitHelper), commitHelper.getWhen().getTime(), getTreeCellLabel(commitHelper), getId(parents.get(0)), visible);
+                graphModel.addCell(commitID, commitHelper.getWhen().getTime(), getTreeCellLabel(commitHelper), getId(parents.get(0)), visible);
                 break;
             case 2:
-                graphModel.addCell(getId(commitHelper), commitHelper.getWhen().getTime(), getTreeCellLabel(commitHelper), getId(parents.get(0)), getId(parents.get(1)), visible);
+                graphModel.addCell(commitID, commitHelper.getWhen().getTime(), getTreeCellLabel(commitHelper), getId(parents.get(0)), getId(parents.get(1)), visible);
                 break;
             default:
-                graphModel.addCell(getId(commitHelper), commitHelper.getWhen().getTime(), getTreeCellLabel(commitHelper), visible);
+                graphModel.addCell(commitID, commitHelper.getWhen().getTime(), getTreeCellLabel(commitHelper), visible);
         }
     }
 
@@ -125,7 +140,7 @@ public abstract class CommitTreeModel{
      */
     private void updateView(){
         if(this.sessionModel != null && this.sessionModel.currentRepoHelper != null){
-            view.displayTreeGraph(treeGraph);
+            CommitTreeController.update(sessionModel.currentRepoHelper);
         }else{
             view.displayEmptyView();
         }
