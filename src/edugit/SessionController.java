@@ -1,7 +1,6 @@
 package edugit;
 
 import javafx.event.ActionEvent;
-import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.text.Text;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -178,11 +177,12 @@ public class SessionController extends Controller {
 
                 // Updates
                 this.setButtonsDisabled(false);
-                try {
+                try{
+                    this.initPanelViews();
                     this.updateBranchDropdown();
-                } catch (GitAPIException e) {
+                }catch(GitAPIException e){
                     e.printStackTrace();
-                } catch (IOException e) {
+                }catch(IOException e){
                     e.printStackTrace();
                 }
                 this.updateCurrentRepoLabel();
