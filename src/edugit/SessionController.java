@@ -102,6 +102,7 @@ public class SessionController extends Controller {
                 this.theModel.openRepoFromHelper(repoHelper);
 
                 this.updateUIEnabledStatus();
+                this.onGitStatusButton();
             } catch (IllegalArgumentException e) {
                 ERROR_ALERT_CONSTANTS.invalidRepo().showAndWait();
             } catch (JGitInternalException e) {
@@ -132,6 +133,7 @@ public class SessionController extends Controller {
                 this.theModel.openRepoFromHelper(repoHelper);
 
                 this.updateUIEnabledStatus();
+                this.onGitStatusButton();
             } catch (IllegalArgumentException e) {
                 ERROR_ALERT_CONSTANTS.invalidRepo().showAndWait();
             } catch (NullPointerException e) {
@@ -150,6 +152,7 @@ public class SessionController extends Controller {
 
         this.newRepoMenu.getItems().addAll(cloneOption, existingOption, newOption);
 
+        // Initialize it with no repos to choose from. This gets updated when there are repos present.
         this.openRecentRepoMenu = new Menu("Open recent repository");
         MenuItem noOptionsAvailable = new MenuItem("No recent repositories");
         noOptionsAvailable.setDisable(true);
@@ -203,11 +206,9 @@ public class SessionController extends Controller {
      * Perform the updateFileStatusInRepo() method for each file whose
      * checkbox is checked. Then commit with the commit message and push.
      *
-     * TODO: Separate push into different button. Work this in with the local tree view.
-     *
      * @param actionEvent the button click event.
      * @throws GitAPIException if the updateFileStatusInRepo() call fails.
-     * @throws IOException if the loadPanelViews() fails.
+     * @throws IOException if the onGitStatusButton() fails.
      */ //todo: since there's a try/catch, should this method signature not throw exceptions?
     public void handleCommitButton(ActionEvent actionEvent) throws GitAPIException, IOException {
         try {
@@ -221,7 +222,7 @@ public class SessionController extends Controller {
 
             // Now clear the commit text and a view reload ( or `git status`) to show that something happened
             commitMessageField.clear();
-            this.loadPanelViews();
+            this.onGitStatusButton();
         } catch (NullPointerException e) {
             ERROR_ALERT_CONSTANTS.noRepoLoaded().showAndWait();
         } catch (TransportException e) {
@@ -235,7 +236,7 @@ public class SessionController extends Controller {
         try {
             this.theModel.currentRepoHelper.mergeFromFetch();
             // Refresh panel views
-            this.loadPanelViews();
+            this.onGitStatusButton();
         } catch (NullPointerException e) {
             ERROR_ALERT_CONSTANTS.noRepoLoaded().showAndWait();
         } catch (TransportException e) {
@@ -250,7 +251,7 @@ public class SessionController extends Controller {
             this.theModel.currentRepoHelper.pushAll();
 
             // Refresh panel views
-            this.loadPanelViews();
+            this.onGitStatusButton();
         } catch (NullPointerException e) {
             ERROR_ALERT_CONSTANTS.noRepoLoaded().showAndWait();
         } catch (TransportException e) {
@@ -263,7 +264,7 @@ public class SessionController extends Controller {
         try {
             this.theModel.currentRepoHelper.fetch();
             // Refresh panel views
-            this.loadPanelViews();
+            this.onGitStatusButton();
         } catch (NullPointerException e) {
             ERROR_ALERT_CONSTANTS.noRepoLoaded().showAndWait();
         } catch (TransportException e) {
@@ -281,7 +282,7 @@ public class SessionController extends Controller {
      * @throws GitAPIException if the drawDirectoryView() call fails.
      * @throws IOException if the drawDirectoryView() call fails.
      */
-    public void loadPanelViews() throws GitAPIException, IOException{
+    public void onGitStatusButton() throws GitAPIException, IOException{
         try {
             this.workingTreePanelView.drawDirectoryView();
             this.localCommitTreeModel.update();
@@ -337,5 +338,15 @@ public class SessionController extends Controller {
     private void updateCurrentRepoLabel() {
         String name = this.theModel.getCurrentRepoHelper().toString();
         this.currentRepoLabel.setText(name);
+    }
+
+    /// THIS IS JUST A DEBUG METHOD FOR A DEBUG BUTTON. TEMPORARY!
+    public void clearSavedStuff(ActionEvent actionEvent) throws BackingStoreException, IOException, ClassNotFoundException {
+        this.theModel.preferences.clear();
+        this.theModel.preferences.remove("RECENT_REPOS_LIST");
+        System.out.println(this.theModel.preferences);
+        // why doesn't this work!?
+
+        this.theModel.clearStoredPreferences();
     }
 }

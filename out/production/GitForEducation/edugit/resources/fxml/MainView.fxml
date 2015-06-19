@@ -41,6 +41,11 @@
           GridPane.rowIndex="0"
           GridPane.columnIndex="0" />
 
+    <Button GridPane.columnIndex="1"
+            GridPane.rowIndex="0"
+            text="CLEAR SAVED STUFF"
+            onAction="#clearSavedStuff"/>
+
     <GridPane alignment="TOP_CENTER"
               hgap="10"
               vgap="10"
@@ -57,7 +62,7 @@
                 GridPane.rowIndex="1"
                 fx:id="gitStatusButton"
                 text="git status"
-                onAction="#loadPanelViews"/>
+                onAction="#onGitStatusButton"/>
 
         <WorkingTreePanelView
                 GridPane.rowIndex="2"

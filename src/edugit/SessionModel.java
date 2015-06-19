@@ -95,17 +95,38 @@ public class SessionModel {
     }
 
     /**
-     * Adds a new RepoHelper to the session and then opens it.
+     * Loads a RepoHelper by checking to see if that RepoHelper's directory is already
+     * loaded into the Model. If it is already loaded, this method will load that RepoHelper.
+     * If not, this method will add the new RepoHelper and then load it.
      *
      * @param repoHelperToLoad the RepoHelper to be loaded.
      */
     public void openRepoFromHelper(RepoHelper repoHelperToLoad) throws BackingStoreException, IOException, ClassNotFoundException {
-        if (this.allRepoHelpers.contains(repoHelperToLoad)) {
-            this.openRepoAtIndex(this.allRepoHelpers.indexOf(repoHelperToLoad));
-        } else {
+        RepoHelper matchedRepoHelper = this.matchRepoWithAlreadyLoadedRepo(repoHelperToLoad);
+        if (matchedRepoHelper == null) {
+            // So, this repo isn't loaded into the model yet
             this.allRepoHelpers.add(repoHelperToLoad);
             this.openRepoAtIndex(this.allRepoHelpers.size() - 1);
+        } else {
+            // So, this repo is already loaded into the model
+            this.openRepoAtIndex(this.allRepoHelpers.indexOf(matchedRepoHelper));
         }
+    }
+
+    /**
+     * Checks if a repoHelper is already loaded in the model by comparing repository directories.
+     *
+     * @param repoHelperCandidate the repoHelper being checked
+     * @return the repo helper that points to the same repository as the candidate
+     *          (by directory), or null if there is no such RepoHelper already in the model.
+     */
+    private RepoHelper matchRepoWithAlreadyLoadedRepo(RepoHelper repoHelperCandidate) {
+        for (RepoHelper repoHelper : this.allRepoHelpers) {
+            if (repoHelper.getLocalPath().equals(repoHelperCandidate.getLocalPath())) {
+                return repoHelper;
+            }
+        }
+        return null;
     }
 
     public Repository getCurrentRepo() {
@@ -317,5 +338,10 @@ public class SessionModel {
         String pathString = this.currentRepoHelper.getLocalPath().toString();
 
         PrefObj.putObject(this.preferences, LAST_OPENED_REPO_PATH_KEY, pathString);
+    }
+
+    public void clearStoredPreferences() throws BackingStoreException, IOException, ClassNotFoundException {
+        PrefObj.putObject(this.preferences, RECENT_REPOS_LIST_KEY, null);
+        PrefObj.putObject(this.preferences, LAST_OPENED_REPO_PATH_KEY, null);
     }
 }
