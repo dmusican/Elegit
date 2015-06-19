@@ -21,6 +21,10 @@ import java.util.prefs.Preferences;
  */
 public class SessionModel {
 
+    // Keys for preferences recall
+    private static final String RECENT_REPOS_LIST_KEY = "RECENT_REPOS_LIST";
+    private static final String LAST_OPENED_REPO_PATH_KEY = "LAST_OPENED_REPO_PATH";
+
     RepoHelper currentRepoHelper;
 
     ArrayList<RepoHelper> allRepoHelpers;
@@ -47,10 +51,13 @@ public class SessionModel {
         this.allRepoHelpers = new ArrayList<RepoHelper>();
         this.preferences = Preferences.userNodeForPackage(this.getClass());
 
-        ArrayList<String> storedRepoPathStrings = (ArrayList<String>) PrefObj.getObject(this.preferences, "RECENT_REPOS_LIST");
+        ArrayList<String> storedRepoPathStrings = (ArrayList<String>) PrefObj.getObject(this.preferences, RECENT_REPOS_LIST_KEY);
         if (storedRepoPathStrings != null) {
             this.loadRepoHelpersFromStoredPathStrings(storedRepoPathStrings);
         }
+
+        String lastOpenedRepoPathString = (String) PrefObj.getObject(this.preferences, LAST_OPENED_REPO_PATH_KEY);
+
     }
 
     /// todo: check in on all these exceptions being passed around in here
@@ -298,7 +305,6 @@ public class SessionModel {
         }
 
         // Store the list object using IBM's PrefObj helper class:
-        PrefObj.putObject(preferences, "RECENT_REPOS_LIST", repoPathStrings);
-        // todo: add constants for key strings
+        PrefObj.putObject(preferences, RECENT_REPOS_LIST_KEY, repoPathStrings);
     }
 }
