@@ -16,6 +16,10 @@
     -fx-background-color: #52B3D9;
 }
 
+#warningButton {
+    -fx-background-color: #F22613;
+}
+
 .button:hover {
     -fx-background-color: #81CFE0;
 }

@@ -44,7 +44,8 @@
     <Button GridPane.columnIndex="1"
             GridPane.rowIndex="0"
             text="CLEAR SAVED STUFF"
-            onAction="#clearSavedStuff"/>
+            onAction="#clearSavedStuff"
+            id="warningButton"/>
 
     <GridPane alignment="TOP_CENTER"
               hgap="10"
