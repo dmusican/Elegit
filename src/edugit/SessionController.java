@@ -1,7 +1,6 @@
 package edugit;
 
 import javafx.event.ActionEvent;
-import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.text.Text;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -60,6 +59,10 @@ public class SessionController extends Controller {
         this.branchSelector.setVisible(false);
 
         this.initializeMenuBar();
+
+        this.theModel.loadRecentRepoHelpersFromStoredPathStrings();
+        this.theModel.loadMostRecentRepoHelper();
+        this.updateUIEnabledStatus();
     }
 
     private void updateBranchDropdown() throws GitAPIException, IOException {
@@ -98,11 +101,7 @@ public class SessionController extends Controller {
 
                 this.theModel.openRepoFromHelper(repoHelper);
 
-                // After loading (cloning) a repo, activate the buttons and update stuff
-                this.setButtonsDisabled(false);
-                this.updateBranchDropdown();
-                this.updateMenuBarWithRecentRepos();
-                this.updateCurrentRepoLabel();
+                this.updateUIEnabledStatus();
             } catch (IllegalArgumentException e) {
                 ERROR_ALERT_CONSTANTS.invalidRepo().showAndWait();
             } catch (JGitInternalException e) {
@@ -132,11 +131,7 @@ public class SessionController extends Controller {
                 RepoHelper repoHelper = builder.getRepoHelperFromDialogs();
                 this.theModel.openRepoFromHelper(repoHelper);
 
-                // After loading a repo, activate the buttons and update stuff
-                this.setButtonsDisabled(false);
-                this.updateBranchDropdown();
-                this.updateMenuBarWithRecentRepos();
-                this.updateCurrentRepoLabel();
+                this.updateUIEnabledStatus();
             } catch (IllegalArgumentException e) {
                 ERROR_ALERT_CONSTANTS.invalidRepo().showAndWait();
             } catch (NullPointerException e) {
@@ -298,6 +293,11 @@ public class SessionController extends Controller {
         }
     }
 
+    /**
+     * A helper method for enabling/disabling buttons.
+     *
+     * @param disable a boolean for whether or not to disable the buttons.
+     */
     private void setButtonsDisabled(boolean disable) {
         gitStatusButton.setDisable(disable);
         commitButton.setDisable(disable);
@@ -315,6 +315,23 @@ public class SessionController extends Controller {
     public void loadSelectedBranch(ActionEvent actionEvent) throws GitAPIException, IOException {
         String branchName = this.branchSelector.getValue();
         this.theModel.getCurrentRepoHelper().checkoutBranch(branchName);
+    }
+
+    /**
+     * A helper helper method to enable or disable buttons/UI elements
+     * depending on whether there is a repo open for the buttons to
+     * interact with.
+     */
+    private void updateUIEnabledStatus() throws GitAPIException, IOException {
+        if (this.theModel.getAllRepoHelpers().size() == 0) {
+            setButtonsDisabled(true);
+            this.branchSelector.setVisible(true);
+        } else if (this.theModel.getAllRepoHelpers().size() != 0) {
+            setButtonsDisabled(false);
+            this.updateBranchDropdown();
+            this.updateMenuBarWithRecentRepos();
+            this.updateCurrentRepoLabel();
+        }
     }
 
     private void updateCurrentRepoLabel() {

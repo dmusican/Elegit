@@ -50,22 +50,26 @@ public class SessionModel {
 
         this.allRepoHelpers = new ArrayList<RepoHelper>();
         this.preferences = Preferences.userNodeForPackage(this.getClass());
+    }
 
-        ArrayList<String> storedRepoPathStrings = (ArrayList<String>) PrefObj.getObject(this.preferences, RECENT_REPOS_LIST_KEY);
-        if (storedRepoPathStrings != null) {
-            this.loadRepoHelpersFromStoredPathStrings(storedRepoPathStrings);
-        }
-
+    public void loadMostRecentRepoHelper() throws Exception {
         String lastOpenedRepoPathString = (String) PrefObj.getObject(this.preferences, LAST_OPENED_REPO_PATH_KEY);
-
+        if (lastOpenedRepoPathString != null) {
+            Path path = Paths.get(lastOpenedRepoPathString);
+            ExistingRepoHelper existingRepoHelper = new ExistingRepoHelper(path, this.owner);
+            this.openRepoFromHelper(existingRepoHelper);
+        }
     }
 
     /// todo: check in on all these exceptions being passed around in here
-    private void loadRepoHelpersFromStoredPathStrings(ArrayList<String> storedRepoPathStrings) throws Exception {
-        for (String pathString : storedRepoPathStrings) {
-            Path path = Paths.get(pathString);
-            ExistingRepoHelper existingRepoHelper = new ExistingRepoHelper(path, this.owner);
-            this.allRepoHelpers.add(existingRepoHelper);
+    public void loadRecentRepoHelpersFromStoredPathStrings() throws Exception {
+        ArrayList<String> storedRepoPathStrings = (ArrayList<String>) PrefObj.getObject(this.preferences, RECENT_REPOS_LIST_KEY);
+        if (storedRepoPathStrings != null) {
+            for (String pathString : storedRepoPathStrings) {
+                Path path = Paths.get(pathString);
+                ExistingRepoHelper existingRepoHelper = new ExistingRepoHelper(path, this.owner);
+                this.allRepoHelpers.add(existingRepoHelper);
+            }
         }
     }
 
@@ -87,6 +91,7 @@ public class SessionModel {
     public void openRepoAtIndex(int index) throws BackingStoreException, IOException, ClassNotFoundException {
         this.currentRepoHelper = this.allRepoHelpers.get(index);
         this.saveListOfRepoPathStrings();
+        this.saveMostRecentRepoPathString();
     }
 
     /**
@@ -305,6 +310,12 @@ public class SessionModel {
         }
 
         // Store the list object using IBM's PrefObj helper class:
-        PrefObj.putObject(preferences, RECENT_REPOS_LIST_KEY, repoPathStrings);
+        PrefObj.putObject(this.preferences, RECENT_REPOS_LIST_KEY, repoPathStrings);
+    }
+
+    private void saveMostRecentRepoPathString() throws BackingStoreException, IOException, ClassNotFoundException {
+        String pathString = this.currentRepoHelper.getLocalPath().toString();
+
+        PrefObj.putObject(this.preferences, LAST_OPENED_REPO_PATH_KEY, pathString);
     }
 }
