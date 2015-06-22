@@ -100,7 +100,7 @@ public class Highlighter{
 
         RotateTransition rt = new RotateTransition(Duration.millis(5000), s);
         rt.setCycleCount(1);
-        rt.setByAngle(180);
+        rt.setByAngle(1800);
 
         SequentialTransition st;
 
