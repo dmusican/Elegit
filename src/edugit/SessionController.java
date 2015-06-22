@@ -4,7 +4,10 @@ import edugit.exceptions.CancelledLoginException;
 import edugit.exceptions.NoOwnerInfoException;
 import edugit.exceptions.NoRepoSelectedException;
 import javafx.event.ActionEvent;
+import javafx.event.Event;
 import javafx.scene.control.*;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.text.Text;
 import org.eclipse.jgit.api.errors.*;
 
