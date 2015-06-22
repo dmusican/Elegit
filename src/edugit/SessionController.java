@@ -355,6 +355,7 @@ public class SessionController extends Controller {
     }
 
     /// THIS IS JUST A DEBUG METHOD FOR A DEBUG BUTTON. TEMPORARY!
+    // todo: set up more permanent data clearing functionality
     public void clearSavedStuff(ActionEvent actionEvent) throws BackingStoreException, IOException, ClassNotFoundException {
         this.theModel.preferences.clear();
         this.theModel.preferences.remove("RECENT_REPOS_LIST");
