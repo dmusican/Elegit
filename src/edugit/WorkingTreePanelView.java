@@ -1,9 +1,9 @@
 package edugit;
 
-import javafx.scene.Group;
 import javafx.scene.control.CheckBoxTreeItem;
 import javafx.scene.control.TreeView;
 import javafx.scene.control.cell.CheckBoxTreeCell;
+import javafx.scene.layout.Region;
 import org.eclipse.jgit.api.errors.GitAPIException;
 
 import java.io.IOException;
@@ -19,7 +19,7 @@ import java.util.ArrayList;
  * untracked/new, modified, or deleted.
  *
  */
-public class WorkingTreePanelView extends Group {
+public class WorkingTreePanelView extends Region{
 
     // fileLeafs stores all 'leafs' in the directory TreeView:
     private ArrayList<CheckBoxTreeItem> fileLeafs;
@@ -28,8 +28,9 @@ public class WorkingTreePanelView extends Group {
 
     public WorkingTreePanelView() {
         this.fileLeafs = new ArrayList<>();
-        this.directoryTreeView = new TreeView<RepoFile>();
+        this.directoryTreeView = new TreeView<>();
 
+        this.directoryTreeView.prefHeightProperty().bind(this.heightProperty());
         this.getChildren().add(this.directoryTreeView);
     }
 
@@ -68,8 +69,8 @@ public class WorkingTreePanelView extends Group {
         // TreeViews must all have ONE root to hold the leafs. Don't show that root:
         this.directoryTreeView.setShowRoot(false);
 
-        this.getChildren().clear();
-        this.getChildren().add(directoryTreeView);
+        this.directoryTreeView.prefHeightProperty().bind(this.heightProperty());
+        this.getChildren().add(this.directoryTreeView);
     }
 
     /**

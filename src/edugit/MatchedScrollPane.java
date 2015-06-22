@@ -10,16 +10,18 @@ import javafx.scene.control.ScrollPane;
  */
 public class MatchedScrollPane extends ScrollPane{
 
+    private static final DoubleProperty hPos = new SimpleDoubleProperty(0.0);
     private static final DoubleProperty vPos = new SimpleDoubleProperty(0.0);
 
     public MatchedScrollPane(Group g){
         super(g);
+        this.hvalueProperty().bindBidirectional(hPos);
         this.vvalueProperty().bindBidirectional(vPos);
     }
 
     public void requestFocus(){}
 
     public static void scrollTo(double pos){
-        vPos.set(pos);
+        hPos.set(pos);
     }
 }

@@ -16,8 +16,6 @@ public class MainView extends Application {
         Scene scene = new Scene(root, 900, 650); // width, height
         primaryStage.setScene(scene);
         primaryStage.show();
-
-//        new InitRepoView();
     }
 
 

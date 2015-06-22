@@ -94,7 +94,7 @@ public class Highlighter{
     }
 
     public static void emphasizeCell(Cell c){
-        MatchedScrollPane.scrollTo(c.rowLocationProperty.doubleValue());
+        MatchedScrollPane.scrollTo(c.columnLocationProperty.doubleValue());
 
         Shape s = (Shape) c.view;
 
