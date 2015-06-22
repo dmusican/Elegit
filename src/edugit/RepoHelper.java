@@ -81,7 +81,7 @@ public abstract class RepoHelper {
     }
 
     /// Constructor for EXISTING repos to inherit (they don't need the Remote URL)
-    public RepoHelper(Path directoryPath, RepoOwner owner) throws GitAPIException, IOException {
+    public RepoHelper(Path directoryPath, RepoOwner owner) throws GitAPIException, IOException, NoOwnerInfoException {
         this.ownerAuth = new UsernamePasswordCredentialsProvider(owner.getUsername(), owner.getPassword());
         this.localPath = directoryPath;
 
