@@ -41,7 +41,7 @@ public abstract class CommitTreeModel{
     protected abstract List<CommitHelper> getNewCommits() throws GitAPIException, IOException;
 
     public boolean containsID(String id){
-        return treeGraph != null && treeGraph.getTreeGraphModel().containsID(id);
+        return treeGraph != null && treeGraph.treeGraphModel.containsID(id);
     }
 
     public void init(){
@@ -54,7 +54,7 @@ public abstract class CommitTreeModel{
     }
 
     public void update() throws GitAPIException, IOException{
-        if(this.checkForChanges()){
+        if(this.addNewCommitsToTree()){
             this.updateView();
         }
     }
@@ -62,11 +62,11 @@ public abstract class CommitTreeModel{
     public void addInvisibleCommit(String id){
         CommitHelper invisCommit = sessionModel.currentRepoHelper.getCommit(id);
         for(CommitHelper c : invisCommit.getParents()){
-            if(!treeGraph.getTreeGraphModel().containsID(c.getId())){
+            if(!treeGraph.treeGraphModel.containsID(c.getId())){
                 addInvisibleCommit(c.getId());
             }
         }
-        this.addCommitToTree(invisCommit, invisCommit.getParents(), treeGraph.getTreeGraphModel(), false);
+        this.addCommitToTree(invisCommit, invisCommit.getParents(), treeGraph.treeGraphModel, false);
     }
 
     /**
@@ -79,7 +79,7 @@ public abstract class CommitTreeModel{
         return this.addCommitsToTree(this.getAllCommits());
     }
 
-    private boolean checkForChanges() throws GitAPIException, IOException{
+    private boolean addNewCommitsToTree() throws GitAPIException, IOException{
         return this.addCommitsToTree(this.getNewCommits());
     }
 
@@ -89,7 +89,7 @@ public abstract class CommitTreeModel{
         for(int i = 0; i < commits.size(); i++){
             CommitHelper curCommitHelper = commits.get(i);
             ArrayList<CommitHelper> parents = curCommitHelper.getParents();
-            this.addCommitToTree(curCommitHelper, parents, treeGraph.getTreeGraphModel(), true);
+            this.addCommitToTree(curCommitHelper, parents, treeGraph.treeGraphModel, true);
         }
 
         treeGraph.update();

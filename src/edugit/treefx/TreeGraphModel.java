@@ -1,6 +1,12 @@
 package edugit.treefx;
 
-import java.util.*;
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleIntegerProperty;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Created by makik on 6/10/15.
@@ -13,8 +19,6 @@ import java.util.*;
  */
 public class TreeGraphModel{
 
-    // The root of the tree
-
     List<Cell> allCells;
     List<Cell> addedCells;
     List<Cell> removedCells;
@@ -24,15 +28,19 @@ public class TreeGraphModel{
     List<Edge> removedEdges;
 
     // Map of each cell's id to the cell itself
-    Map<String,Cell> cellMap;
+    public Map<String,Cell> cellMap;
+
+    IntegerProperty numCellsProperty = new SimpleIntegerProperty();
+
+    public boolean isInitialSetupFinished;
 
     /**
      * Constructs a new model for a tree graph
      */
     public TreeGraphModel() {
-
         // clear model, create lists
         clear();
+        isInitialSetupFinished = false;
     }
 
     /**
@@ -161,6 +169,10 @@ public class TreeGraphModel{
 
         addedCells.add(cell);
         cellMap.put(cell.getCellId(), cell);
+
+        if(isInitialSetupFinished){
+            Highlighter.emphasizeCell(cell);
+        }
     }
 
     /**
@@ -219,20 +231,20 @@ public class TreeGraphModel{
      * completely updated
      */
     public void merge() {
-
         // cells
-        allCells.addAll( addedCells);
-        allCells.removeAll( removedCells);
+        allCells.addAll(addedCells);
+        allCells.removeAll(removedCells);
 
         addedCells.clear();
         removedCells.clear();
 
         // edges
-        allEdges.addAll( addedEdges);
-        allEdges.removeAll( removedEdges);
+        allEdges.addAll(addedEdges);
+        allEdges.removeAll(removedEdges);
 
         addedEdges.clear();
         removedEdges.clear();
 
+        numCellsProperty.set(allCells.size());
     }
 }

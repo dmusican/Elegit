@@ -1,7 +1,11 @@
 package edugit.treefx;
 
 import edugit.CommitTreeController;
+import edugit.CommitTreePanelView;
+import javafx.animation.*;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.scene.Node;
 import javafx.scene.control.Tooltip;
@@ -9,6 +13,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
+import javafx.util.Duration;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,8 +46,10 @@ public class Cell extends Pane{
 
     List<Edge> edges = new ArrayList<>();
 
-    IntegerProperty columnLocationProperty;
-    IntegerProperty rowLocationProperty;
+    public IntegerProperty columnLocationProperty;
+    public IntegerProperty rowLocationProperty;
+
+    private BooleanProperty hasUpdatedPosition;
 
     /**
      * Constructs a node with the given ID and a single parent node
@@ -65,9 +72,16 @@ public class Cell extends Pane{
         this.parents = new ParentCell(this, parent1, parent2);
 
         setView(getBaseView());
+        super.setTranslateX(CommitTreePanelView.TREE_PANEL_WIDTH / 2. - getBoundsInParent().getWidth() / 2.);
 
         this.columnLocationProperty = new SimpleIntegerProperty(0);
         this.rowLocationProperty = new SimpleIntegerProperty(0);
+
+        this.hasUpdatedPosition = new SimpleBooleanProperty(false);
+        visibleProperty().bind(this.hasUpdatedPosition);
+
+        columnLocationProperty.addListener((observable, oldValue, newValue) -> hasUpdatedPosition.set(oldValue.intValue()==newValue.intValue()));
+        rowLocationProperty.addListener((observable, oldValue, newValue) -> hasUpdatedPosition.set(oldValue.intValue()==newValue.intValue()));
 
         tooltip = new Tooltip(cellId);
         tooltip.setWrapText(true);
@@ -79,9 +93,22 @@ public class Cell extends Pane{
         this.setOnMouseExited(event -> CommitTreeController.handleMouseover(this, false));
     }
 
+    public void moveTo(double x, double y, boolean animate){
+        if(animate){
+            TranslateTransition t = new TranslateTransition(Duration.millis(500), this);
+            t.setToX(x);
+            t.setToY(y);
+            t.setCycleCount(1);
+            t.play();
+        }else{
+            setTranslateX(x);
+            setTranslateY(y);
+        }
+        this.hasUpdatedPosition.set(true);
+    }
+
     protected Node getBaseView(){
         return new Rectangle(BOX_SIZE, BOX_SIZE, Highlighter.STANDARD_COLOR);
-//        setView(new Text(cellId));
     }
 
     /**

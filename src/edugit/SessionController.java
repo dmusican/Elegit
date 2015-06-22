@@ -6,7 +6,8 @@ import javafx.scene.text.Text;
 import org.eclipse.jgit.api.errors.*;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.prefs.BackingStoreException;
 
 /**
@@ -326,7 +327,9 @@ public class SessionController extends Controller {
     public void loadSelectedBranch(ActionEvent actionEvent) throws GitAPIException, IOException {
         String branchName = this.branchSelector.getValue();
         try {
-            this.theModel.getCurrentRepoHelper().checkoutBranch(branchName);
+            RepoHelper repo = this.theModel.getCurrentRepoHelper();
+            repo.checkoutBranch(branchName);
+            CommitTreeController.focusCommit(repo.getCommitByBranchName(branchName));
         } catch (CheckoutConflictException e) {
             ERROR_ALERT_CONSTANTS.checkoutConflictWithPaths(e.getConflictingPaths()).showAndWait();
             this.updateBranchDropdown();

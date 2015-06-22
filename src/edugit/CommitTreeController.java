@@ -26,7 +26,7 @@ public class CommitTreeController{
 
         for(CommitTreeModel model : allCommitTreeModels){
             if(model.treeGraph == null) continue;
-            TreeGraphModel m = model.treeGraph.getTreeGraphModel();
+            TreeGraphModel m = model.treeGraph.treeGraphModel;
 
             if(selectedCellID == null){
                 selectCommit(commitID, m, true);
@@ -48,7 +48,7 @@ public class CommitTreeController{
     public static void highlightCommit(String commitID, boolean isOverCell){
         for(CommitTreeModel model : allCommitTreeModels){
             if(model.treeGraph == null) continue;
-            TreeGraphModel m = model.treeGraph.getTreeGraphModel();
+            TreeGraphModel m = model.treeGraph.treeGraphModel;
 
             if(!isSelected(commitID)){
                 Highlighter.highlightCell(commitID, selectedCellID, m, isOverCell);
@@ -87,6 +87,17 @@ public class CommitTreeController{
                 }
                 model.treeGraph.update();
                 model.view.displayTreeGraph(model.treeGraph);
+            }
+        }
+    }
+
+    public static void focusCommit(CommitHelper commit){
+        if(commit == null) return;
+        for(CommitTreeModel model : allCommitTreeModels){
+            if(model.treeGraph != null && model.treeGraph.treeGraphModel.containsID(commit.getId())){
+                Cell c = model.treeGraph.treeGraphModel.cellMap.get(commit.getId());
+                MatchedScrollPane.scrollTo(c.rowLocationProperty.doubleValue());
+                Highlighter.emphasizeCell(c);
             }
         }
     }

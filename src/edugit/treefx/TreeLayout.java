@@ -1,5 +1,6 @@
 package edugit.treefx;
 
+import javafx.application.Platform;
 import javafx.concurrent.Task;
 
 import java.util.ArrayList;
@@ -18,8 +19,12 @@ public class TreeLayout{
     public static int H_PAD = 10;
 
     /**
-     * Recursively rearranges the given graph into a tree layout
+     * Returns a task that will take care of laying out the given
+     * graph into a tree. Uses a combination of recursion and
+     * iteration to pack cells as far left as possible with each
+     * cell being arranged vertically based on time
      * @param g the graph to layout
+     * @return a task that, when executed, does the layout
      */
     public static Task getTreeLayoutTask(TreeGraph g){
 
@@ -32,12 +37,15 @@ public class TreeLayout{
 
             @Override
             protected Void call() throws Exception{
-                TreeGraphModel treeGraphModel = g.getTreeGraphModel();
+                TreeGraphModel treeGraphModel = g.treeGraphModel;
 
                 allCellsSortedByTime = treeGraphModel.allCells;
                 allCellsSortedByTime.sort((c1, c2) -> Long.compare(c2.getTime(), c1.getTime()));
 
                 relocateCells();
+
+                treeGraphModel.isInitialSetupFinished = true;
+
                 return null;
             }
 
@@ -86,6 +94,16 @@ public class TreeLayout{
                 c.columnLocationProperty.set(w);
                 c.rowLocationProperty.set(h);
 
+                Platform.runLater(new Task<Void>(){
+                    @Override
+                    protected Void call(){
+                        double x = c.columnLocationProperty.get() * H_SPACING + H_PAD;
+                        double y = c.rowLocationProperty.get() * V_SPACING + V_PAD;
+                        c.moveTo(x, y, false);
+                        return null;
+                    }
+                });
+
                 List<Cell> list = c.getCellChildren();
                 list.sort((c1, c2) -> Long.compare(c2.getTime(), c1.getTime()));
 
@@ -122,13 +140,5 @@ public class TreeLayout{
                 return allCellsSortedByTime.indexOf(c);
             }
         };
-    }
-
-    public static void moveCells(TreeGraph g){
-        for(Cell c : g.getTreeGraphModel().allCells){
-            double x = c.columnLocationProperty.get() * H_SPACING + H_PAD;
-            double y = c.rowLocationProperty.get() * V_SPACING + V_PAD;
-            c.relocate(x, y);
-        }
     }
 }
