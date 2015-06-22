@@ -66,6 +66,12 @@ public class CommitTreeController{
         }
     }
 
+    public static void resetSelection(){
+        if(selectedCellID != null){
+            selectCommit(selectedCellID);
+        }
+    }
+
     private static boolean isSelected(String cellID){
         return selectedCellID != null && selectedCellID.equals(cellID);
     }

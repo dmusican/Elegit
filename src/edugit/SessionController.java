@@ -189,11 +189,12 @@ public class SessionController extends Controller {
 
                 // Updates
                 this.setButtonsDisabled(false);
-                try {
+                try{
+                    this.initPanelViews();
                     this.updateBranchDropdown();
-                } catch (GitAPIException e) {
+                }catch(GitAPIException e){
                     e.printStackTrace();
-                } catch (IOException e) {
+                }catch(IOException e){
                     e.printStackTrace();
                 }
                 this.updateCurrentRepoLabel();
