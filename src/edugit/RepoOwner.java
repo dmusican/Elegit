@@ -1,5 +1,6 @@
 package edugit;
 
+import edugit.exceptions.NoOwnerInfoException;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
@@ -31,7 +32,7 @@ public class RepoOwner {
         // Create the custom dialog.
         Dialog<Pair<String, String>> dialog = new Dialog<>();
         dialog.setTitle("Log in");
-        dialog.setHeaderText("Please log in to your remote repository.");
+        dialog.setHeaderText("Please log in with your remote repository's credentials.");
 
         // Set the button types.
         ButtonType loginButtonType = new ButtonType("Log in", ButtonBar.ButtonData.OK_DONE);

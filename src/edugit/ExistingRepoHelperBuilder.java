@@ -1,5 +1,9 @@
 package edugit;
 
+import edugit.exceptions.NoOwnerInfoException;
+import edugit.exceptions.NoRepoSelectedException;
+
+import java.io.File;
 import java.nio.file.Path;
 
 /**
@@ -12,12 +16,24 @@ public class ExistingRepoHelperBuilder extends RepoHelperBuilder {
 
     /**
      *
-     * @throws Exception why?
+     * @throws Exception why? has to do with the new ExistingRepoHelper(...).
      */
     @Override
     public RepoHelper getRepoHelperFromDialogs() throws Exception {
-        Path existingRepoDirectory = this.getDirectoryPathFromChooser("Choose existing repository directory", null).toPath();
-        RepoHelper existingRepoHelper = new ExistingRepoHelper(existingRepoDirectory, this.sessionModel.getOwner());
+        File existingRepoDirectoryFile = this.getDirectoryPathFromChooser("Choose existing repository directory", null);
+
+        if (existingRepoDirectoryFile == null) {
+            // If the user pressed cancel
+            throw new NoRepoSelectedException();
+        }
+
+        Path directoryPath = existingRepoDirectoryFile.toPath();
+
+        if (this.sessionModel.getOwner() == null) {
+            throw new NoOwnerInfoException();
+        }
+
+        RepoHelper existingRepoHelper = new ExistingRepoHelper(directoryPath, this.sessionModel.getOwner());
 
         return existingRepoHelper;
     }

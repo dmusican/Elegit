@@ -1,5 +1,6 @@
 package edugit;
 
+import edugit.exceptions.NoOwnerInfoException;
 import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ListBranchCommand;
@@ -53,7 +54,12 @@ public abstract class RepoHelper {
      * @throws GitAPIException if the obtainRepository() call throws this exception..
      * @throws IOException if the obtainRepository() call throws this exception.
      */
-    public RepoHelper(Path directoryPath, String remoteURL, RepoOwner owner) throws GitAPIException, IOException {
+    public RepoHelper(Path directoryPath, String remoteURL, RepoOwner owner) throws GitAPIException, IOException, NoOwnerInfoException {
+
+        if (owner.getUsername() == null && owner.getPassword() == null) {
+            throw new NoOwnerInfoException();
+        }
+
         this.ownerAuth = new UsernamePasswordCredentialsProvider(owner.getUsername(), owner.getPassword());
 
         this.remoteURL = remoteURL;

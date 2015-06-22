@@ -1,5 +1,7 @@
 package edugit;
 
+import edugit.exceptions.NoOwnerInfoException;
+import edugit.exceptions.NoRepoSelectedException;
 import javafx.event.ActionEvent;
 import javafx.scene.control.*;
 import javafx.scene.text.Text;
@@ -104,20 +106,38 @@ public class SessionController extends Controller {
                 this.onGitStatusButton();
                 this.initPanelViews();
             } catch (IllegalArgumentException e) {
+                e.printStackTrace();
                 ERROR_ALERT_CONSTANTS.invalidRepo().showAndWait();
             } catch (JGitInternalException e) {
+                e.printStackTrace();
                 ERROR_ALERT_CONSTANTS.nonemptyFolder().showAndWait();
             } catch (InvalidRemoteException e) {
+                e.printStackTrace();
                 ERROR_ALERT_CONSTANTS.invalidRemote().showAndWait();
             } catch (TransportException e) {
+                e.printStackTrace();
                 ERROR_ALERT_CONSTANTS.notAuthorized().showAndWait();
                 // FIXME: TransportExceptions don't *only* indicate a permissions issue... Figure out what else they do
-            } catch (NullPointerException e) {
-                ERROR_ALERT_CONSTANTS.notLoggedIn().showAndWait();
-                e.printStackTrace();
 
                 // Re-prompt the user to log in:
                 this.theModel.getOwner().presentLoginDialogsToSetValues();
+            } catch (NoRepoSelectedException e) {
+
+                // The user pressed cancel on the dialog box. Do nothing!
+
+            } catch (NoOwnerInfoException e) {
+                e.printStackTrace();
+                ERROR_ALERT_CONSTANTS.notLoggedIn().showAndWait();
+            } catch (NullPointerException e) {
+                ERROR_ALERT_CONSTANTS.genericError().showAndWait();
+                e.printStackTrace();
+
+                // This block used to catch the NoOwnerInfo case,
+                // but now that has its own Exception. Not sure when
+                // a NullPointer would be thrown, so the dialog isn't
+                // very helpful. Todo: investigate.
+
+
             } catch (Exception e) {
                 // The generic error is totally unhelpful, so try not to ever reach this catch statement
                 ERROR_ALERT_CONSTANTS.genericError().showAndWait();
@@ -136,8 +156,16 @@ public class SessionController extends Controller {
                 this.onGitStatusButton();
                 this.initPanelViews();
             } catch (IllegalArgumentException e) {
+                e.printStackTrace();
                 ERROR_ALERT_CONSTANTS.invalidRepo().showAndWait();
+            } catch (NoOwnerInfoException e) {
+                ERROR_ALERT_CONSTANTS.notLoggedIn();
+                e.printStackTrace();
+
+                // Re-prompt the user to log in:
+                this.theModel.getOwner().presentLoginDialogsToSetValues();
             } catch (NullPointerException e) {
+                // TODO: figure out when nullpointer is thrown (if at all?)
                 ERROR_ALERT_CONSTANTS.repoWasNotLoaded().showAndWait();
                 e.printStackTrace();
             } catch (Exception e) {
