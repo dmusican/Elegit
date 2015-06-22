@@ -54,7 +54,7 @@ public abstract class RepoHelper {
      */
     public RepoHelper(Path directoryPath, String remoteURL, RepoOwner owner) throws GitAPIException, IOException, NoOwnerInfoException {
 
-        if (owner.getUsername() == null && owner.getPassword() == null) {
+        if (owner == null || (owner.getUsername() == null && owner.getPassword() == null)) {
             throw new NoOwnerInfoException();
         }
 
@@ -66,10 +66,6 @@ public abstract class RepoHelper {
 
         this.repo = this.obtainRepository();
 
-        // TODO: Use DirectoryWatcher for auto-refreshes.
-//        this.directoryWatcher = new DirectoryWatcher(this.localPath);
-//        this.directoryWatcher.beginProcessingEvents();
-
         this.commitIdMap = new HashMap<>();
         this.idMap = new HashMap<>();
 
@@ -80,7 +76,13 @@ public abstract class RepoHelper {
 
     /// Constructor for EXISTING repos to inherit (they don't need the Remote URL)
     public RepoHelper(Path directoryPath, RepoOwner owner) throws GitAPIException, IOException, NoOwnerInfoException {
-        this.ownerAuth = new UsernamePasswordCredentialsProvider(owner.getUsername(), owner.getPassword());
+        // If the user hasn't signed in (owner == null), then there is no authentication:
+        if (owner == null) {
+            this.ownerAuth = null;
+        } else {
+            this.ownerAuth = new UsernamePasswordCredentialsProvider(owner.getUsername(), owner.getPassword());
+        }
+
         this.localPath = directoryPath;
 
         this.repo = this.obtainRepository();
@@ -473,7 +475,12 @@ public abstract class RepoHelper {
     }
 
     public void setOwner(RepoOwner owner) {
-        this.ownerAuth = new UsernamePasswordCredentialsProvider(owner.getUsername(), owner.getPassword());
+        if (owner == null || (owner.getUsername() == null && owner.getPassword() == null)) {
+            // If there's no owner, there's no authentication.
+            this.ownerAuth = null;
+        } else {
+            this.ownerAuth = new UsernamePasswordCredentialsProvider(owner.getUsername(), owner.getPassword());
+        }
     }
 }
 

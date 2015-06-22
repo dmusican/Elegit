@@ -1,5 +1,6 @@
 package edugit;
 
+import edugit.exceptions.CancelledLoginException;
 import edugit.exceptions.NoOwnerInfoException;
 import edugit.exceptions.NoRepoSelectedException;
 import javafx.event.ActionEvent;
@@ -47,13 +48,7 @@ public class SessionController extends Controller {
      * This method is automatically called by JavaFX.
      */
     public void initialize() throws Exception {
-        try {
-            this.theModel = SessionModel.getSessionModel();
-
-        } catch (NoOwnerInfoException e) {
-            ERROR_ALERT_CONSTANTS.initialLoginFailed().showAndWait();
-
-        }
+        this.theModel = SessionModel.getSessionModel();
 
         this.workingTreePanelView.setSessionModel(this.theModel);
         this.localCommitTreeModel = new LocalCommitTreeModel(this.theModel, this.localCommitTreePanelView);
@@ -127,7 +122,11 @@ public class SessionController extends Controller {
                 // FIXME: TransportExceptions don't *only* indicate a permissions issue... Figure out what else they do
 
                 // Re-prompt the user to log in:
-                this.theModel.getOwner().presentLoginDialogsToSetValues();
+                try {
+                    this.theModel.getOwner().presentLoginDialogsToSetValues();
+                } catch (CancelledLoginException e1) {
+                    // Do nothing. The user just pressed cancel.
+                }
             } catch (NoRepoSelectedException e) {
 
                 // The user pressed cancel on the dialog box. Do nothing!
@@ -170,7 +169,11 @@ public class SessionController extends Controller {
                 e.printStackTrace();
 
                 // Re-prompt the user to log in:
-                this.theModel.getOwner().presentLoginDialogsToSetValues();
+                try {
+                    this.theModel.getOwner().presentLoginDialogsToSetValues();
+                } catch (CancelledLoginException e1) {
+                    // Do nothing. The user just pressed cancel!
+                }
             } catch (NullPointerException e) {
                 // TODO: figure out when nullpointer is thrown (if at all?)
                 ERROR_ALERT_CONSTANTS.repoWasNotLoaded().showAndWait();
@@ -405,9 +408,14 @@ public class SessionController extends Controller {
     }
 
     public void switchUser(ActionEvent actionEvent) {
-        RepoOwner newOwner = new RepoOwner();
-        newOwner.presentLoginDialogsToSetValues();
+        // Begin with a nullified RepoOwner:
+        RepoOwner newOwner = new RepoOwner(null, null);
 
+        try {
+            newOwner = new RepoOwner();
+        } catch (CancelledLoginException e) {
+            // User cancelled the login, so we'll leave the owner full of nullness.
+        }
         this.theModel.getCurrentRepoHelper().setOwner(newOwner);
     }
 }
