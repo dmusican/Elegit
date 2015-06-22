@@ -1,6 +1,12 @@
 package edugit.treefx;
 
-import java.util.*;
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleIntegerProperty;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Created by makik on 6/10/15.
@@ -22,7 +28,9 @@ public class TreeGraphModel{
     List<Edge> removedEdges;
 
     // Map of each cell's id to the cell itself
-    Map<String,Cell> cellMap;
+    public Map<String,Cell> cellMap;
+
+    IntegerProperty numCellsProperty = new SimpleIntegerProperty();
 
     public boolean isInitialSetupFinished;
 
@@ -30,10 +38,8 @@ public class TreeGraphModel{
      * Constructs a new model for a tree graph
      */
     public TreeGraphModel() {
-
         // clear model, create lists
         clear();
-
         isInitialSetupFinished = false;
     }
 
@@ -238,5 +244,7 @@ public class TreeGraphModel{
 
         addedEdges.clear();
         removedEdges.clear();
+
+        numCellsProperty.set(allCells.size());
     }
 }

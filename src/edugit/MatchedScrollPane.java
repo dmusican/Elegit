@@ -19,4 +19,7 @@ public class MatchedScrollPane extends ScrollPane{
 
     public void requestFocus(){}
 
+    public static void scrollTo(double pos){
+        vPos.set(pos);
+    }
 }

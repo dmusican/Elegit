@@ -17,7 +17,7 @@ import javafx.scene.layout.Pane;
 public class TreeGraph{
 
     // The underlying model of the graph
-    private TreeGraphModel treeGraphModel;
+    public TreeGraphModel treeGraphModel;
 
     private Group canvas;
 
@@ -46,6 +46,8 @@ public class TreeGraph{
 
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
         scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+
+        scrollPane.vmaxProperty().bind(m.numCellsProperty);
     }
 
     public ScrollPane getScrollPane() {
@@ -54,10 +56,6 @@ public class TreeGraph{
 
     public Pane getCellLayer() {
         return this.cellLayer;
-    }
-
-    public TreeGraphModel getTreeGraphModel() {
-        return treeGraphModel;
     }
 
     /**
@@ -75,6 +73,6 @@ public class TreeGraph{
         getCellLayer().getChildren().removeAll(treeGraphModel.getRemovedEdges());
 
         // merge added & removed cells with all cells
-        getTreeGraphModel().merge();
+        treeGraphModel.merge();
     }
 }

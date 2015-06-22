@@ -46,8 +46,8 @@ public class Cell extends Pane{
 
     List<Edge> edges = new ArrayList<>();
 
-    IntegerProperty columnLocationProperty;
-    IntegerProperty rowLocationProperty;
+    public IntegerProperty columnLocationProperty;
+    public IntegerProperty rowLocationProperty;
 
     private BooleanProperty hasUpdatedPosition;
 

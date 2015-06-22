@@ -1,5 +1,6 @@
 package edugit.treefx;
 
+import edugit.MatchedScrollPane;
 import javafx.animation.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Shape;
@@ -93,6 +94,8 @@ public class Highlighter{
     }
 
     public static void emphasizeCell(Cell c){
+        MatchedScrollPane.scrollTo(c.rowLocationProperty.doubleValue());
+
         Shape s = (Shape) c.view;
 
         RotateTransition rt = new RotateTransition(Duration.millis(5000), s);

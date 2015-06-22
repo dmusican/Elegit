@@ -218,6 +218,15 @@ public abstract class RepoHelper {
         }
     }
 
+    public CommitHelper getCommitByBranchName(String branch){
+        if(localBranches.containsKey(branch)){
+            return commitIdMap.get(idMap.get(localBranches.get(branch)));
+        }else if(remoteBranches.containsKey(branch)){
+            return commitIdMap.get(idMap.get(remoteBranches.get(branch)));
+        }
+        return null;
+    }
+
     public List<CommitHelper> getNewLocalCommits() throws GitAPIException, IOException{
         Map<String, ObjectId> oldBranchHeads = new HashMap<>(this.localBranches);
         List<String> newLocalBranchNames = this.getLocalBranchNames();

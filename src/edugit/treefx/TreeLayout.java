@@ -37,7 +37,7 @@ public class TreeLayout{
 
             @Override
             protected Void call() throws Exception{
-                TreeGraphModel treeGraphModel = g.getTreeGraphModel();
+                TreeGraphModel treeGraphModel = g.treeGraphModel;
 
                 allCellsSortedByTime = treeGraphModel.allCells;
                 allCellsSortedByTime.sort((c1, c2) -> Long.compare(c2.getTime(), c1.getTime()));
