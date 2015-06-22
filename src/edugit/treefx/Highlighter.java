@@ -1,6 +1,9 @@
 package edugit.treefx;
 
+import javafx.animation.*;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Shape;
+import javafx.util.Duration;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -87,5 +90,39 @@ public class Highlighter{
 
     private static void highlightCell(Cell cell, Color c){
         cell.setColor(c);
+    }
+
+    public static void emphasizeCell(Cell c){
+        Shape s = (Shape) c.view;
+
+        RotateTransition rt = new RotateTransition(Duration.millis(5000), s);
+        rt.setCycleCount(1);
+        rt.setByAngle(180);
+
+        SequentialTransition st;
+
+        if(c instanceof InvisibleCell){
+            StrokeTransition st1 = new StrokeTransition(Duration.millis(1000), s, Highlighter.STANDARD_COLOR, Color.FORESTGREEN);
+            st1.setCycleCount(1);
+
+            StrokeTransition st2 = new StrokeTransition(Duration.millis(1500), s, Color.FORESTGREEN, Highlighter.STANDARD_COLOR);
+            st2.setCycleCount(1);
+
+            st = new SequentialTransition(st1, new PauseTransition(Duration.millis(2500)), st2);
+            st.setCycleCount(1);
+
+        }else{
+            FillTransition ft1 = new FillTransition(Duration.millis(1000), s, Highlighter.STANDARD_COLOR, Color.FORESTGREEN);
+            ft1.setCycleCount(1);
+
+            FillTransition ft2 = new FillTransition(Duration.millis(1500), s, Color.FORESTGREEN, Highlighter.STANDARD_COLOR);
+            ft2.setCycleCount(1);
+
+            st = new SequentialTransition(ft1, new PauseTransition(Duration.millis(2500)), ft2);
+            st.setCycleCount(1);
+        }
+
+        ParallelTransition pt = new ParallelTransition(st, rt);
+        pt.play();
     }
 }

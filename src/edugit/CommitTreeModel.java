@@ -54,7 +54,7 @@ public abstract class CommitTreeModel{
     }
 
     public void update() throws GitAPIException, IOException{
-        if(this.checkForChanges()){
+        if(this.addNewCommitsToTree()){
             this.updateView();
         }
     }
@@ -79,7 +79,7 @@ public abstract class CommitTreeModel{
         return this.addCommitsToTree(this.getAllCommits());
     }
 
-    private boolean checkForChanges() throws GitAPIException, IOException{
+    private boolean addNewCommitsToTree() throws GitAPIException, IOException{
         return this.addCommitsToTree(this.getNewCommits());
     }
 

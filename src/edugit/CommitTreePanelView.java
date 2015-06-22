@@ -41,12 +41,12 @@ public class CommitTreePanelView extends Group{
         task = TreeLayout.getTreeLayoutTask(treeGraph);
 
         th = new Thread(task);
-        th.setName("Graph Layout (x = "+this.getLayoutX()+")");
+        th.setName("Graph Layout (x = " + this.getLayoutX() + ")");
         th.setDaemon(true);
         th.start();
         isRunning = true;
 
-        Platform.runLater(new Task<Void>(){
+        Task<Void> endTask = new Task<Void>(){
             @Override
             protected Void call(){
                 try{
@@ -54,16 +54,25 @@ public class CommitTreePanelView extends Group{
                 }catch(InterruptedException e){
                     e.printStackTrace();
                 }
-
-                ScrollPane sp = treeGraph.getScrollPane();
-                sp.setPannable(true);
-                sp.setPrefSize(TREE_PANEL_WIDTH, TREE_PANEL_HEIGHT);
-                getChildren().clear();
-                getChildren().add(sp);
-                isRunning = false;
+                Platform.runLater(new Task<Void>(){
+                    @Override
+                    protected Void call(){
+                        ScrollPane sp = treeGraph.getScrollPane();
+                        sp.setPannable(true);
+                        sp.setPrefSize(TREE_PANEL_WIDTH, TREE_PANEL_HEIGHT);
+                        getChildren().clear();
+                        getChildren().add(sp);
+                        isRunning = false;
+                        return null;
+                    }
+                });
                 return null;
             }
-        });
+        };
+        Thread endThread = new Thread(endTask);
+        endThread.setName("Layout finalization");
+        endThread.setDaemon(true);
+        endThread.start();
     }
 
     public void displayEmptyView(){

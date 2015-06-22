@@ -108,23 +108,7 @@ public class Cell extends Pane{
     }
 
     protected Node getBaseView(){
-        Rectangle rect = new Rectangle(BOX_SIZE, BOX_SIZE, Highlighter.STANDARD_COLOR);
-        FillTransition ft1 = new FillTransition(Duration.millis(1000), rect, Highlighter.STANDARD_COLOR, Color.FORESTGREEN);
-        ft1.setCycleCount(1);
-
-        FillTransition ft2 = new FillTransition(Duration.millis(1500), rect, Color.FORESTGREEN, Highlighter.STANDARD_COLOR);
-        ft2.setCycleCount(1);
-
-        SequentialTransition st = new SequentialTransition(ft1, new PauseTransition(Duration.millis(2500)), ft2);
-        st.setCycleCount(1);
-
-        RotateTransition rt = new RotateTransition(Duration.millis(5000), rect);
-        rt.setCycleCount(1);
-        rt.setByAngle(180);
-
-        ParallelTransition pt = new ParallelTransition(st, rt);
-        pt.play();
-        return rect;
+        return new Rectangle(BOX_SIZE, BOX_SIZE, Highlighter.STANDARD_COLOR);
     }
 
     /**

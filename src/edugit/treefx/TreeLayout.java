@@ -19,8 +19,12 @@ public class TreeLayout{
     public static int H_PAD = 10;
 
     /**
-     * Recursively rearranges the given graph into a tree layout
+     * Returns a task that will take care of laying out the given
+     * graph into a tree. Uses a combination of recursion and
+     * iteration to pack cells as far left as possible with each
+     * cell being arranged vertically based on time
      * @param g the graph to layout
+     * @return a task that, when executed, does the layout
      */
     public static Task getTreeLayoutTask(TreeGraph g){
 
@@ -39,6 +43,9 @@ public class TreeLayout{
                 allCellsSortedByTime.sort((c1, c2) -> Long.compare(c2.getTime(), c1.getTime()));
 
                 relocateCells();
+
+                treeGraphModel.isInitialSetupFinished = true;
+
                 return null;
             }
 

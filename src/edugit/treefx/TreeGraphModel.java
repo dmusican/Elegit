@@ -13,8 +13,6 @@ import java.util.*;
  */
 public class TreeGraphModel{
 
-    // The root of the tree
-
     List<Cell> allCells;
     List<Cell> addedCells;
     List<Cell> removedCells;
@@ -26,6 +24,8 @@ public class TreeGraphModel{
     // Map of each cell's id to the cell itself
     Map<String,Cell> cellMap;
 
+    public boolean isInitialSetupFinished;
+
     /**
      * Constructs a new model for a tree graph
      */
@@ -33,6 +33,8 @@ public class TreeGraphModel{
 
         // clear model, create lists
         clear();
+
+        isInitialSetupFinished = false;
     }
 
     /**
@@ -161,6 +163,10 @@ public class TreeGraphModel{
 
         addedCells.add(cell);
         cellMap.put(cell.getCellId(), cell);
+
+        if(isInitialSetupFinished){
+            Highlighter.emphasizeCell(cell);
+        }
     }
 
     /**
@@ -219,20 +225,18 @@ public class TreeGraphModel{
      * completely updated
      */
     public void merge() {
-
         // cells
-        allCells.addAll( addedCells);
-        allCells.removeAll( removedCells);
+        allCells.addAll(addedCells);
+        allCells.removeAll(removedCells);
 
         addedCells.clear();
         removedCells.clear();
 
         // edges
-        allEdges.addAll( addedEdges);
-        allEdges.removeAll( removedEdges);
+        allEdges.addAll(addedEdges);
+        allEdges.removeAll(removedEdges);
 
         addedEdges.clear();
         removedEdges.clear();
-
     }
 }
