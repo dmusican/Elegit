@@ -13,10 +13,10 @@ import java.util.List;
  */
 public class TreeLayout{
 
-    public static int V_SPACING = Cell.BOX_SIZE * 3 + 5;
-    public static int H_SPACING = Cell.BOX_SIZE + 10;
-    public static int V_PAD = 25;
-    public static int H_PAD = 10;
+    public static int V_SPACING = Cell.BOX_SIZE + 10;
+    public static int H_SPACING = Cell.BOX_SIZE * 3 + 5;
+    public static int V_PAD = 10;
+    public static int H_PAD = 25;
 
     /**
      * Returns a task that will take care of laying out the given
@@ -31,7 +31,7 @@ public class TreeLayout{
         return new Task<Void>(){
 
             private List<String> visited;
-            private List<Integer> minRowUsedInColumn;
+            private List<Integer> maxColumnUsedInRow;
 
             private List<Cell> allCellsSortedByTime;
 
@@ -57,42 +57,42 @@ public class TreeLayout{
              */
             private void relocateCells(){
                 visited = new ArrayList<>();
-                minRowUsedInColumn = new ArrayList<>();
+                maxColumnUsedInRow = new ArrayList<>();
 
                 for(int i = allCellsSortedByTime.size() - 1; i >= 0; i--){
                     if(isCancelled()) return;
                     Cell c = allCellsSortedByTime.get(i);
                     if(!visited.contains(c.getCellId())){
-                        int minRow = relocateCellAndChildColumn(c);
-                        int columnOfMinRow = getColumnOfCellInRow(minRow);
-                        if(minRowUsedInColumn.size()-1 < columnOfMinRow){
-                            minRowUsedInColumn.add(columnOfMinRow, minRow);
-                        }else if(minRow < minRowUsedInColumn.get(columnOfMinRow)){
-                            minRowUsedInColumn.set(columnOfMinRow, minRow);
+                        int maxCol = relocateCellAndChildRow(c);
+                        int rowOfMaxColumn = getRowOfCellInColumn(maxCol);
+                        if(maxColumnUsedInRow.size()-1 < rowOfMaxColumn){
+                            maxColumnUsedInRow.add(rowOfMaxColumn, maxCol);
+                        }else if(maxCol > maxColumnUsedInRow.get(rowOfMaxColumn)){
+                            maxColumnUsedInRow.set(rowOfMaxColumn, maxCol);
                         }
                     }
                 }
             }
 
             /**
-             * Places the given cell into the column closest to the
-             * left of the screen, and then chooses its child closest
-             * to the top to place in next. Each recursive call happens
-             * on only a single of c's children to allow the columns to
+             * Places the given cell into the row closest to the
+             * top of the screen, and then chooses its child furthest
+             * to the right to place in next. Each recursive call happens
+             * on only a single of c's children to allow the rows to
              * space correctly
              * @param c the cell to place
-             * @return the minimum row in which a cell was placed before
+             * @return the maximum column in which a cell was placed before
              * it had no non-visited children
              */
-            private int relocateCellAndChildColumn(Cell c){
+            private int relocateCellAndChildRow(Cell c){
                 if(isCancelled()) return -1;
                 visited.add(c.getCellId());
 
-                int h = getRowOfCell(c);
-                int w = getColumnOfCellInRow(h);
+                int x = getColumnOfCell(c);
+                int y = getRowOfCellInColumn(x);
 
-                c.columnLocationProperty.set(w);
-                c.rowLocationProperty.set(h);
+                c.columnLocationProperty.set(x);
+                c.rowLocationProperty.set(y);
 
                 Platform.runLater(new Task<Void>(){
                     @Override
@@ -109,35 +109,35 @@ public class TreeLayout{
 
                 for(Cell child : list){
                     if(!visited.contains(child.getCellId())){
-                        return relocateCellAndChildColumn(child);
+                        return relocateCellAndChildRow(child);
                     }
                 }
-                return h;
+                return x;
             }
 
             /**
-             * Calculates the column closest to the left of the screen to place the
-             * given cell based on the cell's row and the minimum heights recorded
-             * for each column
-             * @param cellRow the row the cell to examine is in
-             * @return the lowest indexed column in which to place c
+             * Calculates the row closest to the top of the screen to place the
+             * given cell based on the cell's column and the maximum heights recorded
+             * for each row
+             * @param cellCol the column the cell to examine is in
+             * @return the lowest indexed row in which to place c
              */
-            private int getColumnOfCellInRow(int cellRow){
-                int column = 0;
-                while(minRowUsedInColumn.size() > column && (cellRow > minRowUsedInColumn.get(column))){
-                    column++;
+            private int getRowOfCellInColumn(int cellCol){
+                int row = 0;
+                while(maxColumnUsedInRow.size() > row && (cellCol < maxColumnUsedInRow.get(row))){
+                    row++;
                 }
-                return column;
+                return row;
             }
 
             /**
-             * Gets the row of the given cell, with row 0 being the top of the screen
+             * Gets the column of the given cell, with column 0 being the right of the screen
              * and the root cell of the tree being at the bottom
              * @param c the cell to examine
-             * @return the row index of this cell
+             * @return the column index of this cell
              */
-            private int getRowOfCell(Cell c){
-                return allCellsSortedByTime.indexOf(c);
+            private int getColumnOfCell(Cell c){
+                return allCellsSortedByTime.size() - 1 - allCellsSortedByTime.indexOf(c);
             }
         };
     }

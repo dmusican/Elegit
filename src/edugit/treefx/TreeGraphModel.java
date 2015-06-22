@@ -169,10 +169,6 @@ public class TreeGraphModel{
 
         addedCells.add(cell);
         cellMap.put(cell.getCellId(), cell);
-
-        if(isInitialSetupFinished){
-            Highlighter.emphasizeCell(cell);
-        }
     }
 
     /**

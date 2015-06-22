@@ -96,7 +96,6 @@ public class CommitTreeController{
         for(CommitTreeModel model : allCommitTreeModels){
             if(model.treeGraph != null && model.treeGraph.treeGraphModel.containsID(commit.getId())){
                 Cell c = model.treeGraph.treeGraphModel.cellMap.get(commit.getId());
-                MatchedScrollPane.scrollTo(c.rowLocationProperty.doubleValue());
                 Highlighter.emphasizeCell(c);
             }
         }

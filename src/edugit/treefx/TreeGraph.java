@@ -45,17 +45,13 @@ public class TreeGraph{
         scrollPane.setFitToHeight(false);
 
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
-        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
 
-        scrollPane.vmaxProperty().bind(m.numCellsProperty);
+        scrollPane.hmaxProperty().bind(m.numCellsProperty);
     }
 
     public ScrollPane getScrollPane() {
         return this.scrollPane;
-    }
-
-    public Pane getCellLayer() {
-        return this.cellLayer;
     }
 
     /**
@@ -65,12 +61,12 @@ public class TreeGraph{
      */
     public void update() {
         // add components to treeGraph pane
-        getCellLayer().getChildren().addAll(treeGraphModel.getAddedEdges());
-        getCellLayer().getChildren().addAll(treeGraphModel.getAddedCells());
+        cellLayer.getChildren().addAll(treeGraphModel.getAddedEdges());
+        cellLayer.getChildren().addAll(treeGraphModel.getAddedCells());
 
         // remove components from treeGraph pane
-        getCellLayer().getChildren().removeAll(treeGraphModel.getRemovedCells());
-        getCellLayer().getChildren().removeAll(treeGraphModel.getRemovedEdges());
+        cellLayer.getChildren().removeAll(treeGraphModel.getRemovedCells());
+        cellLayer.getChildren().removeAll(treeGraphModel.getRemovedEdges());
 
         // merge added & removed cells with all cells
         treeGraphModel.merge();

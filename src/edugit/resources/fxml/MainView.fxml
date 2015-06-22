@@ -28,24 +28,7 @@
             <RowConstraints vgrow="ALWAYS"/>
         </rowConstraints>
 
-        <!--TODO: make git action buttons center -->
-
-        <!--<columnConstraints>-->
-            <!--<ColumnConstraints halignment="LEFT" percentWidth="26"/>-->
-            <!--<ColumnConstraints halignment="LEFT" percentWidth="11"/>-->
-            <!--<ColumnConstraints halignment="LEFT" percentWidth="26"/>-->
-            <!--<ColumnConstraints halignment="LEFT" percentWidth="11"/>-->
-            <!--<ColumnConstraints halignment="LEFT" percentWidth="26"/>-->
-        <!--</columnConstraints>-->
-        <!--<rowConstraints>-->
-            <!--<RowConstraints valignment="TOP" percentHeight="9"/>-->
-            <!--<RowConstraints valignment="TOP" percentHeight="9"/>-->
-            <!--<RowConstraints valignment="TOP" percentHeight="15"/>-->
-            <!--<RowConstraints valignment="TOP" percentHeight="9"/>-->
-            <!--<RowConstraints valignment="TOP" percentHeight="15"/>-->
-            <!--<RowConstraints valignment="TOP" percentHeight="9"/>-->
-            <!--<RowConstraints valignment="TOP" percentHeight="9"/>-->
-        <!--</rowConstraints>-->
+        <!-- TODO: make git action buttons center -->
         <!-- TODO: resizing window should eventually just cut off the views. don't keep scrunching -->
 
         <MenuBar fx:id="menuBar"
