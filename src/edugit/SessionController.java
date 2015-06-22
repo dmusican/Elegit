@@ -167,6 +167,10 @@ public class SessionController extends Controller {
             } catch (IllegalArgumentException e) {
                 e.printStackTrace();
                 ERROR_ALERT_CONSTANTS.invalidRepo().showAndWait();
+            } catch (NoRepoSelectedException e) {
+
+                // The user pressed cancel on the dialog box. Do nothing!
+
             } catch (NoOwnerInfoException e) {
                 ERROR_ALERT_CONSTANTS.notLoggedIn();
                 e.printStackTrace();
