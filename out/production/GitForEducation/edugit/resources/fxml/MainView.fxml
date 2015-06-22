@@ -80,18 +80,17 @@
                 prefRowCount="3"
                 prefColumnCount="1"
                 promptText="Commit message..."
-                onKeyPressed="#handleCommitEnterKey"
                 wrapText="true" />
 
     </GridPane>
 
-    <Button GridPane.rowIndex="3"
+    <Button GridPane.rowIndex="4"
             GridPane.columnIndex="1"
             fx:id="commitButton"
             text="Commit"
             onAction="#handleCommitButton"/>
 
-    <Button GridPane.rowIndex="4"
+    <Button GridPane.rowIndex="5"
             GridPane.columnIndex="1"
             fx:id="mergeFromFetchButton"
             text="Merge"
