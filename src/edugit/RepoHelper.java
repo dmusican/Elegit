@@ -1,9 +1,7 @@
 package edugit;
 
 import edugit.exceptions.NoOwnerInfoException;
-import org.eclipse.jgit.api.AddCommand;
-import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.ListBranchCommand;
+import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Ref;
@@ -161,9 +159,13 @@ public abstract class RepoHelper {
      */
     public void pushAll() throws GitAPIException {
         Git git = new Git(this.repo);
-        git.push().setPushAll()
-                .setCredentialsProvider(this.ownerAuth)
-                .call();
+        PushCommand push = git.push().setPushAll();
+
+        if (this.ownerAuth != null) {
+            push.setCredentialsProvider(this.ownerAuth);
+        }
+
+        push.call();
         git.close();
     }
 
@@ -173,7 +175,14 @@ public abstract class RepoHelper {
         // The JGit docs say that if setCheckFetchedObjects
         //  is set to true, objects received will be checked for validity.
         //  Not sure what that means, but sounds good so I'm doing it...
-        git.fetch().setCredentialsProvider(this.ownerAuth).setCheckFetchedObjects(true).call();
+        FetchCommand fetch = git.fetch();
+
+        if (this.ownerAuth != null) {
+            fetch.setCredentialsProvider(this.ownerAuth);
+        }
+
+        fetch.setCheckFetchedObjects(true);
+        fetch.call();
         git.close();
     }
 

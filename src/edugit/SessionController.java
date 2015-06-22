@@ -47,7 +47,14 @@ public class SessionController extends Controller {
      * This method is automatically called by JavaFX.
      */
     public void initialize() throws Exception {
-        this.theModel = SessionModel.getSessionModel();
+        try {
+            this.theModel = SessionModel.getSessionModel();
+
+        } catch (NoOwnerInfoException e) {
+            ERROR_ALERT_CONSTANTS.initialLoginFailed().showAndWait();
+
+        }
+
         this.workingTreePanelView.setSessionModel(this.theModel);
         this.localCommitTreeModel = new LocalCommitTreeModel(this.theModel, this.localCommitTreePanelView);
         this.remoteCommitTreeModel = new RemoteCommitTreeModel(this.theModel, this.remoteCommitTreePanelView);

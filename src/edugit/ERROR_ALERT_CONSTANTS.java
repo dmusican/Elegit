@@ -87,4 +87,13 @@ public class ERROR_ALERT_CONSTANTS {
                 + conflictList);
         return alert;
     }
+
+    public static Alert initialLoginFailed() {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle("Login failed");
+        alert.setHeaderText("Login failed");
+        alert.setContentText("You must log in to your remote repository to begin using the program. Please restart to try again.");
+
+        return alert;
+    }
 }
