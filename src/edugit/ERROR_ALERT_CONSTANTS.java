@@ -20,7 +20,7 @@ public class ERROR_ALERT_CONSTANTS {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle("Access denied");
         alert.setHeaderText("Not authorized");
-        alert.setContentText("The login information you gave does not allow you to modify this repository.");
+        alert.setContentText("The login information you gave does not allow you to modify this repository. Try switching your login.");
         return alert;
     }
 
@@ -85,15 +85,6 @@ public class ERROR_ALERT_CONSTANTS {
         alert.setHeaderText("Can't checkout that branch");
         alert.setContentText("You can't switch to that branch because of the following conflicting files: "
                 + conflictList);
-        return alert;
-    }
-
-    public static Alert initialLoginFailed() {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle("Login failed");
-        alert.setHeaderText("Login failed");
-        alert.setContentText("You must log in to your remote repository to begin using the program. Please restart to try again.");
-
         return alert;
     }
 }
