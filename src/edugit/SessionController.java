@@ -1,5 +1,6 @@
 package edugit;
 
+import edugit.exceptions.NoRepoSelectedException;
 import javafx.event.ActionEvent;
 import javafx.scene.control.*;
 import javafx.scene.text.Text;
@@ -103,20 +104,25 @@ public class SessionController extends Controller {
                 this.onGitStatusButton();
                 this.initPanelViews();
             } catch (IllegalArgumentException e) {
+                e.printStackTrace();
                 ERROR_ALERT_CONSTANTS.invalidRepo().showAndWait();
             } catch (JGitInternalException e) {
+                e.printStackTrace();
                 ERROR_ALERT_CONSTANTS.nonemptyFolder().showAndWait();
             } catch (InvalidRemoteException e) {
+                e.printStackTrace();
                 ERROR_ALERT_CONSTANTS.invalidRemote().showAndWait();
             } catch (TransportException e) {
+                e.printStackTrace();
                 ERROR_ALERT_CONSTANTS.notAuthorized().showAndWait();
                 // FIXME: TransportExceptions don't *only* indicate a permissions issue... Figure out what else they do
+            } catch (NoRepoSelectedException e) {
+
+                // The user pressed cancel on the dialog box. Do nothing!
+
             } catch (NullPointerException e) {
                 ERROR_ALERT_CONSTANTS.notLoggedIn().showAndWait();
                 e.printStackTrace();
-
-                // Re-prompt the user to log in:
-                this.theModel.getOwner().presentLoginDialogsToSetValues();
             } catch (Exception e) {
                 // The generic error is totally unhelpful, so try not to ever reach this catch statement
                 ERROR_ALERT_CONSTANTS.genericError().showAndWait();
@@ -135,6 +141,7 @@ public class SessionController extends Controller {
                 this.onGitStatusButton();
                 this.initPanelViews();
             } catch (IllegalArgumentException e) {
+                e.printStackTrace();
                 ERROR_ALERT_CONSTANTS.invalidRepo().showAndWait();
             } catch (NullPointerException e) {
                 ERROR_ALERT_CONSTANTS.repoWasNotLoaded().showAndWait();

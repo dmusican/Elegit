@@ -1,5 +1,6 @@
 package edugit;
 
+import edugit.exceptions.NoRepoSelectedException;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
@@ -81,8 +82,11 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
         if (result.isPresent()) {
             Path destinationPath = Paths.get(result.get().getKey());
             RepoHelper repoHelper = new ClonedRepoHelper(destinationPath, result.get().getValue(), this.sessionModel.getOwner());
+
             return repoHelper;
+        } else {
+            // This happens when the user pressed cancel.
+            throw new NoRepoSelectedException();
         }
-        return null;
     }
 }

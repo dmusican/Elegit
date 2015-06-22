@@ -1,5 +1,8 @@
 package edugit;
 
+import edugit.exceptions.NoRepoSelectedException;
+
+import java.io.File;
 import java.nio.file.Path;
 
 /**
@@ -16,8 +19,15 @@ public class ExistingRepoHelperBuilder extends RepoHelperBuilder {
      */
     @Override
     public RepoHelper getRepoHelperFromDialogs() throws Exception {
-        Path existingRepoDirectory = this.getDirectoryPathFromChooser("Choose existing repository directory", null).toPath();
-        RepoHelper existingRepoHelper = new ExistingRepoHelper(existingRepoDirectory, this.sessionModel.getOwner());
+        File existingRepoDirectoryFile = this.getDirectoryPathFromChooser("Choose existing repository directory", null);
+
+        if (existingRepoDirectoryFile == null) {
+            // If the user pressed cancel
+            throw new NoRepoSelectedException();
+        }
+
+        Path directoryPath = existingRepoDirectoryFile.toPath();
+        RepoHelper existingRepoHelper = new ExistingRepoHelper(directoryPath, this.sessionModel.getOwner());
 
         return existingRepoHelper;
     }
