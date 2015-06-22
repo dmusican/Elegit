@@ -1,11 +1,10 @@
 package edugit;
 
-import edugit.exceptions.NoOwnerInfoException;
+import edugit.exceptions.CancelledLoginException;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.*;
-import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
 import javafx.util.Pair;
 
@@ -24,11 +23,11 @@ public class RepoOwner {
         this.password = password;
     }
 
-    public RepoOwner() {
-
+    public RepoOwner() throws CancelledLoginException {
+        this.presentLoginDialogsToSetValues();
     }
 
-    public void presentLoginDialogsToSetValues() {
+    public void presentLoginDialogsToSetValues() throws CancelledLoginException {
         // Create the custom dialog.
         Dialog<Pair<String, String>> dialog = new Dialog<>();
         dialog.setTitle("Log in");
@@ -78,11 +77,12 @@ public class RepoOwner {
 
         Optional<Pair<String, String>> result = dialog.showAndWait();
 
-        result.ifPresent(usernamePassword -> {
-            this.username = usernamePassword.getKey();
-            this.password = usernamePassword.getValue();
-        });
-
+        if (result.isPresent()) {
+            this.username = result.get().getKey();
+            this.password = result.get().getValue();
+        } else {
+            throw new CancelledLoginException();
+        }
     }
 
     public String getUsername() {

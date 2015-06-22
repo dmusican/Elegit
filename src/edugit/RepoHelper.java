@@ -1,9 +1,7 @@
 package edugit;
 
 import edugit.exceptions.NoOwnerInfoException;
-import org.eclipse.jgit.api.AddCommand;
-import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.ListBranchCommand;
+import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Ref;
@@ -56,7 +54,7 @@ public abstract class RepoHelper {
      */
     public RepoHelper(Path directoryPath, String remoteURL, RepoOwner owner) throws GitAPIException, IOException, NoOwnerInfoException {
 
-        if (owner.getUsername() == null && owner.getPassword() == null) {
+        if (owner == null || (owner.getUsername() == null && owner.getPassword() == null)) {
             throw new NoOwnerInfoException();
         }
 
@@ -68,10 +66,6 @@ public abstract class RepoHelper {
 
         this.repo = this.obtainRepository();
 
-        // TODO: Use DirectoryWatcher for auto-refreshes.
-//        this.directoryWatcher = new DirectoryWatcher(this.localPath);
-//        this.directoryWatcher.beginProcessingEvents();
-
         this.commitIdMap = new HashMap<>();
         this.idMap = new HashMap<>();
 
@@ -82,7 +76,13 @@ public abstract class RepoHelper {
 
     /// Constructor for EXISTING repos to inherit (they don't need the Remote URL)
     public RepoHelper(Path directoryPath, RepoOwner owner) throws GitAPIException, IOException, NoOwnerInfoException {
-        this.ownerAuth = new UsernamePasswordCredentialsProvider(owner.getUsername(), owner.getPassword());
+        // If the user hasn't signed in (owner == null), then there is no authentication:
+        if (owner == null) {
+            this.ownerAuth = null;
+        } else {
+            this.ownerAuth = new UsernamePasswordCredentialsProvider(owner.getUsername(), owner.getPassword());
+        }
+
         this.localPath = directoryPath;
 
         this.repo = this.obtainRepository();
@@ -161,9 +161,13 @@ public abstract class RepoHelper {
      */
     public void pushAll() throws GitAPIException {
         Git git = new Git(this.repo);
-        git.push().setPushAll()
-                .setCredentialsProvider(this.ownerAuth)
-                .call();
+        PushCommand push = git.push().setPushAll();
+
+        if (this.ownerAuth != null) {
+            push.setCredentialsProvider(this.ownerAuth);
+        }
+
+        push.call();
         git.close();
     }
 
@@ -173,7 +177,14 @@ public abstract class RepoHelper {
         // The JGit docs say that if setCheckFetchedObjects
         //  is set to true, objects received will be checked for validity.
         //  Not sure what that means, but sounds good so I'm doing it...
-        git.fetch().setCredentialsProvider(this.ownerAuth).setCheckFetchedObjects(true).call();
+        FetchCommand fetch = git.fetch();
+
+        if (this.ownerAuth != null) {
+            fetch.setCredentialsProvider(this.ownerAuth);
+        }
+
+        fetch.setCheckFetchedObjects(true);
+        fetch.call();
         git.close();
     }
 
@@ -464,7 +475,12 @@ public abstract class RepoHelper {
     }
 
     public void setOwner(RepoOwner owner) {
-        this.ownerAuth = new UsernamePasswordCredentialsProvider(owner.getUsername(), owner.getPassword());
+        if (owner == null || (owner.getUsername() == null && owner.getPassword() == null)) {
+            // If there's no owner, there's no authentication.
+            this.ownerAuth = null;
+        } else {
+            this.ownerAuth = new UsernamePasswordCredentialsProvider(owner.getUsername(), owner.getPassword());
+        }
     }
 }
 

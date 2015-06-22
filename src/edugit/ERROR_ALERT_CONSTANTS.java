@@ -20,7 +20,7 @@ public class ERROR_ALERT_CONSTANTS {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle("Access denied");
         alert.setHeaderText("Not authorized");
-        alert.setContentText("The login information you gave does not allow you to modify this repository.");
+        alert.setContentText("The login information you gave does not allow you to modify this repository. Try switching your login.");
         return alert;
     }
 

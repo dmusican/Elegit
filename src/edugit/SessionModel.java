@@ -1,5 +1,6 @@
 package edugit;
 
+import edugit.exceptions.NoOwnerInfoException;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -35,19 +36,12 @@ public class SessionModel {
 
     public static SessionModel getSessionModel() throws Exception {
         if (sessionModel == null) {
-            // Need to spawn an owner before creating a session model
-            // so that we can load stored repos that require an owner
-            RepoOwner owner = new RepoOwner();
-            owner.presentLoginDialogsToSetValues();
-
-            sessionModel = new SessionModel(owner);
+            sessionModel = new SessionModel();
         }
         return sessionModel;
     }
 
-    private SessionModel(RepoOwner owner) throws Exception {
-        this.owner = owner;
-
+    private SessionModel() throws Exception {
         this.allRepoHelpers = new ArrayList<RepoHelper>();
         this.preferences = Preferences.userNodeForPackage(this.getClass());
     }
