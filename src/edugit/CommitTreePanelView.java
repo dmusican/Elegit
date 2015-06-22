@@ -1,11 +1,13 @@
 package edugit;
 
+import edugit.treefx.Cell;
 import edugit.treefx.TreeGraph;
 import edugit.treefx.TreeLayout;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
-import javafx.scene.Group;
+import javafx.scene.Node;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.layout.Region;
 
 /**
  * Created by makik on 6/10/15.
@@ -14,14 +16,19 @@ import javafx.scene.control.ScrollPane;
  * from a given treeGraph.
  *
  */
-public class CommitTreePanelView extends Group{
+public class CommitTreePanelView extends Region{
 
-    public static int TREE_PANEL_WIDTH = 200;
-    public static int TREE_PANEL_HEIGHT = 500;
+    public static int TREE_PANEL_WIDTH = 500;
+    public static int TREE_PANEL_HEIGHT = (Cell.BOX_SIZE + TreeLayout.H_SPACING) * 5;
 
     private boolean isRunning = false;
     private Task task;
     private Thread th;
+
+    public CommitTreePanelView(){
+        super();
+        this.setPrefHeight(TREE_PANEL_HEIGHT);
+    }
 
     /**
      * Handles the layout and display of the treeGraph
@@ -59,9 +66,8 @@ public class CommitTreePanelView extends Group{
                     protected Void call(){
                         ScrollPane sp = treeGraph.getScrollPane();
                         sp.setPannable(true);
-                        sp.setPrefSize(TREE_PANEL_WIDTH, TREE_PANEL_HEIGHT);
                         getChildren().clear();
-                        getChildren().add(sp);
+                        getChildren().add(anchorScrollPane(sp));
                         isRunning = false;
                         return null;
                     }
@@ -77,8 +83,13 @@ public class CommitTreePanelView extends Group{
 
     public void displayEmptyView(){
         ScrollPane sp = new ScrollPane();
-        sp.setPrefSize(TREE_PANEL_WIDTH, TREE_PANEL_HEIGHT);
         this.getChildren().clear();
-        this.getChildren().add(sp);
+        this.getChildren().add(anchorScrollPane(sp));
+    }
+
+    private Node anchorScrollPane(ScrollPane sp){
+        sp.prefWidthProperty().bind(this.widthProperty());
+        sp.prefHeightProperty().bind(this.heightProperty());
+        return sp;
     }
 }

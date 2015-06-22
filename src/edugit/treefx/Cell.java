@@ -1,8 +1,7 @@
 package edugit.treefx;
 
 import edugit.CommitTreeController;
-import edugit.CommitTreePanelView;
-import javafx.animation.*;
+import javafx.animation.TranslateTransition;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -72,7 +71,6 @@ public class Cell extends Pane{
         this.parents = new ParentCell(this, parent1, parent2);
 
         setView(getBaseView());
-        super.setTranslateX(CommitTreePanelView.TREE_PANEL_WIDTH / 2. - getBoundsInParent().getWidth() / 2.);
 
         this.columnLocationProperty = new SimpleIntegerProperty(0);
         this.rowLocationProperty = new SimpleIntegerProperty(0);

@@ -41,7 +41,7 @@ public class TreeGraph{
 
         scrollPane = new MatchedScrollPane(canvas);
 
-        scrollPane.setFitToWidth(true);
+        scrollPane.setFitToWidth(false);
         scrollPane.setFitToHeight(false);
 
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
