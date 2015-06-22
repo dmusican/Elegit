@@ -30,6 +30,7 @@ public class TreeGraphModel{
     // Map of each cell's id to the cell itself
     public Map<String,Cell> cellMap;
 
+    // Updated every time merge is called to hold the number of cells present
     IntegerProperty numCellsProperty = new SimpleIntegerProperty();
 
     public boolean isInitialSetupFinished;

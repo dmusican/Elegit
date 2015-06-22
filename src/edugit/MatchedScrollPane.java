@@ -2,7 +2,7 @@ package edugit;
 
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
-import javafx.scene.Group;
+import javafx.scene.Node;
 import javafx.scene.control.ScrollPane;
 
 /**
@@ -13,8 +13,8 @@ public class MatchedScrollPane extends ScrollPane{
     private static final DoubleProperty hPos = new SimpleDoubleProperty(0.0);
     private static final DoubleProperty vPos = new SimpleDoubleProperty(0.0);
 
-    public MatchedScrollPane(Group g){
-        super(g);
+    public MatchedScrollPane(Node node){
+        super(node);
         this.hvalueProperty().bindBidirectional(hPos);
         this.vvalueProperty().bindBidirectional(vPos);
     }

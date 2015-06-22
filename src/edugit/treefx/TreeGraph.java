@@ -1,6 +1,7 @@
 package edugit.treefx;
 
 import edugit.MatchedScrollPane;
+import javafx.geometry.Insets;
 import javafx.scene.Group;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.Pane;
@@ -19,8 +20,6 @@ public class TreeGraph{
     // The underlying model of the graph
     public TreeGraphModel treeGraphModel;
 
-    private Group canvas;
-
     private MatchedScrollPane scrollPane;
 
     // The layer within which the cells will be added
@@ -34,8 +33,9 @@ public class TreeGraph{
 
         this.treeGraphModel = m;
 
-        canvas = new Group();
+        Group canvas = new Group();
         cellLayer = new Pane();
+        cellLayer.setPadding(new Insets(TreeLayout.V_PAD, TreeLayout.H_PAD, TreeLayout.V_PAD, TreeLayout.H_PAD));
 
         canvas.getChildren().add(cellLayer);
 

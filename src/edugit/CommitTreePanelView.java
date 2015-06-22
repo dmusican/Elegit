@@ -45,10 +45,10 @@ public class CommitTreePanelView extends Region{
             }
         }
 
-        task = TreeLayout.getTreeLayoutTask(treeGraph);
+        task = TreeLayout.getInitialTreeLayoutTask(treeGraph);
 
         th = new Thread(task);
-        th.setName("Graph Layout (x = " + this.getLayoutX() + ")");
+        th.setName("Graph Layout (y = " + this.getLayoutY() + ")");
         th.setDaemon(true);
         th.start();
         isRunning = true;

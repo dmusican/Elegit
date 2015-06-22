@@ -26,7 +26,7 @@ public class TreeLayout{
      * @param g the graph to layout
      * @return a task that, when executed, does the layout
      */
-    public static Task getTreeLayoutTask(TreeGraph g){
+    public static Task getInitialTreeLayoutTask(TreeGraph g){
 
         return new Task<Void>(){
 
