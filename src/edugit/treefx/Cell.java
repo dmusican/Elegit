@@ -48,7 +48,7 @@ public class Cell extends Pane{
     public IntegerProperty columnLocationProperty;
     public IntegerProperty rowLocationProperty;
 
-    private BooleanProperty hasUpdatedPosition;
+    public BooleanProperty hasUpdatedPosition;
 
     /**
      * Constructs a node with the given ID and a single parent node
@@ -72,8 +72,8 @@ public class Cell extends Pane{
 
         setView(getBaseView());
 
-        this.columnLocationProperty = new SimpleIntegerProperty(0);
-        this.rowLocationProperty = new SimpleIntegerProperty(0);
+        this.columnLocationProperty = new SimpleIntegerProperty(-1);
+        this.rowLocationProperty = new SimpleIntegerProperty(-1);
 
         this.hasUpdatedPosition = new SimpleBooleanProperty(false);
         visibleProperty().bind(this.hasUpdatedPosition);
@@ -83,7 +83,7 @@ public class Cell extends Pane{
 
         tooltip = new Tooltip(cellId);
         tooltip.setWrapText(true);
-        tooltip.setMaxWidth(200);
+        tooltip.setMaxWidth(300);
         Tooltip.install(this, tooltip);
 
         this.setOnMouseClicked(event -> CommitTreeController.handleMouseClicked(this));
@@ -91,13 +91,16 @@ public class Cell extends Pane{
         this.setOnMouseExited(event -> CommitTreeController.handleMouseover(this, false));
     }
 
-    public void moveTo(double x, double y, boolean animate){
+    public void moveTo(double x, double y, boolean animate, boolean emphasize){
         if(animate){
-            TranslateTransition t = new TranslateTransition(Duration.millis(500), this);
+            TranslateTransition t = new TranslateTransition(Duration.millis(3000), this);
             t.setToX(x);
             t.setToY(y);
             t.setCycleCount(1);
             t.play();
+            if(emphasize){
+                Highlighter.emphasizeCell(this);
+            }
         }else{
             setTranslateX(x);
             setTranslateY(y);

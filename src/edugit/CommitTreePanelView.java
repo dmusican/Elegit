@@ -24,6 +24,7 @@ public class CommitTreePanelView extends Region{
     private boolean isRunning = false;
     private Task task;
     private Thread th;
+    private String name;
 
     public CommitTreePanelView(){
         super();
@@ -45,10 +46,10 @@ public class CommitTreePanelView extends Region{
             }
         }
 
-        task = TreeLayout.getInitialTreeLayoutTask(treeGraph);
+        task = TreeLayout.getTreeLayoutTask(treeGraph);
 
         th = new Thread(task);
-        th.setName("Graph Layout (y = " + this.getLayoutY() + ")");
+        th.setName("Graph Layout: "+this.name);
         th.setDaemon(true);
         th.start();
         isRunning = true;
@@ -92,5 +93,9 @@ public class CommitTreePanelView extends Region{
         sp.prefWidthProperty().bind(this.widthProperty());
         sp.prefHeightProperty().bind(this.heightProperty());
         return sp;
+    }
+
+    public void setName(String name){
+        this.name = name;
     }
 }

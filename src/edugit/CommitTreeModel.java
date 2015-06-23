@@ -29,6 +29,7 @@ public abstract class CommitTreeModel{
     public CommitTreeModel(SessionModel model, CommitTreePanelView view){
         this.sessionModel = model;
         this.view = view;
+        this.view.setName("Generic commit tree");
         this.init();
         CommitTreeController.allCommitTreeModels.add(this);
     }
@@ -50,7 +51,7 @@ public abstract class CommitTreeModel{
         CommitTreeController.resetSelection();
 
         this.addAllCommitsToTree();
-        this.updateView();
+        this.initView();
     }
 
     public void update() throws GitAPIException, IOException{
@@ -147,6 +148,17 @@ public abstract class CommitTreeModel{
     }
 
     /**
+     * Updates the corresponding view if possible
+     */
+    private void initView(){
+        if(this.sessionModel != null && this.sessionModel.currentRepoHelper != null){
+            CommitTreeController.init(this, sessionModel.currentRepoHelper);
+        }else{
+            view.displayEmptyView();
+        }
+    }
+
+    /**
      * Returns a unique identifier that will never be shown
      * @param commitHelper the commit to get an ID for
      * @return a unique identifying string to be used as a key in the tree's map
@@ -161,8 +173,9 @@ public abstract class CommitTreeModel{
      * @return the display label for this commit
      */
     private static String getTreeCellLabel(CommitHelper commitHelper){
-        return commitHelper.getFormattedWhen()+"\n"+
-                commitHelper.getAuthorName()+"\n"+
-                commitHelper.getMessage(false);
+        return commitHelper.getAuthorName()+ "\n"+
+                commitHelper.getFormattedWhen()+"\n"+
+                commitHelper.getMessage(false)+"\n\n"+
+                commitHelper.getName();
     }
 }

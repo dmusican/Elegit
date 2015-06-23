@@ -76,6 +76,23 @@ public class CommitTreeController{
         return selectedCellID != null && selectedCellID.equals(cellID);
     }
 
+    public static void init(CommitTreeModel commitTreeModel, RepoHelper repo){
+        List<String> commitIDs = repo.getAllCommitIDs();
+        for(CommitTreeModel model : allCommitTreeModels){
+            if(model.treeGraph != null){
+                for(String id : commitIDs){
+                    if(!model.containsID(id)){
+                        model.addInvisibleCommit(id);
+                    }
+                }
+                model.treeGraph.update();
+                if(model.equals(commitTreeModel)){
+                    model.view.displayTreeGraph(model.treeGraph);
+                }
+            }
+        }
+    }
+
     public static void update(RepoHelper repo){
         List<String> commitIDs = repo.getAllCommitIDs();
         for(CommitTreeModel model : allCommitTreeModels){

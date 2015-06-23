@@ -15,6 +15,7 @@ public class LocalCommitTreeModel extends CommitTreeModel{
 
     public LocalCommitTreeModel(SessionModel model, CommitTreePanelView view){
         super(model, view);
+        this.view.setName("Local commit tree");
     }
 
     @Override

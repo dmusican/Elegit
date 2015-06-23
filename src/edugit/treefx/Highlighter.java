@@ -17,6 +17,7 @@ public class Highlighter{
     public static final Color STANDARD_COLOR = Color.BLUE;
     public static final Color SELECT_COLOR = Color.DARKRED;
     public static final Color[] HIGHLIGHT_COLORS = {Color.RED, Color.MEDIUMSEAGREEN};
+    public static final Color EMPHASIZE_COLOR = Color.FORESTGREEN;
 
     public static void highlightSelectedCell(String cellID, TreeGraphModel model, boolean enable){
         Cell cell = model.cellMap.get(cellID);
@@ -98,34 +99,36 @@ public class Highlighter{
 
         Shape s = (Shape) c.view;
 
-        RotateTransition rt = new RotateTransition(Duration.millis(5000), s);
-        rt.setCycleCount(1);
-        rt.setByAngle(1800);
+        ScaleTransition sct = new ScaleTransition(Duration.millis(625), s);
+        sct.setByX(0.3f);
+        sct.setByY(0.3f);
+        sct.setCycleCount(6);
+        sct.setAutoReverse(true);
 
-        SequentialTransition st;
+        SequentialTransition sqt;
 
         if(c instanceof InvisibleCell){
-            StrokeTransition st1 = new StrokeTransition(Duration.millis(1000), s, Highlighter.STANDARD_COLOR, Color.FORESTGREEN);
+            FillTransition st1 = new FillTransition(Duration.millis(1000), s, Color.TRANSPARENT, Highlighter.EMPHASIZE_COLOR);
             st1.setCycleCount(1);
 
-            StrokeTransition st2 = new StrokeTransition(Duration.millis(1500), s, Color.FORESTGREEN, Highlighter.STANDARD_COLOR);
+            FillTransition st2 = new FillTransition(Duration.millis(1500), s, Highlighter.EMPHASIZE_COLOR, Color.TRANSPARENT);
             st2.setCycleCount(1);
 
-            st = new SequentialTransition(st1, new PauseTransition(Duration.millis(2500)), st2);
-            st.setCycleCount(1);
+            sqt = new SequentialTransition(st1, new PauseTransition(Duration.millis(2500)), st2);
+            sqt.setCycleCount(1);
 
         }else{
-            FillTransition ft1 = new FillTransition(Duration.millis(1000), s, Highlighter.STANDARD_COLOR, Color.FORESTGREEN);
+            FillTransition ft1 = new FillTransition(Duration.millis(1000), s, Highlighter.STANDARD_COLOR, Highlighter.EMPHASIZE_COLOR);
             ft1.setCycleCount(1);
 
-            FillTransition ft2 = new FillTransition(Duration.millis(1500), s, Color.FORESTGREEN, Highlighter.STANDARD_COLOR);
+            FillTransition ft2 = new FillTransition(Duration.millis(1500), s, Highlighter.EMPHASIZE_COLOR, Highlighter.STANDARD_COLOR);
             ft2.setCycleCount(1);
 
-            st = new SequentialTransition(ft1, new PauseTransition(Duration.millis(2500)), ft2);
-            st.setCycleCount(1);
+            sqt = new SequentialTransition(ft1, new PauseTransition(Duration.millis(2500)), ft2);
+            sqt.setCycleCount(1);
         }
 
-        ParallelTransition pt = new ParallelTransition(st, rt);
+        ParallelTransition pt = new ParallelTransition(sqt, sct);
         pt.play();
     }
 }
