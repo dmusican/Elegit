@@ -275,6 +275,14 @@ public class SessionController extends Controller {
         } catch (TransportException e) {
             ERROR_ALERT_CONSTANTS.notAuthorized().showAndWait();
             // FIXME: TransportExceptions don't *only* indicate a permissions issue... Figure out what else they do
+        } catch (WrongRepositoryStateException e) {
+            System.out.println("Threw a WrongRepositoryStateException");
+            e.printStackTrace();
+
+            // TODO remove the above debug statements
+            // This should only come up when the user chooses to resolve conflicts in a file.
+            // Do nothing.
+
         }
 
     }
