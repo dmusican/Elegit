@@ -187,7 +187,7 @@ public class SessionController extends Controller {
                 // The user pressed cancel on the dialog box. Do nothing!
 
             } catch (NoOwnerInfoException e) {
-                ERROR_ALERT_CONSTANTS.notLoggedIn();
+                ERROR_ALERT_CONSTANTS.notLoggedIn().showAndWait();
                 e.printStackTrace();
 
                 // Re-prompt the user to log in:

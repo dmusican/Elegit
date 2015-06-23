@@ -28,9 +28,6 @@
             <RowConstraints vgrow="ALWAYS"/>
         </rowConstraints>
 
-        <!-- TODO: make git action buttons center -->
-        <!-- TODO: resizing window should eventually just cut off the views. don't keep scrunching -->
-
         <MenuBar fx:id="menuBar"
                 GridPane.rowIndex="0"
                 GridPane.columnSpan="6" />
@@ -42,14 +39,14 @@
 
         <Button GridPane.columnIndex="1"
                 GridPane.rowIndex="0"
-                text="CLEAR SAVED STUFF"
-                onAction="#clearSavedStuff"
-                id="warningButton"/>
+                text="Switch login"
+                onAction="#switchUser" />
 
         <Button GridPane.columnIndex="2"
                 GridPane.rowIndex="0"
-                text="Switch user"
-                onAction="#switchUser" />
+                text="Clear recent repos"
+                onAction="#clearSavedStuff"
+                id="warningButton"/>
 
         <GridPane alignment="TOP_CENTER"
                   hgap="10"
