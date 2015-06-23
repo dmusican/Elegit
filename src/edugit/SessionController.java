@@ -441,7 +441,12 @@ public class SessionController extends Controller {
         } catch (CancelledLoginException e) {
             // User cancelled the login, so we'll leave the owner full of nullness.
         }
-        this.theModel.getCurrentRepoHelper().setOwner(newOwner);
+
+        if (theModel.getCurrentRepoHelper() != null) {
+            // The currentRepoHelper could be null, say,
+            // on the first run of the program.
+            this.theModel.getCurrentRepoHelper().setOwner(newOwner);
+        }
         this.theModel.setCurrentDefaultOwner(newOwner);
     }
 }
