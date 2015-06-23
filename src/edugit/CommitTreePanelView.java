@@ -10,20 +10,21 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.Region;
 
 /**
- * Created by makik on 6/10/15.
- *
  * Class for the local and remote panel views that handles the drawing of a tree structure
  * from a given treeGraph.
  *
  */
 public class CommitTreePanelView extends Region{
 
+    // Constants for size
     public static int TREE_PANEL_WIDTH = 500;
     public static int TREE_PANEL_HEIGHT = (Cell.BOX_SIZE + TreeLayout.H_SPACING) * 5;
 
+    // Thread information
     private boolean isRunning = false;
     private Task task;
     private Thread th;
+    private String name;
 
     public CommitTreePanelView(){
         super();
@@ -31,7 +32,9 @@ public class CommitTreePanelView extends Region{
     }
 
     /**
-     * Handles the layout and display of the treeGraph
+     * Handles the layout and display of the treeGraph. Creates a thread
+     * in which to execute the TreeLayoutTask, and a thread that waits
+     * for the layout to finish and then updates the view
      * @param treeGraph the graph to be displayed
      */
     public void displayTreeGraph(TreeGraph treeGraph){
@@ -48,7 +51,7 @@ public class CommitTreePanelView extends Region{
         task = TreeLayout.getTreeLayoutTask(treeGraph);
 
         th = new Thread(task);
-        th.setName("Graph Layout (x = " + this.getLayoutX() + ")");
+        th.setName("Graph Layout: "+this.name);
         th.setDaemon(true);
         th.start();
         isRunning = true;
@@ -66,9 +69,9 @@ public class CommitTreePanelView extends Region{
                     protected Void call(){
                         ScrollPane sp = treeGraph.getScrollPane();
                         sp.setPannable(true);
-                        sp.setHvalue(sp.getHmax());
                         getChildren().clear();
                         getChildren().add(anchorScrollPane(sp));
+                        MatchedScrollPane.scrollTo(-1);
                         isRunning = false;
                         return null;
                     }
@@ -82,15 +85,32 @@ public class CommitTreePanelView extends Region{
         endThread.start();
     }
 
+    /**
+     * Displays an empty scroll pane
+     */
     public void displayEmptyView(){
         ScrollPane sp = new ScrollPane();
         this.getChildren().clear();
         this.getChildren().add(anchorScrollPane(sp));
     }
 
+    /**
+     * Anchors the width and height of the scroll pane to the width and height of
+     * the view to ensure the scroll pane expands appropriately on resize
+     * @param sp the scrollpane to anchor
+     * @return the passed in scrollpane after being anchored
+     */
     private Node anchorScrollPane(ScrollPane sp){
         sp.prefWidthProperty().bind(this.widthProperty());
         sp.prefHeightProperty().bind(this.heightProperty());
         return sp;
+    }
+
+    /**
+     * Sets the name of this view, which appears in the Threads spawned by it
+     * @param name the name
+     */
+    public void setName(String name){
+        this.name = name;
     }
 }

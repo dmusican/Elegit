@@ -7,14 +7,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by makik on 6/12/15.
- *
  * Subclass of CommitTreeModel that examines local commits
  */
 public class LocalCommitTreeModel extends CommitTreeModel{
 
     public LocalCommitTreeModel(SessionModel model, CommitTreePanelView view){
         super(model, view);
+        this.view.setName("Local commit tree");
     }
 
     @Override

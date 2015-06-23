@@ -11,20 +11,22 @@ import java.util.ArrayList;
 import java.util.Date;
 
 /**
- * Created by makik on 6/12/15.
- *
  * A wrapper class for commits to make them easier to interact with and preserves certain
  * aspects that are expensive to look up with JGit's standard RevCommit, e.g. parents,
  * children, and author.
  */
 public class CommitHelper{
 
+    // The commit this helper wraps
     RevCommit commit;
+    // The author of this commit
     PersonIdent author;
 
+    // The parents and children of this commit
     ParentCommitHelper parents;
     ArrayList<CommitHelper> children;
 
+    // The short and full message of this commit
     String shortMessage;
     String fullMessage;
 
