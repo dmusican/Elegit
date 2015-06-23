@@ -29,11 +29,11 @@ public class ExistingRepoHelperBuilder extends RepoHelperBuilder {
 
         Path directoryPath = existingRepoDirectoryFile.toPath();
 
-        if (this.sessionModel.getOwner() == null) {
+        if (this.sessionModel.getDefaultOwner() == null) {
             throw new NoOwnerInfoException();
         }
 
-        RepoHelper existingRepoHelper = new ExistingRepoHelper(directoryPath, this.sessionModel.getOwner());
+        RepoHelper existingRepoHelper = new ExistingRepoHelper(directoryPath, this.sessionModel.getDefaultOwner());
 
         return existingRepoHelper;
     }

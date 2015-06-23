@@ -246,7 +246,7 @@ public abstract class RepoHelper {
 
     public List<CommitHelper> getNewLocalCommits() throws GitAPIException, IOException{
         Map<String, ObjectId> oldBranchHeads = new HashMap<>(this.localBranches);
-        List<String> newLocalBranchNames = this.getLocalBranchNames();
+        List<String> newLocalBranchNames = this.getLocalAndRemoteBranchNames();
         List<CommitHelper> allNewCommits = new ArrayList<>();
         for(String branchName : newLocalBranchNames){
             ObjectId newBranchHead = this.localBranches.get(branchName);
@@ -362,7 +362,7 @@ public abstract class RepoHelper {
         PlotCommitList<PlotLane> rawLocalCommits = parseRawCommits(headId, examinedCommitIDs);
         examinedCommitIDs.add(headId);
 
-        List<String> branchNames = getLocalBranchNames();
+        List<String> branchNames = getLocalAndRemoteBranchNames();
         for(String branch : branchNames){
             ObjectId branchId = repo.resolve(branch);
             PlotCommitList<PlotLane> toAdd = parseRawCommits(branchId, examinedCommitIDs);
@@ -440,9 +440,9 @@ public abstract class RepoHelper {
         return this.localPath.getFileName().toString();
     }
 
-    public List<String> getLocalBranchNames() throws GitAPIException {
+    public List<String> getLocalAndRemoteBranchNames() throws GitAPIException {
         // see JGit cookbook for how to get Remote branches too
-        List<Ref> getBranchesCall = new Git(this.repo).branchList().call();
+        List<Ref> getBranchesCall = new Git(this.repo).branchList().setListMode(ListBranchCommand.ListMode.ALL).call();
 
         this.localBranches = new HashMap<>();
 

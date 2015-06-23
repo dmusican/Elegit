@@ -4,10 +4,7 @@ import edugit.exceptions.CancelledLoginException;
 import edugit.exceptions.NoOwnerInfoException;
 import edugit.exceptions.NoRepoSelectedException;
 import javafx.event.ActionEvent;
-import javafx.event.Event;
 import javafx.scene.control.*;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.text.Text;
 import org.eclipse.jgit.api.errors.*;
 
@@ -74,7 +71,7 @@ public class SessionController extends Controller {
     private void updateBranchDropdown() throws GitAPIException, IOException {
         this.branchSelector.setVisible(true);
 
-        List<String> branches = this.theModel.getCurrentRepoHelper().getLocalBranchNames();
+        List<String> branches = this.theModel.getCurrentRepoHelper().getLocalAndRemoteBranchNames();
         this.branchSelector.getItems().setAll(branches);
 
         // TODO: Unify branch name display:
@@ -126,7 +123,7 @@ public class SessionController extends Controller {
 
                 // Re-prompt the user to log in:
                 try {
-                    this.theModel.getOwner().presentLoginDialogsToSetValues();
+                    this.theModel.getDefaultOwner().presentLoginDialogsToSetValues();
                 } catch (CancelledLoginException e1) {
                     // Do nothing. The user just pressed cancel.
                 }
@@ -177,7 +174,7 @@ public class SessionController extends Controller {
 
                 // Re-prompt the user to log in:
                 try {
-                    this.theModel.getOwner().presentLoginDialogsToSetValues();
+                    this.theModel.getDefaultOwner().presentLoginDialogsToSetValues();
                 } catch (CancelledLoginException e1) {
                     // Do nothing. The user just pressed cancel!
                 }
@@ -424,5 +421,6 @@ public class SessionController extends Controller {
             // User cancelled the login, so we'll leave the owner full of nullness.
         }
         this.theModel.getCurrentRepoHelper().setOwner(newOwner);
+        this.theModel.setCurrentDefaultOwner(newOwner);
     }
 }

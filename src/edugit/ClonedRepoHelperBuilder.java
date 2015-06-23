@@ -81,7 +81,7 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
 
         if (result.isPresent()) {
             Path destinationPath = Paths.get(result.get().getKey());
-            RepoHelper repoHelper = new ClonedRepoHelper(destinationPath, result.get().getValue(), this.sessionModel.getOwner());
+            RepoHelper repoHelper = new ClonedRepoHelper(destinationPath, result.get().getValue(), this.sessionModel.getDefaultOwner());
 
             return repoHelper;
         } else {
