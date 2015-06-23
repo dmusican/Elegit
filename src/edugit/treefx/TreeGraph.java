@@ -41,13 +41,10 @@ public class TreeGraph{
 
         scrollPane = new MatchedScrollPane(canvas);
 
-        scrollPane.setFitToWidth(false);
-        scrollPane.setFitToHeight(false);
-
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
         scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
 
-        scrollPane.hmaxProperty().bind(m.numCellsProperty);
+        scrollPane.NumItemsProperty.bind(m.numCellsProperty);
     }
 
     public ScrollPane getScrollPane() {

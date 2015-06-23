@@ -67,9 +67,9 @@ public class CommitTreePanelView extends Region{
                     protected Void call(){
                         ScrollPane sp = treeGraph.getScrollPane();
                         sp.setPannable(true);
-                        sp.setHvalue(sp.getHmax());
                         getChildren().clear();
                         getChildren().add(anchorScrollPane(sp));
+                        MatchedScrollPane.scrollTo(-1);
                         isRunning = false;
                         return null;
                     }
