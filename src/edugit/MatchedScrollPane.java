@@ -29,7 +29,7 @@ public class MatchedScrollPane extends ScrollPane{
         this.hvalueProperty().bindBidirectional(hPos);
         this.vvalueProperty().bindBidirectional(vPos);
 
-        NumItemsProperty.addListener((observable, oldValue, newValue) -> numItems = Math.max(numItems,newValue.intValue()));
+        NumItemsProperty.addListener((observable, oldValue, newValue) -> numItems = newValue.intValue());
     }
 
     /**
