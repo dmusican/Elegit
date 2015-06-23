@@ -9,17 +9,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by makik on 6/12/15.
- *
  * Handles the conversion/creation of a list of commit helpers into a nice
  * tree structure. It also takes care of updating the view its given to
  * display the new tree whenever the graph is updated.
  */
 public abstract class CommitTreeModel{
 
+    // The view corresponding to this model
     CommitTreePanelView view;
 
+    // The model from which this class pulls its commits
     SessionModel sessionModel;
+    // The graph corresponding to this model
     TreeGraph treeGraph;
 
     /**
@@ -35,16 +36,29 @@ public abstract class CommitTreeModel{
     }
 
     /**
-     * @return a list of the commits to be put into a tree
+     * @return a list of all commits tracked by this model
      */
     protected abstract List<CommitHelper> getAllCommits();
 
+    /**
+     * @return a list of all commits tracked by this model that haven't been added to the tree
+     * @throws GitAPIException
+     * @throws IOException
+     */
     protected abstract List<CommitHelper> getNewCommits() throws GitAPIException, IOException;
 
+    /**
+     * @param id the id to check
+     * @return true if the given id corresponds to a commit in the tree, false otherwise
+     */
     public boolean containsID(String id){
         return treeGraph != null && treeGraph.treeGraphModel.containsID(id);
     }
 
+    /**
+     * Initializes the treeGraph, unselects any previously selected commit,
+     * and then adds all commits tracked by this model to the tree
+     */
     public void init(){
         treeGraph = this.createNewTreeGraph();
 
@@ -54,12 +68,22 @@ public abstract class CommitTreeModel{
         this.initView();
     }
 
+    /**
+     * Checks for new commits to add to the tree, and notifies the
+     * CommitTreeController that an update is needed if there are any
+     * @throws GitAPIException
+     * @throws IOException
+     */
     public void update() throws GitAPIException, IOException{
         if(this.addNewCommitsToTree()){
             this.updateView();
         }
     }
 
+    /**
+     * Adds a pseudo-cell of type InvisibleCell to the treeGraph.
+     * @param id the id of the cell to add
+     */
     public void addInvisibleCommit(String id){
         CommitHelper invisCommit = sessionModel.currentRepoHelper.getCommit(id);
         for(CommitHelper c : invisCommit.getParents()){
@@ -71,19 +95,29 @@ public abstract class CommitTreeModel{
     }
 
     /**
-     * The main function for transforming a simple list into a tree. Builds a
-     * tree up iteratively from the first commit, making sure the parent/child
-     * relations are preserved
+     * Gets all commits tracked by this model and adds them to the tree
      * @return true if the tree was updated, otherwise false
      */
     private boolean addAllCommitsToTree(){
         return this.addCommitsToTree(this.getAllCommits());
     }
 
+    /**
+     * Gets all commits tracked by this model that haven't been added to the tree,
+     * and adds them
+     * @return true if the tree was updated, otherwise false
+     * @throws GitAPIException
+     * @throws IOException
+     */
     private boolean addNewCommitsToTree() throws GitAPIException, IOException{
         return this.addCommitsToTree(this.getNewCommits());
     }
 
+    /**
+     * Adds the given list of commits to the treeGraph
+     * @param commits the commits to add
+     * @return true if commits where added, else false
+     */
     private boolean addCommitsToTree(List<CommitHelper> commits){
         if(commits.size() == 0) return false;
 
@@ -148,11 +182,11 @@ public abstract class CommitTreeModel{
     }
 
     /**
-     * Updates the corresponding view if possible
+     * Initializes the corresponding view if possible
      */
     private void initView(){
         if(this.sessionModel != null && this.sessionModel.currentRepoHelper != null){
-            CommitTreeController.init(this, sessionModel.currentRepoHelper);
+            CommitTreeController.init(this);
         }else{
             view.displayEmptyView();
         }

@@ -327,6 +327,11 @@ public class SessionController extends Controller {
         }
     }
 
+    /**
+     * Initializes each panel of the view
+     * @throws GitAPIException
+     * @throws IOException
+     */
 	private void initPanelViews() throws GitAPIException, IOException{
         this.workingTreePanelView.drawDirectoryView();
         this.localCommitTreeModel.init();

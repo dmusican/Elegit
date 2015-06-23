@@ -9,22 +9,27 @@ import javafx.beans.property.SimpleDoubleProperty;
 import javafx.scene.Group;
 
 /**
- * Created by makik on 6/10/15.
- *
  * Connects two cells in the TreeGraph using a DirectedPath
  */
 public class Edge extends Group {
 
+    // Determines whether all edges are set to be visible or not
     public static BooleanProperty allVisible = new SimpleBooleanProperty(true);
+
+    // Whether or not this edge is visible
     private BooleanProperty visible;
 
+    // The endpoints of this edge
     private Cell source;
     private Cell target;
 
+    // The path that will be drawn to represent this edge
     private DirectedPath path;
 
+    // Whether extra points between the start and endpoints have been added
     private boolean addedMidPoints;
 
+    // The y value to draw the mid points at
     private DoubleProperty midLineY;
 
     /**
@@ -65,6 +70,8 @@ public class Edge extends Group {
             checkAndAddMidPoints(startX, endX);
         });
 
+        // Change the Y of the midpoints depending on whether the target is above, below, or at the same
+        // level as the source
         midLineY.bind(new When(target.rowLocationProperty.subtract(source.rowLocationProperty).greaterThan(0))
                 .then(endY.subtract(TreeLayout.V_SPACING / 2.))
                 .otherwise(new When(target.rowLocationProperty.subtract(source.rowLocationProperty).lessThan(0))
@@ -85,6 +92,13 @@ public class Edge extends Group {
         target.edges.add(this);
     }
 
+    /**
+     * Checks the start and endpoints to see if any midpoints are necessary for drawing the line
+     * between them correctly. If the endpoints are more than 1 column apart and, the midpoints
+     * are added at the calculated y value
+     * @param startX the starting x coordinate of this edge
+     * @param endX the ending x coordinate of this edge
+     */
     private void checkAndAddMidPoints(DoubleBinding startX, DoubleBinding endX){
         if(target.columnLocationProperty.get() - source.columnLocationProperty.get() > 1){
             if(!addedMidPoints){
@@ -101,16 +115,11 @@ public class Edge extends Group {
         }
     }
 
+    /**
+     * @param enable whether to set this edge as visible or not
+     */
     public void setHighlighted(boolean enable){
         this.visible.set(enable);
-    }
-
-    public Cell getSource() {
-        return source;
-    }
-
-    public Cell getTarget() {
-        return target;
     }
 
 }

@@ -18,8 +18,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by makik on 6/10/15.
- *
  * A class that represents a node in a TreeGraph
  */
 public class Cell extends Pane{
@@ -43,11 +41,14 @@ public class Cell extends Pane{
     // The parent object that holds the parents of this cell
     ParentCell parents;
 
+    // All edges that have this cell as an endpoint
     List<Edge> edges = new ArrayList<>();
 
+    // The row and column location of this cell
     public IntegerProperty columnLocationProperty;
     public IntegerProperty rowLocationProperty;
 
+    // Whether this cell has been moved to its appropriate location
     public BooleanProperty hasUpdatedPosition;
 
     /**
@@ -91,6 +92,13 @@ public class Cell extends Pane{
         this.setOnMouseExited(event -> CommitTreeController.handleMouseover(this, false));
     }
 
+    /**
+     * Moves this cell to the given x and y coordinates
+     * @param x the x coordinate to move to
+     * @param y the y coordinate to move to
+     * @param animate whether to animate the transition from the old position
+     * @param emphasize whether to have the Highlighter class emphasize this cell while it moves
+     */
     public void moveTo(double x, double y, boolean animate, boolean emphasize){
         if(animate){
             TranslateTransition t = new TranslateTransition(Duration.millis(3000), this);
@@ -108,6 +116,9 @@ public class Cell extends Pane{
         this.hasUpdatedPosition.set(true);
     }
 
+    /**
+     * @return the basic view for this cell
+     */
     protected Node getBaseView(){
         return new Rectangle(BOX_SIZE, BOX_SIZE, Highlighter.STANDARD_COLOR);
     }
@@ -191,6 +202,9 @@ public class Cell extends Pane{
         return cellId;
     }
 
+    /**
+     * @return the time of this cell
+     */
     public long getTime(){
         return time;
     }

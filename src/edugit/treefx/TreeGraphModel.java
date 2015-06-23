@@ -9,8 +9,6 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Created by makik on 6/10/15.
- *
  * Thanks to Roland for providing this graph structure:
  * http://stackoverflow.com/questions/30679025/graph-visualisation-like-yfiles-in-javafx/30696075#30696075
  *
@@ -33,13 +31,13 @@ public class TreeGraphModel{
     // Updated every time merge is called to hold the number of cells present
     IntegerProperty numCellsProperty = new SimpleIntegerProperty();
 
+    // Whether this graph has been through the layout process already or not
     public boolean isInitialSetupFinished;
 
     /**
      * Constructs a new model for a tree graph
      */
     public TreeGraphModel() {
-        // clear model, create lists
         clear();
         isInitialSetupFinished = false;
     }
@@ -61,14 +59,25 @@ public class TreeGraphModel{
 
     }
 
+    /**
+     * @return a list of all ids in this graph
+     */
     public List<String> getCellIDs(){
         return new ArrayList<>(cellMap.keySet());
     }
 
+    /**
+     * @param id the id to check
+     * @return whether this graph contains the given id or not
+     */
     public boolean containsID(String id){
         return cellMap.containsKey(id);
     }
 
+    /**
+     * @param id the id of the cell to check
+     * @return whether the given cell is visible or not
+     */
     public boolean isVisible(String id){
         return containsID(id) && !(cellMap.get(id) instanceof InvisibleCell);
     }
@@ -100,6 +109,14 @@ public class TreeGraphModel{
         return removedEdges;
     }
 
+    /**
+     * Adds a cell with the given id, time, and label to the graph. If visible is false,
+     * uses InvisibleCell instead of Cell
+     * @param newId the id of the new cell
+     * @param time the time of the new cell
+     * @param label the label of the new cell
+     * @param visible whether the cell will be normal or invisible
+     */
     public void addCell(String newId, long time, String label, boolean visible){
         Cell cell;
         if(visible){
@@ -112,11 +129,14 @@ public class TreeGraphModel{
     }
 
     /**
-     * Adds a new cell with the given ID and label to the tree whose
-     * parent is the cell with the given ID
+     * Adds a new cell with the given ID, time, and label to the tree whose
+     * parent is the cell with the given ID. If visible is false, uses InvisibleCell
+     * instead of Cell
      * @param newId the id of the new cell
+     * @param time the time of the new cell
      * @param label the label of the new cell
      * @param parentId the ID of the parent of this new cell
+     * @param visible whether the cell will be normal or invisible
      */
     public void addCell(String newId, long time, String label, String parentId, boolean visible){
         Cell cell;
@@ -132,12 +152,15 @@ public class TreeGraphModel{
     }
 
     /**
-     * Adds a new cell with the given ID and label to the tree whose
-     * parents are the cells with the given IDs
+     * Adds a new cell with the given ID, time, and label to the tree whose
+     * parents are the cells with the given IDs. If visible is false, uses InvisibleCell
+     * instead of Cell
      * @param newId the id of the new cell
+     * @param time the time of the new cell
      * @param label the label of the new cell
-     * @param parent1Id the ID of the first parent of this new cell
-     * @param parent2Id the ID of the second parent of this new cell
+     * @param parent1Id the ID of the first parent of the new cell
+     * @param parent2Id the ID of the second parent of the new cell
+     * @param visible whether the cell will be normal or invisible
      */
     public void addCell(String newId, long time, String label, String parent1Id, String parent2Id, boolean visible){
         Cell cell;
@@ -187,6 +210,10 @@ public class TreeGraphModel{
         addedEdges.add(edge);
     }
 
+    /**
+     * Removes all edges connected to the given cell
+     * @param cell the cell whose edges will be removed
+     */
     private void removeEdges(Cell cell){
         for(Edge e : cell.edges){
             removedEdges.add(e);

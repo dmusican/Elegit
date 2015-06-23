@@ -7,8 +7,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by makik on 6/11/15.
- *
  * Handles the layout of cells in a TreeGraph in an appropriate tree structure
  */
 public class TreeLayout{
@@ -21,10 +19,10 @@ public class TreeLayout{
     /**
      * Returns a task that will take care of laying out the given
      * graph into a tree. Uses a combination of recursion and
-     * iteration to pack cells as far left as possible with each
-     * cell being arranged vertically based on time
+     * iteration to pack cells as far up as possible with each
+     * cell being arranged horizontally based on time
      * @param g the graph to layout
-     * @return a task that, when executed, does the layout
+     * @return a task that, when executed, does the layout of g
      */
     public static Task getTreeLayoutTask(TreeGraph g){
 
@@ -35,6 +33,11 @@ public class TreeLayout{
 
             private List<Cell> allCellsSortedByTime;
 
+            /**
+             * Extracts the TreeGraphModel, sorts its cells by time, then relocates
+             * every cell. When complete, updates the model if necessary to show
+             * it has been through the layout process at least once already
+             */
             @Override
             protected Void call() throws Exception{
                 TreeGraphModel treeGraphModel = g.treeGraphModel;
@@ -109,6 +112,14 @@ public class TreeLayout{
                 return x;
             }
 
+            /**
+             * Helper method that updates the given cell's position to the coordinates corresponding
+             * to its stored row and column locations
+             * @param c the cell to move
+             * @param animate whether the given cell should have an animation towards its new position
+             * @param useParentPosAsSource whether the given cell should move to its first parent before
+             *                             being animated, to prevent animations starting from off screen
+             */
             private void moveCell(Cell c, boolean animate, boolean useParentPosAsSource){
                 Platform.runLater(new Task<Void>(){
                     @Override
@@ -127,6 +138,10 @@ public class TreeLayout{
                 });
             }
 
+            /**
+             * Updates the array holding the max column used in every row
+             * @param column the column to with
+             */
             private void updateMaxColumnArray(int column){
                 int rowOfColumn = getRowOfCellInColumn(column);
                 if(maxColumnUsedInRow.size()-1 < rowOfColumn){

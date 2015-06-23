@@ -7,8 +7,6 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.Pane;
 
 /**
- * Created by makik on 6/10/15.
- *
  * Thanks to Roland for providing this graph structure:
  * http://stackoverflow.com/questions/30679025/graph-visualisation-like-yfiles-in-javafx/30696075#30696075
  *
@@ -17,10 +15,11 @@ import javafx.scene.layout.Pane;
  */
 public class TreeGraph{
 
+    // The scroll pane that holds all drawn elements
+    private MatchedScrollPane scrollPane;
+
     // The underlying model of the graph
     public TreeGraphModel treeGraphModel;
-
-    private MatchedScrollPane scrollPane;
 
     // The layer within which the cells will be added
     Pane cellLayer;
@@ -47,6 +46,9 @@ public class TreeGraph{
         scrollPane.NumItemsProperty.bind(m.numCellsProperty);
     }
 
+    /**
+     * @return the scroll pane that holds the graph drawing
+     */
     public ScrollPane getScrollPane() {
         return this.scrollPane;
     }
