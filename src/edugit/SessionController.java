@@ -4,14 +4,13 @@ import edugit.exceptions.CancelledLoginException;
 import edugit.exceptions.NoOwnerInfoException;
 import edugit.exceptions.NoRepoSelectedException;
 import javafx.event.ActionEvent;
-import javafx.event.Event;
 import javafx.scene.control.*;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.text.Text;
 import org.eclipse.jgit.api.errors.*;
+import org.eclipse.jgit.lib.ObjectId;
 
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.prefs.BackingStoreException;
@@ -21,7 +20,7 @@ import java.util.prefs.BackingStoreException;
  */
 public class SessionController extends Controller {
 
-    public ComboBox<String> branchSelector;
+    public ComboBox<BranchHelper> branchSelector;
     public Text currentRepoLabel;
     private SessionModel theModel;
 
@@ -74,15 +73,31 @@ public class SessionController extends Controller {
     private void updateBranchDropdown() throws GitAPIException, IOException {
         this.branchSelector.setVisible(true);
 
-        List<String> branches = this.theModel.getCurrentRepoHelper().getLocalBranchNames();
+//        List<BranchHelper> branches = this.theModel.getCurrentRepoHelper().getLocalBranchNames();
+//        branches.addAll(this.theModel.getCurrentRepoHelper().getRemoteBranchNames());
+//        this.branchSelector.getItems().setAll(branches);
+
+        List<BranchHelper> branches = this.theModel.getCurrentRepoHelper().getLocalBranches();
+//        branches.addAll(this.theModel.getCurrentRepoHelper().getRemoteBranches()); //todo: deal with remotes
         this.branchSelector.getItems().setAll(branches);
 
-        // TODO: Unify branch name display:
-        //      getCurrentBranchName() gives just the name,
-        //      but the list is populated with "ref/head/master" etc.
-        //  make a BranchHelper?
-        String currentBranchName = this.theModel.getCurrentRepoHelper().getCurrentBranchName();
-        this.branchSelector.setValue(currentBranchName);
+        BranchHelper currentBranch = this.theModel.getCurrentRepoHelper().getCurrentBranch();
+
+        if (currentBranch == null) {
+            // This block will run when the app first opens and there is no selection in the dropdown.
+            // It finds the repoHelper that matches the currently checked-out branch.
+            String branchName = this.theModel.getCurrentRepo().getFullBranch();
+            LocalBranchHelper current = new LocalBranchHelper(branchName, this.theModel.getCurrentRepo());
+            for (BranchHelper branchHelper : branches) {
+                if (branchHelper.getBranchName().equals(current.getBranchName())) {
+                    currentBranch = current;
+                    break;
+                }
+            }
+        }
+
+        this.branchSelector.setValue(currentBranch);
+        // TODO: do a commit-focus on the initial load, too!
     }
 
     /**
@@ -126,7 +141,7 @@ public class SessionController extends Controller {
 
                 // Re-prompt the user to log in:
                 try {
-                    this.theModel.getOwner().presentLoginDialogsToSetValues();
+                    this.theModel.getDefaultOwner().presentLoginDialogsToSetValues();
                 } catch (CancelledLoginException e1) {
                     // Do nothing. The user just pressed cancel.
                 }
@@ -167,13 +182,17 @@ public class SessionController extends Controller {
             } catch (IllegalArgumentException e) {
                 e.printStackTrace();
                 ERROR_ALERT_CONSTANTS.invalidRepo().showAndWait();
+            } catch (NoRepoSelectedException e) {
+
+                // The user pressed cancel on the dialog box. Do nothing!
+
             } catch (NoOwnerInfoException e) {
                 ERROR_ALERT_CONSTANTS.notLoggedIn();
                 e.printStackTrace();
 
                 // Re-prompt the user to log in:
                 try {
-                    this.theModel.getOwner().presentLoginDialogsToSetValues();
+                    this.theModel.getDefaultOwner().presentLoginDialogsToSetValues();
                 } catch (CancelledLoginException e1) {
                     // Do nothing. The user just pressed cancel!
                 }
@@ -274,6 +293,14 @@ public class SessionController extends Controller {
         } catch (TransportException e) {
             ERROR_ALERT_CONSTANTS.notAuthorized().showAndWait();
             // FIXME: TransportExceptions don't *only* indicate a permissions issue... Figure out what else they do
+        } catch (WrongRepositoryStateException e) {
+            System.out.println("Threw a WrongRepositoryStateException");
+            e.printStackTrace();
+
+            // TODO remove the above debug statements
+            // This should only come up when the user chooses to resolve conflicts in a file.
+            // Do nothing.
+
         }
 
     }
@@ -323,8 +350,6 @@ public class SessionController extends Controller {
     /**
      * Loads the panel views when the "git status" button is clicked.
      *
-     * TODO: Implement automatic refresh!
-     *
      * @throws GitAPIException if the drawDirectoryView() call fails.
      * @throws IOException if the drawDirectoryView() call fails.
      */
@@ -366,11 +391,13 @@ public class SessionController extends Controller {
      * @throws IOException from updateBranchDropdown()
      */
     public void loadSelectedBranch(ActionEvent actionEvent) throws GitAPIException, IOException {
-        String branchName = this.branchSelector.getValue();
+        BranchHelper selectedBranch = this.branchSelector.getValue();
         try {
-            RepoHelper repo = this.theModel.getCurrentRepoHelper();
-            repo.checkoutBranch(branchName);
-            CommitTreeController.focusCommit(repo.getCommitByBranchName(branchName));
+            selectedBranch.checkoutBranch();
+            RepoHelper repoHelper = this.theModel.getCurrentRepoHelper();
+            CommitTreeController.focusCommit(repoHelper.getCommitByBranchName(selectedBranch.refPathString));
+
+            this.theModel.getCurrentRepoHelper().setCurrentBranch(selectedBranch);
         } catch (CheckoutConflictException e) {
             ERROR_ALERT_CONSTANTS.checkoutConflictWithPaths(e.getConflictingPaths()).showAndWait();
             this.updateBranchDropdown();
@@ -402,11 +429,6 @@ public class SessionController extends Controller {
     /// THIS IS JUST A DEBUG METHOD FOR A DEBUG BUTTON. TEMPORARY!
     // todo: set up more permanent data clearing functionality
     public void clearSavedStuff(ActionEvent actionEvent) throws BackingStoreException, IOException, ClassNotFoundException {
-        this.theModel.preferences.clear();
-        this.theModel.preferences.remove("RECENT_REPOS_LIST");
-        System.out.println(this.theModel.preferences);
-        // why doesn't this work!?
-
         this.theModel.clearStoredPreferences();
     }
 
@@ -420,5 +442,6 @@ public class SessionController extends Controller {
             // User cancelled the login, so we'll leave the owner full of nullness.
         }
         this.theModel.getCurrentRepoHelper().setOwner(newOwner);
+        this.theModel.setCurrentDefaultOwner(newOwner);
     }
 }

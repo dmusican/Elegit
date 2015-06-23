@@ -61,19 +61,26 @@ public class RepoFile {
     }
 
     /**
-     * The toString method is overridden because the files are *displayed*
-     * by only their name, not the whole path.
+     * The files are *displayed* by only their location relative
+     * to the repo, not the whole path.
      *
      * This is particularly helpful in the WorkingTreePanelView, where
      * the TreeView's leafs contain RepoFiles and presents them by their
      * string representation. Instead of flooding the user with a long directory
-     * string, this displays the only info the user really cares about: the file name.
+     * string, this displays the only info the user really cares about: the file name
+     * and parent directories.
      *
      * @return the RepoFile's file name.
      */
     @Override
     public String toString() {
-        return this.filePath.getFileName().toString();
+        return this.filePath.toString();
+
+//        Path workTreePath = this.repo.getWorkTree().toPath();
+//        Path relativized = workTreePath.relativize(this.filePath);
+//
+//        return relativized.toString();
+
     }
 
     public Path getFilePath() {

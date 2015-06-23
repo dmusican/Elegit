@@ -42,6 +42,7 @@ public abstract class RepoHelper {
 
     private Map<String, ObjectId> localBranches;
     private Map<String, ObjectId> remoteBranches;
+    private BranchHelper branchHelper;
 
 
     /**
@@ -440,8 +441,23 @@ public abstract class RepoHelper {
         return this.localPath.getFileName().toString();
     }
 
+    public List<BranchHelper> getLocalBranches() throws GitAPIException, IOException {
+        List<Ref> getBranchesCall = new Git(this.repo).branchList().call();
+        ArrayList<BranchHelper> localBranchHelpers = new ArrayList<>();
+
+        this.localBranches = new HashMap<>();
+
+        for (Ref ref : getBranchesCall) {
+            // TODO: Consolidate these lists? Use BranchHelpers
+            localBranches.put(ref.getName(), ref.getObjectId());
+            localBranchHelpers.add(new LocalBranchHelper(ref, this.repo));
+        }
+
+        return localBranchHelpers;
+    }
+
+    // DEPRECATED. start using branchHelpers!
     public List<String> getLocalBranchNames() throws GitAPIException {
-        // see JGit cookbook for how to get Remote branches too
         List<Ref> getBranchesCall = new Git(this.repo).branchList().call();
 
         this.localBranches = new HashMap<>();
@@ -453,8 +469,8 @@ public abstract class RepoHelper {
         return new ArrayList<>(localBranches.keySet());
     }
 
+    // DEPRECATED. start using branchHelpers!
     public List<String> getRemoteBranchNames() throws GitAPIException {
-        // see JGit cookbook for how to get Remote branches too
         List<Ref> getBranchesCall = new Git(this.repo).branchList().setListMode(ListBranchCommand.ListMode.REMOTE).call();
 
         this.remoteBranches = new HashMap<>();
@@ -466,8 +482,38 @@ public abstract class RepoHelper {
         return new ArrayList<>(remoteBranches.keySet());
     }
 
-    public void checkoutBranch(String branchName) throws GitAPIException {
+    public List<BranchHelper> getRemoteBranches() throws GitAPIException {
+        List<Ref> getBranchesCall = new Git(this.repo).branchList().setListMode(ListBranchCommand.ListMode.REMOTE).call();
+        ArrayList<BranchHelper> remoteBranchHelpers = new ArrayList<>();
+
+        this.remoteBranches = new HashMap<>();
+
+        for (Ref ref : getBranchesCall) {
+            remoteBranches.put(ref.getName(), ref.getObjectId());
+
+            // It appears that grabbing the remote branches also gets the local head.
+            // Ignore that second "HEAD"
+            if (!ref.getName().equals("HEAD")) {
+                remoteBranchHelpers.add(new RemoteBranchHelper(ref, this.repo));
+            }
+        }
+
+        return remoteBranchHelpers;
+    }
+
+    // DEPRECATED. SEE BRANCHHELPER CLASSES!
+    public void checkoutLocalBranch(String branchName) throws GitAPIException {
         new Git(this.repo).checkout().setName(branchName).call();
+    }
+
+    // DEPRECATED. SEE BRANCHHELPER CLASSES!
+    public void checkoutRemoteBranch(String branchRefPathName) throws GitAPIException {
+        new Git(this.repo).checkout().
+                setCreateBranch(true).
+                setName(branchRefPathName).
+                setUpstreamMode(CreateBranchCommand.SetupUpstreamMode.TRACK).
+                setStartPoint(branchRefPathName).
+                call();
     }
 
     public String getCurrentBranchName() throws IOException {
@@ -481,6 +527,14 @@ public abstract class RepoHelper {
         } else {
             this.ownerAuth = new UsernamePasswordCredentialsProvider(owner.getUsername(), owner.getPassword());
         }
+    }
+
+    public void setCurrentBranch(BranchHelper branchHelper) {
+        this.branchHelper = branchHelper;
+    }
+
+    public BranchHelper getCurrentBranch() {
+        return this.branchHelper;
     }
 }
 

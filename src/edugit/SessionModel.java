@@ -1,6 +1,5 @@
 package edugit;
 
-import edugit.exceptions.NoOwnerInfoException;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -30,7 +29,11 @@ public class SessionModel {
 
     ArrayList<RepoHelper> allRepoHelpers;
     private static SessionModel sessionModel;
-    private RepoOwner owner;
+
+    // All RepoHelpers have their own owner. This
+    //   is the default owner that new RepoHelpers will
+    //   be initiated with:
+    private RepoOwner defaultOwner;
 
     Preferences preferences;
 
@@ -50,7 +53,7 @@ public class SessionModel {
         String lastOpenedRepoPathString = (String) PrefObj.getObject(this.preferences, LAST_OPENED_REPO_PATH_KEY);
         if (lastOpenedRepoPathString != null) {
             Path path = Paths.get(lastOpenedRepoPathString);
-            ExistingRepoHelper existingRepoHelper = new ExistingRepoHelper(path, this.owner);
+            ExistingRepoHelper existingRepoHelper = new ExistingRepoHelper(path, this.defaultOwner);
             this.openRepoFromHelper(existingRepoHelper);
         }
     }
@@ -61,7 +64,7 @@ public class SessionModel {
         if (storedRepoPathStrings != null) {
             for (String pathString : storedRepoPathStrings) {
                 Path path = Paths.get(pathString);
-                ExistingRepoHelper existingRepoHelper = new ExistingRepoHelper(path, this.owner);
+                ExistingRepoHelper existingRepoHelper = new ExistingRepoHelper(path, this.defaultOwner);
                 this.allRepoHelpers.add(existingRepoHelper);
             }
         }
@@ -231,7 +234,10 @@ public class SessionModel {
                     // Determine what type of RepoFile we're dealing with.
                     //  Is it modified? Untracked/new? Missing? Just a plain file?
                     //  Construct the appropriate RepoFile and add it to the parent directory.
-                    if (modifiedFiles.contains(relativizedPath.toString())) {
+                    if (conflictingFiles.contains(relativizedPath.toString())) {
+                        ConflictingRepoFile conflictingFile = new ConflictingRepoFile(path, this.getCurrentRepo());
+                        superDirectory.addChild(conflictingFile);
+                    } else if (modifiedFiles.contains(relativizedPath.toString())) {
                         ModifiedRepoFile modifiedFile = new ModifiedRepoFile(path, this.getCurrentRepo());
                         superDirectory.addChild(modifiedFile);
                     } else if (missingFiles.contains(relativizedPath.toString())) {
@@ -240,9 +246,6 @@ public class SessionModel {
                     } else if (untrackedFiles.contains(relativizedPath.toString())) {
                         UntrackedRepoFile untrackedFile = new UntrackedRepoFile(path, this.getCurrentRepo());
                         superDirectory.addChild(untrackedFile);
-                    } else if (conflictingFiles.contains(relativizedPath.toString())) {
-                        ConflictingRepoFile conflictingFile = new ConflictingRepoFile(path, this.getCurrentRepo());
-                        superDirectory.addChild(conflictingFile);
                     } else {
                         RepoFile plainRepoFile = new RepoFile(path, this.getCurrentRepo());
                         superDirectory.addChild(plainRepoFile);
@@ -297,12 +300,12 @@ public class SessionModel {
         return currentRepoHelper;
     }
 
-    public RepoOwner getOwner() {
-        return owner;
+    public RepoOwner getDefaultOwner() {
+        return defaultOwner;
     }
 
-    public void setOwner(RepoOwner owner) {
-        this.owner = owner;
+    public void setDefaultOwner(RepoOwner defaultOwner) {
+        this.defaultOwner = defaultOwner;
     }
 
     public ArrayList<RepoHelper> getAllRepoHelpers() {
@@ -337,5 +340,9 @@ public class SessionModel {
     public void clearStoredPreferences() throws BackingStoreException, IOException, ClassNotFoundException {
         PrefObj.putObject(this.preferences, RECENT_REPOS_LIST_KEY, null);
         PrefObj.putObject(this.preferences, LAST_OPENED_REPO_PATH_KEY, null);
+    }
+
+    public void setCurrentDefaultOwner(RepoOwner newOwner) {
+        this.defaultOwner = newOwner;
     }
 }
