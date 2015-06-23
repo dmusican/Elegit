@@ -441,7 +441,7 @@ public abstract class RepoHelper {
         return this.localPath.getFileName().toString();
     }
 
-    public List<BranchHelper> getLocalBranches() throws GitAPIException {
+    public List<BranchHelper> getLocalBranches() throws GitAPIException, IOException {
         List<Ref> getBranchesCall = new Git(this.repo).branchList().call();
         ArrayList<BranchHelper> localBranchHelpers = new ArrayList<>();
 
@@ -490,7 +490,12 @@ public abstract class RepoHelper {
 
         for (Ref ref : getBranchesCall) {
             remoteBranches.put(ref.getName(), ref.getObjectId());
-            remoteBranchHelpers.add(new RemoteBranchHelper(ref, this.repo));
+
+            // It appears that grabbing the remote branches also gets the local head.
+            // Ignore that second "HEAD"
+            if (!ref.getName().equals("HEAD")) {
+                remoteBranchHelpers.add(new RemoteBranchHelper(ref, this.repo));
+            }
         }
 
         return remoteBranchHelpers;

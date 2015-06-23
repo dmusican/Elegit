@@ -10,6 +10,7 @@ import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.lib.ObjectId;
 
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.prefs.BackingStoreException;
@@ -77,15 +78,26 @@ public class SessionController extends Controller {
 //        this.branchSelector.getItems().setAll(branches);
 
         List<BranchHelper> branches = this.theModel.getCurrentRepoHelper().getLocalBranches();
-        branches.addAll(this.theModel.getCurrentRepoHelper().getRemoteBranches());
+//        branches.addAll(this.theModel.getCurrentRepoHelper().getRemoteBranches()); //todo: deal with remotes
         this.branchSelector.getItems().setAll(branches);
 
-        // TODO: Unify branch name display:
-        //      getCurrentBranchName() gives just the name,
-        //      but the list is populated with "ref/head/master" etc.
-        //  make a BranchHelper?
         BranchHelper currentBranch = this.theModel.getCurrentRepoHelper().getCurrentBranch();
+
+        if (currentBranch == null) {
+            // This block will run when the app first opens and there is no selection in the dropdown.
+            // It finds the repoHelper that matches the currently checked-out branch.
+            String branchName = this.theModel.getCurrentRepo().getFullBranch();
+            LocalBranchHelper current = new LocalBranchHelper(branchName, this.theModel.getCurrentRepo());
+            for (BranchHelper branchHelper : branches) {
+                if (branchHelper.getBranchName().equals(current.getBranchName())) {
+                    currentBranch = current;
+                    break;
+                }
+            }
+        }
+
         this.branchSelector.setValue(currentBranch);
+        // TODO: do a commit-focus on the initial load, too!
     }
 
     /**
@@ -417,11 +429,6 @@ public class SessionController extends Controller {
     /// THIS IS JUST A DEBUG METHOD FOR A DEBUG BUTTON. TEMPORARY!
     // todo: set up more permanent data clearing functionality
     public void clearSavedStuff(ActionEvent actionEvent) throws BackingStoreException, IOException, ClassNotFoundException {
-        this.theModel.preferences.clear();
-        this.theModel.preferences.remove("RECENT_REPOS_LIST");
-        System.out.println(this.theModel.preferences);
-        // why doesn't this work!?
-
         this.theModel.clearStoredPreferences();
     }
 

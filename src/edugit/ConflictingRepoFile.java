@@ -40,7 +40,7 @@ public class ConflictingRepoFile extends RepoFile {
         Alert alert = new Alert(Alert.AlertType.WARNING);
 
         ButtonType resolveButton = new ButtonType("Resolve conflicts in editor");
-        ButtonType addButton = new ButtonType("Add and commit conflicting file");
+        ButtonType addButton = new ButtonType("Commit conflicting file");
 
         alert.getButtonTypes().setAll(addButton, resolveButton);
 

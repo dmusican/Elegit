@@ -7,20 +7,55 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.rmi.Remote;
+import java.util.ArrayList;
 import java.util.Arrays;
 
 /**
  * Created by grahamearley on 6/23/15.
  */
 public class RemoteBranchHelper extends BranchHelper {
+
+//    /// Class level stuff:
+//    private static ArrayList<RemoteBranchHelper> remoteBranchHelpers = new ArrayList<>();
+//
+//    private static void storeRemoteBranchHelper(RemoteBranchHelper helperCandidate) {
+//        boolean candidateNotStoredYet = true;
+//        for (RemoteBranchHelper remoteBranchHelper : remoteBranchHelpers) {
+//            if (remoteBranchHelper.getRefPathString().equals(helperCandidate.getRefPathString())) {
+//                // The candidate is already in the list
+//                candidateNotStoredYet = false;
+//                break;
+//            }
+//        }
+//        if (candidateNotStoredYet) remoteBranchHelpers.add(helperCandidate);
+//    }
+//
+//    public static RemoteBranchHelper getRemoteBranchHelperByRefPath(String refPath, Repository repo) {
+//        for (RemoteBranchHelper remoteBranchHelper : remoteBranchHelpers) {
+//            if (remoteBranchHelper.getRefPathString().equals(refPath)) {
+//                return remoteBranchHelper;
+//            }
+//        }
+//        return new RemoteBranchHelper(refPath, repo);
+//    }
+//
+//    public static RemoteBranchHelper getRemoteBranchHelperByRef(Ref ref, Repository repo) {
+//        return getRemoteBranchHelperByRefPath(ref.getName(), repo);
+//    }
+
+    /// Instance level:
+
     public RemoteBranchHelper(String refPathString, Repository repo) {
         super(refPathString, repo);
+//        RemoteBranchHelper.storeRemoteBranchHelper(this);
     }
 
-    public RemoteBranchHelper(Ref branchRef, Repository repo) {
-        super(branchRef, repo);
+    public RemoteBranchHelper(Ref ref, Repository repo) {
+        super(ref.getName(), repo);
     }
 
     @Override
@@ -49,17 +84,28 @@ public class RemoteBranchHelper extends BranchHelper {
     }
 
     @Override
-    public void checkoutBranch() throws GitAPIException {
-        new Git(this.repo).checkout().
-                setCreateBranch(true).
-                setName(this.branchName).
-                setUpstreamMode(CreateBranchCommand.SetupUpstreamMode.TRACK).
-                setStartPoint(this.refPathString).
-                call();
+    public void checkoutBranch() throws GitAPIException, IOException {
+
+        if (this.trackingBranch != null) {
+            this.trackingBranch.checkoutBranch();
+        } else {
+            Ref trackingBranchRef = new Git(this.repo).checkout().
+                    setCreateBranch(true).
+                    setName(this.branchName).
+                    setUpstreamMode(CreateBranchCommand.SetupUpstreamMode.TRACK).
+                    setStartPoint(this.refPathString).
+                    call();
+            LocalBranchHelper trackingBranch = new LocalBranchHelper(trackingBranchRef, this.repo);
+            this.setTrackingBranch(trackingBranch);
+        }
     }
 
     @Override
     public String toString() {
         return "REMOTE:" + super.toString();
+    }
+
+    public void setTrackingBranch(LocalBranchHelper trackingBranch){
+        this.trackingBranch = trackingBranch;
     }
 }

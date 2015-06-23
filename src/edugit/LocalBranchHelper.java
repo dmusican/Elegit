@@ -3,21 +3,31 @@ package edugit;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.CheckoutConflictException;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.lib.BranchTrackingStatus;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 
+import java.io.IOException;
 import java.util.Arrays;
 
 /**
  * Created by grahamearley on 6/23/15.
  */
 public class LocalBranchHelper extends BranchHelper {
-    public LocalBranchHelper(String refPathString, Repository repo) {
+    public LocalBranchHelper(String refPathString, Repository repo) throws IOException {
         super(refPathString, repo);
+//        BranchTrackingStatus trackingStatus = BranchTrackingStatus.of(this.repo, this.branchName);
+//
+//        if (trackingStatus != null) {
+//            String trackedBranchRefPath = trackingStatus.getRemoteTrackingBranch();
+//
+//            RemoteBranchHelper trackedBranch = RemoteBranchHelper.getRemoteBranchHelperByRefPath(trackedBranchRefPath, this.repo);
+//            trackedBranch.setTrackingBranch(this);
+//        }
     }
 
-    public LocalBranchHelper(Ref branchRef, Repository repo) {
-        super(branchRef, repo);
+    public LocalBranchHelper(Ref branchRef, Repository repo) throws IOException {
+        this(branchRef.getName(), repo);
     }
 
     @Override
