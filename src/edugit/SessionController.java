@@ -19,7 +19,7 @@ import java.util.prefs.BackingStoreException;
  */
 public class SessionController extends Controller {
 
-    public ComboBox<String> branchSelector;
+    public ComboBox<BranchHelper> branchSelector;
     public Text currentRepoLabel;
     private SessionModel theModel;
 
@@ -72,16 +72,20 @@ public class SessionController extends Controller {
     private void updateBranchDropdown() throws GitAPIException, IOException {
         this.branchSelector.setVisible(true);
 
-        List<String> branches = this.theModel.getCurrentRepoHelper().getLocalBranchNames();
-        branches.addAll(this.theModel.getCurrentRepoHelper().getRemoteBranchNames());
+//        List<BranchHelper> branches = this.theModel.getCurrentRepoHelper().getLocalBranchNames();
+//        branches.addAll(this.theModel.getCurrentRepoHelper().getRemoteBranchNames());
+//        this.branchSelector.getItems().setAll(branches);
+
+        List<BranchHelper> branches = this.theModel.getCurrentRepoHelper().getLocalBranches();
+        branches.addAll(this.theModel.getCurrentRepoHelper().getRemoteBranches());
         this.branchSelector.getItems().setAll(branches);
 
         // TODO: Unify branch name display:
         //      getCurrentBranchName() gives just the name,
         //      but the list is populated with "ref/head/master" etc.
         //  make a BranchHelper?
-        String currentBranchName = this.theModel.getCurrentRepoHelper().getCurrentBranchName();
-        this.branchSelector.setValue(currentBranchName);
+        BranchHelper currentBranch = this.theModel.getCurrentRepoHelper().getCurrentBranch();
+        this.branchSelector.setValue(currentBranch);
     }
 
     /**
@@ -375,11 +379,13 @@ public class SessionController extends Controller {
      * @throws IOException from updateBranchDropdown()
      */
     public void loadSelectedBranch(ActionEvent actionEvent) throws GitAPIException, IOException {
-        String branchName = this.branchSelector.getValue();
+        BranchHelper selectedBranch = this.branchSelector.getValue();
         try {
-            RepoHelper repo = this.theModel.getCurrentRepoHelper();
-            repo.checkoutLocalBranch(branchName);
-            CommitTreeController.focusCommit(repo.getCommitByBranchName(branchName));
+            selectedBranch.checkoutBranch();
+            RepoHelper repoHelper = this.theModel.getCurrentRepoHelper();
+            CommitTreeController.focusCommit(repoHelper.getCommitByBranchName(selectedBranch.refPathString));
+
+            this.theModel.getCurrentRepoHelper().setCurrentBranch(selectedBranch);
         } catch (CheckoutConflictException e) {
             ERROR_ALERT_CONSTANTS.checkoutConflictWithPaths(e.getConflictingPaths()).showAndWait();
             this.updateBranchDropdown();
