@@ -246,7 +246,7 @@ public abstract class RepoHelper {
 
     public List<CommitHelper> getNewLocalCommits() throws GitAPIException, IOException{
         Map<String, ObjectId> oldBranchHeads = new HashMap<>(this.localBranches);
-        List<String> newLocalBranchNames = this.getLocalAndRemoteBranchNames();
+        List<String> newLocalBranchNames = this.getLocalBranchNames();
         List<CommitHelper> allNewCommits = new ArrayList<>();
         for(String branchName : newLocalBranchNames){
             ObjectId newBranchHead = this.localBranches.get(branchName);
@@ -362,7 +362,7 @@ public abstract class RepoHelper {
         PlotCommitList<PlotLane> rawLocalCommits = parseRawCommits(headId, examinedCommitIDs);
         examinedCommitIDs.add(headId);
 
-        List<String> branchNames = getLocalAndRemoteBranchNames();
+        List<String> branchNames = getLocalBranchNames();
         for(String branch : branchNames){
             ObjectId branchId = repo.resolve(branch);
             PlotCommitList<PlotLane> toAdd = parseRawCommits(branchId, examinedCommitIDs);
@@ -440,9 +440,8 @@ public abstract class RepoHelper {
         return this.localPath.getFileName().toString();
     }
 
-    public List<String> getLocalAndRemoteBranchNames() throws GitAPIException {
-        // see JGit cookbook for how to get Remote branches too
-        List<Ref> getBranchesCall = new Git(this.repo).branchList().setListMode(ListBranchCommand.ListMode.ALL).call();
+    public List<String> getLocalBranchNames() throws GitAPIException {
+        List<Ref> getBranchesCall = new Git(this.repo).branchList().call();
 
         this.localBranches = new HashMap<>();
 
@@ -466,8 +465,19 @@ public abstract class RepoHelper {
         return new ArrayList<>(remoteBranches.keySet());
     }
 
-    public void checkoutBranch(String branchName) throws GitAPIException {
+    // DEPRECATED. SEE BRANCHHELPER CLASSES!
+    public void checkoutLocalBranch(String branchName) throws GitAPIException {
         new Git(this.repo).checkout().setName(branchName).call();
+    }
+
+    // DEPRECATED. SEE BRANCHHELPER CLASSES!
+    public void checkoutRemoteBranch(String branchRefPathName) throws GitAPIException {
+        new Git(this.repo).checkout().
+                setCreateBranch(true).
+                setName(branchRefPathName).
+                setUpstreamMode(CreateBranchCommand.SetupUpstreamMode.TRACK).
+                setStartPoint(branchRefPathName).
+                call();
     }
 
     public String getCurrentBranchName() throws IOException {

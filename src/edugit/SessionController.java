@@ -7,6 +7,7 @@ import javafx.event.ActionEvent;
 import javafx.scene.control.*;
 import javafx.scene.text.Text;
 import org.eclipse.jgit.api.errors.*;
+import org.eclipse.jgit.lib.ObjectId;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -71,7 +72,8 @@ public class SessionController extends Controller {
     private void updateBranchDropdown() throws GitAPIException, IOException {
         this.branchSelector.setVisible(true);
 
-        List<String> branches = this.theModel.getCurrentRepoHelper().getLocalAndRemoteBranchNames();
+        List<String> branches = this.theModel.getCurrentRepoHelper().getLocalBranchNames();
+        branches.addAll(this.theModel.getCurrentRepoHelper().getRemoteBranchNames());
         this.branchSelector.getItems().setAll(branches);
 
         // TODO: Unify branch name display:
@@ -332,8 +334,6 @@ public class SessionController extends Controller {
     /**
      * Loads the panel views when the "git status" button is clicked.
      *
-     * TODO: Implement automatic refresh!
-     *
      * @throws GitAPIException if the drawDirectoryView() call fails.
      * @throws IOException if the drawDirectoryView() call fails.
      */
@@ -378,7 +378,7 @@ public class SessionController extends Controller {
         String branchName = this.branchSelector.getValue();
         try {
             RepoHelper repo = this.theModel.getCurrentRepoHelper();
-            repo.checkoutBranch(branchName);
+            repo.checkoutLocalBranch(branchName);
             CommitTreeController.focusCommit(repo.getCommitByBranchName(branchName));
         } catch (CheckoutConflictException e) {
             ERROR_ALERT_CONSTANTS.checkoutConflictWithPaths(e.getConflictingPaths()).showAndWait();
