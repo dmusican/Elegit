@@ -8,13 +8,12 @@ import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.shape.StrokeType;
 
 /**
- * Created by makik on 6/17/15.
+ * A subclass of Cell that is drawn with a dashed line and transparent fill
  */
 public class InvisibleCell extends Cell{
 
     public InvisibleCell(String cellId, long time, Cell parent){
         super(cellId, time, parent);
-
     }
 
     public InvisibleCell(String cellId, long time, Cell parent1, Cell parent2){

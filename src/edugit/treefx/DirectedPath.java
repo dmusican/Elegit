@@ -13,20 +13,16 @@ import javafx.scene.shape.Path;
 import javafx.scene.shape.PathElement;
 
 /**
- * Created by makik on 6/11/15.
- *
  * Represents a line with an arrow at the end. The arrow is constructed using a three-point Path
  * object that has its vertices bound to the end of the line.
  */
 public class DirectedPath extends Group{
 
+    // The length of the arrow
     public static final IntegerProperty ARROW_LENGTH = new SimpleIntegerProperty(Cell.BOX_SIZE / 3);
 
     Path arrow;
     Path path;
-
-    private final DoubleBinding endX;
-    private final DoubleBinding endY;
 
     /**
      * Constructs and binds the appropriate properties for the line and
@@ -45,9 +41,6 @@ public class DirectedPath extends Group{
         end.xProperty().bind(endX);
         end.yProperty().bind(endY);
 
-        this.endX = endX;
-        this.endY = endY;
-
         path.getElements().add(start);
         path.getElements().add(end);
 
@@ -57,6 +50,9 @@ public class DirectedPath extends Group{
         this.getChildren().add(arrow);
     }
 
+    /**
+     * @param isDashed whether to draw this line as a dashed or solid line
+     */
     public void setDashed(boolean isDashed){
         if(isDashed){
             this.path.getStrokeDashArray().addAll(3.,5.);
@@ -65,6 +61,13 @@ public class DirectedPath extends Group{
         }
     }
 
+    /**
+     * Adds a point to the line at the given index, and updates the path and arrow
+     * appropriately
+     * @param newX the x of the new point
+     * @param newY the y of the new pontt
+     * @param index the index to add the point in
+     */
     public void addPoint(DoubleBinding newX, DoubleBinding newY, int index){
         this.getChildren().remove(path);
         this.getChildren().remove(arrow);
@@ -80,10 +83,19 @@ public class DirectedPath extends Group{
         this.getChildren().add(arrow);
     }
 
+    /**
+     * Adds a point to the line at the index just before the endpoint
+     * @param newX the x of the new point
+     * @param newY the y of the new point
+     */
     public void addPoint(DoubleBinding newX, DoubleBinding newY){
         this.addPoint(newX, newY, path.getElements().size() - 1);
     }
 
+    /**
+     * Removes the point at the given index from the line
+     * @param index the index of the point to remove
+     */
     public void removePoint(int index){
         this.getChildren().remove(path);
         this.getChildren().remove(arrow);
@@ -95,14 +107,16 @@ public class DirectedPath extends Group{
     }
 
     /**
-    * http://www.dbp-consulting.com/tutorials/canvas/CanvasArrow.html
-    * Position of the endpoints of the arrow on either side are given respectively by
-    * x = tipX+Math.cos((3*pi/4)+atan2(slope))*arrow_length
-    * y = tipY+Math.sin((3*pi/4)+atan2(slope))*arrow_length
-    * and
-    * x = tipX+Math.cos((5*pi/4)+atan2(slope))*arrow_length
-    * y = tipY+Math.sin((5*pi/4)+atan2(slope))*arrow_length
-    */
+     * http://www.dbp-consulting.com/tutorials/canvas/CanvasArrow.html
+     * Position of the endpoints of the arrow on either side are given respectively by
+     * x = tipX+Math.cos((3*pi/4)+atan2(slope))*arrow_length
+     * y = tipY+Math.sin((3*pi/4)+atan2(slope))*arrow_length
+     * and
+     * x = tipX+Math.cos((5*pi/4)+atan2(slope))*arrow_length
+     * y = tipY+Math.sin((5*pi/4)+atan2(slope))*arrow_length
+     *
+     * @return the path that will draw an arrow at the end of the line
+     */
     private Path getArrow(){
         ObservableList<PathElement> list =  this.path.getElements();
         DoubleBinding tipX = ((LineTo) list.get(list.size()-1)).xProperty().add(0);
@@ -117,7 +131,6 @@ public class DirectedPath extends Group{
             buttX = ((MoveTo) list.get(list.size()-2)).xProperty().add(0);
             buttY = ((MoveTo) list.get(list.size()-2)).yProperty().add(0);
         }
-
 
         DoubleProperty rise = new SimpleDoubleProperty();
         DoubleProperty run = new SimpleDoubleProperty();
@@ -144,6 +157,9 @@ public class DirectedPath extends Group{
         return temp;
     }
 
+    /**
+     * Helper class that provides a binding to the ArcTan of two values
+     */
     private class ArcTanBinding extends DoubleBinding{
         private final DoubleProperty x, y;
 
@@ -160,6 +176,9 @@ public class DirectedPath extends Group{
         }
     }
 
+    /**
+     * Helper class that provides a binding to the Sin of a value
+     */
     private class SinBinding extends DoubleBinding{
         private final DoubleBinding theta;
 
@@ -174,6 +193,9 @@ public class DirectedPath extends Group{
         }
     }
 
+    /**
+     * Helepr class that provides a binding to the Cos of a value
+     */
     private class CosBinding extends DoubleBinding{
         private final DoubleBinding theta;
 
