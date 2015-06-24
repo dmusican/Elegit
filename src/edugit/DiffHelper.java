@@ -19,6 +19,7 @@ import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.treewalk.AbstractTreeIterator;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
+import org.eclipse.jgit.treewalk.FileTreeIterator;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
 
 import java.io.ByteArrayOutputStream;
@@ -29,15 +30,11 @@ import java.util.List;
 
 /**
  *
- * Code is from the JGit-Cookbook.
+ * Some code is from the JGit-Cookbook.
  *  (https://github.com/centic9/jgit-cookbook)
- *
- *       This is a mix of
- *          - https://github.com/centic9/jgit-cookbook/blob/master/src/main/java/org/dstadler/jgit/porcelain/ShowChangedFilesBetweenCommits.java
- *          and
- *          - https://github.com/centic9/jgit-cookbook/blob/master/src/main/java/org/dstadler/jgit/porcelain/ShowFileDiff.java
- *
- * Thanks Dominik Stadler!
+ *    - https://github.com/centic9/jgit-cookbook/blob/master/src/main/java/org/dstadler/jgit/porcelain/ShowChangedFilesBetweenCommits.java
+ *    and
+ *    - https://github.com/centic9/jgit-cookbook/blob/master/src/main/java/org/dstadler/jgit/porcelain/ShowFileDiff.java
  *
  * TODO: Licensing?!
  *
@@ -55,30 +52,25 @@ public class DiffHelper {
     private String getDiffString() throws GitAPIException, IOException {
         ByteArrayOutputStream diffOutputStream = new ByteArrayOutputStream();
 
-        // The {tree} will return the underlying tree-id instead of the commit-id itself!
-        // For a description of what the carets do see e.g. http://www.paulboxley.com/blog/2011/06/git-caret-and-tilde
-        // This means we are selecting the parent of the parent of current HEAD and
-        // take the tree-ish of it. TODO: these aren't always giving the right diffs...
-        ObjectId oldHead = this.repo.resolve("HEAD^^{tree}");
-        ObjectId head = this.repo.resolve("HEAD^{tree}");
+        ObjectId head = this.repo.resolve("HEAD");
 
-        // prepare the two iterators to compute the diff between
-        ObjectReader reader = this.repo.newObjectReader();
-        CanonicalTreeParser oldTreeIter = new CanonicalTreeParser();
-        oldTreeIter.reset(reader, oldHead);
-        CanonicalTreeParser newTreeIter = new CanonicalTreeParser();
-        newTreeIter.reset(reader, head);
+        // The following code is largely written by Tk421 on StackOverflow
+        //      (http://stackoverflow.com/q/23486483)
+        // Thanks! NOTE: comments are mine.
+        DiffFormatter formatter = new DiffFormatter(diffOutputStream);
+        formatter.setRepository(this.repo);
 
-        List<DiffEntry> diffs= new Git(this.repo).diff()
-                .setNewTree(newTreeIter)
-                .setOldTree(oldTreeIter)
-                .setPathFilter(PathFilter.create(this.pathFilter))
-                .call();
+        AbstractTreeIterator commitTreeIterator = prepareTreeParser(this.repo, head.getName());
+        FileTreeIterator workTreeIterator = new FileTreeIterator(this.repo);
+
+        // Scan gets difference between the two iterators.
+        List<DiffEntry> diffs = formatter.scan(commitTreeIterator, workTreeIterator);
 
         for (DiffEntry entry : diffs) {
-            DiffFormatter formatter = new DiffFormatter(diffOutputStream);
-            formatter.setRepository(this.repo);
-            formatter.format(entry);
+            if (entry.getNewPath().equals(this.pathFilter)) {
+                // Only output the diff if it's for the file in question
+                formatter.format(entry);
+            }
         }
 
         return diffOutputStream.toString();
@@ -124,5 +116,26 @@ public class DiffHelper {
         scrollPane.setPadding(new Insets(10));
 
         return scrollPane;
+    }
+
+    private static AbstractTreeIterator prepareTreeParser(Repository repository, String objectId) throws IOException,
+            MissingObjectException,
+            IncorrectObjectTypeException {
+        // from the commit we can build the tree which allows us to construct the TreeParser
+        RevWalk walk = new RevWalk(repository);
+        RevCommit commit = walk.parseCommit(ObjectId.fromString(objectId));
+        RevTree tree = walk.parseTree(commit.getTree().getId());
+
+        CanonicalTreeParser oldTreeParser = new CanonicalTreeParser();
+        ObjectReader oldReader = repository.newObjectReader();
+        try {
+            oldTreeParser.reset(oldReader, tree.getId());
+        } finally {
+            oldReader.release();
+        }
+
+        walk.dispose();
+
+        return oldTreeParser;
     }
 }

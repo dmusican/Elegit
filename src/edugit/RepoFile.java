@@ -120,6 +120,7 @@ public class RepoFile {
     public void showDiffPopover(Node owner) throws IOException, GitAPIException {
         DiffHelper diffHelper = new DiffHelper(this.filePath, this.repo);
         this.diffPopover.setContentNode(diffHelper.getDiffScrollPane());
+        this.diffPopover.setDetachedTitle("File Diffs");
         this.diffPopover.show(owner);
     }
 }
