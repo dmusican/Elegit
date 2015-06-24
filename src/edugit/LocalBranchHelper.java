@@ -1,9 +1,7 @@
 package edugit;
 
 import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.errors.CheckoutConflictException;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.lib.BranchTrackingStatus;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 
@@ -73,6 +71,6 @@ public class LocalBranchHelper extends BranchHelper {
 
     @Override
     public String toString() {
-        return "LOCAL:" + super.toString();
+        return "LOCAL: " + super.toString();
     }
 }

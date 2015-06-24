@@ -2,16 +2,11 @@ package edugit;
 
 import org.eclipse.jgit.api.CreateBranchCommand;
 import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.errors.CheckoutConflictException;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.rmi.Remote;
-import java.util.ArrayList;
 import java.util.Arrays;
 
 /**
@@ -102,7 +97,7 @@ public class RemoteBranchHelper extends BranchHelper {
 
     @Override
     public String toString() {
-        return "REMOTE:" + super.toString();
+        return "REMOTE: " + super.toString();
     }
 
     public void setTrackingBranch(LocalBranchHelper trackingBranch){

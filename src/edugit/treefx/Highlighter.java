@@ -7,7 +7,9 @@ import javafx.scene.shape.Shape;
 import javafx.util.Duration;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * This class provides static methods for highlighting and animating cells in a tree graph
@@ -19,6 +21,9 @@ public class Highlighter{
     public static final Color SELECT_COLOR = Color.DARKRED;
     public static final Color[] HIGHLIGHT_COLORS = {Color.RED, Color.MEDIUMSEAGREEN};
     public static final Color EMPHASIZE_COLOR = Color.FORESTGREEN;
+
+    private static final List<String> blockedCellIDs = new ArrayList<>();
+    private static final Map<Cell, Color> cellColors = new HashMap<>();
 
     /**
      * Highlights the cell corresponding to the given id in the given model, as well as
@@ -32,10 +37,10 @@ public class Highlighter{
         Cell cell = model.cellMap.get(cellID);
         if(cell == null) return;
         if(enable){
-            cell.setColor(SELECT_COLOR);
+            highlightCell(cell, SELECT_COLOR);
             highlightAllRelatives(cellID, model, HIGHLIGHT_COLORS[0]);
         }else{
-            cell.setColor(STANDARD_COLOR);
+            highlightCell(cell, STANDARD_COLOR);
             highlightAllRelatives(cellID, model, STANDARD_COLOR);
         }
     }
@@ -143,6 +148,8 @@ public class Highlighter{
      * @param c the color
      */
     private static void highlightCell(Cell cell, Color c){
+        cellColors.put(cell, c);
+        if(blockedCellIDs.contains(cell.getCellId())) return;
         cell.setColor(c);
     }
 
@@ -153,6 +160,10 @@ public class Highlighter{
      * @param c the cell to emphasize
      */
     public static void emphasizeCell(Cell c){
+        if(!blockedCellIDs.contains(c.getCellId())){
+            blockedCellIDs.add(c.getCellId());
+        }
+
         MatchedScrollPane.scrollTo(c.columnLocationProperty.doubleValue() + 1);
 
         Shape s = (Shape) c.view;
@@ -188,5 +199,12 @@ public class Highlighter{
 
         ParallelTransition pt = new ParallelTransition(sqt, sct);
         pt.play();
+
+        pt.setOnFinished(event -> endEmphasisOnCell(c));
+    }
+
+    private static void endEmphasisOnCell(Cell c){
+        blockedCellIDs.remove(c.getCellId());
+        highlightCell(c, cellColors.getOrDefault(c, STANDARD_COLOR));
     }
 }

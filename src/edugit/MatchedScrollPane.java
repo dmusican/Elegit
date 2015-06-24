@@ -18,7 +18,7 @@ public class MatchedScrollPane extends ScrollPane{
     private static final DoubleProperty hPos = new SimpleDoubleProperty(1.0);
     private static final DoubleProperty vPos = new SimpleDoubleProperty(1.0);
 
-    private static boolean isScrollLocked = false;
+    private static boolean isScrollBlocked = false;
 
     // A property used to update the number of items in the scroll panes
     public final IntegerProperty NumItemsProperty = new SimpleIntegerProperty(1);
@@ -30,7 +30,7 @@ public class MatchedScrollPane extends ScrollPane{
         super(node);
 
         this.hvalueProperty().addListener((observable, oldValue, newValue) -> {
-            if(!isScrollLocked){
+            if(!isScrollBlocked){
                 hPos.setValue(newValue);
             }
         });
@@ -39,7 +39,7 @@ public class MatchedScrollPane extends ScrollPane{
         });
 
         this.vvalueProperty().addListener((observable, oldValue, newValue) -> {
-            if(!isScrollLocked){
+            if(!isScrollBlocked){
                 vPos.setValue(newValue);
             }
         });
@@ -76,6 +76,6 @@ public class MatchedScrollPane extends ScrollPane{
     }
 
     public static void ignoreScrolling(boolean ignore){
-        isScrollLocked = ignore;
+        isScrollBlocked = ignore;
     }
 }

@@ -1,6 +1,7 @@
 package edugit.treefx;
 
 import edugit.CommitTreeController;
+import edugit.MatchedScrollPane;
 import javafx.animation.TranslateTransition;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
@@ -24,6 +25,9 @@ public class Cell extends Pane{
 
     // The size of the rectangle being drawn
     public static final int BOX_SIZE = 20;
+
+    private static final int MAX_NUM_CELLS_TO_ANIMATE = 5;
+    private static int numCellsBeingAnimated = 0;
 
     // The displayed view
     Node view;
@@ -100,12 +104,26 @@ public class Cell extends Pane{
      * @param emphasize whether to have the Highlighter class emphasize this cell while it moves
      */
     public void moveTo(double x, double y, boolean animate, boolean emphasize){
-        if(animate){
+        if(animate && numCellsBeingAnimated < MAX_NUM_CELLS_TO_ANIMATE){
+            numCellsBeingAnimated++;
+            MatchedScrollPane.scrollTo(-1);
+
+            Shape placeHolder = (Shape) getBaseView();
+            placeHolder.setTranslateX(x+TreeLayout.H_PAD);
+            placeHolder.setTranslateY(y);
+            placeHolder.setOpacity(0.0);
+            ((Pane)(this.getParent())).getChildren().add(placeHolder);
+
             TranslateTransition t = new TranslateTransition(Duration.millis(3000), this);
             t.setToX(x);
             t.setToY(y);
             t.setCycleCount(1);
+            t.setOnFinished(event -> {
+                numCellsBeingAnimated--;
+                ((Pane)(this.getParent())).getChildren().remove(placeHolder);
+            });
             t.play();
+
             if(emphasize){
                 Highlighter.emphasizeCell(this);
             }
