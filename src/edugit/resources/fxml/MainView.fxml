@@ -89,8 +89,10 @@
                     GridPane.columnIndex="6">
             <Circle AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
                     fx:id="remoteCircle"
-                    fill="dimgray"
-                    opacity="0.5"/>
+                    opacity="0.5"
+                    onMouseClicked="#handleRemoteCircleMouseClick"
+                    onMouseEntered="#handleRemoteCircleMouseEnter"
+                    onMouseExited="#handleRemoteCircleMouseExit"/>
         </AnchorPane>
 
         <Button GridPane.rowIndex="1"

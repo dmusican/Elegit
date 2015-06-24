@@ -4,14 +4,25 @@ import edugit.exceptions.CancelledLoginException;
 import edugit.exceptions.NoOwnerInfoException;
 import edugit.exceptions.NoRepoSelectedException;
 import javafx.event.ActionEvent;
+import javafx.event.Event;
+import javafx.scene.control.Button;
 import javafx.scene.control.*;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuBar;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.TextArea;
+import javafx.scene.paint.RadialGradient;
 import javafx.scene.shape.Circle;
 import javafx.scene.text.Text;
 import org.eclipse.jgit.api.errors.*;
+import org.eclipse.jgit.lib.Config;
 
+import java.awt.*;
 import java.io.IOException;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.prefs.BackingStoreException;
 
 /**
@@ -35,6 +46,8 @@ public class SessionController extends Controller {
     public CommitTreePanelView remoteCommitTreePanelView;
 
     public Circle remoteCircle;
+    private static final RadialGradient startGradient  = RadialGradient.valueOf("center 50% 50%, radius 50%,  #52B3D9 60%, #3498DB");
+    private static final RadialGradient hoverGradient = RadialGradient.valueOf("center 50% 50%, radius 50%,  #81CFE0 60%, #52B3D9");
 
     CommitTreeModel localCommitTreeModel;
     CommitTreeModel remoteCommitTreeModel;
@@ -72,11 +85,12 @@ public class SessionController extends Controller {
         this.updateUIEnabledStatus();
 
         remoteCommitTreePanelView.heightProperty().addListener((observable, oldValue, newValue) -> {
-            remoteCircle.setCenterY(newValue.doubleValue()/2.0);
+            remoteCircle.setCenterY(newValue.doubleValue() / 2.0);
             if(oldValue.doubleValue() == 0){
-                remoteCircle.setRadius(newValue.doubleValue()/5.0);
+                remoteCircle.setRadius(newValue.doubleValue() / 5.0);
             }
         });
+        remoteCircle.setFill(startGradient);
     }
 
     private void updateBranchDropdown() throws GitAPIException, IOException {
@@ -367,6 +381,40 @@ public class SessionController extends Controller {
         } catch (NullPointerException e) {
             ERROR_ALERT_CONSTANTS.noRepoLoaded().showAndWait();
         }
+    }
+
+    /**
+     * When the circle representing the remote repo is clicked, go to the
+     * corresponding remote url
+     * @param event
+     */
+    public void handleRemoteCircleMouseClick(Event event){
+        Desktop desktop = Desktop.isDesktopSupported() ? Desktop.getDesktop() : null;
+        if (desktop != null && desktop.isSupported(Desktop.Action.BROWSE)) {
+            try {
+                Config storedConfig = this.theModel.getCurrentRepo().getConfig();
+                Set<String> remotes = storedConfig.getSubsections("remote");
+
+                for (String remoteName : remotes) {
+                    String url = storedConfig.getString("remote", remoteName, "url");
+                    if(url.contains("@")){
+                        url = "https://"+url.replace(":","/").split("@")[1];
+                    }
+                    desktop.browse(new URI(url));
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }/**
+     * @param event
+     */
+    public void handleRemoteCircleMouseEnter(Event event){
+        remoteCircle.setFill(hoverGradient);
+    }
+
+    public void handleRemoteCircleMouseExit(Event event){
+        remoteCircle.setFill(startGradient);
     }
 
     /**
