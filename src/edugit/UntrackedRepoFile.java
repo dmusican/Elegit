@@ -1,5 +1,6 @@
 package edugit;
 
+import javafx.scene.control.Button;
 import javafx.scene.text.Text;
 import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.Git;
@@ -18,6 +19,8 @@ public class UntrackedRepoFile extends RepoFile {
         super(filePath, repo);
         this.textLabel = new Text("UNTRACKED");
         textLabel.setId("untrackedText");
+
+        diffButton.setText("UNTRACKED");
     }
 
     public UntrackedRepoFile(String filePathString, Repository repo) {

@@ -1,5 +1,6 @@
 package edugit;
 
+import javafx.scene.control.Button;
 import javafx.scene.text.Text;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.RmCommand;
@@ -18,6 +19,8 @@ public class MissingRepoFile extends RepoFile {
         super(filePath, repo);
         this.textLabel = new Text("MISSING");
         textLabel.setId("missingText");
+
+        diffButton.setText("MISSING");
     }
 
     public MissingRepoFile(String filePathString, Repository repo) {

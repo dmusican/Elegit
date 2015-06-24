@@ -1,6 +1,9 @@
 package edugit;
 
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.scene.Node;
+import javafx.scene.control.Button;
 import javafx.scene.text.Text;
 import org.controlsfx.control.PopOver;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -36,6 +39,7 @@ public class RepoFile {
     protected ArrayList<RepoFile> children; // Only directories will use this!
 
     Text textLabel;
+    Button diffButton;
 
     PopOver diffPopover;
 
@@ -43,6 +47,14 @@ public class RepoFile {
         this.repo = repo;
         this.filePath = filePath;
         this.textLabel = new Text("");
+
+        this.diffButton = new Button("");
+
+        this.diffButton.setOnAction(e -> {
+            this.showDiffPopover(this.diffButton);
+        });
+
+        this.diffPopover = new PopOver();
     }
 
     public RepoFile(String filePathString, Repository repo) {
@@ -98,6 +110,6 @@ public class RepoFile {
     }
 
     public void showDiffPopover(Node owner) {
-
+        this.diffPopover.show(owner);
     }
 }

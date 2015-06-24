@@ -1,11 +1,14 @@
 package edugit;
 
+import javafx.event.EventHandler;
 import javafx.scene.control.CheckBoxTreeItem;
 import javafx.scene.control.TreeView;
 import javafx.scene.control.cell.CheckBoxTreeCell;
 import javafx.scene.layout.Region;
 import org.eclipse.jgit.api.errors.GitAPIException;
 
+import javax.swing.plaf.basic.BasicComboBoxUI;
+import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -52,7 +55,7 @@ public class WorkingTreePanelView extends Region{
         rootItem.setExpanded(true);
 
         for (RepoFile changedRepoFile : this.sessionModel.getAllChangedRepoFiles()) {
-            CheckBoxTreeItem<RepoFile> leaf = new CheckBoxTreeItem<>(changedRepoFile, changedRepoFile.textLabel);
+            CheckBoxTreeItem<RepoFile> leaf = new CheckBoxTreeItem<>(changedRepoFile, changedRepoFile.diffButton);
             rootItem.getChildren().add(leaf);
             this.fileLeafs.add(leaf);
         }
