@@ -113,7 +113,7 @@ public class DiffHelper {
         scrollPane.setMaxWidth(800);
         scrollPane.setMaxHeight(400);
 
-        scrollPane.setPadding(new Insets(10));
+        scrollPane.setPadding(new Insets(0, 0, 0, 10));
 
         return scrollPane;
     }
