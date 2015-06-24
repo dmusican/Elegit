@@ -359,6 +359,7 @@ public abstract class RepoHelper {
     private PlotCommitList<PlotLane> parseAllRawLocalCommits() throws IOException, GitAPIException{
         // TODO: maybe resolve different branches (e.g. "refs/heads/master")?
         ObjectId headId = repo.resolve("HEAD");
+        if(headId == null) return new PlotCommitList<>();
         List<ObjectId> examinedCommitIDs = new ArrayList<>();
         PlotCommitList<PlotLane> rawLocalCommits = parseRawCommits(headId, examinedCommitIDs);
         examinedCommitIDs.add(headId);

@@ -64,6 +64,8 @@ public class SessionController extends Controller {
      * This method is automatically called by JavaFX.
      */
     public void initialize() throws Exception {
+        this.initializeLayoutParameters();
+
         this.theModel = SessionModel.getSessionModel();
 
         this.workingTreePanelView.setSessionModel(this.theModel);
@@ -83,6 +85,19 @@ public class SessionController extends Controller {
 
         this.initPanelViews();
         this.updateUIEnabledStatus();
+    }
+
+    private void initializeLayoutParameters(){
+        gitStatusButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
+        commitButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
+        mergeFromFetchButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
+        pushButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
+        fetchButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
+
+        commitMessageField.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
+        workingTreePanelView.setMinSize(Control.USE_PREF_SIZE, 200);
+
+        branchSelector.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
 
         remoteCommitTreePanelView.heightProperty().addListener((observable, oldValue, newValue) -> {
             remoteCircle.setCenterY(newValue.doubleValue() / 2.0);
@@ -114,7 +129,9 @@ public class SessionController extends Controller {
                     break;
                 }
             }
-            CommitTreeController.focusCommit(this.theModel.currentRepoHelper.getCommitByBranchName(currentBranch.refPathString));
+            if(currentBranch != null){
+                CommitTreeController.focusCommit(this.theModel.currentRepoHelper.getCommitByBranchName(currentBranch.refPathString));
+            }
         }
 
         this.branchSelector.setValue(currentBranch);
@@ -446,6 +463,7 @@ public class SessionController extends Controller {
      */
     public void loadSelectedBranch(ActionEvent actionEvent) throws GitAPIException, IOException {
         BranchHelper selectedBranch = this.branchSelector.getValue();
+        if(selectedBranch == null) return;
         try {
             selectedBranch.checkoutBranch();
             RepoHelper repoHelper = this.theModel.getCurrentRepoHelper();
