@@ -5,6 +5,7 @@ import edugit.exceptions.NoOwnerInfoException;
 import edugit.exceptions.NoRepoSelectedException;
 import javafx.event.ActionEvent;
 import javafx.scene.control.*;
+import javafx.scene.shape.Circle;
 import javafx.scene.text.Text;
 import org.eclipse.jgit.api.errors.*;
 
@@ -32,6 +33,8 @@ public class SessionController extends Controller {
     public WorkingTreePanelView workingTreePanelView;
 	public CommitTreePanelView localCommitTreePanelView;
     public CommitTreePanelView remoteCommitTreePanelView;
+
+    public Circle remoteCircle;
 
     CommitTreeModel localCommitTreeModel;
     CommitTreeModel remoteCommitTreeModel;
@@ -68,6 +71,12 @@ public class SessionController extends Controller {
         this.initPanelViews();
         this.updateUIEnabledStatus();
 
+        remoteCommitTreePanelView.heightProperty().addListener((observable, oldValue, newValue) -> {
+            remoteCircle.setCenterY(newValue.doubleValue()/2.0);
+            if(oldValue.doubleValue() == 0){
+                remoteCircle.setRadius(newValue.doubleValue()/5.0);
+            }
+        });
     }
 
     private void updateBranchDropdown() throws GitAPIException, IOException {

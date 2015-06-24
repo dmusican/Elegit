@@ -13,7 +13,7 @@ public class MainView extends Application {
         Parent root = FXMLLoader.load(getClass().getResource("resources/fxml/MainView.fxml"));
         primaryStage.setTitle("EduGit");
 
-        Scene scene = new Scene(root, 900, 650); // width, height
+        Scene scene = new Scene(root, 1200, 650); // width, height
         primaryStage.setScene(scene);
         primaryStage.show();
     }
