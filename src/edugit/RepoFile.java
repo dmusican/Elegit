@@ -4,11 +4,13 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.text.Text;
 import org.controlsfx.control.PopOver;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Repository;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -50,11 +52,17 @@ public class RepoFile {
 
         this.diffButton = new Button("");
 
-        this.diffButton.setOnAction(e -> {
-            this.showDiffPopover(this.diffButton);
-        });
-
         this.diffPopover = new PopOver();
+
+        this.diffButton.setOnAction(e -> {
+            try {
+                this.showDiffPopover(this.diffButton);
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            } catch (GitAPIException e1) {
+                e1.printStackTrace();
+            }
+        });
     }
 
     public RepoFile(String filePathString, Repository repo) {
@@ -109,7 +117,12 @@ public class RepoFile {
         System.err.println("Can't add children to this type of RepoFile.");
     }
 
-    public void showDiffPopover(Node owner) {
+    public void showDiffPopover(Node owner) throws IOException, GitAPIException {
+        DiffHelper diffHelper = new DiffHelper(this.filePath, this.repo);
+        Label diffText = new Label(diffHelper.getDiffString());
+//        diffText.setWrapText(true);
+
+        this.diffPopover.setContentNode(diffText);
         this.diffPopover.show(owner);
     }
 }
