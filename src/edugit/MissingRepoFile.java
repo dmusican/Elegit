@@ -17,10 +17,8 @@ public class MissingRepoFile extends RepoFile {
 
     public MissingRepoFile(Path filePath, Repository repo) {
         super(filePath, repo);
-        this.textLabel = new Text("MISSING");
-        textLabel.setId("missingText");
-
         diffButton.setText("MISSING");
+        diffButton.setId("missingDiffButton");
     }
 
     public MissingRepoFile(String filePathString, Repository repo) {

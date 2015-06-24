@@ -40,7 +40,6 @@ public class RepoFile {
     Repository repo;
     protected ArrayList<RepoFile> children; // Only directories will use this!
 
-    Text textLabel;
     Button diffButton;
 
     PopOver diffPopover;
@@ -48,7 +47,6 @@ public class RepoFile {
     public RepoFile(Path filePath, Repository repo) {
         this.repo = repo;
         this.filePath = filePath;
-        this.textLabel = new Text("");
 
         this.diffButton = new Button("");
 

@@ -17,10 +17,8 @@ public class UntrackedRepoFile extends RepoFile {
 
     public UntrackedRepoFile(Path filePath, Repository repo) {
         super(filePath, repo);
-        this.textLabel = new Text("UNTRACKED");
-        textLabel.setId("untrackedText");
-
         diffButton.setText("UNTRACKED");
+        diffButton.setId("untrackedDiffButton");
     }
 
     public UntrackedRepoFile(String filePathString, Repository repo) {

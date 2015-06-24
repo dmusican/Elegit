@@ -17,10 +17,8 @@ public class ModifiedRepoFile extends RepoFile {
 
     public ModifiedRepoFile(Path filePath, Repository repo) {
         super(filePath, repo);
-        this.textLabel = new Text("MODIFIED");
-        textLabel.setId("modifiedText");
-
         diffButton.setText("MODIFIED");
+        diffButton.setId("modifiedDiffButton");
     }
 
     public ModifiedRepoFile(String filePathString, Repository repo) {

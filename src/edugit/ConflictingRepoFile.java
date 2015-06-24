@@ -23,10 +23,8 @@ public class ConflictingRepoFile extends RepoFile {
 
     public ConflictingRepoFile(Path filePath, Repository repo) {
         super(filePath, repo);
-        this.textLabel = new Text("CONFLICTING");
-        textLabel.setId("conflictingText");
-
         diffButton.setText("CONFLICTING");
+        diffButton.setId("conflictingDiffButton");
     }
 
     public ConflictingRepoFile(String filePathString, Repository repo) {
