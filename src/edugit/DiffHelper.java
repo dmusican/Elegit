@@ -84,6 +84,8 @@ public class DiffHelper {
         String[] lines = diffText.split("\n");
         for (String line : lines) {
             Text text = new Text(line);
+            text.getStyleClass().add("diffText");
+
             if (line.length() > 0 && line.charAt(0) == '+') {
                 text.setId("addedDiffText");
             } else if (line.length() > 0 && line.charAt(0) == '-') {
@@ -118,9 +120,7 @@ public class DiffHelper {
         return scrollPane;
     }
 
-    private static AbstractTreeIterator prepareTreeParser(Repository repository, String objectId) throws IOException,
-            MissingObjectException,
-            IncorrectObjectTypeException {
+    private static AbstractTreeIterator prepareTreeParser(Repository repository, String objectId) throws IOException {
         // from the commit we can build the tree which allows us to construct the TreeParser
         RevWalk walk = new RevWalk(repository);
         RevCommit commit = walk.parseCommit(ObjectId.fromString(objectId));

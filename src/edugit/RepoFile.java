@@ -49,6 +49,7 @@ public class RepoFile {
         this.filePath = filePath;
 
         this.diffButton = new Button("");
+        this.diffButton.getStyleClass().add("diffButton");
 
         this.diffPopover = new PopOver();
 

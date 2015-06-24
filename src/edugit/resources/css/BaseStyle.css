@@ -43,54 +43,51 @@
     -fx-fill: #818181;
 }
 
-#missingDiffButton {
-    -fx-font-weight: BOLD;
-    -fx-text-size: 8px;
-    -fx-font-family: "Avenir";
-    -fx-background-color: #e67e22;
-}
-
-#modifiedDiffButton {
-    -fx-font-weight: BOLD;
-    -fx-font-size: 8px;
-    -fx-font-family: "Avenir";
-    -fx-background-color: #16a085;
-}
-
-#untrackedDiffButton {
-    -fx-font-weight: BOLD;
-    -fx-font-family: "Avenir";
-    -fx-background-color: #9b59b6;
-}
-
-#conflictingDiffButton {
-    -fx-font-weight: BOLD;
-    -fx-font-family: "Avenir";
-    -fx-background-color: #F22613;
-}
-
 #repoLabelText {
     -fx-font-weight: BOLD;
     -fx-font-size: 18px;
 }
 
-#addedDiffText {
-    -fx-font-family: "Menlo";
-    -fx-fill: #26A65B;
+.diffButton {
+    -fx-font-weight: BOLD;
+    -fx-font-size: 8px;
+    -fx-font-family: "Avenir";
 }
 
-#deletedDiffText {
+    .diffButton#missingDiffButton {
+        -fx-background-color: #e67e22;
+    }
+
+    .diffButton#modifiedDiffButton {
+        -fx-background-color: #16a085;
+    }
+
+    .diffButton#untrackedDiffButton {
+        -fx-background-color: #9b59b6;
+    }
+
+    .diffButton#conflictingDiffButton {
+        -fx-background-color: #F22613;
+    }
+
+.diffText {
     -fx-font-family: "Menlo";
-    -fx-fill: #F22613;
+    -fx-font-size: 13;
 }
 
-#unchangedDiffText {
-    -fx-font-family: "Menlo";
-    -fx-fill: #BDC3C7;
-}
+    .diffText#addedDiffText {
+        -fx-fill: #26A65B;
+    }
 
-#gitAnnotationDiffText {
-    -fx-font-family: "Menlo";
-    -fx-fill: #81CFE0;
-    -fx-font-style: italic;
-}
+    .diffText#deletedDiffText {
+        -fx-fill: #F22613;
+    }
+
+    .diffText#unchangedDiffText {
+        -fx-fill: #BDC3C7;
+    }
+
+    .diffText#gitAnnotationDiffText {
+        -fx-fill: #81CFE0;
+        -fx-font-style: italic;
+    }
