@@ -46,16 +46,10 @@ public class WorkingTreePanelView extends Region{
 
         Path directoryPath = this.sessionModel.getCurrentRepoHelper().getDirectory();
 
-        // NOTE: performance stuff with recursion
-        // #old: This is commented out since we're no longer loading the whole directory.
-//        DirectoryRepoFile parentDirectoryRepoFile = this.sessionModel.getParentDirectoryRepoFile();
-
         DirectoryRepoFile rootDirectory = new DirectoryRepoFile("", this.sessionModel.getCurrentRepo());
 
         CheckBoxTreeItem<RepoFile> rootItem = new CheckBoxTreeItem<RepoFile>(rootDirectory);
         rootItem.setExpanded(true);
-
-//        rootItem = this.populateRepoFileTreeLeaf(rootItem);
 
         for (RepoFile changedRepoFile : this.sessionModel.getAllChangedRepoFiles()) {
             CheckBoxTreeItem<RepoFile> leaf = new CheckBoxTreeItem<>(changedRepoFile, changedRepoFile.textLabel);
@@ -71,37 +65,6 @@ public class WorkingTreePanelView extends Region{
 
         this.directoryTreeView.prefHeightProperty().bind(this.heightProperty());
         this.getChildren().add(this.directoryTreeView);
-    }
-
-    /**
-     * Adds children to a directory's CheckBoxTreeItem by checking the CheckBoxTreeItem's inner RepoFile
-     * for children and then making CheckBoxTreeItems for those children and populating them recursively
-     * using this method.
-     *
-     * #old: This is unused since we're no longer loading the whole directory.
-     *
-     * @param parentLeaf A RepoFile's CheckBoxTreeItem to be populated with its children.
-     * @return the populated parent leaf.
-     *
-     */
-    public CheckBoxTreeItem<RepoFile> populateRepoFileTreeLeaf(CheckBoxTreeItem<RepoFile> parentLeaf) {
-        RepoFile parentLeafRepoFile = parentLeaf.getValue();
-
-        // Check for nullness, since non-directory RepoFiles will a null-valued
-        // children list.
-        if (parentLeafRepoFile.getChildren() != null) {
-            for (RepoFile childRepoFile : parentLeafRepoFile.getChildren()) {
-                CheckBoxTreeItem<RepoFile> childLeaf = new CheckBoxTreeItem<>(childRepoFile);
-                if (childRepoFile.getChildren() != null) {
-                    // Recursively populate the child leaf, then add it to the parent
-                    childLeaf = populateRepoFileTreeLeaf(childLeaf);
-                }
-                parentLeaf.getChildren().add(childLeaf);
-                // Store each leaf that we're adding to this directory tree:
-                this.fileLeafs.add(childLeaf);
-            }
-        }
-        return parentLeaf;
     }
 
     /**
