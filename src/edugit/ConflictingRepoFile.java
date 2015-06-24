@@ -13,22 +13,22 @@ import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Optional;
 
 /**
  * Created by grahamearley on 6/18/15.
  */
 public class ConflictingRepoFile extends RepoFile {
-    public ConflictingRepoFile(String filePathString, Repository repo) {
-        super(filePathString, repo);
-        this.textLabel = new Text("CONFLICTING");
-        textLabel.setId("conflictingText");
-    }
 
     public ConflictingRepoFile(Path filePath, Repository repo) {
         super(filePath, repo);
-        this.textLabel = new Text("CONFLICTING");
-        textLabel.setId("conflictingText");
+        diffButton.setText("CONFLICTING");
+        diffButton.setId("conflictingDiffButton");
+    }
+
+    public ConflictingRepoFile(String filePathString, Repository repo) {
+        this(Paths.get(filePathString), repo);
     }
 
     /**

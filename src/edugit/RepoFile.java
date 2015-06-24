@@ -1,9 +1,16 @@
 package edugit;
 
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
+import javafx.scene.Node;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.text.Text;
+import org.controlsfx.control.PopOver;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Repository;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -33,18 +40,32 @@ public class RepoFile {
     Repository repo;
     protected ArrayList<RepoFile> children; // Only directories will use this!
 
-    Text textLabel;
+    Button diffButton;
 
-    public RepoFile(String filePathString, Repository repo) {
-        this.repo = repo;
-        this.filePath = Paths.get(filePathString);
-        this.textLabel = new Text("");
-    }
+    PopOver diffPopover;
 
     public RepoFile(Path filePath, Repository repo) {
         this.repo = repo;
         this.filePath = filePath;
-        this.textLabel = new Text("");
+
+        this.diffButton = new Button("");
+        this.diffButton.getStyleClass().add("diffButton");
+
+        this.diffPopover = new PopOver();
+
+        this.diffButton.setOnAction(e -> {
+            try {
+                this.showDiffPopover(this.diffButton);
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            } catch (GitAPIException e1) {
+                e1.printStackTrace();
+            }
+        });
+    }
+
+    public RepoFile(String filePathString, Repository repo) {
+        this(Paths.get(filePathString), repo);
     }
 
     /**
@@ -75,12 +96,6 @@ public class RepoFile {
     @Override
     public String toString() {
         return this.filePath.toString();
-
-//        Path workTreePath = this.repo.getWorkTree().toPath();
-//        Path relativized = workTreePath.relativize(this.filePath);
-//
-//        return relativized.toString();
-
     }
 
     public Path getFilePath() {
@@ -99,5 +114,12 @@ public class RepoFile {
     public void addChild(RepoFile repoFile) {
         // Files with no children can't have children added to them!
         System.err.println("Can't add children to this type of RepoFile.");
+    }
+
+    public void showDiffPopover(Node owner) throws IOException, GitAPIException {
+        DiffHelper diffHelper = new DiffHelper(this.filePath, this.repo);
+        this.diffPopover.setContentNode(diffHelper.getDiffScrollPane());
+        this.diffPopover.setDetachedTitle("File Diffs");
+        this.diffPopover.show(owner);
     }
 }

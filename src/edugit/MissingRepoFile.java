@@ -1,5 +1,6 @@
 package edugit;
 
+import javafx.scene.control.Button;
 import javafx.scene.text.Text;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.RmCommand;
@@ -7,22 +8,21 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Repository;
 
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /**
  * A subclass of RepoFile that contains a file that Git reports as missing.
  */
 public class MissingRepoFile extends RepoFile {
 
-    public MissingRepoFile(String filePathString, Repository repo) {
-        super(filePathString, repo);
-        this.textLabel = new Text("MISSING");
-        textLabel.setId("missingText");
-    }
-
     public MissingRepoFile(Path filePath, Repository repo) {
         super(filePath, repo);
-        this.textLabel = new Text("MISSING");
-        textLabel.setId("missingText");
+        diffButton.setText("MISSING");
+        diffButton.setId("missingDiffButton");
+    }
+
+    public MissingRepoFile(String filePathString, Repository repo) {
+        this(Paths.get(filePathString), repo);
     }
 
     /**
