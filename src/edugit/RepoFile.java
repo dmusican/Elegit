@@ -1,6 +1,8 @@
 package edugit;
 
+import javafx.scene.Node;
 import javafx.scene.text.Text;
+import org.controlsfx.control.PopOver;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Repository;
 
@@ -35,16 +37,16 @@ public class RepoFile {
 
     Text textLabel;
 
-    public RepoFile(String filePathString, Repository repo) {
-        this.repo = repo;
-        this.filePath = Paths.get(filePathString);
-        this.textLabel = new Text("");
-    }
+    PopOver diffPopover;
 
     public RepoFile(Path filePath, Repository repo) {
         this.repo = repo;
         this.filePath = filePath;
         this.textLabel = new Text("");
+    }
+
+    public RepoFile(String filePathString, Repository repo) {
+        this(Paths.get(filePathString), repo);
     }
 
     /**
@@ -75,12 +77,6 @@ public class RepoFile {
     @Override
     public String toString() {
         return this.filePath.toString();
-
-//        Path workTreePath = this.repo.getWorkTree().toPath();
-//        Path relativized = workTreePath.relativize(this.filePath);
-//
-//        return relativized.toString();
-
     }
 
     public Path getFilePath() {
@@ -99,5 +95,9 @@ public class RepoFile {
     public void addChild(RepoFile repoFile) {
         // Files with no children can't have children added to them!
         System.err.println("Can't add children to this type of RepoFile.");
+    }
+
+    public void showDiffPopover(Node owner) {
+
     }
 }
