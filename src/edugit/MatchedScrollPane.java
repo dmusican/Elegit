@@ -26,8 +26,11 @@ public class MatchedScrollPane extends ScrollPane{
 
     public MatchedScrollPane(Node node){
         super(node);
-        this.hvalueProperty().bindBidirectional(hPos);
-        this.vvalueProperty().bindBidirectional(vPos);
+        this.hvalueProperty().bind(hPos);
+        this.vvalueProperty().bind(vPos);
+
+        this.hvalueProperty().addListener((observable, oldValue, newValue) -> hPos.set(newValue.doubleValue()));
+        this.vvalueProperty().addListener((observable, oldValue, newValue) -> vPos.set(newValue.doubleValue()));
 
         NumItemsProperty.addListener((observable, oldValue, newValue) -> numItems = newValue.intValue());
     }

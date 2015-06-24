@@ -7,10 +7,8 @@ import javafx.event.ActionEvent;
 import javafx.scene.control.*;
 import javafx.scene.text.Text;
 import org.eclipse.jgit.api.errors.*;
-import org.eclipse.jgit.lib.ObjectId;
 
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.prefs.BackingStoreException;
@@ -89,9 +87,11 @@ public class SessionController extends Controller {
             for (BranchHelper branchHelper : branches) {
                 if (branchHelper.getBranchName().equals(current.getBranchName())) {
                     currentBranch = current;
+                    this.theModel.getCurrentRepoHelper().setCurrentBranch(currentBranch);
                     break;
                 }
             }
+            CommitTreeController.focusCommit(this.theModel.currentRepoHelper.getCommitByBranchName(currentBranch.refPathString));
         }
 
         this.branchSelector.setValue(currentBranch);
@@ -114,7 +114,7 @@ public class SessionController extends Controller {
 
         MenuItem cloneOption = new MenuItem("Clone");
         cloneOption.setOnAction(t -> {
-            try {
+            try{
                 ClonedRepoHelperBuilder builder = new ClonedRepoHelperBuilder(this.theModel);
                 RepoHelper repoHelper = builder.getRepoHelperFromDialogs(); // this creates and sets the RepoHelper
 
@@ -123,16 +123,16 @@ public class SessionController extends Controller {
                 this.updateUIEnabledStatus();
                 this.onGitStatusButton();
                 this.initPanelViews();
-            } catch (IllegalArgumentException e) {
+            }catch(IllegalArgumentException e){
                 e.printStackTrace();
                 ERROR_ALERT_CONSTANTS.invalidRepo().showAndWait();
-            } catch (JGitInternalException e) {
+            }catch(JGitInternalException e){
                 e.printStackTrace();
                 ERROR_ALERT_CONSTANTS.nonemptyFolder().showAndWait();
-            } catch (InvalidRemoteException e) {
+            }catch(InvalidRemoteException e){
                 e.printStackTrace();
                 ERROR_ALERT_CONSTANTS.invalidRemote().showAndWait();
-            } catch (TransportException e) {
+            }catch(TransportException e){
                 e.printStackTrace();
                 ERROR_ALERT_CONSTANTS.notAuthorized().showAndWait();
                 // FIXME: TransportExceptions don't *only* indicate a permissions issue... Figure out what else they do
@@ -147,10 +147,10 @@ public class SessionController extends Controller {
 
                 // The user pressed cancel on the dialog box. Do nothing!
 
-            } catch (NoOwnerInfoException e) {
+            }catch(NoOwnerInfoException e){
                 e.printStackTrace();
                 ERROR_ALERT_CONSTANTS.notLoggedIn().showAndWait();
-            } catch (NullPointerException e) {
+            }catch(NullPointerException e){
                 ERROR_ALERT_CONSTANTS.genericError().showAndWait();
                 e.printStackTrace();
 
@@ -160,7 +160,7 @@ public class SessionController extends Controller {
                 // very helpful. Todo: investigate.
 
 
-            } catch (Exception e) {
+            }catch(Exception e){
                 // The generic error is totally unhelpful, so try not to ever reach this catch statement
                 ERROR_ALERT_CONSTANTS.genericError().showAndWait();
                 e.printStackTrace();
@@ -235,14 +235,11 @@ public class SessionController extends Controller {
             recentRepoHelperMenuItem.setOnAction(t -> {
                 try {
                     this.theModel.openRepoFromHelper(repoHelper);
-                    this.initPanelViews();
                 } catch (BackingStoreException e) {
                     e.printStackTrace();
                 } catch (IOException e) {
                     e.printStackTrace();
                 } catch (ClassNotFoundException e) {
-                    e.printStackTrace();
-                } catch (GitAPIException e) {
                     e.printStackTrace();
                 }
 

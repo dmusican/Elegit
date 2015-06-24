@@ -206,16 +206,12 @@ public class CommitHelper{
         return children;
     }
 
-    /**
-     * Testing method
-     * @return a string with some information about this commit
-     */
-    public String getInfoString(){
-        String s = this.getName();
-        s = s + " - " + this.getAuthorName();
-        s = s + " - " + this.getFormattedWhen();
-        s = s + " - " + this.getMessage(false);
-
+    @Override
+    public String toString(){
+        String s = this.getAuthorName();
+        s = s + " \t" + this.getFormattedWhen();
+        s = s + " \t" + this.getName();
+        s = s + " \t" + this.getMessage(false);
         return s;
     }
 
