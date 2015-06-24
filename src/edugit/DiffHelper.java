@@ -1,5 +1,7 @@
 package edugit;
 
+import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.diff.DiffEntry;
@@ -52,9 +54,12 @@ public class DiffHelper {
         // The {tree} will return the underlying tree-id instead of the commit-id itself!
         // For a description of what the carets do see e.g. http://www.paulboxley.com/blog/2011/06/git-caret-and-tilde
         // This means we are selecting the parent of the parent of current HEAD and
-        // take the tree-ish of it
+        // take the tree-ish of it. TODO: these aren't always giving the right diffs...
         ObjectId oldHead = this.repo.resolve("HEAD^^{tree}");
         ObjectId head = this.repo.resolve("HEAD^{tree}");
+
+        System.out.println(oldHead.toString() + "\n" + head.toString());
+
 
         // prepare the two iterators to compute the diff between
         ObjectReader reader = this.repo.newObjectReader();
@@ -73,9 +78,20 @@ public class DiffHelper {
             DiffFormatter formatter = new DiffFormatter(diffOutputStream);
             formatter.setRepository(this.repo);
             formatter.format(entry);
-
         }
 
         return diffOutputStream.toString();
+    }
+
+    public ScrollPane getDiffScrollPane() throws GitAPIException, IOException {
+        ScrollPane scrollPane = new ScrollPane();
+        Label diffText = new Label(this.getDiffString());
+
+        scrollPane.setContent(diffText);
+        
+        scrollPane.setPrefViewportHeight(300);
+        scrollPane.setPrefViewportWidth(500);
+
+        return scrollPane;
     }
 }
