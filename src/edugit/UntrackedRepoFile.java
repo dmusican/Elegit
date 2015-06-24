@@ -7,23 +7,21 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Repository;
 
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /**
  * A subclass of RepoFile that contains a file that Git reports as untracked.
  */
 public class UntrackedRepoFile extends RepoFile {
-    public UntrackedRepoFile(String filePathString, Repository repo) {
-        super(filePathString, repo);
-        this.textLabel = new Text("UNTRACKED");
-        textLabel.setId("untrackedText");
-    }
 
     public UntrackedRepoFile(Path filePath, Repository repo) {
         super(filePath, repo);
         this.textLabel = new Text("UNTRACKED");
         textLabel.setId("untrackedText");
+    }
 
-        // TODO: Have one *parent* constructor, so you don't have to have duplicate code here..
+    public UntrackedRepoFile(String filePathString, Repository repo) {
+        this(Paths.get(filePathString), repo);
     }
 
     /**
