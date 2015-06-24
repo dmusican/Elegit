@@ -1,6 +1,9 @@
 package edugit;
 
-import edugit.treefx.*;
+import edugit.treefx.Cell;
+import edugit.treefx.Edge;
+import edugit.treefx.Highlighter;
+import edugit.treefx.TreeGraphModel;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -15,8 +15,10 @@ import javafx.scene.control.ScrollPane;
 public class MatchedScrollPane extends ScrollPane{
 
     // All MatchedScrollPanes share a horizontal and vertical positioning
-    private static final DoubleProperty hPos = new SimpleDoubleProperty(0.0);
-    private static final DoubleProperty vPos = new SimpleDoubleProperty(0.0);
+    private static final DoubleProperty hPos = new SimpleDoubleProperty(1.0);
+    private static final DoubleProperty vPos = new SimpleDoubleProperty(1.0);
+
+    private static boolean isScrollLocked = false;
 
     // A property used to update the number of items in the scroll panes
     public final IntegerProperty NumItemsProperty = new SimpleIntegerProperty(1);
@@ -26,8 +28,24 @@ public class MatchedScrollPane extends ScrollPane{
 
     public MatchedScrollPane(Node node){
         super(node);
-        this.hvalueProperty().bindBidirectional(hPos);
-        this.vvalueProperty().bindBidirectional(vPos);
+
+        this.hvalueProperty().addListener((observable, oldValue, newValue) -> {
+            if(!isScrollLocked){
+                hPos.setValue(newValue);
+            }
+        });
+        hPos.addListener((observable, oldValue, newValue) -> {
+            this.hvalueProperty().setValue(newValue);
+        });
+
+        this.vvalueProperty().addListener((observable, oldValue, newValue) -> {
+            if(!isScrollLocked){
+                vPos.setValue(newValue);
+            }
+        });
+        vPos.addListener((observable, oldValue, newValue) -> {
+            this.vvalueProperty().setValue(newValue);
+        });
 
         NumItemsProperty.addListener((observable, oldValue, newValue) -> numItems = newValue.intValue());
     }
@@ -55,5 +73,9 @@ public class MatchedScrollPane extends ScrollPane{
             double offset = ratio >= 0.5 ? 1.0/numItems : -1.0/numItems;
             hPos.set(ratio+offset);
         }
+    }
+
+    public static void ignoreScrolling(boolean ignore){
+        isScrollLocked = ignore;
     }
 }

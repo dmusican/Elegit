@@ -31,8 +31,8 @@ public abstract class CommitTreeModel{
         this.sessionModel = model;
         this.view = view;
         this.view.setName("Generic commit tree");
-        this.init();
         CommitTreeController.allCommitTreeModels.add(this);
+        this.init();
     }
 
     /**

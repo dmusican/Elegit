@@ -59,6 +59,7 @@ public class CommitTreePanelView extends Region{
         Task<Void> endTask = new Task<Void>(){
             @Override
             protected Void call(){
+                MatchedScrollPane.ignoreScrolling(true);
                 try{
                     th.join();
                 }catch(InterruptedException e){
@@ -71,8 +72,9 @@ public class CommitTreePanelView extends Region{
                         sp.setPannable(true);
                         getChildren().clear();
                         getChildren().add(anchorScrollPane(sp));
-                        MatchedScrollPane.scrollTo(-1);
                         isRunning = false;
+
+                        MatchedScrollPane.ignoreScrolling(false);
                         return null;
                     }
                 });
