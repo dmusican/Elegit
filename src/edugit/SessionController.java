@@ -170,35 +170,35 @@ public class SessionController extends Controller {
         MenuItem existingOption = new MenuItem("Load existing repository");
         existingOption.setOnAction(t -> {
             ExistingRepoHelperBuilder builder = new ExistingRepoHelperBuilder(this.theModel);
-            try {
+            try{
                 RepoHelper repoHelper = builder.getRepoHelperFromDialogs();
                 this.theModel.openRepoFromHelper(repoHelper);
 
                 this.updateUIEnabledStatus();
                 this.onGitStatusButton();
                 this.initPanelViews();
-            } catch (IllegalArgumentException e) {
+            }catch(IllegalArgumentException e){
                 e.printStackTrace();
                 ERROR_ALERT_CONSTANTS.invalidRepo().showAndWait();
-            } catch (NoRepoSelectedException e) {
+            }catch(NoRepoSelectedException e){
 
                 // The user pressed cancel on the dialog box. Do nothing!
 
-            } catch (NoOwnerInfoException e) {
+            }catch(NoOwnerInfoException e){
                 ERROR_ALERT_CONSTANTS.notLoggedIn().showAndWait();
                 e.printStackTrace();
 
                 // Re-prompt the user to log in:
-                try {
+                try{
                     this.theModel.getDefaultOwner().presentLoginDialogsToSetValues();
-                } catch (CancelledLoginException e1) {
+                }catch(CancelledLoginException e1){
                     // Do nothing. The user just pressed cancel!
                 }
-            } catch (NullPointerException e) {
+            }catch(NullPointerException e){
                 // TODO: figure out when nullpointer is thrown (if at all?)
                 ERROR_ALERT_CONSTANTS.repoWasNotLoaded().showAndWait();
                 e.printStackTrace();
-            } catch (Exception e) {
+            }catch(Exception e){
                 ERROR_ALERT_CONSTANTS.genericError().showAndWait();
                 System.out.println("***** FIGURE OUT WHY THIS EXCEPTION IS NEEDED *******");
                 e.printStackTrace();
