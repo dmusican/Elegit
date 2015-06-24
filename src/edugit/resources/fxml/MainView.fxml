@@ -65,6 +65,7 @@
                     GridPane.rowIndex="1"
                     fx:id="gitStatusButton"
                     text="git status"
+                    id="codeButton"
                     onAction="#onGitStatusButton"/>
 
             <WorkingTreePanelView
@@ -86,12 +87,14 @@
                 GridPane.columnIndex="1"
                 fx:id="commitButton"
                 text="Commit"
+                id="codeButton"
                 onAction="#handleCommitButton"/>
 
         <Button GridPane.rowIndex="3"
                 GridPane.columnIndex="1"
                 fx:id="mergeFromFetchButton"
                 text="Merge"
+                id="codeButton"
                 onAction="#handleMergeFromFetchButton"/>
 
         <CommitTreePanelView GridPane.rowIndex="2"
@@ -109,6 +112,7 @@
                 GridPane.halignment="RIGHT"
                 fx:id="pushButton"
                 text="Push"
+                id="codeButton"
                 onAction="#handlePushButton"/>
 
         <Button GridPane.rowIndex="3"
@@ -116,6 +120,7 @@
                 GridPane.halignment="RIGHT"
                 fx:id="fetchButton"
                 text="Fetch"
+                id="codeButton"
                 onAction="#handleFetchButton"/>
 
         <stylesheets>

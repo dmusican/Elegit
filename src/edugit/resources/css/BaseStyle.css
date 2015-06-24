@@ -11,9 +11,12 @@
 }
 
 .button {
-    -fx-font-family: "Menlo";
     -fx-text-fill: white;
     -fx-background-color: #52B3D9;
+}
+
+.button#codeButton {
+    -fx-font-family: "Menlo";
 }
 
 #warningButton {
