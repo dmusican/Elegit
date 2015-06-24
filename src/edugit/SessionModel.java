@@ -53,8 +53,13 @@ public class SessionModel {
         String lastOpenedRepoPathString = (String) PrefObj.getObject(this.preferences, LAST_OPENED_REPO_PATH_KEY);
         if (lastOpenedRepoPathString != null) {
             Path path = Paths.get(lastOpenedRepoPathString);
-            ExistingRepoHelper existingRepoHelper = new ExistingRepoHelper(path, this.defaultOwner);
-            this.openRepoFromHelper(existingRepoHelper);
+            try {
+                ExistingRepoHelper existingRepoHelper = new ExistingRepoHelper(path, this.defaultOwner);
+                this.openRepoFromHelper(existingRepoHelper);
+            } catch (IllegalArgumentException e) {
+                // The most recent repo is no longer in the directory it used to be in,
+                // so just don't load it.
+            }
         }
     }
 
@@ -64,8 +69,13 @@ public class SessionModel {
         if (storedRepoPathStrings != null) {
             for (String pathString : storedRepoPathStrings) {
                 Path path = Paths.get(pathString);
-                ExistingRepoHelper existingRepoHelper = new ExistingRepoHelper(path, this.defaultOwner);
-                this.allRepoHelpers.add(existingRepoHelper);
+                try {
+                    ExistingRepoHelper existingRepoHelper = new ExistingRepoHelper(path, this.defaultOwner);
+                    this.allRepoHelpers.add(existingRepoHelper);
+                } catch (IllegalArgumentException e) {
+                    // This happens when this repository has been moved.
+                    // We'll just move along.
+                }
             }
         }
     }

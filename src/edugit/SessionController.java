@@ -66,16 +66,14 @@ public class SessionController extends Controller {
 
         this.theModel.loadRecentRepoHelpersFromStoredPathStrings();
         this.theModel.loadMostRecentRepoHelper();
+
         this.initPanelViews();
         this.updateUIEnabledStatus();
+
     }
 
     private void updateBranchDropdown() throws GitAPIException, IOException {
         this.branchSelector.setVisible(true);
-
-//        List<BranchHelper> branches = this.theModel.getCurrentRepoHelper().getLocalBranchNames();
-//        branches.addAll(this.theModel.getCurrentRepoHelper().getRemoteBranchNames());
-//        this.branchSelector.getItems().setAll(branches);
 
         List<BranchHelper> branches = this.theModel.getCurrentRepoHelper().getLocalBranches();
 //        branches.addAll(this.theModel.getCurrentRepoHelper().getRemoteBranches()); //todo: deal with remotes
@@ -415,10 +413,17 @@ public class SessionController extends Controller {
      * interact with.
      */
     private void updateUIEnabledStatus() throws GitAPIException, IOException {
-        if (this.theModel.getAllRepoHelpers().size() == 0) {
+        RepoHelper currentRepoHelper = this.theModel.getCurrentRepoHelper();
+
+        if (currentRepoHelper == null && this.theModel.getAllRepoHelpers().size() == 0) {
+            // (There's no repo for the buttons to interact with)
             setButtonsDisabled(true);
-            this.branchSelector.setVisible(true);
-        } else if (this.theModel.getAllRepoHelpers().size() != 0) {
+            this.branchSelector.setVisible(false);
+        } else if (currentRepoHelper == null && this.theModel.getAllRepoHelpers().size() > 0) {
+            // (There's no repo for buttons to interact with, but there are repos in the menu bar)
+            setButtonsDisabled(true);
+            this.updateMenuBarWithRecentRepos();
+        } else {
             setButtonsDisabled(false);
             this.updateBranchDropdown();
             this.updateMenuBarWithRecentRepos();
