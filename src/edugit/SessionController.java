@@ -143,9 +143,8 @@ public class SessionController extends Controller {
 
                 this.theModel.openRepoFromHelper(repoHelper);
 
-                this.updateUIEnabledStatus();
-                this.onGitStatusButton();
                 this.initPanelViews();
+                this.updateUIEnabledStatus();
             }catch(IllegalArgumentException e){
                 e.printStackTrace();
                 ERROR_ALERT_CONSTANTS.invalidRepo().showAndWait();
@@ -197,9 +196,8 @@ public class SessionController extends Controller {
                 RepoHelper repoHelper = builder.getRepoHelperFromDialogs();
                 this.theModel.openRepoFromHelper(repoHelper);
 
-                this.updateUIEnabledStatus();
-                this.onGitStatusButton();
                 this.initPanelViews();
+                this.updateUIEnabledStatus();
             }catch(IllegalArgumentException e){
                 e.printStackTrace();
                 ERROR_ALERT_CONSTANTS.invalidRepo().showAndWait();
@@ -406,9 +404,8 @@ public class SessionController extends Controller {
                 e.printStackTrace();
             }
         }
-    }/**
-     * @param event
-     */
+    }
+
     public void handleRemoteCircleMouseEnter(Event event){
         remoteCircle.setFill(hoverGradient);
     }

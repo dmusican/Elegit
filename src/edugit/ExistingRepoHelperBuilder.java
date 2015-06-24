@@ -1,6 +1,5 @@
 package edugit;
 
-import edugit.exceptions.NoOwnerInfoException;
 import edugit.exceptions.NoRepoSelectedException;
 
 import java.io.File;
@@ -29,9 +28,9 @@ public class ExistingRepoHelperBuilder extends RepoHelperBuilder {
 
         Path directoryPath = existingRepoDirectoryFile.toPath();
 
-        if (this.sessionModel.getDefaultOwner() == null) {
-            throw new NoOwnerInfoException();
-        }
+//        if (this.sessionModel.getDefaultOwner() == null) {
+//            throw new NoOwnerInfoException();
+//        }
 
         RepoHelper existingRepoHelper = new ExistingRepoHelper(directoryPath, this.sessionModel.getDefaultOwner());
 
