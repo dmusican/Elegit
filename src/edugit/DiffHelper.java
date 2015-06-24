@@ -1,7 +1,10 @@
 package edugit;
 
+import javafx.geometry.Insets;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.layout.VBox;
+import javafx.scene.text.Text;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.diff.DiffEntry;
@@ -21,6 +24,7 @@ import org.eclipse.jgit.treewalk.filter.PathFilter;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -48,7 +52,7 @@ public class DiffHelper {
         this.pathFilter = relativeFilePath.toString();
     }
 
-    public String getDiffString() throws GitAPIException, IOException {
+    private String getDiffString() throws GitAPIException, IOException {
         ByteArrayOutputStream diffOutputStream = new ByteArrayOutputStream();
 
         // The {tree} will return the underlying tree-id instead of the commit-id itself!
@@ -57,9 +61,6 @@ public class DiffHelper {
         // take the tree-ish of it. TODO: these aren't always giving the right diffs...
         ObjectId oldHead = this.repo.resolve("HEAD^^{tree}");
         ObjectId head = this.repo.resolve("HEAD^{tree}");
-
-        System.out.println(oldHead.toString() + "\n" + head.toString());
-
 
         // prepare the two iterators to compute the diff between
         ObjectReader reader = this.repo.newObjectReader();
@@ -83,14 +84,44 @@ public class DiffHelper {
         return diffOutputStream.toString();
     }
 
+    private ArrayList<Text> getColoredDiffList() throws GitAPIException, IOException {
+        String diffText = this.getDiffString();
+
+        ArrayList<Text> coloredDiffList = new ArrayList<>();
+
+        String[] lines = diffText.split("\n");
+        for (String line : lines) {
+            Text text = new Text(line);
+            if (line.length() > 0 && line.charAt(0) == '+') {
+                text.setId("addedDiffText");
+            } else if (line.length() > 0 && line.charAt(0) == '-') {
+                text.setId("deletedDiffText");
+            } else if (line.length() > 1 && line.charAt(0) == '@' && line.charAt(1) == '@') {
+                text.setId("gitAnnotationDiffText");
+            } else {
+                text.setId("unchangedDiffText");
+            }
+            coloredDiffList.add(text);
+        }
+
+        return coloredDiffList;
+    }
+
     public ScrollPane getDiffScrollPane() throws GitAPIException, IOException {
         ScrollPane scrollPane = new ScrollPane();
-        Label diffText = new Label(this.getDiffString());
 
-        scrollPane.setContent(diffText);
+        VBox verticalListOfColoredDiffs = new VBox();
+        verticalListOfColoredDiffs.getChildren().setAll(this.getColoredDiffList());
         
-        scrollPane.setPrefViewportHeight(300);
-        scrollPane.setPrefViewportWidth(500);
+        scrollPane.setContent(verticalListOfColoredDiffs);
+
+        scrollPane.setFitToHeight(true);
+        scrollPane.setFitToWidth(true);
+
+        scrollPane.setMaxWidth(800);
+        scrollPane.setMaxHeight(400);
+
+        scrollPane.setPadding(new Insets(10));
 
         return scrollPane;
     }

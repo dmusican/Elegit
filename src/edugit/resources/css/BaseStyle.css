@@ -75,3 +75,24 @@
     -fx-font-weight: BOLD;
     -fx-font-size: 18px;
 }
+
+#addedDiffText {
+    -fx-font-family: "Menlo";
+    -fx-fill: #26A65B;
+}
+
+#deletedDiffText {
+    -fx-font-family: "Menlo";
+    -fx-fill: #F22613;
+}
+
+#unchangedDiffText {
+    -fx-font-family: "Menlo";
+    -fx-fill: #BDC3C7;
+}
+
+#gitAnnotationDiffText {
+    -fx-font-family: "Menlo";
+    -fx-fill: #81CFE0;
+    -fx-font-style: italic;
+}
