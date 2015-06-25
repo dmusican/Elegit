@@ -67,6 +67,7 @@ public class WorkingTreePanelView extends Region{
         this.directoryTreeView.setShowRoot(false);
 
         this.directoryTreeView.prefHeightProperty().bind(this.heightProperty());
+        this.getChildren().clear();
         this.getChildren().add(this.directoryTreeView);
     }
 
