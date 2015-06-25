@@ -585,7 +585,7 @@ public class SessionController extends Controller {
     }
 
     private void showNotAuthorizedNotification() {
-        this.notificationPane.setText("The login information you gave does not allow you to modify this repository. Try switching your login.");
+        this.notificationPane.setText("The login information you gave does not allow you to modify this repository. Try switching your login and trying again.");
 
         Action loginAction = new Action("Log in", e -> {
             this.notificationPane.hide();
