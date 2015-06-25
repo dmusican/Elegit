@@ -46,9 +46,7 @@ public class WorkingTreePanelView extends Region{
      */
     public void drawDirectoryView() throws GitAPIException, IOException {
         if(this.sessionModel.getCurrentRepoHelper() == null) return;
-
-        Path directoryPath = this.sessionModel.getCurrentRepoHelper().getDirectory();
-
+        
         DirectoryRepoFile rootDirectory = new DirectoryRepoFile("", this.sessionModel.getCurrentRepo());
 
         CheckBoxTreeItem<RepoFile> rootItem = new CheckBoxTreeItem<RepoFile>(rootDirectory);
