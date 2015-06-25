@@ -1,16 +1,46 @@
 package edugit;
 
+import edugit.exceptions.CancelledLoginException;
+import javafx.event.ActionEvent;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
+import org.controlsfx.control.NotificationPane;
+import org.controlsfx.control.action.Action;
 
 import java.util.List;
 
 /**
  * A static class for holding all our error alert dialogs.
  */
-public class ERROR_ALERT_CONSTANTS {
+public class ErrorNotificationRaiser {
+
+    SessionModel sessionModel;
+    NotificationPane notificationPane;
+
+    public ErrorNotificationRaiser(SessionModel model, NotificationPane pane) {
+        this.sessionModel = model;
+        this.notificationPane = pane;
+    }
+
+    public void showNotLoggedInNotification() {
+        this.notificationPane.setText("You need to log in to do that.");
+        Action loginAction = new Action("Enter login info", e -> {
+            this.notificationPane.hide();
+            try {
+                this.sessionModel.getDefaultOwner().presentLoginDialogsToSetValues();
+            } catch (CancelledLoginException e1) {
+                // Do nothing if they cancel login
+            }
+        });
+
+        this.notificationPane.getActions().setAll(loginAction);
+
+        this.notificationPane.show();
+    }
+
+
     public static Alert noRepoLoaded() {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle("No repository loaded!");
