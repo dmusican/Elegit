@@ -49,6 +49,7 @@ public class SessionController extends Controller {
     public Circle remoteCircle;
     private static final RadialGradient startGradient  = RadialGradient.valueOf("center 50% 50%, radius 50%,  #52B3D9 60%, #3498DB");
     private static final RadialGradient hoverGradient = RadialGradient.valueOf("center 50% 50%, radius 50%,  #81CFE0 60%, #52B3D9");
+    private static final RadialGradient clickGradient = RadialGradient.valueOf("center 50% 50%, radius 50%,  #3498DB 60%, #52B3D9");
 
     CommitTreeModel localCommitTreeModel;
     CommitTreeModel remoteCommitTreeModel;
@@ -437,6 +438,10 @@ public class SessionController extends Controller {
 
     public void handleRemoteCircleMouseExit(Event event){
         remoteCircle.setFill(startGradient);
+    }
+
+    public void handleRemoteCircleMousePressed(Event event){
+        remoteCircle.setFill(clickGradient);
     }
 
     /**
