@@ -15,6 +15,7 @@ import javafx.scene.paint.RadialGradient;
 import javafx.scene.shape.Circle;
 import javafx.scene.text.Text;
 import org.controlsfx.control.NotificationPane;
+import org.controlsfx.control.action.Action;
 import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.lib.Config;
 
@@ -170,33 +171,25 @@ public class SessionController extends Controller {
                 this.updateUIEnabledStatus();
             }catch(IllegalArgumentException e){
                 e.printStackTrace();
-                ERROR_ALERT_CONSTANTS.invalidRepo().showAndWait();
+                this.showInvalidRepoNotification();
             }catch(JGitInternalException e){
                 e.printStackTrace();
-                ERROR_ALERT_CONSTANTS.nonemptyFolder().showAndWait();
+                this.showNonEmptyFolderNotification();
             }catch(InvalidRemoteException e){
                 e.printStackTrace();
-                ERROR_ALERT_CONSTANTS.invalidRemote().showAndWait();
+                this.showInvalidRemoteNotification();
             }catch(TransportException e){
                 e.printStackTrace();
-                ERROR_ALERT_CONSTANTS.notAuthorized().showAndWait();
-                // FIXME: TransportExceptions don't *only* indicate a permissions issue... Figure out what else they do
-
-                // Re-prompt the user to log in:
-                try {
-                    this.theModel.getDefaultOwner().presentLoginDialogsToSetValues();
-                } catch (CancelledLoginException e1) {
-                    // Do nothing. The user just pressed cancel.
-                }
+                this.showNotAuthorizedNotification();
             } catch (NoRepoSelectedException e) {
 
                 // The user pressed cancel on the dialog box. Do nothing!
 
             }catch(NoOwnerInfoException e){
                 e.printStackTrace();
-                ERROR_ALERT_CONSTANTS.notLoggedIn().showAndWait();
+                this.showNotLoggedInNotification();
             }catch(NullPointerException e){
-                ERROR_ALERT_CONSTANTS.genericError().showAndWait();
+                this.showGenericErrorNotification();
                 e.printStackTrace();
 
                 // This block used to catch the NoOwnerInfo case,
@@ -205,9 +198,9 @@ public class SessionController extends Controller {
                 // very helpful. Todo: investigate.
 
 
-            }catch(Exception e){
+            } catch(Exception e){
                 // The generic error is totally unhelpful, so try not to ever reach this catch statement
-                ERROR_ALERT_CONSTANTS.genericError().showAndWait();
+                this.showGenericErrorNotification();
                 e.printStackTrace();
             }
         });
@@ -223,27 +216,20 @@ public class SessionController extends Controller {
                 this.updateUIEnabledStatus();
             }catch(IllegalArgumentException e){
                 e.printStackTrace();
-                ERROR_ALERT_CONSTANTS.invalidRepo().showAndWait();
-            }catch(NoRepoSelectedException e){
+                this.showInvalidRepoNotification();
+            } catch(NoRepoSelectedException e){
 
                 // The user pressed cancel on the dialog box. Do nothing!
 
             }catch(NoOwnerInfoException e){
-                ERROR_ALERT_CONSTANTS.notLoggedIn().showAndWait();
+                this.showNotLoggedInNotification();
                 e.printStackTrace();
-
-                // Re-prompt the user to log in:
-                try{
-                    this.theModel.getDefaultOwner().presentLoginDialogsToSetValues();
-                }catch(CancelledLoginException e1){
-                    // Do nothing. The user just pressed cancel!
-                }
             }catch(NullPointerException e){
                 // TODO: figure out when nullpointer is thrown (if at all?)
-                ERROR_ALERT_CONSTANTS.repoWasNotLoaded().showAndWait();
+                this.showRepoWasNotLoadedNotification();
                 e.printStackTrace();
             }catch(Exception e){
-                ERROR_ALERT_CONSTANTS.genericError().showAndWait();
+                this.showGenericErrorNotification();
                 System.out.println("***** FIGURE OUT WHY THIS EXCEPTION IS NEEDED *******");
                 e.printStackTrace();
             }
@@ -328,10 +314,9 @@ public class SessionController extends Controller {
             commitMessageField.clear();
             this.onGitStatusButton();
         } catch (NullPointerException e) {
-            ERROR_ALERT_CONSTANTS.noRepoLoaded().showAndWait();
+            this.showNoRepoLoadedNotification();
         } catch (TransportException e) {
-            ERROR_ALERT_CONSTANTS.notAuthorized().showAndWait();
-            // FIXME: TransportExceptions don't *only* indicate a permissions issue... Figure out what else they do
+            this.showNotAuthorizedNotification();
         } catch (WrongRepositoryStateException e) {
             System.out.println("Threw a WrongRepositoryStateException");
             e.printStackTrace();
@@ -350,10 +335,9 @@ public class SessionController extends Controller {
             // Refresh panel views
             this.onGitStatusButton();
         } catch (NullPointerException e) {
-            ERROR_ALERT_CONSTANTS.noRepoLoaded().showAndWait();
+            this.showNoRepoLoadedNotification();
         } catch (TransportException e) {
-            ERROR_ALERT_CONSTANTS.notAuthorized().showAndWait();
-            // FIXME: TransportExceptions don't *only* indicate a permissions issue... Figure out what else they do
+            this.showNotAuthorizedNotification();
         }
 
     }
@@ -365,10 +349,9 @@ public class SessionController extends Controller {
             // Refresh panel views
             this.onGitStatusButton();
         } catch (NullPointerException e) {
-            ERROR_ALERT_CONSTANTS.noRepoLoaded().showAndWait();
+            this.showNoRepoLoadedNotification();
         } catch (TransportException e) {
-            ERROR_ALERT_CONSTANTS.notAuthorized().showAndWait();
-            // FIXME: TransportExceptions don't *only* indicate a permissions issue... Figure out what else they do
+            this.showNotAuthorizedNotification();
         }
     }
 
@@ -378,11 +361,9 @@ public class SessionController extends Controller {
             // Refresh panel views
             this.onGitStatusButton();
         } catch (NullPointerException e) {
-            ERROR_ALERT_CONSTANTS.noRepoLoaded().showAndWait();
+            this.showNoRepoLoadedNotification();
         } catch (TransportException e) {
-            ERROR_ALERT_CONSTANTS.notAuthorized().showAndWait();
-            e.printStackTrace();
-            // FIXME: TransportExceptions don't *only* indicate a permissions issue... Figure out what else they do
+            this.showNotAuthorizedNotification();
         }
     }
 
@@ -400,7 +381,7 @@ public class SessionController extends Controller {
 
             this.updateBranchDropdown();
         } catch (NullPointerException e) {
-            ERROR_ALERT_CONSTANTS.noRepoLoaded().showAndWait();
+            this.showNoRepoLoadedNotification();
         }
     }
 
@@ -483,7 +464,7 @@ public class SessionController extends Controller {
 
             this.theModel.getCurrentRepoHelper().setCurrentBranch(selectedBranch);
         } catch (CheckoutConflictException e) {
-            ERROR_ALERT_CONSTANTS.checkoutConflictWithPaths(e.getConflictingPaths()).showAndWait();
+            this.showCheckoutConflictsNotification(e.getConflictingPaths());
             this.updateBranchDropdown();
         }
     }
@@ -523,7 +504,7 @@ public class SessionController extends Controller {
         this.theModel.clearStoredPreferences();
     }
 
-    public void switchUser(ActionEvent actionEvent) {
+    public void switchUser() {
         // Begin with a nullified RepoOwner:
         RepoOwner newOwner = new RepoOwner(null, null);
 
@@ -551,5 +532,100 @@ public class SessionController extends Controller {
                 System.out.println("Couldn't open the local repo. Real error message here eventually");
             }
         }
+    }
+
+    private void showNotLoggedInNotification() {
+        this.notificationPane.setText("You need to log in to do that.");
+
+        Action loginAction = new Action("Enter login info", e -> {
+            this.notificationPane.hide();
+            this.switchUser();
+        });
+
+        this.notificationPane.getActions().clear();
+        this.notificationPane.getActions().setAll(loginAction);
+        this.notificationPane.show();
+    }
+
+
+    private void showNoRepoLoadedNotification() {
+        this.notificationPane.setText("You need to load a repository before you can perform operations on it!");
+
+        this.notificationPane.getActions().clear();
+        this.notificationPane.show();
+    }
+
+    private void showInvalidRepoNotification() {
+        this.notificationPane.setText("Make sure the directory you selected contains an existing Git repository.");
+
+        this.notificationPane.getActions().clear();
+        this.notificationPane.show();
+    }
+
+    private void showNonEmptyFolderNotification() {
+        this.notificationPane.setText("Make sure the directory you selected is completely empty. The best" +
+                            "way to do this is to create a new folder from the directory chooser.");
+
+        this.notificationPane.getActions().clear();
+        this.notificationPane.show();
+    }
+
+    private void showInvalidRemoteNotification() {
+        this.notificationPane.setText("Make sure you entered the correct remote URL.");
+
+        this.notificationPane.getActions().clear();
+        this.notificationPane.show();
+    }
+
+    private void showGenericErrorNotification() {
+        this.notificationPane.setText("Sorry, there was an error.");
+
+        this.notificationPane.getActions().clear();
+        this.notificationPane.show();
+    }
+
+    private void showNotAuthorizedNotification() {
+        this.notificationPane.setText("The login information you gave does not allow you to modify this repository. Try switching your login and trying again.");
+
+        Action loginAction = new Action("Log in", e -> {
+            this.notificationPane.hide();
+            this.switchUser();
+        });
+
+        this.notificationPane.getActions().clear();
+        this.notificationPane.getActions().setAll(loginAction);
+        this.notificationPane.show();
+    }
+
+    private void showRepoWasNotLoadedNotification() {
+        this.notificationPane.setText("No repository was loaded.");
+
+        this.notificationPane.getActions().clear();
+        this.notificationPane.show();
+    }
+
+    private void showCheckoutConflictsNotification(List<String> conflictingPaths) {
+        String conflictList = "";
+        for (String pathName : conflictingPaths) {
+            conflictList += "\n" + pathName;
+        }
+
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle("Conflicting files");
+        alert.setHeaderText("Can't checkout that branch");
+        alert.setContentText("You can't switch to that branch because of the following conflicting files between that branch and your current branch: "
+                + conflictList);
+
+        this.notificationPane.setText("You can't switch to that branch because there would be a merge conflict. Stash your changes or resolve conflicts first.");
+
+        Action seeConflictsAction = new Action("See conflicts", e -> {
+            this.notificationPane.hide();
+            alert.showAndWait();
+        });
+
+        this.notificationPane.getActions().clear();
+        this.notificationPane.getActions().setAll(seeConflictsAction);
+
+        this.notificationPane.show();
     }
 }
