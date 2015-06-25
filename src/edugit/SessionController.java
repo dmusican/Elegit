@@ -34,6 +34,7 @@ public class SessionController extends Controller {
     public Text currentRepoLabel;
     private SessionModel theModel;
 
+    public Button openRepoDirButton;
     public Button gitStatusButton;
     public Button commitButton;
     public Button mergeFromFetchButton;
@@ -88,11 +89,14 @@ public class SessionController extends Controller {
     }
 
     private void initializeLayoutParameters(){
+        openRepoDirButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         gitStatusButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         commitButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         mergeFromFetchButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         pushButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         fetchButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
+
+        gitStatusButton.setMaxWidth(Double.MAX_VALUE);
 
         commitMessageField.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         workingTreePanelView.setMinSize(Control.USE_PREF_SIZE, 200);
@@ -418,7 +422,11 @@ public class SessionController extends Controller {
                     desktop.browse(new URI(url));
                 }
             } catch (Exception e) {
+                // TODO: real error message
                 e.printStackTrace();
+                System.out.println("Couldn't open the remote repo");
+            } finally{
+                remoteCircle.setFill(startGradient);
             }
         }
     }
@@ -448,11 +456,13 @@ public class SessionController extends Controller {
      * @param disable a boolean for whether or not to disable the buttons.
      */
     private void setButtonsDisabled(boolean disable) {
+        openRepoDirButton.setDisable(disable);
         gitStatusButton.setDisable(disable);
         commitButton.setDisable(disable);
         mergeFromFetchButton.setDisable(disable);
         pushButton.setDisable(disable);
         fetchButton.setDisable(disable);
+        remoteCircle.setVisible(!disable);
     }
 
     /**
@@ -527,5 +537,17 @@ public class SessionController extends Controller {
             this.theModel.getCurrentRepoHelper().setOwner(newOwner);
         }
         this.theModel.setCurrentDefaultOwner(newOwner);
+    }
+
+    public void openRepoDirectory(ActionEvent actionEvent){
+        if (Desktop.isDesktopSupported()) {
+            try{
+                Desktop.getDesktop().open(this.theModel.currentRepoHelper.localPath.toFile());
+            }catch(IOException e){
+                e.printStackTrace();
+                // TODO: real error message
+                System.out.println("Couldn't open the local repo. Real error message here eventually");
+            }
+        }
     }
 }
