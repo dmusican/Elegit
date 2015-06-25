@@ -613,11 +613,10 @@ public class SessionController extends Controller {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle("Conflicting files");
         alert.setHeaderText("Can't checkout that branch");
-        alert.setContentText("You can't switch to that branch because of the following conflicting files: "
+        alert.setContentText("You can't switch to that branch because of the following conflicting files between that branch and your current branch: "
                 + conflictList);
 
-        this.notificationPane.setText("You can't switch to that branch because there would be a merge conflict."
-                + conflictList);
+        this.notificationPane.setText("You can't switch to that branch because there would be a merge conflict. Stash your changes or resolve conflicts first.");
 
         Action seeConflictsAction = new Action("See conflicts", e -> {
             this.notificationPane.hide();
