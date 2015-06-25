@@ -14,6 +14,7 @@ import javafx.scene.control.TextArea;
 import javafx.scene.paint.RadialGradient;
 import javafx.scene.shape.Circle;
 import javafx.scene.text.Text;
+import org.controlsfx.control.NotificationPane;
 import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.lib.Config;
 
@@ -32,6 +33,7 @@ public class SessionController extends Controller {
 
     public ComboBox<BranchHelper> branchSelector;
     public Text currentRepoLabel;
+    public NotificationPane notificationPane;
     private SessionModel theModel;
 
     public Button openRepoDirButton;
@@ -105,7 +107,7 @@ public class SessionController extends Controller {
 
         remoteCommitTreePanelView.heightProperty().addListener((observable, oldValue, newValue) -> {
             remoteCircle.setCenterY(newValue.doubleValue() / 2.0);
-            if(oldValue.doubleValue() == 0){
+            if (oldValue.doubleValue() == 0) {
                 remoteCircle.setRadius(newValue.doubleValue() / 5.0);
             }
         });
