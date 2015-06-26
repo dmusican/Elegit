@@ -17,7 +17,7 @@ javafx {
 sourceSets {
     main {
         java.srcDirs = ['src']
-        resources.srcDirs = ['resources']
+        resources.srcDirs = ['src']
     }
 }
 
