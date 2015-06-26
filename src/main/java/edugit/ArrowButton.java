@@ -1,4 +1,4 @@
-package edugit;
+package main.java.edugit;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;

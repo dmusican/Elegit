@@ -1,4 +1,4 @@
-package edugit;
+package main.java.edugit;
 
 import javafx.application.Platform;
 import javafx.event.ActionEvent;

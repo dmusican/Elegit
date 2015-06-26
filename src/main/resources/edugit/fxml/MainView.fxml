@@ -1,6 +1,6 @@
 <?import main.java.edugit.CommitTreePanelView?>
 <?import main.java.edugit.WorkingTreePanelView?>
-<?import edugit.ArrowButton?>
+<?import main.java.edugit.ArrowButton?>
 <?import main.java.edugit.CommitTreePanelView?>
 <?import main.java.edugit.WorkingTreePanelView?>
 <?import javafx.scene.control.*?>
