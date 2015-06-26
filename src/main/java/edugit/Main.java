@@ -13,8 +13,7 @@ public class Main extends Application {
         /*
         Until we figure out a better way to handle this,
         when you want to get a gradle build (for shipping), use the commented-out code
-        below (and comment out the `intelliJ run` line). Then, in the FXML, do a similar
-        switcheroo for the AnchorPane line at the top.
+        below (and comment out the `intelliJ run` line).
          */
 
         Parent root = FXMLLoader.load(getClass().getResource("../../resources/edugit/fxml/MainView.fxml")); //intelliJ run
