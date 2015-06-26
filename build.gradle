@@ -6,14 +6,12 @@ dependencies {
 
 javafx {
 
-//    appID 'GitForEducation'
-//    appName 'Git for Education'
-//    mainClass 'Main'
+    appID 'GitForEducation'
+    appName 'Git for Education'
 
     // deploy/info attributes
-    category = 'Demos'
     copyright = 'Copyright (c) 2015 Prairie'
-    description = 'This is a sample configuration, it is not real.'
+    description = 'A GUI client for people who want to learn git.'
 }
 
 sourceSets {
