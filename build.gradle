@@ -1,0 +1,23 @@
+apply from: 'javafx.plugin'
+
+dependencies {
+    compile fileTree(dir: 'lib', include: '*.jar')
+}
+
+javafx {
+
+    appID 'GitForEducation'
+    appName 'Git for Education'
+
+    // deploy/info attributes
+    copyright = 'Copyright (c) 2015 Prairie'
+    description = 'A GUI client for people who want to learn git.'
+}
+
+sourceSets {
+    main {
+        java.srcDirs = ['src']
+        resources.srcDirs = ['src']
+    }
+}
+
