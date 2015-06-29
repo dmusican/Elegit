@@ -1,6 +1,7 @@
 package main.java.edugit;
 
 import com.sun.xml.internal.ws.api.pipe.FiberContextSwitchInterceptor;
+import javafx.fxml.FXML;
 import main.java.edugit.exceptions.CancelledLoginException;
 import main.java.edugit.exceptions.NoOwnerInfoException;
 import main.java.edugit.exceptions.NoRepoSelectedException;
@@ -118,10 +119,11 @@ public class SessionController extends Controller {
         remoteCircle.setFill(startGradient);
     }
 
+    @FXML
     private void updateBranchDropdown() throws GitAPIException, IOException {
         this.branchSelector.setVisible(true);
 
-        ArrayList<LocalBranchHelper> branches = this.theModel.getCurrentRepoHelper().getLocalBranchesFromManager();
+        List<LocalBranchHelper> branches = this.theModel.getCurrentRepoHelper().getLocalBranchesFromManager();
         System.out.println(this.theModel.getCurrentRepoHelper().getLocalBranchesFromManager());
 
         this.branchSelector.getItems().setAll(branches);
