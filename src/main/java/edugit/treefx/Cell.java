@@ -38,6 +38,8 @@ public class Cell extends Pane{
     private final String cellId;
     // The assigned time of this commit
     private final long time;
+    // The label displayed for this cell
+    private String label;
 
     // The list of children of this cell
     List<Cell> children = new ArrayList<>();
@@ -49,8 +51,7 @@ public class Cell extends Pane{
     List<Edge> edges = new ArrayList<>();
 
     // The row and column location of this cell
-    public IntegerProperty columnLocationProperty;
-    public IntegerProperty rowLocationProperty;
+    public IntegerProperty columnLocationProperty, rowLocationProperty;
 
     // Whether this cell has been moved to its appropriate location
     public BooleanProperty hasUpdatedPosition;
@@ -147,6 +148,7 @@ public class Cell extends Pane{
      */
     public void setDisplayLabel(String label){
         tooltip.setText(label);
+        this.label = label;
     }
 
     /**
