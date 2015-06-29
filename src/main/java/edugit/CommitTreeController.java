@@ -20,12 +20,16 @@ public class CommitTreeController{
     // The id of the currently selected cell
     private static String selectedCellID = null;
 
+
+    public static SessionController sessionController;
+
     /**
      * Takes in the cell that was clicked on, and selects it using selectCommit
      * @param cell the cell that was clicked
      */
     public static void handleMouseClicked(Cell cell){
-        selectCommit(cell.getCellId());
+        selectCommitInGraph(cell.getCellId());
+        sessionController.selectCommit(cell.getCellId());
     }
 
     /**
@@ -34,7 +38,7 @@ public class CommitTreeController{
      * @param isOverCell whether the mouse is entering or exiting the cell
      */
     public static void handleMouseover(Cell cell, boolean isOverCell){
-        highlightCommit(cell.getCellId(), isOverCell);
+        highlightCommitInGraph(cell.getCellId(), isOverCell);
     }
 
     /**
@@ -43,7 +47,7 @@ public class CommitTreeController{
      * Loops through all tracked CommitTreeModels and updates their corresponding views.
      * @param commitID the id of the commit to select/deselect
      */
-    private static void selectCommit(String commitID){
+    private static void selectCommitInGraph(String commitID){
         boolean isDeselecting = commitID.equals(selectedCellID);
 
         for(CommitTreeModel model : allCommitTreeModels){
@@ -51,11 +55,11 @@ public class CommitTreeController{
             TreeGraphModel m = model.treeGraph.treeGraphModel;
 
             if(selectedCellID == null){
-                selectCommit(commitID, m, true);
+                selectCommitInGraph(commitID, m, true);
             }else{
-                selectCommit(selectedCellID, m, false);
+                selectCommitInGraph(selectedCellID, m, false);
                 if(!isDeselecting){
-                    selectCommit(commitID, m, true);
+                    selectCommitInGraph(commitID, m, true);
                 }
             }
         }
@@ -73,7 +77,7 @@ public class CommitTreeController{
      * @param commitID the id of the commit to select
      * @param isOverCell whether to highlight or un-highlight the corresponding cells
      */
-    private static void highlightCommit(String commitID, boolean isOverCell){
+    private static void highlightCommitInGraph(String commitID, boolean isOverCell){
         for(CommitTreeModel model : allCommitTreeModels){
             if(model.treeGraph == null) continue;
             TreeGraphModel m = model.treeGraph.treeGraphModel;
@@ -92,7 +96,7 @@ public class CommitTreeController{
      * @param model the model wherein the corresponding cell should be highlighted
      * @param enable whether to select or deselect the cell
      */
-    private static void selectCommit(String commitID, TreeGraphModel model, boolean enable){
+    private static void selectCommitInGraph(String commitID, TreeGraphModel model, boolean enable){
         Highlighter.highlightSelectedCell(commitID, model, enable);
         if(enable){
             Highlighter.updateCellEdges(commitID, commitID, model, true);
@@ -106,7 +110,7 @@ public class CommitTreeController{
      */
     public static void resetSelection(){
         if(selectedCellID != null){
-            selectCommit(selectedCellID);
+            selectCommitInGraph(selectedCellID);
         }
     }
 
@@ -167,7 +171,7 @@ public class CommitTreeController{
      * to the given commit in every view corresponding to a tracked CommitTreeModel
      * @param commit the commit to focus
      */
-    public static void focusCommit(CommitHelper commit){
+    public static void focusCommitInGraph(CommitHelper commit){
         if(commit == null) return;
         for(CommitTreeModel model : allCommitTreeModels){
             if(model.treeGraph != null && model.treeGraph.treeGraphModel.containsID(commit.getId())){

@@ -47,10 +47,9 @@
                              GridPane.rowIndex="0"
                              GridPane.columnSpan="7" />
 
-                    <AnchorPane GridPane.rowIndex="0"
+                    <StackPane GridPane.rowIndex="0"
                                 GridPane.columnIndex="0">
-                        <GridPane AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
-                                  hgap="5" vgap="5">
+                        <GridPane hgap="5" vgap="5">
                             <Text GridPane.rowIndex="0"
                                   GridPane.columnIndex="0"
                                   GridPane.hgrow="ALWAYS"
@@ -64,14 +63,12 @@
                                     onAction="#openRepoDirectory">
                                 <graphic>
                                     <ImageView>
-                                        <image>
-                                            <Image url="@../external_link_small.png"/>
-                                        </image>
+                                        <Image url="@../external_link_small.png"/>
                                     </ImageView>
                                 </graphic>
                             </Button>
                         </GridPane>
-                    </AnchorPane>
+                    </StackPane>
 
                     <ComboBox fx:id="branchSelector"
                               GridPane.columnIndex="2"
@@ -119,14 +116,13 @@
 
                     </GridPane>
 
-                    <AnchorPane GridPane.rowIndex="1"
+                    <StackPane GridPane.rowIndex="1"
                                 GridPane.columnIndex="6">
-                        <Circle AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
-                                id="remoteRepoCircle"
+                        <Circle id="remoteRepoCircle"
                                 fx:id="remoteCircle"
                                 opacity="0.5"
                                 onMouseClicked="#handleRemoteCircleMouseClick"/>
-                    </AnchorPane>
+                    </StackPane>
 
                     <ArrowButton GridPane.rowIndex="1"
                                  GridPane.columnIndex="5"
@@ -139,7 +135,6 @@
 
                     <CommitTreePanelView GridPane.rowIndex="1"
                                          GridPane.columnIndex="2"
-                                         GridPane.rowSpan="1"
                                          GridPane.columnSpan="3"
                                          fx:id="remoteCommitTreePanelView"/>
 
@@ -164,7 +159,6 @@
 
                     <CommitTreePanelView GridPane.rowIndex="3"
                                          GridPane.columnIndex="2"
-                                         GridPane.rowSpan="1"
                                          GridPane.columnSpan="3"
                                          fx:id="localCommitTreePanelView"/>
 
@@ -175,6 +169,50 @@
                                  text="Commit"
                                  arrowRight="true"
                                  onAction="#handleCommitButton"/>
+
+                    <StackPane GridPane.rowIndex="2"
+                               GridPane.columnIndex="5"
+                               GridPane.rowSpan="2"
+                               GridPane.columnSpan="2">
+                        <GridPane alignment="TOP_CENTER"
+                                  hgap="5" vgap="5"
+                                  id="gridPane">
+
+                            <Label GridPane.rowIndex="0"
+                                   GridPane.columnIndex="0"
+                                   GridPane.columnSpan="2"
+                                   GridPane.halignment="CENTER"
+                                   GridPane.hgrow="ALWAYS"
+                                   fx:id="commitInfoAuthorText"/>
+
+                            <Label GridPane.rowIndex="1"
+                                   GridPane.columnIndex="0"
+                                   GridPane.columnSpan="2"
+                                   GridPane.halignment="CENTER"
+                                   fx:id="commitInfoDateText"/>
+
+                            <Label GridPane.rowIndex="2"
+                                   GridPane.columnIndex="0"
+                                   GridPane.halignment="CENTER"
+                                   textOverrun="CENTER_ELLIPSIS"
+                                   fx:id="commitInfoNameText"/>
+
+                            <Button GridPane.rowIndex="2"
+                                    GridPane.columnIndex="1"
+                                    text="Copy"
+                                    fx:id="commitInfoNameCopyButton"
+                                    onAction="#handleCommitNameCopyButton"/>
+
+                            <TextArea GridPane.rowIndex="3"
+                                      GridPane.columnIndex="0"
+                                      GridPane.columnSpan="2"
+                                      GridPane.vgrow="ALWAYS"
+                                      wrapText="true"
+                                      editable="false"
+                                      fx:id="commitInfoMessageText"/>
+
+                        </GridPane>
+                    </StackPane>
                 </GridPane>
             </HBox>
         </content>

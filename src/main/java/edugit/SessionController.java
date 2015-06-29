@@ -4,10 +4,13 @@ import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.scene.control.*;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextArea;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
 import javafx.scene.shape.Circle;
 import javafx.scene.text.Text;
 import main.java.edugit.exceptions.CancelledLoginException;
@@ -50,6 +53,12 @@ public class SessionController extends Controller {
 
     public Circle remoteCircle;
 
+    public Label commitInfoNameText;
+    public Label commitInfoAuthorText;
+    public Label commitInfoDateText;
+    public Button commitInfoNameCopyButton;
+    public TextArea commitInfoMessageText;
+
     CommitTreeModel localCommitTreeModel;
     CommitTreeModel remoteCommitTreeModel;
 
@@ -68,6 +77,8 @@ public class SessionController extends Controller {
         this.initializeLayoutParameters();
 
         this.theModel = SessionModel.getSessionModel();
+
+        CommitTreeController.sessionController = this;
 
         this.workingTreePanelView.setSessionModel(this.theModel);
         this.localCommitTreeModel = new LocalCommitTreeModel(this.theModel, this.localCommitTreePanelView);
@@ -105,10 +116,12 @@ public class SessionController extends Controller {
 
         remoteCommitTreePanelView.heightProperty().addListener((observable, oldValue, newValue) -> {
             remoteCircle.setCenterY(newValue.doubleValue() / 2.0);
-            if (oldValue.doubleValue() == 0) {
-                remoteCircle.setRadius(newValue.doubleValue() / 5.0);
+            if(oldValue.doubleValue() == 0){
+                remoteCircle.setRadius(newValue.doubleValue() / 4.0);
             }
         });
+
+        commitInfoNameCopyButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
     }
 
     private void updateBranchDropdown() throws GitAPIException, IOException {
@@ -133,7 +146,7 @@ public class SessionController extends Controller {
                 }
             }
             if(currentBranch != null){
-                CommitTreeController.focusCommit(this.theModel.currentRepoHelper.getCommitByBranchName(currentBranch.refPathString));
+                CommitTreeController.focusCommitInGraph(this.theModel.currentRepoHelper.getCommitByBranchName(currentBranch.refPathString));
             }
         }
 
@@ -439,7 +452,7 @@ public class SessionController extends Controller {
         try {
             selectedBranch.checkoutBranch();
             RepoHelper repoHelper = this.theModel.getCurrentRepoHelper();
-            CommitTreeController.focusCommit(repoHelper.getCommitByBranchName(selectedBranch.refPathString));
+            CommitTreeController.focusCommitInGraph(repoHelper.getCommitByBranchName(selectedBranch.refPathString));
 
             this.theModel.getCurrentRepoHelper().setCurrentBranch(selectedBranch);
         } catch (CheckoutConflictException e) {
@@ -606,5 +619,20 @@ public class SessionController extends Controller {
         this.notificationPane.getActions().setAll(seeConflictsAction);
 
         this.notificationPane.show();
+    }
+
+    public void selectCommit(String id){
+        CommitHelper commit = this.theModel.currentRepoHelper.getCommit(id);
+        commitInfoNameText.setText(commit.getName());
+        commitInfoAuthorText.setText(commit.getAuthorName());
+        commitInfoDateText.setText(commit.getFormattedWhen());
+        commitInfoMessageText.setText(commit.getMessage(true));
+    }
+
+    public void handleCommitNameCopyButton(ActionEvent actionEvent){
+        Clipboard clipboard = Clipboard.getSystemClipboard();
+        ClipboardContent content = new ClipboardContent();
+        content.putString(commitInfoNameText.getText());
+        clipboard.setContent(content);
     }
 }
