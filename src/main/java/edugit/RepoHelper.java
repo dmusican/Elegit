@@ -96,7 +96,7 @@ public abstract class RepoHelper {
     }
 
     public void setBranchManager(BranchManager branchManager) {
-        this.branchHelper
+        this.branchManager = branchManager;
     }
 
     /**
