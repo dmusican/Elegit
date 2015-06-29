@@ -197,6 +197,9 @@ public class Highlighter{
             sqt.setCycleCount(1);
         }
 
+        c.view.setScaleX(1.0);
+        c.view.setScaleY(1.0);
+
         ParallelTransition pt = new ParallelTransition(sqt, sct);
         pt.play();
 
@@ -206,7 +209,5 @@ public class Highlighter{
     private static void endEmphasisOnCell(Cell c){
         blockedCellIDs.remove(c.getCellId());
         highlightCell(c, cellColors.getOrDefault(c, STANDARD_COLOR));
-        c.setScaleX(1.0);
-        c.setScaleY(1.0);
     }
 }
