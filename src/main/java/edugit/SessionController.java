@@ -259,7 +259,7 @@ public class SessionController extends Controller {
 
     }
 
-    private void updateMenuBarWithRecentRepos() throws GitAPIException, IOException {
+    private void updateMenuBarWithRecentRepos() {
         this.openRecentRepoMenu.getItems().clear();
 
         ArrayList<RepoHelper> repoHelpers = this.theModel.getAllRepoHelpers();
@@ -268,25 +268,18 @@ public class SessionController extends Controller {
             recentRepoHelperMenuItem.setOnAction(t -> {
                 try {
                     this.theModel.openRepoFromHelper(repoHelper);
+
+                    this.initPanelViews();
+                    this.updateUIEnabledStatus();
                 } catch (BackingStoreException e) {
                     e.printStackTrace();
                 } catch (IOException e) {
                     e.printStackTrace();
                 } catch (ClassNotFoundException e) {
                     e.printStackTrace();
-                }
-
-                // Updates
-                this.setButtonsDisabled(false);
-                try{
-                    this.initPanelViews();
-                    this.updateBranchDropdown();
-                }catch(GitAPIException e){
-                    e.printStackTrace();
-                }catch(IOException e){
+                } catch(GitAPIException e){
                     e.printStackTrace();
                 }
-                this.updateCurrentRepoLabel();
             });
             openRecentRepoMenu.getItems().add(recentRepoHelperMenuItem);
         }

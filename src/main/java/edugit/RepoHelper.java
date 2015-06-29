@@ -260,6 +260,7 @@ public abstract class RepoHelper {
                 allNewCommits.addAll(wrapRawCommits(newCommits));
             }
         }
+        this.localCommits.addAll(allNewCommits);
         return allNewCommits;
     }
 
@@ -274,6 +275,7 @@ public abstract class RepoHelper {
                 allNewCommits.addAll(wrapRawCommits(newCommits));
             }
         }
+        this.remoteCommits.addAll(allNewCommits);
         return allNewCommits;
     }
 

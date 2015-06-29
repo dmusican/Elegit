@@ -43,7 +43,17 @@ public class TreeLayout{
                 TreeGraphModel treeGraphModel = g.treeGraphModel;
 
                 allCellsSortedByTime = treeGraphModel.allCells;
-                allCellsSortedByTime.sort((c1, c2) -> Long.compare(c2.getTime(), c1.getTime()));
+                allCellsSortedByTime.sort((c1, c2) -> {
+                    int i = Long.compare(c2.getTime(), c1.getTime());
+                    if(i == 0){
+                        if(c2.getCellChildren().contains(c1)){
+                            return -1;
+                        }else if(c1.getCellChildren().contains(c2)){
+                            return 1;
+                        }
+                    }
+                    return i;
+                });
 
                 relocateCells(treeGraphModel.isInitialSetupFinished);
                 if(!isCancelled()){
