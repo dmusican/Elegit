@@ -122,7 +122,8 @@ public class SessionController extends Controller {
         this.branchSelector.setVisible(true);
 
         ArrayList<LocalBranchHelper> branches = this.theModel.getCurrentRepoHelper().getLocalBranchesFromManager();
-//        branches.addAll(this.theModel.getCurrentRepoHelper().callGitForRemoteBranches()); //todo: deal with remotes
+        System.out.println(this.theModel.getCurrentRepoHelper().getLocalBranchesFromManager());
+
         this.branchSelector.getItems().setAll(branches);
 
         BranchHelper currentBranch = this.theModel.getCurrentRepoHelper().getCurrentBranch();
