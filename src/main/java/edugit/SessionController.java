@@ -121,7 +121,7 @@ public class SessionController extends Controller {
     private void updateBranchDropdown() throws GitAPIException, IOException {
         this.branchSelector.setVisible(true);
 
-        List<BranchHelper> branches = this.theModel.getCurrentRepoHelper().getLocalBranches();
+        ArrayList<LocalBranchHelper> branches = this.theModel.getCurrentRepoHelper().getLocalBranches();
 //        branches.addAll(this.theModel.getCurrentRepoHelper().getRemoteBranches()); //todo: deal with remotes
         this.branchSelector.getItems().setAll(branches);
 
@@ -629,7 +629,7 @@ public class SessionController extends Controller {
         this.notificationPane.show();
     }
 
-    public void showBranchChooser(ActionEvent actionEvent) {
-        ListSelectionView<BranchHelper> listSelectionView = new ListSelectionView<>();
+    public void showBranchChooser(ActionEvent actionEvent) throws IOException {
+        this.theModel.getCurrentRepoHelper().getBranchManager().showBranchChooser();
     }
 }

@@ -17,6 +17,8 @@ public abstract class BranchHelper {
 
     LocalBranchHelper trackingBranch;
 
+    boolean isLocal;
+
     public BranchHelper(String refPathString, Repository repo) {
         this.refPathString = refPathString;
         this.repo = repo;
