@@ -76,6 +76,7 @@
                     <ComboBox fx:id="branchSelector"
                               GridPane.columnIndex="2"
                               GridPane.rowIndex="0"
+                              onMouseClicked="#updateBranchDropdown"
                               onAction="#loadSelectedBranch"/>
 
                     <Button GridPane.columnIndex="3"
@@ -88,6 +89,11 @@
                             text="Clear recent repos"
                             onAction="#clearSavedStuff"
                             id="warningButton"/>
+
+                    <Button GridPane.columnIndex="5"
+                            GridPane.rowIndex="0"
+                            text="Manage branches"
+                            onAction="#showBranchChooser" />
 
                     <GridPane alignment="TOP_CENTER"
                               hgap="10"

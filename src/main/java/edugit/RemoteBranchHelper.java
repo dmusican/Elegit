@@ -43,14 +43,9 @@ public class RemoteBranchHelper extends BranchHelper {
 //    }
 
     /// Instance level:
-
-    public RemoteBranchHelper(String refPathString, Repository repo) {
-        super(refPathString, repo);
-//        RemoteBranchHelper.storeRemoteBranchHelper(this);
-    }
-
     public RemoteBranchHelper(Ref ref, Repository repo) {
         super(ref.getName(), repo);
+        this.isLocal = false;
     }
 
     @Override
@@ -100,6 +95,7 @@ public class RemoteBranchHelper extends BranchHelper {
         return "REMOTE: " + super.toString();
     }
 
+    @Override
     public void setTrackingBranch(LocalBranchHelper trackingBranch){
         this.trackingBranch = trackingBranch;
     }

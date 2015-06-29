@@ -14,6 +14,7 @@ import java.util.Arrays;
 public class LocalBranchHelper extends BranchHelper {
     public LocalBranchHelper(String refPathString, Repository repo) throws IOException {
         super(refPathString, repo);
+        this.isLocal = true; // todo: safe delete this field? ugly
 //        BranchTrackingStatus trackingStatus = BranchTrackingStatus.of(this.repo, this.branchName);
 //
 //        if (trackingStatus != null) {

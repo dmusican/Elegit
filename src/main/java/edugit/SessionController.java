@@ -1,5 +1,10 @@
 package main.java.edugit;
 
+import com.sun.xml.internal.ws.api.pipe.FiberContextSwitchInterceptor;
+import javafx.fxml.FXML;
+import main.java.edugit.exceptions.CancelledLoginException;
+import main.java.edugit.exceptions.NoOwnerInfoException;
+import main.java.edugit.exceptions.NoRepoSelectedException;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.scene.control.*;
@@ -10,9 +15,7 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextArea;
 import javafx.scene.shape.Circle;
 import javafx.scene.text.Text;
-import main.java.edugit.exceptions.CancelledLoginException;
-import main.java.edugit.exceptions.NoOwnerInfoException;
-import main.java.edugit.exceptions.NoRepoSelectedException;
+import org.controlsfx.control.ListSelectionView;
 import org.controlsfx.control.NotificationPane;
 import org.controlsfx.control.action.Action;
 import org.eclipse.jgit.api.errors.*;
@@ -111,11 +114,11 @@ public class SessionController extends Controller {
         });
     }
 
+    @FXML
     private void updateBranchDropdown() throws GitAPIException, IOException {
         this.branchSelector.setVisible(true);
 
-        List<BranchHelper> branches = this.theModel.getCurrentRepoHelper().getLocalBranches();
-//        branches.addAll(this.theModel.getCurrentRepoHelper().getRemoteBranches()); //todo: deal with remotes
+        List<LocalBranchHelper> branches = this.theModel.getCurrentRepoHelper().getLocalBranchesFromManager();
         this.branchSelector.getItems().setAll(branches);
 
         BranchHelper currentBranch = this.theModel.getCurrentRepoHelper().getCurrentBranch();
@@ -606,5 +609,9 @@ public class SessionController extends Controller {
         this.notificationPane.getActions().setAll(seeConflictsAction);
 
         this.notificationPane.show();
+    }
+
+    public void showBranchChooser(ActionEvent actionEvent) throws IOException {
+        this.theModel.getCurrentRepoHelper().getBranchManager().showBranchChooser();
     }
 }
