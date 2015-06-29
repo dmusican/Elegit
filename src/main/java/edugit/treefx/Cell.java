@@ -1,7 +1,5 @@
 package main.java.edugit.treefx;
 
-import main.java.edugit.CommitTreeController;
-import main.java.edugit.MatchedScrollPane;
 import javafx.animation.TranslateTransition;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
@@ -10,10 +8,11 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.scene.Node;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.Pane;
-import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
 import javafx.util.Duration;
+import main.java.edugit.CommitTreeController;
+import main.java.edugit.MatchedScrollPane;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -139,7 +138,10 @@ public class Cell extends Pane{
      * @return the basic view for this cell
      */
     protected Node getBaseView(){
-        return new Rectangle(BOX_SIZE, BOX_SIZE, Highlighter.STANDARD_COLOR);
+        Node node = new Rectangle(BOX_SIZE, BOX_SIZE);
+        node.setStyle("-fx-fill: "+CellState.getCssStringKey(CellState.STANDARD));
+        node.getStyleClass().setAll("cell");
+        return node;
     }
 
     /**
@@ -210,9 +212,8 @@ public class Cell extends Pane{
         getChildren().add(view);
     }
 
-    public void setColor(Color color){
-        Shape s = (Shape) view;
-        s.setFill(color);
+    public void setCellState(CellState state){
+        view.setStyle("-fx-fill: "+CellState.getCssStringKey(state));
     }
 
     /**

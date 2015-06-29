@@ -94,3 +94,30 @@
         -fx-fill: #81CFE0;
         -fx-font-style: italic;
     }
+
+.cell {
+    -fx-stroke-type: inside;
+    -fx-stroke-line-cap: butt;
+}
+
+.invisCell {
+    -fx-stroke-dash-array: 2px, 3px;
+    -fx-stroke-dash-offset: 1px;
+}
+
+.edge {
+    -fx-stroke: black;
+    -fx-stroke-line-cap: butt;
+}
+
+.invisEdge {
+    -fx-stroke-dash-array: 3px, 5px;
+}
+
+* {
+    -fx-cell-color-standard: blue;
+    -fx-cell-color-highlight1: red;
+    -fx-cell-color-highlight2: mediumseagreen;
+    -fx-cell-color-select: darkred;
+    -fx-cell-color-emphasize: forestgreen;
+}

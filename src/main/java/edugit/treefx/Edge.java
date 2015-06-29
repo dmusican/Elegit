@@ -90,6 +90,7 @@ public class Edge extends Group {
 
         source.edges.add(this);
         target.edges.add(this);
+
     }
 
     /**

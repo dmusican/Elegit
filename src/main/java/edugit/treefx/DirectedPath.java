@@ -48,6 +48,8 @@ public class DirectedPath extends Group{
 
         this.getChildren().add(path);
         this.getChildren().add(arrow);
+
+        this.path.getStyleClass().setAll("edge");
     }
 
     /**
@@ -55,9 +57,9 @@ public class DirectedPath extends Group{
      */
     public void setDashed(boolean isDashed){
         if(isDashed){
-            this.path.getStrokeDashArray().addAll(3.,5.);
+            this.path.getStyleClass().setAll("edge", "invisEdge");
         }else{
-            this.path.getStrokeDashArray().clear();
+            this.path.getStyleClass().setAll("edge");
         }
     }
 
@@ -154,6 +156,7 @@ public class DirectedPath extends Group{
         temp.getElements().add(tip);
         temp.getElements().add(right);
 
+        temp.getStyleClass().setAll("edge");
         return temp;
     }
 

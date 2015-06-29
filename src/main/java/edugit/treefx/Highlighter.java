@@ -1,10 +1,9 @@
 package main.java.edugit.treefx;
 
-import main.java.edugit.MatchedScrollPane;
-import javafx.animation.*;
-import javafx.scene.paint.Color;
+import javafx.animation.ScaleTransition;
 import javafx.scene.shape.Shape;
 import javafx.util.Duration;
+import main.java.edugit.MatchedScrollPane;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -16,14 +15,8 @@ import java.util.Map;
  */
 public class Highlighter{
 
-    // Color constants
-    public static final Color STANDARD_COLOR = Color.BLUE;
-    public static final Color SELECT_COLOR = Color.DARKRED;
-    public static final Color[] HIGHLIGHT_COLORS = {Color.RED, Color.MEDIUMSEAGREEN};
-    public static final Color EMPHASIZE_COLOR = Color.FORESTGREEN;
-
     private static final List<String> blockedCellIDs = new ArrayList<>();
-    private static final Map<Cell, Color> cellColors = new HashMap<>();
+    private static final Map<Cell, CellState> cellStates = new HashMap<>();
 
     /**
      * Highlights the cell corresponding to the given id in the given model, as well as
@@ -37,11 +30,11 @@ public class Highlighter{
         Cell cell = model.cellMap.get(cellID);
         if(cell == null) return;
         if(enable){
-            highlightCell(cell, SELECT_COLOR);
-            highlightAllRelatives(cellID, model, HIGHLIGHT_COLORS[0]);
+            highlightCell(cell, CellState.SELECTED);
+            highlightAllRelatives(cellID, model, CellState.HIGHLIGHTED1);
         }else{
-            highlightCell(cell, STANDARD_COLOR);
-            highlightAllRelatives(cellID, model, STANDARD_COLOR);
+            highlightCell(cell, CellState.STANDARD);
+            highlightAllRelatives(cellID, model, CellState.STANDARD);
         }
     }
 
@@ -73,10 +66,10 @@ public class Highlighter{
      * Helper method to highlight every relative of a cell with the given color
      * @param cellID the cell whose relatives will be highlighted
      * @param model the model wherein the cell is found
-     * @param color the color to highlight the relatives
+     * @param state the new state of each relative
      */
-    private static void highlightAllRelatives(String cellID, TreeGraphModel model, Color color){
-        highlightAllCells(model.getRelatives(cellID), color);
+    private static void highlightAllRelatives(String cellID, TreeGraphModel model, CellState state){
+        highlightAllCells(model.getRelatives(cellID), state);
     }
 
     /**
@@ -85,9 +78,9 @@ public class Highlighter{
      * @param cellID the cell whose relatives will be highlighted
      * @param neighborID the cell whose neighbors will not be highlighted, even if they are a relative of the given cell
      * @param model the model wherein these cells are found
-     * @param color the color to highlight the valid relatives
+     * @param state the new state for the valid relatives
      */
-    private static void highlightAllRelativesWithoutNeighbor(String cellID, String neighborID, TreeGraphModel model, Color color){
+    private static void highlightAllRelativesWithoutNeighbor(String cellID, String neighborID, TreeGraphModel model, CellState state){
         List<Cell> relatives = model.getRelatives(cellID);
         List<Cell> relativesToHighlight = new ArrayList<>();
         for(Cell c : relatives){
@@ -95,7 +88,7 @@ public class Highlighter{
                 relativesToHighlight.add(c);
             }
         }
-        highlightAllCells(relativesToHighlight, color);
+        highlightAllCells(relativesToHighlight, state);
     }
 
     /**
@@ -112,45 +105,45 @@ public class Highlighter{
         Cell cell = model.cellMap.get(cellID);
         if(cell == null) return;
 
-        Color color;
+        CellState state;
         if(enable){
             if(selectedCellID == null){
-                color = HIGHLIGHT_COLORS[0];
+                state = CellState.HIGHLIGHTED1;
             }else{
-                color = HIGHLIGHT_COLORS[1];
+                state = CellState.HIGHLIGHTED2;
             }
         }else{
-            color = STANDARD_COLOR;
+            state = CellState.STANDARD;
         }
 
         if(!cellID.equals(selectedCellID) && !model.isNeighbor(cellID, selectedCellID)){
-            highlightCell(cell, color);
+            highlightCell(cell, state);
         }
 
-        highlightAllRelativesWithoutNeighbor(cellID, selectedCellID, model, color);
+        highlightAllRelativesWithoutNeighbor(cellID, selectedCellID, model, state);
     }
 
     /**
      * Helper method that sets the color of all cells in the given list to be
      * the given color
      * @param cells the cells to color
-     * @param c the color
+     * @param state the new state for the cell
      */
-    private static void highlightAllCells(List<Cell> cells, Color c){
+    private static void highlightAllCells(List<Cell> cells, CellState state){
         for(Cell cell : cells){
-            highlightCell(cell, c);
+            highlightCell(cell, state);
         }
     }
 
     /**
      * Helper method to set the color of a cell
      * @param cell the cell to color
-     * @param c the color
+     * @param state the new state of the cell
      */
-    private static void highlightCell(Cell cell, Color c){
-        cellColors.put(cell, c);
+    private static void highlightCell(Cell cell, CellState state){
+        cellStates.put(cell, state);
         if(blockedCellIDs.contains(cell.getCellId())) return;
-        cell.setColor(c);
+        cell.setCellState(state);
     }
 
     /**
@@ -165,6 +158,7 @@ public class Highlighter{
         }
 
         MatchedScrollPane.scrollTo(c.columnLocationProperty.doubleValue() + 1);
+        c.setCellState(CellState.EMPHASIZED);
 
         Shape s = (Shape) c.view;
 
@@ -174,40 +168,16 @@ public class Highlighter{
         sct.setCycleCount(6);
         sct.setAutoReverse(true);
 
-        SequentialTransition sqt;
-
-        if(c instanceof InvisibleCell){
-            FillTransition st1 = new FillTransition(Duration.millis(1000), s, Color.TRANSPARENT, Highlighter.EMPHASIZE_COLOR);
-            st1.setCycleCount(1);
-
-            FillTransition st2 = new FillTransition(Duration.millis(1500), s, Highlighter.EMPHASIZE_COLOR, Color.TRANSPARENT);
-            st2.setCycleCount(1);
-
-            sqt = new SequentialTransition(st1, new PauseTransition(Duration.millis(2500)), st2);
-            sqt.setCycleCount(1);
-
-        }else{
-            FillTransition ft1 = new FillTransition(Duration.millis(1000), s, Highlighter.STANDARD_COLOR, Highlighter.EMPHASIZE_COLOR);
-            ft1.setCycleCount(1);
-
-            FillTransition ft2 = new FillTransition(Duration.millis(1500), s, Highlighter.EMPHASIZE_COLOR, Highlighter.STANDARD_COLOR);
-            ft2.setCycleCount(1);
-
-            sqt = new SequentialTransition(ft1, new PauseTransition(Duration.millis(2500)), ft2);
-            sqt.setCycleCount(1);
-        }
-
         c.view.setScaleX(1.0);
         c.view.setScaleY(1.0);
 
-        ParallelTransition pt = new ParallelTransition(sqt, sct);
-        pt.play();
+        sct.play();
 
-        pt.setOnFinished(event -> endEmphasisOnCell(c));
+        sct.setOnFinished(event -> endEmphasisOnCell(c));
     }
 
     private static void endEmphasisOnCell(Cell c){
         blockedCellIDs.remove(c.getCellId());
-        highlightCell(c, cellColors.getOrDefault(c, STANDARD_COLOR));
+        highlightCell(c, cellStates.getOrDefault(c, CellState.STANDARD));
     }
 }
