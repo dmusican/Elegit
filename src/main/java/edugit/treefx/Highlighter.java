@@ -206,5 +206,7 @@ public class Highlighter{
     private static void endEmphasisOnCell(Cell c){
         blockedCellIDs.remove(c.getCellId());
         highlightCell(c, cellColors.getOrDefault(c, STANDARD_COLOR));
+        c.setScaleX(1.0);
+        c.setScaleY(1.0);
     }
 }
