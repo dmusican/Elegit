@@ -468,8 +468,8 @@ public abstract class RepoHelper {
         return localBranchHelpers;
     }
 
-    public ArrayList<LocalBranchHelper> getLocalBranchesFromManager() throws GitAPIException, IOException {
-        return this.callGitForLocalBranches(); //this.branchManager.getLocalBranches();
+    public List<LocalBranchHelper> getLocalBranchesFromManager() throws GitAPIException, IOException {
+        return this.branchManager.getLocalBranches();
     }
 
     // DEPRECATED. start using branchHelpers!
