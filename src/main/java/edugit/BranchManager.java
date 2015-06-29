@@ -64,6 +64,8 @@ public class BranchManager {
 
     public void showBranchChooser() throws IOException {
         GridPane root = new GridPane();
+        root.setHgap(5);
+        root.setVgap(5);
         root.add(this.remoteListView, 0, 0); // col, row
         root.add(this.localListView, 1, 0);
 
