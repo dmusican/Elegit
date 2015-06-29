@@ -1,5 +1,6 @@
 package main.java.edugit;
 
+import com.sun.xml.internal.ws.api.pipe.FiberContextSwitchInterceptor;
 import main.java.edugit.exceptions.CancelledLoginException;
 import main.java.edugit.exceptions.NoOwnerInfoException;
 import main.java.edugit.exceptions.NoRepoSelectedException;
@@ -14,6 +15,7 @@ import javafx.scene.control.TextArea;
 import javafx.scene.paint.RadialGradient;
 import javafx.scene.shape.Circle;
 import javafx.scene.text.Text;
+import org.controlsfx.control.ListSelectionView;
 import org.controlsfx.control.NotificationPane;
 import org.controlsfx.control.action.Action;
 import org.eclipse.jgit.api.errors.*;
@@ -632,5 +634,9 @@ public class SessionController extends Controller {
         this.notificationPane.getActions().setAll(seeConflictsAction);
 
         this.notificationPane.show();
+    }
+
+    public void showBranchChooser(ActionEvent actionEvent) {
+        ListSelectionView<BranchHelper> listSelectionView = new ListSelectionView<>();
     }
 }
