@@ -43,7 +43,7 @@ public abstract class RepoHelper {
     private Map<String, ObjectId> localBranches;
     private Map<String, ObjectId> remoteBranches;
     private BranchHelper branchHelper;
-
+    private BranchManager branchManager;
 
     /**
      * Creates a RepoHelper object for holding a Repository and interacting with it
@@ -93,6 +93,10 @@ public abstract class RepoHelper {
 
         this.localCommits = this.parseAllLocalCommits();
         this.remoteCommits = this.parseAllRemoteCommits();
+    }
+
+    public void setBranchManager(BranchManager branchManager) {
+        this.branchHelper
     }
 
     /**
