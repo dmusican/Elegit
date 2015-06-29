@@ -11,13 +11,13 @@ import java.io.IOException;
  */
 public abstract class BranchHelper {
 
-    String refPathString;
-    Repository repo;
-    String branchName;
+    protected String refPathString;
+    protected Repository repo;
+    protected String branchName;
 
     LocalBranchHelper trackingBranch;
 
-    boolean isLocal;
+    protected boolean isLocal;
 
     public BranchHelper(String refPathString, Repository repo) {
         this.refPathString = refPathString;
@@ -44,5 +44,13 @@ public abstract class BranchHelper {
 
     public LocalBranchHelper getTrackingBranch() {
         return trackingBranch;
+    }
+
+    public boolean isLocal() {
+        return this.isLocal;
+    }
+
+    public void setTrackingBranch(LocalBranchHelper trackingBranch) {
+        // By default, don't do anything. Inheritors can change this.
     }
 }

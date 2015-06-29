@@ -74,7 +74,7 @@ public abstract class RepoHelper {
         this.localCommits = this.parseAllLocalCommits();
         this.remoteCommits = this.parseAllRemoteCommits();
 
-        this.branchManager = new BranchManager(this.getLocalBranches(), this.getRemoteBranches());
+        this.branchManager = new BranchManager(this.callGitForLocalBranches(), this.callGitForRemoteBranches(), this.repo);
     }
 
     /// Constructor for EXISTING repos to inherit (they don't need the Remote URL)
@@ -95,7 +95,7 @@ public abstract class RepoHelper {
 
         this.localCommits = this.parseAllLocalCommits();
         this.remoteCommits = this.parseAllRemoteCommits();
-        this.branchManager = new BranchManager(this.getLocalBranches(), this.getRemoteBranches());
+        this.branchManager = new BranchManager(this.callGitForLocalBranches(), this.callGitForRemoteBranches(), this.repo);
 
         // TODO: unify these two constructors (less copied-and-pasted code)
     }
@@ -453,7 +453,7 @@ public abstract class RepoHelper {
         return this.localPath.getFileName().toString();
     }
 
-    public ArrayList<LocalBranchHelper> getLocalBranches() throws GitAPIException, IOException {
+    private ArrayList<LocalBranchHelper> callGitForLocalBranches() throws GitAPIException, IOException {
         List<Ref> getBranchesCall = new Git(this.repo).branchList().call();
         ArrayList<LocalBranchHelper> localBranchHelpers = new ArrayList<>();
 
@@ -466,6 +466,10 @@ public abstract class RepoHelper {
         }
 
         return localBranchHelpers;
+    }
+
+    public ArrayList<LocalBranchHelper> getLocalBranchesFromManager() throws GitAPIException, IOException {
+        return this.branchManager.getLocalBranches();
     }
 
     // DEPRECATED. start using branchHelpers!
@@ -494,7 +498,7 @@ public abstract class RepoHelper {
         return new ArrayList<>(remoteBranches.keySet());
     }
 
-    public ArrayList<RemoteBranchHelper> getRemoteBranches() throws GitAPIException {
+    public ArrayList<RemoteBranchHelper> callGitForRemoteBranches() throws GitAPIException {
         List<Ref> getBranchesCall = new Git(this.repo).branchList().setListMode(ListBranchCommand.ListMode.REMOTE).call();
         ArrayList<RemoteBranchHelper> remoteBranchHelpers = new ArrayList<>();
 

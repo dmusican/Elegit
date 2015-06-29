@@ -7,6 +7,12 @@ import javafx.scene.Scene;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import org.controlsfx.control.ListSelectionView;
+import org.eclipse.jgit.api.CreateBranchCommand;
+import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.errors.CheckoutConflictException;
+import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.lib.Ref;
+import org.eclipse.jgit.lib.Repository;
 
 import java.io.IOException;
 import java.rmi.Remote;
@@ -18,9 +24,12 @@ import java.util.List;
  */
 public class BranchManager {
 
+    private Repository repo;
     public ListSelectionView<BranchHelper> listSelectionView;
 
-    public BranchManager(ArrayList<LocalBranchHelper> localBranches, ArrayList<RemoteBranchHelper> remoteBranches) {
+    public BranchManager(ArrayList<LocalBranchHelper> localBranches, ArrayList<RemoteBranchHelper> remoteBranches, Repository repo) {
+        this.repo = repo;
+
         this.listSelectionView = new ListSelectionView<>();
         this.listSelectionView.setSourceHeader(new Text("Remote Branches"));
         this.listSelectionView.setTargetHeader(new Text("Local Branches"));
@@ -38,4 +47,27 @@ public class BranchManager {
         stage.show();
     }
 
+    public ArrayList<LocalBranchHelper> getLocalBranches() throws GitAPIException, IOException {
+        ArrayList<LocalBranchHelper> localBranches = new ArrayList<>();
+        for (BranchHelper branchHelper : this.listSelectionView.getTargetItems()) {
+            if (branchHelper.isLocal()) {
+                localBranches.add((LocalBranchHelper) branchHelper);
+            } else {
+                if (branchHelper.trackingBranch != null) {
+                    localBranches.add(branchHelper.trackingBranch);
+                } else {
+                    // So, it's a remote branchHelper
+                    Ref trackingBranchRef = new Git(this.repo).checkout().
+                            setCreateBranch(true).
+                            setName(branchHelper.getBranchName()).
+                            setUpstreamMode(CreateBranchCommand.SetupUpstreamMode.TRACK).
+                            setStartPoint(branchHelper.getRefPathString()).
+                            call();
+                    LocalBranchHelper trackingBranch = new LocalBranchHelper(trackingBranchRef, this.repo);
+                    branchHelper.setTrackingBranch(trackingBranch);
+                }
+            }
+        }
+        return localBranches;
+    }
 }

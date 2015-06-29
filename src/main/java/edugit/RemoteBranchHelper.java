@@ -95,6 +95,7 @@ public class RemoteBranchHelper extends BranchHelper {
         return "REMOTE: " + super.toString();
     }
 
+    @Override
     public void setTrackingBranch(LocalBranchHelper trackingBranch){
         this.trackingBranch = trackingBranch;
     }

@@ -121,8 +121,8 @@ public class SessionController extends Controller {
     private void updateBranchDropdown() throws GitAPIException, IOException {
         this.branchSelector.setVisible(true);
 
-        ArrayList<LocalBranchHelper> branches = this.theModel.getCurrentRepoHelper().getLocalBranches();
-//        branches.addAll(this.theModel.getCurrentRepoHelper().getRemoteBranches()); //todo: deal with remotes
+        ArrayList<LocalBranchHelper> branches = this.theModel.getCurrentRepoHelper().getLocalBranchesFromManager();
+//        branches.addAll(this.theModel.getCurrentRepoHelper().callGitForRemoteBranches()); //todo: deal with remotes
         this.branchSelector.getItems().setAll(branches);
 
         BranchHelper currentBranch = this.theModel.getCurrentRepoHelper().getCurrentBranch();
