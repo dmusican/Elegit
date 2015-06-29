@@ -64,7 +64,7 @@ public class ArrowButtonSkin extends Group implements Skin<Button>{
             path.getElements().add(startPoint);
 
             if(up){
-                CubicCurveTo[] curves = getArrowSide(width, height, ArrowDirection.UP, true);
+                CubicCurveTo[] curves = getArrowSide(width, height, ArrowDirection.UP, false);
                 path.getElements().add(curves[0]);
                 path.getElements().add(curves[1]);
             }else{
@@ -82,7 +82,7 @@ public class ArrowButtonSkin extends Group implements Skin<Button>{
             }
 
             if(down){
-                CubicCurveTo[] curves = getArrowSide(width, height, ArrowDirection.DOWN, true);
+                CubicCurveTo[] curves = getArrowSide(width, height, ArrowDirection.DOWN, false);
                 path.getElements().add(curves[0]);
                 path.getElements().add(curves[1]);
             }else{

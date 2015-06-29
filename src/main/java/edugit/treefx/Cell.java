@@ -23,7 +23,7 @@ import java.util.List;
 public class Cell extends Pane{
 
     // The size of the rectangle being drawn
-    public static final int BOX_SIZE = 20;
+    public static final int BOX_SIZE = 30;
 
     private static final int MAX_NUM_CELLS_TO_ANIMATE = 5;
     private static int numCellsBeingAnimated = 0;

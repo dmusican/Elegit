@@ -1,19 +1,18 @@
 package main.java.edugit;
 
-import main.java.edugit.exceptions.CancelledLoginException;
-import main.java.edugit.exceptions.NoOwnerInfoException;
-import main.java.edugit.exceptions.NoRepoSelectedException;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
-import javafx.scene.control.Button;
 import javafx.scene.control.*;
+import javafx.scene.control.Button;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextArea;
-import javafx.scene.paint.RadialGradient;
 import javafx.scene.shape.Circle;
 import javafx.scene.text.Text;
+import main.java.edugit.exceptions.CancelledLoginException;
+import main.java.edugit.exceptions.NoOwnerInfoException;
+import main.java.edugit.exceptions.NoRepoSelectedException;
 import org.controlsfx.control.NotificationPane;
 import org.controlsfx.control.action.Action;
 import org.eclipse.jgit.api.errors.*;
@@ -50,9 +49,6 @@ public class SessionController extends Controller {
     public CommitTreePanelView remoteCommitTreePanelView;
 
     public Circle remoteCircle;
-    private static final RadialGradient startGradient  = RadialGradient.valueOf("center 50% 50%, radius 50%,  #52B3D9 60%, #3498DB");
-    private static final RadialGradient hoverGradient = RadialGradient.valueOf("center 50% 50%, radius 50%,  #81CFE0 60%, #52B3D9");
-    private static final RadialGradient clickGradient = RadialGradient.valueOf("center 50% 50%, radius 50%,  #3498DB 60%, #52B3D9");
 
     CommitTreeModel localCommitTreeModel;
     CommitTreeModel remoteCommitTreeModel;
@@ -113,7 +109,6 @@ public class SessionController extends Controller {
                 remoteCircle.setRadius(newValue.doubleValue() / 5.0);
             }
         });
-        remoteCircle.setFill(startGradient);
     }
 
     private void updateBranchDropdown() throws GitAPIException, IOException {
@@ -402,22 +397,8 @@ public class SessionController extends Controller {
                 // TODO: real error message
                 e.printStackTrace();
                 System.out.println("Couldn't open the remote repo");
-            } finally{
-                remoteCircle.setFill(startGradient);
             }
         }
-    }
-
-    public void handleRemoteCircleMouseEnter(Event event){
-        remoteCircle.setFill(hoverGradient);
-    }
-
-    public void handleRemoteCircleMouseExit(Event event){
-        remoteCircle.setFill(startGradient);
-    }
-
-    public void handleRemoteCircleMousePressed(Event event){
-        remoteCircle.setFill(clickGradient);
     }
 
     /**

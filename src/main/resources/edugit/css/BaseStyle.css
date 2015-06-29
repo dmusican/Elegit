@@ -12,7 +12,7 @@
 
 .button {
     -fx-text-fill: white;
-    -fx-background-color: #52B3D9;
+    -fx-background-color: -fx-button-fill;
 }
 
     .button#codeButton {
@@ -24,16 +24,16 @@
     }
 
     .button:hover {
-        -fx-background-color: #81CFE0;
+        -fx-background-color: -fx-button-hover-fill;
     }
 
     .button:pressed, .button:selected {
-        -fx-background-color: #3498DB;
+        -fx-background-color: -fx-button-select-fill;
     }
 
 .menu-bar {
     -fx-use-system-menu-bar: true;
-    -fx-background-color: #3498DB;
+    -fx-background-color: -fx-button-select-fill;
 }
 
 .tree-cell:selected {
@@ -95,6 +95,21 @@
         -fx-font-style: italic;
     }
 
+#remoteRepoCircle {
+    /*noinspection CssInvalidFunction*/
+    -fx-fill: radial-gradient(center 50% 50%, radius 50%, -fx-button-fill 60%, -fx-button-select-fill);
+}
+
+    #remoteRepoCircle:hover {
+        /*noinspection CssInvalidFunction*/
+        -fx-fill: radial-gradient(center 50% 50%, radius 50%, -fx-button-hover-fill 60%, -fx-button-fill);
+    }
+
+    #remoteRepoCircle:pressed, .remoteRepoCircle:selected {
+        /*noinspection CssInvalidFunction*/
+        -fx-fill: radial-gradient(center 50% 50%, radius 50%, -fx-button-select-fill 60%, -fx-button-fill);
+    }
+
 .cell {
     -fx-stroke-type: inside;
     -fx-stroke-line-cap: butt;
@@ -114,10 +129,15 @@
     -fx-stroke-dash-array: 3px, 5px;
 }
 
+/*noinspection CssInvalidFunction*/
 * {
-    -fx-cell-color-standard: blue;
-    -fx-cell-color-highlight1: red;
-    -fx-cell-color-highlight2: mediumseagreen;
-    -fx-cell-color-select: darkred;
-    -fx-cell-color-emphasize: forestgreen;
+    -fx-button-fill: #52B3D9;
+    -fx-button-hover-fill: #81CFE0;
+    -fx-button-select-fill: #3498DB;
+
+    -fx-cell-color-standard: radial-gradient(center 50% 50%, radius 75%, -fx-button-fill, -fx-button-hover-fill);
+    -fx-cell-color-highlight1: radial-gradient(center 50% 50%, radius 75%, -fx-button-fill, -fx-button-select-fill);
+    -fx-cell-color-highlight2: radial-gradient(center 50% 50%, radius 75%, -fx-button-hover-fill, -fx-button-fill);
+    -fx-cell-color-select: radial-gradient(center 50% 50%, radius 75%, -fx-button-fill 20%, -fx-button-select-fill 40%);
+    -fx-cell-color-emphasize: radial-gradient(center 50% 50%, radius 75%, #F28399, #F22613 80%);
 }

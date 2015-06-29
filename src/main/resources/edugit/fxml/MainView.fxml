@@ -122,12 +122,10 @@
                     <AnchorPane GridPane.rowIndex="1"
                                 GridPane.columnIndex="6">
                         <Circle AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
+                                id="remoteRepoCircle"
                                 fx:id="remoteCircle"
                                 opacity="0.5"
-                                onMouseClicked="#handleRemoteCircleMouseClick"
-                                onMousePressed="#handleRemoteCircleMousePressed"
-                                onMouseEntered="#handleRemoteCircleMouseEnter"
-                                onMouseExited="#handleRemoteCircleMouseExit"/>
+                                onMouseClicked="#handleRemoteCircleMouseClick"/>
                     </AnchorPane>
 
                     <ArrowButton GridPane.rowIndex="1"
