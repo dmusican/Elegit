@@ -1,4 +1,4 @@
-package edugit;
+package main.java.edugit;
 
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
@@ -17,9 +17,15 @@ public class ArrowButtonSkin extends Group implements Skin<Button>{
 
     static final double ARROW_TIP_WIDTH = 4;
     static final double ARROW_TIP_HEIGHT = 10;
+    static final double ARROW_OFFSET = 0.3;
+
+    private static final int UP = 0;
+    private static final int DOWN = 1;
+    private static final int LEFT = 2;
+    private static final int RIGHT = 3;
 
     Button button;
-    ArrowButton.ArrowDirection direction;
+    boolean up,down,left,right;
 
     public ArrowButtonSkin(Button button){
         this.button = button;
@@ -58,55 +64,51 @@ public class ArrowButtonSkin extends Group implements Skin<Button>{
             startPoint.setY(0);
             path.getElements().add(startPoint);
 
-            if(direction == ArrowButton.ArrowDirection.UP){
-                QuadCurveTo[] curves = getArrowSide(width, height);
+            if(up){
+                QuadCurveTo[] curves = getArrowSide(width, height, UP);
                 path.getElements().add(curves[0]);
                 path.getElements().add(curves[1]);
             }else{
-                HLineTo topLine = new HLineTo();
-                topLine.setX(width);
+                HLineTo topLine = new HLineTo(width);
                 path.getElements().add(topLine);
             }
 
-            if(direction == ArrowButton.ArrowDirection.RIGHT){
-                QuadCurveTo[] curves = getArrowSide(width, height);
+            if(right){
+                QuadCurveTo[] curves = getArrowSide(width, height, RIGHT);
                 path.getElements().add(curves[0]);
                 path.getElements().add(curves[1]);
             }else{
-                VLineTo rightLine = new VLineTo();
-                rightLine.setY(height);
+                VLineTo rightLine = new VLineTo(height);
                 path.getElements().add(rightLine);
             }
 
-            if(direction == ArrowButton.ArrowDirection.DOWN){
-                QuadCurveTo[] curves = getArrowSide(width, height);
+            if(down){
+                QuadCurveTo[] curves = getArrowSide(width, height, DOWN);
                 path.getElements().add(curves[0]);
                 path.getElements().add(curves[1]);
             }else{
-                HLineTo bottomLine = new HLineTo();
-                bottomLine.setX(0);
+                HLineTo bottomLine = new HLineTo(0);
                 path.getElements().add(bottomLine);
             }
 
-            if(direction == ArrowButton.ArrowDirection.LEFT){
-                QuadCurveTo[] curves = getArrowSide(width, height);
+            if(left){
+                QuadCurveTo[] curves = getArrowSide(width, height, LEFT);
                 path.getElements().add(curves[0]);
                 path.getElements().add(curves[1]);
             }else{
-                VLineTo leftLine = new VLineTo();
-                leftLine.setY(0);
+                VLineTo leftLine = new VLineTo(0);
                 path.getElements().add(leftLine);
             }
         });
     }
 
-    private QuadCurveTo[] getArrowSide(double width, double height){
+    private QuadCurveTo[] getArrowSide(double width, double height, int direction){
         QuadCurveTo[] curve = new QuadCurveTo[2];
         curve[0] = new QuadCurveTo();
         curve[1] = new QuadCurveTo();
         double controlX, controlY, x, y;
 
-        switch(this.direction){
+        switch(direction){
             case LEFT:
                 // Bottom curve
                 controlX = -ARROW_TIP_WIDTH;

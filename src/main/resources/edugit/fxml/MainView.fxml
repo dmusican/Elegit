@@ -1,6 +1,6 @@
 <?import main.java.edugit.CommitTreePanelView?>
 <?import main.java.edugit.WorkingTreePanelView?>
-<?import edugit.ArrowButton?>
+<?import main.java.edugit.ArrowButton?>
 <?import main.java.edugit.CommitTreePanelView?>
 <?import main.java.edugit.WorkingTreePanelView?>
 <?import javafx.scene.control.*?>
@@ -12,7 +12,6 @@
 <?import java.net.URL?>
 <?import org.controlsfx.control.NotificationPane?>
 
-<?import org.controlsfx.control.NotificationPane?>
 <AnchorPane fx:controller="main.java.edugit.SessionController" xmlns:fx="http://javafx.com/fxml">
 
     <NotificationPane fx:id="notificationPane"
@@ -137,7 +136,7 @@
                                  id="codeButton"
                                  fx:id="fetchButton"
                                  text="Fetch"
-                                 arrowDirection="LEFT"
+                                 arrowLeft="true"
                                  onAction="#handleFetchButton"/>
 
                     <CommitTreePanelView GridPane.rowIndex="1"
@@ -151,7 +150,8 @@
                                  id="codeButton"
                                  fx:id="mergeFromFetchButton"
                                  text="Merge"
-                                 arrowDirection="DOWN"
+                                 arrowDown="true"
+                                 arrowLeft="true"
                                  onAction="#handleMergeFromFetchButton"/>
 
                     <ArrowButton GridPane.rowIndex="2"
@@ -160,7 +160,8 @@
                                  id="codeButton"
                                  fx:id="pushButton"
                                  text="Push"
-                                 arrowDirection="UP"
+                                 arrowUp="true"
+                                 arrowRight="true"
                                  onAction="#handlePushButton"/>
 
                     <CommitTreePanelView GridPane.rowIndex="3"
@@ -174,7 +175,7 @@
                                  id="codeButton"
                                  fx:id="commitButton"
                                  text="Commit"
-                                 arrowDirection="RIGHT"
+                                 arrowRight="true"
                                  onAction="#handleCommitButton"/>
                 </GridPane>
             </HBox>
