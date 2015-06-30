@@ -40,6 +40,8 @@ public class SessionController extends Controller {
     public ComboBox<LocalBranchHelper> branchSelector;
     public Text currentRepoLabel;
     public NotificationPane notificationPane;
+    public Button selectAllButton;
+    public Button deselectAllButton;
     private SessionModel theModel;
 
     public Button openRepoDirButton;
@@ -465,6 +467,8 @@ public class SessionController extends Controller {
         mergeFromFetchButton.setDisable(disable);
         pushButton.setDisable(disable);
         fetchButton.setDisable(disable);
+        selectAllButton.setDisable(disable);
+        deselectAllButton.setDisable(disable);
         remoteCircle.setVisible(!disable);
     }
 
@@ -707,5 +711,23 @@ public class SessionController extends Controller {
     public void handleGoToCommitButton(ActionEvent actionEvent){
         String id = commitInfoNameText.getText();
         CommitTreeController.focusCommitInGraph(id);
+    }
+
+    /**
+     * Selects all files in the working tree for a commit.
+     *
+     * @param actionEvent
+     */
+    public void onSelectAllButton(ActionEvent actionEvent) {
+        this.workingTreePanelView.setAllFilesSelected(true);
+    }
+
+    /**
+     * Deselects all files in the working tree for a commit.
+     *
+     * @param actionEvent
+     */
+    public void onDeselectAllButton(ActionEvent actionEvent) {
+        this.workingTreePanelView.setAllFilesSelected(false);
     }
 }
