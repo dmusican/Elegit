@@ -15,7 +15,9 @@ import java.nio.file.Paths;
 import java.util.Optional;
 
 /**
- * Created by grahamearley on 6/18/15.
+ * A subclass of the RepoFile class that holds a reference to
+ * and interacts with a file in the repository that has conflicts
+ * in git.
  */
 public class ConflictingRepoFile extends RepoFile {
 
@@ -32,7 +34,6 @@ public class ConflictingRepoFile extends RepoFile {
     /**
      * When this RepoFile is checkboxed and the user commits,
      * open the conflicting file in an external editor.
-     *
      */
     @Override public void updateFileStatusInRepo() throws GitAPIException {
         Alert alert = new Alert(Alert.AlertType.WARNING);

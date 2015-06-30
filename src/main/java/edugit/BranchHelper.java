@@ -7,7 +7,11 @@ import org.eclipse.jgit.lib.Repository;
 import java.io.IOException;
 
 /**
- * Created by grahamearley on 6/23/15.
+ *
+ * An abstract class that holds and interacts with a git branch ref.
+ *
+ * It is implemented by LocalBranchHelper and RemoteBranchHelper.
+ *
  */
 public abstract class BranchHelper {
 
@@ -19,10 +23,6 @@ public abstract class BranchHelper {
         this.refPathString = refPathString;
         this.repo = repo;
         this.branchName = this.getBranchName();
-    }
-
-    public BranchHelper(Ref branchRef, Repository repo) {
-        this(branchRef.getName(), repo);
     }
 
     public abstract String getBranchName();

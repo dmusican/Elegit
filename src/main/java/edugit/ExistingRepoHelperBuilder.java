@@ -6,7 +6,10 @@ import java.io.File;
 import java.nio.file.Path;
 
 /**
- * Created by grahamearley on 6/16/15.
+ *
+ * An implementation of the abstract RepoHelperBuilder that prompts the
+ * user (using dialogs) for the parameters required to build an ExistingRepoHelper.
+ *
  */
 public class ExistingRepoHelperBuilder extends RepoHelperBuilder {
     public ExistingRepoHelperBuilder(SessionModel sessionModel) {
@@ -14,6 +17,9 @@ public class ExistingRepoHelperBuilder extends RepoHelperBuilder {
     }
 
     /**
+     * Shows a file chooser dialog and makes the ExistingRepoHelper from it.
+     *  (The ExistingRepoHelper is generalized into a RepoHelper so that all
+     *   RepoHelpers can be stored in the same list and acted on uniformly).
      *
      * @throws Exception why? has to do with the new ExistingRepoHelper(...).
      */
@@ -27,10 +33,6 @@ public class ExistingRepoHelperBuilder extends RepoHelperBuilder {
         }
 
         Path directoryPath = existingRepoDirectoryFile.toPath();
-
-//        if (this.sessionModel.getDefaultOwner() == null) {
-//            throw new NoOwnerInfoException();
-//        }
 
         RepoHelper existingRepoHelper = new ExistingRepoHelper(directoryPath, this.sessionModel.getDefaultOwner());
 

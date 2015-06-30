@@ -6,7 +6,8 @@ import javafx.stage.Window;
 import java.io.File;
 
 /**
- * Created by grahamearley on 6/16/15.
+ * An abstract class for building RepoHelpers by presenting dialogs to
+ * get the required parameters.
  */
 public abstract class RepoHelperBuilder {
 
@@ -19,6 +20,14 @@ public abstract class RepoHelperBuilder {
 
     public abstract RepoHelper getRepoHelperFromDialogs() throws Exception;
 
+    /**
+     * Presents a file chooser and returns the chosen file.
+     *
+     * @param title the title of the file chooser window.
+     * @param parent the parent Window for the file chooser. Can be null (then
+     *               the chooser won't be anchored to any window).
+     * @return the chosen file from the file chooser.
+     */
     public File getDirectoryPathFromChooser(String title, Window parent) {
         File path = new File(this.defaultFilePickerStartFolder); // start the file browser in the user's home folder
 

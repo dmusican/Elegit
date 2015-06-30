@@ -25,6 +25,11 @@ import java.util.List;
 
 /**
  *
+ * A DiffHelper helps interact with the diff for a given file in a repository.
+ * This class reads, formats, and returns the string in a ScrollPane.
+ *
+ *  ---
+ *
  * Some code is from the JGit-Cookbook.
  *  (https://github.com/centic9/jgit-cookbook)
  *    - https://github.com/centic9/jgit-cookbook/blob/master/src/main/java/org/dstadler/jgit/porcelain/ShowChangedFilesBetweenCommits.java

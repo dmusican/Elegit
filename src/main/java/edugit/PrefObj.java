@@ -4,10 +4,13 @@ import java.io.*;
 import java.util.prefs.*;
 
 /**
+ * A class that sneakily stores any object with the
+ * Java Preferences API.
+ *
  * THIS FILE IS PROVIDED BY IBM
  * http://www.ibm.com/developerworks/library/j-prefapi/
  *
- * THANKS!
+ * Thanks!
  */
 public class PrefObj {
     // Max byte count is 3/4 max string length (see Preferences
@@ -51,12 +54,6 @@ public class PrefObj {
         String keys[] = node.keys();
         int numPieces = keys.length;
 
-//        if (numPieces == 0) {
-//            // This if-statement is not original to the IBM class.
-//            // I added it for unstored prefs.
-//            return null;
-//        }
-
         byte pieces[][] = new byte[numPieces][];
         for (int i=0; i<numPieces; ++i) {
             pieces[i] = node.getByteArray( ""+i, null );
@@ -84,7 +81,7 @@ public class PrefObj {
 
         if (raw.length == 0) {
             // This if-statement is not original to the IBM class.
-            // I added it for non-stored values
+            // I added it for non-stored values.
             return null;
         }
 

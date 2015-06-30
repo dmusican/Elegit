@@ -10,15 +10,18 @@ import java.io.IOException;
 import java.util.Arrays;
 
 /**
- * Created by grahamearley on 6/23/15.
+ * An implementation of the abstract BranchHelper class that holds
+ * and interacts with remote branches.
  */
 public class RemoteBranchHelper extends BranchHelper {
-    /// Instance level:
     public RemoteBranchHelper(Ref ref, Repository repo) {
         super(ref.getName(), repo);
     }
 
     @Override
+    /**
+     * Parses the branch's refPath in order to get its name.
+     */
     public String getBranchName() {
         String[] slashSplit = this.refPathString.split("/");
 

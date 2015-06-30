@@ -36,7 +36,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by grahamearley on 6/29/15.
+ *
+ * A class that holds all a repository's branches (in the form of
+ * BranchHelpers) and manages branch creation, deletion, and tracking
+ * of remotes.
+ *
  */
 public class BranchManager {
 
@@ -60,6 +64,12 @@ public class BranchManager {
         this.newBranchNameField.setPromptText("Branch name");
     }
 
+    /**
+     * Creates and populate the window that lets the user
+     * create, delete, or track branches.
+     *
+     * @throws IOException
+     */
     public void showBranchChooserWindow() throws IOException {
         int PADDING = 10;
         GridPane root = new GridPane();
@@ -118,6 +128,14 @@ public class BranchManager {
         stage.show();
     }
 
+    /**
+     * Creates a local branch tracking a remote branch.
+     *
+     * @param remoteBranchHelper the remote branch to be tracked.
+     * @return the LocalBranchHelper of the local branch tracking the given remote branch.
+     * @throws GitAPIException
+     * @throws IOException
+     */
     private LocalBranchHelper createLocalTrackingBranchForRemote(RemoteBranchHelper remoteBranchHelper) throws GitAPIException, IOException {
         Ref trackingBranchRef = new Git(this.repo).branchCreate().
                 setName(remoteBranchHelper.getBranchName()).
@@ -132,6 +150,12 @@ public class BranchManager {
         return this.localListView.getItems();
     }
 
+    /**
+     * Tracks the selected branch (in the remoteListView) locally.
+     *
+     * @throws GitAPIException
+     * @throws IOException
+     */
     public void trackSelectedBranchLocally() throws GitAPIException, IOException {
         RemoteBranchHelper selectedRemoteBranch = this.remoteListView.getSelectionModel().getSelectedItem();
         try {
@@ -144,6 +168,9 @@ public class BranchManager {
         }
     }
 
+    /**
+     * Deletes the selected branch (in the localListView) through git.
+     */
     public void deleteSelectedLocalBranch() {
         LocalBranchHelper selectedBranch = this.localListView.getSelectionModel().getSelectedItem();
         Git git = new Git(this.repo);
@@ -169,6 +196,14 @@ public class BranchManager {
         // see http://stackoverflow.com/questions/11892766/how-to-remove-remote-branch-with-jgit
     }
 
+    /**
+     * Creates a new local branch using git.
+     *
+     * @param branchName the name of the new branch.
+     * @return the new local branch's LocalBranchHelper.
+     * @throws GitAPIException
+     * @throws IOException
+     */
     private LocalBranchHelper createNewLocalBranch(String branchName) throws GitAPIException, IOException {
         Git git = new Git(this.repo);
         Ref newBranch = git.branchCreate().setName(branchName).call();
@@ -177,6 +212,9 @@ public class BranchManager {
         return newLocalBranchHelper;
     }
 
+    /**
+     * Deletes the selected branch through git, forcefully.
+     */
     private void forceDeleteSelectedLocalBranch() {
         LocalBranchHelper selectedBranch = this.localListView.getSelectionModel().getSelectedItem();
         Git git = new Git(this.repo);
@@ -198,6 +236,8 @@ public class BranchManager {
             e.printStackTrace();
         }
     }
+
+    /// BEGIN: ERROR NOTIFICATIONS:
 
     private void showGenericGitError() {
         this.notificationPane.setText("Sorry, there was a git error.");
@@ -247,4 +287,6 @@ public class BranchManager {
         this.notificationPane.getActions().clear();
         this.notificationPane.show();
     }
+
+    /// END: ERROR NOTIFICATIONS ^^^
 }

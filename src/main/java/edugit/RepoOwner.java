@@ -11,7 +11,8 @@ import javafx.util.Pair;
 import java.util.Optional;
 
 /**
- * Created by grahamearley on 6/16/15.
+ * A simple class for holding a repository user's login information
+ * during the session. RepoOwners can also present dialogs for logging in.
  */
 public class RepoOwner {
 
@@ -27,6 +28,12 @@ public class RepoOwner {
         this.presentLoginDialogsToSetValues();
     }
 
+    /**
+     * Presents dialogs that request the user's username and password,
+     * and sets the username and password fields accordingly.
+     *
+     * @throws CancelledLoginException if the user presses cancel or closes the dialog.
+     */
     public void presentLoginDialogsToSetValues() throws CancelledLoginException {
         // Create the custom dialog.
         Dialog<Pair<String, String>> dialog = new Dialog<>();

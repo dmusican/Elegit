@@ -9,7 +9,8 @@ import java.io.IOException;
 import java.util.Arrays;
 
 /**
- * Created by grahamearley on 6/23/15.
+ * An implementation of the abstract BranchHelper that holds
+ * and interacts with local branches.
  */
 public class LocalBranchHelper extends BranchHelper {
     public LocalBranchHelper(String refPathString, Repository repo) throws IOException {
@@ -21,6 +22,9 @@ public class LocalBranchHelper extends BranchHelper {
     }
 
     @Override
+    /**
+     * Parses the branch's refPath in order to get its name.
+     */
     public String getBranchName() {
         String[] slashSplit = this.refPathString.split("/");
         if (slashSplit.length >= 2) {
@@ -57,6 +61,9 @@ public class LocalBranchHelper extends BranchHelper {
     }
 
     @Override
+    /**
+     * Checks out the branch in git.
+     */
     public void checkoutBranch() throws GitAPIException {
         new Git(this.repo).checkout().setName(this.branchName).call();
     }

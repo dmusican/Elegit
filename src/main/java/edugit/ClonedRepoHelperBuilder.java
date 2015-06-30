@@ -13,7 +13,11 @@ import java.nio.file.Paths;
 import java.util.Optional;
 
 /**
- * Created by grahamearley on 6/16/15.
+ *
+ * An implementation of the abstract RepoHelperBuilder that builds
+ * a ClonedRepoHelper by presenting dialogs to get the necessary
+ * parameters.
+ *
  */
 public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
 
@@ -22,8 +26,10 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
     }
 
     /**
+     * Shows dialogs that prompt the user for information needed to
+     * construct a ClonedRepoHelper.
      *
-     * @return
+     * @return the new ClonedRepoHelper.
      * @throws Exception when constructing the new ClonedRepoHelper
      */
     @Override
