@@ -1,5 +1,6 @@
 package main.java.edugit;
 
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.Button;
@@ -36,7 +37,7 @@ import java.util.prefs.BackingStoreException;
  */
 public class SessionController extends Controller {
 
-    public ComboBox<BranchHelper> branchSelector;
+    public ComboBox<LocalBranchHelper> branchSelector;
     public Text currentRepoLabel;
     public NotificationPane notificationPane;
     private SessionModel theModel;
@@ -47,7 +48,7 @@ public class SessionController extends Controller {
     public Button mergeFromFetchButton;
     public Button pushButton;
     public Button fetchButton;
-    public Button manageBranchesButton;
+    public Button branchesButton;
 
     public TextArea commitMessageField;
     public WorkingTreePanelView workingTreePanelView;
@@ -110,7 +111,7 @@ public class SessionController extends Controller {
         mergeFromFetchButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         pushButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         fetchButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
-        manageBranchesButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
+        branchesButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
 
         gitStatusButton.setMaxWidth(Double.MAX_VALUE);
 
@@ -127,6 +128,7 @@ public class SessionController extends Controller {
         });
 
         commitInfoNameCopyButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
+        commitInfoGoToButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
     }
 
     @FXML
@@ -136,7 +138,7 @@ public class SessionController extends Controller {
         List<LocalBranchHelper> branches = this.theModel.getCurrentRepoHelper().getLocalBranchesFromManager();
         this.branchSelector.getItems().setAll(branches);
 
-        BranchHelper currentBranch = this.theModel.getCurrentRepoHelper().getCurrentBranch();
+        LocalBranchHelper currentBranch = this.theModel.getCurrentRepoHelper().getCurrentBranch();
 
         if(currentBranch == null){
             // This block will run when the app first opens and there is no selection in the dropdown.
@@ -474,7 +476,7 @@ public class SessionController extends Controller {
      *
      */
     public void loadSelectedBranch() {
-        BranchHelper selectedBranch = this.branchSelector.getValue();
+        LocalBranchHelper selectedBranch = this.branchSelector.getValue();
         if(selectedBranch == null) return;
         try {
             selectedBranch.checkoutBranch();
@@ -485,7 +487,7 @@ public class SessionController extends Controller {
         } catch (CheckoutConflictException e) {
             this.showCheckoutConflictsNotification(e.getConflictingPaths());
             this.updateBranchDropdown();
-        }catch(GitAPIException | IOException e){
+        }catch(GitAPIException e){
             e.printStackTrace();
         }
     }
@@ -671,7 +673,7 @@ public class SessionController extends Controller {
     }
 
     public void showBranchChooser() throws IOException{
-        this.theModel.getCurrentRepoHelper().getBranchManager().showBranchChooser();
+        this.theModel.getCurrentRepoHelper().getBranchManager().showBranchChooserWindow();
     }
 
     public void selectCommit(String id){

@@ -23,6 +23,14 @@
         -fx-background-color: #F22613;
     }
 
+        .button#warningButton:hover {
+            -fx-background-color: #F64747;
+        }
+
+        .button#warningButton:pressed, .button#warningButton:selected {
+            -fx-background-color: #C0392B;
+        }
+
     .button:hover {
         -fx-background-color: -fx-button-hover-fill;
     }

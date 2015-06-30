@@ -40,7 +40,7 @@ public abstract class RepoHelper {
 
     private Map<String, ObjectId> localBranches;
     private Map<String, ObjectId> remoteBranches;
-    private BranchHelper branchHelper;
+    private LocalBranchHelper branchHelper;
     private BranchManager branchManager;
 
     /**
@@ -557,11 +557,11 @@ public abstract class RepoHelper {
         }
     }
 
-    public void setCurrentBranch(BranchHelper branchHelper) {
+    public void setCurrentBranch(LocalBranchHelper branchHelper) {
         this.branchHelper = branchHelper;
     }
 
-    public BranchHelper getCurrentBranch() {
+    public LocalBranchHelper getCurrentBranch() {
         return this.branchHelper;
     }
 
