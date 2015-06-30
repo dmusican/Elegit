@@ -81,19 +81,19 @@
 
                     <Button GridPane.columnIndex="3"
                             GridPane.rowIndex="0"
+                            text="Branches"
+                            onAction="#showBranchChooser" />
+
+                    <Button GridPane.columnIndex="4"
+                            GridPane.rowIndex="0"
                             text="Switch login"
                             onAction="#switchUser" />
 
-                    <Button GridPane.columnIndex="4"
+                    <Button GridPane.columnIndex="5"
                             GridPane.rowIndex="0"
                             text="Clear recent repos"
                             onAction="#clearSavedStuff"
                             id="warningButton"/>
-
-                    <Button GridPane.columnIndex="5"
-                            GridPane.rowIndex="0"
-                            text="Manage branches"
-                            onAction="#showBranchChooser" />
 
                     <GridPane alignment="TOP_CENTER"
                               hgap="10"
@@ -126,7 +126,7 @@
                     </GridPane>
 
                     <AnchorPane GridPane.rowIndex="1"
-                                GridPane.columnIndex="6">
+                                GridPane.columnIndex="7">
                         <Circle AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
                                 id="remoteRepoCircle"
                                 fx:id="remoteCircle"
@@ -135,7 +135,7 @@
                     </AnchorPane>
 
                     <ArrowButton GridPane.rowIndex="1"
-                                 GridPane.columnIndex="5"
+                                 GridPane.columnIndex="6"
                                  GridPane.halignment="RIGHT"
                                  id="codeButton"
                                  fx:id="fetchButton"
@@ -146,7 +146,7 @@
                     <CommitTreePanelView GridPane.rowIndex="1"
                                          GridPane.columnIndex="2"
                                          GridPane.rowSpan="1"
-                                         GridPane.columnSpan="3"
+                                         GridPane.columnSpan="4"
                                          fx:id="remoteCommitTreePanelView"/>
 
                     <ArrowButton GridPane.rowIndex="2"
@@ -159,7 +159,7 @@
                                  onAction="#handleMergeFromFetchButton"/>
 
                     <ArrowButton GridPane.rowIndex="2"
-                                 GridPane.columnIndex="4"
+                                 GridPane.columnIndex="5"
                                  GridPane.halignment="RIGHT"
                                  id="codeButton"
                                  fx:id="pushButton"
@@ -171,7 +171,7 @@
                     <CommitTreePanelView GridPane.rowIndex="3"
                                          GridPane.columnIndex="2"
                                          GridPane.rowSpan="1"
-                                         GridPane.columnSpan="3"
+                                         GridPane.columnSpan="4"
                                          fx:id="localCommitTreePanelView"/>
 
                     <ArrowButton GridPane.rowIndex="3"
