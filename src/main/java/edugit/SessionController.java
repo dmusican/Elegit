@@ -1,6 +1,5 @@
 package main.java.edugit;
 
-import com.sun.xml.internal.ws.api.pipe.FiberContextSwitchInterceptor;
 import javafx.fxml.FXML;
 import main.java.edugit.exceptions.CancelledLoginException;
 import main.java.edugit.exceptions.NoOwnerInfoException;
@@ -15,7 +14,6 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextArea;
 import javafx.scene.shape.Circle;
 import javafx.scene.text.Text;
-import org.controlsfx.control.ListSelectionView;
 import org.controlsfx.control.NotificationPane;
 import org.controlsfx.control.action.Action;
 import org.eclipse.jgit.api.errors.*;
@@ -612,6 +610,6 @@ public class SessionController extends Controller {
     }
 
     public void showBranchChooser(ActionEvent actionEvent) throws IOException {
-        this.theModel.getCurrentRepoHelper().getBranchManager().showBranchChooser();
+        this.theModel.getCurrentRepoHelper().getBranchManager().showBranchChooserWindow();
     }
 }

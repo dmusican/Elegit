@@ -5,12 +5,14 @@ import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Insets;
 import javafx.scene.Group;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionMode;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
@@ -41,6 +43,8 @@ public class BranchManager {
     private Repository repo;
     private NotificationPane notificationPane;
 
+    private TextField newBranchNameField;
+
     public BranchManager(ArrayList<LocalBranchHelper> localBranches, ArrayList<RemoteBranchHelper> remoteBranches, Repository repo) throws IOException {
         this.repo = repo;
 
@@ -49,22 +53,16 @@ public class BranchManager {
 
         this.remoteListView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
         this.localListView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
+
+        this.newBranchNameField = new TextField();
+        this.newBranchNameField.setPromptText("Branch name");
     }
 
-    private LocalBranchHelper createLocalTrackingBranchForRemote(RemoteBranchHelper remoteBranchHelper) throws GitAPIException, IOException {
-        Ref trackingBranchRef = new Git(this.repo).branchCreate().
-                setName(remoteBranchHelper.getBranchName()).
-                setUpstreamMode(CreateBranchCommand.SetupUpstreamMode.TRACK).
-                setStartPoint(remoteBranchHelper.getRefPathString()).
-                call();
-        LocalBranchHelper trackingBranch = new LocalBranchHelper(trackingBranchRef, this.repo);
-        return trackingBranch;
-    }
-
-    public void showBranchChooser() throws IOException {
+    public void showBranchChooserWindow() throws IOException {
         GridPane root = new GridPane();
-        root.setHgap(5);
-        root.setVgap(5);
+        root.setHgap(10);
+        root.setVgap(10);
+        root.setPadding(new Insets(10));
         root.add(this.remoteListView, 0, 0); // col, row
         root.add(this.localListView, 1, 0);
 
@@ -86,12 +84,42 @@ public class BranchManager {
         root.add(trackRemoteBranchButton, 0, 1);
         root.add(deleteLocalBranchButton, 1, 1);
 
+        root.add(new Text(String.format("Branch off from %s:", this.repo.getBranch())), 0, 2, 2, 1); // colspan = 2
+
+        root.add(this.newBranchNameField, 0, 3);
+
+        Button newBranchButton = new Button("Create branch");
+        newBranchButton.setOnAction(e -> {
+            try {
+                LocalBranchHelper newLocalBranch = this.createNewLocalBranch(this.newBranchNameField.getText());
+                this.localListView.getItems().add(newLocalBranch);
+            }catch (InvalidRefNameException e1) {
+                this.showInvalidBranchNameNotification();
+                e1.printStackTrace();
+            } catch (GitAPIException e1) {
+                e1.printStackTrace();
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
+        });
+        root.add(newBranchButton, 1, 3);
+
         Stage stage = new Stage();
         stage.setTitle("Branch Manager");
         this.notificationPane = new NotificationPane(root);
         this.notificationPane.getStylesheets().add("/main/resources/edugit/css/BaseStyle.css");
         stage.setScene(new Scene(this.notificationPane, 450, 450));
         stage.show();
+    }
+
+    private LocalBranchHelper createLocalTrackingBranchForRemote(RemoteBranchHelper remoteBranchHelper) throws GitAPIException, IOException {
+        Ref trackingBranchRef = new Git(this.repo).branchCreate().
+                setName(remoteBranchHelper.getBranchName()).
+                setUpstreamMode(CreateBranchCommand.SetupUpstreamMode.TRACK).
+                setStartPoint(remoteBranchHelper.getRefPathString()).
+                call();
+        LocalBranchHelper trackingBranch = new LocalBranchHelper(trackingBranchRef, this.repo);
+        return trackingBranch;
     }
 
     public List<LocalBranchHelper> getLocalBranches() {
@@ -133,6 +161,14 @@ public class BranchManager {
 
         // TODO: add optional delete from remote, too.
         // see http://stackoverflow.com/questions/11892766/how-to-remove-remote-branch-with-jgit
+    }
+
+    private LocalBranchHelper createNewLocalBranch(String branchName) throws GitAPIException, IOException {
+        Git git = new Git(this.repo);
+        Ref newBranch = git.branchCreate().setName(branchName).call();
+        LocalBranchHelper newLocalBranchHelper = new LocalBranchHelper(newBranch, this.repo);
+
+        return newLocalBranchHelper;
     }
 
     private void forceDeleteSelectedLocalBranch() {
@@ -187,6 +223,13 @@ public class BranchManager {
 
     private void showRefAlreadyExistsNotification() {
         this.notificationPane.setText("Looks like that branch already exists locally!");
+
+        this.notificationPane.getActions().clear();
+        this.notificationPane.show();
+    }
+
+    private void showInvalidBranchNameNotification() {
+        this.notificationPane.setText("That branch name is invalid.");
 
         this.notificationPane.getActions().clear();
         this.notificationPane.show();

@@ -45,7 +45,6 @@ public class RemoteBranchHelper extends BranchHelper {
     /// Instance level:
     public RemoteBranchHelper(Ref ref, Repository repo) {
         super(ref.getName(), repo);
-        this.isLocal = false;
     }
 
     @Override

@@ -17,8 +17,6 @@ public abstract class BranchHelper {
 
     LocalBranchHelper trackingBranch;
 
-    protected boolean isLocal;
-
     public BranchHelper(String refPathString, Repository repo) {
         this.refPathString = refPathString;
         this.repo = repo;
@@ -44,10 +42,6 @@ public abstract class BranchHelper {
 
     public LocalBranchHelper getTrackingBranch() {
         return trackingBranch;
-    }
-
-    public boolean isLocal() {
-        return this.isLocal;
     }
 
     public void setTrackingBranch(LocalBranchHelper trackingBranch) {
