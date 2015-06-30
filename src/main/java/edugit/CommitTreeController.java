@@ -141,7 +141,7 @@ public class CommitTreeController{
      * @param commitTreeModel the model whose view should be updated
      */
     public static void init(CommitTreeModel commitTreeModel){
-        RepoHelper repo = commitTreeModel.sessionModel.currentRepoHelper;
+        RepoHelper repo = commitTreeModel.sessionModel.getCurrentRepoHelper();
         List<String> commitIDs = repo.getAllCommitIDs();
         for(CommitTreeModel model : allCommitTreeModels){
             if(model.treeGraph != null){

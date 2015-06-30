@@ -17,17 +17,17 @@ public class RemoteCommitTreeModel extends CommitTreeModel{
     }
 
     @Override
-    protected List<CommitHelper> getAllCommits(){
-        if(this.sessionModel.currentRepoHelper != null){
-            return this.sessionModel.currentRepoHelper.getRemoteCommits();
+    protected List<CommitHelper> getAllCommits() {
+        if(this.sessionModel != null && this.sessionModel.getCurrentRepoHelper() != null){
+            return this.sessionModel.getCurrentRepoHelper().getRemoteCommits();
         }
         return new ArrayList<>();
     }
 
     @Override
     protected List<CommitHelper> getNewCommits() throws GitAPIException, IOException{
-        if(this.sessionModel.currentRepoHelper != null){
-            return this.sessionModel.currentRepoHelper.getNewRemoteCommits();
+        if(this.sessionModel != null && this.sessionModel.getCurrentRepoHelper() != null){
+            return this.sessionModel.getCurrentRepoHelper().getNewRemoteCommits();
         }
         return new ArrayList<>();
     }

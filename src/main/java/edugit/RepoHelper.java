@@ -1,5 +1,6 @@
 package main.java.edugit;
 
+import main.java.edugit.exceptions.MissingRepoException;
 import main.java.edugit.exceptions.NoOwnerInfoException;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -166,7 +167,8 @@ public abstract class RepoHelper {
      * @param commitMessage the message for the commit.
      * @throws GitAPIException if the `git commit` call fails.
      */
-    public void commit(String commitMessage) throws GitAPIException {
+    public void commit(String commitMessage) throws GitAPIException, MissingRepoException{
+        if(!exists()) throw new MissingRepoException();
         // should this Git instance be class-level?
         Git git = new Git(this.repo);
         // git commit:
@@ -181,7 +183,8 @@ public abstract class RepoHelper {
      *
      * @throws GitAPIException if the `git push` call fails.
      */
-    public void pushAll() throws GitAPIException {
+    public void pushAll() throws GitAPIException, MissingRepoException{
+        if(!exists()) throw new MissingRepoException();
         Git git = new Git(this.repo);
         PushCommand push = git.push().setPushAll();
 
@@ -193,7 +196,8 @@ public abstract class RepoHelper {
         git.close();
     }
 
-    public void fetch() throws GitAPIException {
+    public void fetch() throws GitAPIException, MissingRepoException{
+        if(!exists()) throw new MissingRepoException();
         Git git = new Git(this.repo);
 
         // The JGit docs say that if setCheckFetchedObjects
@@ -210,7 +214,8 @@ public abstract class RepoHelper {
         git.close();
     }
 
-    public void mergeFromFetch() throws IOException, GitAPIException {
+    public void mergeFromFetch() throws IOException, GitAPIException, MissingRepoException{
+        if(!exists()) throw new MissingRepoException();
         Git git = new Git(this.repo);
         git.merge().include(this.repo.resolve("FETCH_HEAD")).call();
         git.close();

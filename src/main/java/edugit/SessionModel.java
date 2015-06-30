@@ -12,6 +12,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
@@ -26,9 +27,9 @@ public class SessionModel {
     private static final String RECENT_REPOS_LIST_KEY = "RECENT_REPOS_LIST";
     private static final String LAST_OPENED_REPO_PATH_KEY = "LAST_OPENED_REPO_PATH";
 
-    RepoHelper currentRepoHelper;
+    private RepoHelper currentRepoHelper;
 
-    ArrayList<RepoHelper> allRepoHelpers;
+    List<RepoHelper> allRepoHelpers;
     private static SessionModel sessionModel;
 
     // All RepoHelpers have their own owner. This
@@ -121,7 +122,6 @@ public class SessionModel {
                 this.openRepoAtIndex(this.allRepoHelpers.indexOf(matchedRepoHelper));
             }else{
                 this.allRepoHelpers.remove(matchedRepoHelper);
-                this.saveListOfRepoPathStrings();
                 throw new MissingRepoException();
             }
         }
@@ -313,7 +313,7 @@ public class SessionModel {
         return changedRepoFiles;
     }
 
-    public RepoHelper getCurrentRepoHelper() {
+    public RepoHelper getCurrentRepoHelper(){
         return currentRepoHelper;
     }
 
@@ -325,7 +325,13 @@ public class SessionModel {
         this.defaultOwner = defaultOwner;
     }
 
-    public ArrayList<RepoHelper> getAllRepoHelpers() {
+    public List<RepoHelper> getAllRepoHelpers() {
+        List<RepoHelper> tempList = new ArrayList<>(allRepoHelpers);
+        for(RepoHelper r : tempList){
+            if(!r.exists()){
+                allRepoHelpers.remove(r);
+            }
+        }
         return allRepoHelpers;
     }
 
