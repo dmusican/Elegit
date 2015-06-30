@@ -52,8 +52,7 @@ public class BranchManager {
     }
 
     private LocalBranchHelper createLocalTrackingBranchForRemote(RemoteBranchHelper remoteBranchHelper) throws GitAPIException, IOException {
-        Ref trackingBranchRef = new Git(this.repo).checkout().
-                setCreateBranch(true).
+        Ref trackingBranchRef = new Git(this.repo).branchCreate().
                 setName(remoteBranchHelper.getBranchName()).
                 setUpstreamMode(CreateBranchCommand.SetupUpstreamMode.TRACK).
                 setStartPoint(remoteBranchHelper.getRefPathString()).
@@ -168,7 +167,7 @@ public class BranchManager {
     private void showNotMergedNotification() {
         this.notificationPane.setText("That branch has to be merged before you can do that.");
 
-        Action forceDeleteAction = new Action("Force delete (-f)", e -> {
+        Action forceDeleteAction = new Action("Force delete", e -> {
             this.forceDeleteSelectedLocalBranch();
             this.notificationPane.hide();
         });
@@ -179,7 +178,7 @@ public class BranchManager {
     }
 
     private void showCannotDeleteBranchNotification() {
-        this.notificationPane.setText("Sorry, that branch can't be deleted right now.");
+        this.notificationPane.setText("Sorry, that branch can't be deleted right now. Try checking out a different branch first.");
         // probably because it's checked out
 
         this.notificationPane.getActions().clear();
