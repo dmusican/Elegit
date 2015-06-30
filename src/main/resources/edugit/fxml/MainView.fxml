@@ -114,8 +114,22 @@
                                 GridPane.vgrow="ALWAYS"
                                 fx:id="workingTreePanelView"/>
 
+                        <HBox GridPane.columnIndex="0"
+                              GridPane.rowIndex="2"
+                              spacing="20"
+                              alignment="center" >
+
+                            <Button fx:id="selectAllButton"
+                                    text="Select All"
+                                    onAction="#onSelectAllButton"/>
+
+                            <Button fx:id="deselectAllButton"
+                                    text="Deselect All"
+                                    onAction="#onDeselectAllButton"/>
+                        </HBox>
+
                         <TextArea
-                                GridPane.rowIndex="2"
+                                GridPane.rowIndex="3"
                                 fx:id="commitMessageField"
                                 prefRowCount="4"
                                 prefColumnCount="1"

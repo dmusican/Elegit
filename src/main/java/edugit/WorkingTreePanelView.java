@@ -1,9 +1,13 @@
 package main.java.edugit;
 
+import javafx.scene.control.Button;
 import javafx.scene.control.CheckBoxTreeItem;
 import javafx.scene.control.TreeView;
 import javafx.scene.control.cell.CheckBoxTreeCell;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.VBox;
+import javafx.scene.text.Text;
 import org.eclipse.jgit.api.errors.GitAPIException;
 
 import java.io.IOException;
@@ -31,6 +35,12 @@ public class WorkingTreePanelView extends Region{
 
         this.directoryTreeView.prefHeightProperty().bind(this.heightProperty());
         this.getChildren().add(this.directoryTreeView);
+    }
+
+    public void setAllFilesSelected(boolean selected) {
+        for (CheckBoxTreeItem fileCell : this.fileLeafs) {
+            fileCell.setSelected(selected);
+        }
     }
 
     /**

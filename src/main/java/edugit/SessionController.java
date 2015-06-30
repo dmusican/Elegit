@@ -34,6 +34,8 @@ public class SessionController extends Controller {
     public ComboBox<LocalBranchHelper> branchSelector;
     public Text currentRepoLabel;
     public NotificationPane notificationPane;
+    public Button selectAllButton;
+    public Button deselectAllButton;
     private SessionModel theModel;
 
     public Button openRepoDirButton;
@@ -220,27 +222,27 @@ public class SessionController extends Controller {
         MenuItem existingOption = new MenuItem("Load existing repository");
         existingOption.setOnAction(t -> {
             ExistingRepoHelperBuilder builder = new ExistingRepoHelperBuilder(this.theModel);
-            try{
+            try {
                 RepoHelper repoHelper = builder.getRepoHelperFromDialogs();
                 this.theModel.openRepoFromHelper(repoHelper);
 
                 this.initPanelViews();
                 this.updateUIEnabledStatus();
-            }catch(IllegalArgumentException e){
+            } catch (IllegalArgumentException e) {
                 this.showInvalidRepoNotification();
-            } catch(NoRepoSelectedException e){
+            } catch (NoRepoSelectedException e) {
                 // The user pressed cancel on the dialog box. Do nothing!
-            }catch(NoOwnerInfoException e){
+            } catch(NoOwnerInfoException e) {
                 this.showNotLoggedInNotification(() -> existingOption.getOnAction().handle(t));
-            }catch(BackingStoreException | ClassNotFoundException e){
+            } catch(BackingStoreException | ClassNotFoundException e) {
                 // These should only occur when the recent repo information
                 // fails to be loaded or stored, respectively
                 // Should be ok to silently fail
-            }catch(IOException | GitAPIException e){
+            } catch (IOException | GitAPIException e) {
                 // Somehow, the repository failed to get properly cloned
                 // TODO: better error message?
                 this.showRepoWasNotLoadedNotification();
-            }catch(MissingRepoException e){
+            } catch (MissingRepoException e) {
                 this.showMissingRepoNotification();
                 updateMenuBarWithRecentRepos();
             }
@@ -507,7 +509,8 @@ public class SessionController extends Controller {
         mergeFromFetchButton.setDisable(disable);
         pushButton.setDisable(disable);
         fetchButton.setDisable(disable);
-        branchesButton.setDisable(disable);
+        selectAllButton.setDisable(disable);
+        deselectAllButton.setDisable(disable);
         remoteCircle.setVisible(!disable);
     }
 
@@ -592,6 +595,7 @@ public class SessionController extends Controller {
      */
     public void clearSavedStuff() throws BackingStoreException, IOException, ClassNotFoundException {
         this.theModel.clearStoredPreferences();
+        this.showPrefsClearedNotification();
     }
 
     /**
@@ -740,6 +744,13 @@ public class SessionController extends Controller {
         this.notificationPane.show();
     }
 
+    private void showPrefsClearedNotification() {
+        this.notificationPane.setText("Your recent repositories have been cleared. Restart the app for changes to take effect.");
+
+        this.notificationPane.getActions().clear();
+        this.notificationPane.show();
+    }
+
     private void showCheckoutConflictsNotification(List<String> conflictingPaths) {
         String conflictList = "";
         for (String pathName : conflictingPaths) {
@@ -812,5 +823,21 @@ public class SessionController extends Controller {
     public void handleGoToCommitButton(){
         String id = commitInfoNameText.getText();
         CommitTreeController.focusCommitInGraph(id);
+    }
+
+    /**
+     * Selects all files in the working tree for a commit.
+     *
+     */
+    public void onSelectAllButton() {
+        this.workingTreePanelView.setAllFilesSelected(true);
+    }
+
+    /**
+     * Deselects all files in the working tree for a commit.
+     *
+     */
+    public void onDeselectAllButton() {
+        this.workingTreePanelView.setAllFilesSelected(false);
     }
 }
