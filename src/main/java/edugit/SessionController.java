@@ -1,21 +1,23 @@
 package main.java.edugit;
 
-import com.sun.xml.internal.ws.api.pipe.FiberContextSwitchInterceptor;
-import javafx.fxml.FXML;
-import main.java.edugit.exceptions.CancelledLoginException;
-import main.java.edugit.exceptions.NoOwnerInfoException;
-import main.java.edugit.exceptions.NoRepoSelectedException;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
+import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
 import javafx.scene.shape.Circle;
 import javafx.scene.text.Text;
-import org.controlsfx.control.ListSelectionView;
+import main.java.edugit.exceptions.CancelledLoginException;
+import main.java.edugit.exceptions.NoOwnerInfoException;
+import main.java.edugit.exceptions.NoRepoSelectedException;
 import org.controlsfx.control.NotificationPane;
 import org.controlsfx.control.action.Action;
 import org.eclipse.jgit.api.errors.*;
@@ -53,6 +55,13 @@ public class SessionController extends Controller {
 
     public Circle remoteCircle;
 
+    public TextField commitInfoNameText;
+    public Label commitInfoAuthorText;
+    public Label commitInfoDateText;
+    public Button commitInfoNameCopyButton;
+    public Button commitInfoGoToButton;
+    public TextArea commitInfoMessageText;
+
     CommitTreeModel localCommitTreeModel;
     CommitTreeModel remoteCommitTreeModel;
 
@@ -71,6 +80,8 @@ public class SessionController extends Controller {
         this.initializeLayoutParameters();
 
         this.theModel = SessionModel.getSessionModel();
+
+        CommitTreeController.sessionController = this;
 
         this.workingTreePanelView.setSessionModel(this.theModel);
         this.localCommitTreeModel = new LocalCommitTreeModel(this.theModel, this.localCommitTreePanelView);
@@ -108,10 +119,12 @@ public class SessionController extends Controller {
 
         remoteCommitTreePanelView.heightProperty().addListener((observable, oldValue, newValue) -> {
             remoteCircle.setCenterY(newValue.doubleValue() / 2.0);
-            if (oldValue.doubleValue() == 0) {
-                remoteCircle.setRadius(newValue.doubleValue() / 5.0);
+            if(oldValue.doubleValue() == 0){
+                remoteCircle.setRadius(newValue.doubleValue() / 4.0);
             }
         });
+
+        commitInfoNameCopyButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
     }
 
     @FXML
@@ -136,7 +149,7 @@ public class SessionController extends Controller {
                 }
             }
             if(currentBranch != null){
-                CommitTreeController.focusCommit(this.theModel.currentRepoHelper.getCommitByBranchName(currentBranch.refPathString));
+                CommitTreeController.focusCommitInGraph(this.theModel.currentRepoHelper.getCommitByBranchName(currentBranch.refPathString));
             }
         }
 
@@ -442,7 +455,7 @@ public class SessionController extends Controller {
         try {
             selectedBranch.checkoutBranch();
             RepoHelper repoHelper = this.theModel.getCurrentRepoHelper();
-            CommitTreeController.focusCommit(repoHelper.getCommitByBranchName(selectedBranch.refPathString));
+            CommitTreeController.focusCommitInGraph(repoHelper.getCommitByBranchName(selectedBranch.refPathString));
 
             this.theModel.getCurrentRepoHelper().setCurrentBranch(selectedBranch);
         } catch (CheckoutConflictException e) {
@@ -611,7 +624,38 @@ public class SessionController extends Controller {
         this.notificationPane.show();
     }
 
-    public void showBranchChooser(ActionEvent actionEvent) throws IOException {
+    public void showBranchChooser(ActionEvent actionEvent) throws IOException{
         this.theModel.getCurrentRepoHelper().getBranchManager().showBranchChooser();
+    }
+
+    public void selectCommit(String id){
+        CommitHelper commit = this.theModel.currentRepoHelper.getCommit(id);
+        commitInfoNameText.setText(commit.getName());
+        commitInfoAuthorText.setText(commit.getAuthorName());
+        commitInfoDateText.setText(commit.getFormattedWhen());
+        commitInfoMessageText.setText(commit.getMessage(true));
+        commitInfoNameCopyButton.setDisable(false);
+        commitInfoGoToButton.setDisable(false);
+    }
+
+    public void clearSelectedCommit(){
+        commitInfoNameText.clear();
+        commitInfoAuthorText.setText("");
+        commitInfoDateText.setText("");
+        commitInfoMessageText.clear();
+        commitInfoNameCopyButton.setDisable(true);
+        commitInfoGoToButton.setDisable(true);
+    }
+
+    public void handleCommitNameCopyButton(ActionEvent actionEvent){
+        Clipboard clipboard = Clipboard.getSystemClipboard();
+        ClipboardContent content = new ClipboardContent();
+        content.putString(commitInfoNameText.getText());
+        clipboard.setContent(content);
+    }
+
+    public void handleGoToCommitButton(ActionEvent actionEvent){
+        String id = commitInfoNameText.getText();
+        CommitTreeController.focusCommitInGraph(id);
     }
 }

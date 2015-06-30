@@ -69,7 +69,7 @@ public class CommitTreePanelView extends Region{
                     @Override
                     protected Void call(){
                         ScrollPane sp = treeGraph.getScrollPane();
-                        sp.setPannable(true);
+                        sp.setOnMouseClicked(event -> CommitTreeController.handleMouseClicked());
                         getChildren().clear();
                         getChildren().add(anchorScrollPane(sp));
                         isRunning = false;
