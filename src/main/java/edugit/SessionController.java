@@ -9,6 +9,7 @@ import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.shape.Circle;
@@ -53,10 +54,11 @@ public class SessionController extends Controller {
 
     public Circle remoteCircle;
 
-    public Label commitInfoNameText;
+    public TextField commitInfoNameText;
     public Label commitInfoAuthorText;
     public Label commitInfoDateText;
     public Button commitInfoNameCopyButton;
+    public Button commitInfoGoToButton;
     public TextArea commitInfoMessageText;
 
     CommitTreeModel localCommitTreeModel;
@@ -627,6 +629,17 @@ public class SessionController extends Controller {
         commitInfoAuthorText.setText(commit.getAuthorName());
         commitInfoDateText.setText(commit.getFormattedWhen());
         commitInfoMessageText.setText(commit.getMessage(true));
+        commitInfoNameCopyButton.setDisable(false);
+        commitInfoGoToButton.setDisable(false);
+    }
+
+    public void clearSelectedCommit(){
+        commitInfoNameText.clear();
+        commitInfoAuthorText.setText("");
+        commitInfoDateText.setText("");
+        commitInfoMessageText.clear();
+        commitInfoNameCopyButton.setDisable(true);
+        commitInfoGoToButton.setDisable(true);
     }
 
     public void handleCommitNameCopyButton(ActionEvent actionEvent){
@@ -634,5 +647,10 @@ public class SessionController extends Controller {
         ClipboardContent content = new ClipboardContent();
         content.putString(commitInfoNameText.getText());
         clipboard.setContent(content);
+    }
+
+    public void handleGoToCommitButton(ActionEvent actionEvent){
+        String id = commitInfoNameText.getText();
+        CommitTreeController.focusCommitInGraph(id);
     }
 }

@@ -209,7 +209,7 @@ public abstract class CommitTreeModel{
     private static String getTreeCellLabel(CommitHelper commitHelper){
         return commitHelper.getAuthorName()+ "\n"+
                 commitHelper.getFormattedWhen()+"\n"+
-                commitHelper.getMessage(false)+"\n\n"+
-                commitHelper.getName();
+                commitHelper.getName()+"\n\n"+
+                commitHelper.getMessage(false);
     }
 }

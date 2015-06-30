@@ -28,8 +28,20 @@ public class CommitTreeController{
      * @param cell the cell that was clicked
      */
     public static void handleMouseClicked(Cell cell){
-        selectCommitInGraph(cell.getCellId());
-        sessionController.selectCommit(cell.getCellId());
+        String id = cell.getCellId();
+        if(id.equals(selectedCellID)){
+            sessionController.clearSelectedCommit();
+        }else{
+            sessionController.selectCommit(id);
+        }
+        selectCommitInGraph(id);
+    }
+
+    public static void handleMouseClicked(){
+        if(selectedCellID != null){
+            selectCommitInGraph(selectedCellID);
+        }
+        sessionController.clearSelectedCommit();
     }
 
     /**
@@ -144,6 +156,7 @@ public class CommitTreeController{
                 }
             }
         }
+        sessionController.clearSelectedCommit();
     }
 
     /**
@@ -176,6 +189,20 @@ public class CommitTreeController{
         for(CommitTreeModel model : allCommitTreeModels){
             if(model.treeGraph != null && model.treeGraph.treeGraphModel.containsID(commit.getId())){
                 Cell c = model.treeGraph.treeGraphModel.cellMap.get(commit.getId());
+                Highlighter.emphasizeCell(c);
+            }
+        }
+    }
+
+    /**
+     * Uses the Highlighter class to emphasize and scroll to the cell corresponding
+     * to the cell with the given ID in every view corresponding to a tracked CommitTreeModel
+     * @param commitID the ID of the commit to focus
+     */
+    public static void focusCommitInGraph(String commitID){
+        for(CommitTreeModel model : allCommitTreeModels){
+            if(model.treeGraph != null && model.treeGraph.treeGraphModel.containsID(commitID)){
+                Cell c = model.treeGraph.treeGraphModel.cellMap.get(commitID);
                 Highlighter.emphasizeCell(c);
             }
         }

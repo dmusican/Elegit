@@ -91,7 +91,10 @@ public class Cell extends Pane{
         tooltip.setMaxWidth(300);
         Tooltip.install(this, tooltip);
 
-        this.setOnMouseClicked(event -> CommitTreeController.handleMouseClicked(this));
+        this.setOnMouseClicked(event -> {
+            CommitTreeController.handleMouseClicked(this);
+            event.consume();
+        });
         this.setOnMouseEntered(event -> CommitTreeController.handleMouseover(this, true));
         this.setOnMouseExited(event -> CommitTreeController.handleMouseover(this, false));
     }

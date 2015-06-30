@@ -126,7 +126,7 @@ public class CommitHelper{
      * @return the formatted date string corresponding to the time of this commit
      */
     public String getFormattedWhen(){
-        DateFormat formatter = new SimpleDateFormat("h:mm a MMM dd yyyy");
+        DateFormat formatter = new SimpleDateFormat("MMM dd yyyy, h:mm a");
         return formatter.format(this.getWhen());
     }
 
