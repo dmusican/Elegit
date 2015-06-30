@@ -128,8 +128,13 @@ public class SessionController extends Controller {
         commitInfoNameCopyButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
     }
 
-    @FXML
-    private void updateBranchDropdown() throws GitAPIException, IOException {
+    /**
+     * Gets the local branches and populates the branch selector dropdown.
+     *
+     * @throws GitAPIException
+     * @throws IOException
+     */
+    public void updateBranchDropdown() throws GitAPIException, IOException {
         this.branchSelector.setVisible(true);
 
         List<LocalBranchHelper> branches = this.theModel.getCurrentRepoHelper().getLocalBranchesFromManager();
@@ -142,7 +147,7 @@ public class SessionController extends Controller {
             // It finds the repoHelper that matches the currently checked-out branch.
             String branchName = this.theModel.getCurrentRepo().getFullBranch();
             LocalBranchHelper current = new LocalBranchHelper(branchName, this.theModel.getCurrentRepo());
-            for (BranchHelper branchHelper : branches) {
+            for (LocalBranchHelper branchHelper : branches) {
                 if (branchHelper.getBranchName().equals(current.getBranchName())) {
                     currentBranch = current;
                     this.theModel.getCurrentRepoHelper().setCurrentBranch(currentBranch);
@@ -155,7 +160,6 @@ public class SessionController extends Controller {
         }
 
         this.branchSelector.setValue(currentBranch);
-        // TODO: do a commit-focus on the initial load, too!
     }
 
     /**
@@ -167,7 +171,6 @@ public class SessionController extends Controller {
      *
      * Since each option creates a new repo, this method handles errors.
      *
-     * TODO: split this method up or something. it's getting too big?
      */
     private void initializeMenuBar() throws GitAPIException, IOException {
         this.newRepoMenu = new Menu("Load new Repository");
@@ -269,6 +272,9 @@ public class SessionController extends Controller {
 
     }
 
+    /**
+     * Puts all the model's RepoHelpers into the menubar.
+     */
     private void updateMenuBarWithRecentRepos() {
         this.openRecentRepoMenu.getItems().clear();
 
@@ -335,7 +341,13 @@ public class SessionController extends Controller {
 
     }
 
-    public void handleMergeFromFetchButton(ActionEvent actionEvent) throws IOException, GitAPIException {
+    /**
+     * Merges in FETCH_HEAD (after a fetch).
+     *
+     * @throws IOException
+     * @throws GitAPIException
+     */
+    public void handleMergeFromFetchButton() throws IOException, GitAPIException {
         try {
             this.theModel.currentRepoHelper.mergeFromFetch();
             // Refresh panel views
@@ -348,7 +360,13 @@ public class SessionController extends Controller {
 
     }
 
-    public void handlePushButton(ActionEvent actionEvent) throws GitAPIException, IOException {
+    /**
+     * Performs a `git push`
+     *
+     * @throws GitAPIException
+     * @throws IOException
+     */
+    public void handlePushButton() throws GitAPIException, IOException {
         try {
             this.theModel.currentRepoHelper.pushAll();
 
@@ -361,7 +379,13 @@ public class SessionController extends Controller {
         }
     }
 
-    public void handleFetchButton(ActionEvent actionEvent) throws GitAPIException, IOException {
+    /**
+     * Performs a `git fetch`
+     *
+     * @throws GitAPIException
+     * @throws IOException
+     */
+    public void handleFetchButton() throws GitAPIException, IOException {
         try {
             this.theModel.currentRepoHelper.fetch();
             // Refresh panel views
@@ -445,12 +469,12 @@ public class SessionController extends Controller {
     }
 
     /**
+     * Checks out the branch that is currently selected in the dropdown.
      *
-     * @param actionEvent
      * @throws GitAPIException
      * @throws IOException from updateBranchDropdown()
      */
-    public void loadSelectedBranch(ActionEvent actionEvent) throws GitAPIException, IOException {
+    public void loadSelectedBranch() throws GitAPIException, IOException {
         LocalBranchHelper selectedBranch = this.branchSelector.getValue();
         if(selectedBranch == null) return;
         try {
@@ -489,17 +513,30 @@ public class SessionController extends Controller {
         }
     }
 
+    /**
+     * Updates the repo label with the current repo's directory name
+     */
     private void updateCurrentRepoLabel() {
         String name = this.theModel.getCurrentRepoHelper().toString();
         this.currentRepoLabel.setText(name);
     }
 
-    /// THIS IS JUST A DEBUG METHOD FOR A DEBUG BUTTON. TEMPORARY!
-    // todo: set up more permanent data clearing functionality
-    public void clearSavedStuff(ActionEvent actionEvent) throws BackingStoreException, IOException, ClassNotFoundException {
+    /**
+     * Clears the history stored with the Preferences API.
+     *
+     * TODO: Come up with better solution?
+     *
+     * @throws BackingStoreException
+     * @throws IOException
+     * @throws ClassNotFoundException
+     */
+    public void clearSavedStuff() throws BackingStoreException, IOException, ClassNotFoundException {
         this.theModel.clearStoredPreferences();
     }
 
+    /**
+     * Creates a new owner and set it as the current default owner.
+     */
     public void switchUser() {
         // Begin with a nullified RepoOwner:
         RepoOwner newOwner = new RepoOwner(null, null);
@@ -518,7 +555,10 @@ public class SessionController extends Controller {
         this.theModel.setCurrentDefaultOwner(newOwner);
     }
 
-    public void openRepoDirectory(ActionEvent actionEvent){
+    /**
+     * Opens the current repo directory (e.g. in Finder or Windows Explorer).
+     */
+    public void openRepoDirectory(){
         if (Desktop.isDesktopSupported()) {
             try{
                 Desktop.getDesktop().open(this.theModel.currentRepoHelper.localPath.toFile());
@@ -529,6 +569,8 @@ public class SessionController extends Controller {
             }
         }
     }
+
+    /// BEGIN: ERROR NOTIFICATIONS:
 
     private void showNotLoggedInNotification() {
         this.notificationPane.setText("You need to log in to do that.");
@@ -625,7 +667,14 @@ public class SessionController extends Controller {
         this.notificationPane.show();
     }
 
-    public void showBranchChooser(ActionEvent actionEvent) throws IOException {
+    // END: ERROR NOTIFICATIONS ^^^
+
+    /**
+     * Opens up the current repo helper's Branch Manager window.
+     *
+     * @throws IOException
+     */
+    public void showBranchChooser() throws IOException {
         this.theModel.getCurrentRepoHelper().getBranchManager().showBranchChooserWindow();
     }
 

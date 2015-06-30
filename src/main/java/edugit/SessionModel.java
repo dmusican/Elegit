@@ -49,6 +49,14 @@ public class SessionModel {
         this.preferences = Preferences.userNodeForPackage(this.getClass());
     }
 
+    /**
+     * Loads the repository (from its RepoHelper) that was open when the app was
+     * last closed. If this repo has been moved or deleted, it doesn't load anything.
+     *
+     * Uses the Java Preferences API (wrapped in IBM's PrefObj class) to load the repo.
+     *
+     * @throws Exception from the PrefObj and the ExistingRepoHelper
+     */
     public void loadMostRecentRepoHelper() throws Exception {
         String lastOpenedRepoPathString = (String) PrefObj.getObject(this.preferences, LAST_OPENED_REPO_PATH_KEY);
         if (lastOpenedRepoPathString != null) {
@@ -63,7 +71,12 @@ public class SessionModel {
         }
     }
 
-    /// todo: check in on all these exceptions being passed around in here
+    /**
+     * Loads all recently loaded repositories (stored with the Java Preferences API)
+     * into the recent repos menubar.
+     *
+     * @throws Exception from ExistingRepoHelper or PrefObj
+     */
     public void loadRecentRepoHelpersFromStoredPathStrings() throws Exception {
         ArrayList<String> storedRepoPathStrings = (ArrayList<String>) PrefObj.getObject(this.preferences, RECENT_REPOS_LIST_KEY);
         if (storedRepoPathStrings != null) {
@@ -143,7 +156,7 @@ public class SessionModel {
     /**
      * Calls `git status` and returns the set of untracked files that Git reports.
      *
-     * @return a set of untracked files in the working directory.
+     * @return a set of untracked filenames in the working directory.
      * @throws GitAPIException if the `git status` call fails.
      */
     public Set<String> getUntrackedFiles() throws GitAPIException {
@@ -153,6 +166,12 @@ public class SessionModel {
         return untrackedFiles;
     }
 
+    /**
+     * Calls `git status` and returns the set of conflicting files that Git reports.
+     *
+     * @return a set of conflicting filenames in the working directory.
+     * @throws GitAPIException
+     */
     public Set<String> getConflictingFiles() throws GitAPIException {
         Status status = new Git(this.getCurrentRepo()).status().call();
         Set<String> conflictingFiles = status.getConflicting();
@@ -163,7 +182,7 @@ public class SessionModel {
     /**
      * Calls `git status` and returns the set of missing files that Git reports.
      *
-     * @return a set of missing files in the working directory.
+     * @return a set of missing filenames in the working directory.
      * @throws GitAPIException if the `git status` call fails.
      */
     public Set<String> getMissingFiles() throws GitAPIException {
@@ -176,7 +195,7 @@ public class SessionModel {
     /**
      * Calls `git status` and returns the set of modified files that Git reports.
      *
-     * @return a set of modified files in the working directory.
+     * @return a set of modified filenames in the working directory.
      * @throws GitAPIException if the `git status` call fails.
      */
     public Set<String> getModifiedFiles() throws GitAPIException {
@@ -314,16 +333,15 @@ public class SessionModel {
         return defaultOwner;
     }
 
-    public void setDefaultOwner(RepoOwner defaultOwner) {
-        this.defaultOwner = defaultOwner;
-    }
-
     public ArrayList<RepoHelper> getAllRepoHelpers() {
         return allRepoHelpers;
     }
 
     /**
-     * NOTE: we have to reduce this to a list of strings instead of Paths
+     * Saves the model's list of RepoHelpers using the Preferences API (and the PrefObj wrapper
+     *  from IBM).
+     *
+     * We store these as a list of file strings instead of Paths
      *  because Paths aren't serializable.
      *
      * @throws BackingStoreException
@@ -341,12 +359,28 @@ public class SessionModel {
         PrefObj.putObject(this.preferences, RECENT_REPOS_LIST_KEY, repoPathStrings);
     }
 
+    /**
+     * Saves the most recently opened repository to the Preferences API (to be
+     *  re-opened next time the app is opened).
+     *
+     * @throws BackingStoreException
+     * @throws IOException
+     * @throws ClassNotFoundException
+     */
     private void saveMostRecentRepoPathString() throws BackingStoreException, IOException, ClassNotFoundException {
         String pathString = this.currentRepoHelper.getLocalPath().toString();
 
         PrefObj.putObject(this.preferences, LAST_OPENED_REPO_PATH_KEY, pathString);
     }
 
+    /**
+     * Clears the information stored by the Preferences API:
+     *  recent repos and the last opened repo.
+     *
+     * @throws BackingStoreException
+     * @throws IOException
+     * @throws ClassNotFoundException
+     */
     public void clearStoredPreferences() throws BackingStoreException, IOException, ClassNotFoundException {
         PrefObj.putObject(this.preferences, RECENT_REPOS_LIST_KEY, null);
         PrefObj.putObject(this.preferences, LAST_OPENED_REPO_PATH_KEY, null);
