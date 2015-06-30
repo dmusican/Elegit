@@ -14,15 +14,6 @@ import java.util.Arrays;
 public class LocalBranchHelper extends BranchHelper {
     public LocalBranchHelper(String refPathString, Repository repo) throws IOException {
         super(refPathString, repo);
-        this.isLocal = true; // todo: safe delete this field? ugly
-//        BranchTrackingStatus trackingStatus = BranchTrackingStatus.of(this.repo, this.branchName);
-//
-//        if (trackingStatus != null) {
-//            String trackedBranchRefPath = trackingStatus.getRemoteTrackingBranch();
-//
-//            RemoteBranchHelper trackedBranch = RemoteBranchHelper.getRemoteBranchHelperByRefPath(trackedBranchRefPath, this.repo);
-//            trackedBranch.setTrackingBranch(this);
-//        }
     }
 
     public LocalBranchHelper(Ref branchRef, Repository repo) throws IOException {
@@ -68,10 +59,5 @@ public class LocalBranchHelper extends BranchHelper {
     @Override
     public void checkoutBranch() throws GitAPIException {
         new Git(this.repo).checkout().setName(this.branchName).call();
-    }
-
-    @Override
-    public String toString() {
-        return "LOCAL: " + super.toString();
     }
 }

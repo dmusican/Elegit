@@ -1,5 +1,9 @@
 package main.java.edugit;
 
+import javafx.fxml.FXML;
+import main.java.edugit.exceptions.CancelledLoginException;
+import main.java.edugit.exceptions.NoOwnerInfoException;
+import main.java.edugit.exceptions.NoRepoSelectedException;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.fxml.FXML;
@@ -15,9 +19,6 @@ import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.shape.Circle;
 import javafx.scene.text.Text;
-import main.java.edugit.exceptions.CancelledLoginException;
-import main.java.edugit.exceptions.NoOwnerInfoException;
-import main.java.edugit.exceptions.NoRepoSelectedException;
 import org.controlsfx.control.NotificationPane;
 import org.controlsfx.control.action.Action;
 import org.eclipse.jgit.api.errors.*;
@@ -36,7 +37,7 @@ import java.util.prefs.BackingStoreException;
  */
 public class SessionController extends Controller {
 
-    public ComboBox<BranchHelper> branchSelector;
+    public ComboBox<LocalBranchHelper> branchSelector;
     public Text currentRepoLabel;
     public NotificationPane notificationPane;
     private SessionModel theModel;
@@ -134,7 +135,7 @@ public class SessionController extends Controller {
         List<LocalBranchHelper> branches = this.theModel.getCurrentRepoHelper().getLocalBranchesFromManager();
         this.branchSelector.getItems().setAll(branches);
 
-        BranchHelper currentBranch = this.theModel.getCurrentRepoHelper().getCurrentBranch();
+        LocalBranchHelper currentBranch = this.theModel.getCurrentRepoHelper().getCurrentBranch();
 
         if (currentBranch == null) {
             // This block will run when the app first opens and there is no selection in the dropdown.
@@ -450,7 +451,7 @@ public class SessionController extends Controller {
      * @throws IOException from updateBranchDropdown()
      */
     public void loadSelectedBranch(ActionEvent actionEvent) throws GitAPIException, IOException {
-        BranchHelper selectedBranch = this.branchSelector.getValue();
+        LocalBranchHelper selectedBranch = this.branchSelector.getValue();
         if(selectedBranch == null) return;
         try {
             selectedBranch.checkoutBranch();
@@ -624,8 +625,8 @@ public class SessionController extends Controller {
         this.notificationPane.show();
     }
 
-    public void showBranchChooser(ActionEvent actionEvent) throws IOException{
-        this.theModel.getCurrentRepoHelper().getBranchManager().showBranchChooser();
+    public void showBranchChooser(ActionEvent actionEvent) throws IOException {
+        this.theModel.getCurrentRepoHelper().getBranchManager().showBranchChooserWindow();
     }
 
     public void selectCommit(String id){
