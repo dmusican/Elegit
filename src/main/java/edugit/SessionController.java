@@ -596,6 +596,7 @@ public class SessionController extends Controller {
      */
     public void clearSavedStuff() throws BackingStoreException, IOException, ClassNotFoundException {
         this.theModel.clearStoredPreferences();
+        this.showPrefsClearedNotification();
     }
 
     /**
@@ -725,6 +726,13 @@ public class SessionController extends Controller {
 
     private void showRepoWasNotLoadedNotification() {
         this.notificationPane.setText("No repository was loaded.");
+
+        this.notificationPane.getActions().clear();
+        this.notificationPane.show();
+    }
+
+    private void showPrefsClearedNotification() {
+        this.notificationPane.setText("Your recent repositories have been cleared. Restart the app for changes to take effect.");
 
         this.notificationPane.getActions().clear();
         this.notificationPane.show();
