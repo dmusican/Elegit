@@ -40,7 +40,7 @@ public class WorkingTreePanelView extends Region{
      * @throws GitAPIException if the SessionModel can't get the ParentDirectoryRepoFile.
      * @throws IOException if populating the parentDirectoryRepoFile fails.
      */
-    public void drawDirectoryView() throws GitAPIException, IOException {
+    public void drawDirectoryView() throws GitAPIException{
         if(this.sessionModel.getCurrentRepoHelper() == null) return;
         
         DirectoryRepoFile rootDirectory = new DirectoryRepoFile("", this.sessionModel.getCurrentRepo());

@@ -1,5 +1,6 @@
 package main.java.edugit;
 
+import main.java.edugit.exceptions.MissingRepoException;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -108,7 +109,7 @@ public class SessionModel {
      *
      * @param repoHelperToLoad the RepoHelper to be loaded.
      */
-    public void openRepoFromHelper(RepoHelper repoHelperToLoad) throws BackingStoreException, IOException, ClassNotFoundException {
+    public void openRepoFromHelper(RepoHelper repoHelperToLoad) throws BackingStoreException, IOException, ClassNotFoundException, MissingRepoException{
         RepoHelper matchedRepoHelper = this.matchRepoWithAlreadyLoadedRepo(repoHelperToLoad);
         if (matchedRepoHelper == null) {
             // So, this repo isn't loaded into the model yet
@@ -116,7 +117,13 @@ public class SessionModel {
             this.openRepoAtIndex(this.allRepoHelpers.size() - 1);
         } else {
             // So, this repo is already loaded into the model
-            this.openRepoAtIndex(this.allRepoHelpers.indexOf(matchedRepoHelper));
+            if(matchedRepoHelper.exists()){
+                this.openRepoAtIndex(this.allRepoHelpers.indexOf(matchedRepoHelper));
+            }else{
+                this.allRepoHelpers.remove(matchedRepoHelper);
+                this.saveListOfRepoPathStrings();
+                throw new MissingRepoException();
+            }
         }
     }
 

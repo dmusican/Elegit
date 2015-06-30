@@ -3,6 +3,7 @@ package main.java.edugit;
 import main.java.edugit.exceptions.NoOwnerInfoException;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.lib.Config;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
@@ -15,10 +16,7 @@ import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * The abstract RepoHelper class, used for interacting with a repository.
@@ -100,6 +98,10 @@ public abstract class RepoHelper {
         // TODO: unify these two constructors (less copied-and-pasted code)
     }
 
+    public boolean exists(){
+        return localPath.toFile().exists() && localPath.toFile().list((dir, name) -> name.equals(".git")).length > 0;
+    }
+
     public void setBranchManager(BranchManager branchManager) {
         this.branchManager = branchManager;
     }
@@ -146,6 +148,16 @@ public abstract class RepoHelper {
         }
         adder.call();
         git.close();
+    }
+
+    public List<String> getLinkedRemoteRepoURLs(){
+        Config storedConfig = this.repo.getConfig();
+        Set<String> remotes = storedConfig.getSubsections("remote");
+        ArrayList<String> urls = new ArrayList<>(remotes.size());
+        for(String remote : remotes){
+            urls.add(storedConfig.getString("remote", remote, "url"));
+        }
+        return urls;
     }
 
     /**
@@ -468,7 +480,7 @@ public abstract class RepoHelper {
         return localBranchHelpers;
     }
 
-    public List<LocalBranchHelper> getLocalBranchesFromManager() throws GitAPIException, IOException {
+    public List<LocalBranchHelper> getLocalBranchesFromManager() {
         return this.branchManager.getLocalBranches();
     }
 

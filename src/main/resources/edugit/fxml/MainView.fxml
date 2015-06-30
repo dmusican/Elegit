@@ -90,6 +90,7 @@
                     <Button GridPane.columnIndex="5"
                             GridPane.rowIndex="0"
                             text="Manage branches"
+                            fx:id="manageBranchesButton"
                             onAction="#showBranchChooser" />
 
                     <GridPane alignment="TOP_CENTER"
