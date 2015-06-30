@@ -223,27 +223,27 @@ public class SessionController extends Controller {
         MenuItem existingOption = new MenuItem("Load existing repository");
         existingOption.setOnAction(t -> {
             ExistingRepoHelperBuilder builder = new ExistingRepoHelperBuilder(this.theModel);
-            try{
+            try {
                 RepoHelper repoHelper = builder.getRepoHelperFromDialogs();
                 this.theModel.openRepoFromHelper(repoHelper);
 
                 this.initPanelViews();
                 this.updateUIEnabledStatus();
-            }catch(IllegalArgumentException e){
+            } catch (IllegalArgumentException e) {
                 this.showInvalidRepoNotification();
-            } catch(NoRepoSelectedException e){
+            } catch (NoRepoSelectedException e) {
                 // The user pressed cancel on the dialog box. Do nothing!
-            }catch(NoOwnerInfoException e){
+            } catch (NoOwnerInfoException e) {
                 this.showNotLoggedInNotification();
-            }catch(BackingStoreException | ClassNotFoundException e){
+            } catch (BackingStoreException | ClassNotFoundException e) {
                 // These should only occur when the recent repo information
                 // fails to be loaded or stored, respectively
                 // Should be ok to silently fail
-            }catch(IOException | GitAPIException e){
+            } catch (IOException | GitAPIException e) {
                 // Somehow, the repository failed to get properly cloned
                 // TODO: better error message?
                 this.showRepoWasNotLoadedNotification();
-            }catch(MissingRepoException e){
+            } catch (MissingRepoException e) {
                 this.showMissingRepoNotification();
                 updateMenuBarWithRecentRepos();
             }
@@ -611,11 +611,8 @@ public class SessionController extends Controller {
             // User cancelled the login, so we'll leave the owner full of nullness.
         }
 
-        if (theModel.getCurrentRepoHelper() != null) {
-            // The currentRepoHelper could be null, say,
-            // on the first run of the program.
-            this.theModel.getCurrentRepoHelper().setOwner(newOwner);
-        }
+        RepoHelper currentRepoHelper = theModel.getCurrentRepoHelper();
+        currentRepoHelper.setOwner(newOwner);
         this.theModel.setCurrentDefaultOwner(newOwner);
     }
 
