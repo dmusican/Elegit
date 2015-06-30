@@ -7,6 +7,7 @@ import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Skin;
+import javafx.scene.input.MouseButton;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.*;
 
@@ -29,7 +30,11 @@ public class ArrowButtonSkin extends Group implements Skin<Button>{
     public ArrowButtonSkin(Button button){
         this.button = button;
 
-        this.setOnMouseClicked(event -> button.getOnAction().handle(new ActionEvent(button, event.getTarget())));
+        this.setOnMouseClicked(event -> {
+            if(event.getButton() == MouseButton.PRIMARY){
+                button.getOnAction().handle(new ActionEvent(button, event.getTarget()));
+            }
+        });
 
         this.button.textProperty().addListener((observable, oldValue, newValue) -> draw());
     }

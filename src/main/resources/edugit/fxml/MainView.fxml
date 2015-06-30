@@ -32,6 +32,7 @@
                         <ColumnConstraints/>
                         <ColumnConstraints/>
                         <ColumnConstraints/>
+                        <ColumnConstraints/>
                         <ColumnConstraints hgrow="ALWAYS"/>
                     </columnConstraints>
 
@@ -79,6 +80,7 @@
                     <Button GridPane.columnIndex="3"
                             GridPane.rowIndex="0"
                             text="Branches"
+                            fx:id="branchesButton"
                             onAction="#showBranchChooser" />
 
                     <Button GridPane.columnIndex="4"
@@ -214,6 +216,7 @@
                                       GridPane.columnIndex="0"
                                       GridPane.columnSpan="2"
                                       GridPane.vgrow="ALWAYS"
+                                      prefColumnCount="4"
                                       wrapText="true"
                                       editable="false"
                                       promptText="Message..."

@@ -1,5 +1,6 @@
 package main.java.edugit;
 
+import main.java.edugit.exceptions.MissingRepoException;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -11,6 +12,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
@@ -25,9 +27,9 @@ public class SessionModel {
     private static final String RECENT_REPOS_LIST_KEY = "RECENT_REPOS_LIST";
     private static final String LAST_OPENED_REPO_PATH_KEY = "LAST_OPENED_REPO_PATH";
 
-    RepoHelper currentRepoHelper;
+    private RepoHelper currentRepoHelper;
 
-    ArrayList<RepoHelper> allRepoHelpers;
+    List<RepoHelper> allRepoHelpers;
     private static SessionModel sessionModel;
 
     // All RepoHelpers have their own owner. This
@@ -121,7 +123,7 @@ public class SessionModel {
      *
      * @param repoHelperToLoad the RepoHelper to be loaded.
      */
-    public void openRepoFromHelper(RepoHelper repoHelperToLoad) throws BackingStoreException, IOException, ClassNotFoundException {
+    public void openRepoFromHelper(RepoHelper repoHelperToLoad) throws BackingStoreException, IOException, ClassNotFoundException, MissingRepoException{
         RepoHelper matchedRepoHelper = this.matchRepoWithAlreadyLoadedRepo(repoHelperToLoad);
         if (matchedRepoHelper == null) {
             // So, this repo isn't loaded into the model yet
@@ -129,7 +131,12 @@ public class SessionModel {
             this.openRepoAtIndex(this.allRepoHelpers.size() - 1);
         } else {
             // So, this repo is already loaded into the model
-            this.openRepoAtIndex(this.allRepoHelpers.indexOf(matchedRepoHelper));
+            if(matchedRepoHelper.exists()){
+                this.openRepoAtIndex(this.allRepoHelpers.indexOf(matchedRepoHelper));
+            }else{
+                this.allRepoHelpers.remove(matchedRepoHelper);
+                throw new MissingRepoException();
+            }
         }
     }
 
@@ -325,7 +332,7 @@ public class SessionModel {
         return changedRepoFiles;
     }
 
-    public RepoHelper getCurrentRepoHelper() {
+    public RepoHelper getCurrentRepoHelper(){
         return currentRepoHelper;
     }
 
@@ -333,7 +340,13 @@ public class SessionModel {
         return defaultOwner;
     }
 
-    public ArrayList<RepoHelper> getAllRepoHelpers() {
+    public List<RepoHelper> getAllRepoHelpers() {
+        List<RepoHelper> tempList = new ArrayList<>(allRepoHelpers);
+        for(RepoHelper r : tempList){
+            if(!r.exists()){
+                allRepoHelpers.remove(r);
+            }
+        }
         return allRepoHelpers;
     }
 

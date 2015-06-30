@@ -1,17 +1,19 @@
 package main.java.edugit;
 
+import main.java.edugit.exceptions.NoOwnerInfoException;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Repository;
 
+import java.io.IOException;
 import java.nio.file.Path;
 
 /**
  * A RepoHelper implementation for a repository cloned into an empty folder.
  */
 public class ClonedRepoHelper extends RepoHelper {
-    public ClonedRepoHelper(Path directoryPath, String remoteURL, RepoOwner owner) throws Exception {
+    public ClonedRepoHelper(Path directoryPath, String remoteURL, RepoOwner owner) throws IOException, NoOwnerInfoException, GitAPIException{
         super(directoryPath, remoteURL, owner);
     }
 

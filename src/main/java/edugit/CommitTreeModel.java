@@ -85,7 +85,7 @@ public abstract class CommitTreeModel{
      * @param id the id of the cell to add
      */
     public void addInvisibleCommit(String id){
-        CommitHelper invisCommit = sessionModel.currentRepoHelper.getCommit(id);
+        CommitHelper invisCommit = sessionModel.getCurrentRepoHelper().getCommit(id);
         for(CommitHelper c : invisCommit.getParents()){
             if(!treeGraph.treeGraphModel.containsID(c.getId())){
                 addInvisibleCommit(c.getId());
@@ -98,7 +98,7 @@ public abstract class CommitTreeModel{
      * Gets all commits tracked by this model and adds them to the tree
      * @return true if the tree was updated, otherwise false
      */
-    private boolean addAllCommitsToTree(){
+    private boolean addAllCommitsToTree() {
         return this.addCommitsToTree(this.getAllCommits());
     }
 
@@ -174,8 +174,8 @@ public abstract class CommitTreeModel{
      * Updates the corresponding view if possible
      */
     private void updateView(){
-        if(this.sessionModel != null && this.sessionModel.currentRepoHelper != null){
-            CommitTreeController.update(sessionModel.currentRepoHelper);
+        if(this.sessionModel != null && this.sessionModel.getCurrentRepoHelper() != null){
+            CommitTreeController.update(sessionModel.getCurrentRepoHelper());
         }else{
             view.displayEmptyView();
         }
@@ -185,7 +185,7 @@ public abstract class CommitTreeModel{
      * Initializes the corresponding view if possible
      */
     private void initView(){
-        if(this.sessionModel != null && this.sessionModel.currentRepoHelper != null){
+        if(this.sessionModel != null && this.sessionModel.getCurrentRepoHelper() != null){
             CommitTreeController.init(this);
         }else{
             view.displayEmptyView();

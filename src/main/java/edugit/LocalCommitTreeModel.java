@@ -17,17 +17,17 @@ public class LocalCommitTreeModel extends CommitTreeModel{
     }
 
     @Override
-    protected List<CommitHelper> getAllCommits(){
-        if(this.sessionModel.currentRepoHelper != null){
-            return this.sessionModel.currentRepoHelper.getLocalCommits();
+    protected List<CommitHelper> getAllCommits() {
+        if(this.sessionModel != null && this.sessionModel.getCurrentRepoHelper() != null){
+            return this.sessionModel.getCurrentRepoHelper().getLocalCommits();
         }
         return new ArrayList<>();
     }
 
     @Override
     protected List<CommitHelper> getNewCommits() throws GitAPIException, IOException{
-        if(this.sessionModel.currentRepoHelper != null){
-            return this.sessionModel.currentRepoHelper.getNewLocalCommits();
+        if(this.sessionModel != null && this.sessionModel.getCurrentRepoHelper() != null){
+            return this.sessionModel.getCurrentRepoHelper().getNewLocalCommits();
         }
         return new ArrayList<>();
     }

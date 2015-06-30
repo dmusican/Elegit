@@ -1,8 +1,11 @@
 package main.java.edugit;
 
+import main.java.edugit.exceptions.MissingRepoException;
 import main.java.edugit.exceptions.NoOwnerInfoException;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.api.errors.InvalidRemoteException;
+import org.eclipse.jgit.lib.Config;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
@@ -15,10 +18,7 @@ import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * The abstract RepoHelper class, used for interacting with a repository.
@@ -100,6 +100,10 @@ public abstract class RepoHelper {
         // TODO: unify these two constructors (less copied-and-pasted code)
     }
 
+    public boolean exists(){
+        return localPath.toFile().exists() && localPath.toFile().list((dir, name) -> name.equals(".git")).length > 0;
+    }
+
     public void setBranchManager(BranchManager branchManager) {
         this.branchManager = branchManager;
     }
@@ -148,13 +152,24 @@ public abstract class RepoHelper {
         git.close();
     }
 
+    public List<String> getLinkedRemoteRepoURLs(){
+        Config storedConfig = this.repo.getConfig();
+        Set<String> remotes = storedConfig.getSubsections("remote");
+        ArrayList<String> urls = new ArrayList<>(remotes.size());
+        for(String remote : remotes){
+            urls.add(storedConfig.getString("remote", remote, "url"));
+        }
+        return urls;
+    }
+
     /**
      * Commits changes to the repository.
      *
      * @param commitMessage the message for the commit.
      * @throws GitAPIException if the `git commit` call fails.
      */
-    public void commit(String commitMessage) throws GitAPIException {
+    public void commit(String commitMessage) throws GitAPIException, MissingRepoException{
+        if(!exists()) throw new MissingRepoException();
         // should this Git instance be class-level?
         Git git = new Git(this.repo);
         // git commit:
@@ -169,7 +184,9 @@ public abstract class RepoHelper {
      *
      * @throws GitAPIException if the `git push` call fails.
      */
-    public void pushAll() throws GitAPIException {
+    public void pushAll() throws GitAPIException, MissingRepoException{
+        if(!exists()) throw new MissingRepoException();
+        if(this.getLinkedRemoteRepoURLs().size() == 0) throw new InvalidRemoteException("No remote repository");
         Git git = new Git(this.repo);
         PushCommand push = git.push().setPushAll();
 
@@ -181,7 +198,8 @@ public abstract class RepoHelper {
         git.close();
     }
 
-    public void fetch() throws GitAPIException {
+    public void fetch() throws GitAPIException, MissingRepoException{
+        if(!exists()) throw new MissingRepoException();
         Git git = new Git(this.repo);
 
         // The JGit docs say that if setCheckFetchedObjects
@@ -198,9 +216,13 @@ public abstract class RepoHelper {
         git.close();
     }
 
-    public void mergeFromFetch() throws IOException, GitAPIException {
+    public void mergeFromFetch() throws IOException, GitAPIException, MissingRepoException{
+        if(!exists()) throw new MissingRepoException();
+        if(getLinkedRemoteRepoURLs().size() == 0) throw new InvalidRemoteException("No remote repository");
         Git git = new Git(this.repo);
-        git.merge().include(this.repo.resolve("FETCH_HEAD")).call();
+        ObjectId fetchHeadID = this.repo.resolve("FETCH_HEAD");
+//        if(fetchHeadID == null); // This might pop up at some point as an issue. Might not though
+        git.merge().include(fetchHeadID).call();
         git.close();
     }
 
@@ -468,7 +490,7 @@ public abstract class RepoHelper {
         return localBranchHelpers;
     }
 
-    public List<LocalBranchHelper> getLocalBranchesFromManager() throws GitAPIException, IOException {
+    public List<LocalBranchHelper> getLocalBranchesFromManager() {
         return this.branchManager.getLocalBranches();
     }
 

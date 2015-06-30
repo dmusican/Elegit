@@ -1,12 +1,6 @@
 package main.java.edugit;
 
 import javafx.fxml.FXML;
-import main.java.edugit.exceptions.CancelledLoginException;
-import main.java.edugit.exceptions.NoOwnerInfoException;
-import main.java.edugit.exceptions.NoRepoSelectedException;
-import javafx.event.ActionEvent;
-import javafx.event.Event;
-import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -17,19 +11,20 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.shape.Circle;
 import javafx.scene.text.Text;
+import main.java.edugit.exceptions.*;
 import org.controlsfx.control.NotificationPane;
 import org.controlsfx.control.action.Action;
 import org.eclipse.jgit.api.errors.*;
-import org.eclipse.jgit.lib.Config;
 
 import java.awt.*;
 import java.io.IOException;
 import java.net.URI;
-import java.util.ArrayList;
+import java.net.URISyntaxException;
 import java.util.List;
-import java.util.Set;
 import java.util.prefs.BackingStoreException;
 
 /**
@@ -48,6 +43,7 @@ public class SessionController extends Controller {
     public Button mergeFromFetchButton;
     public Button pushButton;
     public Button fetchButton;
+    public Button branchesButton;
 
     public TextArea commitMessageField;
     public WorkingTreePanelView workingTreePanelView;
@@ -110,6 +106,7 @@ public class SessionController extends Controller {
         mergeFromFetchButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         pushButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         fetchButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
+        branchesButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
 
         gitStatusButton.setMaxWidth(Double.MAX_VALUE);
 
@@ -126,36 +123,46 @@ public class SessionController extends Controller {
         });
 
         commitInfoNameCopyButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
+        commitInfoGoToButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
     }
 
     /**
      * Gets the local branches and populates the branch selector dropdown.
      *
-     * @throws GitAPIException
-     * @throws IOException
+     * @throws NoRepoLoadedException
+     * @throws MissingRepoException
      */
-    public void updateBranchDropdown() throws GitAPIException, IOException {
+    public void updateBranchDropdown() throws NoRepoLoadedException, MissingRepoException{
+        RepoHelper currentRepoHelper = this.theModel.getCurrentRepoHelper();
+        if(currentRepoHelper==null) throw new NoRepoLoadedException();
+        if(!currentRepoHelper.exists()) throw new MissingRepoException();
+
         this.branchSelector.setVisible(true);
 
-        List<LocalBranchHelper> branches = this.theModel.getCurrentRepoHelper().getLocalBranchesFromManager();
+        List<LocalBranchHelper> branches = currentRepoHelper.getLocalBranchesFromManager();
         this.branchSelector.getItems().setAll(branches);
 
-        LocalBranchHelper currentBranch = this.theModel.getCurrentRepoHelper().getCurrentBranch();
+        LocalBranchHelper currentBranch = currentRepoHelper.getCurrentBranch();
 
-        if (currentBranch == null) {
+        if(currentBranch == null){
             // This block will run when the app first opens and there is no selection in the dropdown.
             // It finds the repoHelper that matches the currently checked-out branch.
-            String branchName = this.theModel.getCurrentRepo().getFullBranch();
-            LocalBranchHelper current = new LocalBranchHelper(branchName, this.theModel.getCurrentRepo());
-            for (LocalBranchHelper branchHelper : branches) {
-                if (branchHelper.getBranchName().equals(current.getBranchName())) {
-                    currentBranch = current;
-                    this.theModel.getCurrentRepoHelper().setCurrentBranch(currentBranch);
-                    break;
+            try{
+                String branchName = this.theModel.getCurrentRepo().getFullBranch();
+                LocalBranchHelper current = new LocalBranchHelper(branchName, this.theModel.getCurrentRepo());
+                for(LocalBranchHelper branchHelper : branches){
+                    if(branchHelper.getBranchName().equals(current.getBranchName())){
+                        currentBranch = current;
+                        currentRepoHelper.setCurrentBranch(currentBranch);
+                        break;
+                    }
                 }
+            }catch(IOException e){
+                this.showGenericErrorNotification();
+                e.printStackTrace();
             }
             if(currentBranch != null){
-                CommitTreeController.focusCommitInGraph(this.theModel.currentRepoHelper.getCommitByBranchName(currentBranch.refPathString));
+                CommitTreeController.focusCommitInGraph(currentRepoHelper.getCommitByBranchName(currentBranch.refPathString));
             }
         }
 
@@ -172,7 +179,7 @@ public class SessionController extends Controller {
      * Since each option creates a new repo, this method handles errors.
      *
      */
-    private void initializeMenuBar() throws GitAPIException, IOException {
+    private void initializeMenuBar() {
         this.newRepoMenu = new Menu("Load new Repository");
 
         MenuItem cloneOption = new MenuItem("Clone");
@@ -186,38 +193,28 @@ public class SessionController extends Controller {
                 this.initPanelViews();
                 this.updateUIEnabledStatus();
             }catch(IllegalArgumentException e){
-                e.printStackTrace();
                 this.showInvalidRepoNotification();
             }catch(JGitInternalException e){
-                e.printStackTrace();
                 this.showNonEmptyFolderNotification();
             }catch(InvalidRemoteException e){
-                e.printStackTrace();
                 this.showInvalidRemoteNotification();
             }catch(TransportException e){
-                e.printStackTrace();
                 this.showNotAuthorizedNotification();
-            } catch (NoRepoSelectedException e) {
-
+            }catch(NoRepoSelectedException e){
                 // The user pressed cancel on the dialog box. Do nothing!
-
             }catch(NoOwnerInfoException e){
-                e.printStackTrace();
                 this.showNotLoggedInNotification();
-            }catch(NullPointerException e){
-                this.showGenericErrorNotification();
-                e.printStackTrace();
-
-                // This block used to catch the NoOwnerInfo case,
-                // but now that has its own Exception. Not sure when
-                // a NullPointer would be thrown, so the dialog isn't
-                // very helpful. Todo: investigate.
-
-
-            } catch(Exception e){
-                // The generic error is totally unhelpful, so try not to ever reach this catch statement
-                this.showGenericErrorNotification();
-                e.printStackTrace();
+            }catch(MissingRepoException e){
+                this.showMissingRepoNotification();
+                updateMenuBarWithRecentRepos();
+            }catch(ClassNotFoundException | BackingStoreException e){
+                // These should only occur when the recent repo information
+                // fails to be loaded or stored, respectively
+                // Should be ok to silently fail
+            }catch(GitAPIException | IOException e){
+                // Somehow, the repository failed to get properly cloned
+                // TODO: better error message?
+                this.showRepoWasNotLoadedNotification();
             }
         });
 
@@ -231,23 +228,22 @@ public class SessionController extends Controller {
                 this.initPanelViews();
                 this.updateUIEnabledStatus();
             }catch(IllegalArgumentException e){
-                e.printStackTrace();
                 this.showInvalidRepoNotification();
             } catch(NoRepoSelectedException e){
-
                 // The user pressed cancel on the dialog box. Do nothing!
-
             }catch(NoOwnerInfoException e){
                 this.showNotLoggedInNotification();
-                e.printStackTrace();
-            }catch(NullPointerException e){
-                // TODO: figure out when nullpointer is thrown (if at all?)
+            }catch(BackingStoreException | ClassNotFoundException e){
+                // These should only occur when the recent repo information
+                // fails to be loaded or stored, respectively
+                // Should be ok to silently fail
+            }catch(IOException | GitAPIException e){
+                // Somehow, the repository failed to get properly cloned
+                // TODO: better error message?
                 this.showRepoWasNotLoadedNotification();
-                e.printStackTrace();
-            }catch(Exception e){
-                this.showGenericErrorNotification();
-                System.out.println("***** FIGURE OUT WHY THIS EXCEPTION IS NEEDED *******");
-                e.printStackTrace();
+            }catch(MissingRepoException e){
+                this.showMissingRepoNotification();
+                updateMenuBarWithRecentRepos();
             }
         });
 
@@ -278,7 +274,7 @@ public class SessionController extends Controller {
     private void updateMenuBarWithRecentRepos() {
         this.openRecentRepoMenu.getItems().clear();
 
-        ArrayList<RepoHelper> repoHelpers = this.theModel.getAllRepoHelpers();
+        List<RepoHelper> repoHelpers = this.theModel.getAllRepoHelpers();
         for (RepoHelper repoHelper : repoHelpers) {
             MenuItem recentRepoHelperMenuItem = new MenuItem(repoHelper.toString());
             recentRepoHelperMenuItem.setOnAction(t -> {
@@ -287,14 +283,12 @@ public class SessionController extends Controller {
 
                     this.initPanelViews();
                     this.updateUIEnabledStatus();
-                } catch (BackingStoreException e) {
+                } catch (BackingStoreException | ClassNotFoundException | IOException e) {
+                    this.showGenericErrorNotification();
                     e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (ClassNotFoundException e) {
-                    e.printStackTrace();
-                } catch(GitAPIException e){
-                    e.printStackTrace();
+                } catch(MissingRepoException e){
+                    this.showMissingRepoNotification();
+                    updateMenuBarWithRecentRepos();
                 }
             });
             openRecentRepoMenu.getItems().add(recentRepoHelperMenuItem);
@@ -307,26 +301,30 @@ public class SessionController extends Controller {
     /**
      * Perform the updateFileStatusInRepo() method for each file whose
      * checkbox is checked. Then commit with the commit message and push.
-     *
-     * @param actionEvent the button click event.
-     * @throws GitAPIException if the updateFileStatusInRepo() call fails.
-     * @throws IOException if the onGitStatusButton() fails.
-     */ //todo: since there's a try/catch, should this method signature not throw exceptions?
-    public void handleCommitButton(ActionEvent actionEvent) throws GitAPIException, IOException {
+     */
+    public void handleCommitButton() {
         try {
             String commitMessage = commitMessageField.getText();
+
+            if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
+            if(!this.theModel.getCurrentRepoHelper().exists()) throw new MissingRepoException();
 
             for (RepoFile checkedFile : this.workingTreePanelView.getCheckedFilesInDirectory()) {
                 checkedFile.updateFileStatusInRepo();
             }
 
-            this.theModel.currentRepoHelper.commit(commitMessage);
+            this.theModel.getCurrentRepoHelper().commit(commitMessage);
 
             // Now clear the commit text and a view reload ( or `git status`) to show that something happened
             commitMessageField.clear();
             this.onGitStatusButton();
-        } catch (NullPointerException e) {
+        } catch(NoRepoLoadedException e){
             this.showNoRepoLoadedNotification();
+            setButtonsDisabled(true);
+        } catch(MissingRepoException | JGitInternalException e){
+            this.showMissingRepoNotification();
+            setButtonsDisabled(true);
+            updateMenuBarWithRecentRepos();
         } catch (TransportException e) {
             this.showNotAuthorizedNotification();
         } catch (WrongRepositoryStateException e) {
@@ -337,120 +335,165 @@ public class SessionController extends Controller {
             // This should only come up when the user chooses to resolve conflicts in a file.
             // Do nothing.
 
+        }catch(GitAPIException e){
+            this.showGenericErrorNotification();
+            e.printStackTrace();
         }
-
     }
 
     /**
      * Merges in FETCH_HEAD (after a fetch).
-     *
-     * @throws IOException
-     * @throws GitAPIException
      */
-    public void handleMergeFromFetchButton() throws IOException, GitAPIException {
+    public void handleMergeFromFetchButton() {
         try {
-            this.theModel.currentRepoHelper.mergeFromFetch();
+            if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
+            this.theModel.getCurrentRepoHelper().mergeFromFetch();
             // Refresh panel views
             this.onGitStatusButton();
-        } catch (NullPointerException e) {
-            this.showNoRepoLoadedNotification();
+        } catch(InvalidRemoteException e){
+            this.showNoRemoteNotification();
         } catch (TransportException e) {
             this.showNotAuthorizedNotification();
+        } catch(NoRepoLoadedException e){
+            this.showNoRepoLoadedNotification();
+            setButtonsDisabled(true);
+        } catch(MissingRepoException e){
+            this.showMissingRepoNotification();
+            setButtonsDisabled(true);
+            updateMenuBarWithRecentRepos();
+        } catch(GitAPIException | IOException e){
+            this.showGenericErrorNotification();
+            e.printStackTrace();
         }
 
     }
 
     /**
      * Performs a `git push`
-     *
-     * @throws GitAPIException
-     * @throws IOException
      */
-    public void handlePushButton() throws GitAPIException, IOException {
+    public void handlePushButton() {
         try {
-            this.theModel.currentRepoHelper.pushAll();
+            if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
+            this.theModel.getCurrentRepoHelper().pushAll();
 
             // Refresh panel views
             this.onGitStatusButton();
-        } catch (NullPointerException e) {
-            this.showNoRepoLoadedNotification();
+        } catch(InvalidRemoteException e){
+            this.showNoRemoteNotification();
         } catch (TransportException e) {
             this.showNotAuthorizedNotification();
+        } catch(NoRepoLoadedException e){
+            this.showNoRepoLoadedNotification();
+            setButtonsDisabled(true);
+        } catch(MissingRepoException e){
+            this.showMissingRepoNotification();
+            setButtonsDisabled(true);
+            updateMenuBarWithRecentRepos();
+        } catch(GitAPIException e){
+            this.showGenericErrorNotification();
+            e.printStackTrace();
         }
     }
 
     /**
      * Performs a `git fetch`
-     *
-     * @throws GitAPIException
-     * @throws IOException
      */
-    public void handleFetchButton() throws GitAPIException, IOException {
-        try {
-            this.theModel.currentRepoHelper.fetch();
+    public void handleFetchButton(){
+        try{
+            if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
+            this.theModel.getCurrentRepoHelper().fetch();
             // Refresh panel views
             this.onGitStatusButton();
-        } catch (NullPointerException e) {
-            this.showNoRepoLoadedNotification();
+        } catch(InvalidRemoteException e){
+            this.showNoRemoteNotification();
         } catch (TransportException e) {
             this.showNotAuthorizedNotification();
+        } catch(NoRepoLoadedException e){
+            this.showNoRepoLoadedNotification();
+            setButtonsDisabled(true);
+        } catch(MissingRepoException e){
+            this.showMissingRepoNotification();
+            setButtonsDisabled(true);
+            updateMenuBarWithRecentRepos();
+        } catch(GitAPIException e){
+            this.showGenericErrorNotification();
+            e.printStackTrace();
         }
     }
 
     /**
      * Loads the panel views when the "git status" button is clicked.
-     *
-     * @throws GitAPIException if the drawDirectoryView() call fails.
-     * @throws IOException if the drawDirectoryView() call fails.
      */
-    public void onGitStatusButton() throws GitAPIException, IOException{
+    public void onGitStatusButton(){
         try {
             this.workingTreePanelView.drawDirectoryView();
             this.localCommitTreeModel.update();
             this.remoteCommitTreeModel.update();
 
             this.updateBranchDropdown();
-        } catch (NullPointerException e) {
+        } catch(MissingRepoException e){
+            this.showMissingRepoNotification();
+            setButtonsDisabled(true);
+            updateMenuBarWithRecentRepos();
+        } catch(NoRepoLoadedException e){
             this.showNoRepoLoadedNotification();
+            setButtonsDisabled(true);
+        } catch(GitAPIException | IOException e){
+            this.showGenericErrorNotification();
+            e.printStackTrace();
         }
     }
 
     /**
      * When the circle representing the remote repo is clicked, go to the
      * corresponding remote url
-     * @param event
+     * @param event the mouse event corresponding to the click
      */
-    public void handleRemoteCircleMouseClick(Event event){
+    public void handleRemoteCircleMouseClick(MouseEvent event){
+        if(event.getButton() != MouseButton.PRIMARY) return;
         Desktop desktop = Desktop.isDesktopSupported() ? Desktop.getDesktop() : null;
         if (desktop != null && desktop.isSupported(Desktop.Action.BROWSE)) {
             try {
-                Config storedConfig = this.theModel.getCurrentRepo().getConfig();
-                Set<String> remotes = storedConfig.getSubsections("remote");
+                if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
+                if(!this.theModel.getCurrentRepoHelper().exists()) throw new MissingRepoException();
 
-                for (String remoteName : remotes) {
-                    String url = storedConfig.getString("remote", remoteName, "url");
-                    if(url.contains("@")){
-                        url = "https://"+url.replace(":","/").split("@")[1];
-                    }
-                    desktop.browse(new URI(url));
+                List<String> remoteURLs = this.theModel.getCurrentRepoHelper().getLinkedRemoteRepoURLs();
+
+                if(remoteURLs.size() == 0){
+                    this.showNoRemoteNotification();
                 }
-            } catch (Exception e) {
-                // TODO: real error message
-                e.printStackTrace();
-                System.out.println("Couldn't open the remote repo");
+
+                for (String remoteURL : remoteURLs) {
+                    if(remoteURL.contains("@")){
+                        remoteURL = "https://"+remoteURL.replace(":","/").split("@")[1];
+                    }
+                    desktop.browse(new URI(remoteURL));
+                }
+            }catch(URISyntaxException | IOException e){
+                this.showGenericErrorNotification();
+            }catch(MissingRepoException e){
+                this.showMissingRepoNotification();
+                this.setButtonsDisabled(true);
+                updateMenuBarWithRecentRepos();
+            }catch(NoRepoLoadedException e){
+                this.showNoRepoLoadedNotification();
+                this.setButtonsDisabled(true);
             }
         }
     }
 
     /**
      * Initializes each panel of the view
-     * @throws GitAPIException
-     * @throws IOException
      */
-	private void initPanelViews() throws GitAPIException, IOException{
-        this.workingTreePanelView.drawDirectoryView();
-        this.localCommitTreeModel.init();
-        this.remoteCommitTreeModel.init();
+	private void initPanelViews() {
+        try{
+            this.workingTreePanelView.drawDirectoryView();
+            this.localCommitTreeModel.init();
+            this.remoteCommitTreeModel.init();
+        }catch(GitAPIException e){
+            this.showGenericErrorNotification();
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -465,16 +508,14 @@ public class SessionController extends Controller {
         mergeFromFetchButton.setDisable(disable);
         pushButton.setDisable(disable);
         fetchButton.setDisable(disable);
+        branchesButton.setDisable(disable);
         remoteCircle.setVisible(!disable);
     }
 
     /**
      * Checks out the branch that is currently selected in the dropdown.
-     *
-     * @throws GitAPIException
-     * @throws IOException from updateBranchDropdown()
      */
-    public void loadSelectedBranch() throws GitAPIException, IOException {
+    public void loadSelectedBranch() {
         LocalBranchHelper selectedBranch = this.branchSelector.getValue();
         if(selectedBranch == null) return;
         try {
@@ -485,7 +526,19 @@ public class SessionController extends Controller {
             this.theModel.getCurrentRepoHelper().setCurrentBranch(selectedBranch);
         } catch (CheckoutConflictException e) {
             this.showCheckoutConflictsNotification(e.getConflictingPaths());
-            this.updateBranchDropdown();
+            try{
+                this.updateBranchDropdown();
+            }catch(NoRepoLoadedException e1){
+                this.showNoRepoLoadedNotification();
+                setButtonsDisabled(true);
+            }catch(MissingRepoException e1){
+                this.showMissingRepoNotification();
+                setButtonsDisabled(true);
+                updateMenuBarWithRecentRepos();
+            }
+        } catch(GitAPIException e){
+            this.showGenericErrorNotification();
+            e.printStackTrace();
         }
     }
 
@@ -494,22 +547,30 @@ public class SessionController extends Controller {
      * depending on whether there is a repo open for the buttons to
      * interact with.
      */
-    private void updateUIEnabledStatus() throws GitAPIException, IOException {
-        RepoHelper currentRepoHelper = this.theModel.getCurrentRepoHelper();
-
-        if (currentRepoHelper == null && this.theModel.getAllRepoHelpers().size() == 0) {
-            // (There's no repo for the buttons to interact with)
+    private void updateUIEnabledStatus() {
+        try{
+            if(this.theModel.getCurrentRepoHelper() == null && this.theModel.getAllRepoHelpers().size() == 0) {
+                // (There's no repo for the buttons to interact with)
+                setButtonsDisabled(true);
+                this.branchSelector.setVisible(false);
+            } else if (this.theModel.getCurrentRepoHelper() == null && this.theModel.getAllRepoHelpers().size() > 0) {
+                // (There's no repo for buttons to interact with, but there are repos in the menu bar)
+                setButtonsDisabled(true);
+                this.branchSelector.setVisible(false);
+                this.updateMenuBarWithRecentRepos();
+            }else{
+                setButtonsDisabled(false);
+                this.updateBranchDropdown();
+                this.updateMenuBarWithRecentRepos();
+                this.updateCurrentRepoLabel();
+            }
+        }catch(NoRepoLoadedException e){
+            this.showNoRepoLoadedNotification();
             setButtonsDisabled(true);
-            this.branchSelector.setVisible(false);
-        } else if (currentRepoHelper == null && this.theModel.getAllRepoHelpers().size() > 0) {
-            // (There's no repo for buttons to interact with, but there are repos in the menu bar)
+        }catch(MissingRepoException e){
+            this.showMissingRepoNotification();
             setButtonsDisabled(true);
-            this.updateMenuBarWithRecentRepos();
-        } else {
-            setButtonsDisabled(false);
-            this.updateBranchDropdown();
-            this.updateMenuBarWithRecentRepos();
-            this.updateCurrentRepoLabel();
+            updateMenuBarWithRecentRepos();
         }
     }
 
@@ -547,11 +608,8 @@ public class SessionController extends Controller {
             // User cancelled the login, so we'll leave the owner full of nullness.
         }
 
-        if (theModel.getCurrentRepoHelper() != null) {
-            // The currentRepoHelper could be null, say,
-            // on the first run of the program.
-            this.theModel.getCurrentRepoHelper().setOwner(newOwner);
-        }
+        RepoHelper currentRepoHelper = theModel.getCurrentRepoHelper();
+        currentRepoHelper.setOwner(newOwner);
         this.theModel.setCurrentDefaultOwner(newOwner);
     }
 
@@ -561,11 +619,13 @@ public class SessionController extends Controller {
     public void openRepoDirectory(){
         if (Desktop.isDesktopSupported()) {
             try{
-                Desktop.getDesktop().open(this.theModel.currentRepoHelper.localPath.toFile());
-            }catch(IOException e){
-                e.printStackTrace();
-                // TODO: real error message
-                System.out.println("Couldn't open the local repo. Real error message here eventually");
+                if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
+                Desktop.getDesktop().open(this.theModel.getCurrentRepoHelper().localPath.toFile());
+            }catch(IOException | IllegalArgumentException e){
+                this.showFailedToOpenLocalNotification();
+            }catch(NoRepoLoadedException e){
+                this.showNoRepoLoadedNotification();
+                setButtonsDisabled(true);
             }
         }
     }
@@ -600,8 +660,33 @@ public class SessionController extends Controller {
         this.notificationPane.show();
     }
 
+    private void showMissingRepoNotification(){
+        this.notificationPane.setText("That repository no longer exists.");
+
+        this.notificationPane.getActions().clear();
+        this.notificationPane.show();
+    }
+
+    private void showNoRemoteNotification(){
+        String name = this.theModel.getCurrentRepoHelper() != null ? this.theModel.getCurrentRepoHelper().toString() : "the current repository";
+
+        this.notificationPane.setText("There is no remote repository associated with " + name);
+
+        this.notificationPane.getActions().clear();
+        this.notificationPane.show();
+    }
+
+    private void showFailedToOpenLocalNotification(){
+        String path = this.theModel.getCurrentRepoHelper() != null ? this.theModel.getCurrentRepoHelper().getDirectory().toString() : "the location of the local repository";
+
+        this.notificationPane.setText("Could not open directory at " + path);
+
+        this.notificationPane.getActions().clear();
+        this.notificationPane.show();
+    }
+
     private void showNonEmptyFolderNotification() {
-        this.notificationPane.setText("Make sure the directory you selected is completely empty. The best" +
+        this.notificationPane.setText("Make sure the directory you selected is completely empty. The best " +
                             "way to do this is to create a new folder from the directory chooser.");
 
         this.notificationPane.getActions().clear();
@@ -671,15 +756,22 @@ public class SessionController extends Controller {
 
     /**
      * Opens up the current repo helper's Branch Manager window.
-     *
-     * @throws IOException
      */
-    public void showBranchChooser() throws IOException {
-        this.theModel.getCurrentRepoHelper().getBranchManager().showBranchChooserWindow();
+    public void showBranchChooser() {
+        try{
+            if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
+            this.theModel.getCurrentRepoHelper().getBranchManager().showBranchChooserWindow();
+        }catch(IOException e){
+            this.showGenericErrorNotification();
+            e.printStackTrace();
+        }catch(NoRepoLoadedException e){
+            this.showNoRepoLoadedNotification();
+            setButtonsDisabled(true);
+        }
     }
 
     public void selectCommit(String id){
-        CommitHelper commit = this.theModel.currentRepoHelper.getCommit(id);
+        CommitHelper commit = this.theModel.getCurrentRepoHelper().getCommit(id);
         commitInfoNameText.setText(commit.getName());
         commitInfoAuthorText.setText(commit.getAuthorName());
         commitInfoDateText.setText(commit.getFormattedWhen());
@@ -697,14 +789,14 @@ public class SessionController extends Controller {
         commitInfoGoToButton.setDisable(true);
     }
 
-    public void handleCommitNameCopyButton(ActionEvent actionEvent){
+    public void handleCommitNameCopyButton(){
         Clipboard clipboard = Clipboard.getSystemClipboard();
         ClipboardContent content = new ClipboardContent();
         content.putString(commitInfoNameText.getText());
         clipboard.setContent(content);
     }
 
-    public void handleGoToCommitButton(ActionEvent actionEvent){
+    public void handleGoToCommitButton(){
         String id = commitInfoNameText.getText();
         CommitTreeController.focusCommitInGraph(id);
     }
