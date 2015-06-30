@@ -189,21 +189,16 @@ public class SessionController extends Controller {
                 this.initPanelViews();
                 this.updateUIEnabledStatus();
             }catch(IllegalArgumentException e){
-                e.printStackTrace();
                 this.showInvalidRepoNotification();
             }catch(JGitInternalException e){
-                e.printStackTrace();
                 this.showNonEmptyFolderNotification();
             }catch(InvalidRemoteException e){
-                e.printStackTrace();
                 this.showInvalidRemoteNotification();
             }catch(TransportException e){
-                e.printStackTrace();
                 this.showNotAuthorizedNotification();
             }catch(NoRepoSelectedException e){
                 // The user pressed cancel on the dialog box. Do nothing!
             }catch(NoOwnerInfoException e){
-                e.printStackTrace();
                 this.showNotLoggedInNotification();
             }catch(MissingRepoException e){
                 this.showMissingRepoNotification();
@@ -234,7 +229,6 @@ public class SessionController extends Controller {
                 // The user pressed cancel on the dialog box. Do nothing!
             }catch(NoOwnerInfoException e){
                 this.showNotLoggedInNotification();
-                e.printStackTrace();
             }catch(BackingStoreException | ClassNotFoundException e){
                 // These should only occur when the recent repo information
                 // fails to be loaded or stored, respectively
@@ -346,6 +340,8 @@ public class SessionController extends Controller {
             this.theModel.getCurrentRepoHelper().mergeFromFetch();
             // Refresh panel views
             this.onGitStatusButton();
+        } catch(InvalidRemoteException e){
+            this.showNoRemoteNotification();
         } catch (TransportException e) {
             this.showNotAuthorizedNotification();
         } catch(NoRepoLoadedException e){
@@ -369,6 +365,8 @@ public class SessionController extends Controller {
 
             // Refresh panel views
             this.onGitStatusButton();
+        } catch(InvalidRemoteException e){
+            this.showNoRemoteNotification();
         } catch (TransportException e) {
             this.showNotAuthorizedNotification();
         } catch(NoRepoLoadedException e){
@@ -384,12 +382,14 @@ public class SessionController extends Controller {
         }
     }
 
-    public void handleFetchButton() {
-        try {
+    public void handleFetchButton(){
+        try{
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
             this.theModel.getCurrentRepoHelper().fetch();
             // Refresh panel views
             this.onGitStatusButton();
+        } catch(InvalidRemoteException e){
+            this.showNoRemoteNotification();
         } catch (TransportException e) {
             this.showNotAuthorizedNotification();
         } catch(NoRepoLoadedException e){
@@ -652,7 +652,7 @@ public class SessionController extends Controller {
     }
 
     private void showNonEmptyFolderNotification() {
-        this.notificationPane.setText("Make sure the directory you selected is completely empty. The best" +
+        this.notificationPane.setText("Make sure the directory you selected is completely empty. The best " +
                             "way to do this is to create a new folder from the directory chooser.");
 
         this.notificationPane.getActions().clear();

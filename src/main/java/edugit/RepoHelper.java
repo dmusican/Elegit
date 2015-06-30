@@ -4,6 +4,7 @@ import main.java.edugit.exceptions.MissingRepoException;
 import main.java.edugit.exceptions.NoOwnerInfoException;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.api.errors.InvalidRemoteException;
 import org.eclipse.jgit.lib.Config;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Ref;
@@ -185,6 +186,7 @@ public abstract class RepoHelper {
      */
     public void pushAll() throws GitAPIException, MissingRepoException{
         if(!exists()) throw new MissingRepoException();
+        if(this.getLinkedRemoteRepoURLs().size() == 0) throw new InvalidRemoteException("No remote repository");
         Git git = new Git(this.repo);
         PushCommand push = git.push().setPushAll();
 
@@ -216,8 +218,11 @@ public abstract class RepoHelper {
 
     public void mergeFromFetch() throws IOException, GitAPIException, MissingRepoException{
         if(!exists()) throw new MissingRepoException();
+        if(getLinkedRemoteRepoURLs().size() == 0) throw new InvalidRemoteException("No remote repository");
         Git git = new Git(this.repo);
-        git.merge().include(this.repo.resolve("FETCH_HEAD")).call();
+        ObjectId fetchHeadID = this.repo.resolve("FETCH_HEAD");
+//        if(fetchHeadID == null); // This might pop up at some point as an issue. Might not though
+        git.merge().include(fetchHeadID).call();
         git.close();
     }
 
