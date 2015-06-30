@@ -6,6 +6,7 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -14,6 +15,7 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import org.controlsfx.control.CheckListView;
@@ -59,10 +61,11 @@ public class BranchManager {
     }
 
     public void showBranchChooserWindow() throws IOException {
+        int PADDING = 10;
         GridPane root = new GridPane();
-        root.setHgap(10);
-        root.setVgap(10);
-        root.setPadding(new Insets(10));
+        root.setHgap(PADDING);
+        root.setVgap(PADDING);
+        root.setPadding(new Insets(PADDING));
         root.add(this.remoteListView, 0, 0); // col, row
         root.add(this.localListView, 1, 0);
 
@@ -77,12 +80,13 @@ public class BranchManager {
             }
         });
         Button deleteLocalBranchButton = new Button("Delete local branch");
-        deleteLocalBranchButton.setOnAction(e -> {
-            this.deleteSelectedLocalBranch();
-        });
+        deleteLocalBranchButton.setOnAction(e -> this.deleteSelectedLocalBranch());
 
-        root.add(trackRemoteBranchButton, 0, 1);
-        root.add(deleteLocalBranchButton, 1, 1);
+        HBox hButtons = new HBox(trackRemoteBranchButton, deleteLocalBranchButton);
+        hButtons.setAlignment(Pos.CENTER);
+        hButtons.setSpacing(PADDING);
+        hButtons.setPrefWidth(this.localListView.getPrefWidth()+PADDING+this.remoteListView.getPrefWidth());
+        root.add(hButtons, 0, 1, 2, 1);
 
         root.add(new Text(String.format("Branch off from %s:", this.repo.getBranch())), 0, 2, 2, 1); // colspan = 2
 
@@ -97,8 +101,10 @@ public class BranchManager {
                 this.showInvalidBranchNameNotification();
                 e1.printStackTrace();
             } catch (GitAPIException e1) {
+                this.showGenericGitError();
                 e1.printStackTrace();
             } catch (IOException e1) {
+                this.showGenericError();
                 e1.printStackTrace();
             }
         });
@@ -195,6 +201,13 @@ public class BranchManager {
 
     private void showGenericGitError() {
         this.notificationPane.setText("Sorry, there was a git error.");
+
+        this.notificationPane.getActions().clear();
+        this.notificationPane.show();
+    }
+
+    private void showGenericError() {
+        this.notificationPane.setText("Sorry, there was an error.");
 
         this.notificationPane.getActions().clear();
         this.notificationPane.show();
