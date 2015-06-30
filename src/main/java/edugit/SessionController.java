@@ -32,7 +32,7 @@ import java.util.prefs.BackingStoreException;
  */
 public class SessionController extends Controller {
 
-    public ComboBox<BranchHelper> branchSelector;
+    public ComboBox<LocalBranchHelper> branchSelector;
     public Text currentRepoLabel;
     public NotificationPane notificationPane;
     private SessionModel theModel;
@@ -119,7 +119,7 @@ public class SessionController extends Controller {
         List<LocalBranchHelper> branches = this.theModel.getCurrentRepoHelper().getLocalBranchesFromManager();
         this.branchSelector.getItems().setAll(branches);
 
-        BranchHelper currentBranch = this.theModel.getCurrentRepoHelper().getCurrentBranch();
+        LocalBranchHelper currentBranch = this.theModel.getCurrentRepoHelper().getCurrentBranch();
 
         if (currentBranch == null) {
             // This block will run when the app first opens and there is no selection in the dropdown.
@@ -435,7 +435,7 @@ public class SessionController extends Controller {
      * @throws IOException from updateBranchDropdown()
      */
     public void loadSelectedBranch(ActionEvent actionEvent) throws GitAPIException, IOException {
-        BranchHelper selectedBranch = this.branchSelector.getValue();
+        LocalBranchHelper selectedBranch = this.branchSelector.getValue();
         if(selectedBranch == null) return;
         try {
             selectedBranch.checkoutBranch();

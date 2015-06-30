@@ -15,8 +15,6 @@ public abstract class BranchHelper {
     protected Repository repo;
     protected String branchName;
 
-    LocalBranchHelper trackingBranch;
-
     public BranchHelper(String refPathString, Repository repo) {
         this.refPathString = refPathString;
         this.repo = repo;
@@ -38,13 +36,5 @@ public abstract class BranchHelper {
 
     public String getRefPathString() {
         return refPathString;
-    }
-
-    public LocalBranchHelper getTrackingBranch() {
-        return trackingBranch;
-    }
-
-    public void setTrackingBranch(LocalBranchHelper trackingBranch) {
-        // By default, don't do anything. Inheritors can change this.
     }
 }

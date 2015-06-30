@@ -60,9 +60,4 @@ public class LocalBranchHelper extends BranchHelper {
     public void checkoutBranch() throws GitAPIException {
         new Git(this.repo).checkout().setName(this.branchName).call();
     }
-
-    @Override
-    public String toString() {
-        return "LOCAL: " + super.toString();
-    }
 }
