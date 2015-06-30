@@ -35,6 +35,8 @@ public class SessionController extends Controller {
     public ComboBox<LocalBranchHelper> branchSelector;
     public Text currentRepoLabel;
     public NotificationPane notificationPane;
+    public Button selectAllButton;
+    public Button deselectAllButton;
     private SessionModel theModel;
 
     public Button openRepoDirButton;
@@ -508,7 +510,8 @@ public class SessionController extends Controller {
         mergeFromFetchButton.setDisable(disable);
         pushButton.setDisable(disable);
         fetchButton.setDisable(disable);
-        branchesButton.setDisable(disable);
+        selectAllButton.setDisable(disable);
+        deselectAllButton.setDisable(disable);
         remoteCircle.setVisible(!disable);
     }
 
@@ -608,8 +611,11 @@ public class SessionController extends Controller {
             // User cancelled the login, so we'll leave the owner full of nullness.
         }
 
-        RepoHelper currentRepoHelper = theModel.getCurrentRepoHelper();
-        currentRepoHelper.setOwner(newOwner);
+        if (theModel.getCurrentRepoHelper() != null) {
+            // The currentRepoHelper could be null, say,
+            // on the first run of the program.
+            this.theModel.getCurrentRepoHelper().setOwner(newOwner);
+        }
         this.theModel.setCurrentDefaultOwner(newOwner);
     }
 
@@ -799,5 +805,21 @@ public class SessionController extends Controller {
     public void handleGoToCommitButton(){
         String id = commitInfoNameText.getText();
         CommitTreeController.focusCommitInGraph(id);
+    }
+
+    /**
+     * Selects all files in the working tree for a commit.
+     *
+     */
+    public void onSelectAllButton() {
+        this.workingTreePanelView.setAllFilesSelected(true);
+    }
+
+    /**
+     * Deselects all files in the working tree for a commit.
+     *
+     */
+    public void onDeselectAllButton() {
+        this.workingTreePanelView.setAllFilesSelected(false);
     }
 }
