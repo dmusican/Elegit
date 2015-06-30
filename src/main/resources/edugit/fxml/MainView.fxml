@@ -86,7 +86,7 @@
                     <Button GridPane.columnIndex="4"
                             GridPane.rowIndex="0"
                             text="Switch login"
-                            onAction="#switchUser" />
+                            onAction="#handleSwitchUserButton" />
 
                     <Button GridPane.columnIndex="5"
                             GridPane.rowIndex="0"

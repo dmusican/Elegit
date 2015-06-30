@@ -1,6 +1,5 @@
 package main.java.edugit;
 
-import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -199,11 +198,11 @@ public class SessionController extends Controller {
             }catch(InvalidRemoteException e){
                 this.showInvalidRemoteNotification();
             }catch(TransportException e){
-                this.showNotAuthorizedNotification();
+                this.showNotAuthorizedNotification(() -> cloneOption.getOnAction().handle(t));
             }catch(NoRepoSelectedException e){
                 // The user pressed cancel on the dialog box. Do nothing!
             }catch(NoOwnerInfoException e){
-                this.showNotLoggedInNotification();
+                this.showNotLoggedInNotification(() -> cloneOption.getOnAction().handle(t));
             }catch(MissingRepoException e){
                 this.showMissingRepoNotification();
                 updateMenuBarWithRecentRepos();
@@ -232,7 +231,7 @@ public class SessionController extends Controller {
             } catch(NoRepoSelectedException e){
                 // The user pressed cancel on the dialog box. Do nothing!
             }catch(NoOwnerInfoException e){
-                this.showNotLoggedInNotification();
+                this.showNotLoggedInNotification(() -> existingOption.getOnAction().handle(t));
             }catch(BackingStoreException | ClassNotFoundException e){
                 // These should only occur when the recent repo information
                 // fails to be loaded or stored, respectively
@@ -326,7 +325,7 @@ public class SessionController extends Controller {
             setButtonsDisabled(true);
             updateMenuBarWithRecentRepos();
         } catch (TransportException e) {
-            this.showNotAuthorizedNotification();
+            this.showNotAuthorizedNotification(this::handleCommitButton);
         } catch (WrongRepositoryStateException e) {
             System.out.println("Threw a WrongRepositoryStateException");
             e.printStackTrace();
@@ -353,7 +352,7 @@ public class SessionController extends Controller {
         } catch(InvalidRemoteException e){
             this.showNoRemoteNotification();
         } catch (TransportException e) {
-            this.showNotAuthorizedNotification();
+            this.showNotAuthorizedNotification(this::handleMergeFromFetchButton);
         } catch(NoRepoLoadedException e){
             this.showNoRepoLoadedNotification();
             setButtonsDisabled(true);
@@ -381,7 +380,7 @@ public class SessionController extends Controller {
         } catch(InvalidRemoteException e){
             this.showNoRemoteNotification();
         } catch (TransportException e) {
-            this.showNotAuthorizedNotification();
+            this.showNotAuthorizedNotification(this::handlePushButton);
         } catch(NoRepoLoadedException e){
             this.showNoRepoLoadedNotification();
             setButtonsDisabled(true);
@@ -407,7 +406,7 @@ public class SessionController extends Controller {
         } catch(InvalidRemoteException e){
             this.showNoRemoteNotification();
         } catch (TransportException e) {
-            this.showNotAuthorizedNotification();
+            this.showNotAuthorizedNotification(this::handleFetchButton);
         } catch(NoRepoLoadedException e){
             this.showNoRepoLoadedNotification();
             setButtonsDisabled(true);
@@ -598,19 +597,29 @@ public class SessionController extends Controller {
     /**
      * Creates a new owner and set it as the current default owner.
      */
-    public void switchUser() {
+    public boolean switchUser() {
         // Begin with a nullified RepoOwner:
-        RepoOwner newOwner = new RepoOwner(null, null);
+        RepoOwner newOwner = this.theModel.getDefaultOwner() == null ? new RepoOwner(null, null) : this.theModel.getDefaultOwner();
+        boolean switchedLogin = true;
 
         try {
             newOwner = new RepoOwner();
         } catch (CancelledLoginException e) {
             // User cancelled the login, so we'll leave the owner full of nullness.
+            switchedLogin = false;
         }
 
         RepoHelper currentRepoHelper = theModel.getCurrentRepoHelper();
-        currentRepoHelper.setOwner(newOwner);
+        if(currentRepoHelper != null){
+            currentRepoHelper.setOwner(newOwner);
+        }
         this.theModel.setCurrentDefaultOwner(newOwner);
+        return switchedLogin;
+    }
+
+
+    public void handleSwitchUserButton(){
+        this.switchUser();
     }
 
     /**
@@ -632,12 +641,14 @@ public class SessionController extends Controller {
 
     /// BEGIN: ERROR NOTIFICATIONS:
 
-    private void showNotLoggedInNotification() {
+    private void showNotLoggedInNotification(Runnable callBack) {
         this.notificationPane.setText("You need to log in to do that.");
 
         Action loginAction = new Action("Enter login info", e -> {
             this.notificationPane.hide();
-            this.switchUser();
+            if(this.switchUser()){
+                if(callBack != null) callBack.run();
+            }
         });
 
         this.notificationPane.getActions().clear();
@@ -707,12 +718,14 @@ public class SessionController extends Controller {
         this.notificationPane.show();
     }
 
-    private void showNotAuthorizedNotification() {
+    private void showNotAuthorizedNotification(Runnable callback) {
         this.notificationPane.setText("The login information you gave does not allow you to modify this repository. Try switching your login and trying again.");
 
         Action loginAction = new Action("Log in", e -> {
             this.notificationPane.hide();
-            this.switchUser();
+            if(this.switchUser()){
+                if(callback != null) callback.run();
+            }
         });
 
         this.notificationPane.getActions().clear();
