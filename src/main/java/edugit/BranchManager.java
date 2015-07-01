@@ -232,9 +232,11 @@ public class BranchManager {
      * Deletes the selected branches (in the localListView) through git.
      */
     public void deleteSelectedLocalBranches() {
-        for (LocalBranchHelper selectedBranch : this.localListView.getSelectionModel().getSelectedItems()) {
-            Git git = new Git(this.repo);
+        Git git = new Git(this.repo);
 
+        System.out.println(this.localListView.getSelectionModel().getSelectedItems());
+
+        for (LocalBranchHelper selectedBranch : this.localListView.getSelectionModel().getSelectedItems()) {
             try {
                 if (selectedBranch != null) {
                     // Local delete:
@@ -252,7 +254,7 @@ public class BranchManager {
                 e.printStackTrace();
             }
         }
-
+        git.close();
         // TODO: add optional delete from remote, too.
         // see http://stackoverflow.com/questions/11892766/how-to-remove-remote-branch-with-jgit
     }
@@ -270,6 +272,7 @@ public class BranchManager {
         Ref newBranch = git.branchCreate().setName(branchName).call();
         LocalBranchHelper newLocalBranchHelper = new LocalBranchHelper(newBranch, this.repo);
 
+        git.close();
         return newLocalBranchHelper;
     }
 
@@ -292,6 +295,7 @@ public class BranchManager {
             this.showGenericGitErrorNotification();
             e.printStackTrace();
         }
+        git.close();
     }
 
     /**
@@ -325,6 +329,7 @@ public class BranchManager {
             System.out.println(mergeResult.getMergeStatus());
             // todo: handle all cases (maybe combine some)
         }
+        git.close();
     }
 
     /// BEGIN: ERROR NOTIFICATIONS:
