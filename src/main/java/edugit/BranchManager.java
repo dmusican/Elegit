@@ -234,8 +234,6 @@ public class BranchManager {
     public void deleteSelectedLocalBranches() {
         Git git = new Git(this.repo);
 
-        System.out.println(this.localListView.getSelectionModel().getSelectedItems());
-
         for (LocalBranchHelper selectedBranch : this.localListView.getSelectionModel().getSelectedItems()) {
             try {
                 if (selectedBranch != null) {
@@ -247,10 +245,10 @@ public class BranchManager {
                 this.showNotMergedNotification(selectedBranch);
                 e.printStackTrace();
             } catch (CannotDeleteCurrentBranchException e) {
-                this.showCannotDeleteBranchNotification();
+                this.showCannotDeleteBranchNotification(selectedBranch);
                 e.printStackTrace();
             } catch (GitAPIException e) {
-                this.showGenericGitErrorNotification();
+                this.showGenericGitErrorNotificationWithBranch(selectedBranch);
                 e.printStackTrace();
             }
         }
@@ -289,10 +287,10 @@ public class BranchManager {
                 this.localListView.getItems().remove(branchToDelete);
             }
         } catch (CannotDeleteCurrentBranchException e) {
-            this.showCannotDeleteBranchNotification();
+            this.showCannotDeleteBranchNotification(branchToDelete);
             e.printStackTrace();
         } catch (GitAPIException e) {
-            this.showGenericGitErrorNotification();
+            this.showGenericGitErrorNotificationWithBranch(branchToDelete);
             e.printStackTrace();
         }
         git.close();
@@ -362,6 +360,13 @@ public class BranchManager {
         this.notificationPane.show();
     }
 
+    private void showGenericGitErrorNotificationWithBranch(LocalBranchHelper branch) {
+        this.notificationPane.setText(String.format("Sorry, there was a git error on branch %s.", branch.getBranchName()));
+
+        this.notificationPane.getActions().clear();
+        this.notificationPane.show();
+    }
+
     private void showGenericGitErrorNotification() {
         this.notificationPane.setText("Sorry, there was a git error.");
 
@@ -389,8 +394,9 @@ public class BranchManager {
         this.notificationPane.show();
     }
 
-    private void showCannotDeleteBranchNotification() {
-        this.notificationPane.setText("Sorry, that branch can't be deleted right now. Try checking out a different branch first.");
+    private void showCannotDeleteBranchNotification(LocalBranchHelper branch) {
+        this.notificationPane.setText(String.format("Sorry, %s can't be deleted right now. " +
+                "Try checking out a different branch first.", branch.getBranchName()));
         // probably because it's checked out
 
         this.notificationPane.getActions().clear();
