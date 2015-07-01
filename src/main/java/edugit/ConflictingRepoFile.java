@@ -35,7 +35,7 @@ public class ConflictingRepoFile extends RepoFile {
      * When this RepoFile is checkboxed and the user commits,
      * open the conflicting file in an external editor.
      */
-    @Override public void updateFileStatusInRepo() throws GitAPIException {
+    @Override public void updateFileStatusInRepo() throws GitAPIException, IOException {
         Alert alert = new Alert(Alert.AlertType.WARNING);
 
         ButtonType resolveButton = new ButtonType("Resolve conflicts in editor");
@@ -56,12 +56,7 @@ public class ConflictingRepoFile extends RepoFile {
             File workingDirectory = this.repo.getWorkTree();
             File unrelativized = new File(workingDirectory, this.filePath.toString());
 
-            try {
-                desktop.open(unrelativized);
-            } catch (IOException e) {
-                // Todo: put exception into method signature (after debugging)
-                e.printStackTrace();
-            }
+            desktop.open(unrelativized);
         } else if (result.get() == addButton) {
             AddCommand add = new Git(this.repo).add().addFilepattern(this.filePath.toString());
             add.call();

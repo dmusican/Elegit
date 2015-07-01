@@ -73,7 +73,7 @@ public class RepoFile {
      *
      * @throws GitAPIException if an interaction with Git fails (only applies to subclasses).
      */
-    public void updateFileStatusInRepo() throws GitAPIException {
+    public void updateFileStatusInRepo() throws GitAPIException, IOException {
         System.out.printf("This file requires no update: %s\n", this.filePath.toString());
     }
 

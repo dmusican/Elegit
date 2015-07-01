@@ -341,7 +341,8 @@ public class SessionController extends Controller {
             // This should only come up when the user chooses to resolve conflicts in a file.
             // Do nothing.
 
-        }catch(GitAPIException e){
+        }catch(GitAPIException | IOException e){
+            // Git error, or error presenting the file chooser window
             this.showGenericErrorNotification();
             e.printStackTrace();
         }
