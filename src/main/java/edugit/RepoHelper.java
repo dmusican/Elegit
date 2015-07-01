@@ -1,22 +1,20 @@
 package main.java.edugit;
 
-import javafx.scene.Node;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import main.java.edugit.exceptions.MissingRepoException;
 import main.java.edugit.exceptions.NoOwnerInfoException;
 import main.java.edugit.exceptions.PushToAheadRemoteError;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
-import org.eclipse.jgit.api.errors.JGitInternalException;
-import org.eclipse.jgit.lib.Config;
-import org.eclipse.jgit.lib.ObjectId;
-import org.eclipse.jgit.lib.Ref;
-import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.revplot.PlotCommitList;
 import org.eclipse.jgit.revplot.PlotLane;
 import org.eclipse.jgit.revplot.PlotWalk;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevWalk;
+import org.eclipse.jgit.transport.FetchResult;
 import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.jgit.transport.RemoteRefUpdate;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
@@ -50,6 +48,10 @@ public abstract class RepoHelper {
     private LocalBranchHelper branchHelper;
     private BranchManager branchManager;
 
+    public BooleanProperty hasRemoteProperty;
+    public BooleanProperty hasUnpushedCommitsProperty;
+    public BooleanProperty hasUnmergedCommitsProperty;
+
     /**
      * Creates a RepoHelper object for holding a Repository and interacting with it
      * through JGit.
@@ -80,6 +82,10 @@ public abstract class RepoHelper {
         this.remoteCommits = this.parseAllRemoteCommits();
 
         this.branchManager = new BranchManager(this.callGitForLocalBranches(), this.callGitForRemoteBranches(), this.repo);
+
+        hasRemoteProperty = new SimpleBooleanProperty(!getLinkedRemoteRepoURLs().isEmpty());
+        hasUnpushedCommitsProperty = new SimpleBooleanProperty(this.localCommits.size() > this.remoteCommits.size());
+        hasUnmergedCommitsProperty = new SimpleBooleanProperty(this.localCommits.size() < this.remoteCommits.size());
     }
 
     /// Constructor for EXISTING repos to inherit (they don't need the Remote URL)
@@ -101,6 +107,10 @@ public abstract class RepoHelper {
         this.localCommits = this.parseAllLocalCommits();
         this.remoteCommits = this.parseAllRemoteCommits();
         this.branchManager = new BranchManager(this.callGitForLocalBranches(), this.callGitForRemoteBranches(), this.repo);
+
+        hasRemoteProperty = new SimpleBooleanProperty(!getLinkedRemoteRepoURLs().isEmpty());
+        hasUnpushedCommitsProperty = new SimpleBooleanProperty(this.localCommits.size() > this.remoteCommits.size());
+        hasUnmergedCommitsProperty = new SimpleBooleanProperty(this.localCommits.size() < this.remoteCommits.size());
 
         // TODO: unify these two constructors (less copied-and-pasted code)
     }
@@ -182,6 +192,7 @@ public abstract class RepoHelper {
                 .setMessage(commitMessage)
                 .call();
         git.close();
+        this.hasUnpushedCommitsProperty.set(true);
     }
 
     /**
@@ -198,6 +209,9 @@ public abstract class RepoHelper {
         if (this.ownerAuth != null) {
             push.setCredentialsProvider(this.ownerAuth);
         }
+//        ProgressMonitor progress = new TextProgressMonitor(new PrintWriter(System.out));
+        ProgressMonitor progress = new SimpleProgressMonitor();
+        push.setProgressMonitor(progress);
 
         Iterable<PushResult> pushResult = push.call();
         boolean allPushesWereRejected = true;
@@ -216,6 +230,7 @@ public abstract class RepoHelper {
         }
 
         git.close();
+        this.hasUnpushedCommitsProperty.set(false);
     }
 
     public void fetch() throws GitAPIException, MissingRepoException{
@@ -232,8 +247,15 @@ public abstract class RepoHelper {
         }
 
         fetch.setCheckFetchedObjects(true);
-        fetch.call();
+
+//        ProgressMonitor progress = new TextProgressMonitor(new PrintWriter(System.out));
+        ProgressMonitor progress = new SimpleProgressMonitor();
+        fetch.setProgressMonitor(progress);
+
+        FetchResult result = fetch.call();
         git.close();
+//        System.out.println(result.getMessages());
+        this.hasUnmergedCommitsProperty.set(!result.getTrackingRefUpdates().isEmpty());
     }
 
     public void mergeFromFetch() throws IOException, GitAPIException, MissingRepoException {
@@ -242,8 +264,12 @@ public abstract class RepoHelper {
         Git git = new Git(this.repo);
         ObjectId fetchHeadID = this.repo.resolve("FETCH_HEAD");
 //        if(fetchHeadID == null); // This might pop up at some point as an issue. Might not though
-        git.merge().include(fetchHeadID).call();
+        MergeResult result = git.merge()
+                .include(fetchHeadID)
+                .call();
         git.close();
+//        System.out.println("Merge successful? " + result.getMergeStatus().isSuccessful());
+        this.hasUnmergedCommitsProperty.set(!Arrays.asList(result.getMergedCommits()).contains(result.getNewHead()));
     }
 
     public void closeRepo() {
@@ -471,6 +497,8 @@ public abstract class RepoHelper {
         plotCommitList.source(w);
         plotCommitList.fillTo(Integer.MAX_VALUE);
 
+        w.dispose();
+
         return plotCommitList;
     }
 
@@ -483,6 +511,7 @@ public abstract class RepoHelper {
      */
     public RevCommit parseRawCommit(ObjectId id) throws IOException{
         RevWalk w = new RevWalk(repo);
+        w.dispose();
         return w.parseCommit(id);
     }
 
@@ -495,7 +524,7 @@ public abstract class RepoHelper {
         return this.localPath.getFileName().toString();
     }
 
-    public ArrayList<LocalBranchHelper> callGitForLocalBranches() throws GitAPIException, IOException {
+    public List<LocalBranchHelper> callGitForLocalBranches() throws GitAPIException, IOException {
         List<Ref> getBranchesCall = new Git(this.repo).branchList().call();
         ArrayList<LocalBranchHelper> localBranchHelpers = new ArrayList<>();
 
@@ -540,9 +569,9 @@ public abstract class RepoHelper {
         return new ArrayList<>(remoteBranches.keySet());
     }
 
-    public ArrayList<RemoteBranchHelper> callGitForRemoteBranches() throws GitAPIException {
+    public List<RemoteBranchHelper> callGitForRemoteBranches() throws GitAPIException {
         List<Ref> getBranchesCall = new Git(this.repo).branchList().setListMode(ListBranchCommand.ListMode.REMOTE).call();
-        ArrayList<RemoteBranchHelper> remoteBranchHelpers = new ArrayList<>();
+        List<RemoteBranchHelper> remoteBranchHelpers = new ArrayList<>();
 
         this.remoteBranches = new HashMap<>();
 

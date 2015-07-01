@@ -4,7 +4,10 @@ import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.ListView;
+import javafx.scene.control.SelectionMode;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.text.Text;
@@ -20,7 +23,6 @@ import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -43,7 +45,7 @@ public class BranchManager {
     private Button deleteLocalBranchesButton;
     private Button trackRemoteBranchButton;
 
-    public BranchManager(ArrayList<LocalBranchHelper> localBranches, ArrayList<RemoteBranchHelper> remoteBranches, Repository repo) throws IOException {
+    public BranchManager(List<LocalBranchHelper> localBranches, List<RemoteBranchHelper> remoteBranches, Repository repo) throws IOException {
         this.repo = repo;
 
         this.remoteListView = new ListView<>(FXCollections.observableArrayList(remoteBranches));

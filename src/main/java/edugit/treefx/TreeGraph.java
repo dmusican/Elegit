@@ -1,10 +1,10 @@
 package main.java.edugit.treefx;
 
-import main.java.edugit.MatchedScrollPane;
 import javafx.geometry.Insets;
 import javafx.scene.Group;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.Pane;
+import main.java.edugit.MatchedScrollPane;
 
 /**
  * Thanks to Roland for providing this graph structure:
@@ -29,14 +29,11 @@ public class TreeGraph{
      * @param m the model of the graph
      */
     public TreeGraph(TreeGraphModel m) {
-
         this.treeGraphModel = m;
 
         Group canvas = new Group();
         cellLayer = new Pane();
         cellLayer.setPadding(new Insets(TreeLayout.V_PAD, TreeLayout.H_PAD, TreeLayout.V_PAD, TreeLayout.H_PAD));
-
-        canvas.getChildren().add(cellLayer);
 
         scrollPane = new MatchedScrollPane(canvas);
 
@@ -44,6 +41,8 @@ public class TreeGraph{
         scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
 
         scrollPane.NumItemsProperty.bind(m.numCellsProperty);
+
+        canvas.getChildren().add(cellLayer);
     }
 
     /**

@@ -1,13 +1,12 @@
 package main.java.edugit;
 
+import javafx.application.Platform;
+import javafx.concurrent.Task;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.layout.Region;
 import main.java.edugit.treefx.Cell;
 import main.java.edugit.treefx.TreeGraph;
 import main.java.edugit.treefx.TreeLayout;
-import javafx.application.Platform;
-import javafx.concurrent.Task;
-import javafx.scene.Node;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.layout.Region;
 
 /**
  * Class for the local and remote panel views that handles the drawing of a tree structure
@@ -21,7 +20,7 @@ public class CommitTreePanelView extends Region{
     public static int TREE_PANEL_HEIGHT = (Cell.BOX_SIZE + TreeLayout.H_SPACING) * 5;
 
     // Thread information
-    private boolean isRunning = false;
+    private boolean isLayoutThreadRunning = false;
     private Task task;
     private Thread th;
     private String name;
@@ -39,7 +38,7 @@ public class CommitTreePanelView extends Region{
      */
     public void displayTreeGraph(TreeGraph treeGraph){
 
-        if(isRunning){
+        if(isLayoutThreadRunning){
             task.cancel();
             try{
                 th.join();
@@ -54,7 +53,7 @@ public class CommitTreePanelView extends Region{
         th.setName("Graph Layout: "+this.name);
         th.setDaemon(true);
         th.start();
-        isRunning = true;
+        isLayoutThreadRunning = true;
 
         Task<Void> endTask = new Task<Void>(){
             @Override
@@ -65,18 +64,14 @@ public class CommitTreePanelView extends Region{
                 }catch(InterruptedException e){
                     e.printStackTrace();
                 }
-                Platform.runLater(new Task<Void>(){
-                    @Override
-                    protected Void call(){
-                        ScrollPane sp = treeGraph.getScrollPane();
-                        sp.setOnMouseClicked(event -> CommitTreeController.handleMouseClicked());
-                        getChildren().clear();
-                        getChildren().add(anchorScrollPane(sp));
-                        isRunning = false;
+                Platform.runLater(() -> {
+                    ScrollPane sp = treeGraph.getScrollPane();
+                    sp.setOnMouseClicked(event -> CommitTreeController.handleMouseClicked());
+                    getChildren().clear();
+                    getChildren().add(anchorScrollPane(sp));
+                    isLayoutThreadRunning = false;
 
-                        MatchedScrollPane.ignoreScrolling(false);
-                        return null;
-                    }
+                    MatchedScrollPane.ignoreScrolling(false);
                 });
                 return null;
             }
@@ -91,9 +86,11 @@ public class CommitTreePanelView extends Region{
      * Displays an empty scroll pane
      */
     public void displayEmptyView(){
-        ScrollPane sp = new ScrollPane();
-        this.getChildren().clear();
-        this.getChildren().add(anchorScrollPane(sp));
+        Platform.runLater(() -> {
+            ScrollPane sp = new ScrollPane();
+            this.getChildren().clear();
+            this.getChildren().add(anchorScrollPane(sp));
+        });
     }
 
     /**
@@ -102,7 +99,7 @@ public class CommitTreePanelView extends Region{
      * @param sp the scrollpane to anchor
      * @return the passed in scrollpane after being anchored
      */
-    private Node anchorScrollPane(ScrollPane sp){
+    private ScrollPane anchorScrollPane(ScrollPane sp){
         sp.prefWidthProperty().bind(this.widthProperty());
         sp.prefHeightProperty().bind(this.heightProperty());
         return sp;
