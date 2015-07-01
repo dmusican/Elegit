@@ -167,10 +167,7 @@ public class SessionController extends Controller {
         if(currentRepoHelper==null) throw new NoRepoLoadedException();
         if(!currentRepoHelper.exists()) throw new MissingRepoException();
 
-        this.branchSelector.setVisible(true);
-
         List<LocalBranchHelper> branches = currentRepoHelper.getLocalBranchesFromManager();
-        this.branchSelector.getItems().setAll(branches);
 
         LocalBranchHelper currentBranch = currentRepoHelper.getCurrentBranch();
 
@@ -196,7 +193,12 @@ public class SessionController extends Controller {
             }
         }
 
-        this.branchSelector.setValue(currentBranch);
+        LocalBranchHelper finalizedCurrentBranch = currentBranch;
+        Platform.runLater(() -> {
+            this.branchSelector.setVisible(true);
+            this.branchSelector.getItems().setAll(branches);
+            this.branchSelector.setValue(finalizedCurrentBranch);
+        });
     }
 
     /**
@@ -213,69 +215,10 @@ public class SessionController extends Controller {
         this.newRepoMenu = new Menu("Load new Repository");
 
         MenuItem cloneOption = new MenuItem("Clone");
-        cloneOption.setOnAction(t -> {
-            try{
-                ClonedRepoHelperBuilder builder = new ClonedRepoHelperBuilder(this.theModel);
-                RepoHelper repoHelper = builder.getRepoHelperFromDialogs(); // this creates and sets the RepoHelper
-
-                this.theModel.openRepoFromHelper(repoHelper);
-
-                this.initPanelViews();
-                this.updateUIEnabledStatus();
-            }catch(IllegalArgumentException e){
-                this.showInvalidRepoNotification();
-            }catch(JGitInternalException e){
-                this.showNonEmptyFolderNotification();
-            }catch(InvalidRemoteException e){
-                this.showInvalidRemoteNotification();
-            }catch(TransportException e){
-                this.showNotAuthorizedNotification(() -> cloneOption.getOnAction().handle(t));
-            }catch(NoRepoSelectedException e){
-                // The user pressed cancel on the dialog box. Do nothing!
-            }catch(NoOwnerInfoException e){
-                this.showNotLoggedInNotification(() -> cloneOption.getOnAction().handle(t));
-            }catch(MissingRepoException e){
-                this.showMissingRepoNotification();
-                updateMenuBarWithRecentRepos();
-            }catch(ClassNotFoundException | BackingStoreException e){
-                // These should only occur when the recent repo information
-                // fails to be loaded or stored, respectively
-                // Should be ok to silently fail
-            }catch(GitAPIException | IOException e){
-                // Somehow, the repository failed to get properly cloned
-                // TODO: better error message?
-                this.showRepoWasNotLoadedNotification();
-            }
-        });
+        cloneOption.setOnAction(t -> handleLoadRepoMenuItem(new ClonedRepoHelperBuilder(this.theModel),() -> cloneOption.getOnAction().handle(t)));
 
         MenuItem existingOption = new MenuItem("Load existing repository");
-        existingOption.setOnAction(t -> {
-            ExistingRepoHelperBuilder builder = new ExistingRepoHelperBuilder(this.theModel);
-            try {
-                RepoHelper repoHelper = builder.getRepoHelperFromDialogs();
-                this.theModel.openRepoFromHelper(repoHelper);
-
-                this.initPanelViews();
-                this.updateUIEnabledStatus();
-            } catch (IllegalArgumentException e) {
-                this.showInvalidRepoNotification();
-            } catch (NoRepoSelectedException e) {
-                // The user pressed cancel on the dialog box. Do nothing!
-            } catch(NoOwnerInfoException e) {
-                this.showNotLoggedInNotification(() -> existingOption.getOnAction().handle(t));
-            } catch(BackingStoreException | ClassNotFoundException e) {
-                // These should only occur when the recent repo information
-                // fails to be loaded or stored, respectively
-                // Should be ok to silently fail
-            } catch (IOException | GitAPIException e) {
-                // Somehow, the repository failed to get properly cloned
-                // TODO: better error message?
-                this.showRepoWasNotLoadedNotification();
-            } catch (MissingRepoException e) {
-                this.showMissingRepoNotification();
-                updateMenuBarWithRecentRepos();
-            }
-        });
+        existingOption.setOnAction(t -> handleLoadRepoMenuItem(new ExistingRepoHelperBuilder(this.theModel), () -> existingOption.getOnAction().handle(t)));
 
         // TODO: implement New Repository option.
         MenuItem newOption = new MenuItem("Start a new repository");
@@ -298,34 +241,101 @@ public class SessionController extends Controller {
 
     }
 
+    private void handleLoadRepoMenuItem(RepoHelperBuilder builder, Runnable callback){
+        try{
+            RepoHelper repoHelper = builder.getRepoHelperFromDialogs();
+            Thread th = new Thread(new Task<Void>(){
+                @Override
+                protected Void call() {
+                    try {
+                        theModel.openRepoFromHelper(repoHelper);
+
+                        initPanelViews();
+                        updateUIEnabledStatus();
+
+                    } catch(BackingStoreException | ClassNotFoundException e) {
+                        // These should only occur when the recent repo information
+                        // fails to be loaded or stored, respectively
+                        // Should be ok to silently fail
+                    } catch (MissingRepoException e) {
+                        showMissingRepoNotification();
+                        updateMenuBarWithRecentRepos();
+                    } catch (IOException e) {
+                        // Somehow, the repository failed to get properly loaded
+                        // TODO: better error message?
+                        showRepoWasNotLoadedNotification();
+                    }
+                    return null;
+                }
+            });
+            th.setDaemon(true);
+            th.setName("Loading existing/cloning repository");
+            th.start();
+        } catch (IllegalArgumentException e) {
+            showInvalidRepoNotification();
+        } catch(NoOwnerInfoException e) {
+            showNotLoggedInNotification(callback);
+        } catch(JGitInternalException e){
+            showNonEmptyFolderNotification();
+        } catch(InvalidRemoteException e){
+            showInvalidRemoteNotification();
+        } catch(TransportException e){
+            showNotAuthorizedNotification(callback);
+        } catch (NoRepoSelectedException e) {
+            // The user pressed cancel on the dialog box. Do nothing!
+        } catch(IOException | GitAPIException e){
+            // Somehow, the repository failed to get properly loaded
+            // TODO: better error message?
+            showRepoWasNotLoadedNotification();
+        }
+    }
+
     /**
      * Puts all the model's RepoHelpers into the menubar.
      */
     private void updateMenuBarWithRecentRepos() {
-        this.openRecentRepoMenu.getItems().clear();
+        Platform.runLater(() -> {
+            this.openRecentRepoMenu.getItems().clear();
 
-        List<RepoHelper> repoHelpers = this.theModel.getAllRepoHelpers();
-        for (RepoHelper repoHelper : repoHelpers) {
-            MenuItem recentRepoHelperMenuItem = new MenuItem(repoHelper.toString());
-            recentRepoHelperMenuItem.setOnAction(t -> {
+            List<RepoHelper> repoHelpers = this.theModel.getAllRepoHelpers();
+            for(RepoHelper repoHelper : repoHelpers){
+                MenuItem recentRepoHelperMenuItem = new MenuItem(repoHelper.toString());
+                recentRepoHelperMenuItem.setOnAction(t -> handleRecentRepoMenuItem(repoHelper));
+                openRecentRepoMenu.getItems().add(recentRepoHelperMenuItem);
+            }
+
+            this.menuBar.getMenus().clear();
+            this.menuBar.getMenus().addAll(this.newRepoMenu, this.openRecentRepoMenu);
+        });
+    }
+
+    private void handleRecentRepoMenuItem(RepoHelper repoHelper){
+        Thread th = new Thread(new Task<Void>(){
+            @Override
+            protected Void call() throws Exception{
                 try {
-                    this.theModel.openRepoFromHelper(repoHelper);
+                    theModel.openRepoFromHelper(repoHelper);
 
-                    this.initPanelViews();
-                    this.updateUIEnabledStatus();
-                } catch (BackingStoreException | ClassNotFoundException | IOException e) {
-                    this.showGenericErrorNotification();
-                    e.printStackTrace();
+                    initPanelViews();
+                    updateUIEnabledStatus();
+                } catch (IOException e) {
+                    // Somehow, the repository failed to get properly loaded
+                    // TODO: better error message?
+                    showRepoWasNotLoadedNotification();
                 } catch(MissingRepoException e){
-                    this.showMissingRepoNotification();
+                    showMissingRepoNotification();
                     updateMenuBarWithRecentRepos();
+                } catch (BackingStoreException | ClassNotFoundException e) {
+                    // These should only occur when the recent repo information
+                    // fails to be loaded or stored, respectively
+                    // Should be ok to silently fail
                 }
-            });
-            openRecentRepoMenu.getItems().add(recentRepoHelperMenuItem);
-        }
-
-        this.menuBar.getMenus().clear();
-        this.menuBar.getMenus().addAll(this.newRepoMenu, this.openRecentRepoMenu);
+                return null;
+            }
+        });
+        th.setDaemon(true);
+        th.setName("Open repository from recent list");
+        th.start();
     }
 
     /**
@@ -508,15 +518,24 @@ public class SessionController extends Controller {
 
     /**
      * Loads the panel views when the "git status" button is clicked.
+     *
+     * See initPanelViews for Thread information
      */
     public void onGitStatusButton(){
         Thread th = new Thread(new Task<Void>(){
             @Override
             protected Void call(){
                 try{
-                    workingTreePanelView.drawDirectoryView();
-                    localCommitTreeModel.update();
-                    remoteCommitTreeModel.update();
+                    Platform.runLater(()-> {
+                        try{
+                            workingTreePanelView.drawDirectoryView();
+                            localCommitTreeModel.update();
+                            remoteCommitTreeModel.update();
+                        }catch(GitAPIException | IOException e){
+                            showGenericErrorNotification();
+                            e.printStackTrace();
+                        }
+                    });
 
                     updateBranchDropdown();
                 } catch(MissingRepoException e){
@@ -526,9 +545,6 @@ public class SessionController extends Controller {
                 } catch(NoRepoLoadedException e){
                     showNoRepoLoadedNotification();
                     setButtonsDisabled(true);
-                } catch(GitAPIException | IOException e){
-                    showGenericErrorNotification();
-                    e.printStackTrace();
                 }
                 return null;
             }
@@ -578,16 +594,27 @@ public class SessionController extends Controller {
 
     /**
      * Initializes each panel of the view
+     *
+     * TODO: change this if/when we update the JDK to 8u60 or higher
+     * With JDK version 8u40, creation of control items needs to take place
+     * in the application thread even if they are not added to the scene.
+     * This is fixed in JDK 8u60 and above
+     * https://bugs.openjdk.java.net/browse/JDK-8097541
+     *
+     * This applies to all methods used here
      */
 	private void initPanelViews() {
-        try{
-            this.workingTreePanelView.drawDirectoryView();
-            this.localCommitTreeModel.init();
-            this.remoteCommitTreeModel.init();
-        }catch(GitAPIException e){
-            this.showGenericErrorNotification();
-            e.printStackTrace();
-        }
+        Platform.runLater(() -> {
+            try{
+                workingTreePanelView.drawDirectoryView();
+            }catch(GitAPIException e){
+                showGenericErrorNotification();
+                e.printStackTrace();
+            }
+            localCommitTreeModel.init();
+            remoteCommitTreeModel.init();
+        });
+
     }
 
     /**

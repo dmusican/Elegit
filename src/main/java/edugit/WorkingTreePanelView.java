@@ -1,6 +1,5 @@
 package main.java.edugit;
 
-import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.control.CheckBoxTreeItem;
@@ -23,7 +22,7 @@ import java.util.ArrayList;
 public class WorkingTreePanelView extends Region{
 
     // fileLeafs stores all 'leafs' in the directory TreeView:
-    private ArrayList<CheckBoxTreeItem> fileLeafs;
+    private ArrayList<CheckBoxTreeItem<RepoFile>> fileLeafs;
     private TreeView<RepoFile> directoryTreeView;
     private SessionModel sessionModel;
 
@@ -48,11 +47,21 @@ public class WorkingTreePanelView extends Region{
      * Draws the directory TreeView by getting the parent directory's RepoFile,
      * populating it with the files it contains, and adding it to the display.
      *
+     * THIS METHOD MUST BE CALLED FROM THE JAVAFX APPLICATION THREAD
+     *
      * @throws GitAPIException if the SessionModel can't get the ParentDirectoryRepoFile.
      */
     public void drawDirectoryView() throws GitAPIException{
+
+        // TODO: change this if/when we update the JDK to 8u60 or higher
+        // With JDK version 8u40, creation of control items needs to take place
+        // in the application thread even if they are not added to the scene.
+        // This is fixed in JDK 8u60 and above
+        // https://bugs.openjdk.java.net/browse/JDK-8097541
+        //
+        // This applies to the CheckBoxTreeItems created here
+
         if(this.sessionModel.getCurrentRepoHelper() == null) return;
-        
         DirectoryRepoFile rootDirectory = new DirectoryRepoFile("", this.sessionModel.getCurrentRepo());
 
         CheckBoxTreeItem<RepoFile> rootItem = new CheckBoxTreeItem<RepoFile>(rootDirectory);
@@ -60,15 +69,14 @@ public class WorkingTreePanelView extends Region{
 
         isAnyFileSelectedProperty.unbind();
         BooleanProperty temp = new SimpleBooleanProperty(false);
-
-        for (RepoFile changedRepoFile : this.sessionModel.getAllChangedRepoFiles()) {
-            CheckBoxTreeItem<RepoFile> leaf = new CheckBoxTreeItem<>(changedRepoFile, changedRepoFile.diffButton);
-            rootItem.getChildren().add(leaf);
-            this.fileLeafs.add(leaf);
-            BooleanProperty oldTemp = temp;
-            temp = new SimpleBooleanProperty();
-            temp.bind(oldTemp.or(leaf.selectedProperty()));
-        }
+            for(RepoFile changedRepoFile : this.sessionModel.getAllChangedRepoFiles()){
+                CheckBoxTreeItem<RepoFile> leaf = new CheckBoxTreeItem<>(changedRepoFile, changedRepoFile.diffButton);
+                rootItem.getChildren().add(leaf);
+                this.fileLeafs.add(leaf);
+                BooleanProperty oldTemp = temp;
+                temp = new SimpleBooleanProperty();
+                temp.bind(oldTemp.or(leaf.selectedProperty()));
+            }
         isAnyFileSelectedProperty.bind(temp);
 
         this.directoryTreeView = new TreeView<>(rootItem);
@@ -78,10 +86,8 @@ public class WorkingTreePanelView extends Region{
         this.directoryTreeView.setShowRoot(false);
 
         this.directoryTreeView.prefHeightProperty().bind(this.heightProperty());
-        Platform.runLater(() -> {
-            this.getChildren().clear();
-            this.getChildren().add(this.directoryTreeView);
-        });
+        this.getChildren().clear();
+        this.getChildren().add(directoryTreeView);
     }
 
     /**

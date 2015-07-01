@@ -306,13 +306,13 @@ public class SessionModel {
      * @return a list of changed files, contained in RepoFile objects.
      * @throws GitAPIException if the `git status` calls fail.
      */
-    public ArrayList<RepoFile> getAllChangedRepoFiles() throws GitAPIException {
+    public List<RepoFile> getAllChangedRepoFiles() throws GitAPIException {
         Set<String> modifiedFiles = getModifiedFiles();
         Set<String> missingFiles = getMissingFiles();
         Set<String> untrackedFiles = getUntrackedFiles();
         Set<String> conflictingFiles = getConflictingFiles();
 
-        ArrayList<RepoFile> changedRepoFiles = new ArrayList<>();
+        List<RepoFile> changedRepoFiles = new ArrayList<>();
 
         for (String modifiedFileString : modifiedFiles) {
             ModifiedRepoFile modifiedRepoFile = new ModifiedRepoFile(modifiedFileString, this.getCurrentRepo());

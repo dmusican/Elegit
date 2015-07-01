@@ -214,7 +214,7 @@ public abstract class RepoHelper {
 
         Iterable<PushResult> results = push.call();
         git.close();
-        for(PushResult result : results) System.out.println(result.getMessages());
+//        for(PushResult result : results) System.out.println(result.getMessages());
         this.hasUnpushedCommitsProperty.set(false);
     }
 
@@ -239,7 +239,7 @@ public abstract class RepoHelper {
 
         FetchResult result = fetch.call();
         git.close();
-        System.out.println(result.getMessages());
+//        System.out.println(result.getMessages());
         this.hasUnmergedCommitsProperty.set(!result.getTrackingRefUpdates().isEmpty());
     }
 
@@ -253,7 +253,7 @@ public abstract class RepoHelper {
                 .include(fetchHeadID)
                 .call();
         git.close();
-        System.out.println("Merge successful? " + result.getMergeStatus().isSuccessful());
+//        System.out.println("Merge successful? " + result.getMergeStatus().isSuccessful());
         this.hasUnmergedCommitsProperty.set(!Arrays.asList(result.getMergedCommits()).contains(result.getNewHead()));
     }
 
@@ -482,6 +482,8 @@ public abstract class RepoHelper {
         plotCommitList.source(w);
         plotCommitList.fillTo(Integer.MAX_VALUE);
 
+        w.dispose();
+
         return plotCommitList;
     }
 
@@ -494,6 +496,7 @@ public abstract class RepoHelper {
      */
     public RevCommit parseRawCommit(ObjectId id) throws IOException{
         RevWalk w = new RevWalk(repo);
+        w.dispose();
         return w.parseCommit(id);
     }
 
