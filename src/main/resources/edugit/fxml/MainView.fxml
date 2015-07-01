@@ -147,14 +147,20 @@
                                 onMouseClicked="#handleRemoteCircleMouseClick"/>
                     </StackPane>
 
-                    <ArrowButton GridPane.rowIndex="1"
-                                 GridPane.columnIndex="6"
-                                 GridPane.halignment="RIGHT"
-                                 id="codeButton"
-                                 fx:id="fetchButton"
-                                 text="Fetch"
-                                 arrowLeft="true"
-                                 onAction="#handleFetchButton"/>
+                    <StackPane GridPane.rowIndex="1"
+                                GridPane.columnIndex="6">
+                        <ArrowButton StackPane.alignment="CENTER"
+                                     id="codeButton"
+                                     fx:id="fetchButton"
+                                     text="Fetch"
+                                     arrowLeft="true"
+                                     onAction="#handleFetchButton"/>
+
+                        <ProgressIndicator StackPane.alignment="CENTER"
+                                           visible="false"
+                                           fx:id="fetchProgressIndicator"/>
+                    </StackPane>
+
 
                     <CommitTreePanelView GridPane.rowIndex="1"
                                          GridPane.columnIndex="2"
@@ -172,15 +178,20 @@
                                  arrowLeft="true"
                                  onAction="#handleMergeFromFetchButton"/>
 
-                    <ArrowButton GridPane.rowIndex="2"
-                                 GridPane.columnIndex="5"
-                                 GridPane.halignment="RIGHT"
-                                 id="codeButton"
-                                 fx:id="pushButton"
-                                 text="Push"
-                                 arrowUp="true"
-                                 arrowRight="true"
-                                 onAction="#handlePushButton"/>
+                    <StackPane GridPane.rowIndex="2"
+                                GridPane.columnIndex="5">
+                        <ArrowButton StackPane.alignment="CENTER_RIGHT"
+                                     id="codeButton"
+                                     fx:id="pushButton"
+                                     text="Push"
+                                     arrowUp="true"
+                                     arrowRight="true"
+                                     onAction="#handlePushButton"/>
+
+                        <ProgressIndicator StackPane.alignment="CENTER"
+                                           visible="false"
+                                           fx:id="pushProgressIndicator"/>
+                    </StackPane>
 
                     <CommitTreePanelView GridPane.rowIndex="3"
                                          GridPane.columnIndex="2"

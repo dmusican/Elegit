@@ -18,7 +18,6 @@ import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.util.*;
 
@@ -209,12 +208,13 @@ public abstract class RepoHelper {
             push.setCredentialsProvider(this.ownerAuth);
         }
 
-        ProgressMonitor progress = new TextProgressMonitor(new PrintWriter(System.out));
+//        ProgressMonitor progress = new TextProgressMonitor(new PrintWriter(System.out));
+        ProgressMonitor progress = new SimpleProgressMonitor();
         push.setProgressMonitor(progress);
 
         Iterable<PushResult> results = push.call();
-        for(PushResult result : results) System.out.println(result.getMessages());
         git.close();
+        for(PushResult result : results) System.out.println(result.getMessages());
         this.hasUnpushedCommitsProperty.set(false);
     }
 
@@ -233,12 +233,13 @@ public abstract class RepoHelper {
 
         fetch.setCheckFetchedObjects(true);
 
-        ProgressMonitor progress = new TextProgressMonitor(new PrintWriter(System.out));
+//        ProgressMonitor progress = new TextProgressMonitor(new PrintWriter(System.out));
+        ProgressMonitor progress = new SimpleProgressMonitor();
         fetch.setProgressMonitor(progress);
 
         FetchResult result = fetch.call();
-        System.out.println(result.getMessages());
         git.close();
+        System.out.println(result.getMessages());
         this.hasUnmergedCommitsProperty.set(!result.getTrackingRefUpdates().isEmpty());
     }
 
@@ -248,11 +249,12 @@ public abstract class RepoHelper {
         Git git = new Git(this.repo);
         ObjectId fetchHeadID = this.repo.resolve("FETCH_HEAD");
 //        if(fetchHeadID == null); // This might pop up at some point as an issue. Might not though
-        git.merge()
+        MergeResult result = git.merge()
                 .include(fetchHeadID)
                 .call();
         git.close();
-        this.hasUnmergedCommitsProperty.set(false);
+        System.out.println("Merge successful? " + result.getMergeStatus().isSuccessful());
+        this.hasUnmergedCommitsProperty.set(!Arrays.asList(result.getMergedCommits()).contains(result.getNewHead()));
     }
 
     public void closeRepo() {

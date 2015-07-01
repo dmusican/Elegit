@@ -53,6 +53,7 @@ public class DiffHelper {
         ByteArrayOutputStream diffOutputStream = new ByteArrayOutputStream();
 
         ObjectId head = this.repo.resolve("HEAD");
+        if(head == null) return "";
 
         // The following code is largely written by Tk421 on StackOverflow
         //      (http://stackoverflow.com/q/23486483)

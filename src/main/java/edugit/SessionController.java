@@ -1,5 +1,7 @@
 package main.java.edugit;
 
+import javafx.application.Platform;
+import javafx.concurrent.Task;
 import javafx.scene.control.*;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -45,6 +47,9 @@ public class SessionController extends Controller {
     public Button pushButton;
     public Button fetchButton;
     public Button branchesButton;
+
+    public ProgressIndicator fetchProgressIndicator;
+    public ProgressIndicator pushProgressIndicator;
 
     public TextArea commitMessageField;
     public WorkingTreePanelView workingTreePanelView;
@@ -129,19 +134,23 @@ public class SessionController extends Controller {
     }
 
     private void initializeButtonDisableBindings(){
+        commitButton.setDisable(true);
+        mergeFromFetchButton.setDisable(true);
+        pushButton.setDisable(true);
+        fetchButton.setDisable(true);
         this.theModel.currentRepoHelperProperty.addListener((observable, oldValue, newValue) -> {
             commitButton.disableProperty().bind(gitStatusButton.disableProperty()
                     .or(commitMessageField.textProperty().isEmpty())
                     .or(workingTreePanelView.isAnyFileSelectedProperty.not()));
 
             mergeFromFetchButton.disableProperty().bind(gitStatusButton.disableProperty()
-                    .or(newValue.hasRemoteProperty.not())
-                    .or(newValue.hasUnmergedCommitsProperty.not()));
-
+                    .or(newValue.hasRemoteProperty.not()));
+//                    .or(newValue.hasUnmergedCommitsProperty.not()));
+//
             pushButton.disableProperty().bind(gitStatusButton.disableProperty()
-                    .or(newValue.hasRemoteProperty.not())
-                    .or(newValue.hasUnpushedCommitsProperty.not()));
-
+                    .or(newValue.hasRemoteProperty.not()));
+//                    .or(newValue.hasUnpushedCommitsProperty.not()));
+//
             fetchButton.disableProperty().bind(gitStatusButton.disableProperty()
                     .or(newValue.hasRemoteProperty.not()));
         });
@@ -330,35 +339,49 @@ public class SessionController extends Controller {
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
             if(!this.theModel.getCurrentRepoHelper().exists()) throw new MissingRepoException();
 
-            for (RepoFile checkedFile : this.workingTreePanelView.getCheckedFilesInDirectory()) {
-                checkedFile.updateFileStatusInRepo();
-            }
+            Thread th = new Thread(new Task<Void>(){
+                @Override
+                protected Void call() {
+                    try{
+                        for(RepoFile checkedFile : workingTreePanelView.getCheckedFilesInDirectory()){
+                            checkedFile.updateFileStatusInRepo();
+                        }
 
-            this.theModel.getCurrentRepoHelper().commit(commitMessage);
+                        theModel.getCurrentRepoHelper().commit(commitMessage);
 
-            // Now clear the commit text and a view reload ( or `git status`) to show that something happened
-            commitMessageField.clear();
-            this.onGitStatusButton();
+                        // Now clear the commit text and a view reload ( or `git status`) to show that something happened
+                        commitMessageField.clear();
+                        onGitStatusButton();
+                    } catch(MissingRepoException | JGitInternalException e){
+                        showMissingRepoNotification();
+                        setButtonsDisabled(true);
+                        updateMenuBarWithRecentRepos();
+                    } catch (TransportException e) {
+                        showNotAuthorizedNotification(null);
+                    } catch (WrongRepositoryStateException e) {
+                        System.out.println("Threw a WrongRepositoryStateException");
+                        e.printStackTrace();
+
+                        // TODO remove the above debug statements
+                        // This should only come up when the user chooses to resolve conflicts in a file.
+                        // Do nothing.
+
+                    }catch(GitAPIException e){
+                        showGenericErrorNotification();
+                        e.printStackTrace();
+                    }
+                    return null;
+                }
+            });
+            th.setDaemon(true);
+            th.setName("Git commit");
+            th.start();
         } catch(NoRepoLoadedException e){
             this.showNoRepoLoadedNotification();
             setButtonsDisabled(true);
-        } catch(MissingRepoException | JGitInternalException e){
+        }catch(MissingRepoException e){
             this.showMissingRepoNotification();
             setButtonsDisabled(true);
-            updateMenuBarWithRecentRepos();
-        } catch (TransportException e) {
-            this.showNotAuthorizedNotification(this::handleCommitButton);
-        } catch (WrongRepositoryStateException e) {
-            System.out.println("Threw a WrongRepositoryStateException");
-            e.printStackTrace();
-
-            // TODO remove the above debug statements
-            // This should only come up when the user chooses to resolve conflicts in a file.
-            // Do nothing.
-
-        }catch(GitAPIException e){
-            this.showGenericErrorNotification();
-            e.printStackTrace();
         }
     }
 
@@ -366,27 +389,37 @@ public class SessionController extends Controller {
      * Merges in FETCH_HEAD (after a fetch).
      */
     public void handleMergeFromFetchButton() {
-        try {
+        try{
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
-            this.theModel.getCurrentRepoHelper().mergeFromFetch();
-            // Refresh panel views
-            this.onGitStatusButton();
-        } catch(InvalidRemoteException e){
-            this.showNoRemoteNotification();
-        } catch (TransportException e) {
-            this.showNotAuthorizedNotification(this::handleMergeFromFetchButton);
-        } catch(NoRepoLoadedException e){
+
+            Thread th = new Thread(new Task<Void>(){
+                @Override
+                protected Void call(){
+                    try{
+                        theModel.getCurrentRepoHelper().mergeFromFetch();
+                        onGitStatusButton();
+                    }catch(InvalidRemoteException e){
+                        showNoRemoteNotification();
+                    }catch(TransportException e){
+                        showNotAuthorizedNotification(null);
+                    }catch(MissingRepoException e){
+                        showMissingRepoNotification();
+                        setButtonsDisabled(true);
+                        updateMenuBarWithRecentRepos();
+                    }catch(GitAPIException | IOException e){
+                        showGenericErrorNotification();
+                        e.printStackTrace();
+                    }
+                    return null;
+                }
+            });
+            th.setDaemon(true);
+            th.setName("Git merge FETCH_HEAD");
+            th.start();
+        }catch(NoRepoLoadedException e){
             this.showNoRepoLoadedNotification();
             setButtonsDisabled(true);
-        } catch(MissingRepoException e){
-            this.showMissingRepoNotification();
-            setButtonsDisabled(true);
-            updateMenuBarWithRecentRepos();
-        } catch(GitAPIException | IOException e){
-            this.showGenericErrorNotification();
-            e.printStackTrace();
         }
-
     }
 
     /**
@@ -395,24 +428,39 @@ public class SessionController extends Controller {
     public void handlePushButton() {
         try {
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
-            this.theModel.getCurrentRepoHelper().pushAll();
+            pushButton.setVisible(false);
+            pushProgressIndicator.setVisible(true);
 
-            // Refresh panel views
-            this.onGitStatusButton();
-        } catch(InvalidRemoteException e){
-            this.showNoRemoteNotification();
-        } catch (TransportException e) {
-            this.showNotAuthorizedNotification(this::handlePushButton);
-        } catch(NoRepoLoadedException e){
+            Thread th = new Thread(new Task<Void>(){
+                @Override
+                protected Void call() {
+                    try{
+                        theModel.getCurrentRepoHelper().pushAll();
+                        onGitStatusButton();
+                    }  catch(InvalidRemoteException e){
+                        showNoRemoteNotification();
+                    } catch (TransportException e) {
+                        showNotAuthorizedNotification(null);
+                    } catch(MissingRepoException e){
+                        showMissingRepoNotification();
+                        setButtonsDisabled(true);
+                        updateMenuBarWithRecentRepos();
+                    } catch(GitAPIException e){
+                        showGenericErrorNotification();
+                        e.printStackTrace();
+                    }finally{
+                        pushProgressIndicator.setVisible(false);
+                        pushButton.setVisible(true);
+                    }
+                    return null;
+                }
+            });
+            th.setDaemon(true);
+            th.setName("Git push");
+            th.start();
+        }catch(NoRepoLoadedException e){
             this.showNoRepoLoadedNotification();
             setButtonsDisabled(true);
-        } catch(MissingRepoException e){
-            this.showMissingRepoNotification();
-            setButtonsDisabled(true);
-            updateMenuBarWithRecentRepos();
-        } catch(GitAPIException e){
-            this.showGenericErrorNotification();
-            e.printStackTrace();
         }
     }
 
@@ -422,23 +470,39 @@ public class SessionController extends Controller {
     public void handleFetchButton(){
         try{
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
-            this.theModel.getCurrentRepoHelper().fetch();
-            // Refresh panel views
-            this.onGitStatusButton();
-        } catch(InvalidRemoteException e){
-            this.showNoRemoteNotification();
-        } catch (TransportException e) {
-            this.showNotAuthorizedNotification(this::handleFetchButton);
-        } catch(NoRepoLoadedException e){
+            fetchButton.setVisible(false);
+            fetchProgressIndicator.setVisible(true);
+
+            Thread th = new Thread(new Task<Void>(){
+                @Override
+                protected Void call() {
+                    try{
+                        theModel.getCurrentRepoHelper().fetch();
+                        onGitStatusButton();
+                    } catch(InvalidRemoteException e){
+                        showNoRemoteNotification();
+                    } catch (TransportException e) {
+                        showNotAuthorizedNotification(null);
+                    } catch(MissingRepoException e){
+                        showMissingRepoNotification();
+                        setButtonsDisabled(true);
+                        updateMenuBarWithRecentRepos();
+                    } catch(GitAPIException e){
+                        showGenericErrorNotification();
+                        e.printStackTrace();
+                    } finally{
+                        fetchProgressIndicator.setVisible(false);
+                        fetchButton.setVisible(true);
+                    }
+                    return null;
+                }
+            });
+            th.setDaemon(true);
+            th.setName("Git fetch");
+            th.start();
+        }catch(NoRepoLoadedException e){
             this.showNoRepoLoadedNotification();
             setButtonsDisabled(true);
-        } catch(MissingRepoException e){
-            this.showMissingRepoNotification();
-            setButtonsDisabled(true);
-            updateMenuBarWithRecentRepos();
-        } catch(GitAPIException e){
-            this.showGenericErrorNotification();
-            e.printStackTrace();
         }
     }
 
@@ -446,23 +510,32 @@ public class SessionController extends Controller {
      * Loads the panel views when the "git status" button is clicked.
      */
     public void onGitStatusButton(){
-        try {
-            this.workingTreePanelView.drawDirectoryView();
-            this.localCommitTreeModel.update();
-            this.remoteCommitTreeModel.update();
+        Thread th = new Thread(new Task<Void>(){
+            @Override
+            protected Void call(){
+                try{
+                    workingTreePanelView.drawDirectoryView();
+                    localCommitTreeModel.update();
+                    remoteCommitTreeModel.update();
 
-            this.updateBranchDropdown();
-        } catch(MissingRepoException e){
-            this.showMissingRepoNotification();
-            setButtonsDisabled(true);
-            updateMenuBarWithRecentRepos();
-        } catch(NoRepoLoadedException e){
-            this.showNoRepoLoadedNotification();
-            setButtonsDisabled(true);
-        } catch(GitAPIException | IOException e){
-            this.showGenericErrorNotification();
-            e.printStackTrace();
-        }
+                    updateBranchDropdown();
+                } catch(MissingRepoException e){
+                    showMissingRepoNotification();
+                    setButtonsDisabled(true);
+                    updateMenuBarWithRecentRepos();
+                } catch(NoRepoLoadedException e){
+                    showNoRepoLoadedNotification();
+                    setButtonsDisabled(true);
+                } catch(GitAPIException | IOException e){
+                    showGenericErrorNotification();
+                    e.printStackTrace();
+                }
+                return null;
+            }
+        });
+        th.setDaemon(true);
+        th.setName("Git status");
+        th.start();
     }
 
     /**
@@ -667,134 +740,159 @@ public class SessionController extends Controller {
     /// BEGIN: ERROR NOTIFICATIONS:
 
     private void showNotLoggedInNotification(Runnable callBack) {
-        this.notificationPane.setText("You need to log in to do that.");
+        Platform.runLater(() -> {
+            this.notificationPane.setText("You need to log in to do that.");
 
-        Action loginAction = new Action("Enter login info", e -> {
-            this.notificationPane.hide();
-            if(this.switchUser()){
-                if(callBack != null) callBack.run();
-            }
+            Action loginAction = new Action("Enter login info", e -> {
+                this.notificationPane.hide();
+                if(this.switchUser()){
+                    if(callBack != null) callBack.run();
+                }
+            });
+
+            this.notificationPane.getActions().clear();
+            this.notificationPane.getActions().setAll(loginAction);
+            this.notificationPane.show();
         });
-
-        this.notificationPane.getActions().clear();
-        this.notificationPane.getActions().setAll(loginAction);
-        this.notificationPane.show();
     }
 
 
     private void showNoRepoLoadedNotification() {
-        this.notificationPane.setText("You need to load a repository before you can perform operations on it!");
+        Platform.runLater(() -> {
+            this.notificationPane.setText("You need to load a repository before you can perform operations on it!");
 
-        this.notificationPane.getActions().clear();
-        this.notificationPane.show();
+            this.notificationPane.getActions().clear();
+            this.notificationPane.show();
+        });
     }
 
     private void showInvalidRepoNotification() {
-        this.notificationPane.setText("Make sure the directory you selected contains an existing Git repository.");
+        Platform.runLater(()-> {
+            this.notificationPane.setText("Make sure the directory you selected contains an existing Git repository.");
 
-        this.notificationPane.getActions().clear();
-        this.notificationPane.show();
+            this.notificationPane.getActions().clear();
+            this.notificationPane.show();
+        });
     }
 
     private void showMissingRepoNotification(){
-        this.notificationPane.setText("That repository no longer exists.");
+        Platform.runLater(()-> {
+            this.notificationPane.setText("That repository no longer exists.");
 
-        this.notificationPane.getActions().clear();
-        this.notificationPane.show();
+            this.notificationPane.getActions().clear();
+            this.notificationPane.show();
+        });
     }
 
     private void showNoRemoteNotification(){
-        String name = this.theModel.getCurrentRepoHelper() != null ? this.theModel.getCurrentRepoHelper().toString() : "the current repository";
+        Platform.runLater(()-> {
+            String name = this.theModel.getCurrentRepoHelper() != null ? this.theModel.getCurrentRepoHelper().toString() : "the current repository";
 
-        this.notificationPane.setText("There is no remote repository associated with " + name);
+            this.notificationPane.setText("There is no remote repository associated with " + name);
 
-        this.notificationPane.getActions().clear();
-        this.notificationPane.show();
+            this.notificationPane.getActions().clear();
+            this.notificationPane.show();
+        });
     }
 
     private void showFailedToOpenLocalNotification(){
-        String path = this.theModel.getCurrentRepoHelper() != null ? this.theModel.getCurrentRepoHelper().getDirectory().toString() : "the location of the local repository";
+        Platform.runLater(()-> {
+            String path = this.theModel.getCurrentRepoHelper() != null ? this.theModel.getCurrentRepoHelper().getDirectory().toString() : "the location of the local repository";
 
-        this.notificationPane.setText("Could not open directory at " + path);
+            this.notificationPane.setText("Could not open directory at " + path);
 
-        this.notificationPane.getActions().clear();
-        this.notificationPane.show();
+            this.notificationPane.getActions().clear();
+            this.notificationPane.show();
+        });
     }
 
     private void showNonEmptyFolderNotification() {
-        this.notificationPane.setText("Make sure the directory you selected is completely empty. The best " +
-                            "way to do this is to create a new folder from the directory chooser.");
+        Platform.runLater(()-> {
+            this.notificationPane.setText("Make sure the directory you selected is completely empty. The best " +
+                                "way to do this is to create a new folder from the directory chooser.");
 
-        this.notificationPane.getActions().clear();
-        this.notificationPane.show();
+            this.notificationPane.getActions().clear();
+            this.notificationPane.show();
+        });
     }
 
     private void showInvalidRemoteNotification() {
-        this.notificationPane.setText("Make sure you entered the correct remote URL.");
+        Platform.runLater(()-> {
+            this.notificationPane.setText("Make sure you entered the correct remote URL.");
 
-        this.notificationPane.getActions().clear();
-        this.notificationPane.show();
+            this.notificationPane.getActions().clear();
+            this.notificationPane.show();
+        });
     }
 
     private void showGenericErrorNotification() {
-        this.notificationPane.setText("Sorry, there was an error.");
+        Platform.runLater(()-> {
+            this.notificationPane.setText("Sorry, there was an error.");
 
-        this.notificationPane.getActions().clear();
-        this.notificationPane.show();
+            this.notificationPane.getActions().clear();
+            this.notificationPane.show();
+        });
     }
 
     private void showNotAuthorizedNotification(Runnable callback) {
-        this.notificationPane.setText("The login information you gave does not allow you to modify this repository. Try switching your login and trying again.");
+        Platform.runLater(() -> {
+            this.notificationPane.setText("The login information you gave does not allow you to modify this repository. Try switching your login and trying again.");
 
-        Action loginAction = new Action("Log in", e -> {
-            this.notificationPane.hide();
-            if(this.switchUser()){
-                if(callback != null) callback.run();
-            }
+            Action loginAction = new Action("Log in", e -> {
+                this.notificationPane.hide();
+                if(this.switchUser()){
+                    if(callback != null) callback.run();
+                }
+            });
+
+            this.notificationPane.getActions().clear();
+            this.notificationPane.getActions().setAll(loginAction);
+            this.notificationPane.show();
         });
-
-        this.notificationPane.getActions().clear();
-        this.notificationPane.getActions().setAll(loginAction);
-        this.notificationPane.show();
     }
 
     private void showRepoWasNotLoadedNotification() {
-        this.notificationPane.setText("No repository was loaded.");
+        Platform.runLater(()-> {
+            this.notificationPane.setText("No repository was loaded.");
 
-        this.notificationPane.getActions().clear();
-        this.notificationPane.show();
+            this.notificationPane.getActions().clear();
+            this.notificationPane.show();
+        });
     }
 
     private void showPrefsClearedNotification() {
-        this.notificationPane.setText("Your recent repositories have been cleared. Restart the app for changes to take effect.");
+        Platform.runLater(()-> {
+            this.notificationPane.setText("Your recent repositories have been cleared. Restart the app for changes to take effect.");
 
-        this.notificationPane.getActions().clear();
-        this.notificationPane.show();
+            this.notificationPane.getActions().clear();
+            this.notificationPane.show();
+        });
     }
 
     private void showCheckoutConflictsNotification(List<String> conflictingPaths) {
-        String conflictList = "";
-        for (String pathName : conflictingPaths) {
-            conflictList += "\n" + pathName;
-        }
+        Platform.runLater(() -> {
+            String conflictList = "";
+            for(String pathName : conflictingPaths){
+                conflictList += "\n" + pathName;
+            }
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Conflicting files");
+            alert.setHeaderText("Can't checkout that branch");
+            alert.setContentText("You can't switch to that branch because of the following conflicting files between that branch and your current branch: "
+                    + conflictList);
 
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle("Conflicting files");
-        alert.setHeaderText("Can't checkout that branch");
-        alert.setContentText("You can't switch to that branch because of the following conflicting files between that branch and your current branch: "
-                + conflictList);
+            this.notificationPane.setText("You can't switch to that branch because there would be a merge conflict. Stash your changes or resolve conflicts first.");
 
-        this.notificationPane.setText("You can't switch to that branch because there would be a merge conflict. Stash your changes or resolve conflicts first.");
+            Action seeConflictsAction = new Action("See conflicts", e -> {
+                this.notificationPane.hide();
+                alert.showAndWait();
+            });
 
-        Action seeConflictsAction = new Action("See conflicts", e -> {
-            this.notificationPane.hide();
-            alert.showAndWait();
+            this.notificationPane.getActions().clear();
+            this.notificationPane.getActions().setAll(seeConflictsAction);
+
+            this.notificationPane.show();
         });
-
-        this.notificationPane.getActions().clear();
-        this.notificationPane.getActions().setAll(seeConflictsAction);
-
-        this.notificationPane.show();
     }
 
     // END: ERROR NOTIFICATIONS ^^^

@@ -1,5 +1,6 @@
 package main.java.edugit;
 
+import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.control.CheckBoxTreeItem;
@@ -8,7 +9,6 @@ import javafx.scene.control.cell.CheckBoxTreeCell;
 import javafx.scene.layout.Region;
 import org.eclipse.jgit.api.errors.GitAPIException;
 
-import java.io.IOException;
 import java.util.ArrayList;
 
 /**
@@ -49,7 +49,6 @@ public class WorkingTreePanelView extends Region{
      * populating it with the files it contains, and adding it to the display.
      *
      * @throws GitAPIException if the SessionModel can't get the ParentDirectoryRepoFile.
-     * @throws IOException if populating the parentDirectoryRepoFile fails.
      */
     public void drawDirectoryView() throws GitAPIException{
         if(this.sessionModel.getCurrentRepoHelper() == null) return;
@@ -72,15 +71,17 @@ public class WorkingTreePanelView extends Region{
         }
         isAnyFileSelectedProperty.bind(temp);
 
-        this.directoryTreeView = new TreeView<RepoFile>(rootItem);
+        this.directoryTreeView = new TreeView<>(rootItem);
         this.directoryTreeView.setCellFactory(CheckBoxTreeCell.<RepoFile>forTreeView());
 
         // TreeViews must all have ONE root to hold the leafs. Don't show that root:
         this.directoryTreeView.setShowRoot(false);
 
         this.directoryTreeView.prefHeightProperty().bind(this.heightProperty());
-        this.getChildren().clear();
-        this.getChildren().add(this.directoryTreeView);
+        Platform.runLater(() -> {
+            this.getChildren().clear();
+            this.getChildren().add(this.directoryTreeView);
+        });
     }
 
     /**
