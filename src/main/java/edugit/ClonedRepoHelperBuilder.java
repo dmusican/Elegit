@@ -24,6 +24,8 @@ import java.util.Optional;
  */
 public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
 
+    private static String prevRemoteURL, prevDestinationPath;
+
     public ClonedRepoHelperBuilder(SessionModel sessionModel) {
         super(sessionModel);
     }
@@ -56,9 +58,11 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
 
         TextField remoteURLField = new TextField();
         remoteURLField.setPromptText("Remote URL");
+        if(prevRemoteURL != null) remoteURLField.setText(prevRemoteURL);
 
         TextField destinationPathField = new TextField();
         destinationPathField.setEditable(false); // for now, it will just show the folder you selected
+        if(prevDestinationPath != null) destinationPathField.setText(prevDestinationPath);
 
         Button chooseDirectoryButton = new Button();
         chooseDirectoryButton.setText("..."); // TODO: folder icon or something, instead of text
@@ -81,6 +85,8 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
         // Convert the result to a destination-remote pair when the clone button is clicked.
         dialog.setResultConverter(dialogButton -> {
             if (dialogButton == cloneButtonType) {
+                prevRemoteURL = remoteURLField.getText();
+                prevDestinationPath = destinationPathField.getText();
                 return new Pair<>(destinationPathField.getText(), remoteURLField.getText());
             }
             return null;

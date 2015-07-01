@@ -1,16 +1,13 @@
 package main.java.edugit;
 
-import javafx.scene.control.Button;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.control.CheckBoxTreeItem;
 import javafx.scene.control.TreeView;
 import javafx.scene.control.cell.CheckBoxTreeCell;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
-import javafx.scene.layout.VBox;
-import javafx.scene.text.Text;
 import org.eclipse.jgit.api.errors.GitAPIException;
 
-import java.io.IOException;
 import java.util.ArrayList;
 
 /**
@@ -25,13 +22,16 @@ import java.util.ArrayList;
 public class WorkingTreePanelView extends Region{
 
     // fileLeafs stores all 'leafs' in the directory TreeView:
-    private ArrayList<CheckBoxTreeItem> fileLeafs;
+    private ArrayList<CheckBoxTreeItem<RepoFile>> fileLeafs;
     private TreeView<RepoFile> directoryTreeView;
     private SessionModel sessionModel;
+
+    public BooleanProperty isAnyFileSelectedProperty;
 
     public WorkingTreePanelView() {
         this.fileLeafs = new ArrayList<>();
         this.directoryTreeView = new TreeView<>();
+        isAnyFileSelectedProperty = new SimpleBooleanProperty(false);
 
         this.directoryTreeView.prefHeightProperty().bind(this.heightProperty());
         this.getChildren().add(this.directoryTreeView);
@@ -47,24 +47,39 @@ public class WorkingTreePanelView extends Region{
      * Draws the directory TreeView by getting the parent directory's RepoFile,
      * populating it with the files it contains, and adding it to the display.
      *
+     * THIS METHOD MUST BE CALLED FROM THE JAVAFX APPLICATION THREAD
+     *
      * @throws GitAPIException if the SessionModel can't get the ParentDirectoryRepoFile.
-     * @throws IOException if populating the parentDirectoryRepoFile fails.
      */
     public void drawDirectoryView() throws GitAPIException{
+
+        // TODO: change this if/when we update the JDK to 8u60 or higher
+        // With JDK version 8u40, creation of control items needs to take place
+        // in the application thread even if they are not added to the scene.
+        // This is fixed in JDK 8u60 and above
+        // https://bugs.openjdk.java.net/browse/JDK-8097541
+        //
+        // This applies to the CheckBoxTreeItems created here
+
         if(this.sessionModel.getCurrentRepoHelper() == null) return;
-        
         DirectoryRepoFile rootDirectory = new DirectoryRepoFile("", this.sessionModel.getCurrentRepo());
 
         CheckBoxTreeItem<RepoFile> rootItem = new CheckBoxTreeItem<RepoFile>(rootDirectory);
         rootItem.setExpanded(true);
 
-        for (RepoFile changedRepoFile : this.sessionModel.getAllChangedRepoFiles()) {
-            CheckBoxTreeItem<RepoFile> leaf = new CheckBoxTreeItem<>(changedRepoFile, changedRepoFile.diffButton);
-            rootItem.getChildren().add(leaf);
-            this.fileLeafs.add(leaf);
-        }
+        isAnyFileSelectedProperty.unbind();
+        BooleanProperty temp = new SimpleBooleanProperty(false);
+            for(RepoFile changedRepoFile : this.sessionModel.getAllChangedRepoFiles()){
+                CheckBoxTreeItem<RepoFile> leaf = new CheckBoxTreeItem<>(changedRepoFile, changedRepoFile.diffButton);
+                rootItem.getChildren().add(leaf);
+                this.fileLeafs.add(leaf);
+                BooleanProperty oldTemp = temp;
+                temp = new SimpleBooleanProperty();
+                temp.bind(oldTemp.or(leaf.selectedProperty()));
+            }
+        isAnyFileSelectedProperty.bind(temp);
 
-        this.directoryTreeView = new TreeView<RepoFile>(rootItem);
+        this.directoryTreeView = new TreeView<>(rootItem);
         this.directoryTreeView.setCellFactory(CheckBoxTreeCell.<RepoFile>forTreeView());
 
         // TreeViews must all have ONE root to hold the leafs. Don't show that root:
@@ -72,7 +87,7 @@ public class WorkingTreePanelView extends Region{
 
         this.directoryTreeView.prefHeightProperty().bind(this.heightProperty());
         this.getChildren().clear();
-        this.getChildren().add(this.directoryTreeView);
+        this.getChildren().add(directoryTreeView);
     }
 
     /**
