@@ -75,9 +75,10 @@ public class SessionController extends Controller {
      * This method is automatically called by JavaFX.
      */
     public void initialize() throws Exception {
-        this.initializeLayoutParameters();
-
         this.theModel = SessionModel.getSessionModel();
+
+        this.initializeLayoutParameters();
+        this.initializeButtonDisableBindings();
 
         CommitTreeController.sessionController = this;
 
@@ -111,8 +112,8 @@ public class SessionController extends Controller {
 
         gitStatusButton.setMaxWidth(Double.MAX_VALUE);
 
-        commitMessageField.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         workingTreePanelView.setMinSize(Control.USE_PREF_SIZE, 200);
+        commitMessageField.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
 
         branchSelector.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
 
@@ -125,6 +126,25 @@ public class SessionController extends Controller {
 
         commitInfoNameCopyButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         commitInfoGoToButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
+    }
+
+    private void initializeButtonDisableBindings(){
+        this.theModel.currentRepoHelperProperty.addListener((observable, oldValue, newValue) -> {
+            commitButton.disableProperty().bind(gitStatusButton.disableProperty()
+                    .or(commitMessageField.textProperty().isEmpty())
+                    .or(workingTreePanelView.isAnyFileSelectedProperty.not()));
+
+            mergeFromFetchButton.disableProperty().bind(gitStatusButton.disableProperty()
+                    .or(newValue.hasRemoteProperty.not())
+                    .or(newValue.hasUnmergedCommitsProperty.not()));
+
+            pushButton.disableProperty().bind(gitStatusButton.disableProperty()
+                    .or(newValue.hasRemoteProperty.not())
+                    .or(newValue.hasUnpushedCommitsProperty.not()));
+
+            fetchButton.disableProperty().bind(gitStatusButton.disableProperty()
+                    .or(newValue.hasRemoteProperty.not()));
+        });
     }
 
     /**
@@ -505,13 +525,14 @@ public class SessionController extends Controller {
     private void setButtonsDisabled(boolean disable) {
         openRepoDirButton.setDisable(disable);
         gitStatusButton.setDisable(disable);
-        commitButton.setDisable(disable);
-        mergeFromFetchButton.setDisable(disable);
-        pushButton.setDisable(disable);
-        fetchButton.setDisable(disable);
+//        commitButton.setDisable(disable);
+//        mergeFromFetchButton.setDisable(disable);
+//        pushButton.setDisable(disable);
+//        fetchButton.setDisable(disable);
         selectAllButton.setDisable(disable);
         deselectAllButton.setDisable(disable);
         remoteCircle.setVisible(!disable);
+        commitMessageField.setDisable(disable);
     }
 
     /**

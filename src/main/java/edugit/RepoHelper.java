@@ -1,22 +1,24 @@
 package main.java.edugit;
 
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import main.java.edugit.exceptions.MissingRepoException;
 import main.java.edugit.exceptions.NoOwnerInfoException;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
-import org.eclipse.jgit.lib.Config;
-import org.eclipse.jgit.lib.ObjectId;
-import org.eclipse.jgit.lib.Ref;
-import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.revplot.PlotCommitList;
 import org.eclipse.jgit.revplot.PlotLane;
 import org.eclipse.jgit.revplot.PlotWalk;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevWalk;
+import org.eclipse.jgit.transport.FetchResult;
+import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.util.*;
 
@@ -44,6 +46,10 @@ public abstract class RepoHelper {
     private Map<String, ObjectId> remoteBranches;
     private LocalBranchHelper branchHelper;
     private BranchManager branchManager;
+
+    public BooleanProperty hasRemoteProperty;
+    public BooleanProperty hasUnpushedCommitsProperty;
+    public BooleanProperty hasUnmergedCommitsProperty;
 
     /**
      * Creates a RepoHelper object for holding a Repository and interacting with it
@@ -75,6 +81,10 @@ public abstract class RepoHelper {
         this.remoteCommits = this.parseAllRemoteCommits();
 
         this.branchManager = new BranchManager(this.callGitForLocalBranches(), this.callGitForRemoteBranches(), this.repo);
+
+        hasRemoteProperty = new SimpleBooleanProperty(!getLinkedRemoteRepoURLs().isEmpty());
+        hasUnpushedCommitsProperty = new SimpleBooleanProperty(this.localCommits.size() > this.remoteCommits.size());
+        hasUnmergedCommitsProperty = new SimpleBooleanProperty(this.localCommits.size() < this.remoteCommits.size());
     }
 
     /// Constructor for EXISTING repos to inherit (they don't need the Remote URL)
@@ -96,6 +106,10 @@ public abstract class RepoHelper {
         this.localCommits = this.parseAllLocalCommits();
         this.remoteCommits = this.parseAllRemoteCommits();
         this.branchManager = new BranchManager(this.callGitForLocalBranches(), this.callGitForRemoteBranches(), this.repo);
+
+        hasRemoteProperty = new SimpleBooleanProperty(!getLinkedRemoteRepoURLs().isEmpty());
+        hasUnpushedCommitsProperty = new SimpleBooleanProperty(this.localCommits.size() > this.remoteCommits.size());
+        hasUnmergedCommitsProperty = new SimpleBooleanProperty(this.localCommits.size() < this.remoteCommits.size());
 
         // TODO: unify these two constructors (less copied-and-pasted code)
     }
@@ -177,6 +191,7 @@ public abstract class RepoHelper {
                 .setMessage(commitMessage)
                 .call();
         git.close();
+        this.hasUnpushedCommitsProperty.set(true);
     }
 
     /**
@@ -194,8 +209,13 @@ public abstract class RepoHelper {
             push.setCredentialsProvider(this.ownerAuth);
         }
 
-        push.call();
+        ProgressMonitor progress = new TextProgressMonitor(new PrintWriter(System.out));
+        push.setProgressMonitor(progress);
+
+        Iterable<PushResult> results = push.call();
+        for(PushResult result : results) System.out.println(result.getMessages());
         git.close();
+        this.hasUnpushedCommitsProperty.set(false);
     }
 
     public void fetch() throws GitAPIException, MissingRepoException{
@@ -212,8 +232,14 @@ public abstract class RepoHelper {
         }
 
         fetch.setCheckFetchedObjects(true);
-        fetch.call();
+
+        ProgressMonitor progress = new TextProgressMonitor(new PrintWriter(System.out));
+        fetch.setProgressMonitor(progress);
+
+        FetchResult result = fetch.call();
+        System.out.println(result.getMessages());
         git.close();
+        this.hasUnmergedCommitsProperty.set(!result.getTrackingRefUpdates().isEmpty());
     }
 
     public void mergeFromFetch() throws IOException, GitAPIException, MissingRepoException{
@@ -222,8 +248,11 @@ public abstract class RepoHelper {
         Git git = new Git(this.repo);
         ObjectId fetchHeadID = this.repo.resolve("FETCH_HEAD");
 //        if(fetchHeadID == null); // This might pop up at some point as an issue. Might not though
-        git.merge().include(fetchHeadID).call();
+        git.merge()
+                .include(fetchHeadID)
+                .call();
         git.close();
+        this.hasUnmergedCommitsProperty.set(false);
     }
 
     public void closeRepo() {

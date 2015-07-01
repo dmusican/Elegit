@@ -1,13 +1,11 @@
 package main.java.edugit;
 
-import javafx.scene.control.Button;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.control.CheckBoxTreeItem;
 import javafx.scene.control.TreeView;
 import javafx.scene.control.cell.CheckBoxTreeCell;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
-import javafx.scene.layout.VBox;
-import javafx.scene.text.Text;
 import org.eclipse.jgit.api.errors.GitAPIException;
 
 import java.io.IOException;
@@ -29,9 +27,12 @@ public class WorkingTreePanelView extends Region{
     private TreeView<RepoFile> directoryTreeView;
     private SessionModel sessionModel;
 
+    public BooleanProperty isAnyFileSelectedProperty;
+
     public WorkingTreePanelView() {
         this.fileLeafs = new ArrayList<>();
         this.directoryTreeView = new TreeView<>();
+        isAnyFileSelectedProperty = new SimpleBooleanProperty(false);
 
         this.directoryTreeView.prefHeightProperty().bind(this.heightProperty());
         this.getChildren().add(this.directoryTreeView);
@@ -58,11 +59,18 @@ public class WorkingTreePanelView extends Region{
         CheckBoxTreeItem<RepoFile> rootItem = new CheckBoxTreeItem<RepoFile>(rootDirectory);
         rootItem.setExpanded(true);
 
+        isAnyFileSelectedProperty.unbind();
+        BooleanProperty temp = new SimpleBooleanProperty(false);
+
         for (RepoFile changedRepoFile : this.sessionModel.getAllChangedRepoFiles()) {
             CheckBoxTreeItem<RepoFile> leaf = new CheckBoxTreeItem<>(changedRepoFile, changedRepoFile.diffButton);
             rootItem.getChildren().add(leaf);
             this.fileLeafs.add(leaf);
+            BooleanProperty oldTemp = temp;
+            temp = new SimpleBooleanProperty();
+            temp.bind(oldTemp.or(leaf.selectedProperty()));
         }
+        isAnyFileSelectedProperty.bind(temp);
 
         this.directoryTreeView = new TreeView<RepoFile>(rootItem);
         this.directoryTreeView.setCellFactory(CheckBoxTreeCell.<RepoFile>forTreeView());

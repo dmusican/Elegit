@@ -1,5 +1,7 @@
 package main.java.edugit;
 
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import main.java.edugit.exceptions.MissingRepoException;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.Status;
@@ -28,6 +30,7 @@ public class SessionModel {
     private static final String LAST_OPENED_REPO_PATH_KEY = "LAST_OPENED_REPO_PATH";
 
     private RepoHelper currentRepoHelper;
+    public ObjectProperty<RepoHelper> currentRepoHelperProperty;
 
     List<RepoHelper> allRepoHelpers;
     private static SessionModel sessionModel;
@@ -49,6 +52,7 @@ public class SessionModel {
     private SessionModel() throws Exception {
         this.allRepoHelpers = new ArrayList<RepoHelper>();
         this.preferences = Preferences.userNodeForPackage(this.getClass());
+        currentRepoHelperProperty = new SimpleObjectProperty<>(currentRepoHelper);
     }
 
     /**
@@ -112,6 +116,7 @@ public class SessionModel {
      */
     public void openRepoAtIndex(int index) throws BackingStoreException, IOException, ClassNotFoundException {
         this.currentRepoHelper = this.allRepoHelpers.get(index);
+        currentRepoHelperProperty.set(this.currentRepoHelper);
         this.saveListOfRepoPathStrings();
         this.saveMostRecentRepoPathString();
     }
