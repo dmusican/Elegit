@@ -224,8 +224,6 @@ public class SessionModel {
     public DirectoryRepoFile getParentDirectoryRepoFile() throws GitAPIException, IOException {
         Path fullPath = this.currentRepoHelper.getLocalPath();
 
-        // FIXME? what should the pathString be for this file?
-        // well, this works, so maybe it's correct...
         DirectoryRepoFile parentDirectoryRepoFile = new DirectoryRepoFile(fullPath, this.getCurrentRepo());
         parentDirectoryRepoFile = this.populateDirectoryRepoFile(parentDirectoryRepoFile);
 

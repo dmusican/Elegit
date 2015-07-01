@@ -18,7 +18,6 @@ import java.util.ArrayList;
  *
  * For now, each RepoFile instance also contains a copy of the Repository that the file belongs
  * to, because the *currently open* repo may change when we support multiple repositories.
- * TODO: determine if including a Repository instance is necessary.
  *
  * This broad class is extended by more specific types of files you may find in a repository, such as:
  *      - DirectoryRepoFile
