@@ -475,7 +475,7 @@ public abstract class RepoHelper {
         return this.localPath.getFileName().toString();
     }
 
-    private ArrayList<LocalBranchHelper> callGitForLocalBranches() throws GitAPIException, IOException {
+    public ArrayList<LocalBranchHelper> callGitForLocalBranches() throws GitAPIException, IOException {
         List<Ref> getBranchesCall = new Git(this.repo).branchList().call();
         ArrayList<LocalBranchHelper> localBranchHelpers = new ArrayList<>();
 
@@ -573,6 +573,11 @@ public abstract class RepoHelper {
 
     public LocalBranchHelper getCurrentBranch() {
         return this.branchHelper;
+    }
+
+    public void refreshCurrentBranch() throws IOException {
+        LocalBranchHelper currentBranch = new LocalBranchHelper(this.repo.getFullBranch(), this.repo);
+        this.setCurrentBranch(currentBranch);
     }
 
     public BranchManager getBranchManager() {

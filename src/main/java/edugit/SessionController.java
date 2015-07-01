@@ -134,21 +134,24 @@ public class SessionController extends Controller {
      * @throws NoRepoLoadedException
      * @throws MissingRepoException
      */
-    public void updateBranchDropdown() throws NoRepoLoadedException, MissingRepoException{
+    public void updateBranchDropdown() throws NoRepoLoadedException, MissingRepoException, IOException, GitAPIException {
         RepoHelper currentRepoHelper = this.theModel.getCurrentRepoHelper();
         if(currentRepoHelper==null) throw new NoRepoLoadedException();
         if(!currentRepoHelper.exists()) throw new MissingRepoException();
 
         this.branchSelector.setVisible(true);
 
-        List<LocalBranchHelper> branches = currentRepoHelper.getLocalBranchesFromManager();
+        List<LocalBranchHelper> branches = null;
+        branches = currentRepoHelper.callGitForLocalBranches();
+
         this.branchSelector.getItems().setAll(branches);
 
+        this.theModel.getCurrentRepoHelper().refreshCurrentBranch();
         LocalBranchHelper currentBranch = currentRepoHelper.getCurrentBranch();
 
         if(currentBranch == null){
             // This block will run when the app first opens and there is no selection in the dropdown.
-            // It finds the repoHelper that matches the currently checked-out branch.
+            // It finds the branchHelper that matches the currently checked-out branch.
             try{
                 String branchName = this.theModel.getCurrentRepo().getFullBranch();
                 LocalBranchHelper current = new LocalBranchHelper(branchName, this.theModel.getCurrentRepo());
@@ -167,6 +170,7 @@ public class SessionController extends Controller {
                 CommitTreeController.focusCommitInGraph(currentRepoHelper.getCommitByBranchName(currentBranch.refPathString));
             }
         }
+
 
         this.branchSelector.setValue(currentBranch);
     }
@@ -538,6 +542,9 @@ public class SessionController extends Controller {
                 this.showMissingRepoNotification();
                 setButtonsDisabled(true);
                 updateMenuBarWithRecentRepos();
+            } catch (GitAPIException | IOException e1) {
+                this.showGenericErrorNotification();
+                e1.printStackTrace();
             }
         } catch(GitAPIException e){
             this.showGenericErrorNotification();
@@ -574,6 +581,9 @@ public class SessionController extends Controller {
             this.showMissingRepoNotification();
             setButtonsDisabled(true);
             updateMenuBarWithRecentRepos();
+        } catch (GitAPIException | IOException e) {
+            this.showGenericErrorNotification();
+            e.printStackTrace();
         }
     }
 
