@@ -34,7 +34,10 @@ import java.util.prefs.BackingStoreException;
 public class SessionController extends Controller {
 
     public ComboBox<LocalBranchHelper> branchSelector;
-    public Text currentRepoLabel;
+
+    public Label currentRepoLabel;
+    private static final double CURRENT_REPO_LABEL_MAX_WIDTH = 200;
+
     public NotificationPane notificationPane;
     public Button selectAllButton;
     public Button deselectAllButton;
@@ -117,6 +120,8 @@ public class SessionController extends Controller {
         workingTreePanelView.setMinSize(Control.USE_PREF_SIZE, 200);
 
         branchSelector.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
+
+        currentRepoLabel.setMaxWidth(CURRENT_REPO_LABEL_MAX_WIDTH);//- openRepoDirButton.getWidth());
 
         remoteCommitTreePanelView.heightProperty().addListener((observable, oldValue, newValue) -> {
             remoteCircle.setCenterY(newValue.doubleValue() / 2.0);
