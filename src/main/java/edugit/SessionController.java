@@ -373,7 +373,9 @@ public class SessionController extends Controller {
             // Merge conflict
             System.out.println("*****");
             e.printStackTrace();
-            // todo: handle conflicts from push.
+            // todo: figure out rare NoMergeBaseException.
+            //  Has something to do with pushing conflicts.
+            //  At this point in the stack, it's caught as a JGitInternalException.
         } catch(GitAPIException | IOException e){
             this.showGenericErrorNotification();
             e.printStackTrace();
