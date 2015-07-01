@@ -5,6 +5,7 @@ import main.java.edugit.exceptions.NoOwnerInfoException;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
+import org.eclipse.jgit.api.errors.JGitInternalException;
 import org.eclipse.jgit.lib.Config;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Ref;
@@ -216,7 +217,7 @@ public abstract class RepoHelper {
         git.close();
     }
 
-    public void mergeFromFetch() throws IOException, GitAPIException, MissingRepoException{
+    public void mergeFromFetch() throws IOException, GitAPIException, MissingRepoException {
         if(!exists()) throw new MissingRepoException();
         if(getLinkedRemoteRepoURLs().size() == 0) throw new InvalidRemoteException("No remote repository");
         Git git = new Git(this.repo);

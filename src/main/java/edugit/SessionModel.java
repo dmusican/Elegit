@@ -307,24 +307,40 @@ public class SessionModel {
 
         ArrayList<RepoFile> changedRepoFiles = new ArrayList<>();
 
-        for (String modifiedFileString : modifiedFiles) {
-            ModifiedRepoFile modifiedRepoFile = new ModifiedRepoFile(modifiedFileString, this.getCurrentRepo());
-            changedRepoFiles.add(modifiedRepoFile);
-        }
-
-        for (String missingFileString : missingFiles) {
-            MissingRepoFile missingRepoFile = new MissingRepoFile(missingFileString, this.getCurrentRepo());
-            changedRepoFiles.add(missingRepoFile);
-        }
-
-        for (String untrackedFileString : untrackedFiles) {
-            UntrackedRepoFile untrackedRepoFile = new UntrackedRepoFile(untrackedFileString, this.getCurrentRepo());
-            changedRepoFiles.add(untrackedRepoFile);
-        }
+        ArrayList<String> conflictingRepoFileStrings = new ArrayList<>();
 
         for (String conflictingFileString : conflictingFiles) {
             ConflictingRepoFile conflictingRepoFile = new ConflictingRepoFile(conflictingFileString, this.getCurrentRepo());
             changedRepoFiles.add(conflictingRepoFile);
+
+            // Store these paths to make sure this file isn't registered as a modified file or something.
+            //  If it's conflicting, the app should focus only on the conflicting state of the
+            //  file first.
+            //
+            // e.g. If a modification causes a conflict, that file should have its conflicts resolved
+            //      before it gets added.
+            conflictingRepoFileStrings.add(conflictingFileString);
+        }
+
+        for (String modifiedFileString : modifiedFiles) {
+            if (!conflictingRepoFileStrings.contains(modifiedFileString)) {
+                ModifiedRepoFile modifiedRepoFile = new ModifiedRepoFile(modifiedFileString, this.getCurrentRepo());
+                changedRepoFiles.add(modifiedRepoFile);
+            }
+        }
+
+        for (String missingFileString : missingFiles) {
+            if (!conflictingRepoFileStrings.contains(missingFileString)) {
+                MissingRepoFile missingRepoFile = new MissingRepoFile(missingFileString, this.getCurrentRepo());
+                changedRepoFiles.add(missingRepoFile);
+            }
+        }
+
+        for (String untrackedFileString : untrackedFiles) {
+            if (!conflictingRepoFileStrings.contains(untrackedFileString)) {
+                UntrackedRepoFile untrackedRepoFile = new UntrackedRepoFile(untrackedFileString, this.getCurrentRepo());
+                changedRepoFiles.add(untrackedRepoFile);
+            }
         }
 
         return changedRepoFiles;

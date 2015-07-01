@@ -19,6 +19,7 @@ import main.java.edugit.exceptions.*;
 import org.controlsfx.control.NotificationPane;
 import org.controlsfx.control.action.Action;
 import org.eclipse.jgit.api.errors.*;
+import org.eclipse.jgit.errors.NoMergeBaseException;
 
 import java.awt.*;
 import java.io.IOException;
@@ -368,6 +369,11 @@ public class SessionController extends Controller {
             this.showMissingRepoNotification();
             setButtonsDisabled(true);
             updateMenuBarWithRecentRepos();
+        } catch (NoMergeBaseException | JGitInternalException e) {
+            // Merge conflict
+            System.out.println("*****");
+            e.printStackTrace();
+            // todo: handle conflicts from push.
         } catch(GitAPIException | IOException e){
             this.showGenericErrorNotification();
             e.printStackTrace();
