@@ -76,8 +76,12 @@ public class BranchManager {
         root.setHgap(PADDING);
         root.setVgap(PADDING);
         root.setPadding(new Insets(PADDING));
-        root.add(this.remoteListView, 0, 0); // col, row
-        root.add(this.localListView, 1, 0);
+
+
+        root.add(new Text("Remote branches:"), 0, 0); // col, row
+        root.add(new Text("Local branches:"), 1, 0);
+        root.add(this.remoteListView, 0, 1);
+        root.add(this.localListView, 1, 1);
 
         Button trackRemoteBranchButton = new Button("Track branch locally");
         trackRemoteBranchButton.setOnAction(e -> {
@@ -96,11 +100,11 @@ public class BranchManager {
         hButtons.setAlignment(Pos.CENTER);
         hButtons.setSpacing(PADDING);
         hButtons.setPrefWidth(this.localListView.getPrefWidth()+PADDING+this.remoteListView.getPrefWidth());
-        root.add(hButtons, 0, 1, 2, 1);
+        root.add(hButtons, 0, 2, 2, 1);
 
-        root.add(new Text(String.format("Branch off from %s:", this.repo.getBranch())), 0, 2, 2, 1); // colspan = 2
+        root.add(new Text(String.format("Branch off from %s:", this.repo.getBranch())), 0, 3, 2, 1); // colspan = 2
 
-        root.add(this.newBranchNameField, 0, 3);
+        root.add(this.newBranchNameField, 0, 4);
 
         Button newBranchButton = new Button("Create branch");
         newBranchButton.setOnAction(e -> {
@@ -118,7 +122,7 @@ public class BranchManager {
                 e1.printStackTrace();
             }
         });
-        root.add(newBranchButton, 1, 3);
+        root.add(newBranchButton, 1, 4);
 
         Stage stage = new Stage();
         stage.setTitle("Branch Manager");
