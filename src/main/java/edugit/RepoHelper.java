@@ -1,7 +1,9 @@
 package main.java.edugit;
 
+import javafx.scene.Node;
 import main.java.edugit.exceptions.MissingRepoException;
 import main.java.edugit.exceptions.NoOwnerInfoException;
+import main.java.edugit.exceptions.PushToAheadRemoteError;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
@@ -15,6 +17,8 @@ import org.eclipse.jgit.revplot.PlotLane;
 import org.eclipse.jgit.revplot.PlotWalk;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevWalk;
+import org.eclipse.jgit.transport.PushResult;
+import org.eclipse.jgit.transport.RemoteRefUpdate;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
 import java.io.IOException;
@@ -185,7 +189,7 @@ public abstract class RepoHelper {
      *
      * @throws GitAPIException if the `git push` call fails.
      */
-    public void pushAll() throws GitAPIException, MissingRepoException{
+    public void pushAll() throws GitAPIException, MissingRepoException, PushToAheadRemoteError {
         if(!exists()) throw new MissingRepoException();
         if(this.getLinkedRemoteRepoURLs().size() == 0) throw new InvalidRemoteException("No remote repository");
         Git git = new Git(this.repo);
@@ -195,7 +199,22 @@ public abstract class RepoHelper {
             push.setCredentialsProvider(this.ownerAuth);
         }
 
-        push.call();
+        Iterable<PushResult> pushResult = push.call();
+        boolean allPushesWereRejected = true;
+
+        for (PushResult result : pushResult) {
+            for (RemoteRefUpdate remoteRefUpdate : result.getRemoteUpdates()) {
+                if (remoteRefUpdate.getStatus() != (RemoteRefUpdate.Status.REJECTED_NONFASTFORWARD)) {
+                    allPushesWereRejected = false;
+                    break;
+                }
+            }
+        }
+
+        if (allPushesWereRejected) {
+            throw new PushToAheadRemoteError();
+        }
+
         git.close();
     }
 

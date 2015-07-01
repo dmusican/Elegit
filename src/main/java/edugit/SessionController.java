@@ -18,6 +18,7 @@ import javafx.scene.text.Text;
 import main.java.edugit.exceptions.*;
 import org.controlsfx.control.NotificationPane;
 import org.controlsfx.control.action.Action;
+import org.eclipse.jgit.api.PushCommand;
 import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.errors.NoMergeBaseException;
 
@@ -400,6 +401,8 @@ public class SessionController extends Controller {
             this.onGitStatusButton();
         } catch(InvalidRemoteException e){
             this.showNoRemoteNotification();
+        } catch(PushToAheadRemoteError e) {
+            this.showPushToAheadRemoteNotification();
         } catch (TransportException e) {
             this.showNotAuthorizedNotification();
         } catch(NoRepoLoadedException e){
@@ -784,6 +787,14 @@ public class SessionController extends Controller {
         this.notificationPane.getActions().clear();
         this.notificationPane.getActions().setAll(seeConflictsAction);
 
+        this.notificationPane.show();
+    }
+
+
+    private void showPushToAheadRemoteNotification() {
+        this.notificationPane.setText("The remote repository is ahead of the local. You need to fetch and then merge (pull) before pushing.");
+
+        this.notificationPane.getActions().clear();
         this.notificationPane.show();
     }
 
