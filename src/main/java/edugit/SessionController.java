@@ -472,7 +472,13 @@ public class SessionController extends Controller {
                     } catch(PushToAheadRemoteError e) {
                         showPushToAheadRemoteNotification();
                     } catch (TransportException e) {
-                        showNotAuthorizedNotification(null);
+                        if (e.getMessage().contains("git-receive-pack not found")) {
+                            // The error has this message if there is no longer a remote to push to
+                            showLostRemoteNotification();
+                        } else {
+                            showNotAuthorizedNotification(null);
+                        }
+                        e.printStackTrace();
                     } catch(MissingRepoException e){
                         showMissingRepoNotification();
                         setButtonsDisabled(true);
@@ -971,6 +977,13 @@ public class SessionController extends Controller {
 
     private void showPushToAheadRemoteNotification() {
         this.notificationPane.setText("The remote repository is ahead of the local. You need to fetch and then merge (pull) before pushing.");
+
+        this.notificationPane.getActions().clear();
+        this.notificationPane.show();
+    }
+
+    private void showLostRemoteNotification() {
+        this.notificationPane.setText("The push failed because the remote repository couldn't be found.");
 
         this.notificationPane.getActions().clear();
         this.notificationPane.show();
