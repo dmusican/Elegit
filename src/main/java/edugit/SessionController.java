@@ -284,6 +284,7 @@ public class SessionController extends Controller {
             th.start();
         } catch (IllegalArgumentException e) {
             showInvalidRepoNotification();
+            e.printStackTrace();
         } catch(NoOwnerInfoException e) {
             showNotLoggedInNotification(callback);
         } catch(JGitInternalException e){
@@ -856,7 +857,7 @@ public class SessionController extends Controller {
 
     private void showInvalidRepoNotification() {
         Platform.runLater(()-> {
-            this.notificationPane.setText("Make sure the directory you selected contains an existing Git repository.");
+            this.notificationPane.setText("Make sure the directory you selected contains an existing (non-bare) Git repository.");
 
             this.notificationPane.getActions().clear();
             this.notificationPane.show();
