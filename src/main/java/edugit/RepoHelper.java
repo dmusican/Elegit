@@ -408,7 +408,7 @@ public abstract class RepoHelper {
 
             RevCommit[] parents = curCommit.getParents();
             for(RevCommit p : parents){
-                CommitHelper parentCommitHelper = commitIdMap.get(idMap.get(p.getId()));
+                CommitHelper parentCommitHelper = getCommit(p.getId());
                 if(parentCommitHelper == null){
                     commitsWithMissingParents.add(curCommitHelper);
                 }else{
@@ -422,7 +422,7 @@ public abstract class RepoHelper {
             CommitHelper curCommitHelper = commitsWithMissingParents.remove(0);
             RevCommit[] parents = curCommitHelper.commit.getParents();
             for(RevCommit p : parents){
-                CommitHelper parentCommitHelper = commitIdMap.get(idMap.get(p.getId()));
+                CommitHelper parentCommitHelper = getCommit(p.getId());
                 if(parentCommitHelper == null){
                     commitsWithMissingParents.add(curCommitHelper);
                 }else if(!curCommitHelper.getParents().contains(parentCommitHelper)){
@@ -608,10 +608,28 @@ public abstract class RepoHelper {
     }
 
     public List<BranchHelper> getLocalBranches(){
+        for(BranchHelper branch : localBranches){
+            if(branch.getHead() == null){
+                try{
+                    branch.setHead(getCommit(branch.getHeadID()));
+                }catch(IOException e){
+                    e.printStackTrace();
+                }
+            }
+        }
         return new ArrayList<>(localBranches);
     }
 
     public List<BranchHelper> getRemoteBranches(){
+        for(BranchHelper branch : remoteBranches){
+            if(branch.getHead() == null){
+                try{
+                    branch.setHead(getCommit(branch.getHeadID()));
+                }catch(IOException e){
+                    e.printStackTrace();
+                }
+            }
+        }
         return new ArrayList<>(remoteBranches);
     }
 }

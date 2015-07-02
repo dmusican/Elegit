@@ -34,6 +34,10 @@ public abstract class BranchHelper {
         return branchHead;
     }
 
+    public void setHead(CommitHelper head){
+        this.branchHead = head;
+    }
+
     @Override
     public String toString() {
         return this.branchName;

@@ -247,7 +247,7 @@ public abstract class CommitTreeModel{
         String s = "";
         if(branches != null){
             for(BranchHelper branch : branches){
-                if(getId(branch.getHead()).equals(getId(commitHelper))){
+                if(branch.getHead() != null && getId(branch.getHead()).equals(getId(commitHelper))){
                     s = s + "\nBranch: " + branch.getBranchName();
                 }
             }
