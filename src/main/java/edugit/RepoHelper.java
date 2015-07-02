@@ -270,7 +270,7 @@ public abstract class RepoHelper {
      * @throws GitAPIException
      * @throws MissingRepoException
      */
-    public void mergeFromFetch() throws IOException, GitAPIException, MissingRepoException {
+    public boolean mergeFromFetch() throws IOException, GitAPIException, MissingRepoException {
         if(!exists()) throw new MissingRepoException();
         if(getLinkedRemoteRepoURLs().size() == 0) throw new InvalidRemoteException("No remote repository");
         Git git = new Git(this.repo);
@@ -280,8 +280,8 @@ public abstract class RepoHelper {
                 .include(fetchHeadID)
                 .call();
         git.close();
-//        System.out.println("Merge successful? " + result.getMergeStatus().isSuccessful());
         this.hasUnmergedCommitsProperty.set(!Arrays.asList(result.getMergedCommits()).contains(result.getNewHead()));
+        return result.getMergeStatus().isSuccessful();
     }
 
     public void closeRepo() {
@@ -348,6 +348,8 @@ public abstract class RepoHelper {
                     startPoints.add(newBranchHeadID);
                 }
                 stopPoints.add(oldBranchHeadID);
+            }else{
+                startPoints.add(newBranch.getHeadID());
             }
         }
         PlotCommitList<PlotLane> newCommits = this.parseRawCommits(startPoints, stopPoints);
@@ -480,11 +482,35 @@ public abstract class RepoHelper {
         return rawRemoteCommits;
     }
 
+    /**
+     * Utilizes JGit to walk through the repo and create raw commit objects - more
+     * specifically, JGit objects of (super)type RevCommit. This is an expensive
+     * operation and should only be called when necessary
+     * @param startPoints the starting ids to parse from
+     * @param stopPoints the ids at which parsing should stop
+     * @return a list of raw commits starting from each id in startPoints, excluding those beyond each id in stopPoints
+     * @throws IOException
+     */
     private PlotCommitList<PlotLane> parseRawCommits(List<ObjectId> startPoints, List<ObjectId> stopPoints) throws IOException{
         PlotCommitList<PlotLane> plotCommitList = new PlotCommitList<>();
-        for(ObjectId id : startPoints){
-            plotCommitList.addAll(parseRawCommits(id, stopPoints));
+
+        PlotWalk w = new PlotWalk(repo);
+        for(ObjectId stopId : stopPoints){
+            w.markUninteresting(w.parseCommit(stopId));
         }
+
+        for(ObjectId startId : startPoints){
+            w.markStart(w.parseCommit(startId));
+
+            PlotCommitList<PlotLane> temp = new PlotCommitList<>();
+            temp.source(w);
+            temp.fillTo(Integer.MAX_VALUE);
+
+            plotCommitList.addAll(temp);
+        }
+
+        w.dispose();
+
         return plotCommitList;
     }
 
@@ -497,19 +523,9 @@ public abstract class RepoHelper {
      * @throws IOException
      */
     private PlotCommitList<PlotLane> parseRawCommits(ObjectId startingID, List<ObjectId> stopPoints) throws IOException{
-        PlotWalk w = new PlotWalk(repo);
-        RevCommit start = w.parseCommit(startingID);
-        w.markStart(start);
-        for(ObjectId stopId : stopPoints){
-            w.markUninteresting(w.parseCommit(stopId));
-        }
-        PlotCommitList<PlotLane> plotCommitList = new PlotCommitList<>();
-        plotCommitList.source(w);
-        plotCommitList.fillTo(Integer.MAX_VALUE);
-
-        w.dispose();
-
-        return plotCommitList;
+        List<ObjectId> asList = new ArrayList<>(1);
+        asList.add(startingID);
+        return parseRawCommits(asList, stopPoints);
     }
 
     /**

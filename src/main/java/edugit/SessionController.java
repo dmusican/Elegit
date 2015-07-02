@@ -418,7 +418,9 @@ public class SessionController extends Controller {
                 @Override
                 protected Void call(){
                     try{
-                        theModel.getCurrentRepoHelper().mergeFromFetch();
+                        if(!theModel.getCurrentRepoHelper().mergeFromFetch()){
+                            showUnsuccessfulMergeNotification();
+                        }
                         onGitStatusButton();
                     } catch(InvalidRemoteException e){
                         showNoRemoteNotification();
@@ -692,7 +694,6 @@ public class SessionController extends Controller {
 
                     if (pathStreamIterator.hasNext()){ // => There ARE branch refs in the folder
                         selectedBranch.checkoutBranch();
-                        theModel.getCurrentRepoHelper().setCurrentBranch(selectedBranch);
                         CommitTreeController.focusCommitInGraph(selectedBranch.getHead());
                     }
                 }catch(CheckoutConflictException e){
@@ -983,18 +984,31 @@ public class SessionController extends Controller {
     }
 
 
-    private void showPushToAheadRemoteNotification() {
-        this.notificationPane.setText("The remote repository is ahead of the local. You need to fetch and then merge (pull) before pushing.");
+    private void showPushToAheadRemoteNotification(){
+        Platform.runLater(() -> {
+            this.notificationPane.setText("The remote repository is ahead of the local. You need to fetch and then merge (pull) before pushing.");
 
-        this.notificationPane.getActions().clear();
-        this.notificationPane.show();
+            this.notificationPane.getActions().clear();
+            this.notificationPane.show();
+        });
     }
 
     private void showLostRemoteNotification() {
-        this.notificationPane.setText("The push failed because the remote repository couldn't be found.");
+        Platform.runLater(() -> {
+            this.notificationPane.setText("The push failed because the remote repository couldn't be found.");
 
-        this.notificationPane.getActions().clear();
-        this.notificationPane.show();
+            this.notificationPane.getActions().clear();
+            this.notificationPane.show();
+        });
+    }
+
+    private void showUnsuccessfulMergeNotification(){
+        Platform.runLater(() -> {
+            this.notificationPane.setText("Merging failed");
+
+            this.notificationPane.getActions().clear();
+            this.notificationPane.show();
+        });
     }
 
     // END: ERROR NOTIFICATIONS ^^^
