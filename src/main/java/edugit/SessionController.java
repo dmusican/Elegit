@@ -15,11 +15,9 @@ import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.shape.Circle;
-import javafx.scene.text.Text;
 import main.java.edugit.exceptions.*;
 import org.controlsfx.control.NotificationPane;
 import org.controlsfx.control.action.Action;
-import org.eclipse.jgit.api.PushCommand;
 import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.errors.NoMergeBaseException;
 
@@ -543,18 +541,19 @@ public class SessionController extends Controller {
         Thread th = new Thread(new Task<Void>(){
             @Override
             protected Void call(){
-                try{
-                    Platform.runLater(()-> {
-                        try{
-                            workingTreePanelView.drawDirectoryView();
-                            localCommitTreeModel.update();
-                            remoteCommitTreeModel.update();
-                        }catch(GitAPIException | IOException e){
-                            showGenericErrorNotification();
-                            e.printStackTrace();
-                        }
-                    });
+                Platform.runLater(() -> {
+                    try{
+                        workingTreePanelView.drawDirectoryView();
+                        localCommitTreeModel.update();
+                        remoteCommitTreeModel.update();
 
+                    } catch(GitAPIException | IOException e){
+                        showGenericErrorNotification();
+                        e.printStackTrace();
+                    }
+                });
+
+                try{
                     updateBranchDropdown();
                 } catch(MissingRepoException e){
                     showMissingRepoNotification();
@@ -563,11 +562,11 @@ public class SessionController extends Controller {
                 } catch(NoRepoLoadedException e){
                     showNoRepoLoadedNotification();
                     setButtonsDisabled(true);
-                }catch(GitAPIException | IOException e){
+                } catch(GitAPIException | IOException e){
                     showGenericErrorNotification();
                     e.printStackTrace();
                 }
-                return null;
+            return null;
             }
         });
         th.setDaemon(true);
@@ -644,16 +643,18 @@ public class SessionController extends Controller {
      * @param disable a boolean for whether or not to disable the buttons.
      */
     private void setButtonsDisabled(boolean disable) {
-        openRepoDirButton.setDisable(disable);
-        gitStatusButton.setDisable(disable);
+        Platform.runLater(() -> {
+            openRepoDirButton.setDisable(disable);
+            gitStatusButton.setDisable(disable);
 //        commitButton.setDisable(disable);
 //        mergeFromFetchButton.setDisable(disable);
 //        pushButton.setDisable(disable);
 //        fetchButton.setDisable(disable);
-        selectAllButton.setDisable(disable);
-        deselectAllButton.setDisable(disable);
-        remoteCircle.setVisible(!disable);
-        commitMessageField.setDisable(disable);
+            selectAllButton.setDisable(disable);
+            deselectAllButton.setDisable(disable);
+            remoteCircle.setVisible(!disable);
+            commitMessageField.setDisable(disable);
+        });
     }
 
     /**
@@ -662,31 +663,40 @@ public class SessionController extends Controller {
     public void loadSelectedBranch() {
         LocalBranchHelper selectedBranch = this.branchSelector.getValue();
         if(selectedBranch == null) return;
-        try {
-            selectedBranch.checkoutBranch();
-            RepoHelper repoHelper = this.theModel.getCurrentRepoHelper();
-            CommitTreeController.focusCommitInGraph(repoHelper.getCommitByBranchName(selectedBranch.refPathString));
+            Thread th = new Thread(new Task<Void>(){
+                @Override
+                protected Void call() throws Exception{
+                    try {
+                        selectedBranch.checkoutBranch();
+                        theModel.getCurrentRepoHelper().setCurrentBranch(selectedBranch);
+                        RepoHelper repoHelper = theModel.getCurrentRepoHelper();
+                        CommitTreeController.focusCommitInGraph(repoHelper.getCommitByBranchName(selectedBranch.refPathString));
+                    } catch (CheckoutConflictException e) {
+                        showCheckoutConflictsNotification(e.getConflictingPaths());
+                        try{
+                            updateBranchDropdown();
+                        }catch(NoRepoLoadedException e1){
+                            showNoRepoLoadedNotification();
+                            setButtonsDisabled(true);
+                        }catch(MissingRepoException e1){
+                            showMissingRepoNotification();
+                            setButtonsDisabled(true);
+                            updateMenuBarWithRecentRepos();
+                        }catch(GitAPIException | IOException e1){
+                            showGenericErrorNotification();
+                            e1.printStackTrace();
+                        }
+                    } catch(GitAPIException e){
+                        showGenericErrorNotification();
+                        e.printStackTrace();
+                    }
+                    return null;
+                }
+            });
+            th.setDaemon(true);
+            th.setName("Branch Checkout");
+            th.start();
 
-            this.theModel.getCurrentRepoHelper().setCurrentBranch(selectedBranch);
-        } catch (CheckoutConflictException e) {
-            this.showCheckoutConflictsNotification(e.getConflictingPaths());
-            try{
-                this.updateBranchDropdown();
-            }catch(NoRepoLoadedException e1){
-                this.showNoRepoLoadedNotification();
-                setButtonsDisabled(true);
-            }catch(MissingRepoException e1){
-                this.showMissingRepoNotification();
-                setButtonsDisabled(true);
-                updateMenuBarWithRecentRepos();
-            } catch (GitAPIException | IOException e1) {
-                this.showGenericErrorNotification();
-                e1.printStackTrace();
-            }
-        } catch(GitAPIException e){
-            this.showGenericErrorNotification();
-            e.printStackTrace();
-        }
     }
 
     /**
@@ -699,11 +709,11 @@ public class SessionController extends Controller {
             if(this.theModel.getCurrentRepoHelper() == null && this.theModel.getAllRepoHelpers().size() == 0) {
                 // (There's no repo for the buttons to interact with)
                 setButtonsDisabled(true);
-                this.branchSelector.setVisible(false);
+                Platform.runLater(() -> this.branchSelector.setVisible(false));
             } else if (this.theModel.getCurrentRepoHelper() == null && this.theModel.getAllRepoHelpers().size() > 0) {
                 // (There's no repo for buttons to interact with, but there are repos in the menu bar)
                 setButtonsDisabled(true);
-                this.branchSelector.setVisible(false);
+                Platform.runLater(() -> this.branchSelector.setVisible(false));
                 this.updateMenuBarWithRecentRepos();
             }else{
                 setButtonsDisabled(false);
@@ -729,7 +739,7 @@ public class SessionController extends Controller {
      */
     private void updateCurrentRepoLabel() {
         String name = this.theModel.getCurrentRepoHelper().toString();
-        this.currentRepoLabel.setText(name);
+        Platform.runLater(() -> this.currentRepoLabel.setText(name));
     }
 
     /**
