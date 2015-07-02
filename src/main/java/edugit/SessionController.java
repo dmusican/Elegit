@@ -182,7 +182,7 @@ public class SessionController extends Controller {
             // It finds the branchHelper that matches the currently checked-out branch.
             try{
                 String branchName = this.theModel.getCurrentRepo().getFullBranch();
-                LocalBranchHelper current = new LocalBranchHelper(branchName, this.theModel.getCurrentRepo());
+                LocalBranchHelper current = new LocalBranchHelper(branchName, this.theModel.getCurrentRepoHelper());
                 for(LocalBranchHelper branchHelper : branches){
                     if(branchHelper.getBranchName().equals(current.getBranchName())){
                         currentBranch = current;
@@ -195,7 +195,7 @@ public class SessionController extends Controller {
                 e.printStackTrace();
             }
             if(currentBranch != null){
-                CommitTreeController.focusCommitInGraph(currentRepoHelper.getCommitByBranchName(currentBranch.refPathString));
+                CommitTreeController.focusCommitInGraph(currentBranch.getHead());
             }
         }
 
@@ -669,8 +669,7 @@ public class SessionController extends Controller {
                     try {
                         selectedBranch.checkoutBranch();
                         theModel.getCurrentRepoHelper().setCurrentBranch(selectedBranch);
-                        RepoHelper repoHelper = theModel.getCurrentRepoHelper();
-                        CommitTreeController.focusCommitInGraph(repoHelper.getCommitByBranchName(selectedBranch.refPathString));
+                        CommitTreeController.focusCommitInGraph(selectedBranch.getHead());
                     } catch (CheckoutConflictException e) {
                         showCheckoutConflictsNotification(e.getConflictingPaths());
                         try{

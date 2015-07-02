@@ -6,7 +6,9 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Handles the conversion/creation of a list of commit helpers into a nice
@@ -23,6 +25,9 @@ public abstract class CommitTreeModel{
     // The graph corresponding to this model
     TreeGraph treeGraph;
 
+    private List<BranchHelper> branches;
+    protected Map<String, BranchHelper> branchMap;
+
     /**
      * @param model the model with which this class accesses the commits
      * @param view the view that will be updated with the new graph
@@ -35,17 +40,47 @@ public abstract class CommitTreeModel{
         this.init();
     }
 
+    private List<CommitHelper> getAllCommits(){
+        if(this.sessionModel != null){
+            RepoHelper repo = this.sessionModel.getCurrentRepoHelper();
+            if(repo != null){
+                List<CommitHelper> commits = getAllCommits(repo);
+                this.branches = getAllBranches(repo);
+                branchMap = new HashMap<>();
+                for(BranchHelper branch : branches) branchMap.put(branch.getBranchName(),branch);
+                return commits;
+            }
+        }
+        return new ArrayList<>();
+    }
+
+    private List<CommitHelper> getNewCommits() throws GitAPIException, IOException{
+        if(this.sessionModel != null){
+            RepoHelper repo = this.sessionModel.getCurrentRepoHelper();
+            if(repo != null){
+                List<CommitHelper> commits = getNewCommits(repo);
+                this.branches = getAllBranches(repo);
+                branchMap = new HashMap<>();
+                for(BranchHelper branch : branches) branchMap.put(branch.getBranchName(),branch);
+                return commits;
+            }
+        }
+        return new ArrayList<>();
+    }
+
+    protected abstract List<BranchHelper> getAllBranches(RepoHelper repoHelper);
+
     /**
      * @return a list of all commits tracked by this model
      */
-    protected abstract List<CommitHelper> getAllCommits();
+    protected abstract List<CommitHelper> getAllCommits(RepoHelper repoHelper);
 
     /**
      * @return a list of all commits tracked by this model that haven't been added to the tree
      * @throws GitAPIException
      * @throws IOException
      */
-    protected abstract List<CommitHelper> getNewCommits() throws GitAPIException, IOException;
+    protected abstract List<CommitHelper> getNewCommits(RepoHelper repoHelper) throws GitAPIException, IOException;
 
     /**
      * @param id the id to check

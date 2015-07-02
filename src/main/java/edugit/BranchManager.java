@@ -37,6 +37,7 @@ public class BranchManager {
     public ListView<RemoteBranchHelper> remoteListView;
     public ListView<LocalBranchHelper> localListView;
     private Repository repo;
+    private RepoHelper repoHelper;
     private NotificationPane notificationPane;
 
     private TextField newBranchNameField;
@@ -45,8 +46,9 @@ public class BranchManager {
     private Button deleteLocalBranchesButton;
     private Button trackRemoteBranchButton;
 
-    public BranchManager(List<LocalBranchHelper> localBranches, List<RemoteBranchHelper> remoteBranches, Repository repo) throws IOException {
-        this.repo = repo;
+    public BranchManager(List<LocalBranchHelper> localBranches, List<RemoteBranchHelper> remoteBranches, RepoHelper repoHelper) throws IOException {
+        this.repoHelper = repoHelper;
+        this.repo = repoHelper.getRepo();
 
         this.remoteListView = new ListView<>(FXCollections.observableArrayList(remoteBranches));
         this.localListView = new ListView<>(FXCollections.observableArrayList(localBranches));
@@ -204,7 +206,7 @@ public class BranchManager {
                 setUpstreamMode(CreateBranchCommand.SetupUpstreamMode.TRACK).
                 setStartPoint(remoteBranchHelper.getRefPathString()).
                 call();
-        LocalBranchHelper trackingBranch = new LocalBranchHelper(trackingBranchRef, this.repo);
+        LocalBranchHelper trackingBranch = new LocalBranchHelper(trackingBranchRef, this.repoHelper);
         return trackingBranch;
     }
 
@@ -270,7 +272,7 @@ public class BranchManager {
     private LocalBranchHelper createNewLocalBranch(String branchName) throws GitAPIException, IOException {
         Git git = new Git(this.repo);
         Ref newBranch = git.branchCreate().setName(branchName).call();
-        LocalBranchHelper newLocalBranchHelper = new LocalBranchHelper(newBranch, this.repo);
+        LocalBranchHelper newLocalBranchHelper = new LocalBranchHelper(newBranch, this.repoHelper);
 
         git.close();
         return newLocalBranchHelper;
