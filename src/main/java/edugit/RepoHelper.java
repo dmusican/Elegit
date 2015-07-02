@@ -41,10 +41,8 @@ public abstract class RepoHelper {
     private Map<String, CommitHelper> commitIdMap;
     private Map<ObjectId, String> idMap;
 
-    private CommitHelper localHead;
-
-    private Map<String, ObjectId> localBranches;
-    private Map<String, ObjectId> remoteBranches;
+    private List<LocalBranchHelper> localBranches;
+    private List<RemoteBranchHelper> remoteBranches;
     private LocalBranchHelper branchHelper;
     private BranchManager branchManager;
 
@@ -81,7 +79,7 @@ public abstract class RepoHelper {
         this.localCommits = this.parseAllLocalCommits();
         this.remoteCommits = this.parseAllRemoteCommits();
 
-        this.branchManager = new BranchManager(this.callGitForLocalBranches(), this.callGitForRemoteBranches(), this.repo);
+        this.branchManager = new BranchManager(this.callGitForLocalBranches(), this.callGitForRemoteBranches(), this);
 
         hasRemoteProperty = new SimpleBooleanProperty(!getLinkedRemoteRepoURLs().isEmpty());
         hasUnpushedCommitsProperty = new SimpleBooleanProperty(this.localCommits.size() > this.remoteCommits.size());
@@ -106,7 +104,7 @@ public abstract class RepoHelper {
 
         this.localCommits = this.parseAllLocalCommits();
         this.remoteCommits = this.parseAllRemoteCommits();
-        this.branchManager = new BranchManager(this.callGitForLocalBranches(), this.callGitForRemoteBranches(), this.repo);
+        this.branchManager = new BranchManager(this.callGitForLocalBranches(), this.callGitForRemoteBranches(), this);
 
         hasRemoteProperty = new SimpleBooleanProperty(!getLinkedRemoteRepoURLs().isEmpty());
         hasUnpushedCommitsProperty = new SimpleBooleanProperty(this.localCommits.size() > this.remoteCommits.size());
@@ -306,65 +304,56 @@ public abstract class RepoHelper {
         return this.remoteCommits;
     }
 
-    public CommitHelper getCommit(String id){
-        return commitIdMap.get(id);
+    public CommitHelper getCommit(String idOrRefString){
+        if(commitIdMap.containsKey(idOrRefString)){
+            return commitIdMap.get(idOrRefString);
+        }else{
+            try{
+                return getCommit(repo.resolve(idOrRefString));
+            }catch(IOException e){
+                return null;
+            }
+        }
+    }
+
+    private CommitHelper getCommit(ObjectId id){
+        if(idMap.containsKey(id)){
+            return getCommit(idMap.get(id));
+        }else{
+            return null;
+        }
     }
 
     public List<String> getAllCommitIDs(){
         return new ArrayList<>(commitIdMap.keySet());
     }
 
-    /**
-     * @return the CommitHelper that contains the current HEAD
-     */
-    public CommitHelper getLocalHeadCommit(){
-        try{
-            ObjectId commitId = repo.resolve("HEAD");
-            return commitIdMap.get(idMap.get(commitId));
-        }catch(Exception e){
-            e.printStackTrace();
-            return null;
-        }
+    public List<CommitHelper> getNewLocalCommits(Map<String, BranchHelper> oldLocalBranches) throws GitAPIException, IOException{
+        return getNewCommits(oldLocalBranches, this.callGitForLocalBranches());
     }
 
-    public CommitHelper getCommitByBranchName(String branch){
-        if(localBranches.containsKey(branch)){
-            return commitIdMap.get(idMap.get(localBranches.get(branch)));
-        }else if(remoteBranches.containsKey(branch)){
-            return commitIdMap.get(idMap.get(remoteBranches.get(branch)));
-        }
-        return null;
+    public List<CommitHelper> getNewRemoteCommits(Map<String, BranchHelper> oldRemoteBranches) throws GitAPIException, IOException{
+        return getNewCommits(oldRemoteBranches, this.callGitForRemoteBranches());
     }
 
-    public List<CommitHelper> getNewLocalCommits() throws GitAPIException, IOException{
-        Map<String, ObjectId> oldBranchHeads = new HashMap<>(this.localBranches);
-        List<String> newLocalBranchNames = this.getLocalBranchNames();
-        List<CommitHelper> allNewCommits = new ArrayList<>();
-        for(String branchName : newLocalBranchNames){
-            ObjectId newBranchHead = this.localBranches.get(branchName);
-            if(!oldBranchHeads.containsKey(branchName) || !oldBranchHeads.get(branchName).equals(newBranchHead)){
-                PlotCommitList<PlotLane> newCommits = this.parseRawCommits(newBranchHead, new ArrayList<>(oldBranchHeads.values()));
-                allNewCommits.addAll(wrapRawCommits(newCommits));
+    private List<CommitHelper> getNewCommits(Map<String, BranchHelper> oldBranches, List<? extends BranchHelper> newBranches) throws GitAPIException, IOException{
+        List<ObjectId> startPoints = new ArrayList<>();
+        List<ObjectId> stopPoints = new ArrayList<>();
+
+        for(BranchHelper newBranch : newBranches){
+            if(oldBranches.containsKey(newBranch.getBranchName())){
+                ObjectId newBranchHeadID = newBranch.getHeadID();
+                ObjectId oldBranchHeadID = oldBranches.get(newBranch.getBranchName()).getHeadID();
+                if(!newBranchHeadID.equals(oldBranchHeadID)){
+                    startPoints.add(newBranchHeadID);
+                }
+                stopPoints.add(oldBranchHeadID);
             }
         }
-        this.localCommits.addAll(allNewCommits);
-        return allNewCommits;
+        PlotCommitList<PlotLane> newCommits = this.parseRawCommits(startPoints, stopPoints);
+        return wrapRawCommits(newCommits);
     }
 
-    public List<CommitHelper> getNewRemoteCommits() throws GitAPIException, IOException{
-        Map<String, ObjectId> oldBranchHeads = new HashMap<>(this.remoteBranches);
-        List<String> newRemoteBranchNames = this.getRemoteBranchNames();
-        List<CommitHelper> allNewCommits = new ArrayList<>();
-        for(String branchName : newRemoteBranchNames){
-            ObjectId newBranchHead = this.remoteBranches.get(branchName);
-            if(!oldBranchHeads.containsKey(branchName) || !oldBranchHeads.get(branchName).equals(newBranchHead)){
-                PlotCommitList<PlotLane> newCommits = this.parseRawCommits(newBranchHead, new ArrayList<>(oldBranchHeads.values()));
-                allNewCommits.addAll(wrapRawCommits(newCommits));
-            }
-        }
-        this.remoteCommits.addAll(allNewCommits);
-        return allNewCommits;
-    }
 
     /**
      * Constructs a list of all local commits found by parsing the repository for raw RevCommit objects,
@@ -450,16 +439,15 @@ public abstract class RepoHelper {
      * @throws IOException
      */
     private PlotCommitList<PlotLane> parseAllRawLocalCommits() throws IOException, GitAPIException{
-        // TODO: maybe resolve different branches (e.g. "refs/heads/master")?
         ObjectId headId = repo.resolve("HEAD");
         if(headId == null) return new PlotCommitList<>();
         List<ObjectId> examinedCommitIDs = new ArrayList<>();
         PlotCommitList<PlotLane> rawLocalCommits = parseRawCommits(headId, examinedCommitIDs);
         examinedCommitIDs.add(headId);
 
-        List<String> branchNames = getLocalBranchNames();
-        for(String branch : branchNames){
-            ObjectId branchId = repo.resolve(branch);
+        List<LocalBranchHelper> branches = callGitForLocalBranches();
+        for(BranchHelper branch : branches){
+            ObjectId branchId = branch.getHeadID();
             PlotCommitList<PlotLane> toAdd = parseRawCommits(branchId, examinedCommitIDs);
             if(toAdd.size() > 0){
                 rawLocalCommits.addAll(toAdd);
@@ -480,9 +468,9 @@ public abstract class RepoHelper {
         List<ObjectId> examinedCommitIDs = new ArrayList<>();
         PlotCommitList<PlotLane> rawRemoteCommits = new PlotCommitList<>();
 
-        List<String> branchNames = getRemoteBranchNames();
-        for(String branch : branchNames){
-            ObjectId branchId = repo.resolve(branch);
+        List<RemoteBranchHelper> branches = callGitForRemoteBranches();
+        for(BranchHelper branch : branches){
+            ObjectId branchId = branch.getHeadID();
             PlotCommitList<PlotLane> toAdd = parseRawCommits(branchId, examinedCommitIDs);
             if(toAdd.size() > 0){
                 rawRemoteCommits.addAll(toAdd);
@@ -490,6 +478,14 @@ public abstract class RepoHelper {
             }
         }
         return rawRemoteCommits;
+    }
+
+    private PlotCommitList<PlotLane> parseRawCommits(List<ObjectId> startPoints, List<ObjectId> stopPoints) throws IOException{
+        PlotCommitList<PlotLane> plotCommitList = new PlotCommitList<>();
+        for(ObjectId id : startPoints){
+            plotCommitList.addAll(parseRawCommits(id, stopPoints));
+        }
+        return plotCommitList;
     }
 
     /**
@@ -540,85 +536,31 @@ public abstract class RepoHelper {
 
     public List<LocalBranchHelper> callGitForLocalBranches() throws GitAPIException, IOException {
         List<Ref> getBranchesCall = new Git(this.repo).branchList().call();
-        ArrayList<LocalBranchHelper> localBranchHelpers = new ArrayList<>();
+        localBranches = new ArrayList<>();
 
-        this.localBranches = new HashMap<>();
+        for (Ref ref : getBranchesCall) localBranches.add(new LocalBranchHelper(ref, this));
 
-        for (Ref ref : getBranchesCall) {
-            // TODO: Consolidate these lists? Use BranchHelpers
-            localBranches.put(ref.getName(), ref.getObjectId());
-            localBranchHelpers.add(new LocalBranchHelper(ref, this.repo));
-        }
-
-        return localBranchHelpers;
+        return localBranches;
     }
 
     public List<LocalBranchHelper> getLocalBranchesFromManager() {
         return this.branchManager.getLocalBranches();
     }
 
-    // DEPRECATED. start using branchHelpers!
-    public List<String> getLocalBranchNames() throws GitAPIException {
-        List<Ref> getBranchesCall = new Git(this.repo).branchList().call();
-
-        this.localBranches = new HashMap<>();
-
-        for (Ref ref : getBranchesCall) {
-            localBranches.put(ref.getName(), ref.getObjectId());
-        }
-
-        return new ArrayList<>(localBranches.keySet());
-    }
-
-    // DEPRECATED. start using branchHelpers!
-    public List<String> getRemoteBranchNames() throws GitAPIException {
-        List<Ref> getBranchesCall = new Git(this.repo).branchList().setListMode(ListBranchCommand.ListMode.REMOTE).call();
-
-        this.remoteBranches = new HashMap<>();
-
-        for (Ref ref : getBranchesCall) {
-            remoteBranches.put(ref.getName(), ref.getObjectId());
-        }
-
-        return new ArrayList<>(remoteBranches.keySet());
-    }
-
     public List<RemoteBranchHelper> callGitForRemoteBranches() throws GitAPIException {
         List<Ref> getBranchesCall = new Git(this.repo).branchList().setListMode(ListBranchCommand.ListMode.REMOTE).call();
-        List<RemoteBranchHelper> remoteBranchHelpers = new ArrayList<>();
-
-        this.remoteBranches = new HashMap<>();
+        remoteBranches = new ArrayList<>();
 
         for (Ref ref : getBranchesCall) {
-            remoteBranches.put(ref.getName(), ref.getObjectId());
 
             // It appears that grabbing the remote branches also gets the local head.
             // Ignore that second "HEAD"
             if (!ref.getName().equals("HEAD")) {
-                remoteBranchHelpers.add(new RemoteBranchHelper(ref, this.repo));
+                remoteBranches.add(new RemoteBranchHelper(ref, this));
             }
         }
 
-        return remoteBranchHelpers;
-    }
-
-    // DEPRECATED. SEE BRANCHHELPER CLASSES!
-    public void checkoutLocalBranch(String branchName) throws GitAPIException {
-        new Git(this.repo).checkout().setName(branchName).call();
-    }
-
-    // DEPRECATED. SEE BRANCHHELPER CLASSES!
-    public void checkoutRemoteBranch(String branchRefPathName) throws GitAPIException {
-        new Git(this.repo).checkout().
-                setCreateBranch(true).
-                setName(branchRefPathName).
-                setUpstreamMode(CreateBranchCommand.SetupUpstreamMode.TRACK).
-                setStartPoint(branchRefPathName).
-                call();
-    }
-
-    public String getCurrentBranchName() throws IOException {
-        return this.repo.getBranch();
+        return remoteBranches;
     }
 
     public void setOwner(RepoOwner owner) {
@@ -639,12 +581,21 @@ public abstract class RepoHelper {
     }
 
     public void refreshCurrentBranch() throws IOException {
-        LocalBranchHelper currentBranch = new LocalBranchHelper(this.repo.getFullBranch(), this.repo);
+        String currentBranchName = this.repo.getFullBranch();
+        LocalBranchHelper currentBranch = new LocalBranchHelper(currentBranchName, this);
         this.setCurrentBranch(currentBranch);
     }
 
     public BranchManager getBranchManager() {
         return branchManager;
+    }
+
+    public List<BranchHelper> getLocalBranches(){
+        return new ArrayList<>(localBranches);
+    }
+
+    public List<BranchHelper> getRemoteBranches(){
+        return new ArrayList<>(remoteBranches);
     }
 }
 

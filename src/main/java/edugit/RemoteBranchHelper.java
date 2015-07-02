@@ -1,10 +1,7 @@
 package main.java.edugit;
 
-import org.eclipse.jgit.api.CreateBranchCommand;
-import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Ref;
-import org.eclipse.jgit.lib.Repository;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -14,7 +11,7 @@ import java.util.Arrays;
  * and interacts with remote branches.
  */
 public class RemoteBranchHelper extends BranchHelper {
-    public RemoteBranchHelper(Ref ref, Repository repo) {
+    public RemoteBranchHelper(Ref ref, RepoHelper repo) {
         super(ref.getName(), repo);
     }
 
