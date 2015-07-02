@@ -519,6 +519,7 @@ public abstract class RepoHelper {
      * specifically, JGit objects of (super)type RevCommit. This is an expensive
      * operation and should only be called when necessary
      * @param startingID the starting point to parse from
+     * @param stopPoints the ids at which parsing should stop
      * @return a list of raw commits starting from the given id
      * @throws IOException
      */

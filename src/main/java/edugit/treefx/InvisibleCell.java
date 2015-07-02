@@ -21,7 +21,7 @@ public class InvisibleCell extends Cell{
     protected Node getBaseView(){
         Shape s = new Rectangle(BOX_SIZE, BOX_SIZE);
         s.setFill(null);
-        s.setStyle("-fx-stroke: " + CellState.getCssStringKey(CellState.STANDARD));
+        s.setStyle("-fx-stroke: " + CellState.STANDARD.getCssStringKey());
         s.getStyleClass().setAll("cell", "invisCell");
         return s;
     }
@@ -29,7 +29,7 @@ public class InvisibleCell extends Cell{
     @Override
     public void setCellState(CellState state){
         Shape s = (Shape) view;
-        s.setStyle("-fx-stroke: " + CellState.getCssStringKey(state));
+        s.setStyle("-fx-stroke: " + state.getCssStringKey());
         if(state == CellState.STANDARD){
             s.getStyleClass().setAll("cell", "invisCell");
         }else{

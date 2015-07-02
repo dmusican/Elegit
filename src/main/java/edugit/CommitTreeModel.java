@@ -1,5 +1,6 @@
 package main.java.edugit;
 
+import main.java.edugit.treefx.CellShape;
 import main.java.edugit.treefx.TreeGraph;
 import main.java.edugit.treefx.TreeGraphModel;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -134,7 +135,14 @@ public abstract class CommitTreeModel{
      * @return true if the tree was updated, otherwise false
      */
     private boolean addAllCommitsToTree() {
-        return this.addCommitsToTree(this.getAllCommits());
+        if(this.addCommitsToTree(this.getAllCommits())){
+            for(BranchHelper branch : branches){
+                String branchheadId = getId(branch.getHead());
+                treeGraph.treeGraphModel.setCellShape(branchheadId, CellShape.CIRCLE);
+            }
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -145,7 +153,14 @@ public abstract class CommitTreeModel{
      * @throws IOException
      */
     private boolean addNewCommitsToTree() throws GitAPIException, IOException{
-        return this.addCommitsToTree(this.getNewCommits());
+        if(this.addCommitsToTree(this.getNewCommits())){
+            for(BranchHelper branch : branches){
+                String branchheadId = getId(branch.getHead());
+                treeGraph.treeGraphModel.setCellShape(branchheadId, CellShape.CIRCLE);
+            }
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -184,25 +199,21 @@ public abstract class CommitTreeModel{
      * @param graphModel the treeGraphModel to add the commit to
      */
     private void addCommitToTree(CommitHelper commitHelper, ArrayList<CommitHelper> parents, TreeGraphModel graphModel, boolean visible){
+        List<String> parentIds = new ArrayList<>(parents.size());
+
         for(CommitHelper parent : parents){
             if(!graphModel.containsID(getId(parent))){
                 addCommitToTree(parent, parent.getParents(), graphModel, visible);
             }
+            parentIds.add(getId(parent));
         }
+
         String commitID = getId(commitHelper);
         if(graphModel.containsID(commitID) && graphModel.isVisible(commitID)){
             return;
         }
-        switch(parents.size()){
-            case 1:
-                graphModel.addCell(commitID, commitHelper.getWhen().getTime(), getTreeCellLabel(commitHelper), getId(parents.get(0)), visible);
-                break;
-            case 2:
-                graphModel.addCell(commitID, commitHelper.getWhen().getTime(), getTreeCellLabel(commitHelper), getId(parents.get(0)), getId(parents.get(1)), visible);
-                break;
-            default:
-                graphModel.addCell(commitID, commitHelper.getWhen().getTime(), getTreeCellLabel(commitHelper), visible);
-        }
+
+        graphModel.addCell(commitID, commitHelper.getWhen().getTime(), getTreeCellLabel(commitHelper), parentIds, visible);
     }
 
     /**
@@ -228,23 +239,28 @@ public abstract class CommitTreeModel{
     }
 
     /**
+     * Returns a string that will be displayed to the user to identify this commit
+     * @param commitHelper the commit to get a label for
+     * @return the display label for this commit
+     */
+    private String getTreeCellLabel(CommitHelper commitHelper){
+        String s = "";
+        if(branches != null){
+            for(BranchHelper branch : branches){
+                if(getId(branch.getHead()).equals(getId(commitHelper))){
+                    s = s + "\nBranch: " + branch.getBranchName();
+                }
+            }
+        }
+        return commitHelper.getFormattedWhen() + s;
+    }
+
+    /**
      * Returns a unique identifier that will never be shown
      * @param commitHelper the commit to get an ID for
      * @return a unique identifying string to be used as a key in the tree's map
      */
     public static String getId(CommitHelper commitHelper){
         return commitHelper.getName();
-    }
-
-    /**
-     * Returns a string that will be displayed to the user to identify this commit
-     * @param commitHelper the commit to get a label for
-     * @return the display label for this commit
-     */
-    private static String getTreeCellLabel(CommitHelper commitHelper){
-        return commitHelper.getAuthorName()+ "\n"+
-                commitHelper.getFormattedWhen()+"\n"+
-                commitHelper.getName()+"\n\n"+
-                commitHelper.getMessage(false);
     }
 }
