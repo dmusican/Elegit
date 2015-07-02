@@ -15,11 +15,9 @@ import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.shape.Circle;
-import javafx.scene.text.Text;
 import main.java.edugit.exceptions.*;
 import org.controlsfx.control.NotificationPane;
 import org.controlsfx.control.action.Action;
-import org.eclipse.jgit.api.PushCommand;
 import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.errors.NoMergeBaseException;
 
@@ -729,7 +727,7 @@ public class SessionController extends Controller {
      */
     private void updateCurrentRepoLabel() {
         String name = this.theModel.getCurrentRepoHelper().toString();
-        this.currentRepoLabel.setText(name);
+        Platform.runLater(() -> this.currentRepoLabel.setText(name));
     }
 
     /**
