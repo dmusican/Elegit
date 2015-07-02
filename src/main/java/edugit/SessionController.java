@@ -18,6 +18,7 @@ import javafx.scene.shape.Circle;
 import main.java.edugit.exceptions.*;
 import org.controlsfx.control.NotificationPane;
 import org.controlsfx.control.action.Action;
+import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.errors.NoMergeBaseException;
 
@@ -25,6 +26,11 @@ import java.awt.*;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Iterator;
 import java.util.List;
 import java.util.prefs.BackingStoreException;
 
@@ -657,33 +663,50 @@ public class SessionController extends Controller {
     /**
      * Checks out the branch that is currently selected in the dropdown.
      */
-    public void loadSelectedBranch() {
+    public void loadSelectedBranch() throws IOException {
         LocalBranchHelper selectedBranch = this.branchSelector.getValue();
-        if(selectedBranch == null) return;
-        try {
-            selectedBranch.checkoutBranch();
-            RepoHelper repoHelper = this.theModel.getCurrentRepoHelper();
-            CommitTreeController.focusCommitInGraph(repoHelper.getCommitByBranchName(selectedBranch.refPathString));
+        if (selectedBranch == null) return;
 
-            this.theModel.getCurrentRepoHelper().setCurrentBranch(selectedBranch);
-        } catch (CheckoutConflictException e) {
-            this.showCheckoutConflictsNotification(e.getConflictingPaths());
-            try{
-                this.updateBranchDropdown();
-            }catch(NoRepoLoadedException e1){
-                this.showNoRepoLoadedNotification();
-                setButtonsDisabled(true);
-            }catch(MissingRepoException e1){
-                this.showMissingRepoNotification();
-                setButtonsDisabled(true);
-                updateMenuBarWithRecentRepos();
-            } catch (GitAPIException | IOException e1) {
+        // When a repo is first initialized,the `master` branch is checked-out,
+        //  but it is "unborn" -- it doesn't exist yet in the `refs/heads` folder
+        //  until there are commits.
+        //
+        // (see http://stackoverflow.com/a/21255920/5054197)
+        //
+        // So, check that there are refs in the refs folder (if there aren't, do nothing):
+        String gitDirString = this.theModel.getCurrentRepo().getDirectory().toString();
+        Path refsHeadsFolder = Paths.get(gitDirString + "/refs/heads");
+        DirectoryStream<Path> pathStream = Files.newDirectoryStream(refsHeadsFolder);
+        Iterator<Path> pathStreamIterator = pathStream.iterator();
+
+        if (pathStreamIterator.hasNext()) { // => There ARE branch refs in the folder
+            try {
+                selectedBranch.checkoutBranch();
+                RepoHelper repoHelper = this.theModel.getCurrentRepoHelper();
+                CommitTreeController.focusCommitInGraph(repoHelper.getCommitByBranchName(selectedBranch.refPathString));
+
+                this.theModel.getCurrentRepoHelper().setCurrentBranch(selectedBranch);
+            } catch (CheckoutConflictException e) {
+                this.showCheckoutConflictsNotification(e.getConflictingPaths());
+                try {
+                    this.updateBranchDropdown();
+                } catch (NoRepoLoadedException e1) {
+                    this.showNoRepoLoadedNotification();
+                    setButtonsDisabled(true);
+                } catch (MissingRepoException e1) {
+                    this.showMissingRepoNotification();
+                    setButtonsDisabled(true);
+                    updateMenuBarWithRecentRepos();
+                } catch (GitAPIException | IOException e1) {
+                    this.showGenericErrorNotification();
+                    e1.printStackTrace();
+                }
+            } catch (GitAPIException e) {
                 this.showGenericErrorNotification();
-                e1.printStackTrace();
+                e.printStackTrace();
             }
-        } catch(GitAPIException e){
-            this.showGenericErrorNotification();
-            e.printStackTrace();
+        } else {
+            System.out.println("UNBORN BRANCH");
         }
     }
 
