@@ -78,7 +78,7 @@
 
                     <Button GridPane.columnIndex="3"
                             GridPane.rowIndex="0"
-                            text="Branches"
+                            text="Branch / Merge"
                             fx:id="branchesButton"
                             onAction="#showBranchChooser" />
 

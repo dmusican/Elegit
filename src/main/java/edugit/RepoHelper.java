@@ -233,6 +233,12 @@ public abstract class RepoHelper {
         this.hasUnpushedCommitsProperty.set(false);
     }
 
+    /**
+     * Fetches changes into FETCH_HEAD (`git -fetch`).
+     *
+     * @throws GitAPIException
+     * @throws MissingRepoException
+     */
     public void fetch() throws GitAPIException, MissingRepoException{
         if(!exists()) throw new MissingRepoException();
         Git git = new Git(this.repo);
@@ -258,6 +264,14 @@ public abstract class RepoHelper {
         this.hasUnmergedCommitsProperty.set(!result.getTrackingRefUpdates().isEmpty());
     }
 
+    /**
+     * Merges FETCH_HEAD into the current branch.
+     * Combining fetch and merge is the same as `git -pull`.
+     *
+     * @throws IOException
+     * @throws GitAPIException
+     * @throws MissingRepoException
+     */
     public void mergeFromFetch() throws IOException, GitAPIException, MissingRepoException {
         if(!exists()) throw new MissingRepoException();
         if(getLinkedRemoteRepoURLs().size() == 0) throw new InvalidRemoteException("No remote repository");
