@@ -705,8 +705,6 @@ public class SessionController extends Controller {
                 this.showGenericErrorNotification();
                 e.printStackTrace();
             }
-        } else {
-            System.out.println("UNBORN BRANCH");
         }
     }
 

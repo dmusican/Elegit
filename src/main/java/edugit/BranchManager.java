@@ -142,6 +142,8 @@ public class BranchManager {
             }catch (InvalidRefNameException e1) {
                 this.showInvalidBranchNameNotification();
                 e1.printStackTrace();
+            } catch (RefNotFoundException e1) {
+                this.showNoCommitsYetNotification();
             } catch (GitAPIException e1) {
                 this.showGenericGitErrorNotification();
                 e1.printStackTrace();
@@ -421,6 +423,13 @@ public class BranchManager {
 
     private void showConflictsNotification() {
         this.notificationPane.setText("That merge resulted in conflicts. Check the working tree to resolve them.");
+
+        this.notificationPane.getActions().clear();
+        this.notificationPane.show();
+    }
+
+    private void showNoCommitsYetNotification() {
+        this.notificationPane.setText("You cannot make a branch since your repo has no commits yet. Make a commit first!");
 
         this.notificationPane.getActions().clear();
         this.notificationPane.show();
