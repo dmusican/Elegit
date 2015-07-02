@@ -139,6 +139,7 @@ public class BranchManager {
             try {
                 LocalBranchHelper newLocalBranch = this.createNewLocalBranch(this.newBranchNameField.getText());
                 this.localListView.getItems().add(newLocalBranch);
+                this.newBranchNameField.clear();
             }catch (InvalidRefNameException e1) {
                 this.showInvalidBranchNameNotification();
                 e1.printStackTrace();
