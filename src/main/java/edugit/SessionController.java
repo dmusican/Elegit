@@ -478,7 +478,6 @@ public class SessionController extends Controller {
                         } else {
                             showNotAuthorizedNotification(null);
                         }
-                        e.printStackTrace();
                     } catch(MissingRepoException e){
                         showMissingRepoNotification();
                         setButtonsDisabled(true);
