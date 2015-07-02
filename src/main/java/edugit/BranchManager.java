@@ -143,6 +143,9 @@ public class BranchManager {
                 this.showInvalidBranchNameNotification();
                 e1.printStackTrace();
             } catch (RefNotFoundException e1) {
+                // When a repo has no commits, you can't create branches because there
+                //  are no commits to point to. This error gets raised when git can't find
+                //  HEAD.
                 this.showNoCommitsYetNotification();
             } catch (GitAPIException e1) {
                 this.showGenericGitErrorNotification();
