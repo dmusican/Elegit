@@ -142,9 +142,8 @@ public class BranchManager {
                 LocalBranchHelper newLocalBranch = this.createNewLocalBranch(this.newBranchNameField.getText());
                 this.localListView.getItems().add(newLocalBranch);
                 this.newBranchNameField.clear();
-            }catch (InvalidRefNameException e1) {
+            } catch (InvalidRefNameException e1) {
                 this.showInvalidBranchNameNotification();
-                e1.printStackTrace();
             } catch (RefNotFoundException e1) {
                 // When a repo has no commits, you can't create branches because there
                 //  are no commits to point to. This error gets raised when git can't find
@@ -253,13 +252,10 @@ public class BranchManager {
                 }
             } catch (NotMergedException e) {
                 this.showNotMergedNotification(selectedBranch);
-                e.printStackTrace();
             } catch (CannotDeleteCurrentBranchException e) {
                 this.showCannotDeleteBranchNotification(selectedBranch);
-                e.printStackTrace();
             } catch (GitAPIException e) {
                 this.showGenericGitErrorNotificationWithBranch(selectedBranch);
-                e.printStackTrace();
             }
         }
         git.close();
@@ -298,7 +294,6 @@ public class BranchManager {
             }
         } catch (CannotDeleteCurrentBranchException e) {
             this.showCannotDeleteBranchNotification(branchToDelete);
-            e.printStackTrace();
         } catch (GitAPIException e) {
             this.showGenericGitErrorNotificationWithBranch(branchToDelete);
             e.printStackTrace();
