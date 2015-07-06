@@ -141,7 +141,9 @@ public class SessionController extends Controller {
         this.updateUIEnabledStatus();
 
         RepositoryMonitor.beginWatching(theModel);
-        RepositoryMonitor.hasFoundNewChanges.addListener((observable, oldValue, newValue) -> showNewRemoteChangesNotification());
+        RepositoryMonitor.hasFoundNewChanges.addListener((observable, oldValue, newValue) -> {
+            if(newValue) showNewRemoteChangesNotification();
+        });
     }
 
     private void initializeLayoutParameters(){
@@ -259,7 +261,7 @@ public class SessionController extends Controller {
 
     }
 
-    private void handleLoadRepoMenuItem(RepoHelperBuilder builder, Runnable callback){
+    private synchronized void handleLoadRepoMenuItem(RepoHelperBuilder builder, Runnable callback){
         try{
             RepoHelper repoHelper = builder.getRepoHelperFromDialogs();
             Thread th = new Thread(new Task<Void>(){
@@ -328,7 +330,7 @@ public class SessionController extends Controller {
         });
     }
 
-    private void handleRecentRepoMenuItem(RepoHelper repoHelper){
+    private synchronized void handleRecentRepoMenuItem(RepoHelper repoHelper){
         Thread th = new Thread(new Task<Void>(){
             @Override
             protected Void call() throws Exception{
@@ -559,7 +561,7 @@ public class SessionController extends Controller {
      *
      * See initPanelViews for Thread information
      */
-    public void onGitStatusButton(){
+    public synchronized void onGitStatusButton(){
         Thread th = new Thread(new Task<Void>(){
             @Override
             protected Void call(){

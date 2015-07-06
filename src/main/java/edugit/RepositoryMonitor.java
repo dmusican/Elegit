@@ -29,7 +29,7 @@ public class RepositoryMonitor{
         watchRepoForRemoteChanges(model.getCurrentRepoHelper());
     }
 
-    private static void watchRepoForRemoteChanges(RepoHelper repoHelper){
+    private static synchronized void watchRepoForRemoteChanges(RepoHelper repoHelper){
         if(th != null){
             interrupted = true;
             try{
@@ -41,7 +41,7 @@ public class RepositoryMonitor{
             }
         }
 
-        if(repoHelper == null) return;
+        if(repoHelper == null || !repoHelper.hasRemoteProperty.get()) return;
 
         th = new Thread(() -> {
 
@@ -124,6 +124,5 @@ public class RepositoryMonitor{
         waitThread.setName("Remote monitor ignore timer");
         waitThread.setPriority(2);
         waitThread.start();
-
     }
 }
