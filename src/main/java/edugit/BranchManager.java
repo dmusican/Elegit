@@ -1,8 +1,12 @@
 package main.java.edugit;
 
+import de.jensd.fx.glyphs.GlyphsDude;
+import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
+import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconView;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ListView;
@@ -10,6 +14,9 @@ import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.paint.*;
+import javafx.scene.paint.Color;
+import javafx.scene.paint.Paint;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import org.controlsfx.control.NotificationPane;
@@ -22,6 +29,7 @@ import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 
+import java.awt.*;
 import java.io.IOException;
 import java.util.List;
 
@@ -45,6 +53,7 @@ public class BranchManager {
     private Button mergeButton;
     private Button deleteLocalBranchesButton;
     private Button trackRemoteBranchButton;
+    private Button swapMergeBranchesButton;
 
     public BranchManager(List<LocalBranchHelper> localBranches, List<RemoteBranchHelper> remoteBranches, RepoHelper repoHelper) throws IOException {
         this.repoHelper = repoHelper;
@@ -91,7 +100,7 @@ public class BranchManager {
         this.deleteLocalBranchesButton.setOnAction(e -> this.deleteSelectedLocalBranches());
         this.deleteLocalBranchesButton.setDisable(true);
 
-        this.mergeButton = new Button();
+        this.mergeButton = new Button(); // text is set dynamically
         this.mergeButton.setOnAction(e -> {
             try {
                 this.mergeSelectedBranchWithCurrent();
@@ -101,11 +110,25 @@ public class BranchManager {
                 e1.printStackTrace();
             }
         });
+
+        Text arrowsIcon = GlyphsDude.createIcon(FontAwesomeIcon.ARROWS_H);
+        arrowsIcon.setFill(Color.WHITE);
+        this.swapMergeBranchesButton = new Button(null, arrowsIcon);
+        this.swapMergeBranchesButton.setOnAction(e -> {
+            try {
+                this.swapMergeBranches();
+            } catch (GitAPIException e1) {
+                e1.printStackTrace();
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
+        });
+
         this.updateButtons();
     }
 
     /**
-     * Creates and populate the window that lets the user
+     * Creates, populates, and displays the window that lets the user
      * create, delete, or track branches.
      *
      * A GridPane is set up programmatically in this function.
@@ -127,10 +150,15 @@ public class BranchManager {
 
         this.updateButtons();
 
-        HBox hButtons = new HBox(trackRemoteBranchButton, this.mergeButton, deleteLocalBranchesButton);
-        hButtons.setAlignment(Pos.CENTER);
-        hButtons.setSpacing(PADDING);
-        root.add(hButtons, 0, 2, 2, 1);
+        HBox trackDeleteButtons = new HBox(trackRemoteBranchButton, deleteLocalBranchesButton);
+        trackDeleteButtons.setAlignment(Pos.CENTER);
+        trackDeleteButtons.setSpacing(PADDING);
+        root.add(trackDeleteButtons, 0, 2, 2, 1);
+
+        HBox mergeButtons = new HBox(this.mergeButton, this.swapMergeBranchesButton);
+        mergeButtons.setAlignment(Pos.TOP_CENTER);
+        mergeButtons.setSpacing(PADDING);
+        root.add(mergeButtons, 0, 3, 2, 1);
 
         root.add(new Text(String.format("Branch off from %s:", this.repo.getBranch())), 0, 4, 2, 1); // colspan = 2
 
@@ -189,11 +217,13 @@ public class BranchManager {
         // Update merge button
         if (this.localListView.getSelectionModel().getSelectedIndices().size() == 1) {
             this.mergeButton.setDisable(false);
+            this.swapMergeBranchesButton.setDisable(false);
             String selectedBranchName = this.localListView.getSelectionModel().getSelectedItem().getBranchName();
             this.mergeButton.setText(String.format("Merge %s into %s", selectedBranchName, currentBranchName));
         } else {
             this.mergeButton.setText(String.format("Merge selected branch into %s", currentBranchName));
             this.mergeButton.setDisable(true);
+            this.swapMergeBranchesButton.setDisable(true);
         }
     }
 
@@ -335,7 +365,34 @@ public class BranchManager {
         git.close();
     }
 
+    /**
+     * Swaps the branches to be merged.
+     *
+     * For example, this action will change
+     * `Merge MASTER into DEVELOP` into `Merge DEVELOP into MASTER.`
+     *
+     * @throws GitAPIException
+     * @throws IOException
+     */
+    private void swapMergeBranches() throws GitAPIException, IOException {
+        LocalBranchHelper selectedBranch = this.localListView.getSelectionModel().getSelectedItem();
+        LocalBranchHelper checkedOutBranch = this.repoHelper.getCurrentBranch();
+
+        selectedBranch.checkoutBranch();
+        this.localListView.getSelectionModel().select(checkedOutBranch);
+        this.updateButtons();
+
+        this.showBranchSwapNotification(selectedBranch.getBranchName());
+    }
+
     /// BEGIN: ERROR NOTIFICATIONS:
+
+    private void showBranchSwapNotification(String newlyCheckedOutBranchName) {
+        this.notificationPane.setText(String.format("%s is now checked out.", newlyCheckedOutBranchName));
+
+        this.notificationPane.getActions().clear();
+        this.notificationPane.show();
+    }
 
     private void showFastForwardMergeNotification() {
         this.notificationPane.setText("Fast-forward merge completed (HEAD was updated).");

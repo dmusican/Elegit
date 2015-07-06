@@ -9,5 +9,6 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="org.eclipse.jgit:org.eclipse.jgit:3.4.0.201406110918-r" level="project" />
     <orderEntry type="library" name="org.controlsfx:controlsfx:8.40.9" level="project" />
+    <orderEntry type="library" name="de.jensd:fontawesomefx:8.4" level="project" />
   </component>
 </module>
