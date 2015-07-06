@@ -62,14 +62,14 @@ public class ArrowButtonSkin extends Group implements Skin<Button>{
 
             // Create arrow button line path elements
             MoveTo startPoint = new MoveTo();
-            double width = labelWidth+button.getInsets().getLeft();
-            double height = labelHeight+button.getInsets().getBottom()+button.getInsets().getTop();
+            double width = labelWidth + button.getInsets().getLeft();
+            double height = labelHeight + button.getInsets().getBottom() + button.getInsets().getTop();
             startPoint.setX(0);
             startPoint.setY(0);
             path.getElements().add(startPoint);
 
             if(up){
-                CubicCurveTo[] curves = getArrowSide(width, height, ArrowDirection.UP, false);
+                PathElement[] curves = getArrowSide(width, height, ArrowDirection.UP, true);
                 path.getElements().add(curves[0]);
                 path.getElements().add(curves[1]);
             }else{
@@ -78,7 +78,7 @@ public class ArrowButtonSkin extends Group implements Skin<Button>{
             }
 
             if(right){
-                CubicCurveTo[] curves = getArrowSide(width, height, ArrowDirection.RIGHT, false);
+                PathElement[] curves = getArrowSide(width, height, ArrowDirection.RIGHT, true);
                 path.getElements().add(curves[0]);
                 path.getElements().add(curves[1]);
             }else{
@@ -87,7 +87,7 @@ public class ArrowButtonSkin extends Group implements Skin<Button>{
             }
 
             if(down){
-                CubicCurveTo[] curves = getArrowSide(width, height, ArrowDirection.DOWN, false);
+                PathElement[] curves = getArrowSide(width, height, ArrowDirection.DOWN, true);
                 path.getElements().add(curves[0]);
                 path.getElements().add(curves[1]);
             }else{
@@ -96,7 +96,7 @@ public class ArrowButtonSkin extends Group implements Skin<Button>{
             }
 
             if(left){
-                CubicCurveTo[] curves = getArrowSide(width, height, ArrowDirection.LEFT, false);
+                PathElement[] curves = getArrowSide(width, height, ArrowDirection.LEFT, true);
                 path.getElements().add(curves[0]);
                 path.getElements().add(curves[1]);
             }else{
@@ -106,220 +106,254 @@ public class ArrowButtonSkin extends Group implements Skin<Button>{
         });
     }
 
-    private CubicCurveTo[] getArrowSide(double width, double height, ArrowDirection direction, boolean isConcave){
-        CubicCurveTo[] curve = new CubicCurveTo[2];
-        curve[0] = new CubicCurveTo();
-        curve[1] = new CubicCurveTo();
-        double controlX, controlY, x, y;
+    private PathElement[] getArrowSide(double width, double height, ArrowDirection direction, boolean isConcave){
+        return getArrowSide2(width, height, direction);
+//        CubicCurveTo[] curve = new CubicCurveTo[2];
+//        curve[0] = new CubicCurveTo();
+//        curve[1] = new CubicCurveTo();
+//        double controlX, controlY, x, y;
+//
+//        if(isConcave){
+//            switch(direction){
+//                case LEFT:
+//                    // Bottom curve
+//                    controlX = 0;
+//                    controlY = height - ARROW_BASE_WIDTH_RATIO * height / 2;
+//                    x = -ARROW_TIP_HEIGHT;
+//                    y = height / 2;
+//                    curve[0].setX(x);
+//                    curve[0].setY(y);
+//                    curve[0].setControlX1(controlX);
+//                    curve[0].setControlY1(controlY);
+//                    curve[0].setControlX2(controlX - ARROW_BASE_HEIGHT);
+//                    curve[0].setControlY2(controlY);
+//
+//                    // Top curve
+//                    controlX = 0;
+//                    controlY = ARROW_BASE_WIDTH_RATIO * height / 2;
+//                    x = 0;
+//                    y = 0;
+//                    curve[1].setX(x);
+//                    curve[1].setY(y);
+//                    curve[1].setControlX1(controlX - ARROW_BASE_HEIGHT);
+//                    curve[1].setControlY1(controlY);
+//                    curve[1].setControlX2(controlX);
+//                    curve[1].setControlY2(controlY);
+//                    break;
+//                case RIGHT:
+//                    // Top curve
+//                    controlX = width;
+//                    controlY = ARROW_BASE_WIDTH_RATIO * height / 2;
+//                    x = width + ARROW_TIP_HEIGHT;
+//                    y = height / 2;
+//                    curve[0].setX(x);
+//                    curve[0].setY(y);
+//                    curve[0].setControlX1(controlX);
+//                    curve[0].setControlY1(controlY);
+//                    curve[0].setControlX2(controlX + ARROW_BASE_HEIGHT);
+//                    curve[0].setControlY2(controlY);
+//
+//                    // Bottom curve
+//                    controlX = width;
+//                    controlY = height - ARROW_BASE_WIDTH_RATIO * height / 2;
+//                    x = width;
+//                    y = height;
+//                    curve[1].setX(x);
+//                    curve[1].setY(y);
+//                    curve[1].setControlX1(controlX + ARROW_BASE_HEIGHT);
+//                    curve[1].setControlY1(controlY);
+//                    curve[1].setControlX2(controlX);
+//                    curve[1].setControlY2(controlY);
+//                    break;
+//                case UP:
+//                    // Left curve
+//                    controlX = ARROW_BASE_WIDTH_RATIO * width / 2;
+//                    controlY = 0;
+//                    x = width / 2;
+//                    y = -ARROW_TIP_HEIGHT;
+//                    curve[0].setX(x);
+//                    curve[0].setY(y);
+//                    curve[0].setControlX1(controlX);
+//                    curve[0].setControlY1(controlY);
+//                    curve[0].setControlX2(controlX);
+//                    curve[0].setControlY2(controlY - ARROW_BASE_HEIGHT);
+//
+//                    // Right curve
+//                    controlX = width - ARROW_BASE_WIDTH_RATIO * width / 2;
+//                    controlY = 0;
+//                    x = width;
+//                    y = 0;
+//                    curve[1].setX(x);
+//                    curve[1].setY(y);
+//                    curve[1].setControlX1(controlX);
+//                    curve[1].setControlY1(controlY - ARROW_BASE_HEIGHT);
+//                    curve[1].setControlX2(controlX);
+//                    curve[1].setControlY2(controlY);
+//                    break;
+//                case DOWN:
+//                    // Right curve
+//                    controlX = width - ARROW_BASE_WIDTH_RATIO * width / 2;
+//                    controlY = height;
+//                    x = width / 2;
+//                    y = height + ARROW_TIP_HEIGHT;
+//                    curve[0].setX(x);
+//                    curve[0].setY(y);
+//                    curve[0].setControlX1(controlX);
+//                    curve[0].setControlY1(controlY);
+//                    curve[0].setControlX2(controlX);
+//                    curve[0].setControlY2(controlY + ARROW_BASE_HEIGHT);
+//
+//                    // Left curve
+//                    controlX = ARROW_BASE_WIDTH_RATIO * width / 2;
+//                    controlY = height;
+//                    x = 0;
+//                    y = height;
+//                    curve[1].setX(x);
+//                    curve[1].setY(y);
+//                    curve[1].setControlX1(controlX);
+//                    curve[1].setControlY1(controlY + ARROW_BASE_HEIGHT);
+//                    curve[1].setControlX2(controlX);
+//                    curve[1].setControlY2(controlY);
+//                    break;
+//            }
+//        }else{
+//            switch(direction){
+//                case LEFT:
+//                    // Bottom curve
+//                    controlX = -ARROW_BASE_HEIGHT;
+//                    controlY = height;
+//                    x = -ARROW_TIP_HEIGHT;
+//                    y = height / 2;
+//                    curve[0].setX(x);
+//                    curve[0].setY(y);
+//                    curve[0].setControlX1(controlX);
+//                    curve[0].setControlY1(controlY);
+//                    curve[0].setControlX2(controlX);
+//                    curve[0].setControlY2(controlY - ARROW_BASE_WIDTH_RATIO * height / 2);
+//
+//                    // Top curve
+//                    controlX = -ARROW_BASE_HEIGHT;
+//                    controlY = 0;
+//                    x = 0;
+//                    y = 0;
+//                    curve[1].setX(x);
+//                    curve[1].setY(y);
+//                    curve[1].setControlX1(controlX);
+//                    curve[1].setControlY1(controlY + ARROW_BASE_WIDTH_RATIO * height / 2);
+//                    curve[1].setControlX2(controlX);
+//                    curve[1].setControlY2(controlY);
+//                    break;
+//                case RIGHT:
+//                    // Top curve
+//                    controlX = width + ARROW_BASE_HEIGHT;
+//                    controlY = 0;
+//                    x = width + ARROW_TIP_HEIGHT;
+//                    y = height / 2;
+//                    curve[0].setX(x);
+//                    curve[0].setY(y);
+//                    curve[0].setControlX1(controlX);
+//                    curve[0].setControlY1(controlY);
+//                    curve[0].setControlX2(controlX);
+//                    curve[0].setControlY2(controlY + ARROW_BASE_WIDTH_RATIO * height / 2);
+//
+//                    // Bottom curve
+//                    controlX = width + ARROW_BASE_HEIGHT;
+//                    controlY = height;
+//                    x = width;
+//                    y = height;
+//                    curve[1].setX(x);
+//                    curve[1].setY(y);
+//                    curve[1].setControlX1(controlX);
+//                    curve[1].setControlY1(controlY - ARROW_BASE_WIDTH_RATIO * height / 2);
+//                    curve[1].setControlX2(controlX);
+//                    curve[1].setControlY2(controlY);
+//                    break;
+//                case UP:
+//                    // Left curve
+//                    controlX = 0;
+//                    controlY = -ARROW_BASE_HEIGHT;
+//                    x = width / 2;
+//                    y = -ARROW_TIP_HEIGHT;
+//                    curve[0].setX(x);
+//                    curve[0].setY(y);
+//                    curve[0].setControlX1(controlX);
+//                    curve[0].setControlY1(controlY);
+//                    curve[0].setControlX2(controlX + ARROW_BASE_WIDTH_RATIO * width / 2);
+//                    curve[0].setControlY2(controlY);
+//
+//                    // Right curve
+//                    controlX = width;
+//                    controlY = -ARROW_BASE_HEIGHT;
+//                    x = width;
+//                    y = 0;
+//                    curve[1].setX(x);
+//                    curve[1].setY(y);
+//                    curve[1].setControlX1(controlX - ARROW_BASE_WIDTH_RATIO * width / 2);
+//                    curve[1].setControlY1(controlY);
+//                    curve[1].setControlX2(controlX);
+//                    curve[1].setControlY2(controlY);
+//                    break;
+//                case DOWN:
+//                    // Right curve
+//                    controlX = width;
+//                    controlY = height + ARROW_BASE_HEIGHT;
+//                    x = width / 2;
+//                    y = height + ARROW_TIP_HEIGHT;
+//                    curve[0].setX(x);
+//                    curve[0].setY(y);
+//                    curve[0].setControlX1(controlX);
+//                    curve[0].setControlY1(controlY);
+//                    curve[0].setControlX2(controlX - ARROW_BASE_WIDTH_RATIO * width / 2);
+//                    curve[0].setControlY2(controlY);
+//
+//                    // Left curve
+//                    controlX = 0;
+//                    controlY = height + ARROW_BASE_HEIGHT;
+//                    x = 0;
+//                    y = height;
+//                    curve[1].setX(x);
+//                    curve[1].setY(y);
+//                    curve[1].setControlX1(controlX + ARROW_BASE_WIDTH_RATIO * width / 2);
+//                    curve[1].setControlY1(controlY);
+//                    curve[1].setControlX2(controlX);
+//                    curve[1].setControlY2(controlY);
+//                    break;
+//            }
+//        }
+//        return curve;
+    }
 
-        if(isConcave){
-            switch(direction){
-                case LEFT:
-                    // Bottom curve
-                    controlX = 0;
-                    controlY = height - ARROW_BASE_WIDTH_RATIO * height / 2;
-                    x = -ARROW_TIP_HEIGHT;
-                    y = height / 2;
-                    curve[0].setX(x);
-                    curve[0].setY(y);
-                    curve[0].setControlX1(controlX);
-                    curve[0].setControlY1(controlY);
-                    curve[0].setControlX2(controlX - ARROW_BASE_HEIGHT);
-                    curve[0].setControlY2(controlY);
-
-                    // Top curve
-                    controlX = 0;
-                    controlY = ARROW_BASE_WIDTH_RATIO * height / 2;
-                    x = 0;
-                    y = 0;
-                    curve[1].setX(x);
-                    curve[1].setY(y);
-                    curve[1].setControlX1(controlX - ARROW_BASE_HEIGHT);
-                    curve[1].setControlY1(controlY);
-                    curve[1].setControlX2(controlX);
-                    curve[1].setControlY2(controlY);
-                    break;
-                case RIGHT:
-                    // Top curve
-                    controlX = width;
-                    controlY = ARROW_BASE_WIDTH_RATIO * height / 2;
-                    x = width + ARROW_TIP_HEIGHT;
-                    y = height / 2;
-                    curve[0].setX(x);
-                    curve[0].setY(y);
-                    curve[0].setControlX1(controlX);
-                    curve[0].setControlY1(controlY);
-                    curve[0].setControlX2(controlX + ARROW_BASE_HEIGHT);
-                    curve[0].setControlY2(controlY);
-
-                    // Bottom curve
-                    controlX = width;
-                    controlY = height - ARROW_BASE_WIDTH_RATIO * height / 2;
-                    x = width;
-                    y = height;
-                    curve[1].setX(x);
-                    curve[1].setY(y);
-                    curve[1].setControlX1(controlX + ARROW_BASE_HEIGHT);
-                    curve[1].setControlY1(controlY);
-                    curve[1].setControlX2(controlX);
-                    curve[1].setControlY2(controlY);
-                    break;
-                case UP:
-                    // Left curve
-                    controlX = ARROW_BASE_WIDTH_RATIO * width / 2;
-                    controlY = 0;
-                    x = width / 2;
-                    y = -ARROW_TIP_HEIGHT;
-                    curve[0].setX(x);
-                    curve[0].setY(y);
-                    curve[0].setControlX1(controlX);
-                    curve[0].setControlY1(controlY);
-                    curve[0].setControlX2(controlX);
-                    curve[0].setControlY2(controlY - ARROW_BASE_HEIGHT);
-
-                    // Right curve
-                    controlX = width - ARROW_BASE_WIDTH_RATIO * width / 2;
-                    controlY = 0;
-                    x = width;
-                    y = 0;
-                    curve[1].setX(x);
-                    curve[1].setY(y);
-                    curve[1].setControlX1(controlX);
-                    curve[1].setControlY1(controlY - ARROW_BASE_HEIGHT);
-                    curve[1].setControlX2(controlX);
-                    curve[1].setControlY2(controlY);
-                    break;
-                case DOWN:
-                    // Right curve
-                    controlX = width - ARROW_BASE_WIDTH_RATIO * width / 2;
-                    controlY = height;
-                    x = width / 2;
-                    y = height + ARROW_TIP_HEIGHT;
-                    curve[0].setX(x);
-                    curve[0].setY(y);
-                    curve[0].setControlX1(controlX);
-                    curve[0].setControlY1(controlY);
-                    curve[0].setControlX2(controlX);
-                    curve[0].setControlY2(controlY + ARROW_BASE_HEIGHT);
-
-                    // Left curve
-                    controlX = ARROW_BASE_WIDTH_RATIO * width / 2;
-                    controlY = height;
-                    x = 0;
-                    y = height;
-                    curve[1].setX(x);
-                    curve[1].setY(y);
-                    curve[1].setControlX1(controlX);
-                    curve[1].setControlY1(controlY + ARROW_BASE_HEIGHT);
-                    curve[1].setControlX2(controlX);
-                    curve[1].setControlY2(controlY);
-                    break;
-            }
-        }else{
-            switch(direction){
-                case LEFT:
-                    // Bottom curve
-                    controlX = -ARROW_BASE_HEIGHT;
-                    controlY = height;
-                    x = -ARROW_TIP_HEIGHT;
-                    y = height / 2;
-                    curve[0].setX(x);
-                    curve[0].setY(y);
-                    curve[0].setControlX1(controlX);
-                    curve[0].setControlY1(controlY);
-                    curve[0].setControlX2(controlX);
-                    curve[0].setControlY2(controlY - ARROW_BASE_WIDTH_RATIO * height / 2);
-
-                    // Top curve
-                    controlX = -ARROW_BASE_HEIGHT;
-                    controlY = 0;
-                    x = 0;
-                    y = 0;
-                    curve[1].setX(x);
-                    curve[1].setY(y);
-                    curve[1].setControlX1(controlX);
-                    curve[1].setControlY1(controlY + ARROW_BASE_WIDTH_RATIO * height / 2);
-                    curve[1].setControlX2(controlX);
-                    curve[1].setControlY2(controlY);
-                    break;
-                case RIGHT:
-                    // Top curve
-                    controlX = width + ARROW_BASE_HEIGHT;
-                    controlY = 0;
-                    x = width + ARROW_TIP_HEIGHT;
-                    y = height / 2;
-                    curve[0].setX(x);
-                    curve[0].setY(y);
-                    curve[0].setControlX1(controlX);
-                    curve[0].setControlY1(controlY);
-                    curve[0].setControlX2(controlX);
-                    curve[0].setControlY2(controlY + ARROW_BASE_WIDTH_RATIO * height / 2);
-
-                    // Bottom curve
-                    controlX = width + ARROW_BASE_HEIGHT;
-                    controlY = height;
-                    x = width;
-                    y = height;
-                    curve[1].setX(x);
-                    curve[1].setY(y);
-                    curve[1].setControlX1(controlX);
-                    curve[1].setControlY1(controlY - ARROW_BASE_WIDTH_RATIO * height / 2);
-                    curve[1].setControlX2(controlX);
-                    curve[1].setControlY2(controlY);
-                    break;
-                case UP:
-                    // Left curve
-                    controlX = 0;
-                    controlY = -ARROW_BASE_HEIGHT;
-                    x = width / 2;
-                    y = -ARROW_TIP_HEIGHT;
-                    curve[0].setX(x);
-                    curve[0].setY(y);
-                    curve[0].setControlX1(controlX);
-                    curve[0].setControlY1(controlY);
-                    curve[0].setControlX2(controlX + ARROW_BASE_WIDTH_RATIO * width / 2);
-                    curve[0].setControlY2(controlY);
-
-                    // Right curve
-                    controlX = width;
-                    controlY = -ARROW_BASE_HEIGHT;
-                    x = width;
-                    y = 0;
-                    curve[1].setX(x);
-                    curve[1].setY(y);
-                    curve[1].setControlX1(controlX - ARROW_BASE_WIDTH_RATIO * width / 2);
-                    curve[1].setControlY1(controlY);
-                    curve[1].setControlX2(controlX);
-                    curve[1].setControlY2(controlY);
-                    break;
-                case DOWN:
-                    // Right curve
-                    controlX = width;
-                    controlY = height + ARROW_BASE_HEIGHT;
-                    x = width / 2;
-                    y = height + ARROW_TIP_HEIGHT;
-                    curve[0].setX(x);
-                    curve[0].setY(y);
-                    curve[0].setControlX1(controlX);
-                    curve[0].setControlY1(controlY);
-                    curve[0].setControlX2(controlX - ARROW_BASE_WIDTH_RATIO * width / 2);
-                    curve[0].setControlY2(controlY);
-
-                    // Left curve
-                    controlX = 0;
-                    controlY = height + ARROW_BASE_HEIGHT;
-                    x = 0;
-                    y = height;
-                    curve[1].setX(x);
-                    curve[1].setY(y);
-                    curve[1].setControlX1(controlX + ARROW_BASE_WIDTH_RATIO * width / 2);
-                    curve[1].setControlY1(controlY);
-                    curve[1].setControlX2(controlX);
-                    curve[1].setControlY2(controlY);
-                    break;
-            }
+    private PathElement[] getArrowSide2(double width, double height, ArrowDirection direction){
+        LineTo[] lines = new LineTo[2];
+        lines[0] = new LineTo();
+        lines[1] = new LineTo();
+        switch(direction){
+            case LEFT:
+                lines[0].setX(-ARROW_TIP_HEIGHT);
+                lines[0].setY(height / 2.);
+                lines[1].setX(0);
+                lines[1].setY(0);
+                break;
+            case RIGHT:
+                lines[0].setX(width + ARROW_TIP_HEIGHT);
+                lines[0].setY(height / 2.);
+                lines[1].setX(width);
+                lines[1].setY(height);
+                break;
+            case UP:
+                lines[0].setX(width / 2.);
+                lines[0].setY(-ARROW_TIP_HEIGHT);
+                lines[1].setX(width);
+                lines[1].setY(0);
+                break;
+            case DOWN:
+                lines[0].setX(width / 2.);
+                lines[0].setY(height + ARROW_TIP_HEIGHT);
+                lines[1].setX(0);
+                lines[1].setY(height);
+                break;
         }
-        return curve;
+        return lines;
     }
 
     @Override
