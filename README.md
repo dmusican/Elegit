@@ -1,7 +1,5 @@
-# Git for Education
+# Elegit
 A graphics-based Git client for teaching people both how to work Git and how Git works.
-
-Cool name coming soon.
 
 ### Running the source code:
 1. Clone this repository.
@@ -10,8 +8,8 @@ Cool name coming soon.
 
 ***
 
-Built by Kiley Maki and Graham Earley
+Built by Kiley Maki and Graham Earley.
 
-Supervised by Dave Musicant
+Supervised by Dave Musicant.
 
 Carleton College 2015
