@@ -29,17 +29,21 @@ public class TreeGraphModel{
     public Map<String,Cell> cellMap;
 
     // Updated every time merge is called to hold the number of cells present
-    IntegerProperty numCellsProperty = new SimpleIntegerProperty();
+    IntegerProperty numCellsProperty;
 
     // Whether this graph has been through the layout process already or not
     public boolean isInitialSetupFinished;
+
+    private List<Cell> cellsWithNonDefaultShapes;
 
     /**
      * Constructs a new model for a tree graph
      */
     public TreeGraphModel() {
         clear();
+        numCellsProperty = new SimpleIntegerProperty();
         isInitialSetupFinished = false;
+        cellsWithNonDefaultShapes = new ArrayList<>();
     }
 
     /**
@@ -180,8 +184,28 @@ public class TreeGraphModel{
         }
     }
 
+    public void setCellLabel(String cellId, String label){
+        cellMap.get(cellId).setDisplayLabel(label);
+    }
+
     public void setCellShape(String id, CellShape shape){
-        cellMap.get(id).setView(shape.get());
+        Cell cell = cellMap.get(id);
+        cell.setShape(shape);
+        if(shape == CellShape.DEFAULT){
+            cellsWithNonDefaultShapes.remove(cell);
+        }else{
+            cellsWithNonDefaultShapes.add(cell);
+        }
+    }
+
+    public List<String> resetCellShapes(){
+        List<String> resetIDs = new ArrayList<>();
+        for(Cell cell : cellsWithNonDefaultShapes){
+            cell.setShape(CellShape.DEFAULT);
+            resetIDs.add(cell.getCellId());
+        }
+        cellsWithNonDefaultShapes = new ArrayList<>();
+        return resetIDs;
     }
 
     /**

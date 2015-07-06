@@ -18,6 +18,9 @@ import java.util.Map;
  */
 public abstract class CommitTreeModel{
 
+    public final CellShape UNTRACKED_BRANCH_HEAD_SHAPE = CellShape.CIRCLE;
+    public final CellShape TRACKED_BRANCH_HEAD_SHAPE = CellShape.TRIANGLE_RIGHT;
+
     // The view corresponding to this model
     CommitTreePanelView view;
 
@@ -135,14 +138,7 @@ public abstract class CommitTreeModel{
      * @return true if the tree was updated, otherwise false
      */
     private boolean addAllCommitsToTree() {
-        if(this.addCommitsToTree(this.getAllCommits())){
-            for(BranchHelper branch : branches){
-                String branchheadId = getId(branch.getHead());
-                treeGraph.treeGraphModel.setCellShape(branchheadId, CellShape.CIRCLE);
-            }
-            return true;
-        }
-        return false;
+        return this.addCommitsToTree(this.getAllCommits());
     }
 
     /**
@@ -153,14 +149,7 @@ public abstract class CommitTreeModel{
      * @throws IOException
      */
     private boolean addNewCommitsToTree() throws GitAPIException, IOException{
-        if(this.addCommitsToTree(this.getNewCommits())){
-            for(BranchHelper branch : branches){
-                String branchheadId = getId(branch.getHead());
-                treeGraph.treeGraphModel.setCellShape(branchheadId, CellShape.CIRCLE);
-            }
-            return true;
-        }
-        return false;
+        return this.addCommitsToTree(this.getNewCommits());
     }
 
     /**
@@ -171,8 +160,7 @@ public abstract class CommitTreeModel{
     private boolean addCommitsToTree(List<CommitHelper> commits){
         if(commits.size() == 0) return false;
 
-        for(int i = 0; i < commits.size(); i++){
-            CommitHelper curCommitHelper = commits.get(i);
+        for(CommitHelper curCommitHelper : commits){
             ArrayList<CommitHelper> parents = curCommitHelper.getParents();
             this.addCommitToTree(curCommitHelper, parents, treeGraph.treeGraphModel, true);
         }
@@ -255,6 +243,10 @@ public abstract class CommitTreeModel{
         return commitHelper.getFormattedWhen() + s;
     }
 
+    private String getTreeCellLabel(String commitId){
+        return getTreeCellLabel(sessionModel.getCurrentRepoHelper().getCommit(commitId));
+    }
+
     /**
      * Returns a unique identifier that will never be shown
      * @param commitHelper the commit to get an ID for
@@ -262,5 +254,56 @@ public abstract class CommitTreeModel{
      */
     public static String getId(CommitHelper commitHelper){
         return commitHelper.getName();
+    }
+
+    public boolean isBranchHead(CommitHelper commit){
+        if(branches == null) return false;
+        for(BranchHelper branch : branches){
+            if(branch.getHead().getId().equals(commit.getId())){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public BranchHelper getBranchFromHead(CommitHelper head){
+        if(branches == null) return null;
+        for(BranchHelper branch : branches){
+            if(branch.getHead().getId().equals(head.getId())){
+                return branch;
+            }
+        }
+        return null;
+    }
+
+    public BranchHelper getBranchFromName(String name){
+        if(branches == null) return null;
+        for(BranchHelper branch : branches){
+            if(branch.getBranchName().equals(name)){
+                return branch;
+            }
+        }
+        return null;
+    }
+
+    public void setCommitAsTrackedBranch(String commitId){
+        treeGraph.treeGraphModel.setCellShape(commitId, TRACKED_BRANCH_HEAD_SHAPE);
+        treeGraph.treeGraphModel.setCellLabel(commitId, getTreeCellLabel(commitId));
+    }
+
+    public void setCommitAsUntrackedBranch(String commitId){
+        treeGraph.treeGraphModel.setCellShape(commitId, UNTRACKED_BRANCH_HEAD_SHAPE);
+        treeGraph.treeGraphModel.setCellLabel(commitId, getTreeCellLabel(commitId));
+    }
+
+    public void resetBranchHeads(){
+        List<String> resetIDs = treeGraph.treeGraphModel.resetCellShapes();
+        for(String id : resetIDs){
+            treeGraph.treeGraphModel.setCellLabel(id, getTreeCellLabel(id));
+        }
+    }
+
+    public List<BranchHelper> getBranches(){
+        return branches;
     }
 }

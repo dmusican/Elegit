@@ -12,7 +12,11 @@ public enum CellShape{
     SQUARE,
     CIRCLE,
     TRIANGLE_UP,
-    TRIANGLE_DOWN;
+    TRIANGLE_DOWN,
+    TRIANGLE_RIGHT,
+    TRIANGLE_LEFT;
+
+    public static final CellShape DEFAULT = SQUARE;
 
     public Shape get(){
         switch(this){
@@ -22,6 +26,10 @@ public enum CellShape{
                 return new Polygon(0, Cell.BOX_SIZE, Cell.BOX_SIZE, Cell.BOX_SIZE, Cell.BOX_SIZE / 2., 0);
             case TRIANGLE_DOWN:
                 return new Polygon(0, 0, Cell.BOX_SIZE, 0, Cell.BOX_SIZE / 2., Cell.BOX_SIZE);
+            case TRIANGLE_RIGHT:
+                return new Polygon(0, 0, Cell.BOX_SIZE, Cell.BOX_SIZE / 2., 0, Cell.BOX_SIZE);
+            case TRIANGLE_LEFT:
+                return new Polygon(0, Cell.BOX_SIZE / 2., Cell.BOX_SIZE, 0, Cell.BOX_SIZE, Cell.BOX_SIZE);
             case SQUARE:
             default:
                 return new Rectangle(Cell.BOX_SIZE, Cell.BOX_SIZE);

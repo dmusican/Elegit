@@ -598,8 +598,16 @@ public abstract class RepoHelper {
     }
 
     public void refreshCurrentBranch() throws IOException {
-        String currentBranchName = this.repo.getFullBranch();
-        LocalBranchHelper currentBranch = new LocalBranchHelper(currentBranchName, this);
+        String currentBranchRefString = this.repo.getFullBranch();
+
+        for(LocalBranchHelper branch : localBranches){
+            if(branch.getRefPathString().equals(currentBranchRefString)){
+                this.setCurrentBranch(branch);
+                return;
+            }
+        }
+
+        LocalBranchHelper currentBranch = new LocalBranchHelper(currentBranchRefString, this);
         this.setCurrentBranch(currentBranch);
     }
 
@@ -631,6 +639,24 @@ public abstract class RepoHelper {
             }
         }
         return new ArrayList<>(remoteBranches);
+    }
+
+    public boolean isBranchTracked(BranchHelper branch){
+        String branchName = branch.getBranchName();
+        if(branch instanceof LocalBranchHelper){
+            for(BranchHelper remote : remoteBranches){
+                if(remote.getBranchName().equals(branchName)){
+                    return true;
+                }
+            }
+        }else{
+            for(BranchHelper local : localBranches){
+                if(local.getBranchName().equals(branchName)){
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }
 

@@ -29,6 +29,7 @@ public class Cell extends Pane{
 
     // The displayed view
     Node view;
+    private CellShape shape;
     // The tooltip shown on hover
     Tooltip tooltip;
 
@@ -140,7 +141,8 @@ public class Cell extends Pane{
      * @return the basic view for this cell
      */
     protected Node getBaseView(){
-        Node node = CellShape.SQUARE.get();
+        this.shape = CellShape.DEFAULT;
+        Node node = shape.get();
         node.setStyle("-fx-fill: " + CellState.STANDARD.getCssStringKey());
         node.getStyleClass().setAll("cell");
         return node;
@@ -159,6 +161,12 @@ public class Cell extends Pane{
         this.view = view;
         getChildren().clear();
         getChildren().add(view);
+    }
+
+    public void setShape(CellShape shape){
+        if(this.shape == shape) return;
+        setView(shape.get());
+        this.shape = shape;
     }
 
     /**

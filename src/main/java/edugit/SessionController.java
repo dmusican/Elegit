@@ -179,36 +179,13 @@ public class SessionController extends Controller {
 
         List<LocalBranchHelper> branches = currentRepoHelper.callGitForLocalBranches();
 
-        this.theModel.getCurrentRepoHelper().refreshCurrentBranch();
+        currentRepoHelper.refreshCurrentBranch();
         LocalBranchHelper currentBranch = currentRepoHelper.getCurrentBranch();
 
-        if(currentBranch == null){
-            // This block will run when the app first opens and there is no selection in the dropdown.
-            // It finds the branchHelper that matches the currently checked-out branch.
-            try{
-                String branchName = this.theModel.getCurrentRepo().getFullBranch();
-                LocalBranchHelper current = new LocalBranchHelper(branchName, this.theModel.getCurrentRepoHelper());
-                for(LocalBranchHelper branchHelper : branches){
-                    if(branchHelper.getBranchName().equals(current.getBranchName())){
-                        currentBranch = current;
-                        currentRepoHelper.setCurrentBranch(currentBranch);
-                        break;
-                    }
-                }
-            }catch(IOException e){
-                this.showGenericErrorNotification();
-                e.printStackTrace();
-            }
-            if(currentBranch != null){
-                CommitTreeController.focusCommitInGraph(currentBranch.getHead());
-            }
-        }
-
-        LocalBranchHelper finalizedCurrentBranch = currentBranch;
         Platform.runLater(() -> {
             this.branchSelector.setVisible(true);
             this.branchSelector.getItems().setAll(branches);
-            this.branchSelector.setValue(finalizedCurrentBranch);
+            this.branchSelector.setValue(currentBranch);
         });
     }
 
@@ -559,25 +536,19 @@ public class SessionController extends Controller {
                         localCommitTreeModel.update();
                         remoteCommitTreeModel.update();
 
+                        updateBranchDropdown(); // Needs to be called after the trees are updated, so must be on the same thread
+                    } catch(MissingRepoException e){
+                        showMissingRepoNotification();
+                        setButtonsDisabled(true);
+                        updateMenuBarWithRecentRepos();
+                    } catch(NoRepoLoadedException e){
+                        showNoRepoLoadedNotification();
+                        setButtonsDisabled(true);
                     } catch(GitAPIException | IOException e){
                         showGenericErrorNotification();
                         e.printStackTrace();
                     }
                 });
-
-                try{
-                    updateBranchDropdown();
-                } catch(MissingRepoException e){
-                    showMissingRepoNotification();
-                    setButtonsDisabled(true);
-                    updateMenuBarWithRecentRepos();
-                } catch(NoRepoLoadedException e){
-                    showNoRepoLoadedNotification();
-                    setButtonsDisabled(true);
-                } catch(GitAPIException | IOException e){
-                    showGenericErrorNotification();
-                    e.printStackTrace();
-                }
             return null;
             }
         });

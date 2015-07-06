@@ -1,9 +1,6 @@
 package main.java.edugit;
 
-import main.java.edugit.treefx.Cell;
-import main.java.edugit.treefx.Edge;
-import main.java.edugit.treefx.Highlighter;
-import main.java.edugit.treefx.TreeGraphModel;
+import main.java.edugit.treefx.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -142,6 +139,7 @@ public class CommitTreeController{
      */
     public static void init(CommitTreeModel commitTreeModel){
         RepoHelper repo = commitTreeModel.sessionModel.getCurrentRepoHelper();
+
         List<String> commitIDs = repo.getAllCommitIDs();
         for(CommitTreeModel model : allCommitTreeModels){
             if(model.treeGraph != null){
@@ -150,12 +148,26 @@ public class CommitTreeController{
                         model.addInvisibleCommit(id);
                     }
                 }
+
                 model.treeGraph.update();
                 if(model.equals(commitTreeModel)){
                     model.view.displayTreeGraph(model.treeGraph);
                 }
             }
         }
+
+        commitTreeModel.resetBranchHeads();
+        List<BranchHelper> modelBranches = commitTreeModel.getBranches();
+        if(modelBranches != null){
+            for(BranchHelper branch : modelBranches){
+                if(!commitTreeModel.sessionModel.getCurrentRepoHelper().isBranchTracked(branch)){
+                    commitTreeModel.setCommitAsUntrackedBranch(branch.getHead().getId());
+                }else{
+                    commitTreeModel.setCommitAsTrackedBranch(branch.getHead().getId());
+                }
+            }
+        }
+
         sessionController.clearSelectedCommit();
     }
 
@@ -173,8 +185,22 @@ public class CommitTreeController{
                         model.addInvisibleCommit(id);
                     }
                 }
+
                 model.treeGraph.update();
                 model.view.displayTreeGraph(model.treeGraph);
+            }
+        }
+
+        for(CommitTreeModel model : allCommitTreeModels){
+            model.resetBranchHeads();
+            List<BranchHelper> modelBranches = model.getBranches();
+            if(modelBranches == null) continue;
+            for(BranchHelper branch : modelBranches){
+                if(!model.sessionModel.getCurrentRepoHelper().isBranchTracked(branch)){
+                    model.setCommitAsUntrackedBranch(branch.getHead().getId());
+                }else{
+                    model.setCommitAsTrackedBranch(branch.getHead().getId());
+                }
             }
         }
     }
