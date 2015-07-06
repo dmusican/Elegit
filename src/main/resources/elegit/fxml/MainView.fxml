@@ -1,0 +1,272 @@
+<?import main.java.elegit.CommitTreePanelView?>
+<?import main.java.elegit.WorkingTreePanelView?>
+<?import main.java.elegit.ArrowButton?>
+<?import main.java.elegit.CommitTreePanelView?>
+<?import main.java.elegit.WorkingTreePanelView?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.shape.Circle?>
+<?import javafx.scene.text.Text?>
+<?import java.net.URL?>
+<?import org.controlsfx.control.NotificationPane?>
+
+<?import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconView?>
+<?import org.controlsfx.glyphfont.Glyph?>
+<AnchorPane fx:controller="main.java.elegit.SessionController" xmlns:fx="http://javafx.com/fxml">
+
+    <NotificationPane fx:id="notificationPane"
+            AnchorPane.bottomAnchor="5.0"
+            AnchorPane.leftAnchor="5.0"
+            AnchorPane.rightAnchor="5.0"
+            AnchorPane.topAnchor="5.0">
+        <content>
+            <HBox>
+                <GridPane HBox.hgrow="ALWAYS"
+                          alignment="TOP_CENTER"
+                          hgap="5" vgap="5"
+                          gridLinesVisible="false"
+                          id="gridPane">
+
+                    <columnConstraints>
+                        <ColumnConstraints/>
+                        <ColumnConstraints/>
+                        <ColumnConstraints/>
+                        <ColumnConstraints/>
+                        <ColumnConstraints/>
+                        <ColumnConstraints hgrow="ALWAYS"/>
+                    </columnConstraints>
+
+                    <rowConstraints>
+                        <RowConstraints/>
+                        <RowConstraints/>
+                        <RowConstraints vgrow="ALWAYS"/>
+                        <RowConstraints/>
+                        <RowConstraints vgrow="ALWAYS"/>
+                    </rowConstraints>
+
+                    <MenuBar fx:id="menuBar"
+                             GridPane.rowIndex="0"
+                             GridPane.columnSpan="7" />
+
+                    <StackPane GridPane.rowIndex="0"
+                                GridPane.columnIndex="0">
+                        <GridPane hgap="5" vgap="5">
+                            <Label GridPane.rowIndex="0"
+                                  GridPane.columnIndex="0"
+                                  GridPane.hgrow="ALWAYS"
+                                  fx:id="currentRepoLabel"
+                                  id="repoLabelText"/>
+
+                            <Button GridPane.rowIndex="0"
+                                    GridPane.columnIndex="1"
+                                    GridPane.halignment="RIGHT"
+                                    fx:id="openRepoDirButton"
+                                    onAction="#openRepoDirectory">
+                            </Button>
+                        </GridPane>
+                    </StackPane>
+
+                    <ComboBox fx:id="branchSelector"
+                              GridPane.columnIndex="2"
+                              GridPane.rowIndex="0"
+                              onAction="#loadSelectedBranch"/>
+
+                    <Button GridPane.columnIndex="3"
+                            GridPane.rowIndex="0"
+                            text="Branch / Merge"
+                            fx:id="branchesButton"
+                            onAction="#showBranchChooser" />
+
+                    <Button GridPane.columnIndex="4"
+                            GridPane.rowIndex="0"
+                            fx:id="switchUserButton"
+                            text="Switch login"
+                            onAction="#handleSwitchUserButton" />
+
+                    <Button GridPane.columnIndex="5"
+                            GridPane.rowIndex="0"
+                            text="Clear recent repos"
+                            onAction="#clearSavedStuff"
+                            fx:id="clearRecentReposButton"
+                            id="warningButton"/>
+
+                    <GridPane alignment="TOP_CENTER"
+                              hgap="10"
+                              vgap="10"
+                              GridPane.vgrow="ALWAYS"
+                              GridPane.rowIndex="1"
+                              GridPane.columnIndex="0"
+                              GridPane.rowSpan="3">
+
+                        <Button GridPane.columnIndex="0"
+                                GridPane.rowIndex="0"
+                                fx:id="gitStatusButton"
+                                text="git status"
+                                id="codeButton"
+                                onAction="#onGitStatusButton"/>
+
+                        <WorkingTreePanelView
+                                GridPane.rowIndex="1"
+                                GridPane.vgrow="ALWAYS"
+                                fx:id="workingTreePanelView"/>
+
+                        <HBox GridPane.columnIndex="0"
+                              GridPane.rowIndex="2"
+                              spacing="20"
+                              alignment="center" >
+
+                            <Button fx:id="selectAllButton"
+                                    text="Select All"
+                                    onAction="#onSelectAllButton"/>
+
+                            <Button fx:id="deselectAllButton"
+                                    text="Deselect All"
+                                    onAction="#onDeselectAllButton"/>
+                        </HBox>
+
+                        <TextArea
+                                GridPane.rowIndex="3"
+                                fx:id="commitMessageField"
+                                prefRowCount="4"
+                                prefColumnCount="1"
+                                promptText="Commit message..."
+                                wrapText="true" />
+
+                    </GridPane>
+
+                    <StackPane GridPane.rowIndex="1"
+                                GridPane.columnIndex="7">
+                        <Circle AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
+                                id="remoteRepoCircle"
+                                fx:id="remoteCircle"
+                                opacity="0.5"
+                                onMouseClicked="#handleRemoteCircleMouseClick"/>
+                    </StackPane>
+
+                    <StackPane GridPane.rowIndex="1"
+                                GridPane.columnIndex="6">
+                        <ArrowButton StackPane.alignment="CENTER"
+                                     id="codeButton"
+                                     fx:id="fetchButton"
+                                     text="Fetch"
+                                     arrowLeft="true"
+                                     onAction="#handleFetchButton"/>
+
+                        <ProgressIndicator StackPane.alignment="CENTER"
+                                           visible="false"
+                                           fx:id="fetchProgressIndicator"/>
+                    </StackPane>
+
+
+                    <CommitTreePanelView GridPane.rowIndex="1"
+                                         GridPane.columnIndex="2"
+                                         GridPane.rowSpan="1"
+                                         GridPane.columnSpan="4"
+                                         fx:id="remoteCommitTreePanelView"/>
+
+                    <ArrowButton GridPane.rowIndex="2"
+                                 GridPane.columnIndex="2"
+                                 GridPane.halignment="LEFT"
+                                 id="codeButton"
+                                 fx:id="mergeFromFetchButton"
+                                 text="Merge"
+                                 arrowDown="true"
+                                 arrowLeft="true"
+                                 onAction="#handleMergeFromFetchButton"/>
+
+                    <StackPane GridPane.rowIndex="2"
+                                GridPane.columnIndex="5">
+                        <ArrowButton StackPane.alignment="CENTER_RIGHT"
+                                     id="codeButton"
+                                     fx:id="pushButton"
+                                     text="Push"
+                                     arrowUp="true"
+                                     arrowRight="true"
+                                     onAction="#handlePushButton"/>
+
+                        <ProgressIndicator StackPane.alignment="CENTER"
+                                           visible="false"
+                                           fx:id="pushProgressIndicator"/>
+                    </StackPane>
+
+                    <CommitTreePanelView GridPane.rowIndex="3"
+                                         GridPane.columnIndex="2"
+                                         GridPane.rowSpan="1"
+                                         GridPane.columnSpan="4"
+                                         fx:id="localCommitTreePanelView"/>
+
+                    <ArrowButton GridPane.rowIndex="3"
+                                 GridPane.columnIndex="1"
+                                 GridPane.halignment="CENTER"
+                                 id="codeButton"
+                                 fx:id="commitButton"
+                                 text="Commit"
+                                 arrowRight="true"
+                                 onAction="#handleCommitButton"/>
+
+                    <StackPane GridPane.rowIndex="2"
+                               GridPane.columnIndex="6"
+                               GridPane.rowSpan="2"
+                               GridPane.columnSpan="2">
+                        <GridPane alignment="TOP_CENTER"
+                                  hgap="5" vgap="5"
+                                  id="gridPane">
+
+                            <Label GridPane.rowIndex="0"
+                                   GridPane.columnIndex="0"
+                                   GridPane.columnSpan="2"
+                                   GridPane.halignment="CENTER"
+                                   GridPane.hgrow="ALWAYS"
+                                   fx:id="commitInfoAuthorText"/>
+
+                            <Label GridPane.rowIndex="1"
+                                   GridPane.columnIndex="0"
+                                   GridPane.columnSpan="2"
+                                   GridPane.halignment="CENTER"
+                                   fx:id="commitInfoDateText"/>
+
+                            <TextField GridPane.rowIndex="2"
+                                       GridPane.columnIndex="0"
+                                       GridPane.columnSpan="2"
+                                       GridPane.halignment="CENTER"
+                                       editable="false"
+                                       promptText="Commit..."
+                                       fx:id="commitInfoNameText"/>
+
+                            <TextArea GridPane.rowIndex="4"
+                                      GridPane.columnIndex="0"
+                                      GridPane.columnSpan="2"
+                                      GridPane.vgrow="ALWAYS"
+                                      prefColumnCount="4"
+                                      wrapText="true"
+                                      editable="false"
+                                      promptText="Message..."
+                                      fx:id="commitInfoMessageText"/>
+
+                            <Button GridPane.rowIndex="3"
+                                    GridPane.columnIndex="0"
+                                    GridPane.hgrow="ALWAYS"
+                                    text="See In Graphs"
+                                    disable="true"
+                                    fx:id="commitInfoGoToButton"
+                                    onAction="#handleGoToCommitButton"/>
+
+                            <Button GridPane.rowIndex="3"
+                                    GridPane.columnIndex="1"
+                                    text="Copy Hash"
+                                    disable="true"
+                                    fx:id="commitInfoNameCopyButton"
+                                    onAction="#handleCommitNameCopyButton"/>
+
+                        </GridPane>
+                    </StackPane>
+                </GridPane>
+            </HBox>
+        </content>
+    </NotificationPane>
+    <stylesheets>
+        <URL value="@../css/BaseStyle.css"/>
+    </stylesheets>
+</AnchorPane>
