@@ -111,7 +111,7 @@ public class BranchManager {
             }
         });
 
-        Text arrowsIcon = GlyphsDude.createIcon(FontAwesomeIcon.ARROWS_H);
+        Text arrowsIcon = GlyphsDude.createIcon(FontAwesomeIcon.EXCHANGE);
         arrowsIcon.setFill(Color.WHITE);
         this.swapMergeBranchesButton = new Button(null, arrowsIcon);
         this.swapMergeBranchesButton.setOnAction(e -> {
