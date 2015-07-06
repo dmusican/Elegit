@@ -8,9 +8,8 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.control.*;
 import javafx.scene.control.Button;
-import javafx.scene.control.ListView;
-import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -84,7 +83,10 @@ public class BranchManager {
         this.newBranchNameField = new TextField();
         this.newBranchNameField.setPromptText("Branch name");
 
-        this.trackRemoteBranchButton = new Button("Track branch locally");
+        Text cloudDownIcon = GlyphsDude.createIcon(FontAwesomeIcon.CLOUD_DOWNLOAD);
+        cloudDownIcon.setFill(Color.WHITE);
+        this.trackRemoteBranchButton = new Button("Track branch locally", cloudDownIcon);
+
         this.trackRemoteBranchButton.setOnAction(e -> {
             try {
                 this.trackSelectedBranchLocally();
@@ -96,7 +98,9 @@ public class BranchManager {
         });
         this.trackRemoteBranchButton.setDisable(true);
 
-        this.deleteLocalBranchesButton = new Button("Delete local branch");
+        Text trashIcon = GlyphsDude.createIcon(FontAwesomeIcon.TRASH);
+        trashIcon.setFill(Color.WHITE);
+        this.deleteLocalBranchesButton = new Button("Delete local branch", trashIcon);
         this.deleteLocalBranchesButton.setOnAction(e -> this.deleteSelectedLocalBranches());
         this.deleteLocalBranchesButton.setDisable(true);
 
@@ -123,6 +127,7 @@ public class BranchManager {
                 e1.printStackTrace();
             }
         });
+        this.swapMergeBranchesButton.setTooltip(new Tooltip("Swap which branch is merging into which."));
 
         this.updateButtons();
     }
@@ -136,6 +141,7 @@ public class BranchManager {
      * @throws IOException
      */
     public void showBranchChooserWindow() throws IOException {
+        // GridPane setup:
         final int PADDING = 10;
         GridPane root = new GridPane();
         root.setHgap(PADDING);
@@ -143,6 +149,7 @@ public class BranchManager {
         root.setPadding(new Insets(PADDING));
         root.setAlignment(Pos.TOP_CENTER);
 
+        // Headers:
         root.add(new Text("Remote branches:"), 0, 0); // col, row
         root.add(new Text("Local branches:"), 1, 0);
         root.add(this.remoteListView, 0, 1);
@@ -150,21 +157,25 @@ public class BranchManager {
 
         this.updateButtons();
 
+        // `Track remote repo` and `delete local repo` buttons, packaged up in an HBox:
         HBox trackDeleteButtons = new HBox(trackRemoteBranchButton, deleteLocalBranchesButton);
         trackDeleteButtons.setAlignment(Pos.CENTER);
         trackDeleteButtons.setSpacing(PADDING);
         root.add(trackDeleteButtons, 0, 2, 2, 1);
 
+        // Merge/swap buttons, packaged up in an HBox:
         HBox mergeButtons = new HBox(this.mergeButton, this.swapMergeBranchesButton);
         mergeButtons.setAlignment(Pos.TOP_CENTER);
         mergeButtons.setSpacing(PADDING);
         root.add(mergeButtons, 0, 3, 2, 1);
 
+        // `Create new branch` buttons/textfields:
         root.add(new Text(String.format("Branch off from %s:", this.repo.getBranch())), 0, 4, 2, 1); // colspan = 2
-
         root.add(this.newBranchNameField, 0, 5);
 
-        Button newBranchButton = new Button("Create branch");
+        Text branchIcon = GlyphsDude.createIcon(FontAwesomeIcon.CODE_FORK);
+        branchIcon.setFill(Color.WHITE);
+        Button newBranchButton = new Button("Create branch", branchIcon);
         newBranchButton.setOnAction(e -> {
             try {
                 LocalBranchHelper newLocalBranch = this.createNewLocalBranch(this.newBranchNameField.getText());
@@ -187,6 +198,7 @@ public class BranchManager {
         });
         root.add(newBranchButton, 1, 5);
 
+        // Create and display the Stage:
         Stage stage = new Stage();
         stage.setTitle("Branch Manager");
         this.notificationPane = new NotificationPane(root);

@@ -113,7 +113,7 @@ public class SessionController extends Controller {
         this.remoteCommitTreeModel = new RemoteCommitTreeModel(this.theModel, this.remoteCommitTreePanelView);
 
         // Add FontAwesome icons to buttons:
-        Text openExternallyIcon = GlyphsDude.createIcon(FontAwesomeIcon.EXTERNAL_LINK);
+        Text openExternallyIcon = GlyphsDude.createIcon(FontAwesomeIcon.FOLDER_OPEN);
         openExternallyIcon.setFill(javafx.scene.paint.Color.WHITE);
         this.openRepoDirButton.setGraphic(openExternallyIcon);
         this.openRepoDirButton.setTooltip(new Tooltip("Open repository directory"));
