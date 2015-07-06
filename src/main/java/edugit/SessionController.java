@@ -19,6 +19,7 @@ import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.*;
+import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.text.Text;
 import main.java.edugit.exceptions.*;
@@ -54,6 +55,8 @@ public class SessionController extends Controller {
     public NotificationPane notificationPane;
     public Button selectAllButton;
     public Button deselectAllButton;
+    public Button switchUserButton;
+    public Button clearRecentReposButton;
     private SessionModel theModel;
 
     public Button openRepoDirButton;
@@ -107,11 +110,23 @@ public class SessionController extends Controller {
         this.localCommitTreeModel = new LocalCommitTreeModel(this.theModel, this.localCommitTreePanelView);
         this.remoteCommitTreeModel = new RemoteCommitTreeModel(this.theModel, this.remoteCommitTreePanelView);
 
-        // Add glyph icon to the `open in finder` button. And add a tooltip
+        // Add FontAwesome icons to buttons:
         Text openExternallyIcon = GlyphsDude.createIcon(FontAwesomeIcon.EXTERNAL_LINK);
         openExternallyIcon.setFill(javafx.scene.paint.Color.WHITE);
         this.openRepoDirButton.setGraphic(openExternallyIcon);
         this.openRepoDirButton.setTooltip(new Tooltip("Open repository directory"));
+
+        Text userIcon = GlyphsDude.createIcon(FontAwesomeIcon.USER);
+        userIcon.setFill(Color.WHITE);
+        this.switchUserButton.setGraphic(userIcon);
+
+        Text branchIcon = GlyphsDude.createIcon(FontAwesomeIcon.CODE_FORK);
+        branchIcon.setFill(Color.WHITE);
+        this.branchesButton.setGraphic(branchIcon);
+
+        Text exclamationIcon = GlyphsDude.createIcon(FontAwesomeIcon.EXCLAMATION);
+        exclamationIcon.setFill(Color.WHITE);
+        this.clearRecentReposButton.setGraphic(exclamationIcon);
 
         // Buttons start out disabled, since no repo is loaded
         this.setButtonsDisabled(true);

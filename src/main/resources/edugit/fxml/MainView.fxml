@@ -81,6 +81,7 @@
 
                     <Button GridPane.columnIndex="4"
                             GridPane.rowIndex="0"
+                            fx:id="switchUserButton"
                             text="Switch login"
                             onAction="#handleSwitchUserButton" />
 
@@ -88,6 +89,7 @@
                             GridPane.rowIndex="0"
                             text="Clear recent repos"
                             onAction="#clearSavedStuff"
+                            fx:id="clearRecentReposButton"
                             id="warningButton"/>
 
                     <GridPane alignment="TOP_CENTER"
