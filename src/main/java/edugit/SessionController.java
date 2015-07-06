@@ -1,9 +1,7 @@
 package main.java.edugit;
 
-import de.jensd.fx.glyphs.GlyphsBuilder;
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
-import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconView;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.scene.control.*;
@@ -18,15 +16,12 @@ import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.paint.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.text.Text;
 import main.java.edugit.exceptions.*;
 import org.controlsfx.control.NotificationPane;
 import org.controlsfx.control.action.Action;
-import org.controlsfx.glyphfont.GlyphFont;
-import org.controlsfx.glyphfont.GlyphFontRegistry;
 import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.errors.NoMergeBaseException;
 
@@ -54,12 +49,13 @@ public class SessionController extends Controller {
     public Label currentRepoLabel;
     private static final double CURRENT_REPO_LABEL_MAX_WIDTH = 200;
 
+    private SessionModel theModel;
+
     public NotificationPane notificationPane;
     public Button selectAllButton;
     public Button deselectAllButton;
     public Button switchUserButton;
     public Button clearRecentReposButton;
-    private SessionModel theModel;
 
     public Button openRepoDirButton;
     public Button gitStatusButton;
@@ -143,6 +139,11 @@ public class SessionController extends Controller {
 
         this.initPanelViews();
         this.updateUIEnabledStatus();
+
+        RepositoryMonitor.beginWatching(theModel);
+        RepositoryMonitor.hasFoundNewChanges.addListener((observable, oldValue, newValue) -> {
+            if(newValue) showNewRemoteChangesNotification();
+        });
     }
 
     private void initializeLayoutParameters(){
@@ -260,7 +261,7 @@ public class SessionController extends Controller {
 
     }
 
-    private void handleLoadRepoMenuItem(RepoHelperBuilder builder, Runnable callback){
+    private synchronized void handleLoadRepoMenuItem(RepoHelperBuilder builder, Runnable callback){
         try{
             RepoHelper repoHelper = builder.getRepoHelperFromDialogs();
             Thread th = new Thread(new Task<Void>(){
@@ -329,7 +330,7 @@ public class SessionController extends Controller {
         });
     }
 
-    private void handleRecentRepoMenuItem(RepoHelper repoHelper){
+    private synchronized void handleRecentRepoMenuItem(RepoHelper repoHelper){
         Thread th = new Thread(new Task<Void>(){
             @Override
             protected Void call() throws Exception{
@@ -476,6 +477,7 @@ public class SessionController extends Controller {
                 protected Void call() {
                     try{
                         theModel.getCurrentRepoHelper().pushAll();
+                        RepositoryMonitor.resetFoundNewChanges(RepositoryMonitor.CHECK_INTERVAL * 2);
                         onGitStatusButton();
                     }  catch(InvalidRemoteException e){
                         showNoRemoteNotification();
@@ -525,6 +527,7 @@ public class SessionController extends Controller {
                 protected Void call() {
                     try{
                         theModel.getCurrentRepoHelper().fetch();
+                        RepositoryMonitor.resetFoundNewChanges(false);
                         onGitStatusButton();
                     } catch(InvalidRemoteException e){
                         showNoRemoteNotification();
@@ -558,7 +561,7 @@ public class SessionController extends Controller {
      *
      * See initPanelViews for Thread information
      */
-    public void onGitStatusButton(){
+    public synchronized void onGitStatusButton(){
         Thread th = new Thread(new Task<Void>(){
             @Override
             protected Void call(){
@@ -1027,6 +1030,27 @@ public class SessionController extends Controller {
             this.notificationPane.setText("Merging failed");
 
             this.notificationPane.getActions().clear();
+            this.notificationPane.show();
+        });
+    }
+
+    private void showNewRemoteChangesNotification(){
+        Platform.runLater(() -> {
+            this.notificationPane.setText("There are new changes in the remote repository.");
+
+            Action fetchAction = new Action("Fetch", e -> {
+                this.notificationPane.hide();
+                handleFetchButton();
+            });
+
+            Action ignoreAction = new Action("Ignore", e -> {
+                this.notificationPane.hide();
+                RepositoryMonitor.resetFoundNewChanges(true);
+            });
+
+            this.notificationPane.getActions().clear();
+            this.notificationPane.getActions().setAll(fetchAction, ignoreAction);
+
             this.notificationPane.show();
         });
     }
