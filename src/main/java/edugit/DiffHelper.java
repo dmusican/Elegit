@@ -30,13 +30,13 @@ import java.util.List;
  *
  *  ---
  *
- * Some code is from the JGit-Cookbook.
+ * Some code is from the JGit-Cookbook, with modification.
  *  (https://github.com/centic9/jgit-cookbook)
  *    - https://github.com/centic9/jgit-cookbook/blob/master/src/main/java/org/dstadler/jgit/porcelain/ShowChangedFilesBetweenCommits.java
  *    and
  *    - https://github.com/centic9/jgit-cookbook/blob/master/src/main/java/org/dstadler/jgit/porcelain/ShowFileDiff.java
  *
- * TODO: Licensing?!
+ * This is considered a derivative work under the Apache 2.0 license, under which jgit-cookbook is licensed.
  *
  */
 public class DiffHelper {
