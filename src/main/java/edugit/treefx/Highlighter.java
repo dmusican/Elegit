@@ -162,7 +162,7 @@ public class Highlighter{
 
         Shape s = (Shape) c.view;
 
-        ScaleTransition sct = new ScaleTransition(Duration.millis(625), s);
+        ScaleTransition sct = new ScaleTransition(Duration.millis(425), s);
         sct.setByX(0.3f);
         sct.setByY(0.3f);
         sct.setCycleCount(6);

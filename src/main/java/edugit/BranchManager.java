@@ -241,8 +241,7 @@ public class BranchManager {
                 setUpstreamMode(CreateBranchCommand.SetupUpstreamMode.TRACK).
                 setStartPoint(remoteBranchHelper.getRefPathString()).
                 call();
-        LocalBranchHelper trackingBranch = new LocalBranchHelper(trackingBranchRef, this.repoHelper);
-        return trackingBranch;
+        return new LocalBranchHelper(trackingBranchRef, this.repoHelper);
     }
 
     public List<LocalBranchHelper> getLocalBranches() {

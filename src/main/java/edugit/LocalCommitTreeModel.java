@@ -3,7 +3,6 @@ package main.java.edugit;
 import org.eclipse.jgit.api.errors.GitAPIException;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -28,6 +27,6 @@ public class LocalCommitTreeModel extends CommitTreeModel{
 
     @Override
     protected List<BranchHelper> getAllBranches(RepoHelper repoHelper){
-        return new ArrayList<>(repoHelper.getLocalBranches());
+        return repoHelper.getLocalBranches();
     }
 }

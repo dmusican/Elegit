@@ -1,5 +1,6 @@
 package main.java.edugit;
 
+import main.java.edugit.treefx.CellShape;
 import main.java.edugit.treefx.TreeGraph;
 import main.java.edugit.treefx.TreeGraphModel;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -16,6 +17,9 @@ import java.util.Map;
  * display the new tree whenever the graph is updated.
  */
 public abstract class CommitTreeModel{
+
+    public final CellShape UNTRACKED_BRANCH_HEAD_SHAPE = CellShape.CIRCLE;
+    public final CellShape TRACKED_BRANCH_HEAD_SHAPE = CellShape.TRIANGLE_RIGHT;
 
     // The view corresponding to this model
     CommitTreePanelView view;
@@ -156,8 +160,7 @@ public abstract class CommitTreeModel{
     private boolean addCommitsToTree(List<CommitHelper> commits){
         if(commits.size() == 0) return false;
 
-        for(int i = 0; i < commits.size(); i++){
-            CommitHelper curCommitHelper = commits.get(i);
+        for(CommitHelper curCommitHelper : commits){
             ArrayList<CommitHelper> parents = curCommitHelper.getParents();
             this.addCommitToTree(curCommitHelper, parents, treeGraph.treeGraphModel, true);
         }
@@ -184,25 +187,21 @@ public abstract class CommitTreeModel{
      * @param graphModel the treeGraphModel to add the commit to
      */
     private void addCommitToTree(CommitHelper commitHelper, ArrayList<CommitHelper> parents, TreeGraphModel graphModel, boolean visible){
+        List<String> parentIds = new ArrayList<>(parents.size());
+
         for(CommitHelper parent : parents){
             if(!graphModel.containsID(getId(parent))){
                 addCommitToTree(parent, parent.getParents(), graphModel, visible);
             }
+            parentIds.add(getId(parent));
         }
+
         String commitID = getId(commitHelper);
         if(graphModel.containsID(commitID) && graphModel.isVisible(commitID)){
             return;
         }
-        switch(parents.size()){
-            case 1:
-                graphModel.addCell(commitID, commitHelper.getWhen().getTime(), getTreeCellLabel(commitHelper), getId(parents.get(0)), visible);
-                break;
-            case 2:
-                graphModel.addCell(commitID, commitHelper.getWhen().getTime(), getTreeCellLabel(commitHelper), getId(parents.get(0)), getId(parents.get(1)), visible);
-                break;
-            default:
-                graphModel.addCell(commitID, commitHelper.getWhen().getTime(), getTreeCellLabel(commitHelper), visible);
-        }
+
+        graphModel.addCell(commitID, commitHelper.getWhen().getTime(), getTreeCellLabel(commitHelper), parentIds, visible);
     }
 
     /**
@@ -228,6 +227,27 @@ public abstract class CommitTreeModel{
     }
 
     /**
+     * Returns a string that will be displayed to the user to identify this commit
+     * @param commitHelper the commit to get a label for
+     * @return the display label for this commit
+     */
+    private String getTreeCellLabel(CommitHelper commitHelper){
+        String s = "";
+        if(branches != null){
+            for(BranchHelper branch : branches){
+                if(branch.getHead() != null && getId(branch.getHead()).equals(getId(commitHelper))){
+                    s = s + "\nBranch: " + branch.getBranchName();
+                }
+            }
+        }
+        return commitHelper.getFormattedWhen() + s;
+    }
+
+    private String getTreeCellLabel(String commitId){
+        return getTreeCellLabel(sessionModel.getCurrentRepoHelper().getCommit(commitId));
+    }
+
+    /**
      * Returns a unique identifier that will never be shown
      * @param commitHelper the commit to get an ID for
      * @return a unique identifying string to be used as a key in the tree's map
@@ -236,15 +256,54 @@ public abstract class CommitTreeModel{
         return commitHelper.getName();
     }
 
-    /**
-     * Returns a string that will be displayed to the user to identify this commit
-     * @param commitHelper the commit to get a label for
-     * @return the display label for this commit
-     */
-    private static String getTreeCellLabel(CommitHelper commitHelper){
-        return commitHelper.getAuthorName()+ "\n"+
-                commitHelper.getFormattedWhen()+"\n"+
-                commitHelper.getName()+"\n\n"+
-                commitHelper.getMessage(false);
+    public boolean isBranchHead(CommitHelper commit){
+        if(branches == null) return false;
+        for(BranchHelper branch : branches){
+            if(branch.getHead().getId().equals(commit.getId())){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public BranchHelper getBranchFromHead(CommitHelper head){
+        if(branches == null) return null;
+        for(BranchHelper branch : branches){
+            if(branch.getHead().getId().equals(head.getId())){
+                return branch;
+            }
+        }
+        return null;
+    }
+
+    public BranchHelper getBranchFromName(String name){
+        if(branches == null) return null;
+        for(BranchHelper branch : branches){
+            if(branch.getBranchName().equals(name)){
+                return branch;
+            }
+        }
+        return null;
+    }
+
+    public void setCommitAsTrackedBranch(String commitId){
+        treeGraph.treeGraphModel.setCellShape(commitId, TRACKED_BRANCH_HEAD_SHAPE);
+        treeGraph.treeGraphModel.setCellLabel(commitId, getTreeCellLabel(commitId));
+    }
+
+    public void setCommitAsUntrackedBranch(String commitId){
+        treeGraph.treeGraphModel.setCellShape(commitId, UNTRACKED_BRANCH_HEAD_SHAPE);
+        treeGraph.treeGraphModel.setCellLabel(commitId, getTreeCellLabel(commitId));
+    }
+
+    public void resetBranchHeads(){
+        List<String> resetIDs = treeGraph.treeGraphModel.resetCellShapes();
+        for(String id : resetIDs){
+            treeGraph.treeGraphModel.setCellLabel(id, getTreeCellLabel(id));
+        }
+    }
+
+    public List<BranchHelper> getBranches(){
+        return branches;
     }
 }

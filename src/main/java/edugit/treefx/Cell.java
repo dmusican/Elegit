@@ -8,7 +8,6 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.scene.Node;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.Pane;
-import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
 import javafx.util.Duration;
 import main.java.edugit.CommitTreeController;
@@ -30,6 +29,7 @@ public class Cell extends Pane{
 
     // The displayed view
     Node view;
+    private CellShape shape;
     // The tooltip shown on hover
     Tooltip tooltip;
 
@@ -141,10 +141,32 @@ public class Cell extends Pane{
      * @return the basic view for this cell
      */
     protected Node getBaseView(){
-        Node node = new Rectangle(BOX_SIZE, BOX_SIZE);
-        node.setStyle("-fx-fill: "+CellState.getCssStringKey(CellState.STANDARD));
+        this.shape = CellShape.DEFAULT;
+        Node node = shape.get();
+        node.setStyle("-fx-fill: " + CellState.STANDARD.getCssStringKey());
         node.getStyleClass().setAll("cell");
         return node;
+    }
+
+    /**
+     * Sets the look of this cell
+     * @param view the new view
+     */
+    public void setView(Node view) {
+        if(this.view != null){
+            view.setStyle(this.view.getStyle());
+            view.getStyleClass().setAll(this.view.getStyleClass());
+        }
+
+        this.view = view;
+        getChildren().clear();
+        getChildren().add(view);
+    }
+
+    public void setShape(CellShape shape){
+        if(this.shape == shape) return;
+        setView(shape.get());
+        this.shape = shape;
     }
 
     /**
@@ -206,17 +228,8 @@ public class Cell extends Pane{
         return false;
     }
 
-    /**
-     * Sets the look of this cell
-     * @param view the new view
-     */
-    public void setView(Node view) {
-        this.view = view;
-        getChildren().add(view);
-    }
-
     public void setCellState(CellState state){
-        view.setStyle("-fx-fill: "+CellState.getCssStringKey(state));
+        view.setStyle("-fx-fill: "+state.getCssStringKey());
     }
 
     /**

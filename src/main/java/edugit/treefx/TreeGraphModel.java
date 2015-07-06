@@ -29,17 +29,21 @@ public class TreeGraphModel{
     public Map<String,Cell> cellMap;
 
     // Updated every time merge is called to hold the number of cells present
-    IntegerProperty numCellsProperty = new SimpleIntegerProperty();
+    IntegerProperty numCellsProperty;
 
     // Whether this graph has been through the layout process already or not
     public boolean isInitialSetupFinished;
+
+    private List<Cell> cellsWithNonDefaultShapes;
 
     /**
      * Constructs a new model for a tree graph
      */
     public TreeGraphModel() {
         clear();
+        numCellsProperty = new SimpleIntegerProperty();
         isInitialSetupFinished = false;
+        cellsWithNonDefaultShapes = new ArrayList<>();
     }
 
     /**
@@ -110,70 +114,30 @@ public class TreeGraphModel{
     }
 
     /**
-     * Adds a cell with the given id, time, and label to the graph. If visible is false,
-     * uses InvisibleCell instead of Cell
-     * @param newId the id of the new cell
-     * @param time the time of the new cell
-     * @param label the label of the new cell
-     * @param visible whether the cell will be normal or invisible
-     */
-    public void addCell(String newId, long time, String label, boolean visible){
-        Cell cell;
-        if(visible){
-            cell = new Cell(newId, time, null);
-        }else{
-            cell = new InvisibleCell(newId, time, null);
-        }
-        cell.setDisplayLabel(label);
-        addCell(cell);
-    }
-
-    /**
-     * Adds a new cell with the given ID, time, and label to the tree whose
-     * parent is the cell with the given ID. If visible is false, uses InvisibleCell
-     * instead of Cell
-     * @param newId the id of the new cell
-     * @param time the time of the new cell
-     * @param label the label of the new cell
-     * @param parentId the ID of the parent of this new cell
-     * @param visible whether the cell will be normal or invisible
-     */
-    public void addCell(String newId, long time, String label, String parentId, boolean visible){
-        Cell cell;
-        if(visible){
-            cell = new Cell(newId, time, cellMap.get(parentId));
-        }else{
-            cell = new InvisibleCell(newId, time, cellMap.get(parentId));
-        }
-        cell.setDisplayLabel(label);
-        addCell(cell);
-
-        this.addEdge(parentId, newId);
-    }
-
-    /**
      * Adds a new cell with the given ID, time, and label to the tree whose
      * parents are the cells with the given IDs. If visible is false, uses InvisibleCell
      * instead of Cell
      * @param newId the id of the new cell
      * @param time the time of the new cell
      * @param label the label of the new cell
-     * @param parent1Id the ID of the first parent of the new cell
-     * @param parent2Id the ID of the second parent of the new cell
+     * @param parentIds the IDs of the parents of the new cell, if any
      * @param visible whether the cell will be normal or invisible
      */
-    public void addCell(String newId, long time, String label, String parent1Id, String parent2Id, boolean visible){
+    public void addCell(String newId, long time, String label, List<String> parentIds, boolean visible){
+        String parent1Id = parentIds.size() > 0 ? parentIds.get(0) : null;
+        String parent2Id = parentIds.size() > 1 ? parentIds.get(1) : null;
+
         Cell cell;
         if(visible){
-            cell = new Cell(newId, time, cellMap.get(parent1Id), cellMap.get(parent2Id));
+            cell = new Cell(newId, time, parent1Id == null ? null : cellMap.get(parent1Id), parent2Id == null ? null : cellMap.get(parent2Id));
         }else{
-            cell = new InvisibleCell(newId, time, cellMap.get(parent1Id), cellMap.get(parent2Id));
+            cell = new InvisibleCell(newId, time, parent1Id == null ? null : cellMap.get(parent1Id), parent2Id == null ? null : cellMap.get(parent2Id));
         }
         cell.setDisplayLabel(label);
         addCell(cell);
 
-        this.addEdge(parent1Id, newId);
-        this.addEdge(parent2Id, newId);
+        if(parent1Id != null) this.addEdge(parent1Id, newId);
+        if(parent2Id != null) this.addEdge(parent2Id, newId);
     }
 
     /**
@@ -218,6 +182,30 @@ public class TreeGraphModel{
         for(Edge e : cell.edges){
             removedEdges.add(e);
         }
+    }
+
+    public void setCellLabel(String cellId, String label){
+        cellMap.get(cellId).setDisplayLabel(label);
+    }
+
+    public void setCellShape(String id, CellShape shape){
+        Cell cell = cellMap.get(id);
+        cell.setShape(shape);
+        if(shape == CellShape.DEFAULT){
+            cellsWithNonDefaultShapes.remove(cell);
+        }else{
+            cellsWithNonDefaultShapes.add(cell);
+        }
+    }
+
+    public List<String> resetCellShapes(){
+        List<String> resetIDs = new ArrayList<>();
+        for(Cell cell : cellsWithNonDefaultShapes){
+            cell.setShape(CellShape.DEFAULT);
+            resetIDs.add(cell.getCellId());
+        }
+        cellsWithNonDefaultShapes = new ArrayList<>();
+        return resetIDs;
     }
 
     /**

@@ -408,7 +408,7 @@ public abstract class RepoHelper {
 
             RevCommit[] parents = curCommit.getParents();
             for(RevCommit p : parents){
-                CommitHelper parentCommitHelper = commitIdMap.get(idMap.get(p.getId()));
+                CommitHelper parentCommitHelper = getCommit(p.getId());
                 if(parentCommitHelper == null){
                     commitsWithMissingParents.add(curCommitHelper);
                 }else{
@@ -422,7 +422,7 @@ public abstract class RepoHelper {
             CommitHelper curCommitHelper = commitsWithMissingParents.remove(0);
             RevCommit[] parents = curCommitHelper.commit.getParents();
             for(RevCommit p : parents){
-                CommitHelper parentCommitHelper = commitIdMap.get(idMap.get(p.getId()));
+                CommitHelper parentCommitHelper = getCommit(p.getId());
                 if(parentCommitHelper == null){
                     commitsWithMissingParents.add(curCommitHelper);
                 }else if(!curCommitHelper.getParents().contains(parentCommitHelper)){
@@ -519,6 +519,7 @@ public abstract class RepoHelper {
      * specifically, JGit objects of (super)type RevCommit. This is an expensive
      * operation and should only be called when necessary
      * @param startingID the starting point to parse from
+     * @param stopPoints the ids at which parsing should stop
      * @return a list of raw commits starting from the given id
      * @throws IOException
      */
@@ -596,8 +597,16 @@ public abstract class RepoHelper {
     }
 
     public void refreshCurrentBranch() throws IOException {
-        String currentBranchName = this.repo.getFullBranch();
-        LocalBranchHelper currentBranch = new LocalBranchHelper(currentBranchName, this);
+        String currentBranchRefString = this.repo.getFullBranch();
+
+        for(LocalBranchHelper branch : localBranches){
+            if(branch.getRefPathString().equals(currentBranchRefString)){
+                this.setCurrentBranch(branch);
+                return;
+            }
+        }
+
+        LocalBranchHelper currentBranch = new LocalBranchHelper(currentBranchRefString, this);
         this.setCurrentBranch(currentBranch);
     }
 
@@ -606,11 +615,47 @@ public abstract class RepoHelper {
     }
 
     public List<BranchHelper> getLocalBranches(){
+        for(BranchHelper branch : localBranches){
+            if(branch.getHead() == null){
+                try{
+                    branch.setHead(getCommit(branch.getHeadID()));
+                }catch(IOException e){
+                    e.printStackTrace();
+                }
+            }
+        }
         return new ArrayList<>(localBranches);
     }
 
     public List<BranchHelper> getRemoteBranches(){
+        for(BranchHelper branch : remoteBranches){
+            if(branch.getHead() == null){
+                try{
+                    branch.setHead(getCommit(branch.getHeadID()));
+                }catch(IOException e){
+                    e.printStackTrace();
+                }
+            }
+        }
         return new ArrayList<>(remoteBranches);
+    }
+
+    public boolean isBranchTracked(BranchHelper branch){
+        String branchName = branch.getBranchName();
+        if(branch instanceof LocalBranchHelper){
+            for(BranchHelper remote : remoteBranches){
+                if(remote.getBranchName().equals(branchName)){
+                    return true;
+                }
+            }
+        }else{
+            for(BranchHelper local : localBranches){
+                if(local.getBranchName().equals(branchName)){
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }
 

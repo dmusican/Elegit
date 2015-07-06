@@ -1,7 +1,7 @@
 package main.java.edugit.treefx;
 
 /**
- * Created by makik on 6/29/15.
+ * Enum for the different highlighting states of a cell
  */
 public enum CellState{
     STANDARD,
@@ -10,8 +10,8 @@ public enum CellState{
     SELECTED,
     EMPHASIZED;
 
-    public static String getCssStringKey(CellState state){
-        switch(state){
+    public String getCssStringKey(){
+        switch(this){
             case STANDARD:
                 return "-fx-cell-color-standard";
             case HIGHLIGHTED1:
