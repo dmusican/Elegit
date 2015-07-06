@@ -31,6 +31,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.prefs.BackingStoreException;
 
 /**
@@ -530,26 +532,43 @@ public class SessionController extends Controller {
         Thread th = new Thread(new Task<Void>(){
             @Override
             protected Void call(){
+                ReentrantLock lock = new ReentrantLock();
+                Condition finishedUpdate = lock.newCondition();
+
                 Platform.runLater(() -> {
+                    lock.lock();
                     try{
                         workingTreePanelView.drawDirectoryView();
                         localCommitTreeModel.update();
                         remoteCommitTreeModel.update();
 
-                        updateBranchDropdown(); // Needs to be called after the trees are updated, so must be on the same thread
-                    } catch(MissingRepoException e){
-                        showMissingRepoNotification();
-                        setButtonsDisabled(true);
-                        updateMenuBarWithRecentRepos();
-                    } catch(NoRepoLoadedException e){
-                        showNoRepoLoadedNotification();
-                        setButtonsDisabled(true);
-                    } catch(GitAPIException | IOException e){
+                        finishedUpdate.signal();
+                    }catch(GitAPIException | IOException e){
                         showGenericErrorNotification();
                         e.printStackTrace();
+                    }finally{
+                        lock.unlock();
                     }
                 });
-            return null;
+
+                lock.lock();
+                try{
+                    finishedUpdate.await(); // updateBranchDropdown needs to be called after the trees have
+                    updateBranchDropdown(); // been updated, but shouldn't run on the Application thread
+                } catch(MissingRepoException e){
+                    showMissingRepoNotification();
+                    setButtonsDisabled(true);
+                    updateMenuBarWithRecentRepos();
+                } catch(NoRepoLoadedException e){
+                    showNoRepoLoadedNotification();
+                    setButtonsDisabled(true);
+                } catch(GitAPIException | IOException | InterruptedException e){
+                    showGenericErrorNotification();
+                    e.printStackTrace();
+                }finally{
+                    lock.unlock();
+                }
+                return null;
             }
         });
         th.setDaemon(true);
