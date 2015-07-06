@@ -1,6 +1,7 @@
 package main.java.edugit;
 
 import de.jensd.fx.glyphs.GlyphsBuilder;
+import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconView;
 import javafx.application.Platform;
@@ -17,7 +18,9 @@ import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.paint.*;
 import javafx.scene.shape.Circle;
+import javafx.scene.text.Text;
 import main.java.edugit.exceptions.*;
 import org.controlsfx.control.NotificationPane;
 import org.controlsfx.control.action.Action;
@@ -103,6 +106,12 @@ public class SessionController extends Controller {
         this.workingTreePanelView.setSessionModel(this.theModel);
         this.localCommitTreeModel = new LocalCommitTreeModel(this.theModel, this.localCommitTreePanelView);
         this.remoteCommitTreeModel = new RemoteCommitTreeModel(this.theModel, this.remoteCommitTreePanelView);
+
+        // Add glyph icon to the `open in finder` button. And add a tooltip
+        Text openExternallyIcon = GlyphsDude.createIcon(FontAwesomeIcon.EXTERNAL_LINK);
+        openExternallyIcon.setFill(javafx.scene.paint.Color.WHITE);
+        this.openRepoDirButton.setGraphic(openExternallyIcon);
+        this.openRepoDirButton.setTooltip(new Tooltip("Open repository directory"));
 
         // Buttons start out disabled, since no repo is loaded
         this.setButtonsDisabled(true);

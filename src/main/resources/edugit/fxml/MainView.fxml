@@ -64,11 +64,6 @@
                                     GridPane.halignment="RIGHT"
                                     fx:id="openRepoDirButton"
                                     onAction="#openRepoDirectory">
-                                <graphic>
-                                    <ImageView>
-                                        <Image url="@../external_link_small.png"/>
-                                    </ImageView>
-                                </graphic>
                             </Button>
                         </GridPane>
                     </StackPane>

@@ -569,8 +569,7 @@ public abstract class RepoHelper {
 
         for (Ref ref : getBranchesCall) {
 
-            // It appears that grabbing the remote branches also gets the local head.
-            // Ignore that second "HEAD"
+            // It appears that grabbing the remote branches also gets the HEAD.
             if (!ref.getName().equals("HEAD")) {
                 remoteBranches.add(new RemoteBranchHelper(ref, this));
             }
