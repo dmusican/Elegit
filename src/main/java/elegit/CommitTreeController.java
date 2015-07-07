@@ -149,21 +149,21 @@ public class CommitTreeController{
                     }
                 }
 
+                model.resetBranchHeads();
+                List<BranchHelper> modelBranches = model.getBranches();
+                if(modelBranches != null){
+                    for(BranchHelper branch : modelBranches){
+                        if(!model.sessionModel.getCurrentRepoHelper().isBranchTracked(branch)){
+                            model.setCommitAsUntrackedBranch(branch.getHead().getId());
+                        }else{
+                            model.setCommitAsTrackedBranch(branch.getHead().getId());
+                        }
+                    }
+                }
+
                 model.treeGraph.update();
                 if(model.equals(commitTreeModel)){
                     model.view.displayTreeGraph(model.treeGraph);
-                }
-            }
-        }
-
-        commitTreeModel.resetBranchHeads();
-        List<BranchHelper> modelBranches = commitTreeModel.getBranches();
-        if(modelBranches != null){
-            for(BranchHelper branch : modelBranches){
-                if(!commitTreeModel.sessionModel.getCurrentRepoHelper().isBranchTracked(branch)){
-                    commitTreeModel.setCommitAsUntrackedBranch(branch.getHead().getId());
-                }else{
-                    commitTreeModel.setCommitAsTrackedBranch(branch.getHead().getId());
                 }
             }
         }
@@ -186,21 +186,19 @@ public class CommitTreeController{
                     }
                 }
 
+                model.resetBranchHeads();
+                List<BranchHelper> modelBranches = model.getBranches();
+                if(modelBranches == null) continue;
+                for(BranchHelper branch : modelBranches){
+                    if(!model.sessionModel.getCurrentRepoHelper().isBranchTracked(branch)){
+                        model.setCommitAsUntrackedBranch(branch.getHead().getId());
+                    }else{
+                        model.setCommitAsTrackedBranch(branch.getHead().getId());
+                    }
+                }
+
                 model.treeGraph.update();
                 model.view.displayTreeGraph(model.treeGraph);
-            }
-        }
-
-        for(CommitTreeModel model : allCommitTreeModels){
-            model.resetBranchHeads();
-            List<BranchHelper> modelBranches = model.getBranches();
-            if(modelBranches == null) continue;
-            for(BranchHelper branch : modelBranches){
-                if(!model.sessionModel.getCurrentRepoHelper().isBranchTracked(branch)){
-                    model.setCommitAsUntrackedBranch(branch.getHead().getId());
-                }else{
-                    model.setCommitAsTrackedBranch(branch.getHead().getId());
-                }
             }
         }
     }

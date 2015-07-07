@@ -21,7 +21,7 @@ public abstract class BranchHelper {
 
     public BranchHelper(String refPathString, RepoHelper repoHelper) {
         this.refPathString = refPathString;
-        this.branchHead = repoHelper.getCommit(refPathString);
+        this.setHead(repoHelper.getCommit(refPathString));
         this.repoHelper = repoHelper;
         this.branchName = this.getBranchName();
     }
@@ -35,7 +35,9 @@ public abstract class BranchHelper {
     }
 
     public void setHead(CommitHelper head){
+        if(branchHead != null) branchHead.removeAsHead(this);
         this.branchHead = head;
+        if(branchHead != null) branchHead.setAsHead(this);
     }
 
     @Override
@@ -51,7 +53,9 @@ public abstract class BranchHelper {
         if(branchHead != null){
             return branchHead.getObjectId();
         }else{
-            return repoHelper.getRepo().resolve(refPathString);
+            ObjectId headId = repoHelper.getRepo().resolve(refPathString);
+            setHead(repoHelper.getCommit(headId));
+            return headId;
         }
     }
 }

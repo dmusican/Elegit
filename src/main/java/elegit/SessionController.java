@@ -383,7 +383,10 @@ public class SessionController extends Controller {
                         // Now clear the commit text and a view reload ( or `git status`) to show that something happened
                         commitMessageField.clear();
                         onGitStatusButton();
-                    } catch(MissingRepoException | JGitInternalException e){
+                    } catch(JGitInternalException e){
+                        showGenericErrorNotification();
+                        e.printStackTrace();
+                    } catch(MissingRepoException e){
                         showMissingRepoNotification();
                         setButtonsDisabled(true);
                         updateMenuBarWithRecentRepos();
@@ -397,7 +400,7 @@ public class SessionController extends Controller {
                         // This should only come up when the user chooses to resolve conflicts in a file.
                         // Do nothing.
 
-                    }catch(GitAPIException | IOException e){
+                    } catch(GitAPIException | IOException e){
                         // Git error, or error presenting the file chooser window
                         showGenericErrorNotification();
                         e.printStackTrace();
@@ -414,6 +417,7 @@ public class SessionController extends Controller {
         }catch(MissingRepoException e){
             this.showMissingRepoNotification();
             setButtonsDisabled(true);
+            updateMenuBarWithRecentRepos();
         }
     }
 
@@ -664,7 +668,6 @@ public class SessionController extends Controller {
                 workingTreePanelView.drawDirectoryView();
             }catch(GitAPIException e){
                 showGenericErrorNotification();
-                e.printStackTrace();
             }
             localCommitTreeModel.init();
             remoteCommitTreeModel.init();
@@ -920,7 +923,7 @@ public class SessionController extends Controller {
     private void showNonEmptyFolderNotification() {
         Platform.runLater(()-> {
             this.notificationPane.setText("Make sure the directory you selected is completely empty. The best " +
-                                "way to do this is to create a new folder from the directory chooser.");
+                    "way to do this is to create a new folder from the directory chooser.");
 
             this.notificationPane.getActions().clear();
             this.notificationPane.show();
@@ -1078,9 +1081,18 @@ public class SessionController extends Controller {
         commitInfoNameText.setText(commit.getName());
         commitInfoAuthorText.setText(commit.getAuthorName());
         commitInfoDateText.setText(commit.getFormattedWhen());
-        commitInfoMessageText.setText(commit.getMessage(true));
         commitInfoNameCopyButton.setDisable(false);
         commitInfoGoToButton.setDisable(false);
+
+        String s = "";
+        for(BranchHelper branch : commit.getBranchesAsHead()){
+            s = s + branch.getBranchName() + " ";
+        }
+        if(s.length() > 0){
+            commitInfoMessageText.setText("Head of branches: \n"+s+"\n\n"+commit.getMessage(true));
+        }else{
+            commitInfoMessageText.setText(commit.getMessage(true));
+        }
     }
 
     public void clearSelectedCommit(){

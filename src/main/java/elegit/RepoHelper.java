@@ -316,7 +316,7 @@ public abstract class RepoHelper {
         }
     }
 
-    private CommitHelper getCommit(ObjectId id){
+    public CommitHelper getCommit(ObjectId id){
         if(idMap.containsKey(id)){
             return getCommit(idMap.get(id));
         }else{

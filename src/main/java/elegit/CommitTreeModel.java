@@ -161,7 +161,7 @@ public abstract class CommitTreeModel{
         if(commits.size() == 0) return false;
 
         for(CommitHelper curCommitHelper : commits){
-            ArrayList<CommitHelper> parents = curCommitHelper.getParents();
+            List<CommitHelper> parents = curCommitHelper.getParents();
             this.addCommitToTree(curCommitHelper, parents, treeGraph.treeGraphModel, true);
         }
 
@@ -186,7 +186,7 @@ public abstract class CommitTreeModel{
      * @param parents a list of this commit's parents
      * @param graphModel the treeGraphModel to add the commit to
      */
-    private void addCommitToTree(CommitHelper commitHelper, ArrayList<CommitHelper> parents, TreeGraphModel graphModel, boolean visible){
+    private void addCommitToTree(CommitHelper commitHelper, List<CommitHelper> parents, TreeGraphModel graphModel, boolean visible){
         List<String> parentIds = new ArrayList<>(parents.size());
 
         for(CommitHelper parent : parents){
@@ -236,11 +236,15 @@ public abstract class CommitTreeModel{
         if(branches != null){
             for(BranchHelper branch : branches){
                 if(branch.getHead() != null && getId(branch.getHead()).equals(getId(commitHelper))){
-                    s = s + "\nBranch: " + branch.getBranchName();
+                    s = s + "\n" + branch.getBranchName();
                 }
             }
         }
-        return commitHelper.getFormattedWhen() + s;
+        if(s.length() > 0){
+            return commitHelper.getFormattedWhen() + "\n\nHead of branches: "+s;
+        }else{
+            return commitHelper.getFormattedWhen();
+        }
     }
 
     private String getTreeCellLabel(String commitId){

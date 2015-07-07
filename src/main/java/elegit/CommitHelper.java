@@ -7,8 +7,7 @@ import org.eclipse.jgit.revwalk.RevCommit;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
+import java.util.*;
 
 /**
  * A wrapper class for commits to make them easier to interact with and preserves certain
@@ -24,7 +23,9 @@ public class CommitHelper{
 
     // The parents and children of this commit
     ParentCommitHelper parents;
-    ArrayList<CommitHelper> children;
+    List<CommitHelper> children;
+
+    Map<String, BranchHelper> branchesAsHead;
 
     // The short and full message of this commit
     String shortMessage;
@@ -42,6 +43,7 @@ public class CommitHelper{
         this.author = c.getAuthorIdent();
         this.children = new ArrayList<>();
         this.parents = new ParentCommitHelper(this, null, null);
+        this.branchesAsHead = new HashMap<>();
         this.fullMessage = c.getFullMessage();
         this.shortMessage = c.getShortMessage();
     }
@@ -163,7 +165,7 @@ public class CommitHelper{
     /**
      * @return the parents of this commit in an ArrayList
      */
-    public ArrayList<CommitHelper> getParents(){
+    public List<CommitHelper> getParents(){
         return parents.toList();
     }
 
@@ -202,8 +204,20 @@ public class CommitHelper{
     /**
      * @return the list of this commits children
      */
-    public ArrayList<CommitHelper> getChildren(){
+    public List<CommitHelper> getChildren(){
         return children;
+    }
+
+    public void setAsHead(BranchHelper branch){
+        branchesAsHead.put(branch.getRefPathString(), branch);
+    }
+
+    public void removeAsHead(BranchHelper branch){
+        branchesAsHead.remove(branch.getRefPathString());
+    }
+
+    public List<BranchHelper> getBranchesAsHead(){
+        return new LinkedList<>(branchesAsHead.values());
     }
 
     @Override
@@ -248,8 +262,8 @@ public class CommitHelper{
         /**
          * @return the stored parent commits in list form
          */
-        public ArrayList<CommitHelper> toList(){
-            ArrayList<CommitHelper> list = new ArrayList<>(2);
+        public List<CommitHelper> toList(){
+            List<CommitHelper> list = new ArrayList<>(2);
             if(mom != null) list.add(mom);
             if(dad != null) list.add(dad);
             return list;
