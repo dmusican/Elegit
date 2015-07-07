@@ -147,16 +147,16 @@
 
                     <StackPane GridPane.rowIndex="1"
                                 GridPane.columnIndex="6">
+                        <ProgressIndicator StackPane.alignment="CENTER"
+                                           visible="false"
+                                           fx:id="fetchProgressIndicator"/>
+
                         <ArrowButton StackPane.alignment="CENTER"
                                      id="codeButton"
                                      fx:id="fetchButton"
                                      text="Fetch"
                                      arrowLeft="true"
                                      onAction="#handleFetchButton"/>
-
-                        <ProgressIndicator StackPane.alignment="CENTER"
-                                           visible="false"
-                                           fx:id="fetchProgressIndicator"/>
                     </StackPane>
 
 
@@ -177,7 +177,12 @@
                                  onAction="#handleMergeFromFetchButton"/>
 
                     <StackPane GridPane.rowIndex="2"
-                                GridPane.columnIndex="5">
+                               GridPane.columnIndex="5">
+                        <HBox alignment="CENTER_RIGHT">
+                            <ProgressIndicator visible="false"
+                                               fx:id="pushProgressIndicator"/>
+                        </HBox>
+
                         <ArrowButton StackPane.alignment="CENTER_RIGHT"
                                      id="codeButton"
                                      fx:id="pushButton"
@@ -185,10 +190,6 @@
                                      arrowUp="true"
                                      arrowRight="true"
                                      onAction="#handlePushButton"/>
-
-                        <ProgressIndicator StackPane.alignment="CENTER"
-                                           visible="false"
-                                           fx:id="pushProgressIndicator"/>
                     </StackPane>
 
                     <CommitTreePanelView GridPane.rowIndex="3"

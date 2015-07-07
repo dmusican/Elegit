@@ -496,8 +496,8 @@ public class SessionController {
                 @Override
                 protected Void call() {
                     try{
-                        theModel.getCurrentRepoHelper().pushAll();
                         RepositoryMonitor.resetFoundNewChanges(false);
+                        theModel.getCurrentRepoHelper().pushAll();
                         onGitStatusButton();
                     }  catch(InvalidRemoteException e){
                         showNoRemoteNotification();
@@ -546,8 +546,8 @@ public class SessionController {
                 @Override
                 protected Void call() {
                     try{
-                        theModel.getCurrentRepoHelper().fetch();
                         RepositoryMonitor.resetFoundNewChanges(false);
+                        theModel.getCurrentRepoHelper().fetch();
                         onGitStatusButton();
                     } catch(InvalidRemoteException e){
                         showNoRemoteNotification();

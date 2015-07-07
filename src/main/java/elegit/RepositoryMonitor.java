@@ -115,14 +115,14 @@ public class RepositoryMonitor{
     /**
      * Sets hasFoundNewChanges to false. If ignore is true, ignores
      * new changes indefinitely, else ignores them for a short grace
-     * period (1 check cycle) and then begins monitoring again
+     * period (2 check cycles) and then begins monitoring again
      * @param ignore whether to ignore new changes indefinitely
      */
     public static void resetFoundNewChanges(boolean ignore){
         if(ignore){
             resetFoundNewChanges(-1);
         }else{
-            resetFoundNewChanges(CHECK_INTERVAL);
+            resetFoundNewChanges(CHECK_INTERVAL * 2);
         }
     }
 
