@@ -113,6 +113,9 @@ public abstract class RepoHelper {
         // TODO: unify these two constructors (less copied-and-pasted code)
     }
 
+    /**
+     * @return true if the corresponding repository still exists in the expected location
+     */
     public boolean exists(){
         return localPath.toFile().exists() && localPath.toFile().list((dir, name) -> name.equals(".git")).length > 0;
     }
@@ -165,6 +168,11 @@ public abstract class RepoHelper {
         git.close();
     }
 
+    /**
+     * Gets a list of all remotes associated with this repository. The URLs
+     * correspond to the output seen by running 'git remote -v'
+     * @return a list of the remote URLs associated with this repository
+     */
     public List<String> getLinkedRemoteRepoURLs(){
         Config storedConfig = this.repo.getConfig();
         Set<String> remotes = storedConfig.getSubsections("remote");
@@ -288,22 +296,43 @@ public abstract class RepoHelper {
         this.repo.close();
     }
 
+    /**
+     * @return the JGit repository of this RepoHelper
+     */
     public Repository getRepo() {
         return this.repo;
     }
 
-    public Path getDirectory() {
-        return this.localPath;
+    /**
+     * @return the local path to the directory holding the repository
+     */
+    public Path getLocalPath() {
+        return localPath;
     }
 
+    /**
+     * @return all local commits that have already been parsed
+     */
     public List<CommitHelper> getLocalCommits(){
         return this.localCommits;
     }
 
+    /**
+     * @return all remote commits that have already been parsed
+     */
     public List<CommitHelper> getRemoteCommits(){
         return this.remoteCommits;
     }
 
+    /**
+     * Attempts first to use the parameter as an ID string that maps
+     * to a commit. If that fails, attempts to parse it as as a reference
+     * string and find the ID it maps to, then returning the commit
+     * associated with that id
+     * @param idOrRefString either an ID or reference string corresponding
+     *                      to an object in this repository
+     * @return the commit associated with the parameter
+     */
     public CommitHelper getCommit(String idOrRefString){
         if(commitIdMap.containsKey(idOrRefString)){
             return commitIdMap.get(idOrRefString);
@@ -316,6 +345,10 @@ public abstract class RepoHelper {
         }
     }
 
+    /**
+     * @param id the id of the commit to get
+     * @return the commit associated with the given id, if it has been parsed
+     */
     public CommitHelper getCommit(ObjectId id){
         if(idMap.containsKey(id)){
             return getCommit(idMap.get(id));
@@ -324,18 +357,47 @@ public abstract class RepoHelper {
         }
     }
 
+    /**
+     * @return a list of all commit IDs in this repository
+     */
     public List<String> getAllCommitIDs(){
         return new ArrayList<>(commitIdMap.keySet());
     }
 
+    /**
+     * Uses JGit to find and parse all local commits between the given branches and
+     * every leaf in the repository
+     * @param oldLocalBranches the previous branch heads associated with a branch name. Commits
+     *                         older than the heads of these branches will be ignored
+     * @return all local commits newer than the given branch heads
+     * @throws GitAPIException
+     * @throws IOException
+     */
     public List<CommitHelper> getNewLocalCommits(Map<String, BranchHelper> oldLocalBranches) throws GitAPIException, IOException{
         return getNewCommits(oldLocalBranches, this.callGitForLocalBranches());
     }
 
+    /**
+     * Uses JGit to find and parse all remote commits between the given branches and
+     * every leaf in the repository
+     * @param oldRemoteBranches the previous branch heads associated with a branch name. Commits
+     *                         older than the heads of these branches will be ignored
+     * @return all remote commits newer than the given branch heads
+     * @throws GitAPIException
+     * @throws IOException
+     */
     public List<CommitHelper> getNewRemoteCommits(Map<String, BranchHelper> oldRemoteBranches) throws GitAPIException, IOException{
         return getNewCommits(oldRemoteBranches, this.callGitForRemoteBranches());
     }
 
+    /**
+     * Helper method that returns commits between the given old branch heads and new branch heads
+     * @param oldBranches previous locations of branch heads
+     * @param newBranches current locations of branch heads
+     * @return a list of all commits found between oldBranches and newBranches
+     * @throws GitAPIException
+     * @throws IOException
+     */
     private List<CommitHelper> getNewCommits(Map<String, BranchHelper> oldBranches, List<? extends BranchHelper> newBranches) throws GitAPIException, IOException{
         List<ObjectId> startPoints = new ArrayList<>();
         List<ObjectId> stopPoints = new ArrayList<>();
@@ -360,7 +422,6 @@ public abstract class RepoHelper {
     /**
      * Constructs a list of all local commits found by parsing the repository for raw RevCommit objects,
      * then wrapping them into a CommitHelper with the appropriate parents and children
-     *
      * @return a list of CommitHelpers for all local commits
      * @throws IOException
      */
@@ -372,7 +433,6 @@ public abstract class RepoHelper {
     /**
      * Constructs a list of all remote commits found by parsing the repository for raw RevCommit objects,
      * then wrapping them into a CommitHelper with the appropriate parents and children
-     *
      * @return a list of CommitHelpers for all remote commits
      * @throws IOException
      */
@@ -383,7 +443,7 @@ public abstract class RepoHelper {
 
     /**
      * Given a list of raw JGit commit objects, constructs CommitHelper objects to wrap them and gives
-     * them the appropriate parents and children
+     * them the appropriate parents and children. Updates the commit id and id maps appropriately.
      * @param commitList the raw commits to wrap
      * @return a list of CommitHelpers for the given commits
      * @throws IOException
@@ -542,15 +602,17 @@ public abstract class RepoHelper {
         return w.parseCommit(id);
     }
 
-    public Path getLocalPath() {
-        return localPath;
-    }
-
     @Override
     public String toString() {
         return this.localPath.getFileName().toString();
     }
 
+    /**
+     * Utilizes JGit to get a list of all local branches
+     * @return a list of all local branches
+     * @throws GitAPIException
+     * @throws IOException
+     */
     public List<LocalBranchHelper> callGitForLocalBranches() throws GitAPIException, IOException {
         List<Ref> getBranchesCall = new Git(this.repo).branchList().call();
         localBranches = new ArrayList<>();
@@ -564,6 +626,11 @@ public abstract class RepoHelper {
         return this.branchManager.getLocalBranches();
     }
 
+    /**
+     * Utilizes JGit to get a list of all remote branches
+     * @return a list of all remtoe branches
+     * @throws GitAPIException
+     */
     public List<RemoteBranchHelper> callGitForRemoteBranches() throws GitAPIException {
         List<Ref> getBranchesCall = new Git(this.repo).branchList().setListMode(ListBranchCommand.ListMode.REMOTE).call();
         remoteBranches = new ArrayList<>();
@@ -579,6 +646,10 @@ public abstract class RepoHelper {
         return remoteBranches;
     }
 
+    /**
+     * Sets the owner of this repository
+     * @param owner the new owner
+     */
     public void setOwner(RepoOwner owner) {
         if (owner == null || (owner.getUsername() == null && owner.getPassword() == null)) {
             // If there's no owner, there's no authentication.
@@ -588,14 +659,27 @@ public abstract class RepoHelper {
         }
     }
 
+    /**
+     * Sets the currently checkout branch. Does not call 'git checkout'
+     * or any variation, simply updates the local variable
+     * @param branchHelper the new current branch
+     */
     public void setCurrentBranch(LocalBranchHelper branchHelper) {
         this.branchHelper = branchHelper;
     }
 
+    /**
+     * @return the currently checkout out branch
+     */
     public LocalBranchHelper getCurrentBranch() {
         return this.branchHelper;
     }
 
+    /**
+     * Updates the current branch by checking the repository for which
+     * branch is currently checked out
+     * @throws IOException
+     */
     public void refreshCurrentBranch() throws IOException {
         String currentBranchRefString = this.repo.getFullBranch();
 
@@ -610,10 +694,18 @@ public abstract class RepoHelper {
         this.setCurrentBranch(currentBranch);
     }
 
+    /**
+     * @return the branch manager for this repository
+     */
     public BranchManager getBranchManager() {
         return branchManager;
     }
 
+    /**
+     * Gets a list of the local branches of this repository. Also updates
+     * the head of each local branch if it was missing
+     * @return the local branches of this repository
+     */
     public List<BranchHelper> getLocalBranches(){
         for(BranchHelper branch : localBranches){
             if(branch.getHead() == null){
@@ -627,6 +719,11 @@ public abstract class RepoHelper {
         return new ArrayList<>(localBranches);
     }
 
+    /**
+     * Gets a list of the remote branches of this repository. Also updates
+     * the head of each remote branch if it was missing
+     * @return the remote branches of this repository
+     */
     public List<BranchHelper> getRemoteBranches(){
         for(BranchHelper branch : remoteBranches){
             if(branch.getHead() == null){
@@ -640,6 +737,14 @@ public abstract class RepoHelper {
         return new ArrayList<>(remoteBranches);
     }
 
+    /**
+     * Checks to see if the given branch is tracked. If branch is
+     * a local branch, looks to see if there is a branch in the
+     * remote branches that has the same name, and vice versa.
+     * Note that tracking status is determined solely by name
+     * @param branch the branch to check
+     * @return true if branch is being tracked, else false
+     */
     public boolean isBranchTracked(BranchHelper branch){
         String branchName = branch.getBranchName();
         if(branch instanceof LocalBranchHelper){
@@ -658,8 +763,17 @@ public abstract class RepoHelper {
         return false;
     }
 
+    /**
+     * Gets a list of references (branch heads and tags) from the
+     * remote repository without fetching any changes. Equivalent
+     * to 'git ls-remote -h -t' if includeTags is true, or
+     * 'git ls-remote -h' if false
+     * @param includeTags whether to include the tags
+     * @return a list of remotre references
+     * @throws GitAPIException
+     */
     public Collection<Ref> getRefsFromRemote(boolean includeTags) throws GitAPIException{
-        if(includeTags) return new Git(repo).lsRemote().setCredentialsProvider(this.ownerAuth).call();
+        if(includeTags) return new Git(repo).lsRemote().setHeads(true).setTags(true).setCredentialsProvider(this.ownerAuth).call();
         else return new Git(repo).lsRemote().setHeads(true).setCredentialsProvider(this.ownerAuth).call();
     }
 }

@@ -15,7 +15,9 @@ import java.util.Map;
  */
 public class Highlighter{
 
+    // Cells that are currently blocked from being highlighted
     private static final List<String> blockedCellIDs = new ArrayList<>();
+    // A map from each known cell to its state
     private static final Map<Cell, CellState> cellStates = new HashMap<>();
 
     /**
@@ -147,9 +149,11 @@ public class Highlighter{
     }
 
     /**
-     * First requests the focus of the MatchedScrollPanes and then
-     * performs an animation on the given cell in order to emphasize it.
-     * Currently, the animation is a pulsing size and color change
+     * First requests the focus of the MatchedScrollPanes, then
+     * sets the state of the given cell to emphasized, and fianlly
+     * performs an animation on it. Currently, the animation is
+     * a repeated scaling.
+     * Cells being emphasized are blocked from other highlighting.
      * @param c the cell to emphasize
      */
     public static void emphasizeCell(Cell c){
@@ -176,6 +180,10 @@ public class Highlighter{
         sct.setOnFinished(event -> endEmphasisOnCell(c));
     }
 
+    /**
+     * Unblocks the given cell and sets its state to standard
+     * @param c the cell to end emphasis on
+     */
     private static void endEmphasisOnCell(Cell c){
         blockedCellIDs.remove(c.getCellId());
         highlightCell(c, cellStates.getOrDefault(c, CellState.STANDARD));

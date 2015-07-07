@@ -9,10 +9,6 @@ import javafx.scene.shape.Shape;
  */
 public class InvisibleCell extends Cell{
 
-    public InvisibleCell(String cellId, long time, Cell parent){
-        super(cellId, time, parent);
-    }
-
     public InvisibleCell(String cellId, long time, Cell parent1, Cell parent2){
         super(cellId, time, parent1, parent2);
     }

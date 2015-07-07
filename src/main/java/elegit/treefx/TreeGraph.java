@@ -7,11 +7,10 @@ import javafx.scene.layout.Pane;
 import main.java.elegit.MatchedScrollPane;
 
 /**
- * Thanks to Roland for providing this graph structure:
+ * Thanks to RolandC for providing the base graph code structure:
  * http://stackoverflow.com/questions/30679025/graph-visualisation-like-yfiles-in-javafx/30696075#30696075
  *
- * Constructs a hold a tree graph represented by parent and children cells with directed edges between them
- *
+ * Constructs a scrollable tree graph represented by parent and children cells with directed edges between them
  */
 public class TreeGraph{
 

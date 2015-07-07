@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Thanks to Roland for providing this graph structure:
+ * Thanks to RolandC for providing the base graph code structure:
  * http://stackoverflow.com/questions/30679025/graph-visualisation-like-yfiles-in-javafx/30696075#30696075
  *
  * The underlying model of a tree graph represented with generational cells and directed edges between
@@ -34,6 +34,7 @@ public class TreeGraphModel{
     // Whether this graph has been through the layout process already or not
     public boolean isInitialSetupFinished;
 
+    // A list of cells in this graph that do not have the default shape
     private List<Cell> cellsWithNonDefaultShapes;
 
     /**
@@ -184,24 +185,40 @@ public class TreeGraphModel{
         }
     }
 
+    /**
+     * Sets the label for the cell with the given ID to be the given string
+     * @param cellId the id of the cell to label
+     * @param label the new label
+     */
     public void setCellLabel(String cellId, String label){
         cellMap.get(cellId).setDisplayLabel(label);
     }
 
-    public void setCellShape(String id, CellShape shape){
-        Cell cell = cellMap.get(id);
+    /**
+     * Sets the shape of the cell with the given ID to be the given shape.
+     * If the shape is not the default shape, adds it to the list of non-
+     * default shaped cells.
+     * @param cellId the id of the cell to label
+     * @param shape the new shape
+     */
+    public void setCellShape(String cellId, CellShape shape){
+        Cell cell = cellMap.get(cellId);
         cell.setShape(shape);
-        if(shape == CellShape.DEFAULT){
+        if(shape == Cell.DEFAULT_SHAPE){
             cellsWithNonDefaultShapes.remove(cell);
         }else{
             cellsWithNonDefaultShapes.add(cell);
         }
     }
 
+    /**
+     * Changes every cell back to the default shape
+     * @return a list of CellIDs corresponding to the cells that were changed
+     */
     public List<String> resetCellShapes(){
         List<String> resetIDs = new ArrayList<>();
         for(Cell cell : cellsWithNonDefaultShapes){
-            cell.setShape(CellShape.DEFAULT);
+            cell.setShape(Cell.DEFAULT_SHAPE);
             resetIDs.add(cell.getCellId());
         }
         cellsWithNonDefaultShapes = new ArrayList<>();

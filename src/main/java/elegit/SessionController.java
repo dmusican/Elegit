@@ -42,7 +42,7 @@ import java.util.prefs.BackingStoreException;
 /**
  * The controller for the entire session.
  */
-public class SessionController extends Controller {
+public class SessionController {
 
     public ComboBox<LocalBranchHelper> branchSelector;
 
@@ -96,7 +96,7 @@ public class SessionController extends Controller {
      *
      * This method is automatically called by JavaFX.
      */
-    public void initialize() throws Exception {
+    public void initialize() {
         this.theModel = SessionModel.getSessionModel();
 
         this.initializeLayoutParameters();
@@ -146,6 +146,9 @@ public class SessionController extends Controller {
         });
     }
 
+    /**
+     * Sets up the layout parameters for things that cannot be set in FXML
+     */
     private void initializeLayoutParameters(){
         openRepoDirButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         gitStatusButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
@@ -175,6 +178,9 @@ public class SessionController extends Controller {
         commitInfoGoToButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
     }
 
+    /**
+     * Binds the disable properties of the git command buttons to the appropriate values
+     */
     private void initializeButtonDisableBindings(){
         commitButton.setDisable(true);
         mergeFromFetchButton.setDisable(true);
@@ -232,13 +238,13 @@ public class SessionController extends Controller {
      *
      */
     private void initializeMenuBar() {
-        this.newRepoMenu = new Menu("Load new Repository");
+        this.newRepoMenu = new Menu("Load New Repository");
 
         MenuItem cloneOption = new MenuItem("Clone");
-        cloneOption.setOnAction(t -> handleLoadRepoMenuItem(new ClonedRepoHelperBuilder(this.theModel),() -> cloneOption.getOnAction().handle(t)));
+        cloneOption.setOnAction(t -> handleLoadRepoMenuItem(new ClonedRepoHelperBuilder(this.theModel)));
 
         MenuItem existingOption = new MenuItem("Load existing repository");
-        existingOption.setOnAction(t -> handleLoadRepoMenuItem(new ExistingRepoHelperBuilder(this.theModel), () -> existingOption.getOnAction().handle(t)));
+        existingOption.setOnAction(t -> handleLoadRepoMenuItem(new ExistingRepoHelperBuilder(this.theModel)));
 
         // TODO: implement New Repository option.
         MenuItem newOption = new MenuItem("Start a new repository");
@@ -247,7 +253,7 @@ public class SessionController extends Controller {
         this.newRepoMenu.getItems().addAll(cloneOption, existingOption, newOption);
 
         // Initialize it with no repos to choose from. This gets updated when there are repos present.
-        this.openRecentRepoMenu = new Menu("Open recent repository");
+        this.openRecentRepoMenu = new Menu("Open Recent Repository");
         MenuItem noOptionsAvailable = new MenuItem("No recent repositories");
         noOptionsAvailable.setDisable(true);
         this.openRecentRepoMenu.getItems().add(noOptionsAvailable);
@@ -261,7 +267,12 @@ public class SessionController extends Controller {
 
     }
 
-    private synchronized void handleLoadRepoMenuItem(RepoHelperBuilder builder, Runnable callback){
+    /**
+     * Called when a selection is made from the 'Load new Repository' menu. Creates a new repository
+     * using the given builder and updates the UI
+     * @param builder the builder to use to create a new repository
+     */
+    private synchronized void handleLoadRepoMenuItem(RepoHelperBuilder builder){
         try{
             RepoHelper repoHelper = builder.getRepoHelperFromDialogs();
             Thread th = new Thread(new Task<Void>(){
@@ -295,13 +306,13 @@ public class SessionController extends Controller {
             showInvalidRepoNotification();
             e.printStackTrace();
         } catch(NoOwnerInfoException e) {
-            showNotLoggedInNotification(callback);
+            showNotLoggedInNotification(() -> handleLoadRepoMenuItem(builder));
         } catch(JGitInternalException e){
             showNonEmptyFolderNotification();
         } catch(InvalidRemoteException e){
             showInvalidRemoteNotification();
         } catch(TransportException e){
-            showNotAuthorizedNotification(callback);
+            showNotAuthorizedNotification(() -> handleLoadRepoMenuItem(builder));
         } catch (NoRepoSelectedException e) {
             // The user pressed cancel on the dialog box. Do nothing!
         } catch(IOException | GitAPIException e){
@@ -330,6 +341,11 @@ public class SessionController extends Controller {
         });
     }
 
+    /**
+     * Called when a selection is made from the 'Open Recent Repository" menu. Loads the repository
+     * given and updates the UI
+     * @param repoHelper the repository to open
+     */
     private synchronized void handleRecentRepoMenuItem(RepoHelper repoHelper){
         Thread th = new Thread(new Task<Void>(){
             @Override
@@ -561,7 +577,7 @@ public class SessionController extends Controller {
     }
 
     /**
-     * Loads the panel views when the "git status" button is clicked.
+     * Updates the panel views when the "git status" button is clicked.
      *
      * See initPanelViews for Thread information
      */
@@ -829,7 +845,9 @@ public class SessionController extends Controller {
         return switchedLogin;
     }
 
-
+    /**
+     * Called when the switch user button is clicked. See switchUser
+     */
     public void handleSwitchUserButton(){
         this.switchUser();
     }
@@ -911,7 +929,7 @@ public class SessionController extends Controller {
 
     private void showFailedToOpenLocalNotification(){
         Platform.runLater(()-> {
-            String path = this.theModel.getCurrentRepoHelper() != null ? this.theModel.getCurrentRepoHelper().getDirectory().toString() : "the location of the local repository";
+            String path = this.theModel.getCurrentRepoHelper() != null ? this.theModel.getCurrentRepoHelper().getLocalPath().toString() : "the location of the local repository";
 
             this.notificationPane.setText("Could not open directory at " + path);
 
@@ -1076,6 +1094,10 @@ public class SessionController extends Controller {
         }
     }
 
+    /**
+     * Displays information about the commit with the given id
+     * @param id the selected commit
+     */
     public void selectCommit(String id){
         CommitHelper commit = this.theModel.getCurrentRepoHelper().getCommit(id);
         commitInfoNameText.setText(commit.getName());
@@ -1086,7 +1108,10 @@ public class SessionController extends Controller {
 
         String s = "";
         for(BranchHelper branch : commit.getBranchesAsHead()){
-            s = s + branch.getBranchName() + " ";
+            if(branch instanceof RemoteBranchHelper){
+                s = s + "origin/";
+            }
+            s = s + branch.getBranchName() + "\n";
         }
         if(s.length() > 0){
             commitInfoMessageText.setText("Head of branches: \n"+s+"\n\n"+commit.getMessage(true));
@@ -1095,6 +1120,9 @@ public class SessionController extends Controller {
         }
     }
 
+    /**
+     * Stops displaying commit information
+     */
     public void clearSelectedCommit(){
         commitInfoNameText.clear();
         commitInfoAuthorText.setText("");
@@ -1104,6 +1132,9 @@ public class SessionController extends Controller {
         commitInfoGoToButton.setDisable(true);
     }
 
+    /**
+     * Copies the commit hash onto the clipboard
+     */
     public void handleCommitNameCopyButton(){
         Clipboard clipboard = Clipboard.getSystemClipboard();
         ClipboardContent content = new ClipboardContent();
@@ -1111,6 +1142,9 @@ public class SessionController extends Controller {
         clipboard.setContent(content);
     }
 
+    /**
+     * Jumps to the selected commit in the tree display
+     */
     public void handleGoToCommitButton(){
         String id = commitInfoNameText.getText();
         CommitTreeController.focusCommitInGraph(id);

@@ -3,7 +3,7 @@ package main.java.elegit;
 import org.eclipse.jgit.lib.ProgressMonitor;
 
 /**
- * Created by makik on 7/1/15.
+ * An empty progress monitor for JGit commands
  */
 public class SimpleProgressMonitor implements ProgressMonitor{
 

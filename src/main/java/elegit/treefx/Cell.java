@@ -21,9 +21,15 @@ import java.util.List;
  */
 public class Cell extends Pane{
 
+    // Base shapes for different types of cells
+    public static final CellShape DEFAULT_SHAPE = CellShape.SQUARE;
+    public static final CellShape UNTRACKED_BRANCH_HEAD_SHAPE = CellShape.CIRCLE;
+    public static final CellShape TRACKED_BRANCH_HEAD_SHAPE = CellShape.TRIANGLE_RIGHT;
+
     // The size of the rectangle being drawn
     public static final int BOX_SIZE = 30;
 
+    // Limits on animation so the app doesn't begin to stutter
     private static final int MAX_NUM_CELLS_TO_ANIMATE = 5;
     private static int numCellsBeingAnimated = 0;
 
@@ -141,7 +147,7 @@ public class Cell extends Pane{
      * @return the basic view for this cell
      */
     protected Node getBaseView(){
-        this.shape = CellShape.DEFAULT;
+        this.shape = DEFAULT_SHAPE;
         Node node = shape.get();
         node.setStyle("-fx-fill: " + CellState.STANDARD.getCssStringKey());
         node.getStyleClass().setAll("cell");
@@ -163,6 +169,10 @@ public class Cell extends Pane{
         getChildren().add(view);
     }
 
+    /**
+     * Set the shape of this cell
+     * @param shape the new shape
+     */
     public void setShape(CellShape shape){
         if(this.shape == shape) return;
         setView(shape.get());
@@ -193,6 +203,9 @@ public class Cell extends Pane{
         return children;
     }
 
+    /**
+     * @return the list of the parents of this cell
+     */
     public List<Cell> getCellParents(){
         return parents.toList();
     }
@@ -228,6 +241,10 @@ public class Cell extends Pane{
         return false;
     }
 
+    /**
+     * Sets the state of this cell and adjusts the style accordingly
+     * @param state the new state of the cell
+     */
     public void setCellState(CellState state){
         view.setStyle("-fx-fill: "+state.getCssStringKey());
     }

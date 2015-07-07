@@ -17,7 +17,7 @@ public class CommitTreeController{
     // The id of the currently selected cell
     private static String selectedCellID = null;
 
-
+    // The session controller if this controller needs to access other models/views
     public static SessionController sessionController;
 
     /**
@@ -34,15 +34,16 @@ public class CommitTreeController{
         selectCommitInGraph(id);
     }
 
+    /**
+     * Handles mouse clicks that didn't happen on a cell. Deselects any
+     * selected commit
+     */
     public static void handleMouseClicked(){
-        if(selectedCellID != null){
-            selectCommitInGraph(selectedCellID);
-        }
-        sessionController.clearSelectedCommit();
+        resetSelection();
     }
 
     /**
-     * takes in the cell that was moused over, and highlights it using highlightCommit
+     * Takes in the cell that was moused over, and highlights it using highlightCommit
      * @param cell the cell generated the mouseover event
      * @param isOverCell whether the mouse is entering or exiting the cell
      */
@@ -121,6 +122,7 @@ public class CommitTreeController{
         if(selectedCellID != null){
             selectCommitInGraph(selectedCellID);
         }
+        sessionController.clearSelectedCommit();
     }
 
     /**
@@ -134,7 +136,8 @@ public class CommitTreeController{
 
     /**
      * Initializes the view corresponding to the given CommitTreeModel. Updates
-     * all tracked CommitTreeModels with missing commits, but does not update their view
+     * all tracked CommitTreeModels with branch heads and missing commits,
+     * but does not update their view
      * @param commitTreeModel the model whose view should be updated
      */
     public static void init(CommitTreeModel commitTreeModel){
@@ -148,32 +151,28 @@ public class CommitTreeController{
                         model.addInvisibleCommit(id);
                     }
                 }
-
-                model.resetBranchHeads();
-                List<BranchHelper> modelBranches = model.getBranches();
-                if(modelBranches != null){
-                    for(BranchHelper branch : modelBranches){
-                        if(!model.sessionModel.getCurrentRepoHelper().isBranchTracked(branch)){
-                            model.setCommitAsUntrackedBranch(branch.getHead().getId());
-                        }else{
-                            model.setCommitAsTrackedBranch(branch.getHead().getId());
-                        }
-                    }
-                }
-
                 model.treeGraph.update();
-                if(model.equals(commitTreeModel)){
-                    model.view.displayTreeGraph(model.treeGraph);
+            }
+        }
+
+        commitTreeModel.resetBranchHeads(false);
+        List<BranchHelper> modelBranches = commitTreeModel.getBranches();
+        if(modelBranches != null){
+            for(BranchHelper branch : modelBranches){
+                if(!commitTreeModel.sessionModel.getCurrentRepoHelper().isBranchTracked(branch)){
+                    commitTreeModel.setCommitAsUntrackedBranch(branch.getHead().getId());
+                }else{
+                    commitTreeModel.setCommitAsTrackedBranch(branch.getHead().getId());
                 }
             }
         }
 
-        sessionController.clearSelectedCommit();
+        commitTreeModel.view.displayTreeGraph(commitTreeModel.treeGraph);
     }
 
     /**
      * Updates the views corresponding to all tracked CommitTreeModels after updating them
-     * with any missing commits
+     * with branch heads and any missing commits
      * @param repo the repo from which the list of all commits is pulled
      */
     public static void update(RepoHelper repo){
@@ -186,7 +185,7 @@ public class CommitTreeController{
                     }
                 }
 
-                model.resetBranchHeads();
+                model.resetBranchHeads(true);
                 List<BranchHelper> modelBranches = model.getBranches();
                 if(modelBranches == null) continue;
                 for(BranchHelper branch : modelBranches){

@@ -15,7 +15,7 @@ import main.java.elegit.treefx.TreeLayout;
  */
 public class CommitTreePanelView extends Region{
 
-    // Constants for size
+    // Constants for panel size
     public static int TREE_PANEL_WIDTH = 500;
     public static int TREE_PANEL_HEIGHT = (Cell.BOX_SIZE + TreeLayout.H_SPACING) * 5;
 
@@ -25,6 +25,9 @@ public class CommitTreePanelView extends Region{
     private Thread th;
     private String name;
 
+    /**
+     * Constructs a new view for the commit tree
+     */
     public CommitTreePanelView(){
         super();
         this.setPrefHeight(TREE_PANEL_HEIGHT);
