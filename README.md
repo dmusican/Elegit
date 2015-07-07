@@ -11,6 +11,7 @@ A graphics-based Git client for teaching people both how to work Git and how Git
      - JGit: `org.eclipse.jgit:org.eclipse.jgit:3.4.0.201406110918-r`
      - ControlsFX: `org.controlsfx:controlsfx:8.40.9`
      - FontAwesomeFX: `de.jensd:fontawesomefx:8.4`
+     - **Note**: If you are planning on building the program with Gradle, make sure to check the *Download to* box!
 4. Also in the *Project Structure* menu, under *Project*, make sure the Project SDK is *at least* Java Version 8 Update 40.
 5. Run the `main` method of the `Main` class.
 
