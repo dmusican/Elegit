@@ -3,6 +3,7 @@ package main.java.elegit;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import main.java.elegit.exceptions.MissingRepoException;
+import main.java.elegit.exceptions.NoOwnerInfoException;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -42,15 +43,21 @@ public class SessionModel {
 
     Preferences preferences;
 
-    public static SessionModel getSessionModel() throws Exception {
+    /**
+     * @return the SessionModel object
+     */
+    public static SessionModel getSessionModel() {
         if (sessionModel == null) {
             sessionModel = new SessionModel();
         }
         return sessionModel;
     }
 
-    private SessionModel() throws Exception {
-        this.allRepoHelpers = new ArrayList<RepoHelper>();
+    /**
+     * Private constructor for the SessionModel singleton
+     */
+    private SessionModel() {
+        this.allRepoHelpers = new ArrayList<>();
         this.preferences = Preferences.userNodeForPackage(this.getClass());
         currentRepoHelperProperty = new SimpleObjectProperty<>(currentRepoHelper);
     }
@@ -60,10 +67,9 @@ public class SessionModel {
      * last closed. If this repo has been moved or deleted, it doesn't load anything.
      *
      * Uses the Java Preferences API (wrapped in IBM's PrefObj class) to load the repo.
-     *
-     * @throws Exception from the PrefObj and the ExistingRepoHelper
      */
-    public void loadMostRecentRepoHelper() throws Exception {
+    public void loadMostRecentRepoHelper() {
+        try{
         String lastOpenedRepoPathString = (String) PrefObj.getObject(this.preferences, LAST_OPENED_REPO_PATH_KEY);
         if (lastOpenedRepoPathString != null) {
             Path path = Paths.get(lastOpenedRepoPathString);
@@ -73,29 +79,38 @@ public class SessionModel {
             } catch (IllegalArgumentException e) {
                 // The most recent repo is no longer in the directory it used to be in,
                 // so just don't load it.
+            }catch(NoOwnerInfoException | GitAPIException | MissingRepoException e){
+                e.printStackTrace();
             }
+        }
+        }catch(IOException | BackingStoreException | ClassNotFoundException e){
+            e.printStackTrace();
         }
     }
 
     /**
      * Loads all recently loaded repositories (stored with the Java Preferences API)
      * into the recent repos menubar.
-     *
-     * @throws Exception from ExistingRepoHelper or PrefObj
      */
-    public void loadRecentRepoHelpersFromStoredPathStrings() throws Exception {
-        ArrayList<String> storedRepoPathStrings = (ArrayList<String>) PrefObj.getObject(this.preferences, RECENT_REPOS_LIST_KEY);
-        if (storedRepoPathStrings != null) {
-            for (String pathString : storedRepoPathStrings) {
-                Path path = Paths.get(pathString);
-                try {
-                    ExistingRepoHelper existingRepoHelper = new ExistingRepoHelper(path, this.defaultOwner);
-                    this.allRepoHelpers.add(existingRepoHelper);
-                } catch (IllegalArgumentException e) {
-                    // This happens when this repository has been moved.
-                    // We'll just move along.
+    public void loadRecentRepoHelpersFromStoredPathStrings() {
+        try{
+            ArrayList<String> storedRepoPathStrings = (ArrayList<String>) PrefObj.getObject(this.preferences, RECENT_REPOS_LIST_KEY);
+            if (storedRepoPathStrings != null) {
+                for (String pathString : storedRepoPathStrings) {
+                    Path path = Paths.get(pathString);
+                    try {
+                        ExistingRepoHelper existingRepoHelper = new ExistingRepoHelper(path, this.defaultOwner);
+                        this.allRepoHelpers.add(existingRepoHelper);
+                    } catch (IllegalArgumentException e) {
+                        // This happens when this repository has been moved.
+                        // We'll just move along.
+                    } catch(NoOwnerInfoException | GitAPIException e){
+                        e.printStackTrace();
+                    }
                 }
             }
+        } catch(IOException | ClassNotFoundException | BackingStoreException e){
+            e.printStackTrace();
         }
     }
 
@@ -161,8 +176,44 @@ public class SessionModel {
         return null;
     }
 
+    /**
+     * @return the current repository
+     */
+    public RepoHelper getCurrentRepoHelper(){
+        return currentRepoHelper;
+    }
+
+    /**
+     * @return the current JGit repository associated with the current RepoHelper
+     */
     public Repository getCurrentRepo() {
         return this.currentRepoHelper.getRepo();
+    }
+
+    /**
+     * @return the default owner that will be assigned to new repositories
+     */
+    public RepoOwner getDefaultOwner() {
+        return defaultOwner;
+    }
+
+    public void setCurrentDefaultOwner(RepoOwner newOwner) {
+        this.defaultOwner = newOwner;
+    }
+
+    /**
+     * Gets a list of all repositories held in this session. Repositories
+     * that no longer exist are removed (and not returned)
+     * @return a list of all existing repositories held in the session
+     */
+    public List<RepoHelper> getAllRepoHelpers() {
+        List<RepoHelper> tempList = new ArrayList<>(allRepoHelpers);
+        for(RepoHelper r : tempList){
+            if(!r.exists()){
+                allRepoHelpers.remove(r);
+            }
+        }
+        return allRepoHelpers;
     }
 
     /**
@@ -351,24 +402,6 @@ public class SessionModel {
         return changedRepoFiles;
     }
 
-    public RepoHelper getCurrentRepoHelper(){
-        return currentRepoHelper;
-    }
-
-    public RepoOwner getDefaultOwner() {
-        return defaultOwner;
-    }
-
-    public List<RepoHelper> getAllRepoHelpers() {
-        List<RepoHelper> tempList = new ArrayList<>(allRepoHelpers);
-        for(RepoHelper r : tempList){
-            if(!r.exists()){
-                allRepoHelpers.remove(r);
-            }
-        }
-        return allRepoHelpers;
-    }
-
     /**
      * Saves the model's list of RepoHelpers using the Preferences API (and the PrefObj wrapper
      *  from IBM).
@@ -416,9 +449,5 @@ public class SessionModel {
     public void clearStoredPreferences() throws BackingStoreException, IOException, ClassNotFoundException {
         PrefObj.putObject(this.preferences, RECENT_REPOS_LIST_KEY, null);
         PrefObj.putObject(this.preferences, LAST_OPENED_REPO_PATH_KEY, null);
-    }
-
-    public void setCurrentDefaultOwner(RepoOwner newOwner) {
-        this.defaultOwner = newOwner;
     }
 }

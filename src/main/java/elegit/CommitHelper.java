@@ -25,6 +25,7 @@ public class CommitHelper{
     ParentCommitHelper parents;
     List<CommitHelper> children;
 
+    // The branches for which this commit is a head
     Map<String, BranchHelper> branchesAsHead;
 
     // The short and full message of this commit
@@ -208,14 +209,25 @@ public class CommitHelper{
         return children;
     }
 
+    /**
+     * Notifies this commit that it is the head of the given branch
+     * @param branch the branch for which this commit is the head
+     */
     public void setAsHead(BranchHelper branch){
         branchesAsHead.put(branch.getRefPathString(), branch);
     }
 
+    /**
+     * Notifies this commit that it is no longer the head of the given branch
+     * @param branch the branch for which this commit is no longer the head
+     */
     public void removeAsHead(BranchHelper branch){
         branchesAsHead.remove(branch.getRefPathString());
     }
 
+    /**
+     * @return all branches for which this commit is the head
+     */
     public List<BranchHelper> getBranchesAsHead(){
         return new LinkedList<>(branchesAsHead.values());
     }

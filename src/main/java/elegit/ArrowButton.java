@@ -5,7 +5,8 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.control.Button;
 
 /**
- * Created by makik on 6/25/15.
+ * A button that can have up to 4 arrows pointing in each of the cardinal directions.
+ * See ArrowButtonSkin
  */
 public class ArrowButton extends Button{
 
@@ -25,6 +26,12 @@ public class ArrowButton extends Button{
         arrowDown.addListener((observable, oldValue, newValue) -> ((ArrowButtonSkin) this.getSkin()).down = newValue);
         arrowLeft.addListener((observable, oldValue, newValue) -> ((ArrowButtonSkin) this.getSkin()).left = newValue);
     }
+
+    ///////////////////////////////////////////////////////////////
+    //                                                           //
+    // Property methods needed in order to set arrows using FXML //
+    //                                                           //
+    ///////////////////////////////////////////////////////////////
 
     public boolean getArrowUp(){
         return arrowUp.get();

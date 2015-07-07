@@ -16,8 +16,9 @@ public enum CellShape{
     TRIANGLE_RIGHT,
     TRIANGLE_LEFT;
 
-    public static final CellShape DEFAULT = SQUARE;
-
+    /**
+     * @return the JavaFX object corresponding to the shape
+     */
     public Shape get(){
         switch(this){
             case CIRCLE:

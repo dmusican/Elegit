@@ -75,6 +75,10 @@ public class MatchedScrollPane extends ScrollPane{
         }
     }
 
+    /**
+     * Tells the scroll panes to either ignore or start listening to scroll events
+     * @param ignore whether to ignore or begin listening
+     */
     public static void ignoreScrolling(boolean ignore){
         isScrollBlocked = ignore;
     }

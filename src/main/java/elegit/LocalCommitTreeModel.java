@@ -4,6 +4,7 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Subclass of CommitTreeModel that examines local commits
@@ -21,8 +22,8 @@ public class LocalCommitTreeModel extends CommitTreeModel{
     }
 
     @Override
-    protected List<CommitHelper> getNewCommits(RepoHelper repoHelper) throws GitAPIException, IOException{
-        return repoHelper.getNewLocalCommits(this.branchMap);
+    protected List<CommitHelper> getNewCommits(RepoHelper repoHelper, Map<String, BranchHelper> oldBranches) throws GitAPIException, IOException{
+        return repoHelper.getNewLocalCommits(oldBranches);
     }
 
     @Override

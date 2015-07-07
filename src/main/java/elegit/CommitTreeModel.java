@@ -1,6 +1,6 @@
 package main.java.elegit;
 
-import main.java.elegit.treefx.CellShape;
+import main.java.elegit.treefx.Cell;
 import main.java.elegit.treefx.TreeGraph;
 import main.java.elegit.treefx.TreeGraphModel;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -18,9 +18,6 @@ import java.util.Map;
  */
 public abstract class CommitTreeModel{
 
-    public final CellShape UNTRACKED_BRANCH_HEAD_SHAPE = CellShape.CIRCLE;
-    public final CellShape TRACKED_BRANCH_HEAD_SHAPE = CellShape.TRIANGLE_RIGHT;
-
     // The view corresponding to this model
     CommitTreePanelView view;
 
@@ -29,10 +26,14 @@ public abstract class CommitTreeModel{
     // The graph corresponding to this model
     TreeGraph treeGraph;
 
+    // A list of all branches this tree knows about
     private List<BranchHelper> branches;
-    protected Map<String, BranchHelper> branchMap;
+    // A map from branch names to the branches themselves
+    private Map<String, BranchHelper> branchMap;
 
     /**
+     * Constructs a new commit tree model that supplies the data for the given
+     * view
      * @param model the model with which this class accesses the commits
      * @param view the view that will be updated with the new graph
      */
@@ -44,6 +45,10 @@ public abstract class CommitTreeModel{
         this.init();
     }
 
+    /**
+     * Gets all commits tracked by this model and updates branch information
+     * @return a list of all commits tracked by this model
+     */
     private List<CommitHelper> getAllCommits(){
         if(this.sessionModel != null){
             RepoHelper repo = this.sessionModel.getCurrentRepoHelper();
@@ -58,11 +63,18 @@ public abstract class CommitTreeModel{
         return new ArrayList<>();
     }
 
+    /**
+     * Gets any commits tracked by this model that haven't yet been recorded, and
+     * updates branch information
+     * @return a list of all new commits since the last update
+     * @throws GitAPIException
+     * @throws IOException
+     */
     private List<CommitHelper> getNewCommits() throws GitAPIException, IOException{
         if(this.sessionModel != null){
             RepoHelper repo = this.sessionModel.getCurrentRepoHelper();
             if(repo != null){
-                List<CommitHelper> commits = getNewCommits(repo);
+                List<CommitHelper> commits = getNewCommits(repo, branchMap);
                 this.branches = getAllBranches(repo);
                 branchMap = new HashMap<>();
                 for(BranchHelper branch : branches) branchMap.put(branch.getBranchName(),branch);
@@ -72,19 +84,26 @@ public abstract class CommitTreeModel{
         return new ArrayList<>();
     }
 
+    /**
+     * @param repoHelper the repository to get the branches from
+     * @return a list of all branches tracked by this model
+     */
     protected abstract List<BranchHelper> getAllBranches(RepoHelper repoHelper);
 
     /**
+     * @param repoHelper the repository to get the commits from
      * @return a list of all commits tracked by this model
      */
     protected abstract List<CommitHelper> getAllCommits(RepoHelper repoHelper);
 
     /**
+     * @param repoHelper the repository to get the commits from
+     * @param oldBranches the branches already known about
      * @return a list of all commits tracked by this model that haven't been added to the tree
      * @throws GitAPIException
      * @throws IOException
      */
-    protected abstract List<CommitHelper> getNewCommits(RepoHelper repoHelper) throws GitAPIException, IOException;
+    protected abstract List<CommitHelper> getNewCommits(RepoHelper repoHelper, Map<String, BranchHelper> oldBranches) throws GitAPIException, IOException;
 
     /**
      * @param id the id to check
@@ -181,7 +200,8 @@ public abstract class CommitTreeModel{
     }
 
     /**
-     * Adds a single commit to the tree using one of the three methods available depending on the number of parents
+     * Adds a single commit to the tree with the given parents. Ensures the given parents are
+     * already added to the tree, and if they aren't, adds them
      * @param commitHelper the commit to be added
      * @param parents a list of this commit's parents
      * @param graphModel the treeGraphModel to add the commit to
@@ -229,7 +249,7 @@ public abstract class CommitTreeModel{
     /**
      * Returns a string that will be displayed to the user to identify this commit
      * @param commitHelper the commit to get a label for
-     * @return the display label for this commit
+     * @return the display label for the commit
      */
     private String getTreeCellLabel(CommitHelper commitHelper){
         String s = "";
@@ -247,6 +267,11 @@ public abstract class CommitTreeModel{
         }
     }
 
+    /**
+     * Returns a string that will be displayed to the user to identify the commit with the given id
+     * @param commitId the id of the commit to get a label for
+     * @return the display label for the commit
+     */
     private String getTreeCellLabel(String commitId){
         return getTreeCellLabel(sessionModel.getCurrentRepoHelper().getCommit(commitId));
     }
@@ -260,53 +285,39 @@ public abstract class CommitTreeModel{
         return commitHelper.getName();
     }
 
-    public boolean isBranchHead(CommitHelper commit){
-        if(branches == null) return false;
-        for(BranchHelper branch : branches){
-            if(branch.getHead().getId().equals(commit.getId())){
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public BranchHelper getBranchFromHead(CommitHelper head){
-        if(branches == null) return null;
-        for(BranchHelper branch : branches){
-            if(branch.getHead().getId().equals(head.getId())){
-                return branch;
-            }
-        }
-        return null;
-    }
-
-    public BranchHelper getBranchFromName(String name){
-        if(branches == null) return null;
-        for(BranchHelper branch : branches){
-            if(branch.getBranchName().equals(name)){
-                return branch;
-            }
-        }
-        return null;
-    }
-
+    /**
+     * Marks the commit with the given id as the head of a tracked branch in the tree
+     * @param commitId the id of the commit to mark
+     */
     public void setCommitAsTrackedBranch(String commitId){
-        treeGraph.treeGraphModel.setCellShape(commitId, TRACKED_BRANCH_HEAD_SHAPE);
+        treeGraph.treeGraphModel.setCellShape(commitId, Cell.TRACKED_BRANCH_HEAD_SHAPE);
         treeGraph.treeGraphModel.setCellLabel(commitId, getTreeCellLabel(commitId));
     }
 
+    /**
+     * Marks the commit with the given id as the head of an untracked branch in the tree
+     * @param commitId the id of the commit to mark
+     */
     public void setCommitAsUntrackedBranch(String commitId){
-        treeGraph.treeGraphModel.setCellShape(commitId, UNTRACKED_BRANCH_HEAD_SHAPE);
+        treeGraph.treeGraphModel.setCellShape(commitId, Cell.UNTRACKED_BRANCH_HEAD_SHAPE);
         treeGraph.treeGraphModel.setCellLabel(commitId, getTreeCellLabel(commitId));
     }
 
-    public void resetBranchHeads(){
+    /**
+     * Forgets information about tracked/untracked branch heads in the tree
+     */
+    public void resetBranchHeads(boolean updateLabels){
         List<String> resetIDs = treeGraph.treeGraphModel.resetCellShapes();
-        for(String id : resetIDs){
-            treeGraph.treeGraphModel.setCellLabel(id, getTreeCellLabel(id));
+        if(updateLabels){
+            for(String id : resetIDs){
+                treeGraph.treeGraphModel.setCellLabel(id, getTreeCellLabel(id));
+            }
         }
     }
 
+    /**
+     * @return the branches tracked by this model
+     */
     public List<BranchHelper> getBranches(){
         return branches;
     }
