@@ -3,12 +3,11 @@ package main.java.elegit;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Ref;
 
+import java.io.IOException;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 
 /**
  * A class that creates a thread to watch the current remote repository for new changes
@@ -45,44 +44,35 @@ public class RepositoryMonitor{
 
         th = new Thread(() -> {
 
-            Map<String, ObjectId> oldRefs = null;
-
             while(!interrupted){
                 try{
-                    Collection<Ref> newRefs = repoHelper.getRemoteRefs();
+                    List<BranchHelper> localOriginHeads = repoHelper.getRemoteBranches();
+                    Collection<Ref> remoteHeads = repoHelper.getRefsFromRemote(false);
 
-                    if(oldRefs != null){
-                        Map<String, ObjectId> temp = new HashMap<>();
-                        boolean hasFoundNewChanges = false;
+                    if(localOriginHeads.size() == remoteHeads.size()){
+                        for(BranchHelper branch : localOriginHeads){
+                            boolean hasFoundMatchingBranch = false;
+                            boolean hasFoundNewChanges2 = false;
 
-                        for(Ref newRef : newRefs){
-                            String refName = newRef.getName();
-                            ObjectId refId = newRef.getObjectId();
-
-                            if(oldRefs.containsKey(refName)){
-                                if(!oldRefs.get(refName).equals(refId)){
-                                    hasFoundNewChanges = true;
+                            for(Ref ref : remoteHeads){
+                                if(ref.getName().equals("refs/heads/"+branch.getBranchName())){
+                                    hasFoundMatchingBranch = true;
+                                    if(!branch.getHeadID().equals(ref.getObjectId())){
+                                        hasFoundNewChanges2 = true;
+                                        break;
+                                    }
                                 }
-                            }else{
-                                hasFoundNewChanges = true;
                             }
 
-                            temp.put(refName, refId);
+                            if(hasFoundNewChanges2 || !hasFoundMatchingBranch){
+                                setFoundNewChanges();
+                                break;
+                            }
                         }
-
-                        if(hasFoundNewChanges) setFoundNewChanges();
-
-                        oldRefs = temp;
                     }else{
-                        oldRefs = new HashMap<>();
-                        for(Ref newRef : newRefs){
-                            String refName = newRef.getName();
-                            ObjectId refId = newRef.getObjectId();
-
-                            oldRefs.put(refName, refId);
-                        }
+                        setFoundNewChanges();
                     }
-                }catch(GitAPIException ignored){}
+                }catch(GitAPIException | IOException ignored){}
 
                 try{
                     Thread.sleep(CHECK_INTERVAL);
@@ -103,13 +93,18 @@ public class RepositoryMonitor{
     }
 
     public static void resetFoundNewChanges(boolean ignore){
-        hasFoundNewChanges.set(false);
-        ignoreNewChanges = ignore;
+        if(ignore){
+            resetFoundNewChanges(-1);
+        }else{
+            resetFoundNewChanges(CHECK_INTERVAL);
+        }
     }
 
     public static void resetFoundNewChanges(long millis){
         hasFoundNewChanges.set(false);
         ignoreNewChanges = true;
+
+        if(millis < 0) return;
 
         Thread waitThread = new Thread(() -> {
             try{

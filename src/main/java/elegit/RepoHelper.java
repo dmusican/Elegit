@@ -658,8 +658,9 @@ public abstract class RepoHelper {
         return false;
     }
 
-    public Collection<Ref> getRemoteRefs() throws GitAPIException{
-        return new Git(repo).lsRemote().setCredentialsProvider(this.ownerAuth).call();
+    public Collection<Ref> getRefsFromRemote(boolean includeTags) throws GitAPIException{
+        if(includeTags) return new Git(repo).lsRemote().setCredentialsProvider(this.ownerAuth).call();
+        else return new Git(repo).lsRemote().setHeads(true).setCredentialsProvider(this.ownerAuth).call();
     }
 }
 
