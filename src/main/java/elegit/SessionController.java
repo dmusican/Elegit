@@ -1068,9 +1068,12 @@ public class SessionController extends Controller {
     public void showBranchManager() {
         try{
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
-            BranchManagerController branchManagerController = this.theModel.getCurrentRepoHelper().getBranchManagerController();
-            branchManagerController.setSessionControllerContext(this);
-            branchManagerController.showBranchChooserWindow();
+//            BranchManagerController branchManagerController = this.theModel.getCurrentRepoHelper().showBranchManagerWindow();
+//            BranchManagerModel branchManagerModel = this.theModel.getCurrentRepoHelper().getBranchManagerModel();
+//            branchManagerModel.setSessionControllerContext(this);
+//            branchManagerController.showBranchChooserWindow();
+            // TODO: Set session controller context for the Branchmanagercontroller
+            this.theModel.getCurrentRepoHelper().showBranchManagerWindow();
         }catch(IOException e){
             this.showGenericErrorNotification();
             e.printStackTrace();

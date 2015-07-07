@@ -47,6 +47,7 @@ public class BranchManagerController {
     public ListView<LocalBranchHelper> localListView;
     private Repository repo;
     private RepoHelper repoHelper;
+    @FXML
     private NotificationPane notificationPane;
 
     @FXML
@@ -59,32 +60,39 @@ public class BranchManagerController {
     private Button swapMergeBranchesButton;
 
     private SessionController sessionControllerContext;
+    private SessionModel sessionModel;
+    private BranchManagerModel branchManagerModel;
 
-    public BranchManagerController(List<LocalBranchHelper> localBranches, List<RemoteBranchHelper> remoteBranches, RepoHelper repoHelper) throws IOException {
-        this.repoHelper = repoHelper;
-        this.repo = repoHelper.getRepo();
+    public void initialize() throws Exception {
+        this.sessionModel = SessionModel.getSessionModel();
+        this.repoHelper = this.sessionModel.getCurrentRepoHelper();
+        this.repo = this.repoHelper.getRepo();
+        this.branchManagerModel = this.repoHelper.getBranchManagerModel();
 
-//        this.remoteListView.setItems(FXCollections.observableArrayList(remoteBranches));
-//        this.localListView.setItems(FXCollections.observableArrayList(localBranches));
-//
-//        this.remoteListView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
-//        this.remoteListView.setOnMouseClicked(e -> {
-//            try {
-//                this.updateButtons();
-//            } catch (IOException e1) {
-//                e1.printStackTrace();
-//            }
-//        });
-//
-//        // Local list view can select multiple (for merges):
-//        this.localListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-//        this.localListView.setOnMouseClicked(e -> {
-//            try {
-//                this.updateButtons();
-//            } catch (IOException e1) {
-//                e1.printStackTrace();
-//            }
-//        });
+        List<LocalBranchHelper> localBranches = this.branchManagerModel.getLocalBranches();
+        List<RemoteBranchHelper> remoteBranches = this.branchManagerModel.getRemoteBranches();
+
+        this.remoteListView.setItems(FXCollections.observableArrayList(remoteBranches));
+        this.localListView.setItems(FXCollections.observableArrayList(localBranches));
+
+        this.remoteListView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
+        this.remoteListView.setOnMouseClicked(e -> {
+            try {
+                this.updateButtons();
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
+        });
+
+        // Local list view can select multiple (for merges):
+        this.localListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+        this.localListView.setOnMouseClicked(e -> {
+            try {
+                this.updateButtons();
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
+        });
 
         Text cloudDownIcon = GlyphsDude.createIcon(FontAwesomeIcon.CLOUD_DOWNLOAD);
         cloudDownIcon.setFill(Color.WHITE);
@@ -140,28 +148,11 @@ public class BranchManagerController {
         this.updateButtons();
     }
 
-    /**
-     * Creates, populates, and displays the window that lets the user
-     * create, delete, or track branches.
-     *
-     * A GridPane is set up programmatically in this function.
-     *
-     * @throws IOException
-     */
-    public void showBranchChooserWindow() throws IOException {
-        // Create and display the Stage:
-        NotificationPane fxmlRoot = FXMLLoader.load(getClass().getResource("/main/resources/elegit/fxml/BranchManager.fxml"));
-
-        Stage stage = new Stage();
-        stage.setTitle("Branch Manager");
-        stage.setScene(new Scene(fxmlRoot, 550, 450));
-        stage.show();
-    }
-
     private void onNewBranchButton() {
         try {
             LocalBranchHelper newLocalBranch = this.createNewLocalBranch(this.newBranchNameField.getText());
             this.localListView.getItems().add(newLocalBranch);
+            this.branchManagerModel.setLocalBranches(this.localListView.getItems());
             this.newBranchNameField.clear();
         } catch (InvalidRefNameException e1) {
             this.showInvalidBranchNameNotification();
@@ -229,10 +220,6 @@ public class BranchManagerController {
         return new LocalBranchHelper(trackingBranchRef, this.repoHelper);
     }
 
-    public List<LocalBranchHelper> getLocalBranches() {
-        return this.localListView.getItems();
-    }
-
     /**
      * Tracks the selected branch (in the remoteListView) locally.
      *
@@ -245,6 +232,7 @@ public class BranchManagerController {
             if (selectedRemoteBranch != null) {
                 LocalBranchHelper tracker = this.createLocalTrackingBranchForRemote(selectedRemoteBranch);
                 this.localListView.getItems().add(tracker);
+                this.branchManagerModel.setLocalBranches(this.localListView.getItems());
             }
             if (this.sessionControllerContext != null) {
                 // Call a `git status` to refresh the tree views:
@@ -267,6 +255,7 @@ public class BranchManagerController {
                     // Local delete:
                     git.branchDelete().setBranchNames(selectedBranch.getRefPathString()).call();
                     this.localListView.getItems().remove(selectedBranch);
+                    this.branchManagerModel.setLocalBranches(this.localListView.getItems());
                 }
             } catch (NotMergedException e) {
                 this.showNotMergedNotification(selectedBranch);
@@ -309,6 +298,7 @@ public class BranchManagerController {
                 // Local delete:
                 git.branchDelete().setForce(true).setBranchNames(branchToDelete.getRefPathString()).call();
                 this.localListView.getItems().remove(branchToDelete);
+                this.branchManagerModel.setLocalBranches(this.localListView.getItems());
             }
         } catch (CannotDeleteCurrentBranchException e) {
             this.showCannotDeleteBranchNotification(branchToDelete);

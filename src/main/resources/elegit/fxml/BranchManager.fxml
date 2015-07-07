@@ -6,61 +6,69 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.geometry.Insets?>
 <NotificationPane fx:controller="main.java.elegit.BranchManagerController"
-                  xmlns:fx="http://javafx.com/fxml">
-    <GridPane padding="10"
-            hgap="10"
-            vgap="10"
-            alignment="TOP_CENTER">
+                  xmlns:fx="http://javafx.com/fxml"
+                  fx:id="notificationPane">
+    <content>
+        <GridPane hgap="10"
+                  vgap="10"
+                  alignment="TOP_CENTER">
 
-        <Text GridPane.columnIndex="0"
-              GridPane.rowIndex="0"
-              text="Remote branches:" />
-        <Text GridPane.columnIndex="1"
-              GridPane.rowIndex="0"
-              text="Local branches:" />
+            <padding>
+                <Insets bottom="10" left="10" right ="10" top="10"/>
+            </padding>
 
-        <ListView GridPane.columnIndex="0"
-                  GridPane.rowIndex="1"
-                  fx:id="remoteListView" />
-        <ListView GridPane.columnIndex="1"
-                  GridPane.rowIndex="1"
-                  fx:id="localListView" />
+            <Text GridPane.columnIndex="0"
+                  GridPane.rowIndex="0"
+                  text="Remote branches:" />
+            <Text GridPane.columnIndex="1"
+                  GridPane.rowIndex="0"
+                  text="Local branches:" />
 
-        <HBox GridPane.columnIndex="0"
-              GridPane.rowIndex="2"
-              GridPane.columnSpan="2">
+            <ListView GridPane.columnIndex="0"
+                      GridPane.rowIndex="1"
+                      fx:id="remoteListView" />
+            <ListView GridPane.columnIndex="1"
+                      GridPane.rowIndex="1"
+                      fx:id="localListView" />
 
-            <Button fx:id="trackRemoteBranchButton" />
-            <Button fx:id="deleteLocalBranchesButton" />
+            <HBox GridPane.columnIndex="0"
+                  GridPane.rowIndex="2"
+                  GridPane.columnSpan="2">
 
-        </HBox>
+                <Button fx:id="trackRemoteBranchButton" />
+                <Button fx:id="deleteLocalBranchesButton" />
 
-        <HBox GridPane.columnIndex="0"
-              GridPane.rowIndex="3"
-              GridPane.columnSpan="2">
+            </HBox>
 
-            <Button fx:id="mergeButton" />
-            <Button fx:id="swapMergeBranchesButton" />
+            <HBox GridPane.columnIndex="0"
+                  GridPane.rowIndex="3"
+                  GridPane.columnSpan="2">
 
-        </HBox>
+                <Button fx:id="mergeButton" />
+                <Button fx:id="swapMergeBranchesButton" />
 
-        <Text GridPane.columnIndex="0"
-              GridPane.rowIndex="4"
-              GridPane.columnSpan="2"
-              fx:id="branchOffFromText" />
+            </HBox>
 
-        <TextField GridPane.columnIndex="0"
-                   GridPane.columnSpan="5"
-                   fx:id="newBranchNameField"
-                   promptText="Branch name" />
+            <Text GridPane.columnIndex="0"
+                  GridPane.rowIndex="4"
+                  GridPane.columnSpan="2"
+                  fx:id="branchOffFromText" />
 
-        <Button GridPane.columnIndex="1"
-                GridPane.rowIndex="5"
-                fx:id="newBranchButton"
-                text="Create branch"/>
+            <TextField GridPane.columnIndex="0"
+                       GridPane.columnSpan="5"
+                       fx:id="newBranchNameField"
+                       promptText="Branch name" />
 
-    </GridPane>
+            <Button GridPane.columnIndex="1"
+                    GridPane.rowIndex="5"
+                    fx:id="newBranchButton"
+                    text="Create branch"/>
+
+        </GridPane>
+    </content>
+
     <stylesheets>
         <URL value="@../css/BaseStyle.css"/>
     </stylesheets>
