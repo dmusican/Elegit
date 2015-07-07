@@ -1,5 +1,6 @@
 package main.java.elegit;
 
+import javafx.application.Platform;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import org.eclipse.jgit.api.AddCommand;
@@ -13,6 +14,8 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * A subclass of the RepoFile class that holds a reference to
@@ -20,6 +23,8 @@ import java.util.Optional;
  * in git.
  */
 public class ConflictingRepoFile extends RepoFile {
+
+    private String resultType;
 
     public ConflictingRepoFile(Path filePath, Repository repo) {
         super(filePath, repo);
@@ -36,33 +41,65 @@ public class ConflictingRepoFile extends RepoFile {
      * open the conflicting file in an external editor.
      */
     @Override public void updateFileStatusInRepo() throws GitAPIException, IOException {
-        Alert alert = new Alert(Alert.AlertType.WARNING);
+        ReentrantLock lock = new ReentrantLock();
+        Condition finishedAlert = lock.newCondition();
 
-        ButtonType resolveButton = new ButtonType("Resolve conflicts in editor");
-        ButtonType addButton = new ButtonType("Commit conflicting file");
+        Platform.runLater(() -> {
+            lock.lock();
+            try{
+                Alert alert = new Alert(Alert.AlertType.WARNING);
 
-        alert.getButtonTypes().setAll(addButton, resolveButton);
+                ButtonType resolveButton = new ButtonType("Resolve conflicts in editor");
+                ButtonType addButton = new ButtonType("Commit conflicting file");
 
-        alert.setTitle("Adding conflicted file");
-        alert.setHeaderText("You're adding a conflicted file to the commit");
-        alert.setContentText("Make sure to resolve to conflicts first! After resolving them, you can add the " +
-                "previously conflicting file to the commit. What do you want to do?");
+                alert.getButtonTypes().setAll(addButton, resolveButton);
 
-        Optional<ButtonType> result = alert.showAndWait();
+                alert.setTitle("Adding conflicted file");
+                alert.setHeaderText("You're adding a conflicted file to the commit");
+                alert.setContentText("Make sure to resolve to conflicts first! After resolving them, you can add the " +
+                        "previously conflicting file to the commit. What do you want to do?");
 
-        if (result.get() == resolveButton){
-            Desktop desktop = Desktop.getDesktop();
+                Optional<ButtonType> result = alert.showAndWait();
 
-            File workingDirectory = this.repo.getWorkTree();
-            File unrelativized = new File(workingDirectory, this.filePath.toString());
+                if(result.get() == resolveButton){
+                    setResultType("resolve");
+                }else if(result.get() == addButton){
+                    setResultType("add");
+                }else{
+                    // User cancelled the dialog
+                    setResultType("cancel");
+                }
 
-            desktop.open(unrelativized);
-        } else if (result.get() == addButton) {
-            AddCommand add = new Git(this.repo).add().addFilepattern(this.filePath.toString());
-            add.call();
-        } else {
-            // User cancelled the dialog
+                finishedAlert.signal();
+            }finally{
+                lock.unlock();
+            }
+        });
+
+        lock.lock();
+        try{
+            finishedAlert.await();
+            if(resultType.equals("resolve")){
+                Desktop desktop = Desktop.getDesktop();
+
+                File workingDirectory = this.repo.getWorkTree();
+                File unrelativized = new File(workingDirectory, this.filePath.toString());
+
+                desktop.open(unrelativized);
+            }else if(resultType.equals("add")){
+                AddCommand add = new Git(this.repo).add().addFilepattern(this.filePath.toString());
+                add.call();
+            }else{
+                // User cancelled the dialog
+            }
+            // TODO? add option for further commit help for first-timers? (like a manual page)
+        }catch(InterruptedException ignored){
+        }finally{
+            lock.unlock();
         }
-        // TODO? add option for further commit help for first-timers? (like a manual page)
+    }
+
+    private void setResultType(String s){
+        resultType = s;
     }
 }

@@ -15,8 +15,8 @@ import javafx.scene.control.ScrollPane;
 public class MatchedScrollPane extends ScrollPane{
 
     // All MatchedScrollPanes share a horizontal and vertical positioning
-    private static final DoubleProperty hPos = new SimpleDoubleProperty(1.0);
-    private static final DoubleProperty vPos = new SimpleDoubleProperty(1.0);
+    private static final DoubleProperty hPos = new SimpleDoubleProperty(0.0);
+    private static final DoubleProperty vPos = new SimpleDoubleProperty(0.0);
 
     private static boolean isScrollBlocked = false;
 
