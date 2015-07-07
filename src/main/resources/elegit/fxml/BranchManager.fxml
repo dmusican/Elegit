@@ -1,0 +1,67 @@
+<?import javafx.scene.layout.GridPane?>
+<?import org.controlsfx.control.NotificationPane?>
+<?import java.net.URL?>
+<?import javafx.scene.text.Text?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.TextField?>
+<NotificationPane fx:controller="main.java.elegit.BranchManagerController"
+                  xmlns:fx="http://javafx.com/fxml">
+    <GridPane padding="10"
+            hgap="10"
+            vgap="10"
+            alignment="TOP_CENTER">
+
+        <Text GridPane.columnIndex="0"
+              GridPane.rowIndex="0"
+              text="Remote branches:" />
+        <Text GridPane.columnIndex="1"
+              GridPane.rowIndex="0"
+              text="Local branches:" />
+
+        <ListView GridPane.columnIndex="0"
+                  GridPane.rowIndex="1"
+                  fx:id="remoteListView" />
+        <ListView GridPane.columnIndex="1"
+                  GridPane.rowIndex="1"
+                  fx:id="localListView" />
+
+        <HBox GridPane.columnIndex="0"
+              GridPane.rowIndex="2"
+              GridPane.columnSpan="2">
+
+            <Button fx:id="trackRemoteBranchButton" />
+            <Button fx:id="deleteLocalBranchesButton" />
+
+        </HBox>
+
+        <HBox GridPane.columnIndex="0"
+              GridPane.rowIndex="3"
+              GridPane.columnSpan="2">
+
+            <Button fx:id="mergeButton" />
+            <Button fx:id="swapMergeBranchesButton" />
+
+        </HBox>
+
+        <Text GridPane.columnIndex="0"
+              GridPane.rowIndex="4"
+              GridPane.columnSpan="2"
+              fx:id="branchOffFromText" />
+
+        <TextField GridPane.columnIndex="0"
+                   GridPane.columnSpan="5"
+                   fx:id="newBranchNameField"
+                   promptText="Branch name" />
+
+        <Button GridPane.columnIndex="1"
+                GridPane.rowIndex="5"
+                fx:id="newBranchButton"
+                text="Create branch"/>
+
+    </GridPane>
+    <stylesheets>
+        <URL value="@../css/BaseStyle.css"/>
+    </stylesheets>
+</NotificationPane>

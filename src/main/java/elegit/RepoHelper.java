@@ -44,7 +44,7 @@ public abstract class RepoHelper {
     private List<LocalBranchHelper> localBranches;
     private List<RemoteBranchHelper> remoteBranches;
     private LocalBranchHelper branchHelper;
-    private BranchManager branchManager;
+    private BranchManagerController branchManagerController;
 
     public BooleanProperty hasRemoteProperty;
     public BooleanProperty hasUnpushedCommitsProperty;
@@ -79,7 +79,7 @@ public abstract class RepoHelper {
         this.localCommits = this.parseAllLocalCommits();
         this.remoteCommits = this.parseAllRemoteCommits();
 
-        this.branchManager = new BranchManager(this.callGitForLocalBranches(), this.callGitForRemoteBranches(), this);
+        this.branchManagerController = new BranchManagerController(this.callGitForLocalBranches(), this.callGitForRemoteBranches(), this);
 
         hasRemoteProperty = new SimpleBooleanProperty(!getLinkedRemoteRepoURLs().isEmpty());
         hasUnpushedCommitsProperty = new SimpleBooleanProperty(this.localCommits.size() > this.remoteCommits.size());
@@ -104,7 +104,7 @@ public abstract class RepoHelper {
 
         this.localCommits = this.parseAllLocalCommits();
         this.remoteCommits = this.parseAllRemoteCommits();
-        this.branchManager = new BranchManager(this.callGitForLocalBranches(), this.callGitForRemoteBranches(), this);
+        this.branchManagerController = new BranchManagerController(this.callGitForLocalBranches(), this.callGitForRemoteBranches(), this);
 
         hasRemoteProperty = new SimpleBooleanProperty(!getLinkedRemoteRepoURLs().isEmpty());
         hasUnpushedCommitsProperty = new SimpleBooleanProperty(this.localCommits.size() > this.remoteCommits.size());
@@ -117,8 +117,8 @@ public abstract class RepoHelper {
         return localPath.toFile().exists() && localPath.toFile().list((dir, name) -> name.equals(".git")).length > 0;
     }
 
-    public void setBranchManager(BranchManager branchManager) {
-        this.branchManager = branchManager;
+    public void setBranchManagerController(BranchManagerController branchManagerController) {
+        this.branchManagerController = branchManagerController;
     }
 
     /**
@@ -561,7 +561,7 @@ public abstract class RepoHelper {
     }
 
     public List<LocalBranchHelper> getLocalBranchesFromManager() {
-        return this.branchManager.getLocalBranches();
+        return this.branchManagerController.getLocalBranches();
     }
 
     public List<RemoteBranchHelper> callGitForRemoteBranches() throws GitAPIException {
@@ -610,8 +610,8 @@ public abstract class RepoHelper {
         this.setCurrentBranch(currentBranch);
     }
 
-    public BranchManager getBranchManager() {
-        return branchManager;
+    public BranchManagerController getBranchManagerController() {
+        return branchManagerController;
     }
 
     public List<BranchHelper> getLocalBranches(){

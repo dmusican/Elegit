@@ -3,8 +3,11 @@ package main.java.elegit;
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import javafx.collections.FXCollections;
+import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.Button;
@@ -29,58 +32,63 @@ import java.util.List;
 
 /**
  *
- * A class that holds all a repository's branches (in the form of
- * BranchHelpers) and manages branch creation, deletion, and tracking
- * of remotes.
+ * A controller for the BranchManager view that holds all a repository's
+ * branches (in the form of BranchHelpers) and manages branch creation,
+ * deletion, and tracking of remotes.
  *
  */
-public class BranchManager {
+public class BranchManagerController {
 
+    public Text branchOffFromText;
+    public TextField newBranchNameField;
+    @FXML
+    private Button newBranchButton;
     public ListView<RemoteBranchHelper> remoteListView;
     public ListView<LocalBranchHelper> localListView;
     private Repository repo;
     private RepoHelper repoHelper;
     private NotificationPane notificationPane;
 
-    private TextField newBranchNameField;
-
+    @FXML
     private Button mergeButton;
+    @FXML
     private Button deleteLocalBranchesButton;
+    @FXML
     private Button trackRemoteBranchButton;
+    @FXML
     private Button swapMergeBranchesButton;
 
-    public BranchManager(List<LocalBranchHelper> localBranches, List<RemoteBranchHelper> remoteBranches, RepoHelper repoHelper) throws IOException {
+    private SessionController sessionControllerContext;
+
+    public BranchManagerController(List<LocalBranchHelper> localBranches, List<RemoteBranchHelper> remoteBranches, RepoHelper repoHelper) throws IOException {
         this.repoHelper = repoHelper;
         this.repo = repoHelper.getRepo();
 
-        this.remoteListView = new ListView<>(FXCollections.observableArrayList(remoteBranches));
-        this.localListView = new ListView<>(FXCollections.observableArrayList(localBranches));
-
-        this.remoteListView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
-        this.remoteListView.setOnMouseClicked(e -> {
-            try {
-                this.updateButtons();
-            } catch (IOException e1) {
-                e1.printStackTrace();
-            }
-        });
-
-        // Local list view can select multiple (for merges):
-        this.localListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-        this.localListView.setOnMouseClicked(e -> {
-            try {
-                this.updateButtons();
-            } catch (IOException e1) {
-                e1.printStackTrace();
-            }
-        });
-
-        this.newBranchNameField = new TextField();
-        this.newBranchNameField.setPromptText("Branch name");
+//        this.remoteListView.setItems(FXCollections.observableArrayList(remoteBranches));
+//        this.localListView.setItems(FXCollections.observableArrayList(localBranches));
+//
+//        this.remoteListView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
+//        this.remoteListView.setOnMouseClicked(e -> {
+//            try {
+//                this.updateButtons();
+//            } catch (IOException e1) {
+//                e1.printStackTrace();
+//            }
+//        });
+//
+//        // Local list view can select multiple (for merges):
+//        this.localListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+//        this.localListView.setOnMouseClicked(e -> {
+//            try {
+//                this.updateButtons();
+//            } catch (IOException e1) {
+//                e1.printStackTrace();
+//            }
+//        });
 
         Text cloudDownIcon = GlyphsDude.createIcon(FontAwesomeIcon.CLOUD_DOWNLOAD);
         cloudDownIcon.setFill(Color.WHITE);
-        this.trackRemoteBranchButton = new Button("Track branch locally", cloudDownIcon);
+        this.trackRemoteBranchButton.setGraphic(cloudDownIcon);
 
         this.trackRemoteBranchButton.setOnAction(e -> {
             try {
@@ -95,11 +103,10 @@ public class BranchManager {
 
         Text trashIcon = GlyphsDude.createIcon(FontAwesomeIcon.TRASH);
         trashIcon.setFill(Color.WHITE);
-        this.deleteLocalBranchesButton = new Button("Delete local branch", trashIcon);
+        this.deleteLocalBranchesButton.setGraphic(trashIcon);
         this.deleteLocalBranchesButton.setOnAction(e -> this.deleteSelectedLocalBranches());
         this.deleteLocalBranchesButton.setDisable(true);
 
-        this.mergeButton = new Button(); // text is set dynamically
         this.mergeButton.setOnAction(e -> {
             try {
                 this.mergeSelectedBranchWithCurrent();
@@ -112,7 +119,7 @@ public class BranchManager {
 
         Text arrowsIcon = GlyphsDude.createIcon(FontAwesomeIcon.EXCHANGE);
         arrowsIcon.setFill(Color.WHITE);
-        this.swapMergeBranchesButton = new Button(null, arrowsIcon);
+        this.swapMergeBranchesButton.setGraphic(arrowsIcon);
         this.swapMergeBranchesButton.setOnAction(e -> {
             try {
                 this.swapMergeBranches();
@@ -122,7 +129,13 @@ public class BranchManager {
                 e1.printStackTrace();
             }
         });
+
         this.swapMergeBranchesButton.setTooltip(new Tooltip("Swap which branch is merging into which."));
+
+        Text branchIcon = GlyphsDude.createIcon(FontAwesomeIcon.CODE_FORK);
+        branchIcon.setFill(Color.WHITE);
+        this.newBranchButton.setGraphic(branchIcon);
+        this.newBranchButton.setOnAction(e -> this.onNewBranchButton());
 
         this.updateButtons();
     }
@@ -136,70 +149,34 @@ public class BranchManager {
      * @throws IOException
      */
     public void showBranchChooserWindow() throws IOException {
-        // GridPane setup:
-        final int PADDING = 10;
-        GridPane root = new GridPane();
-        root.setHgap(PADDING);
-        root.setVgap(PADDING);
-        root.setPadding(new Insets(PADDING));
-        root.setAlignment(Pos.TOP_CENTER);
-
-        // Headers:
-        root.add(new Text("Remote branches:"), 0, 0); // col, row
-        root.add(new Text("Local branches:"), 1, 0);
-        root.add(this.remoteListView, 0, 1);
-        root.add(this.localListView, 1, 1);
-
-        this.updateButtons();
-
-        // `Track remote repo` and `delete local repo` buttons, packaged up in an HBox:
-        HBox trackDeleteButtons = new HBox(trackRemoteBranchButton, deleteLocalBranchesButton);
-        trackDeleteButtons.setAlignment(Pos.CENTER);
-        trackDeleteButtons.setSpacing(PADDING);
-        root.add(trackDeleteButtons, 0, 2, 2, 1);
-
-        // Merge/swap buttons, packaged up in an HBox:
-        HBox mergeButtons = new HBox(this.mergeButton, this.swapMergeBranchesButton);
-        mergeButtons.setAlignment(Pos.TOP_CENTER);
-        mergeButtons.setSpacing(PADDING);
-        root.add(mergeButtons, 0, 3, 2, 1);
-
-        // `Create new branch` buttons/textfields:
-        root.add(new Text(String.format("Branch off from %s:", this.repo.getBranch())), 0, 4, 2, 1); // colspan = 2
-        root.add(this.newBranchNameField, 0, 5);
-
-        Text branchIcon = GlyphsDude.createIcon(FontAwesomeIcon.CODE_FORK);
-        branchIcon.setFill(Color.WHITE);
-        Button newBranchButton = new Button("Create branch", branchIcon);
-        newBranchButton.setOnAction(e -> {
-            try {
-                LocalBranchHelper newLocalBranch = this.createNewLocalBranch(this.newBranchNameField.getText());
-                this.localListView.getItems().add(newLocalBranch);
-                this.newBranchNameField.clear();
-            } catch (InvalidRefNameException e1) {
-                this.showInvalidBranchNameNotification();
-            } catch (RefNotFoundException e1) {
-                // When a repo has no commits, you can't create branches because there
-                //  are no commits to point to. This error gets raised when git can't find
-                //  HEAD.
-                this.showNoCommitsYetNotification();
-            } catch (GitAPIException e1) {
-                this.showGenericGitErrorNotification();
-                e1.printStackTrace();
-            } catch (IOException e1) {
-                this.showGenericErrorNotification();
-                e1.printStackTrace();
-            }
-        });
-        root.add(newBranchButton, 1, 5);
-
         // Create and display the Stage:
+        NotificationPane fxmlRoot = FXMLLoader.load(getClass().getResource("/main/resources/elegit/fxml/BranchManager.fxml"));
+
         Stage stage = new Stage();
         stage.setTitle("Branch Manager");
-        this.notificationPane = new NotificationPane(root);
-        this.notificationPane.getStylesheets().add("/main/resources/elegit/css/BaseStyle.css");
-        stage.setScene(new Scene(this.notificationPane, 550, 450));
+        stage.setScene(new Scene(fxmlRoot, 550, 450));
         stage.show();
+    }
+
+    private void onNewBranchButton() {
+        try {
+            LocalBranchHelper newLocalBranch = this.createNewLocalBranch(this.newBranchNameField.getText());
+            this.localListView.getItems().add(newLocalBranch);
+            this.newBranchNameField.clear();
+        } catch (InvalidRefNameException e1) {
+            this.showInvalidBranchNameNotification();
+        } catch (RefNotFoundException e1) {
+            // When a repo has no commits, you can't create branches because there
+            //  are no commits to point to. This error gets raised when git can't find
+            //  HEAD.
+            this.showNoCommitsYetNotification();
+        } catch (GitAPIException e1) {
+            this.showGenericGitErrorNotification();
+            e1.printStackTrace();
+        } catch (IOException e1) {
+            this.showGenericErrorNotification();
+            e1.printStackTrace();
+        }
     }
 
     /**
@@ -210,6 +187,7 @@ public class BranchManager {
      */
     private void updateButtons() throws IOException {
         String currentBranchName = this.repo.getBranch();
+        this.branchOffFromText.setText(String.format("Branch off from %s:", currentBranchName));
 
         // Update delete button
         if (this.localListView.getSelectionModel().getSelectedIndices().size() > 0) {
@@ -267,6 +245,10 @@ public class BranchManager {
             if (selectedRemoteBranch != null) {
                 LocalBranchHelper tracker = this.createLocalTrackingBranchForRemote(selectedRemoteBranch);
                 this.localListView.getItems().add(tracker);
+            }
+            if (this.sessionControllerContext != null) {
+                // Call a `git status` to refresh the tree views:
+                this.sessionControllerContext.onGitStatusButton();
             }
         } catch (RefAlreadyExistsException e) {
             this.showRefAlreadyExistsNotification();
@@ -497,6 +479,17 @@ public class BranchManager {
 
         this.notificationPane.getActions().clear();
         this.notificationPane.show();
+    }
+
+    /**
+     * Opens communication between this BranchManagerController and the controller
+     *  (SessionController) of the view from which this BranchManagerController was
+     *  spawned. This allows for view updating.
+     *
+     * @param sessionController the session's controller.
+     */
+    public void setSessionControllerContext(SessionController sessionController) {
+        this.sessionControllerContext = sessionController;
     }
 
     /// END: ERROR NOTIFICATIONS ^^^
