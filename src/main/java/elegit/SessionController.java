@@ -100,7 +100,6 @@ public class SessionController {
         this.theModel = SessionModel.getSessionModel();
 
         this.initializeLayoutParameters();
-        this.initializeButtonDisableBindings();
 
         CommitTreeController.sessionController = this;
 
@@ -176,32 +175,6 @@ public class SessionController {
 
         commitInfoNameCopyButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         commitInfoGoToButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
-    }
-
-    /**
-     * Binds the disable properties of the git command buttons to the appropriate values
-     */
-    private void initializeButtonDisableBindings(){
-        commitButton.setDisable(true);
-        mergeFromFetchButton.setDisable(true);
-        pushButton.setDisable(true);
-        fetchButton.setDisable(true);
-        this.theModel.currentRepoHelperProperty.addListener((observable, oldValue, newValue) -> {
-            commitButton.disableProperty().bind(gitStatusButton.disableProperty()
-                    .or(commitMessageField.textProperty().isEmpty())
-                    .or(workingTreePanelView.isAnyFileSelectedProperty.not()));
-
-            mergeFromFetchButton.disableProperty().bind(gitStatusButton.disableProperty()
-                    .or(newValue.hasRemoteProperty.not()));
-//                    .or(newValue.hasUnmergedCommitsProperty.not()));
-//
-            pushButton.disableProperty().bind(gitStatusButton.disableProperty()
-                    .or(newValue.hasRemoteProperty.not()));
-//                    .or(newValue.hasUnpushedCommitsProperty.not()));
-//
-            fetchButton.disableProperty().bind(gitStatusButton.disableProperty()
-                    .or(newValue.hasRemoteProperty.not()));
-        });
     }
 
     /**
@@ -381,10 +354,13 @@ public class SessionController {
      */
     public void handleCommitButton() {
         try {
-            String commitMessage = commitMessageField.getText();
-
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
             if(!this.theModel.getCurrentRepoHelper().exists()) throw new MissingRepoException();
+
+            String commitMessage = commitMessageField.getText();
+
+            if(!workingTreePanelView.isAnyFileSelected()) throw new NoFilesStagedForCommitException();
+            if(commitMessage.length() == 0) throw new NoCommitMessageException();
 
             Thread th = new Thread(new Task<Void>(){
                 @Override
@@ -430,10 +406,14 @@ public class SessionController {
         } catch(NoRepoLoadedException e){
             this.showNoRepoLoadedNotification();
             setButtonsDisabled(true);
-        }catch(MissingRepoException e){
+        } catch(MissingRepoException e){
             this.showMissingRepoNotification();
             setButtonsDisabled(true);
             updateMenuBarWithRecentRepos();
+        } catch(NoCommitMessageException e){
+            this.showNoCommitMessageNotification();
+        }catch(NoFilesStagedForCommitException e){
+            this.showNoFilesStagedForCommitNotification();
         }
     }
 
@@ -443,6 +423,7 @@ public class SessionController {
     public void handleMergeFromFetchButton() {
         try{
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
+            if(!this.theModel.getCurrentRepoHelper().hasUnmergedCommits()) throw new NoCommitsToMergeException();
 
             Thread th = new Thread(new Task<Void>(){
                 @Override
@@ -480,6 +461,8 @@ public class SessionController {
         }catch(NoRepoLoadedException e){
             this.showNoRepoLoadedNotification();
             setButtonsDisabled(true);
+        }catch(NoCommitsToMergeException e){
+            this.showNoCommitsToMergeNotification();
         }
     }
 
@@ -489,6 +472,8 @@ public class SessionController {
     public void handlePushButton() {
         try {
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
+            if(!this.theModel.getCurrentRepoHelper().hasUnpushedCommits()) throw new NoCommitsToPushException();
+
             pushButton.setVisible(false);
             pushProgressIndicator.setVisible(true);
 
@@ -530,6 +515,8 @@ public class SessionController {
         }catch(NoRepoLoadedException e){
             this.showNoRepoLoadedNotification();
             setButtonsDisabled(true);
+        }catch(NoCommitsToPushException e){
+            this.showNoCommitsToPushNotification();
         }
     }
 
@@ -539,6 +526,7 @@ public class SessionController {
     public void handleFetchButton(){
         try{
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
+
             fetchButton.setVisible(false);
             fetchProgressIndicator.setVisible(true);
 
@@ -700,10 +688,10 @@ public class SessionController {
         Platform.runLater(() -> {
             openRepoDirButton.setDisable(disable);
             gitStatusButton.setDisable(disable);
-//        commitButton.setDisable(disable);
-//        mergeFromFetchButton.setDisable(disable);
-//        pushButton.setDisable(disable);
-//        fetchButton.setDisable(disable);
+            commitButton.setDisable(disable);
+            mergeFromFetchButton.setDisable(disable);
+            pushButton.setDisable(disable);
+            fetchButton.setDisable(disable);
             selectAllButton.setDisable(disable);
             deselectAllButton.setDisable(disable);
             remoteCircle.setVisible(!disable);
@@ -1072,6 +1060,42 @@ public class SessionController {
             this.notificationPane.getActions().clear();
             this.notificationPane.getActions().setAll(fetchAction, ignoreAction);
 
+            this.notificationPane.show();
+        });
+    }
+
+    private void showNoFilesStagedForCommitNotification(){
+        Platform.runLater(() -> {
+            this.notificationPane.setText("You need to select which files to commit");
+
+            this.notificationPane.getActions().clear();
+            this.notificationPane.show();
+        });
+    }
+
+    private void showNoCommitMessageNotification(){
+        Platform.runLater(() -> {
+            this.notificationPane.setText("You need to write a commit message in order to commit your changes");
+
+            this.notificationPane.getActions().clear();
+            this.notificationPane.show();
+        });
+    }
+
+    private void showNoCommitsToPushNotification(){
+        Platform.runLater(() -> {
+            this.notificationPane.setText("There aren't any local commits to push");
+
+            this.notificationPane.getActions().clear();
+            this.notificationPane.show();
+        });
+    }
+
+    private void showNoCommitsToMergeNotification(){
+        Platform.runLater(() -> {
+            this.notificationPane.setText("There aren't any fetched commits to merge");
+
+            this.notificationPane.getActions().clear();
             this.notificationPane.show();
         });
     }

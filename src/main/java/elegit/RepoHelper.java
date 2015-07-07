@@ -184,6 +184,27 @@ public abstract class RepoHelper {
     }
 
     /**
+     * @return true if this repository has an associated remote
+     */
+    public boolean hasRemote(){
+        return hasRemoteProperty.get();
+    }
+
+    /**
+     * @return true if there are local commits that haven't been pushed
+     */
+    public boolean hasUnpushedCommits(){
+        return hasUnpushedCommitsProperty.get();
+    }
+
+    /**
+     * @return true if there are remote commits that haven't been merged into local
+     */
+    public boolean hasUnmergedCommits(){
+        return hasUnmergedCommitsProperty.get();
+    }
+
+    /**
      * Commits changes to the repository.
      *
      * @param commitMessage the message for the commit.
@@ -208,7 +229,7 @@ public abstract class RepoHelper {
      */
     public void pushAll() throws GitAPIException, MissingRepoException, PushToAheadRemoteError {
         if(!exists()) throw new MissingRepoException();
-        if(this.getLinkedRemoteRepoURLs().size() == 0) throw new InvalidRemoteException("No remote repository");
+        if(!hasRemote()) throw new InvalidRemoteException("No remote repository");
         Git git = new Git(this.repo);
         PushCommand push = git.push().setPushAll();
 
@@ -280,7 +301,7 @@ public abstract class RepoHelper {
      */
     public boolean mergeFromFetch() throws IOException, GitAPIException, MissingRepoException {
         if(!exists()) throw new MissingRepoException();
-        if(getLinkedRemoteRepoURLs().size() == 0) throw new InvalidRemoteException("No remote repository");
+        if(!hasRemote()) throw new InvalidRemoteException("No remote repository");
         Git git = new Git(this.repo);
         ObjectId fetchHeadID = this.repo.resolve("FETCH_HEAD");
 //        if(fetchHeadID == null); // This might pop up at some point as an issue. Might not though

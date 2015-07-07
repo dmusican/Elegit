@@ -69,14 +69,14 @@ public class WorkingTreePanelView extends Region{
 
         isAnyFileSelectedProperty.unbind();
         BooleanProperty temp = new SimpleBooleanProperty(false);
-            for(RepoFile changedRepoFile : this.sessionModel.getAllChangedRepoFiles()){
-                CheckBoxTreeItem<RepoFile> leaf = new CheckBoxTreeItem<>(changedRepoFile, changedRepoFile.diffButton);
-                rootItem.getChildren().add(leaf);
-                this.fileLeafs.add(leaf);
-                BooleanProperty oldTemp = temp;
-                temp = new SimpleBooleanProperty();
-                temp.bind(oldTemp.or(leaf.selectedProperty()));
-            }
+        for(RepoFile changedRepoFile : this.sessionModel.getAllChangedRepoFiles()){
+            CheckBoxTreeItem<RepoFile> leaf = new CheckBoxTreeItem<>(changedRepoFile, changedRepoFile.diffButton);
+            rootItem.getChildren().add(leaf);
+            this.fileLeafs.add(leaf);
+            BooleanProperty oldTemp = temp;
+            temp = new SimpleBooleanProperty();
+            temp.bind(oldTemp.or(leaf.selectedProperty()));
+        }
         isAnyFileSelectedProperty.bind(temp);
 
         this.directoryTreeView = new TreeView<>(rootItem);
@@ -108,4 +108,10 @@ public class WorkingTreePanelView extends Region{
         this.sessionModel = sessionModel;
     }
 
+    /**
+     * @return true if any file is checked, else false
+     */
+    public boolean isAnyFileSelected(){
+        return isAnyFileSelectedProperty.get();
+    }
 }
