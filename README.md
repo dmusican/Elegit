@@ -3,7 +3,7 @@ A graphics-based Git client for teaching people both how to work Git and how Git
 
 ### Running the source code in IntelliJ:
 1. Clone this repository.
-2. We recommend you open the repository in IntelliJ.
+2. We recommend you open the repository in [IntelliJ](https://www.jetbrains.com/idea/).
 3. Load the required libraries:
  - In IntelliJ, open the *Project Structure* menu with ⌘; (File > Project Structure)
  - Under the *Project Settings* heading, choose *Libraries*.
