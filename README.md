@@ -21,4 +21,4 @@ Built by Kiley Maki and Graham Earley.
 
 Supervised by Dave Musicant.
 
-Carleton College 2015
+Carleton College 2015.
