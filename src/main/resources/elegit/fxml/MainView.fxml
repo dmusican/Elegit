@@ -216,9 +216,8 @@
                                  arrowRight="true"
                                  onAction="#handleCommitButton"/>
 
-                    <StackPane GridPane.rowIndex="2"
+                    <StackPane GridPane.rowIndex="3"
                                GridPane.columnIndex="6"
-                               GridPane.rowSpan="2"
                                GridPane.columnSpan="2">
                         <GridPane alignment="TOP_CENTER"
                                   hgap="5" vgap="5"
