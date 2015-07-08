@@ -471,16 +471,5 @@ public class BranchManagerController {
         this.notificationPane.show();
     }
 
-    /**
-     * Opens communication between this BranchManagerController and the controller
-     *  (SessionController) of the view from which this BranchManagerController was
-     *  spawned. This allows for view updating.
-     *
-     * @param sessionController the session's controller.
-     */
-    public void setSessionControllerContext(SessionController sessionController) {
-        this.sessionControllerContext = sessionController;
-    }
-
     /// END: ERROR NOTIFICATIONS ^^^
 }

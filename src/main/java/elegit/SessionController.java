@@ -209,6 +209,8 @@ public class SessionController {
      *
      * Since each option creates a new repo, this method handles errors.
      *
+     * TODO: Move these options from the menubar into the GUI
+     *
      */
     private void initializeMenuBar() {
         this.newRepoMenu = new Menu("Load New Repository");
