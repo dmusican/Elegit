@@ -241,13 +241,14 @@ public class SessionController {
     }
 
     /**
-     * Called when a selection is made from the 'Load new Repository' menu. Creates a new repository
+     * Called when a selection is made from the 'Load New Repository' menu. Creates a new repository
      * using the given builder and updates the UI
      * @param builder the builder to use to create a new repository
      */
     private synchronized void handleLoadRepoMenuItem(RepoHelperBuilder builder){
         try{
             RepoHelper repoHelper = builder.getRepoHelperFromDialogs();
+            BusyWindow.appear();
             Thread th = new Thread(new Task<Void>(){
                 @Override
                 protected Void call() {
@@ -268,6 +269,8 @@ public class SessionController {
                         // Somehow, the repository failed to get properly loaded
                         // TODO: better error message?
                         showRepoWasNotLoadedNotification();
+                    } finally{
+                        BusyWindow.disappear();
                     }
                     return null;
                 }
@@ -320,6 +323,7 @@ public class SessionController {
      * @param repoHelper the repository to open
      */
     private synchronized void handleRecentRepoMenuItem(RepoHelper repoHelper){
+        BusyWindow.appear();
         Thread th = new Thread(new Task<Void>(){
             @Override
             protected Void call() throws Exception{
@@ -339,6 +343,8 @@ public class SessionController {
                     // These should only occur when the recent repo information
                     // fails to be loaded or stored, respectively
                     // Should be ok to silently fail
+                } finally{
+                    BusyWindow.disappear();
                 }
                 return null;
             }
