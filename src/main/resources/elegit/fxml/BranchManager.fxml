@@ -7,6 +7,7 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.layout.VBox?>
 <NotificationPane fx:controller="main.java.elegit.BranchManagerController"
                   xmlns:fx="http://javafx.com/fxml"
                   fx:id="notificationPane">
@@ -26,25 +27,35 @@
                   GridPane.rowIndex="0"
                   text="Local branches:" />
 
-            <ListView GridPane.columnIndex="0"
-                      GridPane.rowIndex="1"
-                      fx:id="remoteListView" />
-            <ListView GridPane.columnIndex="1"
-                      GridPane.rowIndex="1"
-                      fx:id="localListView" />
+            <VBox GridPane.columnIndex="0"
+                  GridPane.rowIndex="1"
+                  GridPane.rowSpan="2"
+                  spacing="10"
+                  alignment="TOP_CENTER" >
 
-            <HBox GridPane.columnIndex="0"
-                  GridPane.rowIndex="2"
-                  GridPane.columnSpan="2">
+                <ListView fx:id="remoteListView" />
+                <Button fx:id="trackRemoteBranchButton"
+                        text="Track remote branch locally"/>
 
-                <Button fx:id="trackRemoteBranchButton" />
-                <Button fx:id="deleteLocalBranchesButton" />
+            </VBox>
 
-            </HBox>
+            <VBox GridPane.columnIndex="1"
+                  GridPane.rowIndex="1"
+                  GridPane.rowSpan="2"
+                  spacing="10"
+                  alignment="TOP_CENTER">
+
+                <ListView fx:id="localListView" />
+                <Button fx:id="deleteLocalBranchesButton"
+                        text="Delete branch locally" />
+
+            </VBox>
 
             <HBox GridPane.columnIndex="0"
                   GridPane.rowIndex="3"
-                  GridPane.columnSpan="2">
+                  GridPane.columnSpan="2"
+                  alignment="TOP_CENTER"
+                  spacing="10">
 
                 <Button fx:id="mergeButton" />
                 <Button fx:id="swapMergeBranchesButton" />
@@ -57,7 +68,7 @@
                   fx:id="branchOffFromText" />
 
             <TextField GridPane.columnIndex="0"
-                       GridPane.columnSpan="5"
+                       GridPane.rowIndex="5"
                        fx:id="newBranchNameField"
                        promptText="Branch name" />
 
