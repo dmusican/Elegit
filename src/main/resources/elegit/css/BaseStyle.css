@@ -5,7 +5,7 @@
 }
 
 .label {
-    -fx-font-size: 12px;
+    -fx-font-size: 14px;
     -fx-font-weight: bold;
     -fx-text-fill: #333333;
 }
@@ -57,6 +57,11 @@
 #repoLabelText {
     -fx-font-weight: BOLD;
     -fx-font-size: 18px;
+}
+
+#commitTreeLabel {
+    -fx-font-weight: BOLD;
+    -fx-font-size: 24px;
 }
 
 .diffButton {

@@ -1,19 +1,10 @@
-<?import main.java.elegit.CommitTreePanelView?>
-<?import main.java.elegit.WorkingTreePanelView?>
-<?import main.java.elegit.ArrowButton?>
-<?import main.java.elegit.CommitTreePanelView?>
-<?import main.java.elegit.WorkingTreePanelView?>
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
-<?import javafx.scene.image.Image?>
-<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.shape.Circle?>
-<?import javafx.scene.text.Text?>
-<?import java.net.URL?>
+<?import main.java.elegit.*?>
 <?import org.controlsfx.control.NotificationPane?>
-
-<?import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconView?>
-<?import org.controlsfx.glyphfont.Glyph?>
+<?import java.net.URL?>
 <AnchorPane fx:controller="main.java.elegit.SessionController" xmlns:fx="http://javafx.com/fxml">
 
     <NotificationPane fx:id="notificationPane"
@@ -160,11 +151,20 @@
                     </StackPane>
 
 
-                    <CommitTreePanelView GridPane.rowIndex="1"
-                                         GridPane.columnIndex="2"
-                                         GridPane.rowSpan="1"
-                                         GridPane.columnSpan="4"
-                                         fx:id="remoteCommitTreePanelView"/>
+                    <StackPane GridPane.rowIndex="1"
+                               GridPane.columnIndex="2"
+                               GridPane.rowSpan="1"
+                               GridPane.columnSpan="4">
+                        <CommitTreePanelView fx:id="remoteCommitTreePanelView"/>
+
+                        <Label StackPane.alignment="BOTTOM_LEFT"
+                               text="Remote"
+                               id="commitTreeLabel">
+                            <StackPane.margin>
+                                <Insets bottom="15.0" left="5.0"/>
+                            </StackPane.margin>
+                        </Label>
+                    </StackPane>
 
                     <ArrowButton GridPane.rowIndex="2"
                                  GridPane.columnIndex="2"
@@ -192,11 +192,20 @@
                                      onAction="#handlePushButton"/>
                     </StackPane>
 
-                    <CommitTreePanelView GridPane.rowIndex="3"
-                                         GridPane.columnIndex="2"
-                                         GridPane.rowSpan="1"
-                                         GridPane.columnSpan="4"
-                                         fx:id="localCommitTreePanelView"/>
+                    <StackPane  GridPane.rowIndex="3"
+                                GridPane.columnIndex="2"
+                                GridPane.rowSpan="1"
+                                GridPane.columnSpan="4">
+                        <CommitTreePanelView fx:id="localCommitTreePanelView"/>
+
+                        <Label StackPane.alignment="BOTTOM_LEFT"
+                               text="Local"
+                               id="commitTreeLabel">
+                            <StackPane.margin>
+                                <Insets bottom="15.0" left="5.0"/>
+                            </StackPane.margin>
+                        </Label>
+                    </StackPane>
 
                     <ArrowButton GridPane.rowIndex="3"
                                  GridPane.columnIndex="1"
