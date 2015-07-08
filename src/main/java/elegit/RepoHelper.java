@@ -4,6 +4,7 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import main.java.elegit.exceptions.MissingRepoException;
 import main.java.elegit.exceptions.NoOwnerInfoException;
@@ -721,6 +722,7 @@ public abstract class RepoHelper {
         Stage stage = new Stage();
         stage.setTitle("Branch Manager");
         stage.setScene(new Scene(fxmlRoot, 550, 450));
+        stage.initModality(Modality.APPLICATION_MODAL);
         stage.show();
     }
 
