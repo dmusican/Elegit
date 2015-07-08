@@ -2,9 +2,13 @@ package main.java.elegit;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Scene;
+import javafx.stage.Stage;
 import main.java.elegit.exceptions.MissingRepoException;
 import main.java.elegit.exceptions.NoOwnerInfoException;
 import main.java.elegit.exceptions.PushToAheadRemoteError;
+import org.controlsfx.control.NotificationPane;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
@@ -33,7 +37,6 @@ public abstract class RepoHelper {
     protected String remoteURL;
 
     protected Path localPath;
-    private DirectoryWatcher directoryWatcher;
 
 	private List<CommitHelper> localCommits;
     private List<CommitHelper> remoteCommits;
@@ -44,7 +47,7 @@ public abstract class RepoHelper {
     private List<LocalBranchHelper> localBranches;
     private List<RemoteBranchHelper> remoteBranches;
     private LocalBranchHelper branchHelper;
-    private BranchManager branchManager;
+    private BranchManagerModel branchManagerModel;
 
     public BooleanProperty hasRemoteProperty;
     public BooleanProperty hasUnpushedCommitsProperty;
@@ -79,7 +82,7 @@ public abstract class RepoHelper {
         this.localCommits = this.parseAllLocalCommits();
         this.remoteCommits = this.parseAllRemoteCommits();
 
-        this.branchManager = new BranchManager(this.callGitForLocalBranches(), this.callGitForRemoteBranches(), this);
+        this.branchManagerModel = new BranchManagerModel(this.callGitForLocalBranches(), this.callGitForRemoteBranches(), this);
 
         hasRemoteProperty = new SimpleBooleanProperty(!getLinkedRemoteRepoURLs().isEmpty());
         hasUnpushedCommitsProperty = new SimpleBooleanProperty(this.localCommits.size() > this.remoteCommits.size());
@@ -104,7 +107,7 @@ public abstract class RepoHelper {
 
         this.localCommits = this.parseAllLocalCommits();
         this.remoteCommits = this.parseAllRemoteCommits();
-        this.branchManager = new BranchManager(this.callGitForLocalBranches(), this.callGitForRemoteBranches(), this);
+        this.branchManagerModel = new BranchManagerModel(this.callGitForLocalBranches(), this.callGitForRemoteBranches(), this);
 
         hasRemoteProperty = new SimpleBooleanProperty(!getLinkedRemoteRepoURLs().isEmpty());
         hasUnpushedCommitsProperty = new SimpleBooleanProperty(this.localCommits.size() > this.remoteCommits.size());
@@ -118,10 +121,6 @@ public abstract class RepoHelper {
      */
     public boolean exists(){
         return localPath.toFile().exists() && localPath.toFile().list((dir, name) -> name.equals(".git")).length > 0;
-    }
-
-    public void setBranchManager(BranchManager branchManager) {
-        this.branchManager = branchManager;
     }
 
     /**
@@ -644,7 +643,7 @@ public abstract class RepoHelper {
     }
 
     public List<LocalBranchHelper> getLocalBranchesFromManager() {
-        return this.branchManager.getLocalBranches();
+        return this.branchManagerModel.getLocalBranches();
     }
 
     /**
@@ -715,11 +714,14 @@ public abstract class RepoHelper {
         this.setCurrentBranch(currentBranch);
     }
 
-    /**
-     * @return the branch manager for this repository
-     */
-    public BranchManager getBranchManager() {
-        return branchManager;
+    public void showBranchManagerWindow() throws IOException {
+        // Create and display the Stage:
+        NotificationPane fxmlRoot = FXMLLoader.load(getClass().getResource("/main/resources/elegit/fxml/BranchManager.fxml"));
+
+        Stage stage = new Stage();
+        stage.setTitle("Branch Manager");
+        stage.setScene(new Scene(fxmlRoot, 550, 450));
+        stage.show();
     }
 
     /**
@@ -796,6 +798,10 @@ public abstract class RepoHelper {
     public Collection<Ref> getRefsFromRemote(boolean includeTags) throws GitAPIException{
         if(includeTags) return new Git(repo).lsRemote().setHeads(true).setTags(true).setCredentialsProvider(this.ownerAuth).call();
         else return new Git(repo).lsRemote().setHeads(true).setCredentialsProvider(this.ownerAuth).call();
+    }
+
+    public BranchManagerModel getBranchManagerModel() {
+        return this.branchManagerModel;
     }
 }
 

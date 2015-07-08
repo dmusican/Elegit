@@ -75,9 +75,9 @@
 
                     <Button GridPane.columnIndex="3"
                             GridPane.rowIndex="0"
-                            text="Branch / Merge"
+                            text="Manage branches"
                             fx:id="branchesButton"
-                            onAction="#showBranchChooser" />
+                            onAction="#showBranchManager" />
 
                     <Button GridPane.columnIndex="4"
                             GridPane.rowIndex="0"

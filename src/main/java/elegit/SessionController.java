@@ -1103,12 +1103,19 @@ public class SessionController {
     // END: ERROR NOTIFICATIONS ^^^
 
     /**
-     * Opens up the current repo helper's Branch Manager window.
+     * Opens up the current repo helper's Branch Manager window after
+     * passing in this SessionController object, so that the
+     * BranchManagerController can update the main window's views.
      */
-    public void showBranchChooser() {
+    public void showBranchManager() {
         try{
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
-            this.theModel.getCurrentRepoHelper().getBranchManager().showBranchChooserWindow();
+//            BranchManagerController branchManagerController = this.theModel.getCurrentRepoHelper().showBranchManagerWindow();
+//            BranchManagerModel branchManagerModel = this.theModel.getCurrentRepoHelper().getBranchManagerModel();
+//            branchManagerModel.setSessionControllerContext(this);
+//            branchManagerController.showBranchChooserWindow();
+            // TODO: Set session controller context for the Branchmanagercontroller
+            this.theModel.getCurrentRepoHelper().showBranchManagerWindow();
         }catch(IOException e){
             this.showGenericErrorNotification();
             e.printStackTrace();
