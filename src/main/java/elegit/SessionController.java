@@ -4,6 +4,7 @@ import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
+import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -11,7 +12,6 @@ import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.MouseButton;
@@ -51,6 +51,8 @@ public class SessionController {
 
     private SessionModel theModel;
 
+    public Node root;
+
     public NotificationPane notificationPane;
     public Button selectAllButton;
     public Button deselectAllButton;
@@ -75,7 +77,7 @@ public class SessionController {
 
     public Circle remoteCircle;
 
-    public TextField commitInfoNameText;
+    public Label commitInfoNameText;
     public Label commitInfoAuthorText;
     public Label commitInfoDateText;
     public Button commitInfoNameCopyButton;
@@ -124,6 +126,14 @@ public class SessionController {
         Text exclamationIcon = GlyphsDude.createIcon(FontAwesomeIcon.EXCLAMATION);
         exclamationIcon.setFill(Color.WHITE);
         this.clearRecentReposButton.setGraphic(exclamationIcon);
+
+        Text clipboardIcon = GlyphsDude.createIcon(FontAwesomeIcon.CLIPBOARD);
+        clipboardIcon.setFill(Color.WHITE);
+        this.commitInfoNameCopyButton.setGraphic(clipboardIcon);
+
+        Text goToIcon = GlyphsDude.createIcon(FontAwesomeIcon.ARROW_CIRCLE_LEFT);
+        goToIcon.setFill(Color.WHITE);
+        this.commitInfoGoToButton.setGraphic(goToIcon);
 
         // Buttons start out disabled, since no repo is loaded
         this.setButtonsDisabled(true);
@@ -175,6 +185,12 @@ public class SessionController {
 
         commitInfoNameCopyButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         commitInfoGoToButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
+
+        commitInfoNameText.maxWidthProperty().bind(commitInfoMessageText.widthProperty()
+                .subtract(commitInfoGoToButton.widthProperty())
+                .subtract(commitInfoNameCopyButton.widthProperty())
+                .subtract(10)); // The gap between each button and this label is 5
+
     }
 
     /**
@@ -248,7 +264,7 @@ public class SessionController {
     private synchronized void handleLoadRepoMenuItem(RepoHelperBuilder builder){
         try{
             RepoHelper repoHelper = builder.getRepoHelperFromDialogs();
-            BusyWindow.appear();
+            BusyWindow.show();
             Thread th = new Thread(new Task<Void>(){
                 @Override
                 protected Void call() {
@@ -270,7 +286,7 @@ public class SessionController {
                         // TODO: better error message?
                         showRepoWasNotLoadedNotification();
                     } finally{
-                        BusyWindow.disappear();
+                        BusyWindow.hide();
                     }
                     return null;
                 }
@@ -323,7 +339,7 @@ public class SessionController {
      * @param repoHelper the repository to open
      */
     private synchronized void handleRecentRepoMenuItem(RepoHelper repoHelper){
-        BusyWindow.appear();
+        BusyWindow.show();
         Thread th = new Thread(new Task<Void>(){
             @Override
             protected Void call() throws Exception{
@@ -344,7 +360,7 @@ public class SessionController {
                     // fails to be loaded or stored, respectively
                     // Should be ok to silently fail
                 } finally{
-                    BusyWindow.disappear();
+                    BusyWindow.hide();
                 }
                 return null;
             }
@@ -673,6 +689,7 @@ public class SessionController {
      * This applies to all methods used here
      */
 	private void initPanelViews() {
+        BusyWindow.show();
         Platform.runLater(() -> {
             try{
                 workingTreePanelView.drawDirectoryView();
@@ -681,6 +698,7 @@ public class SessionController {
             }
             localCommitTreeModel.init();
             remoteCommitTreeModel.init();
+            BusyWindow.hide();
         });
 
     }
@@ -1140,8 +1158,9 @@ public class SessionController {
         commitInfoNameText.setText(commit.getName());
         commitInfoAuthorText.setText(commit.getAuthorName());
         commitInfoDateText.setText(commit.getFormattedWhen());
-        commitInfoNameCopyButton.setDisable(false);
-        commitInfoGoToButton.setDisable(false);
+        commitInfoMessageText.setVisible(true);
+        commitInfoNameCopyButton.setVisible(true);
+        commitInfoGoToButton.setVisible(true);
 
         String s = "";
         for(BranchHelper branch : commit.getBranchesAsHead()){
@@ -1161,12 +1180,13 @@ public class SessionController {
      * Stops displaying commit information
      */
     public void clearSelectedCommit(){
-        commitInfoNameText.clear();
+        commitInfoNameText.setText("");
         commitInfoAuthorText.setText("");
         commitInfoDateText.setText("");
-        commitInfoMessageText.clear();
-        commitInfoNameCopyButton.setDisable(true);
-        commitInfoGoToButton.setDisable(true);
+        commitInfoMessageText.setText("");
+        commitInfoMessageText.setVisible(false);
+        commitInfoNameCopyButton.setVisible(false);
+        commitInfoGoToButton.setVisible(false);
     }
 
     /**
