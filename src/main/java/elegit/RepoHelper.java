@@ -265,19 +265,19 @@ public abstract class RepoHelper {
      * @throws GitAPIException
      * @throws MissingRepoException
      */
-    public void fetch() throws GitAPIException, MissingRepoException{
+    public boolean fetch() throws GitAPIException, MissingRepoException{
         if(!exists()) throw new MissingRepoException();
         Git git = new Git(this.repo);
 
-        // The JGit docs say that if setCheckFetchedObjects
-        //  is set to true, objects received will be checked for validity.
-        //  Not sure what that means, but sounds good so I'm doing it...
         FetchCommand fetch = git.fetch();
 
         if (this.ownerAuth != null) {
             fetch.setCredentialsProvider(this.ownerAuth);
         }
 
+        // The JGit docs say that if setCheckFetchedObjects
+        //  is set to true, objects received will be checked for validity.
+        //  Not sure what that means, but sounds good so I'm doing it...
         fetch.setCheckFetchedObjects(true);
 
 //        ProgressMonitor progress = new TextProgressMonitor(new PrintWriter(System.out));
@@ -287,7 +287,8 @@ public abstract class RepoHelper {
         FetchResult result = fetch.call();
         git.close();
 //        System.out.println(result.getMessages());
-        this.hasUnmergedCommitsProperty.set(!result.getTrackingRefUpdates().isEmpty());
+        this.hasUnmergedCommitsProperty.set(this.hasUnmergedCommits() || !result.getTrackingRefUpdates().isEmpty());
+        return !result.getTrackingRefUpdates().isEmpty();
     }
 
     /**

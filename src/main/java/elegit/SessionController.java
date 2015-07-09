@@ -212,7 +212,9 @@ public class SessionController {
         Platform.runLater(() -> {
             this.branchSelector.setVisible(true);
             this.branchSelector.getItems().setAll(branches);
-            this.branchSelector.setValue(currentBranch);
+            if(this.branchSelector.getValue() == null || !this.branchSelector.getValue().getBranchName().equals(currentBranch.getBranchName())){
+                this.branchSelector.setValue(currentBranch);
+            }
         });
     }
 
@@ -559,7 +561,7 @@ public class SessionController {
                 protected Void call() {
                     try{
                         RepositoryMonitor.resetFoundNewChanges(false);
-                        theModel.getCurrentRepoHelper().fetch();
+                        showFetchResultNotification(theModel.getCurrentRepoHelper().fetch());
                         onGitStatusButton();
                     } catch(InvalidRemoteException e){
                         showNoRemoteNotification();
@@ -1120,6 +1122,16 @@ public class SessionController {
     private void showNoCommitsToMergeNotification(){
         Platform.runLater(() -> {
             this.notificationPane.setText("There aren't any fetched commits to merge");
+
+            this.notificationPane.getActions().clear();
+            this.notificationPane.show();
+        });
+    }
+
+    private void showFetchResultNotification(boolean success){
+        Platform.runLater(() -> {
+            if(success) this.notificationPane.setText("New commits were fetched");
+            else this.notificationPane.setText("No new commits were fetched");
 
             this.notificationPane.getActions().clear();
             this.notificationPane.show();
