@@ -434,14 +434,14 @@ public abstract class RepoHelper {
 
         for(BranchHelper newBranch : newBranches){
             if(oldBranches.containsKey(newBranch.getBranchName())){
-                ObjectId newBranchHeadID = newBranch.getHeadID();
-                ObjectId oldBranchHeadID = oldBranches.get(newBranch.getBranchName()).getHeadID();
+                ObjectId newBranchHeadID = newBranch.getHeadId();
+                ObjectId oldBranchHeadID = oldBranches.get(newBranch.getBranchName()).getHeadId();
                 if(!newBranchHeadID.equals(oldBranchHeadID)){
                     startPoints.add(newBranchHeadID);
                 }
                 stopPoints.add(oldBranchHeadID);
             }else{
-                startPoints.add(newBranch.getHeadID());
+                startPoints.add(newBranch.getHeadId());
             }
         }
         PlotCommitList<PlotLane> newCommits = this.parseRawCommits(startPoints, stopPoints);
@@ -491,9 +491,14 @@ public abstract class RepoHelper {
             }
 
             CommitHelper curCommitHelper = new CommitHelper(curCommit);
+            String curCommitHelperID = curCommitHelper.getId();
 
-            commitIdMap.put(CommitTreeModel.getId(curCommitHelper), curCommitHelper);
-            idMap.put(curCommitID,CommitTreeModel.getId(curCommitHelper));
+            if(!commitIdMap.containsKey(curCommitHelperID)){
+                commitIdMap.put(curCommitHelper.getId(), curCommitHelper);
+                idMap.put(curCommitID, curCommitHelper.getId());
+            }else{
+                curCommitHelper = commitIdMap.get(curCommitHelperID);
+            }
             wrappedIDs.add(curCommitID);
 
             RevCommit[] parents = curCommit.getParents();
@@ -539,7 +544,7 @@ public abstract class RepoHelper {
 
         List<LocalBranchHelper> branches = callGitForLocalBranches();
         for(BranchHelper branch : branches){
-            ObjectId branchId = branch.getHeadID();
+            ObjectId branchId = branch.getHeadId();
             PlotCommitList<PlotLane> toAdd = parseRawCommits(branchId, examinedCommitIDs);
             if(toAdd.size() > 0){
                 rawLocalCommits.addAll(toAdd);
@@ -562,7 +567,7 @@ public abstract class RepoHelper {
 
         List<RemoteBranchHelper> branches = callGitForRemoteBranches();
         for(BranchHelper branch : branches){
-            ObjectId branchId = branch.getHeadID();
+            ObjectId branchId = branch.getHeadId();
             PlotCommitList<PlotLane> toAdd = parseRawCommits(branchId, examinedCommitIDs);
             if(toAdd.size() > 0){
                 rawRemoteCommits.addAll(toAdd);
@@ -645,6 +650,11 @@ public abstract class RepoHelper {
      */
     public List<LocalBranchHelper> callGitForLocalBranches() throws GitAPIException, IOException {
         List<Ref> getBranchesCall = new Git(this.repo).branchList().call();
+
+        if(localBranches != null){
+            for(BranchHelper branch : localBranches) getCommit(branch.getHeadId()).removeAsHead(branch);
+        }
+
         localBranches = new ArrayList<>();
 
         for (Ref ref : getBranchesCall) localBranches.add(new LocalBranchHelper(ref, this));
@@ -661,8 +671,13 @@ public abstract class RepoHelper {
      * @return a list of all remtoe branches
      * @throws GitAPIException
      */
-    public List<RemoteBranchHelper> callGitForRemoteBranches() throws GitAPIException {
+    public List<RemoteBranchHelper> callGitForRemoteBranches() throws GitAPIException, IOException{
         List<Ref> getBranchesCall = new Git(this.repo).branchList().setListMode(ListBranchCommand.ListMode.REMOTE).call();
+
+        if(remoteBranches != null){
+            for(BranchHelper branch : remoteBranches) getCommit(branch.getHeadId()).removeAsHead(branch);
+        }
+
         remoteBranches = new ArrayList<>();
 
         for (Ref ref : getBranchesCall) {
@@ -744,7 +759,7 @@ public abstract class RepoHelper {
         for(BranchHelper branch : localBranches){
             if(branch.getHead() == null){
                 try{
-                    branch.setHead(getCommit(branch.getHeadID()));
+                    branch.getHeadId();
                 }catch(IOException e){
                     e.printStackTrace();
                 }
@@ -762,7 +777,7 @@ public abstract class RepoHelper {
         for(BranchHelper branch : remoteBranches){
             if(branch.getHead() == null){
                 try{
-                    branch.setHead(getCommit(branch.getHeadID()));
+                    branch.getHeadId();
                 }catch(IOException e){
                     e.printStackTrace();
                 }

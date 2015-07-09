@@ -50,7 +50,7 @@ public abstract class BranchHelper {
     public abstract void checkoutBranch() throws GitAPIException, IOException;
 
     /**
-     * @return the commit that is the head of this branch
+     * @return the commit that is the head of this branch, or null if it hasn't been set
      */
     public CommitHelper getHead(){
         return branchHead;
@@ -60,7 +60,7 @@ public abstract class BranchHelper {
      * Sets the head of this branch.
      * @param head the new head
      */
-    public void setHead(CommitHelper head){
+    private void setHead(CommitHelper head){
         if(branchHead != null) branchHead.removeAsHead(this);
         this.branchHead = head;
         if(branchHead != null) branchHead.setAsHead(this);
@@ -85,7 +85,7 @@ public abstract class BranchHelper {
      * @return the id of this branch's head
      * @throws IOException
      */
-    public ObjectId getHeadID() throws IOException{
+    public ObjectId getHeadId() throws IOException{
         if(branchHead != null){
             return branchHead.getObjectId();
         }else{
