@@ -156,7 +156,7 @@ public class RepositoryMonitor{
     public static synchronized void beginWatchingLocal(SessionController controller){
         Thread thread = new Thread(() -> {
             while(true){
-                if(!pauseLocalMonitor){
+                if(!pauseLocalMonitor && !controller.workingTreePanelView.isAnyFileSelectedProperty.get()){
                     controller.gitStatus();
                 }
 

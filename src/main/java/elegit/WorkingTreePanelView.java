@@ -48,6 +48,8 @@ public class WorkingTreePanelView extends Region{
      *
      * THIS METHOD MUST BE CALLED FROM THE JAVAFX APPLICATION THREAD
      *
+     * FIXME: this method resets the users selections if they've checked any boxes (low priority)
+     *
      * @throws GitAPIException if the SessionModel can't get the ParentDirectoryRepoFile.
      */
     public void drawDirectoryView() throws GitAPIException{
