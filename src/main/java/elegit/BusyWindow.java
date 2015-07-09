@@ -23,8 +23,6 @@ public class BusyWindow{
     private static Stage initWindow(){
         window = new Stage();
 
-        window.setAlwaysOnTop(true);
-        window.setResizable(false);
         window.setMaxHeight(100);
         window.setMaxWidth(150);
         window.setMinHeight(100);

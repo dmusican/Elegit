@@ -4,6 +4,7 @@ import main.java.elegit.treefx.Cell;
 import main.java.elegit.treefx.TreeGraph;
 import main.java.elegit.treefx.TreeGraphModel;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.lib.ObjectId;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -227,7 +228,7 @@ public abstract class CommitTreeModel{
     /**
      * Updates the corresponding view if possible
      */
-    private void updateView(){
+    private void updateView() throws IOException{
         if(this.sessionModel != null && this.sessionModel.getCurrentRepoHelper() != null){
             CommitTreeController.update(sessionModel.getCurrentRepoHelper());
         }else{
@@ -295,12 +296,28 @@ public abstract class CommitTreeModel{
     }
 
     /**
+     * Marks the commit with the given id as the head of a tracked branch in the tree
+     * @param commitId the id of the commit to mark
+     */
+    public void setCommitAsTrackedBranch(ObjectId commitId){
+        setCommitAsTrackedBranch(commitId.getName());
+    }
+
+    /**
      * Marks the commit with the given id as the head of an untracked branch in the tree
      * @param commitId the id of the commit to mark
      */
     public void setCommitAsUntrackedBranch(String commitId){
         treeGraph.treeGraphModel.setCellShape(commitId, Cell.UNTRACKED_BRANCH_HEAD_SHAPE);
         treeGraph.treeGraphModel.setCellLabel(commitId, getTreeCellLabel(commitId));
+    }
+
+    /**
+     * Marks the commit with the given id as the head of an untracked branch in the tree
+     * @param commitId the id of the commit to mark
+     */
+    public void setCommitAsUntrackedBranch(ObjectId commitId){
+        setCommitAsUntrackedBranch(commitId.getName());
     }
 
     /**
