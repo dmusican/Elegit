@@ -4,19 +4,11 @@ import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
-import javafx.stage.Stage;
 import org.controlsfx.control.NotificationPane;
 import org.controlsfx.control.action.Action;
 import org.eclipse.jgit.api.CreateBranchCommand;
@@ -236,7 +228,7 @@ public class BranchManagerController {
             }
             if (this.sessionControllerContext != null) {
                 // Call a `git status` to refresh the tree views:
-                this.sessionControllerContext.onGitStatusButton();
+                this.sessionControllerContext.gitStatus();
             }
         } catch (RefAlreadyExistsException e) {
             this.showRefAlreadyExistsNotification();

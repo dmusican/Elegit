@@ -84,11 +84,13 @@ public abstract class RepoHelper {
         this.branchManagerModel = new BranchManagerModel(this.callGitForLocalBranches(), this.callGitForRemoteBranches(), this);
 
         hasRemoteProperty = new SimpleBooleanProperty(!getLinkedRemoteRepoURLs().isEmpty());
+
+        // TODO: this is not the best way to detect these properties on startup
         hasUnpushedCommitsProperty = new SimpleBooleanProperty(this.localCommits.size() > this.remoteCommits.size());
         hasUnmergedCommitsProperty = new SimpleBooleanProperty(this.localCommits.size() < this.remoteCommits.size());
     }
 
-    /// Constructor for ExisitingRepoHelpers to inherit (they don't need the Remote URL)
+    /// Constructor for ExistingRepoHelpers to inherit (they don't need the Remote URL)
     public RepoHelper(Path directoryPath, RepoOwner owner) throws GitAPIException, IOException, NoOwnerInfoException {
         // If the user hasn't signed in (owner == null), then there is no authentication:
         if (owner == null) {
@@ -383,6 +385,13 @@ public abstract class RepoHelper {
      */
     public List<String> getAllCommitIDs(){
         return new ArrayList<>(commitIdMap.keySet());
+    }
+
+    /**
+     * @return the head of the current branch
+     */
+    public CommitHelper getHead(){
+        return this.branchHelper.getHead();
     }
 
     /**
@@ -806,4 +815,3 @@ public abstract class RepoHelper {
         return this.branchManagerModel;
     }
 }
-

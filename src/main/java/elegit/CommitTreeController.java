@@ -168,7 +168,7 @@ public class CommitTreeController{
             }
         }
 
-        commitTreeModel.view.displayTreeGraph(commitTreeModel.treeGraph);
+        commitTreeModel.view.displayTreeGraph(commitTreeModel.treeGraph, commitTreeModel.sessionModel.getCurrentRepoHelper().getHead());
     }
 
     /**
@@ -198,7 +198,7 @@ public class CommitTreeController{
                 }
 
                 model.treeGraph.update();
-                model.view.displayTreeGraph(model.treeGraph);
+                model.view.displayTreeGraph(model.treeGraph, null);
             }
         }
     }
@@ -224,6 +224,7 @@ public class CommitTreeController{
      * @param commitID the ID of the commit to focus
      */
     public static void focusCommitInGraph(String commitID){
+        if(commitID == null) return;
         for(CommitTreeModel model : allCommitTreeModels){
             if(model.treeGraph != null && model.treeGraph.treeGraphModel.containsID(commitID)){
                 Cell c = model.treeGraph.treeGraphModel.cellMap.get(commitID);

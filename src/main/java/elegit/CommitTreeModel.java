@@ -118,7 +118,7 @@ public abstract class CommitTreeModel{
      * Initializes the treeGraph, unselects any previously selected commit,
      * and then adds all commits tracked by this model to the tree
      */
-    public void init(){
+    public synchronized void init(){
         treeGraph = this.createNewTreeGraph();
 
         CommitTreeController.resetSelection();
@@ -133,7 +133,7 @@ public abstract class CommitTreeModel{
      * @throws GitAPIException
      * @throws IOException
      */
-    public void update() throws GitAPIException, IOException{
+    public synchronized void update() throws GitAPIException, IOException{
         if(this.addNewCommitsToTree()){
             this.updateView();
         }

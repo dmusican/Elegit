@@ -39,7 +39,7 @@ public class CommitTreePanelView extends Region{
      * for the layout to finish and then updates the view
      * @param treeGraph the graph to be displayed
      */
-    public void displayTreeGraph(TreeGraph treeGraph){
+    public synchronized void displayTreeGraph(TreeGraph treeGraph, CommitHelper commitToFocusOnLoad){
         BusyWindow.show();
 
         if(isLayoutThreadRunning){
@@ -77,6 +77,7 @@ public class CommitTreePanelView extends Region{
 
                     MatchedScrollPane.ignoreScrolling(false);
                     BusyWindow.hide();
+                    CommitTreeController.focusCommitInGraph(commitToFocusOnLoad);
                 });
                 return null;
             }

@@ -149,10 +149,11 @@ public class SessionController {
         this.initPanelViews();
         this.updateUIEnabledStatus();
 
-        RepositoryMonitor.beginWatching(theModel);
-        RepositoryMonitor.hasFoundNewChanges.addListener((observable, oldValue, newValue) -> {
+        RepositoryMonitor.beginWatchingRemote(theModel);
+        RepositoryMonitor.hasFoundNewRemoteChanges.addListener((observable, oldValue, newValue) -> {
             if(newValue) showNewRemoteChangesNotification();
         });
+        RepositoryMonitor.beginWatchingLocal(this);
     }
 
     /**
@@ -269,6 +270,7 @@ public class SessionController {
         try{
             RepoHelper repoHelper = builder.getRepoHelperFromDialogs();
             BusyWindow.show();
+            RepositoryMonitor.pause();
             Thread th = new Thread(new Task<Void>(){
                 @Override
                 protected Void call() {
@@ -291,6 +293,7 @@ public class SessionController {
                         showRepoWasNotLoadedNotification();
                     } finally{
                         BusyWindow.hide();
+                        RepositoryMonitor.unpause();
                     }
                     return null;
                 }
@@ -344,6 +347,7 @@ public class SessionController {
      */
     private synchronized void handleRecentRepoMenuItem(RepoHelper repoHelper){
         BusyWindow.show();
+        RepositoryMonitor.pause();
         Thread th = new Thread(new Task<Void>(){
             @Override
             protected Void call() throws Exception{
@@ -365,6 +369,7 @@ public class SessionController {
                     // Should be ok to silently fail
                 } finally{
                     BusyWindow.hide();
+                    RepositoryMonitor.unpause();
                 }
                 return null;
             }
@@ -400,7 +405,7 @@ public class SessionController {
 
                         // Now clear the commit text and a view reload ( or `git status`) to show that something happened
                         commitMessageField.clear();
-                        onGitStatusButton();
+                        gitStatus();
                     } catch(JGitInternalException e){
                         showGenericErrorNotification();
                         e.printStackTrace();
@@ -458,7 +463,7 @@ public class SessionController {
                         if(!theModel.getCurrentRepoHelper().mergeFromFetch()){
                             showUnsuccessfulMergeNotification();
                         }
-                        onGitStatusButton();
+                        gitStatus();
                     } catch(InvalidRemoteException e){
                         showNoRemoteNotification();
                     } catch(TransportException e){
@@ -509,7 +514,7 @@ public class SessionController {
                     try{
                         RepositoryMonitor.resetFoundNewChanges(false);
                         theModel.getCurrentRepoHelper().pushAll();
-                        onGitStatusButton();
+                        gitStatus();
                     }  catch(InvalidRemoteException e){
                         showNoRemoteNotification();
                     } catch(PushToAheadRemoteError e) {
@@ -547,9 +552,18 @@ public class SessionController {
     }
 
     /**
-     * Performs a `git fetch`
+     * Handles a click on the "Fetch" button. Calls gitFetch()
      */
     public void handleFetchButton(){
+        gitFetch();
+    }
+
+    /**
+     * Queries the remote for new commits, and updates the local
+     * remote as necessary.
+     * Equivalent to `git fetch`
+     */
+    public synchronized void gitFetch(){
         try{
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
 
@@ -561,8 +575,10 @@ public class SessionController {
                 protected Void call() {
                     try{
                         RepositoryMonitor.resetFoundNewChanges(false);
-                        showFetchResultNotification(theModel.getCurrentRepoHelper().fetch());
-                        onGitStatusButton();
+                        if(!theModel.getCurrentRepoHelper().fetch()){
+                            showNoCommitsFetchedNotification();
+                        }
+                        gitStatus();
                     } catch(InvalidRemoteException e){
                         showNoRemoteNotification();
                     } catch (TransportException e) {
@@ -592,10 +608,21 @@ public class SessionController {
 
     /**
      * Updates the panel views when the "git status" button is clicked.
+     * Highlights the current HEAD.
+     */
+    public void onGitStatusButton(){
+        this.gitStatus();
+        CommitTreeController.focusCommitInGraph(theModel.getCurrentRepoHelper().getHead());
+    }
+
+    /**
+     * Updates the trees, changed files, and branch information. Equivalent
+     * to 'git status'
      *
      * See initPanelViews for Thread information
      */
-    public synchronized void onGitStatusButton(){
+    public synchronized void gitStatus(){
+        RepositoryMonitor.pause();
         Thread th = new Thread(new Task<Void>(){
             @Override
             protected Void call(){
@@ -634,6 +661,7 @@ public class SessionController {
                     e.printStackTrace();
                 }finally{
                     lock.unlock();
+                    RepositoryMonitor.unpause();
                 }
                 return null;
             }
@@ -692,7 +720,7 @@ public class SessionController {
      *
      * This applies to all methods used here
      */
-	private void initPanelViews() {
+	private synchronized void initPanelViews() {
         BusyWindow.show();
         Platform.runLater(() -> {
             try{
@@ -1077,7 +1105,7 @@ public class SessionController {
 
             Action fetchAction = new Action("Fetch", e -> {
                 this.notificationPane.hide();
-                handleFetchButton();
+                gitFetch();
             });
 
             Action ignoreAction = new Action("Ignore", e -> {
@@ -1128,10 +1156,9 @@ public class SessionController {
         });
     }
 
-    private void showFetchResultNotification(boolean success){
+    private void showNoCommitsFetchedNotification(){
         Platform.runLater(() -> {
-            if(success) this.notificationPane.setText("New commits were fetched");
-            else this.notificationPane.setText("No new commits were fetched");
+            this.notificationPane.setText("No new commits were fetched");
 
             this.notificationPane.getActions().clear();
             this.notificationPane.show();
