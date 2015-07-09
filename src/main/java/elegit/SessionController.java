@@ -249,18 +249,7 @@ public class SessionController {
 
         this.newRepoMenu.getItems().addAll(cloneOption, existingOption, newOption);
 
-        // Initialize it with no repos to choose from. This gets updated when there are repos present.
-        this.openRecentRepoMenu = new Menu("Open Recent Repository");
-        MenuItem noOptionsAvailable = new MenuItem("No recent repositories");
-        noOptionsAvailable.setDisable(true);
-        this.openRecentRepoMenu.getItems().add(noOptionsAvailable);
-
-        this.menuBar.getMenus().addAll(newRepoMenu, openRecentRepoMenu);
-
-        if (this.theModel.getAllRepoHelpers().size() != 0) {
-            // If there are repos from previous sessions, put them in the menu bar
-            this.updateRecentReposDropdown();
-        }
+        this.menuBar.getMenus().add(newRepoMenu);
 
     }
 

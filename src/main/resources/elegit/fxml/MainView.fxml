@@ -53,6 +53,7 @@
                             <ComboBox GridPane.rowIndex="0"
                                       GridPane.columnIndex="0"
                                       GridPane.hgrow="ALWAYS"
+                                      id="repoDropdown"
                                       fx:id="repoDropdownSelector"
                                       onAction="#loadSelectedRepo"/>
 
