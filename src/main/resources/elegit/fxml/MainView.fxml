@@ -63,6 +63,7 @@
                     <ComboBox fx:id="branchSelector"
                               GridPane.columnIndex="2"
                               GridPane.rowIndex="0"
+                              onMouseClicked="#updateBranchDropdown"
                               onAction="#loadSelectedBranch"/>
 
                     <Button GridPane.columnIndex="3"
