@@ -1,5 +1,8 @@
 package main.java.elegit;
 
+import de.jensd.fx.glyphs.GlyphsDude;
+import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
+import javafx.scene.text.Text;
 import main.java.elegit.exceptions.NoOwnerInfoException;
 import main.java.elegit.exceptions.NoRepoSelectedException;
 import javafx.application.Platform;
@@ -65,7 +68,8 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
         if(prevDestinationPath != null) destinationPathField.setText(prevDestinationPath);
 
         Button chooseDirectoryButton = new Button();
-        chooseDirectoryButton.setText("..."); // TODO: folder icon or something, instead of text
+        Text folderIcon = GlyphsDude.createIcon(FontAwesomeIcon.FOLDER_OPEN);
+        chooseDirectoryButton.setGraphic(folderIcon);
         chooseDirectoryButton.setOnAction(t -> {
             File cloneRepoDirectory = this.getDirectoryPathFromChooser("Choose clone destination folder", null);
             destinationPathField.setText(cloneRepoDirectory.toString());
