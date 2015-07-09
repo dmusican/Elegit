@@ -63,15 +63,14 @@ public abstract class RepoHelper {
      * @throws IOException if the obtainRepository() call throws this exception.
      */
     public RepoHelper(Path directoryPath, String remoteURL, RepoOwner owner) throws GitAPIException, IOException, NoOwnerInfoException {
-
         if (owner == null || (owner.getUsername() == null && owner.getPassword() == null)) {
+            // This exception is mainly for constructing ClonedRepoHelpers because that operation
+            // requires a login to the remote.
             throw new NoOwnerInfoException();
         }
-
-        this.ownerAuth = new UsernamePasswordCredentialsProvider(owner.getUsername(), owner.getPassword());
-
         this.remoteURL = remoteURL;
 
+        // Same as the other constructor (below):
         this.localPath = directoryPath;
 
         this.repo = this.obtainRepository();
@@ -79,7 +78,6 @@ public abstract class RepoHelper {
         this.commitIdMap = new HashMap<>();
         this.idMap = new HashMap<>();
 
-        // TODO: performance? depth limit for parsing commits or something
         this.localCommits = this.parseAllLocalCommits();
         this.remoteCommits = this.parseAllRemoteCommits();
 
@@ -90,10 +88,12 @@ public abstract class RepoHelper {
         hasUnmergedCommitsProperty = new SimpleBooleanProperty(this.localCommits.size() < this.remoteCommits.size());
     }
 
-    /// Constructor for EXISTING repos to inherit (they don't need the Remote URL)
+    /// Constructor for ExisitingRepoHelpers to inherit (they don't need the Remote URL)
     public RepoHelper(Path directoryPath, RepoOwner owner) throws GitAPIException, IOException, NoOwnerInfoException {
         // If the user hasn't signed in (owner == null), then there is no authentication:
         if (owner == null) {
+            // We can leave the ownerAuth as null because it's an ExistingRepo. The user doesn't need to
+            // log in until they want to actually interact with the remote (e.g. pushing changes).
             this.ownerAuth = null;
         } else {
             this.ownerAuth = new UsernamePasswordCredentialsProvider(owner.getUsername(), owner.getPassword());
@@ -108,13 +108,12 @@ public abstract class RepoHelper {
 
         this.localCommits = this.parseAllLocalCommits();
         this.remoteCommits = this.parseAllRemoteCommits();
+
         this.branchManagerModel = new BranchManagerModel(this.callGitForLocalBranches(), this.callGitForRemoteBranches(), this);
 
         hasRemoteProperty = new SimpleBooleanProperty(!getLinkedRemoteRepoURLs().isEmpty());
         hasUnpushedCommitsProperty = new SimpleBooleanProperty(this.localCommits.size() > this.remoteCommits.size());
         hasUnmergedCommitsProperty = new SimpleBooleanProperty(this.localCommits.size() < this.remoteCommits.size());
-
-        // TODO: unify these two constructors (less copied-and-pasted code)
     }
 
     /**
