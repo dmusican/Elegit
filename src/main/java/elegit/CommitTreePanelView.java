@@ -40,6 +40,7 @@ public class CommitTreePanelView extends Region{
      * @param treeGraph the graph to be displayed
      */
     public void displayTreeGraph(TreeGraph treeGraph){
+        BusyWindow.show();
 
         if(isLayoutThreadRunning){
             task.cancel();
@@ -75,6 +76,7 @@ public class CommitTreePanelView extends Region{
                     isLayoutThreadRunning = false;
 
                     MatchedScrollPane.ignoreScrolling(false);
+                    BusyWindow.hide();
                 });
                 return null;
             }

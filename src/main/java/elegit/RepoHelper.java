@@ -791,7 +791,7 @@ public abstract class RepoHelper {
      * Gets a list of references (branch heads and tags) from the
      * remote repository without fetching any changes. Equivalent
      * to 'git ls-remote -h -t' if includeTags is true, or
-     * 'git ls-remote -h' if false
+     * 'git ls-remote --heads' if false
      * @param includeTags whether to include the tags
      * @return a list of remotre references
      * @throws GitAPIException

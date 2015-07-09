@@ -66,22 +66,22 @@ public class RepositoryMonitor{
                     List<BranchHelper> localOriginHeads = repoHelper.getRemoteBranches();
                     Collection<Ref> remoteHeads = repoHelper.getRefsFromRemote(false);
 
-                    if(localOriginHeads.size() == remoteHeads.size()){
-                        for(BranchHelper branch : localOriginHeads){
+                    if(localOriginHeads.size() >= remoteHeads.size()){
+                        for(Ref ref : remoteHeads){
                             boolean hasFoundMatchingBranch = false;
-                            boolean hasFoundNewChanges2 = false;
+                            boolean hasFoundNewChanges = false;
 
-                            for(Ref ref : remoteHeads){
+                            for(BranchHelper branch : localOriginHeads){
                                 if(ref.getName().equals("refs/heads/"+branch.getBranchName())){
                                     hasFoundMatchingBranch = true;
                                     if(!branch.getHeadID().equals(ref.getObjectId())){
-                                        hasFoundNewChanges2 = true;
-                                        break;
+                                        hasFoundNewChanges = true;
                                     }
+                                    break;
                                 }
                             }
 
-                            if(hasFoundNewChanges2 || !hasFoundMatchingBranch){
+                            if(hasFoundNewChanges || !hasFoundMatchingBranch){
                                 setFoundNewChanges();
                                 break;
                             }
@@ -98,6 +98,8 @@ public class RepositoryMonitor{
                 }
             }
         });
+
+        resetFoundNewChanges(CHECK_INTERVAL * 2);
 
         th.setDaemon(true);
         th.setName("Remote monitor for repository \"" + repoHelper + "\"");

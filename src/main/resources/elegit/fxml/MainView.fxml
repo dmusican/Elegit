@@ -2,6 +2,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.shape.Circle?>
+<?import javafx.scene.text.Text?>
 <?import main.java.elegit.*?>
 <?import org.controlsfx.control.NotificationPane?>
 <?import java.net.URL?>
@@ -13,7 +14,7 @@
             AnchorPane.rightAnchor="5.0"
             AnchorPane.topAnchor="5.0">
         <content>
-            <HBox>
+            <HBox fx:id="root">
                 <GridPane HBox.hgrow="ALWAYS"
                           alignment="TOP_CENTER"
                           hgap="5" vgap="5"
@@ -219,53 +220,48 @@
                     <StackPane GridPane.rowIndex="3"
                                GridPane.columnIndex="6"
                                GridPane.columnSpan="2">
+                        <Text text="No commit selected"/>
                         <GridPane alignment="TOP_CENTER"
                                   hgap="5" vgap="5"
                                   id="gridPane">
 
                             <Label GridPane.rowIndex="0"
                                    GridPane.columnIndex="0"
-                                   GridPane.columnSpan="2"
+                                   GridPane.columnSpan="3"
                                    GridPane.halignment="CENTER"
                                    GridPane.hgrow="ALWAYS"
                                    fx:id="commitInfoAuthorText"/>
 
                             <Label GridPane.rowIndex="1"
                                    GridPane.columnIndex="0"
-                                   GridPane.columnSpan="2"
+                                   GridPane.columnSpan="3"
                                    GridPane.halignment="CENTER"
                                    fx:id="commitInfoDateText"/>
 
-                            <TextField GridPane.rowIndex="2"
-                                       GridPane.columnIndex="0"
-                                       GridPane.columnSpan="2"
-                                       GridPane.halignment="CENTER"
-                                       editable="false"
-                                       promptText="Commit..."
-                                       fx:id="commitInfoNameText"/>
+                            <Label GridPane.rowIndex="2"
+                                   GridPane.columnIndex="1"
+                                   GridPane.halignment="CENTER"
+                                   textOverrun="ELLIPSIS"
+                                   fx:id="commitInfoNameText"/>
 
-                            <TextArea GridPane.rowIndex="4"
+                            <TextArea GridPane.rowIndex="3"
                                       GridPane.columnIndex="0"
-                                      GridPane.columnSpan="2"
+                                      GridPane.columnSpan="3"
                                       GridPane.vgrow="ALWAYS"
                                       prefColumnCount="4"
                                       wrapText="true"
                                       editable="false"
-                                      promptText="Message..."
                                       fx:id="commitInfoMessageText"/>
 
-                            <Button GridPane.rowIndex="3"
+                            <Button GridPane.rowIndex="2"
                                     GridPane.columnIndex="0"
                                     GridPane.hgrow="ALWAYS"
-                                    text="See In Graphs"
-                                    disable="true"
                                     fx:id="commitInfoGoToButton"
                                     onAction="#handleGoToCommitButton"/>
 
-                            <Button GridPane.rowIndex="3"
-                                    GridPane.columnIndex="1"
-                                    text="Copy Hash"
-                                    disable="true"
+                            <Button GridPane.rowIndex="2"
+                                    GridPane.columnIndex="2"
+                                    GridPane.hgrow="NEVER"
                                     fx:id="commitInfoNameCopyButton"
                                     onAction="#handleCommitNameCopyButton"/>
 

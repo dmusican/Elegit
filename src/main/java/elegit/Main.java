@@ -16,6 +16,8 @@ public class Main extends Application {
         Parent root = FXMLLoader.load(getClass().getResource("/main/resources/elegit/fxml/MainView.fxml"));
         primaryStage.setTitle("Elegit");
 
+        BusyWindow.setParentWindow(primaryStage);
+
         Scene scene = new Scene(root, 1200, 650); // width, height
         primaryStage.setScene(scene);
         primaryStage.show();

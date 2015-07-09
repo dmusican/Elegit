@@ -1,45 +1,59 @@
 package main.java.elegit;
 
 import javafx.application.Platform;
+import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.ProgressIndicator;
-import javafx.scene.layout.StackPane;
+import javafx.scene.layout.HBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
+import javafx.stage.Window;
 
 /**
  * Created by makik on 7/8/15.
  */
-public class BusyWindow extends Stage{
+public class BusyWindow{
 
-    private static BusyWindow window = new BusyWindow();
+    private static Stage window = initWindow();
 
-    private BusyWindow(){
-        super();
-        setAlwaysOnTop(true);
-        setResizable(false);
-        setMaxHeight(100);
-        setMaxWidth(150);
-        setMinHeight(100);
-        setMinWidth(150);
-        setTitle("Loading...");
+    private static int numProcessesActive = 0;
 
-        initModality(Modality.APPLICATION_MODAL);
+    private static Stage initWindow(){
+        window = new Stage();
 
-        setScene(new Scene(getRootOfScene()));
+        window.setMaxHeight(100);
+        window.setMaxWidth(150);
+        window.setMinHeight(100);
+        window.setMinWidth(150);
+
+        window.initStyle(StageStyle.UNDECORATED);
+        window.initModality(Modality.APPLICATION_MODAL);
+
+        window.setScene(new Scene(getRootOfScene()));
+
+        return window;
     }
 
-    private Parent getRootOfScene(){
+    private static Parent getRootOfScene(){
         ProgressIndicator p = new ProgressIndicator();
-        return new StackPane(p);
+        HBox parent = new HBox(p);
+        parent.setAlignment(Pos.CENTER);
+        return parent;
     }
 
-    public static void appear(){
-        Platform.runLater(window::show);
+    public static void setParentWindow(Window parent){
+        window.initOwner(parent);
     }
 
-    public static void disappear(){
-        Platform.runLater(window::hide);
+    public static void show(){
+        if(numProcessesActive == 0) Platform.runLater(window::show);
+        numProcessesActive++;
+    }
+
+    public static void hide(){
+        numProcessesActive--;
+        if(numProcessesActive == 0) Platform.runLater(window::hide);
     }
 }

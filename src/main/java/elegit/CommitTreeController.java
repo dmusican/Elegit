@@ -2,6 +2,7 @@ package main.java.elegit;
 
 import main.java.elegit.treefx.*;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -175,7 +176,7 @@ public class CommitTreeController{
      * with branch heads and any missing commits
      * @param repo the repo from which the list of all commits is pulled
      */
-    public static void update(RepoHelper repo){
+    public static void update(RepoHelper repo) throws IOException{
         List<String> commitIDs = repo.getAllCommitIDs();
         for(CommitTreeModel model : allCommitTreeModels){
             if(model.treeGraph != null){
@@ -190,9 +191,9 @@ public class CommitTreeController{
                 if(modelBranches == null) continue;
                 for(BranchHelper branch : modelBranches){
                     if(!model.sessionModel.getCurrentRepoHelper().isBranchTracked(branch)){
-                        model.setCommitAsUntrackedBranch(branch.getHead().getId());
+                        model.setCommitAsUntrackedBranch(branch.getHeadID());
                     }else{
-                        model.setCommitAsTrackedBranch(branch.getHead().getId());
+                        model.setCommitAsTrackedBranch(branch.getHeadID());
                     }
                 }
 
