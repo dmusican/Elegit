@@ -51,7 +51,6 @@ public class BranchManagerController {
     @FXML
     private Button swapMergeBranchesButton;
 
-    private SessionController sessionControllerContext;
     private SessionModel sessionModel;
     private BranchManagerModel branchManagerModel;
 
@@ -225,10 +224,6 @@ public class BranchManagerController {
                 LocalBranchHelper tracker = this.createLocalTrackingBranchForRemote(selectedRemoteBranch);
                 this.localListView.getItems().add(tracker);
                 this.branchManagerModel.setLocalBranches(this.localListView.getItems());
-            }
-            if (this.sessionControllerContext != null) {
-                // Call a `git status` to refresh the tree views:
-                this.sessionControllerContext.gitStatus();
             }
         } catch (RefAlreadyExistsException e) {
             this.showRefAlreadyExistsNotification();

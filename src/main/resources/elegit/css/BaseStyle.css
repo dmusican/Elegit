@@ -48,6 +48,18 @@
   -fx-background-color: #BFBFBF;
 }
 
+.combo-box-base {
+    -fx-background-color: white;
+    -fx-background-radius: 5, 5, 4, 3;
+    -fx-background-insets: 0 0 -1 0, 0, 1, 2;
+    -fx-padding: 0;
+}
+    .combo-box-base#repoDropdown {
+        -fx-background-color: none;
+        -fx-font-weight: bold;
+        -fx-font-size: 14px;
+    }
+
 #title-text {
     -fx-font-size: 20px;
     -fx-font-weight: bold;

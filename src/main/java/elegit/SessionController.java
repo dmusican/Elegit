@@ -3,7 +3,10 @@ package main.java.elegit;
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
 import javafx.concurrent.Task;
+import javafx.event.ActionEvent;
+import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.control.Button;
@@ -44,10 +47,9 @@ import java.util.prefs.BackingStoreException;
  */
 public class SessionController {
 
-    public ComboBox<LocalBranchHelper> branchSelector;
+    public ComboBox<LocalBranchHelper> branchDropdownSelector;
 
-    public Label currentRepoLabel;
-    private static final double CURRENT_REPO_LABEL_MAX_WIDTH = 200;
+    public ComboBox<RepoHelper> repoDropdownSelector;
 
     private SessionModel theModel;
 
@@ -139,7 +141,7 @@ public class SessionController {
         this.setButtonsDisabled(true);
 
         // Branch selector and trigger button starts invisible, since there's no repo and no branches
-        this.branchSelector.setVisible(false);
+        this.branchDropdownSelector.setVisible(false);
 
         this.initializeMenuBar();
 
@@ -148,6 +150,7 @@ public class SessionController {
 
         this.initPanelViews();
         this.updateUIEnabledStatus();
+        this.updateRecentReposDropdown();
 
         RepositoryMonitor.beginWatchingRemote(theModel);
         RepositoryMonitor.hasFoundNewRemoteChanges.addListener((observable, oldValue, newValue) -> {
@@ -173,9 +176,9 @@ public class SessionController {
         workingTreePanelView.setMinSize(Control.USE_PREF_SIZE, 200);
         commitMessageField.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
 
-        branchSelector.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
+        branchDropdownSelector.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
 
-        currentRepoLabel.setMaxWidth(CURRENT_REPO_LABEL_MAX_WIDTH);//- openRepoDirButton.getWidth());
+//        currentRepoLabel.setMaxWidth(CURRENT_REPO_LABEL_MAX_WIDTH);//- openRepoDirButton.getWidth());
 
         remoteCommitTreePanelView.heightProperty().addListener((observable, oldValue, newValue) -> {
             remoteCircle.setCenterY(newValue.doubleValue() / 2.0);
@@ -211,10 +214,10 @@ public class SessionController {
         LocalBranchHelper currentBranch = currentRepoHelper.getCurrentBranch();
 
         Platform.runLater(() -> {
-            this.branchSelector.setVisible(true);
-            this.branchSelector.getItems().setAll(branches);
-            if(this.branchSelector.getValue() == null || !this.branchSelector.getValue().getBranchName().equals(currentBranch.getBranchName())){
-                this.branchSelector.setValue(currentBranch);
+            this.branchDropdownSelector.setVisible(true);
+            this.branchDropdownSelector.getItems().setAll(branches);
+            if(this.branchDropdownSelector.getValue() == null || !this.branchDropdownSelector.getValue().getBranchName().equals(currentBranch.getBranchName())){
+                this.branchDropdownSelector.setValue(currentBranch);
             }
         });
     }
@@ -246,18 +249,7 @@ public class SessionController {
 
         this.newRepoMenu.getItems().addAll(cloneOption, existingOption, newOption);
 
-        // Initialize it with no repos to choose from. This gets updated when there are repos present.
-        this.openRecentRepoMenu = new Menu("Open Recent Repository");
-        MenuItem noOptionsAvailable = new MenuItem("No recent repositories");
-        noOptionsAvailable.setDisable(true);
-        this.openRecentRepoMenu.getItems().add(noOptionsAvailable);
-
-        this.menuBar.getMenus().addAll(newRepoMenu, openRecentRepoMenu);
-
-        if (this.theModel.getAllRepoHelpers().size() != 0) {
-            // If there are repos from previous sessions, put them in the menu bar
-            this.updateMenuBarWithRecentRepos();
-        }
+        this.menuBar.getMenus().add(newRepoMenu);
 
     }
 
@@ -286,7 +278,7 @@ public class SessionController {
                         // Should be ok to silently fail
                     } catch (MissingRepoException e) {
                         showMissingRepoNotification();
-                        updateMenuBarWithRecentRepos();
+                        updateRecentReposDropdown();
                     } catch (IOException e) {
                         // Somehow, the repository failed to get properly loaded
                         // TODO: better error message?
@@ -341,8 +333,22 @@ public class SessionController {
     }
 
     /**
-     * Called when a selection is made from the 'Open Recent Repository" menu. Loads the repository
-     * given and updates the UI
+     * Gets the current RepoHelpers and puts them in the recent repos dropdown
+     * selector.
+     */
+    @FXML
+    private void updateRecentReposDropdown() {
+        List<RepoHelper> repoHelpers = this.theModel.getAllRepoHelpers();
+        RepoHelper currentRepo = this.theModel.getCurrentRepoHelper();
+
+        Platform.runLater(() -> {
+            this.repoDropdownSelector.setItems(FXCollections.observableArrayList(repoHelpers));
+            this.repoDropdownSelector.setValue(currentRepo);
+        });
+    }
+
+    /**
+     * Loads the given repository and updates the UI accordingly.
      * @param repoHelper the repository to open
      */
     private synchronized void handleRecentRepoMenuItem(RepoHelper repoHelper){
@@ -362,7 +368,7 @@ public class SessionController {
                     showRepoWasNotLoadedNotification();
                 } catch(MissingRepoException e){
                     showMissingRepoNotification();
-                    updateMenuBarWithRecentRepos();
+                    updateRecentReposDropdown();
                 } catch (BackingStoreException | ClassNotFoundException e) {
                     // These should only occur when the recent repo information
                     // fails to be loaded or stored, respectively
@@ -377,6 +383,15 @@ public class SessionController {
         th.setDaemon(true);
         th.setName("Open repository from recent list");
         th.start();
+    }
+
+    /**
+     * A helper method that grabs the currently selected repo in the repo dropdown
+     * and loads it using the handleRecentRepoMenuItem(...) method.
+     */
+    public void loadSelectedRepo() {
+        RepoHelper selectedRepoHelper = this.repoDropdownSelector.getValue();
+        this.handleRecentRepoMenuItem(selectedRepoHelper);
     }
 
     /**
@@ -412,7 +427,7 @@ public class SessionController {
                     } catch(MissingRepoException e){
                         showMissingRepoNotification();
                         setButtonsDisabled(true);
-                        updateMenuBarWithRecentRepos();
+                        updateRecentReposDropdown();
                     } catch (TransportException e) {
                         showNotAuthorizedNotification(null);
                     } catch (WrongRepositoryStateException e) {
@@ -440,7 +455,7 @@ public class SessionController {
         } catch(MissingRepoException e){
             this.showMissingRepoNotification();
             setButtonsDisabled(true);
-            updateMenuBarWithRecentRepos();
+            updateRecentReposDropdown();
         } catch(NoCommitMessageException e){
             this.showNoCommitMessageNotification();
         }catch(NoFilesStagedForCommitException e){
@@ -478,7 +493,7 @@ public class SessionController {
                     } catch(MissingRepoException e){
                         showMissingRepoNotification();
                         setButtonsDisabled(true);
-                        updateMenuBarWithRecentRepos();
+                        updateRecentReposDropdown();
                     } catch(GitAPIException | IOException e){
                         showGenericErrorNotification();
                         e.printStackTrace();
@@ -529,7 +544,7 @@ public class SessionController {
                     } catch(MissingRepoException e){
                         showMissingRepoNotification();
                         setButtonsDisabled(true);
-                        updateMenuBarWithRecentRepos();
+                        updateRecentReposDropdown();
                     } catch(GitAPIException e){
                         showGenericErrorNotification();
                         e.printStackTrace();
@@ -586,7 +601,7 @@ public class SessionController {
                     } catch(MissingRepoException e){
                         showMissingRepoNotification();
                         setButtonsDisabled(true);
-                        updateMenuBarWithRecentRepos();
+                        updateRecentReposDropdown();
                     } catch(GitAPIException e){
                         showGenericErrorNotification();
                         e.printStackTrace();
@@ -652,7 +667,7 @@ public class SessionController {
                 } catch(MissingRepoException e){
                     showMissingRepoNotification();
                     setButtonsDisabled(true);
-                    updateMenuBarWithRecentRepos();
+                    updateRecentReposDropdown();
                 } catch(NoRepoLoadedException e){
                     showNoRepoLoadedNotification();
                     setButtonsDisabled(true);
@@ -701,7 +716,7 @@ public class SessionController {
             }catch(MissingRepoException e){
                 this.showMissingRepoNotification();
                 this.setButtonsDisabled(true);
-                updateMenuBarWithRecentRepos();
+                this.updateRecentReposDropdown();
             }catch(NoRepoLoadedException e){
                 this.showNoRepoLoadedNotification();
                 this.setButtonsDisabled(true);
@@ -759,13 +774,15 @@ public class SessionController {
      * Checks out the branch that is currently selected in the dropdown.
      */
     public void loadSelectedBranch() {
-        LocalBranchHelper selectedBranch = this.branchSelector.getValue();
+        LocalBranchHelper selectedBranch = this.branchDropdownSelector.getValue();
         if(selectedBranch == null) return;
         Thread th = new Thread(new Task<Void>(){
             @Override
             protected Void call() {
 
                 try{
+                    // This is an edge case for new local repos.
+                    //
                     // When a repo is first initialized,the `master` branch is checked-out,
                     //  but it is "unborn" -- it doesn't exist yet in the `refs/heads` folder
                     //  until there are commits.
@@ -792,7 +809,7 @@ public class SessionController {
                     }catch(MissingRepoException e1){
                         showMissingRepoNotification();
                         setButtonsDisabled(true);
-                        updateMenuBarWithRecentRepos();
+                        updateRecentReposDropdown();
                     }catch(GitAPIException | IOException e1){
                         showGenericErrorNotification();
                         e1.printStackTrace();
@@ -819,17 +836,14 @@ public class SessionController {
             if(this.theModel.getCurrentRepoHelper() == null && this.theModel.getAllRepoHelpers().size() == 0) {
                 // (There's no repo for the buttons to interact with)
                 setButtonsDisabled(true);
-                Platform.runLater(() -> this.branchSelector.setVisible(false));
+                Platform.runLater(() -> this.branchDropdownSelector.setVisible(false));
             } else if (this.theModel.getCurrentRepoHelper() == null && this.theModel.getAllRepoHelpers().size() > 0) {
                 // (There's no repo for buttons to interact with, but there are repos in the menu bar)
                 setButtonsDisabled(true);
-                Platform.runLater(() -> this.branchSelector.setVisible(false));
-                this.updateMenuBarWithRecentRepos();
+                Platform.runLater(() -> this.branchDropdownSelector.setVisible(false));
             }else{
                 setButtonsDisabled(false);
                 this.updateBranchDropdown();
-                this.updateMenuBarWithRecentRepos();
-                this.updateCurrentRepoLabel();
             }
         }catch(NoRepoLoadedException e){
             this.showNoRepoLoadedNotification();
@@ -837,19 +851,11 @@ public class SessionController {
         }catch(MissingRepoException e){
             this.showMissingRepoNotification();
             setButtonsDisabled(true);
-            updateMenuBarWithRecentRepos();
+            this.updateRecentReposDropdown();
         } catch (GitAPIException | IOException e) {
             this.showGenericErrorNotification();
             e.printStackTrace();
         }
-    }
-
-    /**
-     * Updates the repo label with the current repo's directory name
-     */
-    private void updateCurrentRepoLabel() {
-        String name = this.theModel.getCurrentRepoHelper().toString();
-        Platform.runLater(() -> this.currentRepoLabel.setText(name));
     }
 
     /**
@@ -1175,10 +1181,6 @@ public class SessionController {
     public void showBranchManager() {
         try{
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
-
-            // TODO: Set session controller context for the Branchmanagercontroller
-            //  so that it can call `git status` after tracking a new remote branch locally
-
             this.theModel.getCurrentRepoHelper().showBranchManagerWindow();
         }catch(IOException e){
             this.showGenericErrorNotification();

@@ -45,24 +45,30 @@
                     <StackPane GridPane.rowIndex="0"
                                 GridPane.columnIndex="0">
                         <GridPane hgap="5" vgap="5">
-                            <Label GridPane.rowIndex="0"
-                                  GridPane.columnIndex="0"
-                                  GridPane.hgrow="ALWAYS"
-                                  fx:id="currentRepoLabel"
-                                  id="repoLabelText"/>
+                            <!--<Label GridPane.rowIndex="0"-->
+                                  <!--GridPane.columnIndex="0"-->
+                                  <!--GridPane.hgrow="ALWAYS"-->
+                                  <!--fx:id="currentRepoLabel"-->
+                                  <!--id="repoLabelText"/>-->
+                            <ComboBox GridPane.rowIndex="0"
+                                      GridPane.columnIndex="0"
+                                      GridPane.hgrow="ALWAYS"
+                                      id="repoDropdown"
+                                      fx:id="repoDropdownSelector"
+                                      onAction="#loadSelectedRepo"/>
 
                             <Button GridPane.rowIndex="0"
                                     GridPane.columnIndex="1"
                                     GridPane.halignment="RIGHT"
                                     fx:id="openRepoDirButton"
-                                    onAction="#openRepoDirectory">
-                            </Button>
+                                    onAction="#openRepoDirectory"/>
                         </GridPane>
                     </StackPane>
 
-                    <ComboBox fx:id="branchSelector"
+                    <ComboBox fx:id="branchDropdownSelector"
                               GridPane.columnIndex="2"
                               GridPane.rowIndex="0"
+                              onMouseClicked="#updateBranchDropdown"
                               onAction="#loadSelectedBranch"/>
 
                     <Button GridPane.columnIndex="3"
