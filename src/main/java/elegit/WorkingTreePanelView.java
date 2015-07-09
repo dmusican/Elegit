@@ -11,7 +11,6 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import java.util.ArrayList;
 
 /**
- * Git for Education, 2015
  *
  * WorkingTreePanelView displays the current working tree's directory and
  * lets the user mark checkboxes on files to commit. The 'commit action' to
