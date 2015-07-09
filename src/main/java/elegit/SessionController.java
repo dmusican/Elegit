@@ -1175,10 +1175,6 @@ public class SessionController {
     public void showBranchManager() {
         try{
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
-
-            // TODO: Set session controller context for the Branchmanagercontroller
-            //  so that it can call `git status` after tracking a new remote branch locally
-
             this.theModel.getCurrentRepoHelper().showBranchManagerWindow();
         }catch(IOException e){
             this.showGenericErrorNotification();
