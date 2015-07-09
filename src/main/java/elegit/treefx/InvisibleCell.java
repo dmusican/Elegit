@@ -1,7 +1,6 @@
 package main.java.elegit.treefx;
 
 import javafx.scene.Node;
-import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
 
 /**
@@ -15,11 +14,18 @@ public class InvisibleCell extends Cell{
 
     @Override
     protected Node getBaseView(){
-        Shape s = new Rectangle(BOX_SIZE, BOX_SIZE);
-        s.setFill(null);
-        s.setStyle("-fx-stroke: " + CellState.STANDARD.getCssStringKey());
-        s.getStyleClass().setAll("cell", "invisCell");
-        return s;
+        Shape node = DEFAULT_SHAPE.get();
+        node.setFill(null);
+        node.setStyle("-fx-stroke: " + CellState.STANDARD.getCssStringKey());
+        node.getStyleClass().setAll("cell", "invisCell");
+        return node;
+    }
+
+    @Override
+    public synchronized void setShape(CellShape newShape){
+        if(view == null){
+            setView(getBaseView());
+        }
     }
 
     @Override

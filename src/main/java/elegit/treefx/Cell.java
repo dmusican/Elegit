@@ -81,7 +81,7 @@ public class Cell extends Pane{
         this.time = time;
         this.parents = new ParentCell(this, parent1, parent2);
 
-        setView(getBaseView());
+        setShape(DEFAULT_SHAPE);
 
         this.columnLocationProperty = new SimpleIntegerProperty(-1);
         this.rowLocationProperty = new SimpleIntegerProperty(-1);
@@ -147,8 +147,7 @@ public class Cell extends Pane{
      * @return the basic view for this cell
      */
     protected Node getBaseView(){
-        this.shape = DEFAULT_SHAPE;
-        Node node = shape.get();
+        Node node = DEFAULT_SHAPE.get();
         node.setStyle("-fx-fill: " + CellState.STANDARD.getCssStringKey());
         node.getStyleClass().setAll("cell");
         return node;
@@ -156,27 +155,29 @@ public class Cell extends Pane{
 
     /**
      * Sets the look of this cell
-     * @param view the new view
+     * @param newView the new view
      */
-    public void setView(Node view) {
-        if(this.view != null){
-            view.setStyle(this.view.getStyle());
-            view.getStyleClass().setAll(this.view.getStyleClass());
+    public synchronized void setView(Node newView) {
+        if(this.view == null){
+            this.view = getBaseView();
         }
 
-        this.view = view;
+        newView.setStyle(this.view.getStyle());
+        newView.getStyleClass().setAll(this.view.getStyleClass());
+
+        this.view = newView;
         getChildren().clear();
-        getChildren().add(view);
+        getChildren().add(newView);
     }
 
     /**
      * Set the shape of this cell
-     * @param shape the new shape
+     * @param newShape the new shape
      */
-    public void setShape(CellShape shape){
-        if(this.shape == shape) return;
-        setView(shape.get());
-        this.shape = shape;
+    public synchronized void setShape(CellShape newShape){
+        if(this.shape == newShape) return;
+        setView(newShape.get());
+        this.shape = newShape;
     }
 
     /**
