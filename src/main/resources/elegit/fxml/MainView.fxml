@@ -64,6 +64,12 @@
                                     GridPane.halignment="RIGHT"
                                     fx:id="loadNewRepoButton"/>
 
+                            <Button GridPane.rowIndex="0"
+                                    GridPane.columnIndex="3"
+                                    GridPane.halignment="RIGHT"
+                                    onAction="#chooseRecentReposToDelete"
+                                    fx:id="removeRecentReposButton"/>
+
                         </GridPane>
                     </StackPane>
 

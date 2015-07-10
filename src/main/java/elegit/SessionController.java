@@ -17,11 +17,14 @@ import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.text.Text;
 import main.java.elegit.exceptions.*;
+import org.controlsfx.control.CheckListView;
 import org.controlsfx.control.NotificationPane;
+import org.controlsfx.control.PopOver;
 import org.controlsfx.control.action.Action;
 import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.errors.NoMergeBaseException;
@@ -49,6 +52,7 @@ public class SessionController {
 
     public ComboBox<RepoHelper> repoDropdownSelector;
     public Button loadNewRepoButton;
+    public Button removeRecentReposButton;
 
     private SessionModel theModel;
 
@@ -115,6 +119,10 @@ public class SessionController {
         plusIcon.setFill(Color.WHITE);
         this.loadNewRepoButton.setGraphic(plusIcon);
 
+        Text minusIcon = GlyphsDude.createIcon(FontAwesomeIcon.MINUS);
+        minusIcon.setFill(Color.WHITE);
+        this.removeRecentReposButton.setGraphic(minusIcon);
+
         Text userIcon = GlyphsDude.createIcon(FontAwesomeIcon.USER);
         userIcon.setFill(Color.WHITE);
         this.switchUserButton.setGraphic(userIcon);
@@ -159,7 +167,8 @@ public class SessionController {
 
         this.initPanelViews();
         this.updateUIEnabledStatus();
-        this.updateRecentReposDropdown();
+        this.setRecentReposDropdownToCurrentRepo();
+        this.refreshRecentReposInDropdown();
 
         RepositoryMonitor.beginWatchingRemote(theModel);
         RepositoryMonitor.hasFoundNewRemoteChanges.addListener((observable, oldValue, newValue) -> {
@@ -250,6 +259,7 @@ public class SessionController {
 
                         initPanelViews();
                         updateUIEnabledStatus();
+                        refreshRecentReposInDropdown();
 
                     } catch(BackingStoreException | ClassNotFoundException e) {
                         // These should only occur when the recent repo information
@@ -257,7 +267,7 @@ public class SessionController {
                         // Should be ok to silently fail
                     } catch (MissingRepoException e) {
                         showMissingRepoNotification();
-                        updateRecentReposDropdown();
+                        refreshRecentReposInDropdown();
                     } catch (IOException e) {
                         // Somehow, the repository failed to get properly loaded
                         // TODO: better error message?
@@ -293,11 +303,10 @@ public class SessionController {
     }
 
     /**
-     * Gets the current RepoHelpers and puts them in the recent repos dropdown
-     * selector.
+     * Gets the current RepoHelper and sets it as the selected value of the dropdown.
      */
     @FXML
-    private void updateRecentReposDropdown() {
+    private void setRecentReposDropdownToCurrentRepo() {
         List<RepoHelper> repoHelpers = this.theModel.getAllRepoHelpers();
         RepoHelper currentRepo = this.theModel.getCurrentRepoHelper();
 
@@ -305,6 +314,15 @@ public class SessionController {
             this.repoDropdownSelector.setItems(FXCollections.observableArrayList(repoHelpers));
             this.repoDropdownSelector.setValue(currentRepo);
         });
+    }
+
+    /**
+     * Adds all the model's RepoHelpers to the dropdown
+     */
+    @FXML
+    private void refreshRecentReposInDropdown() {
+        List<RepoHelper> repoHelpers = this.theModel.getAllRepoHelpers();
+        Platform.runLater(() -> this.repoDropdownSelector.setItems(FXCollections.observableArrayList(repoHelpers)));
     }
 
     /**
@@ -328,7 +346,7 @@ public class SessionController {
                     showRepoWasNotLoadedNotification();
                 } catch(MissingRepoException e){
                     showMissingRepoNotification();
-                    updateRecentReposDropdown();
+                    refreshRecentReposInDropdown();
                 } catch (BackingStoreException | ClassNotFoundException e) {
                     // These should only occur when the recent repo information
                     // fails to be loaded or stored, respectively
@@ -387,7 +405,7 @@ public class SessionController {
                     } catch(MissingRepoException e){
                         showMissingRepoNotification();
                         setButtonsDisabled(true);
-                        updateRecentReposDropdown();
+                        refreshRecentReposInDropdown();
                     } catch (TransportException e) {
                         showNotAuthorizedNotification(null);
                     } catch (WrongRepositoryStateException e) {
@@ -415,7 +433,7 @@ public class SessionController {
         } catch(MissingRepoException e){
             this.showMissingRepoNotification();
             setButtonsDisabled(true);
-            updateRecentReposDropdown();
+            refreshRecentReposInDropdown();
         } catch(NoCommitMessageException e){
             this.showNoCommitMessageNotification();
         }catch(NoFilesStagedForCommitException e){
@@ -453,7 +471,7 @@ public class SessionController {
                     } catch(MissingRepoException e){
                         showMissingRepoNotification();
                         setButtonsDisabled(true);
-                        updateRecentReposDropdown();
+                        refreshRecentReposInDropdown();
                     } catch(GitAPIException | IOException e){
                         showGenericErrorNotification();
                         e.printStackTrace();
@@ -504,7 +522,7 @@ public class SessionController {
                     } catch(MissingRepoException e){
                         showMissingRepoNotification();
                         setButtonsDisabled(true);
-                        updateRecentReposDropdown();
+                        refreshRecentReposInDropdown();
                     } catch(GitAPIException e){
                         showGenericErrorNotification();
                         e.printStackTrace();
@@ -561,7 +579,7 @@ public class SessionController {
                     } catch(MissingRepoException e){
                         showMissingRepoNotification();
                         setButtonsDisabled(true);
-                        updateRecentReposDropdown();
+                        refreshRecentReposInDropdown();
                     } catch(GitAPIException e){
                         showGenericErrorNotification();
                         e.printStackTrace();
@@ -627,7 +645,7 @@ public class SessionController {
                 } catch(MissingRepoException e){
                     showMissingRepoNotification();
                     setButtonsDisabled(true);
-                    updateRecentReposDropdown();
+                    refreshRecentReposInDropdown();
                 } catch(NoRepoLoadedException e){
                     showNoRepoLoadedNotification();
                     setButtonsDisabled(true);
@@ -676,7 +694,7 @@ public class SessionController {
             }catch(MissingRepoException e){
                 this.showMissingRepoNotification();
                 this.setButtonsDisabled(true);
-                this.updateRecentReposDropdown();
+                this.refreshRecentReposInDropdown();
             }catch(NoRepoLoadedException e){
                 this.showNoRepoLoadedNotification();
                 this.setButtonsDisabled(true);
@@ -769,7 +787,7 @@ public class SessionController {
                     }catch(MissingRepoException e1){
                         showMissingRepoNotification();
                         setButtonsDisabled(true);
-                        updateRecentReposDropdown();
+                        refreshRecentReposInDropdown();
                     }catch(GitAPIException | IOException e1){
                         showGenericErrorNotification();
                         e1.printStackTrace();
@@ -811,7 +829,7 @@ public class SessionController {
         }catch(MissingRepoException e){
             this.showMissingRepoNotification();
             setButtonsDisabled(true);
-            this.updateRecentReposDropdown();
+            this.refreshRecentReposInDropdown();
         } catch (GitAPIException | IOException e) {
             this.showGenericErrorNotification();
             e.printStackTrace();
@@ -1223,5 +1241,27 @@ public class SessionController {
      */
     public void onDeselectAllButton() {
         this.workingTreePanelView.setAllFilesSelected(false);
+    }
+
+    public void chooseRecentReposToDelete() {
+        List<RepoHelper> repoHelpers = this.theModel.getAllRepoHelpers();
+        CheckListView<RepoHelper> repoCheckListView = new CheckListView<>(FXCollections.observableArrayList(repoHelpers));
+
+        // Remove the currently checked out repo:
+        RepoHelper currentRepo = this.theModel.getCurrentRepoHelper();
+        repoCheckListView.getItems().remove(currentRepo);
+
+        Button removeSelectedButton = new Button("Remove selected repositories from Elegit");
+
+        PopOver popover = new PopOver(new VBox(repoCheckListView, removeSelectedButton));
+
+        removeSelectedButton.setOnAction(e -> {
+            List<RepoHelper> checkedItems = repoCheckListView.getCheckModel().getCheckedItems();
+            this.theModel.removeRepoHelpers(checkedItems);
+            popover.hide();
+            this.refreshRecentReposInDropdown();
+        });
+
+        popover.show(this.removeRecentReposButton);
     }
 }
