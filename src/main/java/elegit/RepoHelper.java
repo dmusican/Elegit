@@ -34,6 +34,8 @@ import java.util.*;
 public abstract class RepoHelper {
 
     protected UsernamePasswordCredentialsProvider ownerAuth;
+
+    public String username;
     private Repository repo;
     protected String remoteURL;
 
@@ -69,6 +71,7 @@ public abstract class RepoHelper {
             throw new NoOwnerInfoException();
         }
         this.remoteURL = remoteURL;
+        this.username = owner.getUsername();
 
         // Same as the other constructor (below):
         this.localPath = directoryPath;
@@ -97,8 +100,10 @@ public abstract class RepoHelper {
             // We can leave the ownerAuth as null because it's an ExistingRepo. The user doesn't need to
             // log in until they want to actually interact with the remote (e.g. pushing changes).
             this.ownerAuth = null;
+            this.username = null;
         } else {
             this.ownerAuth = new UsernamePasswordCredentialsProvider(owner.getUsername(), owner.getPassword());
+            this.username = owner.getUsername();
         }
 
         this.localPath = directoryPath;
@@ -699,8 +704,10 @@ public abstract class RepoHelper {
         if (owner == null || (owner.getUsername() == null && owner.getPassword() == null)) {
             // If there's no owner, there's no authentication.
             this.ownerAuth = null;
+            this.username = null;
         } else {
             this.ownerAuth = new UsernamePasswordCredentialsProvider(owner.getUsername(), owner.getPassword());
+            this.username = owner.getUsername();
         }
     }
 
@@ -828,5 +835,9 @@ public abstract class RepoHelper {
 
     public BranchManagerModel getBranchManagerModel() {
         return this.branchManagerModel;
+    }
+
+    public String getUsername() {
+        return username;
     }
 }

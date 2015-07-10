@@ -833,7 +833,7 @@ public class SessionController {
     }
 
     /**
-     * Creates a new owner and set it as the current default owner.
+     * Creates a new owner and sets it as the current default owner.
      */
     public boolean switchUser() {
         // Begin with a nullified RepoOwner:
@@ -852,6 +852,7 @@ public class SessionController {
             currentRepoHelper.setOwner(newOwner);
         }
         this.theModel.setCurrentDefaultOwner(newOwner);
+        this.updateLoginButtonText();
         return switchedLogin;
     }
 
@@ -1237,5 +1238,12 @@ public class SessionController {
         });
 
         popover.show(this.removeRecentReposButton);
+    }
+
+    private void updateLoginButtonText() {
+        String username = this.theModel.getCurrentRepoHelper().getUsername();
+        if (username == null) username = "Login";
+
+        this.switchUserButton.setText(username);
     }
 }

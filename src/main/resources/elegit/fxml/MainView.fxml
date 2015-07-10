@@ -85,7 +85,7 @@
                     <Button GridPane.columnIndex="4"
                             GridPane.rowIndex="0"
                             fx:id="switchUserButton"
-                            text="Switch login"
+                            text="Login"
                             onAction="#handleSwitchUserButton" />
 
                     <GridPane alignment="TOP_CENTER"
