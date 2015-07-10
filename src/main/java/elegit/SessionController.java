@@ -142,7 +142,10 @@ public class SessionController {
         // Set up the "+" button for loading new repos (give it a menu)
         Text downloadIcon = GlyphsDude.createIcon(FontAwesomeIcon.CLOUD_DOWNLOAD);
         MenuItem cloneOption = new MenuItem("Clone repository", downloadIcon);
-        cloneOption.setOnAction(t -> handleLoadRepoMenuItem(new ClonedRepoHelperBuilder(this.theModel)));
+        cloneOption.setOnAction(t -> {
+            if(this.theModel.getDefaultOwner() == null) this.showNotLoggedInNotification(() -> handleLoadRepoMenuItem(new ClonedRepoHelperBuilder(this.theModel)));
+            else handleLoadRepoMenuItem(new ClonedRepoHelperBuilder(this.theModel));
+        });
 
         Text folderOpenIcon = GlyphsDude.createIcon(FontAwesomeIcon.FOLDER_OPEN);
         MenuItem existingOption = new MenuItem("Load existing repository", folderOpenIcon);
@@ -284,9 +287,9 @@ public class SessionController {
         } catch(NoOwnerInfoException e) {
             showNotLoggedInNotification(() -> handleLoadRepoMenuItem(builder));
         } catch(JGitInternalException e){
-            showNonEmptyFolderNotification();
+            showNonEmptyFolderNotification(() -> handleLoadRepoMenuItem(builder));
         } catch(InvalidRemoteException e){
-            showInvalidRemoteNotification();
+            showInvalidRemoteNotification(() -> handleLoadRepoMenuItem(builder));
         } catch(TransportException e){
             showNotAuthorizedNotification(() -> handleLoadRepoMenuItem(builder));
         } catch (NoRepoSelectedException e) {
@@ -884,11 +887,20 @@ public class SessionController {
 
     /// BEGIN: ERROR NOTIFICATIONS:
 
+    private void showGenericErrorNotification() {
+        Platform.runLater(()-> {
+            this.notificationPane.setText("Sorry, there was an error.");
+
+            this.notificationPane.getActions().clear();
+            this.notificationPane.show();
+        });
+    }
+
     private void showNotLoggedInNotification(Runnable callBack) {
         Platform.runLater(() -> {
-            this.notificationPane.setText("You need to log in to do that.");
+            this.notificationPane.setText("You need to log in first in order to clone a repository.");
 
-            Action loginAction = new Action("Enter login info", e -> {
+            Action loginAction = new Action("Log in", e -> {
                 this.notificationPane.hide();
                 if (this.switchUser()) {
                     if (callBack != null) callBack.run();
@@ -951,30 +963,32 @@ public class SessionController {
         });
     }
 
-    private void showNonEmptyFolderNotification() {
+    private void showNonEmptyFolderNotification(Runnable callback) {
         Platform.runLater(()-> {
-            this.notificationPane.setText("Make sure the directory you selected is completely empty. The best " +
-                    "way to do this is to create a new folder from the directory chooser.");
+            this.notificationPane.setText("Make sure a folder with that name doesn't already exist in that location");
+
+            Action okAction = new Action("OK", e -> {
+                this.notificationPane.hide();
+                if(callback != null) callback.run();
+            });
 
             this.notificationPane.getActions().clear();
+            this.notificationPane.getActions().setAll(okAction);
             this.notificationPane.show();
         });
     }
 
-    private void showInvalidRemoteNotification() {
-        Platform.runLater(()-> {
+    private void showInvalidRemoteNotification(Runnable callback) {
+        Platform.runLater(() -> {
             this.notificationPane.setText("Make sure you entered the correct remote URL.");
 
-            this.notificationPane.getActions().clear();
-            this.notificationPane.show();
-        });
-    }
-
-    private void showGenericErrorNotification() {
-        Platform.runLater(()-> {
-            this.notificationPane.setText("Sorry, there was an error.");
+            Action okAction = new Action("OK", e -> {
+                this.notificationPane.hide();
+                if(callback != null) callback.run();
+            });
 
             this.notificationPane.getActions().clear();
+            this.notificationPane.getActions().setAll(okAction);
             this.notificationPane.show();
         });
     }

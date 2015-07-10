@@ -2,19 +2,15 @@ package main.java.elegit;
 
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
-import javafx.geometry.Pos;
-import javafx.scene.Node;
-import javafx.scene.layout.HBox;
-import javafx.scene.text.Text;
-import main.java.elegit.exceptions.NoOwnerInfoException;
-import main.java.elegit.exceptions.NoRepoSelectedException;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
+import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
+import javafx.scene.text.Text;
 import javafx.util.Pair;
-import org.controlsfx.validation.ValidationSupport;
-import org.controlsfx.validation.Validator;
+import main.java.elegit.exceptions.NoOwnerInfoException;
+import main.java.elegit.exceptions.NoRepoSelectedException;
 import org.eclipse.jgit.api.errors.GitAPIException;
 
 import java.io.File;
@@ -32,7 +28,7 @@ import java.util.Optional;
  */
 public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
 
-    private static String prevRemoteURL, prevDestinationPath;
+    private static String prevRemoteURL, prevDestinationPath, prevRepoName;
 
     public ClonedRepoHelperBuilder(SessionModel sessionModel) {
         super(sessionModel);
@@ -88,6 +84,7 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
 
         TextField repoNameField = new TextField();
         repoNameField.setPromptText("Repository name...");
+        if(prevRepoName != null) repoNameField.setText(prevRepoName);
 
         grid.add(instructionsText, 0, 0, 2, 1);
 
@@ -136,6 +133,7 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
                 // Store these values for callback after a login (if user isn't logged in):
                 prevRemoteURL = remoteURLField.getText();
                 prevDestinationPath = enclosingFolderField.getText();
+                prevRepoName = repoNameField.getText();
 
                 return new Pair<>(enclosingFolderField.getText() + File.separator + repoNameField.getText(), remoteURLField.getText());
             }
