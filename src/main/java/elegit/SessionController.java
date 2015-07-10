@@ -62,7 +62,6 @@ public class SessionController {
     public Button selectAllButton;
     public Button deselectAllButton;
     public Button switchUserButton;
-    public Button clearRecentReposButton;
 
     public Button openRepoDirButton;
     public Button gitStatusButton;
@@ -130,10 +129,6 @@ public class SessionController {
         Text branchIcon = GlyphsDude.createIcon(FontAwesomeIcon.CODE_FORK);
         branchIcon.setFill(Color.WHITE);
         this.branchesButton.setGraphic(branchIcon);
-
-        Text exclamationIcon = GlyphsDude.createIcon(FontAwesomeIcon.EXCLAMATION);
-        exclamationIcon.setFill(Color.WHITE);
-        this.clearRecentReposButton.setGraphic(exclamationIcon);
 
         Text clipboardIcon = GlyphsDude.createIcon(FontAwesomeIcon.CLIPBOARD);
         clipboardIcon.setFill(Color.WHITE);
@@ -837,20 +832,6 @@ public class SessionController {
     }
 
     /**
-     * Clears the history stored with the Preferences API.
-     *
-     * TODO: Come up with better solution?
-     *
-     * @throws BackingStoreException
-     * @throws IOException
-     * @throws ClassNotFoundException
-     */
-    public void clearSavedStuff() throws BackingStoreException, IOException, ClassNotFoundException {
-        this.theModel.clearStoredPreferences();
-        this.showPrefsClearedNotification();
-    }
-
-    /**
      * Creates a new owner and set it as the current default owner.
      */
     public boolean switchUser() {
@@ -1012,17 +993,8 @@ public class SessionController {
     }
 
     private void showRepoWasNotLoadedNotification() {
-        Platform.runLater(()-> {
+        Platform.runLater(() -> {
             this.notificationPane.setText("No repository was loaded.");
-
-            this.notificationPane.getActions().clear();
-            this.notificationPane.show();
-        });
-    }
-
-    private void showPrefsClearedNotification() {
-        Platform.runLater(()-> {
-            this.notificationPane.setText("Your recent repositories have been cleared. Restart the app for changes to take effect.");
 
             this.notificationPane.getActions().clear();
             this.notificationPane.show();
