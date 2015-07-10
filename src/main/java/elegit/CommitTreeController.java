@@ -79,7 +79,7 @@ public class CommitTreeController{
         }else{
             selectedCellID = commitID;
         }
-        Edge.allVisible.set(selectedCellID == null);
+//        Edge.allVisible.set(selectedCellID == null);
     }
 
     /**

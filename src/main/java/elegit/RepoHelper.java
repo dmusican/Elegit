@@ -6,6 +6,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import main.java.elegit.exceptions.ConflictingFilesException;
 import main.java.elegit.exceptions.MissingRepoException;
 import main.java.elegit.exceptions.NoOwnerInfoException;
 import main.java.elegit.exceptions.PushToAheadRemoteError;
@@ -85,9 +86,8 @@ public abstract class RepoHelper {
 
         hasRemoteProperty = new SimpleBooleanProperty(!getLinkedRemoteRepoURLs().isEmpty());
 
-        // TODO: this is not the best way to detect these properties on startup
-        hasUnpushedCommitsProperty = new SimpleBooleanProperty(this.localCommits.size() > this.remoteCommits.size());
-        hasUnmergedCommitsProperty = new SimpleBooleanProperty(this.localCommits.size() < this.remoteCommits.size());
+        hasUnpushedCommitsProperty = new SimpleBooleanProperty(getAllCommitIDs().size() > remoteCommits.size());
+        hasUnmergedCommitsProperty = new SimpleBooleanProperty(getAllCommitIDs().size() > localCommits.size());
     }
 
     /// Constructor for ExistingRepoHelpers to inherit (they don't need the Remote URL)
@@ -114,8 +114,9 @@ public abstract class RepoHelper {
         this.branchManagerModel = new BranchManagerModel(this.callGitForLocalBranches(), this.callGitForRemoteBranches(), this);
 
         hasRemoteProperty = new SimpleBooleanProperty(!getLinkedRemoteRepoURLs().isEmpty());
-        hasUnpushedCommitsProperty = new SimpleBooleanProperty(this.localCommits.size() > this.remoteCommits.size());
-        hasUnmergedCommitsProperty = new SimpleBooleanProperty(this.localCommits.size() < this.remoteCommits.size());
+
+        hasUnpushedCommitsProperty = new SimpleBooleanProperty(getAllCommitIDs().size() > remoteCommits.size());
+        hasUnmergedCommitsProperty = new SimpleBooleanProperty(getAllCommitIDs().size() > localCommits.size());
     }
 
     /**
@@ -243,18 +244,20 @@ public abstract class RepoHelper {
 
         Iterable<PushResult> pushResult = push.call();
         boolean allPushesWereRejected = true;
+        boolean anyPushWasRejected = false;
 
         for (PushResult result : pushResult) {
             for (RemoteRefUpdate remoteRefUpdate : result.getRemoteUpdates()) {
                 if (remoteRefUpdate.getStatus() != (RemoteRefUpdate.Status.REJECTED_NONFASTFORWARD)) {
                     allPushesWereRejected = false;
-                    break;
+                } else {
+                    anyPushWasRejected = true;
                 }
             }
         }
 
-        if (allPushesWereRejected) {
-            throw new PushToAheadRemoteError();
+        if (allPushesWereRejected || anyPushWasRejected) {
+            throw new PushToAheadRemoteError(allPushesWereRejected);
         }
 
         git.close();
@@ -301,7 +304,7 @@ public abstract class RepoHelper {
      * @throws GitAPIException
      * @throws MissingRepoException
      */
-    public boolean mergeFromFetch() throws IOException, GitAPIException, MissingRepoException {
+    public boolean mergeFromFetch() throws IOException, GitAPIException, MissingRepoException, ConflictingFilesException{
         if(!exists()) throw new MissingRepoException();
         if(!hasRemote()) throw new InvalidRemoteException("No remote repository");
         Git git = new Git(this.repo);
@@ -311,7 +314,11 @@ public abstract class RepoHelper {
                 .include(fetchHeadID)
                 .call();
         git.close();
-        this.hasUnmergedCommitsProperty.set(!Arrays.asList(result.getMergedCommits()).contains(result.getNewHead()));
+
+        MergeResult.MergeStatus status = result.getMergeStatus();
+        this.hasUnmergedCommitsProperty.set(status == MergeResult.MergeStatus.ABORTED || status == MergeResult.MergeStatus.CHECKOUT_CONFLICT);
+        this.hasUnpushedCommitsProperty.set(this.hasUnpushedCommits() || status == MergeResult.MergeStatus.MERGED);
+        if(status == MergeResult.MergeStatus.CONFLICTING) throw new ConflictingFilesException(result.getConflicts());
         return result.getMergeStatus().isSuccessful();
     }
 
