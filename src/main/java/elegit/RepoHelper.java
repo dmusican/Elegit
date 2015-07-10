@@ -73,7 +73,7 @@ public abstract class RepoHelper {
         this.remoteURL = remoteURL;
         this.username = owner.getUsername();
 
-        // Same as the other constructor (below):
+        this.ownerAuth = new UsernamePasswordCredentialsProvider(owner.getUsername(), owner.getPassword());
         this.localPath = directoryPath;
 
         this.repo = this.obtainRepository();

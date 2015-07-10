@@ -31,9 +31,7 @@ public class ClonedRepoHelper extends RepoHelper {
         cloneCommand.setCredentialsProvider(this.ownerAuth);
 
         cloneCommand.setDirectory(this.localPath.toFile());
-        Git cloneCall = null;
-
-        cloneCall = cloneCommand.call();
+        Git cloneCall = cloneCommand.call();
 
         cloneCall.close();
         return cloneCall.getRepository();
