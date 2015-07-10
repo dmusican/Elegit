@@ -972,7 +972,7 @@ public class SessionController {
 
     private void showGenericErrorNotification() {
         Platform.runLater(()-> {
-            this.notificationPane.setText("Sorry, there was an error.");
+            this.notificationPane.setText("There was an error.");
 
             this.notificationPane.getActions().clear();
             this.notificationPane.show();
