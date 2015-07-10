@@ -818,6 +818,7 @@ public class SessionController {
             }else{
                 setButtonsDisabled(false);
                 this.updateBranchDropdown();
+                this.updateLoginButtonText();
             }
         }catch(NoRepoLoadedException e){
             this.showNoRepoLoadedNotification();
