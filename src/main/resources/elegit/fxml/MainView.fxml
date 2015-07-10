@@ -38,10 +38,6 @@
                         <RowConstraints vgrow="ALWAYS"/>
                     </rowConstraints>
 
-                    <MenuBar fx:id="menuBar"
-                             GridPane.rowIndex="0"
-                             GridPane.columnSpan="7" />
-
                     <StackPane GridPane.rowIndex="0"
                                 GridPane.columnIndex="0">
                         <GridPane hgap="5" vgap="5">
@@ -67,6 +63,7 @@
                             <Button GridPane.rowIndex="0"
                                     GridPane.columnIndex="3"
                                     GridPane.halignment="RIGHT"
+                                    id="warningButton"
                                     onAction="#chooseRecentReposToDelete"
                                     fx:id="removeRecentReposButton"/>
 

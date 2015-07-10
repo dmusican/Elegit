@@ -121,6 +121,7 @@ public class SessionController {
         Text minusIcon = GlyphsDude.createIcon(FontAwesomeIcon.MINUS);
         minusIcon.setFill(Color.WHITE);
         this.removeRecentReposButton.setGraphic(minusIcon);
+        this.removeRecentReposButton.setTooltip(new Tooltip("Clear shortcuts to recently opened repos"));
 
         Text userIcon = GlyphsDude.createIcon(FontAwesomeIcon.USER);
         userIcon.setFill(Color.WHITE);
@@ -1223,9 +1224,10 @@ public class SessionController {
         RepoHelper currentRepo = this.theModel.getCurrentRepoHelper();
         repoCheckListView.getItems().remove(currentRepo);
 
-        Button removeSelectedButton = new Button("Remove selected repositories from Elegit");
+        Button removeSelectedButton = new Button("Remove repository shortcuts from Elegit");
 
         PopOver popover = new PopOver(new VBox(repoCheckListView, removeSelectedButton));
+        popover.setDetachedTitle("Manage Recent Repositories");
 
         removeSelectedButton.setOnAction(e -> {
             List<RepoHelper> checkedItems = repoCheckListView.getCheckModel().getCheckedItems();
