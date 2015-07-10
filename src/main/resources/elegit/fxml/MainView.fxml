@@ -58,6 +58,12 @@
                                     GridPane.halignment="RIGHT"
                                     fx:id="openRepoDirButton"
                                     onAction="#openRepoDirectory"/>
+
+                            <Button GridPane.rowIndex="0"
+                                    GridPane.columnIndex="2"
+                                    GridPane.halignment="RIGHT"
+                                    fx:id="loadNewRepoButton"/>
+
                         </GridPane>
                     </StackPane>
 

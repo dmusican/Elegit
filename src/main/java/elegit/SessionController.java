@@ -5,14 +5,11 @@ import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.concurrent.Task;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.Menu;
-import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextArea;
 import javafx.scene.input.Clipboard;
@@ -50,6 +47,7 @@ public class SessionController {
     public ComboBox<LocalBranchHelper> branchDropdownSelector;
 
     public ComboBox<RepoHelper> repoDropdownSelector;
+    public Button loadNewRepoButton;
 
     private SessionModel theModel;
 
@@ -89,11 +87,6 @@ public class SessionController {
     CommitTreeModel localCommitTreeModel;
     CommitTreeModel remoteCommitTreeModel;
 
-    // The menu bar
-    public MenuBar menuBar;
-    private Menu newRepoMenu;
-    private Menu openRecentRepoMenu;
-
     /**
      * Initializes the environment by obtaining the model
      * and putting the views on display.
@@ -117,6 +110,10 @@ public class SessionController {
         this.openRepoDirButton.setGraphic(openExternallyIcon);
         this.openRepoDirButton.setTooltip(new Tooltip("Open repository directory"));
 
+        Text plusIcon = GlyphsDude.createIcon(FontAwesomeIcon.PLUS);
+        plusIcon.setFill(Color.WHITE);
+        this.loadNewRepoButton.setGraphic(plusIcon);
+
         Text userIcon = GlyphsDude.createIcon(FontAwesomeIcon.USER);
         userIcon.setFill(Color.WHITE);
         this.switchUserButton.setGraphic(userIcon);
@@ -137,13 +134,22 @@ public class SessionController {
         goToIcon.setFill(Color.WHITE);
         this.commitInfoGoToButton.setGraphic(goToIcon);
 
+        // Set up the "+" button for loading new repos (give it a menu)
+        Text downloadIcon = GlyphsDude.createIcon(FontAwesomeIcon.CLOUD_DOWNLOAD);
+        MenuItem cloneOption = new MenuItem("Clone repository", downloadIcon);
+        cloneOption.setOnAction(t -> handleLoadRepoMenuItem(new ClonedRepoHelperBuilder(this.theModel)));
+
+        Text folderOpenIcon = GlyphsDude.createIcon(FontAwesomeIcon.FOLDER_OPEN_ALT);
+        MenuItem existingOption = new MenuItem("Load existing repository", folderOpenIcon);
+        existingOption.setOnAction(t -> handleLoadRepoMenuItem(new ExistingRepoHelperBuilder(this.theModel)));
+        ContextMenu newRepoOptionsMenu = new ContextMenu(cloneOption, existingOption);
+        this.loadNewRepoButton.setContextMenu(newRepoOptionsMenu);
+
         // Buttons start out disabled, since no repo is loaded
         this.setButtonsDisabled(true);
 
         // Branch selector and trigger button starts invisible, since there's no repo and no branches
         this.branchDropdownSelector.setVisible(false);
-
-        this.initializeMenuBar();
 
         this.theModel.loadRecentRepoHelpersFromStoredPathStrings();
         this.theModel.loadMostRecentRepoHelper();
@@ -223,37 +229,6 @@ public class SessionController {
     }
 
     /**
-     * Sets up the MenuBar by adding some options to it (for cloning).
-     *
-     * Each option offers a different way of loading a repository, and each
-     * option instantiates the appropriate RepoHelper class for the chosen
-     * loading method.
-     *
-     * Since each option creates a new repo, this method handles errors.
-     *
-     * TODO: Move these options from the menubar into the GUI
-     *
-     */
-    private void initializeMenuBar() {
-        this.newRepoMenu = new Menu("Load New Repository");
-
-        MenuItem cloneOption = new MenuItem("Clone");
-        cloneOption.setOnAction(t -> handleLoadRepoMenuItem(new ClonedRepoHelperBuilder(this.theModel)));
-
-        MenuItem existingOption = new MenuItem("Load existing repository");
-        existingOption.setOnAction(t -> handleLoadRepoMenuItem(new ExistingRepoHelperBuilder(this.theModel)));
-
-        // TODO: implement New Repository option.
-        MenuItem newOption = new MenuItem("Start a new repository");
-        newOption.setDisable(true);
-
-        this.newRepoMenu.getItems().addAll(cloneOption, existingOption, newOption);
-
-        this.menuBar.getMenus().add(newRepoMenu);
-
-    }
-
-    /**
      * Called when a selection is made from the 'Load New Repository' menu. Creates a new repository
      * using the given builder and updates the UI
      * @param builder the builder to use to create a new repository
@@ -311,25 +286,6 @@ public class SessionController {
             // TODO: better error message?
             showRepoWasNotLoadedNotification();
         }
-    }
-
-    /**
-     * Puts all the model's RepoHelpers into the menubar.
-     */
-    private void updateMenuBarWithRecentRepos() {
-        Platform.runLater(() -> {
-            this.openRecentRepoMenu.getItems().clear();
-
-            List<RepoHelper> repoHelpers = this.theModel.getAllRepoHelpers();
-            for(RepoHelper repoHelper : repoHelpers){
-                MenuItem recentRepoHelperMenuItem = new MenuItem(repoHelper.toString());
-                recentRepoHelperMenuItem.setOnAction(t -> handleRecentRepoMenuItem(repoHelper));
-                openRecentRepoMenu.getItems().add(recentRepoHelperMenuItem);
-            }
-
-            this.menuBar.getMenus().clear();
-            this.menuBar.getMenus().addAll(this.newRepoMenu, this.openRecentRepoMenu);
-        });
     }
 
     /**
