@@ -2,6 +2,7 @@ package main.java.elegit.treefx;
 
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
+import javafx.scene.control.ContextMenu;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -121,10 +122,11 @@ public class TreeGraphModel{
      * @param newId the id of the new cell
      * @param time the time of the new cell
      * @param label the label of the new cell
+     * @param contextMenu the context menu that will appear when right clicking on a cell
      * @param parentIds the IDs of the parents of the new cell, if any
      * @param visible whether the cell will be normal or invisible
      */
-    public void addCell(String newId, long time, String label, List<String> parentIds, boolean visible){
+    public void addCell(String newId, long time, String label, ContextMenu contextMenu, List<String> parentIds, boolean visible){
         String parent1Id = parentIds.size() > 0 ? parentIds.get(0) : null;
         String parent2Id = parentIds.size() > 1 ? parentIds.get(1) : null;
 
@@ -135,6 +137,7 @@ public class TreeGraphModel{
             cell = new InvisibleCell(newId, time, parent1Id == null ? null : cellMap.get(parent1Id), parent2Id == null ? null : cellMap.get(parent2Id));
         }
         cell.setDisplayLabel(label);
+        cell.setContextMenu(contextMenu);
         addCell(cell);
 
         if(parent1Id != null) this.addEdge(parent1Id, newId);

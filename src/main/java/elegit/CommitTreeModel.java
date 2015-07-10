@@ -1,5 +1,6 @@
 package main.java.elegit;
 
+import javafx.scene.control.*;
 import main.java.elegit.treefx.Cell;
 import main.java.elegit.treefx.TreeGraph;
 import main.java.elegit.treefx.TreeGraphModel;
@@ -222,7 +223,56 @@ public abstract class CommitTreeModel{
             return;
         }
 
-        graphModel.addCell(commitID, commitHelper.getWhen().getTime(), getTreeCellLabel(commitHelper), parentIds, visible);
+        graphModel.addCell(commitID, commitHelper.getWhen().getTime(), getDisplayLabel(commitHelper), getContextMenu(commitHelper), parentIds, visible);
+    }
+
+    /**
+     * Constructs and returns a context menu corresponding to the given commit. Will
+     * be shown on right click in the tree diagram
+     * @param commit the commit for which this context menu is for
+     * @return the context menu for the commit
+     */
+    private ContextMenu getContextMenu(CommitHelper commit){
+        ContextMenu contextMenu = new ContextMenu();
+
+        MenuItem infoItem = new MenuItem("Show Info");
+        infoItem.setOnAction(event -> CommitTreeController.selectCommit(commit.getId(), false, false, false));
+        infoItem.disableProperty().bind(CommitTreeController.selectedIDProperty().isEqualTo(commit.getId()));
+
+        Menu relativesMenu = new Menu("Show Relatives");
+
+        CheckMenuItem showEdgesItem = new CheckMenuItem("Show Only Relatives' Connections");
+        showEdgesItem.setDisable(true);
+
+        MenuItem parentsItem = new MenuItem("Parents");
+        parentsItem.setOnAction(event -> CommitTreeController.selectCommit(commit.getId(), true, false, false));
+
+        MenuItem childrenItem = new MenuItem("Children");
+        childrenItem.setOnAction(event -> CommitTreeController.selectCommit(commit.getId(), false, true, false));
+
+        MenuItem parentsAndChildrenItem = new MenuItem("Both");
+        parentsAndChildrenItem.setOnAction(event -> CommitTreeController.selectCommit(commit.getId(), true, true, false));
+
+        MenuItem allAncestorsItem = new MenuItem("Ancestors");
+        allAncestorsItem.setOnAction(event -> CommitTreeController.selectCommit(commit.getId(), true, false, true));
+
+        MenuItem allDescendantsItem = new MenuItem("Descendants");
+        allDescendantsItem.setOnAction(event -> CommitTreeController.selectCommit(commit.getId(), false, true, true));
+
+        relativesMenu.getItems().setAll(parentsItem, childrenItem, parentsAndChildrenItem,
+                new SeparatorMenuItem(), allAncestorsItem, allDescendantsItem,
+                new SeparatorMenuItem(), showEdgesItem);
+
+        MenuItem mergeItem = new MenuItem("Merge with...");
+        mergeItem.setDisable(true);
+
+        MenuItem branchItem = new MenuItem("Branch from...");
+        branchItem.setDisable(true);
+
+        contextMenu.getItems().addAll(infoItem, relativesMenu,
+                new SeparatorMenuItem(), mergeItem, branchItem);
+
+        return contextMenu;
     }
 
     /**
@@ -252,7 +302,7 @@ public abstract class CommitTreeModel{
      * @param commitHelper the commit to get a label for
      * @return the display label for the commit
      */
-    private String getTreeCellLabel(CommitHelper commitHelper){
+    private String getDisplayLabel(CommitHelper commitHelper){
         String s = "";
         if(branches != null){
             for(BranchHelper branch : branches){
@@ -273,8 +323,8 @@ public abstract class CommitTreeModel{
      * @param commitId the id of the commit to get a label for
      * @return the display label for the commit
      */
-    private String getTreeCellLabel(String commitId){
-        return getTreeCellLabel(sessionModel.getCurrentRepoHelper().getCommit(commitId));
+    private String getDisplayLabel(String commitId){
+        return getDisplayLabel(sessionModel.getCurrentRepoHelper().getCommit(commitId));
     }
 
     /**
@@ -292,7 +342,7 @@ public abstract class CommitTreeModel{
      */
     public void setCommitAsTrackedBranch(String commitId){
         treeGraph.treeGraphModel.setCellShape(commitId, Cell.TRACKED_BRANCH_HEAD_SHAPE);
-        treeGraph.treeGraphModel.setCellLabel(commitId, getTreeCellLabel(commitId));
+        treeGraph.treeGraphModel.setCellLabel(commitId, getDisplayLabel(commitId));
     }
 
     /**
@@ -309,7 +359,7 @@ public abstract class CommitTreeModel{
      */
     public void setCommitAsUntrackedBranch(String commitId){
         treeGraph.treeGraphModel.setCellShape(commitId, Cell.UNTRACKED_BRANCH_HEAD_SHAPE);
-        treeGraph.treeGraphModel.setCellLabel(commitId, getTreeCellLabel(commitId));
+        treeGraph.treeGraphModel.setCellLabel(commitId, getDisplayLabel(commitId));
     }
 
     /**
@@ -327,7 +377,7 @@ public abstract class CommitTreeModel{
         List<String> resetIDs = treeGraph.treeGraphModel.resetCellShapes();
         if(updateLabels){
             for(String id : resetIDs){
-                treeGraph.treeGraphModel.setCellLabel(id, getTreeCellLabel(id));
+                treeGraph.treeGraphModel.setCellLabel(id, getDisplayLabel(id));
             }
         }
     }

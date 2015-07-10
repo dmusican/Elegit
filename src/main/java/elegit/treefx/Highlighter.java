@@ -22,27 +22,74 @@ public class Highlighter{
 
     /**
      * Highlights the cell corresponding to the given id in the given model, as well as
-     * its relatives, with either the standard color or the constants SELECT_COLOR and
-     * first HIGHLIGHT_COLOR, respectively
+     * its relatives (depending on parameters), with either the standard color or the
+     * constants SELECT_COLOR and first HIGHLIGHT_COLOR, respectively
      * @param cellID the selected cell to highlight
      * @param model the model wherein the cell is found
      * @param enable whether to highlight the cell or return it to standard
+     * @param ancestors whether to highlight the cell's parents
+     * @param descendants whether to highlight the cell's children
+     * @param allGenerations whether to highlight further generations than just parents/children (i.e. grandparents, grandchildren etc)
      */
-    public static void highlightSelectedCell(String cellID, TreeGraphModel model, boolean enable){
+    public static void highlightSelectedCell(String cellID, TreeGraphModel model, boolean enable, boolean ancestors, boolean descendants, boolean allGenerations){
         Cell cell = model.cellMap.get(cellID);
         if(cell == null) return;
         if(enable){
-            highlightCell(cell, CellState.SELECTED);
-            highlightAllRelatives(cellID, model, CellState.HIGHLIGHTED1);
+            highlightCell(cell, CellState.SELECTED, true);
+            if(ancestors){
+                highlightCellParents(cell, CellState.HIGHLIGHTED1, allGenerations, new ArrayList<>());
+            }
+            if(descendants){
+                highlightCellChildren(cell, CellState.HIGHLIGHTED1, allGenerations, new ArrayList<>());
+            }
         }else{
-            highlightCell(cell, CellState.STANDARD);
-            highlightAllRelatives(cellID, model, CellState.STANDARD);
+            highlightCell(cell, CellState.STANDARD, true);
+            if(ancestors){
+
+                highlightCellParents(cell, CellState.STANDARD, allGenerations, new ArrayList<>());
+            }
+            if(descendants){
+                highlightCellChildren(cell, CellState.STANDARD, allGenerations, new ArrayList<>());
+            }
+        }
+    }
+
+    /**
+     * Recursively highlights all of cell's parents. Note that the initial cell itself is not highlighted
+     * @param cell the cell whose parents should be highlighted
+     * @param state the new state for the cell's parents
+     * @param recurse whether to recurse or not
+     * @param visited a list of all visited cells so far
+     */
+    private static void highlightCellParents(Cell cell, CellState state, boolean recurse, List<Cell> visited){
+        for(Cell parent : cell.getCellParents()){
+            if(visited.contains(parent)) continue;
+            visited.add(parent);
+            highlightCell(parent, state, true);
+            if(recurse) highlightCellParents(parent, state, true, visited);
+        }
+    }
+
+    /**
+     * Recursively highlights all of cell's children. Note that the initial cell itself is not highlighted
+     * @param cell the cell whose children should be highlighted
+     * @param state the new state for the cell's children
+     * @param recurse whether to recurse or not
+     * @param visited a list of all visited cells so far
+     */
+    private static void highlightCellChildren(Cell cell, CellState state, boolean recurse, List<Cell> visited){
+        for(Cell child : cell.getCellChildren()){
+            if(visited.contains(child)) continue;
+            visited.add(child);
+            highlightCell(child, state, true);
+            if(recurse) highlightCellChildren(child, state, true, visited);
         }
     }
 
     /**
      * Takes care of ensuring the edges surrounding highlighted and selected cells are correctly
      * flagged as visible
+     * TODO: examine how we want to do edge highlighting
      * @param cellID the cell whose edges this method will examine
      * @param selectedCellID the currently selected cell, if any
      * @param model the model wherein these cells are found
@@ -65,39 +112,10 @@ public class Highlighter{
     }
 
     /**
-     * Helper method to highlight every relative of a cell with the given color
-     * @param cellID the cell whose relatives will be highlighted
-     * @param model the model wherein the cell is found
-     * @param state the new state of each relative
-     */
-    private static void highlightAllRelatives(String cellID, TreeGraphModel model, CellState state){
-        highlightAllCells(model.getRelatives(cellID), state);
-    }
-
-    /**
-     * Helper method to highlight every relative of a cell with the given color, unless the
-     * relative is a neighbor to the given cell to avoid
-     * @param cellID the cell whose relatives will be highlighted
-     * @param neighborID the cell whose neighbors will not be highlighted, even if they are a relative of the given cell
-     * @param model the model wherein these cells are found
-     * @param state the new state for the valid relatives
-     */
-    private static void highlightAllRelativesWithoutNeighbor(String cellID, String neighborID, TreeGraphModel model, CellState state){
-        List<Cell> relatives = model.getRelatives(cellID);
-        List<Cell> relativesToHighlight = new ArrayList<>();
-        for(Cell c : relatives){
-            if(!c.getCellId().equals(neighborID) && !model.isNeighbor(c.getCellId(), neighborID)){
-                relativesToHighlight.add(c);
-            }
-        }
-        highlightAllCells(relativesToHighlight, state);
-    }
-
-    /**
-     * Highlights the cell corresponding to the given id in the given model, as well as
-     * its relatives, with either the standard color, the first HIGHLIGHT_COLOR constant,
-     * or the second HIGHLIGHT_COLOR constant. When highlighting, if there is a selected cell
-     * the second highlight color will be used. Otherwise, the first highlight color is chosen
+     * Highlights the cell corresponding to the given id in the given model, with either the
+     * standard color, the first HIGHLIGHT_COLOR constant, or the second HIGHLIGHT_COLOR constant.
+     * When highlighting, if there is a selected cell the second highlight color will be used.
+     * Otherwise, the first highlight color is chosen
      * @param cellID the cell to highlight
      * @param selectedCellID the currently selected cell, if any
      * @param model the model wherein these cells are found
@@ -118,34 +136,57 @@ public class Highlighter{
             state = CellState.STANDARD;
         }
 
-        if(!cellID.equals(selectedCellID) && !model.isNeighbor(cellID, selectedCellID)){
-            highlightCell(cell, state);
+        if(!cellID.equals(selectedCellID)){
+            highlightCell(cell, state, false);
         }
-
-        highlightAllRelativesWithoutNeighbor(cellID, selectedCellID, model, state);
     }
 
     /**
-     * Helper method that sets the color of all cells in the given list to be
-     * the given color
+     * Helper method that sets the state of all cells in the given list to be
+     * the given state
      * @param cells the cells to color
      * @param state the new state for the cell
      */
     private static void highlightAllCells(List<Cell> cells, CellState state){
         for(Cell cell : cells){
-            highlightCell(cell, state);
+            highlightCell(cell, state, true);
         }
     }
 
     /**
-     * Helper method to set the color of a cell
-     * @param cell the cell to color
+     * Helper method to set the state of a cell. Note that if a cell had its state
+     * changed TO a non-persistent state, FROM a persistent non-standard state, attempting
+     * to put the cell back into the standard state will instead place it back into its
+     * previous persistent state.
+     * @param cell the cell to change states
      * @param state the new state of the cell
+     * @param persistent whether the new state completely overwrites the old (i.e.
+     *                   does the new state get put in the map or will the previous
+     *                   state stay in memory)
      */
-    private static void highlightCell(Cell cell, CellState state){
-        cellStates.put(cell, state);
+    private static void highlightCell(Cell cell, CellState state, boolean persistent){
+        if(persistent) cellStates.put(cell, state);
+
         if(blockedCellIDs.contains(cell.getCellId())) return;
+
+        if(state == CellState.STANDARD){
+            if(cellStates.containsKey(cell)){
+                cell.setCellState(cellStates.get(cell));
+                return;
+            }
+        }
         cell.setCellState(state);
+    }
+
+    /**
+     * Resets all cell's to have the standard state. Also clears the cellStates
+     * map as it is redundant with everything reset.
+     */
+    public static void resetAll(){
+        for(Cell cell : cellStates.keySet()){
+            cell.setCellState(CellState.STANDARD);
+        }
+        cellStates.clear();
     }
 
     /**
@@ -186,6 +227,6 @@ public class Highlighter{
      */
     private static void endEmphasisOnCell(Cell c){
         blockedCellIDs.remove(c.getCellId());
-        highlightCell(c, cellStates.getOrDefault(c, CellState.STANDARD));
+        highlightCell(c, cellStates.getOrDefault(c, CellState.STANDARD), true);
     }
 }
