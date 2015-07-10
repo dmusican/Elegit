@@ -6,7 +6,9 @@ import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.scene.Node;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Tooltip;
+import javafx.scene.input.MouseButton;
 import javafx.scene.layout.Pane;
 import javafx.scene.shape.Shape;
 import javafx.util.Duration;
@@ -45,6 +47,8 @@ public class Cell extends Pane{
     private final long time;
     // The label displayed for this cell
     private String label;
+
+    private ContextMenu contextMenu;
 
     // The list of children of this cell
     List<Cell> children = new ArrayList<>();
@@ -98,7 +102,13 @@ public class Cell extends Pane{
         Tooltip.install(this, tooltip);
 
         this.setOnMouseClicked(event -> {
-            CommitTreeController.handleMouseClicked(this);
+            if(event.getButton() == MouseButton.PRIMARY){
+                CommitTreeController.handleMouseClicked(this.cellId);
+            }else if(event.getButton() == MouseButton.SECONDARY){
+                if(contextMenu != null){
+                    contextMenu.show(this, event.getScreenX(), event.getScreenY());
+                }
+            }
             event.consume();
         });
         this.setOnMouseEntered(event -> CommitTreeController.handleMouseover(this, true));
@@ -187,6 +197,10 @@ public class Cell extends Pane{
     public void setDisplayLabel(String label){
         tooltip.setText(label);
         this.label = label;
+    }
+
+    public void setContextMenu(ContextMenu contextMenu){
+        this.contextMenu = contextMenu;
     }
 
     /**
