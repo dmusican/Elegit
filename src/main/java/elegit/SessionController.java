@@ -6,23 +6,25 @@ import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
+import javafx.geometry.Side;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.Menu;
-import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextArea;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.text.Text;
 import main.java.elegit.exceptions.*;
+import org.controlsfx.control.CheckListView;
 import org.controlsfx.control.NotificationPane;
+import org.controlsfx.control.PopOver;
 import org.controlsfx.control.action.Action;
 import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.errors.NoMergeBaseException;
@@ -49,6 +51,8 @@ public class SessionController {
     public ComboBox<LocalBranchHelper> branchDropdownSelector;
 
     public ComboBox<RepoHelper> repoDropdownSelector;
+    public Button loadNewRepoButton;
+    public Button removeRecentReposButton;
 
     private SessionModel theModel;
 
@@ -58,7 +62,6 @@ public class SessionController {
     public Button selectAllButton;
     public Button deselectAllButton;
     public Button switchUserButton;
-    public Button clearRecentReposButton;
 
     public Button openRepoDirButton;
     public Button gitStatusButton;
@@ -88,11 +91,6 @@ public class SessionController {
     CommitTreeModel localCommitTreeModel;
     CommitTreeModel remoteCommitTreeModel;
 
-    // The menu bar
-    public MenuBar menuBar;
-    private Menu newRepoMenu;
-    private Menu openRecentRepoMenu;
-
     /**
      * Initializes the environment by obtaining the model
      * and putting the views on display.
@@ -116,6 +114,15 @@ public class SessionController {
         this.openRepoDirButton.setGraphic(openExternallyIcon);
         this.openRepoDirButton.setTooltip(new Tooltip("Open repository directory"));
 
+        Text plusIcon = GlyphsDude.createIcon(FontAwesomeIcon.PLUS);
+        plusIcon.setFill(Color.WHITE);
+        this.loadNewRepoButton.setGraphic(plusIcon);
+
+        Text minusIcon = GlyphsDude.createIcon(FontAwesomeIcon.MINUS);
+        minusIcon.setFill(Color.WHITE);
+        this.removeRecentReposButton.setGraphic(minusIcon);
+        this.removeRecentReposButton.setTooltip(new Tooltip("Clear shortcuts to recently opened repos"));
+
         Text userIcon = GlyphsDude.createIcon(FontAwesomeIcon.USER);
         userIcon.setFill(Color.WHITE);
         this.switchUserButton.setGraphic(userIcon);
@@ -123,10 +130,6 @@ public class SessionController {
         Text branchIcon = GlyphsDude.createIcon(FontAwesomeIcon.CODE_FORK);
         branchIcon.setFill(Color.WHITE);
         this.branchesButton.setGraphic(branchIcon);
-
-        Text exclamationIcon = GlyphsDude.createIcon(FontAwesomeIcon.EXCLAMATION);
-        exclamationIcon.setFill(Color.WHITE);
-        this.clearRecentReposButton.setGraphic(exclamationIcon);
 
         Text clipboardIcon = GlyphsDude.createIcon(FontAwesomeIcon.CLIPBOARD);
         clipboardIcon.setFill(Color.WHITE);
@@ -136,20 +139,32 @@ public class SessionController {
         goToIcon.setFill(Color.WHITE);
         this.commitInfoGoToButton.setGraphic(goToIcon);
 
+        // Set up the "+" button for loading new repos (give it a menu)
+        Text downloadIcon = GlyphsDude.createIcon(FontAwesomeIcon.CLOUD_DOWNLOAD);
+        MenuItem cloneOption = new MenuItem("Clone repository", downloadIcon);
+        cloneOption.setOnAction(t -> handleLoadRepoMenuItem(new ClonedRepoHelperBuilder(this.theModel)));
+
+        Text folderOpenIcon = GlyphsDude.createIcon(FontAwesomeIcon.FOLDER_OPEN);
+        MenuItem existingOption = new MenuItem("Load existing repository", folderOpenIcon);
+        existingOption.setOnAction(t -> handleLoadRepoMenuItem(new ExistingRepoHelperBuilder(this.theModel)));
+        ContextMenu newRepoOptionsMenu = new ContextMenu(cloneOption, existingOption);
+
+        this.loadNewRepoButton.setOnAction(e -> newRepoOptionsMenu.show(this.loadNewRepoButton, Side.BOTTOM ,0, 0));
+        this.loadNewRepoButton.setTooltip(new Tooltip("Load a new repository"));
+
         // Buttons start out disabled, since no repo is loaded
         this.setButtonsDisabled(true);
 
         // Branch selector and trigger button starts invisible, since there's no repo and no branches
         this.branchDropdownSelector.setVisible(false);
 
-        this.initializeMenuBar();
-
         this.theModel.loadRecentRepoHelpersFromStoredPathStrings();
         this.theModel.loadMostRecentRepoHelper();
 
         this.initPanelViews();
         this.updateUIEnabledStatus();
-        this.updateRecentReposDropdown();
+        this.setRecentReposDropdownToCurrentRepo();
+        this.refreshRecentReposInDropdown();
 
         RepositoryMonitor.beginWatchingRemote(theModel);
         RepositoryMonitor.hasFoundNewRemoteChanges.addListener((observable, oldValue, newValue) -> {
@@ -177,7 +192,8 @@ public class SessionController {
 
         branchDropdownSelector.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
 
-//        currentRepoLabel.setMaxWidth(CURRENT_REPO_LABEL_MAX_WIDTH);//- openRepoDirButton.getWidth());
+        final int REPO_DROPDOWN_MAX_WIDTH = 147;
+        repoDropdownSelector.setMaxWidth(REPO_DROPDOWN_MAX_WIDTH);
 
         remoteCommitTreePanelView.heightProperty().addListener((observable, oldValue, newValue) -> {
             remoteCircle.setCenterY(newValue.doubleValue() / 2.0);
@@ -222,37 +238,6 @@ public class SessionController {
     }
 
     /**
-     * Sets up the MenuBar by adding some options to it (for cloning).
-     *
-     * Each option offers a different way of loading a repository, and each
-     * option instantiates the appropriate RepoHelper class for the chosen
-     * loading method.
-     *
-     * Since each option creates a new repo, this method handles errors.
-     *
-     * TODO: Move these options from the menubar into the GUI
-     *
-     */
-    private void initializeMenuBar() {
-        this.newRepoMenu = new Menu("Load New Repository");
-
-        MenuItem cloneOption = new MenuItem("Clone");
-        cloneOption.setOnAction(t -> handleLoadRepoMenuItem(new ClonedRepoHelperBuilder(this.theModel)));
-
-        MenuItem existingOption = new MenuItem("Load existing repository");
-        existingOption.setOnAction(t -> handleLoadRepoMenuItem(new ExistingRepoHelperBuilder(this.theModel)));
-
-        // TODO: implement New Repository option.
-        MenuItem newOption = new MenuItem("Start a new repository");
-        newOption.setDisable(true);
-
-        this.newRepoMenu.getItems().addAll(cloneOption, existingOption, newOption);
-
-        this.menuBar.getMenus().add(newRepoMenu);
-
-    }
-
-    /**
      * Called when a selection is made from the 'Load New Repository' menu. Creates a new repository
      * using the given builder and updates the UI
      * @param builder the builder to use to create a new repository
@@ -270,6 +255,7 @@ public class SessionController {
 
                         initPanelViews();
                         updateUIEnabledStatus();
+                        refreshRecentReposInDropdown();
 
                     } catch(BackingStoreException | ClassNotFoundException e) {
                         // These should only occur when the recent repo information
@@ -277,7 +263,7 @@ public class SessionController {
                         // Should be ok to silently fail
                     } catch (MissingRepoException e) {
                         showMissingRepoNotification();
-                        updateRecentReposDropdown();
+                        refreshRecentReposInDropdown();
                     } catch (IOException e) {
                         // Somehow, the repository failed to get properly loaded
                         // TODO: better error message?
@@ -313,30 +299,10 @@ public class SessionController {
     }
 
     /**
-     * Puts all the model's RepoHelpers into the menubar.
-     */
-    private void updateMenuBarWithRecentRepos() {
-        Platform.runLater(() -> {
-            this.openRecentRepoMenu.getItems().clear();
-
-            List<RepoHelper> repoHelpers = this.theModel.getAllRepoHelpers();
-            for(RepoHelper repoHelper : repoHelpers){
-                MenuItem recentRepoHelperMenuItem = new MenuItem(repoHelper.toString());
-                recentRepoHelperMenuItem.setOnAction(t -> handleRecentRepoMenuItem(repoHelper));
-                openRecentRepoMenu.getItems().add(recentRepoHelperMenuItem);
-            }
-
-            this.menuBar.getMenus().clear();
-            this.menuBar.getMenus().addAll(this.newRepoMenu, this.openRecentRepoMenu);
-        });
-    }
-
-    /**
-     * Gets the current RepoHelpers and puts them in the recent repos dropdown
-     * selector.
+     * Gets the current RepoHelper and sets it as the selected value of the dropdown.
      */
     @FXML
-    private void updateRecentReposDropdown() {
+    private void setRecentReposDropdownToCurrentRepo() {
         List<RepoHelper> repoHelpers = this.theModel.getAllRepoHelpers();
         RepoHelper currentRepo = this.theModel.getCurrentRepoHelper();
 
@@ -344,6 +310,15 @@ public class SessionController {
             this.repoDropdownSelector.setItems(FXCollections.observableArrayList(repoHelpers));
             this.repoDropdownSelector.setValue(currentRepo);
         });
+    }
+
+    /**
+     * Adds all the model's RepoHelpers to the dropdown
+     */
+    @FXML
+    private void refreshRecentReposInDropdown() {
+        List<RepoHelper> repoHelpers = this.theModel.getAllRepoHelpers();
+        Platform.runLater(() -> this.repoDropdownSelector.setItems(FXCollections.observableArrayList(repoHelpers)));
     }
 
     /**
@@ -367,7 +342,7 @@ public class SessionController {
                     showRepoWasNotLoadedNotification();
                 } catch(MissingRepoException e){
                     showMissingRepoNotification();
-                    updateRecentReposDropdown();
+                    refreshRecentReposInDropdown();
                 } catch (BackingStoreException | ClassNotFoundException e) {
                     // These should only occur when the recent repo information
                     // fails to be loaded or stored, respectively
@@ -426,7 +401,7 @@ public class SessionController {
                     } catch(MissingRepoException e){
                         showMissingRepoNotification();
                         setButtonsDisabled(true);
-                        updateRecentReposDropdown();
+                        refreshRecentReposInDropdown();
                     } catch (TransportException e) {
                         showNotAuthorizedNotification(null);
                     } catch (WrongRepositoryStateException e) {
@@ -454,7 +429,7 @@ public class SessionController {
         } catch(MissingRepoException e){
             this.showMissingRepoNotification();
             setButtonsDisabled(true);
-            updateRecentReposDropdown();
+            refreshRecentReposInDropdown();
         } catch(NoCommitMessageException e){
             this.showNoCommitMessageNotification();
         }catch(NoFilesStagedForCommitException e){
@@ -496,7 +471,7 @@ public class SessionController {
                     } catch(MissingRepoException e){
                         showMissingRepoNotification();
                         setButtonsDisabled(true);
-                        updateRecentReposDropdown();
+                        refreshRecentReposInDropdown();
                     } catch(GitAPIException | IOException e){
                         showGenericErrorNotification();
                         e.printStackTrace();
@@ -547,7 +522,7 @@ public class SessionController {
                     } catch(MissingRepoException e){
                         showMissingRepoNotification();
                         setButtonsDisabled(true);
-                        updateRecentReposDropdown();
+                        refreshRecentReposInDropdown();
                     } catch(GitAPIException e){
                         showGenericErrorNotification();
                         e.printStackTrace();
@@ -604,7 +579,7 @@ public class SessionController {
                     } catch(MissingRepoException e){
                         showMissingRepoNotification();
                         setButtonsDisabled(true);
-                        updateRecentReposDropdown();
+                        refreshRecentReposInDropdown();
                     } catch(GitAPIException e){
                         showGenericErrorNotification();
                         e.printStackTrace();
@@ -670,7 +645,7 @@ public class SessionController {
                 } catch(MissingRepoException e){
                     showMissingRepoNotification();
                     setButtonsDisabled(true);
-                    updateRecentReposDropdown();
+                    refreshRecentReposInDropdown();
                 } catch(NoRepoLoadedException e){
                     showNoRepoLoadedNotification();
                     setButtonsDisabled(true);
@@ -719,7 +694,7 @@ public class SessionController {
             }catch(MissingRepoException e){
                 this.showMissingRepoNotification();
                 this.setButtonsDisabled(true);
-                this.updateRecentReposDropdown();
+                this.refreshRecentReposInDropdown();
             }catch(NoRepoLoadedException e){
                 this.showNoRepoLoadedNotification();
                 this.setButtonsDisabled(true);
@@ -812,7 +787,7 @@ public class SessionController {
                     }catch(MissingRepoException e1){
                         showMissingRepoNotification();
                         setButtonsDisabled(true);
-                        updateRecentReposDropdown();
+                        refreshRecentReposInDropdown();
                     }catch(GitAPIException | IOException e1){
                         showGenericErrorNotification();
                         e1.printStackTrace();
@@ -847,6 +822,7 @@ public class SessionController {
             }else{
                 setButtonsDisabled(false);
                 this.updateBranchDropdown();
+                this.updateLoginButtonText();
             }
         }catch(NoRepoLoadedException e){
             this.showNoRepoLoadedNotification();
@@ -854,7 +830,7 @@ public class SessionController {
         }catch(MissingRepoException e){
             this.showMissingRepoNotification();
             setButtonsDisabled(true);
-            this.updateRecentReposDropdown();
+            this.refreshRecentReposInDropdown();
         } catch (GitAPIException | IOException e) {
             this.showGenericErrorNotification();
             e.printStackTrace();
@@ -862,21 +838,7 @@ public class SessionController {
     }
 
     /**
-     * Clears the history stored with the Preferences API.
-     *
-     * TODO: Come up with better solution?
-     *
-     * @throws BackingStoreException
-     * @throws IOException
-     * @throws ClassNotFoundException
-     */
-    public void clearSavedStuff() throws BackingStoreException, IOException, ClassNotFoundException {
-        this.theModel.clearStoredPreferences();
-        this.showPrefsClearedNotification();
-    }
-
-    /**
-     * Creates a new owner and set it as the current default owner.
+     * Creates a new owner and sets it as the current default owner.
      */
     public boolean switchUser() {
         // Begin with a nullified RepoOwner:
@@ -895,6 +857,7 @@ public class SessionController {
             currentRepoHelper.setOwner(newOwner);
         }
         this.theModel.setCurrentDefaultOwner(newOwner);
+        this.updateLoginButtonText();
         return switchedLogin;
     }
 
@@ -1037,17 +1000,8 @@ public class SessionController {
     }
 
     private void showRepoWasNotLoadedNotification() {
-        Platform.runLater(()-> {
+        Platform.runLater(() -> {
             this.notificationPane.setText("No repository was loaded.");
-
-            this.notificationPane.getActions().clear();
-            this.notificationPane.show();
-        });
-    }
-
-    private void showPrefsClearedNotification() {
-        Platform.runLater(()-> {
-            this.notificationPane.setText("Your recent repositories have been cleared. Restart the app for changes to take effect.");
 
             this.notificationPane.getActions().clear();
             this.notificationPane.show();
@@ -1307,5 +1261,36 @@ public class SessionController {
      */
     public void onDeselectAllButton() {
         this.workingTreePanelView.setAllFilesSelected(false);
+    }
+
+    public void chooseRecentReposToDelete() {
+        List<RepoHelper> repoHelpers = this.theModel.getAllRepoHelpers();
+        CheckListView<RepoHelper> repoCheckListView = new CheckListView<>(FXCollections.observableArrayList(repoHelpers));
+
+        // Remove the currently checked out repo:
+        RepoHelper currentRepo = this.theModel.getCurrentRepoHelper();
+        repoCheckListView.getItems().remove(currentRepo);
+
+        Button removeSelectedButton = new Button("Remove repository shortcuts from Elegit");
+
+        PopOver popover = new PopOver(new VBox(repoCheckListView, removeSelectedButton));
+        popover.setDetachedTitle("Manage Recent Repositories");
+
+        removeSelectedButton.setOnAction(e -> {
+            List<RepoHelper> checkedItems = repoCheckListView.getCheckModel().getCheckedItems();
+            this.theModel.removeRepoHelpers(checkedItems);
+            popover.hide();
+            this.refreshRecentReposInDropdown();
+        });
+
+        popover.show(this.removeRecentReposButton);
+    }
+
+    private void updateLoginButtonText() {
+        Platform.runLater(() -> {
+            String loginText = this.theModel.getCurrentRepoHelper().getUsername();
+            if (loginText == null) loginText = "Login";
+            this.switchUserButton.setText(loginText);
+        });
     }
 }

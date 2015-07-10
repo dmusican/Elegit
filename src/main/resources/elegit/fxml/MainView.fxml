@@ -38,14 +38,10 @@
                         <RowConstraints vgrow="ALWAYS"/>
                     </rowConstraints>
 
-                    <MenuBar fx:id="menuBar"
-                             GridPane.rowIndex="0"
-                             GridPane.columnSpan="7" />
-
                     <StackPane GridPane.rowIndex="0"
                                 GridPane.columnIndex="0">
                         <GridPane hgap="5" vgap="5">
-   
+
                             <ComboBox GridPane.rowIndex="0"
                                       GridPane.columnIndex="0"
                                       GridPane.hgrow="ALWAYS"
@@ -58,6 +54,19 @@
                                     GridPane.halignment="RIGHT"
                                     fx:id="openRepoDirButton"
                                     onAction="#openRepoDirectory"/>
+
+                            <Button GridPane.rowIndex="0"
+                                    GridPane.columnIndex="2"
+                                    GridPane.halignment="RIGHT"
+                                    fx:id="loadNewRepoButton"/>
+
+                            <Button GridPane.rowIndex="0"
+                                    GridPane.columnIndex="3"
+                                    GridPane.halignment="RIGHT"
+                                    id="warningButton"
+                                    onAction="#chooseRecentReposToDelete"
+                                    fx:id="removeRecentReposButton"/>
+
                         </GridPane>
                     </StackPane>
 
@@ -76,15 +85,8 @@
                     <Button GridPane.columnIndex="4"
                             GridPane.rowIndex="0"
                             fx:id="switchUserButton"
-                            text="Switch login"
+                            text="Login"
                             onAction="#handleSwitchUserButton" />
-
-                    <Button GridPane.columnIndex="5"
-                            GridPane.rowIndex="0"
-                            text="Clear recent repos"
-                            onAction="#clearSavedStuff"
-                            fx:id="clearRecentReposButton"
-                            id="warningButton"/>
 
                     <GridPane alignment="TOP_CENTER"
                               hgap="10"

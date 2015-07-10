@@ -89,57 +89,26 @@ public class BranchManagerController {
         cloudDownIcon.setFill(Color.WHITE);
         this.trackRemoteBranchButton.setGraphic(cloudDownIcon);
 
-        this.trackRemoteBranchButton.setOnAction(e -> {
-            try {
-                this.trackSelectedBranchLocally();
-            } catch (GitAPIException e1) {
-                e1.printStackTrace();
-            } catch (IOException e1) {
-                e1.printStackTrace();
-            }
-        });
         this.trackRemoteBranchButton.setDisable(true);
 
         Text trashIcon = GlyphsDude.createIcon(FontAwesomeIcon.TRASH);
         trashIcon.setFill(Color.WHITE);
         this.deleteLocalBranchesButton.setGraphic(trashIcon);
-        this.deleteLocalBranchesButton.setOnAction(e -> this.deleteSelectedLocalBranches());
         this.deleteLocalBranchesButton.setDisable(true);
-
-        this.mergeButton.setOnAction(e -> {
-            try {
-                this.mergeSelectedBranchWithCurrent();
-            } catch (IOException e1) {
-                e1.printStackTrace();
-            } catch (GitAPIException e1) {
-                e1.printStackTrace();
-            }
-        });
 
         Text arrowsIcon = GlyphsDude.createIcon(FontAwesomeIcon.EXCHANGE);
         arrowsIcon.setFill(Color.WHITE);
         this.swapMergeBranchesButton.setGraphic(arrowsIcon);
-        this.swapMergeBranchesButton.setOnAction(e -> {
-            try {
-                this.swapMergeBranches();
-            } catch (GitAPIException e1) {
-                e1.printStackTrace();
-            } catch (IOException e1) {
-                e1.printStackTrace();
-            }
-        });
-
         this.swapMergeBranchesButton.setTooltip(new Tooltip("Swap which branch is merging into which."));
 
         Text branchIcon = GlyphsDude.createIcon(FontAwesomeIcon.CODE_FORK);
         branchIcon.setFill(Color.WHITE);
         this.newBranchButton.setGraphic(branchIcon);
-        this.newBranchButton.setOnAction(e -> this.onNewBranchButton());
 
         this.updateButtons();
     }
 
-    private void onNewBranchButton() {
+    public void onNewBranchButton() {
         try {
             LocalBranchHelper newLocalBranch = this.createNewLocalBranch(this.newBranchNameField.getText());
             this.localListView.getItems().add(newLocalBranch);
@@ -339,7 +308,7 @@ public class BranchManagerController {
      * @throws GitAPIException
      * @throws IOException
      */
-    private void swapMergeBranches() throws GitAPIException, IOException {
+    public void swapMergeBranches() throws GitAPIException, IOException {
         LocalBranchHelper selectedBranch = this.localListView.getSelectionModel().getSelectedItem();
         LocalBranchHelper checkedOutBranch = this.repoHelper.getCurrentBranch();
 

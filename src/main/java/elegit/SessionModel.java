@@ -450,4 +450,10 @@ public class SessionModel {
         PrefObj.putObject(this.preferences, RECENT_REPOS_LIST_KEY, null);
         PrefObj.putObject(this.preferences, LAST_OPENED_REPO_PATH_KEY, null);
     }
+
+    public void removeRepoHelpers(List<RepoHelper> checkedItems) {
+        for (RepoHelper item : checkedItems) {
+            this.allRepoHelpers.remove(item);
+        }
+    }
 }
