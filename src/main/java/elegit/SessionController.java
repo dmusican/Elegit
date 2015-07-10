@@ -251,12 +251,12 @@ public class SessionController {
                 @Override
                 protected Void call() {
                     try {
+                        refreshRecentReposInDropdown();
                         theModel.openRepoFromHelper(repoHelper);
+                        setRecentReposDropdownToCurrentRepo();
 
                         initPanelViews();
                         updateUIEnabledStatus();
-                        refreshRecentReposInDropdown();
-
                     } catch(BackingStoreException | ClassNotFoundException e) {
                         // These should only occur when the recent repo information
                         // fails to be loaded or stored, respectively
@@ -303,11 +303,8 @@ public class SessionController {
      */
     @FXML
     private void setRecentReposDropdownToCurrentRepo() {
-        List<RepoHelper> repoHelpers = this.theModel.getAllRepoHelpers();
-        RepoHelper currentRepo = this.theModel.getCurrentRepoHelper();
-
         Platform.runLater(() -> {
-            this.repoDropdownSelector.setItems(FXCollections.observableArrayList(repoHelpers));
+            RepoHelper currentRepo = this.theModel.getCurrentRepoHelper();
             this.repoDropdownSelector.setValue(currentRepo);
         });
     }
@@ -716,9 +713,9 @@ public class SessionController {
 	private synchronized void initPanelViews() {
         BusyWindow.show();
         Platform.runLater(() -> {
-            try{
+            try {
                 workingTreePanelView.drawDirectoryView();
-            }catch(GitAPIException e){
+            } catch (GitAPIException e) {
                 showGenericErrorNotification();
             }
             localCommitTreeModel.init();
@@ -893,8 +890,8 @@ public class SessionController {
 
             Action loginAction = new Action("Enter login info", e -> {
                 this.notificationPane.hide();
-                if(this.switchUser()){
-                    if(callBack != null) callBack.run();
+                if (this.switchUser()) {
+                    if (callBack != null) callBack.run();
                 }
             });
 
@@ -915,7 +912,7 @@ public class SessionController {
     }
 
     private void showInvalidRepoNotification() {
-        Platform.runLater(()-> {
+        Platform.runLater(() -> {
             this.notificationPane.setText("Make sure the directory you selected contains an existing (non-bare) Git repository.");
 
             this.notificationPane.getActions().clear();
