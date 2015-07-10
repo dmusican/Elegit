@@ -35,6 +35,7 @@
 
                 <ListView fx:id="remoteListView" />
                 <Button fx:id="trackRemoteBranchButton"
+                        onAction="#trackSelectedBranchLocally"
                         text="Track remote branch locally"/>
 
             </VBox>
@@ -47,6 +48,7 @@
 
                 <ListView fx:id="localListView" />
                 <Button fx:id="deleteLocalBranchesButton"
+                        onAction="#deleteSelectedLocalBranches"
                         text="Delete branch locally" />
 
             </VBox>
@@ -57,8 +59,10 @@
                   alignment="TOP_CENTER"
                   spacing="10">
 
-                <Button fx:id="mergeButton" />
-                <Button fx:id="swapMergeBranchesButton" />
+                <Button fx:id="mergeButton"
+                        onAction="#mergeSelectedBranchWithCurrent"/>
+                <Button fx:id="swapMergeBranchesButton"
+                        onAction="#swapMergeBranches"/>
 
             </HBox>
 
@@ -75,6 +79,7 @@
             <Button GridPane.columnIndex="1"
                     GridPane.rowIndex="5"
                     fx:id="newBranchButton"
+                    onAction="#onNewBranchButton"
                     text="Create branch"/>
 
         </GridPane>
