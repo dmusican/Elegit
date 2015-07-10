@@ -1,6 +1,10 @@
 package main.java.elegit;
 
-import main.java.elegit.treefx.*;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import main.java.elegit.treefx.Cell;
+import main.java.elegit.treefx.Highlighter;
+import main.java.elegit.treefx.TreeGraphModel;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -21,23 +25,23 @@ public class CommitTreeController{
     // The session controller if this controller needs to access other models/views
     public static SessionController sessionController;
 
+    private static ObjectProperty<String> selectedIDProperty = new SimpleObjectProperty<>();
+
     /**
-     * Takes in the cell that was clicked on, and selects it using selectCommit
-     * @param cell the cell that was clicked
+     * Takes in the cell that was clicked on, and either selects or deselects
+     * it depending on whether it had already been selected
+     * @param clickedCellId the id of the cell that was clicked
      */
-    public static void handleMouseClicked(Cell cell){
-        String id = cell.getCellId();
-        if(id.equals(selectedCellID)){
-            sessionController.clearSelectedCommit();
+    public static void handleMouseClicked(String clickedCellId){
+        if(clickedCellId.equals(selectedCellID)){
+            resetSelection();
         }else{
-            sessionController.selectCommit(id);
+            selectCommit(clickedCellId, false, false, false);
         }
-        selectCommitInGraph(id);
     }
 
     /**
-     * Handles mouse clicks that didn't happen on a cell. Deselects any
-     * selected commit
+     * Handles mouse clicks that didn't happen on a cell. Deselects everything.
      */
     public static void handleMouseClicked(){
         resetSelection();
@@ -53,32 +57,24 @@ public class CommitTreeController{
     }
 
     /**
-     * If the commit with the given id is not selected, select it and deselect the previously
-     * selected commit if necessary. If the current id is already selected, deselect it.
-     * Loops through all tracked CommitTreeModels and updates their corresponding views.
-     * @param commitID the id of the commit to select/deselect
+     * Selects the commit with the given id. Loops through all tracked CommitTreeModels and updates
+     * their corresponding views.
+     * @param commitID the id of the commit to select
+     * @param ancestors whether to highlight the commit's parents
+     * @param descendants whether to highlight the commit's children
+     * @param allGenerations whether to highlight further generations than just parents/children (i.e. grandparents, grandchildren etc)
      */
-    private static void selectCommitInGraph(String commitID){
-        boolean isDeselecting = commitID.equals(selectedCellID);
-
+    private static void selectCommitInGraph(String commitID, boolean ancestors, boolean descendants, boolean allGenerations){
         for(CommitTreeModel model : allCommitTreeModels){
             if(model.treeGraph == null) continue;
             TreeGraphModel m = model.treeGraph.treeGraphModel;
 
-            if(selectedCellID == null){
-                selectCommitInGraph(commitID, m, true);
-            }else{
-                selectCommitInGraph(selectedCellID, m, false);
-                if(!isDeselecting){
-                    selectCommitInGraph(commitID, m, true);
-                }
-            }
+            selectCommitInGraph(commitID, m, true, ancestors, descendants, allGenerations);
         }
-        if(isDeselecting){
-            selectedCellID = null;
-        }else{
-            selectedCellID = commitID;
-        }
+
+        selectedCellID = commitID;
+        selectedIDProperty.set(commitID);
+
 //        Edge.allVisible.set(selectedCellID == null);
     }
 
@@ -105,10 +101,13 @@ public class CommitTreeController{
      * commit and its edges
      * @param commitID the commit to select
      * @param model the model wherein the corresponding cell should be highlighted
-     * @param enable whether to select or deselect the cell
+     * @param enable whether to select or deselect the commit
+     * @param ancestors whether to highlight the commit's parents
+     * @param descendants whether to highlight the commit's children
+     * @param allGenerations whether to highlight further generations than just parents/children (i.e. grandparents, grandchildren etc)
      */
-    private static void selectCommitInGraph(String commitID, TreeGraphModel model, boolean enable){
-        Highlighter.highlightSelectedCell(commitID, model, enable);
+    private static void selectCommitInGraph(String commitID, TreeGraphModel model, boolean enable, boolean ancestors, boolean descendants, boolean allGenerations){
+        Highlighter.highlightSelectedCell(commitID, model, enable, ancestors, descendants, allGenerations);
         if(enable){
             Highlighter.updateCellEdges(commitID, commitID, model, true);
         }else{
@@ -117,11 +116,27 @@ public class CommitTreeController{
     }
 
     /**
+     * Selects the cell with the given id. If there is already a commit selected,
+     * deselects it first.
+     * @param id the cell to select
+     * @param ancestors whether to highlight the commit's parents
+     * @param descendants whether to highlight the commit's children
+     * @param allGenerations whether to highlight further generations than just parents/children (i.e. grandparents, grandchildren etc)
+     */
+    public static void selectCommit(String id, boolean ancestors, boolean descendants, boolean allGenerations){
+        resetSelection();
+        selectCommitInGraph(id, ancestors, descendants, allGenerations);
+        sessionController.selectCommit(id);
+    }
+
+    /**
      * Deselects the currently selected commit, if there is one
      */
     public static void resetSelection(){
         if(selectedCellID != null){
-            selectCommitInGraph(selectedCellID);
+            Highlighter.resetAll();
+            selectedCellID = null;
+            selectedIDProperty.set(null);
         }
         sessionController.clearSelectedCommit();
     }
@@ -231,5 +246,9 @@ public class CommitTreeController{
                 Highlighter.emphasizeCell(c);
             }
         }
+    }
+
+    public static ObjectProperty<String> selectedIDProperty(){
+        return selectedIDProperty;
     }
 }
