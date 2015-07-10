@@ -187,7 +187,8 @@ public class SessionController {
 
         branchDropdownSelector.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
 
-//        currentRepoLabel.setMaxWidth(CURRENT_REPO_LABEL_MAX_WIDTH);//- openRepoDirButton.getWidth());
+        final int REPO_DROPDOWN_MAX_WIDTH = 175;
+        repoDropdownSelector.setMaxWidth(REPO_DROPDOWN_MAX_WIDTH);
 
         remoteCommitTreePanelView.heightProperty().addListener((observable, oldValue, newValue) -> {
             remoteCircle.setCenterY(newValue.doubleValue() / 2.0);
