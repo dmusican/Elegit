@@ -45,11 +45,7 @@
                     <StackPane GridPane.rowIndex="0"
                                 GridPane.columnIndex="0">
                         <GridPane hgap="5" vgap="5">
-                            <!--<Label GridPane.rowIndex="0"-->
-                                  <!--GridPane.columnIndex="0"-->
-                                  <!--GridPane.hgrow="ALWAYS"-->
-                                  <!--fx:id="currentRepoLabel"-->
-                                  <!--id="repoLabelText"/>-->
+   
                             <ComboBox GridPane.rowIndex="0"
                                       GridPane.columnIndex="0"
                                       GridPane.hgrow="ALWAYS"
