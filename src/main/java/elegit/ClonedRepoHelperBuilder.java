@@ -3,6 +3,7 @@ package main.java.elegit;
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.layout.HBox;
 import javafx.scene.text.Text;
 import main.java.elegit.exceptions.NoOwnerInfoException;
@@ -12,6 +13,8 @@ import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.util.Pair;
+import org.controlsfx.validation.ValidationSupport;
+import org.controlsfx.validation.Validator;
 import org.eclipse.jgit.api.errors.GitAPIException;
 
 import java.io.File;
@@ -96,6 +99,31 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
 
         grid.add(new Label("Repository name:"), 0, 3);
         grid.add(repoNameField, 1, 3);
+
+        // Enable/Disable login button depending on whether a username was entered.
+        Node cloneButton = dialog.getDialogPane().lookupButton(cloneButtonType);
+        cloneButton.setDisable(true);
+
+        //////
+        // Do some validation:
+        //  On completion of every field, check that the other fields
+        //  are also filled in and with valid characters. Then enable login.
+        repoNameField.textProperty().addListener((observable, oldValue, newValue) -> {
+            boolean someFieldIsEmpty = enclosingFolderField.getText().isEmpty() || repoNameField.getText().isEmpty()
+                    || remoteURLField.getText().isEmpty();
+            cloneButton.setDisable(someFieldIsEmpty || newValue.trim().contains("/") || newValue.trim().contains("."));
+        });
+        enclosingFolderField.textProperty().addListener((observable, oldValue, newValue) -> {
+            boolean someFieldIsEmpty = enclosingFolderField.getText().isEmpty() || repoNameField.getText().isEmpty()
+                    || remoteURLField.getText().isEmpty();
+            cloneButton.setDisable(someFieldIsEmpty);
+        });
+        remoteURLField.textProperty().addListener((observable, oldValue, newValue) -> {
+            boolean someFieldIsEmpty = enclosingFolderField.getText().isEmpty() || repoNameField.getText().isEmpty()
+                    || remoteURLField.getText().isEmpty();
+            cloneButton.setDisable(someFieldIsEmpty);
+        });
+        //////
 
         dialog.getDialogPane().setContent(grid);
 
