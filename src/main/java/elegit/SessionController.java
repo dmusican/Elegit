@@ -5,7 +5,6 @@ import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.concurrent.Task;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.*;
@@ -490,6 +489,10 @@ public class SessionController {
                         // todo: figure out rare NoMergeBaseException.
                         //  Has something to do with pushing conflicts.
                         //  At this point in the stack, it's caught as a JGitInternalException.
+                    } catch(CheckoutConflictException e){
+                        showMergingWithChangedFilesNotification();
+                    } catch(ConflictingFilesException e){
+                        showMergeConflictsNotification(e.getConflictingFiles());
                     } catch(MissingRepoException e){
                         showMissingRepoNotification();
                         setButtonsDisabled(true);
@@ -533,7 +536,7 @@ public class SessionController {
                     }  catch(InvalidRemoteException e){
                         showNoRemoteNotification();
                     } catch(PushToAheadRemoteError e) {
-                        showPushToAheadRemoteNotification();
+                        showPushToAheadRemoteNotification(e.isAllRefsRejected());
                     } catch (TransportException e) {
                         if (e.getMessage().contains("git-receive-pack not found")) {
                             // The error has this message if there is no longer a remote to push to
@@ -1077,10 +1080,40 @@ public class SessionController {
         });
     }
 
-
-    private void showPushToAheadRemoteNotification(){
+    private void showMergeConflictsNotification(List<String> conflictingPaths){
         Platform.runLater(() -> {
-            this.notificationPane.setText("The remote repository is ahead of the local. You need to fetch and then merge (pull) before pushing.");
+            String conflictList = "";
+            for(String pathName : conflictingPaths){
+                conflictList += "\n" + pathName;
+            }
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Conflicting files");
+            alert.setHeaderText("Can't complete merge");
+            alert.setContentText("There were conflicts in the following files: "
+                    + conflictList);
+
+            this.notificationPane.setText("Can't complete merge due to conflicts. Resolve the conflicts and commit all files to complete merging");
+
+            Action seeConflictsAction = new Action("See conflicting files", e -> {
+                this.notificationPane.hide();
+                alert.showAndWait();
+            });
+
+            this.notificationPane.getActions().clear();
+            this.notificationPane.getActions().setAll(seeConflictsAction);
+
+            this.notificationPane.show();
+        });
+    }
+
+
+    private void showPushToAheadRemoteNotification(boolean allRefsRejected){
+        Platform.runLater(() -> {
+            if(allRefsRejected){
+                this.notificationPane.setText("The remote repository is ahead of the local. You need to fetch and then merge (pull) before pushing.");
+            }else{
+                this.notificationPane.setText("You need to merge in order to push all of your changes.");
+            }
 
             this.notificationPane.getActions().clear();
             this.notificationPane.show();
@@ -1155,7 +1188,7 @@ public class SessionController {
 
     private void showNoCommitsToMergeNotification(){
         Platform.runLater(() -> {
-            this.notificationPane.setText("There aren't any fetched commits to merge");
+            this.notificationPane.setText("There aren't any commits to merge. Try fetching first");
 
             this.notificationPane.getActions().clear();
             this.notificationPane.show();
@@ -1165,6 +1198,17 @@ public class SessionController {
     private void showNoCommitsFetchedNotification(){
         Platform.runLater(() -> {
             this.notificationPane.setText("No new commits were fetched");
+
+            this.notificationPane.getActions().clear();
+            this.notificationPane.show();
+        });
+    }
+
+    private void showMergingWithChangedFilesNotification(){
+        Platform.runLater(() -> {
+            this.notificationPane.setText("Can't merge with modified files present");
+
+            // TODO: I think some sort of help text would be nice here, so they know what to do
 
             this.notificationPane.getActions().clear();
             this.notificationPane.show();
