@@ -2,6 +2,8 @@ package main.java.elegit;
 
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
+import javafx.geometry.Pos;
+import javafx.scene.layout.HBox;
 import javafx.scene.text.Text;
 import main.java.elegit.exceptions.NoOwnerInfoException;
 import main.java.elegit.exceptions.NoRepoSelectedException;
@@ -34,8 +36,8 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
     }
 
     /**
-     * Shows dialogs that prompt the user for information needed to
-     * construct a ClonedRepoHelper.
+     * Builds (with a grid) and shows dialogs that prompt the user for
+     * information needed to construct a ClonedRepoHelper.
      *
      * @return the new ClonedRepoHelper.
      * @throws Exception when constructing the new ClonedRepoHelper
@@ -46,8 +48,11 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
 
         // Create the custom dialog.
         Dialog<Pair<String, String>> dialog = new Dialog<>();
-        dialog.setTitle("Clone a Repository");
-        dialog.setHeaderText("Enter a remote repository to clone into the destination path.");
+        dialog.setTitle("Clone");
+        dialog.setHeaderText("Clone a remote repository");
+
+        Text instructionsText = new Text("Select an enclosing folder for the repository folder\n" +
+                                         "to be created in.");
 
         // Set the button types.
         ButtonType cloneButtonType = new ButtonType("Clone", ButtonBar.ButtonData.OK_DONE);
@@ -57,29 +62,40 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
         GridPane grid = new GridPane();
         grid.setHgap(10);
         grid.setVgap(10);
-        grid.setPadding(new Insets(20, 150, 10, 10));
+        grid.setPadding(new Insets(10, 10, 10, 10));
 
         TextField remoteURLField = new TextField();
         remoteURLField.setPromptText("Remote URL");
         if(prevRemoteURL != null) remoteURLField.setText(prevRemoteURL);
 
-        TextField destinationPathField = new TextField();
-        destinationPathField.setEditable(false); // for now, it will just show the folder you selected
-        if(prevDestinationPath != null) destinationPathField.setText(prevDestinationPath);
+        TextField enclosingFolderField = new TextField();
+        enclosingFolderField.setEditable(false); // for now, it will just show the folder you selected
+        if(prevDestinationPath != null) enclosingFolderField.setText(prevDestinationPath);
+
+        Text enclosingDirectoryPathText = new Text();
 
         Button chooseDirectoryButton = new Button();
         Text folderIcon = GlyphsDude.createIcon(FontAwesomeIcon.FOLDER_OPEN);
         chooseDirectoryButton.setGraphic(folderIcon);
         chooseDirectoryButton.setOnAction(t -> {
             File cloneRepoDirectory = this.getDirectoryPathFromChooser("Choose clone destination folder", null);
-            destinationPathField.setText(cloneRepoDirectory.toString());
+            enclosingFolderField.setText(cloneRepoDirectory.toString());
+            enclosingDirectoryPathText.setText(cloneRepoDirectory.toString() + File.separator);
         });
 
-        grid.add(new Label("Remote URL:"), 0, 0);
-        grid.add(remoteURLField, 1, 0);
-        grid.add(new Label("Destination Path:"), 0, 1);
-        grid.add(destinationPathField, 1, 1);
-        grid.add(chooseDirectoryButton, 2, 1);
+        TextField repoNameField = new TextField();
+        repoNameField.setPromptText("Repository name...");
+
+        grid.add(instructionsText, 0, 0, 2, 1);
+
+        grid.add(new Label("Remote URL:"), 0, 1);
+        grid.add(remoteURLField, 1, 1);
+        grid.add(new Label("Enclosing folder:"), 0, 2);
+        grid.add(enclosingFolderField, 1, 2);
+        grid.add(chooseDirectoryButton, 2, 2);
+
+        grid.add(new Label("Repository name:"), 0, 3);
+        grid.add(repoNameField, 1, 3);
 
         dialog.getDialogPane().setContent(grid);
 
@@ -89,9 +105,11 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
         // Convert the result to a destination-remote pair when the clone button is clicked.
         dialog.setResultConverter(dialogButton -> {
             if (dialogButton == cloneButtonType) {
+                // Store these values for callback after a login (if user isn't logged in):
                 prevRemoteURL = remoteURLField.getText();
-                prevDestinationPath = destinationPathField.getText();
-                return new Pair<>(destinationPathField.getText(), remoteURLField.getText());
+                prevDestinationPath = enclosingFolderField.getText();
+
+                return new Pair<>(enclosingFolderField.getText() + File.separator + repoNameField.getText(), remoteURLField.getText());
             }
             return null;
         });
