@@ -6,6 +6,7 @@ import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
+import javafx.geometry.Side;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.control.Button;
@@ -139,11 +140,13 @@ public class SessionController {
         MenuItem cloneOption = new MenuItem("Clone repository", downloadIcon);
         cloneOption.setOnAction(t -> handleLoadRepoMenuItem(new ClonedRepoHelperBuilder(this.theModel)));
 
-        Text folderOpenIcon = GlyphsDude.createIcon(FontAwesomeIcon.FOLDER_OPEN_ALT);
+        Text folderOpenIcon = GlyphsDude.createIcon(FontAwesomeIcon.FOLDER_OPEN);
         MenuItem existingOption = new MenuItem("Load existing repository", folderOpenIcon);
         existingOption.setOnAction(t -> handleLoadRepoMenuItem(new ExistingRepoHelperBuilder(this.theModel)));
         ContextMenu newRepoOptionsMenu = new ContextMenu(cloneOption, existingOption);
-        this.loadNewRepoButton.setContextMenu(newRepoOptionsMenu);
+
+        this.loadNewRepoButton.setOnAction(e -> newRepoOptionsMenu.show(this.loadNewRepoButton, Side.BOTTOM ,0, 0));
+        this.loadNewRepoButton.setTooltip(new Tooltip("Load a new repository"));
 
         // Buttons start out disabled, since no repo is loaded
         this.setButtonsDisabled(true);
