@@ -1242,9 +1242,10 @@ public class SessionController {
     }
 
     private void updateLoginButtonText() {
-        String username = this.theModel.getCurrentRepoHelper().getUsername();
-        if (username == null) username = "Login";
-
-        this.switchUserButton.setText(username);
+        Platform.runLater(() -> {
+            String loginText = this.theModel.getCurrentRepoHelper().getUsername();
+            if (loginText == null) loginText = "Login";
+            this.switchUserButton.setText(loginText);
+        });
     }
 }
