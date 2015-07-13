@@ -143,8 +143,10 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
         Optional<Pair<String, String>> result = dialog.showAndWait();
 
         if (result.isPresent()) {
+            // Unpack the destination-remote Pair created above:
             Path destinationPath = Paths.get(result.get().getKey());
-            RepoHelper repoHelper = new ClonedRepoHelper(destinationPath, result.get().getValue(), this.sessionModel.getDefaultOwner());
+            String remoteURL = result.get().getValue();
+            RepoHelper repoHelper = new ClonedRepoHelper(destinationPath, remoteURL, this.sessionModel.getDefaultOwner());
 
             return repoHelper;
         } else {
