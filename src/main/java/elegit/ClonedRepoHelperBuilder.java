@@ -3,6 +3,8 @@ package main.java.elegit;
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import javafx.application.Platform;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.*;
@@ -105,20 +107,15 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
         // Do some validation:
         //  On completion of every field, check that the other fields
         //  are also filled in and with valid characters. Then enable login.
+        BooleanProperty invalidRepoNameProperty = new SimpleBooleanProperty(repoNameField.getText().trim().contains("/") || repoNameField.getText().trim().contains("."));
+
+        cloneButton.disableProperty().bind(enclosingFolderField.textProperty().isEmpty()
+                .or(repoNameField.textProperty().isEmpty())
+                .or(remoteURLField.textProperty().isEmpty())
+                .or(invalidRepoNameProperty));
+
         repoNameField.textProperty().addListener((observable, oldValue, newValue) -> {
-            boolean someFieldIsEmpty = enclosingFolderField.getText().isEmpty() || repoNameField.getText().isEmpty()
-                    || remoteURLField.getText().isEmpty();
-            cloneButton.setDisable(someFieldIsEmpty || newValue.trim().contains("/") || newValue.trim().contains("."));
-        });
-        enclosingFolderField.textProperty().addListener((observable, oldValue, newValue) -> {
-            boolean someFieldIsEmpty = enclosingFolderField.getText().isEmpty() || repoNameField.getText().isEmpty()
-                    || remoteURLField.getText().isEmpty();
-            cloneButton.setDisable(someFieldIsEmpty);
-        });
-        remoteURLField.textProperty().addListener((observable, oldValue, newValue) -> {
-            boolean someFieldIsEmpty = enclosingFolderField.getText().isEmpty() || repoNameField.getText().isEmpty()
-                    || remoteURLField.getText().isEmpty();
-            cloneButton.setDisable(someFieldIsEmpty);
+            invalidRepoNameProperty.set(newValue.trim().contains("/") || newValue.trim().contains("."));
         });
         //////
 
@@ -131,11 +128,11 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
         dialog.setResultConverter(dialogButton -> {
             if (dialogButton == cloneButtonType) {
                 // Store these values for callback after a login (if user isn't logged in):
-                prevRemoteURL = remoteURLField.getText();
-                prevDestinationPath = enclosingFolderField.getText();
-                prevRepoName = repoNameField.getText();
+                prevRemoteURL = remoteURLField.getText().trim();
+                prevDestinationPath = enclosingFolderField.getText().trim();
+                prevRepoName = repoNameField.getText().trim();
 
-                return new Pair<>(enclosingFolderField.getText() + File.separator + repoNameField.getText(), remoteURLField.getText());
+                return new Pair<>(enclosingFolderField.getText().trim() + File.separator + repoNameField.getText().trim(), remoteURLField.getText().trim());
             }
             return null;
         });

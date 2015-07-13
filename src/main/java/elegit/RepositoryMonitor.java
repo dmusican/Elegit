@@ -63,7 +63,7 @@ public class RepositoryMonitor{
             }
         }
 
-        if(repo == null || !repo.hasRemoteProperty.get()) {
+        if(repo == null || !repo.exists() || !repo.hasRemoteProperty.get()) {
             unpause();
             return;
         }
@@ -153,10 +153,11 @@ public class RepositoryMonitor{
         pauseWatchingRemote(millis);
     }
 
-    public static synchronized void beginWatchingLocal(SessionController controller){
+    public static synchronized void beginWatchingLocal(SessionController controller, SessionModel model){
         Thread thread = new Thread(() -> {
             while(true){
-                if(!pauseLocalMonitor && !controller.workingTreePanelView.isAnyFileSelectedProperty.get()){
+                if(!pauseLocalMonitor && model.getCurrentRepoHelper() != null
+                        && model.getCurrentRepoHelper().exists() && !controller.workingTreePanelView.isAnyFileSelectedProperty.get()){
                     controller.gitStatus();
                 }
 

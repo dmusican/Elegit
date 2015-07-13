@@ -173,7 +173,7 @@ public class SessionController {
         RepositoryMonitor.hasFoundNewRemoteChanges.addListener((observable, oldValue, newValue) -> {
             if(newValue) showNewRemoteChangesNotification();
         });
-        RepositoryMonitor.beginWatchingLocal(this);
+        RepositoryMonitor.beginWatchingLocal(this, theModel);
     }
 
     /**
@@ -1299,9 +1299,13 @@ public class SessionController {
 
     private void updateLoginButtonText() {
         Platform.runLater(() -> {
-            String loginText = this.theModel.getCurrentRepoHelper().getUsername();
-            if (loginText == null) loginText = "Login";
-            this.switchUserButton.setText(loginText);
+            if(theModel.getCurrentRepoHelper() != null) {
+                String loginText = this.theModel.getCurrentRepoHelper().getUsername();
+                if (loginText == null) loginText = "Login";
+                this.switchUserButton.setText(loginText);
+            } else{
+                this.switchUserButton.setText("Login");
+            }
         });
     }
 }
