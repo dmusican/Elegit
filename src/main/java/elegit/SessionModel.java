@@ -15,6 +15,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.prefs.BackingStoreException;
@@ -224,9 +225,8 @@ public class SessionModel {
      */
     public Set<String> getUntrackedFiles() throws GitAPIException {
         Status status = new Git(this.getCurrentRepo()).status().call();
-        Set<String> untrackedFiles = status.getUntracked();
 
-        return untrackedFiles;
+        return status.getUntracked();
     }
 
     /**
@@ -237,9 +237,8 @@ public class SessionModel {
      */
     public Set<String> getConflictingFiles() throws GitAPIException {
         Status status = new Git(this.getCurrentRepo()).status().call();
-        Set<String> conflictingFiles = status.getConflicting();
 
-        return conflictingFiles;
+        return status.getConflicting();
     }
 
     /**
@@ -250,22 +249,27 @@ public class SessionModel {
      */
     public Set<String> getMissingFiles() throws GitAPIException {
         Status status = new Git(this.getCurrentRepo()).status().call();
-        Set<String> missingFiles = status.getMissing();
 
-        return missingFiles;
+        return status.getMissing();
     }
 
     /**
      * Calls `git status` and returns the set of modified files that Git reports.
+     * Also returns those considered changed rather than modified. Changed files
+     * appear for example when committing a fixed conflict while merging.
+     *
+     * Changed files differ between the HEAD and the index
+     * Modified files differ between the disk and the index
      *
      * @return a set of modified filenames in the working directory.
      * @throws GitAPIException if the `git status` call fails.
      */
     public Set<String> getModifiedFiles() throws GitAPIException {
         Status status = new Git(this.getCurrentRepo()).status().call();
-        Set<String> modifiedFiles = status.getModified();
+        Set<String> modifiedAndChangedFiles = new HashSet<>(status.getChanged());
+        modifiedAndChangedFiles.addAll(status.getModified());
 
-        return modifiedFiles;
+        return modifiedAndChangedFiles;
     }
 
     /**

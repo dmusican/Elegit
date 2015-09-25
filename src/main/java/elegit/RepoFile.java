@@ -70,10 +70,12 @@ public class RepoFile {
      *
      * In the case of plain RepoFiles, no action is required.
      *
+     * @return true if the files updated status succeeded
      * @throws GitAPIException if an interaction with Git fails (only applies to subclasses).
      */
-    public void updateFileStatusInRepo() throws GitAPIException, IOException {
+    public boolean updateFileStatusInRepo() throws GitAPIException, IOException {
         System.out.printf("This file requires no update: %s\n", this.filePath.toString());
+        return true;
     }
 
     /**

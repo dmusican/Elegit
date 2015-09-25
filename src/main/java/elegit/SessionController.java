@@ -386,15 +386,18 @@ public class SessionController {
                 @Override
                 protected Void call() {
                     try{
+                        boolean canCommit = true;
                         for(RepoFile checkedFile : workingTreePanelView.getCheckedFilesInDirectory()){
-                            checkedFile.updateFileStatusInRepo();
+                            canCommit = canCommit && checkedFile.updateFileStatusInRepo();
                         }
 
-                        theModel.getCurrentRepoHelper().commit(commitMessage);
+                        if(canCommit) {
+                            theModel.getCurrentRepoHelper().commit(commitMessage);
 
-                        // Now clear the commit text and a view reload ( or `git status`) to show that something happened
-                        commitMessageField.clear();
-                        gitStatus();
+                            // Now clear the commit text and a view reload ( or `git status`) to show that something happened
+                            commitMessageField.clear();
+                            gitStatus();
+                        }
                     } catch(JGitInternalException e){
                         showGenericErrorNotification();
                         e.printStackTrace();
@@ -405,11 +408,12 @@ public class SessionController {
                     } catch (TransportException e) {
                         showNotAuthorizedNotification(null);
                     } catch (WrongRepositoryStateException e) {
-                        System.out.println("Threw a WrongRepositoryStateException");
+                        showGenericErrorNotification();
                         e.printStackTrace();
 
                         // TODO remove the above debug statements
-                        // This should only come up when the user chooses to resolve conflicts in a file.
+                        // This should hopefully not appear any more. Previously occurred when attempting to resolve
+                        // conflicts in an external editor
                         // Do nothing.
 
                     } catch(GitAPIException | IOException e){

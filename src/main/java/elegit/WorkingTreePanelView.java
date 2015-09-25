@@ -65,6 +65,8 @@ public class WorkingTreePanelView extends Region{
         if(this.sessionModel.getCurrentRepoHelper() == null) return;
         DirectoryRepoFile rootDirectory = new DirectoryRepoFile("", this.sessionModel.getCurrentRepo());
 
+        fileLeafs = new ArrayList<>(fileLeafs.size());
+
         CheckBoxTreeItem<RepoFile> rootItem = new CheckBoxTreeItem<RepoFile>(rootDirectory);
         rootItem.setExpanded(true);
 

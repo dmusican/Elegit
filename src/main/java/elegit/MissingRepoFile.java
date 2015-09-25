@@ -28,8 +28,9 @@ public class MissingRepoFile extends RepoFile {
      *
      * @throws GitAPIException if the `git rm` command fails.
      */
-    @Override public void updateFileStatusInRepo() throws GitAPIException {
+    @Override public boolean updateFileStatusInRepo() throws GitAPIException {
         RmCommand rm = new Git(this.repo).rm().addFilepattern(this.filePath.toString());
         rm.call();
+        return true;
     }
 }

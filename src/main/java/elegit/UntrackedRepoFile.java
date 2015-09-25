@@ -28,8 +28,9 @@ public class UntrackedRepoFile extends RepoFile {
      *
      * @throws GitAPIException if the `git add` command fails.
      */
-    @Override public void updateFileStatusInRepo() throws GitAPIException {
+    @Override public boolean updateFileStatusInRepo() throws GitAPIException {
         AddCommand add = new Git(this.repo).add().addFilepattern(this.filePath.toString());
         add.call();
+        return true;
     }
 }
