@@ -1,5 +1,6 @@
 package main.java.elegit.treefx;
 
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.Group;
 import javafx.scene.control.ScrollPane;
@@ -57,15 +58,17 @@ public class TreeGraph{
      * date
      */
     public void update() {
-        // add components to treeGraph pane
-        cellLayer.getChildren().addAll(treeGraphModel.getAddedEdges());
-        cellLayer.getChildren().addAll(treeGraphModel.getAddedCells());
+        Platform.runLater(() -> {
+            // add components to treeGraph pane
+            cellLayer.getChildren().addAll(treeGraphModel.getAddedEdges());
+            cellLayer.getChildren().addAll(treeGraphModel.getAddedCells());
 
-        // remove components from treeGraph pane
-        cellLayer.getChildren().removeAll(treeGraphModel.getRemovedCells());
-        cellLayer.getChildren().removeAll(treeGraphModel.getRemovedEdges());
+            // remove components from treeGraph pane
+            cellLayer.getChildren().removeAll(treeGraphModel.getRemovedCells());
+            cellLayer.getChildren().removeAll(treeGraphModel.getRemovedEdges());
 
-        // merge added & removed cells with all cells
-        treeGraphModel.merge();
+            // merge added & removed cells with all cells
+            treeGraphModel.merge();
+        });
     }
 }

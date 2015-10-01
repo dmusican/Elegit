@@ -1,5 +1,6 @@
 package main.java.elegit;
 
+import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.control.CheckBoxTreeItem;
@@ -46,21 +47,11 @@ public class WorkingTreePanelView extends Region{
      * Draws the directory TreeView by getting the parent directory's RepoFile,
      * populating it with the files it contains, and adding it to the display.
      *
-     * THIS METHOD MUST BE CALLED FROM THE JAVAFX APPLICATION THREAD
-     *
      * FIXME: this method resets the users selections if they've checked any boxes (low priority)
      *
      * @throws GitAPIException if the SessionModel can't get the ParentDirectoryRepoFile.
      */
     public void drawDirectoryView() throws GitAPIException{
-
-        // TODO: change this if/when we update the JDK to 8u60 or higher
-        // With JDK version 8u40, creation of control items needs to take place
-        // in the application thread even if they are not added to the scene.
-        // This is fixed in JDK 8u60 and above
-        // https://bugs.openjdk.java.net/browse/JDK-8097541
-        //
-        // This applies to the CheckBoxTreeItems created here
 
         if(this.sessionModel.getCurrentRepoHelper() == null) return;
         DirectoryRepoFile rootDirectory = new DirectoryRepoFile("", this.sessionModel.getCurrentRepo());
@@ -89,8 +80,11 @@ public class WorkingTreePanelView extends Region{
         this.directoryTreeView.setShowRoot(false);
 
         this.directoryTreeView.prefHeightProperty().bind(this.heightProperty());
-        this.getChildren().clear();
-        this.getChildren().add(directoryTreeView);
+
+        Platform.runLater(() -> {
+            this.getChildren().clear();
+            this.getChildren().add(directoryTreeView);
+        });
     }
 
     /**

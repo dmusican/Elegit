@@ -623,28 +623,29 @@ public class SessionController {
         Thread th = new Thread(new Task<Void>(){
             @Override
             protected Void call(){
-                ReentrantLock lock = new ReentrantLock();
-                Condition finishedUpdate = lock.newCondition();
-
-                Platform.runLater(() -> {
-                    lock.lock();
-                    try{
-                        workingTreePanelView.drawDirectoryView();
-                        localCommitTreeModel.update();
-                        remoteCommitTreeModel.update();
-
-                        finishedUpdate.signal();
-                    }catch(GitAPIException | IOException e){
-                        showGenericErrorNotification();
-                        e.printStackTrace();
-                    }finally{
-                        lock.unlock();
-                    }
-                });
-
-                lock.lock();
+//                ReentrantLock lock = new ReentrantLock();
+//                Condition finishedUpdate = lock.newCondition();
+//
+//                Platform.runLater(() -> {
+//                    lock.lock();
+//                    try{
+//
+//                        finishedUpdate.signal();
+//                    }catch(GitAPIException | IOException e){
+//                        showGenericErrorNotification();
+//                        e.printStackTrace();
+//                    }finally{
+//                        lock.unlock();
+//                    }
+//                });
+//
+//                lock.lock();
                 try{
-                    finishedUpdate.await(); // updateBranchDropdown needs to be called after the trees have
+                    localCommitTreeModel.update();
+                    remoteCommitTreeModel.update();
+
+                    workingTreePanelView.drawDirectoryView();
+//                    finishedUpdate.await(); // updateBranchDropdown needs to be called after the trees have
                     updateBranchDropdown(); // been updated, but shouldn't run on the Application thread
                 } catch(MissingRepoException e){
                     showMissingRepoNotification();
@@ -653,11 +654,11 @@ public class SessionController {
                 } catch(NoRepoLoadedException e){
                     showNoRepoLoadedNotification();
                     setButtonsDisabled(true);
-                } catch(GitAPIException | IOException | InterruptedException e){
+                } catch(GitAPIException | IOException e){// | InterruptedException e){
                     showGenericErrorNotification();
                     e.printStackTrace();
                 }finally{
-                    lock.unlock();
+//                    lock.unlock();
                     RepositoryMonitor.unpause();
                 }
                 return null;
@@ -708,28 +709,19 @@ public class SessionController {
 
     /**
      * Initializes each panel of the view
-     *
-     * TODO: change this if/when we update the JDK to 8u60 or higher
-     * With JDK version 8u40, creation of control items needs to take place
-     * in the application thread even if they are not added to the scene.
-     * This is fixed in JDK 8u60 and above
-     * https://bugs.openjdk.java.net/browse/JDK-8097541
-     *
-     * This applies to all methods used here
      */
 	private synchronized void initPanelViews() {
         BusyWindow.show();
-        Platform.runLater(() -> {
-            try {
-                workingTreePanelView.drawDirectoryView();
-            } catch (GitAPIException e) {
-                showGenericErrorNotification();
-            }
+
+        try {
+            workingTreePanelView.drawDirectoryView();
             localCommitTreeModel.init();
             remoteCommitTreeModel.init();
-            BusyWindow.hide();
-        });
+        } catch (GitAPIException e) {
+            showGenericErrorNotification();
+        }
 
+        BusyWindow.hide();
     }
 
     /**
@@ -1289,7 +1281,7 @@ public class SessionController {
         Button removeSelectedButton = new Button("Remove repository shortcuts from Elegit");
 
         PopOver popover = new PopOver(new VBox(repoCheckListView, removeSelectedButton));
-        popover.setDetachedTitle("Manage Recent Repositories");
+        popover.setTitle("Manage Recent Repositories");
 
         removeSelectedButton.setOnAction(e -> {
             List<RepoHelper> checkedItems = repoCheckListView.getCheckModel().getCheckedItems();

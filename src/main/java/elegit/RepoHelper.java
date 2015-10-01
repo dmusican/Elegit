@@ -403,7 +403,7 @@ public abstract class RepoHelper {
      * @return the head of the current branch
      */
     public CommitHelper getHead(){
-        return this.branchHelper.getHead();
+        return (this.branchHelper == null) ? null : this.branchHelper.getHead();
     }
 
     /**
