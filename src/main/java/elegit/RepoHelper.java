@@ -176,6 +176,23 @@ public abstract class RepoHelper {
     }
 
     /**
+     * Adds a git ignore file if needed to the repo.
+     * Otherwise calls on the editGitIgnoreFile method.
+     */
+
+    public void addGitIgnoreFile(){
+
+    }
+
+    /**
+     * Edits an existing gitignore file
+     */
+
+    public void editGitIgnoreFile(){
+
+    }
+
+    /**
      * Gets a list of all remotes associated with this repository. The URLs
      * correspond to the output seen by running 'git remote -v'
      * @return a list of the remote URLs associated with this repository
@@ -482,6 +499,7 @@ public abstract class RepoHelper {
         PlotCommitList<PlotLane> commitList = this.parseAllRawRemoteCommits();
         return wrapRawCommits(commitList);
     }
+
 
     /**
      * Given a list of raw JGit commit objects, constructs CommitHelper objects to wrap them and gives
@@ -825,6 +843,8 @@ public abstract class RepoHelper {
         }
         return false;
     }
+
+
 
     /**
      * Gets a list of references (branch heads and tags) from the

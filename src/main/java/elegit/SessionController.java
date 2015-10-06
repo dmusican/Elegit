@@ -26,6 +26,7 @@ import org.controlsfx.control.CheckListView;
 import org.controlsfx.control.NotificationPane;
 import org.controlsfx.control.PopOver;
 import org.controlsfx.control.action.Action;
+import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.errors.NoMergeBaseException;
 import org.eclipse.jgit.lib.AnyObjectId;
@@ -74,7 +75,6 @@ public class SessionController {
     public Button pushButton;
     public Button fetchButton;
     public Button branchesButton;
-    public Button gitIgnoreButton;
 
     public ProgressIndicator fetchProgressIndicator;
     public ProgressIndicator pushProgressIndicator;
@@ -876,9 +876,18 @@ public class SessionController {
     /**
      * Called when the gitignore button is clicked.
      */
-    public void handleGitIgnoreButton() {this.gitIgnore(); }
+    public void handleGitIgnoreButton() {
+        try { this.gitIgnore();
+        } catch (IOException e){
+            this.notificationPane.setText("There was an IO error.");
+        } catch (NoOwnerInfoException e){
+            this.notificationPane.setText("No user logged in.");
+        } catch (GitAPIException e){
+            this.notificationPane.setText("Error in Git server.");
+        }
+    }
 
-    public void gitIgnore(){
+    public void gitIgnore() throws IOException, NoOwnerInfoException, GitAPIException {
         try {
             if (this.theModel.getCurrentRepo() == null) { throw new NoRepoLoadedException();
             } else if (this.theModel.getDefaultOwner() == null){
@@ -886,20 +895,18 @@ public class SessionController {
             }
         } catch (NoRepoLoadedException e){
             this.notificationPane.setText("No repo loaded.");
-            this.notificationPane.getActions().clear();
-            this.notificationPane.show();
-        } catch (NoOwnerInfoException e){
-            this.notificationPane.setText("No user logged in.");
-            this.notificationPane.getActions().clear();
-            this.notificationPane.show();
         }
-        File f = new File("/.gitignore");
-        try {
-            java.awt.Desktop.getDesktop().edit(f);
-        } catch (Exception e){
-            System.out.println("Problem encountered.");
-        }
+        Repository rep = this.theModel.getCurrentRepo();
+        RepoHelper rh = new RepoHelper(rep.getDirectory().toPath(), this.theModel.getDefaultOwner()) {
+            @Override
+            protected Repository obtainRepository() throws GitAPIException, IOException {
+                return theModel.getCurrentRepo();
+            }
+        };
+        rh.addGitIgnoreFile();
 
+        this.notificationPane.getActions().clear();
+        this.notificationPane.show();
 
     }
 
