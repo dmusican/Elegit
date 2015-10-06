@@ -28,8 +28,11 @@ import org.controlsfx.control.PopOver;
 import org.controlsfx.control.action.Action;
 import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.errors.NoMergeBaseException;
+import org.eclipse.jgit.lib.AnyObjectId;
+import org.eclipse.jgit.lib.Repository;
 
 import java.awt.*;
+import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -37,6 +40,7 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.locks.Condition;
@@ -70,6 +74,7 @@ public class SessionController {
     public Button pushButton;
     public Button fetchButton;
     public Button branchesButton;
+    public Button gitIgnoreButton;
 
     public ProgressIndicator fetchProgressIndicator;
     public ProgressIndicator pushProgressIndicator;
@@ -866,6 +871,36 @@ public class SessionController {
      */
     public void handleSwitchUserButton(){
         this.switchUser();
+    }
+
+    /**
+     * Called when the gitignore button is clicked.
+     */
+    public void handleGitIgnoreButton() {this.gitIgnore(); }
+
+    public void gitIgnore(){
+        try {
+            if (this.theModel.getCurrentRepo() == null) { throw new NoRepoLoadedException();
+            } else if (this.theModel.getDefaultOwner() == null){
+                throw new NoOwnerInfoException();
+            }
+        } catch (NoRepoLoadedException e){
+            this.notificationPane.setText("No repo loaded.");
+            this.notificationPane.getActions().clear();
+            this.notificationPane.show();
+        } catch (NoOwnerInfoException e){
+            this.notificationPane.setText("No user logged in.");
+            this.notificationPane.getActions().clear();
+            this.notificationPane.show();
+        }
+        File f = new File("/.gitignore");
+        try {
+            java.awt.Desktop.getDesktop().edit(f);
+        } catch (Exception e){
+            System.out.println("Problem encountered.");
+        }
+
+
     }
 
     /**
