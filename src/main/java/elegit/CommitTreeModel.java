@@ -186,7 +186,6 @@ public abstract class CommitTreeModel{
             this.addCommitToTree(curCommitHelper, parents, treeGraph.treeGraphModel, true);
         }
 
-        treeGraph.update();
         return true;
     }
 

@@ -7,6 +7,8 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.Pane;
 import main.java.elegit.MatchedScrollPane;
 
+import java.util.Random;
+
 /**
  * Thanks to RolandC for providing the base graph code structure:
  * http://stackoverflow.com/questions/30679025/graph-visualisation-like-yfiles-in-javafx/30696075#30696075
@@ -23,6 +25,8 @@ public class TreeGraph{
 
     // The layer within which the cells will be added
     Pane cellLayer;
+
+    private boolean updateQueued;
 
     /**
      * Constructs a new graph using the given model
@@ -43,6 +47,8 @@ public class TreeGraph{
         scrollPane.NumItemsProperty.bind(m.numCellsProperty);
 
         canvas.getChildren().add(cellLayer);
+
+        updateQueued = false;
     }
 
     /**
@@ -58,6 +64,8 @@ public class TreeGraph{
      * date
      */
     public void update() {
+        if(updateQueued) return;
+        updateQueued = true;
         Platform.runLater(() -> {
             // add components to treeGraph pane
             cellLayer.getChildren().addAll(treeGraphModel.getAddedEdges());
@@ -69,6 +77,7 @@ public class TreeGraph{
 
             // merge added & removed cells with all cells
             treeGraphModel.merge();
+            updateQueued = false;
         });
     }
 }
