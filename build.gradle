@@ -6,11 +6,11 @@ dependencies {
 
 javafx {
 
-    appID 'GitForEducation'
-    appName 'Git for Education'
+    appID 'Elegit'
+    appName 'Elegit'
 
     // deploy/info attributes
-    copyright = 'Copyright (c) 2015 Prairie'
+    copyright = 'Copyright (c) 2015 The Elegit Team'
     description = 'A GUI client for people who want to learn git.'
 }
 

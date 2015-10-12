@@ -1,0 +1,168 @@
+.root {
+    -fx-background-color: #F2F1EF;
+    -fx-font-family: "Avenir";
+    -fx-focus-color: #BFBFBF;
+}
+
+.label {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #333333;
+}
+
+.button {
+    -fx-text-fill: white;
+    -fx-background-color: -fx-button-fill;
+}
+
+    .button#codeButton {
+        -fx-font-family: "Menlo";
+    }
+
+    .button#warningButton {
+        -fx-background-color: #95A5A6;
+    }
+
+        .button#warningButton:hover {
+            -fx-background-color: #F64747;
+        }
+
+        .button#warningButton:pressed, .button#warningButton:selected {
+            -fx-background-color: #C0392B;
+        }
+
+    .button:hover {
+        -fx-background-color: -fx-button-hover-fill;
+    }
+
+    .button:pressed, .button:selected {
+        -fx-background-color: -fx-button-select-fill;
+    }
+
+.menu-bar {
+    -fx-use-system-menu-bar: true;
+    -fx-background-color: -fx-button-select-fill;
+}
+
+.tree-cell:selected {
+  -fx-background-color: #BFBFBF;
+}
+
+.combo-box-base {
+    -fx-background-color: white;
+    -fx-background-radius: 5, 5, 4, 3;
+    -fx-background-insets: 0 0 -1 0, 0, 1, 2;
+    -fx-padding: 0;
+}
+    .combo-box-base#repoDropdown {
+        -fx-background-color: none;
+        -fx-font-weight: bold;
+        -fx-font-size: 14px;
+    }
+
+#title-text {
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-fill: #818181;
+}
+
+#repoLabelText {
+    -fx-font-weight: BOLD;
+    -fx-font-size: 18px;
+}
+
+#commitTreeLabel {
+    -fx-font-weight: BOLD;
+    -fx-font-size: 24px;
+}
+
+.diffButton {
+    -fx-font-weight: BOLD;
+    -fx-font-size: 8px;
+    -fx-font-family: "Avenir";
+}
+
+    .diffButton#missingDiffButton {
+        -fx-background-color: #e67e22;
+    }
+
+    .diffButton#modifiedDiffButton {
+        -fx-background-color: #16a085;
+    }
+
+    .diffButton#untrackedDiffButton {
+        -fx-background-color: #9b59b6;
+    }
+
+    .diffButton#conflictingDiffButton {
+        -fx-background-color: #F22613;
+    }
+
+.diffText {
+    -fx-font-family: "Menlo";
+    -fx-font-size: 13;
+}
+
+    .diffText#addedDiffText {
+        -fx-fill: #26A65B;
+    }
+
+    .diffText#deletedDiffText {
+        -fx-fill: #F22613;
+    }
+
+    .diffText#unchangedDiffText {
+        -fx-fill: #BDC3C7;
+    }
+
+    .diffText#gitAnnotationDiffText {
+        -fx-fill: #81CFE0;
+        -fx-font-style: italic;
+    }
+
+#remoteRepoCircle {
+    /*noinspection CssInvalidFunction*/
+    -fx-fill: radial-gradient(center 50% 50%, radius 50%, -fx-button-fill 60%, -fx-button-select-fill);
+}
+
+    #remoteRepoCircle:hover {
+        /*noinspection CssInvalidFunction*/
+        -fx-fill: radial-gradient(center 50% 50%, radius 50%, -fx-button-hover-fill 60%, -fx-button-fill);
+    }
+
+    #remoteRepoCircle:pressed, .remoteRepoCircle:selected {
+        /*noinspection CssInvalidFunction*/
+        -fx-fill: radial-gradient(center 50% 50%, radius 50%, -fx-button-select-fill 60%, -fx-button-fill);
+    }
+
+.cell {
+    -fx-stroke-type: inside;
+    -fx-stroke-line-cap: butt;
+}
+
+.invisCell {
+    -fx-stroke-dash-array: 2px, 3px;
+    -fx-stroke-dash-offset: 1px;
+}
+
+.edge {
+    -fx-stroke: black;
+    -fx-stroke-line-cap: butt;
+}
+
+.invisEdge {
+    -fx-stroke-dash-array: 3px, 5px;
+}
+
+/*noinspection CssInvalidFunction*/
+* {
+    -fx-button-fill: #52B3D9;
+    -fx-button-hover-fill: #81CFE0;
+    -fx-button-select-fill: #3498DB;
+
+    -fx-cell-color-standard: radial-gradient(center 50% 50%, radius 75%, -fx-button-fill, -fx-button-hover-fill);
+    -fx-cell-color-highlight1: radial-gradient(center 50% 50%, radius 75%, #da60e4, #9b59b6);
+    -fx-cell-color-highlight2: radial-gradient(center 50% 50%, radius 75%, #16b285, #0a8551);
+    -fx-cell-color-select: radial-gradient(center 50% 50%, radius 75%, #ff6e79, #e62613);
+    -fx-cell-color-emphasize: radial-gradient(center 50% 50%, radius 75%, #ff6e79, #e62613);
+}

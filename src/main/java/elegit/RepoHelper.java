@@ -96,7 +96,6 @@ public abstract class RepoHelper {
     /// Constructor for ExistingRepoHelpers to inherit (they don't need the Remote URL)
     public RepoHelper(Path directoryPath, RepoOwner owner) throws GitAPIException, IOException, NoOwnerInfoException {
         // If the user hasn't signed in (owner == null), then there is no authentication:
-        System.out.println(owner);
         if (owner == null) {
             // We can leave the ownerAuth as null because it's an ExistingRepo. The user doesn't need to
             // log in until they want to actually interact with the remote (e.g. pushing changes).
@@ -174,6 +173,23 @@ public abstract class RepoHelper {
         }
         adder.call();
         git.close();
+    }
+
+    /**
+     * Adds a git ignore file if needed to the repo.
+     * Otherwise calls on the editGitIgnoreFile method.
+     */
+
+    public void addGitIgnoreFile(){
+
+    }
+
+    /**
+     * Edits an existing gitignore file
+     */
+
+    public void editGitIgnoreFile(){
+
     }
 
     /**
@@ -404,7 +420,7 @@ public abstract class RepoHelper {
      * @return the head of the current branch
      */
     public CommitHelper getHead(){
-        return (this.branchHelper == null) ? null : this.branchHelper.getHead();
+        return this.branchHelper.getHead();
     }
 
     /**
@@ -483,6 +499,7 @@ public abstract class RepoHelper {
         PlotCommitList<PlotLane> commitList = this.parseAllRawRemoteCommits();
         return wrapRawCommits(commitList);
     }
+
 
     /**
      * Given a list of raw JGit commit objects, constructs CommitHelper objects to wrap them and gives
@@ -826,6 +843,8 @@ public abstract class RepoHelper {
         }
         return false;
     }
+
+
 
     /**
      * Gets a list of references (branch heads and tags) from the
