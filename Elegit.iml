@@ -20,14 +20,22 @@
     <orderEntry type="module-library" scope="PROVIDED">
       <library name="Gradle: jfxrt">
         <CLASSES>
-          <root url="jar://C:/Program Files/Java/jdk1.8.0_45/jre/lib/ext/jfxrt.jar!/" />
+          <root url="jar:///Library/Java/JavaVirtualMachines/jdk1.8.0_45.jdk/Contents/Home/jre/lib/ext/jfxrt.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="library" name="org.eclipse.jgit:org.eclipse.jgit.ant:3.4.0.201406110918-r" level="project" />
-    <orderEntry type="library" name="de.jensd:fontawesomefx:8.4" level="project" />
-    <orderEntry type="library" name="org.controlsfx:controlsfx:8.40.9" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: com.googlecode.javaewah:JavaEWAH:0.7.9" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: org.eclipse.jgit:org.eclipse.jgit:3.7.1.201504261725-r" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: org.controlsfx:controlsfx:8.40.10-SNAPSHOT" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: de.jensd:fontawesomefx:8.6" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: com.jcraft:jsch:0.1.50" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: org.apache.httpcomponents:httpclient:4.1.3" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: org.apache.httpcomponents:httpcore:4.1.4" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: commons-logging:commons-logging:1.1.1" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: commons-codec:commons-codec:1.4" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: org.slf4j:slf4j-api:1.7.12" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: org.slf4j:slf4j-simple:1.7.12" level="project" />
   </component>
 </module>
