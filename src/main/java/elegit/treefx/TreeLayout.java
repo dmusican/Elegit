@@ -40,6 +40,7 @@ public class TreeLayout{
              */
             @Override
             protected Void call() throws Exception{
+                while(g.updateQueued); // TODO: Find a better solution for this race condition
                 TreeGraphModel treeGraphModel = g.treeGraphModel;
 
                 allCellsSortedByTime = treeGraphModel.allCells;
@@ -59,7 +60,6 @@ public class TreeLayout{
                 if(!isCancelled()){
                     treeGraphModel.isInitialSetupFinished = true;
                 }
-
                 return null;
             }
 

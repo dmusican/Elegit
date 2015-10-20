@@ -279,6 +279,11 @@ public class Cell extends Pane{
         return time;
     }
 
+    @Override
+    public String toString(){
+        return cellId;
+    }
+
     /**
      * A class that holds the parents of a cell
      */

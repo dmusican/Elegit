@@ -39,8 +39,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.prefs.BackingStoreException;
 
 /**
@@ -90,6 +88,8 @@ public class SessionController {
 
     CommitTreeModel localCommitTreeModel;
     CommitTreeModel remoteCommitTreeModel;
+
+    private volatile boolean isRecentRepoEventListenerBlocked = false;
 
     /**
      * Initializes the environment by obtaining the model
@@ -307,8 +307,10 @@ public class SessionController {
     @FXML
     private void setRecentReposDropdownToCurrentRepo() {
         Platform.runLater(() -> {
+            isRecentRepoEventListenerBlocked = true;
             RepoHelper currentRepo = this.theModel.getCurrentRepoHelper();
             this.repoDropdownSelector.setValue(currentRepo);
+            isRecentRepoEventListenerBlocked = false;
         });
     }
 
@@ -326,6 +328,7 @@ public class SessionController {
      * @param repoHelper the repository to open
      */
     private synchronized void handleRecentRepoMenuItem(RepoHelper repoHelper){
+        if(isRecentRepoEventListenerBlocked) return;
         BusyWindow.show();
         RepositoryMonitor.pause();
         Thread th = new Thread(new Task<Void>(){

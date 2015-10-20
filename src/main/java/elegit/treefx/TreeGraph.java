@@ -26,7 +26,7 @@ public class TreeGraph{
     // The layer within which the cells will be added
     Pane cellLayer;
 
-    private boolean updateQueued;
+    public volatile boolean updateQueued;
 
     /**
      * Constructs a new graph using the given model
