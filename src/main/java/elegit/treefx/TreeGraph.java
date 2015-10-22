@@ -3,10 +3,13 @@ package main.java.elegit.treefx;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.Group;
+import javafx.scene.Node;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.Pane;
 import main.java.elegit.MatchedScrollPane;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Random;
 
 /**
@@ -26,7 +29,8 @@ public class TreeGraph{
     // The layer within which the cells will be added
     Pane cellLayer;
 
-    public volatile boolean updateQueued;
+    private volatile List<Node> queuedToAdd;
+    private volatile List<Node> queuedToRemove;
 
     /**
      * Constructs a new graph using the given model
@@ -48,7 +52,8 @@ public class TreeGraph{
 
         canvas.getChildren().add(cellLayer);
 
-        updateQueued = false;
+        queuedToAdd = new LinkedList<>();
+        queuedToRemove = new LinkedList<>();
     }
 
     /**
@@ -63,21 +68,25 @@ public class TreeGraph{
      * remove the appropriate cells and edges and keep the view up to
      * date
      */
-    public void update() {
-        if(updateQueued) return;
-        updateQueued = true;
+    public synchronized  void update() {
+        queuedToAdd.addAll(treeGraphModel.getAddedCells());
+        queuedToAdd.addAll(treeGraphModel.getAddedEdges());
+
+        queuedToRemove.addAll(treeGraphModel.getRemovedCells());
+        queuedToRemove.addAll(treeGraphModel.getRemovedEdges());
+
+        // merge added & removed cells with all cells
+        treeGraphModel.merge();
+
         Platform.runLater(() -> {
             // add components to treeGraph pane
-            cellLayer.getChildren().addAll(treeGraphModel.getAddedEdges());
-            cellLayer.getChildren().addAll(treeGraphModel.getAddedCells());
+            cellLayer.getChildren().addAll(queuedToAdd);
 
             // remove components from treeGraph pane
-            cellLayer.getChildren().removeAll(treeGraphModel.getRemovedCells());
-            cellLayer.getChildren().removeAll(treeGraphModel.getRemovedEdges());
+            cellLayer.getChildren().removeAll(queuedToRemove);
 
-            // merge added & removed cells with all cells
-            treeGraphModel.merge();
-            updateQueued = false;
+            queuedToAdd = new LinkedList<>();
+            queuedToRemove = new LinkedList<>();
         });
     }
 }
