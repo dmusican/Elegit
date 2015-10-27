@@ -1,13 +1,16 @@
 package main.java.elegit;
 
+import com.sun.xml.internal.bind.v2.TODO;
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.geometry.Side;
 import javafx.scene.Node;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -21,6 +24,8 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.text.Text;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 import main.java.elegit.exceptions.*;
 import org.controlsfx.control.CheckListView;
 import org.controlsfx.control.NotificationPane;
@@ -1196,6 +1201,25 @@ public class SessionController {
         }catch(NoRepoLoadedException e){
             this.showNoRepoLoadedNotification();
             setButtonsDisabled(true);
+        }
+    }
+
+    /**
+     * Opens up the help page to inform users about what symbols mean
+     */
+    public void showHelpPage() {
+        try{
+            // Create and display the Stage:
+            NotificationPane fxmlRoot = FXMLLoader.load(getClass().getResource("/main/resources/elegit/fxml/HelpPage.fxml"));
+
+            Stage stage = new Stage();
+            stage.setTitle("Help");
+            stage.setScene(new Scene(fxmlRoot, 550, 450));
+            stage.initModality(Modality.APPLICATION_MODAL);
+            stage.show();
+        }catch(IOException e) {
+            this.showGenericErrorNotification();
+            e.printStackTrace();
         }
     }
 
