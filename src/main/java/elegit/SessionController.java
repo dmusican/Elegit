@@ -1,6 +1,5 @@
 package main.java.elegit;
 
-import com.sun.xml.internal.bind.v2.TODO;
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import javafx.application.Platform;
@@ -1207,14 +1206,14 @@ public class SessionController {
     /**
      * Opens up the help page to inform users about what symbols mean
      */
-    public void showHelpPage() {
+    public void showLegend() {
         try{
             // Create and display the Stage:
-            NotificationPane fxmlRoot = FXMLLoader.load(getClass().getResource("/main/resources/elegit/fxml/HelpPage.fxml"));
+            NotificationPane fxmlRoot = FXMLLoader.load(getClass().getResource("/main/resources/elegit/fxml/Legend.fxml"));
 
             Stage stage = new Stage();
-            stage.setTitle("Help");
-            stage.setScene(new Scene(fxmlRoot, 550, 450));
+            stage.setTitle("Legend");
+            stage.setScene(new Scene(fxmlRoot, 250, 300));
             stage.initModality(Modality.APPLICATION_MODAL);
             stage.show();
         }catch(IOException e) {

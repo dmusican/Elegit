@@ -9,12 +9,12 @@ import org.controlsfx.control.NotificationPane;
  * what all of the
  *
  */
-public class HelpPageController {
+public class LegendController {
     @FXML
     private NotificationPane notificationPane;
 
     private SessionModel sessionModel;
-    private HelpPageModel helpPageModel;
+    private LegendModel legendModel;
 
     public void initialize() throws Exception {
         this.sessionModel = SessionModel.getSessionModel();

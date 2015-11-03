@@ -78,17 +78,17 @@
 
 #helpButton {
     /*noinspection CssInvalidFunction*/
-    -fx-fill: radial-gradient(center 50% 50%, radius 50%, -fx-button-select-fill 60%, -fx-button-fill);
+    -fx-fill: radial-gradient(center 50% 50%, radius 50%, -fx-button-select-fill 75%, -fx-button-fill);
 }
 
     #helpButton:hover {
         /*noinspection CssInvalidFunction*/
-        -fx-fill: radial-gradient(center 50% 50%, radius 50%, -fx-button-fill 60%, -fx-button-hover-fill);
+        -fx-fill: radial-gradient(center 50% 50%, radius 50%, -fx-button-fill 75%, -fx-button-hover-fill);
     }
 
     #helpButton:pressed, .helpButton:selected {
         /*noinspection CssInvalidFunction*/
-        -fx-fill: radial-gradient(center 50% 50%, radius 50%, -fx-button-fill 60%, -fx-button-hover-fill);
+        -fx-fill: radial-gradient(center 50% 50%, radius 50%, -fx-button-fill 75%, -fx-button-hover-fill);
 }
 
 .diffButton {

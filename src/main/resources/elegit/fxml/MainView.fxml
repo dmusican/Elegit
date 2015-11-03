@@ -90,9 +90,9 @@
 
                     <Button GridPane.columnIndex="5"
                             GridPane.rowIndex="0"
-                            text="Help"
-                            fx:id="helpbutton"
-                            onAction="#showHelpPage" />
+                            text="Legend"
+                            fx:id="legendbutton"
+                            onAction="#showLegend" />
 
                     <GridPane alignment="TOP_CENTER"
                               hgap="10"

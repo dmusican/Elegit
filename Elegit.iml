@@ -27,7 +27,6 @@
       </library>
     </orderEntry>
     <orderEntry type="library" exported="" name="Gradle: org.eclipse.jgit:org.eclipse.jgit:3.7.1.201504261725-r" level="project" />
-    <orderEntry type="library" exported="" name="Gradle: org.controlsfx:controlsfx:8.40.10-SNAPSHOT" level="project" />
     <orderEntry type="library" exported="" name="Gradle: de.jensd:fontawesomefx:8.6" level="project" />
     <orderEntry type="library" exported="" name="Gradle: org.slf4j:slf4j-simple:1.7.12" level="project" />
     <orderEntry type="library" exported="" name="Gradle: com.jcraft:jsch:0.1.50" level="project" />
@@ -37,8 +36,6 @@
     <orderEntry type="library" exported="" name="Gradle: commons-logging:commons-logging:1.1.1" level="project" />
     <orderEntry type="library" exported="" name="Gradle: commons-codec:commons-codec:1.4" level="project" />
     <orderEntry type="library" exported="" name="Gradle: org.slf4j:slf4j-api:1.7.12" level="project" />
-    <orderEntry type="library" name="org.controlsfx:controlsfx:8.40.9" level="project" />
-    <orderEntry type="library" name="de.jensd:fontawesomefx:8.4" level="project" />
     <orderEntry type="module-library" exported="">
       <library name="Gradle: commons-codec-1.4">
         <CLASSES>
@@ -52,24 +49,6 @@
       <library name="Gradle: commons-logging-1.1.1">
         <CLASSES>
           <root url="jar://$MODULE_DIR$/lib/commons-logging-1.1.1.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library" exported="">
-      <library name="Gradle: controlsfx-8.0.6_20">
-        <CLASSES>
-          <root url="jar://$MODULE_DIR$/lib/controlsfx-8.0.6_20.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library" exported="">
-      <library name="Gradle: controlsfx-8.40.9">
-        <CLASSES>
-          <root url="jar://$MODULE_DIR$/lib/controlsfx-8.40.9.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -138,5 +117,24 @@
         <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="module-library" exported="">
+      <library name="Gradle: org.eclipse.jgit-3.3.1.201403241930-r">
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/lib/org.eclipse.jgit-3.3.1.201403241930-r.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library" exported="">
+      <library name="Gradle: fxsampler-1.0.8">
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/lib/fxsampler-1.0.8.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="library" exported="" name="Gradle: org.controlsfx:controlsfx:8.40.11-SNAPSHOT" level="project" />
   </component>
 </module>
