@@ -98,6 +98,10 @@
         -fx-background-color: #F22613;
     }
 
+    .diffButton#ignoredDiffButton {
+        -fx-background-color: blue;
+    }
+
 .diffText {
     -fx-font-family: "Menlo";
     -fx-font-size: 13;

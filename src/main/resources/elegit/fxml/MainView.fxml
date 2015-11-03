@@ -106,12 +106,14 @@
                         <TabPane GridPane.rowIndex="1"
                                  GridPane.vgrow="ALWAYS">
                             <Tab text="Working Tree"
-                                 closable="false">
+                                 closable="false"
+                                 fx:id="workingTreePanelTab">
                                 <WorkingTreePanelView fx:id="workingTreePanelView"/>
                             </Tab>
                             <Tab text="All Files"
-                                 closable="false">
-
+                                 closable="false"
+                                    fx:id="fileStructurePanelTab">
+                                <FileStructurePanelView fx:id="fileStructurePanelView"/>
                             </Tab>
                         </TabPane>
 

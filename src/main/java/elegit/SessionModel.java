@@ -230,6 +230,18 @@ public class SessionModel {
     }
 
     /**
+     * Calls `git status` and returns the set of untracked files that Git reports.
+     *
+     * @return a set of untracked filenames in the working directory.
+     * @throws GitAPIException if the `git status` call fails.
+     */
+    public Set<String> getIgnoredFiles() throws GitAPIException {
+        Status status = new Git(this.getCurrentRepo()).status().call();
+
+        return status.getIgnoredNotInIndex();
+    }
+
+    /**
      * Calls `git status` and returns the set of conflicting files that Git reports.
      *
      * @return a set of conflicting filenames in the working directory.
@@ -404,6 +416,23 @@ public class SessionModel {
         }
 
         return changedRepoFiles;
+    }
+    /**
+     * Assembles all files in the repository's folder into RepoFiles
+     * and returns a list of them.
+     *
+     * @return a list of changed files, contained in RepoFile objects.
+     * @throws GitAPIException if the `git status` calls fail.
+     */
+    public List<RepoFile> getAllRepoFiles() throws GitAPIException {
+        List<RepoFile> allFiles = getAllChangedRepoFiles();
+
+        for(String ignoredFileString : getIgnoredFiles()){
+            IgnoredRepoFile ignoredRepoFile = new IgnoredRepoFile(ignoredFileString, this.getCurrentRepo());
+            allFiles.add(ignoredRepoFile);
+        }
+
+        return allFiles;
     }
 
     /**

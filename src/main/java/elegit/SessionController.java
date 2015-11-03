@@ -3,6 +3,8 @@ package main.java.elegit;
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import javafx.application.Platform;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
@@ -73,7 +75,12 @@ public class SessionController {
     public ProgressIndicator pushProgressIndicator;
 
     public TextArea commitMessageField;
+
+    public Tab workingTreePanelTab;
+    public Tab fileStructurePanelTab;
     public WorkingTreePanelView workingTreePanelView;
+    public FileStructurePanelView fileStructurePanelView;
+
 	public CommitTreePanelView localCommitTreePanelView;
     public CommitTreePanelView remoteCommitTreePanelView;
 
@@ -88,6 +95,8 @@ public class SessionController {
 
     CommitTreeModel localCommitTreeModel;
     CommitTreeModel remoteCommitTreeModel;
+
+    BooleanProperty isWorkingTreeTabSelected;
 
     private volatile boolean isRecentRepoEventListenerBlocked = false;
 
@@ -105,6 +114,12 @@ public class SessionController {
         CommitTreeController.sessionController = this;
 
         this.workingTreePanelView.setSessionModel(this.theModel);
+        this.fileStructurePanelView.setSessionModel(this.theModel);
+
+        isWorkingTreeTabSelected = new SimpleBooleanProperty(true);
+        isWorkingTreeTabSelected.bind(workingTreePanelTab.selectedProperty());
+        workingTreePanelTab.getTabPane().getSelectionModel().select(workingTreePanelTab);
+
         this.localCommitTreeModel = new LocalCommitTreeModel(this.theModel, this.localCommitTreePanelView);
         this.remoteCommitTreeModel = new RemoteCommitTreeModel(this.theModel, this.remoteCommitTreePanelView);
 
@@ -191,6 +206,7 @@ public class SessionController {
         gitStatusButton.setMaxWidth(Double.MAX_VALUE);
 
         workingTreePanelView.setMinSize(Control.USE_PREF_SIZE, 200);
+        fileStructurePanelView.setMinSize(Control.USE_PREF_SIZE, 200);
         commitMessageField.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
 
         branchDropdownSelector.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
@@ -626,30 +642,13 @@ public class SessionController {
         Thread th = new Thread(new Task<Void>(){
             @Override
             protected Void call(){
-//                ReentrantLock lock = new ReentrantLock();
-//                Condition finishedUpdate = lock.newCondition();
-//
-//                Platform.runLater(() -> {
-//                    lock.lock();
-//                    try{
-//
-//                        finishedUpdate.signal();
-//                    }catch(GitAPIException | IOException e){
-//                        showGenericErrorNotification();
-//                        e.printStackTrace();
-//                    }finally{
-//                        lock.unlock();
-//                    }
-//                });
-//
-//                lock.lock();
                 try{
                     localCommitTreeModel.update();
                     remoteCommitTreeModel.update();
 
                     workingTreePanelView.drawDirectoryView();
-//                    finishedUpdate.await(); // updateBranchDropdown needs to be called after the trees have
-                    updateBranchDropdown(); // been updated, but shouldn't run on the Application thread
+                    fileStructurePanelView.drawDirectoryView();
+                    updateBranchDropdown();
                 } catch(MissingRepoException e){
                     showMissingRepoNotification();
                     setButtonsDisabled(true);
@@ -657,11 +656,10 @@ public class SessionController {
                 } catch(NoRepoLoadedException e){
                     showNoRepoLoadedNotification();
                     setButtonsDisabled(true);
-                } catch(GitAPIException | IOException e){// | InterruptedException e){
+                } catch(GitAPIException | IOException e){
                     showGenericErrorNotification();
                     e.printStackTrace();
                 }finally{
-//                    lock.unlock();
                     RepositoryMonitor.unpause();
                 }
                 return null;
@@ -718,6 +716,7 @@ public class SessionController {
 
         try {
             workingTreePanelView.drawDirectoryView();
+            fileStructurePanelView.drawDirectoryView();
             localCommitTreeModel.init();
             remoteCommitTreeModel.init();
         } catch (GitAPIException e) {
