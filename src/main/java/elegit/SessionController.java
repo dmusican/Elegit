@@ -32,6 +32,7 @@ import org.controlsfx.control.PopOver;
 import org.controlsfx.control.action.Action;
 import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.errors.NoMergeBaseException;
+import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
 import java.awt.*;
 import java.io.IOException;
@@ -512,12 +513,22 @@ public class SessionController {
             pushButton.setVisible(false);
             pushProgressIndicator.setVisible(true);
 
+            UsernamePasswordCredentialsProvider ownerAuth;
+
+            try {
+               ownerAuth = getAuth();
+            } catch (CancelledLoginException e) {
+                pushButton.setVisible(true);
+                pushProgressIndicator.setVisible(false);
+                return;
+            }
+
             Thread th = new Thread(new Task<Void>(){
                 @Override
                 protected Void call() {
                     try{
                         RepositoryMonitor.resetFoundNewChanges(false);
-                        theModel.getCurrentRepoHelper().pushAll();
+                        theModel.getCurrentRepoHelper().pushAll(ownerAuth);
                         gitStatus();
                     }  catch(InvalidRemoteException e){
                         showNoRemoteNotification();
@@ -574,12 +585,22 @@ public class SessionController {
             fetchButton.setVisible(false);
             fetchProgressIndicator.setVisible(true);
 
+            UsernamePasswordCredentialsProvider ownerAuth;
+
+            try {
+                ownerAuth = getAuth();
+            } catch (CancelledLoginException e) {
+                fetchButton.setVisible(true);
+                fetchProgressIndicator.setVisible(false);
+                return;
+            }
+
             Thread th = new Thread(new Task<Void>(){
                 @Override
                 protected Void call() {
                     try{
                         RepositoryMonitor.resetFoundNewChanges(false);
-                        if(!theModel.getCurrentRepoHelper().fetch()){
+                        if(!theModel.getCurrentRepoHelper().fetch(ownerAuth)){
                             showNoCommitsFetchedNotification();
                         }
                         gitStatus();
@@ -862,6 +883,34 @@ public class SessionController {
         this.theModel.setCurrentDefaultOwner(newOwner);
         this.updateLoginButtonText();
         return switchedLogin;
+    }
+
+    /**
+     * Creates a new owner and sets it as the current default owner.
+     */
+    public UsernamePasswordCredentialsProvider getAuth() throws CancelledLoginException {
+        // Begin with a nullified RepoOwner:
+        RepoOwner newOwner = this.theModel.getDefaultOwner() == null ? new RepoOwner(null, null) : this.theModel.getDefaultOwner();
+        boolean switchedLogin = true;
+
+        try {
+            newOwner = new RepoOwner("push");
+        } catch (CancelledLoginException e) {
+            // User cancelled the login, so we'll leave the owner full of nullness.
+            throw new CancelledLoginException();
+        }
+
+        RepoHelper currentRepoHelper = theModel.getCurrentRepoHelper();
+        if(currentRepoHelper != null){
+            currentRepoHelper.setOwner(newOwner);
+        }
+        this.theModel.setCurrentDefaultOwner(newOwner);
+        this.updateLoginButtonText();
+
+        UsernamePasswordCredentialsProvider ownerAuth =
+                new UsernamePasswordCredentialsProvider(newOwner.getUsername(), newOwner.getPassword());
+
+        return ownerAuth;
     }
 
     /**

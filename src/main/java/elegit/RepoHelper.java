@@ -6,10 +6,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import main.java.elegit.exceptions.ConflictingFilesException;
-import main.java.elegit.exceptions.MissingRepoException;
-import main.java.elegit.exceptions.NoOwnerInfoException;
-import main.java.elegit.exceptions.PushToAheadRemoteError;
+import main.java.elegit.exceptions.*;
 import org.controlsfx.control.NotificationPane;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -234,14 +231,14 @@ public abstract class RepoHelper {
      *
      * @throws GitAPIException if the `git push` call fails.
      */
-    public void pushAll() throws GitAPIException, MissingRepoException, PushToAheadRemoteError {
+    public void pushAll(UsernamePasswordCredentialsProvider ownerAuth) throws GitAPIException, MissingRepoException, PushToAheadRemoteError {
         if(!exists()) throw new MissingRepoException();
         if(!hasRemote()) throw new InvalidRemoteException("No remote repository");
         Git git = new Git(this.repo);
         PushCommand push = git.push().setPushAll();
 
-        if (this.ownerAuth != null) {
-            push.setCredentialsProvider(this.ownerAuth);
+        if (ownerAuth != null) {
+            push.setCredentialsProvider(ownerAuth);
         }
 //        ProgressMonitor progress = new TextProgressMonitor(new PrintWriter(System.out));
         ProgressMonitor progress = new SimpleProgressMonitor();
@@ -275,14 +272,14 @@ public abstract class RepoHelper {
      * @throws GitAPIException
      * @throws MissingRepoException
      */
-    public boolean fetch() throws GitAPIException, MissingRepoException{
+    public boolean fetch(UsernamePasswordCredentialsProvider ownerAuth) throws GitAPIException, MissingRepoException{
         if(!exists()) throw new MissingRepoException();
         Git git = new Git(this.repo);
 
         FetchCommand fetch = git.fetch();
 
-        if (this.ownerAuth != null) {
-            fetch.setCredentialsProvider(this.ownerAuth);
+        if (ownerAuth != null) {
+            fetch.setCredentialsProvider(ownerAuth);
         }
 
         // The JGit docs say that if setCheckFetchedObjects
