@@ -88,6 +88,12 @@
                             text="Login"
                             onAction="#handleSwitchUserButton" />
 
+                    <Button GridPane.columnIndex="5"
+                            GridPane.rowIndex="0"
+                            text="Legend"
+                            fx:id="legendbutton"
+                            onAction="#showLegend" />
+
                     <GridPane alignment="TOP_CENTER"
                               hgap="10"
                               vgap="10"

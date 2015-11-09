@@ -11,7 +11,7 @@ repositories {
 dependencies {
     compile fileTree(dir: 'lib', include: '*.jar')
     compile 'org.eclipse.jgit:org.eclipse.jgit:3.7.1.201504261725-r'
-    compile 'org.controlsfx:controlsfx:8.40.10-SNAPSHOT'
+    compile 'org.controlsfx:controlsfx:8.40.11-SNAPSHOT'
     compile 'de.jensd:fontawesomefx:8.6'
     compile 'org.slf4j:slf4j-simple:1.7.12'
 }
