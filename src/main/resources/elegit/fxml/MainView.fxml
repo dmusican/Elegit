@@ -118,8 +118,8 @@
                             </Tab>
                             <Tab text="All Files"
                                  closable="false"
-                                    fx:id="fileStructurePanelTab">
-                                <FileStructurePanelView fx:id="fileStructurePanelView"/>
+                                    fx:id="allFilesPanelTab">
+                                <AllFilesPanelView fx:id="allFilesPanelView"/>
                             </Tab>
                         </TabPane>
 

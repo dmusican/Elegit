@@ -81,9 +81,9 @@ public class SessionController {
     public TextArea commitMessageField;
 
     public Tab workingTreePanelTab;
-    public Tab fileStructurePanelTab;
+    public Tab allFilesPanelTab;
     public WorkingTreePanelView workingTreePanelView;
-    public FileStructurePanelView fileStructurePanelView;
+    public AllFilesPanelView allFilesPanelView;
 
 	public CommitTreePanelView localCommitTreePanelView;
     public CommitTreePanelView remoteCommitTreePanelView;
@@ -118,7 +118,7 @@ public class SessionController {
         CommitTreeController.sessionController = this;
 
         this.workingTreePanelView.setSessionModel(this.theModel);
-        this.fileStructurePanelView.setSessionModel(this.theModel);
+        this.allFilesPanelView.setSessionModel(this.theModel);
 
         isWorkingTreeTabSelected = new SimpleBooleanProperty(true);
         isWorkingTreeTabSelected.bind(workingTreePanelTab.selectedProperty());
@@ -210,7 +210,7 @@ public class SessionController {
         gitStatusButton.setMaxWidth(Double.MAX_VALUE);
 
         workingTreePanelView.setMinSize(Control.USE_PREF_SIZE, 200);
-        fileStructurePanelView.setMinSize(Control.USE_PREF_SIZE, 200);
+        allFilesPanelView.setMinSize(Control.USE_PREF_SIZE, 200);
         commitMessageField.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
 
         branchDropdownSelector.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
@@ -651,7 +651,7 @@ public class SessionController {
                     remoteCommitTreeModel.update();
 
                     workingTreePanelView.drawDirectoryView();
-                    fileStructurePanelView.drawDirectoryView();
+                    allFilesPanelView.drawDirectoryView();
                     updateBranchDropdown();
                 } catch(MissingRepoException e){
                     showMissingRepoNotification();
@@ -720,7 +720,7 @@ public class SessionController {
 
         try {
             workingTreePanelView.drawDirectoryView();
-            fileStructurePanelView.drawDirectoryView();
+            allFilesPanelView.drawDirectoryView();
             localCommitTreeModel.init();
             remoteCommitTreeModel.init();
         } catch (GitAPIException e) {

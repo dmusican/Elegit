@@ -4,6 +4,7 @@ import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.control.CheckBoxTreeItem;
+import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import javafx.scene.control.cell.CheckBoxTreeCell;
 import javafx.scene.layout.Region;
@@ -15,28 +16,19 @@ import java.util.List;
 /**
  *
  */
-public class FileStructurePanelView extends Region{
+public abstract class FileStructurePanelView extends Region{
 
     // fileLeafs stores all 'leafs' in the directory TreeView:
-    private ArrayList<CheckBoxTreeItem<RepoFile>> fileLeafs;
     private TreeView<RepoFile> directoryTreeView;
+    public ArrayList<TreeItem<RepoFile>> fileLeafs;
     public SessionModel sessionModel;
-
-    public BooleanProperty isAnyFileSelectedProperty;
 
     public FileStructurePanelView() {
         this.fileLeafs = new ArrayList<>();
         this.directoryTreeView = new TreeView<>();
-        isAnyFileSelectedProperty = new SimpleBooleanProperty(false);
 
         this.directoryTreeView.prefHeightProperty().bind(this.heightProperty());
         this.getChildren().add(this.directoryTreeView);
-    }
-
-    public void setAllFilesSelected(boolean selected) {
-        for (CheckBoxTreeItem fileCell : this.fileLeafs) {
-            fileCell.setSelected(selected);
-        }
     }
 
     /**
@@ -54,20 +46,14 @@ public class FileStructurePanelView extends Region{
 
         fileLeafs = new ArrayList<>(fileLeafs.size());
 
-        CheckBoxTreeItem<RepoFile> rootItem = new CheckBoxTreeItem<RepoFile>(rootDirectory);
+        TreeItem<RepoFile> rootItem = this.getRootTreeItem(rootDirectory);
         rootItem.setExpanded(true);
 
-        isAnyFileSelectedProperty.unbind();
-        BooleanProperty temp = new SimpleBooleanProperty(false);
         for(RepoFile changedRepoFile : this.getFilesToDisplay()){
-            CheckBoxTreeItem<RepoFile> leaf = new CheckBoxTreeItem<>(changedRepoFile, changedRepoFile.diffButton);
+            TreeItem<RepoFile> leaf = this.getTreeItem(changedRepoFile);
             rootItem.getChildren().add(leaf);
             this.fileLeafs.add(leaf);
-            BooleanProperty oldTemp = temp;
-            temp = new SimpleBooleanProperty();
-            temp.bind(oldTemp.or(leaf.selectedProperty()));
         }
-        isAnyFileSelectedProperty.bind(temp);
 
         this.directoryTreeView = new TreeView<>(rootItem);
         this.directoryTreeView.setCellFactory(CheckBoxTreeCell.<RepoFile>forTreeView());
@@ -83,32 +69,13 @@ public class FileStructurePanelView extends Region{
         });
     }
 
-    public List<RepoFile> getFilesToDisplay() throws GitAPIException{
-        return sessionModel.getAllRepoFiles();
-    }
+    protected abstract TreeItem<RepoFile> getRootTreeItem(DirectoryRepoFile rootDirectory);
 
-    /**
-     * Checks through all the file leafs and finds all leafs whose checkbox is checked.
-     *
-     * @return an array of RepoFiles whose CheckBoxTreeItem cells are checked.
-     */
-    public ArrayList<RepoFile> getCheckedFilesInDirectory() {
-        ArrayList<RepoFile> checkedFiles = new ArrayList<>();
-        for (CheckBoxTreeItem fileLeaf : this.fileLeafs) {
-            if (fileLeaf.isSelected())
-                checkedFiles.add((RepoFile)fileLeaf.getValue());
-        }
-        return checkedFiles;
-    }
+    protected abstract TreeItem<RepoFile> getTreeItem(RepoFile repoFile);
+
+    protected abstract List<RepoFile> getFilesToDisplay() throws GitAPIException;
 
     public void setSessionModel(SessionModel sessionModel) {
         this.sessionModel = sessionModel;
-    }
-
-    /**
-     * @return true if any file is checked, else false
-     */
-    public boolean isAnyFileSelected(){
-        return isAnyFileSelectedProperty.get();
     }
 }
