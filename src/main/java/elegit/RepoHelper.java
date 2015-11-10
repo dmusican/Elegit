@@ -68,12 +68,7 @@ public abstract class RepoHelper {
      * @throws GitAPIException if the obtainRepository() call throws this exception..
      * @throws IOException if the obtainRepository() call throws this exception.
      */
-    public RepoHelper(Path directoryPath, String remoteURL, String username) throws GitAPIException, IOException, NoOwnerInfoException {
-        if (username == null) {
-            // This exception is mainly for constructing ClonedRepoHelpers because that operation
-            // requires a login to the remote.
-            throw new NoOwnerInfoException();
-        }
+    public RepoHelper(Path directoryPath, String remoteURL, String username) throws GitAPIException, IOException {
         this.remoteURL = remoteURL;
         this.username = username;
 
@@ -96,7 +91,7 @@ public abstract class RepoHelper {
     }
 
     /// Constructor for ExistingRepoHelpers to inherit (they don't need the Remote URL)
-    public RepoHelper(Path directoryPath, String username) throws GitAPIException, IOException, NoOwnerInfoException {
+    public RepoHelper(Path directoryPath, String username) throws GitAPIException, IOException {
         this.username = username;
 
         this.localPath = directoryPath;
@@ -970,7 +965,10 @@ public abstract class RepoHelper {
      * @throws GitAPIException
      */
     public Collection<Ref> getRefsFromRemote(boolean includeTags) throws GitAPIException{
-        UsernamePasswordCredentialsProvider ownerAuth;
+
+        //No UsernamePasswordCredentialsProvider is needed for this, as far as I can tell
+        //TODO: see if UsernamePasswordCredentialsProvider is needed to getRefsFromRemote
+        /*UsernamePasswordCredentialsProvider ownerAuth;
         try {
             ownerAuth = presentAuthorizeDialog();
         } catch (CancelledAuthorizationException e) {
@@ -979,7 +977,10 @@ public abstract class RepoHelper {
             ownerAuth = null;
         }
         if(includeTags) return new Git(repo).lsRemote().setHeads(true).setTags(true).setCredentialsProvider(ownerAuth).call();
-        else return new Git(repo).lsRemote().setHeads(true).setCredentialsProvider(ownerAuth).call();
+        else return new Git(repo).lsRemote().setHeads(true).setCredentialsProvider(ownerAuth).call();*/
+
+        if(includeTags) return new Git(repo).lsRemote().setHeads(true).setTags(true).call();
+        else return new Git(repo).lsRemote().setHeads(true).call();
     }
 
     public BranchManagerModel getBranchManagerModel() {

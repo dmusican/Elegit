@@ -22,7 +22,7 @@ public abstract class RepoHelperBuilder {
         this.sessionModel = sessionModel;
     }
 
-    public abstract RepoHelper getRepoHelperFromDialogs() throws GitAPIException, NoOwnerInfoException, IOException, NoRepoSelectedException;
+    public abstract RepoHelper getRepoHelperFromDialogs() throws GitAPIException, IOException, NoRepoSelectedException;
 
     /**
      * Presents a file chooser and returns the chosen file.

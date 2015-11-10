@@ -1,6 +1,5 @@
 package main.java.elegit;
 
-import main.java.elegit.exceptions.NoOwnerInfoException;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
@@ -12,7 +11,7 @@ import java.nio.file.Path;
  * A RepoHelper implementation for pre-existing repositories.
  */
 public class ExistingRepoHelper extends RepoHelper {
-    public ExistingRepoHelper(Path directoryPath, String username) throws IOException, NoOwnerInfoException, GitAPIException{
+    public ExistingRepoHelper(Path directoryPath, String username) throws IOException, GitAPIException{
         super(directoryPath, username);
     }
 

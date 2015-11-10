@@ -288,8 +288,6 @@ public class SessionController {
         } catch (IllegalArgumentException e) {
             showInvalidRepoNotification();
             e.printStackTrace();
-        } catch(NoOwnerInfoException e) {
-            showNotLoggedInNotification(() -> handleLoadRepoMenuItem(builder));
         } catch(JGitInternalException e){
             showNonEmptyFolderNotification(() -> handleLoadRepoMenuItem(builder));
         } catch(InvalidRemoteException e){
@@ -928,24 +926,6 @@ public class SessionController {
         });
     }
 
-    private void showNotLoggedInNotification(Runnable callBack) {
-        Platform.runLater(() -> {
-            this.notificationPane.setText("You need to log in first in order to clone a repository.");
-
-            Action loginAction = new Action("Log in", e -> {
-                this.notificationPane.hide();
-                if (this.switchUser()) {
-                    if (callBack != null) callBack.run();
-                }
-            });
-
-            this.notificationPane.getActions().clear();
-            this.notificationPane.getActions().setAll(loginAction);
-            this.notificationPane.show();
-        });
-    }
-
-
     private void showNoRepoLoadedNotification() {
         Platform.runLater(() -> {
             this.notificationPane.setText("You need to load a repository before you can perform operations on it!");
@@ -1027,9 +1007,11 @@ public class SessionController {
 
     private void showNotAuthorizedNotification(Runnable callback) {
         Platform.runLater(() -> {
-            this.notificationPane.setText("The login information you gave does not allow you to modify this repository. Try switching your login and trying again.");
+            this.notificationPane.setText("The authorization information you gave does not allow you to modify this repository. " +
+                    "Try reentering your password.");
 
-            Action loginAction = new Action("Log in", e -> {
+            /*
+            Action authAction = new Action("Authorize", e -> {
                 this.notificationPane.hide();
                 if(this.switchUser()){
                     if(callback != null) callback.run();
@@ -1037,7 +1019,7 @@ public class SessionController {
             });
 
             this.notificationPane.getActions().clear();
-            this.notificationPane.getActions().setAll(loginAction);
+            this.notificationPane.getActions().setAll(authAction);*/
             this.notificationPane.show();
         });
     }

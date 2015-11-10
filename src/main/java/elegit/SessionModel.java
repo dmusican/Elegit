@@ -77,7 +77,7 @@ public class SessionModel {
             } catch (IllegalArgumentException e) {
                 // The most recent repo is no longer in the directory it used to be in,
                 // so just don't load it.
-            }catch(NoOwnerInfoException | GitAPIException | MissingRepoException e){
+            }catch(GitAPIException | MissingRepoException e){
                 e.printStackTrace();
             }
         }
@@ -102,7 +102,7 @@ public class SessionModel {
                     } catch (IllegalArgumentException e) {
                         // This happens when this repository has been moved.
                         // We'll just move along.
-                    } catch(NoOwnerInfoException | GitAPIException e){
+                    } catch(GitAPIException e){
                         e.printStackTrace();
                     }
                 }

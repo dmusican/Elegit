@@ -14,7 +14,7 @@ import java.nio.file.Path;
  * A RepoHelper implementation for a repository cloned into an empty folder.
  */
 public class ClonedRepoHelper extends RepoHelper {
-    public ClonedRepoHelper(Path directoryPath, String remoteURL, String username) throws IOException, NoOwnerInfoException, GitAPIException{
+    public ClonedRepoHelper(Path directoryPath, String remoteURL, String username) throws IOException, GitAPIException{
         super(directoryPath, remoteURL, username);
     }
 

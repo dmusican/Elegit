@@ -27,7 +27,7 @@ public class ExistingRepoHelperBuilder extends RepoHelperBuilder {
      * @throws Exception why? has to do with the new ExistingRepoHelper(...).
      */
     @Override
-    public RepoHelper getRepoHelperFromDialogs() throws GitAPIException, NoOwnerInfoException, IOException, NoRepoSelectedException{
+    public RepoHelper getRepoHelperFromDialogs() throws GitAPIException, IOException, NoRepoSelectedException{
         File existingRepoDirectoryFile = this.getDirectoryPathFromChooser("Choose existing repository directory", null);
 
         if (existingRepoDirectoryFile == null) {
