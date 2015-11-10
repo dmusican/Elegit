@@ -37,10 +37,7 @@ public class SessionModel {
     List<RepoHelper> allRepoHelpers;
     private static SessionModel sessionModel;
 
-    // All RepoHelpers have their own owner. This
-    //   is the default owner that new RepoHelpers will
-    //   be initiated with:
-    private RepoOwner defaultOwner;
+    private String defaultUsername;
 
     Preferences preferences;
 
@@ -75,7 +72,7 @@ public class SessionModel {
         if (lastOpenedRepoPathString != null) {
             Path path = Paths.get(lastOpenedRepoPathString);
             try {
-                ExistingRepoHelper existingRepoHelper = new ExistingRepoHelper(path, this.defaultOwner);
+                ExistingRepoHelper existingRepoHelper = new ExistingRepoHelper(path, this.defaultUsername);
                 this.openRepoFromHelper(existingRepoHelper);
             } catch (IllegalArgumentException e) {
                 // The most recent repo is no longer in the directory it used to be in,
@@ -100,7 +97,7 @@ public class SessionModel {
                 for (String pathString : storedRepoPathStrings) {
                     Path path = Paths.get(pathString);
                     try {
-                        ExistingRepoHelper existingRepoHelper = new ExistingRepoHelper(path, this.defaultOwner);
+                        ExistingRepoHelper existingRepoHelper = new ExistingRepoHelper(path, this.defaultUsername);
                         this.allRepoHelpers.add(existingRepoHelper);
                     } catch (IllegalArgumentException e) {
                         // This happens when this repository has been moved.
@@ -194,12 +191,12 @@ public class SessionModel {
     /**
      * @return the default owner that will be assigned to new repositories
      */
-    public RepoOwner getDefaultOwner() {
-        return defaultOwner;
+    public String getDefaultUsername() {
+        return this.defaultUsername;
     }
 
-    public void setCurrentDefaultOwner(RepoOwner newOwner) {
-        this.defaultOwner = newOwner;
+    public void setCurrentDefaultUsername(String username) {
+        this.defaultUsername = username;
     }
 
     /**

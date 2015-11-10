@@ -1,5 +1,6 @@
 package main.java.elegit;
 
+import main.java.elegit.exceptions.CancelledAuthorizationException;
 import main.java.elegit.exceptions.NoOwnerInfoException;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
@@ -13,8 +14,8 @@ import java.nio.file.Path;
  * A RepoHelper implementation for a repository cloned into an empty folder.
  */
 public class ClonedRepoHelper extends RepoHelper {
-    public ClonedRepoHelper(Path directoryPath, String remoteURL, RepoOwner owner) throws IOException, NoOwnerInfoException, GitAPIException{
-        super(directoryPath, remoteURL, owner);
+    public ClonedRepoHelper(Path directoryPath, String remoteURL, String username) throws IOException, NoOwnerInfoException, GitAPIException{
+        super(directoryPath, remoteURL, username);
     }
 
     /**
@@ -28,7 +29,11 @@ public class ClonedRepoHelper extends RepoHelper {
     protected Repository obtainRepository() throws GitAPIException {
         CloneCommand cloneCommand = Git.cloneRepository();
         cloneCommand.setURI(this.remoteURL);
-        cloneCommand.setCredentialsProvider(this.ownerAuth);
+        try {
+            cloneCommand.setCredentialsProvider(super.presentAuthorizeDialog());
+        } catch (CancelledAuthorizationException e) {
+            // If no authorization is given, then we don't bother setting the credentialsProvider
+        }
 
         cloneCommand.setDirectory(this.localPath.toFile());
         Git cloneCall = cloneCommand.call();

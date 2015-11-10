@@ -164,7 +164,7 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
             // Without the above try/catch block, the next line would run and throw the desired InvalidRemoteException,
             //  but it would create a destination folder for the repo before stopping. By catching the error above,
             //  we prevent unnecessary folder creation.
-            RepoHelper repoHelper = new ClonedRepoHelper(destinationPath, remoteURL, this.sessionModel.getDefaultOwner());
+            RepoHelper repoHelper = new ClonedRepoHelper(destinationPath, remoteURL, this.sessionModel.getDefaultUsername());
 
             return repoHelper;
         } else {

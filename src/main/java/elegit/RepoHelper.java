@@ -1,11 +1,17 @@
 package main.java.elegit;
 
+import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Insets;
+import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.control.*;
+import javafx.scene.layout.GridPane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.util.Pair;
 import main.java.elegit.exceptions.*;
 import org.controlsfx.control.NotificationPane;
 import org.eclipse.jgit.api.*;
@@ -31,7 +37,7 @@ import java.util.*;
  */
 public abstract class RepoHelper {
 
-    protected UsernamePasswordCredentialsProvider ownerAuth;
+    //protected UsernamePasswordCredentialsProvider ownerAuth;
 
     public String username;
     private Repository repo;
@@ -62,16 +68,15 @@ public abstract class RepoHelper {
      * @throws GitAPIException if the obtainRepository() call throws this exception..
      * @throws IOException if the obtainRepository() call throws this exception.
      */
-    public RepoHelper(Path directoryPath, String remoteURL, RepoOwner owner) throws GitAPIException, IOException, NoOwnerInfoException {
-        if (owner == null || (owner.getUsername() == null && owner.getPassword() == null)) {
+    public RepoHelper(Path directoryPath, String remoteURL, String username) throws GitAPIException, IOException, NoOwnerInfoException {
+        if (username == null) {
             // This exception is mainly for constructing ClonedRepoHelpers because that operation
             // requires a login to the remote.
             throw new NoOwnerInfoException();
         }
         this.remoteURL = remoteURL;
-        this.username = owner.getUsername();
+        this.username = username;
 
-        this.ownerAuth = new UsernamePasswordCredentialsProvider(owner.getUsername(), owner.getPassword());
         this.localPath = directoryPath;
 
         this.repo = this.obtainRepository();
@@ -91,17 +96,8 @@ public abstract class RepoHelper {
     }
 
     /// Constructor for ExistingRepoHelpers to inherit (they don't need the Remote URL)
-    public RepoHelper(Path directoryPath, RepoOwner owner) throws GitAPIException, IOException, NoOwnerInfoException {
-        // If the user hasn't signed in (owner == null), then there is no authentication:
-        if (owner == null) {
-            // We can leave the ownerAuth as null because it's an ExistingRepo. The user doesn't need to
-            // log in until they want to actually interact with the remote (e.g. pushing changes).
-            this.ownerAuth = null;
-            this.username = null;
-        } else {
-            this.ownerAuth = new UsernamePasswordCredentialsProvider(owner.getUsername(), owner.getPassword());
-            this.username = owner.getUsername();
-        }
+    public RepoHelper(Path directoryPath, String username) throws GitAPIException, IOException, NoOwnerInfoException {
+        this.username = username;
 
         this.localPath = directoryPath;
 
@@ -322,6 +318,162 @@ public abstract class RepoHelper {
         this.hasUnpushedCommitsProperty.set(this.hasUnpushedCommits() || status == MergeResult.MergeStatus.MERGED);
         if(status == MergeResult.MergeStatus.CONFLICTING) throw new ConflictingFilesException(result.getConflicts());
         return result.getMergeStatus().isSuccessful();
+    }
+
+    /**
+     * Presents dialogs that request the user's username and password,
+     * and sets the username and password fields accordingly.
+     *
+     * @throws CancelledAuthorizationException if the user presses cancel or closes the dialog.
+     */
+    public UsernamePasswordCredentialsProvider presentAuthorizeDialog() throws CancelledAuthorizationException {
+        // Create the custom dialog.
+        Dialog<Pair<String,String>> dialog = new Dialog<>();
+        dialog.setTitle("Authorize");
+        dialog.setHeaderText("Please enter your remote repository password.");
+
+        // Set the button types.
+        ButtonType loginButtonType = new ButtonType("Authorize", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(loginButtonType, ButtonType.CANCEL);
+
+        // Create the username and password labels and fields.
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new Insets(20, 150, 10, 10));
+
+        PasswordField password = new PasswordField();
+        password.setPromptText("Password");
+
+        grid.add(new Label("Username:"), 0, 0);
+
+        // Conditionally ask for the username if it hasn't yet been set.
+        TextField username = new TextField();
+        if (this.username == null) {
+            username.setPromptText("Username");
+            grid.add(username, 1, 0);
+        } else {
+            grid.add(new Label(this.username), 1, 0);
+        }
+
+        grid.add(new Label("Password:"), 0, 1);
+        grid.add(password, 1, 1);
+
+        // Enable/Disable login button depending on whether a password was entered.
+        Node loginButton = dialog.getDialogPane().lookupButton(loginButtonType);
+        loginButton.setDisable(true);
+
+        // Do some validation (using the Java 8 lambda syntax).
+        password.textProperty().addListener((observable, oldValue, newValue) -> {
+            loginButton.setDisable(newValue.trim().isEmpty());
+        });
+        username.textProperty().addListener((observable, oldValue, newValue) -> {
+            loginButton.setDisable(newValue.trim().isEmpty());
+        });
+
+        dialog.getDialogPane().setContent(grid);
+
+        // Request focus for the first text field by default.
+        if (this.username == null) {
+            Platform.runLater(() -> username.requestFocus());
+        } else {
+            Platform.runLater(() -> password.requestFocus());
+        }
+
+        // Return the password when the authorize button is clicked.
+        // If the username hasn't been set yet, then update the username.
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == loginButtonType) {
+                if (this.username != null)
+                    return new Pair<>(this.username, password.getText());
+                else
+                    return new Pair<>(username.getText(), password.getText());
+            }
+            return null;
+        });
+
+        Optional<Pair<String, String>> result = dialog.showAndWait();
+
+        UsernamePasswordCredentialsProvider ownerAuth;
+
+        if (result.isPresent()) {
+            if (this.username == null) {
+                this.username = username.getText();
+            } else {
+                this.username = result.get().getKey();
+            }
+            ownerAuth = new UsernamePasswordCredentialsProvider(this.username, result.get().getValue());
+        } else {
+            throw new CancelledAuthorizationException();
+        }
+        return ownerAuth;
+    }
+
+    /**
+    * Presents dialogs that request the user's username, then sets it for the RepoHelper
+    *
+    * @throws CancelledUsernameException if the user presses cancel or closes the dialog.
+    */
+    public void presentUsernameDialog() throws CancelledUsernameException {
+        // Create the custom dialog.
+        Dialog<String> dialog = new Dialog<>();
+        dialog.setTitle("Username");
+        dialog.setHeaderText("Please enter your remote repository username.");
+
+        // Set the button types.
+        ButtonType okButtonType = new ButtonType("OK", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(okButtonType, ButtonType.CANCEL);
+
+        // Create the username and password labels and fields.
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new Insets(20, 150, 10, 10));
+
+        grid.add(new Label("Username:"), 0, 0);
+
+        // Conditionally ask for the username if it hasn't yet been set.
+        TextField username;
+        if (this.username == null) {
+            username = new TextField();
+            username.setPromptText("Username");
+        } else {
+            username = new TextField(this.username);
+        }
+        grid.add(username, 1, 0);
+
+        // Enable/Disable login button depending on whether a password was entered.
+        Node loginButton = dialog.getDialogPane().lookupButton(okButtonType);
+        loginButton.setDisable(true);
+
+        // Do some validation (using the Java 8 lambda syntax).
+        username.textProperty().addListener((observable, oldValue, newValue) -> {
+            loginButton.setDisable(newValue.trim().isEmpty());
+        });
+
+        dialog.getDialogPane().setContent(grid);
+
+        // Request focus for the username text field by default.
+        Platform.runLater(() -> username.requestFocus());
+
+        // Return the password when the authorize button is clicked.
+        // If the username hasn't been set yet, then update the username.
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == okButtonType) {
+                return username.getText();
+            }
+            return null;
+        });
+
+        Optional<String> result = dialog.showAndWait();
+
+        UsernamePasswordCredentialsProvider ownerAuth;
+
+        if (result.isPresent()) {
+            this.username = result.get();
+        } else {
+            throw new CancelledUsernameException();
+        }
     }
 
     public void closeRepo() {
@@ -701,21 +853,6 @@ public abstract class RepoHelper {
     }
 
     /**
-     * Sets the owner of this repository
-     * @param owner the new owner
-     */
-    public void setOwner(RepoOwner owner) {
-        if (owner == null || (owner.getUsername() == null && owner.getPassword() == null)) {
-            // If there's no owner, there's no authentication.
-            this.ownerAuth = null;
-            this.username = null;
-        } else {
-            this.ownerAuth = new UsernamePasswordCredentialsProvider(owner.getUsername(), owner.getPassword());
-            this.username = owner.getUsername();
-        }
-    }
-
-    /**
      * Sets the currently checkout branch. Does not call 'git checkout'
      * or any variation, simply updates the local variable
      * @param branchHelper the new current branch
@@ -833,8 +970,16 @@ public abstract class RepoHelper {
      * @throws GitAPIException
      */
     public Collection<Ref> getRefsFromRemote(boolean includeTags) throws GitAPIException{
-        if(includeTags) return new Git(repo).lsRemote().setHeads(true).setTags(true).setCredentialsProvider(this.ownerAuth).call();
-        else return new Git(repo).lsRemote().setHeads(true).setCredentialsProvider(this.ownerAuth).call();
+        UsernamePasswordCredentialsProvider ownerAuth;
+        try {
+            ownerAuth = presentAuthorizeDialog();
+        } catch (CancelledAuthorizationException e) {
+            // If the user doesn't enter credentials for this action, then we'll leave the ownerAuth
+            // as null.
+            ownerAuth = null;
+        }
+        if(includeTags) return new Git(repo).lsRemote().setHeads(true).setTags(true).setCredentialsProvider(ownerAuth).call();
+        else return new Git(repo).lsRemote().setHeads(true).setCredentialsProvider(ownerAuth).call();
     }
 
     public BranchManagerModel getBranchManagerModel() {

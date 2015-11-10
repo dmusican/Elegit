@@ -12,8 +12,8 @@ import java.nio.file.Path;
  * A RepoHelper implementation for pre-existing repositories.
  */
 public class ExistingRepoHelper extends RepoHelper {
-    public ExistingRepoHelper(Path directoryPath, RepoOwner owner) throws IOException, NoOwnerInfoException, GitAPIException{
-        super(directoryPath, owner);
+    public ExistingRepoHelper(Path directoryPath, String username) throws IOException, NoOwnerInfoException, GitAPIException{
+        super(directoryPath, username);
     }
 
     /**

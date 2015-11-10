@@ -37,7 +37,7 @@ public class ExistingRepoHelperBuilder extends RepoHelperBuilder {
 
         Path directoryPath = existingRepoDirectoryFile.toPath();
 
-        RepoHelper existingRepoHelper = new ExistingRepoHelper(directoryPath, this.sessionModel.getDefaultOwner());
+        RepoHelper existingRepoHelper = new ExistingRepoHelper(directoryPath, this.sessionModel.getDefaultUsername());
 
         return existingRepoHelper;
     }

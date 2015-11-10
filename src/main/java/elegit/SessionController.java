@@ -148,8 +148,7 @@ public class SessionController {
         Text downloadIcon = GlyphsDude.createIcon(FontAwesomeIcon.CLOUD_DOWNLOAD);
         MenuItem cloneOption = new MenuItem("Clone repository", downloadIcon);
         cloneOption.setOnAction(t -> {
-            if(this.theModel.getDefaultOwner() == null) this.showNotLoggedInNotification(() -> handleLoadRepoMenuItem(new ClonedRepoHelperBuilder(this.theModel)));
-            else handleLoadRepoMenuItem(new ClonedRepoHelperBuilder(this.theModel));
+            handleLoadRepoMenuItem(new ClonedRepoHelperBuilder(this.theModel));
         });
 
         Text folderOpenIcon = GlyphsDude.createIcon(FontAwesomeIcon.FOLDER_OPEN);
@@ -865,54 +864,31 @@ public class SessionController {
      * Creates a new owner and sets it as the current default owner.
      */
     public boolean switchUser() {
-        // Begin with a nullified RepoOwner:
-        RepoOwner newOwner = this.theModel.getDefaultOwner() == null ? new RepoOwner(null, null) : this.theModel.getDefaultOwner();
-        boolean switchedLogin = true;
-
-        try {
-            newOwner = new RepoOwner();
-        } catch (CancelledLoginException e) {
-            // User cancelled the login, so we'll leave the owner full of nullness.
-            switchedLogin = false;
-        }
+        boolean switchedUser = true;
 
         RepoHelper currentRepoHelper = theModel.getCurrentRepoHelper();
-        if(currentRepoHelper != null){
-            currentRepoHelper.setOwner(newOwner);
+
+        try {
+            currentRepoHelper.presentUsernameDialog();
+        } catch (CancelledUsernameException e) {
+            switchedUser = false;
         }
-        this.theModel.setCurrentDefaultOwner(newOwner);
+
         this.updateLoginButtonText();
-        return switchedLogin;
+
+        return switchedUser;
     }
 
     /**
-     * Creates a new owner and sets it as the current default owner.
+     * Asks the user for authorization to interact with the remote.
      */
     public UsernamePasswordCredentialsProvider getAuth() throws CancelledAuthorizationException {
-        // Begin with a nullified RepoOwner:
-
-        RepoOwner newOwner = this.theModel.getDefaultOwner();
-
-        try {
-            if (newOwner != null)
-                newOwner.presentAuthorizeDialog();
-            else
-                newOwner = new RepoOwner("push");
-        } catch (CancelledAuthorizationException e) {
-            // User cancelled the login, so no push or fetch will happen
-            throw new CancelledAuthorizationException();
-        }
 
         RepoHelper currentRepoHelper = this.theModel.getCurrentRepoHelper();
 
         UsernamePasswordCredentialsProvider ownerAuth =
-                new UsernamePasswordCredentialsProvider(currentRepoHelper.getUsername(), newOwner.getPassword());
+                currentRepoHelper.presentAuthorizeDialog();
 
-        if(currentRepoHelper != null){
-            currentRepoHelper.setOwner(newOwner);
-            currentRepoHelper.setUsername(newOwner.getUsername());
-        }
-        this.theModel.setCurrentDefaultOwner(newOwner);
         this.updateLoginButtonText();
         return ownerAuth;
     }
