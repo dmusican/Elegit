@@ -517,7 +517,7 @@ public class SessionController {
 
             try {
                ownerAuth = getAuth();
-            } catch (CancelledLoginException e) {
+            } catch (CancelledAuthorizationException e) {
                 pushButton.setVisible(true);
                 pushProgressIndicator.setVisible(false);
                 return;
@@ -589,7 +589,7 @@ public class SessionController {
 
             try {
                 ownerAuth = getAuth();
-            } catch (CancelledLoginException e) {
+            } catch (CancelledAuthorizationException e) {
                 fetchButton.setVisible(true);
                 fetchProgressIndicator.setVisible(false);
                 return;
@@ -888,28 +888,32 @@ public class SessionController {
     /**
      * Creates a new owner and sets it as the current default owner.
      */
-    public UsernamePasswordCredentialsProvider getAuth() throws CancelledLoginException {
+    public UsernamePasswordCredentialsProvider getAuth() throws CancelledAuthorizationException {
         // Begin with a nullified RepoOwner:
-        RepoOwner newOwner = this.theModel.getDefaultOwner() == null ? new RepoOwner(null, null) : this.theModel.getDefaultOwner();
-        boolean switchedLogin = true;
+
+        RepoOwner newOwner = this.theModel.getDefaultOwner();
 
         try {
-            newOwner = new RepoOwner("push");
-        } catch (CancelledLoginException e) {
-            // User cancelled the login, so we'll leave the owner full of nullness.
-            throw new CancelledLoginException();
+            if (newOwner != null)
+                newOwner.presentAuthorizeDialog();
+            else
+                newOwner = new RepoOwner("push");
+        } catch (CancelledAuthorizationException e) {
+            // User cancelled the login, so no push or fetch will happen
+            throw new CancelledAuthorizationException();
         }
 
-        RepoHelper currentRepoHelper = theModel.getCurrentRepoHelper();
+        RepoHelper currentRepoHelper = this.theModel.getCurrentRepoHelper();
+
+        UsernamePasswordCredentialsProvider ownerAuth =
+                new UsernamePasswordCredentialsProvider(currentRepoHelper.getUsername(), newOwner.getPassword());
+
         if(currentRepoHelper != null){
             currentRepoHelper.setOwner(newOwner);
+            currentRepoHelper.setUsername(newOwner.getUsername());
         }
         this.theModel.setCurrentDefaultOwner(newOwner);
         this.updateLoginButtonText();
-
-        UsernamePasswordCredentialsProvider ownerAuth =
-                new UsernamePasswordCredentialsProvider(newOwner.getUsername(), newOwner.getPassword());
-
         return ownerAuth;
     }
 
@@ -1372,10 +1376,10 @@ public class SessionController {
         Platform.runLater(() -> {
             if(theModel.getCurrentRepoHelper() != null) {
                 String loginText = this.theModel.getCurrentRepoHelper().getUsername();
-                if (loginText == null) loginText = "Login";
+                if (loginText == null) loginText = "Username";
                 this.switchUserButton.setText(loginText);
             } else{
-                this.switchUserButton.setText("Login");
+                this.switchUserButton.setText("Username");
             }
         });
     }
