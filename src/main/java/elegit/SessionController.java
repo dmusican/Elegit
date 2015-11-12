@@ -300,6 +300,8 @@ public class SessionController {
             // Somehow, the repository failed to get properly loaded
             // TODO: better error message?
             showRepoWasNotLoadedNotification();
+        } catch(CancelledAuthorizationException e) {
+            //The user pressed cancel on the authorize dialog box. Do nothing!
         }
     }
 

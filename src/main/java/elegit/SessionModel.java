@@ -2,6 +2,7 @@ package main.java.elegit;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import main.java.elegit.exceptions.CancelledAuthorizationException;
 import main.java.elegit.exceptions.MissingRepoException;
 import main.java.elegit.exceptions.NoOwnerInfoException;
 import org.eclipse.jgit.api.Git;
@@ -77,8 +78,10 @@ public class SessionModel {
             } catch (IllegalArgumentException e) {
                 // The most recent repo is no longer in the directory it used to be in,
                 // so just don't load it.
-            }catch(GitAPIException | MissingRepoException e){
+            }catch(GitAPIException | MissingRepoException e) {
                 e.printStackTrace();
+            } catch (CancelledAuthorizationException e) {
+                // Should never be used, as no authorization is needed for loading local files.
             }
         }
         }catch(IOException | BackingStoreException | ClassNotFoundException e){
@@ -104,6 +107,8 @@ public class SessionModel {
                         // We'll just move along.
                     } catch(GitAPIException e){
                         e.printStackTrace();
+                    } catch (CancelledAuthorizationException e) {
+                        // This shouldn't happen loading local files.
                     }
                 }
             }

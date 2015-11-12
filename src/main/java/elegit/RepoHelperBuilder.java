@@ -2,6 +2,7 @@ package main.java.elegit;
 
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Window;
+import main.java.elegit.exceptions.CancelledAuthorizationException;
 import main.java.elegit.exceptions.NoOwnerInfoException;
 import main.java.elegit.exceptions.NoRepoSelectedException;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -22,7 +23,7 @@ public abstract class RepoHelperBuilder {
         this.sessionModel = sessionModel;
     }
 
-    public abstract RepoHelper getRepoHelperFromDialogs() throws GitAPIException, IOException, NoRepoSelectedException;
+    public abstract RepoHelper getRepoHelperFromDialogs() throws GitAPIException, IOException, NoRepoSelectedException, CancelledAuthorizationException;
 
     /**
      * Presents a file chooser and returns the chosen file.

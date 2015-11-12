@@ -1,5 +1,6 @@
 package main.java.elegit;
 
+import main.java.elegit.exceptions.CancelledAuthorizationException;
 import main.java.elegit.exceptions.NoOwnerInfoException;
 import main.java.elegit.exceptions.NoRepoSelectedException;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -27,7 +28,7 @@ public class ExistingRepoHelperBuilder extends RepoHelperBuilder {
      * @throws Exception why? has to do with the new ExistingRepoHelper(...).
      */
     @Override
-    public RepoHelper getRepoHelperFromDialogs() throws GitAPIException, IOException, NoRepoSelectedException{
+    public RepoHelper getRepoHelperFromDialogs() throws GitAPIException, IOException, NoRepoSelectedException, CancelledAuthorizationException{
         File existingRepoDirectoryFile = this.getDirectoryPathFromChooser("Choose existing repository directory", null);
 
         if (existingRepoDirectoryFile == null) {

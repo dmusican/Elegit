@@ -40,6 +40,8 @@ public abstract class RepoHelper {
     //protected UsernamePasswordCredentialsProvider ownerAuth;
 
     public String username;
+    protected String password;
+
     private Repository repo;
     protected String remoteURL;
 
@@ -67,8 +69,9 @@ public abstract class RepoHelper {
      * @param directoryPath the path of the repository.
      * @throws GitAPIException if the obtainRepository() call throws this exception..
      * @throws IOException if the obtainRepository() call throws this exception.
+     * @throws CancelledAuthorizationException if the obtainRepository() call throws this exception.
      */
-    public RepoHelper(Path directoryPath, String remoteURL, String username) throws GitAPIException, IOException {
+    public RepoHelper(Path directoryPath, String remoteURL, String username) throws GitAPIException, IOException, CancelledAuthorizationException {
         this.remoteURL = remoteURL;
         this.username = username;
 
@@ -91,7 +94,7 @@ public abstract class RepoHelper {
     }
 
     /// Constructor for ExistingRepoHelpers to inherit (they don't need the Remote URL)
-    public RepoHelper(Path directoryPath, String username) throws GitAPIException, IOException {
+    public RepoHelper(Path directoryPath, String username) throws GitAPIException, IOException, CancelledAuthorizationException {
         this.username = username;
 
         this.localPath = directoryPath;
@@ -127,7 +130,7 @@ public abstract class RepoHelper {
      * @throws GitAPIException (see subclasses).
      * @throws IOException (see subclasses).
      */
-    protected abstract Repository obtainRepository() throws GitAPIException, IOException;
+    protected abstract Repository obtainRepository() throws GitAPIException, IOException, CancelledAuthorizationException;
 
     /**
      * Adds a file to the repository.
@@ -397,6 +400,7 @@ public abstract class RepoHelper {
             } else {
                 this.username = result.get().getKey();
             }
+            this.password = result.get().getValue();
             ownerAuth = new UsernamePasswordCredentialsProvider(this.username, result.get().getValue());
         } else {
             throw new CancelledAuthorizationException();
