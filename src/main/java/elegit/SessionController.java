@@ -1327,7 +1327,7 @@ public class SessionController {
         Button removeSelectedButton = new Button("Remove repository shortcuts from Elegit");
 
         PopOver popover = new PopOver(new VBox(repoCheckListView, removeSelectedButton));
-        popover.setDetachedTitle("Manage Recent Repositories");
+        popover.setTitle("Manage Recent Repositories");
 
         removeSelectedButton.setOnAction(e -> {
             List<RepoHelper> checkedItems = repoCheckListView.getCheckModel().getCheckedItems();
