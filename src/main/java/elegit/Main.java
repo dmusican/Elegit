@@ -13,7 +13,7 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception{
-        Parent root = FXMLLoader.load(getClass().getResource("/main/resources/elegit/fxml/MainView.fxml"));
+        Parent root = FXMLLoader.load(getClass().getResource("/elegit/fxml/MainView.fxml"));
         primaryStage.setTitle("Elegit");
 
         BusyWindow.setParentWindow(primaryStage);
