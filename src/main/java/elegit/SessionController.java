@@ -252,6 +252,7 @@ public class SessionController {
     private synchronized void handleLoadRepoMenuItem(RepoHelperBuilder builder){
         try{
             RepoHelper repoHelper = builder.getRepoHelperFromDialogs();
+
             BusyWindow.show();
             RepositoryMonitor.pause();
             Thread th = new Thread(new Task<Void>(){
@@ -875,6 +876,9 @@ public class SessionController {
         }
 
         this.updateLoginButtonText();
+        if (switchedUser) {
+            this.theModel.setCurrentDefaultUsername(currentRepoHelper.getUsername());
+        }
 
         return switchedUser;
     }
@@ -888,6 +892,8 @@ public class SessionController {
 
         UsernamePasswordCredentialsProvider ownerAuth =
                 currentRepoHelper.presentAuthorizeDialog();
+
+        this.theModel.setCurrentDefaultUsername(currentRepoHelper.getUsername());
 
         this.updateLoginButtonText();
         return ownerAuth;

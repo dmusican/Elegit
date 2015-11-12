@@ -326,7 +326,7 @@ public abstract class RepoHelper {
      */
     public UsernamePasswordCredentialsProvider presentAuthorizeDialog() throws CancelledAuthorizationException {
         // Create the custom dialog.
-        Dialog<Pair<String,String>> dialog = new Dialog<>();
+        Dialog<Pair<String,Pair<String,Boolean>>> dialog = new Dialog<>();
         dialog.setTitle("Authorize");
         dialog.setHeaderText("Please enter your remote repository password.");
 
@@ -340,9 +340,6 @@ public abstract class RepoHelper {
         grid.setVgap(10);
         grid.setPadding(new Insets(20, 150, 10, 10));
 
-        PasswordField password = new PasswordField();
-        password.setPromptText("Password");
-
         grid.add(new Label("Username:"), 0, 0);
 
         // Conditionally ask for the username if it hasn't yet been set.
@@ -355,11 +352,25 @@ public abstract class RepoHelper {
         }
 
         grid.add(new Label("Password:"), 0, 1);
+
+        PasswordField password = new PasswordField();
+        CheckBox remember = new CheckBox("Remember Password");
+
+        if (this.password != null) {
+            password.setText(this.password);
+            remember.setSelected(true);
+        }
+        password.setPromptText("Password");
         grid.add(password, 1, 1);
+
+        remember.setIndeterminate(false);
+        grid.add(remember, 1, 2);
 
         // Enable/Disable login button depending on whether a password was entered.
         Node loginButton = dialog.getDialogPane().lookupButton(loginButtonType);
-        loginButton.setDisable(true);
+        if (this.password == null || this.username == null) {
+            loginButton.setDisable(true);
+        }
 
         // Do some validation (using the Java 8 lambda syntax).
         password.textProperty().addListener((observable, oldValue, newValue) -> {
@@ -383,14 +394,14 @@ public abstract class RepoHelper {
         dialog.setResultConverter(dialogButton -> {
             if (dialogButton == loginButtonType) {
                 if (this.username != null)
-                    return new Pair<>(this.username, password.getText());
+                    return new Pair<>(this.username, new Pair<>(password.getText(), new Boolean(remember.isSelected())));
                 else
-                    return new Pair<>(username.getText(), password.getText());
+                    return new Pair<>(username.getText(), new Pair<>(password.getText(), new Boolean(remember.isSelected())));
             }
             return null;
         });
 
-        Optional<Pair<String, String>> result = dialog.showAndWait();
+        Optional<Pair<String, Pair<String, Boolean>>> result = dialog.showAndWait();
 
         UsernamePasswordCredentialsProvider ownerAuth;
 
@@ -400,8 +411,11 @@ public abstract class RepoHelper {
             } else {
                 this.username = result.get().getKey();
             }
-            this.password = result.get().getValue();
-            ownerAuth = new UsernamePasswordCredentialsProvider(this.username, result.get().getValue());
+            //Only store password if remember password was selected
+            if (result.get().getValue().getValue()) {
+                this.password = result.get().getValue().getKey();
+            }
+            ownerAuth = new UsernamePasswordCredentialsProvider(this.username, result.get().getValue().getKey());
         } else {
             throw new CancelledAuthorizationException();
         }
