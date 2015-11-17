@@ -27,7 +27,7 @@ import javafx.scene.shape.Circle;
 import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import main.java.elegit.exceptions.*;
+import elegit.exceptions.*;
 import org.controlsfx.control.CheckListView;
 import org.controlsfx.control.NotificationPane;
 import org.controlsfx.control.PopOver;
@@ -723,7 +723,7 @@ public class SessionController {
             allFilesPanelView.drawDirectoryView();
             localCommitTreeModel.init();
             remoteCommitTreeModel.init();
-        } catch (GitAPIException e) {
+        } catch (GitAPIException | IOException e) {
             showGenericErrorNotification();
         }
 

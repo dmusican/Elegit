@@ -1,6 +1,6 @@
 package elegit;
 
-import main.java.elegit.exceptions.CancelledLoginException;
+import elegit.exceptions.CancelledLoginException;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.Node;

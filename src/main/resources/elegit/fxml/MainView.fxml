@@ -118,7 +118,7 @@
                             </Tab>
                             <Tab text="All Files"
                                  closable="false"
-                                    fx:id="allFilesPanelTab">
+                                 fx:id="allFilesPanelTab">
                                 <AllFilesPanelView fx:id="allFilesPanelView"/>
                             </Tab>
                         </TabPane>

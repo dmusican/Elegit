@@ -2,9 +2,9 @@ package elegit;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import main.java.elegit.treefx.Cell;
-import main.java.elegit.treefx.Highlighter;
-import main.java.elegit.treefx.TreeGraphModel;
+import elegit.treefx.Cell;
+import elegit.treefx.Highlighter;
+import elegit.treefx.TreeGraphModel;
 
 import java.io.IOException;
 import java.util.ArrayList;

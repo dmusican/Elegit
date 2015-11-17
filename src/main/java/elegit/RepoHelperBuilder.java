@@ -2,8 +2,8 @@ package elegit;
 
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Window;
-import main.java.elegit.exceptions.NoOwnerInfoException;
-import main.java.elegit.exceptions.NoRepoSelectedException;
+import elegit.exceptions.NoOwnerInfoException;
+import elegit.exceptions.NoRepoSelectedException;
 import org.eclipse.jgit.api.errors.GitAPIException;
 
 import java.io.File;

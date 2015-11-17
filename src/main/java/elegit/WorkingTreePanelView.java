@@ -4,15 +4,20 @@ import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.control.CheckBoxTreeItem;
+import javafx.scene.control.TreeCell;
 import javafx.scene.control.TreeItem;
+import javafx.scene.control.TreeView;
+import javafx.scene.control.cell.CheckBoxTreeCell;
+import javafx.util.Callback;
 import org.eclipse.jgit.api.errors.GitAPIException;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
  *
- * elegit.WorkingTreePanelView displays the current working tree's directory and
+ * WorkingTreePanelView displays the current working tree's directory and
  * lets the user mark checkboxes on files to commit. The 'commit action' to
  * be performed on a checkboxed file is determined by that file's status:
  * untracked/new, modified, or deleted.
@@ -21,29 +26,44 @@ import java.util.List;
 public class WorkingTreePanelView extends FileStructurePanelView{
 
     public BooleanProperty isAnyFileSelectedProperty;
-    private BooleanBinding isAnyFileSelectedHelperBinding;
+
+    public List<TreeItem<RepoFile>> fileLeafs;
 
     public WorkingTreePanelView() {
         super();
+        this.fileLeafs = new LinkedList<>();
         isAnyFileSelectedProperty = new SimpleBooleanProperty(false);
     }
 
     @Override
+    protected Callback<TreeView<RepoFile>, TreeCell<RepoFile>> getTreeCellFactory() {
+        return CheckBoxTreeCell.<RepoFile>forTreeView();
+    }
+
+    @Override
     protected TreeItem<RepoFile> getRootTreeItem(DirectoryRepoFile rootDirectory) {
-        isAnyFileSelectedProperty.unbind();
         return new CheckBoxTreeItem<>(rootDirectory);
     }
 
     @Override
-    protected TreeItem<RepoFile> getTreeItem(RepoFile repoFile) {
-        CheckBoxTreeItem<RepoFile> file = new CheckBoxTreeItem<>(repoFile, repoFile.diffButton);
+    protected List<TreeItem<RepoFile>> getTreeItems(List<RepoFile> repoFiles) {
+        fileLeafs = new LinkedList<>();
 
-        isAnyFileSelectedHelperBinding = (isAnyFileSelectedHelperBinding ==null) ? file.selectedProperty().or(new SimpleBooleanProperty(false)) : isAnyFileSelectedHelperBinding.or(file.selectedProperty());
+        BooleanProperty temp = new SimpleBooleanProperty(false);
 
-        isAnyFileSelectedProperty.unbind();
-        isAnyFileSelectedProperty.bind(isAnyFileSelectedHelperBinding);
+        for(RepoFile repoFile : repoFiles) {
+            CheckBoxTreeItem<RepoFile> file = new CheckBoxTreeItem<>(repoFile, repoFile.diffButton);
 
-        return file;
+            BooleanProperty oldTemp = temp;
+            temp = new SimpleBooleanProperty();
+            temp.bind(oldTemp.or(file.selectedProperty()));
+
+            fileLeafs.add(file);
+        }
+
+        isAnyFileSelectedProperty.bind(temp);
+
+        return fileLeafs;
     }
 
     @Override

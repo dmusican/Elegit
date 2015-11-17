@@ -1,6 +1,6 @@
 package elegit;
 
-import main.java.elegit.exceptions.NoOwnerInfoException;
+import elegit.exceptions.NoOwnerInfoException;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;

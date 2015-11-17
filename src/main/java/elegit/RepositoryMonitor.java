@@ -169,7 +169,8 @@ public class RepositoryMonitor{
         thread.setDaemon(true);
         thread.setName("Local monitor");
         thread.setPriority(2);
-        thread.start();
+//        thread.start();
+        System.out.println("LOCAL MONITORING TEMPORARILY DISABLED");
     }
 
     private static void pauseWatchingRemote(long millis){

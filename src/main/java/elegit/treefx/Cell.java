@@ -1,4 +1,4 @@
-package main.java.elegit.treefx;
+package elegit.treefx;
 
 import javafx.animation.TranslateTransition;
 import javafx.application.Platform;

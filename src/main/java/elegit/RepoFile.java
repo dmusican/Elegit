@@ -6,6 +6,7 @@ import org.controlsfx.control.PopOver;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Repository;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -41,9 +42,14 @@ public class RepoFile {
 
     public RepoFile(Path filePath, Repository repo) {
         this.repo = repo;
-        this.filePath = filePath;
 
-        this.diffButton = new Button("");
+        if(filePath.isAbsolute()){
+            this.filePath = Paths.get(repo.getDirectory().getParent()).relativize(filePath);
+        }else {
+            this.filePath = filePath;
+        }
+
+        this.diffButton = new Button("UNCHANGED");
         this.diffButton.getStyleClass().add("diffButton");
 
         this.diffPopover = new PopOver();
@@ -103,6 +109,16 @@ public class RepoFile {
         return this.repo;
     }
 
+    public int getLevelInRepository(){
+        int depth = 0;
+        Path p = this.filePath.getParent();
+        while(p!=null){
+            depth++;
+            p = p.getParent();
+        }
+        return depth;
+    }
+
     public ArrayList<RepoFile> getChildren() {
         // Files with no children will return null, since this ArrayList was never instantiated.
         return this.children;
@@ -118,5 +134,13 @@ public class RepoFile {
         this.diffPopover.setContentNode(diffHelper.getDiffScrollPane());
         this.diffPopover.setTitle("File Diffs");
         this.diffPopover.show(owner);
+    }
+
+    public boolean equals(Object o){
+        if(o != null && o instanceof RepoFile){
+            RepoFile other = (RepoFile) o;
+            return this.filePath.equals(other.filePath) && other.getRepo().getDirectory().equals(getRepo().getDirectory());
+        }
+        return false;
     }
 }

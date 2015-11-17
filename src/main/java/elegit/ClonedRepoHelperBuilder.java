@@ -11,8 +11,8 @@ import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.scene.text.Text;
 import javafx.util.Pair;
-import main.java.elegit.exceptions.NoOwnerInfoException;
-import main.java.elegit.exceptions.NoRepoSelectedException;
+import elegit.exceptions.NoOwnerInfoException;
+import elegit.exceptions.NoRepoSelectedException;
 import org.eclipse.jgit.api.LsRemoteCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
@@ -47,7 +47,7 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
      * @throws Exception when constructing the new elegit.ClonedRepoHelper
      */
     @Override
-    public RepoHelper getRepoHelperFromDialogs() throws GitAPIException, NoOwnerInfoException, IOException, NoRepoSelectedException{
+    public RepoHelper getRepoHelperFromDialogs() throws GitAPIException, NoOwnerInfoException, IOException, NoRepoSelectedException {
         // Inspired by: http://code.makery.ch/blog/javafx-dialogs-official/
 
         // Create the custom dialog.

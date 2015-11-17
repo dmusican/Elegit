@@ -1,12 +1,15 @@
 package elegit;
 
 import javafx.application.Platform;
+import javafx.scene.control.TreeCell;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import javafx.scene.control.cell.CheckBoxTreeCell;
 import javafx.scene.layout.Region;
+import javafx.util.Callback;
 import org.eclipse.jgit.api.errors.GitAPIException;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,11 +20,9 @@ public abstract class FileStructurePanelView extends Region{
 
     // fileLeafs stores all 'leafs' in the directory TreeView:
     private TreeView<RepoFile> directoryTreeView;
-    public ArrayList<TreeItem<RepoFile>> fileLeafs;
     public SessionModel sessionModel;
 
     public FileStructurePanelView() {
-        this.fileLeafs = new ArrayList<>();
         this.directoryTreeView = new TreeView<>();
 
         this.directoryTreeView.prefHeightProperty().bind(this.heightProperty());
@@ -32,28 +33,27 @@ public abstract class FileStructurePanelView extends Region{
      * Draws the directory TreeView by getting the parent directory's elegit.RepoFile,
      * populating it with the files it contains, and adding it to the display.
      *
-     * FIXME: this method resets the users selections if they've checked any boxes (low priority)
+     * FIXME: this method resets the users selections if they've checked any boxes (low priority) and scrolls them to the top (higher priority)
      *
      * @throws GitAPIException if the elegit.SessionModel can't get the ParentDirectoryRepoFile.
      */
-    public void drawDirectoryView() throws GitAPIException{
+    public void drawDirectoryView() throws GitAPIException, IOException {
 
         if(this.sessionModel.getCurrentRepoHelper() == null) return;
         DirectoryRepoFile rootDirectory = new DirectoryRepoFile("", this.sessionModel.getCurrentRepo());
 
-        fileLeafs = new ArrayList<>(fileLeafs.size());
-
         TreeItem<RepoFile> rootItem = this.getRootTreeItem(rootDirectory);
         rootItem.setExpanded(true);
 
-        for(RepoFile changedRepoFile : this.getFilesToDisplay()){
-            TreeItem<RepoFile> leaf = this.getTreeItem(changedRepoFile);
-            rootItem.getChildren().add(leaf);
-            this.fileLeafs.add(leaf);
+        List<RepoFile> filesToShow = this.getFilesToDisplay();
+        List<TreeItem<RepoFile>> treeItemsToShow = this.getTreeItems(filesToShow);
+
+        for(TreeItem<RepoFile> treeItem : treeItemsToShow){
+            rootItem.getChildren().add(treeItem);
         }
 
         this.directoryTreeView = new TreeView<>(rootItem);
-        this.directoryTreeView.setCellFactory(CheckBoxTreeCell.<RepoFile>forTreeView());
+        this.directoryTreeView.setCellFactory(this.getTreeCellFactory());
 
         // TreeViews must all have ONE root to hold the leafs. Don't show that root:
         this.directoryTreeView.setShowRoot(false);
@@ -66,11 +66,15 @@ public abstract class FileStructurePanelView extends Region{
         });
     }
 
+    protected Callback<TreeView<RepoFile>,TreeCell<RepoFile>> getTreeCellFactory(){
+        return null;
+    }
+
+    protected abstract List<TreeItem<RepoFile>> getTreeItems(List<RepoFile> repoFiles);
+
     protected abstract TreeItem<RepoFile> getRootTreeItem(DirectoryRepoFile rootDirectory);
 
-    protected abstract TreeItem<RepoFile> getTreeItem(RepoFile repoFile);
-
-    protected abstract List<RepoFile> getFilesToDisplay() throws GitAPIException;
+    protected abstract List<RepoFile> getFilesToDisplay() throws GitAPIException, IOException;
 
     public void setSessionModel(SessionModel sessionModel) {
         this.sessionModel = sessionModel;
