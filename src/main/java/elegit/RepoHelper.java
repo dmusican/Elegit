@@ -30,7 +30,7 @@ import java.nio.file.Path;
 import java.util.*;
 
 /**
- * The abstract elegit.RepoHelper class, used for interacting with a repository.
+ * The abstract RepoHelper class, used for interacting with a repository.
  */
 public abstract class RepoHelper {
 
@@ -58,7 +58,7 @@ public abstract class RepoHelper {
     public BooleanProperty hasUnmergedCommitsProperty;
 
     /**
-     * Creates a elegit.RepoHelper object for holding a Repository and interacting with it
+     * Creates a RepoHelper object for holding a Repository and interacting with it
      * through JGit.
      *
      * @param directoryPath the path of the repository.
@@ -135,7 +135,7 @@ public abstract class RepoHelper {
      * Gets or builds the repository using the appropriate method for
      * the kind of repository (new, cloned, or existing).
      *
-     * @return the elegit.RepoHelper's repository.
+     * @return the RepoHelper's repository.
      * @throws GitAPIException (see subclasses).
      * @throws IOException (see subclasses).
      */
@@ -332,7 +332,7 @@ public abstract class RepoHelper {
     }
 
     /**
-     * @return the JGit repository of this elegit.RepoHelper
+     * @return the JGit repository of this RepoHelper
      */
     public Repository getRepo() {
         return this.repo;
@@ -463,7 +463,7 @@ public abstract class RepoHelper {
 
     /**
      * Constructs a list of all local commits found by parsing the repository for raw RevCommit objects,
-     * then wrapping them into a elegit.CommitHelper with the appropriate parents and children
+     * then wrapping them into a CommitHelper with the appropriate parents and children
      * @return a list of CommitHelpers for all local commits
      * @throws IOException
      */
@@ -474,7 +474,7 @@ public abstract class RepoHelper {
 
     /**
      * Constructs a list of all remote commits found by parsing the repository for raw RevCommit objects,
-     * then wrapping them into a elegit.CommitHelper with the appropriate parents and children
+     * then wrapping them into a CommitHelper with the appropriate parents and children
      * @return a list of CommitHelpers for all remote commits
      * @throws IOException
      */
@@ -484,7 +484,7 @@ public abstract class RepoHelper {
     }
 
     /**
-     * Given a list of raw JGit commit objects, constructs elegit.CommitHelper objects to wrap them and gives
+     * Given a list of raw JGit commit objects, constructs CommitHelper objects to wrap them and gives
      * them the appropriate parents and children. Updates the commit id and id maps appropriately.
      * @param commitList the raw commits to wrap
      * @return a list of CommitHelpers for the given commits

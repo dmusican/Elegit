@@ -18,7 +18,7 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * A subclass of the elegit.RepoFile class that holds a reference to
+ * A subclass of the RepoFile class that holds a reference to
  * and interacts with a file in the repository that has conflicts
  * in git.
  */
@@ -37,7 +37,7 @@ public class ConflictingRepoFile extends RepoFile {
     }
 
     /**
-     * When this elegit.RepoFile is checkboxed and the user commits,
+     * When this RepoFile is checkboxed and the user commits,
      * open the conflicting file in an external editor.
      */
     @Override public boolean updateFileStatusInRepo() throws GitAPIException, IOException {

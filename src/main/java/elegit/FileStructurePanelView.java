@@ -30,12 +30,12 @@ public abstract class FileStructurePanelView extends Region{
     }
 
     /**
-     * Draws the directory TreeView by getting the parent directory's elegit.RepoFile,
+     * Draws the directory TreeView by getting the parent directory's RepoFile,
      * populating it with the files it contains, and adding it to the display.
      *
      * FIXME: this method resets the users selections if they've checked any boxes (low priority) and scrolls them to the top (higher priority)
      *
-     * @throws GitAPIException if the elegit.SessionModel can't get the ParentDirectoryRepoFile.
+     * @throws GitAPIException if the SessionModel can't get the ParentDirectoryRepoFile.
      */
     public void drawDirectoryView() throws GitAPIException, IOException {
 

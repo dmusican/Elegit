@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Subclass of elegit.CommitTreeModel that examines local commits
+ * Subclass of CommitTreeModel that examines local commits
  */
 public class LocalCommitTreeModel extends CommitTreeModel{
 

@@ -9,7 +9,7 @@ import java.io.IOException;
  *
  * An abstract class that holds and interacts with a git branch ref.
  *
- * It is implemented by elegit.LocalBranchHelper and elegit.RemoteBranchHelper.
+ * It is implemented by LocalBranchHelper and RemoteBranchHelper.
  *
  */
 public abstract class BranchHelper {
@@ -24,7 +24,7 @@ public abstract class BranchHelper {
     protected String branchName;
 
     /**
-     * Creates a new elegit.BranchHelper for the given reference and repository.
+     * Creates a new BranchHelper for the given reference and repository.
      * Pulls the head from the given repository.
      * @param refPathString the full string representation of this branch
      * @param repoHelper the repository this branch is in

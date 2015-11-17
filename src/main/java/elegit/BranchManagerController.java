@@ -167,7 +167,7 @@ public class BranchManagerController {
      * Creates a local branch tracking a remote branch.
      *
      * @param remoteBranchHelper the remote branch to be tracked.
-     * @return the elegit.LocalBranchHelper of the local branch tracking the given remote branch.
+     * @return the LocalBranchHelper of the local branch tracking the given remote branch.
      * @throws GitAPIException
      * @throws IOException
      */
@@ -230,7 +230,7 @@ public class BranchManagerController {
      * Creates a new local branch using git.
      *
      * @param branchName the name of the new branch.
-     * @return the new local branch's elegit.LocalBranchHelper.
+     * @return the new local branch's LocalBranchHelper.
      * @throws GitAPIException
      * @throws IOException
      */

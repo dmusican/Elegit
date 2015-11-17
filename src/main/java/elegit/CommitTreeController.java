@@ -79,7 +79,7 @@ public class CommitTreeController{
     }
 
     /**
-     * Highlight the commit with the given id in every tracked elegit.CommitTreeModel and corresponding
+     * Highlight the commit with the given id in every tracked CommitTreeModel and corresponding
      * view. If the given id is selected, do nothing.
      * @param commitID the id of the commit to select
      * @param isOverCell whether to highlight or un-highlight the corresponding cells
@@ -151,7 +151,7 @@ public class CommitTreeController{
     }
 
     /**
-     * Initializes the view corresponding to the given elegit.CommitTreeModel. Updates
+     * Initializes the view corresponding to the given CommitTreeModel. Updates
      * all tracked CommitTreeModels with branch heads and missing commits,
      * but does not update their view
      * @param commitTreeModel the model whose view should be updated
@@ -220,7 +220,7 @@ public class CommitTreeController{
 
     /**
      * Uses the Highlighter class to emphasize and scroll to the cell corresponding
-     * to the given commit in every view corresponding to a tracked elegit.CommitTreeModel
+     * to the given commit in every view corresponding to a tracked CommitTreeModel
      * @param commit the commit to focus
      */
     public static void focusCommitInGraph(CommitHelper commit){
@@ -235,7 +235,7 @@ public class CommitTreeController{
 
     /**
      * Uses the Highlighter class to emphasize and scroll to the cell corresponding
-     * to the cell with the given ID in every view corresponding to a tracked elegit.CommitTreeModel
+     * to the cell with the given ID in every view corresponding to a tracked CommitTreeModel
      * @param commitID the ID of the commit to focus
      */
     public static void focusCommitInGraph(String commitID){

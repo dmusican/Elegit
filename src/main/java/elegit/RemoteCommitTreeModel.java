@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Subclass of elegit.CommitTreeModel that examines remote commits
+ * Subclass of CommitTreeModel that examines remote commits
  */
 public class RemoteCommitTreeModel extends CommitTreeModel{
 

@@ -25,7 +25,7 @@ import java.util.List;
 
 /**
  *
- * A elegit.DiffHelper helps interact with the diff for a given file in a repository.
+ * A DiffHelper helps interact with the diff for a given file in a repository.
  * This class reads, formats, and returns the string in a ScrollPane.
  *
  *  ---

@@ -1,21 +1,18 @@
 package elegit;
 
-import javafx.scene.control.TreeCell;
 import javafx.scene.control.TreeItem;
-import javafx.scene.control.TreeView;
-import javafx.util.Callback;
 import org.eclipse.jgit.api.errors.GitAPIException;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 /**
- *
- * AllFilesPanelView displays the current working tree's directory and
- * lets the user mark checkboxes on files to commit. The 'commit action' to
- * be performed on a checkboxed file is determined by that file's status:
- * untracked/new, modified, or deleted.
- *
+ * AllFilesPanelView displays all files in the current repository,
+ * whether tracked or otherwise, as well as their status. It does so
+ * in a hierarchical manner
  */
 public class AllFilesPanelView extends FileStructurePanelView{
 

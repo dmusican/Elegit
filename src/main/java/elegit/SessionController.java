@@ -322,7 +322,7 @@ public class SessionController {
     }
 
     /**
-     * Gets the current elegit.RepoHelper and sets it as the selected value of the dropdown.
+     * Gets the current RepoHelper and sets it as the selected value of the dropdown.
      */
     @FXML
     private void setRecentReposDropdownToCurrentRepo() {
@@ -843,7 +843,7 @@ public class SessionController {
      * Creates a new owner and sets it as the current default owner.
      */
     public boolean switchUser() {
-        // Begin with a nullified elegit.RepoOwner:
+        // Begin with a nullified RepoOwner:
         RepoOwner newOwner = this.theModel.getDefaultOwner() == null ? new RepoOwner(null, null) : this.theModel.getDefaultOwner();
         boolean switchedLogin = true;
 
@@ -1186,8 +1186,8 @@ public class SessionController {
 
     /**
      * Opens up the current repo helper's Branch Manager window after
-     * passing in this elegit.SessionController object, so that the
-     * elegit.BranchManagerController can update the main window's views.
+     * passing in this SessionController object, so that the
+     * BranchManagerController can update the main window's views.
      */
     public void showBranchManager() {
         try{

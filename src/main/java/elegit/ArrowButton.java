@@ -6,7 +6,7 @@ import javafx.scene.control.Button;
 
 /**
  * A button that can have up to 4 arrows pointing in each of the cardinal directions.
- * See elegit.ArrowButtonSkin
+ * See ArrowButtonSkin
  */
 public class ArrowButton extends Button{
 

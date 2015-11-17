@@ -6,7 +6,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 /**
- * A subclass of elegit.RepoFile that contains a file that Git is ignoring.
+ * A subclass of RepoFile that contains a file that Git is ignoring.
  */
 public class IgnoredRepoFile extends RepoFile {
 
@@ -21,7 +21,7 @@ public class IgnoredRepoFile extends RepoFile {
     }
 
     /**
-     * When this elegit.RepoFile is checkboxed and the user commits, do nothing.
+     * When this RepoFile is checkboxed and the user commits, do nothing.
      */
     @Override public boolean updateFileStatusInRepo() {
         return true;

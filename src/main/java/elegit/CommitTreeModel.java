@@ -129,7 +129,7 @@ public abstract class CommitTreeModel{
 
     /**
      * Checks for new commits to add to the tree, and notifies the
-     * elegit.CommitTreeController that an update is needed if there are any
+     * CommitTreeController that an update is needed if there are any
      * @throws GitAPIException
      * @throws IOException
      */

@@ -8,7 +8,7 @@ import javafx.scene.Node;
 import javafx.scene.control.ScrollPane;
 
 /**
- * elegit.MatchedScrollPane instances will all share the same horizontal and vertical
+ * MatchedScrollPane instances will all share the same horizontal and vertical
  * positioning of their scroll bars. In this way, scrolling in one is equivalent
  * to scrolling in all of them.
  */
@@ -60,7 +60,7 @@ public class MatchedScrollPane extends ScrollPane{
      * The passed in position should be smaller than numItems, which corresponds
      * to the number of items present in the scroll pane.
      *
-     * In other words, scrolling to the 5th item in a elegit.MatchedScrollPane with
+     * In other words, scrolling to the 5th item in a MatchedScrollPane with
      * 10 items is accomplished by passing in 5 to this method
      * @param pos the horizontal position to scroll to when compared as a ratio
      *            to numItems

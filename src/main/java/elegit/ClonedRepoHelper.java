@@ -10,7 +10,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 
 /**
- * A elegit.RepoHelper implementation for a repository cloned into an empty folder.
+ * A RepoHelper implementation for a repository cloned into an empty folder.
  */
 public class ClonedRepoHelper extends RepoHelper {
     public ClonedRepoHelper(Path directoryPath, String remoteURL, RepoOwner owner) throws IOException, NoOwnerInfoException, GitAPIException{
@@ -21,7 +21,7 @@ public class ClonedRepoHelper extends RepoHelper {
      * Clones the repository into the desired folder and returns
      * the JGit Repository object.
      *
-     * @return the elegit.RepoHelper's associated Repository object.
+     * @return the RepoHelper's associated Repository object.
      * @throws GitAPIException if the `git clone` call fails.
      */
     @Override

@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.util.Arrays;
 
 /**
- * An implementation of the abstract elegit.BranchHelper class that holds
+ * An implementation of the abstract BranchHelper class that holds
  * and interacts with remote branches.
  */
 public class RemoteBranchHelper extends BranchHelper {

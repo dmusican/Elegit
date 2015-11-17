@@ -14,19 +14,19 @@ import java.util.ArrayList;
 
 /**
  *
- * The elegit.RepoFile contains a file in the repo and stores any children the file may have
+ * The RepoFile contains a file in the repo and stores any children the file may have
  * (i.e. if it's a directory).
  *
- * For now, each elegit.RepoFile instance also contains a copy of the Repository that the file belongs
+ * For now, each RepoFile instance also contains a copy of the Repository that the file belongs
  * to, because the *currently open* repo may change when we support multiple repositories.
  *
  * This broad class is extended by more specific types of files you may find in a repository, such as:
- *      - elegit.DirectoryRepoFile
- *      - elegit.ModifiedRepoFile
- *      - elegit.UntrackedRepoFile
- *      - elegit.MissingRepoFile.
+ *      - DirectoryRepoFile
+ *      - ModifiedRepoFile
+ *      - UntrackedRepoFile
+ *      - MissingRepoFile.
  *
- * The plain elegit.RepoFile class represents an untouched file in the repository that is thus
+ * The plain RepoFile class represents an untouched file in the repository that is thus
  * unaffected by commits.
  *
  */
@@ -72,7 +72,7 @@ public class RepoFile {
     /**
      * Performs that 'commit action' for the file when it is checkboxed and
      * the user makes a commit. This method is typically overridden
-     * by elegit.RepoFile subclasses.
+     * by RepoFile subclasses.
      *
      * In the case of plain RepoFiles, no action is required.
      *
@@ -88,13 +88,13 @@ public class RepoFile {
      * The files are *displayed* by only their location relative
      * to the repo, not the whole path.
      *
-     * This is particularly helpful in the elegit.WorkingTreePanelView, where
+     * This is particularly helpful in the WorkingTreePanelView, where
      * the TreeView's leafs contain RepoFiles and presents them by their
      * string representation. Instead of flooding the user with a long directory
      * string, this displays the only info the user really cares about: the file name
      * and parent directories.
      *
-     * @return the elegit.RepoFile's file name.
+     * @return the RepoFile's file name.
      */
     @Override
     public String toString() {
@@ -126,7 +126,7 @@ public class RepoFile {
 
     public void addChild(RepoFile repoFile) {
         // Files with no children can't have children added to them!
-        System.err.println("Can't add children to this type of elegit.RepoFile.");
+        System.err.println("Can't add children to this type of RepoFile.");
     }
 
     public void showDiffPopover(Node owner) throws IOException, GitAPIException {
