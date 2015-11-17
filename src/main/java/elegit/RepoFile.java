@@ -98,7 +98,7 @@ public class RepoFile {
      */
     @Override
     public String toString() {
-        return this.filePath.toString();
+        return this.filePath.getFileName().toString();
     }
 
     public Path getFilePath() {
