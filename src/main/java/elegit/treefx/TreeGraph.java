@@ -6,11 +6,10 @@ import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.Pane;
-import main.java.elegit.MatchedScrollPane;
+import elegit.MatchedScrollPane;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Random;
 
 /**
  * Thanks to RolandC for providing the base graph code structure:

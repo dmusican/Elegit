@@ -1,4 +1,4 @@
-package main.java.elegit;
+package elegit;
 
 import javafx.scene.control.*;
 import main.java.elegit.treefx.Cell;
@@ -129,7 +129,7 @@ public abstract class CommitTreeModel{
 
     /**
      * Checks for new commits to add to the tree, and notifies the
-     * CommitTreeController that an update is needed if there are any
+     * elegit.CommitTreeController that an update is needed if there are any
      * @throws GitAPIException
      * @throws IOException
      */

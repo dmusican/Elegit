@@ -1,4 +1,4 @@
-package main.java.elegit;
+package elegit;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -6,7 +6,7 @@ import javafx.scene.control.Button;
 
 /**
  * A button that can have up to 4 arrows pointing in each of the cardinal directions.
- * See ArrowButtonSkin
+ * See elegit.ArrowButtonSkin
  */
 public class ArrowButton extends Button{
 

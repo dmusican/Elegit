@@ -1,4 +1,4 @@
-package main.java.elegit;
+package elegit;
 
 import javafx.geometry.Insets;
 import javafx.scene.control.ScrollPane;
@@ -25,7 +25,7 @@ import java.util.List;
 
 /**
  *
- * A DiffHelper helps interact with the diff for a given file in a repository.
+ * A elegit.DiffHelper helps interact with the diff for a given file in a repository.
  * This class reads, formats, and returns the string in a ScrollPane.
  *
  *  ---

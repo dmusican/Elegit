@@ -1,4 +1,4 @@
-package main.java.elegit;
+package elegit;
 
 import main.java.elegit.exceptions.NoOwnerInfoException;
 import main.java.elegit.exceptions.NoRepoSelectedException;
@@ -10,8 +10,8 @@ import java.nio.file.Path;
 
 /**
  *
- * An implementation of the abstract RepoHelperBuilder that prompts the
- * user (using dialogs) for the parameters required to build an ExistingRepoHelper.
+ * An implementation of the abstract elegit.RepoHelperBuilder that prompts the
+ * user (using dialogs) for the parameters required to build an elegit.ExistingRepoHelper.
  *
  */
 public class ExistingRepoHelperBuilder extends RepoHelperBuilder {
@@ -20,11 +20,11 @@ public class ExistingRepoHelperBuilder extends RepoHelperBuilder {
     }
 
     /**
-     * Shows a file chooser dialog and makes the ExistingRepoHelper from it.
-     *  (The ExistingRepoHelper is generalized into a RepoHelper so that all
+     * Shows a file chooser dialog and makes the elegit.ExistingRepoHelper from it.
+     *  (The elegit.ExistingRepoHelper is generalized into a elegit.RepoHelper so that all
      *   RepoHelpers can be stored in the same list and acted on uniformly).
      *
-     * @throws Exception why? has to do with the new ExistingRepoHelper(...).
+     * @throws Exception why? has to do with the new elegit.ExistingRepoHelper(...).
      */
     @Override
     public RepoHelper getRepoHelperFromDialogs() throws GitAPIException, NoOwnerInfoException, IOException, NoRepoSelectedException{

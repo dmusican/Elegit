@@ -1,9 +1,6 @@
-package main.java.elegit;
+package elegit;
 
 import javafx.application.Platform;
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.scene.control.CheckBoxTreeItem;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import javafx.scene.control.cell.CheckBoxTreeCell;
@@ -32,12 +29,12 @@ public abstract class FileStructurePanelView extends Region{
     }
 
     /**
-     * Draws the directory TreeView by getting the parent directory's RepoFile,
+     * Draws the directory TreeView by getting the parent directory's elegit.RepoFile,
      * populating it with the files it contains, and adding it to the display.
      *
      * FIXME: this method resets the users selections if they've checked any boxes (low priority)
      *
-     * @throws GitAPIException if the SessionModel can't get the ParentDirectoryRepoFile.
+     * @throws GitAPIException if the elegit.SessionModel can't get the ParentDirectoryRepoFile.
      */
     public void drawDirectoryView() throws GitAPIException{
 

@@ -1,4 +1,4 @@
-package main.java.elegit;
+package elegit;
 
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.util.Arrays;
 
 /**
- * An implementation of the abstract BranchHelper that holds
+ * An implementation of the abstract elegit.BranchHelper that holds
  * and interacts with local branches.
  */
 public class LocalBranchHelper extends BranchHelper {

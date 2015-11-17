@@ -1,4 +1,4 @@
-package main.java.elegit;
+package elegit;
 
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
@@ -13,7 +13,6 @@ import javafx.scene.text.Text;
 import javafx.util.Pair;
 import main.java.elegit.exceptions.NoOwnerInfoException;
 import main.java.elegit.exceptions.NoRepoSelectedException;
-import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.LsRemoteCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
@@ -23,13 +22,12 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Collection;
 import java.util.Optional;
 
 /**
  *
- * An implementation of the abstract RepoHelperBuilder that builds
- * a ClonedRepoHelper by presenting dialogs to get the necessary
+ * An implementation of the abstract elegit.RepoHelperBuilder that builds
+ * a elegit.ClonedRepoHelper by presenting dialogs to get the necessary
  * parameters.
  *
  */
@@ -43,10 +41,10 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
 
     /**
      * Builds (with a grid) and shows dialogs that prompt the user for
-     * information needed to construct a ClonedRepoHelper.
+     * information needed to construct a elegit.ClonedRepoHelper.
      *
-     * @return the new ClonedRepoHelper.
-     * @throws Exception when constructing the new ClonedRepoHelper
+     * @return the new elegit.ClonedRepoHelper.
+     * @throws Exception when constructing the new elegit.ClonedRepoHelper
      */
     @Override
     public RepoHelper getRepoHelperFromDialogs() throws GitAPIException, NoOwnerInfoException, IOException, NoRepoSelectedException{
@@ -156,9 +154,9 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
                 lsRemoteCommand.call();
             } catch (TransportException e) {
                 // If the URL doesn't have a repo, a Transport Exception is thrown when this command is called.
-                //  We want the SessionController to report an InvalidRemoteException, though, because
+                //  We want the elegit.SessionController to report an InvalidRemoteException, though, because
                 //  that's the issue.
-                throw new InvalidRemoteException("Caught invalid repository when building a ClonedRepoHelper.");
+                throw new InvalidRemoteException("Caught invalid repository when building a elegit.ClonedRepoHelper.");
             }
 
             // Without the above try/catch block, the next line would run and throw the desired InvalidRemoteException,

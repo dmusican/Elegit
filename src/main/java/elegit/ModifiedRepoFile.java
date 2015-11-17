@@ -1,4 +1,4 @@
-package main.java.elegit;
+package elegit;
 
 import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.Git;
@@ -9,7 +9,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 /**
- * A subclass of RepoFile that contains a file that Git reports as modified.
+ * A subclass of elegit.RepoFile that contains a file that Git reports as modified.
  */
 public class ModifiedRepoFile extends RepoFile {
 
@@ -24,7 +24,7 @@ public class ModifiedRepoFile extends RepoFile {
     }
 
     /**
-     * When this RepoFile is checkboxed and the user commits, we add this file to the repository.
+     * When this elegit.RepoFile is checkboxed and the user commits, we add this file to the repository.
      *
      * @throws GitAPIException if the `git add` command fails.
      */

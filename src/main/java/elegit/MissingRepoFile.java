@@ -1,4 +1,4 @@
-package main.java.elegit;
+package elegit;
 
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.RmCommand;
@@ -9,7 +9,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 /**
- * A subclass of RepoFile that contains a file that Git reports as missing.
+ * A subclass of elegit.RepoFile that contains a file that Git reports as missing.
  */
 public class MissingRepoFile extends RepoFile {
 
@@ -24,7 +24,7 @@ public class MissingRepoFile extends RepoFile {
     }
 
     /**
-     * When this RepoFile is checkboxed and the user commits, we remove this file from the repository.
+     * When this elegit.RepoFile is checkboxed and the user commits, we remove this file from the repository.
      *
      * @throws GitAPIException if the `git rm` command fails.
      */

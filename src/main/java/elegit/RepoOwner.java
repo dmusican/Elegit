@@ -1,4 +1,4 @@
-package main.java.elegit;
+package elegit;
 
 import main.java.elegit.exceptions.CancelledLoginException;
 import javafx.application.Platform;

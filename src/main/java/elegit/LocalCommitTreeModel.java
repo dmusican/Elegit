@@ -1,4 +1,4 @@
-package main.java.elegit;
+package elegit;
 
 import org.eclipse.jgit.api.errors.GitAPIException;
 
@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Subclass of CommitTreeModel that examines local commits
+ * Subclass of elegit.CommitTreeModel that examines local commits
  */
 public class LocalCommitTreeModel extends CommitTreeModel{
 

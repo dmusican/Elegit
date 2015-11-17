@@ -1,4 +1,4 @@
-package main.java.elegit;
+package elegit;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -22,7 +22,7 @@ import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
 /**
- * The singleton SessionModel stores all the Repos (contained in RepoHelper objects)
+ * The singleton elegit.SessionModel stores all the Repos (contained in elegit.RepoHelper objects)
  * in the session and lets the user switch between repos.
  */
 public class SessionModel {
@@ -45,7 +45,7 @@ public class SessionModel {
     Preferences preferences;
 
     /**
-     * @return the SessionModel object
+     * @return the elegit.SessionModel object
      */
     public static SessionModel getSessionModel() {
         if (sessionModel == null) {
@@ -55,7 +55,7 @@ public class SessionModel {
     }
 
     /**
-     * Private constructor for the SessionModel singleton
+     * Private constructor for the elegit.SessionModel singleton
      */
     private SessionModel() {
         this.allRepoHelpers = new ArrayList<>();
@@ -64,10 +64,10 @@ public class SessionModel {
     }
 
     /**
-     * Loads the repository (from its RepoHelper) that was open when the app was
+     * Loads the repository (from its elegit.RepoHelper) that was open when the app was
      * last closed. If this repo has been moved or deleted, it doesn't load anything.
      *
-     * Uses the Java Preferences API (wrapped in IBM's PrefObj class) to load the repo.
+     * Uses the Java Preferences API (wrapped in IBM's elegit.PrefObj class) to load the repo.
      */
     public void loadMostRecentRepoHelper() {
         try{
@@ -116,9 +116,9 @@ public class SessionModel {
     }
 
     /**
-     * Adds a new repository (contained in a RepoHelper) to the session.
+     * Adds a new repository (contained in a elegit.RepoHelper) to the session.
      *
-     * @param anotherRepoHelper the RepoHelper to add.
+     * @param anotherRepoHelper the elegit.RepoHelper to add.
      */
     public void addRepo(RepoHelper anotherRepoHelper) {
         this.allRepoHelpers.add(anotherRepoHelper);
@@ -138,11 +138,11 @@ public class SessionModel {
     }
 
     /**
-     * Loads a RepoHelper by checking to see if that RepoHelper's directory is already
-     * loaded into the Model. If it is already loaded, this method will load that RepoHelper.
-     * If not, this method will add the new RepoHelper and then load it.
+     * Loads a elegit.RepoHelper by checking to see if that elegit.RepoHelper's directory is already
+     * loaded into the Model. If it is already loaded, this method will load that elegit.RepoHelper.
+     * If not, this method will add the new elegit.RepoHelper and then load it.
      *
-     * @param repoHelperToLoad the RepoHelper to be loaded.
+     * @param repoHelperToLoad the elegit.RepoHelper to be loaded.
      */
     public void openRepoFromHelper(RepoHelper repoHelperToLoad) throws BackingStoreException, IOException, ClassNotFoundException, MissingRepoException{
         RepoHelper matchedRepoHelper = this.matchRepoWithAlreadyLoadedRepo(repoHelperToLoad);
@@ -166,7 +166,7 @@ public class SessionModel {
      *
      * @param repoHelperCandidate the repoHelper being checked
      * @return the repo helper that points to the same repository as the candidate
-     *          (by directory), or null if there is no such RepoHelper already in the model.
+     *          (by directory), or null if there is no such elegit.RepoHelper already in the model.
      */
     private RepoHelper matchRepoWithAlreadyLoadedRepo(RepoHelper repoHelperCandidate) {
         for (RepoHelper repoHelper : this.allRepoHelpers) {
@@ -185,7 +185,7 @@ public class SessionModel {
     }
 
     /**
-     * @return the current JGit repository associated with the current RepoHelper
+     * @return the current JGit repository associated with the current elegit.RepoHelper
      */
     public Repository getCurrentRepo() {
         return this.currentRepoHelper.getRepo();
@@ -285,11 +285,11 @@ public class SessionModel {
     }
 
     /**
-     * Get (construct) the current repo's working directory DirectoryRepoFile
-     * by creating and populating a new DirectoryRepoFile from the repository's
+     * Get (construct) the current repo's working directory elegit.DirectoryRepoFile
+     * by creating and populating a new elegit.DirectoryRepoFile from the repository's
      * parent directory.
      *
-     * @return the populated DirectoryRepoFile for the current repository's parent directory.
+     * @return the populated elegit.DirectoryRepoFile for the current repository's parent directory.
      * @throws GitAPIException if the call to `populateDirectoryRepoFile(...)` fails.
      * @throws IOException if the call to `populateDirectoryRepoFile(...)` fails.
      */
@@ -303,10 +303,10 @@ public class SessionModel {
     }
 
     /**
-     * Adds all the children files contained within a directory to that directory's DirectoryRepoFile.
+     * Adds all the children files contained within a directory to that directory's elegit.DirectoryRepoFile.
      *
-     * @param superDirectory the RepoFile of the directory to be populated.
-     * @return the populated RepoFile of the initially passed-in directory.
+     * @param superDirectory the elegit.RepoFile of the directory to be populated.
+     * @return the populated elegit.RepoFile of the initially passed-in directory.
      * @throws GitAPIException if the `git status` methods' calls to Git fail (for getting
      * @throws IOException if the DirectoryStream fails.
      */
@@ -337,9 +337,9 @@ public class SessionModel {
                     Path repoDirectory = this.getCurrentRepo().getWorkTree().toPath();
                     Path relativizedPath = repoDirectory.relativize(path);
 
-                    // Determine what type of RepoFile we're dealing with.
+                    // Determine what type of elegit.RepoFile we're dealing with.
                     //  Is it modified? Untracked/new? Missing? Just a plain file?
-                    //  Construct the appropriate RepoFile and add it to the parent directory.
+                    //  Construct the appropriate elegit.RepoFile and add it to the parent directory.
                     if (conflictingFiles.contains(relativizedPath.toString())) {
                         ConflictingRepoFile conflictingFile = new ConflictingRepoFile(path, this.getCurrentRepo());
                         superDirectory.addChild(conflictingFile);
@@ -368,7 +368,7 @@ public class SessionModel {
      * Assembles all the changed files (modified, missing, untracked) into RepoFiles
      * and returns a list of them.
      *
-     * @return a list of changed files, contained in RepoFile objects.
+     * @return a list of changed files, contained in elegit.RepoFile objects.
      * @throws GitAPIException if the `git status` calls fail.
      */
     public List<RepoFile> getAllChangedRepoFiles() throws GitAPIException {
@@ -421,7 +421,7 @@ public class SessionModel {
      * Assembles all files in the repository's folder into RepoFiles
      * and returns a list of them.
      *
-     * @return a list of changed files, contained in RepoFile objects.
+     * @return a list of changed files, contained in elegit.RepoFile objects.
      * @throws GitAPIException if the `git status` calls fail.
      */
     public List<RepoFile> getAllRepoFiles() throws GitAPIException {
@@ -436,7 +436,7 @@ public class SessionModel {
     }
 
     /**
-     * Saves the model's list of RepoHelpers using the Preferences API (and the PrefObj wrapper
+     * Saves the model's list of RepoHelpers using the Preferences API (and the elegit.PrefObj wrapper
      *  from IBM).
      *
      * We store these as a list of file strings instead of Paths
@@ -453,7 +453,7 @@ public class SessionModel {
             repoPathStrings.add(path.toString());
         }
 
-        // Store the list object using IBM's PrefObj helper class:
+        // Store the list object using IBM's elegit.PrefObj helper class:
         PrefObj.putObject(this.preferences, RECENT_REPOS_LIST_KEY, repoPathStrings);
     }
 

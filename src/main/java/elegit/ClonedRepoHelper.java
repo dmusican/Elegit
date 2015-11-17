@@ -1,4 +1,4 @@
-package main.java.elegit;
+package elegit;
 
 import main.java.elegit.exceptions.NoOwnerInfoException;
 import org.eclipse.jgit.api.CloneCommand;
@@ -10,7 +10,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 
 /**
- * A RepoHelper implementation for a repository cloned into an empty folder.
+ * A elegit.RepoHelper implementation for a repository cloned into an empty folder.
  */
 public class ClonedRepoHelper extends RepoHelper {
     public ClonedRepoHelper(Path directoryPath, String remoteURL, RepoOwner owner) throws IOException, NoOwnerInfoException, GitAPIException{
@@ -21,7 +21,7 @@ public class ClonedRepoHelper extends RepoHelper {
      * Clones the repository into the desired folder and returns
      * the JGit Repository object.
      *
-     * @return the RepoHelper's associated Repository object.
+     * @return the elegit.RepoHelper's associated Repository object.
      * @throws GitAPIException if the `git clone` call fails.
      */
     @Override
