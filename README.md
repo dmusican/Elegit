@@ -4,14 +4,10 @@ A graphics-based Git client for teaching people both how to work Git and how Git
 ### Running the source code in IntelliJ:
 1. Clone this repository.
 2. We recommend you open the repository in [IntelliJ](https://www.jetbrains.com/idea/).
-3. Load the required libraries:
- - In IntelliJ, open the *Project Structure* menu with ⌘; (File > Project Structure)
- - Under the *Project Settings* heading, choose *Libraries*.
- - Add the following libraries to the `Elegit` module by clicking the **+** button and choosing *From Maven...*:
-     - JGit: `org.eclipse.jgit:org.eclipse.jgit:3.4.0.201406110918-r`
-     - ControlsFX: `org.controlsfx:controlsfx:8.40.9`
-     - FontAwesomeFX: `de.jensd:fontawesomefx:8.4`
-     - **Note**: If you are planning on building the program with Gradle, make sure to check the *Download to* box!
+3. 
+checking it out completely from scratch. When it opens up, it will ask if you want to open pom.xml; say yes. It will pop up some warnings, but they should go away as it figures out the settings from Maven. It will ask at some point if you want to auto import settings from Maven; say yes. I’ve got it working for me on both master and develop. You’ll have to adapt the changes to other branches if need be. In short, build.gradle is gone, and it has been replaced by pom.xml.
+
+
 4. Also in the *Project Structure* menu, under *Project*, make sure the Project SDK is *at least* Java Version 8 Update 40.
 5. Run the `main` method of the `Main` class.
 
