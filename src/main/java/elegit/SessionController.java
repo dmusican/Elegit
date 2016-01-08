@@ -1227,39 +1227,43 @@ public class SessionController {
      * @param id the selected commit
      */
     public void selectCommit(String id){
-        CommitHelper commit = this.theModel.getCurrentRepoHelper().getCommit(id);
-        commitInfoNameText.setText(commit.getName());
-        commitInfoAuthorText.setText(commit.getAuthorName());
-        commitInfoDateText.setText(commit.getFormattedWhen());
-        commitInfoMessageText.setVisible(true);
-        commitInfoNameCopyButton.setVisible(true);
-        commitInfoGoToButton.setVisible(true);
+        Platform.runLater(() -> {
+            CommitHelper commit = this.theModel.getCurrentRepoHelper().getCommit(id);
+            commitInfoNameText.setText(commit.getName());
+            commitInfoAuthorText.setText(commit.getAuthorName());
+            commitInfoDateText.setText(commit.getFormattedWhen());
+            commitInfoMessageText.setVisible(true);
+            commitInfoNameCopyButton.setVisible(true);
+            commitInfoGoToButton.setVisible(true);
 
-        String s = "";
-        for(BranchHelper branch : commit.getBranchesAsHead()){
-            if(branch instanceof RemoteBranchHelper){
-                s = s + "origin/";
+            String s = "";
+            for (BranchHelper branch : commit.getBranchesAsHead()) {
+                if (branch instanceof RemoteBranchHelper) {
+                    s = s + "origin/";
+                }
+                s = s + branch.getBranchName() + "\n";
             }
-            s = s + branch.getBranchName() + "\n";
-        }
-        if(s.length() > 0){
-            commitInfoMessageText.setText("Head of branches: \n"+s+"\n\n"+commit.getMessage(true));
-        }else{
-            commitInfoMessageText.setText(commit.getMessage(true));
-        }
+            if (s.length() > 0) {
+                commitInfoMessageText.setText("Head of branches: \n" + s + "\n\n" + commit.getMessage(true));
+            } else {
+                commitInfoMessageText.setText(commit.getMessage(true));
+            }
+        });
     }
 
     /**
      * Stops displaying commit information
      */
     public void clearSelectedCommit(){
-        commitInfoNameText.setText("");
-        commitInfoAuthorText.setText("");
-        commitInfoDateText.setText("");
-        commitInfoMessageText.setText("");
-        commitInfoMessageText.setVisible(false);
-        commitInfoNameCopyButton.setVisible(false);
-        commitInfoGoToButton.setVisible(false);
+        Platform.runLater(() -> {
+            commitInfoNameText.setText("");
+            commitInfoAuthorText.setText("");
+            commitInfoDateText.setText("");
+            commitInfoMessageText.setText("");
+            commitInfoMessageText.setVisible(false);
+            commitInfoNameCopyButton.setVisible(false);
+            commitInfoGoToButton.setVisible(false);
+        });
     }
 
     /**
