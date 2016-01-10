@@ -1209,7 +1209,7 @@ public class SessionController {
     public void showLegend() {
         try{
             // Create and display the Stage:
-            NotificationPane fxmlRoot = FXMLLoader.load(getClass().getResource("/main/resources/elegit/fxml/Legend.fxml"));
+            NotificationPane fxmlRoot = FXMLLoader.load(getClass().getResource("/elegit/fxml/Legend.fxml"));
 
             Stage stage = new Stage();
             stage.setTitle("Legend");
