@@ -108,8 +108,6 @@ public class RepositoryMonitor{
             }
         });
 
-        resetFoundNewChanges(REMOTE_CHECK_INTERVAL * 2);
-
         th.setDaemon(true);
         th.setName("Remote monitor for repository \"" + repo + "\"");
         th.setPriority(2);
@@ -149,8 +147,8 @@ public class RepositoryMonitor{
      *               indefinite wait.
      */
     public static synchronized void resetFoundNewChanges(long millis){
-        hasFoundNewRemoteChanges.set(false);
         pauseWatchingRemote(millis);
+        hasFoundNewRemoteChanges.set(false);
     }
 
     public static synchronized void beginWatchingLocal(SessionController controller, SessionModel model){

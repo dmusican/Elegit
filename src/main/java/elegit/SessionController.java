@@ -190,6 +190,7 @@ public class SessionController {
 
         RepositoryMonitor.beginWatchingRemote(theModel);
         RepositoryMonitor.hasFoundNewRemoteChanges.addListener((observable, oldValue, newValue) -> {
+            System.out.println("UPDATED TO "+newValue);
             if(newValue) showNewRemoteChangesNotification();
         });
         RepositoryMonitor.beginWatchingLocal(this, theModel);
