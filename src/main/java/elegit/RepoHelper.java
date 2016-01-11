@@ -755,7 +755,7 @@ public abstract class RepoHelper {
 
     public void showBranchManagerWindow() throws IOException {
         // Create and display the Stage:
-        NotificationPane fxmlRoot = FXMLLoader.load(getClass().getResource("/main/resources/elegit/fxml/BranchManager.fxml"));
+        NotificationPane fxmlRoot = FXMLLoader.load(getClass().getResource("/elegit/fxml/BranchManager.fxml"));
 
         Stage stage = new Stage();
         stage.setTitle("Branch Manager");

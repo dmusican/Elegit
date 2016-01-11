@@ -1208,7 +1208,7 @@ public class SessionController {
     public void showLegend() {
         try{
             // Create and display the Stage:
-            NotificationPane fxmlRoot = FXMLLoader.load(getClass().getResource("/main/resources/elegit/fxml/Legend.fxml"));
+            NotificationPane fxmlRoot = FXMLLoader.load(getClass().getResource("/elegit/fxml/Legend.fxml"));
 
             Stage stage = new Stage();
             stage.setTitle("Legend");
@@ -1226,39 +1226,43 @@ public class SessionController {
      * @param id the selected commit
      */
     public void selectCommit(String id){
-        CommitHelper commit = this.theModel.getCurrentRepoHelper().getCommit(id);
-        commitInfoNameText.setText(commit.getName());
-        commitInfoAuthorText.setText(commit.getAuthorName());
-        commitInfoDateText.setText(commit.getFormattedWhen());
-        commitInfoMessageText.setVisible(true);
-        commitInfoNameCopyButton.setVisible(true);
-        commitInfoGoToButton.setVisible(true);
+        Platform.runLater(() -> {
+            CommitHelper commit = this.theModel.getCurrentRepoHelper().getCommit(id);
+            commitInfoNameText.setText(commit.getName());
+            commitInfoAuthorText.setText(commit.getAuthorName());
+            commitInfoDateText.setText(commit.getFormattedWhen());
+            commitInfoMessageText.setVisible(true);
+            commitInfoNameCopyButton.setVisible(true);
+            commitInfoGoToButton.setVisible(true);
 
-        String s = "";
-        for(BranchHelper branch : commit.getBranchesAsHead()){
-            if(branch instanceof RemoteBranchHelper){
-                s = s + "origin/";
+            String s = "";
+            for (BranchHelper branch : commit.getBranchesAsHead()) {
+                if (branch instanceof RemoteBranchHelper) {
+                    s = s + "origin/";
+                }
+                s = s + branch.getBranchName() + "\n";
             }
-            s = s + branch.getBranchName() + "\n";
-        }
-        if(s.length() > 0){
-            commitInfoMessageText.setText("Head of branches: \n"+s+"\n\n"+commit.getMessage(true));
-        }else{
-            commitInfoMessageText.setText(commit.getMessage(true));
-        }
+            if (s.length() > 0) {
+                commitInfoMessageText.setText("Head of branches: \n" + s + "\n\n" + commit.getMessage(true));
+            } else {
+                commitInfoMessageText.setText(commit.getMessage(true));
+            }
+        });
     }
 
     /**
      * Stops displaying commit information
      */
     public void clearSelectedCommit(){
-        commitInfoNameText.setText("");
-        commitInfoAuthorText.setText("");
-        commitInfoDateText.setText("");
-        commitInfoMessageText.setText("");
-        commitInfoMessageText.setVisible(false);
-        commitInfoNameCopyButton.setVisible(false);
-        commitInfoGoToButton.setVisible(false);
+        Platform.runLater(() -> {
+            commitInfoNameText.setText("");
+            commitInfoAuthorText.setText("");
+            commitInfoDateText.setText("");
+            commitInfoMessageText.setText("");
+            commitInfoMessageText.setVisible(false);
+            commitInfoNameCopyButton.setVisible(false);
+            commitInfoGoToButton.setVisible(false);
+        });
     }
 
     /**
