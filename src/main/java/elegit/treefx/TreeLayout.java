@@ -1,4 +1,4 @@
-package elegit.treefx;
+package main.java.elegit.treefx;
 
 import javafx.application.Platform;
 import javafx.concurrent.Task;

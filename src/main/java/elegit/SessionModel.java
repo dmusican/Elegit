@@ -1,9 +1,9 @@
-package elegit;
+package main.java.elegit;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import elegit.exceptions.MissingRepoException;
-import elegit.exceptions.NoOwnerInfoException;
+import main.java.elegit.exceptions.MissingRepoException;
+import main.java.elegit.exceptions.NoOwnerInfoException;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.GitAPIException;

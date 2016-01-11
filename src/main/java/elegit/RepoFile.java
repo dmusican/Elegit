@@ -1,4 +1,4 @@
-package elegit;
+package main.java.elegit;
 
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -6,7 +6,6 @@ import org.controlsfx.control.PopOver;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Repository;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;

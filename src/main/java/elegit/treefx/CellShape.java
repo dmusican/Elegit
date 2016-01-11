@@ -1,4 +1,4 @@
-package elegit.treefx;
+package main.java.elegit.treefx;
 
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Polygon;

@@ -3,10 +3,10 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.shape.Circle?>
 <?import javafx.scene.text.Text?>
-<?import elegit.*?>
+<?import main.java.elegit.*?>
 <?import org.controlsfx.control.NotificationPane?>
 <?import java.net.URL?>
-<AnchorPane fx:controller="elegit.SessionController" xmlns:fx="http://javafx.com/fxml">
+<AnchorPane fx:controller="main.java.elegit.SessionController" xmlns:fx="http://javafx.com/fxml">
 
     <NotificationPane fx:id="notificationPane"
             AnchorPane.bottomAnchor="5.0"

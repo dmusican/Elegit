@@ -1,4 +1,4 @@
-package elegit;
+package main.java.elegit;
 
 import javafx.collections.ObservableList;
 

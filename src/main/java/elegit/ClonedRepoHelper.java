@@ -1,6 +1,6 @@
-package elegit;
+package main.java.elegit;
 
-import elegit.exceptions.NoOwnerInfoException;
+import main.java.elegit.exceptions.NoOwnerInfoException;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;

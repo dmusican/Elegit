@@ -1,4 +1,4 @@
-package elegit.treefx;
+package main.java.elegit.treefx;
 
 import javafx.beans.binding.DoubleBinding;
 import javafx.beans.binding.When;

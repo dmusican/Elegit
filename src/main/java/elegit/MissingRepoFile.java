@@ -1,4 +1,4 @@
-package elegit;
+package main.java.elegit;
 
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.RmCommand;

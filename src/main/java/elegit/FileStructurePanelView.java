@@ -1,16 +1,14 @@
-package elegit;
+package main.java.elegit;
 
 import javafx.application.Platform;
 import javafx.scene.control.TreeCell;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
-import javafx.scene.control.cell.CheckBoxTreeCell;
 import javafx.scene.layout.Region;
 import javafx.util.Callback;
 import org.eclipse.jgit.api.errors.GitAPIException;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 /**

@@ -1,9 +1,9 @@
-package elegit;
+package main.java.elegit;
 
-import elegit.exceptions.ConflictingFilesException;
-import elegit.exceptions.MissingRepoException;
-import elegit.exceptions.NoOwnerInfoException;
-import elegit.exceptions.PushToAheadRemoteError;
+import main.java.elegit.exceptions.ConflictingFilesException;
+import main.java.elegit.exceptions.MissingRepoException;
+import main.java.elegit.exceptions.NoOwnerInfoException;
+import main.java.elegit.exceptions.PushToAheadRemoteError;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.fxml.FXMLLoader;

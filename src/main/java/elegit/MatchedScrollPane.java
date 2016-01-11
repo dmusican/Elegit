@@ -1,4 +1,4 @@
-package elegit;
+package main.java.elegit;
 
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;

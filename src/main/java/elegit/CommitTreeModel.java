@@ -1,9 +1,9 @@
-package elegit;
+package main.java.elegit;
 
 import javafx.scene.control.*;
-import elegit.treefx.Cell;
-import elegit.treefx.TreeGraph;
-import elegit.treefx.TreeGraphModel;
+import main.java.elegit.treefx.Cell;
+import main.java.elegit.treefx.TreeGraph;
+import main.java.elegit.treefx.TreeGraphModel;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.ObjectId;
 

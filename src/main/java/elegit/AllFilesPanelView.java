@@ -1,4 +1,4 @@
-package elegit;
+package main.java.elegit;
 
 import javafx.scene.control.TreeItem;
 import org.eclipse.jgit.api.errors.GitAPIException;

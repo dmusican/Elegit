@@ -1,4 +1,4 @@
-package elegit.exceptions;
+package main.java.elegit.exceptions;
 
 /**
  *

@@ -1,4 +1,4 @@
-package elegit;
+package main.java.elegit;
 
 import javafx.geometry.Insets;
 import javafx.scene.control.ScrollPane;

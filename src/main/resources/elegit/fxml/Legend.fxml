@@ -7,7 +7,7 @@
 <?import javafx.scene.shape.Rectangle?>
 <?import javafx.scene.shape.Polygon?>
 <?import javafx.scene.layout.RowConstraints?>
-<NotificationPane fx:controller="elegit.LegendController"
+<NotificationPane fx:controller="main.java.elegit.LegendController"
                   xmlns:fx="http://javafx.com/fxml"
                   fx:id="notificationPane">
     <content>

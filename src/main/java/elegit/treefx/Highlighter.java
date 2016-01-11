@@ -1,10 +1,10 @@
-package elegit.treefx;
+package main.java.elegit.treefx;
 
 import javafx.animation.ScaleTransition;
 import javafx.application.Platform;
 import javafx.scene.shape.Shape;
 import javafx.util.Duration;
-import elegit.MatchedScrollPane;
+import main.java.elegit.MatchedScrollPane;
 
 import java.util.ArrayList;
 import java.util.HashMap;

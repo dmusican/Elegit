@@ -1,4 +1,4 @@
-package elegit;
+package main.java.elegit;
 
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
@@ -11,8 +11,8 @@ import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.scene.text.Text;
 import javafx.util.Pair;
-import elegit.exceptions.NoOwnerInfoException;
-import elegit.exceptions.NoRepoSelectedException;
+import main.java.elegit.exceptions.NoOwnerInfoException;
+import main.java.elegit.exceptions.NoRepoSelectedException;
 import org.eclipse.jgit.api.LsRemoteCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;

@@ -1,4 +1,4 @@
-package elegit;
+package main.java.elegit;
 
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
@@ -27,7 +27,7 @@ import javafx.scene.shape.Circle;
 import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import elegit.exceptions.*;
+import main.java.elegit.exceptions.*;
 import org.controlsfx.control.CheckListView;
 import org.controlsfx.control.NotificationPane;
 import org.controlsfx.control.PopOver;
