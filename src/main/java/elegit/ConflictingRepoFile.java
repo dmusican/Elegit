@@ -40,7 +40,7 @@ public class ConflictingRepoFile extends RepoFile {
      * When this RepoFile is checkboxed and the user commits,
      * open the conflicting file in an external editor.
      */
-    @Override public void updateFileStatusInRepo() throws GitAPIException, IOException {
+    @Override public boolean updateFileStatusInRepo() throws GitAPIException, IOException {
         ReentrantLock lock = new ReentrantLock();
         Condition finishedAlert = lock.newCondition();
 
@@ -89,6 +89,7 @@ public class ConflictingRepoFile extends RepoFile {
             }else if(resultType.equals("add")){
                 AddCommand add = new Git(this.repo).add().addFilepattern(this.filePath.toString());
                 add.call();
+                return true;
             }else{
                 // User cancelled the dialog
             }
@@ -97,6 +98,7 @@ public class ConflictingRepoFile extends RepoFile {
         }finally{
             lock.unlock();
         }
+        return false;
     }
 
     private void setResultType(String s){

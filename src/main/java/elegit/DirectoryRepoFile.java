@@ -13,11 +13,13 @@ public class DirectoryRepoFile extends RepoFile {
 
     public DirectoryRepoFile(String filePathString, Repository repo) {
         super(filePathString, repo);
+        this.diffButton = null;
         this.children = new ArrayList<>();
     }
 
     public DirectoryRepoFile(Path filePath, Repository repo) {
         super(filePath, repo);
+        this.diffButton = null;
         this.children = new ArrayList<>();
     }
 

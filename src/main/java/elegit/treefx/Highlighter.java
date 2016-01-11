@@ -1,6 +1,7 @@
 package main.java.elegit.treefx;
 
 import javafx.animation.ScaleTransition;
+import javafx.application.Platform;
 import javafx.scene.shape.Shape;
 import javafx.util.Duration;
 import main.java.elegit.MatchedScrollPane;
@@ -202,23 +203,25 @@ public class Highlighter{
             blockedCellIDs.add(c.getCellId());
         }
 
-        MatchedScrollPane.scrollTo(c.columnLocationProperty.doubleValue() + 1);
-        c.setCellState(CellState.EMPHASIZED);
+        Platform.runLater(() -> {
+            MatchedScrollPane.scrollTo(c.columnLocationProperty.doubleValue() + 1);
+            c.setCellState(CellState.EMPHASIZED);
 
-        Shape s = (Shape) c.view;
+            Shape s = (Shape) c.view;
 
-        ScaleTransition sct = new ScaleTransition(Duration.millis(425), s);
-        sct.setByX(0.3f);
-        sct.setByY(0.3f);
-        sct.setCycleCount(6);
-        sct.setAutoReverse(true);
+            ScaleTransition sct = new ScaleTransition(Duration.millis(425), s);
+            sct.setByX(0.3f);
+            sct.setByY(0.3f);
+            sct.setCycleCount(6);
+            sct.setAutoReverse(true);
 
-        c.view.setScaleX(1.0);
-        c.view.setScaleY(1.0);
+            c.view.setScaleX(1.0);
+            c.view.setScaleY(1.0);
 
-        sct.play();
+            sct.play();
 
-        sct.setOnFinished(event -> endEmphasisOnCell(c));
+            sct.setOnFinished(event -> endEmphasisOnCell(c));
+        });
     }
 
     /**

@@ -1,6 +1,7 @@
 package main.java.elegit.treefx;
 
 import javafx.animation.TranslateTransition;
+import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -261,7 +262,7 @@ public class Cell extends Pane{
      * @param state the new state of the cell
      */
     public void setCellState(CellState state){
-        view.setStyle("-fx-fill: "+state.getCssStringKey());
+        Platform.runLater(() -> view.setStyle("-fx-fill: "+state.getCssStringKey()));
     }
 
     /**
@@ -276,6 +277,11 @@ public class Cell extends Pane{
      */
     public long getTime(){
         return time;
+    }
+
+    @Override
+    public String toString(){
+        return cellId;
     }
 
     /**

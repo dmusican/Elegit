@@ -13,7 +13,6 @@ import javafx.scene.text.Text;
 import javafx.util.Pair;
 import main.java.elegit.exceptions.NoOwnerInfoException;
 import main.java.elegit.exceptions.NoRepoSelectedException;
-import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.LsRemoteCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
@@ -23,7 +22,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Collection;
 import java.util.Optional;
 
 /**
@@ -49,7 +47,7 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
      * @throws Exception when constructing the new ClonedRepoHelper
      */
     @Override
-    public RepoHelper getRepoHelperFromDialogs() throws GitAPIException, NoOwnerInfoException, IOException, NoRepoSelectedException{
+    public RepoHelper getRepoHelperFromDialogs() throws GitAPIException, NoOwnerInfoException, IOException, NoRepoSelectedException {
         // Inspired by: http://code.makery.ch/blog/javafx-dialogs-official/
 
         // Create the custom dialog.

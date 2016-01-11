@@ -59,7 +59,6 @@ public class TreeLayout{
                 if(!isCancelled()){
                     treeGraphModel.isInitialSetupFinished = true;
                 }
-
                 return null;
             }
 

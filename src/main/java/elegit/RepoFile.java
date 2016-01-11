@@ -41,9 +41,14 @@ public class RepoFile {
 
     public RepoFile(Path filePath, Repository repo) {
         this.repo = repo;
-        this.filePath = filePath;
 
-        this.diffButton = new Button("");
+        if(filePath.isAbsolute()){
+            this.filePath = Paths.get(repo.getDirectory().getParent()).relativize(filePath);
+        }else {
+            this.filePath = filePath;
+        }
+
+        this.diffButton = new Button("UNCHANGED");
         this.diffButton.getStyleClass().add("diffButton");
 
         this.diffPopover = new PopOver();
@@ -70,10 +75,12 @@ public class RepoFile {
      *
      * In the case of plain RepoFiles, no action is required.
      *
+     * @return true if the files updated status succeeded
      * @throws GitAPIException if an interaction with Git fails (only applies to subclasses).
      */
-    public void updateFileStatusInRepo() throws GitAPIException, IOException {
+    public boolean updateFileStatusInRepo() throws GitAPIException, IOException {
         System.out.printf("This file requires no update: %s\n", this.filePath.toString());
+        return true;
     }
 
     /**
@@ -90,7 +97,7 @@ public class RepoFile {
      */
     @Override
     public String toString() {
-        return this.filePath.toString();
+        return this.filePath.getFileName().toString();
     }
 
     public Path getFilePath() {
@@ -99,6 +106,16 @@ public class RepoFile {
 
     public Repository getRepo() {
         return this.repo;
+    }
+
+    public int getLevelInRepository(){
+        int depth = 0;
+        Path p = this.filePath.getParent();
+        while(p!=null){
+            depth++;
+            p = p.getParent();
+        }
+        return depth;
     }
 
     public ArrayList<RepoFile> getChildren() {
@@ -116,5 +133,13 @@ public class RepoFile {
         this.diffPopover.setContentNode(diffHelper.getDiffScrollPane());
         this.diffPopover.setTitle("File Diffs");
         this.diffPopover.show(owner);
+    }
+
+    public boolean equals(Object o){
+        if(o != null && o instanceof RepoFile){
+            RepoFile other = (RepoFile) o;
+            return this.filePath.equals(other.filePath) && other.getRepo().getDirectory().equals(getRepo().getDirectory());
+        }
+        return false;
     }
 }
