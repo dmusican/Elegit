@@ -50,18 +50,20 @@ public class AllFilesPanelView extends FileStructurePanelView{
         }
 
         List<TreeItem<RepoFile>> itemsAtPrevDepth = topLevelTreeItems;
-        for (int i = 1; i < maxDepth; i++) {
+        for (int i = 1; i < maxDepth+1; i++) {
             List<RepoFile> filesAtDepth = depthInRepoMap.get(i);
 
             List<TreeItem<RepoFile>> itemsAtDepth = new LinkedList<>();
             for(RepoFile file : filesAtDepth){
                 TreeItem<RepoFile> newItem = new TreeItem<>(file, file.diffButton);
                 itemsAtDepth.add(newItem);
-                for(TreeItem<RepoFile> item : itemsAtPrevDepth){
-                    RepoFile prevFile = item.getValue();
+
+                for(TreeItem<RepoFile> prevItem : itemsAtPrevDepth){
+                    RepoFile prevFile = prevItem.getValue();
 
                     if(file.getFilePath().getParent().equals(prevFile.getFilePath())){
-                        item.getChildren().add(newItem);
+                        prevItem.getChildren().add(newItem);
+                        break;
                     }
                 }
             }
