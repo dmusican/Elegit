@@ -10,17 +10,16 @@ import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Repository;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
+import java.util.stream.Stream;
 
 /**
  * The singleton SessionModel stores all the Repos (contained in RepoHelper objects)
@@ -146,7 +145,7 @@ public class SessionModel {
      *
      * @param repoHelperToLoad the RepoHelper to be loaded.
      */
-    public void openRepoFromHelper(RepoHelper repoHelperToLoad) throws BackingStoreException, IOException, ClassNotFoundException, MissingRepoException{
+    public void openRepoFromHelper(RepoHelper repoHelperToLoad) throws BackingStoreException, IOException, ClassNotFoundException, MissingRepoException {
         RepoHelper matchedRepoHelper = this.matchRepoWithAlreadyLoadedRepo(repoHelperToLoad);
         if (matchedRepoHelper == null) {
             // So, this repo isn't loaded into the model yet
@@ -225,10 +224,26 @@ public class SessionModel {
      * @return a set of untracked filenames in the working directory.
      * @throws GitAPIException if the `git status` call fails.
      */
-    public Set<String> getUntrackedFiles() throws GitAPIException {
-        Status status = new Git(this.getCurrentRepo()).status().call();
+    public Set<String> getUntrackedFiles(Status status) throws GitAPIException {
+        if(status == null) {
+            status = new Git(this.getCurrentRepo()).status().call();
+        }
 
         return status.getUntracked();
+    }
+
+    /**
+     * Calls `git status` and returns the set of untracked files that Git reports.
+     *
+     * @return a set of untracked filenames in the working directory.
+     * @throws GitAPIException if the `git status` call fails.
+     */
+    public Set<String> getIgnoredFiles(Status status) throws GitAPIException {
+        if(status == null) {
+            status = new Git(this.getCurrentRepo()).status().call();
+        }
+
+        return status.getIgnoredNotInIndex();
     }
 
     /**
@@ -237,8 +252,10 @@ public class SessionModel {
      * @return a set of conflicting filenames in the working directory.
      * @throws GitAPIException
      */
-    public Set<String> getConflictingFiles() throws GitAPIException {
-        Status status = new Git(this.getCurrentRepo()).status().call();
+    public Set<String> getConflictingFiles(Status status) throws GitAPIException {
+        if(status == null) {
+            status = new Git(this.getCurrentRepo()).status().call();
+        }
 
         return status.getConflicting();
     }
@@ -249,8 +266,10 @@ public class SessionModel {
      * @return a set of missing filenames in the working directory.
      * @throws GitAPIException if the `git status` call fails.
      */
-    public Set<String> getMissingFiles() throws GitAPIException {
-        Status status = new Git(this.getCurrentRepo()).status().call();
+    public Set<String> getMissingFiles(Status status) throws GitAPIException {
+        if(status == null) {
+            status = new Git(this.getCurrentRepo()).status().call();
+        }
 
         return status.getMissing();
     }
@@ -266,8 +285,11 @@ public class SessionModel {
      * @return a set of modified filenames in the working directory.
      * @throws GitAPIException if the `git status` call fails.
      */
-    public Set<String> getModifiedFiles() throws GitAPIException {
-        Status status = new Git(this.getCurrentRepo()).status().call();
+    public Set<String> getModifiedFiles(Status status) throws GitAPIException {
+        if(status == null) {
+            status = new Git(this.getCurrentRepo()).status().call();
+        }
+
         Set<String> modifiedAndChangedFiles = new HashSet<>(status.getChanged());
         modifiedAndChangedFiles.addAll(status.getModified());
 
@@ -317,10 +339,12 @@ public class SessionModel {
                 } else {
                     // So, this is a file and not a directory.
 
-                    Set<String> modifiedFiles = getModifiedFiles();
-                    Set<String> missingFiles = getMissingFiles();
-                    Set<String> untrackedFiles = getUntrackedFiles();
-                    Set<String> conflictingFiles = getConflictingFiles();
+                    Status status = new Git(this.getCurrentRepo()).status().call();
+
+                    Set<String> modifiedFiles = getModifiedFiles(status);
+                    Set<String> missingFiles = getMissingFiles(status);
+                    Set<String> untrackedFiles = getUntrackedFiles(status);
+                    Set<String> conflictingFiles = getConflictingFiles(status);
 
                     // Relativize the path to the repository, because that's the file structure JGit
                     //  looks for in an 'add' command
@@ -362,10 +386,11 @@ public class SessionModel {
      * @throws GitAPIException if the `git status` calls fail.
      */
     public List<RepoFile> getAllChangedRepoFiles() throws GitAPIException {
-        Set<String> modifiedFiles = getModifiedFiles();
-        Set<String> missingFiles = getMissingFiles();
-        Set<String> untrackedFiles = getUntrackedFiles();
-        Set<String> conflictingFiles = getConflictingFiles();
+        Status status = new Git(this.getCurrentRepo()).status().call();
+        Set<String> modifiedFiles = getModifiedFiles(status);
+        Set<String> missingFiles = getMissingFiles(status);
+        Set<String> untrackedFiles = getUntrackedFiles(status);
+        Set<String> conflictingFiles = getConflictingFiles(status);
 
         List<RepoFile> changedRepoFiles = new ArrayList<>();
 
@@ -406,6 +431,46 @@ public class SessionModel {
         }
 
         return changedRepoFiles;
+    }
+    /**
+     * Assembles all files in the repository's folder into RepoFiles
+     * and returns a list of them.
+     *
+     * @return a list of changed files, contained in RepoFile objects.
+     * @throws GitAPIException if the `git status` calls fail.
+     */
+    public List<RepoFile> getAllRepoFiles() throws GitAPIException, IOException {
+        List<RepoFile> allFiles = getAllChangedRepoFiles();
+
+        Status status = new Git(this.getCurrentRepo()).status().call();
+
+        for(String ignoredFileString : getIgnoredFiles(status)){
+            IgnoredRepoFile ignoredRepoFile = new IgnoredRepoFile(ignoredFileString, this.getCurrentRepo());
+            allFiles.add(ignoredRepoFile);
+        }
+
+        List<Path> allPaths = new LinkedList<>();
+
+        try (Stream<Path> paths = Files.walk(currentRepoHelper.getLocalPath())
+                .filter(path -> !path.toString().contains(File.separator + ".git" + File.separator)
+                        && !path.equals(currentRepoHelper.getLocalPath())
+                        && !path.endsWith(".git"))) {
+            paths.forEach(allPaths::add);
+        }
+
+        for(Path path : allPaths){
+            RepoFile temp;
+            if(path.toFile().isDirectory()){
+                temp = new DirectoryRepoFile(path, currentRepoHelper.getRepo());
+            }else{
+                temp = new RepoFile(path, currentRepoHelper.getRepo());
+            }
+            if(!allFiles.contains(temp)){
+                allFiles.add(temp);
+            }
+        }
+
+        return allFiles;
     }
 
     /**

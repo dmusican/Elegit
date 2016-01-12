@@ -1,5 +1,9 @@
 package main.java.elegit;
 
+import main.java.elegit.exceptions.ConflictingFilesException;
+import main.java.elegit.exceptions.MissingRepoException;
+import main.java.elegit.exceptions.NoOwnerInfoException;
+import main.java.elegit.exceptions.PushToAheadRemoteError;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -167,6 +171,23 @@ public abstract class RepoHelper {
     }
 
     /**
+     * Adds a git ignore file if needed to the repo.
+     * Otherwise calls on the editGitIgnoreFile method.
+     */
+
+    public void addGitIgnoreFile(){
+
+    }
+
+    /**
+     * Edits an existing gitignore file
+     */
+
+    public void editGitIgnoreFile(){
+
+    }
+
+    /**
      * Gets a list of all remotes associated with this repository. The URLs
      * correspond to the output seen by running 'git remote -v'
      * @return a list of the remote URLs associated with this repository
@@ -208,7 +229,7 @@ public abstract class RepoHelper {
      * @param commitMessage the message for the commit.
      * @throws GitAPIException if the `git commit` call fails.
      */
-    public void commit(String commitMessage) throws GitAPIException, MissingRepoException{
+    public void commit(String commitMessage) throws GitAPIException, MissingRepoException {
         if(!exists()) throw new MissingRepoException();
         // should this Git instance be class-level?
         Git git = new Git(this.repo);
@@ -300,7 +321,7 @@ public abstract class RepoHelper {
      * @throws GitAPIException
      * @throws MissingRepoException
      */
-    public boolean mergeFromFetch() throws IOException, GitAPIException, MissingRepoException, ConflictingFilesException{
+    public boolean mergeFromFetch() throws IOException, GitAPIException, MissingRepoException, ConflictingFilesException {
         if(!exists()) throw new MissingRepoException();
         if(!hasRemote()) throw new InvalidRemoteException("No remote repository");
         Git git = new Git(this.repo);
@@ -902,7 +923,7 @@ public abstract class RepoHelper {
 
     public void showBranchManagerWindow() throws IOException {
         // Create and display the Stage:
-        NotificationPane fxmlRoot = FXMLLoader.load(getClass().getResource("/main/resources/elegit/fxml/BranchManager.fxml"));
+        NotificationPane fxmlRoot = FXMLLoader.load(getClass().getResource("/elegit/fxml/BranchManager.fxml"));
 
         Stage stage = new Stage();
         stage.setTitle("Branch Manager");

@@ -3,6 +3,8 @@ package main.java.elegit;
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import javafx.application.Platform;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
@@ -30,11 +32,15 @@ import org.controlsfx.control.CheckListView;
 import org.controlsfx.control.NotificationPane;
 import org.controlsfx.control.PopOver;
 import org.controlsfx.control.action.Action;
+import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.errors.NoMergeBaseException;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
+import org.eclipse.jgit.lib.AnyObjectId;
+import org.eclipse.jgit.lib.Repository;
 
 import java.awt.*;
+import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -42,6 +48,7 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.prefs.BackingStoreException;
@@ -78,7 +85,12 @@ public class SessionController {
     public ProgressIndicator pushProgressIndicator;
 
     public TextArea commitMessageField;
+
+    public Tab workingTreePanelTab;
+    public Tab allFilesPanelTab;
     public WorkingTreePanelView workingTreePanelView;
+    public AllFilesPanelView allFilesPanelView;
+
 	public CommitTreePanelView localCommitTreePanelView;
     public CommitTreePanelView remoteCommitTreePanelView;
 
@@ -93,6 +105,8 @@ public class SessionController {
 
     CommitTreeModel localCommitTreeModel;
     CommitTreeModel remoteCommitTreeModel;
+
+    BooleanProperty isWorkingTreeTabSelected;
 
     private volatile boolean isRecentRepoEventListenerBlocked = false;
 
@@ -110,6 +124,12 @@ public class SessionController {
         CommitTreeController.sessionController = this;
 
         this.workingTreePanelView.setSessionModel(this.theModel);
+        this.allFilesPanelView.setSessionModel(this.theModel);
+
+        isWorkingTreeTabSelected = new SimpleBooleanProperty(true);
+        isWorkingTreeTabSelected.bind(workingTreePanelTab.selectedProperty());
+        workingTreePanelTab.getTabPane().getSelectionModel().select(workingTreePanelTab);
+
         this.localCommitTreeModel = new LocalCommitTreeModel(this.theModel, this.localCommitTreePanelView);
         this.remoteCommitTreeModel = new RemoteCommitTreeModel(this.theModel, this.remoteCommitTreePanelView);
 
@@ -195,6 +215,7 @@ public class SessionController {
         gitStatusButton.setMaxWidth(Double.MAX_VALUE);
 
         workingTreePanelView.setMinSize(Control.USE_PREF_SIZE, 200);
+        allFilesPanelView.setMinSize(Control.USE_PREF_SIZE, 200);
         commitMessageField.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
 
         branchDropdownSelector.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
@@ -252,7 +273,6 @@ public class SessionController {
     private synchronized void handleLoadRepoMenuItem(RepoHelperBuilder builder){
         try{
             RepoHelper repoHelper = builder.getRepoHelperFromDialogs();
-
             BusyWindow.show();
             RepositoryMonitor.pause();
             Thread th = new Thread(new Task<Void>(){
@@ -651,30 +671,13 @@ public class SessionController {
         Thread th = new Thread(new Task<Void>(){
             @Override
             protected Void call(){
-//                ReentrantLock lock = new ReentrantLock();
-//                Condition finishedUpdate = lock.newCondition();
-//
-//                Platform.runLater(() -> {
-//                    lock.lock();
-//                    try{
-//
-//                        finishedUpdate.signal();
-//                    }catch(GitAPIException | IOException e){
-//                        showGenericErrorNotification();
-//                        e.printStackTrace();
-//                    }finally{
-//                        lock.unlock();
-//                    }
-//                });
-//
-//                lock.lock();
                 try{
                     localCommitTreeModel.update();
                     remoteCommitTreeModel.update();
 
                     workingTreePanelView.drawDirectoryView();
-//                    finishedUpdate.await(); // updateBranchDropdown needs to be called after the trees have
-                    updateBranchDropdown(); // been updated, but shouldn't run on the Application thread
+                    allFilesPanelView.drawDirectoryView();
+                    updateBranchDropdown();
                 } catch(MissingRepoException e){
                     showMissingRepoNotification();
                     setButtonsDisabled(true);
@@ -682,11 +685,10 @@ public class SessionController {
                 } catch(NoRepoLoadedException e){
                     showNoRepoLoadedNotification();
                     setButtonsDisabled(true);
-                } catch(GitAPIException | IOException e){// | InterruptedException e){
+                } catch(GitAPIException | IOException e){
                     showGenericErrorNotification();
                     e.printStackTrace();
                 }finally{
-//                    lock.unlock();
                     RepositoryMonitor.unpause();
                 }
                 return null;
@@ -743,9 +745,10 @@ public class SessionController {
 
         try {
             workingTreePanelView.drawDirectoryView();
+            allFilesPanelView.drawDirectoryView();
             localCommitTreeModel.init();
             remoteCommitTreeModel.init();
-        } catch (GitAPIException e) {
+        } catch (GitAPIException | IOException e) {
             showGenericErrorNotification();
         }
 
@@ -904,6 +907,43 @@ public class SessionController {
      */
     public void handleSwitchUserButton(){
         this.switchUser();
+    }
+
+    /**
+     * Called when the gitignore button is clicked.
+     */
+    public void handleGitIgnoreButton() {
+        try { this.gitIgnore();
+        } catch (IOException e){
+            this.notificationPane.setText("There was an IO error.");
+        } catch (NoOwnerInfoException e){
+            this.notificationPane.setText("No user logged in.");
+        } catch (GitAPIException e){
+            this.notificationPane.setText("Error in Git server.");
+        }
+    }
+
+    public void gitIgnore() throws IOException, NoOwnerInfoException, GitAPIException {
+        try {
+            if (this.theModel.getCurrentRepo() == null) { throw new NoRepoLoadedException();
+            } else if (this.theModel.getDefaultOwner() == null){
+                throw new NoOwnerInfoException();
+            }
+        } catch (NoRepoLoadedException e){
+            this.notificationPane.setText("No repo loaded.");
+        }
+        Repository rep = this.theModel.getCurrentRepo();
+        RepoHelper rh = new RepoHelper(rep.getDirectory().toPath(), this.theModel.getDefaultOwner()) {
+            @Override
+            protected Repository obtainRepository() throws GitAPIException, IOException {
+                return theModel.getCurrentRepo();
+            }
+        };
+        rh.addGitIgnoreFile();
+
+        this.notificationPane.getActions().clear();
+        this.notificationPane.show();
+
     }
 
     /**
@@ -1228,7 +1268,7 @@ public class SessionController {
     public void showLegend() {
         try{
             // Create and display the Stage:
-            NotificationPane fxmlRoot = FXMLLoader.load(getClass().getResource("/main/resources/elegit/fxml/Legend.fxml"));
+            NotificationPane fxmlRoot = FXMLLoader.load(getClass().getResource("/elegit/fxml/Legend.fxml"));
 
             Stage stage = new Stage();
             stage.setTitle("Legend");
@@ -1246,39 +1286,43 @@ public class SessionController {
      * @param id the selected commit
      */
     public void selectCommit(String id){
-        CommitHelper commit = this.theModel.getCurrentRepoHelper().getCommit(id);
-        commitInfoNameText.setText(commit.getName());
-        commitInfoAuthorText.setText(commit.getAuthorName());
-        commitInfoDateText.setText(commit.getFormattedWhen());
-        commitInfoMessageText.setVisible(true);
-        commitInfoNameCopyButton.setVisible(true);
-        commitInfoGoToButton.setVisible(true);
+        Platform.runLater(() -> {
+            CommitHelper commit = this.theModel.getCurrentRepoHelper().getCommit(id);
+            commitInfoNameText.setText(commit.getName());
+            commitInfoAuthorText.setText(commit.getAuthorName());
+            commitInfoDateText.setText(commit.getFormattedWhen());
+            commitInfoMessageText.setVisible(true);
+            commitInfoNameCopyButton.setVisible(true);
+            commitInfoGoToButton.setVisible(true);
 
-        String s = "";
-        for(BranchHelper branch : commit.getBranchesAsHead()){
-            if(branch instanceof RemoteBranchHelper){
-                s = s + "origin/";
+            String s = "";
+            for (BranchHelper branch : commit.getBranchesAsHead()) {
+                if (branch instanceof RemoteBranchHelper) {
+                    s = s + "origin/";
+                }
+                s = s + branch.getBranchName() + "\n";
             }
-            s = s + branch.getBranchName() + "\n";
-        }
-        if(s.length() > 0){
-            commitInfoMessageText.setText("Head of branches: \n"+s+"\n\n"+commit.getMessage(true));
-        }else{
-            commitInfoMessageText.setText(commit.getMessage(true));
-        }
+            if (s.length() > 0) {
+                commitInfoMessageText.setText("Head of branches: \n" + s + "\n\n" + commit.getMessage(true));
+            } else {
+                commitInfoMessageText.setText(commit.getMessage(true));
+            }
+        });
     }
 
     /**
      * Stops displaying commit information
      */
     public void clearSelectedCommit(){
-        commitInfoNameText.setText("");
-        commitInfoAuthorText.setText("");
-        commitInfoDateText.setText("");
-        commitInfoMessageText.setText("");
-        commitInfoMessageText.setVisible(false);
-        commitInfoNameCopyButton.setVisible(false);
-        commitInfoGoToButton.setVisible(false);
+        Platform.runLater(() -> {
+            commitInfoNameText.setText("");
+            commitInfoAuthorText.setText("");
+            commitInfoDateText.setText("");
+            commitInfoMessageText.setText("");
+            commitInfoMessageText.setVisible(false);
+            commitInfoNameCopyButton.setVisible(false);
+            commitInfoGoToButton.setVisible(false);
+        });
     }
 
     /**

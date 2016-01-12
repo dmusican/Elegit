@@ -10,7 +10,6 @@ import main.java.elegit.MatchedScrollPane;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Random;
 
 /**
  * Thanks to RolandC for providing the base graph code structure:

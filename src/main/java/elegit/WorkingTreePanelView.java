@@ -1,15 +1,18 @@
 package main.java.elegit;
 
-import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.control.CheckBoxTreeItem;
+import javafx.scene.control.TreeCell;
+import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import javafx.scene.control.cell.CheckBoxTreeCell;
-import javafx.scene.layout.Region;
+import javafx.util.Callback;
 import org.eclipse.jgit.api.errors.GitAPIException;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  *
@@ -19,72 +22,52 @@ import java.util.ArrayList;
  * untracked/new, modified, or deleted.
  *
  */
-public class WorkingTreePanelView extends Region{
-
-    // fileLeafs stores all 'leafs' in the directory TreeView:
-    private ArrayList<CheckBoxTreeItem<RepoFile>> fileLeafs;
-    private TreeView<RepoFile> directoryTreeView;
-    private SessionModel sessionModel;
+public class WorkingTreePanelView extends FileStructurePanelView{
 
     public BooleanProperty isAnyFileSelectedProperty;
 
+    public List<TreeItem<RepoFile>> fileLeafs;
+
     public WorkingTreePanelView() {
-        this.fileLeafs = new ArrayList<>();
-        this.directoryTreeView = new TreeView<>();
+        super();
+        this.fileLeafs = new LinkedList<>();
         isAnyFileSelectedProperty = new SimpleBooleanProperty(false);
-
-        this.directoryTreeView.prefHeightProperty().bind(this.heightProperty());
-        this.getChildren().add(this.directoryTreeView);
     }
 
-    public void setAllFilesSelected(boolean selected) {
-        for (CheckBoxTreeItem fileCell : this.fileLeafs) {
-            fileCell.setSelected(selected);
-        }
+    @Override
+    protected Callback<TreeView<RepoFile>, TreeCell<RepoFile>> getTreeCellFactory() {
+        return CheckBoxTreeCell.<RepoFile>forTreeView();
     }
 
-    /**
-     * Draws the directory TreeView by getting the parent directory's RepoFile,
-     * populating it with the files it contains, and adding it to the display.
-     *
-     * FIXME: this method resets the users selections if they've checked any boxes (low priority)
-     *
-     * @throws GitAPIException if the SessionModel can't get the ParentDirectoryRepoFile.
-     */
-    public void drawDirectoryView() throws GitAPIException{
+    @Override
+    protected TreeItem<RepoFile> getRootTreeItem(DirectoryRepoFile rootDirectory) {
+        return new CheckBoxTreeItem<>(rootDirectory);
+    }
 
-        if(this.sessionModel.getCurrentRepoHelper() == null) return;
-        DirectoryRepoFile rootDirectory = new DirectoryRepoFile("", this.sessionModel.getCurrentRepo());
+    @Override
+    protected List<TreeItem<RepoFile>> getTreeItems(List<RepoFile> repoFiles) {
+        fileLeafs = new LinkedList<>();
 
-        fileLeafs = new ArrayList<>(fileLeafs.size());
-
-        CheckBoxTreeItem<RepoFile> rootItem = new CheckBoxTreeItem<RepoFile>(rootDirectory);
-        rootItem.setExpanded(true);
-
-        isAnyFileSelectedProperty.unbind();
         BooleanProperty temp = new SimpleBooleanProperty(false);
-        for(RepoFile changedRepoFile : this.sessionModel.getAllChangedRepoFiles()){
-            CheckBoxTreeItem<RepoFile> leaf = new CheckBoxTreeItem<>(changedRepoFile, changedRepoFile.diffButton);
-            rootItem.getChildren().add(leaf);
-            this.fileLeafs.add(leaf);
+
+        for(RepoFile repoFile : repoFiles) {
+            CheckBoxTreeItem<RepoFile> file = new CheckBoxTreeItem<>(repoFile, repoFile.diffButton);
+
             BooleanProperty oldTemp = temp;
             temp = new SimpleBooleanProperty();
-            temp.bind(oldTemp.or(leaf.selectedProperty()));
+            temp.bind(oldTemp.or(file.selectedProperty()));
+
+            fileLeafs.add(file);
         }
+
         isAnyFileSelectedProperty.bind(temp);
 
-        this.directoryTreeView = new TreeView<>(rootItem);
-        this.directoryTreeView.setCellFactory(CheckBoxTreeCell.<RepoFile>forTreeView());
+        return fileLeafs;
+    }
 
-        // TreeViews must all have ONE root to hold the leafs. Don't show that root:
-        this.directoryTreeView.setShowRoot(false);
-
-        this.directoryTreeView.prefHeightProperty().bind(this.heightProperty());
-
-        Platform.runLater(() -> {
-            this.getChildren().clear();
-            this.getChildren().add(directoryTreeView);
-        });
+    @Override
+    public List<RepoFile> getFilesToDisplay() throws GitAPIException{
+        return sessionModel.getAllChangedRepoFiles();
     }
 
     /**
@@ -94,15 +77,19 @@ public class WorkingTreePanelView extends Region{
      */
     public ArrayList<RepoFile> getCheckedFilesInDirectory() {
         ArrayList<RepoFile> checkedFiles = new ArrayList<>();
-        for (CheckBoxTreeItem fileLeaf : this.fileLeafs) {
-            if (fileLeaf.isSelected())
+        for (TreeItem fileLeaf : this.fileLeafs) {
+            CheckBoxTreeItem checkBoxFile = (CheckBoxTreeItem) fileLeaf;
+            if (checkBoxFile.isSelected())
                 checkedFiles.add((RepoFile)fileLeaf.getValue());
         }
         return checkedFiles;
     }
 
-    public void setSessionModel(SessionModel sessionModel) {
-        this.sessionModel = sessionModel;
+    public void setAllFilesSelected(boolean selected) {
+        for (TreeItem fileLeaf : fileLeafs) {
+            CheckBoxTreeItem checkBoxFile = (CheckBoxTreeItem) fileLeaf;
+            checkBoxFile.setSelected(selected);
+        }
     }
 
     /**

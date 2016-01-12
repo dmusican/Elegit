@@ -109,10 +109,19 @@
                                 id="codeButton"
                                 onAction="#onGitStatusButton"/>
 
-                        <WorkingTreePanelView
-                                GridPane.rowIndex="1"
-                                GridPane.vgrow="ALWAYS"
-                                fx:id="workingTreePanelView"/>
+                        <TabPane GridPane.rowIndex="1"
+                                 GridPane.vgrow="ALWAYS">
+                            <Tab text="Working Tree"
+                                 closable="false"
+                                 fx:id="workingTreePanelTab">
+                                <WorkingTreePanelView fx:id="workingTreePanelView"/>
+                            </Tab>
+                            <Tab text="All Files"
+                                 closable="false"
+                                 fx:id="allFilesPanelTab">
+                                <AllFilesPanelView fx:id="allFilesPanelView"/>
+                            </Tab>
+                        </TabPane>
 
                         <HBox GridPane.columnIndex="0"
                               GridPane.rowIndex="2"
