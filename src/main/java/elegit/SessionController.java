@@ -926,20 +926,23 @@ public class SessionController {
     public void gitIgnore() throws IOException, NoOwnerInfoException, GitAPIException {
         try {
             if (this.theModel.getCurrentRepo() == null) { throw new NoRepoLoadedException();
-            } else if (this.theModel.getDefaultOwner() == null){
+            } else if (this.theModel.getDefaultUsername() == null){
                 throw new NoOwnerInfoException();
             }
         } catch (NoRepoLoadedException e){
             this.notificationPane.setText("No repo loaded.");
         }
         Repository rep = this.theModel.getCurrentRepo();
-        RepoHelper rh = new RepoHelper(rep.getDirectory().toPath(), this.theModel.getDefaultOwner()) {
+        try {
+        RepoHelper rh = new RepoHelper(rep.getDirectory().toPath(), this.theModel.getDefaultUsername()) {
             @Override
             protected Repository obtainRepository() throws GitAPIException, IOException {
                 return theModel.getCurrentRepo();
             }
         };
-        rh.addGitIgnoreFile();
+        rh.addGitIgnoreFile(); } catch (CancelledAuthorizationException e) {
+            //If the user cancels, we don't worry about it
+        }
 
         this.notificationPane.getActions().clear();
         this.notificationPane.show();
