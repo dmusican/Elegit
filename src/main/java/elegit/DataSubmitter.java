@@ -16,7 +16,7 @@ import org.apache.http.util.EntityUtils;
 
 public class DataSubmitter {
     private static final String submitUrl = "http://localhost:8080"; //for testing, keeping the local one
-    private static final String filepath = "/filename.log";
+    private static final String filepath = "filename.log";
     public DataSubmitter() {
 
     }
@@ -34,7 +34,7 @@ public class DataSubmitter {
 
             httppost.setEntity(reqEntity);
 
-            //System.out.println("Executing request: " + httppost.getRequestLine());
+            System.out.println("Executing request: " + httppost.getRequestLine());
             CloseableHttpResponse response = httpclient.execute(httppost);
             try {
                 System.out.println("----------------------------------------");
@@ -47,7 +47,6 @@ public class DataSubmitter {
             try {
                 httpclient.close();
             } catch (Exception f) {
-
             }
         }
     }

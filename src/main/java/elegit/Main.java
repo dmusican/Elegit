@@ -25,8 +25,8 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception{
-        System.out.println("Working Directory = " +
-                System.getProperty("user.dir"));
+
+        // -----------------------------------------------------------------------
         File logConfigFile = new File( "src/main/resources/elegit/config/log4j2.xml" );
         System.setProperty( "logFilename", "filename.log" );
 
@@ -47,6 +47,11 @@ public class Main extends Application {
         }
 
         logger.error("Entering Log4j Example.");
+
+        DataSubmitter d = new DataSubmitter();
+        d.submitData();
+        // -------------------------------------------------------------------------
+
 
         Parent root = FXMLLoader.load(getClass().getResource("/elegit/fxml/MainView.fxml"));
         primaryStage.setTitle("Elegit");
