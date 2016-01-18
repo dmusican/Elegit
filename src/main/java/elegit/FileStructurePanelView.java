@@ -18,13 +18,31 @@ public abstract class FileStructurePanelView extends Region{
 
     // fileLeafs stores all 'leafs' in the directory TreeView:
     private TreeView<RepoFile> directoryTreeView;
+    private TreeItem<RepoFile> treeRoot;
+
     public SessionModel sessionModel;
 
     public FileStructurePanelView() {
+        this.init();
+        this.getChildren().add(this.directoryTreeView);
+    }
+
+    public void init(){
         this.directoryTreeView = new TreeView<>();
+        this.directoryTreeView.setCellFactory(this.getTreeCellFactory());
+
+        if(this.sessionModel != null) {
+            DirectoryRepoFile rootDirectory = new DirectoryRepoFile("", this.sessionModel.getCurrentRepo());
+            this.treeRoot = this.getRootTreeItem(rootDirectory);
+            this.treeRoot.setExpanded(true);
+
+            this.directoryTreeView.setRoot(this.treeRoot);
+        }
+
+        // TreeViews must all have ONE root to hold the leafs. Don't show that root:
+        this.directoryTreeView.setShowRoot(false);
 
         this.directoryTreeView.prefHeightProperty().bind(this.heightProperty());
-        this.getChildren().add(this.directoryTreeView);
     }
 
     /**
@@ -36,27 +54,21 @@ public abstract class FileStructurePanelView extends Region{
      * @throws GitAPIException if the SessionModel can't get the ParentDirectoryRepoFile.
      */
     public void drawDirectoryView() throws GitAPIException, IOException {
-
         if(this.sessionModel.getCurrentRepoHelper() == null) return;
-        DirectoryRepoFile rootDirectory = new DirectoryRepoFile("", this.sessionModel.getCurrentRepo());
 
-        TreeItem<RepoFile> rootItem = this.getRootTreeItem(rootDirectory);
-        rootItem.setExpanded(true);
-
-        List<RepoFile> filesToShow = this.getFilesToDisplay();
-        List<TreeItem<RepoFile>> treeItemsToShow = this.getTreeItems(filesToShow);
-
-        for(TreeItem<RepoFile> treeItem : treeItemsToShow){
-            rootItem.getChildren().add(treeItem);
+        if(this.treeRoot == null || !this.treeRoot.getValue().getRepo().equals(this.sessionModel.getCurrentRepo())) {
+            this.init();
         }
 
-        this.directoryTreeView = new TreeView<>(rootItem);
-        this.directoryTreeView.setCellFactory(this.getTreeCellFactory());
+        List<RepoFile> filesToShow = this.getFilesToDisplay();
+        List<TreeItem<RepoFile>> treeItemsToShow = this.addTreeItems(filesToShow, this.treeRoot);
 
-        // TreeViews must all have ONE root to hold the leafs. Don't show that root:
-        this.directoryTreeView.setShowRoot(false);
+//        for(TreeItem<RepoFile> treeItem : treeItemsToShow){
+//            currentRoot.getChildren().add(treeItem);
+//        }
 
-        this.directoryTreeView.prefHeightProperty().bind(this.heightProperty());
+//        this.directoryTreeView = new TreeView<>(rootItem);
+//        this.directoryTreeView.setCellFactory(this.getTreeCellFactory());
 
         Platform.runLater(() -> {
             this.getChildren().clear();
@@ -68,7 +80,7 @@ public abstract class FileStructurePanelView extends Region{
         return null;
     }
 
-    protected abstract List<TreeItem<RepoFile>> getTreeItems(List<RepoFile> repoFiles);
+    protected abstract List<TreeItem<RepoFile>> addTreeItems(List<RepoFile> repoFiles, TreeItem<RepoFile> root);
 
     protected abstract TreeItem<RepoFile> getRootTreeItem(DirectoryRepoFile rootDirectory);
 

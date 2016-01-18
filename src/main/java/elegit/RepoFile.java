@@ -136,7 +136,7 @@ public class RepoFile {
     }
 
     public boolean equals(Object o){
-        if(o != null && o instanceof RepoFile){
+        if(o != null && o.getClass().equals(this.getClass())){
             RepoFile other = (RepoFile) o;
             return this.filePath.equals(other.filePath) && other.getRepo().getDirectory().equals(getRepo().getDirectory());
         }

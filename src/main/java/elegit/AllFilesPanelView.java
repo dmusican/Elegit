@@ -26,7 +26,7 @@ public class AllFilesPanelView extends FileStructurePanelView{
     }
 
     @Override
-    protected List<TreeItem<RepoFile>> getTreeItems(List<RepoFile> repoFiles) {
+    protected List<TreeItem<RepoFile>> addTreeItems(List<RepoFile> repoFiles, TreeItem<RepoFile> root) {
         List<TreeItem<RepoFile>> topLevelTreeItems = new LinkedList<>();
 
         Map<Integer, List<RepoFile>> depthInRepoMap = new HashMap<>();
