@@ -4,13 +4,18 @@
         <Console name="CONSOLE" target="SYSTEM_OUT">
             <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n" />
         </Console>
-        <File name="File" fileName="${sys:logFilename}">
+        <!--<File name="File" fileName="${sys:logFilename}">
             <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %c{1}.%M %L - %msg%n"/>
-        </File>
+        </File>-->
+        <RollingFile name="RollingFile" filename="logs/elegit.log"
+                     filePattern="logs/elegit-%d{MM-dd-yyyy}.log" ignoreExceptions="false">
+            <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %c{1}.%M %L - %msg%n"/>
+            <TimeBasedTriggeringPolicy />
+        </RollingFile>
     </Appenders>
     <Loggers>
-        <root level="ALL">
-            <appender-ref ref="File" />
+        <root level="INFO">
+            <appender-ref ref="RollingFile" />
         </root>
     </Loggers>
 </Configuration>

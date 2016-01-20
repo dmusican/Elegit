@@ -4,6 +4,8 @@ import javafx.scene.control.*;
 import main.java.elegit.treefx.Cell;
 import main.java.elegit.treefx.TreeGraph;
 import main.java.elegit.treefx.TreeGraphModel;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.ObjectId;
 
@@ -32,6 +34,8 @@ public abstract class CommitTreeModel{
     private List<BranchHelper> branches;
     // A map from branch names to the branches themselves
     private Map<String, BranchHelper> branchMap;
+
+    static final Logger logger = LogManager.getLogger();
 
     /**
      * Constructs a new commit tree model that supplies the data for the given
@@ -234,7 +238,10 @@ public abstract class CommitTreeModel{
         ContextMenu contextMenu = new ContextMenu();
 
         MenuItem infoItem = new MenuItem("Show Info");
-        infoItem.setOnAction(event -> CommitTreeController.selectCommit(commit.getId(), false, false, false));
+        infoItem.setOnAction(event -> {
+            logger.info("Showed info");
+            CommitTreeController.selectCommit(commit.getId(), false, false, false);
+        });
         infoItem.disableProperty().bind(CommitTreeController.selectedIDProperty().isEqualTo(commit.getId()));
 
         Menu relativesMenu = new Menu("Show Relatives");
@@ -243,19 +250,34 @@ public abstract class CommitTreeModel{
         showEdgesItem.setDisable(true);
 
         MenuItem parentsItem = new MenuItem("Parents");
-        parentsItem.setOnAction(event -> CommitTreeController.selectCommit(commit.getId(), true, false, false));
+        parentsItem.setOnAction(event -> {
+            logger.info("Selected see parents");
+            CommitTreeController.selectCommit(commit.getId(), true, false, false);
+        });
 
         MenuItem childrenItem = new MenuItem("Children");
-        childrenItem.setOnAction(event -> CommitTreeController.selectCommit(commit.getId(), false, true, false));
+        childrenItem.setOnAction(event -> {
+            logger.info("Selected see children");
+            CommitTreeController.selectCommit(commit.getId(), false, true, false);
+        });
 
         MenuItem parentsAndChildrenItem = new MenuItem("Both");
-        parentsAndChildrenItem.setOnAction(event -> CommitTreeController.selectCommit(commit.getId(), true, true, false));
+        parentsAndChildrenItem.setOnAction(event -> {
+            logger.info("Selected see children and parents");
+            CommitTreeController.selectCommit(commit.getId(), true, true, false);
+        });
 
         MenuItem allAncestorsItem = new MenuItem("Ancestors");
-        allAncestorsItem.setOnAction(event -> CommitTreeController.selectCommit(commit.getId(), true, false, true));
+        allAncestorsItem.setOnAction(event -> {
+            logger.info("Selected see ancestors");
+            CommitTreeController.selectCommit(commit.getId(), true, false, true);
+        });
 
         MenuItem allDescendantsItem = new MenuItem("Descendants");
-        allDescendantsItem.setOnAction(event -> CommitTreeController.selectCommit(commit.getId(), false, true, true));
+        allDescendantsItem.setOnAction(event -> {
+            logger.info("Selected see descendants");
+            CommitTreeController.selectCommit(commit.getId(), false, true, true);
+        });
 
         relativesMenu.getItems().setAll(parentsItem, childrenItem, parentsAndChildrenItem,
                 new SeparatorMenuItem(), allAncestorsItem, allDescendantsItem,

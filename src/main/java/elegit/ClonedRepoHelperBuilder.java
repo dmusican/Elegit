@@ -5,6 +5,7 @@ import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.*;
@@ -13,6 +14,8 @@ import javafx.scene.text.Text;
 import javafx.util.Pair;
 import main.java.elegit.exceptions.CancelledAuthorizationException;
 import main.java.elegit.exceptions.NoRepoSelectedException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.eclipse.jgit.api.LsRemoteCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
@@ -35,6 +38,8 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
 
     private static String prevRemoteURL, prevDestinationPath, prevRepoName;
 
+    static final Logger logger = LogManager.getLogger();
+
     public ClonedRepoHelperBuilder(SessionModel sessionModel) {
         super(sessionModel);
     }
@@ -51,6 +56,8 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
         // Inspired by: http://code.makery.ch/blog/javafx-dialogs-official/
 
         // Create the custom dialog.
+
+        logger.info("Load remote repo dialog started");
         Dialog<Pair<String, String>> dialog = new Dialog<>();
         dialog.setTitle("Clone");
         dialog.setHeaderText("Clone a remote repository");
@@ -61,6 +68,12 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
         // Set the button types.
         ButtonType cloneButtonType = new ButtonType("Clone", ButtonBar.ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().addAll(cloneButtonType, ButtonType.CANCEL);
+        dialog.setOnCloseRequest(new EventHandler<DialogEvent>() {
+            @Override
+            public void handle(DialogEvent event) {
+                logger.info("Closed clone from remote dialog");
+            }
+        });
 
         // Create the Remote URL and destination path labels and fields.
         GridPane grid = new GridPane();

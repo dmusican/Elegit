@@ -282,7 +282,6 @@ public class SessionController {
      */
     private synchronized void handleLoadRepoMenuItem(RepoHelperBuilder builder){
         try{
-            logger.info("Load remote repo dialog started");
             RepoHelper repoHelper = builder.getRepoHelperFromDialogs();
             BusyWindow.show();
             RepositoryMonitor.pause();
@@ -404,7 +403,6 @@ public class SessionController {
      * and loads it using the handleRecentRepoMenuItem(...) method.
      */
     public void loadSelectedRepo() {
-        logger.info("Switch repos dropdown clicked");
         RepoHelper selectedRepoHelper = this.repoDropdownSelector.getValue();
         this.handleRecentRepoMenuItem(selectedRepoHelper);
     }
@@ -798,7 +796,6 @@ public class SessionController {
      * Checks out the branch that is currently selected in the dropdown.
      */
     public void loadSelectedBranch() {
-        logger.info("Selected branch to switch to");
         LocalBranchHelper selectedBranch = this.branchDropdownSelector.getValue();
         if(selectedBranch == null) return;
         Thread th = new Thread(new Task<Void>(){
@@ -928,47 +925,6 @@ public class SessionController {
     public void handleSwitchUserButton(){
         logger.info("Username button clicked");
         this.switchUser();
-    }
-
-    /**
-     * Called when the gitignore button is clicked.
-     */
-    public void handleGitIgnoreButton() {
-        logger.info("Git ignore button clicked");
-        try { this.gitIgnore();
-        } catch (IOException e){
-            this.notificationPane.setText("There was an IO error.");
-        } catch (NoOwnerInfoException e){
-            this.notificationPane.setText("No user logged in.");
-        } catch (GitAPIException e){
-            this.notificationPane.setText("Error in Git server.");
-        }
-    }
-
-    public void gitIgnore() throws IOException, NoOwnerInfoException, GitAPIException {
-        try {
-            if (this.theModel.getCurrentRepo() == null) { throw new NoRepoLoadedException();
-            } else if (this.theModel.getDefaultUsername() == null){
-                throw new NoOwnerInfoException();
-            }
-        } catch (NoRepoLoadedException e){
-            this.notificationPane.setText("No repo loaded.");
-        }
-        Repository rep = this.theModel.getCurrentRepo();
-        try {
-        RepoHelper rh = new RepoHelper(rep.getDirectory().toPath(), this.theModel.getDefaultUsername()) {
-            @Override
-            protected Repository obtainRepository() throws GitAPIException, IOException {
-                return theModel.getCurrentRepo();
-            }
-        };
-        rh.addGitIgnoreFile(); } catch (CancelledAuthorizationException e) {
-            //If the user cancels, we don't worry about it
-        }
-
-        this.notificationPane.getActions().clear();
-        this.notificationPane.show();
-
     }
 
     /**

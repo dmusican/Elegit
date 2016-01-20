@@ -22,14 +22,15 @@ import org.apache.logging.log4j.core.config.xml.XmlConfigurationFactory;
  * The starting point for this JavaFX application.
  */
 public class Main extends Application {
-    static final Logger logger = LogManager.getLogger();
 
     @Override
     public void start(Stage primaryStage) throws Exception{
 
         // -----------------------------------------------------------------------
+        System.setProperty("log4j.configurationFile", "src/main/resources/elegit/config/log4j2.xml");
+        final Logger logger = LogManager.getLogger();
+
         File logConfigFile = new File( "src/main/resources/elegit/config/log4j2.xml" );
-        System.setProperty( "logFilename", "filename.log" );
 
         try {
             FileInputStream fis = new FileInputStream( logConfigFile );

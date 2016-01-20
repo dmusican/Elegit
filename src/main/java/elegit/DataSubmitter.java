@@ -18,8 +18,8 @@ import org.apache.logging.log4j.Logger;
 
 public class DataSubmitter {
     private static final String submitUrl = "http://localhost:8080"; //for testing, keeping the local one
-    private static final String filepath = "filename.log";
-    private static final Logger logger = LogManager.getLogger(DataSubmitter.class);
+    private static final String filepath = "logfile.log";
+    private static final Logger logger = LogManager.getLogger();
     public DataSubmitter() {
     }
 
@@ -37,15 +37,15 @@ public class DataSubmitter {
 
             httppost.setEntity(reqEntity);
 
-            System.out.println("Executing request: " + httppost.getRequestLine());
+            logger.info(httppost.getRequestLine());
             CloseableHttpResponse response = httpclient.execute(httppost);
             try {
-                System.out.println("----------------------------------------");
-                System.out.println(response.getStatusLine());
-                System.out.println(EntityUtils.toString(response.getEntity()));
+                logger.info("Executing request: "+response.getStatusLine());
+                logger.info(EntityUtils.toString(response.getEntity()));
             } catch (Exception e) {
-                response.close();
                 logger.error("Response status check failed.");
+                response.close();
+                return;
             }
         } catch (Exception e) {
             logger.error("Failed to execute request. Attempting to close client.");
@@ -53,7 +53,10 @@ public class DataSubmitter {
                 httpclient.close();
             } catch (Exception f) {
                 logger.error("Failed to close client.");
+                return;
             }
+            return;
         }
+        logger.info("File upload was successful");
     }
 }

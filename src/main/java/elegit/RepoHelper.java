@@ -1,8 +1,9 @@
 package main.java.elegit;
 
+import javafx.event.EventHandler;
+import javafx.stage.WindowEvent;
 import main.java.elegit.exceptions.ConflictingFilesException;
 import main.java.elegit.exceptions.MissingRepoException;
-import main.java.elegit.exceptions.NoOwnerInfoException;
 import main.java.elegit.exceptions.PushToAheadRemoteError;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
@@ -17,6 +18,8 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Pair;
 import main.java.elegit.exceptions.*;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.controlsfx.control.NotificationPane;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -65,6 +68,8 @@ public abstract class RepoHelper {
     public BooleanProperty hasRemoteProperty;
     public BooleanProperty hasUnpushedCommitsProperty;
     public BooleanProperty hasUnmergedCommitsProperty;
+
+    static final Logger logger = LogManager.getLogger();
 
     /**
      * Creates a RepoHelper object for holding a Repository and interacting with it
@@ -123,6 +128,7 @@ public abstract class RepoHelper {
      * @return true if the corresponding repository still exists in the expected location
      */
     public boolean exists(){
+        logger.debug("Checked if repo still exists");
         return localPath.toFile().exists() && localPath.toFile().list((dir, name) -> name.equals(".git")).length > 0;
     }
 
@@ -171,23 +177,6 @@ public abstract class RepoHelper {
     }
 
     /**
-     * Adds a git ignore file if needed to the repo.
-     * Otherwise calls on the editGitIgnoreFile method.
-     */
-
-    public void addGitIgnoreFile(){
-
-    }
-
-    /**
-     * Edits an existing gitignore file
-     */
-
-    public void editGitIgnoreFile(){
-
-    }
-
-    /**
      * Gets a list of all remotes associated with this repository. The URLs
      * correspond to the output seen by running 'git remote -v'
      * @return a list of the remote URLs associated with this repository
@@ -230,6 +219,7 @@ public abstract class RepoHelper {
      * @throws GitAPIException if the `git commit` call fails.
      */
     public void commit(String commitMessage) throws GitAPIException, MissingRepoException {
+        logger.info("Attempting commit");
         if(!exists()) throw new MissingRepoException();
         // should this Git instance be class-level?
         Git git = new Git(this.repo);
@@ -247,6 +237,7 @@ public abstract class RepoHelper {
      * @throws GitAPIException if the `git push` call fails.
      */
     public void pushAll(UsernamePasswordCredentialsProvider ownerAuth) throws GitAPIException, MissingRepoException, PushToAheadRemoteError {
+        logger.info("Attempting push");
         if(!exists()) throw new MissingRepoException();
         if(!hasRemote()) throw new InvalidRemoteException("No remote repository");
         Git git = new Git(this.repo);
@@ -288,6 +279,7 @@ public abstract class RepoHelper {
      * @throws MissingRepoException
      */
     public boolean fetch(UsernamePasswordCredentialsProvider ownerAuth) throws GitAPIException, MissingRepoException{
+        logger.info("Attempting fetch");
         if(!exists()) throw new MissingRepoException();
         Git git = new Git(this.repo);
 
@@ -322,6 +314,7 @@ public abstract class RepoHelper {
      * @throws MissingRepoException
      */
     public boolean mergeFromFetch() throws IOException, GitAPIException, MissingRepoException, ConflictingFilesException {
+        logger.info("Attempting merge from fetch");
         if(!exists()) throw new MissingRepoException();
         if(!hasRemote()) throw new InvalidRemoteException("No remote repository");
         Git git = new Git(this.repo);
@@ -346,6 +339,7 @@ public abstract class RepoHelper {
      * @throws CancelledAuthorizationException if the user presses cancel or closes the dialog.
      */
     public UsernamePasswordCredentialsProvider presentAuthorizeDialog() throws CancelledAuthorizationException {
+        logger.info("Creating authorization dialog");
         // Create the custom dialog.
         Dialog<Pair<String,Pair<String,Boolean>>> dialog = new Dialog<>();
         dialog.setTitle("Authorize");
@@ -354,6 +348,13 @@ public abstract class RepoHelper {
         // Set the button types.
         ButtonType loginButtonType = new ButtonType("Authorize", ButtonBar.ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().addAll(loginButtonType, ButtonType.CANCEL);
+
+        dialog.setOnCloseRequest(new EventHandler<DialogEvent>() {
+            @Override
+            public void handle(DialogEvent event) {
+                logger.info("Closing authorization dialog");
+            }
+        });
 
         // Create the username and password labels and fields.
         GridPane grid = new GridPane();
@@ -434,12 +435,15 @@ public abstract class RepoHelper {
             }
             //Only store password if remember password was selected
             if (result.get().getValue().getValue()) {
+                logger.info("Selected remember password");
                 this.password = result.get().getValue().getKey();
             }
             ownerAuth = new UsernamePasswordCredentialsProvider(this.username, result.get().getValue().getKey());
         } else {
+            logger.info("Cancelled authorization dialog");
             throw new CancelledAuthorizationException();
         }
+        logger.info("Entered authorization credentials");
         return ownerAuth;
     }
 
@@ -449,6 +453,7 @@ public abstract class RepoHelper {
     * @throws CancelledUsernameException if the user presses cancel or closes the dialog.
     */
     public void presentUsernameDialog() throws CancelledUsernameException {
+        logger.info("Opened username dialog");
         // Create the custom dialog.
         Dialog<String> dialog = new Dialog<>();
         dialog.setTitle("Username");
@@ -457,6 +462,13 @@ public abstract class RepoHelper {
         // Set the button types.
         ButtonType okButtonType = new ButtonType("OK", ButtonBar.ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().addAll(okButtonType, ButtonType.CANCEL);
+
+        dialog.setOnCloseRequest(new EventHandler<DialogEvent>() {
+            @Override
+            public void handle(DialogEvent event) {
+                logger.info("Closed username dialog");
+            }
+        });
 
         // Create the username and password labels and fields.
         GridPane grid = new GridPane();
@@ -504,8 +516,10 @@ public abstract class RepoHelper {
         UsernamePasswordCredentialsProvider ownerAuth;
 
         if (result.isPresent()) {
+            logger.info("Set username");
             this.username = result.get();
         } else {
+            logger.info("Cancelled username dialog");
             throw new CancelledUsernameException();
         }
     }
@@ -922,6 +936,7 @@ public abstract class RepoHelper {
     }
 
     public void showBranchManagerWindow() throws IOException {
+        logger.info("Opened branch manager window");
         // Create and display the Stage:
         NotificationPane fxmlRoot = FXMLLoader.load(getClass().getResource("/elegit/fxml/BranchManager.fxml"));
 
@@ -929,6 +944,12 @@ public abstract class RepoHelper {
         stage.setTitle("Branch Manager");
         stage.setScene(new Scene(fxmlRoot, 550, 450));
         stage.initModality(Modality.APPLICATION_MODAL);
+        stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
+            @Override
+            public void handle(WindowEvent event) {
+                logger.info("Closed branch manager window");
+            }
+        });
         stage.show();
     }
 
