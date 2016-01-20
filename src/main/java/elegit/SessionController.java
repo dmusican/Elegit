@@ -7,6 +7,7 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.concurrent.Task;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Side;
@@ -27,7 +28,10 @@ import javafx.scene.shape.Circle;
 import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 import main.java.elegit.exceptions.*;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.controlsfx.control.CheckListView;
 import org.controlsfx.control.NotificationPane;
 import org.controlsfx.control.PopOver;
@@ -110,6 +114,8 @@ public class SessionController {
 
     private volatile boolean isRecentRepoEventListenerBlocked = false;
 
+    static final Logger logger = LogManager.getLogger(SessionController.class);
+
     /**
      * Initializes the environment by obtaining the model
      * and putting the views on display.
@@ -168,12 +174,16 @@ public class SessionController {
         Text downloadIcon = GlyphsDude.createIcon(FontAwesomeIcon.CLOUD_DOWNLOAD);
         MenuItem cloneOption = new MenuItem("Clone repository", downloadIcon);
         cloneOption.setOnAction(t -> {
+            logger.info("Load remote repo button clicked");
             handleLoadRepoMenuItem(new ClonedRepoHelperBuilder(this.theModel));
         });
 
         Text folderOpenIcon = GlyphsDude.createIcon(FontAwesomeIcon.FOLDER_OPEN);
         MenuItem existingOption = new MenuItem("Load existing repository", folderOpenIcon);
-        existingOption.setOnAction(t -> handleLoadRepoMenuItem(new ExistingRepoHelperBuilder(this.theModel)));
+        existingOption.setOnAction(t -> {
+            logger.info("Load local repo button clicked");
+            handleLoadRepoMenuItem(new ExistingRepoHelperBuilder(this.theModel));
+        });
         ContextMenu newRepoOptionsMenu = new ContextMenu(cloneOption, existingOption);
 
         this.loadNewRepoButton.setOnAction(e -> newRepoOptionsMenu.show(this.loadNewRepoButton, Side.BOTTOM ,0, 0));
@@ -272,6 +282,7 @@ public class SessionController {
      */
     private synchronized void handleLoadRepoMenuItem(RepoHelperBuilder builder){
         try{
+            logger.info("Load remote repo dialog started");
             RepoHelper repoHelper = builder.getRepoHelperFromDialogs();
             BusyWindow.show();
             RepositoryMonitor.pause();
@@ -354,6 +365,7 @@ public class SessionController {
      */
     private synchronized void handleRecentRepoMenuItem(RepoHelper repoHelper){
         if(isRecentRepoEventListenerBlocked) return;
+        logger.info("Switching repos");
         BusyWindow.show();
         RepositoryMonitor.pause();
         Thread th = new Thread(new Task<Void>(){
@@ -392,6 +404,7 @@ public class SessionController {
      * and loads it using the handleRecentRepoMenuItem(...) method.
      */
     public void loadSelectedRepo() {
+        logger.info("Switch repos dropdown clicked");
         RepoHelper selectedRepoHelper = this.repoDropdownSelector.getValue();
         this.handleRecentRepoMenuItem(selectedRepoHelper);
     }
@@ -402,6 +415,8 @@ public class SessionController {
      */
     public void handleCommitButton() {
         try {
+            int x =5;
+            logger.info("Commit button clicked");
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
             if(!this.theModel.getCurrentRepoHelper().exists()) throw new MissingRepoException();
 
@@ -474,6 +489,7 @@ public class SessionController {
      */
     public void handleMergeFromFetchButton() {
         try{
+            logger.info("Merge from fetch button clicked");
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
             if(!this.theModel.getCurrentRepoHelper().hasUnmergedCommits()) throw new NoCommitsToMergeException();
 
@@ -527,6 +543,7 @@ public class SessionController {
      */
     public void handlePushButton() {
         try {
+            logger.info("Push button clicked");
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
             if(!this.theModel.getCurrentRepoHelper().hasUnpushedCommits()) throw new NoCommitsToPushException();
 
@@ -590,6 +607,7 @@ public class SessionController {
      * Handles a click on the "Fetch" button. Calls gitFetch()
      */
     public void handleFetchButton(){
+        logger.info("Fetch button clicked");
         gitFetch();
     }
 
@@ -645,7 +663,7 @@ public class SessionController {
             th.setDaemon(true);
             th.setName("Git fetch");
             th.start();
-        }catch(NoRepoLoadedException e){
+        }catch(NoRepoLoadedException e) {
             this.showNoRepoLoadedNotification();
             setButtonsDisabled(true);
         }
@@ -656,6 +674,7 @@ public class SessionController {
      * Highlights the current HEAD.
      */
     public void onGitStatusButton(){
+        logger.info("Git status button clicked");
         this.gitStatus();
         CommitTreeController.focusCommitInGraph(theModel.getCurrentRepoHelper().getHead());
     }
@@ -779,6 +798,7 @@ public class SessionController {
      * Checks out the branch that is currently selected in the dropdown.
      */
     public void loadSelectedBranch() {
+        logger.info("Selected branch to switch to");
         LocalBranchHelper selectedBranch = this.branchDropdownSelector.getValue();
         if(selectedBranch == null) return;
         Thread th = new Thread(new Task<Void>(){
@@ -906,6 +926,7 @@ public class SessionController {
      * Called when the switch user button is clicked. See switchUser
      */
     public void handleSwitchUserButton(){
+        logger.info("Username button clicked");
         this.switchUser();
     }
 
@@ -913,6 +934,7 @@ public class SessionController {
      * Called when the gitignore button is clicked.
      */
     public void handleGitIgnoreButton() {
+        logger.info("Git ignore button clicked");
         try { this.gitIgnore();
         } catch (IOException e){
             this.notificationPane.setText("There was an IO error.");
@@ -955,6 +977,7 @@ public class SessionController {
     public void openRepoDirectory(){
         if (Desktop.isDesktopSupported()) {
             try{
+                logger.info("Opening Repo Directory");
                 if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
                 Desktop.getDesktop().open(this.theModel.getCurrentRepoHelper().localPath.toFile());
             }catch(IOException | IllegalArgumentException e){
@@ -970,6 +993,7 @@ public class SessionController {
 
     private void showGenericErrorNotification() {
         Platform.runLater(()-> {
+            logger.warn("Generic error warning.");
             this.notificationPane.setText("Sorry, there was an error.");
 
             this.notificationPane.getActions().clear();
@@ -979,6 +1003,7 @@ public class SessionController {
 
     private void showNoRepoLoadedNotification() {
         Platform.runLater(() -> {
+            logger.warn("No repo loaded warning.");
             this.notificationPane.setText("You need to load a repository before you can perform operations on it!");
 
             this.notificationPane.getActions().clear();
@@ -988,6 +1013,7 @@ public class SessionController {
 
     private void showInvalidRepoNotification() {
         Platform.runLater(() -> {
+            logger.warn("Invalid repo warning.");
             this.notificationPane.setText("Make sure the directory you selected contains an existing (non-bare) Git repository.");
 
             this.notificationPane.getActions().clear();
@@ -997,6 +1023,7 @@ public class SessionController {
 
     private void showMissingRepoNotification(){
         Platform.runLater(()-> {
+            logger.warn("Missing repo warning");
             this.notificationPane.setText("That repository no longer exists.");
 
             this.notificationPane.getActions().clear();
@@ -1006,6 +1033,7 @@ public class SessionController {
 
     private void showNoRemoteNotification(){
         Platform.runLater(()-> {
+            logger.warn("No remote repo warning");
             String name = this.theModel.getCurrentRepoHelper() != null ? this.theModel.getCurrentRepoHelper().toString() : "the current repository";
 
             this.notificationPane.setText("There is no remote repository associated with " + name);
@@ -1017,6 +1045,7 @@ public class SessionController {
 
     private void showFailedToOpenLocalNotification(){
         Platform.runLater(()-> {
+            logger.warn("Failed to load local repo warning");
             String path = this.theModel.getCurrentRepoHelper() != null ? this.theModel.getCurrentRepoHelper().getLocalPath().toString() : "the location of the local repository";
 
             this.notificationPane.setText("Could not open directory at " + path);
@@ -1028,6 +1057,7 @@ public class SessionController {
 
     private void showNonEmptyFolderNotification(Runnable callback) {
         Platform.runLater(()-> {
+            logger.warn("Folder alread exists warning");
             this.notificationPane.setText("Make sure a folder with that name doesn't already exist in that location");
 
             Action okAction = new Action("OK", e -> {
@@ -1043,6 +1073,7 @@ public class SessionController {
 
     private void showInvalidRemoteNotification(Runnable callback) {
         Platform.runLater(() -> {
+            logger.warn("Invalid remote warning");
             this.notificationPane.setText("Make sure you entered the correct remote URL.");
 
             Action okAction = new Action("OK", e -> {
@@ -1058,6 +1089,7 @@ public class SessionController {
 
     private void showNotAuthorizedNotification(Runnable callback) {
         Platform.runLater(() -> {
+            logger.warn("Invalid authorization warning");
             this.notificationPane.setText("The authorization information you gave does not allow you to modify this repository. " +
                     "Try reentering your password.");
 
@@ -1077,6 +1109,7 @@ public class SessionController {
 
     private void showRepoWasNotLoadedNotification() {
         Platform.runLater(() -> {
+            logger.warn("Repo not loaded warning");
             this.notificationPane.setText("No repository was loaded.");
 
             this.notificationPane.getActions().clear();
@@ -1086,6 +1119,7 @@ public class SessionController {
 
     private void showCheckoutConflictsNotification(List<String> conflictingPaths) {
         Platform.runLater(() -> {
+            logger.warn("Checkout conflicts warning");
             String conflictList = "";
             for(String pathName : conflictingPaths){
                 conflictList += "\n" + pathName;
@@ -1112,6 +1146,7 @@ public class SessionController {
 
     private void showMergeConflictsNotification(List<String> conflictingPaths){
         Platform.runLater(() -> {
+            logger.warn("Merge conflicts warning");
             String conflictList = "";
             for(String pathName : conflictingPaths){
                 conflictList += "\n" + pathName;
@@ -1139,6 +1174,7 @@ public class SessionController {
 
     private void showPushToAheadRemoteNotification(boolean allRefsRejected){
         Platform.runLater(() -> {
+            logger.warn("Remote ahead of local warning");
             if(allRefsRejected){
                 this.notificationPane.setText("The remote repository is ahead of the local. You need to fetch and then merge (pull) before pushing.");
             }else{
@@ -1152,6 +1188,7 @@ public class SessionController {
 
     private void showLostRemoteNotification() {
         Platform.runLater(() -> {
+            logger.warn("Remote repo couldn't be found warning");
             this.notificationPane.setText("The push failed because the remote repository couldn't be found.");
 
             this.notificationPane.getActions().clear();
@@ -1161,6 +1198,7 @@ public class SessionController {
 
     private void showUnsuccessfulMergeNotification(){
         Platform.runLater(() -> {
+            logger.warn("Failed merged warning");
             this.notificationPane.setText("Merging failed");
 
             this.notificationPane.getActions().clear();
@@ -1170,6 +1208,7 @@ public class SessionController {
 
     private void showNewRemoteChangesNotification(){
         Platform.runLater(() -> {
+            logger.info("New remote repo changes");
             this.notificationPane.setText("There are new changes in the remote repository.");
 
             Action fetchAction = new Action("Fetch", e -> {
@@ -1191,6 +1230,7 @@ public class SessionController {
 
     private void showNoFilesStagedForCommitNotification(){
         Platform.runLater(() -> {
+            logger.warn("No files staged for commit warning");
             this.notificationPane.setText("You need to select which files to commit");
 
             this.notificationPane.getActions().clear();
@@ -1200,6 +1240,7 @@ public class SessionController {
 
     private void showNoCommitMessageNotification(){
         Platform.runLater(() -> {
+            logger.warn("No commit message warning");
             this.notificationPane.setText("You need to write a commit message in order to commit your changes");
 
             this.notificationPane.getActions().clear();
@@ -1209,6 +1250,7 @@ public class SessionController {
 
     private void showNoCommitsToPushNotification(){
         Platform.runLater(() -> {
+            logger.warn("No local commits to push warning");
             this.notificationPane.setText("There aren't any local commits to push");
 
             this.notificationPane.getActions().clear();
@@ -1218,6 +1260,7 @@ public class SessionController {
 
     private void showNoCommitsToMergeNotification(){
         Platform.runLater(() -> {
+            logger.warn("No commits to merge warning");
             this.notificationPane.setText("There aren't any commits to merge. Try fetching first");
 
             this.notificationPane.getActions().clear();
@@ -1227,6 +1270,7 @@ public class SessionController {
 
     private void showNoCommitsFetchedNotification(){
         Platform.runLater(() -> {
+            logger.warn("No commits fetched warning");
             this.notificationPane.setText("No new commits were fetched");
 
             this.notificationPane.getActions().clear();
@@ -1236,6 +1280,7 @@ public class SessionController {
 
     private void showMergingWithChangedFilesNotification(){
         Platform.runLater(() -> {
+            logger.warn("Can't merge with modified files warning");
             this.notificationPane.setText("Can't merge with modified files present");
 
             // TODO: I think some sort of help text would be nice here, so they know what to do
@@ -1254,6 +1299,7 @@ public class SessionController {
      */
     public void showBranchManager() {
         try{
+            logger.info("Branch manager clicked");
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
             this.theModel.getCurrentRepoHelper().showBranchManagerWindow();
         }catch(IOException e){
@@ -1270,6 +1316,7 @@ public class SessionController {
      */
     public void showLegend() {
         try{
+            logger.info("Legend clicked");
             // Create and display the Stage:
             NotificationPane fxmlRoot = FXMLLoader.load(getClass().getResource("/elegit/fxml/Legend.fxml"));
 
@@ -1277,6 +1324,12 @@ public class SessionController {
             stage.setTitle("Legend");
             stage.setScene(new Scene(fxmlRoot, 250, 300));
             stage.initModality(Modality.APPLICATION_MODAL);
+            stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
+                @Override
+                public void handle(WindowEvent event) {
+                    logger.info("Closed legend");
+                }
+            });
             stage.show();
         }catch(IOException e) {
             this.showGenericErrorNotification();
@@ -1332,6 +1385,7 @@ public class SessionController {
      * Copies the commit hash onto the clipboard
      */
     public void handleCommitNameCopyButton(){
+        logger.info("Commit name copied");
         Clipboard clipboard = Clipboard.getSystemClipboard();
         ClipboardContent content = new ClipboardContent();
         content.putString(commitInfoNameText.getText());
@@ -1342,6 +1396,7 @@ public class SessionController {
      * Jumps to the selected commit in the tree display
      */
     public void handleGoToCommitButton(){
+        logger.info("Go to commit button clicked");
         String id = commitInfoNameText.getText();
         CommitTreeController.focusCommitInGraph(id);
     }
@@ -1351,6 +1406,7 @@ public class SessionController {
      *
      */
     public void onSelectAllButton() {
+        logger.info("Selected all files");
         this.workingTreePanelView.setAllFilesSelected(true);
     }
 
@@ -1359,10 +1415,12 @@ public class SessionController {
      *
      */
     public void onDeselectAllButton() {
+        logger.info("Deselected all files");
         this.workingTreePanelView.setAllFilesSelected(false);
     }
 
     public void chooseRecentReposToDelete() {
+        logger.info("Remove repos button clicked");
         List<RepoHelper> repoHelpers = this.theModel.getAllRepoHelpers();
         CheckListView<RepoHelper> repoCheckListView = new CheckListView<>(FXCollections.observableArrayList(repoHelpers));
 
@@ -1376,6 +1434,7 @@ public class SessionController {
         popover.setTitle("Manage Recent Repositories");
 
         removeSelectedButton.setOnAction(e -> {
+            logger.info("Removed repos");
             List<RepoHelper> checkedItems = repoCheckListView.getCheckModel().getCheckedItems();
             this.theModel.removeRepoHelpers(checkedItems);
             popover.hide();
@@ -1389,7 +1448,12 @@ public class SessionController {
         Platform.runLater(() -> {
             if(theModel.getCurrentRepoHelper() != null) {
                 String loginText = this.theModel.getCurrentRepoHelper().getUsername();
-                if (loginText == null) loginText = "Username";
+                if (loginText == null) {
+                    loginText = "Username";
+                }
+                else {
+                    logger.info("Set username");
+                }
                 this.switchUserButton.setText(loginText);
             } else{
                 this.switchUserButton.setText("Username");

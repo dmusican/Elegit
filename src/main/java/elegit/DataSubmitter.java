@@ -13,15 +13,18 @@ import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class DataSubmitter {
     private static final String submitUrl = "http://localhost:8080"; //for testing, keeping the local one
     private static final String filepath = "filename.log";
+    private static final Logger logger = LogManager.getLogger(DataSubmitter.class);
     public DataSubmitter() {
-
     }
 
     public void submitData() {
+        logger.info("Starting data submit");
         CloseableHttpClient httpclient = HttpClients.createDefault();
         try {
             HttpPost httppost = new HttpPost(submitUrl);
@@ -42,11 +45,14 @@ public class DataSubmitter {
                 System.out.println(EntityUtils.toString(response.getEntity()));
             } catch (Exception e) {
                 response.close();
+                logger.error("Response status check failed.");
             }
         } catch (Exception e) {
+            logger.error("Failed to execute request. Attempting to close client.");
             try {
                 httpclient.close();
             } catch (Exception f) {
+                logger.error("Failed to close client.");
             }
         }
     }
