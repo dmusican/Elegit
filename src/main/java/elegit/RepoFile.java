@@ -29,7 +29,7 @@ import java.util.ArrayList;
  * unaffected by commits.
  *
  */
-public class RepoFile {
+public class RepoFile implements Comparable {
 
     Path filePath;
     Repository repo;
@@ -136,10 +136,15 @@ public class RepoFile {
     }
 
     public boolean equals(Object o){
-        if(o != null && o instanceof RepoFile){
+        if(o != null && o.getClass().equals(this.getClass())){
             RepoFile other = (RepoFile) o;
             return this.filePath.equals(other.filePath) && other.getRepo().getDirectory().equals(getRepo().getDirectory());
         }
         return false;
+    }
+
+    @Override
+    public int compareTo(Object o) {
+        return this.toString().compareToIgnoreCase(o.toString());
     }
 }

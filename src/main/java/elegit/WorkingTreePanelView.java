@@ -10,9 +10,7 @@ import javafx.scene.control.cell.CheckBoxTreeCell;
 import javafx.util.Callback;
 import org.eclipse.jgit.api.errors.GitAPIException;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 /**
  *
@@ -26,11 +24,11 @@ public class WorkingTreePanelView extends FileStructurePanelView{
 
     public BooleanProperty isAnyFileSelectedProperty;
 
-    public List<TreeItem<RepoFile>> fileLeafs;
+    public List<TreeItem<RepoFile>> displayedFiles;
 
     public WorkingTreePanelView() {
         super();
-        this.fileLeafs = new LinkedList<>();
+        this.displayedFiles = new LinkedList<>();
         isAnyFileSelectedProperty = new SimpleBooleanProperty(false);
     }
 
@@ -45,24 +43,68 @@ public class WorkingTreePanelView extends FileStructurePanelView{
     }
 
     @Override
-    protected List<TreeItem<RepoFile>> getTreeItems(List<RepoFile> repoFiles) {
-        fileLeafs = new LinkedList<>();
+    protected void addTreeItemsToRoot(List<RepoFile> repoFiles, TreeItem<RepoFile> root) {
+        displayedFiles = new LinkedList<>();
 
-        BooleanProperty temp = new SimpleBooleanProperty(false);
+        // Helper to construct 'isAnyFileSelectedProperty'
+        BooleanProperty isSelectedPropertyHelper = new SimpleBooleanProperty(false);
 
-        for(RepoFile repoFile : repoFiles) {
-            CheckBoxTreeItem<RepoFile> file = new CheckBoxTreeItem<>(repoFile, repoFile.diffButton);
-
-            BooleanProperty oldTemp = temp;
-            temp = new SimpleBooleanProperty();
-            temp.bind(oldTemp.or(file.selectedProperty()));
-
-            fileLeafs.add(file);
+        // Track all current children of root to make sure they should still be displayed
+        Map<TreeItem<RepoFile>, Boolean> shouldKeepChild = new HashMap<>();
+        for(int i = 0; i < root.getChildren().size(); i++){
+            shouldKeepChild.put(root.getChildren().get(i), false);
         }
 
-        isAnyFileSelectedProperty.bind(temp);
+        // Loop over every file to be shown
+        for(RepoFile repoFile : repoFiles) {
+            CheckBoxTreeItem<RepoFile> newItem = new CheckBoxTreeItem<>(repoFile, repoFile.diffButton);
 
-        return fileLeafs;
+            BooleanProperty oldHelper = isSelectedPropertyHelper;
+            isSelectedPropertyHelper = new SimpleBooleanProperty();
+
+            // Check if the file is already being displayed
+            boolean foundMatchingItem = false;
+            for(int i = 0; i < root.getChildren().size(); i++){
+                CheckBoxTreeItem<RepoFile> oldItem = (CheckBoxTreeItem) root.getChildren().get(i);
+
+                if(oldItem.getValue().equals(repoFile)){
+                    // The given file is already present, no additional processing necessary
+                    isSelectedPropertyHelper.bind(oldHelper.or(oldItem.selectedProperty()));
+                    displayedFiles.add(oldItem);
+                    foundMatchingItem = true;
+                    shouldKeepChild.put(oldItem, true);
+                    break;
+                }else if(oldItem.getValue().getFilePath().equals(repoFile.getFilePath())){
+                    // The file was being displayed, but its status has changed. Replace the old with the new
+                    newItem.setSelected(oldItem.isSelected());
+                    root.getChildren().set(i, newItem);
+                    isSelectedPropertyHelper.bind(oldHelper.or(newItem.selectedProperty()));
+                    displayedFiles.add(newItem);
+                    foundMatchingItem = true;
+                    shouldKeepChild.put(newItem, true);
+                    break;
+                }
+            }
+
+            // The file wasn't being displayed, so add it
+            if(!foundMatchingItem){
+                root.getChildren().add(newItem);
+                isSelectedPropertyHelper.bind(oldHelper.or(newItem.selectedProperty()));
+
+                displayedFiles.add(newItem);
+
+                shouldKeepChild.put(newItem, true);
+            }
+        }
+
+        // Remove all elements that shouldn't be displayed
+        for(TreeItem item : shouldKeepChild.keySet()){
+            if(!shouldKeepChild.get(item)){
+                root.getChildren().remove(item);
+            }
+        }
+
+        isAnyFileSelectedProperty.bind(isSelectedPropertyHelper);
     }
 
     @Override
@@ -71,13 +113,13 @@ public class WorkingTreePanelView extends FileStructurePanelView{
     }
 
     /**
-     * Checks through all the file leafs and finds all leafs whose checkbox is checked.
+     * Checks through all the files and finds all whose checkbox is checked.
      *
      * @return an array of RepoFiles whose CheckBoxTreeItem cells are checked.
      */
     public ArrayList<RepoFile> getCheckedFilesInDirectory() {
         ArrayList<RepoFile> checkedFiles = new ArrayList<>();
-        for (TreeItem fileLeaf : this.fileLeafs) {
+        for (TreeItem fileLeaf : this.displayedFiles) {
             CheckBoxTreeItem checkBoxFile = (CheckBoxTreeItem) fileLeaf;
             if (checkBoxFile.isSelected())
                 checkedFiles.add((RepoFile)fileLeaf.getValue());
@@ -86,7 +128,7 @@ public class WorkingTreePanelView extends FileStructurePanelView{
     }
 
     public void setAllFilesSelected(boolean selected) {
-        for (TreeItem fileLeaf : fileLeafs) {
+        for (TreeItem fileLeaf : displayedFiles) {
             CheckBoxTreeItem checkBoxFile = (CheckBoxTreeItem) fileLeaf;
             checkBoxFile.setSelected(selected);
         }
