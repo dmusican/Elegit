@@ -16,7 +16,6 @@ import java.util.List;
  */
 public abstract class FileStructurePanelView extends Region{
 
-    // fileLeafs stores all 'leafs' in the directory TreeView:
     private TreeView<RepoFile> directoryTreeView;
     private TreeItem<RepoFile> treeRoot;
 
@@ -43,6 +42,11 @@ public abstract class FileStructurePanelView extends Region{
         this.directoryTreeView.setShowRoot(false);
 
         this.directoryTreeView.prefHeightProperty().bind(this.heightProperty());
+
+        Platform.runLater(() -> {
+            this.getChildren().clear();
+            this.getChildren().add(directoryTreeView);
+        });
     }
 
     /**
@@ -61,26 +65,14 @@ public abstract class FileStructurePanelView extends Region{
         }
 
         List<RepoFile> filesToShow = this.getFilesToDisplay();
-        List<TreeItem<RepoFile>> treeItemsToShow = this.addTreeItems(filesToShow, this.treeRoot);
-
-//        for(TreeItem<RepoFile> treeItem : treeItemsToShow){
-//            currentRoot.getChildren().add(treeItem);
-//        }
-
-//        this.directoryTreeView = new TreeView<>(rootItem);
-//        this.directoryTreeView.setCellFactory(this.getTreeCellFactory());
-
-        Platform.runLater(() -> {
-            this.getChildren().clear();
-            this.getChildren().add(directoryTreeView);
-        });
+        this.addTreeItemsToRoot(filesToShow, this.treeRoot);
     }
 
     protected Callback<TreeView<RepoFile>,TreeCell<RepoFile>> getTreeCellFactory(){
         return null;
     }
 
-    protected abstract List<TreeItem<RepoFile>> addTreeItems(List<RepoFile> repoFiles, TreeItem<RepoFile> root);
+    protected abstract void addTreeItemsToRoot(List<RepoFile> repoFiles, TreeItem<RepoFile> root);
 
     protected abstract TreeItem<RepoFile> getRootTreeItem(DirectoryRepoFile rootDirectory);
 

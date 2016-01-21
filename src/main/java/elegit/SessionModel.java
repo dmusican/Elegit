@@ -430,6 +430,7 @@ public class SessionModel {
             }
         }
 
+        Collections.sort(changedRepoFiles);
         return changedRepoFiles;
     }
     /**
@@ -458,6 +459,11 @@ public class SessionModel {
             paths.forEach(allPaths::add);
         }
 
+        List<Path> addedPaths = new LinkedList<>();
+        for(RepoFile file : allFiles){
+            addedPaths.add(file.getFilePath().toAbsolutePath());
+        }
+
         for(Path path : allPaths){
             RepoFile temp;
             if(path.toFile().isDirectory()){
@@ -465,11 +471,13 @@ public class SessionModel {
             }else{
                 temp = new RepoFile(path, currentRepoHelper.getRepo());
             }
-            if(!allFiles.contains(temp)){
+            if(!addedPaths.contains(path)){
                 allFiles.add(temp);
+                addedPaths.add(path);
             }
         }
 
+        Collections.sort(allFiles);
         return allFiles;
     }
 

@@ -9,7 +9,6 @@ import javafx.scene.control.TreeView;
 import javafx.scene.control.cell.CheckBoxTreeCell;
 import javafx.util.Callback;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import sun.reflect.generics.tree.Tree;
 
 import java.util.*;
 
@@ -25,11 +24,11 @@ public class WorkingTreePanelView extends FileStructurePanelView{
 
     public BooleanProperty isAnyFileSelectedProperty;
 
-    public List<TreeItem<RepoFile>> fileLeafs;
+    public List<TreeItem<RepoFile>> displayedFiles;
 
     public WorkingTreePanelView() {
         super();
-        this.fileLeafs = new LinkedList<>();
+        this.displayedFiles = new LinkedList<>();
         isAnyFileSelectedProperty = new SimpleBooleanProperty(false);
     }
 
@@ -44,8 +43,8 @@ public class WorkingTreePanelView extends FileStructurePanelView{
     }
 
     @Override
-    protected List<TreeItem<RepoFile>> addTreeItems(List<RepoFile> repoFiles, TreeItem<RepoFile> root) {
-        fileLeafs = new LinkedList<>();
+    protected void addTreeItemsToRoot(List<RepoFile> repoFiles, TreeItem<RepoFile> root) {
+        displayedFiles = new LinkedList<>();
 
         // Helper to construct 'isAnyFileSelectedProperty'
         BooleanProperty isSelectedPropertyHelper = new SimpleBooleanProperty(false);
@@ -71,7 +70,7 @@ public class WorkingTreePanelView extends FileStructurePanelView{
                 if(oldItem.getValue().equals(repoFile)){
                     // The given file is already present, no additional processing necessary
                     isSelectedPropertyHelper.bind(oldHelper.or(oldItem.selectedProperty()));
-                    fileLeafs.add(oldItem);
+                    displayedFiles.add(oldItem);
                     foundMatchingItem = true;
                     shouldKeepChild.put(oldItem, true);
                     break;
@@ -80,7 +79,7 @@ public class WorkingTreePanelView extends FileStructurePanelView{
                     newItem.setSelected(oldItem.isSelected());
                     root.getChildren().set(i, newItem);
                     isSelectedPropertyHelper.bind(oldHelper.or(newItem.selectedProperty()));
-                    fileLeafs.add(newItem);
+                    displayedFiles.add(newItem);
                     foundMatchingItem = true;
                     shouldKeepChild.put(newItem, true);
                     break;
@@ -92,7 +91,7 @@ public class WorkingTreePanelView extends FileStructurePanelView{
                 root.getChildren().add(newItem);
                 isSelectedPropertyHelper.bind(oldHelper.or(newItem.selectedProperty()));
 
-                fileLeafs.add(newItem);
+                displayedFiles.add(newItem);
 
                 shouldKeepChild.put(newItem, true);
             }
@@ -106,8 +105,6 @@ public class WorkingTreePanelView extends FileStructurePanelView{
         }
 
         isAnyFileSelectedProperty.bind(isSelectedPropertyHelper);
-
-        return fileLeafs;
     }
 
     @Override
@@ -116,13 +113,13 @@ public class WorkingTreePanelView extends FileStructurePanelView{
     }
 
     /**
-     * Checks through all the file leafs and finds all leafs whose checkbox is checked.
+     * Checks through all the files and finds all whose checkbox is checked.
      *
      * @return an array of RepoFiles whose CheckBoxTreeItem cells are checked.
      */
     public ArrayList<RepoFile> getCheckedFilesInDirectory() {
         ArrayList<RepoFile> checkedFiles = new ArrayList<>();
-        for (TreeItem fileLeaf : this.fileLeafs) {
+        for (TreeItem fileLeaf : this.displayedFiles) {
             CheckBoxTreeItem checkBoxFile = (CheckBoxTreeItem) fileLeaf;
             if (checkBoxFile.isSelected())
                 checkedFiles.add((RepoFile)fileLeaf.getValue());
@@ -131,7 +128,7 @@ public class WorkingTreePanelView extends FileStructurePanelView{
     }
 
     public void setAllFilesSelected(boolean selected) {
-        for (TreeItem fileLeaf : fileLeafs) {
+        for (TreeItem fileLeaf : displayedFiles) {
             CheckBoxTreeItem checkBoxFile = (CheckBoxTreeItem) fileLeaf;
             checkBoxFile.setSelected(selected);
         }
