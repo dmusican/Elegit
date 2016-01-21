@@ -107,6 +107,8 @@ public class SessionController {
     public Button commitInfoGoToButton;
     public TextArea commitInfoMessageText;
 
+    public DataSubmitter d;
+
     CommitTreeModel localCommitTreeModel;
     CommitTreeModel remoteCommitTreeModel;
 
@@ -124,6 +126,8 @@ public class SessionController {
      */
     public void initialize() {
         this.theModel = SessionModel.getSessionModel();
+
+        d = new DataSubmitter();
 
         this.initializeLayoutParameters();
 
@@ -542,6 +546,18 @@ public class SessionController {
     public void handlePushButton() {
         try {
             logger.info("Push button clicked");
+
+            Thread submit = new Thread(new Task<Void>() {
+                @Override
+                protected Void call() {
+                    d.submitData();
+                    return null;
+                }
+            });
+            submit.setDaemon(true);
+            submit.setName("Data submit");
+            submit.start();
+
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
             if(!this.theModel.getCurrentRepoHelper().hasUnpushedCommits()) throw new NoCommitsToPushException();
 

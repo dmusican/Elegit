@@ -18,45 +18,57 @@ import org.apache.logging.log4j.Logger;
 
 public class DataSubmitter {
     private static final String submitUrl = "http://localhost:8080"; //for testing, keeping the local one
-    private static final String filepath = "logfile.log";
     private static final Logger logger = LogManager.getLogger();
     public DataSubmitter() {
     }
 
     public void submitData() {
-        logger.info("Starting data submit");
-        CloseableHttpClient httpclient = HttpClients.createDefault();
-        try {
-            HttpPost httppost = new HttpPost(submitUrl);
+        logger.info("Submit data called");
 
-            File file = new File(filepath);
+        File logFolder = new File("logs/");
+        File[] logsToUpload = logFolder.listFiles();
 
-            InputStreamEntity reqEntity = new InputStreamEntity(
-                    new FileInputStream(file), -1, ContentType.APPLICATION_OCTET_STREAM);
-            reqEntity.setChunked(true);
-
-            httppost.setEntity(reqEntity);
-
-            logger.info(httppost.getRequestLine());
-            CloseableHttpResponse response = httpclient.execute(httppost);
+        for (File logFile: logsToUpload) {
+            if (!logFile.isFile() || logFile.getName().equals("elegit.log")) {
+                if (logsToUpload.length == 1) logger.info("No new logs to upload today");
+                break;
+            }
+            logger.info(logFile.getName().equals("elegit.log"));
+            logger.info("Attempting to upload log: {}",logFile.getName());
+            CloseableHttpClient httpclient = HttpClients.createDefault();
             try {
-                logger.info("Executing request: "+response.getStatusLine());
-                logger.info(EntityUtils.toString(response.getEntity()));
+                HttpPost httppost = new HttpPost(submitUrl);
+
+                InputStreamEntity reqEntity = new InputStreamEntity(
+                        new FileInputStream(logFile), -1, ContentType.APPLICATION_OCTET_STREAM);
+                reqEntity.setChunked(true);
+
+                httppost.setEntity(reqEntity);
+
+                logger.info(httppost.getRequestLine());
+                CloseableHttpResponse response = httpclient.execute(httppost);
+                try {
+                    logger.info("Executing request: " + response.getStatusLine());
+                    logger.info(EntityUtils.toString(response.getEntity()));
+                } catch (Exception e) {
+                    logger.error("Response status check failed.");
+                    response.close();
+                    return;
+                }
             } catch (Exception e) {
-                logger.error("Response status check failed.");
-                response.close();
+                logger.error("Failed to execute request. Attempting to close client.");
+                try {
+                    httpclient.close();
+                } catch (Exception f) {
+                    logger.error("Failed to close client.");
+                    return;
+                }
                 return;
             }
-        } catch (Exception e) {
-            logger.error("Failed to execute request. Attempting to close client.");
-            try {
-                httpclient.close();
-            } catch (Exception f) {
-                logger.error("Failed to close client.");
-                return;
+            if (logFile.delete()) {
+                logger.info("Succesfully deleted {}", logFile.getName());
             }
-            return;
+            logger.info("File upload was successful");
         }
-        logger.info("File upload was successful");
     }
 }

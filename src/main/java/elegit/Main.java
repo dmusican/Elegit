@@ -50,10 +50,6 @@ public class Main extends Application {
 
         logger.info("Starting up.");
 
-        //DataSubmitter d = new DataSubmitter();
-        //d.submitData();
-        // -------------------------------------------------------------------------
-
 
         Parent root = FXMLLoader.load(getClass().getResource("/elegit/fxml/MainView.fxml"));
         primaryStage.setTitle("Elegit");
