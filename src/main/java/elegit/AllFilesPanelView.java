@@ -21,7 +21,12 @@ public class AllFilesPanelView extends FileStructurePanelView{
 
     public AllFilesPanelView() {
         super();
+    }
+
+    @Override
+    public void init(){
         this.itemMap = new HashMap<>();
+        super.init();
     }
 
     @Override

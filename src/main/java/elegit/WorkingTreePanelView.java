@@ -28,8 +28,14 @@ public class WorkingTreePanelView extends FileStructurePanelView{
 
     public WorkingTreePanelView() {
         super();
+    }
+
+    @Override
+    public void init(){
         this.displayedFiles = new LinkedList<>();
         isAnyFileSelectedProperty = new SimpleBooleanProperty(false);
+
+        super.init();
     }
 
     @Override
