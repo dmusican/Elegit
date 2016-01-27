@@ -5,6 +5,8 @@ import javafx.beans.property.SimpleObjectProperty;
 import main.java.elegit.exceptions.CancelledAuthorizationException;
 import main.java.elegit.exceptions.MissingRepoException;
 import main.java.elegit.exceptions.NoOwnerInfoException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -41,6 +43,8 @@ public class SessionModel {
 
     Preferences preferences;
 
+    static final Logger logger = LogManager.getLogger();
+
     /**
      * @return the SessionModel object
      */
@@ -75,15 +79,20 @@ public class SessionModel {
                 ExistingRepoHelper existingRepoHelper = new ExistingRepoHelper(path, this.defaultUsername);
                 this.openRepoFromHelper(existingRepoHelper);
             } catch (IllegalArgumentException e) {
+                logger.warn("Recent repo not found in directory it used to be in");
                 // The most recent repo is no longer in the directory it used to be in,
                 // so just don't load it.
             }catch(GitAPIException | MissingRepoException e) {
+                logger.error("Git error or missing repo exception");
+                logger.debug(e.getStackTrace());
                 e.printStackTrace();
             } catch (CancelledAuthorizationException e) {
                 // Should never be used, as no authorization is needed for loading local files.
             }
         }
         }catch(IOException | BackingStoreException | ClassNotFoundException e){
+            logger.error("Some sort of error loading most recent repo helper");
+            logger.debug(e.getStackTrace());
             e.printStackTrace();
         }
     }
@@ -102,9 +111,12 @@ public class SessionModel {
                         ExistingRepoHelper existingRepoHelper = new ExistingRepoHelper(path, this.defaultUsername);
                         this.allRepoHelpers.add(existingRepoHelper);
                     } catch (IllegalArgumentException e) {
+                        logger.warn("Repository has been moved, we move along");
                         // This happens when this repository has been moved.
                         // We'll just move along.
                     } catch(GitAPIException e){
+                        logger.error("Git error loading recent repo helpers");
+                        logger.debug(e.getStackTrace());
                         e.printStackTrace();
                     } catch (CancelledAuthorizationException e) {
                         // This shouldn't happen loading local files.
@@ -112,6 +124,8 @@ public class SessionModel {
                 }
             }
         } catch(IOException | ClassNotFoundException | BackingStoreException e){
+            logger.error("Some sort of exception loading recent repo helpers");
+            logger.debug(e.getStackTrace());
             e.printStackTrace();
         }
     }
@@ -373,6 +387,8 @@ public class SessionModel {
                 }
             }
         } catch (Exception e) {
+            logger.error("Exception trying to populate directory repo file");
+            logger.debug(e.getStackTrace());
             e.printStackTrace();
         }
         return superDirectory;

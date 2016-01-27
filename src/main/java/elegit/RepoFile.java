@@ -2,6 +2,8 @@ package main.java.elegit;
 
 import javafx.scene.Node;
 import javafx.scene.control.Button;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.controlsfx.control.PopOver;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Repository;
@@ -33,6 +35,7 @@ public class RepoFile implements Comparable {
 
     Path filePath;
     Repository repo;
+    static final Logger logger = LogManager.getLogger();
     protected ArrayList<RepoFile> children; // Only directories will use this!
 
     Button diffButton;
@@ -57,8 +60,12 @@ public class RepoFile implements Comparable {
             try {
                 this.showDiffPopover(this.diffButton);
             } catch (IOException e1) {
+                logger.error("IOException in creating repo file");
+                logger.debug(e1.getStackTrace());
                 e1.printStackTrace();
             } catch (GitAPIException e1) {
+                logger.error("GitAPIException in creating repo file");
+                logger.debug(e1.getStackTrace());
                 e1.printStackTrace();
             }
         });

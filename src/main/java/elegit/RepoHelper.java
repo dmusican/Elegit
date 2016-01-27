@@ -590,6 +590,8 @@ public abstract class RepoHelper {
             try{
                 return getCommit(repo.resolve(idOrRefString));
             }catch(IOException e){
+                logger.error("IOException during getCommit");
+                logger.debug(e.getStackTrace());
                 return null;
             }
         }
@@ -982,6 +984,8 @@ public abstract class RepoHelper {
                 try{
                     branch.getHeadId();
                 }catch(IOException e){
+                    logger.error("IOException getting local branches");
+                    logger.debug(e.getStackTrace());
                     e.printStackTrace();
                 }
             }
@@ -1000,6 +1004,8 @@ public abstract class RepoHelper {
                 try{
                     branch.getHeadId();
                 }catch(IOException e){
+                    logger.error("IOException getting remote branches");
+                    logger.debug(e.getStackTrace());
                     e.printStackTrace();
                 }
             }
