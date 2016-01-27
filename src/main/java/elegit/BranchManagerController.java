@@ -76,6 +76,8 @@ public class BranchManagerController {
             try {
                 this.updateButtons();
             } catch (IOException e1) {
+                logger.error("Branch manager remote list view mouse click error");
+                logger.debug(e1.getStackTrace());
                 e1.printStackTrace();
             }
         });
@@ -86,6 +88,8 @@ public class BranchManagerController {
             try {
                 this.updateButtons();
             } catch (IOException e1) {
+                logger.error("Branch manager local list view mouse click error");
+                logger.debug(e1.getStackTrace());
                 e1.printStackTrace();
             }
         });
@@ -121,16 +125,22 @@ public class BranchManagerController {
             this.branchManagerModel.setLocalBranches(this.localListView.getItems());
             this.newBranchNameField.clear();
         } catch (InvalidRefNameException e1) {
+            logger.warn("Invalid branch name warning");
             this.showInvalidBranchNameNotification();
         } catch (RefNotFoundException e1) {
             // When a repo has no commits, you can't create branches because there
             //  are no commits to point to. This error gets raised when git can't find
             //  HEAD.
+            logger.warn("Can't create branch without a commit in the repo warning");
             this.showNoCommitsYetNotification();
         } catch (GitAPIException e1) {
+            logger.warn("Git error");
+            logger.debug(e1.getStackTrace());
             this.showGenericGitErrorNotification();
             e1.printStackTrace();
         } catch (IOException e1) {
+            logger.warn("Unspecified IOException");
+            logger.debug(e1.getStackTrace());
             this.showGenericErrorNotification();
             e1.printStackTrace();
         }
@@ -202,6 +212,7 @@ public class BranchManagerController {
                 this.branchManagerModel.setLocalBranches(this.localListView.getItems());
             }
         } catch (RefAlreadyExistsException e) {
+            logger.warn("Branch already exists locally warning");
             this.showRefAlreadyExistsNotification();
         }
     }
@@ -222,10 +233,13 @@ public class BranchManagerController {
                     this.branchManagerModel.setLocalBranches(this.localListView.getItems());
                 }
             } catch (NotMergedException e) {
+                logger.warn("Can't delete branch because not merged warning");
                 this.showNotMergedNotification(selectedBranch);
             } catch (CannotDeleteCurrentBranchException e) {
+                logger.warn("Can't delete current branch warning");
                 this.showCannotDeleteBranchNotification(selectedBranch);
             } catch (GitAPIException e) {
+                logger.warn("Git error");
                 this.showGenericGitErrorNotificationWithBranch(selectedBranch);
             }
         }
@@ -266,8 +280,10 @@ public class BranchManagerController {
                 this.branchManagerModel.setLocalBranches(this.localListView.getItems());
             }
         } catch (CannotDeleteCurrentBranchException e) {
+            logger.warn("Can't delete current branch warning");
             this.showCannotDeleteBranchNotification(branchToDelete);
         } catch (GitAPIException e) {
+            logger.warn("Git error");
             this.showGenericGitErrorNotificationWithBranch(branchToDelete);
             e.printStackTrace();
         }

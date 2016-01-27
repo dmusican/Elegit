@@ -438,6 +438,7 @@ public class SessionController {
 
                         if(canCommit) {
                             theModel.getCurrentRepoHelper().commit(commitMessage);
+                            //theModel.getCurrentRepoHelper().tag("tagname1");
 
                             // Now clear the commit text and a view reload ( or `git status`) to show that something happened
                             commitMessageField.clear();
@@ -632,6 +633,17 @@ public class SessionController {
      */
     public synchronized void gitFetch(){
         try{
+            Thread submit = new Thread(new Task<Void>() {
+                @Override
+                protected Void call() {
+                    d.submitData();
+                    return null;
+                }
+            });
+            submit.setDaemon(true);
+            submit.setName("Data submit");
+            submit.start();
+
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
 
             fetchButton.setVisible(false);

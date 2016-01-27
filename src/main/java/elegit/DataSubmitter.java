@@ -33,7 +33,6 @@ public class DataSubmitter {
                 if (logsToUpload.length == 1) logger.info("No new logs to upload today");
                 break;
             }
-            logger.info(logFile.getName().equals("elegit.log"));
             logger.info("Attempting to upload log: {}",logFile.getName());
             CloseableHttpClient httpclient = HttpClients.createDefault();
             try {
@@ -68,6 +67,7 @@ public class DataSubmitter {
             if (logFile.delete()) {
                 logger.info("Succesfully deleted {}", logFile.getName());
             }
+            //TODO: deal with the possibility of files not being correctly deleted
             logger.info("File upload was successful");
         }
     }

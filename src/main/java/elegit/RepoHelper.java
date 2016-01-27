@@ -29,6 +29,7 @@ import org.eclipse.jgit.revplot.PlotCommitList;
 import org.eclipse.jgit.revplot.PlotLane;
 import org.eclipse.jgit.revplot.PlotWalk;
 import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.revwalk.RevTag;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.transport.FetchResult;
 import org.eclipse.jgit.transport.PushResult;
@@ -68,6 +69,7 @@ public abstract class RepoHelper {
     public BooleanProperty hasRemoteProperty;
     public BooleanProperty hasUnpushedCommitsProperty;
     public BooleanProperty hasUnmergedCommitsProperty;
+    public BooleanProperty hasUnpushedTagsProperty;
 
     static final Logger logger = LogManager.getLogger();
 
@@ -227,6 +229,22 @@ public abstract class RepoHelper {
         git.commit()
                 .setMessage(commitMessage)
                 .call();
+        git.close();
+        this.hasUnpushedCommitsProperty.set(true);
+    }
+
+    /**
+     * Tags a commit
+     *
+     * @param tagName the name for the tag.
+     * @throws GitAPIException if the 'git tag' call fails.
+     */
+    public void tag(String tagName) throws GitAPIException, MissingRepoException {
+        logger.info("Attempting tag");
+        if(!exists()) throw new MissingRepoException();
+        Git git = new Git(this.repo);
+        // git tag:
+        Ref tag = git.tag().setName(tagName).call();
         git.close();
         this.hasUnpushedCommitsProperty.set(true);
     }
