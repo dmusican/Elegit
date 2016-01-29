@@ -367,7 +367,7 @@ public class SessionController {
      * @param repoHelper the repository to open
      */
     private synchronized void handleRecentRepoMenuItem(RepoHelper repoHelper){
-        if(isRecentRepoEventListenerBlocked) return;
+        if(isRecentRepoEventListenerBlocked || repoHelper == null) return;
         logger.info("Switching repos");
         BusyWindow.show();
         RepositoryMonitor.pause();
@@ -390,6 +390,9 @@ public class SessionController {
                     // These should only occur when the recent repo information
                     // fails to be loaded or stored, respectively
                     // Should be ok to silently fail
+                } catch(Exception e) {
+                    showGenericErrorNotification();
+                    e.printStackTrace();
                 } finally{
                     BusyWindow.hide();
                     RepositoryMonitor.unpause();
@@ -417,7 +420,6 @@ public class SessionController {
      */
     public void handleCommitButton() {
         try {
-            int x =5;
             logger.info("Commit button clicked");
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
             if(!this.theModel.getCurrentRepoHelper().exists()) throw new MissingRepoException();
@@ -464,6 +466,9 @@ public class SessionController {
 
                     } catch(GitAPIException | IOException e){
                         // Git error, or error presenting the file chooser window
+                        showGenericErrorNotification();
+                        e.printStackTrace();
+                    } catch(Exception e) {
                         showGenericErrorNotification();
                         e.printStackTrace();
                     }
@@ -524,6 +529,9 @@ public class SessionController {
                         setButtonsDisabled(true);
                         refreshRecentReposInDropdown();
                     } catch(GitAPIException | IOException e){
+                        showGenericErrorNotification();
+                        e.printStackTrace();
+                    } catch(Exception e) {
                         showGenericErrorNotification();
                         e.printStackTrace();
                     }
@@ -600,7 +608,10 @@ public class SessionController {
                     } catch(GitAPIException e){
                         showGenericErrorNotification();
                         e.printStackTrace();
-                    }finally{
+                    } catch(Exception e) {
+                        showGenericErrorNotification();
+                        e.printStackTrace();
+                    } finally{
                         pushProgressIndicator.setVisible(false);
                         pushButton.setVisible(true);
                     }
@@ -679,6 +690,9 @@ public class SessionController {
                     } catch(GitAPIException e){
                         showGenericErrorNotification();
                         e.printStackTrace();
+                    } catch(Exception e) {
+                        showGenericErrorNotification();
+                        e.printStackTrace();
                     } finally{
                         fetchProgressIndicator.setVisible(false);
                         fetchButton.setVisible(true);
@@ -711,7 +725,7 @@ public class SessionController {
      *
      * See initPanelViews for Thread information
      */
-    public synchronized void gitStatus(){
+    public void gitStatus(){
         RepositoryMonitor.pause();
         Thread th = new Thread(new Task<Void>(){
             @Override
@@ -733,7 +747,10 @@ public class SessionController {
                 } catch(GitAPIException | IOException e){
                     showGenericErrorNotification();
                     e.printStackTrace();
-                }finally{
+                } catch(Exception e) {
+                    showGenericErrorNotification();
+                    e.printStackTrace();
+                } finally{
                     RepositoryMonitor.unpause();
                 }
                 return null;

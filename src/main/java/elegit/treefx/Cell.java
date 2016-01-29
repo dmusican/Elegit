@@ -177,8 +177,10 @@ public class Cell extends Pane{
         newView.getStyleClass().setAll(this.view.getStyleClass());
 
         this.view = newView;
-        getChildren().clear();
-        getChildren().add(newView);
+        Platform.runLater(() -> {
+            getChildren().clear();
+            getChildren().add(newView);
+        });
     }
 
     /**

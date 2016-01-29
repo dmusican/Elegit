@@ -318,7 +318,6 @@ public abstract class RepoHelper {
 
         FetchResult result = fetch.call();
         git.close();
-//        System.out.println(result.getMessages());
         this.hasUnmergedCommitsProperty.set(this.hasUnmergedCommits() || !result.getTrackingRefUpdates().isEmpty());
         return !result.getTrackingRefUpdates().isEmpty();
     }

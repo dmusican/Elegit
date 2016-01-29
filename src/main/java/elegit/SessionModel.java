@@ -184,9 +184,11 @@ public class SessionModel {
      *          (by directory), or null if there is no such RepoHelper already in the model.
      */
     private RepoHelper matchRepoWithAlreadyLoadedRepo(RepoHelper repoHelperCandidate) {
-        for (RepoHelper repoHelper : this.allRepoHelpers) {
-            if (repoHelper.getLocalPath().equals(repoHelperCandidate.getLocalPath())) {
-                return repoHelper;
+        if(repoHelperCandidate != null) {
+            for (RepoHelper repoHelper : this.allRepoHelpers) {
+                if (repoHelper.getLocalPath().equals(repoHelperCandidate.getLocalPath())) {
+                    return repoHelper;
+                }
             }
         }
         return null;

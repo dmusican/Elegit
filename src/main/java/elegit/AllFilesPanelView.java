@@ -109,7 +109,8 @@ public class AllFilesPanelView extends FileStructurePanelView{
         // Remove all elements that shouldn't be displayed
         for (TreeItem<RepoFile> item : shouldKeepItem.keySet()) {
             if (!shouldKeepItem.get(item)) {
-                item.getParent().getChildren().remove(item);
+                if(item.getParent() != null)
+                    item.getParent().getChildren().remove(item);
                 itemMap.remove(item.getValue().getFilePath());
             }
         }

@@ -23,10 +23,11 @@ public class RepositoryMonitor{
 
     // Whether to ignore any new changes
     private static boolean ignoreNewRemoteChanges = false;
-
     private static boolean pauseLocalMonitor = false;
 
     private static int pauseCounter = 0;
+
+    private static boolean ignoreUnpause = false;
 
     // Thread information
     private static Thread th;
@@ -173,7 +174,12 @@ public class RepositoryMonitor{
     private static void pauseWatchingRemote(long millis){
         ignoreNewRemoteChanges = true;
 
-        if(millis < 0) return;
+        if(millis < 0){
+            ignoreUnpause = true;
+            return;
+        }else{
+            ignoreUnpause = false;
+        }
 
         Thread waitThread = new Thread(() -> {
             try{
@@ -193,7 +199,12 @@ public class RepositoryMonitor{
     private static void pauseWatchingLocal(long millis){
         pauseLocalMonitor = true;
 
-        if(millis < 0) return;
+        if(millis < 0){
+            ignoreUnpause = true;
+            return;
+        }else{
+            ignoreUnpause = false;
+        }
 
         Thread waitThread = new Thread(() -> {
             try{
