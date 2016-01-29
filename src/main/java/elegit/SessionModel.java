@@ -131,22 +131,15 @@ public class SessionModel {
     }
 
     /**
-     * Adds a new repository (contained in a RepoHelper) to the session.
+     * Opens the given repository
      *
-     * @param anotherRepoHelper the RepoHelper to add.
+     * @param repoHelper the repository to open
      */
-    public void addRepo(RepoHelper anotherRepoHelper) {
-        this.allRepoHelpers.add(anotherRepoHelper);
-    }
-
-    /**
-     * Opens a repository stored at a certain index in the list of
-     * RepoHelpers.
-     *
-     * @param index the index of the repository to open.
-     */
-    public void openRepoAtIndex(int index) throws BackingStoreException, IOException, ClassNotFoundException {
-        this.currentRepoHelper = this.allRepoHelpers.get(index);
+    public void openRepo(RepoHelper repoHelper) throws BackingStoreException, IOException, ClassNotFoundException {
+        if(!this.allRepoHelpers.contains(repoHelper)) {
+            this.allRepoHelpers.add(repoHelper);
+        }
+        this.currentRepoHelper = repoHelper;
         currentRepoHelperProperty.set(this.currentRepoHelper);
         this.saveListOfRepoPathStrings();
         this.saveMostRecentRepoPathString();
@@ -164,11 +157,11 @@ public class SessionModel {
         if (matchedRepoHelper == null) {
             // So, this repo isn't loaded into the model yet
             this.allRepoHelpers.add(repoHelperToLoad);
-            this.openRepoAtIndex(this.allRepoHelpers.size() - 1);
+            this.openRepo(repoHelperToLoad);
         } else {
             // So, this repo is already loaded into the model
             if(matchedRepoHelper.exists()){
-                this.openRepoAtIndex(this.allRepoHelpers.indexOf(matchedRepoHelper));
+                this.openRepo(matchedRepoHelper);
             }else{
                 this.allRepoHelpers.remove(matchedRepoHelper);
                 throw new MissingRepoException();
