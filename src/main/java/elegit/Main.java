@@ -1,23 +1,22 @@
 package main.java.elegit;
 
 import javafx.application.Application;
-import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuBar;
+import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.config.ConfigurationSource;
+import org.apache.logging.log4j.core.config.Configurator;
+import org.apache.logging.log4j.core.config.xml.XmlConfigurationFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.net.URI;
-
-import javafx.stage.WindowEvent;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.core.config.Configurator;
-import org.apache.logging.log4j.core.config.ConfigurationSource;
-import org.apache.logging.log4j.core.config.xml.XmlConfigurationFactory;
 /**
  * The starting point for this JavaFX application.
  */
@@ -51,18 +50,22 @@ public class Main extends Application {
         logger.info("Starting up.");
 
 
-        Parent root = FXMLLoader.load(getClass().getResource("/elegit/fxml/MainView.fxml"));
+        Pane root = FXMLLoader.load(getClass().getResource
+                ("/elegit/fxml/MainView.fxml"));
         primaryStage.setTitle("Elegit");
-        primaryStage.setOnCloseRequest(new EventHandler<WindowEvent>() {
-            @Override
-            public void handle(WindowEvent event) {
-                logger.info("Closed");
-            }
-        });
+        primaryStage.setOnCloseRequest(event -> logger.info("Closed"));
 
         BusyWindow.setParentWindow(primaryStage);
 
         Scene scene = new Scene(root, 1200, 650); // width, height
+
+        // create the menu here
+        MenuBar menuBar = new MenuBar();
+        Menu menuFile = new Menu("File");
+        Menu menuEdit = new Menu("Edit");
+        menuBar.getMenus().addAll(menuFile, menuEdit);
+        ((Pane) scene.getRoot()).getChildren().addAll(menuBar);
+
         primaryStage.setScene(scene);
         primaryStage.show();
     }
