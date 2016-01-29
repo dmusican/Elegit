@@ -13,7 +13,9 @@ public class BranchManagerModel {
     private List<RemoteBranchHelper> remoteBranches;
     private RepoHelper repoHelper;
 
-    public BranchManagerModel(List<LocalBranchHelper> localBranches, List<RemoteBranchHelper> remoteBranches, RepoHelper repoHelper) {
+    public BranchManagerModel(List<LocalBranchHelper> localBranches,
+                              List<RemoteBranchHelper> remoteBranches,
+                              RepoHelper repoHelper) {
         this.localBranches = localBranches;
         this.remoteBranches = remoteBranches;
         this.repoHelper = repoHelper;
@@ -27,7 +29,9 @@ public class BranchManagerModel {
         return this.remoteBranches;
     }
 
-    public void setLocalBranches(ObservableList<LocalBranchHelper> localBranches) {
+    public void setLocalBranches(ObservableList<LocalBranchHelper>
+                                         localBranches) {
+
         this.localBranches = localBranches;
     }
 }
