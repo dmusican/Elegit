@@ -17,6 +17,7 @@ public class ModifiedRepoFile extends RepoFile {
         super(filePath, repo);
         diffButton.setText("MODIFIED");
         diffButton.setId("modifiedDiffButton");
+        showPopover = true;
     }
 
     public ModifiedRepoFile(String filePathString, Repository repo) {

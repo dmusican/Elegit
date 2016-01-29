@@ -40,6 +40,7 @@ public class RepoFile implements Comparable {
 
     Button diffButton;
 
+    boolean showPopover;
     PopOver diffPopover;
 
     public RepoFile(Path filePath, Repository repo) {
@@ -50,6 +51,8 @@ public class RepoFile implements Comparable {
         }else {
             this.filePath = filePath;
         }
+
+        showPopover = false;
 
         this.diffButton = new Button("UNCHANGED");
         this.diffButton.getStyleClass().add("diffButton");
@@ -136,10 +139,12 @@ public class RepoFile implements Comparable {
     }
 
     public void showDiffPopover(Node owner) throws IOException, GitAPIException {
-        DiffHelper diffHelper = new DiffHelper(this.filePath, this.repo);
-        this.diffPopover.setContentNode(diffHelper.getDiffScrollPane());
-        this.diffPopover.setTitle("File Diffs");
-        this.diffPopover.show(owner);
+        if(showPopover) {
+            DiffHelper diffHelper = new DiffHelper(this.filePath, this.repo);
+            this.diffPopover.setContentNode(diffHelper.getDiffScrollPane());
+            this.diffPopover.setTitle("File Diffs");
+            this.diffPopover.show(owner);
+        }
     }
 
     public boolean equals(Object o){
