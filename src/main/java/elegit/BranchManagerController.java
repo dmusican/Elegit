@@ -73,6 +73,10 @@ public class BranchManagerController {
 
         this.remoteListView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
         this.remoteListView.setOnMouseClicked(e -> {
+
+            if (!localListView.getSelectionModel().isEmpty()) {
+                localListView.getSelectionModel().clearSelection();
+            }
             try {
                 this.updateButtons();
             } catch (IOException e1) {
@@ -85,6 +89,9 @@ public class BranchManagerController {
         // Local list view can select multiple (for merges):
         this.localListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         this.localListView.setOnMouseClicked(e -> {
+            if (!remoteListView.getSelectionModel().isEmpty()) {
+                remoteListView.getSelectionModel().clearSelection();
+            }
             try {
                 this.updateButtons();
             } catch (IOException e1) {
@@ -159,11 +166,17 @@ public class BranchManagerController {
         // Update delete button
         if (this.localListView.getSelectionModel().getSelectedIndices().size() > 0) {
             this.deleteLocalBranchesButton.setDisable(false);
+            // But keep trackRemoteBranchButton disabled
+            this.trackRemoteBranchButton.setDisable(true);
         }
 
         // Update track button
         if (this.remoteListView.getSelectionModel().getSelectedIndices().size() > 0) {
             this.trackRemoteBranchButton.setDisable(false);
+            // But keep the other buttons disabled
+            this.deleteLocalBranchesButton.setDisable(true);
+            this.mergeButton.setDisable(true);
+            this.swapMergeBranchesButton.setDisable(true);
         }
 
         // Update merge button
