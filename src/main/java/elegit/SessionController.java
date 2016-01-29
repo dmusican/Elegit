@@ -310,6 +310,9 @@ public class SessionController {
                         // Somehow, the repository failed to get properly loaded
                         // TODO: better error message?
                         showRepoWasNotLoadedNotification();
+                    } catch(Exception e) {
+                        showGenericErrorNotification();
+                        e.printStackTrace();
                     } finally{
                         BusyWindow.hide();
                         RepositoryMonitor.unpause();
@@ -346,10 +349,12 @@ public class SessionController {
     @FXML
     private void setRecentReposDropdownToCurrentRepo() {
         Platform.runLater(() -> {
-            isRecentRepoEventListenerBlocked = true;
-            RepoHelper currentRepo = this.theModel.getCurrentRepoHelper();
-            this.repoDropdownSelector.setValue(currentRepo);
-            isRecentRepoEventListenerBlocked = false;
+            synchronized (this) {
+                isRecentRepoEventListenerBlocked = true;
+                RepoHelper currentRepo = this.theModel.getCurrentRepoHelper();
+                this.repoDropdownSelector.setValue(currentRepo);
+                isRecentRepoEventListenerBlocked = false;
+            }
         });
     }
 
@@ -358,8 +363,14 @@ public class SessionController {
      */
     @FXML
     private void refreshRecentReposInDropdown() {
-        List<RepoHelper> repoHelpers = this.theModel.getAllRepoHelpers();
-        Platform.runLater(() -> this.repoDropdownSelector.setItems(FXCollections.observableArrayList(repoHelpers)));
+        Platform.runLater(() -> {
+            synchronized (this) {
+                isRecentRepoEventListenerBlocked = true;
+                List<RepoHelper> repoHelpers = this.theModel.getAllRepoHelpers();
+                this.repoDropdownSelector.setItems(FXCollections.observableArrayList(repoHelpers));
+                isRecentRepoEventListenerBlocked = false;
+            }
+        });
     }
 
     /**
@@ -368,6 +379,7 @@ public class SessionController {
      */
     private synchronized void handleRecentRepoMenuItem(RepoHelper repoHelper){
         if(isRecentRepoEventListenerBlocked || repoHelper == null) return;
+
         logger.info("Switching repos");
         BusyWindow.show();
         RepositoryMonitor.pause();
