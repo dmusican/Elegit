@@ -20,6 +20,19 @@
                 <directory>src/main/resources</directory>
             </resource>
         </resources>
+
+        <plugins>
+            <plugin>
+                <groupId>com.zenjava</groupId>
+                <artifactId>javafx-maven-plugin</artifactId>
+                <version>8.2.0</version>
+                <configuration>
+                    <vendor>The Elegit Team</vendor>
+                    <mainClass>main.java.elegit.Main</mainClass>
+                </configuration>
+            </plugin>
+        </plugins>
+
     </build>
 
     <dependencies>
