@@ -102,6 +102,8 @@ public abstract class RepoHelper {
 
         hasUnpushedCommitsProperty = new SimpleBooleanProperty(getAllCommitIDs().size() > remoteCommits.size());
         hasUnmergedCommitsProperty = new SimpleBooleanProperty(getAllCommitIDs().size() > localCommits.size());
+
+        hasUnpushedTagsProperty = new SimpleBooleanProperty(false);
     }
 
     /// Constructor for ExistingRepoHelpers to inherit (they don't need the Remote URL)
@@ -124,6 +126,8 @@ public abstract class RepoHelper {
 
         hasUnpushedCommitsProperty = new SimpleBooleanProperty(getAllCommitIDs().size() > remoteCommits.size());
         hasUnmergedCommitsProperty = new SimpleBooleanProperty(getAllCommitIDs().size() > localCommits.size());
+
+        hasUnpushedTagsProperty = new SimpleBooleanProperty();
     }
 
     /**
@@ -244,9 +248,9 @@ public abstract class RepoHelper {
         if(!exists()) throw new MissingRepoException();
         Git git = new Git(this.repo);
         // git tag:
-        Ref tag = git.tag().setName(tagName).call();
+        git.tag().setName(tagName).setAnnotated(false).call();
         git.close();
-        this.hasUnpushedCommitsProperty.set(true);
+        this.hasUnpushedTagsProperty.set(true);
     }
 
     /**
@@ -288,6 +292,47 @@ public abstract class RepoHelper {
 
         git.close();
         this.hasUnpushedCommitsProperty.set(false);
+    }
+
+    /**
+     * Pushes all tags in /refs/tags/.
+     *
+     * @throws GitAPIException if the `git push --tags` call fails.
+     */
+    public void pushTags(UsernamePasswordCredentialsProvider ownerAuth) throws GitAPIException, MissingRepoException, PushToAheadRemoteError {
+        logger.info("Attempting push tags");
+        if(!exists()) throw new MissingRepoException();
+        if(!hasRemote()) throw new InvalidRemoteException("No remote repository");
+        Git git = new Git(this.repo);
+        PushCommand push = git.push().setPushAll();
+
+        if (ownerAuth != null) {
+            push.setCredentialsProvider(ownerAuth);
+        }
+//        ProgressMonitor progress = new TextProgressMonitor(new PrintWriter(System.out));
+        ProgressMonitor progress = new SimpleProgressMonitor();
+        push.setProgressMonitor(progress);
+
+        Iterable<PushResult> pushResult = push.setPushTags().call();
+        boolean allPushesWereRejected = true;
+        boolean anyPushWasRejected = false;
+
+        for (PushResult result : pushResult) {
+            for (RemoteRefUpdate remoteRefUpdate : result.getRemoteUpdates()) {
+                if (remoteRefUpdate.getStatus() != (RemoteRefUpdate.Status.REJECTED_NONFASTFORWARD)) {
+                    allPushesWereRejected = false;
+                } else {
+                    anyPushWasRejected = true;
+                }
+            }
+        }
+
+        if (allPushesWereRejected || anyPushWasRejected) {
+            throw new PushToAheadRemoteError(allPushesWereRejected);
+        }
+
+        git.close();
+        this.hasUnpushedTagsProperty.set(false);
     }
 
     /**

@@ -80,7 +80,9 @@ public class SessionController {
     public Button openRepoDirButton;
     public Button gitStatusButton;
     public Button commitButton;
+    public Button tagButton;
     public Button mergeFromFetchButton;
+    public Button pushTagsButton;
     public Button pushButton;
     public Button fetchButton;
     public Button branchesButton;
@@ -89,6 +91,7 @@ public class SessionController {
     public ProgressIndicator pushProgressIndicator;
 
     public TextArea commitMessageField;
+    public TextArea tagNameField;
 
     public Tab workingTreePanelTab;
     public Tab allFilesPanelTab;
@@ -222,6 +225,7 @@ public class SessionController {
         gitStatusButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         commitButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         mergeFromFetchButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
+        pushTagsButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         pushButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         fetchButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         branchesButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
@@ -231,6 +235,7 @@ public class SessionController {
         workingTreePanelView.setMinSize(Control.USE_PREF_SIZE, 200);
         allFilesPanelView.setMinSize(Control.USE_PREF_SIZE, 200);
         commitMessageField.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
+        tagNameField.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
 
         branchDropdownSelector.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
 
@@ -452,7 +457,6 @@ public class SessionController {
 
                         if(canCommit) {
                             theModel.getCurrentRepoHelper().commit(commitMessage);
-                            //theModel.getCurrentRepoHelper().tag("tagname1");
 
                             // Now clear the commit text and a view reload ( or `git status`) to show that something happened
                             commitMessageField.clear();
@@ -501,6 +505,76 @@ public class SessionController {
             this.showNoCommitMessageNotification();
         }catch(NoFilesStagedForCommitException e){
             this.showNoFilesStagedForCommitNotification();
+        }
+    }
+
+    /**
+     * Checks things are ready for a tag, then performs a git-tag
+     *
+     */
+    public void handleTagButton() {
+        logger.info("Clicked tag button");
+        try {
+            if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
+            if(!this.theModel.getCurrentRepoHelper().exists()) throw new MissingRepoException();
+
+            String tagName = tagNameField.getText();
+
+            if(tagName.length() == 0) throw new NoTagNameException();
+
+            Thread th = new Thread(new Task<Void>(){
+                @Override
+                protected Void call() {
+                    try{
+                        theModel.getCurrentRepoHelper().tag(tagName);
+
+                        // Now clear the tag text and a view reload ( or `git status`) to show that something happened
+                        tagNameField.clear();
+                        gitStatus();
+                    }catch(JGitInternalException e){
+                        showGenericErrorNotification();
+                        e.printStackTrace();
+                    } catch(MissingRepoException e){
+                        showMissingRepoNotification();
+                        setButtonsDisabled(true);
+                        refreshRecentReposInDropdown();
+                    } catch (TransportException e) {
+                        showNotAuthorizedNotification(null);
+                    } catch (WrongRepositoryStateException e) {
+                        showGenericErrorNotification();
+                        e.printStackTrace();
+
+                        // TODO remove the above debug statements
+                        // This should hopefully not appear any more. Previously occurred when attempting to resolve
+                        // conflicts in an external editor
+                        // Do nothing.
+
+                    } catch(GitAPIException e){
+                        // Git error
+                        showGenericErrorNotification();
+                        e.printStackTrace();
+                    } catch(Exception e) {
+                        showGenericErrorNotification();
+                        e.printStackTrace();
+                    }
+
+                    pushTagsButton.setVisible(true);
+
+                    return null;
+                }
+            });
+            th.setDaemon(true);
+            th.setName("Git tag");
+            th.start();
+        } catch(NoRepoLoadedException e){
+            this.showNoRepoLoadedNotification();
+            setButtonsDisabled(true);
+        } catch(MissingRepoException e){
+            this.showMissingRepoNotification();
+            setButtonsDisabled(true);
+            refreshRecentReposInDropdown();
+        } catch(NoTagNameException e){
+            this.showNoTagNameNotification();
         }
     }
 
@@ -626,6 +700,86 @@ public class SessionController {
                     } finally{
                         pushProgressIndicator.setVisible(false);
                         pushButton.setVisible(true);
+                    }
+                    return null;
+                }
+            });
+            th.setDaemon(true);
+            th.setName("Git push");
+            th.start();
+        }catch(NoRepoLoadedException e){
+            this.showNoRepoLoadedNotification();
+            setButtonsDisabled(true);
+        }catch(NoCommitsToPushException e){
+            this.showNoCommitsToPushNotification();
+        }
+    }
+
+    /**
+     * Performs a `git push --tags`
+     */
+    public void handlePushTagsButton() {
+        try {
+            logger.info("Push tags button clicked");
+
+            Thread submit = new Thread(new Task<Void>() {
+                @Override
+                protected Void call() {
+                    d.submitData();
+                    return null;
+                }
+            });
+            submit.setDaemon(true);
+            submit.setName("Data submit");
+            submit.start();
+
+            if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
+            if(!this.theModel.getCurrentRepoHelper().hasUnpushedCommits()) throw new NoCommitsToPushException();
+
+            pushTagsButton.setVisible(false);
+            pushProgressIndicator.setVisible(true);
+
+            UsernamePasswordCredentialsProvider ownerAuth;
+
+            try {
+                ownerAuth = getAuth();
+            } catch (CancelledAuthorizationException e) {
+                pushTagsButton.setVisible(true);
+                pushProgressIndicator.setVisible(false);
+                return;
+            }
+
+            Thread th = new Thread(new Task<Void>(){
+                @Override
+                protected Void call() {
+                    try{
+                        RepositoryMonitor.resetFoundNewChanges(false);
+                        theModel.getCurrentRepoHelper().pushTags(ownerAuth);
+                        gitStatus();
+                    }  catch(InvalidRemoteException e){
+                        showNoRemoteNotification();
+                    } catch(PushToAheadRemoteError e) {
+                        showPushToAheadRemoteNotification(e.isAllRefsRejected());
+                    } catch (TransportException e) {
+                        if (e.getMessage().contains("git-receive-pack not found")) {
+                            // The error has this message if there is no longer a remote to push to
+                            showLostRemoteNotification();
+                        } else {
+                            showNotAuthorizedNotification(null);
+                        }
+                    } catch(MissingRepoException e){
+                        showMissingRepoNotification();
+                        setButtonsDisabled(true);
+                        refreshRecentReposInDropdown();
+                    } catch(GitAPIException e){
+                        showGenericErrorNotification();
+                        e.printStackTrace();
+                    } catch(Exception e) {
+                        showGenericErrorNotification();
+                        e.printStackTrace();
+                    } finally{
+                        pushProgressIndicator.setVisible(false);
+                        pushTagsButton.setVisible(true);
                     }
                     return null;
                 }
@@ -838,8 +992,10 @@ public class SessionController {
         Platform.runLater(() -> {
             openRepoDirButton.setDisable(disable);
             gitStatusButton.setDisable(disable);
+            tagButton.setDisable(disable);
             commitButton.setDisable(disable);
             mergeFromFetchButton.setDisable(disable);
+            pushTagsButton.setDisable(disable);
             pushButton.setDisable(disable);
             fetchButton.setDisable(disable);
             selectAllButton.setDisable(disable);
@@ -1255,6 +1411,16 @@ public class SessionController {
         Platform.runLater(() -> {
             logger.warn("No commit message warning");
             this.notificationPane.setText("You need to write a commit message in order to commit your changes");
+
+            this.notificationPane.getActions().clear();
+            this.notificationPane.show();
+        });
+    }
+
+    private void showNoTagNameNotification(){
+        Platform.runLater(() -> {
+            logger.warn("No tag name warning");
+            this.notificationPane.setText("You need to write a tag name in order to tag the commit");
 
             this.notificationPane.getActions().clear();
             this.notificationPane.show();

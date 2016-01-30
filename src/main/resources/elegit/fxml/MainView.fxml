@@ -145,6 +145,14 @@
                                 promptText="Commit message..."
                                 wrapText="true" />
 
+                        <TextArea
+                                GridPane.rowIndex="4"
+                                fx:id="tagNameField"
+                                prefRowCount="1"
+                                prefColumnCount="1"
+                                promptText="tag..."
+                                wrapText="true" />
+
                     </GridPane>
 
                     <StackPane GridPane.rowIndex="1"
@@ -203,6 +211,14 @@
                                                fx:id="pushProgressIndicator"/>
                         </HBox>
 
+                        <ArrowButton StackPane.alignment="CENTER_LEFT"
+                                     id="codeButton"
+                                     fx:id="pushTagButton"
+                                     text="Push Tags"
+                                     arrowUp="true"
+                                     arrowRight="true"
+                                     onAction="#handlePushTagsButton"/>
+
                         <ArrowButton StackPane.alignment="CENTER_RIGHT"
                                      id="codeButton"
                                      fx:id="pushButton"
@@ -235,6 +251,16 @@
                                  text="Commit"
                                  arrowRight="true"
                                  onAction="#handleCommitButton"/>
+
+                    <ArrowButton GridPane.rowIndex="3"
+                                 GridPane.columnIndex="1"
+                                 GridPane.halignment="LEFT"
+                                 GridPane.valignment="BOTTOM"
+                                 id="codeButton"
+                                 fx:id="tagButton"
+                                 text="Tag"
+                                 arrowRight="true"
+                                 onAction="#handleTagButton"/>
 
                     <StackPane GridPane.rowIndex="3"
                                GridPane.columnIndex="6"
