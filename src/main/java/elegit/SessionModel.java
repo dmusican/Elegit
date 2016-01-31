@@ -4,7 +4,6 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import main.java.elegit.exceptions.CancelledAuthorizationException;
 import main.java.elegit.exceptions.MissingRepoException;
-import main.java.elegit.exceptions.NoOwnerInfoException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jgit.api.Git;
@@ -72,24 +71,27 @@ public class SessionModel {
      */
     public void loadMostRecentRepoHelper() {
         try{
-        String lastOpenedRepoPathString = (String) PrefObj.getObject(this.preferences, LAST_OPENED_REPO_PATH_KEY);
-        if (lastOpenedRepoPathString != null) {
-            Path path = Paths.get(lastOpenedRepoPathString);
-            try {
-                ExistingRepoHelper existingRepoHelper = new ExistingRepoHelper(path, this.defaultUsername);
-                this.openRepoFromHelper(existingRepoHelper);
-            } catch (IllegalArgumentException e) {
-                logger.warn("Recent repo not found in directory it used to be in");
-                // The most recent repo is no longer in the directory it used to be in,
-                // so just don't load it.
-            }catch(GitAPIException | MissingRepoException e) {
-                logger.error("Git error or missing repo exception");
-                logger.debug(e.getStackTrace());
-                e.printStackTrace();
-            } catch (CancelledAuthorizationException e) {
+            String lastOpenedRepoPathString = (String) PrefObj.getObject(
+                    this.preferences, LAST_OPENED_REPO_PATH_KEY
+            );
+            if (lastOpenedRepoPathString != null) {
+                Path path = Paths.get(lastOpenedRepoPathString);
+                try {
+                    ExistingRepoHelper existingRepoHelper =
+                            new ExistingRepoHelper(path, this.defaultUsername);
+                    this.openRepoFromHelper(existingRepoHelper);
+                } catch (IllegalArgumentException e) {
+                    logger.warn("Recent repo not found in directory it used to be in");
+                    // The most recent repo is no longer in the directory it used to be in,
+                    // so just don't load it.
+                }catch(GitAPIException | MissingRepoException e) {
+                    logger.error("Git error or missing repo exception");
+                    logger.debug(e.getStackTrace());
+                    e.printStackTrace();
+                } catch (CancelledAuthorizationException e) {
                 // Should never be used, as no authorization is needed for loading local files.
+                }
             }
-        }
         }catch(IOException | BackingStoreException | ClassNotFoundException e){
             logger.error("Some sort of error loading most recent repo helper");
             logger.debug(e.getStackTrace());
@@ -545,5 +547,20 @@ public class SessionModel {
         for (RepoHelper item : checkedItems) {
             this.allRepoHelpers.remove(item);
         }
+    }
+
+    /**
+     * After the last RepoHelper is closed by user, sessionModel needs to be
+     * updated and reflect the new view.
+     */
+    public void resetSessionModel() {
+        try {
+            clearStoredPreferences();
+        } catch (Exception exception) {
+            exception.printStackTrace();
+        }
+        /*currentRepoHelper = null;
+        currentRepoHelperProperty = new SimpleObjectProperty<>(null);*/
+        sessionModel = new SessionModel();
     }
 }

@@ -36,15 +36,11 @@ import org.controlsfx.control.CheckListView;
 import org.controlsfx.control.NotificationPane;
 import org.controlsfx.control.PopOver;
 import org.controlsfx.control.action.Action;
-import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.errors.NoMergeBaseException;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
-import org.eclipse.jgit.lib.AnyObjectId;
-import org.eclipse.jgit.lib.Repository;
 
 import java.awt.*;
-import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -52,7 +48,6 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.prefs.BackingStoreException;
@@ -427,6 +422,7 @@ public class SessionController {
      * and loads it using the handleRecentRepoMenuItem(...) method.
      */
     public void loadSelectedRepo() {
+        if (theModel.getAllRepoHelpers().size() == 0) return;
         RepoHelper selectedRepoHelper = this.repoDropdownSelector.getValue();
         this.handleRecentRepoMenuItem(selectedRepoHelper);
     }
@@ -908,8 +904,12 @@ public class SessionController {
                     setButtonsDisabled(true);
                     refreshRecentReposInDropdown();
                 } catch(NoRepoLoadedException e){
-                    showNoRepoLoadedNotification();
-                    setButtonsDisabled(true);
+                    // TODO: I'm changing the way it handles exception,
+                    // assuming that the only time when this exception is
+                    // thrown is after user closes the last repo.
+
+                    /*showNoRepoLoadedNotification();
+                    setButtonsDisabled(true);*/
                 } catch(GitAPIException | IOException e){
                     showGenericErrorNotification();
                     e.printStackTrace();
@@ -1604,8 +1604,8 @@ public class SessionController {
         CheckListView<RepoHelper> repoCheckListView = new CheckListView<>(FXCollections.observableArrayList(repoHelpers));
 
         // Remove the currently checked out repo:
-        RepoHelper currentRepo = this.theModel.getCurrentRepoHelper();
-        repoCheckListView.getItems().remove(currentRepo);
+        /*RepoHelper currentRepo = this.theModel.getCurrentRepoHelper();
+        repoCheckListView.getItems().remove(currentRepo);*/
 
         Button removeSelectedButton = new Button("Remove repository shortcuts from Elegit");
 
@@ -1617,7 +1617,22 @@ public class SessionController {
             List<RepoHelper> checkedItems = repoCheckListView.getCheckModel().getCheckedItems();
             this.theModel.removeRepoHelpers(checkedItems);
             popover.hide();
-            this.refreshRecentReposInDropdown();
+
+            if (!this.theModel.getAllRepoHelpers().isEmpty()) {
+                int newIndex = this.theModel.getAllRepoHelpers().size()-1;
+                RepoHelper newCurrentRepo = this.theModel.getAllRepoHelpers()
+                        .get(newIndex);
+
+                handleRecentRepoMenuItem(newCurrentRepo);
+                repoDropdownSelector.setValue(newCurrentRepo);
+
+                this.refreshRecentReposInDropdown();
+            } else {
+                theModel.resetSessionModel();
+                workingTreePanelView.resetFileStructurePanelView();
+                allFilesPanelView.resetFileStructurePanelView();
+                initialize();
+            }
         });
 
         popover.show(this.removeRecentReposButton);
