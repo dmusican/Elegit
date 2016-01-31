@@ -16,7 +16,7 @@ import java.util.List;
  */
 public abstract class FileStructurePanelView extends Region{
 
-    private TreeView<RepoFile> directoryTreeView;
+    protected TreeView<RepoFile> directoryTreeView;
     private TreeItem<RepoFile> treeRoot;
 
     public SessionModel sessionModel;
@@ -68,6 +68,15 @@ public abstract class FileStructurePanelView extends Region{
         if (this.treeRoot.isLeaf()) {
             this.addTreeItemsToRoot(filesToShow, this.treeRoot);
         }
+    }
+
+    public void resetFileStructurePanelView() {
+        this.directoryTreeView = new TreeView<>();
+        this.directoryTreeView.setCellFactory(this.getTreeCellFactory());
+        // not sure about the following one line
+        this.directoryTreeView.prefHeightProperty().bind(this.heightProperty());
+        this.getChildren().clear();
+        this.getChildren().add(directoryTreeView);
     }
 
     protected Callback<TreeView<RepoFile>,TreeCell<RepoFile>> getTreeCellFactory(){

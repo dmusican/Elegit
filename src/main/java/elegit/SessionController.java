@@ -1463,7 +1463,8 @@ public class SessionController {
                 this.refreshRecentReposInDropdown();
             } else {
                 theModel.resetSessionModel();
-                //workingTreePanelView.resetWorkingTreePanelView();
+                workingTreePanelView.resetFileStructurePanelView();
+                allFilesPanelView.resetFileStructurePanelView();
                 initialize();
             }
         });
