@@ -65,7 +65,9 @@ public abstract class FileStructurePanelView extends Region{
         }
 
         List<RepoFile> filesToShow = this.getFilesToDisplay();
-        this.addTreeItemsToRoot(filesToShow, this.treeRoot);
+        if (this.treeRoot.isLeaf()) {
+            this.addTreeItemsToRoot(filesToShow, this.treeRoot);
+        }
     }
 
     protected Callback<TreeView<RepoFile>,TreeCell<RepoFile>> getTreeCellFactory(){
