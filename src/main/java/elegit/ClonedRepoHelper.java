@@ -1,8 +1,6 @@
 package main.java.elegit;
 
-import com.sun.javaws.exceptions.CacheAccessException;
 import main.java.elegit.exceptions.CancelledAuthorizationException;
-import main.java.elegit.exceptions.NoOwnerInfoException;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
