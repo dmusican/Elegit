@@ -1549,7 +1549,7 @@ public class SessionController {
             for (TagHelper t:commit.getTags()) {
                 tagString+=t.getName();
             }
-            commitInfoNameText.setText(commit.getName()+tagString);
+            commitInfoNameText.setText(commit.getName());
             commitInfoAuthorText.setText(commit.getAuthorName());
             commitInfoDateText.setText(commit.getFormattedWhen());
             commitInfoMessageText.setVisible(true);
