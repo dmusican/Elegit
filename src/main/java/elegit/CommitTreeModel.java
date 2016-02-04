@@ -149,12 +149,18 @@ public abstract class CommitTreeModel{
      */
     public void addInvisibleCommit(String id){
         CommitHelper invisCommit = sessionModel.getCurrentRepoHelper().getCommit(id);
-        for(CommitHelper c : invisCommit.getParents()){
-            if(!treeGraph.treeGraphModel.containsID(c.getId())){
-                addInvisibleCommit(c.getId());
+
+        if (invisCommit != null) {
+
+            for(CommitHelper c : invisCommit.getParents()){
+                if(!treeGraph.treeGraphModel.containsID(c.getId())){
+                    addInvisibleCommit(c.getId());
+                }
             }
+
+            this.addCommitToTree(invisCommit, invisCommit.getParents(),
+                    treeGraph.treeGraphModel, false);
         }
-        this.addCommitToTree(invisCommit, invisCommit.getParents(), treeGraph.treeGraphModel, false);
     }
 
     /**

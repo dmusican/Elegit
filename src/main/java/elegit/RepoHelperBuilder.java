@@ -38,7 +38,7 @@ public abstract class RepoHelperBuilder {
         File returnFile;
         DirectoryChooser chooser = new DirectoryChooser();
         chooser.setTitle(title);
-        chooser.setInitialDirectory(path.getParentFile());
+        chooser.setInitialDirectory(path);
 
         returnFile = chooser.showDialog(parent);
         return returnFile;
