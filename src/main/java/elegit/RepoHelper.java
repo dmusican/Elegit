@@ -96,6 +96,8 @@ public abstract class RepoHelper {
         this.localCommits = this.parseAllLocalCommits();
         this.remoteCommits = this.parseAllRemoteCommits();
 
+        this.localTags = this.getAllLocalTags();
+
         this.branchManagerModel = new BranchManagerModel(this.callGitForLocalBranches(), this.callGitForRemoteBranches(), this);
 
         hasRemoteProperty = new SimpleBooleanProperty(!getLinkedRemoteRepoURLs().isEmpty());
@@ -119,6 +121,8 @@ public abstract class RepoHelper {
 
         this.localCommits = this.parseAllLocalCommits();
         this.remoteCommits = this.parseAllRemoteCommits();
+
+        this.localTags = this.getAllLocalTags();
 
         this.branchManagerModel = new BranchManagerModel(this.callGitForLocalBranches(), this.callGitForRemoteBranches(), this);
 
@@ -763,7 +767,12 @@ public abstract class RepoHelper {
         List<TagHelper> tags = new ArrayList<>();
         for (String s: tagMap.keySet()) {
             Ref r = tagMap.get(s);
-            CommitHelper c = this.commitIdMap.get(r.getTarget().getName());
+            //r.getObjectId().getName() is the name of the commit it points to
+            CommitHelper c = this.commitIdMap.get(r.getObjectId().getName());
+            if (c==null) {
+                System.out.println("Failed to find commit: "+r.getObjectId().getName());
+                continue;
+            }
             // If the ref is peeled, then it is a lightweight tag
             if (r.isPeeled()) {
                 TagHelper t = new TagHelper(s, c);

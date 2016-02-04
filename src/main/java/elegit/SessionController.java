@@ -1543,7 +1543,13 @@ public class SessionController {
     public void selectCommit(String id){
         Platform.runLater(() -> {
             CommitHelper commit = this.theModel.getCurrentRepoHelper().getCommit(id);
-            commitInfoNameText.setText(commit.getName());
+            String tagString="";
+            if (commit.getTags().size() != 0)
+                tagString = "\n\nTags: ";
+            for (TagHelper t:commit.getTags()) {
+                tagString+=t.getName();
+            }
+            commitInfoNameText.setText(commit.getName()+tagString);
             commitInfoAuthorText.setText(commit.getAuthorName());
             commitInfoDateText.setText(commit.getFormattedWhen());
             commitInfoMessageText.setVisible(true);
@@ -1558,9 +1564,9 @@ public class SessionController {
                 s = s + branch.getBranchName() + "\n";
             }
             if (s.length() > 0) {
-                commitInfoMessageText.setText("Head of branches: \n" + s + "\n\n" + commit.getMessage(true));
+                commitInfoMessageText.setText("Head of branches: \n" + s + "\n\n" + commit.getMessage(true) + tagString);
             } else {
-                commitInfoMessageText.setText(commit.getMessage(true));
+                commitInfoMessageText.setText(commit.getMessage(true) + tagString);
             }
         });
     }

@@ -52,9 +52,7 @@ public class TagHelper{
     /**
      * @return the name of the tag
      */
-    public String getName(){
-        return tag.getName();
-    }
+    public String getName() { return this.tagName; }
 
     /**
      * @return the unique ObjectId of the tag

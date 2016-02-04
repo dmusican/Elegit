@@ -49,7 +49,6 @@ public class CommitHelper{
         this.branchesAsHead = new HashMap<>();
         this.fullMessage = c.getFullMessage();
         this.shortMessage = c.getShortMessage();
-        this.tags = new ArrayList<>();
     }
 
     /**
@@ -60,7 +59,6 @@ public class CommitHelper{
      */
     public CommitHelper(ObjectId id, RepoHelper repoHelper) throws IOException{
         this(repoHelper.parseRawCommit(id));
-        this.tags = new ArrayList<>();
     }
 
     /**
@@ -73,7 +71,6 @@ public class CommitHelper{
      */
     public CommitHelper(String refString, RepoHelper repoHelper) throws IOException{
         this(repoHelper.getRepo().resolve(refString), repoHelper);
-        this.tags = new ArrayList<>();
     }
 
     /**
@@ -250,6 +247,8 @@ public class CommitHelper{
      * @param t a TagHelper for a tag that references this commit
      */
     public void addTag(TagHelper t) {
+        if (this.tags == null)
+            this.tags = new ArrayList<>();
         this.tags.add(t);
     }
 
@@ -257,6 +256,8 @@ public class CommitHelper{
      * @return the list of tags that reference this commit
      */
     public List<TagHelper> getTags() {
+        if (this.tags == null)
+            this.tags = new ArrayList<>();
         return this.tags;
     }
 
