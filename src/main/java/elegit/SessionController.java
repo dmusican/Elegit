@@ -225,7 +225,7 @@ public class SessionController {
         gitStatusButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         commitButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         mergeFromFetchButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
-        pushTagsButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
+        //pushTagsButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         pushButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         fetchButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         branchesButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
@@ -558,7 +558,7 @@ public class SessionController {
                         e.printStackTrace();
                     }
 
-                    pushTagsButton.setVisible(true);
+                    //pushTagsButton.setVisible(true);
 
                     return null;
                 }
@@ -734,9 +734,9 @@ public class SessionController {
             submit.start();
 
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
-            if(!this.theModel.getCurrentRepoHelper().hasUnpushedCommits()) throw new NoCommitsToPushException();
+            if(!this.theModel.getCurrentRepoHelper().hasUnpushedTags()) throw new NoTagsToPushException();
 
-            pushTagsButton.setVisible(false);
+            //pushTagsButton.setVisible(false);
             pushProgressIndicator.setVisible(true);
 
             UsernamePasswordCredentialsProvider ownerAuth;
@@ -744,7 +744,7 @@ public class SessionController {
             try {
                 ownerAuth = getAuth();
             } catch (CancelledAuthorizationException e) {
-                pushTagsButton.setVisible(true);
+                //pushTagsButton.setVisible(true);
                 pushProgressIndicator.setVisible(false);
                 return;
             }
@@ -779,7 +779,7 @@ public class SessionController {
                         e.printStackTrace();
                     } finally{
                         pushProgressIndicator.setVisible(false);
-                        pushTagsButton.setVisible(true);
+                        //pushTagsButton.setVisible(true);
                     }
                     return null;
                 }
@@ -790,8 +790,8 @@ public class SessionController {
         }catch(NoRepoLoadedException e){
             this.showNoRepoLoadedNotification();
             setButtonsDisabled(true);
-        }catch(NoCommitsToPushException e){
-            this.showNoCommitsToPushNotification();
+        }catch(NoTagsToPushException e){
+            this.showNoTagsToPushNotification();
         }
     }
 
@@ -995,7 +995,7 @@ public class SessionController {
             tagButton.setDisable(disable);
             commitButton.setDisable(disable);
             mergeFromFetchButton.setDisable(disable);
-            pushTagsButton.setDisable(disable);
+            //pushTagsButton.setDisable(disable);
             pushButton.setDisable(disable);
             fetchButton.setDisable(disable);
             selectAllButton.setDisable(disable);
@@ -1437,6 +1437,16 @@ public class SessionController {
         });
     }
 
+    private void showNoTagsToPushNotification(){
+        Platform.runLater(() -> {
+            logger.warn("No local tags to push warning");
+            this.notificationPane.setText("There aren't any local tags to push");
+
+            this.notificationPane.getActions().clear();
+            this.notificationPane.show();
+        });
+    }
+
     private void showNoCommitsToMergeNotification(){
         Platform.runLater(() -> {
             logger.warn("No commits to merge warning");
@@ -1463,6 +1473,16 @@ public class SessionController {
             this.notificationPane.setText("Can't merge with modified files present");
 
             // TODO: I think some sort of help text would be nice here, so they know what to do
+
+            this.notificationPane.getActions().clear();
+            this.notificationPane.show();
+        });
+    }
+
+    private void showTagExistsNotification() {
+        Platform.runLater(()-> {
+            logger.warn("Tag already exists warning.");
+            this.notificationPane.setText("Sorry that tag already exists.");
 
             this.notificationPane.getActions().clear();
             this.notificationPane.show();

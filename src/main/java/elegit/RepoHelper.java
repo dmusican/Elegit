@@ -31,10 +31,7 @@ import org.eclipse.jgit.revplot.PlotWalk;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevTag;
 import org.eclipse.jgit.revwalk.RevWalk;
-import org.eclipse.jgit.transport.FetchResult;
-import org.eclipse.jgit.transport.PushResult;
-import org.eclipse.jgit.transport.RemoteRefUpdate;
-import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
+import org.eclipse.jgit.transport.*;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -57,6 +54,9 @@ public abstract class RepoHelper {
 
 	private List<CommitHelper> localCommits;
     private List<CommitHelper> remoteCommits;
+
+    private List<TagHelper> localTags;
+    private List<TagHelper> remoteTags;
 
     private Map<String, CommitHelper> commitIdMap;
     private Map<ObjectId, String> idMap;
@@ -212,6 +212,13 @@ public abstract class RepoHelper {
     }
 
     /**
+     * @return true if there are local tags that haven't been pushed
+     */
+    public boolean hasUnpushedTags(){
+        return hasUnpushedTagsProperty.get();
+    }
+
+    /**
      * @return true if there are remote commits that haven't been merged into local
      */
     public boolean hasUnmergedCommits(){
@@ -247,8 +254,8 @@ public abstract class RepoHelper {
         logger.info("Attempting tag");
         if(!exists()) throw new MissingRepoException();
         Git git = new Git(this.repo);
-        // git tag:
-        git.tag().setName(tagName).setAnnotated(false).call();
+        // git tag (using annotated tags that are accepted by the community as 'better':
+        git.tag().setName(tagName).setAnnotated(true).call();
         git.close();
         this.hasUnpushedTagsProperty.set(true);
     }
@@ -346,7 +353,7 @@ public abstract class RepoHelper {
         if(!exists()) throw new MissingRepoException();
         Git git = new Git(this.repo);
 
-        FetchCommand fetch = git.fetch();
+        FetchCommand fetch = git.fetch().setTagOpt(TagOpt.AUTO_FOLLOW);
 
         if (ownerAuth != null) {
             fetch.setCredentialsProvider(ownerAuth);
@@ -745,6 +752,39 @@ public abstract class RepoHelper {
     }
 
     /**
+     * Constructs a list of all local tags found by parsing the tag refs from the repo
+     * then wrapping them into a TagHelper with the appropriate commit
+     * @return a list of TagHelpers for all the tags
+     * @throws IOException
+     * @throws GitAPIException
+     */
+    private List<TagHelper> getAllLocalTags() throws IOException, GitAPIException {
+        Map<String, Ref> tagMap = repo.getTags();
+        List<TagHelper> tags = new ArrayList<>();
+        for (String s: tagMap.keySet()) {
+            Ref r = tagMap.get(s);
+            CommitHelper c = this.commitIdMap.get(r.getTarget().getName());
+            // If the ref is peeled, then it is a lightweight tag
+            if (r.isPeeled()) {
+                TagHelper t = new TagHelper(s, c);
+                tags.add(new TagHelper(s, c));
+                c.addTag(t);
+            }
+            // Otherwise, it is an annotated tag
+            else {
+                ObjectReader objectReader = repo.newObjectReader();
+                ObjectLoader objectLoader = objectReader.open(r.getObjectId());
+                RevTag tag = RevTag.parse(objectLoader.getBytes());
+                objectReader.release();
+                TagHelper t = new TagHelper(tag, c);
+                tags.add(t);
+                c.addTag(t);
+            }
+        }
+        return tags;
+    }
+
+    /**
      * Given a list of raw JGit commit objects, constructs CommitHelper objects to wrap them and gives
      * them the appropriate parents and children. Updates the commit id and id maps appropriately.
      * @param commitList the raw commits to wrap
@@ -1107,7 +1147,7 @@ public abstract class RepoHelper {
         if(includeTags) return new Git(repo).lsRemote().setHeads(true).setTags(true).setCredentialsProvider(ownerAuth).call();
         else return new Git(repo).lsRemote().setHeads(true).setCredentialsProvider(ownerAuth).call();*/
 
-        if(includeTags) return new Git(repo).lsRemote().setHeads(true).setTags(true).call();
+        if(includeTags) return new Git(repo).lsRemote().setHeads(true).setTags(includeTags).call();
         else return new Git(repo).lsRemote().setHeads(true).call();
     }
 
