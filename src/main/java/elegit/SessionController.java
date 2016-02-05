@@ -169,6 +169,19 @@ public class SessionController {
         goToIcon.setFill(Color.WHITE);
         this.commitInfoGoToButton.setGraphic(goToIcon);
 
+        this.commitButton.setTooltip(new Tooltip(
+                "Check in selected files to local repository"
+        ));
+        this.mergeFromFetchButton.setTooltip(new Tooltip(
+                "Merge files from remote repository to local repository"
+        ));
+        this.fetchButton.setTooltip(new Tooltip(
+                "Download files from another repository to remote repository"
+        ));
+        this.pushButton.setTooltip(new Tooltip(
+                "Update remote repository with local changes"
+        ));
+
         // Set up the "+" button for loading new repos (give it a menu)
         Text downloadIcon = GlyphsDude.createIcon(FontAwesomeIcon.CLOUD_DOWNLOAD);
         MenuItem cloneOption = new MenuItem("Clone repository", downloadIcon);
