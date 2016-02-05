@@ -53,8 +53,6 @@ public abstract class FileStructurePanelView extends Region{
      * Draws the directory TreeView by getting the parent directory's RepoFile,
      * populating it with the files it contains, and adding it to the display.
      *
-     * FIXME: this method resets the users selections if they've checked any boxes (low priority) and scrolls them to the top (higher priority)
-     *
      * @throws GitAPIException if the SessionModel can't get the ParentDirectoryRepoFile.
      */
     public void drawDirectoryView() throws GitAPIException, IOException {
@@ -65,9 +63,7 @@ public abstract class FileStructurePanelView extends Region{
         }
 
         List<RepoFile> filesToShow = this.getFilesToDisplay();
-        if (this.treeRoot.isLeaf()) {
-            this.addTreeItemsToRoot(filesToShow, this.treeRoot);
-        }
+        this.addTreeItemsToRoot(filesToShow, this.treeRoot);
     }
 
     public void resetFileStructurePanelView() {
