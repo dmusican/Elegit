@@ -2,15 +2,22 @@ package main.java.elegit;
 
 import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuItem;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.controlsfx.control.PopOver;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Repository;
 
+import java.awt.*;
+import java.io.BufferedWriter;
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 
 /**
@@ -43,6 +50,8 @@ public class RepoFile implements Comparable {
     boolean showPopover;
     PopOver diffPopover;
 
+    ContextMenu contextMenu;
+
     public RepoFile(Path filePath, Repository repo) {
         this.repo = repo;
 
@@ -72,6 +81,23 @@ public class RepoFile implements Comparable {
                 e1.printStackTrace();
             }
         });
+
+        this.contextMenu = new ContextMenu();
+
+        MenuItem addToIgnoreItem = new MenuItem("Add to .gitignore...");
+        addToIgnoreItem.setOnAction(event -> {
+            Path gitIgnoreFile = Paths.get(this.repo.getDirectory().getParent(), ".gitignore");
+            try(BufferedWriter bw = Files.newBufferedWriter(gitIgnoreFile, StandardOpenOption.APPEND)){
+                bw.newLine();
+                bw.newLine();
+                bw.write(this.filePath.toString());
+                bw.newLine();
+
+                Desktop.getDesktop().edit(new File(gitIgnoreFile.toString()));
+            } catch (IOException ignored) {}
+        });
+
+        this.contextMenu.getItems().addAll(addToIgnoreItem);
     }
 
     public RepoFile(String filePathString, Repository repo) {
@@ -140,11 +166,18 @@ public class RepoFile implements Comparable {
 
     public void showDiffPopover(Node owner) throws IOException, GitAPIException {
         if(showPopover) {
+            contextMenu.hide();
+
             DiffHelper diffHelper = new DiffHelper(this.filePath, this.repo);
             this.diffPopover.setContentNode(diffHelper.getDiffScrollPane());
             this.diffPopover.setTitle("File Diffs");
             this.diffPopover.show(owner);
         }
+    }
+
+    public void showContextMenu(Node owner, double x, double y){
+        this.diffPopover.hide();
+        this.contextMenu.show(owner, x, y);
     }
 
     public boolean equals(Object o){

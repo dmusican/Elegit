@@ -1,7 +1,10 @@
 package main.java.elegit;
 
 import javafx.application.Platform;
+import javafx.scene.control.TreeCell;
 import javafx.scene.control.TreeItem;
+import javafx.scene.control.TreeView;
+import javafx.util.Callback;
 import org.eclipse.jgit.api.errors.GitAPIException;
 
 import java.io.IOException;
@@ -18,7 +21,7 @@ public class AllFilesPanelView extends FileStructurePanelView{
     private Map<Path, TreeItem<RepoFile>> itemMap;
 
     public AllFilesPanelView() {
-        super();
+        this.init();
     }
 
     @Override
@@ -27,11 +30,27 @@ public class AllFilesPanelView extends FileStructurePanelView{
         super.init();
     }
 
+    /**
+     * @return a factory that generates a custom tree cell that includes a context menu for each
+     * item
+     */
+    @Override
+    protected Callback<TreeView<RepoFile>, TreeCell<RepoFile>> getTreeCellFactory() {
+        return arg -> new RepoFileTreeCell();
+    }
+
     @Override
     protected TreeItem<RepoFile> getRootTreeItem(DirectoryRepoFile rootDirectory) {
         return new TreeItem<>(rootDirectory);
     }
 
+    /**
+     * Builds a nested tree that follows the same file structure as the system, with the
+     * base directory of the current repository as the root. Subsequent calls to this method
+     * will update the items in place
+     * @param repoFiles the files to add to the tree
+     * @param root the root of the tree
+     */
     @Override
     protected void addTreeItemsToRoot(List<RepoFile> repoFiles, TreeItem<RepoFile> root){
         // To ensure files are added after their parents, sort the given files into lists
@@ -119,8 +138,29 @@ public class AllFilesPanelView extends FileStructurePanelView{
         }
     }
 
+    /**
+     * @return every file in the repository (included untracked, ignored, etc)
+     * @throws GitAPIException
+     * @throws IOException
+     */
     @Override
     public List<RepoFile> getFilesToDisplay() throws GitAPIException, IOException {
         return sessionModel.getAllRepoFiles();
+    }
+
+    /**
+     * An overwritten version of TreeCell that adds a context menu to our
+     * tree structure
+     */
+    private class RepoFileTreeCell extends TreeCell<RepoFile>{
+        @Override
+        protected void updateItem(RepoFile item, boolean empty){
+            super.updateItem(item, empty);
+
+            setText(getItem() == null ? "" : getItem().toString());
+            setGraphic(getTreeItem() == null ? null : getTreeItem().getGraphic());
+
+            setOnContextMenuRequested(event -> getTreeItem().getValue().showContextMenu(this, event.getScreenX(), event.getScreenY()));
+        }
     }
 }
