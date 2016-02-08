@@ -1,10 +1,15 @@
 package main.java.elegit;
 
+import com.jcraft.jsch.JSch;
+import com.jcraft.jsch.JSchException;
+import com.jcraft.jsch.Session;
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
@@ -17,9 +22,12 @@ import main.java.elegit.exceptions.NoRepoSelectedException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jgit.api.LsRemoteCommand;
+import org.eclipse.jgit.api.TransportConfigCallback;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
 import org.eclipse.jgit.api.errors.TransportException;
+import org.eclipse.jgit.transport.*;
+import org.eclipse.jgit.util.FS;
 
 import java.io.File;
 import java.io.IOException;
@@ -81,6 +89,20 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
         grid.setVgap(10);
         grid.setPadding(new Insets(10, 10, 10, 10));
 
+        // Set protocol
+        ObservableList<String> options =
+                FXCollections.observableArrayList(
+                        "HTTP",
+                        "SSH private key"
+                );
+        final ComboBox comboBox = new ComboBox(options);
+        comboBox.setValue("HTTP");
+        Text tryItText = new Text("dave");
+        comboBox.setOnAction(t -> {
+            tryItText.setText("hey");
+        });
+
+        // Set URL
         TextField remoteURLField = new TextField();
         remoteURLField.setPromptText("Remote URL");
         if(prevRemoteURL != null) remoteURLField.setText(prevRemoteURL);
@@ -106,11 +128,13 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
 
         grid.add(instructionsText, 0, 0, 2, 1);
 
+        grid.add(comboBox, 3, 1);
         grid.add(new Label("Remote URL:"), 0, 1);
         grid.add(remoteURLField, 1, 1);
         grid.add(new Label("Enclosing folder:"), 0, 2);
         grid.add(enclosingFolderField, 1, 2);
         grid.add(chooseDirectoryButton, 2, 2);
+        grid.add(tryItText,1,4);
 
         grid.add(new Label("Repository name:"), 0, 3);
         grid.add(repoNameField, 1, 3);
@@ -164,6 +188,30 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
                 // Try calling `git ls-remote ___` on the remote URL to see if it's valid
                 LsRemoteCommand lsRemoteCommand = new LsRemoteCommand(this.sessionModel.getCurrentRepo());
                 lsRemoteCommand.setRemote(remoteURL);
+                if (remoteURL.substring(0,6).equals("ssh://")) {
+                    SshSessionFactory sshSessionFactory = new JschConfigSessionFactory() {
+                        @Override
+                        protected void configure(OpenSshConfig.Host host, Session session) {
+                            // do nothing
+                        }
+
+                        @Override
+                        protected JSch createDefaultJSch(FS fs) throws JSchException {
+                            JSch defaultJSch = super.createDefaultJSch(fs);
+                            defaultJSch.addIdentity("/Users/dmusican/.ssh/mathcs",
+                                                    "my password");
+                            return defaultJSch;
+                        }
+                    };
+                    lsRemoteCommand.setTransportConfigCallback(
+                            new TransportConfigCallback() {
+                                @Override
+                                public void configure(Transport transport) {
+                                    SshTransport sshTransport = (SshTransport) transport;
+                                    sshTransport.setSshSessionFactory(sshSessionFactory);
+                                }
+                            });
+                }
                 lsRemoteCommand.call();
             } catch (TransportException e) {
                 // If the URL doesn't have a repo, a Transport Exception is thrown when this command is called.
