@@ -78,53 +78,55 @@ public class AllFilesPanelView extends FileStructurePanelView{
         // Loop through files at each depth
         for(int i = 0; i < maxDepth + 1; i++) {
             List<RepoFile> filesAtDepth = filesAtDepthMap.get(i);
-            for (RepoFile repoFile : filesAtDepth) {
-                Path pathToFile = repoFile.getFilePath();
+            if(filesAtDepth != null) {
+                for (RepoFile repoFile : filesAtDepth) {
+                    Path pathToFile = repoFile.getFilePath();
 
-                // Check if there is already a record of this file
-                if (itemMap.containsKey(pathToFile)) {
-                    TreeItem<RepoFile> oldItem = itemMap.get(pathToFile);
+                    // Check if there is already a record of this file
+                    if (itemMap.containsKey(pathToFile)) {
+                        TreeItem<RepoFile> oldItem = itemMap.get(pathToFile);
 
-                    if (oldItem.getValue().equals(repoFile)) {
-                        // The given file is already present, no additional processing needed
-                        itemsToRemove.remove(oldItem);
+                        if (oldItem.getValue().equals(repoFile)) {
+                            // The given file is already present, no additional processing needed
+                            itemsToRemove.remove(oldItem);
+                        } else {
+                            // The file is displayed, but needs its status updated. Replace the old with the new
+                            TreeItem<RepoFile> newItem = new TreeItem<>(repoFile, repoFile.diffButton);
+
+                            TreeItem<RepoFile> parent = oldItem.getParent();
+
+                            Platform.runLater(() -> {
+                                newItem.setExpanded(oldItem.isExpanded());
+                                newItem.getChildren().setAll(oldItem.getChildren());
+                                parent.getChildren().set(parent.getChildren().indexOf(oldItem), newItem);
+                            });
+
+                            itemsToRemove.remove(oldItem);
+                            itemMap.put(pathToFile, newItem);
+                        }
                     } else {
-                        // The file is displayed, but needs its status updated. Replace the old with the new
+                        // The given file wasn't present, so need to add it
                         TreeItem<RepoFile> newItem = new TreeItem<>(repoFile, repoFile.diffButton);
 
-                        TreeItem<RepoFile> parent = oldItem.getParent();
-
-                        Platform.runLater(() -> {
-                            newItem.setExpanded(oldItem.isExpanded());
-                            newItem.getChildren().setAll(oldItem.getChildren());
-                            parent.getChildren().set(parent.getChildren().indexOf(oldItem), newItem);
-                        });
-
-                        itemsToRemove.remove(oldItem);
-                        itemMap.put(pathToFile, newItem);
-                    }
-                } else {
-                    // The given file wasn't present, so need to add it
-                    TreeItem<RepoFile> newItem = new TreeItem<>(repoFile, repoFile.diffButton);
-
-                    Path pathToParent = pathToFile.getParent();
-                    boolean foundParent = false;
-                    // Make sure this new item is properly inserted as a child to its parent
-                    while (pathToParent != null && !root.getValue().getFilePath().equals(pathToParent)) {
-                        if (itemMap.containsKey(pathToParent)) {
-                            TreeItem<RepoFile> parent = itemMap.get(pathToParent);
-                            Platform.runLater(() -> parent.getChildren().add(newItem));
-                            foundParent = true;
-                            break;
+                        Path pathToParent = pathToFile.getParent();
+                        boolean foundParent = false;
+                        // Make sure this new item is properly inserted as a child to its parent
+                        while (pathToParent != null && !root.getValue().getFilePath().equals(pathToParent)) {
+                            if (itemMap.containsKey(pathToParent)) {
+                                TreeItem<RepoFile> parent = itemMap.get(pathToParent);
+                                Platform.runLater(() -> parent.getChildren().add(newItem));
+                                foundParent = true;
+                                break;
+                            }
+                            pathToParent = pathToParent.getParent();
                         }
-                        pathToParent = pathToParent.getParent();
+                        // If no parent is found, we can assume it belongs to the root
+                        if (!foundParent) {
+                            Platform.runLater(() -> root.getChildren().add(newItem));
+                        }
+                        itemMap.put(pathToFile, newItem);
+                        itemsToRemove.remove(newItem);
                     }
-                    // If no parent is found, we can assume it belongs to the root
-                    if (!foundParent){
-                        Platform.runLater(() -> root.getChildren().add(newItem));
-                    }
-                    itemMap.put(pathToFile, newItem);
-                    itemsToRemove.remove(newItem);
                 }
             }
         }
