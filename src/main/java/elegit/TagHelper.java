@@ -111,5 +111,9 @@ public class TagHelper{
         this.commit = c;
     }
 
+    public String getCommitId() {
+        return commit.getObjectId().getName();
+    }
+
     public boolean isAnnotated() { return this.isAnnotated; }
 }

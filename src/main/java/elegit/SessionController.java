@@ -75,7 +75,6 @@ public class SessionController {
     public Button openRepoDirButton;
     public Button gitStatusButton;
     public Button commitButton;
-    public Button tagButton;
     public Button mergeFromFetchButton;
     public Button pushTagsButton;
     public Button pushButton;
@@ -86,7 +85,6 @@ public class SessionController {
     public ProgressIndicator pushProgressIndicator;
 
     public TextArea commitMessageField;
-    public TextArea tagNameField;
 
     public Tab workingTreePanelTab;
     public Tab allFilesPanelTab;
@@ -104,6 +102,8 @@ public class SessionController {
     public Button commitInfoNameCopyButton;
     public Button commitInfoGoToButton;
     public TextArea commitInfoMessageText;
+    public Button tagButton;
+    public TextArea tagNameField;
 
     public DataSubmitter d;
 
@@ -547,7 +547,7 @@ public class SessionController {
 
                     } catch(GitAPIException e){
                         // Git error
-                        showGenericErrorNotification();
+                        showTagExistsNotification();
                         e.printStackTrace();
                     } catch(Exception e) {
                         showGenericErrorNotification();
@@ -555,6 +555,9 @@ public class SessionController {
                     }
 
                     //pushTagsButton.setVisible(true);
+                    tagNameField.setText("");
+                    clearSelectedCommit();
+                    selectCommit(theModel.getCurrentRepoHelper().getTag(tagName).getCommitId());
 
                     return null;
                 }
@@ -1545,8 +1548,11 @@ public class SessionController {
             CommitHelper commit = this.theModel.getCurrentRepoHelper().getCommit(id);
             String tagString="";
             if (commit.getTags().size() != 0)
-                tagString = "\n\nTags: ";
+                tagString = "\nTags: ";
+            boolean isFirst = true;
             for (TagHelper t:commit.getTags()) {
+                if (isFirst) isFirst = false;
+                else tagString+=", ";
                 tagString+=t.getName();
             }
             commitInfoNameText.setText(commit.getName());
@@ -1555,6 +1561,9 @@ public class SessionController {
             commitInfoMessageText.setVisible(true);
             commitInfoNameCopyButton.setVisible(true);
             commitInfoGoToButton.setVisible(true);
+
+            tagNameField.setVisible(true);
+            tagButton.setVisible(true);
 
             String s = "";
             for (BranchHelper branch : commit.getBranchesAsHead()) {
@@ -1583,6 +1592,9 @@ public class SessionController {
             commitInfoMessageText.setVisible(false);
             commitInfoNameCopyButton.setVisible(false);
             commitInfoGoToButton.setVisible(false);
+            tagNameField.setText("");
+            tagNameField.setVisible(false);
+            tagButton.setVisible(false);
         });
     }
 

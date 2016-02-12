@@ -145,14 +145,6 @@
                                 promptText="Commit message..."
                                 wrapText="true" />
 
-                        <TextArea
-                                GridPane.rowIndex="4"
-                                fx:id="tagNameField"
-                                prefRowCount="1"
-                                prefColumnCount="1"
-                                promptText="tag..."
-                                wrapText="true" />
-
                     </GridPane>
 
                     <StackPane GridPane.rowIndex="1"
@@ -252,16 +244,6 @@
                                  arrowRight="true"
                                  onAction="#handleCommitButton"/>
 
-                    <ArrowButton GridPane.rowIndex="3"
-                                 GridPane.columnIndex="1"
-                                 GridPane.halignment="LEFT"
-                                 GridPane.valignment="BOTTOM"
-                                 id="codeButton"
-                                 fx:id="tagButton"
-                                 text="Tag"
-                                 arrowRight="true"
-                                 onAction="#handleTagButton"/>
-
                     <StackPane GridPane.rowIndex="3"
                                GridPane.columnIndex="6"
                                GridPane.columnSpan="2">
@@ -297,6 +279,28 @@
                                       wrapText="true"
                                       editable="false"
                                       fx:id="commitInfoMessageText"/>
+
+                            <TextArea
+                                    GridPane.rowIndex="4"
+                                    GridPane.columnIndex="1"
+                                    GridPane.columnSpan="2"
+                                    GridPane.vgrow="NEVER"
+                                    prefColumnCount="1"
+                                    prefHeight="1"
+                                    wrapText="true"
+                                    editable="true"
+                                    fx:id="tagNameField"
+                                    promptText="tag..." />
+
+                            <ArrowButton GridPane.rowIndex="4"
+                                         GridPane.columnIndex="0"
+                                         GridPane.halignment="LEFT"
+                                         GridPane.valignment="BOTTOM"
+                                         id="codeButton"
+                                         fx:id="tagButton"
+                                         text="Tag"
+                                         arrowLeft="true"
+                                         onAction="#handleTagButton"/>
 
                             <Button GridPane.rowIndex="2"
                                     GridPane.columnIndex="0"

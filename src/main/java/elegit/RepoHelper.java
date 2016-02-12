@@ -60,6 +60,7 @@ public abstract class RepoHelper {
 
     private Map<String, CommitHelper> commitIdMap;
     private Map<ObjectId, String> idMap;
+    private Map<String, TagHelper> tagIdMap;
 
     private List<LocalBranchHelper> localBranches;
     private List<RemoteBranchHelper> remoteBranches;
@@ -92,6 +93,7 @@ public abstract class RepoHelper {
 
         this.commitIdMap = new HashMap<>();
         this.idMap = new HashMap<>();
+        this.tagIdMap = new HashMap<>();
 
         this.localCommits = this.parseAllLocalCommits();
         this.remoteCommits = this.parseAllRemoteCommits();
@@ -118,6 +120,7 @@ public abstract class RepoHelper {
 
         this.commitIdMap = new HashMap<>();
         this.idMap = new HashMap<>();
+        this.tagIdMap = new HashMap<>();
 
         this.localCommits = this.parseAllLocalCommits();
         this.remoteCommits = this.parseAllRemoteCommits();
@@ -254,13 +257,15 @@ public abstract class RepoHelper {
      * @param tagName the name for the tag.
      * @throws GitAPIException if the 'git tag' call fails.
      */
-    public void tag(String tagName) throws GitAPIException, MissingRepoException {
+    public void tag(String tagName) throws GitAPIException, MissingRepoException, IOException {
         logger.info("Attempting tag");
         if(!exists()) throw new MissingRepoException();
         Git git = new Git(this.repo);
         // git tag (using annotated tags that are accepted by the community as 'better':
-        git.tag().setName(tagName).setAnnotated(true).call();
+        Ref r = git.tag().setName(tagName).setAnnotated(false).call();
         git.close();
+        TagHelper t = makeTagHelper(r,tagName);
+        //commitIdMap.get(r.getObjectId().getName()).addTag(t);
         this.hasUnpushedTagsProperty.set(true);
     }
 
@@ -664,6 +669,10 @@ public abstract class RepoHelper {
         }
     }
 
+    public TagHelper getTag(String tagName) {
+        return tagIdMap.get(tagName);
+    }
+
     /**
      * @return a list of all commit IDs in this repository
      */
@@ -767,28 +776,44 @@ public abstract class RepoHelper {
         List<TagHelper> tags = new ArrayList<>();
         for (String s: tagMap.keySet()) {
             Ref r = tagMap.get(s);
-            String commitName;
-            if (r.getPeeledObjectId()!=null) commitName=r.getPeeledObjectId().getName();
-            else commitName=r.getObjectId().getName();
-            CommitHelper c = this.commitIdMap.get(commitName);
-            // If the ref has a peeled objectID, then it is a lightweight tag
-            if (r.getPeeledObjectId()==null) {
-                TagHelper t = new TagHelper(s, c);
-                tags.add(new TagHelper(s, c));
-                c.addTag(t);
-            }
-            // Otherwise, it is an annotated tag
-            else {
-                ObjectReader objectReader = repo.newObjectReader();
-                ObjectLoader objectLoader = objectReader.open(r.getObjectId());
-                RevTag tag = RevTag.parse(objectLoader.getBytes());
-                objectReader.release();
-                TagHelper t = new TagHelper(tag, c);
-                tags.add(t);
-                c.addTag(t);
-            }
+            tags.add(makeTagHelper(r,s));
         }
         return tags;
+    }
+
+    /**
+     * Helper method to make a tagHelper given a ref and a name of the tag. Also adds the
+     * tag helper to the tagIdMap
+     * @param r the ref to make a tagHelper for. This can be a peeled or unpeeled tag
+     * @param tagName the name of the tag
+     * @return a tagHelper object with the information stored
+     * @throws IOException
+     * @throws GitAPIException
+     */
+    private TagHelper makeTagHelper(Ref r, String tagName) throws IOException, GitAPIException {
+        String commitName;
+        if (r.getPeeledObjectId()!=null) commitName=r.getPeeledObjectId().getName();
+        else commitName=r.getObjectId().getName();
+        CommitHelper c = this.commitIdMap.get(commitName);
+        TagHelper t;
+        // If the ref has a peeled objectID, then it is a lightweight tag
+        if (r.getPeeledObjectId()==null) {
+            t = new TagHelper(tagName, c);
+            c.addTag(t);
+        }
+        // Otherwise, it is an annotated tag
+        else {
+            ObjectReader objectReader = repo.newObjectReader();
+            ObjectLoader objectLoader = objectReader.open(r.getObjectId());
+            RevTag tag = RevTag.parse(objectLoader.getBytes());
+            objectReader.release();
+            t = new TagHelper(tag, c);
+            c.addTag(t);
+        }
+        if (!tagIdMap.containsKey(tagName)) {
+            tagIdMap.put(tagName, t);
+        }
+        return t;
     }
 
     /**
