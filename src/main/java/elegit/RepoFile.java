@@ -10,14 +10,9 @@ import org.controlsfx.control.PopOver;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Repository;
 
-import java.awt.*;
-import java.io.BufferedWriter;
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 
 /**
@@ -85,17 +80,7 @@ public class RepoFile implements Comparable {
         this.contextMenu = new ContextMenu();
 
         MenuItem addToIgnoreItem = new MenuItem("Add to .gitignore...");
-        addToIgnoreItem.setOnAction(event -> {
-            Path gitIgnoreFile = Paths.get(this.repo.getDirectory().getParent(), ".gitignore");
-            try(BufferedWriter bw = Files.newBufferedWriter(gitIgnoreFile, StandardOpenOption.APPEND)){
-                bw.newLine();
-                bw.newLine();
-                bw.write(this.filePath.toString());
-                bw.newLine();
-
-                Desktop.getDesktop().edit(new File(gitIgnoreFile.toString()));
-            } catch (IOException ignored) {}
-        });
+        addToIgnoreItem.setOnAction(event -> GitIgnoreEditor.show(this.repo, this.filePath));
 
         this.contextMenu.getItems().addAll(addToIgnoreItem);
     }
