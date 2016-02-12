@@ -474,17 +474,18 @@ public class SessionModel {
 
         List<Path> addedPaths = new LinkedList<>();
         for(RepoFile file : allFiles){
-            addedPaths.add(file.getFilePath().toAbsolutePath());
+            addedPaths.add(file.getFilePath());
         }
 
         for(Path path : allPaths){
-            RepoFile temp;
-            if(path.toFile().isDirectory()){
-                temp = new DirectoryRepoFile(path, currentRepoHelper.getRepo());
-            }else{
-                temp = new RepoFile(path, currentRepoHelper.getRepo());
-            }
+            path = currentRepoHelper.getLocalPath().relativize(path);
             if(!addedPaths.contains(path)){
+                RepoFile temp;
+                if(path.toFile().isDirectory()){
+                    temp = new DirectoryRepoFile(path, currentRepoHelper.getRepo());
+                }else{
+                    temp = new RepoFile(path, currentRepoHelper.getRepo());
+                }
                 allFiles.add(temp);
                 addedPaths.add(path);
             }
