@@ -522,7 +522,7 @@ public class SessionController {
                 @Override
                 protected Void call() {
                     try{
-                        theModel.getCurrentRepoHelper().tag(tagName);
+                        theModel.getCurrentRepoHelper().tag(tagName, commitInfoNameText.getText());
 
                         // Now clear the tag text and a view reload ( or `git status`) to show that something happened
                         tagNameField.clear();

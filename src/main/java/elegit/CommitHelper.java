@@ -262,6 +262,13 @@ public class CommitHelper{
     }
 
     /**
+     * @return the commit object for this helper
+     */
+    public RevCommit getCommit() {
+        return this.commit;
+    }
+
+    /**
      * A helper class for the parents of a commit. Holds 0-2 commits that
      * can be parents of the same commit
      */

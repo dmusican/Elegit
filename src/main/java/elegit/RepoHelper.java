@@ -257,15 +257,16 @@ public abstract class RepoHelper {
      * @param tagName the name for the tag.
      * @throws GitAPIException if the 'git tag' call fails.
      */
-    public void tag(String tagName) throws GitAPIException, MissingRepoException, IOException {
+    public void tag(String tagName, String commitName) throws GitAPIException, MissingRepoException, IOException {
         logger.info("Attempting tag");
         if(!exists()) throw new MissingRepoException();
         Git git = new Git(this.repo);
-        // git tag (using annotated tags that are accepted by the community as 'better':
-        Ref r = git.tag().setName(tagName).setAnnotated(false).call();
+        // This creates a lightweight tag
+        // TODO: add support for annotated (heavyweight) tag
+        CommitHelper c = commitIdMap.get(commitName);
+        Ref r = git.tag().setName(tagName).setObjectId(c.getCommit()).setAnnotated(false).call();
         git.close();
         TagHelper t = makeTagHelper(r,tagName);
-        //commitIdMap.get(r.getObjectId().getName()).addTag(t);
         this.hasUnpushedTagsProperty.set(true);
     }
 
