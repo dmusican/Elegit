@@ -767,14 +767,12 @@ public abstract class RepoHelper {
         List<TagHelper> tags = new ArrayList<>();
         for (String s: tagMap.keySet()) {
             Ref r = tagMap.get(s);
-            //r.getObjectId().getName() is the name of the commit it points to
-            CommitHelper c = this.commitIdMap.get(r.getObjectId().getName());
-            if (c==null) {
-                System.out.println("Failed to find commit: "+r.getObjectId().getName());
-                continue;
-            }
-            // If the ref is peeled, then it is a lightweight tag
-            if (r.isPeeled()) {
+            String commitName;
+            if (r.getPeeledObjectId()!=null) commitName=r.getPeeledObjectId().getName();
+            else commitName=r.getObjectId().getName();
+            CommitHelper c = this.commitIdMap.get(commitName);
+            // If the ref has a peeled objectID, then it is a lightweight tag
+            if (r.getPeeledObjectId()==null) {
                 TagHelper t = new TagHelper(s, c);
                 tags.add(new TagHelper(s, c));
                 c.addTag(t);
