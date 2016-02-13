@@ -7,7 +7,7 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 /**
- * JUnit tests for SessionModel.
+ * Created by dmusican on 2/13/16.
  */
 public class SessionModelTest {
 
@@ -23,6 +23,6 @@ public class SessionModelTest {
 
     @Test
     public void testGetSessionModel() throws Exception {
-        assertTrue(6 == 3+3);
+        assertTrue(8 == 4+4);
     }
 }
