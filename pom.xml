@@ -15,6 +15,7 @@
         <finalName>${artifactId}-${version}</finalName>
         <testOutputDirectory>target/test-classes</testOutputDirectory>
         <sourceDirectory>src</sourceDirectory>
+        <testSourceDirectory>tests</testSourceDirectory>
         <resources>
             <resource>
                 <directory>src/main/resources</directory>
