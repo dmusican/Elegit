@@ -15,12 +15,12 @@
         <finalName>${artifactId}-${version}</finalName>
         <testOutputDirectory>target/test-classes</testOutputDirectory>
         <sourceDirectory>src</sourceDirectory>
+        <testSourceDirectory>tests</testSourceDirectory>
         <resources>
             <resource>
                 <directory>src/main/resources</directory>
             </resource>
         </resources>
-
         <plugins>
             <plugin>
                 <groupId>com.zenjava</groupId>
@@ -32,7 +32,6 @@
                 </configuration>
             </plugin>
         </plugins>
-
     </build>
 
     <dependencies>
@@ -73,6 +72,13 @@
             <artifactId>httpclient</artifactId>
             <version>4.5.1</version>
         </dependency>
+
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.12</version>
+        </dependency>
+
     </dependencies>
 
     <properties>
