@@ -253,7 +253,7 @@ public class CommitHelper{
     }
 
     /**
-     * @param t a TagHelper that will be deleted
+     * @param s a TagHelper that will be deleted
      */
     public void removeTag(String s) {
         for (TagHelper tag: this.tags) {

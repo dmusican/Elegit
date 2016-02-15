@@ -233,7 +233,7 @@ public class SessionController {
         gitStatusButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         commitButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         mergeFromFetchButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
-        //pushTagsButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
+        pushTagsButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         pushButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         fetchButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         branchesButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
@@ -571,6 +571,7 @@ public class SessionController {
                     }
 
                     pushTagsButton.setVisible(true);
+                    pushButton.setVisible(false);
                     tagNameField.setText("");
                     clearSelectedCommit();
                     selectCommit(theModel.getCurrentRepoHelper().getTag(tagName).getCommitId());
@@ -751,7 +752,7 @@ public class SessionController {
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
             if(!this.theModel.getCurrentRepoHelper().hasUnpushedTags()) throw new NoTagsToPushException();
 
-            //pushTagsButton.setVisible(false);
+            pushTagsButton.setVisible(false);
             pushProgressIndicator.setVisible(true);
 
             UsernamePasswordCredentialsProvider ownerAuth;
@@ -759,7 +760,7 @@ public class SessionController {
             try {
                 ownerAuth = getAuth();
             } catch (CancelledAuthorizationException e) {
-                //pushTagsButton.setVisible(true);
+                pushTagsButton.setVisible(true);
                 pushProgressIndicator.setVisible(false);
                 return;
             }
@@ -767,14 +768,17 @@ public class SessionController {
             Thread th = new Thread(new Task<Void>(){
                 @Override
                 protected Void call() {
+                    boolean tagsPushed = true;
                     try{
                         RepositoryMonitor.resetFoundNewChanges(false);
                         theModel.getCurrentRepoHelper().pushTags(ownerAuth);
                         gitStatus();
                     }  catch(InvalidRemoteException e){
                         showNoRemoteNotification();
+                        tagsPushed = false;
                     } catch(PushToAheadRemoteError e) {
                         showPushToAheadRemoteNotification(e.isAllRefsRejected());
+                        tagsPushed = false;
                     } catch (TransportException e) {
                         if (e.getMessage().contains("git-receive-pack not found")) {
                             // The error has this message if there is no longer a remote to push to
@@ -782,19 +786,29 @@ public class SessionController {
                         } else {
                             showNotAuthorizedNotification(null);
                         }
+                        tagsPushed = false;
                     } catch(MissingRepoException e){
                         showMissingRepoNotification();
                         setButtonsDisabled(true);
                         refreshRecentReposInDropdown();
+                        tagsPushed = false;
                     } catch(GitAPIException e){
                         showGenericErrorNotification();
                         e.printStackTrace();
+                        tagsPushed = false;
                     } catch(Exception e) {
                         showGenericErrorNotification();
                         e.printStackTrace();
+                        tagsPushed = false;
                     } finally{
                         pushProgressIndicator.setVisible(false);
-                        //pushTagsButton.setVisible(true);
+                    }
+                    if (tagsPushed) {
+                        pushTagsButton.setVisible(false);
+                        pushButton.setVisible(true);
+                    }
+                    else {
+                        pushTagsButton.setVisible(true);
                     }
                     return null;
                 }
@@ -1015,7 +1029,7 @@ public class SessionController {
             tagButton.setDisable(disable);
             commitButton.setDisable(disable);
             mergeFromFetchButton.setDisable(disable);
-            //pushTagsButton.setDisable(disable);
+            pushTagsButton.setDisable(disable);
             pushButton.setDisable(disable);
             fetchButton.setDisable(disable);
             selectAllButton.setDisable(disable);
