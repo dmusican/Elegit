@@ -16,6 +16,7 @@ import main.java.elegit.exceptions.CancelledAuthorizationException;
 import main.java.elegit.exceptions.NoRepoSelectedException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.LsRemoteCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
@@ -162,9 +163,7 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
 
             try {
                 // Try calling `git ls-remote ___` on the remote URL to see if it's valid
-                LsRemoteCommand lsRemoteCommand = new LsRemoteCommand(this.sessionModel.getCurrentRepo());
-                lsRemoteCommand.setRemote(remoteURL);
-                lsRemoteCommand.call();
+                Git.lsRemoteRepository().setRemote(remoteURL).call();
             } catch (TransportException e) {
                 // If the URL doesn't have a repo, a Transport Exception is thrown when this command is called.
                 //  We want the SessionController to report an InvalidRemoteException, though, because
