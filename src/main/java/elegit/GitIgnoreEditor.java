@@ -16,8 +16,10 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import org.eclipse.jgit.lib.Repository;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.StringReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -87,8 +89,12 @@ public class GitIgnoreEditor {
      */
     private static void handleConfirmation(String newText, boolean saveChanges) {
         if(saveChanges){
-            try(BufferedWriter bw = Files.newBufferedWriter(gitIgnoreFile)){
-                bw.write(newText);
+            try(BufferedReader br = new BufferedReader(new StringReader(newText));
+                BufferedWriter bw = Files.newBufferedWriter(gitIgnoreFile)){
+                for(String line = br.readLine(); line != null; line = br.readLine()) {
+                    bw.write(line);
+                    bw.newLine();
+                }
             } catch (IOException ignored) {}
         }
 
