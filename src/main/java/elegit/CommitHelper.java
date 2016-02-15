@@ -253,12 +253,34 @@ public class CommitHelper{
     }
 
     /**
+     * @param t a TagHelper that will be deleted
+     */
+    public void removeTag(String s) {
+        for (TagHelper tag: this.tags) {
+            if (tag.getName().equals(s)) {
+                this.tags.remove(tag);
+                return;
+            }
+        }
+    }
+
+    /**
      * @return the list of tags that reference this commit
      */
     public List<TagHelper> getTags() {
         if (this.tags == null)
             this.tags = new ArrayList<>();
         return this.tags;
+    }
+
+    public List<String> getTagNames() {
+        if (this.tags == null)
+            this.tags = new ArrayList<>();
+        ArrayList<String> tagNames = new ArrayList<>();
+        for (TagHelper tag: this.tags) {
+            tagNames.add(tag.getName());
+        }
+        return tagNames;
     }
 
     /**

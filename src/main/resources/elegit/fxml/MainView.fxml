@@ -203,13 +203,15 @@
                                                fx:id="pushProgressIndicator"/>
                         </HBox>
 
-                        <ArrowButton StackPane.alignment="CENTER_LEFT"
+                        <ArrowButton StackPane.alignment="CENTER_RIGHT"
                                      id="codeButton"
-                                     fx:id="pushTagButton"
+                                     fx:id="pushTagsButton"
                                      text="Push Tags"
                                      arrowUp="true"
                                      arrowRight="true"
-                                     onAction="#handlePushTagsButton"/>
+                                     visible="false"
+                                     onAction="#handlePushTagsButton">
+                        </ArrowButton>
 
                         <ArrowButton StackPane.alignment="CENTER_RIGHT"
                                      id="codeButton"

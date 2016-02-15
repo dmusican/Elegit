@@ -257,13 +257,15 @@ public abstract class RepoHelper {
      * @param tagName the name for the tag.
      * @throws GitAPIException if the 'git tag' call fails.
      */
-    public void tag(String tagName, String commitName) throws GitAPIException, MissingRepoException, IOException {
+    public void tag(String tagName, String commitName) throws GitAPIException, MissingRepoException, IOException, TagNameExistsException {
         logger.info("Attempting tag");
         if(!exists()) throw new MissingRepoException();
         Git git = new Git(this.repo);
         // This creates a lightweight tag
         // TODO: add support for annotated (heavyweight) tag
         CommitHelper c = commitIdMap.get(commitName);
+        if (c.getTagNames().contains(tagName))
+            throw new TagNameExistsException();
         Ref r = git.tag().setName(tagName).setObjectId(c.getCommit()).setAnnotated(false).call();
         git.close();
         TagHelper t = makeTagHelper(r,tagName);
@@ -682,6 +684,13 @@ public abstract class RepoHelper {
     }
 
     /**
+     * @return a list of all tag names in this repository
+     */
+    public List<String> getAllTagNames(){
+        return new ArrayList<>(tagIdMap.keySet());
+    }
+
+    /**
      * @return the head of the current branch
      */
     public CommitHelper getHead(){
@@ -772,7 +781,7 @@ public abstract class RepoHelper {
      * @throws IOException
      * @throws GitAPIException
      */
-    private List<TagHelper> getAllLocalTags() throws IOException, GitAPIException {
+    public List<TagHelper> getAllLocalTags() throws IOException, GitAPIException {
         Map<String, Ref> tagMap = repo.getTags();
         List<TagHelper> tags = new ArrayList<>();
         for (String s: tagMap.keySet()) {
@@ -780,6 +789,32 @@ public abstract class RepoHelper {
             tags.add(makeTagHelper(r,s));
         }
         return tags;
+    }
+
+    /**
+     * Looks through all the tags and checks that they are added to commit helpers
+     * @throws IOException
+     * @throws GitAPIException
+     */
+    public void updateTags() throws IOException, GitAPIException {
+        Map<String, Ref> tagMap = repo.getTags();
+        List<String> oldTagNames = getAllTagNames();
+        for (String s: tagMap.keySet()) {
+            if (oldTagNames.contains(s)){
+                oldTagNames.remove(s);
+                continue;
+            }
+            else {
+                Ref r = tagMap.get(s);
+                makeTagHelper(r,s);
+            }
+        }
+        if (oldTagNames.size() > 0) { //There are tags that were deleted, so we remove them
+            for (String s: oldTagNames) {
+                this.commitIdMap.get(this.tagIdMap.get(s).getCommitId()).removeTag(s);
+                this.tagIdMap.remove(s);
+            }
+        }
     }
 
     /**

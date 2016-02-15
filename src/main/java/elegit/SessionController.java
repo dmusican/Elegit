@@ -560,14 +560,17 @@ public class SessionController {
 
                     } catch(GitAPIException e){
                         // Git error
-                        showTagExistsNotification();
+                        showGenericErrorNotification();
                         e.printStackTrace();
-                    } catch(Exception e) {
+                    } catch(TagNameExistsException e){
+                        showTagExistsNotification();
+                    }
+                    catch(Exception e) {
                         showGenericErrorNotification();
                         e.printStackTrace();
                     }
 
-                    //pushTagsButton.setVisible(true);
+                    pushTagsButton.setVisible(true);
                     tagNameField.setText("");
                     clearSelectedCommit();
                     selectCommit(theModel.getCurrentRepoHelper().getTag(tagName).getCommitId());
@@ -911,6 +914,7 @@ public class SessionController {
                 try{
                     localCommitTreeModel.update();
                     remoteCommitTreeModel.update();
+                    theModel.getCurrentRepoHelper().updateTags();
 
                     workingTreePanelView.drawDirectoryView();
                     allFilesPanelView.drawDirectoryView();
