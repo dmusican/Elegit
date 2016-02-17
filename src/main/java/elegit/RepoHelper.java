@@ -263,7 +263,7 @@ public abstract class RepoHelper {
         if(!exists()) throw new MissingRepoException();
         Git git = new Git(this.repo);
         // This creates a lightweight tag
-        // TODO: add support for annotated (heavyweight) tag
+        // TODO: add support for annotated tags?
         CommitHelper c = commitIdMap.get(commitName);
         if (c.getTagNames().contains(tagName))
             throw new TagNameExistsException();
@@ -685,6 +685,22 @@ public abstract class RepoHelper {
 
     public TagHelper getTag(String tagName) {
         return tagIdMap.get(tagName);
+    }
+
+    public void deleteTag(String tagName) throws MissingRepoException, GitAPIException {
+        TagHelper tagToRemove = tagIdMap.get(tagName);
+
+        if(!exists()) throw new MissingRepoException();
+        // should this Git instance be class-level?
+        Git git = new Git(this.repo);
+        // git tag -d
+        git.tagDelete().setTags(tagToRemove.getName()).call();
+        git.close();
+
+        tagToRemove.getCommit().removeTag(tagName);
+        this.localTags.remove(tagToRemove);
+        this.tagIdMap.remove(tagName);
+        this.hasUnpushedTagsProperty.set(true);
     }
 
     /**

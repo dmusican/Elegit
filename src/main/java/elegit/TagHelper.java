@@ -1,5 +1,10 @@
 package main.java.elegit;
 
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.Dialog;
+import javafx.scene.layout.GridPane;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.jgit.revwalk.RevTag;
@@ -112,8 +117,36 @@ public class TagHelper{
     }
 
     public String getCommitId() {
-        return commit.getObjectId().getName();
+        return this.commit.getObjectId().getName();
     }
 
+    public CommitHelper getCommit() {return this.commit; }
+
     public boolean isAnnotated() { return this.isAnnotated; }
+
+    public boolean presentDeleteDialog() {
+        //Create the dialog
+        Dialog<Boolean> dialog = new Dialog<>();
+        dialog.setTitle("Delete Tag");
+        dialog.setHeaderText("Are you sure you want to delete tag "+tagName+"?");
+
+        ButtonType confirm = new ButtonType("Yes", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(confirm, ButtonType.CANCEL);
+
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == confirm) {
+                return true;
+            }
+            return false;
+        });
+
+        Optional<Boolean> result = dialog.showAndWait();
+
+        if (result.isPresent()) {
+            return result.get();
+        }
+        else {
+            return false;
+        }
+    }
 }

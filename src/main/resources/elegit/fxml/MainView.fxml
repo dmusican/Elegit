@@ -276,8 +276,22 @@
                                       editable="false"
                                       fx:id="commitInfoMessageText"/>
 
-                            <TextArea
+                            <ScrollPane
+                                    GridPane.columnIndex="1"
                                     GridPane.rowIndex="4"
+                                    GridPane.columnSpan="3"
+                                    fx:id="tagsPane"
+                            />
+
+                            <Label
+                                    GridPane.columnIndex="0"
+                                    GridPane.rowIndex="4"
+                                    fx:id="tagsLabel"
+                                    text="Tags:"
+                            />
+
+                            <TextArea
+                                    GridPane.rowIndex="5"
                                     GridPane.columnIndex="1"
                                     GridPane.columnSpan="2"
                                     GridPane.vgrow="NEVER"
@@ -288,7 +302,8 @@
                                     fx:id="tagNameField"
                                     promptText="tag..." />
 
-                            <ArrowButton GridPane.rowIndex="4"
+
+                            <ArrowButton GridPane.rowIndex="5"
                                          GridPane.columnIndex="0"
                                          GridPane.halignment="LEFT"
                                          GridPane.valignment="BOTTOM"

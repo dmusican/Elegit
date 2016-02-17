@@ -17,11 +17,13 @@ import javafx.scene.control.*;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
@@ -41,6 +43,7 @@ import org.eclipse.jgit.errors.NoMergeBaseException;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
 import java.awt.*;
+import java.awt.event.ActionEvent;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -48,6 +51,7 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.prefs.BackingStoreException;
@@ -102,6 +106,9 @@ public class SessionController {
     public Button commitInfoNameCopyButton;
     public Button commitInfoGoToButton;
     public TextArea commitInfoMessageText;
+
+    public ScrollPane tagsPane;
+    public Label tagsLabel;
     public Button tagButton;
     public TextArea tagNameField;
 
@@ -1541,15 +1548,35 @@ public class SessionController {
     public void selectCommit(String id){
         Platform.runLater(() -> {
             CommitHelper commit = this.theModel.getCurrentRepoHelper().getCommit(id);
-            String tagString="";
-            if (commit.getTags().size() != 0)
-                tagString = "\nTags: ";
-            boolean isFirst = true;
+
+            GridPane tags = new GridPane();
+            tags.setPrefHeight(1);
+            int numTags = 0;
             for (TagHelper t:commit.getTags()) {
-                if (isFirst) isFirst = false;
-                else tagString+=", ";
-                tagString+=t.getName();
+                Hyperlink link = new Hyperlink();
+                link.setText(t.getName());
+                link.setOnAction(new EventHandler<javafx.event.ActionEvent>() {
+                    @Override
+                    public void handle(javafx.event.ActionEvent event) {
+                        logger.info("Delete tag dialog started.");
+                        if (t.presentDeleteDialog()) {
+                            try {
+                                theModel.getCurrentRepoHelper().deleteTag(t.getName());
+                            } catch (MissingRepoException e) {
+                                e.printStackTrace();
+                            } catch (GitAPIException e) {
+                                e.printStackTrace();
+                            }
+                            gitStatus();
+                            clearSelectedCommit();
+                            selectCommit(id);
+                        }
+                    }
+                });
+                tags.add(link,numTags,0);
+                numTags++;
             }
+            tagsPane.setContent(tags);
             commitInfoNameText.setText(commit.getName());
             commitInfoAuthorText.setText(commit.getAuthorName());
             commitInfoDateText.setText(commit.getFormattedWhen());
@@ -1557,6 +1584,8 @@ public class SessionController {
             commitInfoNameCopyButton.setVisible(true);
             commitInfoGoToButton.setVisible(true);
 
+            tagsPane.setVisible(true);
+            tagsLabel.setVisible(true);
             tagNameField.setVisible(true);
             tagButton.setVisible(true);
 
@@ -1568,9 +1597,9 @@ public class SessionController {
                 s = s + branch.getBranchName() + "\n";
             }
             if (s.length() > 0) {
-                commitInfoMessageText.setText("Head of branches: \n" + s + "\n\n" + commit.getMessage(true) + tagString);
+                commitInfoMessageText.setText("Head of branches: \n" + s + "\n\n" + commit.getMessage(true));
             } else {
-                commitInfoMessageText.setText(commit.getMessage(true) + tagString);
+                commitInfoMessageText.setText(commit.getMessage(true));
             }
         });
     }
@@ -1587,6 +1616,9 @@ public class SessionController {
             commitInfoMessageText.setVisible(false);
             commitInfoNameCopyButton.setVisible(false);
             commitInfoGoToButton.setVisible(false);
+
+            tagsPane.setVisible(false);
+            tagsLabel.setVisible(false);
             tagNameField.setText("");
             tagNameField.setVisible(false);
             tagButton.setVisible(false);
