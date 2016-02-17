@@ -1,5 +1,6 @@
 package main.java.elegit;
 
+import com.sun.xml.internal.bind.v2.runtime.unmarshaller.TagName;
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import javafx.application.Platform;
@@ -531,6 +532,9 @@ public class SessionController {
             if(!this.theModel.getCurrentRepoHelper().exists()) throw new MissingRepoException();
 
             String tagName = tagNameField.getText();
+            if (theModel.getCurrentRepoHelper().getTag(tagName) != null) {
+                throw new TagNameExistsException();
+            }
 
             if(tagName.length() == 0) throw new NoTagNameException();
 
@@ -594,6 +598,8 @@ public class SessionController {
             refreshRecentReposInDropdown();
         } catch(NoTagNameException e){
             this.showNoTagNameNotification();
+        } catch(TagNameExistsException e) {
+            this.showTagExistsNotification();
         }
     }
 
