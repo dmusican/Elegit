@@ -1,5 +1,6 @@
 package main.java.elegit;
 
+import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.stage.WindowEvent;
 import main.java.elegit.exceptions.ConflictingFilesException;
@@ -449,10 +450,11 @@ public abstract class RepoHelper {
         TextField username = new TextField();
         if (this.username == null) {
             username.setPromptText("Username");
-            grid.add(username, 1, 0);
         } else {
-            grid.add(new Label(this.username), 1, 0);
+            username.setText(this.username);
+            username.setEditable(false);
         }
+        grid.add(username, 1, 0);
 
         grid.add(new Label("Password:"), 0, 1);
 
@@ -465,6 +467,22 @@ public abstract class RepoHelper {
         }
         password.setPromptText("Password");
         grid.add(password, 1, 1);
+
+        //Edit username button
+        Button editUsername = new Button();
+        editUsername.setText("Edit");
+        editUsername.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                username.setEditable(true);
+                password.setText("");
+                remember.setSelected(false);
+            }
+        });
+        if (this.username == null) {
+            editUsername.setVisible(false);
+        }
+        grid.add(editUsername,2,0);
 
         remember.setIndeterminate(false);
         grid.add(remember, 1, 2);
@@ -486,7 +504,7 @@ public abstract class RepoHelper {
         dialog.getDialogPane().setContent(grid);
 
         // Request focus for the first text field by default.
-        if (this.username == null) {
+        if (username.getText() != null) {
             Platform.runLater(() -> username.requestFocus());
         } else {
             Platform.runLater(() -> password.requestFocus());
@@ -496,10 +514,7 @@ public abstract class RepoHelper {
         // If the username hasn't been set yet, then update the username.
         dialog.setResultConverter(dialogButton -> {
             if (dialogButton == loginButtonType) {
-                if (this.username != null)
-                    return new Pair<>(this.username, new Pair<>(password.getText(), new Boolean(remember.isSelected())));
-                else
-                    return new Pair<>(username.getText(), new Pair<>(password.getText(), new Boolean(remember.isSelected())));
+                return new Pair<>(username.getText(), new Pair<>(password.getText(), new Boolean(remember.isSelected())));
             }
             return null;
         });
@@ -509,11 +524,7 @@ public abstract class RepoHelper {
         UsernamePasswordCredentialsProvider ownerAuth;
 
         if (result.isPresent()) {
-            if (this.username == null) {
-                this.username = username.getText();
-            } else {
-                this.username = result.get().getKey();
-            }
+            this.username = result.get().getKey();
             //Only store password if remember password was selected
             if (result.get().getValue().getValue()) {
                 logger.info("Selected remember password");

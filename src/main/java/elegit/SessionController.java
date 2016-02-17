@@ -156,10 +156,6 @@ public class SessionController {
         this.removeRecentReposButton.setGraphic(minusIcon);
         this.removeRecentReposButton.setTooltip(new Tooltip("Clear shortcuts to recently opened repos"));
 
-        Text userIcon = GlyphsDude.createIcon(FontAwesomeIcon.USER);
-        userIcon.setFill(Color.WHITE);
-        this.switchUserButton.setGraphic(userIcon);
-
         Text branchIcon = GlyphsDude.createIcon(FontAwesomeIcon.CODE_FORK);
         branchIcon.setFill(Color.WHITE);
         this.branchesButton.setGraphic(branchIcon);
@@ -1113,7 +1109,6 @@ public class SessionController {
             }else{
                 setButtonsDisabled(false);
                 this.updateBranchDropdown();
-                this.updateLoginButtonText();
             }
         }catch(NoRepoLoadedException e){
             this.showNoRepoLoadedNotification();
@@ -1129,28 +1124,6 @@ public class SessionController {
     }
 
     /**
-     * Creates a new owner and sets it as the current default owner.
-     */
-    public boolean switchUser() {
-        boolean switchedUser = true;
-
-        RepoHelper currentRepoHelper = theModel.getCurrentRepoHelper();
-
-        try {
-            currentRepoHelper.presentUsernameDialog();
-        } catch (CancelledUsernameException e) {
-            switchedUser = false;
-        }
-
-        this.updateLoginButtonText();
-        if (switchedUser) {
-            this.theModel.setCurrentDefaultUsername(currentRepoHelper.getUsername());
-        }
-
-        return switchedUser;
-    }
-
-    /**
      * Asks the user for authorization to interact with the remote.
      */
     public UsernamePasswordCredentialsProvider getAuth() throws CancelledAuthorizationException {
@@ -1162,16 +1135,7 @@ public class SessionController {
 
         this.theModel.setCurrentDefaultUsername(currentRepoHelper.getUsername());
 
-        this.updateLoginButtonText();
         return ownerAuth;
-    }
-
-    /**
-     * Called when the switch user button is clicked. See switchUser
-     */
-    public void handleSwitchUserButton(){
-        logger.info("Username button clicked");
-        this.switchUser();
     }
 
     /**
@@ -1705,22 +1669,5 @@ public class SessionController {
         });
 
         popover.show(this.removeRecentReposButton);
-    }
-
-    private void updateLoginButtonText() {
-        Platform.runLater(() -> {
-            if(theModel.getCurrentRepoHelper() != null) {
-                String loginText = this.theModel.getCurrentRepoHelper().getUsername();
-                if (loginText == null) {
-                    loginText = "Username";
-                }
-                else {
-                    logger.info("Set username");
-                }
-                this.switchUserButton.setText(loginText);
-            } else{
-                this.switchUserButton.setText("Username");
-            }
-        });
     }
 }
