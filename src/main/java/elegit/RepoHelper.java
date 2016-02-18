@@ -22,6 +22,7 @@ import org.controlsfx.control.NotificationPane;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
+import org.eclipse.jgit.ignore.IgnoreNode;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.revplot.PlotCommitList;
 import org.eclipse.jgit.revplot.PlotLane;
@@ -30,9 +31,14 @@ import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevTag;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.transport.*;
+import org.eclipse.jgit.treewalk.TreeWalk;
 
+import java.io.BufferedInputStream;
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 
 /**
@@ -1043,6 +1049,47 @@ public abstract class RepoHelper {
         RevWalk w = new RevWalk(repo);
         w.dispose();
         return w.parseCommit(id);
+    }
+
+    /**
+     * Parses the .gitignore file in the top-level directory of the repo and checks all
+     * tracked files and directories for whether they match an ignore pattern.
+     * @return the set of paths (relative to the repo) of all tracked files that match an ignore pattern
+     * @throws IOException
+     */
+    public Collection<String> getTrackedIgnoredFiles() throws IOException {
+        IgnoreNode ignoreNode = new IgnoreNode();
+        ignoreNode.parse(new BufferedInputStream(Files.newInputStream(Paths.get(this.localPath+File.separator+".gitignore"))));
+
+        RevWalk walk = new RevWalk(this.repo);
+        RevCommit head = walk.parseCommit(this.repo.resolve("HEAD"));
+
+        TreeWalk treeWalk = new TreeWalk(this.repo);
+        treeWalk.addTree(head.getTree());
+        treeWalk.setRecursive(false);
+
+        boolean isParentIgnored = false;
+        Collection<String> trackedIgnoredFiles = new HashSet<>();
+
+        while (treeWalk.next()) {
+            String pathString = treeWalk.getPathString();
+            IgnoreNode.MatchResult result;
+
+            if (treeWalk.isSubtree()) {
+                result = ignoreNode.isIgnored(pathString, true);
+
+                // Does not support a result of 'CHECK_PARENT_NEGATE_FIRST_MATCH'
+                if(result == IgnoreNode.MatchResult.IGNORED) isParentIgnored = true;
+                else if(result == IgnoreNode.MatchResult.NOT_IGNORED) isParentIgnored = false;
+
+                treeWalk.enterSubtree();
+            } else {
+                result = ignoreNode.isIgnored(pathString, false);
+            }
+            boolean isIgnored = (result == IgnoreNode.MatchResult.IGNORED) || (isParentIgnored && result == IgnoreNode.MatchResult.CHECK_PARENT);
+            if(isIgnored) trackedIgnoredFiles.add(pathString);
+        }
+        return trackedIgnoredFiles;
     }
 
     @Override
