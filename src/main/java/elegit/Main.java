@@ -5,6 +5,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
+import javafx.scene.control.MenuItem;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
@@ -62,6 +63,9 @@ public class Main extends Application {
         // create the menu here
         MenuBar menuBar = new MenuBar();
         Menu menuFile = new Menu("File");
+        MenuItem openGitIgnoreItem = new MenuItem("Edit .gitignore...");
+        openGitIgnoreItem.setOnAction(event -> GitIgnoreEditor.show(SessionModel.getSessionModel().getCurrentRepo(), null));
+        menuFile.getItems().add(openGitIgnoreItem);
         Menu menuEdit = new Menu("Edit");
         menuBar.getMenus().addAll(menuFile, menuEdit);
         ((Pane) scene.getRoot()).getChildren().addAll(menuBar);
