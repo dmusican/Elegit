@@ -33,7 +33,7 @@ import java.util.ArrayList;
  * unaffected by commits.
  *
  */
-public class RepoFile implements Comparable {
+public class RepoFile implements Comparable<RepoFile> {
 
     Path filePath;
     Repository repo;
@@ -174,7 +174,7 @@ public class RepoFile implements Comparable {
     }
 
     @Override
-    public int compareTo(Object o) {
-        return this.toString().compareToIgnoreCase(o.toString());
+    public int compareTo(RepoFile other) {
+        return this.toString().compareToIgnoreCase(other.toString());
     }
 }

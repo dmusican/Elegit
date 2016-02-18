@@ -1,7 +1,8 @@
 package main.java.elegit;
 
 import java.io.*;
-import java.util.prefs.*;
+import java.util.prefs.BackingStoreException;
+import java.util.prefs.Preferences;
 
 /**
  * A class that sneakily stores any object with the

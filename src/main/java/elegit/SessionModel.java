@@ -472,7 +472,7 @@ public class SessionModel {
             paths.forEach(allPaths::add);
         }
 
-        List<Path> addedPaths = new LinkedList<>();
+        Set<Path> addedPaths = new HashSet<>();
         for(RepoFile file : allFiles){
             addedPaths.add(file.getFilePath());
         }
