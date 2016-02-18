@@ -32,6 +32,8 @@ public class CommitHelper{
     String shortMessage;
     String fullMessage;
 
+    List<TagHelper> tags;
+
     /**
      * Constructs a helper for the given commit. Note that if c is not a fully parsed commit
      * this constructor will fail and throw errors. Using one of the other constructors will
@@ -239,6 +241,53 @@ public class CommitHelper{
         s = s + " \t" + this.getName();
         s = s + " \t" + this.getMessage(false);
         return s;
+    }
+
+    /**
+     * @param t a TagHelper for a tag that references this commit
+     */
+    public void addTag(TagHelper t) {
+        if (this.tags == null)
+            this.tags = new ArrayList<>();
+        this.tags.add(t);
+    }
+
+    /**
+     * @param s a TagHelper that will be deleted
+     */
+    public void removeTag(String s) {
+        for (TagHelper tag: this.tags) {
+            if (tag.getName().equals(s)) {
+                this.tags.remove(tag);
+                return;
+            }
+        }
+    }
+
+    /**
+     * @return the list of tags that reference this commit
+     */
+    public List<TagHelper> getTags() {
+        if (this.tags == null)
+            this.tags = new ArrayList<>();
+        return this.tags;
+    }
+
+    public List<String> getTagNames() {
+        if (this.tags == null)
+            this.tags = new ArrayList<>();
+        ArrayList<String> tagNames = new ArrayList<>();
+        for (TagHelper tag: this.tags) {
+            tagNames.add(tag.getName());
+        }
+        return tagNames;
+    }
+
+    /**
+     * @return the commit object for this helper
+     */
+    public RevCommit getCommit() {
+        return this.commit;
     }
 
     /**
