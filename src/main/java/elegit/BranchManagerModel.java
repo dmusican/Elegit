@@ -1,12 +1,11 @@
 package main.java.elegit;
 
 import javafx.collections.ObservableList;
+import org.eclipse.jgit.api.errors.GitAPIException;
 
+import java.io.IOException;
 import java.util.List;
 
-/**
- * Created by grahamearley on 7/7/15.
- */
 public class BranchManagerModel {
 
     private List<LocalBranchHelper> localBranches;
@@ -33,5 +32,14 @@ public class BranchManagerModel {
                                          localBranches) {
 
         this.localBranches = localBranches;
+    }
+
+    /* if gitFetch is called, the remote branch list in branch manager should
+     * update accordingly by calling this method */
+    public List<RemoteBranchHelper> getUpdatedRemoteBranches()
+            throws GitAPIException, IOException {
+
+        this.remoteBranches = this.repoHelper.callGitForRemoteBranches();
+        return remoteBranches;
     }
 }

@@ -361,7 +361,8 @@ public abstract class RepoHelper {
      * @throws GitAPIException
      * @throws MissingRepoException
      */
-    public boolean fetch(UsernamePasswordCredentialsProvider ownerAuth) throws GitAPIException, MissingRepoException{
+    public boolean fetch(UsernamePasswordCredentialsProvider ownerAuth) throws
+            GitAPIException, MissingRepoException, IOException {
         logger.info("Attempting fetch");
         if(!exists()) throw new MissingRepoException();
         Git git = new Git(this.repo);
@@ -377,12 +378,14 @@ public abstract class RepoHelper {
         //  Not sure what that means, but sounds good so I'm doing it...
         fetch.setCheckFetchedObjects(true);
 
-//        ProgressMonitor progress = new TextProgressMonitor(new PrintWriter(System.out));
+        // ProgressMonitor progress = new TextProgressMonitor(new PrintWriter(System.out));
         ProgressMonitor progress = new SimpleProgressMonitor();
         fetch.setProgressMonitor(progress);
 
         FetchResult result = fetch.call();
         git.close();
+
+        this.branchManagerModel.getUpdatedRemoteBranches();
         this.hasUnmergedCommitsProperty.set(this.hasUnmergedCommits() || !result.getTrackingRefUpdates().isEmpty());
         return !result.getTrackingRefUpdates().isEmpty();
     }
