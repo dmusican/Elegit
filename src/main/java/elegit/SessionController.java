@@ -75,7 +75,6 @@ public class SessionController {
     public NotificationPane notificationPane;
     public Button selectAllButton;
     public Button deselectAllButton;
-    public Button switchUserButton;
 
     public Button openRepoDirButton;
     public Button gitStatusButton;
@@ -160,9 +159,6 @@ public class SessionController {
         Text minusIcon = GlyphsDude.createIcon(FontAwesomeIcon.MINUS);
         this.removeRecentReposButton.setGraphic(minusIcon);
         this.removeRecentReposButton.setTooltip(new Tooltip("Clear shortcuts to recently opened repos"));
-
-        Text userIcon = GlyphsDude.createIcon(FontAwesomeIcon.USER);
-        this.switchUserButton.setGraphic(userIcon);
 
         Text branchIcon = GlyphsDude.createIcon(FontAwesomeIcon.CODE_FORK);
         this.branchesButton.setGraphic(branchIcon);
