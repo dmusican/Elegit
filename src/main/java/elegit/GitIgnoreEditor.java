@@ -4,6 +4,7 @@ import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -13,6 +14,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 import org.eclipse.jgit.lib.Repository;
 
@@ -40,8 +42,10 @@ public class GitIgnoreEditor {
     private static Stage initWindow(){
         Stage window = new Stage();
 
-        window.setMaxHeight(400);
-        window.setMaxWidth(450);
+        Rectangle2D primaryScreenBounds = Screen.getPrimary().getVisualBounds();
+
+        window.setMaxHeight(primaryScreenBounds.getHeight());
+        window.setMaxWidth(primaryScreenBounds.getWidth());
         window.setMinHeight(400);
         window.setMinWidth(450);
 
