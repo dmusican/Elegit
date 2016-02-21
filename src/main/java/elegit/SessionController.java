@@ -75,7 +75,6 @@ public class SessionController {
     public NotificationPane notificationPane;
     public Button selectAllButton;
     public Button deselectAllButton;
-    public Button switchUserButton;
 
     public Button openRepoDirButton;
     public Button gitStatusButton;
