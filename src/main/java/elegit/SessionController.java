@@ -160,9 +160,6 @@ public class SessionController {
         this.removeRecentReposButton.setGraphic(minusIcon);
         this.removeRecentReposButton.setTooltip(new Tooltip("Clear shortcuts to recently opened repos"));
 
-        Text userIcon = GlyphsDude.createIcon(FontAwesomeIcon.USER);
-        this.switchUserButton.setGraphic(userIcon);
-
         Text branchIcon = GlyphsDude.createIcon(FontAwesomeIcon.CODE_FORK);
         this.branchesButton.setGraphic(branchIcon);
 
