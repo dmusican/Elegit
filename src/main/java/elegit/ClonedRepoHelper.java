@@ -5,6 +5,7 @@ import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -13,8 +14,9 @@ import java.nio.file.Path;
  * A RepoHelper implementation for a repository cloned into an empty folder.
  */
 public class ClonedRepoHelper extends RepoHelper {
-    public ClonedRepoHelper(Path directoryPath, String remoteURL, String username) throws IOException, GitAPIException, CancelledAuthorizationException{
-        super(directoryPath, remoteURL, username);
+    public ClonedRepoHelper(Path directoryPath, String remoteURL, String username,
+                            UsernamePasswordCredentialsProvider ownerAuth) throws IOException, GitAPIException, CancelledAuthorizationException{
+        super(directoryPath, remoteURL, username, ownerAuth);
     }
 
     /**
@@ -23,9 +25,10 @@ public class ClonedRepoHelper extends RepoHelper {
      *
      * @return the RepoHelper's associated Repository object.
      * @throws GitAPIException if the `git clone` call fails.
+     * @param ownerAuth
      */
     @Override
-    protected Repository obtainRepository() throws GitAPIException, CancelledAuthorizationException {
+    protected Repository obtainRepository(UsernamePasswordCredentialsProvider ownerAuth) throws GitAPIException, CancelledAuthorizationException {
         CloneCommand cloneCommand = Git.cloneRepository();
         cloneCommand.setURI(this.remoteURL);
 

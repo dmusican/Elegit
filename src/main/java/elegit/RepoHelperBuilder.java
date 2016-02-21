@@ -1,13 +1,21 @@
 package main.java.elegit;
 
+import javafx.application.Platform;
+import javafx.event.EventHandler;
+import javafx.scene.Node;
+import javafx.scene.control.*;
+import javafx.scene.layout.GridPane;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Window;
+import javafx.util.Pair;
 import main.java.elegit.exceptions.CancelledAuthorizationException;
 import main.java.elegit.exceptions.NoRepoSelectedException;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Optional;
 
 /**
  * An abstract class for building RepoHelpers by presenting dialogs to
@@ -17,6 +25,7 @@ public abstract class RepoHelperBuilder {
 
     SessionModel sessionModel;
     private String defaultFilePickerStartFolder = System.getProperty("user.home");
+    public UsernamePasswordCredentialsProvider ownerAuth;
 
     public RepoHelperBuilder(SessionModel sessionModel) {
         this.sessionModel = sessionModel;

@@ -3,6 +3,7 @@ package main.java.elegit;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
 import java.nio.file.Path;
 
@@ -10,8 +11,8 @@ import java.nio.file.Path;
  * A RepoHelper implementation for newly instantiated repositories in an empty folder.
  */
 public class NewRepoHelper extends RepoHelper {
-    public NewRepoHelper(Path directoryPath, String remoteURL, String username) throws Exception {
-        super(directoryPath, remoteURL, username);
+    public NewRepoHelper(Path directoryPath, String remoteURL, UsernamePasswordCredentialsProvider ownerAuth) throws Exception {
+        super(directoryPath, remoteURL, ownerAuth);
     }
 
     /**
@@ -20,9 +21,10 @@ public class NewRepoHelper extends RepoHelper {
      *
      * @return the RepoHelper's associated Repository object.
      * @throws GitAPIException if the repository initialization fails.
+     * @param ownerAuth
      */
     @Override
-    protected Repository obtainRepository() throws GitAPIException {
+    protected Repository obtainRepository(UsernamePasswordCredentialsProvider ownerAuth) throws GitAPIException {
         // create the directory
         Git git = Git.init().setDirectory(this.localPath.toFile()).call();
         git.close();

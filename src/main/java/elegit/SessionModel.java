@@ -10,6 +10,7 @@ import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
 import java.io.File;
 import java.io.IOException;
@@ -78,7 +79,7 @@ public class SessionModel {
                 Path path = Paths.get(lastOpenedRepoPathString);
                 try {
                     ExistingRepoHelper existingRepoHelper =
-                            new ExistingRepoHelper(path, this.defaultUsername);
+                            new ExistingRepoHelper(path, this.defaultUsername, null);
                     this.openRepoFromHelper(existingRepoHelper);
                 } catch (IllegalArgumentException e) {
                     logger.warn("Recent repo not found in directory it used to be in");
@@ -110,7 +111,7 @@ public class SessionModel {
                 for (String pathString : storedRepoPathStrings) {
                     Path path = Paths.get(pathString);
                     try {
-                        ExistingRepoHelper existingRepoHelper = new ExistingRepoHelper(path, this.defaultUsername);
+                        ExistingRepoHelper existingRepoHelper = new ExistingRepoHelper(path, this.defaultUsername, null);
                         this.allRepoHelpers.add(existingRepoHelper);
                     } catch (IllegalArgumentException e) {
                         logger.warn("Repository has been moved, we move along");

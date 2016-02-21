@@ -20,6 +20,8 @@ import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
 import org.eclipse.jgit.api.errors.TransportException;
+import org.eclipse.jgit.transport.CredentialItem;
+import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
 import java.io.File;
 import java.io.IOException;
@@ -174,7 +176,9 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
             // Without the above try/catch block, the next line would run and throw the desired InvalidRemoteException,
             //  but it would create a destination folder for the repo before stopping. By catching the error above,
             //  we prevent unnecessary folder creation.
-            RepoHelper repoHelper = new ClonedRepoHelper(destinationPath, remoteURL, this.sessionModel.getDefaultUsername());
+            RepoHelper repoHelper = new ClonedRepoHelper(destinationPath, remoteURL, this.sessionModel.getDefaultUsername(), this.ownerAuth);
+
+            repoHelper.presentAuthorizeDialog();
 
             return repoHelper;
         } else {

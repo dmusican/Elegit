@@ -81,13 +81,14 @@ public abstract class RepoHelper {
      * @throws IOException if the obtainRepository() call throws this exception.
      * @throws CancelledAuthorizationException if the obtainRepository() call throws this exception.
      */
-    public RepoHelper(Path directoryPath, String remoteURL, String username) throws GitAPIException, IOException, CancelledAuthorizationException {
+    public RepoHelper(Path directoryPath, String remoteURL, String username,
+                      UsernamePasswordCredentialsProvider ownerAuth) throws GitAPIException, IOException, CancelledAuthorizationException {
         this.remoteURL = remoteURL;
         this.username = username;
 
         this.localPath = directoryPath;
 
-        this.repo = this.obtainRepository();
+        this.repo = this.obtainRepository(ownerAuth);
 
         this.commitIdMap = new HashMap<>();
         this.idMap = new HashMap<>();
@@ -109,12 +110,13 @@ public abstract class RepoHelper {
     }
 
     /// Constructor for ExistingRepoHelpers to inherit (they don't need the Remote URL)
-    public RepoHelper(Path directoryPath, String username) throws GitAPIException, IOException, CancelledAuthorizationException {
+    public RepoHelper(Path directoryPath, String username,
+                      UsernamePasswordCredentialsProvider ownerAuth) throws GitAPIException, IOException, CancelledAuthorizationException {
         this.username = username;
 
         this.localPath = directoryPath;
 
-        this.repo = this.obtainRepository();
+        this.repo = this.obtainRepository(ownerAuth);
 
         this.commitIdMap = new HashMap<>();
         this.idMap = new HashMap<>();
@@ -150,8 +152,9 @@ public abstract class RepoHelper {
      * @return the RepoHelper's repository.
      * @throws GitAPIException (see subclasses).
      * @throws IOException (see subclasses).
+     * @param ownerAuth
      */
-    protected abstract Repository obtainRepository() throws GitAPIException, IOException, CancelledAuthorizationException;
+    protected abstract Repository obtainRepository(UsernamePasswordCredentialsProvider ownerAuth) throws GitAPIException, IOException, CancelledAuthorizationException;
 
     /**
      * Adds a file to the repository.
@@ -1255,4 +1258,13 @@ public abstract class RepoHelper {
     }
 
     public void setUsername(String username) { this.username = username; }
+
+    public String getPassword() {
+        return this.password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
 }

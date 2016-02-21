@@ -36,7 +36,7 @@ public class ClonedRepoHelperTest {
 
     @Test
     public void testClonedRepoHelperConstructor() throws Exception {
-        ClonedRepoHelper helper = new ClonedRepoHelper(directoryPath, remoteURL, username);
+        ClonedRepoHelper helper = new ClonedRepoHelper(directoryPath, remoteURL, username, null);
         assertNotNull(helper.getRepo());
     }
 }
