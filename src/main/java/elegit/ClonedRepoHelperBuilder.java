@@ -67,9 +67,8 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
         // Create the custom dialog.
 
         logger.info("Load remote repo dialog started");
-        Dialog<Pair<String, String>> dialog = new Dialog<>();
-        dialog.setTitle("Clone");
-        dialog.setHeaderText("Clone a remote repository");
+        Dialog<Pair<String, String>> dialog = createCloneDialog();
+
 
         Text instructionsText = new Text("Select an enclosing folder for the repository folder\n" +
                                          "to be created in.");
@@ -235,6 +234,14 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
             // This happens when the user pressed cancel.
             throw new NoRepoSelectedException();
         }
+    }
+
+    private Dialog<Pair<String, String>> createCloneDialog() {
+        Dialog<Pair<String, String>> dialog = new Dialog<>();
+        dialog.setTitle("Clone");
+        dialog.setHeaderText("Clone a remote repository");
+
+        return dialog;
     }
 
     public String getPrevDestinationPath() {
