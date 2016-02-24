@@ -75,7 +75,6 @@ public class SessionController {
     public NotificationPane notificationPane;
     public Button selectAllButton;
     public Button deselectAllButton;
-    public Button switchUserButton;
 
     public Button openRepoDirButton;
     public Button gitStatusButton;
@@ -151,29 +150,23 @@ public class SessionController {
 
         // Add FontAwesome icons to buttons:
         Text openExternallyIcon = GlyphsDude.createIcon(FontAwesomeIcon.EXTERNAL_LINK);
-        openExternallyIcon.setFill(javafx.scene.paint.Color.WHITE);
         this.openRepoDirButton.setGraphic(openExternallyIcon);
         this.openRepoDirButton.setTooltip(new Tooltip("Open repository directory"));
 
         Text plusIcon = GlyphsDude.createIcon(FontAwesomeIcon.PLUS);
-        plusIcon.setFill(Color.WHITE);
         this.loadNewRepoButton.setGraphic(plusIcon);
 
         Text minusIcon = GlyphsDude.createIcon(FontAwesomeIcon.MINUS);
-        minusIcon.setFill(Color.WHITE);
         this.removeRecentReposButton.setGraphic(minusIcon);
         this.removeRecentReposButton.setTooltip(new Tooltip("Clear shortcuts to recently opened repos"));
 
         Text branchIcon = GlyphsDude.createIcon(FontAwesomeIcon.CODE_FORK);
-        branchIcon.setFill(Color.WHITE);
         this.branchesButton.setGraphic(branchIcon);
 
         Text clipboardIcon = GlyphsDude.createIcon(FontAwesomeIcon.CLIPBOARD);
-        clipboardIcon.setFill(Color.WHITE);
         this.commitInfoNameCopyButton.setGraphic(clipboardIcon);
 
         Text goToIcon = GlyphsDude.createIcon(FontAwesomeIcon.ARROW_CIRCLE_LEFT);
-        goToIcon.setFill(Color.WHITE);
         this.commitInfoGoToButton.setGraphic(goToIcon);
 
         this.commitButton.setTooltip(new Tooltip(
