@@ -14,9 +14,8 @@ import java.nio.file.Path;
  * A RepoHelper implementation for a repository cloned into an empty folder.
  */
 public class ClonedRepoHelper extends RepoHelper {
-    public ClonedRepoHelper(Path directoryPath, String remoteURL, String username,
-                            UsernamePasswordCredentialsProvider ownerAuth) throws IOException, GitAPIException, CancelledAuthorizationException{
-        super(directoryPath, remoteURL, username, ownerAuth);
+    public ClonedRepoHelper(Path directoryPath, String remoteURL, String username) throws IOException, GitAPIException, CancelledAuthorizationException{
+        super(directoryPath, remoteURL, username);
     }
 
     /**
@@ -25,15 +24,14 @@ public class ClonedRepoHelper extends RepoHelper {
      *
      * @return the RepoHelper's associated Repository object.
      * @throws GitAPIException if the `git clone` call fails.
-     * @param ownerAuth
      */
     @Override
-    protected Repository obtainRepository(UsernamePasswordCredentialsProvider ownerAuth) throws GitAPIException, CancelledAuthorizationException {
+    protected Repository obtainRepository() throws GitAPIException, CancelledAuthorizationException {
         CloneCommand cloneCommand = Git.cloneRepository();
         cloneCommand.setURI(this.remoteURL);
 
         //Will throw CancelledAuthorizationException if dialog is cancelled
-        cloneCommand.setCredentialsProvider(super.presentAuthorizeDialog());
+        cloneCommand.setCredentialsProvider(super.ownerAuth);
 
         cloneCommand.setDirectory(this.localPath.toFile());
         Git cloneCall = cloneCommand.call();

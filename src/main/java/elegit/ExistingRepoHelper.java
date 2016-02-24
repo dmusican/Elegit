@@ -13,8 +13,8 @@ import java.nio.file.Path;
  * A RepoHelper implementation for pre-existing repositories.
  */
 public class ExistingRepoHelper extends RepoHelper {
-    public ExistingRepoHelper(Path directoryPath, String username, UsernamePasswordCredentialsProvider ownerAuth) throws IOException, GitAPIException, CancelledAuthorizationException{
-        super(directoryPath, username, ownerAuth);
+    public ExistingRepoHelper(Path directoryPath, String username) throws IOException, GitAPIException, CancelledAuthorizationException{
+        super(directoryPath, username);
     }
 
     /**
@@ -23,10 +23,9 @@ public class ExistingRepoHelper extends RepoHelper {
      *
      * @return the RepoHelper's associated Repository object.
      * @throws IOException if building the repository fails.
-     * @param ownerAuth
      */
     @Override
-    protected Repository obtainRepository(UsernamePasswordCredentialsProvider ownerAuth) throws IOException {
+    protected Repository obtainRepository() throws IOException {
         FileRepositoryBuilder builder = new FileRepositoryBuilder();
         return builder.findGitDir(this.localPath.toFile())
                 .readEnvironment()

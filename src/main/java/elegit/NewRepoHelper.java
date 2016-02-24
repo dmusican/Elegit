@@ -11,8 +11,8 @@ import java.nio.file.Path;
  * A RepoHelper implementation for newly instantiated repositories in an empty folder.
  */
 public class NewRepoHelper extends RepoHelper {
-    public NewRepoHelper(Path directoryPath, String remoteURL, UsernamePasswordCredentialsProvider ownerAuth) throws Exception {
-        super(directoryPath, remoteURL, ownerAuth);
+    public NewRepoHelper(Path directoryPath, String remoteURL) throws Exception {
+        super(directoryPath, remoteURL);
     }
 
     /**
@@ -21,10 +21,9 @@ public class NewRepoHelper extends RepoHelper {
      *
      * @return the RepoHelper's associated Repository object.
      * @throws GitAPIException if the repository initialization fails.
-     * @param ownerAuth
      */
     @Override
-    protected Repository obtainRepository(UsernamePasswordCredentialsProvider ownerAuth) throws GitAPIException {
+    protected Repository obtainRepository() throws GitAPIException {
         // create the directory
         Git git = Git.init().setDirectory(this.localPath.toFile()).call();
         git.close();

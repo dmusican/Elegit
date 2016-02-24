@@ -79,7 +79,7 @@ public class SessionModel {
                 Path path = Paths.get(lastOpenedRepoPathString);
                 try {
                     ExistingRepoHelper existingRepoHelper =
-                            new ExistingRepoHelper(path, this.defaultUsername, null);
+                            new ExistingRepoHelper(path, this.defaultUsername);
                     this.openRepoFromHelper(existingRepoHelper);
                 } catch (IllegalArgumentException e) {
                     logger.warn("Recent repo not found in directory it used to be in");
@@ -111,7 +111,7 @@ public class SessionModel {
                 for (String pathString : storedRepoPathStrings) {
                     Path path = Paths.get(pathString);
                     try {
-                        ExistingRepoHelper existingRepoHelper = new ExistingRepoHelper(path, this.defaultUsername, null);
+                        ExistingRepoHelper existingRepoHelper = new ExistingRepoHelper(path, this.defaultUsername);
                         this.allRepoHelpers.add(existingRepoHelper);
                     } catch (IllegalArgumentException e) {
                         logger.warn("Repository has been moved, we move along");
