@@ -18,6 +18,7 @@ public class ClonedRepoHelperTest {
     Path directoryPath;
     String remoteURL;
     String username;
+    ClonedRepoHelper helper;
 
     @Before
     public void setUp() throws Exception {
@@ -27,6 +28,8 @@ public class ClonedRepoHelperTest {
         // Clone from dummy repo:
         this.remoteURL = "https://github.com/TheElegitTeam/TestRepository.git";
         this.username = "Dummy_Username";
+
+        helper = new ClonedRepoHelper(directoryPath, remoteURL, username);
     }
 
     @After
@@ -35,18 +38,276 @@ public class ClonedRepoHelperTest {
         removeAllFilesFromDirectory(this.directoryPath.toFile());
     }
 
-    @Test
-    public void testClonedRepoHelperConstructor() throws Exception {
-        ClonedRepoHelper helper = new ClonedRepoHelper(directoryPath, remoteURL, username);
-        assertNotNull(helper.getRepo());
-    }
-
-
-    // Helper method:
+    // Helper tear-down method:
     void removeAllFilesFromDirectory(File dir) {
         for (File file: dir.listFiles()) {
             if (file.isDirectory()) removeAllFilesFromDirectory(file);
             file.delete();
         }
+    }
+
+    @Test
+    public void testClonedRepoHelperConstructor() throws Exception {
+        assertNotNull(helper.getRepo());
+    }
+
+    @Test
+    public void testExists() throws Exception {
+        assertTrue(this.helper.exists());
+    }
+
+    @Test
+    public void testObtainRepository() throws Exception {
+
+    }
+
+    @Test
+    public void testAddFilePath() throws Exception {
+
+    }
+
+    @Test
+    public void testAddFilePaths() throws Exception {
+
+    }
+
+    @Test
+    public void testGetLinkedRemoteRepoURLs() throws Exception {
+
+    }
+
+    @Test
+    public void testHasRemote() throws Exception {
+
+    }
+
+    @Test
+    public void testHasUnpushedCommits() throws Exception {
+
+    }
+
+    @Test
+    public void testHasUnpushedTags() throws Exception {
+
+    }
+
+    @Test
+    public void testHasUnmergedCommits() throws Exception {
+
+    }
+
+    @Test
+    public void testCommit() throws Exception {
+
+    }
+
+    @Test
+    public void testTag() throws Exception {
+
+    }
+
+    @Test
+    public void testPushAll() throws Exception {
+
+    }
+
+    @Test
+    public void testPushTags() throws Exception {
+
+    }
+
+    @Test
+    public void testFetch() throws Exception {
+
+    }
+
+    @Test
+    public void testMergeFromFetch() throws Exception {
+
+    }
+
+    @Test
+    public void testPresentUsernameDialog() throws Exception {
+
+    }
+
+    @Test
+    public void testCloseRepo() throws Exception {
+
+    }
+
+    @Test
+    public void testGetRepo() throws Exception {
+
+    }
+
+    @Test
+    public void testGetLocalPath() throws Exception {
+
+    }
+
+    @Test
+    public void testGetLocalCommits() throws Exception {
+
+    }
+
+    @Test
+    public void testGetRemoteCommits() throws Exception {
+
+    }
+
+    @Test
+    public void testGetCommit() throws Exception {
+
+    }
+
+    @Test
+    public void testGetCommit1() throws Exception {
+
+    }
+
+    @Test
+    public void testGetTag() throws Exception {
+
+    }
+
+    @Test
+    public void testDeleteTag() throws Exception {
+
+    }
+
+    @Test
+    public void testGetAllCommitIDs() throws Exception {
+
+    }
+
+    @Test
+    public void testGetAllTagNames() throws Exception {
+
+    }
+
+    @Test
+    public void testGetHead() throws Exception {
+
+    }
+
+    @Test
+    public void testGetNewLocalCommits() throws Exception {
+
+    }
+
+    @Test
+    public void testGetNewRemoteCommits() throws Exception {
+
+    }
+
+    @Test
+    public void testGetAllLocalTags() throws Exception {
+
+    }
+
+    @Test
+    public void testUpdateTags() throws Exception {
+
+    }
+
+    @Test
+    public void testParseRawCommit() throws Exception {
+
+    }
+
+    @Test
+    public void testToString() throws Exception {
+
+    }
+
+    @Test
+    public void testCallGitForLocalBranches() throws Exception {
+
+    }
+
+    @Test
+    public void testGetLocalBranchesFromManager() throws Exception {
+
+    }
+
+    @Test
+    public void testCallGitForRemoteBranches() throws Exception {
+
+    }
+
+    @Test
+    public void testSetCurrentBranch() throws Exception {
+
+    }
+
+    @Test
+    public void testGetCurrentBranch() throws Exception {
+
+    }
+
+    @Test
+    public void testRefreshCurrentBranch() throws Exception {
+
+    }
+
+    @Test
+    public void testShowBranchManagerWindow() throws Exception {
+
+    }
+
+    @Test
+    public void testGetLocalBranches() throws Exception {
+
+    }
+
+    @Test
+    public void testGetRemoteBranches() throws Exception {
+
+    }
+
+    @Test
+    public void testIsBranchTracked() throws Exception {
+
+    }
+
+    @Test
+    public void testGetRefsFromRemote() throws Exception {
+
+    }
+
+    @Test
+    public void testGetBranchManagerModel() throws Exception {
+
+    }
+
+    @Test
+    public void testGetUsername() throws Exception {
+
+    }
+
+    @Test
+    public void testSetUsername() throws Exception {
+
+    }
+
+    @Test
+    public void testGetPassword() throws Exception {
+
+    }
+
+    @Test
+    public void testSetPassword() throws Exception {
+
+    }
+
+    @Test
+    public void testSetAuthCredentials() throws Exception {
+
+    }
+
+    @Test
+    public void testGetOwnerAuthCredentials() throws Exception {
+
     }
 }
