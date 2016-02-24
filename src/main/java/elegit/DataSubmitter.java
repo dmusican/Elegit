@@ -4,8 +4,6 @@ package main.java.elegit;
  * Created by Eric on 1/13/2016.
  */
 
-import java.io.*;
-
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
@@ -15,6 +13,9 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import java.io.File;
+import java.io.FileInputStream;
 
 public class DataSubmitter {
     private static final String submitUrl = "http://localhost:8080"; //for testing, keeping the local one

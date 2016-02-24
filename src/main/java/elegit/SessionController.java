@@ -1,5 +1,6 @@
 package main.java.elegit;
 
+import com.sun.xml.internal.bind.v2.runtime.unmarshaller.TagName;
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import javafx.application.Platform;
@@ -17,11 +18,13 @@ import javafx.scene.control.*;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
@@ -41,6 +44,7 @@ import org.eclipse.jgit.errors.NoMergeBaseException;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
 import java.awt.*;
+import java.awt.event.ActionEvent;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -48,6 +52,7 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.prefs.BackingStoreException;
@@ -70,12 +75,12 @@ public class SessionController {
     public NotificationPane notificationPane;
     public Button selectAllButton;
     public Button deselectAllButton;
-    public Button switchUserButton;
 
     public Button openRepoDirButton;
     public Button gitStatusButton;
     public Button commitButton;
     public Button mergeFromFetchButton;
+    public Button pushTagsButton;
     public Button pushButton;
     public Button fetchButton;
     public Button branchesButton;
@@ -101,6 +106,11 @@ public class SessionController {
     public Button commitInfoNameCopyButton;
     public Button commitInfoGoToButton;
     public TextArea commitInfoMessageText;
+
+    public ScrollPane tagsPane;
+    public Label tagsLabel;
+    public Button tagButton;
+    public TextArea tagNameField;
 
     public DataSubmitter d;
 
@@ -140,34 +150,37 @@ public class SessionController {
 
         // Add FontAwesome icons to buttons:
         Text openExternallyIcon = GlyphsDude.createIcon(FontAwesomeIcon.EXTERNAL_LINK);
-        openExternallyIcon.setFill(javafx.scene.paint.Color.WHITE);
         this.openRepoDirButton.setGraphic(openExternallyIcon);
         this.openRepoDirButton.setTooltip(new Tooltip("Open repository directory"));
 
         Text plusIcon = GlyphsDude.createIcon(FontAwesomeIcon.PLUS);
-        plusIcon.setFill(Color.WHITE);
         this.loadNewRepoButton.setGraphic(plusIcon);
 
         Text minusIcon = GlyphsDude.createIcon(FontAwesomeIcon.MINUS);
-        minusIcon.setFill(Color.WHITE);
         this.removeRecentReposButton.setGraphic(minusIcon);
         this.removeRecentReposButton.setTooltip(new Tooltip("Clear shortcuts to recently opened repos"));
 
-        Text userIcon = GlyphsDude.createIcon(FontAwesomeIcon.USER);
-        userIcon.setFill(Color.WHITE);
-        this.switchUserButton.setGraphic(userIcon);
-
         Text branchIcon = GlyphsDude.createIcon(FontAwesomeIcon.CODE_FORK);
-        branchIcon.setFill(Color.WHITE);
         this.branchesButton.setGraphic(branchIcon);
 
         Text clipboardIcon = GlyphsDude.createIcon(FontAwesomeIcon.CLIPBOARD);
-        clipboardIcon.setFill(Color.WHITE);
         this.commitInfoNameCopyButton.setGraphic(clipboardIcon);
 
         Text goToIcon = GlyphsDude.createIcon(FontAwesomeIcon.ARROW_CIRCLE_LEFT);
-        goToIcon.setFill(Color.WHITE);
         this.commitInfoGoToButton.setGraphic(goToIcon);
+
+        this.commitButton.setTooltip(new Tooltip(
+                "Check in selected files to local repository"
+        ));
+        this.mergeFromFetchButton.setTooltip(new Tooltip(
+                "Merge files from remote repository to local repository"
+        ));
+        this.fetchButton.setTooltip(new Tooltip(
+                "Download files from another repository to remote repository"
+        ));
+        this.pushButton.setTooltip(new Tooltip(
+                "Update remote repository with local changes"
+        ));
 
         // Set up the "+" button for loading new repos (give it a menu)
         Text downloadIcon = GlyphsDude.createIcon(FontAwesomeIcon.CLOUD_DOWNLOAD);
@@ -217,6 +230,7 @@ public class SessionController {
         gitStatusButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         commitButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         mergeFromFetchButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
+        pushTagsButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         pushButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         fetchButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         branchesButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
@@ -226,6 +240,7 @@ public class SessionController {
         workingTreePanelView.setMinSize(Control.USE_PREF_SIZE, 200);
         allFilesPanelView.setMinSize(Control.USE_PREF_SIZE, 200);
         commitMessageField.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
+        tagNameField.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
 
         branchDropdownSelector.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
 
@@ -448,7 +463,6 @@ public class SessionController {
 
                         if(canCommit) {
                             theModel.getCurrentRepoHelper().commit(commitMessage);
-                            //theModel.getCurrentRepoHelper().tag("tagname1");
 
                             // Now clear the commit text and a view reload ( or `git status`) to show that something happened
                             commitMessageField.clear();
@@ -497,6 +511,88 @@ public class SessionController {
             this.showNoCommitMessageNotification();
         }catch(NoFilesStagedForCommitException e){
             this.showNoFilesStagedForCommitNotification();
+        }
+    }
+
+    /**
+     * Checks things are ready for a tag, then performs a git-tag
+     *
+     */
+    public void handleTagButton() {
+        logger.info("Clicked tag button");
+        try {
+            if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
+            if(!this.theModel.getCurrentRepoHelper().exists()) throw new MissingRepoException();
+
+            String tagName = tagNameField.getText();
+            if (theModel.getCurrentRepoHelper().getTag(tagName) != null) {
+                throw new TagNameExistsException();
+            }
+
+            if(tagName.length() == 0) throw new NoTagNameException();
+
+            Thread th = new Thread(new Task<Void>(){
+                @Override
+                protected Void call() {
+                    try{
+                        theModel.getCurrentRepoHelper().tag(tagName, commitInfoNameText.getText());
+
+                        // Now clear the tag text and a view reload ( or `git status`) to show that something happened
+                        tagNameField.clear();
+                        gitStatus();
+                    }catch(JGitInternalException e){
+                        showGenericErrorNotification();
+                        e.printStackTrace();
+                    } catch(MissingRepoException e){
+                        showMissingRepoNotification();
+                        setButtonsDisabled(true);
+                        refreshRecentReposInDropdown();
+                    } catch (TransportException e) {
+                        showNotAuthorizedNotification(null);
+                    } catch (WrongRepositoryStateException e) {
+                        showGenericErrorNotification();
+                        e.printStackTrace();
+
+                        // TODO remove the above debug statements
+                        // This should hopefully not appear any more. Previously occurred when attempting to resolve
+                        // conflicts in an external editor
+                        // Do nothing.
+
+                    } catch(GitAPIException e){
+                        // Git error
+                        showGenericErrorNotification();
+                        e.printStackTrace();
+                    } catch(TagNameExistsException e){
+                        showTagExistsNotification();
+                    }
+                    catch(Exception e) {
+                        showGenericErrorNotification();
+                        e.printStackTrace();
+                    }
+
+                    pushTagsButton.setVisible(true);
+                    pushButton.setVisible(false);
+                    tagNameField.setText("");
+                    clearSelectedCommit();
+                    selectCommit(theModel.getCurrentRepoHelper().getTag(tagName).getCommitId());
+
+                    return null;
+                }
+            });
+            th.setDaemon(true);
+            th.setName("Git tag");
+            th.start();
+        } catch(NoRepoLoadedException e){
+            this.showNoRepoLoadedNotification();
+            setButtonsDisabled(true);
+        } catch(MissingRepoException e){
+            this.showMissingRepoNotification();
+            setButtonsDisabled(true);
+            refreshRecentReposInDropdown();
+        } catch(NoTagNameException e){
+            this.showNoTagNameNotification();
+        } catch(TagNameExistsException e) {
+            this.showTagExistsNotification();
         }
     }
 
@@ -638,6 +734,99 @@ public class SessionController {
     }
 
     /**
+     * Performs a `git push --tags`
+     */
+    public void handlePushTagsButton() {
+        try {
+            logger.info("Push tags button clicked");
+
+            Thread submit = new Thread(new Task<Void>() {
+                @Override
+                protected Void call() {
+                    d.submitData();
+                    return null;
+                }
+            });
+            submit.setDaemon(true);
+            submit.setName("Data submit");
+            submit.start();
+
+            if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
+            if(!this.theModel.getCurrentRepoHelper().hasUnpushedTags()) throw new NoTagsToPushException();
+
+            pushTagsButton.setVisible(false);
+            pushProgressIndicator.setVisible(true);
+
+            UsernamePasswordCredentialsProvider ownerAuth;
+
+            try {
+                ownerAuth = getAuth();
+            } catch (CancelledAuthorizationException e) {
+                pushTagsButton.setVisible(true);
+                pushProgressIndicator.setVisible(false);
+                return;
+            }
+
+            Thread th = new Thread(new Task<Void>(){
+                @Override
+                protected Void call() {
+                    boolean tagsPushed = true;
+                    try{
+                        RepositoryMonitor.resetFoundNewChanges(false);
+                        theModel.getCurrentRepoHelper().pushTags(ownerAuth);
+                        gitStatus();
+                    }  catch(InvalidRemoteException e){
+                        showNoRemoteNotification();
+                        tagsPushed = false;
+                    } catch(PushToAheadRemoteError e) {
+                        showPushToAheadRemoteNotification(e.isAllRefsRejected());
+                        tagsPushed = false;
+                    } catch (TransportException e) {
+                        if (e.getMessage().contains("git-receive-pack not found")) {
+                            // The error has this message if there is no longer a remote to push to
+                            showLostRemoteNotification();
+                        } else {
+                            showNotAuthorizedNotification(null);
+                        }
+                        tagsPushed = false;
+                    } catch(MissingRepoException e){
+                        showMissingRepoNotification();
+                        setButtonsDisabled(true);
+                        refreshRecentReposInDropdown();
+                        tagsPushed = false;
+                    } catch(GitAPIException e){
+                        showGenericErrorNotification();
+                        e.printStackTrace();
+                        tagsPushed = false;
+                    } catch(Exception e) {
+                        showGenericErrorNotification();
+                        e.printStackTrace();
+                        tagsPushed = false;
+                    } finally{
+                        pushProgressIndicator.setVisible(false);
+                    }
+                    if (tagsPushed) {
+                        pushTagsButton.setVisible(false);
+                        pushButton.setVisible(true);
+                    }
+                    else {
+                        pushTagsButton.setVisible(true);
+                    }
+                    return null;
+                }
+            });
+            th.setDaemon(true);
+            th.setName("Git push");
+            th.start();
+        }catch(NoRepoLoadedException e){
+            this.showNoRepoLoadedNotification();
+            setButtonsDisabled(true);
+        }catch(NoTagsToPushException e){
+            this.showNoTagsToPushNotification();
+        }
+    }
+
+    /**
      * Handles a click on the "Fetch" button. Calls gitFetch()
      */
     public void handleFetchButton(){
@@ -741,6 +930,7 @@ public class SessionController {
                 try{
                     localCommitTreeModel.update();
                     remoteCommitTreeModel.update();
+                    theModel.getCurrentRepoHelper().updateTags();
 
                     workingTreePanelView.drawDirectoryView();
                     allFilesPanelView.drawDirectoryView();
@@ -838,8 +1028,10 @@ public class SessionController {
         Platform.runLater(() -> {
             openRepoDirButton.setDisable(disable);
             gitStatusButton.setDisable(disable);
+            tagButton.setDisable(disable);
             commitButton.setDisable(disable);
             mergeFromFetchButton.setDisable(disable);
+            pushTagsButton.setDisable(disable);
             pushButton.setDisable(disable);
             fetchButton.setDisable(disable);
             selectAllButton.setDisable(disable);
@@ -923,7 +1115,6 @@ public class SessionController {
             }else{
                 setButtonsDisabled(false);
                 this.updateBranchDropdown();
-                this.updateLoginButtonText();
             }
         }catch(NoRepoLoadedException e){
             this.showNoRepoLoadedNotification();
@@ -939,28 +1130,6 @@ public class SessionController {
     }
 
     /**
-     * Creates a new owner and sets it as the current default owner.
-     */
-    public boolean switchUser() {
-        boolean switchedUser = true;
-
-        RepoHelper currentRepoHelper = theModel.getCurrentRepoHelper();
-
-        try {
-            currentRepoHelper.presentUsernameDialog();
-        } catch (CancelledUsernameException e) {
-            switchedUser = false;
-        }
-
-        this.updateLoginButtonText();
-        if (switchedUser) {
-            this.theModel.setCurrentDefaultUsername(currentRepoHelper.getUsername());
-        }
-
-        return switchedUser;
-    }
-
-    /**
      * Asks the user for authorization to interact with the remote.
      */
     public UsernamePasswordCredentialsProvider getAuth() throws CancelledAuthorizationException {
@@ -972,16 +1141,7 @@ public class SessionController {
 
         this.theModel.setCurrentDefaultUsername(currentRepoHelper.getUsername());
 
-        this.updateLoginButtonText();
         return ownerAuth;
-    }
-
-    /**
-     * Called when the switch user button is clicked. See switchUser
-     */
-    public void handleSwitchUserButton(){
-        logger.info("Username button clicked");
-        this.switchUser();
     }
 
     /**
@@ -1261,10 +1421,30 @@ public class SessionController {
         });
     }
 
+    private void showNoTagNameNotification(){
+        Platform.runLater(() -> {
+            logger.warn("No tag name warning");
+            this.notificationPane.setText("You need to write a tag name in order to tag the commit");
+
+            this.notificationPane.getActions().clear();
+            this.notificationPane.show();
+        });
+    }
+
     private void showNoCommitsToPushNotification(){
         Platform.runLater(() -> {
             logger.warn("No local commits to push warning");
             this.notificationPane.setText("There aren't any local commits to push");
+
+            this.notificationPane.getActions().clear();
+            this.notificationPane.show();
+        });
+    }
+
+    private void showNoTagsToPushNotification(){
+        Platform.runLater(() -> {
+            logger.warn("No local tags to push warning");
+            this.notificationPane.setText("There aren't any local tags to push");
 
             this.notificationPane.getActions().clear();
             this.notificationPane.show();
@@ -1297,6 +1477,16 @@ public class SessionController {
             this.notificationPane.setText("Can't merge with modified files present");
 
             // TODO: I think some sort of help text would be nice here, so they know what to do
+
+            this.notificationPane.getActions().clear();
+            this.notificationPane.show();
+        });
+    }
+
+    private void showTagExistsNotification() {
+        Platform.runLater(()-> {
+            logger.warn("Tag already exists warning.");
+            this.notificationPane.setText("Sorry that tag already exists.");
 
             this.notificationPane.getActions().clear();
             this.notificationPane.show();
@@ -1357,12 +1547,46 @@ public class SessionController {
     public void selectCommit(String id){
         Platform.runLater(() -> {
             CommitHelper commit = this.theModel.getCurrentRepoHelper().getCommit(id);
+
+            GridPane tags = new GridPane();
+            tags.setPrefHeight(1);
+            int numTags = 0;
+            for (TagHelper t:commit.getTags()) {
+                Hyperlink link = new Hyperlink();
+                link.setText(t.getName());
+                link.setOnAction(new EventHandler<javafx.event.ActionEvent>() {
+                    @Override
+                    public void handle(javafx.event.ActionEvent event) {
+                        logger.info("Delete tag dialog started.");
+                        if (t.presentDeleteDialog()) {
+                            try {
+                                theModel.getCurrentRepoHelper().deleteTag(t.getName());
+                            } catch (MissingRepoException e) {
+                                e.printStackTrace();
+                            } catch (GitAPIException e) {
+                                e.printStackTrace();
+                            }
+                            gitStatus();
+                            clearSelectedCommit();
+                            selectCommit(id);
+                        }
+                    }
+                });
+                tags.add(link,numTags,0);
+                numTags++;
+            }
+            tagsPane.setContent(tags);
             commitInfoNameText.setText(commit.getName());
             commitInfoAuthorText.setText(commit.getAuthorName());
             commitInfoDateText.setText(commit.getFormattedWhen());
             commitInfoMessageText.setVisible(true);
             commitInfoNameCopyButton.setVisible(true);
             commitInfoGoToButton.setVisible(true);
+
+            tagsPane.setVisible(true);
+            tagsLabel.setVisible(true);
+            tagNameField.setVisible(true);
+            tagButton.setVisible(true);
 
             String s = "";
             for (BranchHelper branch : commit.getBranchesAsHead()) {
@@ -1391,6 +1615,12 @@ public class SessionController {
             commitInfoMessageText.setVisible(false);
             commitInfoNameCopyButton.setVisible(false);
             commitInfoGoToButton.setVisible(false);
+
+            tagsPane.setVisible(false);
+            tagsLabel.setVisible(false);
+            tagNameField.setText("");
+            tagNameField.setVisible(false);
+            tagButton.setVisible(false);
         });
     }
 
@@ -1470,22 +1700,5 @@ public class SessionController {
         });
 
         popover.show(this.removeRecentReposButton);
-    }
-
-    private void updateLoginButtonText() {
-        Platform.runLater(() -> {
-            if(theModel.getCurrentRepoHelper() != null) {
-                String loginText = this.theModel.getCurrentRepoHelper().getUsername();
-                if (loginText == null) {
-                    loginText = "Username";
-                }
-                else {
-                    logger.info("Set username");
-                }
-                this.switchUserButton.setText(loginText);
-            } else{
-                this.switchUserButton.setText("Username");
-            }
-        });
     }
 }

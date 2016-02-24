@@ -2,6 +2,8 @@ package main.java.elegit;
 
 import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuItem;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.controlsfx.control.PopOver;
@@ -31,7 +33,7 @@ import java.util.ArrayList;
  * unaffected by commits.
  *
  */
-public class RepoFile implements Comparable {
+public class RepoFile implements Comparable<RepoFile> {
 
     Path filePath;
     Repository repo;
@@ -42,6 +44,8 @@ public class RepoFile implements Comparable {
 
     boolean showPopover;
     PopOver diffPopover;
+
+    ContextMenu contextMenu;
 
     public RepoFile(Path filePath, Repository repo) {
         this.repo = repo;
@@ -72,6 +76,13 @@ public class RepoFile implements Comparable {
                 e1.printStackTrace();
             }
         });
+
+        this.contextMenu = new ContextMenu();
+
+        MenuItem addToIgnoreItem = new MenuItem("Add to .gitignore...");
+        addToIgnoreItem.setOnAction(event -> GitIgnoreEditor.show(this.repo, this.filePath));
+
+        this.contextMenu.getItems().addAll(addToIgnoreItem);
     }
 
     public RepoFile(String filePathString, Repository repo) {
@@ -140,11 +151,18 @@ public class RepoFile implements Comparable {
 
     public void showDiffPopover(Node owner) throws IOException, GitAPIException {
         if(showPopover) {
+            contextMenu.hide();
+
             DiffHelper diffHelper = new DiffHelper(this.filePath, this.repo);
             this.diffPopover.setContentNode(diffHelper.getDiffScrollPane());
             this.diffPopover.setTitle("File Diffs");
             this.diffPopover.show(owner);
         }
+    }
+
+    public void showContextMenu(Node owner, double x, double y){
+        this.diffPopover.hide();
+        this.contextMenu.show(owner, x, y);
     }
 
     public boolean equals(Object o){
@@ -156,7 +174,7 @@ public class RepoFile implements Comparable {
     }
 
     @Override
-    public int compareTo(Object o) {
-        return this.toString().compareToIgnoreCase(o.toString());
+    public int compareTo(RepoFile other) {
+        return this.toString().compareToIgnoreCase(other.toString());
     }
 }

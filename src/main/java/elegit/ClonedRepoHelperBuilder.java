@@ -23,6 +23,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jgit.api.LsRemoteCommand;
 import org.eclipse.jgit.api.TransportConfigCallback;
+import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
 import org.eclipse.jgit.api.errors.TransportException;
@@ -186,8 +187,10 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
 
             try {
                 // Try calling `git ls-remote ___` on the remote URL to see if it's valid
-                LsRemoteCommand lsRemoteCommand = new LsRemoteCommand(this.sessionModel.getCurrentRepo());
-                lsRemoteCommand.setRemote(remoteURL);
+
+                //LsRemoteCommand lsRemoteCommand = new LsRemoteCommand(this.sessionModel.getCurrentRepo());
+                //lsRemoteCommand.setRemote(remoteURL);
+                LsRemoteCommand lsRemoteCommand = Git.lsRemoteRepository().setRemote(remoteURL);
                 if (remoteURL.substring(0,6).equals("ssh://")) {
                     SshSessionFactory sshSessionFactory = new JschConfigSessionFactory() {
                         @Override
