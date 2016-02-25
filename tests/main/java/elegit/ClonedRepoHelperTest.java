@@ -5,6 +5,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
+import java.io.PrintWriter;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -58,17 +60,26 @@ public class ClonedRepoHelperTest {
 
     @Test
     public void testObtainRepository() throws Exception {
-
+        assertNotNull(this.helper.obtainRepository());
     }
 
     @Test
-    public void testAddFilePath() throws Exception {
+    public void testAddFileAndCommit() throws Exception {
+        assertFalse(this.helper.hasUnpushedCommits());
 
-    }
+        Path newPath = Paths.get(this.directoryPath.toString(), "new.txt");
 
-    @Test
-    public void testAddFilePaths() throws Exception {
+        // Need to make the "newFile.txt" actually exist:
+        Files.createFile(newPath);
 
+        try(PrintWriter newPathTextWriter = new PrintWriter( newPath.toString() )){
+            newPathTextWriter.println("Dummy text for the new file to commit");
+        }
+
+        this.helper.addFilePath(newPath);
+        this.helper.commit("Added a new file in a unit test!");
+
+        assertTrue(this.helper.hasUnpushedCommits());
     }
 
     @Test
