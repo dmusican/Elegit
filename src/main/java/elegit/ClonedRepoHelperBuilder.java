@@ -64,24 +64,11 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
     public RepoHelper getRepoHelperFromDialogs() throws GitAPIException, IOException, NoRepoSelectedException, CancelledAuthorizationException{
         // Inspired by: http://code.makery.ch/blog/javafx-dialogs-official/
 
-        // Create the custom dialog.
-
         logger.info("Load remote repo dialog started");
+
         Dialog<Pair<String, String>> dialog = createCloneDialog();
+        ButtonType cloneButtonType = setUpDialogButtons(dialog);
 
-
-        Text instructionsText = new Text("Select an enclosing folder for the repository folder\n" +
-                                         "to be created in.");
-
-        // Set the button types.
-        ButtonType cloneButtonType = new ButtonType("Clone", ButtonBar.ButtonData.OK_DONE);
-        dialog.getDialogPane().getButtonTypes().addAll(cloneButtonType, ButtonType.CANCEL);
-        dialog.setOnCloseRequest(new EventHandler<DialogEvent>() {
-            @Override
-            public void handle(DialogEvent event) {
-                logger.info("Closed clone from remote dialog");
-            }
-        });
 
         // Create the Remote URL and destination path labels and fields.
         GridPane grid = new GridPane();
@@ -89,18 +76,18 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
         grid.setVgap(10);
         grid.setPadding(new Insets(10, 10, 10, 10));
 
+        Text instructionsText = new Text("Select an enclosing folder for the repository folder\n" +
+                "to be created in.");
+
+
         // Set protocol
-        ObservableList<String> options =
+        ObservableList<String> protocolChoices =
                 FXCollections.observableArrayList(
                         "HTTP",
                         "SSH private key"
                 );
-        final ComboBox comboBox = new ComboBox(options);
-        comboBox.setValue("HTTP");
-        Text tryItText = new Text("dave");
-        comboBox.setOnAction(t -> {
-            tryItText.setText("hey");
-        });
+        final ComboBox protocolChoiceList = new ComboBox(protocolChoices);
+        protocolChoiceList.setValue("HTTP");
 
         // Set URL
         TextField remoteURLField = new TextField();
@@ -126,18 +113,26 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
         repoNameField.setPromptText("Repository name...");
         if(prevRepoName != null) repoNameField.setText(prevRepoName);
 
-        grid.add(instructionsText, 0, 0, 2, 1);
+        int instructionsRow = 0;
+        int protocolRow = instructionsRow + 1;
+        int remoteURLRow = protocolRow + 1;
+        int enclosingFolderRow = remoteURLRow + 1;
+        int repositoryNameRow = enclosingFolderRow + 1;
 
-        grid.add(comboBox, 3, 1);
-        grid.add(new Label("Remote URL:"), 0, 1);
-        grid.add(remoteURLField, 1, 1);
-        grid.add(new Label("Enclosing folder:"), 0, 2);
-        grid.add(enclosingFolderField, 1, 2);
-        grid.add(chooseDirectoryButton, 2, 2);
-        grid.add(tryItText,1,4);
+        grid.add(instructionsText, 0, instructionsRow, 2, 1);
 
-        grid.add(new Label("Repository name:"), 0, 3);
-        grid.add(repoNameField, 1, 3);
+        grid.add(new Label("Protocol:"), 0, protocolRow);
+        grid.add(protocolChoiceList, 1, protocolRow);
+
+        grid.add(new Label("Remote URL:"), 0, remoteURLRow);
+        grid.add(remoteURLField, 1, remoteURLRow);
+
+        grid.add(new Label("Enclosing folder:"), 0, enclosingFolderRow);
+        grid.add(enclosingFolderField, 1, enclosingFolderRow);
+        grid.add(chooseDirectoryButton, 2, enclosingFolderRow);
+
+        grid.add(new Label("Repository name:"), 0, repositoryNameRow);
+        grid.add(repoNameField, 1, repositoryNameRow);
 
         // Enable/Disable login button depending on whether a username was entered.
         Node cloneButton = dialog.getDialogPane().lookupButton(cloneButtonType);
@@ -242,6 +237,19 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
         dialog.setHeaderText("Clone a remote repository");
 
         return dialog;
+    }
+
+    private ButtonType setUpDialogButtons(Dialog<Pair<String, String>> dialog) {
+        // Set the button types.
+        ButtonType cloneButtonType = new ButtonType("Clone", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(cloneButtonType, ButtonType.CANCEL);
+        dialog.setOnCloseRequest(new EventHandler<DialogEvent>() {
+            @Override
+            public void handle(DialogEvent event) {
+                logger.info("Closed clone from remote dialog");
+            }
+        });
+        return cloneButtonType;
     }
 
     public String getPrevDestinationPath() {
