@@ -22,8 +22,7 @@ public class SSHTryIt {
     public static void main(String[] args) throws GitAPIException {
         System.out.println("hey");
         CloneCommand cloneCommand = Git.cloneRepository();
-        String remoteURL= "ssh://dmusican@spectra.mathcs.carleton" +
-                          ".edu/Accounts/dmusican/git/cs348course";
+        String remoteURL= "ssh://.....";
         cloneCommand.setURI(remoteURL);
         // Explained http://www.codeaffine.com/2014/12/09/jgit-authentication/
         SshSessionFactory sshSessionFactory = new JschConfigSessionFactory() {
@@ -35,7 +34,7 @@ public class SSHTryIt {
             @Override
             protected JSch createDefaultJSch(FS fs) throws JSchException {
                 JSch defaultJSch = super.createDefaultJSch(fs);
-                defaultJSch.addIdentity("/Users/dmusican/.ssh/mathcs",
+                defaultJSch.addIdentity("/Users/...../.ssh/...",
                                         "my password");
                 return defaultJSch;
             }
@@ -49,7 +48,7 @@ public class SSHTryIt {
                     }
                 });
 
-        cloneCommand.setDirectory(new File("/Users/dmusican/temp/elegitFun"));
+        cloneCommand.setDirectory(new File("/Users/...../temp/....."));
         Git cloneCall = cloneCommand.call();
 
         cloneCall.close();
