@@ -286,6 +286,7 @@
                             <Label
                                     GridPane.columnIndex="0"
                                     GridPane.rowIndex="4"
+                                    GridPane.halignment="CENTER"
                                     fx:id="tagsLabel"
                                     text="Tags:"
                             />
