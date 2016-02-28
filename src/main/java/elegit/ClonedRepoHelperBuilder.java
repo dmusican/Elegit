@@ -8,6 +8,7 @@ import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
@@ -27,7 +28,7 @@ import org.eclipse.jgit.api.errors.InvalidRemoteException;
 import org.eclipse.jgit.api.errors.TransportException;
 import org.eclipse.jgit.transport.*;
 import org.eclipse.jgit.util.FS;
-
+import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -216,6 +217,7 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
             //  but it would create a destination folder for the repo before stopping. By catching the error above,
             //  we prevent unnecessary folder creation.
             RepoHelper repoHelper = new ClonedRepoHelper(destinationPath, remoteURL, this.sessionModel.getDefaultUsername());
+            repoHelper.setAuthCredentials(this.getRepoHelperAuthCredentialFromDialog(repoHelper));
 
             return repoHelper;
         } else {

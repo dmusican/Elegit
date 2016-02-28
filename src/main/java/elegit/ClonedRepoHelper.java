@@ -11,7 +11,6 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.transport.*;
 import org.eclipse.jgit.util.FS;
-
 import java.io.IOException;
 import java.nio.file.Path;
 
@@ -36,8 +35,7 @@ public class ClonedRepoHelper extends RepoHelper {
         cloneCommand.setURI(this.remoteURL);
         if (this.remoteURL.substring(0,7).equals("http://")) {
 
-            //Will throw CancelledAuthorizationException if dialog is cancelled
-            cloneCommand.setCredentialsProvider(super.presentAuthorizeDialog());
+            cloneCommand.setCredentialsProvider(super.ownerAuth);
         } else if (this.remoteURL.substring(0,6).equals("ssh://")) {
             // Explained http://www.codeaffine.com/2014/12/09/jgit-authentication/
             SshSessionFactory sshSessionFactory = new JschConfigSessionFactory() {
