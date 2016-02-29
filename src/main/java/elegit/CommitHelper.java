@@ -283,6 +283,10 @@ public class CommitHelper{
         return tagNames;
     }
 
+    public boolean hasTags() {
+        return this.tags.size()!=0;
+    }
+
     /**
      * @return the commit object for this helper
      */

@@ -737,6 +737,7 @@ public abstract class RepoHelper {
         CommitHelper c = this.commitIdMap.get(commitName);
         TagHelper t;
         // If the ref has a peeled objectID, then it is a lightweight tag
+        if (c==null) return null;
         if (r.getPeeledObjectId()==null) {
             t = new TagHelper(tagName, c);
             c.addTag(t);

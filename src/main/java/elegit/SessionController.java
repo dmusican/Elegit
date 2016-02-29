@@ -1579,8 +1579,10 @@ public class SessionController {
             commitInfoNameCopyButton.setVisible(true);
             commitInfoGoToButton.setVisible(true);
 
-            tagsPane.setVisible(true);
-            tagsLabel.setVisible(true);
+            if (commit.hasTags()) {
+                tagsPane.setVisible(true);
+                tagsLabel.setVisible(true);
+            }
             tagNameField.setVisible(true);
             tagButton.setVisible(true);
 
