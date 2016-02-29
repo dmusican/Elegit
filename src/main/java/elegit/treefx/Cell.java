@@ -6,17 +6,18 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
+import javafx.event.EventHandler;
 import javafx.geometry.*;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
+import javafx.scene.control.Button;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
+import javafx.scene.image.Image;
 import javafx.scene.input.MouseButton;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
-import javafx.scene.layout.CornerRadii;
-import javafx.scene.layout.Pane;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Shape;
 import javafx.util.Duration;
@@ -374,6 +375,7 @@ public class Cell extends Pane{
             }
             Label basic = new Label();
             Label extended = new Label();
+            Button showExtended = new Button();
             //extended.setBackground(new Background(new BackgroundFill(Color.WHITE, new CornerRadii(1), new Insets(0))));
             if (labels.size() < 1) {
                 return;
@@ -391,8 +393,25 @@ public class Cell extends Pane{
             }
             extended.setText(extendedText);
             extended.setVisible(false);
+
+            showExtended.setVisible(false);
+            if (labels.size()>1) {
+                showExtended.setVisible(true);
+                showExtended.setTranslateX(-5);
+                showExtended.setText("\u22EE");
+                showExtended.setStyle("-fx-background-color: rgba(0,0,0,0); -fx-padding: 1 0 0 0;");
+                showExtended.setOnMouseClicked(new EventHandler<MouseEvent>() {
+                    @Override
+                    public void handle(MouseEvent event) {
+                        extended.setVisible(!extended.isVisible());
+                        basic.setVisible(!basic.isVisible());
+                    }
+                });
+            }
+
             labelPane.getChildren().add(basic);
             labelPane.getChildren().add(extended);
+            labelPane.getChildren().add(showExtended);
             this.setView(labelPane);
 
             Platform.runLater(() -> {
