@@ -22,11 +22,13 @@ import org.controlsfx.control.NotificationPane;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
+import org.eclipse.jgit.errors.IncorrectObjectTypeException;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.revplot.PlotCommitList;
 import org.eclipse.jgit.revplot.PlotLane;
 import org.eclipse.jgit.revplot.PlotWalk;
 import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.revwalk.RevObject;
 import org.eclipse.jgit.revwalk.RevTag;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.transport.*;
@@ -855,7 +857,18 @@ public abstract class RepoHelper {
      */
     private TagHelper makeTagHelper(Ref r, String tagName) throws IOException, GitAPIException {
         String commitName;
-        if (r.getPeeledObjectId()!=null) commitName=r.getPeeledObjectId().getName();
+        RevTag tag;
+        Git git = new Git(repo);
+        RevWalk walk = new RevWalk(git.getRepository());
+        try {
+            tag = walk.parseTag(r.getObjectId());
+        } catch(IncorrectObjectTypeException e) {
+            //Not an annotated tag
+        }
+        if (r.getPeeledObjectId()!=null) {
+            commitName=r.getPeeledObjectId().getName();
+            System.out.println("stupid");
+        }
         else commitName=r.getObjectId().getName();
         CommitHelper c = this.commitIdMap.get(commitName);
         TagHelper t;
@@ -868,7 +881,8 @@ public abstract class RepoHelper {
         else {
             ObjectReader objectReader = repo.newObjectReader();
             ObjectLoader objectLoader = objectReader.open(r.getObjectId());
-            RevTag tag = RevTag.parse(objectLoader.getBytes());
+            //RevTag tag = RevTag.parse(objectLoader.getBytes());
+            tag = RevTag.parse(objectLoader.getBytes());
             objectReader.release();
             t = new TagHelper(tag, c);
             c.addTag(t);
@@ -878,6 +892,39 @@ public abstract class RepoHelper {
         }
         return t;
     }
+
+    /*private RevTag getTagFromWalk(Ref r, String tagName) throws IOException, GitAPIException {
+        RevWalk w = new RevWalk(repo);
+        Map<String, Ref> allTags = repo.getTags();
+        int shortestLengthSoFar = 0;
+        w.newFlag(tagName);
+        RevCommit base;
+        RevCommit tip;
+        try {
+            RevObject ro = w.parseCommit(w.parseTag(r.getObjectId()).getObject());
+            if (ro.getType() != Constants.OBJ_COMMIT) {
+                // must be a commit object or this doesn't make sense
+                return null;
+            }
+            base = w.parseCommit(ro.getId());
+            tip = w.parseCommit(ro.getId()); //figure out oid
+
+            if (!w.isMergedInto(base, tip)) {
+                // this tag doesn't exist in this commit's history
+                return null;
+            }
+
+            //If here then the tag exists in history, so count number
+            //of commits since it
+
+            int i = countCommits(tip.getId(), base.getId());
+            shortestLengthSoFar = 1;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }*/
 
     /**
      * Given a list of raw JGit commit objects, constructs CommitHelper objects to wrap them and gives
