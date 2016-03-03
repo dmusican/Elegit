@@ -747,7 +747,7 @@ public abstract class RepoHelper {
             ObjectReader objectReader = repo.newObjectReader();
             ObjectLoader objectLoader = objectReader.open(r.getObjectId());
             RevTag tag = RevTag.parse(objectLoader.getBytes());
-            objectReader.release();
+            objectReader.close();
             t = new TagHelper(tag, c);
             c.addTag(t);
         }
