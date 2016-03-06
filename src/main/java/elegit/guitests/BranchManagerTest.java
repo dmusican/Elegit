@@ -31,30 +31,14 @@ public class BranchManagerTest extends GuiTest {
         return root;
     }
 
-    // The window size is too big for the Manage Branches button to be clicked!
-    public void setCustomStage() {
-        Platform.runLater(() -> {
-            stage.close();
-
-            Parent root = getRootNode();
-            stage.setTitle("Elegit");
-
-            Scene scene = new Scene(root, 1200, 650); // width, height
-            stage.setScene(scene);
-            stage.show();
-            sleep(3, TimeUnit.SECONDS);
-        });
-    }
-
     @Test
     public void testBranchManagerButton() {
-        sleep(10, TimeUnit.SECONDS);
+        sleep(5, TimeUnit.SECONDS);
 
-        Button managerButton = find("git status");
+        Button managerButton = find("Manage Branches");
         click(managerButton);
 
         Stage branchManagerWindow = findStageByTitle("Branch Manager");
         assert branchManagerWindow.isShowing();
-
     }
 }
