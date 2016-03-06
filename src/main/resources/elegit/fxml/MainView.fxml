@@ -6,7 +6,11 @@
 <?import main.java.elegit.*?>
 <?import org.controlsfx.control.NotificationPane?>
 <?import java.net.URL?>
-<AnchorPane fx:controller="main.java.elegit.SessionController" xmlns:fx="http://javafx.com/fxml">
+<AnchorPane
+        fx:controller="main.java.elegit.SessionController"
+        xmlns:fx="http://javafx.com/fxml"
+        prefWidth="1200"
+        prefHeight="650">
 
     <NotificationPane fx:id="notificationPane"
             AnchorPane.bottomAnchor="5.0"

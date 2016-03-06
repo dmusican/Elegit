@@ -1,4 +1,4 @@
-package main.java.elegit.tests;
+package main.java.elegit.guitests;
 
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
@@ -6,6 +6,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.stage.Stage;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.loadui.testfx.GuiTest;
 
@@ -47,11 +48,9 @@ public class BranchManagerTest extends GuiTest {
 
     @Test
     public void testBranchManagerButton() {
-        Button managerButton = find("Manage branches");
-        click(managerButton);
+        sleep(10, TimeUnit.SECONDS);
 
-        sleep(5, TimeUnit.SECONDS);
-
+        Button managerButton = find("git status");
         click(managerButton);
 
         Stage branchManagerWindow = findStageByTitle("Branch Manager");
