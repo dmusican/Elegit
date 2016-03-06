@@ -28,6 +28,8 @@ public class BranchManagerTest extends GuiTest {
             e.printStackTrace();
         }
 
+        root.setTranslateY(50);
+
         return root;
     }
 
@@ -35,10 +37,13 @@ public class BranchManagerTest extends GuiTest {
     public void testBranchManagerButton() {
         sleep(5, TimeUnit.SECONDS);
 
-        Button managerButton = find("Manage Branches");
+        Button managerButton = find("Manage branches");
         click(managerButton);
 
+        sleep(10, TimeUnit.SECONDS);
+
         Stage branchManagerWindow = findStageByTitle("Branch Manager");
+        assert branchManagerWindow != null;
         assert branchManagerWindow.isShowing();
     }
 }
