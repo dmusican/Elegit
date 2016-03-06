@@ -4,13 +4,14 @@ import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.Group;
 import javafx.scene.Node;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.Pane;
 import main.java.elegit.MatchedScrollPane;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Random;
 
 /**
  * Thanks to RolandC for providing the base graph code structure:
@@ -80,7 +81,13 @@ public class TreeGraph{
 
         Platform.runLater(() -> {
             // add components to treeGraph pane
+            LinkedList<Node> moreToAdd = new LinkedList<Node>();
+            for (Node n: queuedToAdd) {
+                if (n instanceof Cell)
+                    moreToAdd.add(((Cell)n).getLabel());
+            }
             cellLayer.getChildren().addAll(queuedToAdd);
+            cellLayer.getChildren().addAll(moreToAdd);
 
             // remove components from treeGraph pane
             cellLayer.getChildren().removeAll(queuedToRemove);

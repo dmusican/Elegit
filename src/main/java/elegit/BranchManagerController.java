@@ -5,10 +5,10 @@ import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-import javafx.scene.control.Button;
-import javafx.scene.control.TextField;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.controlsfx.control.NotificationPane;
 import org.controlsfx.control.action.Action;
 import org.eclipse.jgit.api.CreateBranchCommand;
@@ -54,7 +54,10 @@ public class BranchManagerController {
     private SessionModel sessionModel;
     private BranchManagerModel branchManagerModel;
 
+    static final Logger logger = LogManager.getLogger();
+
     public void initialize() throws Exception {
+        logger.info("Started up branch manager");
         this.sessionModel = SessionModel.getSessionModel();
         this.repoHelper = this.sessionModel.getCurrentRepoHelper();
         this.repo = this.repoHelper.getRepo();
@@ -68,9 +71,15 @@ public class BranchManagerController {
 
         this.remoteListView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
         this.remoteListView.setOnMouseClicked(e -> {
+
+            if (!localListView.getSelectionModel().isEmpty()) {
+                localListView.getSelectionModel().clearSelection();
+            }
             try {
                 this.updateButtons();
             } catch (IOException e1) {
+                logger.error("Branch manager remote list view mouse click error");
+                logger.debug(e1.getStackTrace());
                 e1.printStackTrace();
             }
         });
@@ -78,9 +87,14 @@ public class BranchManagerController {
         // Local list view can select multiple (for merges):
         this.localListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         this.localListView.setOnMouseClicked(e -> {
+            if (!remoteListView.getSelectionModel().isEmpty()) {
+                remoteListView.getSelectionModel().clearSelection();
+            }
             try {
                 this.updateButtons();
             } catch (IOException e1) {
+                logger.error("Branch manager local list view mouse click error");
+                logger.debug(e1.getStackTrace());
                 e1.printStackTrace();
             }
         });
@@ -110,21 +124,28 @@ public class BranchManagerController {
 
     public void onNewBranchButton() {
         try {
+            logger.info("New branch button clicked");
             LocalBranchHelper newLocalBranch = this.createNewLocalBranch(this.newBranchNameField.getText());
             this.localListView.getItems().add(newLocalBranch);
             this.branchManagerModel.setLocalBranches(this.localListView.getItems());
             this.newBranchNameField.clear();
         } catch (InvalidRefNameException e1) {
+            logger.warn("Invalid branch name warning");
             this.showInvalidBranchNameNotification();
         } catch (RefNotFoundException e1) {
             // When a repo has no commits, you can't create branches because there
             //  are no commits to point to. This error gets raised when git can't find
             //  HEAD.
+            logger.warn("Can't create branch without a commit in the repo warning");
             this.showNoCommitsYetNotification();
         } catch (GitAPIException e1) {
+            logger.warn("Git error");
+            logger.debug(e1.getStackTrace());
             this.showGenericGitErrorNotification();
             e1.printStackTrace();
         } catch (IOException e1) {
+            logger.warn("Unspecified IOException");
+            logger.debug(e1.getStackTrace());
             this.showGenericErrorNotification();
             e1.printStackTrace();
         }
@@ -143,11 +164,17 @@ public class BranchManagerController {
         // Update delete button
         if (this.localListView.getSelectionModel().getSelectedIndices().size() > 0) {
             this.deleteLocalBranchesButton.setDisable(false);
+            // But keep trackRemoteBranchButton disabled
+            this.trackRemoteBranchButton.setDisable(true);
         }
 
         // Update track button
         if (this.remoteListView.getSelectionModel().getSelectedIndices().size() > 0) {
             this.trackRemoteBranchButton.setDisable(false);
+            // But keep the other buttons disabled
+            this.deleteLocalBranchesButton.setDisable(true);
+            this.mergeButton.setDisable(true);
+            this.swapMergeBranchesButton.setDisable(true);
         }
 
         // Update merge button
@@ -187,6 +214,7 @@ public class BranchManagerController {
      * @throws IOException
      */
     public void trackSelectedBranchLocally() throws GitAPIException, IOException {
+        logger.info("Track remote branch locally button clicked");
         RemoteBranchHelper selectedRemoteBranch = this.remoteListView.getSelectionModel().getSelectedItem();
         try {
             if (selectedRemoteBranch != null) {
@@ -195,6 +223,7 @@ public class BranchManagerController {
                 this.branchManagerModel.setLocalBranches(this.localListView.getItems());
             }
         } catch (RefAlreadyExistsException e) {
+            logger.warn("Branch already exists locally warning");
             this.showRefAlreadyExistsNotification();
         }
     }
@@ -203,6 +232,7 @@ public class BranchManagerController {
      * Deletes the selected branches (in the localListView) through git.
      */
     public void deleteSelectedLocalBranches() {
+        logger.info("Delete branches button clicked");
         Git git = new Git(this.repo);
 
         for (LocalBranchHelper selectedBranch : this.localListView.getSelectionModel().getSelectedItems()) {
@@ -214,10 +244,13 @@ public class BranchManagerController {
                     this.branchManagerModel.setLocalBranches(this.localListView.getItems());
                 }
             } catch (NotMergedException e) {
+                logger.warn("Can't delete branch because not merged warning");
                 this.showNotMergedNotification(selectedBranch);
             } catch (CannotDeleteCurrentBranchException e) {
+                logger.warn("Can't delete current branch warning");
                 this.showCannotDeleteBranchNotification(selectedBranch);
             } catch (GitAPIException e) {
+                logger.warn("Git error");
                 this.showGenericGitErrorNotificationWithBranch(selectedBranch);
             }
         }
@@ -247,6 +280,7 @@ public class BranchManagerController {
      * Deletes a given local branch through git, forcefully.
      */
     private void forceDeleteLocalBranch(LocalBranchHelper branchToDelete) {
+        logger.info("Deleting local branch");
         Git git = new Git(this.repo);
 
         try {
@@ -257,8 +291,10 @@ public class BranchManagerController {
                 this.branchManagerModel.setLocalBranches(this.localListView.getItems());
             }
         } catch (CannotDeleteCurrentBranchException e) {
+            logger.warn("Can't delete current branch warning");
             this.showCannotDeleteBranchNotification(branchToDelete);
         } catch (GitAPIException e) {
+            logger.warn("Git error");
             this.showGenericGitErrorNotificationWithBranch(branchToDelete);
             e.printStackTrace();
         }
@@ -273,6 +309,7 @@ public class BranchManagerController {
      * @throws GitAPIException
      */
     public void mergeSelectedBranchWithCurrent() throws IOException, GitAPIException {
+        logger.info("Merging selected branch with current");
         Git git = new Git(this.repo);
         LocalBranchHelper selectedBranch = this.localListView.getSelectionModel().getSelectedItem();
 
@@ -322,6 +359,7 @@ public class BranchManagerController {
     /// BEGIN: ERROR NOTIFICATIONS:
 
     private void showBranchSwapNotification(String newlyCheckedOutBranchName) {
+        logger.info("Checked out a branch notification");
         this.notificationPane.setText(String.format("%s is now checked out.", newlyCheckedOutBranchName));
 
         this.notificationPane.getActions().clear();
@@ -329,6 +367,7 @@ public class BranchManagerController {
     }
 
     private void showFastForwardMergeNotification() {
+        logger.info("Fast forward merge complete notification");
         this.notificationPane.setText("Fast-forward merge completed (HEAD was updated).");
 
         this.notificationPane.getActions().clear();
@@ -336,6 +375,7 @@ public class BranchManagerController {
     }
 
     private void showMergeSuccessNotification() {
+        logger.info("Merge completed notification");
         this.notificationPane.setText("Merge completed.");
 
         this.notificationPane.getActions().clear();
@@ -343,6 +383,7 @@ public class BranchManagerController {
     }
 
     private void showFailedMergeNotification() {
+        logger.warn("Merge failed notification");
         this.notificationPane.setText("The merge failed.");
 
         this.notificationPane.getActions().clear();
@@ -350,6 +391,7 @@ public class BranchManagerController {
     }
 
     private void showUpToDateNotification() {
+        logger.warn("No merge necessary notification");
         this.notificationPane.setText("No merge necessary. Those two branches are already up-to-date.");
 
         this.notificationPane.getActions().clear();
@@ -357,6 +399,7 @@ public class BranchManagerController {
     }
 
     private void showGenericGitErrorNotificationWithBranch(LocalBranchHelper branch) {
+        logger.warn("Git error on branch notification");
         this.notificationPane.setText(String.format("Sorry, there was a git error on branch %s.", branch.getBranchName()));
 
         this.notificationPane.getActions().clear();
@@ -364,6 +407,7 @@ public class BranchManagerController {
     }
 
     private void showGenericGitErrorNotification() {
+        logger.warn("Git error notification");
         this.notificationPane.setText("Sorry, there was a git error.");
 
         this.notificationPane.getActions().clear();
@@ -371,6 +415,7 @@ public class BranchManagerController {
     }
 
     private void showGenericErrorNotification() {
+        logger.warn("Generic error notification");
         this.notificationPane.setText("Sorry, there was an error.");
 
         this.notificationPane.getActions().clear();
@@ -378,6 +423,7 @@ public class BranchManagerController {
     }
 
     private void showNotMergedNotification(LocalBranchHelper nonmergedBranch) {
+        logger.warn("Not merged notification");
         this.notificationPane.setText("That branch has to be merged before you can do that.");
 
         Action forceDeleteAction = new Action("Force delete", e -> {
@@ -391,6 +437,7 @@ public class BranchManagerController {
     }
 
     private void showCannotDeleteBranchNotification(LocalBranchHelper branch) {
+        logger.warn("Cannot delete current branch notification");
         this.notificationPane.setText(String.format("Sorry, %s can't be deleted right now. " +
                 "Try checking out a different branch first.", branch.getBranchName()));
         // probably because it's checked out
@@ -400,6 +447,7 @@ public class BranchManagerController {
     }
 
     private void showRefAlreadyExistsNotification() {
+        logger.info("Branch already exists notification");
         this.notificationPane.setText("Looks like that branch already exists locally!");
 
         this.notificationPane.getActions().clear();
@@ -407,6 +455,7 @@ public class BranchManagerController {
     }
 
     private void showInvalidBranchNameNotification() {
+        logger.warn("Invalid branch name notification");
         this.notificationPane.setText("That branch name is invalid.");
 
         this.notificationPane.getActions().clear();
@@ -414,6 +463,7 @@ public class BranchManagerController {
     }
 
     private void showConflictsNotification() {
+        logger.info("Merge conflicts notification");
         this.notificationPane.setText("That merge resulted in conflicts. Check the working tree to resolve them.");
 
         this.notificationPane.getActions().clear();
@@ -421,6 +471,7 @@ public class BranchManagerController {
     }
 
     private void showNoCommitsYetNotification() {
+        logger.warn("No commits yet notification");
         this.notificationPane.setText("You cannot make a branch since your repo has no commits yet. Make a commit first!");
 
         this.notificationPane.getActions().clear();

@@ -3,6 +3,7 @@ package main.java.elegit;
 import org.eclipse.jgit.lib.Repository;
 
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 
 /**
@@ -11,14 +12,14 @@ import java.util.ArrayList;
  */
 public class DirectoryRepoFile extends RepoFile {
 
-    public DirectoryRepoFile(String filePathString, Repository repo) {
-        super(filePathString, repo);
+    public DirectoryRepoFile(Path filePath, Repository repo) {
+        super(filePath, repo);
+        this.diffButton = null;
         this.children = new ArrayList<>();
     }
 
-    public DirectoryRepoFile(Path filePath, Repository repo) {
-        super(filePath, repo);
-        this.children = new ArrayList<>();
+    public DirectoryRepoFile(String filePathString, Repository repo) {
+        this(Paths.get(filePathString), repo);
     }
 
     @Override

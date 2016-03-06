@@ -1,15 +1,23 @@
 package main.java.elegit;
 
+import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Insets;
+import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.control.*;
+import javafx.scene.layout.GridPane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import main.java.elegit.exceptions.ConflictingFilesException;
-import main.java.elegit.exceptions.MissingRepoException;
-import main.java.elegit.exceptions.NoOwnerInfoException;
-import main.java.elegit.exceptions.PushToAheadRemoteError;
+import javafx.stage.WindowEvent;
+import javafx.util.Pair;
+import main.java.elegit.exceptions.*;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.controlsfx.control.NotificationPane;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -19,11 +27,9 @@ import org.eclipse.jgit.revplot.PlotCommitList;
 import org.eclipse.jgit.revplot.PlotLane;
 import org.eclipse.jgit.revplot.PlotWalk;
 import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.revwalk.RevTag;
 import org.eclipse.jgit.revwalk.RevWalk;
-import org.eclipse.jgit.transport.FetchResult;
-import org.eclipse.jgit.transport.PushResult;
-import org.eclipse.jgit.transport.RemoteRefUpdate;
-import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
+import org.eclipse.jgit.transport.*;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -34,9 +40,11 @@ import java.util.*;
  */
 public abstract class RepoHelper {
 
-    protected UsernamePasswordCredentialsProvider ownerAuth;
+    //protected UsernamePasswordCredentialsProvider ownerAuth;
 
     public String username;
+    protected String password;
+
     private Repository repo;
     protected String remoteURL;
 
@@ -45,8 +53,12 @@ public abstract class RepoHelper {
 	private List<CommitHelper> localCommits;
     private List<CommitHelper> remoteCommits;
 
+    private List<TagHelper> localTags;
+    private List<TagHelper> remoteTags;
+
     private Map<String, CommitHelper> commitIdMap;
     private Map<ObjectId, String> idMap;
+    private Map<String, TagHelper> tagIdMap;
 
     private List<LocalBranchHelper> localBranches;
     private List<RemoteBranchHelper> remoteBranches;
@@ -56,6 +68,10 @@ public abstract class RepoHelper {
     public BooleanProperty hasRemoteProperty;
     public BooleanProperty hasUnpushedCommitsProperty;
     public BooleanProperty hasUnmergedCommitsProperty;
+    public BooleanProperty hasUnpushedTagsProperty;
+
+    static final Logger logger = LogManager.getLogger();
+    protected UsernamePasswordCredentialsProvider ownerAuth;
 
     /**
      * Creates a RepoHelper object for holding a Repository and interacting with it
@@ -64,26 +80,24 @@ public abstract class RepoHelper {
      * @param directoryPath the path of the repository.
      * @throws GitAPIException if the obtainRepository() call throws this exception..
      * @throws IOException if the obtainRepository() call throws this exception.
+     * @throws CancelledAuthorizationException if the obtainRepository() call throws this exception.
      */
-    public RepoHelper(Path directoryPath, String remoteURL, RepoOwner owner) throws GitAPIException, IOException, NoOwnerInfoException {
-        if (owner == null || (owner.getUsername() == null && owner.getPassword() == null)) {
-            // This exception is mainly for constructing ClonedRepoHelpers because that operation
-            // requires a login to the remote.
-            throw new NoOwnerInfoException();
-        }
+    public RepoHelper(Path directoryPath, String remoteURL, String username) throws GitAPIException, IOException, CancelledAuthorizationException {
         this.remoteURL = remoteURL;
-        this.username = owner.getUsername();
+        this.username = username;
 
-        this.ownerAuth = new UsernamePasswordCredentialsProvider(owner.getUsername(), owner.getPassword());
         this.localPath = directoryPath;
 
         this.repo = this.obtainRepository();
 
         this.commitIdMap = new HashMap<>();
         this.idMap = new HashMap<>();
+        this.tagIdMap = new HashMap<>();
 
         this.localCommits = this.parseAllLocalCommits();
         this.remoteCommits = this.parseAllRemoteCommits();
+
+        this.localTags = this.getAllLocalTags();
 
         this.branchManagerModel = new BranchManagerModel(this.callGitForLocalBranches(), this.callGitForRemoteBranches(), this);
 
@@ -91,20 +105,13 @@ public abstract class RepoHelper {
 
         hasUnpushedCommitsProperty = new SimpleBooleanProperty(getAllCommitIDs().size() > remoteCommits.size());
         hasUnmergedCommitsProperty = new SimpleBooleanProperty(getAllCommitIDs().size() > localCommits.size());
+
+        hasUnpushedTagsProperty = new SimpleBooleanProperty(false);
     }
 
     /// Constructor for ExistingRepoHelpers to inherit (they don't need the Remote URL)
-    public RepoHelper(Path directoryPath, RepoOwner owner) throws GitAPIException, IOException, NoOwnerInfoException {
-        // If the user hasn't signed in (owner == null), then there is no authentication:
-        if (owner == null) {
-            // We can leave the ownerAuth as null because it's an ExistingRepo. The user doesn't need to
-            // log in until they want to actually interact with the remote (e.g. pushing changes).
-            this.ownerAuth = null;
-            this.username = null;
-        } else {
-            this.ownerAuth = new UsernamePasswordCredentialsProvider(owner.getUsername(), owner.getPassword());
-            this.username = owner.getUsername();
-        }
+    public RepoHelper(Path directoryPath, String username) throws GitAPIException, IOException, CancelledAuthorizationException {
+        this.username = username;
 
         this.localPath = directoryPath;
 
@@ -112,9 +119,12 @@ public abstract class RepoHelper {
 
         this.commitIdMap = new HashMap<>();
         this.idMap = new HashMap<>();
+        this.tagIdMap = new HashMap<>();
 
         this.localCommits = this.parseAllLocalCommits();
         this.remoteCommits = this.parseAllRemoteCommits();
+
+        this.localTags = this.getAllLocalTags();
 
         this.branchManagerModel = new BranchManagerModel(this.callGitForLocalBranches(), this.callGitForRemoteBranches(), this);
 
@@ -122,12 +132,15 @@ public abstract class RepoHelper {
 
         hasUnpushedCommitsProperty = new SimpleBooleanProperty(getAllCommitIDs().size() > remoteCommits.size());
         hasUnmergedCommitsProperty = new SimpleBooleanProperty(getAllCommitIDs().size() > localCommits.size());
+
+        hasUnpushedTagsProperty = new SimpleBooleanProperty();
     }
 
     /**
      * @return true if the corresponding repository still exists in the expected location
      */
     public boolean exists(){
+        logger.debug("Checked if repo still exists");
         return localPath.toFile().exists() && localPath.toFile().list((dir, name) -> name.equals(".git")).length > 0;
     }
 
@@ -138,8 +151,9 @@ public abstract class RepoHelper {
      * @return the RepoHelper's repository.
      * @throws GitAPIException (see subclasses).
      * @throws IOException (see subclasses).
+     * @param ownerAuth
      */
-    protected abstract Repository obtainRepository() throws GitAPIException, IOException;
+    protected abstract Repository obtainRepository() throws GitAPIException, IOException, CancelledAuthorizationException;
 
     /**
      * Adds a file to the repository.
@@ -205,6 +219,13 @@ public abstract class RepoHelper {
     }
 
     /**
+     * @return true if there are local tags that haven't been pushed
+     */
+    public boolean hasUnpushedTags(){
+        return hasUnpushedTagsProperty.get();
+    }
+
+    /**
      * @return true if there are remote commits that haven't been merged into local
      */
     public boolean hasUnmergedCommits(){
@@ -217,7 +238,8 @@ public abstract class RepoHelper {
      * @param commitMessage the message for the commit.
      * @throws GitAPIException if the `git commit` call fails.
      */
-    public void commit(String commitMessage) throws GitAPIException, MissingRepoException{
+    public void commit(String commitMessage) throws GitAPIException, MissingRepoException {
+        logger.info("Attempting commit");
         if(!exists()) throw new MissingRepoException();
         // should this Git instance be class-level?
         Git git = new Git(this.repo);
@@ -230,18 +252,40 @@ public abstract class RepoHelper {
     }
 
     /**
+     * Tags a commit
+     *
+     * @param tagName the name for the tag.
+     * @throws GitAPIException if the 'git tag' call fails.
+     */
+    public void tag(String tagName, String commitName) throws GitAPIException, MissingRepoException, IOException, TagNameExistsException {
+        logger.info("Attempting tag");
+        if(!exists()) throw new MissingRepoException();
+        Git git = new Git(this.repo);
+        // This creates a lightweight tag
+        // TODO: add support for annotated tags?
+        CommitHelper c = commitIdMap.get(commitName);
+        if (c.getTagNames().contains(tagName))
+            throw new TagNameExistsException();
+        Ref r = git.tag().setName(tagName).setObjectId(c.getCommit()).setAnnotated(false).call();
+        git.close();
+        TagHelper t = makeTagHelper(r,tagName);
+        this.hasUnpushedTagsProperty.set(true);
+    }
+
+    /**
      * Pushes all changes.
      *
      * @throws GitAPIException if the `git push` call fails.
      */
-    public void pushAll() throws GitAPIException, MissingRepoException, PushToAheadRemoteError {
+    public void pushAll(UsernamePasswordCredentialsProvider ownerAuth) throws GitAPIException, MissingRepoException, PushToAheadRemoteError {
+        logger.info("Attempting push");
         if(!exists()) throw new MissingRepoException();
         if(!hasRemote()) throw new InvalidRemoteException("No remote repository");
         Git git = new Git(this.repo);
         PushCommand push = git.push().setPushAll();
 
-        if (this.ownerAuth != null) {
-            push.setCredentialsProvider(this.ownerAuth);
+        if (ownerAuth != null) {
+            push.setCredentialsProvider(ownerAuth);
         }
 //        ProgressMonitor progress = new TextProgressMonitor(new PrintWriter(System.out));
         ProgressMonitor progress = new SimpleProgressMonitor();
@@ -270,19 +314,62 @@ public abstract class RepoHelper {
     }
 
     /**
+     * Pushes all tags in /refs/tags/.
+     *
+     * @throws GitAPIException if the `git push --tags` call fails.
+     */
+    public void pushTags(UsernamePasswordCredentialsProvider ownerAuth) throws GitAPIException, MissingRepoException, PushToAheadRemoteError {
+        logger.info("Attempting push tags");
+        if(!exists()) throw new MissingRepoException();
+        if(!hasRemote()) throw new InvalidRemoteException("No remote repository");
+        Git git = new Git(this.repo);
+        PushCommand push = git.push().setPushAll();
+
+        if (ownerAuth != null) {
+            push.setCredentialsProvider(ownerAuth);
+        }
+//        ProgressMonitor progress = new TextProgressMonitor(new PrintWriter(System.out));
+        ProgressMonitor progress = new SimpleProgressMonitor();
+        push.setProgressMonitor(progress);
+
+        Iterable<PushResult> pushResult = push.setPushTags().call();
+        boolean allPushesWereRejected = true;
+        boolean anyPushWasRejected = false;
+
+        for (PushResult result : pushResult) {
+            for (RemoteRefUpdate remoteRefUpdate : result.getRemoteUpdates()) {
+                if (remoteRefUpdate.getStatus() != (RemoteRefUpdate.Status.REJECTED_NONFASTFORWARD)) {
+                    allPushesWereRejected = false;
+                } else {
+                    anyPushWasRejected = true;
+                }
+            }
+        }
+
+        if (allPushesWereRejected || anyPushWasRejected) {
+            throw new PushToAheadRemoteError(allPushesWereRejected);
+        }
+
+        git.close();
+        this.hasUnpushedTagsProperty.set(false);
+    }
+
+    /**
      * Fetches changes into FETCH_HEAD (`git -fetch`).
      *
      * @throws GitAPIException
      * @throws MissingRepoException
      */
-    public boolean fetch() throws GitAPIException, MissingRepoException{
+    public boolean fetch(UsernamePasswordCredentialsProvider ownerAuth) throws
+            GitAPIException, MissingRepoException, IOException {
+        logger.info("Attempting fetch");
         if(!exists()) throw new MissingRepoException();
         Git git = new Git(this.repo);
 
-        FetchCommand fetch = git.fetch();
+        FetchCommand fetch = git.fetch().setTagOpt(TagOpt.AUTO_FOLLOW);
 
-        if (this.ownerAuth != null) {
-            fetch.setCredentialsProvider(this.ownerAuth);
+        if (ownerAuth != null) {
+            fetch.setCredentialsProvider(ownerAuth);
         }
 
         // The JGit docs say that if setCheckFetchedObjects
@@ -290,13 +377,14 @@ public abstract class RepoHelper {
         //  Not sure what that means, but sounds good so I'm doing it...
         fetch.setCheckFetchedObjects(true);
 
-//        ProgressMonitor progress = new TextProgressMonitor(new PrintWriter(System.out));
+        // ProgressMonitor progress = new TextProgressMonitor(new PrintWriter(System.out));
         ProgressMonitor progress = new SimpleProgressMonitor();
         fetch.setProgressMonitor(progress);
 
         FetchResult result = fetch.call();
         git.close();
-//        System.out.println(result.getMessages());
+
+        this.branchManagerModel.getUpdatedRemoteBranches();
         this.hasUnmergedCommitsProperty.set(this.hasUnmergedCommits() || !result.getTrackingRefUpdates().isEmpty());
         return !result.getTrackingRefUpdates().isEmpty();
     }
@@ -309,7 +397,8 @@ public abstract class RepoHelper {
      * @throws GitAPIException
      * @throws MissingRepoException
      */
-    public boolean mergeFromFetch() throws IOException, GitAPIException, MissingRepoException, ConflictingFilesException{
+    public boolean mergeFromFetch() throws IOException, GitAPIException, MissingRepoException, ConflictingFilesException {
+        logger.info("Attempting merge from fetch");
         if(!exists()) throw new MissingRepoException();
         if(!hasRemote()) throw new InvalidRemoteException("No remote repository");
         Git git = new Git(this.repo);
@@ -325,6 +414,83 @@ public abstract class RepoHelper {
         this.hasUnpushedCommitsProperty.set(this.hasUnpushedCommits() || status == MergeResult.MergeStatus.MERGED);
         if(status == MergeResult.MergeStatus.CONFLICTING) throw new ConflictingFilesException(result.getConflicts());
         return result.getMergeStatus().isSuccessful();
+    }
+
+    /**
+    * Presents dialogs that request the user's username, then sets it for the RepoHelper
+    *
+    * @throws CancelledUsernameException if the user presses cancel or closes the dialog.
+    */
+    public void presentUsernameDialog() throws CancelledUsernameException {
+        logger.info("Opened username dialog");
+        // Create the custom dialog.
+        Dialog<String> dialog = new Dialog<>();
+        dialog.setTitle("Username");
+        dialog.setHeaderText("Please enter your remote repository username.");
+
+        // Set the button types.
+        ButtonType okButtonType = new ButtonType("OK", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(okButtonType, ButtonType.CANCEL);
+
+        dialog.setOnCloseRequest(new EventHandler<DialogEvent>() {
+            @Override
+            public void handle(DialogEvent event) {
+                logger.info("Closed username dialog");
+            }
+        });
+
+        // Create the username and password labels and fields.
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new Insets(20, 150, 10, 10));
+
+        grid.add(new Label("Username:"), 0, 0);
+
+        // Conditionally ask for the username if it hasn't yet been set.
+        TextField username;
+        if (this.username == null) {
+            username = new TextField();
+            username.setPromptText("Username");
+        } else {
+            username = new TextField(this.username);
+        }
+        grid.add(username, 1, 0);
+
+        // Enable/Disable login button depending on whether a password was entered.
+        Node loginButton = dialog.getDialogPane().lookupButton(okButtonType);
+        loginButton.setDisable(true);
+
+        // Do some validation (using the Java 8 lambda syntax).
+        username.textProperty().addListener((observable, oldValue, newValue) -> {
+            loginButton.setDisable(newValue.trim().isEmpty());
+        });
+
+        dialog.getDialogPane().setContent(grid);
+
+        // Request focus for the username text field by default.
+        Platform.runLater(() -> username.requestFocus());
+
+        // Return the password when the authorize button is clicked.
+        // If the username hasn't been set yet, then update the username.
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == okButtonType) {
+                return username.getText();
+            }
+            return null;
+        });
+
+        Optional<String> result = dialog.showAndWait();
+
+        UsernamePasswordCredentialsProvider ownerAuth;
+
+        if (result.isPresent()) {
+            logger.info("Set username");
+            this.username = result.get();
+        } else {
+            logger.info("Cancelled username dialog");
+            throw new CancelledUsernameException();
+        }
     }
 
     public void closeRepo() {
@@ -375,6 +541,8 @@ public abstract class RepoHelper {
             try{
                 return getCommit(repo.resolve(idOrRefString));
             }catch(IOException e){
+                logger.error("IOException during getCommit");
+                logger.debug(e.getStackTrace());
                 return null;
             }
         }
@@ -392,11 +560,38 @@ public abstract class RepoHelper {
         }
     }
 
+    public TagHelper getTag(String tagName) {
+        return tagIdMap.get(tagName);
+    }
+
+    public void deleteTag(String tagName) throws MissingRepoException, GitAPIException {
+        TagHelper tagToRemove = tagIdMap.get(tagName);
+
+        if(!exists()) throw new MissingRepoException();
+        // should this Git instance be class-level?
+        Git git = new Git(this.repo);
+        // git tag -d
+        git.tagDelete().setTags(tagToRemove.getName()).call();
+        git.close();
+
+        tagToRemove.getCommit().removeTag(tagName);
+        this.localTags.remove(tagToRemove);
+        this.tagIdMap.remove(tagName);
+        this.hasUnpushedTagsProperty.set(true);
+    }
+
     /**
      * @return a list of all commit IDs in this repository
      */
     public List<String> getAllCommitIDs(){
         return new ArrayList<>(commitIdMap.keySet());
+    }
+
+    /**
+     * @return a list of all tag names in this repository
+     */
+    public List<String> getAllTagNames(){
+        return new ArrayList<>(tagIdMap.keySet());
     }
 
     /**
@@ -481,6 +676,85 @@ public abstract class RepoHelper {
     private List<CommitHelper> parseAllRemoteCommits() throws IOException, GitAPIException{
         PlotCommitList<PlotLane> commitList = this.parseAllRawRemoteCommits();
         return wrapRawCommits(commitList);
+    }
+
+    /**
+     * Constructs a list of all local tags found by parsing the tag refs from the repo
+     * then wrapping them into a TagHelper with the appropriate commit
+     * @return a list of TagHelpers for all the tags
+     * @throws IOException
+     * @throws GitAPIException
+     */
+    public List<TagHelper> getAllLocalTags() throws IOException, GitAPIException {
+        Map<String, Ref> tagMap = repo.getTags();
+        List<TagHelper> tags = new ArrayList<>();
+        for (String s: tagMap.keySet()) {
+            Ref r = tagMap.get(s);
+            tags.add(makeTagHelper(r,s));
+        }
+        return tags;
+    }
+
+    /**
+     * Looks through all the tags and checks that they are added to commit helpers
+     * @throws IOException
+     * @throws GitAPIException
+     */
+    public void updateTags() throws IOException, GitAPIException {
+        Map<String, Ref> tagMap = repo.getTags();
+        List<String> oldTagNames = getAllTagNames();
+        for (String s: tagMap.keySet()) {
+            if (oldTagNames.contains(s)){
+                oldTagNames.remove(s);
+                continue;
+            }
+            else {
+                Ref r = tagMap.get(s);
+                makeTagHelper(r,s);
+            }
+        }
+        if (oldTagNames.size() > 0) { //There are tags that were deleted, so we remove them
+            for (String s: oldTagNames) {
+                this.commitIdMap.get(this.tagIdMap.get(s).getCommitId()).removeTag(s);
+                this.tagIdMap.remove(s);
+            }
+        }
+    }
+
+    /**
+     * Helper method to make a tagHelper given a ref and a name of the tag. Also adds the
+     * tag helper to the tagIdMap
+     * @param r the ref to make a tagHelper for. This can be a peeled or unpeeled tag
+     * @param tagName the name of the tag
+     * @return a tagHelper object with the information stored
+     * @throws IOException
+     * @throws GitAPIException
+     */
+    private TagHelper makeTagHelper(Ref r, String tagName) throws IOException, GitAPIException {
+        String commitName;
+        if (r.getPeeledObjectId()!=null) commitName=r.getPeeledObjectId().getName();
+        else commitName=r.getObjectId().getName();
+        CommitHelper c = this.commitIdMap.get(commitName);
+        TagHelper t;
+        // If the ref has a peeled objectID, then it is a lightweight tag
+        if (c==null) return null;
+        if (r.getPeeledObjectId()==null) {
+            t = new TagHelper(tagName, c);
+            c.addTag(t);
+        }
+        // Otherwise, it is an annotated tag
+        else {
+            ObjectReader objectReader = repo.newObjectReader();
+            ObjectLoader objectLoader = objectReader.open(r.getObjectId());
+            RevTag tag = RevTag.parse(objectLoader.getBytes());
+            objectReader.close();
+            t = new TagHelper(tag, c);
+            c.addTag(t);
+        }
+        if (!tagIdMap.containsKey(tagName)) {
+            tagIdMap.put(tagName, t);
+        }
+        return t;
     }
 
     /**
@@ -704,21 +978,6 @@ public abstract class RepoHelper {
     }
 
     /**
-     * Sets the owner of this repository
-     * @param owner the new owner
-     */
-    public void setOwner(RepoOwner owner) {
-        if (owner == null || (owner.getUsername() == null && owner.getPassword() == null)) {
-            // If there's no owner, there's no authentication.
-            this.ownerAuth = null;
-            this.username = null;
-        } else {
-            this.ownerAuth = new UsernamePasswordCredentialsProvider(owner.getUsername(), owner.getPassword());
-            this.username = owner.getUsername();
-        }
-    }
-
-    /**
      * Sets the currently checkout branch. Does not call 'git checkout'
      * or any variation, simply updates the local variable
      * @param branchHelper the new current branch
@@ -754,6 +1013,7 @@ public abstract class RepoHelper {
     }
 
     public void showBranchManagerWindow() throws IOException {
+        logger.info("Opened branch manager window");
         // Create and display the Stage:
         NotificationPane fxmlRoot = FXMLLoader.load(getClass().getResource("/elegit/fxml/BranchManager.fxml"));
 
@@ -761,6 +1021,12 @@ public abstract class RepoHelper {
         stage.setTitle("Branch Manager");
         stage.setScene(new Scene(fxmlRoot, 550, 450));
         stage.initModality(Modality.APPLICATION_MODAL);
+        stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
+            @Override
+            public void handle(WindowEvent event) {
+                logger.info("Closed branch manager window");
+            }
+        });
         stage.show();
     }
 
@@ -775,6 +1041,8 @@ public abstract class RepoHelper {
                 try{
                     branch.getHeadId();
                 }catch(IOException e){
+                    logger.error("IOException getting local branches");
+                    logger.debug(e.getStackTrace());
                     e.printStackTrace();
                 }
             }
@@ -793,6 +1061,8 @@ public abstract class RepoHelper {
                 try{
                     branch.getHeadId();
                 }catch(IOException e){
+                    logger.error("IOException getting remote branches");
+                    logger.debug(e.getStackTrace());
                     e.printStackTrace();
                 }
             }
@@ -836,8 +1106,22 @@ public abstract class RepoHelper {
      * @throws GitAPIException
      */
     public Collection<Ref> getRefsFromRemote(boolean includeTags) throws GitAPIException{
-        if(includeTags) return new Git(repo).lsRemote().setHeads(true).setTags(true).setCredentialsProvider(this.ownerAuth).call();
-        else return new Git(repo).lsRemote().setHeads(true).setCredentialsProvider(this.ownerAuth).call();
+
+        //No UsernamePasswordCredentialsProvider is needed for this, as far as I can tell
+        //TODO: see if UsernamePasswordCredentialsProvider is needed to getRefsFromRemote
+        /*UsernamePasswordCredentialsProvider ownerAuth;
+        try {
+            ownerAuth = setRepoHelperAuthCredentialFromDialog();
+        } catch (CancelledAuthorizationException e) {
+            // If the user doesn't enter credentials for this action, then we'll leave the ownerAuth
+            // as null.
+            ownerAuth = null;
+        }
+        if(includeTags) return new Git(repo).lsRemote().setHeads(true).setTags(true).setCredentialsProvider(ownerAuth).call();
+        else return new Git(repo).lsRemote().setHeads(true).setCredentialsProvider(ownerAuth).call();*/
+
+        if(includeTags) return new Git(repo).lsRemote().setHeads(true).setTags(includeTags).call();
+        else return new Git(repo).lsRemote().setHeads(true).call();
     }
 
     public BranchManagerModel getBranchManagerModel() {
@@ -846,5 +1130,23 @@ public abstract class RepoHelper {
 
     public String getUsername() {
         return username;
+    }
+
+    public void setUsername(String username) { this.username = username; }
+
+    public String getPassword() {
+        return this.password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public void setAuthCredentials(UsernamePasswordCredentialsProvider authCredentials) {
+        this.ownerAuth = authCredentials;
+    }
+
+    public UsernamePasswordCredentialsProvider getOwnerAuthCredentials() {
+        return this.ownerAuth;
     }
 }

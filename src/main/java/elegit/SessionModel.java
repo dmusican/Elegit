@@ -2,24 +2,26 @@ package main.java.elegit;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import main.java.elegit.exceptions.CancelledAuthorizationException;
 import main.java.elegit.exceptions.MissingRepoException;
-import main.java.elegit.exceptions.NoOwnerInfoException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
+import java.util.stream.Stream;
 
 /**
  * The singleton SessionModel stores all the Repos (contained in RepoHelper objects)
@@ -37,12 +39,11 @@ public class SessionModel {
     List<RepoHelper> allRepoHelpers;
     private static SessionModel sessionModel;
 
-    // All RepoHelpers have their own owner. This
-    //   is the default owner that new RepoHelpers will
-    //   be initiated with:
-    private RepoOwner defaultOwner;
+    private String defaultUsername;
 
     Preferences preferences;
+
+    static final Logger logger = LogManager.getLogger();
 
     /**
      * @return the SessionModel object
@@ -71,20 +72,30 @@ public class SessionModel {
      */
     public void loadMostRecentRepoHelper() {
         try{
-        String lastOpenedRepoPathString = (String) PrefObj.getObject(this.preferences, LAST_OPENED_REPO_PATH_KEY);
-        if (lastOpenedRepoPathString != null) {
-            Path path = Paths.get(lastOpenedRepoPathString);
-            try {
-                ExistingRepoHelper existingRepoHelper = new ExistingRepoHelper(path, this.defaultOwner);
-                this.openRepoFromHelper(existingRepoHelper);
-            } catch (IllegalArgumentException e) {
-                // The most recent repo is no longer in the directory it used to be in,
-                // so just don't load it.
-            }catch(NoOwnerInfoException | GitAPIException | MissingRepoException e){
-                e.printStackTrace();
+            String lastOpenedRepoPathString = (String) PrefObj.getObject(
+                    this.preferences, LAST_OPENED_REPO_PATH_KEY
+            );
+            if (lastOpenedRepoPathString != null) {
+                Path path = Paths.get(lastOpenedRepoPathString);
+                try {
+                    ExistingRepoHelper existingRepoHelper =
+                            new ExistingRepoHelper(path, this.defaultUsername);
+                    this.openRepoFromHelper(existingRepoHelper);
+                } catch (IllegalArgumentException e) {
+                    logger.warn("Recent repo not found in directory it used to be in");
+                    // The most recent repo is no longer in the directory it used to be in,
+                    // so just don't load it.
+                }catch(GitAPIException | MissingRepoException e) {
+                    logger.error("Git error or missing repo exception");
+                    logger.debug(e.getStackTrace());
+                    e.printStackTrace();
+                } catch (CancelledAuthorizationException e) {
+                // Should never be used, as no authorization is needed for loading local files.
+                }
             }
-        }
         }catch(IOException | BackingStoreException | ClassNotFoundException e){
+            logger.error("Some sort of error loading most recent repo helper");
+            logger.debug(e.getStackTrace());
             e.printStackTrace();
         }
     }
@@ -100,38 +111,38 @@ public class SessionModel {
                 for (String pathString : storedRepoPathStrings) {
                     Path path = Paths.get(pathString);
                     try {
-                        ExistingRepoHelper existingRepoHelper = new ExistingRepoHelper(path, this.defaultOwner);
+                        ExistingRepoHelper existingRepoHelper = new ExistingRepoHelper(path, this.defaultUsername);
                         this.allRepoHelpers.add(existingRepoHelper);
                     } catch (IllegalArgumentException e) {
+                        logger.warn("Repository has been moved, we move along");
                         // This happens when this repository has been moved.
                         // We'll just move along.
-                    } catch(NoOwnerInfoException | GitAPIException e){
+                    } catch(GitAPIException e){
+                        logger.error("Git error loading recent repo helpers");
+                        logger.debug(e.getStackTrace());
                         e.printStackTrace();
+                    } catch (CancelledAuthorizationException e) {
+                        // This shouldn't happen loading local files.
                     }
                 }
             }
         } catch(IOException | ClassNotFoundException | BackingStoreException e){
+            logger.error("Some sort of exception loading recent repo helpers");
+            logger.debug(e.getStackTrace());
             e.printStackTrace();
         }
     }
 
     /**
-     * Adds a new repository (contained in a RepoHelper) to the session.
+     * Opens the given repository
      *
-     * @param anotherRepoHelper the RepoHelper to add.
+     * @param repoHelper the repository to open
      */
-    public void addRepo(RepoHelper anotherRepoHelper) {
-        this.allRepoHelpers.add(anotherRepoHelper);
-    }
-
-    /**
-     * Opens a repository stored at a certain index in the list of
-     * RepoHelpers.
-     *
-     * @param index the index of the repository to open.
-     */
-    public void openRepoAtIndex(int index) throws BackingStoreException, IOException, ClassNotFoundException {
-        this.currentRepoHelper = this.allRepoHelpers.get(index);
+    public void openRepo(RepoHelper repoHelper) throws BackingStoreException, IOException, ClassNotFoundException {
+        if(!this.allRepoHelpers.contains(repoHelper)) {
+            this.allRepoHelpers.add(repoHelper);
+        }
+        this.currentRepoHelper = repoHelper;
         currentRepoHelperProperty.set(this.currentRepoHelper);
         this.saveListOfRepoPathStrings();
         this.saveMostRecentRepoPathString();
@@ -144,16 +155,16 @@ public class SessionModel {
      *
      * @param repoHelperToLoad the RepoHelper to be loaded.
      */
-    public void openRepoFromHelper(RepoHelper repoHelperToLoad) throws BackingStoreException, IOException, ClassNotFoundException, MissingRepoException{
+    public void openRepoFromHelper(RepoHelper repoHelperToLoad) throws BackingStoreException, IOException, ClassNotFoundException, MissingRepoException {
         RepoHelper matchedRepoHelper = this.matchRepoWithAlreadyLoadedRepo(repoHelperToLoad);
         if (matchedRepoHelper == null) {
             // So, this repo isn't loaded into the model yet
             this.allRepoHelpers.add(repoHelperToLoad);
-            this.openRepoAtIndex(this.allRepoHelpers.size() - 1);
+            this.openRepo(repoHelperToLoad);
         } else {
             // So, this repo is already loaded into the model
             if(matchedRepoHelper.exists()){
-                this.openRepoAtIndex(this.allRepoHelpers.indexOf(matchedRepoHelper));
+                this.openRepo(matchedRepoHelper);
             }else{
                 this.allRepoHelpers.remove(matchedRepoHelper);
                 throw new MissingRepoException();
@@ -169,9 +180,11 @@ public class SessionModel {
      *          (by directory), or null if there is no such RepoHelper already in the model.
      */
     private RepoHelper matchRepoWithAlreadyLoadedRepo(RepoHelper repoHelperCandidate) {
-        for (RepoHelper repoHelper : this.allRepoHelpers) {
-            if (repoHelper.getLocalPath().equals(repoHelperCandidate.getLocalPath())) {
-                return repoHelper;
+        if(repoHelperCandidate != null) {
+            for (RepoHelper repoHelper : this.allRepoHelpers) {
+                if (repoHelper.getLocalPath().equals(repoHelperCandidate.getLocalPath())) {
+                    return repoHelper;
+                }
             }
         }
         return null;
@@ -194,12 +207,12 @@ public class SessionModel {
     /**
      * @return the default owner that will be assigned to new repositories
      */
-    public RepoOwner getDefaultOwner() {
-        return defaultOwner;
+    public String getDefaultUsername() {
+        return this.defaultUsername;
     }
 
-    public void setCurrentDefaultOwner(RepoOwner newOwner) {
-        this.defaultOwner = newOwner;
+    public void setCurrentDefaultUsername(String username) {
+        this.defaultUsername = username;
     }
 
     /**
@@ -223,10 +236,26 @@ public class SessionModel {
      * @return a set of untracked filenames in the working directory.
      * @throws GitAPIException if the `git status` call fails.
      */
-    public Set<String> getUntrackedFiles() throws GitAPIException {
-        Status status = new Git(this.getCurrentRepo()).status().call();
+    public Set<String> getUntrackedFiles(Status status) throws GitAPIException {
+        if(status == null) {
+            status = new Git(this.getCurrentRepo()).status().call();
+        }
 
         return status.getUntracked();
+    }
+
+    /**
+     * Calls `git status` and returns the set of untracked files that Git reports.
+     *
+     * @return a set of untracked filenames in the working directory.
+     * @throws GitAPIException if the `git status` call fails.
+     */
+    public Set<String> getIgnoredFiles(Status status) throws GitAPIException {
+        if(status == null) {
+            status = new Git(this.getCurrentRepo()).status().call();
+        }
+
+        return status.getIgnoredNotInIndex();
     }
 
     /**
@@ -235,8 +264,10 @@ public class SessionModel {
      * @return a set of conflicting filenames in the working directory.
      * @throws GitAPIException
      */
-    public Set<String> getConflictingFiles() throws GitAPIException {
-        Status status = new Git(this.getCurrentRepo()).status().call();
+    public Set<String> getConflictingFiles(Status status) throws GitAPIException {
+        if(status == null) {
+            status = new Git(this.getCurrentRepo()).status().call();
+        }
 
         return status.getConflicting();
     }
@@ -247,8 +278,10 @@ public class SessionModel {
      * @return a set of missing filenames in the working directory.
      * @throws GitAPIException if the `git status` call fails.
      */
-    public Set<String> getMissingFiles() throws GitAPIException {
-        Status status = new Git(this.getCurrentRepo()).status().call();
+    public Set<String> getMissingFiles(Status status) throws GitAPIException {
+        if(status == null) {
+            status = new Git(this.getCurrentRepo()).status().call();
+        }
 
         return status.getMissing();
     }
@@ -264,8 +297,11 @@ public class SessionModel {
      * @return a set of modified filenames in the working directory.
      * @throws GitAPIException if the `git status` call fails.
      */
-    public Set<String> getModifiedFiles() throws GitAPIException {
-        Status status = new Git(this.getCurrentRepo()).status().call();
+    public Set<String> getModifiedFiles(Status status) throws GitAPIException {
+        if(status == null) {
+            status = new Git(this.getCurrentRepo()).status().call();
+        }
+
         Set<String> modifiedAndChangedFiles = new HashSet<>(status.getChanged());
         modifiedAndChangedFiles.addAll(status.getModified());
 
@@ -315,10 +351,12 @@ public class SessionModel {
                 } else {
                     // So, this is a file and not a directory.
 
-                    Set<String> modifiedFiles = getModifiedFiles();
-                    Set<String> missingFiles = getMissingFiles();
-                    Set<String> untrackedFiles = getUntrackedFiles();
-                    Set<String> conflictingFiles = getConflictingFiles();
+                    Status status = new Git(this.getCurrentRepo()).status().call();
+
+                    Set<String> modifiedFiles = getModifiedFiles(status);
+                    Set<String> missingFiles = getMissingFiles(status);
+                    Set<String> untrackedFiles = getUntrackedFiles(status);
+                    Set<String> conflictingFiles = getConflictingFiles(status);
 
                     // Relativize the path to the repository, because that's the file structure JGit
                     //  looks for in an 'add' command
@@ -347,6 +385,8 @@ public class SessionModel {
                 }
             }
         } catch (Exception e) {
+            logger.error("Exception trying to populate directory repo file");
+            logger.debug(e.getStackTrace());
             e.printStackTrace();
         }
         return superDirectory;
@@ -360,10 +400,11 @@ public class SessionModel {
      * @throws GitAPIException if the `git status` calls fail.
      */
     public List<RepoFile> getAllChangedRepoFiles() throws GitAPIException {
-        Set<String> modifiedFiles = getModifiedFiles();
-        Set<String> missingFiles = getMissingFiles();
-        Set<String> untrackedFiles = getUntrackedFiles();
-        Set<String> conflictingFiles = getConflictingFiles();
+        Status status = new Git(this.getCurrentRepo()).status().call();
+        Set<String> modifiedFiles = getModifiedFiles(status);
+        Set<String> missingFiles = getMissingFiles(status);
+        Set<String> untrackedFiles = getUntrackedFiles(status);
+        Set<String> conflictingFiles = getConflictingFiles(status);
 
         List<RepoFile> changedRepoFiles = new ArrayList<>();
 
@@ -403,7 +444,56 @@ public class SessionModel {
             }
         }
 
+        Collections.sort(changedRepoFiles);
         return changedRepoFiles;
+    }
+    /**
+     * Assembles all files in the repository's folder into RepoFiles
+     * and returns a list of them.
+     *
+     * @return a list of changed files, contained in RepoFile objects.
+     * @throws GitAPIException if the `git status` calls fail.
+     */
+    public List<RepoFile> getAllRepoFiles() throws GitAPIException, IOException {
+        List<RepoFile> allFiles = getAllChangedRepoFiles();
+
+        Status status = new Git(this.getCurrentRepo()).status().call();
+
+        for(String ignoredFileString : getIgnoredFiles(status)){
+            IgnoredRepoFile ignoredRepoFile = new IgnoredRepoFile(ignoredFileString, this.getCurrentRepo());
+            allFiles.add(ignoredRepoFile);
+        }
+
+        List<Path> allPaths = new LinkedList<>();
+
+        try (Stream<Path> paths = Files.walk(currentRepoHelper.getLocalPath())
+                .filter(path -> !path.toString().contains(File.separator + ".git" + File.separator)
+                        && !path.equals(currentRepoHelper.getLocalPath())
+                        && !path.endsWith(".git"))) {
+            paths.forEach(allPaths::add);
+        }
+
+        Set<Path> addedPaths = new HashSet<>();
+        for(RepoFile file : allFiles){
+            addedPaths.add(file.getFilePath());
+        }
+
+        for(Path path : allPaths){
+            path = currentRepoHelper.getLocalPath().relativize(path);
+            if(!addedPaths.contains(path)){
+                RepoFile temp;
+                if(path.toFile().isDirectory()){
+                    temp = new DirectoryRepoFile(path, currentRepoHelper.getRepo());
+                }else{
+                    temp = new RepoFile(path, currentRepoHelper.getRepo());
+                }
+                allFiles.add(temp);
+                addedPaths.add(path);
+            }
+        }
+
+        Collections.sort(allFiles);
+        return allFiles;
     }
 
     /**
@@ -459,5 +549,20 @@ public class SessionModel {
         for (RepoHelper item : checkedItems) {
             this.allRepoHelpers.remove(item);
         }
+    }
+
+    /**
+     * After the last RepoHelper is closed by user, sessionModel needs to be
+     * updated and reflect the new view.
+     */
+    public void resetSessionModel() {
+        try {
+            clearStoredPreferences();
+        } catch (Exception exception) {
+            exception.printStackTrace();
+        }
+        /*currentRepoHelper = null;
+        currentRepoHelperProperty = new SimpleObjectProperty<>(null);*/
+        sessionModel = new SessionModel();
     }
 }

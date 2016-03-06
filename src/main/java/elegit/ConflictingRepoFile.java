@@ -3,6 +3,8 @@ package main.java.elegit;
 import javafx.application.Platform;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -26,6 +28,8 @@ public class ConflictingRepoFile extends RepoFile {
 
     private String resultType;
 
+    static final Logger logger = LogManager.getLogger();
+
     public ConflictingRepoFile(Path filePath, Repository repo) {
         super(filePath, repo);
         diffButton.setText("CONFLICTING");
@@ -45,6 +49,7 @@ public class ConflictingRepoFile extends RepoFile {
         Condition finishedAlert = lock.newCondition();
 
         Platform.runLater(() -> {
+            logger.warn("Notification about conflicting file");
             lock.lock();
             try{
                 Alert alert = new Alert(Alert.AlertType.WARNING);
@@ -62,11 +67,14 @@ public class ConflictingRepoFile extends RepoFile {
                 Optional<ButtonType> result = alert.showAndWait();
 
                 if(result.get() == resolveButton){
+                    logger.info("Chose to resolve conflicts");
                     setResultType("resolve");
                 }else if(result.get() == addButton){
+                    logger.info("Chose to add file");
                     setResultType("add");
                 }else{
                     // User cancelled the dialog
+                    logger.info("Cancelled dialog");
                     setResultType("cancel");
                 }
 

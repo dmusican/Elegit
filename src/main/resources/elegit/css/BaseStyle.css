@@ -10,34 +10,10 @@
     -fx-text-fill: #333333;
 }
 
-.button {
-    -fx-text-fill: white;
-    -fx-background-color: -fx-button-fill;
+.button#codeButton {
+    -fx-font-family: "Menlo";
 }
 
-    .button#codeButton {
-        -fx-font-family: "Menlo";
-    }
-
-    .button#warningButton {
-        -fx-background-color: #95A5A6;
-    }
-
-        .button#warningButton:hover {
-            -fx-background-color: #F64747;
-        }
-
-        .button#warningButton:pressed, .button#warningButton:selected {
-            -fx-background-color: #C0392B;
-        }
-
-    .button:hover {
-        -fx-background-color: -fx-button-hover-fill;
-    }
-
-    .button:pressed, .button:selected {
-        -fx-background-color: -fx-button-select-fill;
-    }
 
 .menu-bar {
     -fx-use-system-menu-bar: true;
@@ -47,18 +23,6 @@
 .tree-cell:selected {
   -fx-background-color: #BFBFBF;
 }
-
-.combo-box-base {
-    -fx-background-color: white;
-    -fx-background-radius: 5, 5, 4, 3;
-    -fx-background-insets: 0 0 -1 0, 0, 1, 2;
-    -fx-padding: 0;
-}
-    .combo-box-base#repoDropdown {
-        -fx-background-color: none;
-        -fx-font-weight: bold;
-        -fx-font-size: 14px;
-    }
 
 #title-text {
     -fx-font-size: 20px;
@@ -76,25 +40,11 @@
     -fx-font-size: 24px;
 }
 
-#helpButton {
-    /*noinspection CssInvalidFunction*/
-    -fx-fill: radial-gradient(center 50% 50%, radius 50%, -fx-button-select-fill 75%, -fx-button-fill);
-}
-
-    #helpButton:hover {
-        /*noinspection CssInvalidFunction*/
-        -fx-fill: radial-gradient(center 50% 50%, radius 50%, -fx-button-fill 75%, -fx-button-hover-fill);
-    }
-
-    #helpButton:pressed, .helpButton:selected {
-        /*noinspection CssInvalidFunction*/
-        -fx-fill: radial-gradient(center 50% 50%, radius 50%, -fx-button-fill 75%, -fx-button-hover-fill);
-}
-
 .diffButton {
     -fx-font-weight: BOLD;
     -fx-font-size: 8px;
     -fx-font-family: "Avenir";
+    -fx-text-fill: white;
 }
 
     .diffButton#missingDiffButton {
@@ -111,6 +61,10 @@
 
     .diffButton#conflictingDiffButton {
         -fx-background-color: #F22613;
+    }
+
+    .diffButton#ignoredDiffButton {
+        -fx-background-color: blue;
     }
 
 .diffText {
@@ -169,7 +123,6 @@
     -fx-stroke-dash-array: 3px, 5px;
 }
 
-/*noinspection CssInvalidFunction*/
 * {
     -fx-button-fill: #52B3D9;
     -fx-button-hover-fill: #81CFE0;

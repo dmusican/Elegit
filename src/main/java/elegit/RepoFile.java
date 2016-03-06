@@ -2,6 +2,10 @@ package main.java.elegit;
 
 import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuItem;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.controlsfx.control.PopOver;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Repository;
@@ -29,21 +33,32 @@ import java.util.ArrayList;
  * unaffected by commits.
  *
  */
-public class RepoFile {
+public class RepoFile implements Comparable<RepoFile> {
 
     Path filePath;
     Repository repo;
+    static final Logger logger = LogManager.getLogger();
     protected ArrayList<RepoFile> children; // Only directories will use this!
 
     Button diffButton;
 
+    boolean showPopover;
     PopOver diffPopover;
+
+    ContextMenu contextMenu;
 
     public RepoFile(Path filePath, Repository repo) {
         this.repo = repo;
-        this.filePath = filePath;
 
-        this.diffButton = new Button("");
+        if(filePath.isAbsolute()){
+            this.filePath = Paths.get(repo.getDirectory().getParent()).relativize(filePath);
+        }else {
+            this.filePath = filePath;
+        }
+
+        showPopover = false;
+
+        this.diffButton = new Button("UNCHANGED");
         this.diffButton.getStyleClass().add("diffButton");
 
         this.diffPopover = new PopOver();
@@ -52,11 +67,22 @@ public class RepoFile {
             try {
                 this.showDiffPopover(this.diffButton);
             } catch (IOException e1) {
+                logger.error("IOException in creating repo file");
+                logger.debug(e1.getStackTrace());
                 e1.printStackTrace();
             } catch (GitAPIException e1) {
+                logger.error("GitAPIException in creating repo file");
+                logger.debug(e1.getStackTrace());
                 e1.printStackTrace();
             }
         });
+
+        this.contextMenu = new ContextMenu();
+
+        MenuItem addToIgnoreItem = new MenuItem("Add to .gitignore...");
+        addToIgnoreItem.setOnAction(event -> GitIgnoreEditor.show(this.repo, this.filePath));
+
+        this.contextMenu.getItems().addAll(addToIgnoreItem);
     }
 
     public RepoFile(String filePathString, Repository repo) {
@@ -92,7 +118,7 @@ public class RepoFile {
      */
     @Override
     public String toString() {
-        return this.filePath.toString();
+        return this.filePath.getFileName().toString();
     }
 
     public Path getFilePath() {
@@ -101,6 +127,16 @@ public class RepoFile {
 
     public Repository getRepo() {
         return this.repo;
+    }
+
+    public int getLevelInRepository(){
+        int depth = 0;
+        Path p = this.filePath.getParent();
+        while(p!=null){
+            depth++;
+            p = p.getParent();
+        }
+        return depth;
     }
 
     public ArrayList<RepoFile> getChildren() {
@@ -114,9 +150,31 @@ public class RepoFile {
     }
 
     public void showDiffPopover(Node owner) throws IOException, GitAPIException {
-        DiffHelper diffHelper = new DiffHelper(this.filePath, this.repo);
-        this.diffPopover.setContentNode(diffHelper.getDiffScrollPane());
-        this.diffPopover.setTitle("File Diffs");
-        this.diffPopover.show(owner);
+        if(showPopover) {
+            contextMenu.hide();
+
+            DiffHelper diffHelper = new DiffHelper(this.filePath, this.repo);
+            this.diffPopover.setContentNode(diffHelper.getDiffScrollPane());
+            this.diffPopover.setTitle("File Diffs");
+            this.diffPopover.show(owner);
+        }
+    }
+
+    public void showContextMenu(Node owner, double x, double y){
+        this.diffPopover.hide();
+        this.contextMenu.show(owner, x, y);
+    }
+
+    public boolean equals(Object o){
+        if(o != null && o.getClass().equals(this.getClass())){
+            RepoFile other = (RepoFile) o;
+            return this.filePath.equals(other.filePath) && other.getRepo().getDirectory().equals(getRepo().getDirectory());
+        }
+        return false;
+    }
+
+    @Override
+    public int compareTo(RepoFile other) {
+        return this.toString().compareToIgnoreCase(other.toString());
     }
 }

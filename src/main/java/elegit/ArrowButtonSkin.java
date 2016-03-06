@@ -62,7 +62,7 @@ public class ArrowButtonSkin extends Group implements Skin<Button>{
 
         Path path = new Path();
         text.backgroundProperty().addListener((observable, oldValue, newValue) -> {
-            Paint color = newValue.getFills().get(0).getFill();
+            Paint color = Paint.valueOf("#52B3D9");
             path.setFill(color);
             path.setStroke(color);
         });

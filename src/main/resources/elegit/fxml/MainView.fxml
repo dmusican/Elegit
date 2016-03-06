@@ -84,12 +84,6 @@
 
                     <Button GridPane.columnIndex="4"
                             GridPane.rowIndex="0"
-                            fx:id="switchUserButton"
-                            text="Login"
-                            onAction="#handleSwitchUserButton" />
-
-                    <Button GridPane.columnIndex="5"
-                            GridPane.rowIndex="0"
                             text="Legend"
                             fx:id="legendbutton"
                             onAction="#showLegend" />
@@ -109,10 +103,19 @@
                                 id="codeButton"
                                 onAction="#onGitStatusButton"/>
 
-                        <WorkingTreePanelView
-                                GridPane.rowIndex="1"
-                                GridPane.vgrow="ALWAYS"
-                                fx:id="workingTreePanelView"/>
+                        <TabPane GridPane.rowIndex="1"
+                                 GridPane.vgrow="ALWAYS">
+                            <Tab text="Working Tree"
+                                 closable="false"
+                                 fx:id="workingTreePanelTab">
+                                <WorkingTreePanelView fx:id="workingTreePanelView"/>
+                            </Tab>
+                            <Tab text="All Files"
+                                 closable="false"
+                                 fx:id="allFilesPanelTab">
+                                <AllFilesPanelView fx:id="allFilesPanelView"/>
+                            </Tab>
+                        </TabPane>
 
                         <HBox GridPane.columnIndex="0"
                               GridPane.rowIndex="2"
@@ -196,6 +199,16 @@
 
                         <ArrowButton StackPane.alignment="CENTER_RIGHT"
                                      id="codeButton"
+                                     fx:id="pushTagsButton"
+                                     text="Push Tags"
+                                     arrowUp="true"
+                                     arrowRight="true"
+                                     visible="false"
+                                     onAction="#handlePushTagsButton">
+                        </ArrowButton>
+
+                        <ArrowButton StackPane.alignment="CENTER_RIGHT"
+                                     id="codeButton"
                                      fx:id="pushButton"
                                      text="Push"
                                      arrowUp="true"
@@ -262,6 +275,44 @@
                                       wrapText="true"
                                       editable="false"
                                       fx:id="commitInfoMessageText"/>
+
+                            <ScrollPane
+                                    GridPane.columnIndex="1"
+                                    GridPane.rowIndex="4"
+                                    GridPane.columnSpan="3"
+                                    fx:id="tagsPane"
+                            />
+
+                            <Label
+                                    GridPane.columnIndex="0"
+                                    GridPane.rowIndex="4"
+                                    GridPane.halignment="CENTER"
+                                    fx:id="tagsLabel"
+                                    text="Tags:"
+                            />
+
+                            <TextArea
+                                    GridPane.rowIndex="5"
+                                    GridPane.columnIndex="1"
+                                    GridPane.columnSpan="2"
+                                    GridPane.vgrow="NEVER"
+                                    prefColumnCount="1"
+                                    prefHeight="1"
+                                    wrapText="true"
+                                    editable="true"
+                                    fx:id="tagNameField"
+                                    promptText="tag..." />
+
+
+                            <ArrowButton GridPane.rowIndex="5"
+                                         GridPane.columnIndex="0"
+                                         GridPane.halignment="LEFT"
+                                         GridPane.valignment="BOTTOM"
+                                         id="codeButton"
+                                         fx:id="tagButton"
+                                         text="Tag"
+                                         arrowLeft="true"
+                                         onAction="#handleTagButton"/>
 
                             <Button GridPane.rowIndex="2"
                                     GridPane.columnIndex="0"
