@@ -10,13 +10,13 @@ import java.nio.file.Paths;
  */
 public class IgnoredRepoFile extends RepoFile {
 
-    public IgnoredRepoFile(Path filePath, Repository repo) {
+    public IgnoredRepoFile(Path filePath, RepoHelper repo) {
         super(filePath, repo);
         diffButton.setText("IGNORED");
         diffButton.setId("ignoredDiffButton");
     }
 
-    public IgnoredRepoFile(String filePathString, Repository repo) {
+    public IgnoredRepoFile(String filePathString, RepoHelper repo) {
         this(Paths.get(filePathString), repo);
     }
 

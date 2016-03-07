@@ -13,13 +13,13 @@ import java.nio.file.Paths;
  */
 public class UntrackedRepoFile extends RepoFile {
 
-    public UntrackedRepoFile(Path filePath, Repository repo) {
+    public UntrackedRepoFile(Path filePath, RepoHelper repo) {
         super(filePath, repo);
         diffButton.setText("UNTRACKED");
         diffButton.setId("untrackedDiffButton");
     }
 
-    public UntrackedRepoFile(String filePathString, Repository repo) {
+    public UntrackedRepoFile(String filePathString, RepoHelper repo) {
         this(Paths.get(filePathString), repo);
     }
 
@@ -29,7 +29,7 @@ public class UntrackedRepoFile extends RepoFile {
      * @throws GitAPIException if the `git add` command fails.
      */
     @Override public boolean updateFileStatusInRepo() throws GitAPIException {
-        AddCommand add = new Git(this.repo).add().addFilepattern(this.filePath.toString());
+        AddCommand add = new Git(this.repo.getRepo()).add().addFilepattern(this.filePath.toString());
         add.call();
         return true;
     }

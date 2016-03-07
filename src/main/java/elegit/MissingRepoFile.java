@@ -13,13 +13,13 @@ import java.nio.file.Paths;
  */
 public class MissingRepoFile extends RepoFile {
 
-    public MissingRepoFile(Path filePath, Repository repo) {
+    public MissingRepoFile(Path filePath, RepoHelper repo) {
         super(filePath, repo);
         diffButton.setText("MISSING");
         diffButton.setId("missingDiffButton");
     }
 
-    public MissingRepoFile(String filePathString, Repository repo) {
+    public MissingRepoFile(String filePathString, RepoHelper repo) {
         this(Paths.get(filePathString), repo);
     }
 
@@ -29,7 +29,7 @@ public class MissingRepoFile extends RepoFile {
      * @throws GitAPIException if the `git rm` command fails.
      */
     @Override public boolean updateFileStatusInRepo() throws GitAPIException {
-        RmCommand rm = new Git(this.repo).rm().addFilepattern(this.filePath.toString());
+        RmCommand rm = new Git(this.repo.getRepo()).rm().addFilepattern(this.filePath.toString());
         rm.call();
         return true;
     }

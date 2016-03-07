@@ -32,13 +32,14 @@ import org.eclipse.jgit.revwalk.RevTag;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.transport.*;
 import org.eclipse.jgit.treewalk.TreeWalk;
+import org.eclipse.jgit.treewalk.WorkingTreeIterator;
+import org.eclipse.jgit.util.FS;
 
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 
 /**
@@ -1052,35 +1053,52 @@ public abstract class RepoHelper {
     }
 
     /**
-     * Parses the .gitignore file in the top-level directory of the repo and checks all
+     * Parses all relevant git ignore files for ignore patterns, and then checks all
      * tracked files and directories for whether they match an ignore pattern.
      * @return the set of paths (relative to the repo) of all tracked files that match an ignore pattern
      * @throws IOException
      */
     public Collection<String> getTrackedIgnoredFiles() throws IOException {
+        // Build the ignore pattern matcher
         IgnoreNode ignoreNode = new IgnoreNode();
-        ignoreNode.parse(new BufferedInputStream(Files.newInputStream(Paths.get(this.localPath+File.separator+".gitignore"))));
+        for(Path path : getGitIgnorePaths()) {
+            ignoreNode.parse(new BufferedInputStream(Files.newInputStream(path)));
+        }
 
+        // Set up the walks
         RevWalk walk = new RevWalk(this.repo);
-        RevCommit head = walk.parseCommit(this.repo.resolve("HEAD"));
+        RevCommit head = walk.parseCommit(this.repo.resolve(Constants.HEAD));
 
         TreeWalk treeWalk = new TreeWalk(this.repo);
         treeWalk.addTree(head.getTree());
         treeWalk.setRecursive(false);
 
-        boolean isParentIgnored = false;
+        // Keep track of whether the ancestors are being ignored
+        Stack<Boolean> isParentAtDepthIgnored = new Stack<>();
+        // Set the top level 'parent' to be false
+        isParentAtDepthIgnored.push(false);
+
         Collection<String> trackedIgnoredFiles = new HashSet<>();
 
+        // Loop through all tracked files (depth first)
         while (treeWalk.next()) {
             String pathString = treeWalk.getPathString();
+            // Make sure the stack matches the appropriate depth of this file/directory
+            while(treeWalk.getDepth() + 1 < isParentAtDepthIgnored.size()) {
+                isParentAtDepthIgnored.pop();
+            }
+            boolean isParentIgnored = isParentAtDepthIgnored.peek();
             IgnoreNode.MatchResult result;
 
+            // The current item is a directory
             if (treeWalk.isSubtree()) {
                 result = ignoreNode.isIgnored(pathString, true);
 
-                // Does not support a result of 'CHECK_PARENT_NEGATE_FIRST_MATCH'
-                if(result == IgnoreNode.MatchResult.IGNORED) isParentIgnored = true;
-                else if(result == IgnoreNode.MatchResult.NOT_IGNORED) isParentIgnored = false;
+                // TODO: Does not support a result of 'CHECK_PARENT_NEGATE_FIRST_MATCH' (mainly because I don't know what that means)
+                // Update the stack with the information from this item
+                if(result == IgnoreNode.MatchResult.IGNORED) isParentAtDepthIgnored.push(true);
+                else if(result == IgnoreNode.MatchResult.NOT_IGNORED) isParentAtDepthIgnored.push(false);
+                else isParentAtDepthIgnored.push(isParentAtDepthIgnored.peek());
 
                 treeWalk.enterSubtree();
             } else {
@@ -1092,9 +1110,71 @@ public abstract class RepoHelper {
         return trackedIgnoredFiles;
     }
 
+    /**
+     * Finds and returns a list of all files from which ignore patterns are pulled for this repository.
+     * This includes the global ignore file (if it exists), the info/exclude file, and any .gitignore
+     * files in the repositories file structure
+     * @return a list of paths to files that define ignore rules for this repository
+     */
+    public List<Path> getGitIgnorePaths() throws IOException {
+        List<Path> gitIgnorePaths = new LinkedList<>();
+
+        Path globalIgnore = getGlobalGitIgnorePath();
+        if(globalIgnore != null) gitIgnorePaths.add(globalIgnore);
+
+        Path infoExclude = getInfoExcludePath();
+        if(infoExclude != null) gitIgnorePaths.add(infoExclude);
+
+        GitIgnoreFinder finder = new GitIgnoreFinder();
+        Files.walkFileTree(this.localPath, finder);
+        gitIgnorePaths.addAll(finder.getMatchedPaths());
+
+        return gitIgnorePaths;
+    }
+
+    /**
+     * Returns the path to the configured global git ignore file, or null if no such file
+     * has been configured
+     * @return path to the global ignore file
+     */
+    public Path getGlobalGitIgnorePath(){
+        Config repoConfig = this.repo.getConfig();
+        FS fs = this.repo.getFS();
+
+        String globalIgnorePath = repoConfig.get(CoreConfig.KEY).getExcludesFile();
+        if (globalIgnorePath != null) {
+            if (globalIgnorePath.startsWith("~/")) {
+                globalIgnorePath = fs.resolve(fs.userHome(), globalIgnorePath.substring(2)).getAbsolutePath();
+            }
+            return Paths.get(globalIgnorePath);
+        }
+        return null;
+    }
+
+    /**
+     * Returns the path to this repositories info/exclude file, or null if that file does not exists.
+     * The path to this is defined by Git as '$GIT_DIR/info/exclude'
+     * @return path to this repositories info/exclude file
+     */
+    public Path getInfoExcludePath(){
+        FS fs = this.repo.getFS();
+
+        File repoExclude = fs.resolve(this.repo.getDirectory(), Constants.INFO_EXCLUDE);
+        return repoExclude.exists() ? repoExclude.toPath() : null;
+    }
+
     @Override
     public String toString() {
         return this.localPath.getFileName().toString();
+    }
+
+    @Override
+    public boolean equals(Object o){
+        if(o != null && o.getClass().equals(this.getClass())){
+            RepoHelper other = (RepoHelper) o;
+            return this.localPath.equals(other.localPath);
+        }
+        return false;
     }
 
     /**
@@ -1302,4 +1382,39 @@ public abstract class RepoHelper {
     }
 
     public void setUsername(String username) { this.username = username; }
+
+    /**
+     * A FileVisitor that keeps a list of all '.gitignore' files it finds
+     */
+    private class GitIgnoreFinder extends SimpleFileVisitor<Path> {
+        private final PathMatcher matcher;
+        private List<Path> matchedPaths;
+
+        GitIgnoreFinder() {
+            matcher = FileSystems.getDefault().getPathMatcher("glob:" + Constants.DOT_GIT_IGNORE);
+            matchedPaths = new LinkedList<>();
+        }
+
+        @Override
+        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
+            Path name = file.getFileName();
+
+            if (name != null && matcher.matches(name)) {
+                matchedPaths.add(file);
+            }
+
+            return FileVisitResult.CONTINUE;
+        }
+
+        @Override
+        public FileVisitResult visitFileFailed(Path file, IOException e) {
+            e.printStackTrace();
+            return FileVisitResult.CONTINUE;
+        }
+
+        public Collection<Path> getMatchedPaths() {
+            return matchedPaths;
+        }
+
+    }
 }

@@ -919,8 +919,6 @@ public class SessionController {
     /**
      * Updates the trees, changed files, and branch information. Equivalent
      * to 'git status'
-     *
-     * See initPanelViews for Thread information
      */
     public void gitStatus(){
         RepositoryMonitor.pause();

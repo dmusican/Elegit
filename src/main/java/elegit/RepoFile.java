@@ -36,7 +36,7 @@ import java.util.ArrayList;
 public class RepoFile implements Comparable<RepoFile> {
 
     Path filePath;
-    Repository repo;
+    RepoHelper repo;
     static final Logger logger = LogManager.getLogger();
     protected ArrayList<RepoFile> children; // Only directories will use this!
 
@@ -47,11 +47,11 @@ public class RepoFile implements Comparable<RepoFile> {
 
     ContextMenu contextMenu;
 
-    public RepoFile(Path filePath, Repository repo) {
+    public RepoFile(Path filePath, RepoHelper repo) {
         this.repo = repo;
 
         if(filePath.isAbsolute()){
-            this.filePath = Paths.get(repo.getDirectory().getParent()).relativize(filePath);
+            this.filePath = repo.getLocalPath().relativize(filePath);
         }else {
             this.filePath = filePath;
         }
@@ -85,7 +85,7 @@ public class RepoFile implements Comparable<RepoFile> {
         this.contextMenu.getItems().addAll(addToIgnoreItem);
     }
 
-    public RepoFile(String filePathString, Repository repo) {
+    public RepoFile(String filePathString, RepoHelper repo) {
         this(Paths.get(filePathString), repo);
     }
 
@@ -125,7 +125,7 @@ public class RepoFile implements Comparable<RepoFile> {
         return this.filePath;
     }
 
-    public Repository getRepo() {
+    public RepoHelper getRepo() {
         return this.repo;
     }
 
@@ -168,7 +168,7 @@ public class RepoFile implements Comparable<RepoFile> {
     public boolean equals(Object o){
         if(o != null && o.getClass().equals(this.getClass())){
             RepoFile other = (RepoFile) o;
-            return this.filePath.equals(other.filePath) && other.getRepo().getDirectory().equals(getRepo().getDirectory());
+            return this.filePath.equals(other.filePath) && other.getRepo().getLocalPath().equals(getRepo().getLocalPath());
         }
         return false;
     }
