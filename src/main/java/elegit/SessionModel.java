@@ -320,7 +320,7 @@ public class SessionModel {
     public DirectoryRepoFile getParentDirectoryRepoFile() throws GitAPIException, IOException {
         Path fullPath = this.currentRepoHelper.getLocalPath();
 
-        DirectoryRepoFile parentDirectoryRepoFile = new DirectoryRepoFile(fullPath, this.getCurrentRepo());
+        DirectoryRepoFile parentDirectoryRepoFile = new DirectoryRepoFile(fullPath, this.getCurrentRepoHelper());
         parentDirectoryRepoFile = this.populateDirectoryRepoFile(parentDirectoryRepoFile);
 
         return parentDirectoryRepoFile;
@@ -367,19 +367,19 @@ public class SessionModel {
                     //  Is it modified? Untracked/new? Missing? Just a plain file?
                     //  Construct the appropriate RepoFile and add it to the parent directory.
                     if (conflictingFiles.contains(relativizedPath.toString())) {
-                        ConflictingRepoFile conflictingFile = new ConflictingRepoFile(path, this.getCurrentRepo());
+                        ConflictingRepoFile conflictingFile = new ConflictingRepoFile(path, this.getCurrentRepoHelper());
                         superDirectory.addChild(conflictingFile);
                     } else if (modifiedFiles.contains(relativizedPath.toString())) {
-                        ModifiedRepoFile modifiedFile = new ModifiedRepoFile(path, this.getCurrentRepo());
+                        ModifiedRepoFile modifiedFile = new ModifiedRepoFile(path, this.getCurrentRepoHelper());
                         superDirectory.addChild(modifiedFile);
                     } else if (missingFiles.contains(relativizedPath.toString())) {
-                        MissingRepoFile missingFile = new MissingRepoFile(path, this.getCurrentRepo());
+                        MissingRepoFile missingFile = new MissingRepoFile(path, this.getCurrentRepoHelper());
                         superDirectory.addChild(missingFile);
                     } else if (untrackedFiles.contains(relativizedPath.toString())) {
-                        UntrackedRepoFile untrackedFile = new UntrackedRepoFile(path, this.getCurrentRepo());
+                        UntrackedRepoFile untrackedFile = new UntrackedRepoFile(path, this.getCurrentRepoHelper());
                         superDirectory.addChild(untrackedFile);
                     } else {
-                        RepoFile plainRepoFile = new RepoFile(path, this.getCurrentRepo());
+                        RepoFile plainRepoFile = new RepoFile(path, this.getCurrentRepoHelper());
                         superDirectory.addChild(plainRepoFile);
                     }
                 }
@@ -411,7 +411,7 @@ public class SessionModel {
         ArrayList<String> conflictingRepoFileStrings = new ArrayList<>();
 
         for (String conflictingFileString : conflictingFiles) {
-            ConflictingRepoFile conflictingRepoFile = new ConflictingRepoFile(conflictingFileString, this.getCurrentRepo());
+            ConflictingRepoFile conflictingRepoFile = new ConflictingRepoFile(conflictingFileString, this.getCurrentRepoHelper());
             changedRepoFiles.add(conflictingRepoFile);
 
             // Store these paths to make sure this file isn't registered as a modified file or something.
@@ -425,21 +425,21 @@ public class SessionModel {
 
         for (String modifiedFileString : modifiedFiles) {
             if (!conflictingRepoFileStrings.contains(modifiedFileString)) {
-                ModifiedRepoFile modifiedRepoFile = new ModifiedRepoFile(modifiedFileString, this.getCurrentRepo());
+                ModifiedRepoFile modifiedRepoFile = new ModifiedRepoFile(modifiedFileString, this.getCurrentRepoHelper());
                 changedRepoFiles.add(modifiedRepoFile);
             }
         }
 
         for (String missingFileString : missingFiles) {
             if (!conflictingRepoFileStrings.contains(missingFileString)) {
-                MissingRepoFile missingRepoFile = new MissingRepoFile(missingFileString, this.getCurrentRepo());
+                MissingRepoFile missingRepoFile = new MissingRepoFile(missingFileString, this.getCurrentRepoHelper());
                 changedRepoFiles.add(missingRepoFile);
             }
         }
 
         for (String untrackedFileString : untrackedFiles) {
             if (!conflictingRepoFileStrings.contains(untrackedFileString)) {
-                UntrackedRepoFile untrackedRepoFile = new UntrackedRepoFile(untrackedFileString, this.getCurrentRepo());
+                UntrackedRepoFile untrackedRepoFile = new UntrackedRepoFile(untrackedFileString, this.getCurrentRepoHelper());
                 changedRepoFiles.add(untrackedRepoFile);
             }
         }
@@ -460,7 +460,7 @@ public class SessionModel {
         Status status = new Git(this.getCurrentRepo()).status().call();
 
         for(String ignoredFileString : getIgnoredFiles(status)){
-            IgnoredRepoFile ignoredRepoFile = new IgnoredRepoFile(ignoredFileString, this.getCurrentRepo());
+            IgnoredRepoFile ignoredRepoFile = new IgnoredRepoFile(ignoredFileString, this.getCurrentRepoHelper());
             allFiles.add(ignoredRepoFile);
         }
 
@@ -483,9 +483,9 @@ public class SessionModel {
             if(!addedPaths.contains(path)){
                 RepoFile temp;
                 if(path.toFile().isDirectory()){
-                    temp = new DirectoryRepoFile(path, currentRepoHelper.getRepo());
+                    temp = new DirectoryRepoFile(path, currentRepoHelper);
                 }else{
-                    temp = new RepoFile(path, currentRepoHelper.getRepo());
+                    temp = new RepoFile(path, currentRepoHelper);
                 }
                 allFiles.add(temp);
                 addedPaths.add(path);

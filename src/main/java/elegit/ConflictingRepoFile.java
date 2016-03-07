@@ -30,13 +30,13 @@ public class ConflictingRepoFile extends RepoFile {
 
     static final Logger logger = LogManager.getLogger();
 
-    public ConflictingRepoFile(Path filePath, Repository repo) {
+    public ConflictingRepoFile(Path filePath, RepoHelper repo) {
         super(filePath, repo);
         diffButton.setText("CONFLICTING");
         diffButton.setId("conflictingDiffButton");
     }
 
-    public ConflictingRepoFile(String filePathString, Repository repo) {
+    public ConflictingRepoFile(String filePathString, RepoHelper repo) {
         this(Paths.get(filePathString), repo);
     }
 
@@ -90,12 +90,12 @@ public class ConflictingRepoFile extends RepoFile {
             if(resultType.equals("resolve")){
                 Desktop desktop = Desktop.getDesktop();
 
-                File workingDirectory = this.repo.getWorkTree();
+                File workingDirectory = this.repo.getRepo().getWorkTree();
                 File unrelativized = new File(workingDirectory, this.filePath.toString());
 
                 desktop.open(unrelativized);
             }else if(resultType.equals("add")){
-                AddCommand add = new Git(this.repo).add().addFilepattern(this.filePath.toString());
+                AddCommand add = new Git(this.repo.getRepo()).add().addFilepattern(this.filePath.toString());
                 add.call();
                 return true;
             }else{

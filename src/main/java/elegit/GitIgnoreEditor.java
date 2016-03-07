@@ -7,6 +7,7 @@ import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Separator;
 import javafx.scene.control.TextArea;
@@ -16,6 +17,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
+import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.Repository;
 
 import java.io.BufferedReader;
@@ -25,6 +27,7 @@ import java.io.StringReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collection;
 
 /**
  * A simple editor for .gitignore files
@@ -32,6 +35,7 @@ import java.nio.file.Paths;
 public class GitIgnoreEditor {
 
     private static Stage window;
+    private static RepoHelper repoHelper;
     private static Path gitIgnoreFile;
     private static String addedPath;
 
@@ -102,6 +106,10 @@ public class GitIgnoreEditor {
             } catch (IOException ignored) {}
         }
 
+        try{
+            showTrackingIgnoredFilesWarning(repoHelper.getTrackedIgnoredFiles());
+        }catch (IOException ignored) {}
+
         window.close();
     }
 
@@ -117,14 +125,28 @@ public class GitIgnoreEditor {
         return returnText;
     }
 
+    private static void showTrackingIgnoredFilesWarning(Collection<String> trackedIgnoredFiles) {
+        if(trackedIgnoredFiles.size() > 0){
+            String fileStrings = "";
+            for(String s : trackedIgnoredFiles){
+                fileStrings += "\n"+s;
+            }
+            Alert alert = new Alert(Alert.AlertType.WARNING, "The following files are being tracked by Git, " +
+                    "but also match an ignore pattern. If you want to ignore these files, remove them from Git.\n"+fileStrings);
+            alert.showAndWait();
+        }
+    }
+
     /**
      * Show the window with the .gitinogre from the given repo and with the given path appended
      * @param repo the repository to pull the .gitignore from
      * @param pathToAdd the path of a file to append to the .gitignore, if applicable
      */
-    public static void show(Repository repo, Path pathToAdd){
-        gitIgnoreFile = Paths.get(repo.getDirectory().getParent(), ".gitignore");
+    public static void show(RepoHelper repo, Path pathToAdd){
+        repoHelper = repo;
+        gitIgnoreFile = repoHelper.getLocalPath().resolve(Constants.DOT_GIT_IGNORE);
         addedPath = pathToAdd == null ? "" : pathToAdd.toString();
+
         window = initWindow();
         Platform.runLater(window::show);
     }

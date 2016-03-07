@@ -13,14 +13,14 @@ import java.nio.file.Paths;
  */
 public class ModifiedRepoFile extends RepoFile {
 
-    public ModifiedRepoFile(Path filePath, Repository repo) {
+    public ModifiedRepoFile(Path filePath, RepoHelper repo) {
         super(filePath, repo);
         diffButton.setText("MODIFIED");
         diffButton.setId("modifiedDiffButton");
         showPopover = true;
     }
 
-    public ModifiedRepoFile(String filePathString, Repository repo) {
+    public ModifiedRepoFile(String filePathString, RepoHelper repo) {
         this(Paths.get(filePathString), repo);
     }
 
@@ -30,7 +30,7 @@ public class ModifiedRepoFile extends RepoFile {
      * @throws GitAPIException if the `git add` command fails.
      */
     @Override public boolean updateFileStatusInRepo() throws GitAPIException {
-        AddCommand add = new Git(this.repo).add().addFilepattern(this.filePath.toString());
+        AddCommand add = new Git(this.repo.getRepo()).add().addFilepattern(this.filePath.toString());
         add.call();
         return true;
     }

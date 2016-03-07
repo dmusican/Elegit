@@ -44,8 +44,8 @@ public class DiffHelper {
     Repository repo;
     String pathFilter;
 
-    public DiffHelper(Path relativeFilePath, Repository repo) throws IOException {
-        this.repo = repo;
+    public DiffHelper(Path relativeFilePath, RepoHelper repo) throws IOException {
+        this.repo = repo.getRepo();
         this.pathFilter = relativeFilePath.toString();
     }
 
@@ -132,7 +132,7 @@ public class DiffHelper {
         try {
             oldTreeParser.reset(oldReader, tree.getId());
         } finally {
-            oldReader.release();
+            oldReader.close();
         }
 
         walk.dispose();

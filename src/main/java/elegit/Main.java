@@ -64,7 +64,7 @@ public class Main extends Application {
         MenuBar menuBar = new MenuBar();
         Menu menuFile = new Menu("File");
         MenuItem openGitIgnoreItem = new MenuItem("Edit .gitignore...");
-        openGitIgnoreItem.setOnAction(event -> GitIgnoreEditor.show(SessionModel.getSessionModel().getCurrentRepo(), null));
+        openGitIgnoreItem.setOnAction(event -> GitIgnoreEditor.show(SessionModel.getSessionModel().getCurrentRepoHelper(), null));
         menuFile.getItems().add(openGitIgnoreItem);
         Menu menuEdit = new Menu("Edit");
         menuBar.getMenus().addAll(menuFile, menuEdit);

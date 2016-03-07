@@ -43,7 +43,7 @@ public abstract class FileStructurePanelView extends Region{
         this.directoryTreeView.setCellFactory(this.getTreeCellFactory());
 
         if(this.sessionModel != null) {
-            DirectoryRepoFile rootDirectory = new DirectoryRepoFile("", this.sessionModel.getCurrentRepo());
+            DirectoryRepoFile rootDirectory = new DirectoryRepoFile("", this.sessionModel.getCurrentRepoHelper());
             this.treeRoot = this.getRootTreeItem(rootDirectory);
             this.treeRoot.setExpanded(true);
 
@@ -70,7 +70,7 @@ public abstract class FileStructurePanelView extends Region{
     public void drawDirectoryView() throws GitAPIException, IOException {
         if(this.sessionModel.getCurrentRepoHelper() == null) return;
 
-        if(this.treeRoot == null || !this.treeRoot.getValue().getRepo().equals(this.sessionModel.getCurrentRepo())) {
+        if(this.treeRoot == null || !this.treeRoot.getValue().getRepo().equals(this.sessionModel.getCurrentRepoHelper())) {
             this.init();
         }
 
@@ -81,7 +81,6 @@ public abstract class FileStructurePanelView extends Region{
     public void resetFileStructurePanelView() {
         this.directoryTreeView = new TreeView<>();
         this.directoryTreeView.setCellFactory(this.getTreeCellFactory());
-        // not sure about the following one line
         this.directoryTreeView.prefHeightProperty().bind(this.heightProperty());
         this.getChildren().clear();
         this.getChildren().add(directoryTreeView);

@@ -103,6 +103,7 @@ public class Cell extends Pane{
         this.cellId = cellId;
         this.time = time;
         this.parents = new ParentCell(this, parent1, parent2);
+        this.refLabel = new LabelCell("");
 
         setShape(DEFAULT_SHAPE);
 
@@ -113,7 +114,8 @@ public class Cell extends Pane{
         visibleProperty().bind(this.hasUpdatedPosition);
 
         columnLocationProperty.addListener((observable, oldValue, newValue) -> hasUpdatedPosition.set(oldValue.intValue()==newValue.intValue()));
-        rowLocationProperty.addListener((observable, oldValue, newValue) -> hasUpdatedPosition.set(oldValue.intValue()==newValue.intValue()));
+        rowLocationProperty.addListener((observable, oldValue, newValue) ->
+                hasUpdatedPosition.set(oldValue.intValue()==newValue.intValue()));
 
         tooltip = new Tooltip(cellId);
         tooltip.setWrapText(true);
@@ -219,7 +221,7 @@ public class Cell extends Pane{
     public void setDisplayLabel(String label){
         tooltip.setText(label);
         this.label = label;
-        this.refLabel = new LabelCell(this.label);
+        this.refLabel.setText(this.label);
     }
 
     public void setContextMenu(ContextMenu contextMenu){
@@ -363,13 +365,16 @@ public class Cell extends Pane{
 
     private class LabelCell extends Cell {
 
-        public LabelCell(String badLabels) {
-            super(badLabels);
+        public LabelCell(String cellLabel) {
+            super(cellLabel);
+        }
+
+        public void setText(String cellLabel) {
             Pane labelPane = new Pane();
             List<String> labels = new ArrayList<>();
-            if (badLabels.contains("Head of branches: \n")) {
-                badLabels = badLabels.substring(badLabels.indexOf("Head of branches: \n")+19);
-                for (String s: badLabels.split("\n")) {
+            if (cellLabel.contains("Head of branches: \n")) {
+                cellLabel = cellLabel.substring(cellLabel.indexOf("Head of branches: \n")+19);
+                for (String s: cellLabel.split("\n")) {
                     labels.add(s);
                 }
             }
