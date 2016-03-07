@@ -12,13 +12,13 @@ import java.util.ArrayList;
  */
 public class DirectoryRepoFile extends RepoFile {
 
-    public DirectoryRepoFile(Path filePath, Repository repo) {
+    public DirectoryRepoFile(Path filePath, RepoHelper repo) {
         super(filePath, repo);
         this.diffButton = null;
         this.children = new ArrayList<>();
     }
 
-    public DirectoryRepoFile(String filePathString, Repository repo) {
+    public DirectoryRepoFile(String filePathString, RepoHelper repo) {
         this(Paths.get(filePathString), repo);
     }
 

@@ -46,7 +46,9 @@ public class WorkingTreePanelView extends FileStructurePanelView{
     protected Callback<TreeView<RepoFile>, TreeCell<RepoFile>> getTreeCellFactory() {
         return arg -> {
             TreeCell<RepoFile> cell = CheckBoxTreeCell.<RepoFile>forTreeView().call(arg);
-            cell.setOnContextMenuRequested(event -> cell.getTreeItem().getValue().showContextMenu(cell, event.getScreenX(), event.getScreenY()));
+            cell.setOnContextMenuRequested(event -> {
+                if(cell.getTreeItem()!= null) cell.getTreeItem().getValue().showContextMenu(cell, event.getScreenX(), event.getScreenY());
+            });
             return cell;
         };
     }

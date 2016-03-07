@@ -162,7 +162,9 @@ public class AllFilesPanelView extends FileStructurePanelView{
             setText(getItem() == null ? "" : getItem().toString());
             setGraphic(getTreeItem() == null ? null : getTreeItem().getGraphic());
 
-            setOnContextMenuRequested(event -> getTreeItem().getValue().showContextMenu(this, event.getScreenX(), event.getScreenY()));
+            setOnContextMenuRequested(event -> {
+                if(getTreeItem() != null) getTreeItem().getValue().showContextMenu(this, event.getScreenX(), event.getScreenY());
+            });
         }
     }
 }

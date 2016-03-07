@@ -155,8 +155,7 @@ public class RepositoryMonitor{
     public static synchronized void beginWatchingLocal(SessionController controller, SessionModel model){
         Thread thread = new Thread(() -> {
             while(true){
-                if(!pauseLocalMonitor && model.getCurrentRepoHelper() != null
-                        && model.getCurrentRepoHelper().exists() && !controller.workingTreePanelView.isAnyFileSelectedProperty.get()){
+                if(!pauseLocalMonitor && model.getCurrentRepoHelper() != null && model.getCurrentRepoHelper().exists()){
                     controller.gitStatus();
                 }
 
