@@ -132,7 +132,7 @@ public class DiffHelper {
         try {
             oldTreeParser.reset(oldReader, tree.getId());
         } finally {
-            oldReader.release();
+            oldReader.close();
         }
 
         walk.dispose();
