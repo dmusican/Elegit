@@ -756,6 +756,7 @@ public class SessionController {
             UsernamePasswordCredentialsProvider ownerAuth;
 
             try {
+                System.out.println("getting auth");
                 ownerAuth = getAuth();
             } catch (CancelledAuthorizationException e) {
                 pushTagsButton.setVisible(true);
@@ -1483,6 +1484,16 @@ public class SessionController {
         Platform.runLater(()-> {
             logger.warn("Tag already exists warning.");
             this.notificationPane.setText("Sorry that tag already exists.");
+
+            this.notificationPane.getActions().clear();
+            this.notificationPane.show();
+        });
+    }
+
+    private void showTagPointsToUnpushedCommitNotification() {
+        Platform.runLater(() -> {
+            logger.warn("Tag points to unpushed warning.");
+            this.notificationPane.setText("A tag points to an unpushed commit.");
 
             this.notificationPane.getActions().clear();
             this.notificationPane.show();

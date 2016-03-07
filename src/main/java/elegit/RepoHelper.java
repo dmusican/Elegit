@@ -14,7 +14,6 @@ import javafx.scene.layout.GridPane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
-import javafx.util.Pair;
 import main.java.elegit.exceptions.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -22,13 +21,11 @@ import org.controlsfx.control.NotificationPane;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
-import org.eclipse.jgit.errors.IncorrectObjectTypeException;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.revplot.PlotCommitList;
 import org.eclipse.jgit.revplot.PlotLane;
 import org.eclipse.jgit.revplot.PlotWalk;
 import org.eclipse.jgit.revwalk.RevCommit;
-import org.eclipse.jgit.revwalk.RevObject;
 import org.eclipse.jgit.revwalk.RevTag;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.transport.*;
@@ -42,8 +39,6 @@ import java.util.*;
  */
 public abstract class RepoHelper {
 
-    //protected UsernamePasswordCredentialsProvider ownerAuth;
-
     public String username;
     protected String password;
 
@@ -56,11 +51,12 @@ public abstract class RepoHelper {
     private List<CommitHelper> remoteCommits;
 
     private List<TagHelper> localTags;
-    private List<TagHelper> remoteTags;
 
     private Map<String, CommitHelper> commitIdMap;
     private Map<ObjectId, String> idMap;
     private Map<String, TagHelper> tagIdMap;
+
+    private List<String> tagsWithUnpushedCommits;
 
     private List<LocalBranchHelper> localBranches;
     private List<RemoteBranchHelper> remoteBranches;
@@ -99,6 +95,8 @@ public abstract class RepoHelper {
         this.localCommits = this.parseAllLocalCommits();
         this.remoteCommits = this.parseAllRemoteCommits();
 
+        this.tagsWithUnpushedCommits = new ArrayList<>();
+
         this.localTags = this.getAllLocalTags();
 
         this.branchManagerModel = new BranchManagerModel(this.callGitForLocalBranches(), this.callGitForRemoteBranches(), this);
@@ -125,6 +123,8 @@ public abstract class RepoHelper {
 
         this.localCommits = this.parseAllLocalCommits();
         this.remoteCommits = this.parseAllRemoteCommits();
+
+        this.tagsWithUnpushedCommits = new ArrayList<>();
 
         this.localTags = this.getAllLocalTags();
 
@@ -153,7 +153,6 @@ public abstract class RepoHelper {
      * @return the RepoHelper's repository.
      * @throws GitAPIException (see subclasses).
      * @throws IOException (see subclasses).
-     * @param ownerAuth
      */
     protected abstract Repository obtainRepository() throws GitAPIException, IOException, CancelledAuthorizationException;
 
@@ -423,7 +422,7 @@ public abstract class RepoHelper {
     *
     * @throws CancelledUsernameException if the user presses cancel or closes the dialog.
     */
-    public void presentUsernameDialog() throws CancelledUsernameException {
+    public void presentUsernameDialog() throws CancelledAuthorizationException {
         logger.info("Opened username dialog");
         // Create the custom dialog.
         Dialog<String> dialog = new Dialog<>();
@@ -491,7 +490,7 @@ public abstract class RepoHelper {
             this.username = result.get();
         } else {
             logger.info("Cancelled username dialog");
-            throw new CancelledUsernameException();
+            throw new CancelledAuthorizationException();
         }
     }
 
@@ -734,33 +733,39 @@ public abstract class RepoHelper {
      */
     private TagHelper makeTagHelper(Ref r, String tagName) throws IOException, GitAPIException {
         String commitName;
-        RevTag tag;
-        Git git = new Git(repo);
-        RevWalk walk = new RevWalk(git.getRepository());
-        try {
-            tag = walk.parseTag(r.getObjectId());
-        } catch(IncorrectObjectTypeException e) {
-            //Not an annotated tag
-        }
+        boolean isAnnotated = false;
+
+        //Check if the tag is annotated or not, find the commit name accordingly
         if (r.getPeeledObjectId()!=null) {
-            commitName=r.getPeeledObjectId().getName();
-            System.out.println("stupid");
+            commitName = r.getPeeledObjectId().getName();
+            isAnnotated = true;
         }
         else commitName=r.getObjectId().getName();
+
+        // Find the commit helper associated with the commit name
         CommitHelper c = this.commitIdMap.get(commitName);
         TagHelper t;
-        // If the ref has a peeled objectID, then it is a lightweight tag
-        if (c==null) return null;
-        if (r.getPeeledObjectId()==null) {
+
+        // If the commit that this tag points to isn't in the commitIdMap,
+        // then that commit has not yet been pushed, so warn the user\
+        if (c==null) {
+            this.tagsWithUnpushedCommits.add(tagName);
+            return null;
+        }
+        else if (this.tagsWithUnpushedCommits.contains(tagName)) {
+            this.tagsWithUnpushedCommits.remove(tagName);
+        }
+
+        // If it's an annotated tag, we make a lightweight tag helper
+        if (!isAnnotated) {
             t = new TagHelper(tagName, c);
             c.addTag(t);
         }
-        // Otherwise, it is an annotated tag
+        // Otherwise, the tag has a message and all the stuff a commit has
         else {
             ObjectReader objectReader = repo.newObjectReader();
             ObjectLoader objectLoader = objectReader.open(r.getObjectId());
-            //RevTag tag = RevTag.parse(objectLoader.getBytes());
-            tag = RevTag.parse(objectLoader.getBytes());
+            RevTag tag = RevTag.parse(objectLoader.getBytes());
             objectReader.release();
             t = new TagHelper(tag, c);
             c.addTag(t);
@@ -770,39 +775,6 @@ public abstract class RepoHelper {
         }
         return t;
     }
-
-    /*private RevTag getTagFromWalk(Ref r, String tagName) throws IOException, GitAPIException {
-        RevWalk w = new RevWalk(repo);
-        Map<String, Ref> allTags = repo.getTags();
-        int shortestLengthSoFar = 0;
-        w.newFlag(tagName);
-        RevCommit base;
-        RevCommit tip;
-        try {
-            RevObject ro = w.parseCommit(w.parseTag(r.getObjectId()).getObject());
-            if (ro.getType() != Constants.OBJ_COMMIT) {
-                // must be a commit object or this doesn't make sense
-                return null;
-            }
-            base = w.parseCommit(ro.getId());
-            tip = w.parseCommit(ro.getId()); //figure out oid
-
-            if (!w.isMergedInto(base, tip)) {
-                // this tag doesn't exist in this commit's history
-                return null;
-            }
-
-            //If here then the tag exists in history, so count number
-            //of commits since it
-
-            int i = countCommits(tip.getId(), base.getId());
-            shortestLengthSoFar = 1;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return null;
-    }*/
 
     /**
      * Given a list of raw JGit commit objects, constructs CommitHelper objects to wrap them and gives
@@ -1193,7 +1165,14 @@ public abstract class RepoHelper {
         this.ownerAuth = authCredentials;
     }
 
-    public UsernamePasswordCredentialsProvider getOwnerAuthCredentials() {
+    public boolean hasTagsWithUnpushedCommits() {
+        return this.tagsWithUnpushedCommits.size() > 0;
+    }
+
+    public UsernamePasswordCredentialsProvider getOwnerAuthCredentials() throws CancelledAuthorizationException {
+        if (this.ownerAuth == null) {
+            presentUsernameDialog();
+        }
         return this.ownerAuth;
     }
 }
