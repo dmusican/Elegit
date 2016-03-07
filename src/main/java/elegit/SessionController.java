@@ -1,6 +1,5 @@
 package main.java.elegit;
 
-import com.sun.xml.internal.bind.v2.runtime.unmarshaller.TagName;
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import javafx.application.Platform;
@@ -11,7 +10,7 @@ import javafx.concurrent.Task;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.geometry.Side;
+import javafx.geometry.*;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -26,7 +25,6 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.text.Text;
 import javafx.stage.Modality;
@@ -44,7 +42,6 @@ import org.eclipse.jgit.errors.NoMergeBaseException;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
 import java.awt.*;
-import java.awt.event.ActionEvent;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -52,7 +49,6 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.prefs.BackingStoreException;
@@ -1137,7 +1133,7 @@ public class SessionController {
         RepoHelper currentRepoHelper = this.theModel.getCurrentRepoHelper();
 
         UsernamePasswordCredentialsProvider ownerAuth =
-                currentRepoHelper.presentAuthorizeDialog();
+                currentRepoHelper.getOwnerAuthCredentials();
 
         this.theModel.setCurrentDefaultUsername(currentRepoHelper.getUsername());
 

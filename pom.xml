@@ -36,6 +36,11 @@
 
     <dependencies>
         <dependency>
+            <groupId>org.loadui</groupId>
+            <artifactId>testFx</artifactId>
+            <version>3.1.2</version>
+        </dependency>
+        <dependency>
             <groupId>de.jensd</groupId>
             <artifactId>fontawesomefx</artifactId>
             <version>8.6</version>
@@ -53,7 +58,7 @@
         <dependency>
             <groupId>org.eclipse.jgit</groupId>
             <artifactId>org.eclipse.jgit</artifactId>
-            <version>3.7.1.201504261725-r</version>
+            <version>4.2.0.201601211800-r</version>
         </dependency>
 
         <dependency>
@@ -78,7 +83,6 @@
             <artifactId>junit</artifactId>
             <version>4.12</version>
         </dependency>
-
     </dependencies>
 
     <properties>
