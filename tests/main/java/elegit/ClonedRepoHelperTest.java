@@ -30,9 +30,8 @@ public class ClonedRepoHelperTest {
         this.repoPath = directoryPath.resolve("testrepo");
         // Clone from dummy repo:
         this.remoteURL = "https://github.com/TheElegitTeam/TestRepository.git";
-        this.username = "Dummy_Username";
 
-        helper = new ClonedRepoHelper(repoPath, remoteURL, username);
+        helper = new ClonedRepoHelper(repoPath, remoteURL);
         assertNotNull(helper);
     }
 
