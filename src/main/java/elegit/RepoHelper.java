@@ -1,5 +1,8 @@
 package main.java.elegit;
 
+import com.jcraft.jsch.JSch;
+import com.jcraft.jsch.JSchException;
+import com.jcraft.jsch.Session;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -100,8 +103,10 @@ public abstract class RepoHelper {
 
     public RepoHelper(Path directoryPath, String remoteURL, UsernamePasswordCredentialsProvider ownerAuth)
             throws GitAPIException, IOException, CancelledAuthorizationException {
-        this(directoryPath, remoteURL);
+        this.localPath = directoryPath;
+        this.remoteURL = remoteURL;
         this.ownerAuth = ownerAuth;
+        setup();
     }
 
     /// Constructor for ExistingRepoHelpers to inherit (they don't need the Remote URL)
@@ -113,8 +118,41 @@ public abstract class RepoHelper {
 
     }
 
+    static void wrapAuthentication(TransportCommand cloneCommand, String remoteURL,
+                                   UsernamePasswordCredentialsProvider ownerAuth) {
+        if (remoteURL.startsWith("https://") ||
+            remoteURL.startsWith("http://")) {
+
+            cloneCommand.setCredentialsProvider(ownerAuth);
+        } else if (remoteURL.substring(0,6).equals("ssh://")) {
+            // Explained http://www.codeaffine.com/2014/12/09/jgit-authentication/
+            SshSessionFactory sshSessionFactory = new JschConfigSessionFactory() {
+                @Override
+                protected void configure(OpenSshConfig.Host host, Session session ) {
+                    // do nothing
+                }
+                @Override
+                protected JSch createDefaultJSch(FS fs ) throws JSchException {
+                    JSch defaultJSch = super.createDefaultJSch( fs );
+                    defaultJSch.addIdentity( "/Users/dmusican/.ssh/mathcs",
+                                             "my password");
+                    return defaultJSch;
+                }
+            };
+            cloneCommand.setTransportConfigCallback(
+                    new TransportConfigCallback() {
+                        @Override
+                        public void configure( Transport transport ) {
+                            SshTransport sshTransport = (SshTransport)transport;
+                            sshTransport.setSshSessionFactory( sshSessionFactory );
+                        }
+                     });
+        }
+    }
+
     // Common setup tasks shared by constructors
     private void setup() throws GitAPIException, IOException, CancelledAuthorizationException {
+        this.username = null;
         this.repo = this.obtainRepository();
 
         this.commitIdMap = new HashMap<>();

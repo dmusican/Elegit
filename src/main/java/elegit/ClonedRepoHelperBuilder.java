@@ -1,14 +1,10 @@
 package main.java.elegit;
 
-import com.jcraft.jsch.JSch;
-import com.jcraft.jsch.JSchException;
-import com.jcraft.jsch.Session;
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
@@ -20,16 +16,13 @@ import main.java.elegit.exceptions.CancelledAuthorizationException;
 import main.java.elegit.exceptions.NoRepoSelectedException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.eclipse.jgit.api.LsRemoteCommand;
 import org.eclipse.jgit.api.TransportCommand;
-import org.eclipse.jgit.api.TransportConfigCallback;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
 import org.eclipse.jgit.api.errors.TransportException;
-import org.eclipse.jgit.transport.*;
-import org.eclipse.jgit.util.FS;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -63,7 +56,6 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
      * information needed to construct a ClonedRepoHelper.
      *
      * @return the new ClonedRepoHelper.
-     * @throws Exception when constructing the new ClonedRepoHelper
      */
     @Override
     public RepoHelper getRepoHelperFromDialogs() throws GitAPIException, IOException, NoRepoSelectedException, CancelledAuthorizationException{
@@ -203,26 +195,46 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
             Path destinationPath = Paths.get(result.get().getKey());
             String remoteURL = result.get().getValue();
 
+            // Try calling `git ls-remote ___` on the remote URL to see if it's valid
+            // Attempt #1 below: see if can do it without authentication
+            boolean authNeeded = false;
+            TransportCommand command = Git.lsRemoteRepository().setRemote(remoteURL);
             try {
-                // Try calling `git ls-remote ___` on the remote URL to see if it's valid
-                TransportCommand command = Git.lsRemoteRepository().setRemote(remoteURL);
-                if (remoteURL.substring(0,6).equals("ssh://")) {
-                   // waiting to add
-                }
                 command.call();
             } catch (TransportException e) {
-                // If the URL doesn't have a repo, a Transport Exception is thrown when this command is called.
-                //  We want the SessionController to report an InvalidRemoteException, though, because
-                //  that's the issue.
-                logger.error("Invalid remote exception thrown");
-                throw new InvalidRemoteException("Caught invalid repository when building a ClonedRepoHelper.");
+                authNeeded = true;
+            }
+
+
+            // Try second attempt if first one failed, getting authentication as needed. If still failed, then
+            // report failure to user.
+            UsernamePasswordCredentialsProvider credentials = null;
+            if (authNeeded) {
+                try {
+                    credentials = RepoHelperBuilder.getAuthCredentialFromDialog(remoteURL);
+                    RepoHelper.wrapAuthentication(command, remoteURL, credentials);
+                    command.call();
+
+                } catch (TransportException e) {
+                    // If the URL doesn't have a repo, a Transport Exception is thrown when this command is called.
+                    //  We want the SessionController to report an InvalidRemoteException, though, because
+                    //  that's the issue.
+                    logger.error("Invalid remote exception thrown");
+                    throw new InvalidRemoteException("Caught invalid repository when building a ClonedRepoHelper.");
+                }
             }
 
             // Without the above try/catch block, the next line would run and throw the desired InvalidRemoteException,
             //  but it would create a destination folder for the repo before stopping. By catching the error above,
-            //  we prevent unnecessary folder creation.
-            RepoHelper repoHelper = new ClonedRepoHelper(destinationPath, remoteURL);
-            repoHelper.setAuthCredentials(this.getRepoHelperAuthCredentialFromDialog(repoHelper));
+            //  we prevent unnecessary folder creation. By making it to this point, we've verified that the repo
+            // is valid and that we can authenticate to it.
+
+            RepoHelper repoHelper;
+            if (!authNeeded) {
+                repoHelper = new ClonedRepoHelper(destinationPath, remoteURL);
+            } else {
+                repoHelper = new ClonedRepoHelper(destinationPath, remoteURL, credentials);
+            }
 
             return repoHelper;
         } else {

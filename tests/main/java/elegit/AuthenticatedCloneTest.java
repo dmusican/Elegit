@@ -1,5 +1,7 @@
 package main.java.elegit;
 
+import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.TransportCommand;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.junit.After;
 import org.junit.Before;
@@ -14,9 +16,6 @@ import java.util.Scanner;
 
 import static org.junit.Assert.*;
 
-/**
- * Created by grahamearley on 2/21/16.
- */
 public class AuthenticatedCloneTest {
 
     private Path directoryPath;
@@ -36,7 +35,7 @@ public class AuthenticatedCloneTest {
     }
 
     @Test
-    public void testHttpNoPassword() throws Exception {
+    public void testCloneHttpNoPassword() throws Exception {
         Path repoPath = directoryPath.resolve("testrepo");
         // Clone from dummy repo:
         String remoteURL = "https://github.com/TheElegitTeam/TestRepository.git";
@@ -44,6 +43,14 @@ public class AuthenticatedCloneTest {
         ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, remoteURL);
         assertNotNull(helper);
 
+    }
+
+    @Test
+    public void testLsHttpNoPassword() throws Exception {
+
+        TransportCommand command =
+                Git.lsRemoteRepository().setRemote("https://github.com/TheElegitTeam/TestRepository.git");
+        command.call();
     }
 
     /* The httpUsernamePassword should contain three lines, containing:
@@ -68,5 +75,25 @@ public class AuthenticatedCloneTest {
         ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, remoteURL, credentials);
     }
 
+    @Test
+    public void testLsHttpUsernamePassword() throws Exception {
+
+        Path repoPath = directoryPath.resolve("testrepo");
+        File authData = new File(testFileLocation + "httpUsernamePassword.txt");
+
+        // If a developer does not have this file present, test should just pass.
+        if (!authData.exists())
+            return;
+
+        Scanner scanner = new Scanner(authData);
+        String remoteURL = scanner.next();
+        String username = scanner.next();
+        String password = scanner.next();
+        UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider(username, password);
+
+        TransportCommand command =
+                Git.lsRemoteRepository().setRemote("https://github.com/TheElegitTeam/TestRepository.git");
+        command.call();
+    }
 
 }
