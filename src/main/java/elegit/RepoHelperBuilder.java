@@ -120,7 +120,6 @@ public abstract class RepoHelperBuilder {
         PasswordField password = new PasswordField();
         CheckBox remember = new CheckBox("Remember Password");
 
-        System.out.println(hashedPassword);
         if (hashedPassword != null) {
             password.setText(hashedPassword);
             remember.setSelected(true);
@@ -191,7 +190,6 @@ public abstract class RepoHelperBuilder {
                 logger.info("Selected remember password");
                 usernamePassword.password = result.get().getValue().getKey();
             }
-            System.out.println("going in " + usernamePassword.username + " " + usernamePassword.password);
             repoToAuth.put(remoteURL,usernamePassword);
             ownerAuth = new UsernamePasswordCredentialsProvider(usernamePassword.username, result.get().getValue()
                     .getKey());
