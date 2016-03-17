@@ -91,8 +91,29 @@ public class AuthenticatedCloneTest {
         String password = scanner.next();
         UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider(username, password);
 
-        TransportCommand command =
-                Git.lsRemoteRepository().setRemote("https://github.com/TheElegitTeam/TestRepository.git");
+        TransportCommand command = Git.lsRemoteRepository().setRemote(remoteURL);
+        RepoHelper.wrapAuthentication(command, remoteURL, credentials);
+        command.call();
+    }
+
+    @Test
+    public void testLsSshPassword() throws Exception {
+
+        Path repoPath = directoryPath.resolve("testrepo");
+        File authData = new File(testFileLocation + "sshPassword.txt");
+
+        // If a developer does not have this file present, test should just pass.
+        if (!authData.exists())
+            return;
+
+        Scanner scanner = new Scanner(authData);
+        String remoteURL = scanner.next();
+        String password = scanner.next();
+
+        UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider(username, password);
+
+        TransportCommand command = Git.lsRemoteRepository().setRemote(remoteURL);
+        RepoHelper.wrapAuthentication(command, remoteURL, credentials);
         command.call();
     }
 
