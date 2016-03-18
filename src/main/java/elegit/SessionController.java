@@ -688,7 +688,7 @@ public class SessionController {
                 protected Void call() {
                     try{
                         RepositoryMonitor.resetFoundNewChanges(false);
-                        theModel.getCurrentRepoHelper().pushAll(ownerAuth);
+                        theModel.getCurrentRepoHelper().pushAll();
                         gitStatus();
                     }  catch(InvalidRemoteException e){
                         showNoRemoteNotification();

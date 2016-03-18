@@ -350,17 +350,13 @@ public abstract class RepoHelper {
      *
      * @throws GitAPIException if the `git push` call fails.
      */
-    public void pushAll(UsernamePasswordCredentialsProvider ownerAuth) throws GitAPIException, MissingRepoException, PushToAheadRemoteError {
+    public void pushAll() throws GitAPIException, MissingRepoException, PushToAheadRemoteError {
         logger.info("Attempting push");
         if(!exists()) throw new MissingRepoException();
         if(!hasRemote()) throw new InvalidRemoteException("No remote repository");
         Git git = new Git(this.repo);
         PushCommand push = git.push().setPushAll();
-
-        if (ownerAuth != null) {
-            push.setCredentialsProvider(ownerAuth);
-        }
-//        ProgressMonitor progress = new TextProgressMonitor(new PrintWriter(System.out));
+        myWrapAuthentication(push);
         ProgressMonitor progress = new SimpleProgressMonitor();
         push.setProgressMonitor(progress);
 

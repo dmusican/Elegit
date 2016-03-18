@@ -74,7 +74,7 @@ public class AuthenticatedCloneTest {
         UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider(username, password);
         ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, remoteURL, credentials);
         helper.fetch();
-        helper.pushAll(credentials);
+        helper.pushAll();
         helper.pushTags(credentials);
     }
 
@@ -136,7 +136,7 @@ public class AuthenticatedCloneTest {
         String password = scanner.next();
         ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, remoteURL, password);
         helper.fetch();
-//        helper.pushAll(credentials);
+        helper.pushAll();
 //        helper.pushTags(credentials);
     }
 
