@@ -39,7 +39,7 @@ public class ClonedRepoHelper extends RepoHelper {
     protected Repository obtainRepository() throws GitAPIException, CancelledAuthorizationException {
         CloneCommand cloneCommand = Git.cloneRepository();
         cloneCommand.setURI(this.remoteURL);
-        wrapAuthentication(cloneCommand, remoteURL, ownerAuth);
+        myWrapAuthentication(cloneCommand);
         cloneCommand.setDirectory(this.localPath.toFile());
         Git cloneCall = cloneCommand.call();
 

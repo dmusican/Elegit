@@ -122,7 +122,7 @@ public class AuthenticatedCloneTest {
         command.call();
     }
 
-    /*@Test
+    @Test
     public void testSshPassword() throws Exception {
         Path repoPath = directoryPath.resolve("testrepo");
         File authData = new File(testFileLocation + "sshPassword.txt");
@@ -134,11 +134,10 @@ public class AuthenticatedCloneTest {
         Scanner scanner = new Scanner(authData);
         String remoteURL = scanner.next();
         String password = scanner.next();
-        UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider(username, password);
-        ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, remoteURL, credentials);
-        helper.fetch(credentials);
-        helper.pushAll(credentials);
-        helper.pushTags(credentials);
-    }*/
+        ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, remoteURL, password);
+//        helper.fetch(credentials);
+//        helper.pushAll(credentials);
+//        helper.pushTags(credentials);
+    }
 
 }

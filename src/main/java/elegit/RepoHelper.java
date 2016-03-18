@@ -82,6 +82,7 @@ public abstract class RepoHelper {
 
     static final Logger logger = LogManager.getLogger();
     protected UsernamePasswordCredentialsProvider ownerAuth;
+    protected String protocol;
 
     /**
      * Creates a RepoHelper object for holding a Repository and interacting with it
@@ -97,6 +98,7 @@ public abstract class RepoHelper {
         this.username = null;
 
         this.localPath = directoryPath;
+        this.protocol = "HTTP";
 
         setup();
     }
@@ -106,6 +108,7 @@ public abstract class RepoHelper {
         this.localPath = directoryPath;
         this.remoteURL = remoteURL;
         this.ownerAuth = ownerAuth;
+        this.protocol = "HTTPS";
         setup();
     }
 
@@ -114,12 +117,14 @@ public abstract class RepoHelper {
         this.localPath = directoryPath;
         this.remoteURL = remoteURL;
         this.password = sshPassword;
+        this.protocol = "SSH/Password";
         setup();
     }
 
     /// Constructor for ExistingRepoHelpers to inherit (they don't need the Remote URL)
     public RepoHelper(Path directoryPath) throws GitAPIException, IOException, CancelledAuthorizationException {
         this.username = null;
+        this.protocol = null;
         this.localPath = directoryPath;
 
         setup();
@@ -168,6 +173,16 @@ public abstract class RepoHelper {
                         }
 
                     });
+        }
+    }
+
+    protected void myWrapAuthentication(TransportCommand command) {
+        if (this.protocol.equals("HTTP")) {
+            // do nothing
+        } else if (this.protocol.equals("HTTPS")) {
+            wrapAuthentication(command, remoteURL, ownerAuth);
+        } else if (this.protocol.equals("SSH/Password")) {
+            wrapAuthentication(command, remoteURL, password);
         }
     }
 
