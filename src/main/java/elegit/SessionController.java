@@ -868,7 +868,7 @@ public class SessionController {
                 protected Void call() {
                     try{
                         RepositoryMonitor.resetFoundNewChanges(false);
-                        if(!theModel.getCurrentRepoHelper().fetch(ownerAuth)){
+                        if(!theModel.getCurrentRepoHelper().fetch()){
                             showNoCommitsFetchedNotification();
                         }
                         gitStatus();

@@ -433,7 +433,7 @@ public abstract class RepoHelper {
      * @throws GitAPIException
      * @throws MissingRepoException
      */
-    public boolean fetch(UsernamePasswordCredentialsProvider ownerAuth) throws
+    public boolean fetch() throws
             GitAPIException, MissingRepoException, IOException {
         logger.info("Attempting fetch");
         if(!exists()) throw new MissingRepoException();
@@ -441,9 +441,7 @@ public abstract class RepoHelper {
 
         FetchCommand fetch = git.fetch().setTagOpt(TagOpt.AUTO_FOLLOW);
 
-        if (ownerAuth != null) {
-            fetch.setCredentialsProvider(ownerAuth);
-        }
+        myWrapAuthentication(fetch);
 
         // The JGit docs say that if setCheckFetchedObjects
         //  is set to true, objects received will be checked for validity.
