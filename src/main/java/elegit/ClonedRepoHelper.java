@@ -23,6 +23,11 @@ public class ClonedRepoHelper extends RepoHelper {
         super(directoryPath, remoteURL, ownerAuth);
     }
 
+    public ClonedRepoHelper(Path directoryPath, String remoteURL, String sshPassword)
+            throws GitAPIException, IOException, CancelledAuthorizationException {
+        super(directoryPath, remoteURL, sshPassword);
+    }
+
     /**
      * Clones the repository into the desired folder and returns
      * the JGit Repository object.

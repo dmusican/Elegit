@@ -1,6 +1,8 @@
 package main.java.elegit;
 
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
@@ -31,6 +33,19 @@ public abstract class RepoHelperBuilder {
     private static class UsernamePassword {
         public String username;
         public String password;
+    }
+
+    private static class AuthDialogResponse {
+        public String protocol;
+        public String username;
+        public String password;
+        public boolean isSelected;
+        public AuthDialogResponse(String protocol, String username, String password, boolean isSelected) {
+            this.protocol = protocol;
+            this.username = username;
+            this.password = password;
+            this.isSelected = isSelected;
+        }
     }
 
     SessionModel sessionModel;
@@ -76,9 +91,9 @@ public abstract class RepoHelperBuilder {
             CancelledAuthorizationException {
         logger.info("Creating authorization dialog");
         // Create the custom dialog.
-        Dialog<Pair<String,Pair<String,Boolean>>> dialog = new Dialog<>();
+        Dialog<AuthDialogResponse> dialog = new Dialog<>();
         dialog.setTitle("Authorize");
-        dialog.setHeaderText("Please enter your remote repository password.");
+        dialog.setHeaderText("Please enter your remote repository authentication.");
 
         // Set the button types.
         ButtonType loginButtonType = new ButtonType("Authorize", ButtonBar.ButtonData.OK_DONE);
@@ -97,7 +112,19 @@ public abstract class RepoHelperBuilder {
         grid.setVgap(10);
         grid.setPadding(new Insets(20, 150, 10, 10));
 
-        grid.add(new Label("Username:"), 0, 0);
+        grid.add(new Label("Protocol:"),0,0);
+
+        ObservableList<String> protocols =
+                FXCollections.observableArrayList(
+                        "HTTPS",
+                        "SSH/Password",
+                        "SSH/Private Key"
+                );
+        ComboBox protocol = new ComboBox(protocols);
+        protocol.setValue("HTTPS");
+        grid.add(protocol,1,0);
+
+        grid.add(new Label("Username:"), 0, 1);
 
         String hashedUsername = null;
         String hashedPassword = null;
@@ -113,9 +140,9 @@ public abstract class RepoHelperBuilder {
             username.setText(hashedUsername);
             username.setEditable(false);
         }
-        grid.add(username, 1, 0);
+        grid.add(username, 1, 1);
 
-        grid.add(new Label("Password:"), 0, 1);
+        grid.add(new Label("Password:"), 0, 2);
 
         PasswordField password = new PasswordField();
         CheckBox remember = new CheckBox("Remember Password");
@@ -125,7 +152,7 @@ public abstract class RepoHelperBuilder {
             remember.setSelected(true);
         }
         password.setPromptText("Password");
-        grid.add(password, 1, 1);
+        grid.add(password, 1, 2);
 
         //Edit username button
         Button editUsername = new Button();
@@ -141,10 +168,10 @@ public abstract class RepoHelperBuilder {
         if (hashedUsername == null) {
             editUsername.setVisible(false);
         }
-        grid.add(editUsername,2,0);
+        grid.add(editUsername,2,1);
 
         remember.setIndeterminate(false);
-        grid.add(remember, 1, 2);
+        grid.add(remember, 1, 3);
 
         // Enable/Disable login button depending on whether a password was entered.
         Node loginButton = dialog.getDialogPane().lookupButton(loginButtonType);
@@ -173,26 +200,26 @@ public abstract class RepoHelperBuilder {
         // If the username hasn't been set yet, then update the username.
         dialog.setResultConverter(dialogButton -> {
             if (dialogButton == loginButtonType) {
-                return new Pair<>(username.getText(), new Pair<>(password.getText(), new Boolean(remember.isSelected())));
+                return new AuthDialogResponse(protocol.getValue().toString(), username.getText(), password.getText(), remember.isSelected());
+                //return new Pair<>(username.getText(), new Pair<>(password.getText(), new Boolean(remember.isSelected())));
             }
             return null;
         });
 
-        Optional<Pair<String, Pair<String, Boolean>>> result = dialog.showAndWait();
+        Optional<AuthDialogResponse> result = dialog.showAndWait();
 
         UsernamePasswordCredentialsProvider ownerAuth;
 
         if (result.isPresent()) {
             UsernamePassword usernamePassword = new UsernamePassword();
-            usernamePassword.username = result.get().getKey();
+            usernamePassword.username = result.get().username;
             //Only store password if remember password was selected
-            if (result.get().getValue().getValue()) {
+            if (result.get().isSelected) {
                 logger.info("Selected remember password");
-                usernamePassword.password = result.get().getValue().getKey();
+                usernamePassword.password = result.get().password;
             }
             repoToAuth.put(remoteURL,usernamePassword);
-            ownerAuth = new UsernamePasswordCredentialsProvider(usernamePassword.username, result.get().getValue()
-                    .getKey());
+            ownerAuth = new UsernamePasswordCredentialsProvider(usernamePassword.username, result.get().password);
         } else {
             logger.info("Cancelled authorization dialog");
             throw new CancelledAuthorizationException();

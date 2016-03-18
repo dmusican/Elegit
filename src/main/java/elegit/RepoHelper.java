@@ -109,6 +109,14 @@ public abstract class RepoHelper {
         setup();
     }
 
+    public RepoHelper(Path directoryPath, String remoteURL, String sshPassword)
+            throws GitAPIException, IOException, CancelledAuthorizationException {
+        this.localPath = directoryPath;
+        this.remoteURL = remoteURL;
+        this.password = sshPassword;
+        setup();
+    }
+
     /// Constructor for ExistingRepoHelpers to inherit (they don't need the Remote URL)
     public RepoHelper(Path directoryPath) throws GitAPIException, IOException, CancelledAuthorizationException {
         this.username = null;
@@ -118,35 +126,48 @@ public abstract class RepoHelper {
 
     }
 
-    static void wrapAuthentication(TransportCommand cloneCommand, String remoteURL,
+    /* This method requires credentials be passed in as a parameter; that's because it must be used by
+        lsRemoteRepository, for example, that is used before we've actually created a RepoHelper object. Without a
+        RepoHelper, there isn't an ownerAuth instance variable, so we don't have it yet.
+     */
+    static void wrapAuthentication(TransportCommand command, String remoteURL,
                                    UsernamePasswordCredentialsProvider ownerAuth) {
         if (remoteURL.startsWith("https://") ||
-            remoteURL.startsWith("http://")) {
+                remoteURL.startsWith("http://")) {
 
-            cloneCommand.setCredentialsProvider(ownerAuth);
-        } else if (remoteURL.substring(0,6).equals("ssh://")) {
+            command.setCredentialsProvider(ownerAuth);
+        } else {
+            throw new RuntimeException("Username/password authentication attempted on non-http(s).");
+        }
+    }
+
+
+    static void wrapAuthentication(TransportCommand command, String remoteURL,
+                                   String password) {
+
+        if (remoteURL.startsWith("ssh://")) {
             // Explained http://www.codeaffine.com/2014/12/09/jgit-authentication/
             SshSessionFactory sshSessionFactory = new JschConfigSessionFactory() {
                 @Override
                 protected void configure(OpenSshConfig.Host host, Session session ) {
-                    // do nothing
+                    session.setPassword(password);
                 }
                 @Override
-                protected JSch createDefaultJSch(FS fs ) throws JSchException {
+                protected JSch createDefaultJSch( FS fs ) throws JSchException {
                     JSch defaultJSch = super.createDefaultJSch( fs );
-                    defaultJSch.addIdentity( "/Users/dmusican/.ssh/mathcs",
-                                             "my password");
+                    defaultJSch.removeAllIdentity();
                     return defaultJSch;
                 }
             };
-            cloneCommand.setTransportConfigCallback(
+            command.setTransportConfigCallback(
                     new TransportConfigCallback() {
                         @Override
                         public void configure( Transport transport ) {
                             SshTransport sshTransport = (SshTransport)transport;
                             sshTransport.setSshSessionFactory( sshSessionFactory );
                         }
-                     });
+
+                    });
         }
     }
 

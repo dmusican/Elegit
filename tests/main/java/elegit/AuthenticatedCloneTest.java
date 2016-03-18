@@ -73,6 +73,9 @@ public class AuthenticatedCloneTest {
         String password = scanner.next();
         UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider(username, password);
         ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, remoteURL, credentials);
+        helper.fetch(credentials);
+        helper.pushAll(credentials);
+        helper.pushTags(credentials);
     }
 
     @Test
@@ -96,6 +99,10 @@ public class AuthenticatedCloneTest {
         command.call();
     }
 
+    /* The sshPassword should contain two lines:
+        repo ssh address
+        password
+     */
     @Test
     public void testLsSshPassword() throws Exception {
 
@@ -110,11 +117,28 @@ public class AuthenticatedCloneTest {
         String remoteURL = scanner.next();
         String password = scanner.next();
 
-        UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider(username, password);
-
         TransportCommand command = Git.lsRemoteRepository().setRemote(remoteURL);
-        RepoHelper.wrapAuthentication(command, remoteURL, credentials);
+        RepoHelper.wrapAuthentication(command, remoteURL, password);
         command.call();
     }
+
+    /*@Test
+    public void testSshPassword() throws Exception {
+        Path repoPath = directoryPath.resolve("testrepo");
+        File authData = new File(testFileLocation + "sshPassword.txt");
+
+        // If a developer does not have this file present, test should just pass.
+        if (!authData.exists())
+            return;
+
+        Scanner scanner = new Scanner(authData);
+        String remoteURL = scanner.next();
+        String password = scanner.next();
+        UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider(username, password);
+        ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, remoteURL, credentials);
+        helper.fetch(credentials);
+        helper.pushAll(credentials);
+        helper.pushTags(credentials);
+    }*/
 
 }
