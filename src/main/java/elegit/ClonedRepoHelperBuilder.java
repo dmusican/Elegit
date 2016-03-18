@@ -211,7 +211,8 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
             UsernamePasswordCredentialsProvider credentials = null;
             if (authNeeded) {
                 try {
-                    credentials = RepoHelperBuilder.getAuthCredentialFromDialog(remoteURL);
+                    RepoHelperBuilder.AuthDialogResponse response = RepoHelperBuilder.getAuthCredentialFromDialog(remoteURL);
+                    credentials = new UsernamePasswordCredentialsProvider(response.username, response.password);
                     RepoHelper.wrapAuthentication(command, remoteURL, credentials);
                     command.call();
 

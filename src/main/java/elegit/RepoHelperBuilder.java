@@ -35,7 +35,7 @@ public abstract class RepoHelperBuilder {
         public String password;
     }
 
-    private static class AuthDialogResponse {
+    static class AuthDialogResponse {
         public String protocol;
         public String username;
         public String password;
@@ -87,7 +87,7 @@ public abstract class RepoHelperBuilder {
      *
      * @throws CancelledAuthorizationException if the user presses cancel or closes the dialog.
      */
-    public static UsernamePasswordCredentialsProvider getAuthCredentialFromDialog(String remoteURL) throws
+    public static AuthDialogResponse getAuthCredentialFromDialog(String remoteURL) throws
             CancelledAuthorizationException {
         logger.info("Creating authorization dialog");
         // Create the custom dialog.
@@ -219,12 +219,11 @@ public abstract class RepoHelperBuilder {
                 usernamePassword.password = result.get().password;
             }
             repoToAuth.put(remoteURL,usernamePassword);
-            ownerAuth = new UsernamePasswordCredentialsProvider(usernamePassword.username, result.get().password);
         } else {
             logger.info("Cancelled authorization dialog");
             throw new CancelledAuthorizationException();
         }
         logger.info("Entered authorization credentials");
-        return ownerAuth;
+        return result.get();
     }
 }
