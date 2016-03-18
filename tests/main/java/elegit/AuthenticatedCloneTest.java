@@ -75,7 +75,7 @@ public class AuthenticatedCloneTest {
         ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, remoteURL, credentials);
         helper.fetch();
         helper.pushAll();
-        helper.pushTags(credentials);
+        helper.pushTags();
     }
 
     @Test
@@ -137,7 +137,7 @@ public class AuthenticatedCloneTest {
         ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, remoteURL, password);
         helper.fetch();
         helper.pushAll();
-//        helper.pushTags(credentials);
+        helper.pushTags();
     }
 
 }
