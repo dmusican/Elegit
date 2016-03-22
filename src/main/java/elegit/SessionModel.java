@@ -45,6 +45,8 @@ public class SessionModel {
 
     static final Logger logger = LogManager.getLogger();
 
+    static enum AuthMethod { HTTP, HTTPS, SSHPASSWORD };
+
     /**
      * @return the SessionModel object
      */
@@ -109,6 +111,7 @@ public class SessionModel {
             ArrayList<String> storedRepoPathStrings = (ArrayList<String>) PrefObj.getObject(this.preferences, RECENT_REPOS_LIST_KEY);
             if (storedRepoPathStrings != null) {
                 for (String pathString : storedRepoPathStrings) {
+                    System.out.println(pathString);
                     Path path = Paths.get(pathString);
                     try {
                         ExistingRepoHelper existingRepoHelper = new ExistingRepoHelper(path, this.defaultUsername);
@@ -543,6 +546,16 @@ public class SessionModel {
     public void clearStoredPreferences() throws BackingStoreException, IOException, ClassNotFoundException {
         PrefObj.putObject(this.preferences, RECENT_REPOS_LIST_KEY, null);
         PrefObj.putObject(this.preferences, LAST_OPENED_REPO_PATH_KEY, null);
+    }
+
+    public void setAuthPref(String pathname, int authTechnique) {
+        Preferences authPrefs = preferences.node("authentication");
+        authPrefs.putInt(pathname, authTechnique);
+    }
+
+    public int getAuthPref(String pathname) {
+        Preferences authPrefs = preferences.node("authentication");
+        return authPrefs.getInt(pathname, -1);
     }
 
     public void removeRepoHelpers(List<RepoHelper> checkedItems) {
