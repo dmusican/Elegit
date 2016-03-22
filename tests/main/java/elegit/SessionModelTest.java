@@ -34,4 +34,19 @@ public class SessionModelTest {
         sessionModel.setAuthPref(pathname,AuthMethod.SSHPASSWORD);
         assertEquals(AuthMethod.SSHPASSWORD,sessionModel.getAuthPref(pathname));
     }
+
+    @Test
+    public void testSeeAuthPrefs() throws Exception {
+        SessionModel sessionModel = SessionModel.getSessionModel();
+        String pathname = directoryPath.toString();
+        System.out.println("..." + pathname);
+        sessionModel.setAuthPref(pathname,AuthMethod.SSHPASSWORD);
+        System.out.println(sessionModel.getAuthPref(pathname));
+        // Gotta fix the preferences. See my todos.
+        fail();
+//        for (String s : sessionModel.listAuthPaths()) {
+//            System.out.println(s);
+//        }
+    }
+
 }

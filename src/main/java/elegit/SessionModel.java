@@ -564,6 +564,25 @@ public class SessionModel {
         }
     }
 
+    public void removeAuthPref(String pathname) {
+        Preferences authPrefs = preferences.node("authentication");
+        try {
+            PrefObj.removeObject(authPrefs, pathname);
+        } catch (BackingStoreException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public String[] listAuthPaths() {
+        Preferences authPrefs = preferences.node("authentication");
+        try {
+            return PrefObj.keys(authPrefs);
+        } catch (BackingStoreException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
     public void removeRepoHelpers(List<RepoHelper> checkedItems) {
         for (RepoHelper item : checkedItems) {
             this.allRepoHelpers.remove(item);
