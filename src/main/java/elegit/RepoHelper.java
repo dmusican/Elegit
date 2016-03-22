@@ -82,7 +82,7 @@ public abstract class RepoHelper {
 
     static final Logger logger = LogManager.getLogger();
     protected UsernamePasswordCredentialsProvider ownerAuth;
-    protected String protocol;
+    protected AuthMethod protocol;
 
     /**
      * Creates a RepoHelper object for holding a Repository and interacting with it
@@ -98,7 +98,7 @@ public abstract class RepoHelper {
         this.username = null;
 
         this.localPath = directoryPath;
-        this.protocol = "HTTP";
+        this.protocol = AuthMethod.HTTP;
 
         setup();
     }
@@ -108,7 +108,7 @@ public abstract class RepoHelper {
         this.localPath = directoryPath;
         this.remoteURL = remoteURL;
         this.ownerAuth = ownerAuth;
-        this.protocol = "HTTPS";
+        this.protocol = AuthMethod.HTTPS;
         setup();
     }
 
@@ -117,7 +117,7 @@ public abstract class RepoHelper {
         this.localPath = directoryPath;
         this.remoteURL = remoteURL;
         this.password = sshPassword;
-        this.protocol = "SSH/Password";
+        this.protocol = AuthMethod.SSHPASSWORD;
         setup();
     }
 
@@ -177,11 +177,11 @@ public abstract class RepoHelper {
     }
 
     protected void myWrapAuthentication(TransportCommand command) {
-        if (this.protocol.equals("HTTP")) {
+        if (this.protocol.equals(AuthMethod.HTTP)) {
             // do nothing
-        } else if (this.protocol.equals("HTTPS")) {
+        } else if (this.protocol.equals(AuthMethod.HTTPS)) {
             wrapAuthentication(command, remoteURL, ownerAuth);
-        } else if (this.protocol.equals("SSH/Password")) {
+        } else if (this.protocol.equals(AuthMethod.SSHPASSWORD)) {
             wrapAuthentication(command, remoteURL, password);
         }
     }

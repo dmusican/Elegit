@@ -31,7 +31,7 @@ public class SessionModelTest {
     public void testSetAuthenticationPref() throws Exception {
         SessionModel sessionModel = SessionModel.getSessionModel();
         String pathname = directoryPath.toString();
-        sessionModel.setAuthPref(pathname,42);
-        assertEquals(42,sessionModel.getAuthPref(pathname));
+        sessionModel.setAuthPref(pathname,AuthMethod.SSHPASSWORD);
+        assertEquals(AuthMethod.SSHPASSWORD,sessionModel.getAuthPref(pathname));
     }
 }

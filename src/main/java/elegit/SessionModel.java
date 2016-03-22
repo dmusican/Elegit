@@ -45,8 +45,6 @@ public class SessionModel {
 
     static final Logger logger = LogManager.getLogger();
 
-    static enum AuthMethod { HTTP, HTTPS, SSHPASSWORD };
-
     /**
      * @return the SessionModel object
      */
@@ -548,14 +546,22 @@ public class SessionModel {
         PrefObj.putObject(this.preferences, LAST_OPENED_REPO_PATH_KEY, null);
     }
 
-    public void setAuthPref(String pathname, int authTechnique) {
+    public void setAuthPref(String pathname, AuthMethod authTechnique) {
         Preferences authPrefs = preferences.node("authentication");
-        authPrefs.putInt(pathname, authTechnique);
+        try {
+            PrefObj.putObject(authPrefs, pathname, authTechnique);
+        } catch (IOException  | BackingStoreException  | ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    public int getAuthPref(String pathname) {
+    public AuthMethod getAuthPref(String pathname)  {
         Preferences authPrefs = preferences.node("authentication");
-        return authPrefs.getInt(pathname, -1);
+        try {
+            return (AuthMethod)(PrefObj.getObject(authPrefs, pathname));
+        } catch (IOException  | BackingStoreException  | ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public void removeRepoHelpers(List<RepoHelper> checkedItems) {

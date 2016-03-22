@@ -138,6 +138,8 @@ public class AuthenticatedCloneTest {
         helper.fetch();
         helper.pushAll();
         helper.pushTags();
+        assertEquals(SessionModel.getSessionModel().getAuthPref(repoPath.toString()), AuthMethod.SSHPASSWORD);
+        assertNotEquals(SessionModel.getSessionModel().getAuthPref(repoPath.toString()), AuthMethod.HTTPS);
     }
 
 }

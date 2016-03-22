@@ -7,6 +7,7 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.transport.*;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 
@@ -40,10 +41,12 @@ public class ClonedRepoHelper extends RepoHelper {
         CloneCommand cloneCommand = Git.cloneRepository();
         cloneCommand.setURI(this.remoteURL);
         myWrapAuthentication(cloneCommand);
-        cloneCommand.setDirectory(this.localPath.toFile());
+        File destination = this.localPath.toFile();
+        cloneCommand.setDirectory(destination);
         Git cloneCall = cloneCommand.call();
 
         cloneCall.close();
+        SessionModel.getSessionModel().setAuthPref(destination.toString(), protocol);
         return cloneCall.getRepository();
     }
 
