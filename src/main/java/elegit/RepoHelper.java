@@ -707,13 +707,18 @@ public abstract class RepoHelper {
      * Looks through all the tags and checks that they are added to commit helpers
      * @throws IOException
      * @throws GitAPIException
+     * @return true if there were changes, false if not
      */
-    public void updateTags() throws IOException, GitAPIException {
+    public boolean updateTags() throws IOException, GitAPIException {
         Map<String, Ref> tagMap = repo.getTags();
         List<String> oldTagNames = getAllTagNames();
+        int oldSize = oldTagNames.size();
         for (String s: tagMap.keySet()) {
             if (oldTagNames.contains(s)){
                 oldTagNames.remove(s);
+                if (tagsWithUnpushedCommits.contains(s)) {
+                    tagsWithUnpushedCommits.remove(s);
+                }
                 continue;
             }
             else {
@@ -726,6 +731,11 @@ public abstract class RepoHelper {
                 this.commitIdMap.get(this.tagIdMap.get(s).getCommitId()).removeTag(s);
                 this.tagIdMap.remove(s);
             }
+        }
+        if (oldSize==getAllTagNames().size() && oldTagNames.size()==0) {
+            return false;
+        } else {
+            return true;
         }
     }
 

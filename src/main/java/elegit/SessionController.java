@@ -216,6 +216,10 @@ public class SessionController {
             if(newValue) showNewRemoteChangesNotification();
         });
         RepositoryMonitor.beginWatchingLocal(this, theModel);
+
+        if (this.theModel.getCurrentRepoHelper().hasTagsWithUnpushedCommits()) {
+            this.showTagPointsToUnpushedCommitNotification();
+        }
     }
 
     /**
@@ -925,7 +929,11 @@ public class SessionController {
                 try{
                     localCommitTreeModel.update();
                     remoteCommitTreeModel.update();
-                    theModel.getCurrentRepoHelper().updateTags();
+                    if (theModel.getCurrentRepoHelper().updateTags()) {
+                        if (theModel.getCurrentRepoHelper().hasTagsWithUnpushedCommits()) {
+                            showTagPointsToUnpushedCommitNotification();
+                        }
+                    }
 
                     workingTreePanelView.drawDirectoryView();
                     allFilesPanelView.drawDirectoryView();
