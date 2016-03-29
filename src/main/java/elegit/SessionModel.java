@@ -548,35 +548,27 @@ public class SessionModel {
 
     public void setAuthPref(String pathname, AuthMethod authTechnique) {
         Preferences authPrefs = preferences.node("authentication");
-        try {
-            PrefObj.putObject(authPrefs, pathname, authTechnique);
-        } catch (IOException  | BackingStoreException  | ClassNotFoundException e) {
-            throw new RuntimeException(e);
-        }
+        authPrefs.putInt(pathname, authTechnique.getEnumValue());
     }
 
     public AuthMethod getAuthPref(String pathname)  {
         Preferences authPrefs = preferences.node("authentication");
-        try {
-            return (AuthMethod)(PrefObj.getObject(authPrefs, pathname));
-        } catch (IOException  | BackingStoreException  | ClassNotFoundException e) {
-            throw new RuntimeException(e);
-        }
+        int enumValue = authPrefs.getInt(pathname, -1);
+        if (enumValue == -1)
+            throw new NoSuchElementException("AuthPref not present");
+
+        return AuthMethod.getEnumFromValue(enumValue);
     }
 
     public void removeAuthPref(String pathname) {
         Preferences authPrefs = preferences.node("authentication");
-        try {
-            PrefObj.removeObject(authPrefs, pathname);
-        } catch (BackingStoreException e) {
-            throw new RuntimeException(e);
-        }
+        authPrefs.remove(pathname);
     }
 
     public String[] listAuthPaths() {
         Preferences authPrefs = preferences.node("authentication");
         try {
-            return PrefObj.keys(authPrefs);
+            return authPrefs.keys();
         } catch (BackingStoreException e) {
             throw new RuntimeException(e);
         }

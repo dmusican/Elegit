@@ -1,0 +1,13 @@
+Still doesn't remember what kind of authentication you are using. I tried storing it, but the problem is that I was trying to use the pathname where stored as a key for remembering that; but there's an 80 character limit on key length, and pathnames are longer than that. Need to fix.
+
+
+
+Currently, when you clone a repo, handleLoadRepoMenuItem clones it (or opens up), but it just sits around until it is then later opened.At that point, an entire list of all repos strings are saved.
+
+
+Test no repos at all
+Test HTTPS, ssh w/ passwords in app and add tests as necessary
+Add SSH public key
+
+
+SSH with password is still sensitive to if you have a .ssh/config file entry for it, with no diagnostic info when it goes wrong. Need to fix.

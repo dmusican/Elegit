@@ -2,10 +2,13 @@ package main.java.elegit;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.NoSuchElementException;
 
 import static org.junit.Assert.*;
 
@@ -27,12 +30,24 @@ public class SessionModelTest {
 
     }
 
+    @Rule
+    public ExpectedException exception = ExpectedException.none();
+
     @Test
     public void testSetAuthenticationPref() throws Exception {
         SessionModel sessionModel = SessionModel.getSessionModel();
-        String pathname = directoryPath.toString();
+        String pathname = "___hellothere___";
         sessionModel.setAuthPref(pathname,AuthMethod.SSHPASSWORD);
         assertEquals(AuthMethod.SSHPASSWORD,sessionModel.getAuthPref(pathname));
+        boolean foundIt = false;
+        for (String s : sessionModel.listAuthPaths())
+            if (s.equals(pathname))
+                foundIt = true;
+        assertEquals(foundIt,true);
+        sessionModel.removeAuthPref(pathname);
+        exception.expect(NoSuchElementException.class);
+        exception.expectMessage("AuthPref not present");
+        sessionModel.getAuthPref(pathname);
     }
 
     @Test
