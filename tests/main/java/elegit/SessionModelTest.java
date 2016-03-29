@@ -36,6 +36,21 @@ public class SessionModelTest {
     }
 
     @Test
+    public void testAuthMethodValues() throws Exception {
+        AuthMethod http = AuthMethod.HTTP;
+        AuthMethod https = AuthMethod.HTTPS;
+        AuthMethod sshpassword = AuthMethod.SSHPASSWORD;
+        assertEquals(http.getEnumValue(),0);
+        assertEquals(https.getEnumValue(),1);
+        assertEquals(sshpassword.getEnumValue(),2);
+        assertNotEquals(AuthMethod.HTTP,AuthMethod.getEnumFromValue(1));
+        assertEquals(AuthMethod.HTTP,AuthMethod.getEnumFromValue(0));
+        assertEquals(AuthMethod.HTTPS,AuthMethod.getEnumFromValue(1));
+        assertEquals(AuthMethod.SSHPASSWORD,AuthMethod.getEnumFromValue(2));
+
+    }
+
+    @Test
     public void testSeeAuthPrefs() throws Exception {
         SessionModel sessionModel = SessionModel.getSessionModel();
         String pathname = directoryPath.toString();
@@ -44,9 +59,9 @@ public class SessionModelTest {
         System.out.println(sessionModel.getAuthPref(pathname));
         // Gotta fix the preferences. See my todos.
         fail();
-//        for (String s : sessionModel.listAuthPaths()) {
-//            System.out.println(s);
-//        }
+        for (String s : sessionModel.listAuthPaths()) {
+            System.out.println(s);
+        }
     }
 
 }
