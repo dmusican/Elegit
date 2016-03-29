@@ -83,6 +83,7 @@ public class ClonedRepoHelperTest {
         this.helper.commit("Added a new file in a unit test!");
 
         assertTrue(this.helper.hasUnpushedCommits());
+
     }
 
 }

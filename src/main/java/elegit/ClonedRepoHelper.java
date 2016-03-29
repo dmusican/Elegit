@@ -46,7 +46,7 @@ public class ClonedRepoHelper extends RepoHelper {
         Git cloneCall = cloneCommand.call();
 
         cloneCall.close();
-        SessionModel.getSessionModel().setAuthPref(destination.toString(), protocol);
+        //SessionModel.getSessionModel().setAuthPref(destination.toString(), protocol);
         return cloneCall.getRepository();
     }
 

@@ -8,6 +8,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -74,6 +75,13 @@ public class AuthenticatedCloneTest {
         UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider(username, password);
         ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, remoteURL, credentials);
         helper.fetch();
+        Path fileLocation = repoPath.resolve("README.md");
+        System.out.println(fileLocation);
+        FileWriter fw = new FileWriter(fileLocation.toString(), true);
+        fw.write("1");
+        fw.close();
+        helper.addFilePath(fileLocation);
+        helper.commit("Appended to file");
         helper.pushAll();
         helper.pushTags();
     }
