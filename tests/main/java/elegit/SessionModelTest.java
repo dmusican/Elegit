@@ -30,18 +30,24 @@ public class SessionModelTest {
 
     }
 
+    @Test
+    public void testPathnameHash() throws Exception {
+        SessionModel sessionModel = SessionModel.getSessionModel();
+        String pathname =  directoryPath.toString();
+        System.out.println(sessionModel.hashPathname(pathname));
+    }
     @Rule
     public ExpectedException exception = ExpectedException.none();
 
     @Test
     public void testSetAuthenticationPref() throws Exception {
         SessionModel sessionModel = SessionModel.getSessionModel();
-        String pathname = "___hellothere___";
+        String pathname =  directoryPath.toString();
         sessionModel.setAuthPref(pathname,AuthMethod.SSHPASSWORD);
         assertEquals(AuthMethod.SSHPASSWORD,sessionModel.getAuthPref(pathname));
         boolean foundIt = false;
         for (String s : sessionModel.listAuthPaths())
-            if (s.equals(pathname))
+            if (s.equals(sessionModel.hashPathname(pathname)))
                 foundIt = true;
         assertEquals(foundIt,true);
         sessionModel.removeAuthPref(pathname);

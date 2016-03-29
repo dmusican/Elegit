@@ -14,10 +14,13 @@ import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
@@ -548,12 +551,12 @@ public class SessionModel {
 
     public void setAuthPref(String pathname, AuthMethod authTechnique) {
         Preferences authPrefs = preferences.node("authentication");
-        authPrefs.putInt(pathname, authTechnique.getEnumValue());
+        authPrefs.putInt(hashPathname(pathname), authTechnique.getEnumValue());
     }
 
     public AuthMethod getAuthPref(String pathname)  {
         Preferences authPrefs = preferences.node("authentication");
-        int enumValue = authPrefs.getInt(pathname, -1);
+        int enumValue = authPrefs.getInt(hashPathname(pathname), -1);
         if (enumValue == -1)
             throw new NoSuchElementException("AuthPref not present");
 
@@ -562,7 +565,7 @@ public class SessionModel {
 
     public void removeAuthPref(String pathname) {
         Preferences authPrefs = preferences.node("authentication");
-        authPrefs.remove(pathname);
+        authPrefs.remove(hashPathname(pathname));
     }
 
     public String[] listAuthPaths() {
@@ -574,6 +577,24 @@ public class SessionModel {
         }
     }
 
+    // Preferences API has a limit of 80 characters max, and some pathnames
+    // may be longer than that. Hashing it will solve that problem.
+    String hashPathname(String pathname) {
+        MessageDigest md = null;
+        try {
+            md = MessageDigest.getInstance("SHA");
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
+        md.update(pathname.getBytes());
+        String prefKey = null;
+        try {
+            prefKey = new String(md.digest(), "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
+        }
+        return prefKey;
+    }
 
     public void removeRepoHelpers(List<RepoHelper> checkedItems) {
         for (RepoHelper item : checkedItems) {

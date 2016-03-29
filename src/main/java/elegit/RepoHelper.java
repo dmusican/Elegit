@@ -356,6 +356,7 @@ public abstract class RepoHelper {
         if(!hasRemote()) throw new InvalidRemoteException("No remote repository");
         Git git = new Git(this.repo);
         PushCommand push = git.push().setPushAll();
+
         myWrapAuthentication(push);
         ProgressMonitor progress = new SimpleProgressMonitor();
         push.setProgressMonitor(progress);
