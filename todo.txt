@@ -1,4 +1,5 @@
 Still doesn't remember what kind of authentication you are using. I tried storing it, but the problem is that I was trying to use the pathname where stored as a key for remembering that; but there's an 80 character limit on key length, and pathnames are longer than that. Need to fix.
+Perhaps go back to using PrefObj, and using a prefix to make sure it doesn't go as a path somewhere? Still seems like overkill.
 
 
 
