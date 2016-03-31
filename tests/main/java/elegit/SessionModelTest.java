@@ -78,8 +78,6 @@ public class SessionModelTest {
         System.out.println("..." + pathname);
         sessionModel.setAuthPref(pathname,AuthMethod.SSHPASSWORD);
         System.out.println(sessionModel.getAuthPref(pathname));
-        // Gotta fix the preferences. See my todos.
-        fail();
         for (String s : sessionModel.listAuthPaths()) {
             System.out.println(s);
         }

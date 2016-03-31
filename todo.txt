@@ -12,3 +12,5 @@ Add SSH public key
 
 
 SSH with password is still sensitive to if you have a .ssh/config file entry for it, with no diagnostic info when it goes wrong. Need to fix.
+
+Remember to clean up old prefs when testing. Verify that the number of prefs before and after testing is the same.
