@@ -14,3 +14,7 @@ Add SSH public key
 SSH with password is still sensitive to if you have a .ssh/config file entry for it, with no diagnostic info when it goes wrong. Need to fix.
 
 Remember to clean up old prefs when testing. Verify that the number of prefs before and after testing is the same.
+
+
+THE PROBLEM IS that when you check out an https repo, it happily checks out as http, even if not authentication is needed.
+For now, fix it by forcing it to be an https. Don't ever clone anything without a password, for now.
