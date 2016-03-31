@@ -25,6 +25,7 @@ import org.controlsfx.control.NotificationPane;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
+import org.eclipse.jgit.api.errors.TransportException;
 import org.eclipse.jgit.ignore.IgnoreNode;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.revplot.PlotCommitList;
@@ -82,6 +83,7 @@ public abstract class RepoHelper {
 
     static final Logger logger = LogManager.getLogger();
     protected UsernamePasswordCredentialsProvider ownerAuth;
+    protected AuthMethod protocol;
 
     /**
      * Creates a RepoHelper object for holding a Repository and interacting with it
@@ -97,6 +99,7 @@ public abstract class RepoHelper {
         this.username = null;
 
         this.localPath = directoryPath;
+        this.protocol = AuthMethod.HTTP;
 
         setup();
     }
@@ -106,47 +109,81 @@ public abstract class RepoHelper {
         this.localPath = directoryPath;
         this.remoteURL = remoteURL;
         this.ownerAuth = ownerAuth;
+        this.protocol = AuthMethod.HTTPS;
+        setup();
+    }
+
+    public RepoHelper(Path directoryPath, String remoteURL, String sshPassword)
+            throws GitAPIException, IOException, CancelledAuthorizationException {
+        this.localPath = directoryPath;
+        this.remoteURL = remoteURL;
+        this.password = sshPassword;
+        this.protocol = AuthMethod.SSHPASSWORD;
         setup();
     }
 
     /// Constructor for ExistingRepoHelpers to inherit (they don't need the Remote URL)
     public RepoHelper(Path directoryPath) throws GitAPIException, IOException, CancelledAuthorizationException {
         this.username = null;
+        this.protocol = null;
         this.localPath = directoryPath;
 
         setup();
 
     }
 
-    static void wrapAuthentication(TransportCommand cloneCommand, String remoteURL,
+    /* This method requires credentials be passed in as a parameter; that's because it must be used by
+        lsRemoteRepository, for example, that is used before we've actually created a RepoHelper object. Without a
+        RepoHelper, there isn't an ownerAuth instance variable, so we don't have it yet.
+     */
+    static void wrapAuthentication(TransportCommand command, String remoteURL,
                                    UsernamePasswordCredentialsProvider ownerAuth) {
         if (remoteURL.startsWith("https://") ||
-            remoteURL.startsWith("http://")) {
+                remoteURL.startsWith("http://")) {
 
-            cloneCommand.setCredentialsProvider(ownerAuth);
-        } else if (remoteURL.substring(0,6).equals("ssh://")) {
+            command.setCredentialsProvider(ownerAuth);
+        } else {
+            throw new RuntimeException("Username/password authentication attempted on non-http(s).");
+        }
+    }
+
+
+    static void wrapAuthentication(TransportCommand command, String remoteURL,
+                                   String password) {
+
+        if (remoteURL.startsWith("ssh://")) {
             // Explained http://www.codeaffine.com/2014/12/09/jgit-authentication/
             SshSessionFactory sshSessionFactory = new JschConfigSessionFactory() {
                 @Override
                 protected void configure(OpenSshConfig.Host host, Session session ) {
-                    // do nothing
+                    session.setPassword(password);
                 }
                 @Override
-                protected JSch createDefaultJSch(FS fs ) throws JSchException {
+                protected JSch createDefaultJSch( FS fs ) throws JSchException {
                     JSch defaultJSch = super.createDefaultJSch( fs );
-                    defaultJSch.addIdentity( "/Users/dmusican/.ssh/mathcs",
-                                             "my password");
+                    defaultJSch.removeAllIdentity();
                     return defaultJSch;
                 }
             };
-            cloneCommand.setTransportConfigCallback(
+            command.setTransportConfigCallback(
                     new TransportConfigCallback() {
                         @Override
                         public void configure( Transport transport ) {
                             SshTransport sshTransport = (SshTransport)transport;
                             sshTransport.setSshSessionFactory( sshSessionFactory );
                         }
-                     });
+
+                    });
+        }
+    }
+
+    protected void myWrapAuthentication(TransportCommand command) {
+        if (this.protocol.equals(AuthMethod.HTTP)) {
+            // do nothing
+        } else if (this.protocol.equals(AuthMethod.HTTPS)) {
+            wrapAuthentication(command, remoteURL, ownerAuth);
+        } else if (this.protocol.equals(AuthMethod.SSHPASSWORD)) {
+            wrapAuthentication(command, remoteURL, password);
         }
     }
 
@@ -314,19 +351,38 @@ public abstract class RepoHelper {
      *
      * @throws GitAPIException if the `git push` call fails.
      */
-    public void pushAll(UsernamePasswordCredentialsProvider ownerAuth) throws GitAPIException, MissingRepoException, PushToAheadRemoteError {
+    public void pushAll() throws GitAPIException, MissingRepoException, PushToAheadRemoteError {
         logger.info("Attempting push");
         if(!exists()) throw new MissingRepoException();
         if(!hasRemote()) throw new InvalidRemoteException("No remote repository");
         Git git = new Git(this.repo);
         PushCommand push = git.push().setPushAll();
 
-        if (ownerAuth != null) {
-            push.setCredentialsProvider(ownerAuth);
-        }
-//        ProgressMonitor progress = new TextProgressMonitor(new PrintWriter(System.out));
+        myWrapAuthentication(push);
         ProgressMonitor progress = new SimpleProgressMonitor();
         push.setProgressMonitor(progress);
+
+//        boolean authUpdateNeeded = false;
+//        Iterable<PushResult> pushResult = null;
+//        do {
+//            authUpdateNeeded = false;
+//            try {
+//                pushResult = push.call();
+//            } catch (TransportException e) {
+//                authUpdateNeeded = true;
+//                RepoHelperBuilder.AuthDialogResponse response;
+//                try {
+//                    response = RepoHelperBuilder.getAuthCredentialFromDialog(remoteURL);
+//                } catch (CancelledAuthorizationException e2) {
+//                    git.close();
+//                    return;
+//                }
+//                //this.protocol = response.protocol;
+//                this.password = response.password;
+//                this.username = response.username;
+//                myWrapAuthentication(push);
+//            }
+//        } while (authUpdateNeeded);
 
         Iterable<PushResult> pushResult = push.call();
         boolean allPushesWereRejected = true;
@@ -355,17 +411,13 @@ public abstract class RepoHelper {
      *
      * @throws GitAPIException if the `git push --tags` call fails.
      */
-    public void pushTags(UsernamePasswordCredentialsProvider ownerAuth) throws GitAPIException, MissingRepoException, PushToAheadRemoteError {
+    public void pushTags() throws GitAPIException, MissingRepoException, PushToAheadRemoteError {
         logger.info("Attempting push tags");
         if(!exists()) throw new MissingRepoException();
         if(!hasRemote()) throw new InvalidRemoteException("No remote repository");
         Git git = new Git(this.repo);
         PushCommand push = git.push().setPushAll();
-
-        if (ownerAuth != null) {
-            push.setCredentialsProvider(ownerAuth);
-        }
-//        ProgressMonitor progress = new TextProgressMonitor(new PrintWriter(System.out));
+        myWrapAuthentication(push);
         ProgressMonitor progress = new SimpleProgressMonitor();
         push.setProgressMonitor(progress);
 
@@ -397,7 +449,7 @@ public abstract class RepoHelper {
      * @throws GitAPIException
      * @throws MissingRepoException
      */
-    public boolean fetch(UsernamePasswordCredentialsProvider ownerAuth) throws
+    public boolean fetch() throws
             GitAPIException, MissingRepoException, IOException {
         logger.info("Attempting fetch");
         if(!exists()) throw new MissingRepoException();
@@ -405,9 +457,7 @@ public abstract class RepoHelper {
 
         FetchCommand fetch = git.fetch().setTagOpt(TagOpt.AUTO_FOLLOW);
 
-        if (ownerAuth != null) {
-            fetch.setCredentialsProvider(ownerAuth);
-        }
+        myWrapAuthentication(fetch);
 
         // The JGit docs say that if setCheckFetchedObjects
         //  is set to true, objects received will be checked for validity.

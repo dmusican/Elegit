@@ -5,13 +5,17 @@ import org.eclipse.jgit.api.TransportCommand;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.NoSuchElementException;
 import java.util.Scanner;
 
 import static org.junit.Assert.*;
@@ -73,6 +77,16 @@ public class AuthenticatedCloneTest {
         String password = scanner.next();
         UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider(username, password);
         ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, remoteURL, credentials);
+        helper.fetch();
+        Path fileLocation = repoPath.resolve("README.md");
+        System.out.println(fileLocation);
+        FileWriter fw = new FileWriter(fileLocation.toString(), true);
+        fw.write("1");
+        fw.close();
+        helper.addFilePath(fileLocation);
+        helper.commit("Appended to file");
+        helper.pushAll();
+        helper.pushTags();
     }
 
     @Test
@@ -91,9 +105,62 @@ public class AuthenticatedCloneTest {
         String password = scanner.next();
         UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider(username, password);
 
-        TransportCommand command =
-                Git.lsRemoteRepository().setRemote("https://github.com/TheElegitTeam/TestRepository.git");
+        TransportCommand command = Git.lsRemoteRepository().setRemote(remoteURL);
+        RepoHelper.wrapAuthentication(command, remoteURL, credentials);
         command.call();
+    }
+
+    /* The sshPassword should contain two lines:
+        repo ssh address
+        password
+     */
+    @Test
+    public void testLsSshPassword() throws Exception {
+
+        Path repoPath = directoryPath.resolve("testrepo");
+        File authData = new File(testFileLocation + "sshPassword.txt");
+
+        // If a developer does not have this file present, test should just pass.
+        if (!authData.exists())
+            return;
+
+        Scanner scanner = new Scanner(authData);
+        String remoteURL = scanner.next();
+        String password = scanner.next();
+
+        TransportCommand command = Git.lsRemoteRepository().setRemote(remoteURL);
+        RepoHelper.wrapAuthentication(command, remoteURL, password);
+        command.call();
+    }
+
+    @Rule
+    public ExpectedException exception = ExpectedException.none();
+
+    @Test
+    public void testSshPassword() throws Exception {
+        Path repoPath = directoryPath.resolve("testrepo");
+        File authData = new File(testFileLocation + "sshPassword.txt");
+
+        // If a developer does not have this file present, test should just pass.
+        if (!authData.exists())
+            return;
+
+        Scanner scanner = new Scanner(authData);
+        String remoteURL = scanner.next();
+        String password = scanner.next();
+        ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, remoteURL, password);
+        helper.fetch();
+        helper.pushAll();
+        helper.pushTags();
+        SessionModel sm = SessionModel.getSessionModel();
+        String pathname = repoPath.toString();
+        assertEquals(sm.getAuthPref(pathname), AuthMethod.SSHPASSWORD);
+        assertNotEquals(sm.getAuthPref(pathname), AuthMethod.HTTPS);
+
+        sm.removeAuthPref(pathname);
+        exception.expect(NoSuchElementException.class);
+        exception.expectMessage("AuthPref not present");
+        sm.getAuthPref(pathname);
     }
 
 }

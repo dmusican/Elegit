@@ -199,19 +199,22 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
             // Attempt #1 below: see if can do it without authentication
             boolean authNeeded = false;
             TransportCommand command = Git.lsRemoteRepository().setRemote(remoteURL);
-            try {
-                command.call();
-            } catch (TransportException e) {
-                authNeeded = true;
-            }
+//            try {
+//                command.call();
+//            } catch (TransportException e) {
+//                authNeeded = true;
+//            }
 
+            // FOR NOW, assume that credentials are ALWAYS needed.
+            authNeeded = true;
 
             // Try second attempt if first one failed, getting authentication as needed. If still failed, then
             // report failure to user.
             UsernamePasswordCredentialsProvider credentials = null;
             if (authNeeded) {
                 try {
-                    credentials = RepoHelperBuilder.getAuthCredentialFromDialog(remoteURL);
+                    RepoHelperBuilder.AuthDialogResponse response = RepoHelperBuilder.getAuthCredentialFromDialog(remoteURL);
+                    credentials = new UsernamePasswordCredentialsProvider(response.username, response.password);
                     RepoHelper.wrapAuthentication(command, remoteURL, credentials);
                     command.call();
 

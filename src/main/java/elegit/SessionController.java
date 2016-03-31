@@ -670,25 +670,12 @@ public class SessionController {
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
             if(!this.theModel.getCurrentRepoHelper().hasUnpushedCommits()) throw new NoCommitsToPushException();
 
-            pushButton.setVisible(false);
-            pushProgressIndicator.setVisible(true);
-
-            UsernamePasswordCredentialsProvider ownerAuth;
-
-            try {
-               ownerAuth = getAuth();
-            } catch (CancelledAuthorizationException e) {
-                pushButton.setVisible(true);
-                pushProgressIndicator.setVisible(false);
-                return;
-            }
-
             Thread th = new Thread(new Task<Void>(){
                 @Override
                 protected Void call() {
                     try{
                         RepositoryMonitor.resetFoundNewChanges(false);
-                        theModel.getCurrentRepoHelper().pushAll(ownerAuth);
+                        theModel.getCurrentRepoHelper().pushAll();
                         gitStatus();
                     }  catch(InvalidRemoteException e){
                         showNoRemoteNotification();
@@ -750,26 +737,13 @@ public class SessionController {
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
             if(!this.theModel.getCurrentRepoHelper().hasUnpushedTags()) throw new NoTagsToPushException();
 
-            pushTagsButton.setVisible(false);
-            pushProgressIndicator.setVisible(true);
-
-            UsernamePasswordCredentialsProvider ownerAuth;
-
-            try {
-                ownerAuth = getAuth();
-            } catch (CancelledAuthorizationException e) {
-                pushTagsButton.setVisible(true);
-                pushProgressIndicator.setVisible(false);
-                return;
-            }
-
             Thread th = new Thread(new Task<Void>(){
                 @Override
                 protected Void call() {
                     boolean tagsPushed = true;
                     try{
                         RepositoryMonitor.resetFoundNewChanges(false);
-                        theModel.getCurrentRepoHelper().pushTags(ownerAuth);
+                        theModel.getCurrentRepoHelper().pushTags();
                         gitStatus();
                     }  catch(InvalidRemoteException e){
                         showNoRemoteNotification();
@@ -850,25 +824,12 @@ public class SessionController {
 
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
 
-            fetchButton.setVisible(false);
-            fetchProgressIndicator.setVisible(true);
-
-            UsernamePasswordCredentialsProvider ownerAuth;
-
-            try {
-                ownerAuth = getAuth();
-            } catch (CancelledAuthorizationException e) {
-                fetchButton.setVisible(true);
-                fetchProgressIndicator.setVisible(false);
-                return;
-            }
-
             Thread th = new Thread(new Task<Void>(){
                 @Override
                 protected Void call() {
                     try{
                         RepositoryMonitor.resetFoundNewChanges(false);
-                        if(!theModel.getCurrentRepoHelper().fetch(ownerAuth)){
+                        if(!theModel.getCurrentRepoHelper().fetch()){
                             showNoCommitsFetchedNotification();
                         }
                         gitStatus();
@@ -1121,21 +1082,6 @@ public class SessionController {
             this.showGenericErrorNotification();
             e.printStackTrace();
         }
-    }
-
-    /**
-     * Asks the user for authorization to interact with the remote.
-     */
-    public UsernamePasswordCredentialsProvider getAuth() throws CancelledAuthorizationException {
-
-        RepoHelper currentRepoHelper = this.theModel.getCurrentRepoHelper();
-
-        UsernamePasswordCredentialsProvider ownerAuth =
-                currentRepoHelper.getOwnerAuthCredentials();
-
-        this.theModel.setCurrentDefaultUsername(currentRepoHelper.getUsername());
-
-        return ownerAuth;
     }
 
     /**
