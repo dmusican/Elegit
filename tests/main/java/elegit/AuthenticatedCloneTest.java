@@ -5,7 +5,9 @@ import org.eclipse.jgit.api.TransportCommand;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -13,6 +15,7 @@ import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.NoSuchElementException;
 import java.util.Scanner;
 
 import static org.junit.Assert.*;
@@ -130,6 +133,9 @@ public class AuthenticatedCloneTest {
         command.call();
     }
 
+    @Rule
+    public ExpectedException exception = ExpectedException.none();
+
     @Test
     public void testSshPassword() throws Exception {
         Path repoPath = directoryPath.resolve("testrepo");
@@ -152,7 +158,9 @@ public class AuthenticatedCloneTest {
         assertNotEquals(sm.getAuthPref(pathname), AuthMethod.HTTPS);
 
         sm.removeAuthPref(pathname);
-        assertEquals(sm.getAuthPref(pathname), null);
+        exception.expect(NoSuchElementException.class);
+        exception.expectMessage("AuthPref not present");
+        sm.getAuthPref(pathname);
     }
 
 }

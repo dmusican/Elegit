@@ -12,6 +12,7 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
+import javax.xml.bind.DatatypeConverter;
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -588,11 +589,13 @@ public class SessionModel {
         }
         md.update(pathname.getBytes());
         String prefKey = null;
-        try {
-            prefKey = new String(md.digest(), "UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException(e);
-        }
+        //try {
+            //prefKey = new String(md.digest(), "US-ASCII");
+            prefKey = DatatypeConverter.printHexBinary(md.digest());
+            //prefKey = "hello";
+//        } catch (UnsupportedEncodingException e) {
+//            throw new RuntimeException(e);
+//        }
         return prefKey;
     }
 
