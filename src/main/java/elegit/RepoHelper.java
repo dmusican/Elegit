@@ -1,5 +1,8 @@
 package main.java.elegit;
 
+import com.jcraft.jsch.JSch;
+import com.jcraft.jsch.JSchException;
+import com.jcraft.jsch.Session;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -14,6 +17,7 @@ import javafx.scene.layout.GridPane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
+import javafx.util.Pair;
 import main.java.elegit.exceptions.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -45,6 +49,8 @@ import java.util.*;
  * The abstract RepoHelper class, used for interacting with a repository.
  */
 public abstract class RepoHelper {
+
+    //protected UsernamePasswordCredentialsProvider ownerAuth;
 
     public String username;
     protected String password;
@@ -87,41 +93,67 @@ public abstract class RepoHelper {
      * @throws IOException if the obtainRepository() call throws this exception.
      * @throws CancelledAuthorizationException if the obtainRepository() call throws this exception.
      */
-    public RepoHelper(Path directoryPath, String remoteURL, String username) throws GitAPIException, IOException, CancelledAuthorizationException {
+    public RepoHelper(Path directoryPath, String remoteURL) throws GitAPIException, IOException, CancelledAuthorizationException {
         this.remoteURL = remoteURL;
-        this.username = username;
+        this.username = null;
 
         this.localPath = directoryPath;
 
-        this.repo = this.obtainRepository();
+        setup();
+    }
 
-        this.commitIdMap = new HashMap<>();
-        this.idMap = new HashMap<>();
-        this.tagIdMap = new HashMap<>();
-
-        this.localCommits = this.parseAllLocalCommits();
-        this.remoteCommits = this.parseAllRemoteCommits();
-
-        this.tagsWithUnpushedCommits = new ArrayList<>();
-
-        this.localTags = this.getAllLocalTags();
-
-        this.branchManagerModel = new BranchManagerModel(this.callGitForLocalBranches(), this.callGitForRemoteBranches(), this);
-
-        hasRemoteProperty = new SimpleBooleanProperty(!getLinkedRemoteRepoURLs().isEmpty());
-
-        hasUnpushedCommitsProperty = new SimpleBooleanProperty(getAllCommitIDs().size() > remoteCommits.size());
-        hasUnmergedCommitsProperty = new SimpleBooleanProperty(getAllCommitIDs().size() > localCommits.size());
-
-        hasUnpushedTagsProperty = new SimpleBooleanProperty(false);
+    public RepoHelper(Path directoryPath, String remoteURL, UsernamePasswordCredentialsProvider ownerAuth)
+            throws GitAPIException, IOException, CancelledAuthorizationException {
+        this.localPath = directoryPath;
+        this.remoteURL = remoteURL;
+        this.ownerAuth = ownerAuth;
+        setup();
     }
 
     /// Constructor for ExistingRepoHelpers to inherit (they don't need the Remote URL)
-    public RepoHelper(Path directoryPath, String username) throws GitAPIException, IOException, CancelledAuthorizationException {
-        this.username = username;
-
+    public RepoHelper(Path directoryPath) throws GitAPIException, IOException, CancelledAuthorizationException {
+        this.username = null;
         this.localPath = directoryPath;
 
+        setup();
+
+    }
+
+    static void wrapAuthentication(TransportCommand cloneCommand, String remoteURL,
+                                   UsernamePasswordCredentialsProvider ownerAuth) {
+        if (remoteURL.startsWith("https://") ||
+            remoteURL.startsWith("http://")) {
+
+            cloneCommand.setCredentialsProvider(ownerAuth);
+        } else if (remoteURL.substring(0,6).equals("ssh://")) {
+            // Explained http://www.codeaffine.com/2014/12/09/jgit-authentication/
+            SshSessionFactory sshSessionFactory = new JschConfigSessionFactory() {
+                @Override
+                protected void configure(OpenSshConfig.Host host, Session session ) {
+                    // do nothing
+                }
+                @Override
+                protected JSch createDefaultJSch(FS fs ) throws JSchException {
+                    JSch defaultJSch = super.createDefaultJSch( fs );
+                    defaultJSch.addIdentity( "/Users/dmusican/.ssh/mathcs",
+                                             "my password");
+                    return defaultJSch;
+                }
+            };
+            cloneCommand.setTransportConfigCallback(
+                    new TransportConfigCallback() {
+                        @Override
+                        public void configure( Transport transport ) {
+                            SshTransport sshTransport = (SshTransport)transport;
+                            sshTransport.setSshSessionFactory( sshSessionFactory );
+                        }
+                     });
+        }
+    }
+
+    // Common setup tasks shared by constructors
+    private void setup() throws GitAPIException, IOException, CancelledAuthorizationException {
+        this.username = null;
         this.repo = this.obtainRepository();
 
         this.commitIdMap = new HashMap<>();
@@ -143,8 +175,8 @@ public abstract class RepoHelper {
         hasUnmergedCommitsProperty = new SimpleBooleanProperty(getAllCommitIDs().size() > localCommits.size());
 
         hasUnpushedTagsProperty = new SimpleBooleanProperty();
-    }
 
+    }
     /**
      * @return true if the corresponding repository still exists in the expected location
      */
@@ -422,83 +454,6 @@ public abstract class RepoHelper {
         this.hasUnpushedCommitsProperty.set(this.hasUnpushedCommits() || status == MergeResult.MergeStatus.MERGED);
         if(status == MergeResult.MergeStatus.CONFLICTING) throw new ConflictingFilesException(result.getConflicts());
         return result.getMergeStatus().isSuccessful();
-    }
-
-    /**
-    * Presents dialogs that request the user's username, then sets it for the RepoHelper
-    *
-    * @throws CancelledUsernameException if the user presses cancel or closes the dialog.
-    */
-    public void presentUsernameDialog() throws CancelledAuthorizationException {
-        logger.info("Opened username dialog");
-        // Create the custom dialog.
-        Dialog<String> dialog = new Dialog<>();
-        dialog.setTitle("Username");
-        dialog.setHeaderText("Please enter your remote repository username.");
-
-        // Set the button types.
-        ButtonType okButtonType = new ButtonType("OK", ButtonBar.ButtonData.OK_DONE);
-        dialog.getDialogPane().getButtonTypes().addAll(okButtonType, ButtonType.CANCEL);
-
-        dialog.setOnCloseRequest(new EventHandler<DialogEvent>() {
-            @Override
-            public void handle(DialogEvent event) {
-                logger.info("Closed username dialog");
-            }
-        });
-
-        // Create the username and password labels and fields.
-        GridPane grid = new GridPane();
-        grid.setHgap(10);
-        grid.setVgap(10);
-        grid.setPadding(new Insets(20, 150, 10, 10));
-
-        grid.add(new Label("Username:"), 0, 0);
-
-        // Conditionally ask for the username if it hasn't yet been set.
-        TextField username;
-        if (this.username == null) {
-            username = new TextField();
-            username.setPromptText("Username");
-        } else {
-            username = new TextField(this.username);
-        }
-        grid.add(username, 1, 0);
-
-        // Enable/Disable login button depending on whether a password was entered.
-        Node loginButton = dialog.getDialogPane().lookupButton(okButtonType);
-        loginButton.setDisable(true);
-
-        // Do some validation (using the Java 8 lambda syntax).
-        username.textProperty().addListener((observable, oldValue, newValue) -> {
-            loginButton.setDisable(newValue.trim().isEmpty());
-        });
-
-        dialog.getDialogPane().setContent(grid);
-
-        // Request focus for the username text field by default.
-        Platform.runLater(() -> username.requestFocus());
-
-        // Return the password when the authorize button is clicked.
-        // If the username hasn't been set yet, then update the username.
-        dialog.setResultConverter(dialogButton -> {
-            if (dialogButton == okButtonType) {
-                return username.getText();
-            }
-            return null;
-        });
-
-        Optional<String> result = dialog.showAndWait();
-
-        UsernamePasswordCredentialsProvider ownerAuth;
-
-        if (result.isPresent()) {
-            logger.info("Set username");
-            this.username = result.get();
-        } else {
-            logger.info("Cancelled username dialog");
-            throw new CancelledAuthorizationException();
-        }
     }
 
     public void closeRepo() {
@@ -1307,9 +1262,6 @@ public abstract class RepoHelper {
     }
 
     public UsernamePasswordCredentialsProvider getOwnerAuthCredentials() throws CancelledAuthorizationException {
-        if (this.ownerAuth == null) {
-            presentUsernameDialog();
-        }
         return this.ownerAuth;
     }
 

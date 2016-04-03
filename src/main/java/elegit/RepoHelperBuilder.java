@@ -19,6 +19,7 @@ import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Optional;
 
 /**
@@ -27,11 +28,18 @@ import java.util.Optional;
  */
 public abstract class RepoHelperBuilder {
 
+    private static class UsernamePassword {
+        public String username;
+        public String password;
+    }
+
     SessionModel sessionModel;
     private String defaultFilePickerStartFolder = System.getProperty("user.home");
+    private static HashMap<String, UsernamePassword> repoToAuth = new HashMap<>();
 
     public RepoHelperBuilder(SessionModel sessionModel) {
         this.sessionModel = sessionModel;
+
     }
 
     static final Logger logger = LogManager.getLogger();
@@ -63,9 +71,9 @@ public abstract class RepoHelperBuilder {
      * and sets the username and password fields accordingly.
      *
      * @throws CancelledAuthorizationException if the user presses cancel or closes the dialog.
-     * @param repoHelper
      */
-    public UsernamePasswordCredentialsProvider getRepoHelperAuthCredentialFromDialog(RepoHelper repoHelper) throws CancelledAuthorizationException {
+    public static UsernamePasswordCredentialsProvider getAuthCredentialFromDialog(String remoteURL) throws
+            CancelledAuthorizationException {
         logger.info("Creating authorization dialog");
         // Create the custom dialog.
         Dialog<Pair<String,Pair<String,Boolean>>> dialog = new Dialog<>();
@@ -91,12 +99,18 @@ public abstract class RepoHelperBuilder {
 
         grid.add(new Label("Username:"), 0, 0);
 
+        String hashedUsername = null;
+        String hashedPassword = null;
+        if (repoToAuth.containsKey(remoteURL)) {
+            hashedUsername = repoToAuth.get(remoteURL).username;
+            hashedPassword = repoToAuth.get(remoteURL).password;
+        }
         // Conditionally ask for the username if it hasn't yet been set.
         TextField username = new TextField();
-        if (repoHelper.username == null) {
+        if (hashedUsername == null) {
             username.setPromptText("Username");
         } else {
-            username.setText(repoHelper.username);
+            username.setText(hashedUsername);
             username.setEditable(false);
         }
         grid.add(username, 1, 0);
@@ -106,8 +120,8 @@ public abstract class RepoHelperBuilder {
         PasswordField password = new PasswordField();
         CheckBox remember = new CheckBox("Remember Password");
 
-        if (repoHelper.password != null) {
-            password.setText(repoHelper.password);
+        if (hashedPassword != null) {
+            password.setText(hashedPassword);
             remember.setSelected(true);
         }
         password.setPromptText("Password");
@@ -124,7 +138,7 @@ public abstract class RepoHelperBuilder {
                 remember.setSelected(false);
             }
         });
-        if (repoHelper.username == null) {
+        if (hashedUsername == null) {
             editUsername.setVisible(false);
         }
         grid.add(editUsername,2,0);
@@ -134,7 +148,7 @@ public abstract class RepoHelperBuilder {
 
         // Enable/Disable login button depending on whether a password was entered.
         Node loginButton = dialog.getDialogPane().lookupButton(loginButtonType);
-        if (repoHelper.password == null || repoHelper.username == null) {
+        if (hashedPassword == null || hashedUsername == null) {
             loginButton.setDisable(true);
         }
 
@@ -169,13 +183,16 @@ public abstract class RepoHelperBuilder {
         UsernamePasswordCredentialsProvider ownerAuth;
 
         if (result.isPresent()) {
-            repoHelper.username = result.get().getKey();
+            UsernamePassword usernamePassword = new UsernamePassword();
+            usernamePassword.username = result.get().getKey();
             //Only store password if remember password was selected
             if (result.get().getValue().getValue()) {
                 logger.info("Selected remember password");
-                repoHelper.password = result.get().getValue().getKey();
+                usernamePassword.password = result.get().getValue().getKey();
             }
-            ownerAuth = new UsernamePasswordCredentialsProvider(repoHelper.username, result.get().getValue().getKey());
+            repoToAuth.put(remoteURL,usernamePassword);
+            ownerAuth = new UsernamePasswordCredentialsProvider(usernamePassword.username, result.get().getValue()
+                    .getKey());
         } else {
             logger.info("Cancelled authorization dialog");
             throw new CancelledAuthorizationException();
