@@ -41,7 +41,7 @@ public class PushPullTest {
     }
 
     @Test
-    public void testPushPull() throws Exception {
+    public void testPushPullBothCloned() throws Exception {
         File authData = new File(testFileLocation + "httpUsernamePassword.txt");
 
         // If a developer does not have this file present, test should just pass.
@@ -78,6 +78,48 @@ public class PushPullTest {
         // Now do the pull (well, a fetch)
         helperPull.fetch();
         helperPull.mergeFromFetch();
+
+    }
+
+    @Test
+    public void testPushPullBothClonedExisting() throws Exception {
+        File authData = new File(testFileLocation + "httpUsernamePassword.txt");
+
+        // If a developer does not have this file present, test should just pass.
+        if (!authData.exists())
+            return;
+
+        Scanner scanner = new Scanner(authData);
+        String ignoreURL = scanner.next();
+        String username = scanner.next();
+        String password = scanner.next();
+        UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider(username, password);
+
+        String remoteURL = "https://github.com/TheElegitTeam/PushPullTests.git";
+
+        // Repo that will push
+        Path repoPathPush = directoryPath.resolve("pushpull1");
+        ClonedRepoHelper helperPush = new ClonedRepoHelper(repoPathPush, remoteURL, credentials);
+        assertNotNull(helperPush);
+
+        // Repo that will pull
+        Path repoPathPull = directoryPath.resolve("pushpull2");
+        ClonedRepoHelper clonedHelperPull = new ClonedRepoHelper(repoPathPull, remoteURL, credentials);
+        assertNotNull(clonedHelperPull);
+        ExistingRepoHelper existingHelperPull = new ExistingRepoHelper(repoPathPull, username);
+
+        // Update the file, then commit and push
+        Path readmePath = repoPathPush.resolve("README.md");
+        System.out.println(readmePath);
+        String timestamp = "testPushPullBothClonedExisting " + (new Date()).toString() + "\n";
+        Files.write(readmePath, timestamp.getBytes(), StandardOpenOption.APPEND);
+        helperPush.addFilePath(readmePath);
+        helperPush.commit("added a character");
+        helperPush.pushAll();
+
+        // Now do the pull (well, a fetch)
+        existingHelperPull.fetch();
+        existingHelperPull.mergeFromFetch();
 
     }
 
