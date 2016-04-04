@@ -1091,7 +1091,11 @@ public abstract class RepoHelper {
         List<Ref> getBranchesCall = new Git(this.repo).branchList().setListMode(ListBranchCommand.ListMode.REMOTE).call();
 
         if(remoteBranches != null){
-            for(BranchHelper branch : remoteBranches) getCommit(branch.getHeadId()).removeAsHead(branch);
+            for(BranchHelper branch : remoteBranches) {
+                System.out.println(branch.getHeadId());
+                CommitHelper headCommit = getCommit(branch.getHeadId());
+                headCommit.removeAsHead(branch);
+            }
         }
 
         remoteBranches = new ArrayList<>();
