@@ -1092,7 +1092,6 @@ public abstract class RepoHelper {
 
         if(remoteBranches != null){
             for(BranchHelper branch : remoteBranches) {
-                System.out.println(branch.getHeadId());
                 CommitHelper headCommit = getCommit(branch.getHeadId());
                 headCommit.removeAsHead(branch);
             }
