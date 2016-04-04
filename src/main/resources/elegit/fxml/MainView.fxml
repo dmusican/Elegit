@@ -1,11 +1,11 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import javafx.scene.shape.Circle?>
 <?import javafx.scene.text.Text?>
 <?import main.java.elegit.*?>
 <?import org.controlsfx.control.NotificationPane?>
 <?import java.net.URL?>
+<?import javafx.scene.image.*?>
 <AnchorPane
         fx:controller="main.java.elegit.SessionController"
         xmlns:fx="http://javafx.com/fxml"
@@ -147,11 +147,20 @@
 
                     <StackPane GridPane.rowIndex="1"
                                 GridPane.columnIndex="7">
-                        <Circle AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
-                                id="remoteRepoCircle"
-                                fx:id="remoteCircle"
-                                opacity="0.5"
-                                onMouseClicked="#handleRemoteCircleMouseClick"/>
+                        <ImageView
+                                fx:id = "imageView"
+                                fitHeight="175"
+                                fitWidth="175"
+                                preserveRatio="true"
+                                onMouseClicked="#handleRemoteCircleMouseClick"
+                        >
+                            <image>
+                                <Image
+                                        url = "@browser.png"
+                                />
+                            </image>
+                        </ImageView>
+
                     </StackPane>
 
                     <StackPane GridPane.rowIndex="1"
