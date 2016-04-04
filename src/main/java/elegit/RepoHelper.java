@@ -1084,7 +1084,7 @@ public abstract class RepoHelper {
 
     /**
      * Utilizes JGit to get a list of all remote branches
-     * @return a list of all remtoe branches
+     * @return a list of all remote branches
      * @throws GitAPIException
      */
     public List<RemoteBranchHelper> callGitForRemoteBranches() throws GitAPIException, IOException{
@@ -1093,7 +1093,8 @@ public abstract class RepoHelper {
         if(remoteBranches != null){
             for(BranchHelper branch : remoteBranches) {
                 CommitHelper headCommit = getCommit(branch.getHeadId());
-                headCommit.removeAsHead(branch);
+                if (headCommit != null)
+                    headCommit.removeAsHead(branch);
             }
         }
 

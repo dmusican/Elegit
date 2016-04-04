@@ -79,6 +79,9 @@ public class PushPullTest {
         helperPull.fetch();
         helperPull.mergeFromFetch();
 
+        // Update lists of remote branches.
+        helperPull.callGitForRemoteBranches();
+
     }
 
     @Test
