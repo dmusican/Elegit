@@ -1,18 +1,5 @@
 package main.java.elegit.guitests;
 
-import javafx.application.Platform;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.stage.Stage;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.loadui.testfx.GuiTest;
-
-import java.io.IOException;
-import java.util.concurrent.TimeUnit;
-
 /**
  * Created by grahamearley on 1/10/16.
  */
