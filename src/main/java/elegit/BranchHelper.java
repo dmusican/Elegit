@@ -62,7 +62,7 @@ public abstract class BranchHelper {
      */
     private void setHead(CommitHelper head){
         if(branchHead != null) branchHead.removeAsHead(this);
-        this.branchHead = head;
+        branchHead = head;
         if(branchHead != null) branchHead.setAsHead(this);
     }
 

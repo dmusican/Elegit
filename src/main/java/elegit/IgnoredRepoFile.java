@@ -1,7 +1,5 @@
 package main.java.elegit;
 
-import org.eclipse.jgit.lib.Repository;
-
 import java.nio.file.Path;
 import java.nio.file.Paths;
 

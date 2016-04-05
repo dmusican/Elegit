@@ -16,8 +16,8 @@ import main.java.elegit.exceptions.CancelledAuthorizationException;
 import main.java.elegit.exceptions.NoRepoSelectedException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.eclipse.jgit.api.TransportCommand;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.TransportCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
 import org.eclipse.jgit.api.errors.TransportException;
@@ -199,19 +199,22 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
             // Attempt #1 below: see if can do it without authentication
             boolean authNeeded = false;
             TransportCommand command = Git.lsRemoteRepository().setRemote(remoteURL);
-            try {
-                command.call();
-            } catch (TransportException e) {
-                authNeeded = true;
-            }
+//            try {
+//                command.call();
+//            } catch (TransportException e) {
+//                authNeeded = true;
+//            }
 
+            // FOR NOW, assume that credentials are ALWAYS needed.
+            authNeeded = true;
 
             // Try second attempt if first one failed, getting authentication as needed. If still failed, then
             // report failure to user.
             UsernamePasswordCredentialsProvider credentials = null;
             if (authNeeded) {
                 try {
-                    credentials = RepoHelperBuilder.getAuthCredentialFromDialog(remoteURL);
+                    RepoHelperBuilder.AuthDialogResponse response = RepoHelperBuilder.getAuthCredentialFromDialog(remoteURL);
+                    credentials = new UsernamePasswordCredentialsProvider(response.username, response.password);
                     RepoHelper.wrapAuthentication(command, remoteURL, credentials);
                     command.call();
 
