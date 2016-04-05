@@ -63,13 +63,13 @@ public abstract class RepoHelper {
 	private List<CommitHelper> localCommits;
     private List<CommitHelper> remoteCommits;
 
-    private List<TagHelper> localTags;
+    private List<TagHelper> upToDateTags;
+    private List<TagHelper> unpushedTags;
+    private List<String> tagsWithUnpushedCommits;
 
     private Map<String, CommitHelper> commitIdMap;
     private Map<ObjectId, String> idMap;
     private Map<String, TagHelper> tagIdMap;
-
-    private List<String> tagsWithUnpushedCommits;
 
     private List<LocalBranchHelper> localBranches;
     private List<RemoteBranchHelper> remoteBranches;
@@ -165,7 +165,7 @@ public abstract class RepoHelper {
 
         this.tagsWithUnpushedCommits = new ArrayList<>();
 
-        this.localTags = this.getAllLocalTags();
+        this.upToDateTags = this.getAllLocalTags();
 
         this.branchManagerModel = new BranchManagerModel(this.callGitForLocalBranches(), this.callGitForRemoteBranches(), this);
 
@@ -538,7 +538,7 @@ public abstract class RepoHelper {
         git.close();
 
         tagToRemove.getCommit().removeTag(tagName);
-        this.localTags.remove(tagToRemove);
+        this.upToDateTags.remove(tagToRemove);
         this.tagIdMap.remove(tagName);
         this.hasUnpushedTagsProperty.set(true);
     }
@@ -719,7 +719,7 @@ public abstract class RepoHelper {
         TagHelper t;
 
         // If the commit that this tag points to isn't in the commitIdMap,
-        // then that commit has not yet been pushed, so warn the user\
+        // then that commit has not yet been pushed, so warn the user
         if (c==null) {
             this.tagsWithUnpushedCommits.add(tagName);
             return null;
@@ -728,7 +728,7 @@ public abstract class RepoHelper {
             this.tagsWithUnpushedCommits.remove(tagName);
         }
 
-        // If it's an annotated tag, we make a lightweight tag helper
+        // If it's not an annotated tag, we make a lightweight tag helper
         if (!isAnnotated) {
             t = new TagHelper(tagName, c);
             c.addTag(t);

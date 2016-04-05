@@ -217,7 +217,7 @@ public class SessionController {
         });
         RepositoryMonitor.beginWatchingLocal(this, theModel);
 
-        if (this.theModel.getCurrentRepoHelper().hasTagsWithUnpushedCommits()) {
+        if (this.theModel.getCurrentRepoHelper()!= null && this.theModel.getCurrentRepoHelper().hasTagsWithUnpushedCommits()) {
             this.showTagPointsToUnpushedCommitNotification();
         }
     }
@@ -570,8 +570,10 @@ public class SessionController {
                         e.printStackTrace();
                     }
 
-                    pushTagsButton.setVisible(true);
-                    pushButton.setVisible(false);
+                    if (!theModel.getCurrentRepoHelper().hasUnpushedCommits()) {
+                        pushTagsButton.setVisible(true);
+                        pushButton.setVisible(false);
+                    }
                     tagNameField.setText("");
                     clearSelectedCommit();
                     selectCommit(theModel.getCurrentRepoHelper().getTag(tagName).getCommitId());
@@ -690,10 +692,12 @@ public class SessionController {
             Thread th = new Thread(new Task<Void>(){
                 @Override
                 protected Void call() {
+                    boolean pushed = false;
                     try{
                         RepositoryMonitor.resetFoundNewChanges(false);
                         theModel.getCurrentRepoHelper().pushAll(ownerAuth);
                         gitStatus();
+                        pushed = true;
                     }  catch(InvalidRemoteException e){
                         showNoRemoteNotification();
                     } catch(PushToAheadRemoteError e) {
@@ -718,6 +722,10 @@ public class SessionController {
                     } finally{
                         pushProgressIndicator.setVisible(false);
                         pushButton.setVisible(true);
+                        if (pushed && theModel.getCurrentRepoHelper().hasUnpushedTags()) {
+                            pushTagsButton.setVisible(true);
+                            pushButton.setVisible(false);
+                        }
                     }
                     return null;
                 }

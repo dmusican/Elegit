@@ -161,6 +161,11 @@ public abstract class CommitTreeModel{
             this.addCommitToTree(invisCommit, invisCommit.getParents(),
                     treeGraph.treeGraphModel, false);
         }
+
+        // If there are tags in the repo that haven't been pushed, allow them to be pushed
+        if (invisCommit.getTags() != null) {
+
+        }
     }
 
     /**
