@@ -206,7 +206,7 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
 //            }
 
             // FOR NOW, assume that credentials are ALWAYS needed.
-            authNeeded = true;
+            authNeeded = false;
 
             // Try second attempt if first one failed, getting authentication as needed. If still failed, then
             // report failure to user.
