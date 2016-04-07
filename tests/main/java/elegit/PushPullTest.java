@@ -6,10 +6,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
-import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.Date;
 import java.util.Scanner;
@@ -19,7 +17,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 /**
- * Created by dmusican on 4/4/16.
+ * Created by dmusican. Enjoy!
  */
 public class PushPullTest {
 
@@ -80,7 +78,8 @@ public class PushPullTest {
         helperPull.mergeFromFetch();
 
         // Update lists of remote branches.
-        helperPull.callGitForRemoteBranches();
+        helperPull.getListOfLocalBranches();
+        helperPull.getListOfRemoteBranches();
 
     }
 

@@ -270,7 +270,7 @@ public class SessionController {
         if(currentRepoHelper==null) throw new NoRepoLoadedException();
         if(!currentRepoHelper.exists()) throw new MissingRepoException();
 
-        List<LocalBranchHelper> branches = currentRepoHelper.callGitForLocalBranches();
+        List<LocalBranchHelper> branches = currentRepoHelper.getListOfLocalBranches();
 
         currentRepoHelper.refreshCurrentBranch();
         LocalBranchHelper currentBranch = currentRepoHelper.getCurrentBranch();
@@ -1452,6 +1452,52 @@ public class SessionController {
             setButtonsDisabled(true);
         }
     }
+
+    /**
+     * Called when the change login button is clicked.
+     */
+    public void handleChangeLoginButton(){
+        logger.info("Username button clicked");
+        this.changeLogin();
+    }
+
+    /**
+     * Creates a new owner and sets it as the current default owner.
+     */
+    public boolean changeLogin() {
+        SessionModel sessionModel = SessionModel.getSessionModel();
+        RepoHelper repoHelper = sessionModel.getCurrentRepoHelper();
+
+        try {
+            RepoHelperBuilder.AuthDialogResponse response =
+                    RepoHelperBuilder.getAuthCredentialFromDialog(repoHelper.remoteURL);
+            repoHelper.setAuthCredentials(new UsernamePasswordCredentialsProvider(response.username,
+                                                                                  response.password));
+            repoHelper.protocol = AuthMethod.HTTPS;
+        } catch (CancelledAuthorizationException e) {
+            // take no action
+        }
+
+
+//        boolean switchedUser = true;
+//
+//        RepoHelper currentRepoHelper = theModel.getCurrentRepoHelper();
+//
+//        try {
+//            currentRepoHelper.presentUsernameDialog();
+//        } catch (CancelledUsernameException e) {
+//            switchedUser = false;
+//        }
+//
+//        this.updateLoginButtonText();
+//        if (switchedUser) {
+//            this.theModel.setCurrentDefaultUsername(currentRepoHelper.getUsername());
+//        }
+//
+//        return switchedUser;
+        return true;
+    }
+
 
     /**
      * Opens up the help page to inform users about what symbols mean

@@ -36,6 +36,7 @@ import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
+import java.util.concurrent.FutureTask;
 
 /**
  * The abstract RepoHelper class, used for interacting with a repository.
@@ -129,20 +130,20 @@ public abstract class RepoHelper {
      */
     static void wrapAuthentication(TransportCommand command, String remoteURL,
                                    UsernamePasswordCredentialsProvider ownerAuth) {
-        if (remoteURL.startsWith("https://") ||
-                remoteURL.startsWith("http://")) {
+       // if (remoteURL.startsWith("https://") ||
+       //         remoteURL.startsWith("http://")) {
 
             command.setCredentialsProvider(ownerAuth);
-        } else {
-            throw new RuntimeException("Username/password authentication attempted on non-http(s).");
-        }
+       // } else {
+       //     throw new RuntimeException("Username/password authentication attempted on non-http(s).");
+       // }
     }
 
 
     static void wrapAuthentication(TransportCommand command, String remoteURL,
                                    String password) {
 
-        if (remoteURL.startsWith("ssh://")) {
+//        if (remoteURL.startsWith("ssh://")) {
             // Explained http://www.codeaffine.com/2014/12/09/jgit-authentication/
             SshSessionFactory sshSessionFactory = new JschConfigSessionFactory() {
                 @Override
@@ -165,7 +166,7 @@ public abstract class RepoHelper {
                         }
 
                     });
-        }
+//        }
     }
 
     protected void myWrapAuthentication(TransportCommand command) {
@@ -192,7 +193,7 @@ public abstract class RepoHelper {
 
         this.localTags = this.getAllLocalTags();
 
-        this.branchManagerModel = new BranchManagerModel(this.callGitForLocalBranches(), this.callGitForRemoteBranches(), this);
+        this.branchManagerModel = new BranchManagerModel(this.getListOfLocalBranches(), this.getListOfRemoteBranches(), this);
 
         hasRemoteProperty = new SimpleBooleanProperty(!getLinkedRemoteRepoURLs().isEmpty());
 
@@ -368,7 +369,7 @@ public abstract class RepoHelper {
 //                    git.close();
 //                    return;
 //                }
-//                //this.protocol = response.protocol;
+//                this.protocol = response.protocol;
 //                this.password = response.password;
 //                this.username = response.username;
 //                myWrapAuthentication(push);
@@ -612,7 +613,7 @@ public abstract class RepoHelper {
      * @throws IOException
      */
     public List<CommitHelper> getNewLocalCommits(Map<String, BranchHelper> oldLocalBranches) throws GitAPIException, IOException{
-        return getNewCommits(oldLocalBranches, this.callGitForLocalBranches());
+        return getNewCommits(oldLocalBranches, this.getListOfLocalBranches());
     }
 
     /**
@@ -625,7 +626,7 @@ public abstract class RepoHelper {
      * @throws IOException
      */
     public List<CommitHelper> getNewRemoteCommits(Map<String, BranchHelper> oldRemoteBranches) throws GitAPIException, IOException{
-        return getNewCommits(oldRemoteBranches, this.callGitForRemoteBranches());
+        return getNewCommits(oldRemoteBranches, this.getListOfRemoteBranches());
     }
 
     /**
@@ -829,7 +830,7 @@ public abstract class RepoHelper {
         PlotCommitList<PlotLane> rawLocalCommits = parseRawCommits(headId, examinedCommitIDs);
         examinedCommitIDs.add(headId);
 
-        List<LocalBranchHelper> branches = callGitForLocalBranches();
+        List<LocalBranchHelper> branches = getListOfLocalBranches();
         for(BranchHelper branch : branches){
             ObjectId branchId = branch.getHeadId();
             PlotCommitList<PlotLane> toAdd = parseRawCommits(branchId, examinedCommitIDs);
@@ -852,7 +853,7 @@ public abstract class RepoHelper {
         List<ObjectId> examinedCommitIDs = new ArrayList<>();
         PlotCommitList<PlotLane> rawRemoteCommits = new PlotCommitList<>();
 
-        List<RemoteBranchHelper> branches = callGitForRemoteBranches();
+        List<RemoteBranchHelper> branches = getListOfRemoteBranches();
         for(BranchHelper branch : branches){
             ObjectId branchId = branch.getHeadId();
             PlotCommitList<PlotLane> toAdd = parseRawCommits(branchId, examinedCommitIDs);
@@ -1050,17 +1051,16 @@ public abstract class RepoHelper {
     }
 
     /**
-     * Utilizes JGit to get a list of all local branches
+     * Utilizes JGit to get a list of all local branches. It both returns a list of remote branches,
+     * but also simultaneously updates an instance variable holding that same list.
      * @return a list of all local branches
      * @throws GitAPIException
      * @throws IOException
      */
-    public List<LocalBranchHelper> callGitForLocalBranches() throws GitAPIException, IOException {
+    public List<LocalBranchHelper> getListOfLocalBranches() throws GitAPIException, IOException {
         List<Ref> getBranchesCall = new Git(this.repo).branchList().call();
 
-        if(localBranches != null){
-            for(BranchHelper branch : localBranches) getCommit(branch.getHeadId()).removeAsHead(branch);
-        }
+        removeBranchesFromCommitLists(localBranches);
 
         localBranches = new ArrayList<>();
 
@@ -1074,21 +1074,17 @@ public abstract class RepoHelper {
     }
 
     /**
-     * Utilizes JGit to get a list of all remote branches
+     * Utilizes JGit to get a list of all remote branches. It both returns a list of remote branches,
+     * but also simultaneously updates an instance variable holding that same list.
      * @return a list of all remote branches
      * @throws GitAPIException
      */
-    public List<RemoteBranchHelper> callGitForRemoteBranches() throws GitAPIException, IOException{
+    public List<RemoteBranchHelper> getListOfRemoteBranches() throws GitAPIException, IOException{
         List<Ref> getBranchesCall = new Git(this.repo).branchList().setListMode(ListBranchCommand.ListMode.REMOTE).call();
 
-        if(remoteBranches != null){
-            for(BranchHelper branch : remoteBranches) {
-                CommitHelper headCommit = getCommit(branch.getHeadId());
-                if (headCommit != null)
-                    headCommit.removeAsHead(branch);
-            }
-        }
+        removeBranchesFromCommitLists(remoteBranches);
 
+        // Rebuild the remote branches list from scratch.
         remoteBranches = new ArrayList<>();
 
         for (Ref ref : getBranchesCall) {
@@ -1100,6 +1096,19 @@ public abstract class RepoHelper {
         }
 
         return remoteBranches;
+    }
+
+    private void removeBranchesFromCommitLists(List<? extends BranchHelper> branches) throws IOException {
+        // Each commit (redundantly) maintains a list of which branches that commit is a head for.
+        // Since the list of remote branches is going to be completely rebuilt (see below),
+        // remove the redundant appearance of these within commit head lists.
+        if (branches != null){
+            for(BranchHelper branch : remoteBranches) {
+                CommitHelper headCommit = getCommit(branch.getHeadId());
+                if (headCommit != null)
+                    headCommit.removeAsHead(branch);
+            }
+        }
     }
 
     /**

@@ -35,11 +35,11 @@ public abstract class RepoHelperBuilder {
     }
 
     static class AuthDialogResponse {
-        public String protocol;
+        public AuthMethod protocol;
         public String username;
         public String password;
         public boolean isSelected;
-        public AuthDialogResponse(String protocol, String username, String password, boolean isSelected) {
+        public AuthDialogResponse(AuthMethod protocol, String username, String password, boolean isSelected) {
             this.protocol = protocol;
             this.username = username;
             this.password = password;
@@ -92,7 +92,8 @@ public abstract class RepoHelperBuilder {
         // Create the custom dialog.
         Dialog<AuthDialogResponse> dialog = new Dialog<>();
         dialog.setTitle("Authorize");
-        dialog.setHeaderText("Please enter your remote repository authentication.");
+        dialog.setHeaderText("Please enter your remote repository authentication.\n" +
+                             "Current URL: " + remoteURL);
 
         // Set the button types.
         ButtonType loginButtonType = new ButtonType("Authorize", ButtonBar.ButtonData.OK_DONE);
@@ -115,11 +116,9 @@ public abstract class RepoHelperBuilder {
 
         ObservableList<String> protocols =
                 FXCollections.observableArrayList(
-                        "HTTPS",
-                        "SSH/Password",
-                        "SSH/Private Key"
+                        AuthMethod.getStrings()
                 );
-        ComboBox protocol = new ComboBox(protocols);
+        ComboBox<String> protocol = new ComboBox<String>(protocols);
         protocol.setValue("HTTPS");
         grid.add(protocol,1,0);
 
@@ -199,8 +198,9 @@ public abstract class RepoHelperBuilder {
         // If the username hasn't been set yet, then update the username.
         dialog.setResultConverter(dialogButton -> {
             if (dialogButton == loginButtonType) {
-                return new AuthDialogResponse(protocol.getValue().toString(), username.getText(), password.getText(), remember.isSelected());
-                //return new Pair<>(username.getText(), new Pair<>(password.getText(), new Boolean(remember.isSelected())));
+                AuthMethod protocolEnum = AuthMethod.getEnumFromString(protocol.getValue());
+                return new AuthDialogResponse(protocolEnum, username.getText(), password.getText(),
+                                              remember.isSelected());
             }
             return null;
         });
