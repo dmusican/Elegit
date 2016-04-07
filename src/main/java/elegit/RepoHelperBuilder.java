@@ -93,7 +93,8 @@ public abstract class RepoHelperBuilder {
         // Create the custom dialog.
         Dialog<AuthDialogResponse> dialog = new Dialog<>();
         dialog.setTitle("Authorize");
-        dialog.setHeaderText("Please enter your remote repository authentication.");
+        dialog.setHeaderText("Please enter your remote repository authentication.\n" +
+                             "Current URL: " + remoteURL);
 
         // Set the button types.
         ButtonType loginButtonType = new ButtonType("Authorize", ButtonBar.ButtonData.OK_DONE);

@@ -113,7 +113,6 @@ public class SessionModel {
             ArrayList<String> storedRepoPathStrings = (ArrayList<String>) PrefObj.getObject(this.preferences, RECENT_REPOS_LIST_KEY);
             if (storedRepoPathStrings != null) {
                 for (String pathString : storedRepoPathStrings) {
-                    System.out.println(pathString);
                     Path path = Paths.get(pathString);
                     try {
                         ExistingRepoHelper existingRepoHelper = new ExistingRepoHelper(path, this.defaultUsername);

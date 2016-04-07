@@ -39,6 +39,7 @@ import org.controlsfx.control.PopOver;
 import org.controlsfx.control.action.Action;
 import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.errors.NoMergeBaseException;
+import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
 import java.awt.*;
 import java.io.IOException;
@@ -1465,6 +1466,20 @@ public class SessionController {
      * Creates a new owner and sets it as the current default owner.
      */
     public boolean changeLogin() {
+        SessionModel sessionModel = SessionModel.getSessionModel();
+        RepoHelper repoHelper = sessionModel.getCurrentRepoHelper();
+
+        try {
+            RepoHelperBuilder.AuthDialogResponse response =
+                    RepoHelperBuilder.getAuthCredentialFromDialog(repoHelper.remoteURL);
+            repoHelper.setAuthCredentials(new UsernamePasswordCredentialsProvider(response.username,
+                                                                                  response.password));
+            repoHelper.protocol = AuthMethod.HTTPS;
+        } catch (CancelledAuthorizationException e) {
+            // take no action
+        }
+
+
 //        boolean switchedUser = true;
 //
 //        RepoHelper currentRepoHelper = theModel.getCurrentRepoHelper();

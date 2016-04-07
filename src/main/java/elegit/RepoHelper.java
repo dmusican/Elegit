@@ -131,20 +131,20 @@ public abstract class RepoHelper {
      */
     static void wrapAuthentication(TransportCommand command, String remoteURL,
                                    UsernamePasswordCredentialsProvider ownerAuth) {
-        if (remoteURL.startsWith("https://") ||
-                remoteURL.startsWith("http://")) {
+       // if (remoteURL.startsWith("https://") ||
+       //         remoteURL.startsWith("http://")) {
 
             command.setCredentialsProvider(ownerAuth);
-        } else {
-            throw new RuntimeException("Username/password authentication attempted on non-http(s).");
-        }
+       // } else {
+       //     throw new RuntimeException("Username/password authentication attempted on non-http(s).");
+       // }
     }
 
 
     static void wrapAuthentication(TransportCommand command, String remoteURL,
                                    String password) {
 
-        if (remoteURL.startsWith("ssh://")) {
+//        if (remoteURL.startsWith("ssh://")) {
             // Explained http://www.codeaffine.com/2014/12/09/jgit-authentication/
             SshSessionFactory sshSessionFactory = new JschConfigSessionFactory() {
                 @Override
@@ -167,7 +167,7 @@ public abstract class RepoHelper {
                         }
 
                     });
-        }
+//        }
     }
 
     protected void myWrapAuthentication(TransportCommand command) {
