@@ -37,6 +37,7 @@ import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
+import java.util.concurrent.FutureTask;
 
 /**
  * The abstract RepoHelper class, used for interacting with a repository.
@@ -354,29 +355,29 @@ public abstract class RepoHelper {
         ProgressMonitor progress = new SimpleProgressMonitor();
         push.setProgressMonitor(progress);
 
-        boolean authUpdateNeeded = false;
-        Iterable<PushResult> pushResult = null;
-        do {
-            authUpdateNeeded = false;
-            try {
-                pushResult = push.call();
-            } catch (TransportException e) {
-                authUpdateNeeded = true;
-                RepoHelperBuilder.AuthDialogResponse response;
-                try {
-                    response = RepoHelperBuilder.getAuthCredentialFromDialog(remoteURL);
-                } catch (CancelledAuthorizationException e2) {
-                    git.close();
-                    return;
-                }
-                this.protocol = response.protocol;
-                this.password = response.password;
-                this.username = response.username;
-                myWrapAuthentication(push);
-            }
-        } while (authUpdateNeeded);
+//        boolean authUpdateNeeded = false;
+//        Iterable<PushResult> pushResult = null;
+//        do {
+//            authUpdateNeeded = false;
+//            try {
+//                pushResult = push.call();
+//            } catch (TransportException e) {
+//                authUpdateNeeded = true;
+//                RepoHelperBuilder.AuthDialogResponse response;
+//                try {
+//                    response = RepoHelperBuilder.getAuthCredentialFromDialog(remoteURL);
+//                } catch (CancelledAuthorizationException e2) {
+//                    git.close();
+//                    return;
+//                }
+//                this.protocol = response.protocol;
+//                this.password = response.password;
+//                this.username = response.username;
+//                myWrapAuthentication(push);
+//            }
+//        } while (authUpdateNeeded);
 
-        //Iterable<PushResult> pushResult = push.call();
+        Iterable<PushResult> pushResult = push.call();
         boolean allPushesWereRejected = true;
         boolean anyPushWasRejected = false;
 
