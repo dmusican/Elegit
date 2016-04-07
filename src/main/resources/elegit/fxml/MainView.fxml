@@ -88,6 +88,12 @@
 
                     <Button GridPane.columnIndex="4"
                             GridPane.rowIndex="0"
+                            fx:id="changeLoginButton"
+                            text="Change login"
+                            onAction="#handleChangeLoginButton" />
+
+                    <Button GridPane.columnIndex="5"
+                            GridPane.rowIndex="0"
                             text="Legend"
                             fx:id="legendbutton"
                             onAction="#showLegend" />

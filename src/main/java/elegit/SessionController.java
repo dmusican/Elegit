@@ -1454,6 +1454,38 @@ public class SessionController {
     }
 
     /**
+     * Called when the change login button is clicked.
+     */
+    public void handleChangeLoginButton(){
+        logger.info("Username button clicked");
+        this.changeLogin();
+    }
+
+    /**
+     * Creates a new owner and sets it as the current default owner.
+     */
+    public boolean changeLogin() {
+//        boolean switchedUser = true;
+//
+//        RepoHelper currentRepoHelper = theModel.getCurrentRepoHelper();
+//
+//        try {
+//            currentRepoHelper.presentUsernameDialog();
+//        } catch (CancelledUsernameException e) {
+//            switchedUser = false;
+//        }
+//
+//        this.updateLoginButtonText();
+//        if (switchedUser) {
+//            this.theModel.setCurrentDefaultUsername(currentRepoHelper.getUsername());
+//        }
+//
+//        return switchedUser;
+        return true;
+    }
+
+
+    /**
      * Opens up the help page to inform users about what symbols mean
      */
     public void showLegend() {
