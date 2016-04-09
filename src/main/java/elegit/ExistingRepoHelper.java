@@ -14,6 +14,7 @@ import java.nio.file.Path;
 public class ExistingRepoHelper extends RepoHelper {
     public ExistingRepoHelper(Path directoryPath, String username) throws IOException, GitAPIException, CancelledAuthorizationException{
         super(directoryPath, username);
+        setup();
     }
 
     /**

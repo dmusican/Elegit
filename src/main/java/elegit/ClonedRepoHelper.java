@@ -17,16 +17,19 @@ import java.nio.file.Path;
 public class ClonedRepoHelper extends RepoHelper {
     public ClonedRepoHelper(Path directoryPath, String remoteURL) throws IOException, GitAPIException, CancelledAuthorizationException{
         super(directoryPath, remoteURL);
+        setup();
     }
 
     public ClonedRepoHelper(Path directoryPath, String remoteURL, UsernamePasswordCredentialsProvider ownerAuth)
             throws GitAPIException, IOException, CancelledAuthorizationException {
         super(directoryPath, remoteURL, ownerAuth);
+        setup();
     }
 
     public ClonedRepoHelper(Path directoryPath, String remoteURL, String sshPassword)
             throws GitAPIException, IOException, CancelledAuthorizationException {
         super(directoryPath, remoteURL, sshPassword);
+        setup();
     }
 
     /**

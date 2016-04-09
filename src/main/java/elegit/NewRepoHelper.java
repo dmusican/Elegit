@@ -12,6 +12,7 @@ import java.nio.file.Path;
 public class NewRepoHelper extends RepoHelper {
     public NewRepoHelper(Path directoryPath, String remoteURL) throws Exception {
         super(directoryPath, remoteURL);
+        setup();
     }
 
     /**

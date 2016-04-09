@@ -93,7 +93,6 @@ public abstract class RepoHelper {
         this.localPath = directoryPath;
         this.protocol = AuthMethod.HTTP;
 
-        setup();
     }
 
     public RepoHelper(Path directoryPath, String remoteURL, UsernamePasswordCredentialsProvider ownerAuth)
@@ -102,7 +101,6 @@ public abstract class RepoHelper {
         this.remoteURL = remoteURL;
         this.ownerAuth = ownerAuth;
         this.protocol = AuthMethod.HTTPS;
-        setup();
     }
 
     public RepoHelper(Path directoryPath, String remoteURL, String sshPassword)
@@ -111,7 +109,6 @@ public abstract class RepoHelper {
         this.remoteURL = remoteURL;
         this.password = sshPassword;
         this.protocol = AuthMethod.SSHPASSWORD;
-        setup();
     }
 
     /// Constructor for ExistingRepoHelpers to inherit (they don't need the Remote URL)
@@ -119,8 +116,6 @@ public abstract class RepoHelper {
         this.username = null;
         this.protocol = null;
         this.localPath = directoryPath;
-
-        setup();
 
     }
 
@@ -179,7 +174,7 @@ public abstract class RepoHelper {
     }
 
     // Common setup tasks shared by constructors
-    private void setup() throws GitAPIException, IOException, CancelledAuthorizationException {
+    protected void setup() throws GitAPIException, IOException, CancelledAuthorizationException {
         this.username = null;
         this.repo = this.obtainRepository();
 
