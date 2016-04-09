@@ -11,7 +11,6 @@ import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Window;
-import javafx.util.Pair;
 import main.java.elegit.exceptions.CancelledAuthorizationException;
 import main.java.elegit.exceptions.NoRepoSelectedException;
 import org.apache.logging.log4j.LogManager;

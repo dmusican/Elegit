@@ -18,7 +18,6 @@ import org.controlsfx.control.NotificationPane;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
-import org.eclipse.jgit.api.errors.TransportException;
 import org.eclipse.jgit.ignore.IgnoreNode;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.revplot.PlotCommitList;

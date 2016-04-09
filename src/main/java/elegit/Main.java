@@ -3,9 +3,7 @@ package main.java.elegit;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
-import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
-import javafx.scene.control.MenuItem;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
@@ -60,14 +58,8 @@ public class Main extends Application {
 
         Scene scene = new Scene(root, 1200, 650); // width, height
 
-        // create the menu here
-        MenuBar menuBar = new MenuBar();
-        Menu menuFile = new Menu("File");
-        MenuItem openGitIgnoreItem = new MenuItem("Edit .gitignore...");
-        openGitIgnoreItem.setOnAction(event -> GitIgnoreEditor.show(SessionModel.getSessionModel().getCurrentRepoHelper(), null));
-        menuFile.getItems().add(openGitIgnoreItem);
-        Menu menuEdit = new Menu("Edit");
-        menuBar.getMenus().addAll(menuFile, menuEdit);
+        // create the menubar here
+        MenuBar menuBar = MenuPopulator.getInstance().populate();
         ((Pane) scene.getRoot()).getChildren().addAll(menuBar);
 
         primaryStage.setScene(scene);
