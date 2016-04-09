@@ -39,6 +39,7 @@ import org.controlsfx.control.PopOver;
 import org.controlsfx.control.action.Action;
 import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.errors.NoMergeBaseException;
+import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
 import java.awt.*;
 import java.io.IOException;
