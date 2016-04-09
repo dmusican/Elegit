@@ -128,7 +128,7 @@ public abstract class RepoHelper {
         lsRemoteRepository, for example, that is used before we've actually created a RepoHelper object. Without a
         RepoHelper, there isn't an ownerAuth instance variable, so we don't have it yet.
      */
-    static void wrapAuthentication(TransportCommand command, String remoteURL,
+    static void wrapAuthentication(TransportCommand command,
                                    UsernamePasswordCredentialsProvider ownerAuth) {
        // if (remoteURL.startsWith("https://") ||
        //         remoteURL.startsWith("http://")) {
@@ -140,8 +140,7 @@ public abstract class RepoHelper {
     }
 
 
-    static void wrapAuthentication(TransportCommand command, String remoteURL,
-                                   String password) {
+    static void wrapAuthentication(TransportCommand command, String password) {
 
 //        if (remoteURL.startsWith("ssh://")) {
             // Explained http://www.codeaffine.com/2014/12/09/jgit-authentication/
@@ -173,9 +172,9 @@ public abstract class RepoHelper {
         if (this.protocol.equals(AuthMethod.HTTP)) {
             // do nothing
         } else if (this.protocol.equals(AuthMethod.HTTPS)) {
-            wrapAuthentication(command, remoteURL, ownerAuth);
+            wrapAuthentication(command, ownerAuth);
         } else if (this.protocol.equals(AuthMethod.SSHPASSWORD)) {
-            wrapAuthentication(command, remoteURL, password);
+            wrapAuthentication(command, password);
         }
     }
 

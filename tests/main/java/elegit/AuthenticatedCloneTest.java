@@ -106,7 +106,7 @@ public class AuthenticatedCloneTest {
         UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider(username, password);
 
         TransportCommand command = Git.lsRemoteRepository().setRemote(remoteURL);
-        RepoHelper.wrapAuthentication(command, remoteURL, credentials);
+        RepoHelper.wrapAuthentication(command, credentials);
         command.call();
     }
 
@@ -129,7 +129,7 @@ public class AuthenticatedCloneTest {
         String password = scanner.next();
 
         TransportCommand command = Git.lsRemoteRepository().setRemote(remoteURL);
-        RepoHelper.wrapAuthentication(command, remoteURL, password);
+        RepoHelper.wrapAuthentication(command, password);
         command.call();
     }
 
