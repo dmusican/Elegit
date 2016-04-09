@@ -1471,7 +1471,7 @@ public class SessionController {
 
         try {
             RepoHelperBuilder.AuthDialogResponse response =
-                    RepoHelperBuilder.getAuthCredentialFromDialog(repoHelper.remoteURL);
+                    RepoHelperBuilder.getAuthCredentialFromDialog();
             repoHelper.setAuthCredentials(new UsernamePasswordCredentialsProvider(response.username,
                                                                                   response.password));
             repoHelper.protocol = AuthMethod.HTTPS;
