@@ -156,7 +156,7 @@
                         >
                             <image>
                                 <Image
-                                        url = "@browser.png"
+                                        url = "@browser_image.png"
                                 />
                             </image>
                         </ImageView>

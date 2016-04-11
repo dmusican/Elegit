@@ -8,12 +8,12 @@ import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
+import javafx.scene.image.Image;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.config.ConfigurationSource;
 import org.apache.logging.log4j.core.config.Configurator;
 import org.apache.logging.log4j.core.config.xml.XmlConfigurationFactory;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -54,6 +54,10 @@ public class Main extends Application {
         Pane root = FXMLLoader.load(getClass().getResource
                 ("/elegit/fxml/MainView.fxml"));
         primaryStage.setTitle("Elegit");
+        //sets the icon
+
+        Image img = new Image("file:/images/unicorn.png");
+        primaryStage.getIcons().add(img);
         primaryStage.setOnCloseRequest(event -> logger.info("Closed"));
 
         BusyWindow.setParentWindow(primaryStage);
