@@ -2,13 +2,14 @@ package main.java.elegit;
 
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Scene;
+import javafx.scene.*;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
-import javafx.scene.image.Image;
+import javafx.scene.image.*;
+import javafx.scene.layout.HBox;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.config.ConfigurationSource;
@@ -54,10 +55,11 @@ public class Main extends Application {
         Pane root = FXMLLoader.load(getClass().getResource
                 ("/elegit/fxml/MainView.fxml"));
         primaryStage.setTitle("Elegit");
-        //sets the icon
 
-        Image img = new Image("file:/images/unicorn.png");
+        //sets the icon
+        Image img = new Image("https://openmerchantaccount.com/img2/elegit_icon.png");
         primaryStage.getIcons().add(img);
+
         primaryStage.setOnCloseRequest(event -> logger.info("Closed"));
 
         BusyWindow.setParentWindow(primaryStage);
