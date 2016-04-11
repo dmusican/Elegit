@@ -1,7 +1,7 @@
 package main.java.elegit;
 
 /**
- * Created by Eric on 1/13/2016.
+ * Class for uploading logged data
  */
 
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -18,7 +18,7 @@ import java.io.File;
 import java.io.FileInputStream;
 
 public class DataSubmitter {
-    private static final String submitUrl = "http://localhost:8080"; //for testing, keeping the local one
+    private static final String submitUrl = "http://elegit.mathcs.carleton.edu/logging"; //for testing, keeping the local one
     private static final Logger logger = LogManager.getLogger();
     public DataSubmitter() {
     }
@@ -71,5 +71,6 @@ public class DataSubmitter {
             //TODO: deal with the possibility of files not being correctly deleted
             logger.info("File upload was successful");
         }
+
     }
 }
