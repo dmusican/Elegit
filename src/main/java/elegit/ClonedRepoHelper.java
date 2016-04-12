@@ -23,14 +23,14 @@ public class ClonedRepoHelper extends RepoHelper {
 
     public ClonedRepoHelper(Path directoryPath, String remoteURL, UsernamePasswordCredentialsProvider ownerAuth)
             throws GitAPIException, IOException, CancelledAuthorizationException {
-        super(directoryPath, remoteURL, ownerAuth);
+        super(directoryPath, ownerAuth);
         repo = obtainRepository(remoteURL);
         setup();
     }
 
     public ClonedRepoHelper(Path directoryPath, String remoteURL, String sshPassword)
             throws GitAPIException, IOException, CancelledAuthorizationException {
-        super(directoryPath, remoteURL, sshPassword);
+        super(directoryPath, sshPassword);
         repo = obtainRepository(remoteURL);
         setup();
     }

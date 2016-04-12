@@ -49,7 +49,6 @@ public abstract class RepoHelper {
     protected String password;
 
     protected Repository repo;
-    protected String remoteURL;
 
     protected Path localPath;
 
@@ -94,18 +93,16 @@ public abstract class RepoHelper {
 
     }
 
-    public RepoHelper(Path directoryPath, String remoteURL, UsernamePasswordCredentialsProvider ownerAuth)
+    public RepoHelper(Path directoryPath, UsernamePasswordCredentialsProvider ownerAuth)
             throws GitAPIException, IOException, CancelledAuthorizationException {
         this.localPath = directoryPath;
-        this.remoteURL = remoteURL;
         this.ownerAuth = ownerAuth;
         this.protocol = AuthMethod.HTTPS;
     }
 
-    public RepoHelper(Path directoryPath, String remoteURL, String sshPassword)
+    public RepoHelper(Path directoryPath, String sshPassword)
             throws GitAPIException, IOException, CancelledAuthorizationException {
         this.localPath = directoryPath;
-        this.remoteURL = remoteURL;
         this.password = sshPassword;
         this.protocol = AuthMethod.SSHPASSWORD;
     }
