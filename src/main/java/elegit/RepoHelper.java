@@ -87,7 +87,7 @@ public abstract class RepoHelper {
      * @throws CancelledAuthorizationException if the obtainRepository() call throws this exception.
      */
     public RepoHelper(Path directoryPath, String remoteURL) throws GitAPIException, IOException, CancelledAuthorizationException {
-        this.remoteURL = remoteURL;
+        //this.remoteURL = remoteURL;
         this.username = null;
 
         this.localPath = directoryPath;
@@ -197,15 +197,6 @@ public abstract class RepoHelper {
         return localPath.toFile().exists() && localPath.toFile().list((dir, name) -> name.equals(".git")).length > 0;
     }
 
-    /**
-     * Gets or builds the repository using the appropriate method for
-     * the kind of repository (new, cloned, or existing).
-     *
-     * @return the RepoHelper's repository.
-     * @throws GitAPIException (see subclasses).
-     * @throws IOException (see subclasses).
-     */
-    protected abstract Repository obtainRepository() throws GitAPIException, IOException, CancelledAuthorizationException;
 
     /**
      * Adds a file to the repository.

@@ -17,21 +17,21 @@ import java.nio.file.Path;
 public class ClonedRepoHelper extends RepoHelper {
     public ClonedRepoHelper(Path directoryPath, String remoteURL) throws IOException, GitAPIException, CancelledAuthorizationException{
         super(directoryPath, remoteURL);
-        repo = obtainRepository();
+        repo = obtainRepository(remoteURL);
         setup();
     }
 
     public ClonedRepoHelper(Path directoryPath, String remoteURL, UsernamePasswordCredentialsProvider ownerAuth)
             throws GitAPIException, IOException, CancelledAuthorizationException {
         super(directoryPath, remoteURL, ownerAuth);
-        repo = obtainRepository();
+        repo = obtainRepository(remoteURL);
         setup();
     }
 
     public ClonedRepoHelper(Path directoryPath, String remoteURL, String sshPassword)
             throws GitAPIException, IOException, CancelledAuthorizationException {
         super(directoryPath, remoteURL, sshPassword);
-        repo = obtainRepository();
+        repo = obtainRepository(remoteURL);
         setup();
     }
 
@@ -42,10 +42,9 @@ public class ClonedRepoHelper extends RepoHelper {
      * @return the RepoHelper's associated Repository object.
      * @throws GitAPIException if the `git clone` call fails.
      */
-    @Override
-    protected Repository obtainRepository() throws GitAPIException, CancelledAuthorizationException {
+    protected Repository obtainRepository(String remoteURL) throws GitAPIException, CancelledAuthorizationException {
         CloneCommand cloneCommand = Git.cloneRepository();
-        cloneCommand.setURI(this.remoteURL);
+        cloneCommand.setURI(remoteURL);
         myWrapAuthentication(cloneCommand);
         File destination = this.localPath.toFile();
         cloneCommand.setDirectory(destination);
