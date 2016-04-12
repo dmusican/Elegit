@@ -1583,6 +1583,10 @@ public class SessionController {
                             } catch (GitAPIException e) {
                                 e.printStackTrace();
                             }
+                            if (!theModel.getCurrentRepoHelper().hasUnpushedTags()) {
+                                pushTagsButton.setVisible(false);
+                                pushButton.setVisible(true);
+                            }
                             gitStatus();
                             clearSelectedCommit();
                             selectCommit(id);
