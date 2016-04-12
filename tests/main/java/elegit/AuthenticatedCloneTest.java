@@ -57,15 +57,25 @@ public class AuthenticatedCloneTest {
         command.call();
     }
 
+    @Test
+    public void testHttpUsernamePasswordPublic() throws Exception {
+        testHttpUsernamePassword("httpUsernamePassword.txt");
+    }
+
+    @Test
+    public void testHttpUsernamePasswordPrivate() throws Exception {
+        testHttpUsernamePassword("httpUsernamePasswordPrivate.txt");
+    }
+
+
     /* The httpUsernamePassword should contain three lines, containing:
         repo http(s) address
         username
         password
      */
-    @Test
-    public void testHttpUsernamePassword() throws Exception {
+    public void testHttpUsernamePassword(String filename) throws Exception {
         Path repoPath = directoryPath.resolve("testrepo");
-        File authData = new File(testFileLocation + "httpUsernamePassword.txt");
+        File authData = new File(testFileLocation + filename);
 
         // If a developer does not have this file present, test should just pass.
         if (!authData.exists())
