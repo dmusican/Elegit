@@ -195,6 +195,7 @@ public abstract class RepoHelper {
         this.tagsWithUnpushedCommits = new ArrayList<>();
 
         this.upToDateTags = this.getAllLocalTags();
+        this.unpushedTags = new ArrayList<>();
 
         this.branchManagerModel = new BranchManagerModel(this.getListOfLocalBranches(), this.getListOfRemoteBranches(), this);
 
@@ -291,6 +292,9 @@ public abstract class RepoHelper {
      * @return true if there are local tags that haven't been pushed
      */
     public boolean hasUnpushedTags(){
+        if (this.unpushedTags==null || this.unpushedTags.size()==0) {
+            this.hasUnpushedTagsProperty.set(false);
+        }
         return hasUnpushedTagsProperty.get();
     }
 
@@ -338,6 +342,7 @@ public abstract class RepoHelper {
         Ref r = git.tag().setName(tagName).setObjectId(c.getCommit()).setAnnotated(false).call();
         git.close();
         TagHelper t = makeTagHelper(r,tagName);
+        this.unpushedTags.add(t);
         this.hasUnpushedTagsProperty.set(true);
     }
 
@@ -435,6 +440,8 @@ public abstract class RepoHelper {
         }
 
         git.close();
+        this.upToDateTags.addAll(this.unpushedTags);
+        this.unpushedTags = new ArrayList<>();
         this.hasUnpushedTagsProperty.set(false);
     }
 
@@ -580,9 +587,16 @@ public abstract class RepoHelper {
         git.close();
 
         tagToRemove.getCommit().removeTag(tagName);
-        this.upToDateTags.remove(tagToRemove);
+        if (!this.upToDateTags.remove(tagToRemove)) {
+            this.unpushedTags.remove(tagToRemove);
+            if (this.unpushedTags.size()==0) {
+                this.hasUnpushedTagsProperty.set(false);
+            }
+        }
+        else {
+            this.hasUnpushedTagsProperty.set(true);
+        }
         this.tagIdMap.remove(tagName);
-        this.hasUnpushedTagsProperty.set(true);
     }
 
     /**
@@ -1317,6 +1331,16 @@ public abstract class RepoHelper {
 
     public UsernamePasswordCredentialsProvider getOwnerAuthCredentials() throws CancelledAuthorizationException {
         return this.ownerAuth;
+    }
+
+    public void setUnpushedTags(List<TagHelper> tags) {
+        for (TagHelper tag: tags) {
+            if (this.upToDateTags.contains(tag)) {
+                this.upToDateTags.remove(tag);
+            }
+            this.unpushedTags.add(tag);
+        }
+        this.hasUnpushedTagsProperty.set(true);
     }
 
     /**

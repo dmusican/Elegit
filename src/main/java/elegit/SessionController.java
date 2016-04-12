@@ -220,6 +220,11 @@ public class SessionController {
         if (this.theModel.getCurrentRepoHelper()!= null && this.theModel.getCurrentRepoHelper().hasTagsWithUnpushedCommits()) {
             this.showTagPointsToUnpushedCommitNotification();
         }
+        // If some tags point to a commit in the remote tree, then these are unpushed tags,
+        // so we add them to the repohelper
+        if (remoteCommitTreeModel.getTagsToBePushed() != null) {
+            this.theModel.getCurrentRepoHelper().setUnpushedTags(remoteCommitTreeModel.getTagsToBePushed());
+        }
     }
 
     /**

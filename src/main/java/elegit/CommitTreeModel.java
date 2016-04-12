@@ -35,6 +35,9 @@ public abstract class CommitTreeModel{
     // A map from branch names to the branches themselves
     private Map<String, BranchHelper> branchMap;
 
+    // A list of tags that haven't been pushed yet
+    public List<TagHelper> tagsToBePushed;
+
     static final Logger logger = LogManager.getLogger();
 
     /**
@@ -164,7 +167,9 @@ public abstract class CommitTreeModel{
 
         // If there are tags in the repo that haven't been pushed, allow them to be pushed
         if (invisCommit.getTags() != null) {
-
+            if (tagsToBePushed == null)
+                tagsToBePushed = new ArrayList<>();
+            tagsToBePushed.addAll(invisCommit.getTags());
         }
     }
 
@@ -418,5 +423,10 @@ public abstract class CommitTreeModel{
      */
     public List<BranchHelper> getBranches(){
         return branches;
+    }
+
+
+    public List<TagHelper> getTagsToBePushed() {
+        return tagsToBePushed;
     }
 }
