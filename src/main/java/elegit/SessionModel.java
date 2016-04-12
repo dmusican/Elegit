@@ -41,8 +41,6 @@ public class SessionModel {
     List<RepoHelper> allRepoHelpers;
     private static SessionModel sessionModel;
 
-    private String defaultUsername;
-
     Preferences preferences;
 
     static final Logger logger = LogManager.getLogger();
@@ -204,17 +202,6 @@ public class SessionModel {
      */
     public Repository getCurrentRepo() {
         return this.currentRepoHelper.getRepo();
-    }
-
-    /**
-     * @return the default owner that will be assigned to new repositories
-     */
-    public String getDefaultUsername() {
-        return this.defaultUsername;
-    }
-
-    public void setCurrentDefaultUsername(String username) {
-        this.defaultUsername = username;
     }
 
     /**
