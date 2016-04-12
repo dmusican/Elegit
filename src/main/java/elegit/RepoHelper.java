@@ -48,7 +48,7 @@ public abstract class RepoHelper {
     public String username;
     protected String password;
 
-    private Repository repo;
+    protected Repository repo;
     protected String remoteURL;
 
     protected Path localPath;
@@ -175,8 +175,8 @@ public abstract class RepoHelper {
 
     // Common setup tasks shared by constructors
     protected void setup() throws GitAPIException, IOException, CancelledAuthorizationException {
+        //this.repo = this.obtainRepository();
         this.username = null;
-        this.repo = this.obtainRepository();
 
         this.commitIdMap = new HashMap<>();
         this.idMap = new HashMap<>();
