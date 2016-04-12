@@ -108,7 +108,7 @@ public class PushPullTest {
         Path repoPathPull = directoryPath.resolve("pushpull2");
         ClonedRepoHelper clonedHelperPull = new ClonedRepoHelper(repoPathPull, remoteURL, credentials);
         assertNotNull(clonedHelperPull);
-        ExistingRepoHelper existingHelperPull = new ExistingRepoHelper(repoPathPull, username);
+        ExistingRepoHelper existingHelperPull = new ExistingRepoHelper(repoPathPull);
 
         // Update the file, then commit and push
         Path readmePath = repoPathPush.resolve("README.md");

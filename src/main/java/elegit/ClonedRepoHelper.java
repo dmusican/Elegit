@@ -16,7 +16,7 @@ import java.nio.file.Path;
  */
 public class ClonedRepoHelper extends RepoHelper {
     public ClonedRepoHelper(Path directoryPath, String remoteURL) throws IOException, GitAPIException, CancelledAuthorizationException{
-        super(directoryPath, remoteURL);
+        super(directoryPath);
         repo = obtainRepository(remoteURL);
         setup();
     }

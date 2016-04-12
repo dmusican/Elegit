@@ -86,8 +86,7 @@ public abstract class RepoHelper {
      * @throws IOException if the obtainRepository() call throws this exception.
      * @throws CancelledAuthorizationException if the obtainRepository() call throws this exception.
      */
-    public RepoHelper(Path directoryPath, String remoteURL) throws GitAPIException, IOException, CancelledAuthorizationException {
-        //this.remoteURL = remoteURL;
+    public RepoHelper(Path directoryPath) throws GitAPIException, IOException, CancelledAuthorizationException {
         this.username = null;
 
         this.localPath = directoryPath;
