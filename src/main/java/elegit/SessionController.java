@@ -10,7 +10,7 @@ import javafx.concurrent.Task;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.geometry.*;
+import javafx.geometry.Side;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -275,7 +275,7 @@ public class SessionController {
         if(currentRepoHelper==null) throw new NoRepoLoadedException();
         if(!currentRepoHelper.exists()) throw new MissingRepoException();
 
-        List<LocalBranchHelper> branches = currentRepoHelper.callGitForLocalBranches();
+        List<LocalBranchHelper> branches = currentRepoHelper.getListOfLocalBranches();
 
         currentRepoHelper.refreshCurrentBranch();
         LocalBranchHelper currentBranch = currentRepoHelper.getCurrentBranch();
@@ -676,26 +676,13 @@ public class SessionController {
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
             if(!this.theModel.getCurrentRepoHelper().hasUnpushedCommits()) throw new NoCommitsToPushException();
 
-            pushButton.setVisible(false);
-            pushProgressIndicator.setVisible(true);
-
-            UsernamePasswordCredentialsProvider ownerAuth;
-
-            try {
-               ownerAuth = getAuth();
-            } catch (CancelledAuthorizationException e) {
-                pushButton.setVisible(true);
-                pushProgressIndicator.setVisible(false);
-                return;
-            }
-
             Thread th = new Thread(new Task<Void>(){
                 @Override
                 protected Void call() {
                     boolean pushed = false;
                     try{
                         RepositoryMonitor.resetFoundNewChanges(false);
-                        theModel.getCurrentRepoHelper().pushAll(ownerAuth);
+                        theModel.getCurrentRepoHelper().pushAll();
                         gitStatus();
                         pushed = true;
                     }  catch(InvalidRemoteException e){
@@ -762,27 +749,13 @@ public class SessionController {
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
             if(!this.theModel.getCurrentRepoHelper().hasUnpushedTags()) throw new NoTagsToPushException();
 
-            pushTagsButton.setVisible(false);
-            pushProgressIndicator.setVisible(true);
-
-            UsernamePasswordCredentialsProvider ownerAuth;
-
-            try {
-                System.out.println("getting auth");
-                ownerAuth = getAuth();
-            } catch (CancelledAuthorizationException e) {
-                pushTagsButton.setVisible(true);
-                pushProgressIndicator.setVisible(false);
-                return;
-            }
-
             Thread th = new Thread(new Task<Void>(){
                 @Override
                 protected Void call() {
                     boolean tagsPushed = true;
                     try{
                         RepositoryMonitor.resetFoundNewChanges(false);
-                        theModel.getCurrentRepoHelper().pushTags(ownerAuth);
+                        theModel.getCurrentRepoHelper().pushTags();
                         gitStatus();
                     }  catch(InvalidRemoteException e){
                         showNoRemoteNotification();
@@ -863,25 +836,12 @@ public class SessionController {
 
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
 
-            fetchButton.setVisible(false);
-            fetchProgressIndicator.setVisible(true);
-
-            UsernamePasswordCredentialsProvider ownerAuth;
-
-            try {
-                ownerAuth = getAuth();
-            } catch (CancelledAuthorizationException e) {
-                fetchButton.setVisible(true);
-                fetchProgressIndicator.setVisible(false);
-                return;
-            }
-
             Thread th = new Thread(new Task<Void>(){
                 @Override
                 protected Void call() {
                     try{
                         RepositoryMonitor.resetFoundNewChanges(false);
-                        if(!theModel.getCurrentRepoHelper().fetch(ownerAuth)){
+                        if(!theModel.getCurrentRepoHelper().fetch()){
                             showNoCommitsFetchedNotification();
                         }
                         gitStatus();
@@ -1138,21 +1098,6 @@ public class SessionController {
             this.showGenericErrorNotification();
             e.printStackTrace();
         }
-    }
-
-    /**
-     * Asks the user for authorization to interact with the remote.
-     */
-    public UsernamePasswordCredentialsProvider getAuth() throws CancelledAuthorizationException {
-
-        RepoHelper currentRepoHelper = this.theModel.getCurrentRepoHelper();
-
-        UsernamePasswordCredentialsProvider ownerAuth =
-                currentRepoHelper.getOwnerAuthCredentials();
-
-        this.theModel.setCurrentDefaultUsername(currentRepoHelper.getUsername());
-
-        return ownerAuth;
     }
 
     /**
@@ -1534,6 +1479,52 @@ public class SessionController {
             setButtonsDisabled(true);
         }
     }
+
+    /**
+     * Called when the change login button is clicked.
+     */
+    public void handleChangeLoginButton(){
+        logger.info("Username button clicked");
+        this.changeLogin();
+    }
+
+    /**
+     * Creates a new owner and sets it as the current default owner.
+     */
+    public boolean changeLogin() {
+        SessionModel sessionModel = SessionModel.getSessionModel();
+        RepoHelper repoHelper = sessionModel.getCurrentRepoHelper();
+
+        try {
+            RepoHelperBuilder.AuthDialogResponse response =
+                    RepoHelperBuilder.getAuthCredentialFromDialog(repoHelper.remoteURL);
+            repoHelper.setAuthCredentials(new UsernamePasswordCredentialsProvider(response.username,
+                                                                                  response.password));
+            repoHelper.protocol = AuthMethod.HTTPS;
+        } catch (CancelledAuthorizationException e) {
+            // take no action
+        }
+
+
+//        boolean switchedUser = true;
+//
+//        RepoHelper currentRepoHelper = theModel.getCurrentRepoHelper();
+//
+//        try {
+//            currentRepoHelper.presentUsernameDialog();
+//        } catch (CancelledUsernameException e) {
+//            switchedUser = false;
+//        }
+//
+//        this.updateLoginButtonText();
+//        if (switchedUser) {
+//            this.theModel.setCurrentDefaultUsername(currentRepoHelper.getUsername());
+//        }
+//
+//        return switchedUser;
+        return true;
+    }
+
 
     /**
      * Opens up the help page to inform users about what symbols mean

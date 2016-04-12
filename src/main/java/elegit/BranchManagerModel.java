@@ -39,7 +39,7 @@ public class BranchManagerModel {
     public List<RemoteBranchHelper> getUpdatedRemoteBranches()
             throws GitAPIException, IOException {
 
-        this.remoteBranches = this.repoHelper.callGitForRemoteBranches();
+        this.remoteBranches = this.repoHelper.getListOfRemoteBranches();
         return remoteBranches;
     }
 }

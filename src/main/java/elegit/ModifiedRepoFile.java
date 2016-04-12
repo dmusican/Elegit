@@ -3,7 +3,6 @@ package main.java.elegit;
 import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.lib.Repository;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;

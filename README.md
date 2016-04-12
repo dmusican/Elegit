@@ -15,3 +15,4 @@ A graphics-based Git client for teaching people both how to work Git and how Git
 Supervised by Dave Musicant.
 
 Carleton College 2015-2016.
+1

@@ -10,14 +10,16 @@ import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Repository;
-import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
+import javax.xml.bind.DatatypeConverter;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
@@ -543,6 +545,55 @@ public class SessionModel {
     public void clearStoredPreferences() throws BackingStoreException, IOException, ClassNotFoundException {
         PrefObj.putObject(this.preferences, RECENT_REPOS_LIST_KEY, null);
         PrefObj.putObject(this.preferences, LAST_OPENED_REPO_PATH_KEY, null);
+    }
+
+    public void setAuthPref(String pathname, AuthMethod authTechnique) {
+        Preferences authPrefs = preferences.node("authentication");
+        authPrefs.putInt(hashPathname(pathname), authTechnique.getEnumValue());
+    }
+
+    public AuthMethod getAuthPref(String pathname)  {
+        Preferences authPrefs = preferences.node("authentication");
+        int enumValue = authPrefs.getInt(hashPathname(pathname), -1);
+        if (enumValue == -1)
+            throw new NoSuchElementException("AuthPref not present");
+
+        return AuthMethod.getEnumFromValue(enumValue);
+    }
+
+    public void removeAuthPref(String pathname) {
+        Preferences authPrefs = preferences.node("authentication");
+        authPrefs.remove(hashPathname(pathname));
+    }
+
+    public String[] listAuthPaths() {
+        Preferences authPrefs = preferences.node("authentication");
+        try {
+            return authPrefs.keys();
+        } catch (BackingStoreException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    // Preferences API has a limit of 80 characters max, and some pathnames
+    // may be longer than that. Hashing it will solve that problem.
+    String hashPathname(String pathname) {
+        MessageDigest md = null;
+        try {
+            md = MessageDigest.getInstance("SHA");
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
+        md.update(pathname.getBytes());
+        String prefKey = null;
+        //try {
+            //prefKey = new String(md.digest(), "US-ASCII");
+            prefKey = DatatypeConverter.printHexBinary(md.digest());
+            //prefKey = "hello";
+//        } catch (UnsupportedEncodingException e) {
+//            throw new RuntimeException(e);
+//        }
+        return prefKey;
     }
 
     public void removeRepoHelpers(List<RepoHelper> checkedItems) {
