@@ -90,10 +90,18 @@ public class AuthenticatedCloneTest {
     }
 
     @Test
-    public void testLsHttpUsernamePassword() throws Exception {
+    public void testLshHttpUsernamePasswordPublic() throws Exception {
+        testLsHttpUsernamePassword("httpUsernamePassword.txt");
+    }
 
-        Path repoPath = directoryPath.resolve("testrepo");
-        File authData = new File(testFileLocation + "httpUsernamePassword.txt");
+    @Test
+    public void testLshHttpUsernamePasswordPrivate() throws Exception {
+        testLsHttpUsernamePassword("httpUsernamePasswordPrivate.txt");
+    }
+
+    public void testLsHttpUsernamePassword(String filename) throws Exception {
+
+        File authData = new File(testFileLocation + filename);
 
         // If a developer does not have this file present, test should just pass.
         if (!authData.exists())
