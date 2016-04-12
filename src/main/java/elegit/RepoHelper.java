@@ -111,14 +111,6 @@ public abstract class RepoHelper {
         this.protocol = AuthMethod.SSHPASSWORD;
     }
 
-    /// Constructor for ExistingRepoHelpers to inherit (they don't need the Remote URL)
-    public RepoHelper(Path directoryPath) throws GitAPIException, IOException, CancelledAuthorizationException {
-        this.username = null;
-        this.protocol = null;
-        this.localPath = directoryPath;
-
-    }
-
     /* This method requires credentials be passed in as a parameter; that's because it must be used by
         lsRemoteRepository, for example, that is used before we've actually created a RepoHelper object. Without a
         RepoHelper, there isn't an ownerAuth instance variable, so we don't have it yet.
