@@ -58,7 +58,7 @@ public class Main extends Application {
         primaryStage.setTitle("Elegit");
 
         //sets the icon
-        Image img = new Image("https://openmerchantaccount.com/img2/elegit_icon.png");
+        Image img = new Image("file:src/main/resources/elegit/elegit_icon.png");
         primaryStage.getIcons().add(img);
 
         //puts text over the browser image
