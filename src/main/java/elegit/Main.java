@@ -3,6 +3,8 @@ package main.java.elegit;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.*;
+import javafx.scene.text.Text;
+import javafx.scene.layout.StackPane;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
@@ -58,6 +60,10 @@ public class Main extends Application {
         //sets the icon
         Image img = new Image("https://openmerchantaccount.com/img2/elegit_icon.png");
         primaryStage.getIcons().add(img);
+
+        //puts text over the browser image
+        Text txt = new Text(1075, 130, "HARDCODED");
+        root.getChildren().add(txt);
 
         primaryStage.setOnCloseRequest(event -> logger.info("Closed"));
 
