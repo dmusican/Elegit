@@ -216,6 +216,15 @@ public class SessionController {
             if(newValue) showNewRemoteChangesNotification();
         });
         RepositoryMonitor.beginWatchingLocal(this, theModel);
+
+        if (this.theModel.getCurrentRepoHelper()!= null && this.theModel.getCurrentRepoHelper().hasTagsWithUnpushedCommits()) {
+            this.showTagPointsToUnpushedCommitNotification();
+        }
+        // If some tags point to a commit in the remote tree, then these are unpushed tags,
+        // so we add them to the repohelper
+        if (remoteCommitTreeModel.getTagsToBePushed() != null) {
+            this.theModel.getCurrentRepoHelper().setUnpushedTags(remoteCommitTreeModel.getTagsToBePushed());
+        }
     }
 
     /**
@@ -566,8 +575,10 @@ public class SessionController {
                         e.printStackTrace();
                     }
 
-                    pushTagsButton.setVisible(true);
-                    pushButton.setVisible(false);
+                    if (!theModel.getCurrentRepoHelper().hasUnpushedCommits()) {
+                        pushTagsButton.setVisible(true);
+                        pushButton.setVisible(false);
+                    }
                     tagNameField.setText("");
                     clearSelectedCommit();
                     selectCommit(theModel.getCurrentRepoHelper().getTag(tagName).getCommitId());
@@ -673,10 +684,12 @@ public class SessionController {
             Thread th = new Thread(new Task<Void>(){
                 @Override
                 protected Void call() {
+                    boolean pushed = false;
                     try{
                         RepositoryMonitor.resetFoundNewChanges(false);
                         theModel.getCurrentRepoHelper().pushAll();
                         gitStatus();
+                        pushed = true;
                     }  catch(InvalidRemoteException e){
                         showNoRemoteNotification();
                     } catch(PushToAheadRemoteError e) {
@@ -701,6 +714,10 @@ public class SessionController {
                     } finally{
                         pushProgressIndicator.setVisible(false);
                         pushButton.setVisible(true);
+                        if (pushed && theModel.getCurrentRepoHelper().hasUnpushedTags()) {
+                            pushTagsButton.setVisible(true);
+                            pushButton.setVisible(false);
+                        }
                     }
                     return null;
                 }
@@ -885,7 +902,11 @@ public class SessionController {
                 try{
                     localCommitTreeModel.update();
                     remoteCommitTreeModel.update();
-                    theModel.getCurrentRepoHelper().updateTags();
+                    if (theModel.getCurrentRepoHelper().updateTags()) {
+                        if (theModel.getCurrentRepoHelper().hasTagsWithUnpushedCommits()) {
+                            showTagPointsToUnpushedCommitNotification();
+                        }
+                    }
 
                     workingTreePanelView.drawDirectoryView();
                     allFilesPanelView.drawDirectoryView();
@@ -1433,6 +1454,16 @@ public class SessionController {
         });
     }
 
+    private void showTagPointsToUnpushedCommitNotification() {
+        Platform.runLater(() -> {
+            logger.warn("Tag points to unpushed warning.");
+            this.notificationPane.setText("A tag points to an unpushed commit.");
+
+            this.notificationPane.getActions().clear();
+            this.notificationPane.show();
+        });
+    }
+
     // END: ERROR NOTIFICATIONS ^^^
 
     /**
@@ -1551,6 +1582,10 @@ public class SessionController {
                                 e.printStackTrace();
                             } catch (GitAPIException e) {
                                 e.printStackTrace();
+                            }
+                            if (!theModel.getCurrentRepoHelper().hasUnpushedTags()) {
+                                pushTagsButton.setVisible(false);
+                                pushButton.setVisible(true);
                             }
                             gitStatus();
                             clearSelectedCommit();

@@ -3,15 +3,16 @@ package main.java.elegit;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
+import javafx.scene.text.Text;
 import javafx.scene.control.MenuBar;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
+import javafx.scene.image.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.config.ConfigurationSource;
 import org.apache.logging.log4j.core.config.Configurator;
 import org.apache.logging.log4j.core.config.xml.XmlConfigurationFactory;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -52,6 +53,15 @@ public class Main extends Application {
         Pane root = FXMLLoader.load(getClass().getResource
                 ("/elegit/fxml/MainView.fxml"));
         primaryStage.setTitle("Elegit");
+
+        //sets the icon
+        Image img = new Image("file:src/main/resources/elegit/elegit_icon.png");
+        primaryStage.getIcons().add(img);
+
+        //puts text over the browser image
+        Text txt = new Text(1075, 130, "HARDCODED");
+        root.getChildren().add(txt);
+
         primaryStage.setOnCloseRequest(event -> logger.info("Closed"));
 
         BusyWindow.setParentWindow(primaryStage);

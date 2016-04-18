@@ -55,8 +55,9 @@ public abstract class RepoHelper {
 	private List<CommitHelper> localCommits;
     private List<CommitHelper> remoteCommits;
 
-    private List<TagHelper> localTags;
-    private List<TagHelper> remoteTags;
+    private List<TagHelper> upToDateTags;
+    private List<TagHelper> unpushedTags;
+    private List<String> tagsWithUnpushedCommits;
 
     private Map<String, CommitHelper> commitIdMap;
     private Map<ObjectId, String> idMap;
@@ -173,7 +174,10 @@ public abstract class RepoHelper {
         this.localCommits = this.parseAllLocalCommits();
         this.remoteCommits = this.parseAllRemoteCommits();
 
-        this.localTags = this.getAllLocalTags();
+        this.tagsWithUnpushedCommits = new ArrayList<>();
+
+        this.upToDateTags = this.getAllLocalTags();
+        this.unpushedTags = new ArrayList<>();
 
         this.branchManagerModel = new BranchManagerModel(this.getListOfLocalBranches(), this.getListOfRemoteBranches(), this);
 
@@ -261,6 +265,9 @@ public abstract class RepoHelper {
      * @return true if there are local tags that haven't been pushed
      */
     public boolean hasUnpushedTags(){
+        if (this.unpushedTags==null || this.unpushedTags.size()==0) {
+            this.hasUnpushedTagsProperty.set(false);
+        }
         return hasUnpushedTagsProperty.get();
     }
 
@@ -308,6 +315,7 @@ public abstract class RepoHelper {
         Ref r = git.tag().setName(tagName).setObjectId(c.getCommit()).setAnnotated(false).call();
         git.close();
         TagHelper t = makeTagHelper(r,tagName);
+        this.unpushedTags.add(t);
         this.hasUnpushedTagsProperty.set(true);
     }
 
@@ -405,6 +413,8 @@ public abstract class RepoHelper {
         }
 
         git.close();
+        this.upToDateTags.addAll(this.unpushedTags);
+        this.unpushedTags = new ArrayList<>();
         this.hasUnpushedTagsProperty.set(false);
     }
 
@@ -550,9 +560,16 @@ public abstract class RepoHelper {
         git.close();
 
         tagToRemove.getCommit().removeTag(tagName);
-        this.localTags.remove(tagToRemove);
+        if (!this.upToDateTags.remove(tagToRemove)) {
+            this.unpushedTags.remove(tagToRemove);
+            if (this.unpushedTags.size()==0) {
+                this.hasUnpushedTagsProperty.set(false);
+            }
+        }
+        else {
+            this.hasUnpushedTagsProperty.set(true);
+        }
         this.tagIdMap.remove(tagName);
-        this.hasUnpushedTagsProperty.set(true);
     }
 
     /**
@@ -674,13 +691,18 @@ public abstract class RepoHelper {
      * Looks through all the tags and checks that they are added to commit helpers
      * @throws IOException
      * @throws GitAPIException
+     * @return true if there were changes, false if not
      */
-    public void updateTags() throws IOException, GitAPIException {
+    public boolean updateTags() throws IOException, GitAPIException {
         Map<String, Ref> tagMap = repo.getTags();
         List<String> oldTagNames = getAllTagNames();
+        int oldSize = oldTagNames.size();
         for (String s: tagMap.keySet()) {
             if (oldTagNames.contains(s)){
                 oldTagNames.remove(s);
+                if (tagsWithUnpushedCommits.contains(s)) {
+                    tagsWithUnpushedCommits.remove(s);
+                }
                 continue;
             }
             else {
@@ -693,6 +715,11 @@ public abstract class RepoHelper {
                 this.commitIdMap.get(this.tagIdMap.get(s).getCommitId()).removeTag(s);
                 this.tagIdMap.remove(s);
             }
+        }
+        if (oldSize==getAllTagNames().size() && oldTagNames.size()==0) {
+            return false;
+        } else {
+            return true;
         }
     }
 
@@ -707,17 +734,35 @@ public abstract class RepoHelper {
      */
     private TagHelper makeTagHelper(Ref r, String tagName) throws IOException, GitAPIException {
         String commitName;
-        if (r.getPeeledObjectId()!=null) commitName=r.getPeeledObjectId().getName();
+        boolean isAnnotated = false;
+
+        //Check if the tag is annotated or not, find the commit name accordingly
+        if (r.getPeeledObjectId()!=null) {
+            commitName = r.getPeeledObjectId().getName();
+            isAnnotated = true;
+        }
         else commitName=r.getObjectId().getName();
+
+        // Find the commit helper associated with the commit name
         CommitHelper c = this.commitIdMap.get(commitName);
         TagHelper t;
-        // If the ref has a peeled objectID, then it is a lightweight tag
-        if (c==null) return null;
-        if (r.getPeeledObjectId()==null) {
+
+        // If the commit that this tag points to isn't in the commitIdMap,
+        // then that commit has not yet been pushed, so warn the user
+        if (c==null) {
+            this.tagsWithUnpushedCommits.add(tagName);
+            return null;
+        }
+        else if (this.tagsWithUnpushedCommits.contains(tagName)) {
+            this.tagsWithUnpushedCommits.remove(tagName);
+        }
+
+        // If it's not an annotated tag, we make a lightweight tag helper
+        if (!isAnnotated) {
             t = new TagHelper(tagName, c);
             c.addTag(t);
         }
-        // Otherwise, it is an annotated tag
+        // Otherwise, the tag has a message and all the stuff a commit has
         else {
             ObjectReader objectReader = repo.newObjectReader();
             ObjectLoader objectLoader = objectReader.open(r.getObjectId());
@@ -1253,8 +1298,22 @@ public abstract class RepoHelper {
         this.ownerAuth = authCredentials;
     }
 
-    public UsernamePasswordCredentialsProvider getOwnerAuthCredentials() {
+    public boolean hasTagsWithUnpushedCommits() {
+        return this.tagsWithUnpushedCommits.size() > 0;
+    }
+
+    public UsernamePasswordCredentialsProvider getOwnerAuthCredentials() throws CancelledAuthorizationException {
         return this.ownerAuth;
+    }
+
+    public void setUnpushedTags(List<TagHelper> tags) {
+        for (TagHelper tag: tags) {
+            if (this.upToDateTags.contains(tag)) {
+                this.upToDateTags.remove(tag);
+            }
+            this.unpushedTags.add(tag);
+        }
+        this.hasUnpushedTagsProperty.set(true);
     }
 
     /**
