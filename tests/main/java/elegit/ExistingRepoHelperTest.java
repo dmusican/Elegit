@@ -38,7 +38,7 @@ public class ExistingRepoHelperTest {
 
 
         String username = null;
-        ExistingRepoHelper repoHelper = new ExistingRepoHelper(Paths.get(localPath.getAbsolutePath()), username);
+        ExistingRepoHelper repoHelper = new ExistingRepoHelper(Paths.get(localPath.getAbsolutePath()));
         git.close();
     }
 }
