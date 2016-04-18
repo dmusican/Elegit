@@ -2,6 +2,7 @@ package main.java.elegit;
 
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
+import javafx.scene.image.ImageView;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -94,7 +95,7 @@ public class SessionController {
 	public CommitTreePanelView localCommitTreePanelView;
     public CommitTreePanelView remoteCommitTreePanelView;
 
-    public Circle remoteCircle;
+    public ImageView imageView;
 
     public Label commitInfoNameText;
     public Label commitInfoAuthorText;
@@ -252,12 +253,6 @@ public class SessionController {
         final int REPO_DROPDOWN_MAX_WIDTH = 147;
         repoDropdownSelector.setMaxWidth(REPO_DROPDOWN_MAX_WIDTH);
 
-        remoteCommitTreePanelView.heightProperty().addListener((observable, oldValue, newValue) -> {
-            remoteCircle.setCenterY(newValue.doubleValue() / 2.0);
-            if(oldValue.doubleValue() == 0){
-                remoteCircle.setRadius(newValue.doubleValue() / 4.0);
-            }
-        });
 
         commitInfoNameCopyButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         commitInfoGoToButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
@@ -940,11 +935,11 @@ public class SessionController {
     }
 
     /**
-     * When the circle representing the remote repo is clicked, go to the
+     * When the image representing the remote repo is clicked, go to the
      * corresponding remote url
      * @param event the mouse event corresponding to the click
      */
-    public void handleRemoteCircleMouseClick(MouseEvent event){
+    public void handleRemoteBrowserMouseClick(MouseEvent event){
         if(event.getButton() != MouseButton.PRIMARY) return;
         Desktop desktop = Desktop.isDesktopSupported() ? Desktop.getDesktop() : null;
         if (desktop != null && desktop.isSupported(Desktop.Action.BROWSE)) {
@@ -1012,7 +1007,7 @@ public class SessionController {
             fetchButton.setDisable(disable);
             selectAllButton.setDisable(disable);
             deselectAllButton.setDisable(disable);
-            remoteCircle.setVisible(!disable);
+            imageView.setVisible(!disable);
             commitMessageField.setDisable(disable);
         });
     }

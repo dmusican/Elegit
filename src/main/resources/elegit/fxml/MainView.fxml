@@ -158,7 +158,7 @@
                                 fitHeight="175"
                                 fitWidth="175"
                                 preserveRatio="true"
-                                onMouseClicked="#handleRemoteCircleMouseClick"
+                                onMouseClicked="#handleRemoteBrowserMouseClick"
                         >
                             <image>
                                 <Image
