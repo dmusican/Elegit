@@ -2,7 +2,6 @@ package main.java.elegit;
 
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
-import javafx.scene.image.ImageView;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -20,13 +19,13 @@ import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.shape.Circle;
 import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -897,7 +896,8 @@ public class SessionController {
                 try{
                     localCommitTreeModel.update();
                     remoteCommitTreeModel.update();
-                    if (theModel.getCurrentRepoHelper().updateTags()) {
+                    if (theModel.getCurrentRepoHelper() != null &&
+                            theModel.getCurrentRepoHelper().updateTags()) {
                         if (theModel.getCurrentRepoHelper().hasTagsWithUnpushedCommits()) {
                             showTagPointsToUnpushedCommitNotification();
                         }
