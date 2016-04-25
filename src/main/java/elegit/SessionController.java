@@ -26,7 +26,6 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.shape.Circle;
 import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -44,8 +43,10 @@ import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
 import java.awt.*;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -95,7 +96,7 @@ public class SessionController {
 	public CommitTreePanelView localCommitTreePanelView;
     public CommitTreePanelView remoteCommitTreePanelView;
 
-    public ImageView imageView;
+    public ImageView browserImageView;
 
     public Label commitInfoNameText;
     public Label commitInfoAuthorText;
@@ -108,6 +109,9 @@ public class SessionController {
     public Label tagsLabel;
     public Button tagButton;
     public TextArea tagNameField;
+
+    public Text browserText;
+    public URL remoteURL;
 
     public DataSubmitter d;
 
@@ -262,6 +266,38 @@ public class SessionController {
                 .subtract(commitInfoNameCopyButton.widthProperty())
                 .subtract(10)); // The gap between each button and this label is 5
 
+    }
+
+    /**
+     * Populates the browser image with the remote URL
+     */
+    public void setBrowserURL() {
+        try {
+            if (this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
+            if (!this.theModel.getCurrentRepoHelper().exists()) throw new MissingRepoException();
+            List<String> remoteURLs = this.theModel.getCurrentRepoHelper().getLinkedRemoteRepoURLs();
+            String URLString = remoteURLs.get(0);
+            if (URLString != null) {
+                URLString = URLString.substring(0, URLString.length() - 4);
+                try {
+                    remoteURL = new URL(URLString);
+                    browserText.setText(remoteURL.getHost());
+                } catch (MalformedURLException e) {
+                    browserText.setText(URLString);
+                }
+            }
+            Tooltip URLTooltip = new Tooltip(URLString);
+            Tooltip.install(browserImageView, URLTooltip);
+            Tooltip.install(browserText, URLTooltip);
+        }
+        catch(MissingRepoException e){
+            this.showMissingRepoNotification();
+            this.setButtonsDisabled(true);
+            this.refreshRecentReposInDropdown();
+        }catch(NoRepoLoadedException e){
+            this.showNoRepoLoadedNotification();
+            this.setButtonsDisabled(true);
+        }
     }
 
     /**
@@ -939,7 +975,7 @@ public class SessionController {
      * corresponding remote url
      * @param event the mouse event corresponding to the click
      */
-    public void handleRemoteBrowserMouseClick(MouseEvent event){
+    public void handleRemoteImageViewMouseClick(MouseEvent event){
         if(event.getButton() != MouseButton.PRIMARY) return;
         Desktop desktop = Desktop.isDesktopSupported() ? Desktop.getDesktop() : null;
         if (desktop != null && desktop.isSupported(Desktop.Action.BROWSE)) {
@@ -983,6 +1019,7 @@ public class SessionController {
             allFilesPanelView.drawDirectoryView();
             localCommitTreeModel.init();
             remoteCommitTreeModel.init();
+            setBrowserURL();
         } catch (GitAPIException | IOException e) {
             showGenericErrorNotification();
         }
@@ -1007,7 +1044,7 @@ public class SessionController {
             fetchButton.setDisable(disable);
             selectAllButton.setDisable(disable);
             deselectAllButton.setDisable(disable);
-            imageView.setVisible(!disable);
+            browserImageView.setVisible(!disable);
             commitMessageField.setDisable(disable);
         });
     }

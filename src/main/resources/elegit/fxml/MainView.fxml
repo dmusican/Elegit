@@ -6,6 +6,7 @@
 <?import org.controlsfx.control.NotificationPane?>
 <?import java.net.URL?>
 <?import javafx.scene.image.*?>
+
 <AnchorPane
         fx:controller="main.java.elegit.SessionController"
         xmlns:fx="http://javafx.com/fxml"
@@ -152,20 +153,26 @@
                     </GridPane>
 
                     <StackPane GridPane.rowIndex="1"
-                                GridPane.columnIndex="7">
+                               GridPane.columnIndex="7">
+
                         <ImageView
-                                fx:id = "imageView"
+                                fx:id = "browserImageView"
                                 fitHeight="175"
                                 fitWidth="175"
                                 preserveRatio="true"
-                                onMouseClicked="#handleRemoteBrowserMouseClick"
-                        >
+                                onMouseClicked="#handleRemoteImageViewMouseClick">
                             <image>
-                                <Image
-                                        url = "@browser_image.png"
-                                />
+                                <Image url="@browser_image.png"/>
                             </image>
                         </ImageView>
+
+                        <Text fx:id="browserText"
+                              StackPane.alignment="TOP_CENTER"
+                              onMouseClicked="#handleRemoteImageViewMouseClick">
+                            <StackPane.margin>
+                                <Insets top="82.0" right="90.0"/>
+                            </StackPane.margin>
+                        </Text>
 
                     </StackPane>
 
