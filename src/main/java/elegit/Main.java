@@ -70,7 +70,7 @@ public class Main extends Application {
 
         // create the menubar here
         MenuBar menuBar = MenuPopulator.getInstance().populate();
-        ((Pane) scene.getRoot()).getChildren().addAll(menuBar);
+        // ((Pane) scene.getRoot()).getChildren().addAll(menuBar);
 
         primaryStage.setScene(scene);
         primaryStage.show();

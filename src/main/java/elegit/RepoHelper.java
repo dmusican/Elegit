@@ -1105,8 +1105,6 @@ public abstract class RepoHelper {
     public List<LocalBranchHelper> getListOfLocalBranches() throws GitAPIException, IOException {
         List<Ref> getBranchesCall = new Git(this.repo).branchList().call();
 
-        removeBranchesFromCommitLists(localBranches);
-
         localBranches = new ArrayList<>();
 
         for (Ref ref : getBranchesCall) localBranches.add(new LocalBranchHelper(ref, this));
@@ -1127,8 +1125,6 @@ public abstract class RepoHelper {
     public List<RemoteBranchHelper> getListOfRemoteBranches() throws GitAPIException, IOException{
         List<Ref> getBranchesCall = new Git(this.repo).branchList().setListMode(ListBranchCommand.ListMode.REMOTE).call();
 
-        removeBranchesFromCommitLists(remoteBranches);
-
         // Rebuild the remote branches list from scratch.
         remoteBranches = new ArrayList<>();
 
@@ -1141,19 +1137,6 @@ public abstract class RepoHelper {
         }
 
         return remoteBranches;
-    }
-
-    private void removeBranchesFromCommitLists(List<? extends BranchHelper> branches) throws IOException {
-        // Each commit (redundantly) maintains a list of which branches that commit is a head for.
-        // Since the list of remote branches is going to be completely rebuilt (see below),
-        // remove the redundant appearance of these within commit head lists.
-        if (branches != null){
-            for(BranchHelper branch : remoteBranches) {
-                CommitHelper headCommit = getCommit(branch.getHeadId());
-                if (headCommit != null)
-                    headCommit.removeAsHead(branch);
-            }
-        }
     }
 
     /**

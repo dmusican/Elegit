@@ -38,6 +38,7 @@ import org.controlsfx.control.NotificationPane;
 import org.controlsfx.control.PopOver;
 import org.controlsfx.control.action.Action;
 import org.eclipse.jgit.api.errors.*;
+import org.eclipse.jgit.dircache.InvalidPathException;
 import org.eclipse.jgit.errors.NoMergeBaseException;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
@@ -332,6 +333,9 @@ public class SessionController {
             th.setDaemon(true);
             th.setName("Loading existing/cloning repository");
             th.start();
+        } catch(InvalidPathException e) {
+            showRepoWasNotLoadedNotification();
+            e.printStackTrace();
         } catch (IllegalArgumentException e) {
             showInvalidRepoNotification();
             e.printStackTrace();
@@ -1239,7 +1243,7 @@ public class SessionController {
     private void showRepoWasNotLoadedNotification() {
         Platform.runLater(() -> {
             logger.warn("Repo not loaded warning");
-            this.notificationPane.setText("No repository was loaded.");
+            this.notificationPane.setText("Something went wrong, so no repository was loaded.");
 
             this.notificationPane.getActions().clear();
             this.notificationPane.show();
@@ -1566,26 +1570,23 @@ public class SessionController {
             for (TagHelper t:commit.getTags()) {
                 Hyperlink link = new Hyperlink();
                 link.setText(t.getName());
-                link.setOnAction(new EventHandler<javafx.event.ActionEvent>() {
-                    @Override
-                    public void handle(javafx.event.ActionEvent event) {
-                        logger.info("Delete tag dialog started.");
-                        if (t.presentDeleteDialog()) {
-                            try {
-                                theModel.getCurrentRepoHelper().deleteTag(t.getName());
-                            } catch (MissingRepoException e) {
-                                e.printStackTrace();
-                            } catch (GitAPIException e) {
-                                e.printStackTrace();
-                            }
-                            if (!theModel.getCurrentRepoHelper().hasUnpushedTags()) {
-                                pushTagsButton.setVisible(false);
-                                pushButton.setVisible(true);
-                            }
-                            gitStatus();
-                            clearSelectedCommit();
-                            selectCommit(id);
+                link.setOnAction(event -> {
+                    logger.info("Delete tag dialog started.");
+                    if (t.presentDeleteDialog()) {
+                        try {
+                            theModel.getCurrentRepoHelper().deleteTag(t.getName());
+                        } catch (MissingRepoException e) {
+                            e.printStackTrace();
+                        } catch (GitAPIException e) {
+                            e.printStackTrace();
                         }
+                        if (!theModel.getCurrentRepoHelper().hasUnpushedTags()) {
+                            pushTagsButton.setVisible(false);
+                            pushButton.setVisible(true);
+                        }
+                        gitStatus();
+                        clearSelectedCommit();
+                        selectCommit(id);
                     }
                 });
                 tags.add(link,numTags,0);
@@ -1607,12 +1608,13 @@ public class SessionController {
             tagButton.setVisible(true);
 
             String s = "";
-            for (BranchHelper branch : commit.getBranchesAsHead()) {
-                if (branch instanceof RemoteBranchHelper) {
-                    s = s + "origin/";
-                }
-                s = s + branch.getBranchName() + "\n";
-            }
+            // TODO: Add branches for the selected commit back in
+//            for (BranchHelper branch : commit.getBranchesAsHead()) {
+//                if (branch instanceof RemoteBranchHelper) {
+//                    s = s + "origin/";
+//                }
+//                s = s + branch.getBranchName() + "\n";
+//            }
             if (s.length() > 0) {
                 commitInfoMessageText.setText("Head of branches: \n" + s + "\n\n" + commit.getMessage(true));
             } else {

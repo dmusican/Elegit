@@ -61,9 +61,7 @@ public abstract class BranchHelper {
      * @param head the new head
      */
     private void setHead(CommitHelper head){
-        if(branchHead != null) branchHead.removeAsHead(this);
         branchHead = head;
-        if(branchHead != null) branchHead.setAsHead(this);
     }
 
     @Override
