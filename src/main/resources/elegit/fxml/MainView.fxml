@@ -167,10 +167,10 @@
                         </ImageView>
 
                         <Text fx:id="browserText"
-                              StackPane.alignment="TOP_CENTER"
+                              StackPane.alignment="CENTER"
                               onMouseClicked="#handleRemoteImageViewMouseClick">
                             <StackPane.margin>
-                                <Insets top="82.0" right="90.0"/>
+                                <Insets bottom="90.0" right="90.0"/>
                             </StackPane.margin>
                         </Text>
 
