@@ -1607,19 +1607,7 @@ public class SessionController {
             tagNameField.setVisible(true);
             tagButton.setVisible(true);
 
-            String s = "";
-            // TODO: Add branches for the selected commit back in
-//            for (BranchHelper branch : commit.getBranchesAsHead()) {
-//                if (branch instanceof RemoteBranchHelper) {
-//                    s = s + "origin/";
-//                }
-//                s = s + branch.getBranchName() + "\n";
-//            }
-            if (s.length() > 0) {
-                commitInfoMessageText.setText("Head of branches: \n" + s + "\n\n" + commit.getMessage(true));
-            } else {
-                commitInfoMessageText.setText(commit.getMessage(true));
-            }
+            commitInfoMessageText.setText(theModel.getCurrentRepoHelper().getCommitDescriptorString(commit, true));
         });
     }
 

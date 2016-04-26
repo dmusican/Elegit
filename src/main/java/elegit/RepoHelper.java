@@ -36,7 +36,6 @@ import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
-import java.util.concurrent.FutureTask;
 
 /**
  * The abstract RepoHelper class, used for interacting with a repository.
@@ -535,6 +534,48 @@ public abstract class RepoHelper {
      */
     public List<CommitHelper> getRemoteCommits(){
         return this.remoteCommits;
+    }
+
+    /**
+     * Returns a formatted string that describes the given commit
+     * @param commitHelper the commit to get a label for
+     * @return the label for the commit
+     */
+    public String getCommitDescriptorString(CommitHelper commitHelper, boolean fullCommitMessage){
+        return getCommitDescriptorString(getCommitId(commitHelper), fullCommitMessage);
+    }
+
+    /**
+     * Returns a formatted string that describes the given commit
+     * @param commitId the id of the commit to get a label for
+     * @return the label for the commit
+     */
+    public String getCommitDescriptorString(String commitId, boolean fullCommitMessage){
+        String s = "";
+        for(BranchHelper branch : localBranches){
+            if(branch.getHead() != null && getCommitId(branch.getHead()).equals(commitId)){
+                s = s + "\n" + branch.getBranchName();
+            }
+        }
+        for(BranchHelper branch : remoteBranches){
+            if(branch.getHead() != null && getCommitId(branch.getHead()).equals(commitId)){
+                s = s + "\norigin/" + branch.getBranchName();
+            }
+        }
+        if(s.length() > 0){
+            return getCommit(commitId).getFormattedWhen() + "\n\n" + getCommit(commitId).getMessage(fullCommitMessage) + "\n\nHead of branches: "+s;
+        }else{
+            return getCommit(commitId).getFormattedWhen() + "\n\n" + getCommit(commitId).getMessage(fullCommitMessage);
+        }
+    }
+
+    /**
+     * Returns a unique identifier that will never be shown
+     * @param commitHelper the commit to get an ID for
+     * @return a unique identifying string to be used as a key in the tree's map
+     */
+    public static String getCommitId(CommitHelper commitHelper){
+        return commitHelper.getName();
     }
 
     /**

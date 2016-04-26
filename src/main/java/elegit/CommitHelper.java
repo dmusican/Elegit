@@ -7,7 +7,9 @@ import org.eclipse.jgit.revwalk.RevCommit;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 /**
  * A wrapper class for commits to make them easier to interact with and preserves certain
@@ -87,7 +89,7 @@ public class CommitHelper{
      * @return the unique identifying string for this commit
      */
     public String getId(){
-        return CommitTreeModel.getId(this);
+        return RepoHelper.getCommitId(this);
     }
 
     /**
