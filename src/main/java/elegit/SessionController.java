@@ -1047,6 +1047,7 @@ public class SessionController {
             deselectAllButton.setDisable(disable);
             browserImageView.setVisible(!disable);
             commitMessageField.setDisable(disable);
+            browserText.setVisible(!disable);
         });
     }
 
