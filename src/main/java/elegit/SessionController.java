@@ -1522,9 +1522,18 @@ public class SessionController {
     /**
      * Called when the change login button is clicked.
      */
-    public void handleChangeLoginButton(){
-        logger.info("Username button clicked");
-        this.changeLogin();
+    public void handleChangeLoginButton() {
+        try {
+            logger.info("Username button clicked");
+
+            if(this.theModel.getCurrentRepoHelper() == null) {
+                throw new NoRepoLoadedException();
+            }
+            this.changeLogin();
+        } catch (NoRepoLoadedException e) {
+            showNoRepoLoadedNotification();
+            setButtonsDisabled(true);
+        }
     }
 
     /**
