@@ -4,21 +4,28 @@ package main.java.elegit;
  * Class for uploading logged data
  */
 
+import org.apache.http.HttpEntity;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.InputStreamEntity;
+import org.apache.http.entity.mime.HttpMultipartMode;
+import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 public class DataSubmitter {
-    private static final String submitUrl = "http://elegit.mathcs.carleton.edu/logging"; //for testing, keeping the local one
+    private static final String submitUrl = "http://elegit.mathcs.carleton.edu/logging/upload.php"; //for testing, keeping the local one
     private static final Logger logger = LogManager.getLogger();
     public DataSubmitter() {
     }
@@ -39,11 +46,21 @@ public class DataSubmitter {
             try {
                 HttpPost httppost = new HttpPost(submitUrl);
 
-                InputStreamEntity reqEntity = new InputStreamEntity(
+                /*InputStreamEntity reqEntity = new InputStreamEntity(
                         new FileInputStream(logFile), -1, ContentType.APPLICATION_OCTET_STREAM);
                 reqEntity.setChunked(true);
 
                 httppost.setEntity(reqEntity);
+                */
+
+                MultipartEntityBuilder builder = MultipartEntityBuilder.create();
+                builder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
+                FileBody fileBody = new FileBody(logFile);
+
+                builder.addPart("fileToUpload",fileBody);
+                HttpEntity builtEntity = builder.build();
+
+                httppost.setEntity(builtEntity);
 
                 logger.info(httppost.getRequestLine());
                 CloseableHttpResponse response = httpclient.execute(httppost);
@@ -65,9 +82,11 @@ public class DataSubmitter {
                 }
                 return;
             }
+            /*
             if (logFile.delete()) {
                 logger.info("Succesfully deleted {}", logFile.getName());
             }
+            */
             //TODO: deal with the possibility of files not being correctly deleted
             logger.info("File upload was successful");
         }
