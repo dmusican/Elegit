@@ -10,10 +10,8 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.ObjectId;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Handles the conversion/creation of a list of commit helpers into a nice
@@ -241,7 +239,11 @@ public abstract class CommitTreeModel{
             return;
         }
 
-        graphModel.addCell(commitID, commitHelper.getWhen().getTime(), sessionModel.getCurrentRepoHelper().getCommitDescriptorString(commitHelper, false), getContextMenu(commitHelper), parentIds, visible);
+        RepoHelper repo = sessionModel.getCurrentRepoHelper();
+        String displayLabel = repo.getCommitDescriptorString(commitHelper, false);
+        List<String> branchLabels = repo.getBranchesWithHead(commitHelper);
+
+        graphModel.addCell(commitID, commitHelper.getWhen().getTime(), displayLabel, branchLabels, getContextMenu(commitHelper), parentIds, visible);
     }
 
     /**
@@ -339,7 +341,11 @@ public abstract class CommitTreeModel{
      */
     public void setCommitAsTrackedBranch(String commitId){
         treeGraph.treeGraphModel.setCellShape(commitId, Cell.TRACKED_BRANCH_HEAD_SHAPE);
-        treeGraph.treeGraphModel.setCellLabel(commitId, sessionModel.getCurrentRepoHelper().getCommitDescriptorString(commitId, false));
+
+        RepoHelper repo = sessionModel.getCurrentRepoHelper();
+        String displayLabel = repo.getCommitDescriptorString(commitId, false);
+        List<String> branchLabels = repo.getBranchesWithHead(commitId);
+        treeGraph.treeGraphModel.setCellLabels(commitId, displayLabel, branchLabels);
     }
 
     /**
@@ -356,7 +362,11 @@ public abstract class CommitTreeModel{
      */
     public void setCommitAsUntrackedBranch(String commitId){
         treeGraph.treeGraphModel.setCellShape(commitId, Cell.UNTRACKED_BRANCH_HEAD_SHAPE);
-        treeGraph.treeGraphModel.setCellLabel(commitId, sessionModel.getCurrentRepoHelper().getCommitDescriptorString(commitId, false));
+
+        RepoHelper repo = sessionModel.getCurrentRepoHelper();
+        String displayLabel = repo.getCommitDescriptorString(commitId, false);
+        List<String> branchLabels = repo.getBranchesWithHead(commitId);
+        treeGraph.treeGraphModel.setCellLabels(commitId, displayLabel, branchLabels);
     }
 
     /**
@@ -372,9 +382,12 @@ public abstract class CommitTreeModel{
      */
     public void resetBranchHeads(boolean updateLabels){
         List<String> resetIDs = treeGraph.treeGraphModel.resetCellShapes();
+        RepoHelper repo = sessionModel.getCurrentRepoHelper();
         if(updateLabels){
             for(String id : resetIDs){
-                treeGraph.treeGraphModel.setCellLabel(id, sessionModel.getCurrentRepoHelper().getCommitDescriptorString(id, false));
+                String displayLabel = repo.getCommitDescriptorString(id, false);
+                List<String> branchLabels = repo.getBranchesWithHead(id);
+                treeGraph.treeGraphModel.setCellLabels(id, displayLabel, branchLabels);
             }
         }
     }

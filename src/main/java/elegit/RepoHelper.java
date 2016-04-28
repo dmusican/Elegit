@@ -36,6 +36,8 @@ import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * The abstract RepoHelper class, used for interacting with a repository.
@@ -542,7 +544,15 @@ public abstract class RepoHelper {
      * @return the label for the commit
      */
     public String getCommitDescriptorString(CommitHelper commitHelper, boolean fullCommitMessage){
-        return getCommitDescriptorString(getCommitId(commitHelper), fullCommitMessage);
+        String s = commitHelper.getFormattedWhen() + "\n\n" + commitHelper.getMessage(fullCommitMessage);
+        List<BranchHelper> branches = getAllBranchHeads().get(commitHelper);
+        if(branches != null){
+            s += "\n\nHead of branches: ";
+            for(BranchHelper branch : branches){
+                s = s + "\n" + branch.getBranchName();
+            }
+        }
+        return s;
     }
 
     /**
@@ -551,22 +561,7 @@ public abstract class RepoHelper {
      * @return the label for the commit
      */
     public String getCommitDescriptorString(String commitId, boolean fullCommitMessage){
-        String s = "";
-        for(BranchHelper branch : localBranches){
-            if(branch.getHead() != null && getCommitId(branch.getHead()).equals(commitId)){
-                s = s + "\n" + branch.getBranchName();
-            }
-        }
-        for(BranchHelper branch : remoteBranches){
-            if(branch.getHead() != null && getCommitId(branch.getHead()).equals(commitId)){
-                s = s + "\norigin/" + branch.getBranchName();
-            }
-        }
-        if(s.length() > 0){
-            return getCommit(commitId).getFormattedWhen() + "\n\n" + getCommit(commitId).getMessage(fullCommitMessage) + "\n\nHead of branches: "+s;
-        }else{
-            return getCommit(commitId).getFormattedWhen() + "\n\n" + getCommit(commitId).getMessage(fullCommitMessage);
-        }
+        return getCommitDescriptorString(getCommit(commitId), fullCommitMessage);
     }
 
     /**
@@ -1224,12 +1219,7 @@ public abstract class RepoHelper {
         stage.setTitle("Branch Manager");
         stage.setScene(new Scene(fxmlRoot, 550, 450));
         stage.initModality(Modality.APPLICATION_MODAL);
-        stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
-            @Override
-            public void handle(WindowEvent event) {
-                logger.info("Closed branch manager window");
-            }
-        });
+        stage.setOnCloseRequest(event -> logger.info("Closed branch manager window"));
         stage.show();
     }
 
@@ -1271,6 +1261,38 @@ public abstract class RepoHelper {
             }
         }
         return new ArrayList<>(remoteBranches);
+    }
+
+    public Map<CommitHelper, List<BranchHelper>> getAllBranchHeads(){
+        Map<CommitHelper, List<BranchHelper>> heads = new HashMap<>();
+
+        List<BranchHelper> branches = this.getLocalBranches();
+        branches.addAll(this.getRemoteBranches());
+
+        for(BranchHelper branch : branches){
+            CommitHelper head = branch.getHead();
+            if(heads.containsKey(head)){
+                heads.get(head).add(branch);
+            }else{
+                heads.put(head, Stream.of(branch).collect(Collectors.toList()));
+            }
+        }
+        return heads;
+    }
+
+    public List<String> getBranchesWithHead(String commitId) {
+        return getBranchesWithHead(getCommit(commitId));
+    }
+
+    public List<String> getBranchesWithHead(CommitHelper commit) {
+        List<BranchHelper> branches = getAllBranchHeads().get(commit);
+        List<String> branchLabels = new LinkedList<>();
+        if(branches != null) {
+            branchLabels = branches.stream()
+                    .map(BranchHelper::getBranchName)
+                    .collect(Collectors.toList());
+        }
+        return branchLabels;
     }
 
     /**

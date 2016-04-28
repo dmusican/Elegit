@@ -269,6 +269,16 @@ public class CommitHelper{
         return this.commit;
     }
 
+    @Override
+    public int hashCode(){
+        return this.commit.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object other){
+        return (other instanceof CommitHelper) && this.commit.equals(((CommitHelper) other).getCommit());
+    }
+
     /**
      * A helper class for the parents of a commit. Holds 0-2 commits that
      * can be parents of the same commit

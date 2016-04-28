@@ -116,17 +116,17 @@ public class TreeGraphModel{
     }
 
     /**
-     * Adds a new cell with the given ID, time, and label to the tree whose
+     * Adds a new cell with the given ID, time, and labels to the tree whose
      * parents are the cells with the given IDs. If visible is false, uses InvisibleCell
      * instead of Cell
      * @param newId the id of the new cell
      * @param time the time of the new cell
-     * @param label the label of the new cell
+     * @param displayLabel the displayLabel of the new cell
      * @param contextMenu the context menu that will appear when right clicking on a cell
      * @param parentIds the IDs of the parents of the new cell, if any
      * @param visible whether the cell will be normal or invisible
      */
-    public void addCell(String newId, long time, String label, ContextMenu contextMenu, List<String> parentIds, boolean visible){
+    public void addCell(String newId, long time, String displayLabel, List<String> refs, ContextMenu contextMenu, List<String> parentIds, boolean visible){
         String parent1Id = parentIds.size() > 0 ? parentIds.get(0) : null;
         String parent2Id = parentIds.size() > 1 ? parentIds.get(1) : null;
 
@@ -136,7 +136,7 @@ public class TreeGraphModel{
         }else{
             cell = new InvisibleCell(newId, time, parent1Id == null ? null : cellMap.get(parent1Id), parent2Id == null ? null : cellMap.get(parent2Id));
         }
-        cell.setDisplayLabel(label);
+        cell.setLabels(displayLabel, refs);
         cell.setContextMenu(contextMenu);
         addCell(cell);
 
@@ -193,8 +193,8 @@ public class TreeGraphModel{
      * @param cellId the id of the cell to label
      * @param label the new label
      */
-    public void setCellLabel(String cellId, String label){
-        cellMap.get(cellId).setDisplayLabel(label);
+    public void setCellLabels(String cellId, String label, List<String> refs){
+        cellMap.get(cellId).setLabels(label, refs);
     }
 
     /**

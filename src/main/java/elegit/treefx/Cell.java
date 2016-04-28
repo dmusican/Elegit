@@ -217,7 +217,15 @@ public class Cell extends Pane{
     public void setDisplayLabel(String label){
         tooltip.setText(label);
         this.label = label;
-        this.refLabel.setText(this.label);
+    }
+
+    public void setRefLabel(List<String> refs){
+        this.refLabel.setLabels(refs);
+    }
+
+    public void setLabels(String displayLabel, List<String> refLabels){
+        setDisplayLabel(displayLabel);
+        setRefLabel(refLabels);
     }
 
     public void setContextMenu(ContextMenu contextMenu){
@@ -416,6 +424,49 @@ public class Cell extends Pane{
 
         public void translate(double x) {
             setTranslateX(x);
+        }
+
+        public void setLabels(List<String> labels) {
+            Label basic = new Label();
+            Label extended = new Label();
+            Button showExtended = new Button();
+            //extended.setBackground(new Background(new BackgroundFill(Color.WHITE, new CornerRadii(1), new Insets(0))));
+            if (labels.size() < 1) {
+                Platform.runLater(() -> getChildren().clear());
+                return;
+            }
+            basic.setText(labels.get(0));
+            String extendedText = "";
+            boolean isFirst = true;
+            for (String label: labels) {
+                if (isFirst) {
+                    isFirst = false;
+                    extendedText += label;
+                    continue;
+                }
+                extendedText += "\n"+label;
+            }
+            extended.setText(extendedText);
+            extended.setVisible(false);
+
+            showExtended.setVisible(false);
+            if (labels.size()>1) {
+                showExtended.setVisible(true);
+                showExtended.setTranslateX(-5);
+                showExtended.setText("\u22EE");
+                showExtended.setStyle("-fx-background-color: rgba(0,0,0,0); -fx-padding: 1 0 0 0;");
+                showExtended.setOnMouseClicked(event -> {
+                    extended.setVisible(!extended.isVisible());
+                    basic.setVisible(!basic.isVisible());
+                });
+            }
+
+            Platform.runLater(() -> {
+                getChildren().clear();
+                getChildren().add(basic);
+                getChildren().add(extended);
+                getChildren().add(showExtended);
+            });
         }
     }
 }
