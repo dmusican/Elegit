@@ -166,7 +166,7 @@ public abstract class CommitTreeModel{
         }
 
         // If there are tags in the repo that haven't been pushed, allow them to be pushed
-        if (invisCommit.getTags() != null) {
+        if (invisCommit != null && invisCommit.getTags() != null) {
             if (tagsToBePushed == null)
                 tagsToBePushed = new ArrayList<>();
             tagsToBePushed.addAll(invisCommit.getTags());
