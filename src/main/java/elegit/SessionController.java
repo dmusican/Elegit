@@ -276,9 +276,15 @@ public class SessionController {
             if (this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
             if (!this.theModel.getCurrentRepoHelper().exists()) throw new MissingRepoException();
             List<String> remoteURLs = this.theModel.getCurrentRepoHelper().getLinkedRemoteRepoURLs();
+            if(remoteURLs.size() == 0){
+                this.showNoRemoteNotification();
+            }
             String URLString = remoteURLs.get(0);
+
             if (URLString != null) {
-                URLString = URLString.substring(0, URLString.length() - 4);
+                if(URLString.contains("@")){
+                    URLString = "https://"+URLString.replace(":","/").split("@")[1];
+                }
                 try {
                     remoteURL = new URL(URLString);
                     browserText.setText(remoteURL.getHost());

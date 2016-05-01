@@ -170,7 +170,7 @@
                               StackPane.alignment="CENTER"
                               onMouseClicked="#handleRemoteImageViewMouseClick">
                             <StackPane.margin>
-                                <Insets bottom="90.0" right="90.0"/>
+                                <Insets bottom="95.0" right="10.0"/>
                             </StackPane.margin>
                         </Text>
 
