@@ -47,4 +47,5 @@ public enum AuthMethod {
         throw new RuntimeException("Invalid string used to create AuthMethod.");
     }
 
+
 }

@@ -111,6 +111,7 @@ public class SessionController {
     public TextArea tagNameField;
 
     public Text browserText;
+    public Text authText;
     public URL remoteURL;
 
     public DataSubmitter d;
@@ -273,9 +274,10 @@ public class SessionController {
      */
     public void setBrowserURL() {
         try {
-            if (this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
-            if (!this.theModel.getCurrentRepoHelper().exists()) throw new MissingRepoException();
-            List<String> remoteURLs = this.theModel.getCurrentRepoHelper().getLinkedRemoteRepoURLs();
+            RepoHelper currentRepoHelper = this.theModel.getCurrentRepoHelper();
+            if (currentRepoHelper == null) throw new NoRepoLoadedException();
+            if (!currentRepoHelper.exists()) throw new MissingRepoException();
+            List<String> remoteURLs = currentRepoHelper.getLinkedRemoteRepoURLs();
             if(remoteURLs.size() == 0){
                 this.showNoRemoteNotification();
             }
@@ -292,6 +294,7 @@ public class SessionController {
                     browserText.setText(URLString);
                 }
             }
+            authText.setText(currentRepoHelper.protocol.toString());
             Tooltip URLTooltip = new Tooltip(URLString);
             Tooltip.install(browserImageView, URLTooltip);
             Tooltip.install(browserText, URLTooltip);
@@ -1054,6 +1057,7 @@ public class SessionController {
             browserImageView.setVisible(!disable);
             commitMessageField.setDisable(disable);
             browserText.setVisible(!disable);
+            authText.setVisible(!disable);
         });
     }
 
