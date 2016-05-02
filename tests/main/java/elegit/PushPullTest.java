@@ -126,4 +126,29 @@ public class PushPullTest {
     }
 
 
+    @Test
+    public void testPushTaggingCheck() throws Exception {
+        File authData = new File(testFileLocation + "httpUsernamePassword.txt");
+
+        // If a developer does not have this file present, test should just pass.
+        if (!authData.exists())
+            return;
+
+        Scanner scanner = new Scanner(authData);
+        String ignoreURL = scanner.next();
+        String username = scanner.next();
+        String password = scanner.next();
+        UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider(username, password);
+
+        String remoteURL = "https://github.com/TheElegitTeam/testrepo.git";
+
+        // Repo that will push
+        Path repoPathPush = directoryPath.resolve("pushtag");
+        ClonedRepoHelper helperPush = new ClonedRepoHelper(repoPathPush, remoteURL, credentials);
+        assertNotNull(helperPush);
+        assertFalse(helperPush.hasTagsWithUnpushedCommits());
+
+    }
+
+
 }
