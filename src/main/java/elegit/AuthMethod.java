@@ -10,7 +10,8 @@ public enum AuthMethod {
     HTTPS(1, "HTTPS"),
     SSHPASSWORD(2, "SSH/Password"),
     SSHPUBLICKEY(3, "SSH/Public Key"),
-    NONE(4, "NONE");
+    NONE(4, "NONE"),
+    SSH(5, "SSH");
 
     private final int enumValue;
     private final String enumString;
