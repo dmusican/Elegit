@@ -19,13 +19,13 @@ import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.shape.Circle;
 import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -43,8 +43,10 @@ import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
 import java.awt.*;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -94,7 +96,7 @@ public class SessionController {
 	public CommitTreePanelView localCommitTreePanelView;
     public CommitTreePanelView remoteCommitTreePanelView;
 
-    public Circle remoteCircle;
+    public ImageView browserImageView;
 
     public Label commitInfoNameText;
     public Label commitInfoAuthorText;
@@ -107,6 +109,9 @@ public class SessionController {
     public Label tagsLabel;
     public Button tagButton;
     public TextArea tagNameField;
+
+    public Text browserText;
+    public URL remoteURL;
 
     public DataSubmitter d;
 
@@ -252,12 +257,6 @@ public class SessionController {
         final int REPO_DROPDOWN_MAX_WIDTH = 147;
         repoDropdownSelector.setMaxWidth(REPO_DROPDOWN_MAX_WIDTH);
 
-        remoteCommitTreePanelView.heightProperty().addListener((observable, oldValue, newValue) -> {
-            remoteCircle.setCenterY(newValue.doubleValue() / 2.0);
-            if(oldValue.doubleValue() == 0){
-                remoteCircle.setRadius(newValue.doubleValue() / 4.0);
-            }
-        });
 
         commitInfoNameCopyButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         commitInfoGoToButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
@@ -267,6 +266,44 @@ public class SessionController {
                 .subtract(commitInfoNameCopyButton.widthProperty())
                 .subtract(10)); // The gap between each button and this label is 5
 
+    }
+
+    /**
+     * Populates the browser image with the remote URL
+     */
+    public void setBrowserURL() {
+        try {
+            if (this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
+            if (!this.theModel.getCurrentRepoHelper().exists()) throw new MissingRepoException();
+            List<String> remoteURLs = this.theModel.getCurrentRepoHelper().getLinkedRemoteRepoURLs();
+            if(remoteURLs.size() == 0){
+                this.showNoRemoteNotification();
+            }
+            String URLString = remoteURLs.get(0);
+
+            if (URLString != null) {
+                if(URLString.contains("@")){
+                    URLString = "https://"+URLString.replace(":","/").split("@")[1];
+                }
+                try {
+                    remoteURL = new URL(URLString);
+                    browserText.setText(remoteURL.getHost());
+                } catch (MalformedURLException e) {
+                    browserText.setText(URLString);
+                }
+            }
+            Tooltip URLTooltip = new Tooltip(URLString);
+            Tooltip.install(browserImageView, URLTooltip);
+            Tooltip.install(browserText, URLTooltip);
+        }
+        catch(MissingRepoException e){
+            this.showMissingRepoNotification();
+            this.setButtonsDisabled(true);
+            this.refreshRecentReposInDropdown();
+        }catch(NoRepoLoadedException e){
+            this.showNoRepoLoadedNotification();
+            this.setButtonsDisabled(true);
+        }
     }
 
     /**
@@ -902,7 +939,8 @@ public class SessionController {
                 try{
                     localCommitTreeModel.update();
                     remoteCommitTreeModel.update();
-                    if (theModel.getCurrentRepoHelper().updateTags()) {
+                    if (theModel.getCurrentRepoHelper() != null &&
+                            theModel.getCurrentRepoHelper().updateTags()) {
                         if (theModel.getCurrentRepoHelper().hasTagsWithUnpushedCommits()) {
                             showTagPointsToUnpushedCommitNotification();
                         }
@@ -940,11 +978,11 @@ public class SessionController {
     }
 
     /**
-     * When the circle representing the remote repo is clicked, go to the
+     * When the image representing the remote repo is clicked, go to the
      * corresponding remote url
      * @param event the mouse event corresponding to the click
      */
-    public void handleRemoteCircleMouseClick(MouseEvent event){
+    public void handleRemoteImageViewMouseClick(MouseEvent event){
         if(event.getButton() != MouseButton.PRIMARY) return;
         Desktop desktop = Desktop.isDesktopSupported() ? Desktop.getDesktop() : null;
         if (desktop != null && desktop.isSupported(Desktop.Action.BROWSE)) {
@@ -988,6 +1026,7 @@ public class SessionController {
             allFilesPanelView.drawDirectoryView();
             localCommitTreeModel.init();
             remoteCommitTreeModel.init();
+            setBrowserURL();
         } catch (GitAPIException | IOException e) {
             showGenericErrorNotification();
         }
@@ -1012,8 +1051,9 @@ public class SessionController {
             fetchButton.setDisable(disable);
             selectAllButton.setDisable(disable);
             deselectAllButton.setDisable(disable);
-            remoteCircle.setVisible(!disable);
+            browserImageView.setVisible(!disable);
             commitMessageField.setDisable(disable);
+            browserText.setVisible(!disable);
         });
     }
 
@@ -1488,9 +1528,18 @@ public class SessionController {
     /**
      * Called when the change login button is clicked.
      */
-    public void handleChangeLoginButton(){
-        logger.info("Username button clicked");
-        this.changeLogin();
+    public void handleChangeLoginButton() {
+        try {
+            logger.info("Username button clicked");
+
+            if(this.theModel.getCurrentRepoHelper() == null) {
+                throw new NoRepoLoadedException();
+            }
+            this.changeLogin();
+        } catch (NoRepoLoadedException e) {
+            showNoRepoLoadedNotification();
+            setButtonsDisabled(true);
+        }
     }
 
     /**

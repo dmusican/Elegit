@@ -58,10 +58,6 @@ public class Main extends Application {
         Image img = new Image("file:src/main/resources/elegit/elegit_icon.png");
         primaryStage.getIcons().add(img);
 
-        //puts text over the browser image
-        Text txt = new Text(1075, 130, "HARDCODED");
-        root.getChildren().add(txt);
-
         primaryStage.setOnCloseRequest(event -> logger.info("Closed"));
 
         BusyWindow.setParentWindow(primaryStage);
