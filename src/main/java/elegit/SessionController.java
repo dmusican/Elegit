@@ -294,7 +294,7 @@ public class SessionController {
                     browserText.setText(URLString);
                 }
             }
-            authText.setText(currentRepoHelper.protocol.toString());
+            authText.setText("Auth: " + currentRepoHelper.protocol.toString());
             Tooltip URLTooltip = new Tooltip(URLString);
             Tooltip.install(browserImageView, URLTooltip);
             Tooltip.install(browserText, URLTooltip);
