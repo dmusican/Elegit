@@ -717,7 +717,7 @@ public class SessionController {
                     } catch (IOException e) {
                         e.printStackTrace();
                     } catch (Exception e) {
-                        try { theModel.setLastUUID(null); }
+                        try { theModel.setLastUUID(""); }
                         catch (Exception f) { }
                     }
                     return null;
@@ -802,7 +802,7 @@ public class SessionController {
                     } catch (IOException e) {
                         e.printStackTrace();
                     } catch (Exception e) {
-                        try { theModel.setLastUUID(null); }
+                        try { theModel.setLastUUID(""); }
                         catch (Exception f) { }
                     }
                     return null;
@@ -902,7 +902,7 @@ public class SessionController {
                     } catch (IOException e) {
                         e.printStackTrace();
                     } catch (Exception e) {
-                        try { theModel.setLastUUID(null); }
+                        try { theModel.setLastUUID(""); }
                         catch (Exception f) { }
                     }
                     return null;

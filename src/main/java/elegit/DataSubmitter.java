@@ -28,6 +28,7 @@ public class DataSubmitter {
 
     public String submitData(String uuid) {
         logger.info("Submit data called");
+        System.out.println(uuid);
 
         File logFolder = new File("logs/");
         File[] logsToUpload = logFolder.listFiles();
