@@ -5,11 +5,8 @@ package main.java.elegit;
  */
 
 import org.apache.http.HttpEntity;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.entity.mime.HttpMultipartMode;
 import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -20,9 +17,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.util.ArrayList;
-import java.util.List;
+
+import java.util.UUID;
 
 public class DataSubmitter {
     private static final String submitUrl = "http://elegit.mathcs.carleton.edu/logging/upload.php"; //for testing, keeping the local one
@@ -41,17 +37,15 @@ public class DataSubmitter {
                 if (logsToUpload.length == 1) logger.info("No new logs to upload today");
                 break;
             }
+            String newUUID = UUID.randomUUID().toString();
+            File UUIDfile = new File("logs/"+newUUID+".log");
+            logFile.renameTo(UUIDfile);
+            logFile=UUIDfile;
+
             logger.info("Attempting to upload log: {}",logFile.getName());
             CloseableHttpClient httpclient = HttpClients.createDefault();
             try {
                 HttpPost httppost = new HttpPost(submitUrl);
-
-                /*InputStreamEntity reqEntity = new InputStreamEntity(
-                        new FileInputStream(logFile), -1, ContentType.APPLICATION_OCTET_STREAM);
-                reqEntity.setChunked(true);
-
-                httppost.setEntity(reqEntity);
-                */
 
                 MultipartEntityBuilder builder = MultipartEntityBuilder.create();
                 builder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
@@ -82,11 +76,9 @@ public class DataSubmitter {
                 }
                 return;
             }
-            /*
             if (logFile.delete()) {
                 logger.info("Succesfully deleted {}", logFile.getName());
             }
-            */
             //TODO: deal with the possibility of files not being correctly deleted
             logger.info("File upload was successful");
         }
