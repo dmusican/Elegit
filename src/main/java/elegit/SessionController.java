@@ -276,9 +276,15 @@ public class SessionController {
             if (this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
             if (!this.theModel.getCurrentRepoHelper().exists()) throw new MissingRepoException();
             List<String> remoteURLs = this.theModel.getCurrentRepoHelper().getLinkedRemoteRepoURLs();
+            if(remoteURLs.size() == 0){
+                this.showNoRemoteNotification();
+            }
             String URLString = remoteURLs.get(0);
+
             if (URLString != null) {
-                URLString = URLString.substring(0, URLString.length() - 4);
+                if(URLString.contains("@")){
+                    URLString = "https://"+URLString.replace(":","/").split("@")[1];
+                }
                 try {
                     remoteURL = new URL(URLString);
                     browserText.setText(remoteURL.getHost());
@@ -1047,6 +1053,7 @@ public class SessionController {
             deselectAllButton.setDisable(disable);
             browserImageView.setVisible(!disable);
             commitMessageField.setDisable(disable);
+            browserText.setVisible(!disable);
         });
     }
 
@@ -1521,9 +1528,18 @@ public class SessionController {
     /**
      * Called when the change login button is clicked.
      */
-    public void handleChangeLoginButton(){
-        logger.info("Username button clicked");
-        this.changeLogin();
+    public void handleChangeLoginButton() {
+        try {
+            logger.info("Username button clicked");
+
+            if(this.theModel.getCurrentRepoHelper() == null) {
+                throw new NoRepoLoadedException();
+            }
+            this.changeLogin();
+        } catch (NoRepoLoadedException e) {
+            showNoRepoLoadedNotification();
+            setButtonsDisabled(true);
+        }
     }
 
     /**
