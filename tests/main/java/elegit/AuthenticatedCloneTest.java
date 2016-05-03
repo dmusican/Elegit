@@ -2,7 +2,7 @@ package main.java.elegit;
 
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.TransportCommand;
-import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
+import org.eclipse.jgit.transport.*;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -15,6 +15,7 @@ import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
 
@@ -87,6 +88,7 @@ public class AuthenticatedCloneTest {
         String password = scanner.next();
         UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider(username, password);
         ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, remoteURL, credentials);
+        assertEquals(helper.getCompatibleAuthentication(),AuthMethod.HTTP);
         helper.fetch();
         Path fileLocation = repoPath.resolve("README.md");
         System.out.println(fileLocation);
@@ -167,6 +169,7 @@ public class AuthenticatedCloneTest {
         String remoteURL = scanner.next();
         String password = scanner.next();
         ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, remoteURL, password);
+        assertEquals(helper.getCompatibleAuthentication(),AuthMethod.SSH);
         helper.fetch();
         helper.pushAll();
         helper.pushTags();
@@ -179,6 +182,29 @@ public class AuthenticatedCloneTest {
         exception.expect(NoSuchElementException.class);
         exception.expectMessage("AuthPref not present");
         sm.getAuthPref(pathname);
+    }
+
+    @Test
+    public void testTransportProtocols() throws Exception {
+        List<TransportProtocol> protocols = TransportGitSsh.getTransportProtocols();
+        for (TransportProtocol protocol : protocols) {
+            System.out.println(protocol + " " + protocol.getName());
+            for (String scheme : protocol.getSchemes()) {
+                System.out.println("\t" + scheme);
+            }
+        }
+        System.out.println();
+        for (TransportProtocol protocol : protocols) {
+            if (protocol.canHandle(new URIish("https://github.com/TheElegitTeam/TestRepository.git"))) {
+                assertEquals(protocol.getName(), "HTTP");
+                assertNotEquals(protocol.getName(), "SSH");
+            }
+
+            if (protocol.canHandle(new URIish("git@github.com:TheElegitTeam/TestRepository.git"))) {
+                assertEquals(protocol.getName(), "SSH");
+                assertNotEquals(protocol.getName(), "HTTP");
+            }
+        }
     }
 
 }

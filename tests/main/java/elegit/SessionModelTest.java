@@ -50,10 +50,14 @@ public class SessionModelTest {
             if (s.equals(sessionModel.hashPathname(pathname)))
                 foundIt = true;
         assertEquals(foundIt,true);
+        AuthMethod authBack = sessionModel.getAuthPref(pathname);
+        assertEquals(authBack,AuthMethod.SSHPASSWORD);
         sessionModel.removeAuthPref(pathname);
+
+        // Throw error on not there
         exception.expect(NoSuchElementException.class);
         exception.expectMessage("AuthPref not present");
-        sessionModel.getAuthPref(pathname);
+        authBack = sessionModel.getAuthPref(pathname);
     }
 
     @Test

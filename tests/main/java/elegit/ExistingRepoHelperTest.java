@@ -36,6 +36,7 @@ public class ExistingRepoHelperTest {
                     .setDirectory(localPath)
                     .call();
 
+        SessionModel.getSessionModel().setAuthPref(localPath.toString(), AuthMethod.HTTPS);
 
         String username = null;
         ExistingRepoHelper repoHelper = new ExistingRepoHelper(Paths.get(localPath.getAbsolutePath()));

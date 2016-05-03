@@ -15,22 +15,29 @@ import java.nio.file.Path;
  * A RepoHelper implementation for a repository cloned into an empty folder.
  */
 public class ClonedRepoHelper extends RepoHelper {
+
+    // No authentication
     public ClonedRepoHelper(Path directoryPath, String remoteURL) throws IOException, GitAPIException, CancelledAuthorizationException{
         super(directoryPath);
+        protocol = AuthMethod.HTTP;
         repo = obtainRepository(remoteURL);
         setup();
     }
 
+    // Authentication via username/password combo
     public ClonedRepoHelper(Path directoryPath, String remoteURL, UsernamePasswordCredentialsProvider ownerAuth)
             throws GitAPIException, IOException, CancelledAuthorizationException {
         super(directoryPath, ownerAuth);
+        protocol = AuthMethod.HTTPS;
         repo = obtainRepository(remoteURL);
         setup();
     }
 
+    // Authentication via SSH password; no username since thats encoded in the URL
     public ClonedRepoHelper(Path directoryPath, String remoteURL, String sshPassword)
             throws GitAPIException, IOException, CancelledAuthorizationException {
         super(directoryPath, sshPassword);
+        protocol = AuthMethod.SSHPASSWORD;
         repo = obtainRepository(remoteURL);
         setup();
     }
