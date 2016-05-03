@@ -707,7 +707,19 @@ public class SessionController {
             Thread submit = new Thread(new Task<Void>() {
                 @Override
                 protected Void call() {
-                    d.submitData();
+                    try {
+                        String lastUUID = theModel.getLastUUID();
+                        theModel.setLastUUID(d.submitData(lastUUID));
+                    } catch (BackingStoreException e) {
+                        e.printStackTrace();
+                    } catch (ClassNotFoundException e) {
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    } catch (Exception e) {
+                        try { theModel.setLastUUID(null); }
+                        catch (Exception f) { }
+                    }
                     return null;
                 }
             });
@@ -780,7 +792,19 @@ public class SessionController {
             Thread submit = new Thread(new Task<Void>() {
                 @Override
                 protected Void call() {
-                    d.submitData();
+                    try {
+                        String lastUUID = theModel.getLastUUID();
+                        theModel.setLastUUID(d.submitData(lastUUID));
+                    } catch (BackingStoreException e) {
+                        e.printStackTrace();
+                    } catch (ClassNotFoundException e) {
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    } catch (Exception e) {
+                        try { theModel.setLastUUID(null); }
+                        catch (Exception f) { }
+                    }
                     return null;
                 }
             });
@@ -868,7 +892,19 @@ public class SessionController {
             Thread submit = new Thread(new Task<Void>() {
                 @Override
                 protected Void call() {
-                    d.submitData();
+                    try {
+                        String lastUUID = theModel.getLastUUID();
+                        theModel.setLastUUID(d.submitData(lastUUID));
+                    } catch (BackingStoreException e) {
+                        e.printStackTrace();
+                    } catch (ClassNotFoundException e) {
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    } catch (Exception e) {
+                        try { theModel.setLastUUID(null); }
+                        catch (Exception f) { }
+                    }
                     return null;
                 }
             });

@@ -26,19 +26,24 @@ public class DataSubmitter {
     public DataSubmitter() {
     }
 
-    public void submitData() {
+    public String submitData(String uuid) {
         logger.info("Submit data called");
 
         File logFolder = new File("logs/");
         File[] logsToUpload = logFolder.listFiles();
+        String lastUUID="";
+        if (uuid==null || uuid.equals("")) {
+            uuid=UUID.randomUUID().toString();
+            logger.info("Making a new uuid.");
+        }
 
         for (File logFile: logsToUpload) {
             if (!logFile.isFile() || logFile.getName().equals("elegit.log")) {
                 if (logsToUpload.length == 1) logger.info("No new logs to upload today");
                 break;
             }
-            String newUUID = UUID.randomUUID().toString();
-            File UUIDfile = new File("logs/"+newUUID+".log");
+            //String newUUID = UUID.randomUUID().toString();
+            File UUIDfile = new File("logs/"+uuid+".log");
             logFile.renameTo(UUIDfile);
             logFile=UUIDfile;
 
@@ -61,10 +66,11 @@ public class DataSubmitter {
                 try {
                     logger.info("Executing request: " + response.getStatusLine());
                     logger.info(EntityUtils.toString(response.getEntity()));
+                    lastUUID=uuid;
                 } catch (Exception e) {
                     logger.error("Response status check failed.");
                     response.close();
-                    return;
+                    return null;
                 }
             } catch (Exception e) {
                 logger.error("Failed to execute request. Attempting to close client.");
@@ -72,9 +78,9 @@ public class DataSubmitter {
                     httpclient.close();
                 } catch (Exception f) {
                     logger.error("Failed to close client.");
-                    return;
+                    return null;
                 }
-                return;
+                return null;
             }
             if (logFile.delete()) {
                 logger.info("Succesfully deleted {}", logFile.getName());
@@ -82,6 +88,6 @@ public class DataSubmitter {
             //TODO: deal with the possibility of files not being correctly deleted
             logger.info("File upload was successful");
         }
-
+        return lastUUID;
     }
 }
