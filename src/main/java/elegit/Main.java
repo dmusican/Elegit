@@ -65,8 +65,8 @@ public class Main extends Application {
         Scene scene = new Scene(root, 1200, 650); // width, height
 
         // create the menubar here
-        MenuBar menuBar = MenuPopulator.getInstance().populate();
-        ((Pane) scene.getRoot()).getChildren().addAll(menuBar);
+        //MenuBar menuBar = MenuPopulator.getInstance().populate();
+        //((Pane) scene.getRoot()).getChildren().addAll(menuBar);
 
         primaryStage.setScene(scene);
         primaryStage.show();
