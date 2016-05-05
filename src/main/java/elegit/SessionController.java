@@ -216,6 +216,10 @@ public class SessionController {
         this.setRecentReposDropdownToCurrentRepo();
         this.refreshRecentReposInDropdown();
 
+        // bind currentRepoProperty with menuBar to update menuBar
+        // when repo gets changed.
+        RepositoryMonitor.bindMenu(theModel);
+
         RepositoryMonitor.beginWatchingRemote(theModel);
         RepositoryMonitor.hasFoundNewRemoteChanges.addListener((observable, oldValue, newValue) -> {
             if(newValue) showNewRemoteChangesNotification();
@@ -296,12 +300,11 @@ public class SessionController {
             Tooltip.install(browserImageView, URLTooltip);
             Tooltip.install(browserText, URLTooltip);
         }
-        catch(MissingRepoException e){
+        catch(MissingRepoException e) {
             this.showMissingRepoNotification();
             this.setButtonsDisabled(true);
             this.refreshRecentReposInDropdown();
-        }catch(NoRepoLoadedException e){
-            this.showNoRepoLoadedNotification();
+        }catch(NoRepoLoadedException e) {
             this.setButtonsDisabled(true);
         }
     }
@@ -384,14 +387,13 @@ public class SessionController {
             showInvalidRemoteNotification(() -> handleLoadRepoMenuItem(builder));
         } catch(TransportException e){
             showNotAuthorizedNotification(() -> handleLoadRepoMenuItem(builder));
-        } catch (NoRepoSelectedException e) {
-            // The user pressed cancel on the dialog box. Do nothing!
-        } catch(IOException | GitAPIException e){
+        } catch (NoRepoSelectedException | CancelledAuthorizationException e) {
+            // The user pressed cancel on the dialog box, or
+            // the user pressed cancel on the authorize dialog box. Do nothing!
+        } catch(IOException | GitAPIException e) {
             // Somehow, the repository failed to get properly loaded
             // TODO: better error message?
             showRepoWasNotLoadedNotification();
-        } catch(CancelledAuthorizationException e) {
-            //The user pressed cancel on the authorize dialog box. Do nothing!
         }
     }
 

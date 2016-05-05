@@ -76,7 +76,7 @@ public class Main extends Application {
 
         Scene scene = new Scene(root, 1200, 650); // width, height
 
-        // create the menubar here
+        // create the menu bar here
         MenuBar menuBar = MenuPopulator.getInstance().populate();
         // for now we'll only display menu on mac os
         // because it blocks repo dropdown menu on other platforms

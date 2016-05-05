@@ -614,8 +614,6 @@ public class SessionModel {
         } catch (Exception exception) {
             exception.printStackTrace();
         }
-        /*currentRepoHelper = null;
-        currentRepoHelperProperty = new SimpleObjectProperty<>(null);*/
         sessionModel = new SessionModel();
     }
 
