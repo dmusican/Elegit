@@ -223,7 +223,7 @@ public class SessionController {
         RepositoryMonitor.beginWatchingLocal(this, theModel);
 
         if (this.theModel.getCurrentRepoHelper()!= null && this.theModel.getCurrentRepoHelper().hasTagsWithUnpushedCommits()) {
-            this.showTagPointsToUnpushedCommitNotification();
+            //this.showTagPointsToUnpushedCommitNotification();
         }
         // If some tags point to a commit in the remote tree, then these are unpushed tags,
         // so we add them to the repohelper
@@ -978,7 +978,7 @@ public class SessionController {
                     if (theModel.getCurrentRepoHelper() != null &&
                             theModel.getCurrentRepoHelper().updateTags()) {
                         if (theModel.getCurrentRepoHelper().hasTagsWithUnpushedCommits()) {
-                            showTagPointsToUnpushedCommitNotification();
+                            //showTagPointsToUnpushedCommitNotification();
                         }
                     }
 
