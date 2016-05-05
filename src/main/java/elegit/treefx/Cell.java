@@ -369,72 +369,21 @@ public class Cell extends Pane{
 
     private class LabelCell extends Pane {
 
-        public void setText(String cellLabel) {
-            Pane labelPane = new Pane();
-            List<String> labels = new ArrayList<>();
-            if (cellLabel.contains("Head of branches: \n")) {
-                cellLabel = cellLabel.substring(cellLabel.indexOf("Head of branches: \n")+19);
-                for (String s: cellLabel.split("\n")) {
-                    labels.add(s);
-                }
-            }
-            Label basic = new Label();
-            Label extended = new Label();
-            Button showExtended = new Button();
-            //extended.setBackground(new Background(new BackgroundFill(Color.WHITE, new CornerRadii(1), new Insets(0))));
-            if (labels.size() < 1) {
-                Platform.runLater(() -> getChildren().clear());
-                return;
-            }
-            basic.setText(labels.get(0));
-            String extendedText = "";
-            boolean isFirst = true;
-            for (String label: labels) {
-                if (isFirst) {
-                    isFirst = false;
-                    extendedText += label;
-                    continue;
-                }
-                extendedText += "\n"+label;
-            }
-            extended.setText(extendedText);
-            extended.setVisible(false);
-
-            showExtended.setVisible(false);
-            if (labels.size()>1) {
-                showExtended.setVisible(true);
-                showExtended.setTranslateX(-5);
-                showExtended.setText("\u22EE");
-                showExtended.setStyle("-fx-background-color: rgba(0,0,0,0); -fx-padding: 1 0 0 0;");
-                showExtended.setOnMouseClicked(event -> {
-                    extended.setVisible(!extended.isVisible());
-                    basic.setVisible(!basic.isVisible());
-                });
-            }
-
-            labelPane.getChildren().add(basic);
-            labelPane.getChildren().add(extended);
-            labelPane.getChildren().add(showExtended);
-
-            Platform.runLater(() -> {
-                getChildren().clear();
-                getChildren().add(labelPane);
-            });
-        }
-
         public void translate(double x) {
             setTranslateX(x);
         }
 
         public void setLabels(List<String> labels) {
-            Label basic = new Label();
-            Label extended = new Label();
-            Button showExtended = new Button();
-            //extended.setBackground(new Background(new BackgroundFill(Color.WHITE, new CornerRadii(1), new Insets(0))));
             if (labels.size() < 1) {
                 Platform.runLater(() -> getChildren().clear());
                 return;
             }
+
+            Label basic = new Label();
+            Label extended = new Label();
+            Button showExtended = new Button();
+            //extended.setBackground(new Background(new BackgroundFill(Color.WHITE, new CornerRadii(1), new Insets(0))));
+
             basic.setText(labels.get(0));
             String extendedText = "";
             boolean isFirst = true;

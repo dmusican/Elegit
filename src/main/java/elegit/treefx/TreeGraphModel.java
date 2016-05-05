@@ -36,7 +36,7 @@ public class TreeGraphModel{
     public boolean isInitialSetupFinished;
 
     // A list of cells in this graph that do not have the default shape
-    private List<Cell> cellsWithNonDefaultShapes;
+    private List<Cell> cellsWithNonDefaultShapesOrLabels;
 
     /**
      * Constructs a new model for a tree graph
@@ -45,7 +45,7 @@ public class TreeGraphModel{
         clear();
         numCellsProperty = new SimpleIntegerProperty();
         isInitialSetupFinished = false;
-        cellsWithNonDefaultShapes = new ArrayList<>();
+        cellsWithNonDefaultShapesOrLabels = new ArrayList<>();
     }
 
     /**
@@ -136,7 +136,7 @@ public class TreeGraphModel{
         }else{
             cell = new InvisibleCell(newId, time, parent1Id == null ? null : cellMap.get(parent1Id), parent2Id == null ? null : cellMap.get(parent2Id));
         }
-        cell.setLabels(displayLabel, refs);
+        setCellLabels(cell, displayLabel, refs);
         cell.setContextMenu(contextMenu);
         addCell(cell);
 
@@ -194,7 +194,12 @@ public class TreeGraphModel{
      * @param label the new label
      */
     public void setCellLabels(String cellId, String label, List<String> refs){
-        cellMap.get(cellId).setLabels(label, refs);
+        setCellLabels(cellMap.get(cellId), label, refs);
+    }
+
+    public void setCellLabels(Cell cell, String label, List<String> refs){
+        cell.setLabels(label, refs);
+        if(refs.size() > 0) cellsWithNonDefaultShapesOrLabels.add(cell);
     }
 
     /**
@@ -207,11 +212,7 @@ public class TreeGraphModel{
     public void setCellShape(String cellId, CellShape shape){
         Cell cell = cellMap.get(cellId);
         cell.setShape(shape);
-        if(shape == Cell.DEFAULT_SHAPE){
-            cellsWithNonDefaultShapes.remove(cell);
-        }else{
-            cellsWithNonDefaultShapes.add(cell);
-        }
+        cellsWithNonDefaultShapesOrLabels.add(cell);
     }
 
     /**
@@ -220,11 +221,12 @@ public class TreeGraphModel{
      */
     public List<String> resetCellShapes(){
         List<String> resetIDs = new ArrayList<>();
-        for(Cell cell : cellsWithNonDefaultShapes){
+        for(Cell cell : cellsWithNonDefaultShapesOrLabels){
             cell.setShape(Cell.DEFAULT_SHAPE);
-            resetIDs.add(cell.getCellId());
+            String id = cell.getCellId();
+            if(!resetIDs.contains(id)) resetIDs.add(id);
         }
-        cellsWithNonDefaultShapes = new ArrayList<>();
+        cellsWithNonDefaultShapesOrLabels = new ArrayList<>();
         return resetIDs;
     }
 
