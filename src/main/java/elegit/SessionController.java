@@ -217,6 +217,10 @@ public class SessionController {
         this.setRecentReposDropdownToCurrentRepo();
         this.refreshRecentReposInDropdown();
 
+        // bind currentRepoProperty with menuBar to update menuBar
+        // when repo gets changed.
+        RepositoryMonitor.bindMenu(theModel);
+
         RepositoryMonitor.beginWatchingRemote(theModel);
         RepositoryMonitor.hasFoundNewRemoteChanges.addListener((observable, oldValue, newValue) -> {
             if(newValue) showNewRemoteChangesNotification();
@@ -224,7 +228,7 @@ public class SessionController {
         RepositoryMonitor.beginWatchingLocal(this, theModel);
 
         if (this.theModel.getCurrentRepoHelper()!= null && this.theModel.getCurrentRepoHelper().hasTagsWithUnpushedCommits()) {
-            this.showTagPointsToUnpushedCommitNotification();
+            //this.showTagPointsToUnpushedCommitNotification();
         }
         // If some tags point to a commit in the remote tree, then these are unpushed tags,
         // so we add them to the repohelper
@@ -277,9 +281,15 @@ public class SessionController {
             if (this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
             if (!this.theModel.getCurrentRepoHelper().exists()) throw new MissingRepoException();
             List<String> remoteURLs = this.theModel.getCurrentRepoHelper().getLinkedRemoteRepoURLs();
+            if(remoteURLs.size() == 0){
+                this.showNoRemoteNotification();
+            }
             String URLString = remoteURLs.get(0);
+
             if (URLString != null) {
-                URLString = URLString.substring(0, URLString.length() - 4);
+                if(URLString.contains("@")){
+                    URLString = "https://"+URLString.replace(":","/").split("@")[1];
+                }
                 try {
                     remoteURL = new URL(URLString);
                     browserText.setText(remoteURL.getHost());
@@ -291,12 +301,11 @@ public class SessionController {
             Tooltip.install(browserImageView, URLTooltip);
             Tooltip.install(browserText, URLTooltip);
         }
-        catch(MissingRepoException e){
+        catch(MissingRepoException e) {
             this.showMissingRepoNotification();
             this.setButtonsDisabled(true);
             this.refreshRecentReposInDropdown();
-        }catch(NoRepoLoadedException e){
-            this.showNoRepoLoadedNotification();
+        }catch(NoRepoLoadedException e) {
             this.setButtonsDisabled(true);
         }
     }
@@ -382,14 +391,13 @@ public class SessionController {
             showInvalidRemoteNotification(() -> handleLoadRepoMenuItem(builder));
         } catch(TransportException e){
             showNotAuthorizedNotification(() -> handleLoadRepoMenuItem(builder));
-        } catch (NoRepoSelectedException e) {
-            // The user pressed cancel on the dialog box. Do nothing!
-        } catch(IOException | GitAPIException e){
+        } catch (NoRepoSelectedException | CancelledAuthorizationException e) {
+            // The user pressed cancel on the dialog box, or
+            // the user pressed cancel on the authorize dialog box. Do nothing!
+        } catch(IOException | GitAPIException e) {
             // Somehow, the repository failed to get properly loaded
             // TODO: better error message?
             showRepoWasNotLoadedNotification();
-        } catch(CancelledAuthorizationException e) {
-            //The user pressed cancel on the authorize dialog box. Do nothing!
         }
     }
 
@@ -705,7 +713,19 @@ public class SessionController {
             Thread submit = new Thread(new Task<Void>() {
                 @Override
                 protected Void call() {
-                    d.submitData();
+                    try {
+                        String lastUUID = theModel.getLastUUID();
+                        theModel.setLastUUID(d.submitData(lastUUID));
+                    } catch (BackingStoreException e) {
+                        e.printStackTrace();
+                    } catch (ClassNotFoundException e) {
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    } catch (Exception e) {
+                        try { theModel.setLastUUID(""); }
+                        catch (Exception f) { }
+                    }
                     return null;
                 }
             });
@@ -778,7 +798,19 @@ public class SessionController {
             Thread submit = new Thread(new Task<Void>() {
                 @Override
                 protected Void call() {
-                    d.submitData();
+                    try {
+                        String lastUUID = theModel.getLastUUID();
+                        theModel.setLastUUID(d.submitData(lastUUID));
+                    } catch (BackingStoreException e) {
+                        e.printStackTrace();
+                    } catch (ClassNotFoundException e) {
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    } catch (Exception e) {
+                        try { theModel.setLastUUID(""); }
+                        catch (Exception f) { }
+                    }
                     return null;
                 }
             });
@@ -866,7 +898,19 @@ public class SessionController {
             Thread submit = new Thread(new Task<Void>() {
                 @Override
                 protected Void call() {
-                    d.submitData();
+                    try {
+                        String lastUUID = theModel.getLastUUID();
+                        theModel.setLastUUID(d.submitData(lastUUID));
+                    } catch (BackingStoreException e) {
+                        e.printStackTrace();
+                    } catch (ClassNotFoundException e) {
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    } catch (Exception e) {
+                        try { theModel.setLastUUID(""); }
+                        catch (Exception f) { }
+                    }
                     return null;
                 }
             });
@@ -940,7 +984,7 @@ public class SessionController {
                     if (theModel.getCurrentRepoHelper() != null &&
                             theModel.getCurrentRepoHelper().updateTags()) {
                         if (theModel.getCurrentRepoHelper().hasTagsWithUnpushedCommits()) {
-                            showTagPointsToUnpushedCommitNotification();
+                            //showTagPointsToUnpushedCommitNotification();
                         }
                     }
 

@@ -1,5 +1,6 @@
 package main.java.elegit;
 
+import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -40,7 +41,11 @@ public class RepositoryMonitor{
      * @param model the model to pull the repositories from
      */
     public static void beginWatchingRemote(SessionModel model){
-        model.currentRepoHelperProperty.addListener((observable, oldValue, newValue) -> watchRepoForRemoteChanges(newValue));
+        model.currentRepoHelperProperty.addListener(
+            (observable, oldValue, newValue) -> {
+                watchRepoForRemoteChanges(newValue);
+            }
+        );
         watchRepoForRemoteChanges(model.getCurrentRepoHelper());
     }
 
@@ -168,6 +173,25 @@ public class RepositoryMonitor{
         thread.setName("Local monitor");
         thread.setPriority(2);
         thread.start();
+    }
+
+    public static synchronized void bindMenu(SessionModel model) {
+        model.currentRepoHelperProperty.addListener(
+                (observable, oldValue, newValue) -> {
+                    Platform.runLater(() -> {
+                        if (newValue != null) {
+                            MenuPopulator.menuConfigNormal();
+                        } else {
+                            MenuPopulator.menuConfigNoRepo();
+                        }
+                    });
+                }
+        );
+        if (model.getCurrentRepoHelper() == null) {
+            MenuPopulator.menuConfigNoRepo();
+        } else {
+            MenuPopulator.menuConfigNormal();
+        }
     }
 
     private static void pauseWatchingRemote(long millis){
