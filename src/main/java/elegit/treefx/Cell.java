@@ -99,7 +99,7 @@ public class Cell extends Pane{
         this.cellId = cellId;
         this.time = time;
         this.parents = new ParentCell(this, parent1, parent2);
-        this.refLabel = new LabelCell("");
+        this.refLabel = new LabelCell();
 
         setShape(DEFAULT_SHAPE);
 
@@ -196,7 +196,7 @@ public class Cell extends Pane{
         this.view = newView;
         Platform.runLater(() -> {
             getChildren().clear();
-            getChildren().add(newView);
+            getChildren().add(this.view);
         });
     }
 
@@ -217,7 +217,15 @@ public class Cell extends Pane{
     public void setDisplayLabel(String label){
         tooltip.setText(label);
         this.label = label;
-        this.refLabel.setText(this.label);
+    }
+
+    public void setRefLabel(List<String> refs){
+        this.refLabel.setLabels(refs);
+    }
+
+    public void setLabels(String displayLabel, List<String> refLabels){
+        setDisplayLabel(displayLabel);
+        setRefLabel(refLabels);
     }
 
     public void setContextMenu(ContextMenu contextMenu){
@@ -299,7 +307,7 @@ public class Cell extends Pane{
         return time;
     }
 
-    public Cell getLabel() { return this.refLabel; }
+    public Node getLabel() { return this.refLabel; }
 
     @Override
     public String toString(){
@@ -359,28 +367,23 @@ public class Cell extends Pane{
         }
     }
 
-    private class LabelCell extends Cell {
+    private class LabelCell extends Pane {
 
-        public LabelCell(String cellLabel) {
-            super(cellLabel);
+        public void translate(double x) {
+            setTranslateX(x);
         }
 
-        public void setText(String cellLabel) {
-            Pane labelPane = new Pane();
-            List<String> labels = new ArrayList<>();
-            if (cellLabel.contains("Head of branches: \n")) {
-                cellLabel = cellLabel.substring(cellLabel.indexOf("Head of branches: \n")+19);
-                for (String s: cellLabel.split("\n")) {
-                    labels.add(s);
-                }
+        public void setLabels(List<String> labels) {
+            if (labels.size() < 1) {
+                Platform.runLater(() -> getChildren().clear());
+                return;
             }
+
             Label basic = new Label();
             Label extended = new Label();
             Button showExtended = new Button();
             //extended.setBackground(new Background(new BackgroundFill(Color.WHITE, new CornerRadii(1), new Insets(0))));
-            if (labels.size() < 1) {
-                return;
-            }
+
             basic.setText(labels.get(0));
             String extendedText = "";
             boolean isFirst = true;
@@ -401,28 +404,18 @@ public class Cell extends Pane{
                 showExtended.setTranslateX(-5);
                 showExtended.setText("\u22EE");
                 showExtended.setStyle("-fx-background-color: rgba(0,0,0,0); -fx-padding: 1 0 0 0;");
-                showExtended.setOnMouseClicked(new EventHandler<MouseEvent>() {
-                    @Override
-                    public void handle(MouseEvent event) {
-                        extended.setVisible(!extended.isVisible());
-                        basic.setVisible(!basic.isVisible());
-                    }
+                showExtended.setOnMouseClicked(event -> {
+                    extended.setVisible(!extended.isVisible());
+                    basic.setVisible(!basic.isVisible());
                 });
             }
 
-            labelPane.getChildren().add(basic);
-            labelPane.getChildren().add(extended);
-            labelPane.getChildren().add(showExtended);
-            this.setView(labelPane);
-
             Platform.runLater(() -> {
                 getChildren().clear();
-                getChildren().add(this.view);
+                getChildren().add(basic);
+                getChildren().add(extended);
+                getChildren().add(showExtended);
             });
-        }
-
-        public void translate(double x) {
-            setTranslateX(x);
         }
     }
 }

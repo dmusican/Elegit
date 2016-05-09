@@ -171,7 +171,7 @@ public class CommitTreeController{
             }
         }
 
-        commitTreeModel.resetBranchHeads(false);
+        commitTreeModel.resetBranchHeads(true);
         List<BranchHelper> modelBranches = commitTreeModel.getBranches();
         if(modelBranches != null){
             for(BranchHelper branch : modelBranches){
