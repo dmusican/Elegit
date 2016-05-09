@@ -282,6 +282,7 @@ public class SessionController {
             List<String> remoteURLs = this.theModel.getCurrentRepoHelper().getLinkedRemoteRepoURLs();
             if(remoteURLs.size() == 0){
                 this.showNoRemoteNotification();
+                return;
             }
             String URLString = remoteURLs.get(0);
 
