@@ -38,6 +38,7 @@ import org.controlsfx.control.NotificationPane;
 import org.controlsfx.control.PopOver;
 import org.controlsfx.control.action.Action;
 import org.eclipse.jgit.api.errors.*;
+import org.eclipse.jgit.dircache.InvalidPathException;
 import org.eclipse.jgit.errors.NoMergeBaseException;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
@@ -216,6 +217,10 @@ public class SessionController {
         this.setRecentReposDropdownToCurrentRepo();
         this.refreshRecentReposInDropdown();
 
+        // bind currentRepoProperty with menuBar to update menuBar
+        // when repo gets changed.
+        RepositoryMonitor.bindMenu(theModel);
+
         RepositoryMonitor.beginWatchingRemote(theModel);
         RepositoryMonitor.hasFoundNewRemoteChanges.addListener((observable, oldValue, newValue) -> {
             if(newValue) showNewRemoteChangesNotification();
@@ -278,6 +283,7 @@ public class SessionController {
             List<String> remoteURLs = this.theModel.getCurrentRepoHelper().getLinkedRemoteRepoURLs();
             if(remoteURLs.size() == 0){
                 this.showNoRemoteNotification();
+                return;
             }
             String URLString = remoteURLs.get(0);
 
@@ -296,12 +302,11 @@ public class SessionController {
             Tooltip.install(browserImageView, URLTooltip);
             Tooltip.install(browserText, URLTooltip);
         }
-        catch(MissingRepoException e){
+        catch(MissingRepoException e) {
             this.showMissingRepoNotification();
             this.setButtonsDisabled(true);
             this.refreshRecentReposInDropdown();
-        }catch(NoRepoLoadedException e){
-            this.showNoRepoLoadedNotification();
+        }catch(NoRepoLoadedException e) {
             this.setButtonsDisabled(true);
         }
     }
@@ -375,6 +380,9 @@ public class SessionController {
             th.setDaemon(true);
             th.setName("Loading existing/cloning repository");
             th.start();
+        } catch(InvalidPathException e) {
+            showRepoWasNotLoadedNotification();
+            e.printStackTrace();
         } catch (IllegalArgumentException e) {
             showInvalidRepoNotification();
             e.printStackTrace();
@@ -384,14 +392,13 @@ public class SessionController {
             showInvalidRemoteNotification(() -> handleLoadRepoMenuItem(builder));
         } catch(TransportException e){
             showNotAuthorizedNotification(() -> handleLoadRepoMenuItem(builder));
-        } catch (NoRepoSelectedException e) {
-            // The user pressed cancel on the dialog box. Do nothing!
-        } catch(IOException | GitAPIException e){
+        } catch (NoRepoSelectedException | CancelledAuthorizationException e) {
+            // The user pressed cancel on the dialog box, or
+            // the user pressed cancel on the authorize dialog box. Do nothing!
+        } catch(IOException | GitAPIException e) {
             // Somehow, the repository failed to get properly loaded
             // TODO: better error message?
             showRepoWasNotLoadedNotification();
-        } catch(CancelledAuthorizationException e) {
-            //The user pressed cancel on the authorize dialog box. Do nothing!
         }
     }
 
@@ -1320,7 +1327,7 @@ public class SessionController {
     private void showRepoWasNotLoadedNotification() {
         Platform.runLater(() -> {
             logger.warn("Repo not loaded warning");
-            this.notificationPane.setText("No repository was loaded.");
+            this.notificationPane.setText("Something went wrong, so no repository was loaded.");
 
             this.notificationPane.getActions().clear();
             this.notificationPane.show();
@@ -1656,26 +1663,23 @@ public class SessionController {
             for (TagHelper t:commit.getTags()) {
                 Hyperlink link = new Hyperlink();
                 link.setText(t.getName());
-                link.setOnAction(new EventHandler<javafx.event.ActionEvent>() {
-                    @Override
-                    public void handle(javafx.event.ActionEvent event) {
-                        logger.info("Delete tag dialog started.");
-                        if (t.presentDeleteDialog()) {
-                            try {
-                                theModel.getCurrentRepoHelper().deleteTag(t.getName());
-                            } catch (MissingRepoException e) {
-                                e.printStackTrace();
-                            } catch (GitAPIException e) {
-                                e.printStackTrace();
-                            }
-                            if (!theModel.getCurrentRepoHelper().hasUnpushedTags()) {
-                                pushTagsButton.setVisible(false);
-                                pushButton.setVisible(true);
-                            }
-                            gitStatus();
-                            clearSelectedCommit();
-                            selectCommit(id);
+                link.setOnAction(event -> {
+                    logger.info("Delete tag dialog started.");
+                    if (t.presentDeleteDialog()) {
+                        try {
+                            theModel.getCurrentRepoHelper().deleteTag(t.getName());
+                        } catch (MissingRepoException e) {
+                            e.printStackTrace();
+                        } catch (GitAPIException e) {
+                            e.printStackTrace();
                         }
+                        if (!theModel.getCurrentRepoHelper().hasUnpushedTags()) {
+                            pushTagsButton.setVisible(false);
+                            pushButton.setVisible(true);
+                        }
+                        gitStatus();
+                        clearSelectedCommit();
+                        selectCommit(id);
                     }
                 });
                 tags.add(link,numTags,0);
@@ -1696,18 +1700,7 @@ public class SessionController {
             tagNameField.setVisible(true);
             tagButton.setVisible(true);
 
-            String s = "";
-            for (BranchHelper branch : commit.getBranchesAsHead()) {
-                if (branch instanceof RemoteBranchHelper) {
-                    s = s + "origin/";
-                }
-                s = s + branch.getBranchName() + "\n";
-            }
-            if (s.length() > 0) {
-                commitInfoMessageText.setText("Head of branches: \n" + s + "\n\n" + commit.getMessage(true));
-            } else {
-                commitInfoMessageText.setText(commit.getMessage(true));
-            }
+            commitInfoMessageText.setText(theModel.getCurrentRepoHelper().getCommitDescriptorString(commit, true));
         });
     }
 
