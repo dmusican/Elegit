@@ -1,7 +1,7 @@
 package main.java.elegit;
 
-import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.TransportCommand;
+import com.jcraft.jsch.Session;
+import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.transport.*;
 import org.junit.After;
 import org.junit.Before;
@@ -205,6 +205,32 @@ public class AuthenticatedCloneTest {
                 assertNotEquals(protocol.getName(), "HTTP");
             }
         }
+    }
+
+    @Test
+    public void testCallback() throws Exception {
+        LsRemoteCommand command = Git.lsRemoteRepository();
+        //command.setRemote("https://github.com/TheElegitTeam/TestRepository.git");
+        command.setRemote("git@github.com:TheElegitTeam/TestRepository.git");
+
+        SshSessionFactory sshSessionFactory = new JschConfigSessionFactory() {
+            @Override
+            protected void configure(OpenSshConfig.Host host, Session session ) {
+                // do nothing
+            }
+        };
+
+        command.setTransportConfigCallback( new TransportConfigCallback() {
+            @Override
+            public void configure( Transport transport ) {
+                System.out.println(transport.getClass());
+                SshTransport sshTransport = ( SshTransport )transport;
+                sshTransport.setSshSessionFactory( sshSessionFactory );
+
+        }
+        } );
+        command.call();
+
     }
 
 }
