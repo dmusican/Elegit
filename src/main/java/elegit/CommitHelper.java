@@ -7,7 +7,9 @@ import org.eclipse.jgit.revwalk.RevCommit;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 /**
  * A wrapper class for commits to make them easier to interact with and preserves certain
@@ -24,9 +26,6 @@ public class CommitHelper{
     // The parents and children of this commit
     ParentCommitHelper parents;
     List<CommitHelper> children;
-
-    // The branches for which this commit is a head
-    Map<String, BranchHelper> branchesAsHead;
 
     // The short and full message of this commit
     String shortMessage;
@@ -46,7 +45,6 @@ public class CommitHelper{
         this.author = c.getAuthorIdent();
         this.children = new ArrayList<>();
         this.parents = new ParentCommitHelper(this, null, null);
-        this.branchesAsHead = new HashMap<>();
         this.fullMessage = c.getFullMessage();
         this.shortMessage = c.getShortMessage();
     }
@@ -91,7 +89,7 @@ public class CommitHelper{
      * @return the unique identifying string for this commit
      */
     public String getId(){
-        return CommitTreeModel.getId(this);
+        return RepoHelper.getCommitId(this);
     }
 
     /**
@@ -211,29 +209,6 @@ public class CommitHelper{
         return children;
     }
 
-    /**
-     * Notifies this commit that it is the head of the given branch
-     * @param branch the branch for which this commit is the head
-     */
-    public void setAsHead(BranchHelper branch){
-        branchesAsHead.put(branch.getRefPathString(), branch);
-    }
-
-    /**
-     * Notifies this commit that it is no longer the head of the given branch
-     * @param branch the branch for which this commit is no longer the head
-     */
-    public void removeAsHead(BranchHelper branch){
-        branchesAsHead.remove(branch.getRefPathString());
-    }
-
-    /**
-     * @return all branches for which this commit is the head
-     */
-    public List<BranchHelper> getBranchesAsHead(){
-        return new LinkedList<>(branchesAsHead.values());
-    }
-
     @Override
     public String toString(){
         String s = this.getAuthorName();
@@ -292,6 +267,16 @@ public class CommitHelper{
      */
     public RevCommit getCommit() {
         return this.commit;
+    }
+
+    @Override
+    public int hashCode(){
+        return this.commit.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object other){
+        return (other instanceof CommitHelper) && this.commit.equals(((CommitHelper) other).getCommit());
     }
 
     /**

@@ -19,5 +19,5 @@ compiled
 build
 .gradle
 Elegit.iml
-logs
+*.log
 target

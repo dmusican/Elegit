@@ -67,7 +67,7 @@ public class TreeGraph{
      * remove the appropriate cells and edges and keep the view up to
      * date
      */
-    public synchronized  void update() {
+    public synchronized void update() {
         queuedToAdd.addAll(treeGraphModel.getAddedCells());
         queuedToAdd.addAll(treeGraphModel.getAddedEdges());
 

@@ -34,6 +34,7 @@ public class SessionModel {
     // Keys for preferences recall
     private static final String RECENT_REPOS_LIST_KEY = "RECENT_REPOS_LIST";
     private static final String LAST_OPENED_REPO_PATH_KEY = "LAST_OPENED_REPO_PATH";
+    private static final String LAST_UUID_KEY="LAST_UUID";
 
     private RepoHelper currentRepoHelper;
     public ObjectProperty<RepoHelper> currentRepoHelperProperty;
@@ -532,6 +533,7 @@ public class SessionModel {
     public void clearStoredPreferences() throws BackingStoreException, IOException, ClassNotFoundException {
         PrefObj.putObject(this.preferences, RECENT_REPOS_LIST_KEY, null);
         PrefObj.putObject(this.preferences, LAST_OPENED_REPO_PATH_KEY, null);
+        PrefObj.putObject(this.preferences, LAST_UUID_KEY, null);
     }
 
     public void setAuthPref(String pathname, AuthMethod authTechnique) {
@@ -599,8 +601,21 @@ public class SessionModel {
         } catch (Exception exception) {
             exception.printStackTrace();
         }
-        /*currentRepoHelper = null;
-        currentRepoHelperProperty = new SimpleObjectProperty<>(null);*/
         sessionModel = new SessionModel();
+    }
+
+    /**
+     * Once files are uploaded to the server, we have a UUID to remember for the next
+     * upload of files.
+     */
+    public void setLastUUID(String uuid) throws BackingStoreException, ClassNotFoundException, IOException {
+        PrefObj.putObject(this.preferences, LAST_UUID_KEY, uuid);
+    }
+
+    /**
+     * To upload a file to the server, we need to find the last uuid
+     */
+    public String getLastUUID() throws BackingStoreException, ClassNotFoundException, IOException {
+        return (String) PrefObj.getObject(this.preferences, LAST_UUID_KEY);
     }
 }

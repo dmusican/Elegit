@@ -143,7 +143,7 @@ public class GitIgnoreEditor {
     public static void show(RepoHelper repo, Path pathToAdd){
         repoHelper = repo;
         gitIgnoreFile = repoHelper.getLocalPath().resolve(Constants.DOT_GIT_IGNORE);
-        addedPath = pathToAdd == null ? "" : pathToAdd.toString();
+        addedPath = pathToAdd == null ? "" : pathToAdd.toString().replaceAll("\\\\","/");
 
         window = initWindow();
         Platform.runLater(window::show);
