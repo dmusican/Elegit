@@ -1,4 +1,4 @@
-package main.java.elegit;
+package elegit;
 
 import java.io.*;
 import java.util.prefs.BackingStoreException;

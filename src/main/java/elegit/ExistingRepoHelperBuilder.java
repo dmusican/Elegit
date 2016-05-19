@@ -1,7 +1,7 @@
-package main.java.elegit;
+package elegit;
 
-import main.java.elegit.exceptions.CancelledAuthorizationException;
-import main.java.elegit.exceptions.NoRepoSelectedException;
+import elegit.exceptions.CancelledAuthorizationException;
+import elegit.exceptions.NoRepoSelectedException;
 import org.eclipse.jgit.api.errors.GitAPIException;
 
 import java.io.File;

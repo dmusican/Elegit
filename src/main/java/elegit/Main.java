@@ -1,4 +1,4 @@
-package main.java.elegit;
+package elegit;
 
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
@@ -29,28 +29,10 @@ public class Main extends Application {
     public void start(Stage primaryStage) throws Exception{
 
         // -----------------------Logging Initialization Start---------------------------
-        System.setProperty("log4j.configurationFile", getClass().getResource("/elegit/config/log4j2.xml").getPath().toString());
-
+        // TODO change this to be placed outside generated JAR-file
         System.setProperty("logFolder", getClass().getResource("/elegit/logs").getPath().toString());
 
-
         final Logger logger = LogManager.getLogger();
-
-        try {
-            InputStream fis = getClass().getResourceAsStream("/elegit/config/log4j2.xml");
-
-            XmlConfigurationFactory fc = new XmlConfigurationFactory( );
-            fc.getConfiguration(  new ConfigurationSource( fis ) );
-
-            URI configuration = getClass().getResource("/elegit/config/log4j2.xml").toURI();
-            Configurator.initialize("config", null, configuration);
-
-            org.apache.logging.log4j.core.LoggerContext ctx =
-                    (org.apache.logging.log4j.core.LoggerContext) LogManager.getContext( true );
-            ctx.reconfigure();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
         // -----------------------Logging Initialization End-----------------------------
 
         logger.info("Starting up.");

@@ -1,4 +1,4 @@
-package main.java.elegit.treefx;
+package elegit.treefx;
 
 /**
  * Enum for the different highlighting states of a cell

@@ -1,4 +1,4 @@
-package main.java.elegit.treefx;
+package elegit.treefx;
 
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
@@ -126,15 +126,21 @@ public class TreeGraphModel{
      * @param parentIds the IDs of the parents of the new cell, if any
      * @param visible whether the cell will be normal or invisible
      */
-    public void addCell(String newId, long time, String displayLabel, List<String> refs, ContextMenu contextMenu, List<String> parentIds, boolean visible){
+    public void addCell(String newId, long time, String displayLabel,
+                        List<String> refs, ContextMenu contextMenu,
+                        List<String> parentIds, boolean visible){
         String parent1Id = parentIds.size() > 0 ? parentIds.get(0) : null;
         String parent2Id = parentIds.size() > 1 ? parentIds.get(1) : null;
 
         Cell cell;
         if(visible){
-            cell = new Cell(newId, time, parent1Id == null ? null : cellMap.get(parent1Id), parent2Id == null ? null : cellMap.get(parent2Id));
+            cell = new Cell(newId, time, parent1Id == null ?
+                    null : cellMap.get(parent1Id), parent2Id == null ?
+                    null : cellMap.get(parent2Id));
         }else{
-            cell = new InvisibleCell(newId, time, parent1Id == null ? null : cellMap.get(parent1Id), parent2Id == null ? null : cellMap.get(parent2Id));
+            cell = new InvisibleCell(newId, time, parent1Id == null ?
+                    null : cellMap.get(parent1Id), parent2Id == null ?
+                    null : cellMap.get(parent2Id));
         }
         setCellLabels(cell, displayLabel, refs);
         cell.setContextMenu(contextMenu);
