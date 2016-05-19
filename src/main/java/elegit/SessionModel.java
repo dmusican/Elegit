@@ -141,7 +141,7 @@ public class SessionModel {
      *
      * @param repoHelper the repository to open
      */
-    public void openRepo(RepoHelper repoHelper) throws BackingStoreException, IOException, ClassNotFoundException {
+    private void openRepo(RepoHelper repoHelper) throws BackingStoreException, IOException, ClassNotFoundException {
         if(!this.allRepoHelpers.contains(repoHelper)) {
             this.allRepoHelpers.add(repoHelper);
         }

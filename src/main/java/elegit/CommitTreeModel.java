@@ -49,6 +49,7 @@ public abstract class CommitTreeModel{
         this.view = view;
         this.view.setName("Generic commit tree");
         CommitTreeController.allCommitTreeModels.add(this);
+        branchMap = new HashMap<>();
     }
 
     /**

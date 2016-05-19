@@ -200,7 +200,7 @@ public class BranchManagerController {
      */
     private LocalBranchHelper createLocalTrackingBranchForRemote(RemoteBranchHelper remoteBranchHelper) throws GitAPIException, IOException {
         Ref trackingBranchRef = new Git(this.repo).branchCreate().
-                setName(remoteBranchHelper.getBranchName()).
+                setName(remoteBranchHelper.toString()).
                 setUpstreamMode(CreateBranchCommand.SetupUpstreamMode.TRACK).
                 setStartPoint(remoteBranchHelper.getRefPathString()).
                 call();
