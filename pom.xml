@@ -12,22 +12,23 @@
     <build>
         <directory>target</directory>
         <outputDirectory>target/classes</outputDirectory>
-        <finalName>${artifactId}-${version}</finalName>
+        <finalName>${project.artifactId}-${project.version}</finalName>
         <testOutputDirectory>target/test-classes</testOutputDirectory>
         <sourceDirectory>src</sourceDirectory>
         <testSourceDirectory>tests</testSourceDirectory>
-        <resources>
+        <!--<resources>
             <resource>
                 <directory>src/main/resources</directory>
             </resource>
-        </resources>
+        </resources>-->
         <plugins>
             <plugin>
                 <groupId>com.zenjava</groupId>
                 <artifactId>javafx-maven-plugin</artifactId>
-                <version>8.2.0</version>
+                <version>8.4.0</version>
                 <configuration>
                     <vendor>The Elegit Team</vendor>
+                    <appname>Elegit</appname>
                     <mainClass>main.java.elegit.Main</mainClass>
                 </configuration>
             </plugin>
