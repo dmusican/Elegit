@@ -10,16 +10,8 @@ import javafx.stage.Stage;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.core.config.ConfigurationSource;
-import org.apache.logging.log4j.core.config.Configurator;
-import org.apache.logging.log4j.core.config.xml.XmlConfigurationFactory;
 
 import javax.imageio.ImageIO;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
-import java.net.URI;
 /**
  * The starting point for this JavaFX application.
  */
@@ -30,7 +22,7 @@ public class Main extends Application {
 
         // -----------------------Logging Initialization Start---------------------------
         // TODO change this to be placed outside generated JAR-file
-        System.setProperty("logFolder", getClass().getResource("/elegit/logs").getPath().toString());
+        //System.setProperty("logFolder", getClass().getResource("logs/").getPath().toString());
 
         final Logger logger = LogManager.getLogger();
         // -----------------------Logging Initialization End-----------------------------

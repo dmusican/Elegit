@@ -30,14 +30,8 @@ public class DataSubmitter {
     public String submitData(String uuid) {
         logger.info("Submit data called");
 
-        File[] logsToUpload=null;
+        File[] logsToUpload=new File("logs/").listFiles();
 
-        try {
-            File logFolder = new File(getClass().getResource("/elegit/logs/").toURI());
-            logsToUpload = logFolder.listFiles();
-        } catch (URISyntaxException e) {
-            return null;
-        }
         String lastUUID="";
         if (uuid==null || uuid.equals("")) {
             uuid=UUID.randomUUID().toString();
