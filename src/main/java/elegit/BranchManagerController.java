@@ -2,6 +2,7 @@ package main.java.elegit;
 
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -53,6 +54,7 @@ public class BranchManagerController {
 
     private SessionModel sessionModel;
     private BranchManagerModel branchManagerModel;
+    private LocalCommitTreeModel localCommitTreeModel;
 
     static final Logger logger = LogManager.getLogger();
 
@@ -62,6 +64,12 @@ public class BranchManagerController {
         this.repoHelper = this.sessionModel.getCurrentRepoHelper();
         this.repo = this.repoHelper.getRepo();
         this.branchManagerModel = this.repoHelper.getBranchManagerModel();
+        for (CommitTreeModel commitTreeModel : CommitTreeController.allCommitTreeModels) {
+            if (commitTreeModel.getViewName().equals(LocalCommitTreeModel
+                    .LOCAL_TREE_VIEW_NAME)) {
+                this.localCommitTreeModel = (LocalCommitTreeModel)commitTreeModel;
+            }
+        }
 
         List<LocalBranchHelper> localBranches = this.branchManagerModel.getLocalBranches();
         List<RemoteBranchHelper> remoteBranches = this.branchManagerModel.getRemoteBranches();
@@ -320,21 +328,42 @@ public class BranchManagerController {
 
         if (mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.CONFLICTING)){
             this.showConflictsNotification();
+
         } else if (mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.ALREADY_UP_TO_DATE)) {
             this.showUpToDateNotification();
+
         } else if (mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.FAILED)) {
             this.showFailedMergeNotification();
+
         } else if (mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.MERGED)
                 || mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.MERGED_NOT_COMMITTED)) {
             this.showMergeSuccessNotification();
+            this.updateBranchesOnMergeSuccess();
+
         } else if (mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.FAST_FORWARD)) {
             this.showFastForwardMergeNotification();
+            this.updateBranchesOnMergeSuccess();
+
         } else {
             System.out.println(mergeResult.getMergeStatus());
             // todo: handle all cases (maybe combine some)
         }
         git.close();
     }
+
+
+    private void updateBranchesOnMergeSuccess() throws IOException, GitAPIException {
+        sessionModel.getCurrentRepoHelper().getListOfLocalBranches();
+        Platform.runLater(() -> {
+            try {
+                CommitTreeController.update(sessionModel.getCurrentRepoHelper());
+                //CommitTreeController.sessionController.gitStatus();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
 
     /**
      * Swaps the branches to be merged.

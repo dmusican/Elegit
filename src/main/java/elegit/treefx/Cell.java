@@ -6,14 +6,12 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
-import javafx.event.EventHandler;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.MouseButton;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.shape.Shape;
 import javafx.util.Duration;
@@ -382,9 +380,9 @@ public class Cell extends Pane{
             Label basic = new Label();
             Label extended = new Label();
             Button showExtended = new Button();
-            //extended.setBackground(new Background(new BackgroundFill(Color.WHITE, new CornerRadii(1), new Insets(0))));
 
             basic.setText(labels.get(0));
+
             String extendedText = "";
             boolean isFirst = true;
             for (String label: labels) {

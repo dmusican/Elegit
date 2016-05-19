@@ -118,4 +118,8 @@ public class CommitTreePanelView extends Region{
     public void setName(String name){
         this.name = name;
     }
+
+    public String getName() {
+        return this.name;
+    }
 }

@@ -1003,9 +1003,6 @@ public class SessionController {
 
                     /*showNoRepoLoadedNotification();
                     setButtonsDisabled(true);*/
-                } catch(GitAPIException | IOException e){
-                    showGenericErrorNotification();
-                    e.printStackTrace();
                 } catch(Exception e) {
                     showGenericErrorNotification();
                     e.printStackTrace();

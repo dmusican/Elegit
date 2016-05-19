@@ -5,12 +5,10 @@ import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import javafx.stage.WindowEvent;
 import main.java.elegit.exceptions.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -1131,6 +1129,7 @@ public abstract class RepoHelper {
         return false;
     }
 
+
     /**
      * Utilizes JGit to get a list of all local branches. It both returns a list of remote branches,
      * but also simultaneously updates an instance variable holding that same list.
@@ -1142,15 +1141,18 @@ public abstract class RepoHelper {
         List<Ref> getBranchesCall = new Git(this.repo).branchList().call();
 
         localBranches = new ArrayList<>();
-
-        for (Ref ref : getBranchesCall) localBranches.add(new LocalBranchHelper(ref, this));
+        for (Ref ref : getBranchesCall) {
+            localBranches.add(new LocalBranchHelper(ref, this));
+        }
 
         return localBranches;
     }
 
+
     public List<LocalBranchHelper> getLocalBranchesFromManager() {
         return this.branchManagerModel.getLocalBranches();
     }
+
 
     /**
      * Utilizes JGit to get a list of all remote branches. It both returns a list of remote branches,
