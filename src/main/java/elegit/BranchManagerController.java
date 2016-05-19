@@ -240,7 +240,7 @@ public class BranchManagerController {
     /**
      * Deletes the selected branches (in the localListView) through git.
      */
-    public void deleteSelectedLocalBranches() {
+    public void deleteSelectedLocalBranches() throws IOException {
         logger.info("Delete branches button clicked");
         Git git = new Git(this.repo);
 
@@ -264,6 +264,13 @@ public class BranchManagerController {
             }
         }
         git.close();
+
+        try {
+            updateBranchesOnSuccess();
+        } catch (GitAPIException e) {
+            logger.warn("Git error");
+            this.showGenericErrorNotification();
+        }
         // TODO: add optional delete from remote, too.
         // see http://stackoverflow.com/questions/11892766/how-to-remove-remote-branch-with-jgit
     }
@@ -339,11 +346,11 @@ public class BranchManagerController {
         } else if (mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.MERGED)
                 || mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.MERGED_NOT_COMMITTED)) {
             this.showMergeSuccessNotification();
-            this.updateBranchesOnMergeSuccess();
+            this.updateBranchesOnSuccess();
 
         } else if (mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.FAST_FORWARD)) {
             this.showFastForwardMergeNotification();
-            this.updateBranchesOnMergeSuccess();
+            this.updateBranchesOnSuccess();
 
         } else {
             System.out.println(mergeResult.getMergeStatus());
@@ -353,7 +360,7 @@ public class BranchManagerController {
     }
 
 
-    private void updateBranchesOnMergeSuccess() throws IOException, GitAPIException {
+    private void updateBranchesOnSuccess() throws IOException, GitAPIException {
         sessionModel.getCurrentRepoHelper().getListOfLocalBranches();
         Platform.runLater(() -> {
             try {
