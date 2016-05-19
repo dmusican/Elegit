@@ -1,4 +1,4 @@
-package main.java.elegit;
+package elegit;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;

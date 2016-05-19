@@ -1,4 +1,4 @@
-package main.java.elegit;
+package elegit;
 
 import javafx.fxml.FXML;
 import org.controlsfx.control.NotificationPane;

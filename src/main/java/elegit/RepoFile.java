@@ -1,4 +1,4 @@
-package main.java.elegit;
+package elegit;
 
 import javafx.scene.Node;
 import javafx.scene.control.Button;

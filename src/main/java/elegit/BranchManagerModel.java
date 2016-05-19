@@ -1,4 +1,4 @@
-package main.java.elegit;
+package elegit;
 
 import javafx.collections.ObservableList;
 import org.eclipse.jgit.api.errors.GitAPIException;

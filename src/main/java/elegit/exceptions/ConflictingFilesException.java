@@ -1,4 +1,4 @@
-package main.java.elegit.exceptions;
+package elegit.exceptions;
 
 import java.util.ArrayList;
 import java.util.List;

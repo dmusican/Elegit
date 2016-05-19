@@ -8,19 +8,13 @@
     <artifactId>Elegit</artifactId>
     <version>1.0-SNAPSHOT</version>
 
+    <properties>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+    </properties>
 
     <build>
-        <directory>target</directory>
-        <outputDirectory>target/classes</outputDirectory>
         <finalName>${project.artifactId}-${project.version}</finalName>
-        <testOutputDirectory>target/test-classes</testOutputDirectory>
-        <sourceDirectory>src</sourceDirectory>
-        <testSourceDirectory>tests</testSourceDirectory>
-        <!--<resources>
-            <resource>
-                <directory>src/main/resources</directory>
-            </resource>
-        </resources>-->
         <plugins>
             <plugin>
                 <groupId>com.zenjava</groupId>
@@ -29,7 +23,7 @@
                 <configuration>
                     <vendor>The Elegit Team</vendor>
                     <appname>Elegit</appname>
-                    <mainClass>main.java.elegit.Main</mainClass>
+                    <mainClass>elegit.Main</mainClass>
                 </configuration>
             </plugin>
         </plugins>
@@ -103,11 +97,6 @@
             <version>4.12</version>
         </dependency>
     </dependencies>
-
-    <properties>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
-    </properties>
 
 
 </project>

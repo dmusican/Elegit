@@ -1,4 +1,4 @@
-package main.java.elegit.treefx;
+package elegit.treefx;
 
 import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
@@ -15,8 +15,8 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.layout.Pane;
 import javafx.scene.shape.Shape;
 import javafx.util.Duration;
-import main.java.elegit.CommitTreeController;
-import main.java.elegit.MatchedScrollPane;
+import elegit.CommitTreeController;
+import elegit.MatchedScrollPane;
 
 import java.util.ArrayList;
 import java.util.List;

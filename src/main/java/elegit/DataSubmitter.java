@@ -1,4 +1,4 @@
-package main.java.elegit;
+package elegit;
 
 /**
  * Class for uploading logged data

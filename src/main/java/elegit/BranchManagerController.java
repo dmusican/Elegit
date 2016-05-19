@@ -1,4 +1,4 @@
-package main.java.elegit;
+package elegit;
 
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;

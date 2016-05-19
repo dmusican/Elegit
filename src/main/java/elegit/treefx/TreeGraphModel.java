@@ -1,4 +1,4 @@
-package main.java.elegit.treefx;
+package elegit.treefx;
 
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;

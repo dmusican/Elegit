@@ -1,4 +1,4 @@
-package main.java.elegit;
+package elegit;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;

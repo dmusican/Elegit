@@ -1,4 +1,4 @@
-package main.java.elegit.exceptions;
+package elegit.exceptions;
 
 /**
  * Exception for when there isn't a repository loaded and the user

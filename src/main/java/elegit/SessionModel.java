@@ -1,9 +1,9 @@
-package main.java.elegit;
+package elegit;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import main.java.elegit.exceptions.CancelledAuthorizationException;
-import main.java.elegit.exceptions.MissingRepoException;
+import elegit.exceptions.CancelledAuthorizationException;
+import elegit.exceptions.MissingRepoException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jgit.api.Git;

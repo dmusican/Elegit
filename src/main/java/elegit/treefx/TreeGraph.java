@@ -1,4 +1,4 @@
-package main.java.elegit.treefx;
+package elegit.treefx;
 
 import javafx.application.Platform;
 import javafx.geometry.Insets;
@@ -6,7 +6,7 @@ import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.Pane;
-import main.java.elegit.MatchedScrollPane;
+import elegit.MatchedScrollPane;
 
 import java.util.LinkedList;
 import java.util.List;

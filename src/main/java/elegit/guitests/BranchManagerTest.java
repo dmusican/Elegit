@@ -1,4 +1,4 @@
-package main.java.elegit.guitests;
+package elegit.guitests;
 
 /**
  * Created by grahamearley on 1/10/16.
