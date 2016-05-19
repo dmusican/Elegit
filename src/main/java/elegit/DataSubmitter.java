@@ -1,4 +1,4 @@
-package main.java.elegit;
+package elegit;
 
 /**
  * Class for uploading logged data
@@ -18,20 +18,20 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.File;
 
+import java.net.URISyntaxException;
 import java.util.UUID;
 
 public class DataSubmitter {
-    private static final String submitUrl = "http://elegit.mathcs.carleton.edu/logging/upload.php"; //for testing, keeping the local one
+    private static final String submitUrl = "http://elegit.mathcs.carleton.edu/logging/upload.php";
     private static final Logger logger = LogManager.getLogger();
     public DataSubmitter() {
     }
 
     public String submitData(String uuid) {
         logger.info("Submit data called");
-        System.out.println(uuid);
 
-        File logFolder = new File("logs/");
-        File[] logsToUpload = logFolder.listFiles();
+        File[] logsToUpload=new File("logs/").listFiles();
+
         String lastUUID="";
         if (uuid==null || uuid.equals("")) {
             uuid=UUID.randomUUID().toString();

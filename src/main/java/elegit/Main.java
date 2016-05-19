@@ -1,4 +1,4 @@
-package main.java.elegit;
+package elegit;
 
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
@@ -10,15 +10,8 @@ import javafx.stage.Stage;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.core.config.ConfigurationSource;
-import org.apache.logging.log4j.core.config.Configurator;
-import org.apache.logging.log4j.core.config.xml.XmlConfigurationFactory;
 
 import javax.imageio.ImageIO;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.net.URI;
 /**
  * The starting point for this JavaFX application.
  */
@@ -29,27 +22,12 @@ public class Main extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception{
 
-        // -----------------------------------------------------------------------
-        System.setProperty("log4j.configurationFile", "src/main/resources/elegit/config/log4j2.xml");
+        // -----------------------Logging Initialization Start---------------------------
+        // TODO change this to be placed outside generated JAR-file
+        //System.setProperty("logFolder", getClass().getResource("logs/").getPath().toString());
+
         final Logger logger = LogManager.getLogger();
-
-        File logConfigFile = new File( "src/main/resources/elegit/config/log4j2.xml" );
-
-        try {
-            FileInputStream fis = new FileInputStream( logConfigFile );
-
-            XmlConfigurationFactory fc = new XmlConfigurationFactory( );
-            fc.getConfiguration(  new ConfigurationSource( fis ) );
-
-            URI configuration = logConfigFile.toURI();
-            Configurator.initialize("config", null, configuration);
-
-            org.apache.logging.log4j.core.LoggerContext ctx =
-                    (org.apache.logging.log4j.core.LoggerContext) LogManager.getContext( true );
-            ctx.reconfigure();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
+        // -----------------------Logging Initialization End-----------------------------
 
         logger.info("Starting up.");
 
@@ -61,7 +39,7 @@ public class Main extends Application {
         primaryStage.setTitle("Elegit");
 
         // sets the icon
-        Image img = new Image("file:src/main/resources/elegit/elegit_icon.png");
+        Image img = new Image(getClass().getResourceAsStream("/elegit/elegit_icon.png"));
         primaryStage.getIcons().add(img);
         // handles mac os dock icon
         if (SystemUtils.IS_OS_MAC) {

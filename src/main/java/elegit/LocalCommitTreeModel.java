@@ -1,4 +1,4 @@
-package main.java.elegit;
+package elegit;
 
 import org.eclipse.jgit.api.errors.GitAPIException;
 
@@ -11,9 +11,11 @@ import java.util.Map;
  */
 public class LocalCommitTreeModel extends CommitTreeModel{
 
+    public final static String LOCAL_TREE_VIEW_NAME = "Local commit tree";
+
     public LocalCommitTreeModel(SessionModel model, CommitTreePanelView view){
         super(model, view);
-        this.view.setName("Local commit tree");
+        this.view.setName(LOCAL_TREE_VIEW_NAME);
     }
 
     @Override
@@ -29,5 +31,10 @@ public class LocalCommitTreeModel extends CommitTreeModel{
     @Override
     protected List<BranchHelper> getAllBranches(RepoHelper repoHelper){
         return repoHelper.getLocalBranches();
+    }
+
+    @Override
+    public String getViewName() {
+        return this.view.getName();
     }
 }

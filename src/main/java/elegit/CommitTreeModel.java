@@ -1,17 +1,19 @@
-package main.java.elegit;
+package elegit;
 
 import javafx.scene.control.*;
-import main.java.elegit.treefx.Cell;
-import main.java.elegit.treefx.TreeGraph;
-import main.java.elegit.treefx.TreeGraphModel;
+import elegit.treefx.Cell;
+import elegit.treefx.TreeGraph;
+import elegit.treefx.TreeGraphModel;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.ObjectId;
 
 import java.io.IOException;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Handles the conversion/creation of a list of commit helpers into a nice
@@ -400,8 +402,9 @@ public abstract class CommitTreeModel{
         return branches;
     }
 
-
     public List<TagHelper> getTagsToBePushed() {
         return tagsToBePushed;
     }
+
+    public abstract String getViewName();
 }

@@ -1,10 +1,11 @@
-package main.java.elegit;
+package elegit;
 
+import elegit.*;
+import elegit.treefx.Cell;
 import javafx.application.Application;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.layout.Pane;
-import main.java.elegit.treefx.Cell;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;

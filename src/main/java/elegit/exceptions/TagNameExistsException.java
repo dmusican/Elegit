@@ -1,4 +1,4 @@
-package main.java.elegit.exceptions;
+package elegit.exceptions;
 
 /**
  * An exception thrown when attempting to tag a commit that already has a tag with that name

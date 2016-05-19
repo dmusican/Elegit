@@ -1,7 +1,8 @@
-package main.java.elegit;
+package elegit;
 
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -53,6 +54,7 @@ public class BranchManagerController {
 
     private SessionModel sessionModel;
     private BranchManagerModel branchManagerModel;
+    private LocalCommitTreeModel localCommitTreeModel;
 
     static final Logger logger = LogManager.getLogger();
 
@@ -62,6 +64,12 @@ public class BranchManagerController {
         this.repoHelper = this.sessionModel.getCurrentRepoHelper();
         this.repo = this.repoHelper.getRepo();
         this.branchManagerModel = this.repoHelper.getBranchManagerModel();
+        for (CommitTreeModel commitTreeModel : CommitTreeController.allCommitTreeModels) {
+            if (commitTreeModel.getViewName().equals(LocalCommitTreeModel
+                    .LOCAL_TREE_VIEW_NAME)) {
+                this.localCommitTreeModel = (LocalCommitTreeModel)commitTreeModel;
+            }
+        }
 
         List<LocalBranchHelper> localBranches = this.branchManagerModel.getLocalBranches();
         List<RemoteBranchHelper> remoteBranches = this.branchManagerModel.getRemoteBranches();
@@ -199,8 +207,9 @@ public class BranchManagerController {
      * @throws IOException
      */
     private LocalBranchHelper createLocalTrackingBranchForRemote(RemoteBranchHelper remoteBranchHelper) throws GitAPIException, IOException {
+        String localBranchName=remoteBranchHelper.getBranchName().substring(7);
         Ref trackingBranchRef = new Git(this.repo).branchCreate().
-                setName(remoteBranchHelper.toString()).
+                setName(localBranchName).
                 setUpstreamMode(CreateBranchCommand.SetupUpstreamMode.TRACK).
                 setStartPoint(remoteBranchHelper.getRefPathString()).
                 call();
@@ -231,7 +240,7 @@ public class BranchManagerController {
     /**
      * Deletes the selected branches (in the localListView) through git.
      */
-    public void deleteSelectedLocalBranches() {
+    public void deleteSelectedLocalBranches() throws IOException {
         logger.info("Delete branches button clicked");
         Git git = new Git(this.repo);
 
@@ -255,6 +264,13 @@ public class BranchManagerController {
             }
         }
         git.close();
+
+        try {
+            updateBranchesOnSuccess();
+        } catch (GitAPIException e) {
+            logger.warn("Git error");
+            this.showGenericErrorNotification();
+        }
         // TODO: add optional delete from remote, too.
         // see http://stackoverflow.com/questions/11892766/how-to-remove-remote-branch-with-jgit
     }
@@ -320,21 +336,42 @@ public class BranchManagerController {
 
         if (mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.CONFLICTING)){
             this.showConflictsNotification();
+
         } else if (mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.ALREADY_UP_TO_DATE)) {
             this.showUpToDateNotification();
+
         } else if (mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.FAILED)) {
             this.showFailedMergeNotification();
+
         } else if (mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.MERGED)
                 || mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.MERGED_NOT_COMMITTED)) {
             this.showMergeSuccessNotification();
+            this.updateBranchesOnSuccess();
+
         } else if (mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.FAST_FORWARD)) {
             this.showFastForwardMergeNotification();
+            this.updateBranchesOnSuccess();
+
         } else {
             System.out.println(mergeResult.getMergeStatus());
             // todo: handle all cases (maybe combine some)
         }
         git.close();
     }
+
+
+    private void updateBranchesOnSuccess() throws IOException, GitAPIException {
+        sessionModel.getCurrentRepoHelper().getListOfLocalBranches();
+        Platform.runLater(() -> {
+            try {
+                CommitTreeController.update(sessionModel.getCurrentRepoHelper());
+                //CommitTreeController.sessionController.gitStatus();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
 
     /**
      * Swaps the branches to be merged.

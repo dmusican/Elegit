@@ -1,4 +1,4 @@
-package main.java.elegit;
+package elegit;
 
 import org.junit.After;
 import org.junit.Before;
