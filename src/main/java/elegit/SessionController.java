@@ -272,7 +272,6 @@ public class SessionController {
                 .subtract(10)); // The gap between each button and this label is 5
 
     }
-
     /**
      * Populates the browser image with the remote URL
      */

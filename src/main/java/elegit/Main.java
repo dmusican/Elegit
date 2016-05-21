@@ -12,17 +12,25 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import javax.imageio.ImageIO;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
 /**
  * The starting point for this JavaFX application.
  */
 public class Main extends Application {
+    private Path directoryPath;
 
     @Override
     public void start(Stage primaryStage) throws Exception{
 
         // -----------------------Logging Initialization Start---------------------------
-        // TODO change this to be placed outside generated JAR-file
-        //System.setProperty("logFolder", getClass().getResource("logs/").getPath().toString());
+        // Create a temp directory for the files to be placed in
+        this.directoryPath = Files.createTempDirectory("elegitLogs");
+        this.directoryPath.toFile().deleteOnExit();
+        System.out.println(directoryPath.toString());
+        System.setProperty("logFolder", directoryPath.toString());
 
         final Logger logger = LogManager.getLogger();
         // -----------------------Logging Initialization End-----------------------------
@@ -48,7 +56,13 @@ public class Main extends Application {
                     .setDockIconImage(dock_img);
         }
 
-        primaryStage.setOnCloseRequest(event -> logger.info("Closed"));
+        primaryStage.setOnCloseRequest(event -> {
+                // On close, upload the logs and delete the log.
+                logger.info("Closed");
+                try {
+                    Files.delete(this.directoryPath);
+                } catch (IOException e) {
+                }});
 
         BusyWindow.setParentWindow(primaryStage);
 
