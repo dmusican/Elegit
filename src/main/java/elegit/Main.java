@@ -22,6 +22,8 @@ import java.nio.file.Path;
 public class Main extends Application {
     private Path directoryPath;
 
+    public static SessionController sessionController;
+
     @Override
     public void start(Stage primaryStage) throws Exception{
 
@@ -37,9 +39,11 @@ public class Main extends Application {
 
         logger.info("Starting up.");
 
+        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/MainView.fxml"));
+        fxmlLoader.load();
+        Pane root = fxmlLoader.getRoot();
+        sessionController = fxmlLoader.getController();
 
-        Pane root = FXMLLoader.load(getClass().getResource
-                ("/elegit/fxml/MainView.fxml"));
         primaryStage.setTitle("Elegit");
 
         // sets the icon
