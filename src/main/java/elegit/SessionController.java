@@ -710,29 +710,6 @@ public class SessionController {
         try {
             logger.info("Push button clicked");
 
-            Thread submit = new Thread(new Task<Void>() {
-                @Override
-                protected Void call() {
-                    try {
-                        String lastUUID = theModel.getLastUUID();
-                        theModel.setLastUUID(d.submitData(lastUUID));
-                    } catch (BackingStoreException e) {
-                        e.printStackTrace();
-                    } catch (ClassNotFoundException e) {
-                        e.printStackTrace();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    } catch (Exception e) {
-                        try { theModel.setLastUUID(""); }
-                        catch (Exception f) { }
-                    }
-                    return null;
-                }
-            });
-            submit.setDaemon(true);
-            submit.setName("Data submit");
-            submit.start();
-
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
             if(!this.theModel.getCurrentRepoHelper().hasUnpushedCommits()) throw new NoCommitsToPushException();
 
@@ -794,29 +771,6 @@ public class SessionController {
     public void handlePushTagsButton() {
         try {
             logger.info("Push tags button clicked");
-
-            Thread submit = new Thread(new Task<Void>() {
-                @Override
-                protected Void call() {
-                    try {
-                        String lastUUID = theModel.getLastUUID();
-                        theModel.setLastUUID(d.submitData(lastUUID));
-                    } catch (BackingStoreException e) {
-                        e.printStackTrace();
-                    } catch (ClassNotFoundException e) {
-                        e.printStackTrace();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    } catch (Exception e) {
-                        try { theModel.setLastUUID(""); }
-                        catch (Exception f) { }
-                    }
-                    return null;
-                }
-            });
-            submit.setDaemon(true);
-            submit.setName("Data submit");
-            submit.start();
 
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
             if(!this.theModel.getCurrentRepoHelper().hasUnpushedTags()) throw new NoTagsToPushException();
@@ -895,28 +849,6 @@ public class SessionController {
      */
     public synchronized void gitFetch(){
         try{
-            Thread submit = new Thread(new Task<Void>() {
-                @Override
-                protected Void call() {
-                    try {
-                        String lastUUID = theModel.getLastUUID();
-                        theModel.setLastUUID(d.submitData(lastUUID));
-                    } catch (BackingStoreException e) {
-                        e.printStackTrace();
-                    } catch (ClassNotFoundException e) {
-                        e.printStackTrace();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    } catch (Exception e) {
-                        try { theModel.setLastUUID(""); }
-                        catch (Exception f) { }
-                    }
-                    return null;
-                }
-            });
-            submit.setDaemon(true);
-            submit.setName("Data submit");
-            submit.start();
 
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
 
@@ -1797,5 +1729,21 @@ public class SessionController {
         });
 
         popover.show(this.removeRecentReposButton);
+    }
+
+    public void submitLog(String logPath) {
+        try {
+            String lastUUID = theModel.getLastUUID();
+            theModel.setLastUUID(d.submitData(lastUUID, logPath));
+        } catch (BackingStoreException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (Exception e) {
+            try { theModel.setLastUUID(""); }
+            catch (Exception f) { }
+        }
     }
 }

@@ -18,7 +18,10 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.File;
 
+import java.io.IOException;
 import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.UUID;
 
 public class DataSubmitter {
@@ -27,10 +30,11 @@ public class DataSubmitter {
     public DataSubmitter() {
     }
 
-    public String submitData(String uuid) {
+    public String submitData(String uuid, String logPath) {
         logger.info("Submit data called");
 
-        File[] logsToUpload=new File("logs/").listFiles();
+        File logDirectory = new File(logPath);
+        File[] logsToUpload=logDirectory.listFiles();
 
         String lastUUID="";
         if (uuid==null || uuid.equals("")) {
@@ -39,14 +43,17 @@ public class DataSubmitter {
         }
 
         for (File logFile: logsToUpload) {
-            if (!logFile.isFile() || logFile.getName().equals("elegit.log")) {
+            if (!logFile.isFile() || !logFile.getName().equals("elegit.log")) {
                 if (logsToUpload.length == 1) logger.info("No new logs to upload today");
                 break;
             }
-            //String newUUID = UUID.randomUUID().toString();
-            File UUIDfile = new File("logs/"+uuid+".log");
-            logFile.renameTo(UUIDfile);
-            logFile=UUIDfile;
+
+            // Move the file to a uuid filename for upload to the server.
+            try {
+                logFile = Files.copy(logFile.toPath(), logFile.toPath().resolveSibling(uuid+".log")).toFile();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
 
             logger.info("Attempting to upload log: {}",logFile.getName());
             CloseableHttpClient httpclient = HttpClients.createDefault();
@@ -83,12 +90,13 @@ public class DataSubmitter {
                 }
                 return null;
             }
-            if (logFile.delete()) {
-                logger.info("Succesfully deleted {}", logFile.getName());
-            }
-            //TODO: deal with the possibility of files not being correctly deleted
-            logger.info("File upload was successful");
         }
+        // Clean up the directory
+        for (File file: logDirectory.listFiles()) {
+            file.delete();
+        }
+        logDirectory.delete();
+
         return lastUUID;
     }
 }
