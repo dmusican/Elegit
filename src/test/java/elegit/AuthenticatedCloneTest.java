@@ -11,6 +11,7 @@ import org.junit.rules.ExpectedException;
 
 import java.io.File;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -24,10 +25,12 @@ public class AuthenticatedCloneTest {
 
     private Path directoryPath;
     private String testFileLocation;
+    Path logPath;
 
 
     @Before
     public void setUp() throws Exception {
+        initializeLogger();
         this.directoryPath = Files.createTempDirectory("unitTestRepos");
         directoryPath.toFile().deleteOnExit();
         testFileLocation = System.getProperty("user.home") + File.separator +
@@ -36,6 +39,27 @@ public class AuthenticatedCloneTest {
 
     @After
     public void tearDown() throws Exception {
+        removeAllFilesFromDirectory(this.logPath.toFile());
+    }
+
+    // Helper method to avoid annoying traces from logger
+    void initializeLogger() {
+        // Create a temp directory for the files to be placed in
+        try {
+            this.logPath = Files.createTempDirectory("elegitLogs");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        this.logPath.toFile().deleteOnExit();
+        System.setProperty("logFolder", logPath.toString());
+    }
+
+    // Helper tear-down method:
+    void removeAllFilesFromDirectory(File dir) {
+        for (File file: dir.listFiles()) {
+            if (file.isDirectory()) removeAllFilesFromDirectory(file);
+            file.delete();
+        }
     }
 
     @Test

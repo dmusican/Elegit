@@ -54,8 +54,8 @@ public class CommitLabelTest {
     @Before
     public void setUp() throws Exception {
         // Clone the testing repo into a temporary location
-        this.directoryPath = Files.createTempDirectory("unitTestRepos");
-        this.directoryPath.toFile().deleteOnExit();
+        this.directoryPath = Files.createTempDirectory("commitLabelTestRepos");
+        this.directoryPath.toFile().delete();
         this.repoPath = directoryPath.resolve("commitlabeltestrepo");
 
         helper = new ClonedRepoHelper(repoPath, remoteURL);

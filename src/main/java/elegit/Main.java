@@ -30,7 +30,6 @@ public class Main extends Application {
         // Create a temp directory for the files to be placed in
         this.logPath = Files.createTempDirectory("elegitLogs");
         this.logPath.toFile().deleteOnExit();
-        System.out.println(logPath.toString());
         System.setProperty("logFolder", logPath.toString());
 
         final Logger logger = LogManager.getLogger();
