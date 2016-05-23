@@ -2,13 +2,13 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.Text?>
-<?import main.java.elegit.*?>
+<?import elegit.*?>
 <?import org.controlsfx.control.NotificationPane?>
 <?import java.net.URL?>
 <?import javafx.scene.image.*?>
 
 <AnchorPane
-        fx:controller="main.java.elegit.SessionController"
+        fx:controller="elegit.SessionController"
         xmlns:fx="http://javafx.com/fxml"
         prefWidth="1200"
         prefHeight="650">

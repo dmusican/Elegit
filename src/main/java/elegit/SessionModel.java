@@ -1,9 +1,9 @@
-package main.java.elegit;
+package elegit;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import main.java.elegit.exceptions.CancelledAuthorizationException;
-import main.java.elegit.exceptions.MissingRepoException;
+import elegit.exceptions.CancelledAuthorizationException;
+import elegit.exceptions.MissingRepoException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jgit.api.Git;
@@ -139,7 +139,7 @@ public class SessionModel {
      *
      * @param repoHelper the repository to open
      */
-    public void openRepo(RepoHelper repoHelper) throws BackingStoreException, IOException, ClassNotFoundException {
+    private void openRepo(RepoHelper repoHelper) throws BackingStoreException, IOException, ClassNotFoundException {
         if(!this.allRepoHelpers.contains(repoHelper)) {
             this.allRepoHelpers.add(repoHelper);
         }

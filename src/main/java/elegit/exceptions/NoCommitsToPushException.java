@@ -1,4 +1,4 @@
-package main.java.elegit.exceptions;
+package elegit.exceptions;
 
 /**
  * An exception thrown when attempting to push with no new commits

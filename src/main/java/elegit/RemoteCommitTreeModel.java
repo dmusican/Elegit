@@ -1,4 +1,4 @@
-package main.java.elegit;
+package elegit;
 
 import org.eclipse.jgit.api.errors.GitAPIException;
 
@@ -11,9 +11,11 @@ import java.util.Map;
  */
 public class RemoteCommitTreeModel extends CommitTreeModel{
 
+    public final static String REMOTE_TREE_VIEW_NAME = "Remote commit tree";
+
     public RemoteCommitTreeModel(SessionModel model, CommitTreePanelView view){
         super(model, view);
-        this.view.setName("Remote commit tree");
+        this.view.setName(REMOTE_TREE_VIEW_NAME);
     }
 
     @Override
@@ -29,5 +31,10 @@ public class RemoteCommitTreeModel extends CommitTreeModel{
     @Override
     protected List<BranchHelper> getAllBranches(RepoHelper repoHelper){
         return repoHelper.getRemoteBranches();
+    }
+
+    @Override
+    public String getViewName() {
+        return this.view.getName();
     }
 }

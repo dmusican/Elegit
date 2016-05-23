@@ -1,4 +1,4 @@
-package main.java.elegit;
+package elegit;
 
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -11,8 +11,8 @@ import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Window;
-import main.java.elegit.exceptions.CancelledAuthorizationException;
-import main.java.elegit.exceptions.NoRepoSelectedException;
+import elegit.exceptions.CancelledAuthorizationException;
+import elegit.exceptions.NoRepoSelectedException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jgit.api.errors.GitAPIException;

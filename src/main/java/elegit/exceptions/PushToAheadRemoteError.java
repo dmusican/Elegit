@@ -1,4 +1,4 @@
-package main.java.elegit.exceptions;
+package elegit.exceptions;
 
 /**
  * An error thrown when a push doesn't go through because

@@ -1,4 +1,4 @@
-package main.java.elegit.treefx;
+package elegit.treefx;
 
 import javafx.scene.Node;
 import javafx.scene.shape.Shape;

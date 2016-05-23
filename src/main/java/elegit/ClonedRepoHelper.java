@@ -1,6 +1,6 @@
-package main.java.elegit;
+package elegit;
 
-import main.java.elegit.exceptions.CancelledAuthorizationException;
+import elegit.exceptions.CancelledAuthorizationException;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;

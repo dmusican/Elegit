@@ -1,4 +1,4 @@
-package main.java.elegit;
+package elegit;
 
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;

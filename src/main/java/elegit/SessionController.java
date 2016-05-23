@@ -1,4 +1,4 @@
-package main.java.elegit;
+package elegit;
 
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
@@ -30,7 +30,7 @@ import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
-import main.java.elegit.exceptions.*;
+import elegit.exceptions.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.controlsfx.control.CheckListView;
@@ -273,7 +273,6 @@ public class SessionController {
                 .subtract(10)); // The gap between each button and this label is 5
 
     }
-
     /**
      * Populates the browser image with the remote URL
      */
@@ -714,29 +713,6 @@ public class SessionController {
         try {
             logger.info("Push button clicked");
 
-            Thread submit = new Thread(new Task<Void>() {
-                @Override
-                protected Void call() {
-                    try {
-                        String lastUUID = theModel.getLastUUID();
-                        theModel.setLastUUID(d.submitData(lastUUID));
-                    } catch (BackingStoreException e) {
-                        e.printStackTrace();
-                    } catch (ClassNotFoundException e) {
-                        e.printStackTrace();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    } catch (Exception e) {
-                        try { theModel.setLastUUID(""); }
-                        catch (Exception f) { }
-                    }
-                    return null;
-                }
-            });
-            submit.setDaemon(true);
-            submit.setName("Data submit");
-            submit.start();
-
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
             if(!this.theModel.getCurrentRepoHelper().hasUnpushedCommits()) throw new NoCommitsToPushException();
 
@@ -798,29 +774,6 @@ public class SessionController {
     public void handlePushTagsButton() {
         try {
             logger.info("Push tags button clicked");
-
-            Thread submit = new Thread(new Task<Void>() {
-                @Override
-                protected Void call() {
-                    try {
-                        String lastUUID = theModel.getLastUUID();
-                        theModel.setLastUUID(d.submitData(lastUUID));
-                    } catch (BackingStoreException e) {
-                        e.printStackTrace();
-                    } catch (ClassNotFoundException e) {
-                        e.printStackTrace();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    } catch (Exception e) {
-                        try { theModel.setLastUUID(""); }
-                        catch (Exception f) { }
-                    }
-                    return null;
-                }
-            });
-            submit.setDaemon(true);
-            submit.setName("Data submit");
-            submit.start();
 
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
             if(!this.theModel.getCurrentRepoHelper().hasUnpushedTags()) throw new NoTagsToPushException();
@@ -899,28 +852,6 @@ public class SessionController {
      */
     public synchronized void gitFetch(){
         try{
-            Thread submit = new Thread(new Task<Void>() {
-                @Override
-                protected Void call() {
-                    try {
-                        String lastUUID = theModel.getLastUUID();
-                        theModel.setLastUUID(d.submitData(lastUUID));
-                    } catch (BackingStoreException e) {
-                        e.printStackTrace();
-                    } catch (ClassNotFoundException e) {
-                        e.printStackTrace();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    } catch (Exception e) {
-                        try { theModel.setLastUUID(""); }
-                        catch (Exception f) { }
-                    }
-                    return null;
-                }
-            });
-            submit.setDaemon(true);
-            submit.setName("Data submit");
-            submit.start();
 
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
 
@@ -1006,9 +937,6 @@ public class SessionController {
 
                     /*showNoRepoLoadedNotification();
                     setButtonsDisabled(true);*/
-                } catch(GitAPIException | IOException e){
-                    showGenericErrorNotification();
-                    e.printStackTrace();
                 } catch(Exception e) {
                     showGenericErrorNotification();
                     e.printStackTrace();
@@ -1805,5 +1733,21 @@ public class SessionController {
         });
 
         popover.show(this.removeRecentReposButton);
+    }
+
+    public void submitLog(String logPath) {
+        try {
+            String lastUUID = theModel.getLastUUID();
+            theModel.setLastUUID(d.submitData(lastUUID, logPath));
+        } catch (BackingStoreException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (Exception e) {
+            try { theModel.setLastUUID(""); }
+            catch (Exception f) { }
+        }
     }
 }

@@ -1,4 +1,4 @@
-package main.java.elegit;
+package elegit;
 
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
@@ -10,54 +10,38 @@ import javafx.stage.Stage;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.core.config.ConfigurationSource;
-import org.apache.logging.log4j.core.config.Configurator;
-import org.apache.logging.log4j.core.config.xml.XmlConfigurationFactory;
 
 import javax.imageio.ImageIO;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
-import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
 /**
  * The starting point for this JavaFX application.
  */
 public class Main extends Application {
+    private Path logPath;
+
+    public static SessionController sessionController;
 
     @Override
     public void start(Stage primaryStage) throws Exception{
 
         // -----------------------Logging Initialization Start---------------------------
-        System.setProperty("log4j.configurationFile", getClass().getResource("/elegit/config/log4j2.xml").getPath().toString());
-
-        System.setProperty("logFolder", getClass().getResource("/elegit/logs").getPath().toString());
-
+        // Create a temp directory for the files to be placed in
+        this.logPath = Files.createTempDirectory("elegitLogs");
+        this.logPath.toFile().deleteOnExit();
+        System.setProperty("logFolder", logPath.toString());
 
         final Logger logger = LogManager.getLogger();
-
-        try {
-            InputStream fis = getClass().getResourceAsStream("/elegit/config/log4j2.xml");
-
-            XmlConfigurationFactory fc = new XmlConfigurationFactory( );
-            fc.getConfiguration(  new ConfigurationSource( fis ) );
-
-            URI configuration = getClass().getResource("/elegit/config/log4j2.xml").toURI();
-            Configurator.initialize("config", null, configuration);
-
-            org.apache.logging.log4j.core.LoggerContext ctx =
-                    (org.apache.logging.log4j.core.LoggerContext) LogManager.getContext( true );
-            ctx.reconfigure();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
         // -----------------------Logging Initialization End-----------------------------
 
         logger.info("Starting up.");
 
+        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/MainView.fxml"));
+        fxmlLoader.load();
+        Pane root = fxmlLoader.getRoot();
+        sessionController = fxmlLoader.getController();
 
-        Pane root = FXMLLoader.load(getClass().getResource
-                ("/elegit/fxml/MainView.fxml"));
         primaryStage.setTitle("Elegit");
 
         // sets the icon
@@ -74,7 +58,10 @@ public class Main extends Application {
                     .setDockIconImage(dock_img);
         }
 
-        primaryStage.setOnCloseRequest(event -> logger.info("Closed"));
+        primaryStage.setOnCloseRequest(event -> {
+                // On close, upload the logs and delete the log.
+                logger.info("Closed");
+                sessionController.submitLog(this.logPath.toString());});
 
         BusyWindow.setParentWindow(primaryStage);
 
