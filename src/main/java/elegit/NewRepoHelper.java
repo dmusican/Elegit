@@ -1,4 +1,4 @@
-package main.java.elegit;
+package elegit;
 
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -10,8 +10,8 @@ import java.nio.file.Path;
  * A RepoHelper implementation for newly instantiated repositories in an empty folder.
  */
 public class NewRepoHelper extends RepoHelper {
-    public NewRepoHelper(Path directoryPath, String remoteURL, String username) throws Exception {
-        super(directoryPath, remoteURL, username);
+    public NewRepoHelper(Path directoryPath, String remoteURL) throws Exception {
+        super(directoryPath, remoteURL);
     }
 
     /**

@@ -1,4 +1,4 @@
-package main.java.elegit;
+package elegit;
 
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -24,7 +24,7 @@ public class LocalBranchHelper extends BranchHelper {
     /**
      * Parses the branch's refPath in order to get its name.
      */
-    public String getBranchName() {
+    protected String parseBranchName() {
         String[] slashSplit = this.refPathString.split("/");
         if (slashSplit.length >= 2) {
 

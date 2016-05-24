@@ -1,4 +1,4 @@
-package main.java.elegit;
+package elegit;
 
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Ref;
@@ -16,10 +16,15 @@ public class RemoteBranchHelper extends BranchHelper {
     }
 
     @Override
+    public String getBranchName(){
+        return "origin/"+super.getBranchName();
+    }
+
+    @Override
     /**
      * Parses the branch's refPath in order to get its name.
      */
-    public String getBranchName() {
+    protected String parseBranchName() {
         String[] slashSplit = this.refPathString.split("/");
 
         /*

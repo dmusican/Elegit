@@ -1,7 +1,8 @@
-package main.java.elegit;
+package elegit;
 
 import java.io.*;
-import java.util.prefs.*;
+import java.util.prefs.BackingStoreException;
+import java.util.prefs.Preferences;
 
 /**
  * A class that sneakily stores any object with the
@@ -53,7 +54,6 @@ public class PrefObj {
         Preferences node = prefs.node( key );
         String keys[] = node.keys();
         int numPieces = keys.length;
-
         byte pieces[][] = new byte[numPieces][];
         for (int i=0; i<numPieces; ++i) {
             pieces[i] = node.getByteArray( ""+i, null );
@@ -103,5 +103,14 @@ public class PrefObj {
         byte raw[] = combinePieces( pieces );
         Object o = bytes2Object( raw );
         return o;
+    }
+
+    static public void removeObject(Preferences prefs, String key) throws BackingStoreException {
+        Preferences node = prefs.node( key );
+        node.removeNode();
+    }
+
+    static public String[] keys(Preferences prefs) throws BackingStoreException {
+        return prefs.keys();
     }
 }

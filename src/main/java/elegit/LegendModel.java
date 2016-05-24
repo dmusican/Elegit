@@ -1,4 +1,4 @@
-package main.java.elegit;
+package elegit;
 
 /**
  * Created by ericwalker on 10/25/15.

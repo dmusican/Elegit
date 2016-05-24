@@ -1,12 +1,17 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import javafx.scene.shape.Circle?>
 <?import javafx.scene.text.Text?>
-<?import main.java.elegit.*?>
+<?import elegit.*?>
 <?import org.controlsfx.control.NotificationPane?>
 <?import java.net.URL?>
-<AnchorPane fx:controller="main.java.elegit.SessionController" xmlns:fx="http://javafx.com/fxml">
+<?import javafx.scene.image.*?>
+
+<AnchorPane
+        fx:controller="elegit.SessionController"
+        xmlns:fx="http://javafx.com/fxml"
+        prefWidth="1200"
+        prefHeight="650">
 
     <NotificationPane fx:id="notificationPane"
             AnchorPane.bottomAnchor="5.0"
@@ -84,9 +89,9 @@
 
                     <Button GridPane.columnIndex="4"
                             GridPane.rowIndex="0"
-                            fx:id="switchUserButton"
-                            text="Username"
-                            onAction="#handleSwitchUserButton" />
+                            fx:id="changeLoginButton"
+                            text="Change login"
+                            onAction="#handleChangeLoginButton" />
 
                     <Button GridPane.columnIndex="5"
                             GridPane.rowIndex="0"
@@ -148,12 +153,27 @@
                     </GridPane>
 
                     <StackPane GridPane.rowIndex="1"
-                                GridPane.columnIndex="7">
-                        <Circle AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
-                                id="remoteRepoCircle"
-                                fx:id="remoteCircle"
-                                opacity="0.5"
-                                onMouseClicked="#handleRemoteCircleMouseClick"/>
+                               GridPane.columnIndex="7">
+
+                        <ImageView
+                                fx:id = "browserImageView"
+                                fitHeight="175"
+                                fitWidth="175"
+                                preserveRatio="true"
+                                onMouseClicked="#handleRemoteImageViewMouseClick">
+                            <image>
+                                <Image url="@browser_image.png"/>
+                            </image>
+                        </ImageView>
+
+                        <Text fx:id="browserText"
+                              StackPane.alignment="CENTER"
+                              onMouseClicked="#handleRemoteImageViewMouseClick">
+                            <StackPane.margin>
+                                <Insets bottom="95.0" right="10.0"/>
+                            </StackPane.margin>
+                        </Text>
+
                     </StackPane>
 
                     <StackPane GridPane.rowIndex="1"
@@ -178,7 +198,7 @@
                         <CommitTreePanelView fx:id="remoteCommitTreePanelView"/>
 
                         <Label StackPane.alignment="BOTTOM_LEFT"
-                               text="Remote"
+                               text="Remote Cache"
                                id="commitTreeLabel">
                             <StackPane.margin>
                                 <Insets bottom="15.0" left="5.0"/>
@@ -202,6 +222,16 @@
                             <ProgressIndicator visible="false"
                                                fx:id="pushProgressIndicator"/>
                         </HBox>
+
+                        <ArrowButton StackPane.alignment="CENTER_RIGHT"
+                                     id="codeButton"
+                                     fx:id="pushTagsButton"
+                                     text="Push Tags"
+                                     arrowUp="true"
+                                     arrowRight="true"
+                                     visible="false"
+                                     onAction="#handlePushTagsButton">
+                        </ArrowButton>
 
                         <ArrowButton StackPane.alignment="CENTER_RIGHT"
                                      id="codeButton"
@@ -271,6 +301,44 @@
                                       wrapText="true"
                                       editable="false"
                                       fx:id="commitInfoMessageText"/>
+
+                            <ScrollPane
+                                    GridPane.columnIndex="1"
+                                    GridPane.rowIndex="4"
+                                    GridPane.columnSpan="3"
+                                    fx:id="tagsPane"
+                            />
+
+                            <Label
+                                    GridPane.columnIndex="0"
+                                    GridPane.rowIndex="4"
+                                    GridPane.halignment="CENTER"
+                                    fx:id="tagsLabel"
+                                    text="Tags:"
+                            />
+
+                            <TextArea
+                                    GridPane.rowIndex="5"
+                                    GridPane.columnIndex="1"
+                                    GridPane.columnSpan="2"
+                                    GridPane.vgrow="NEVER"
+                                    prefColumnCount="1"
+                                    prefHeight="1"
+                                    wrapText="true"
+                                    editable="true"
+                                    fx:id="tagNameField"
+                                    promptText="tag..." />
+
+
+                            <ArrowButton GridPane.rowIndex="5"
+                                         GridPane.columnIndex="0"
+                                         GridPane.halignment="LEFT"
+                                         GridPane.valignment="BOTTOM"
+                                         id="codeButton"
+                                         fx:id="tagButton"
+                                         text="Tag"
+                                         arrowLeft="true"
+                                         onAction="#handleTagButton"/>
 
                             <Button GridPane.rowIndex="2"
                                     GridPane.columnIndex="0"

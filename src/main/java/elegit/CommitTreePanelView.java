@@ -1,12 +1,12 @@
-package main.java.elegit;
+package elegit;
 
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.Region;
-import main.java.elegit.treefx.Cell;
-import main.java.elegit.treefx.TreeGraph;
-import main.java.elegit.treefx.TreeLayout;
+import elegit.treefx.Cell;
+import elegit.treefx.TreeGraph;
+import elegit.treefx.TreeLayout;
 
 /**
  * Class for the local and remote panel views that handles the drawing of a tree structure
@@ -117,5 +117,9 @@ public class CommitTreePanelView extends Region{
      */
     public void setName(String name){
         this.name = name;
+    }
+
+    public String getName() {
+        return this.name;
     }
 }

@@ -1,5 +1,6 @@
-package main.java.elegit;
+package elegit;
 
+import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -23,10 +24,11 @@ public class RepositoryMonitor{
 
     // Whether to ignore any new changes
     private static boolean ignoreNewRemoteChanges = false;
-
     private static boolean pauseLocalMonitor = false;
 
     private static int pauseCounter = 0;
+
+    private static boolean ignoreUnpause = false;
 
     // Thread information
     private static Thread th;
@@ -39,7 +41,11 @@ public class RepositoryMonitor{
      * @param model the model to pull the repositories from
      */
     public static void beginWatchingRemote(SessionModel model){
-        model.currentRepoHelperProperty.addListener((observable, oldValue, newValue) -> watchRepoForRemoteChanges(newValue));
+        model.currentRepoHelperProperty.addListener(
+            (observable, oldValue, newValue) -> {
+                watchRepoForRemoteChanges(newValue);
+            }
+        );
         watchRepoForRemoteChanges(model.getCurrentRepoHelper());
     }
 
@@ -154,8 +160,7 @@ public class RepositoryMonitor{
     public static synchronized void beginWatchingLocal(SessionController controller, SessionModel model){
         Thread thread = new Thread(() -> {
             while(true){
-                if(!pauseLocalMonitor && model.getCurrentRepoHelper() != null
-                        && model.getCurrentRepoHelper().exists() && !controller.workingTreePanelView.isAnyFileSelectedProperty.get()){
+                if(!pauseLocalMonitor && model.getCurrentRepoHelper() != null && model.getCurrentRepoHelper().exists()){
                     controller.gitStatus();
                 }
 
@@ -170,10 +175,34 @@ public class RepositoryMonitor{
         thread.start();
     }
 
+    public static synchronized void bindMenu(SessionModel model) {
+        model.currentRepoHelperProperty.addListener(
+                (observable, oldValue, newValue) -> {
+                    Platform.runLater(() -> {
+                        if (newValue != null) {
+                            MenuPopulator.menuConfigNormal();
+                        } else {
+                            MenuPopulator.menuConfigNoRepo();
+                        }
+                    });
+                }
+        );
+        if (model.getCurrentRepoHelper() == null) {
+            MenuPopulator.menuConfigNoRepo();
+        } else {
+            MenuPopulator.menuConfigNormal();
+        }
+    }
+
     private static void pauseWatchingRemote(long millis){
         ignoreNewRemoteChanges = true;
 
-        if(millis < 0) return;
+        if(millis < 0){
+            ignoreUnpause = true;
+            return;
+        }else{
+            ignoreUnpause = false;
+        }
 
         Thread waitThread = new Thread(() -> {
             try{
@@ -193,7 +222,12 @@ public class RepositoryMonitor{
     private static void pauseWatchingLocal(long millis){
         pauseLocalMonitor = true;
 
-        if(millis < 0) return;
+        if(millis < 0){
+            ignoreUnpause = true;
+            return;
+        }else{
+            ignoreUnpause = false;
+        }
 
         Thread waitThread = new Thread(() -> {
             try{

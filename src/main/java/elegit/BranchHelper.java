@@ -1,4 +1,4 @@
-package main.java.elegit;
+package elegit;
 
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.ObjectId;
@@ -33,13 +33,17 @@ public abstract class BranchHelper {
         this.refPathString = refPathString;
         this.setHead(repoHelper.getCommit(refPathString));
         this.repoHelper = repoHelper;
-        this.branchName = this.getBranchName();
+        this.branchName = this.parseBranchName();
+    }
+
+    public String getBranchName(){
+        return this.branchName;
     }
 
     /**
      * @return the name of this branch, e.g. 'master'
      */
-    public abstract String getBranchName();
+    protected abstract String parseBranchName();
 
     /**
      * Checks out this branch in the stored repository. Equivalent to
@@ -61,9 +65,7 @@ public abstract class BranchHelper {
      * @param head the new head
      */
     private void setHead(CommitHelper head){
-        if(branchHead != null) branchHead.removeAsHead(this);
-        this.branchHead = head;
-        if(branchHead != null) branchHead.setAsHead(this);
+        branchHead = head;
     }
 
     @Override

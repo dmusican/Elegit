@@ -1,4 +1,4 @@
-package main.java.elegit;
+package elegit;
 
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
@@ -12,14 +12,16 @@ import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.scene.text.Text;
 import javafx.util.Pair;
-import main.java.elegit.exceptions.CancelledAuthorizationException;
-import main.java.elegit.exceptions.NoRepoSelectedException;
+import elegit.exceptions.CancelledAuthorizationException;
+import elegit.exceptions.NoRepoSelectedException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.eclipse.jgit.api.LsRemoteCommand;
+import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.TransportCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
 import org.eclipse.jgit.api.errors.TransportException;
+import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
 import java.io.File;
 import java.io.IOException;
@@ -40,6 +42,11 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
 
     static final Logger logger = LogManager.getLogger();
 
+    private ButtonType cloneButtonType;
+    private TextField remoteURLField;
+    private TextField enclosingFolderField;
+    private TextField repoNameField;
+
     public ClonedRepoHelperBuilder(SessionModel sessionModel) {
         super(sessionModel);
     }
@@ -49,43 +56,59 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
      * information needed to construct a ClonedRepoHelper.
      *
      * @return the new ClonedRepoHelper.
-     * @throws Exception when constructing the new ClonedRepoHelper
      */
     @Override
     public RepoHelper getRepoHelperFromDialogs() throws GitAPIException, IOException, NoRepoSelectedException, CancelledAuthorizationException{
-        // Inspired by: http://code.makery.ch/blog/javafx-dialogs-official/
 
-        // Create the custom dialog.
+        Dialog<Pair<String, String>> dialog = createCloneDialog();
+        setUpDialogButtons(dialog);
+        arrangeDialogFields(dialog);
+        configureCloneButton(dialog);
 
+        Optional<Pair<String, String>> result = dialog.showAndWait();
+
+        RepoHelper repoHelper = processDialogResponses(result);
+        return repoHelper;
+    }
+
+    private Dialog<Pair<String, String>> createCloneDialog() {
         logger.info("Load remote repo dialog started");
         Dialog<Pair<String, String>> dialog = new Dialog<>();
         dialog.setTitle("Clone");
         dialog.setHeaderText("Clone a remote repository");
 
-        Text instructionsText = new Text("Select an enclosing folder for the repository folder\n" +
-                                         "to be created in.");
+        return dialog;
+    }
 
+    private void setUpDialogButtons(Dialog<Pair<String, String>> dialog) {
         // Set the button types.
-        ButtonType cloneButtonType = new ButtonType("Clone", ButtonBar.ButtonData.OK_DONE);
+        cloneButtonType = new ButtonType("Clone", ButtonBar.ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().addAll(cloneButtonType, ButtonType.CANCEL);
+        Node cloneButton = dialog.getDialogPane().lookupButton(cloneButtonType);
+        cloneButton.setDisable(true);   // starts off as disabled
         dialog.setOnCloseRequest(new EventHandler<DialogEvent>() {
             @Override
             public void handle(DialogEvent event) {
                 logger.info("Closed clone from remote dialog");
             }
         });
+    }
 
-        // Create the Remote URL and destination path labels and fields.
+    private void arrangeDialogFields(Dialog<Pair<String, String>> dialog) {
+
         GridPane grid = new GridPane();
         grid.setHgap(10);
         grid.setVgap(10);
         grid.setPadding(new Insets(10, 10, 10, 10));
 
-        TextField remoteURLField = new TextField();
+        Text instructionsText = new Text("Select an enclosing folder for the repository folder\n" +
+                "to be created in.");
+
+        remoteURLField = new TextField();
         remoteURLField.setPromptText("Remote URL");
         if(prevRemoteURL != null) remoteURLField.setText(prevRemoteURL);
 
-        TextField enclosingFolderField = new TextField();
+        enclosingFolderField = new TextField();
         enclosingFolderField.setEditable(false); // for now, it will just show the folder you selected
         if(prevDestinationPath != null) enclosingFolderField.setText(prevDestinationPath);
 
@@ -100,30 +123,46 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
             enclosingDirectoryPathText.setText(cloneRepoDirectory.toString() + File.separator);
         });
 
-        TextField repoNameField = new TextField();
+        repoNameField = new TextField();
         repoNameField.setPromptText("Repository name...");
         if(prevRepoName != null) repoNameField.setText(prevRepoName);
 
-        grid.add(instructionsText, 0, 0, 2, 1);
+        int instructionsRow = 0;
+        int remoteURLRow = instructionsRow + 1;
+        int enclosingFolderRow = remoteURLRow + 1;
+        int repositoryNameRow = enclosingFolderRow + 1;
 
-        grid.add(new Label("Remote URL:"), 0, 1);
-        grid.add(remoteURLField, 1, 1);
-        grid.add(new Label("Enclosing folder:"), 0, 2);
-        grid.add(enclosingFolderField, 1, 2);
-        grid.add(chooseDirectoryButton, 2, 2);
+        grid.add(instructionsText, 0, instructionsRow, 2, 1);
 
-        grid.add(new Label("Repository name:"), 0, 3);
-        grid.add(repoNameField, 1, 3);
+        grid.add(new Label("Remote URL:"), 0, remoteURLRow);
+        grid.add(remoteURLField, 1, remoteURLRow);
 
-        // Enable/Disable login button depending on whether a username was entered.
+        grid.add(new Label("Enclosing folder:"), 0, enclosingFolderRow);
+        grid.add(enclosingFolderField, 1, enclosingFolderRow);
+        grid.add(chooseDirectoryButton, 2, enclosingFolderRow);
+
+        grid.add(new Label("Repository name:"), 0, repositoryNameRow);
+        grid.add(repoNameField, 1, repositoryNameRow);
+
+        dialog.getDialogPane().setContent(grid);
+
+        // Request focus on the remote URL field by default.
+        Platform.runLater(remoteURLField::requestFocus);
+
+
+    }
+
+
+    private void configureCloneButton(Dialog<Pair<String, String>> dialog) {
         Node cloneButton = dialog.getDialogPane().lookupButton(cloneButtonType);
-        cloneButton.setDisable(true);
 
         //////
         // Do some validation:
         //  On completion of every field, check that the other fields
         //  are also filled in and with valid characters. Then enable login.
-        BooleanProperty invalidRepoNameProperty = new SimpleBooleanProperty(repoNameField.getText().trim().contains("/") || repoNameField.getText().trim().contains("."));
+        BooleanProperty invalidRepoNameProperty =
+                new SimpleBooleanProperty(repoNameField.getText().trim().contains("/") ||
+                        repoNameField.getText().trim().contains("."));
 
         cloneButton.disableProperty().bind(enclosingFolderField.textProperty().isEmpty()
                 .or(repoNameField.textProperty().isEmpty())
@@ -133,12 +172,7 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
         repoNameField.textProperty().addListener((observable, oldValue, newValue) -> {
             invalidRepoNameProperty.set(newValue.trim().contains("/") || newValue.trim().contains("."));
         });
-        //////
 
-        dialog.getDialogPane().setContent(grid);
-
-        // Request focus on the remote URL field by default.
-        Platform.runLater(remoteURLField::requestFocus);
 
         // Convert the result to a destination-remote pair when the clone button is clicked.
         dialog.setResultConverter(dialogButton -> {
@@ -153,30 +187,57 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
             return null;
         });
 
-        Optional<Pair<String, String>> result = dialog.showAndWait();
+    }
 
+    private RepoHelper processDialogResponses(Optional<Pair<String, String>> result) throws GitAPIException, IOException, CancelledAuthorizationException, NoRepoSelectedException {
         if (result.isPresent()) {
             // Unpack the destination-remote Pair created above:
             Path destinationPath = Paths.get(result.get().getKey());
             String remoteURL = result.get().getValue();
 
-            try {
-                // Try calling `git ls-remote ___` on the remote URL to see if it's valid
-                LsRemoteCommand lsRemoteCommand = new LsRemoteCommand(this.sessionModel.getCurrentRepo());
-                lsRemoteCommand.setRemote(remoteURL);
-                lsRemoteCommand.call();
-            } catch (TransportException e) {
-                // If the URL doesn't have a repo, a Transport Exception is thrown when this command is called.
-                //  We want the SessionController to report an InvalidRemoteException, though, because
-                //  that's the issue.
-                logger.error("Invalid remote exception thrown");
-                throw new InvalidRemoteException("Caught invalid repository when building a ClonedRepoHelper.");
+            // Try calling `git ls-remote ___` on the remote URL to see if it's valid
+            // Attempt #1 below: see if can do it without authentication
+            boolean authNeeded = false;
+            TransportCommand command = Git.lsRemoteRepository().setRemote(remoteURL);
+//            try {
+//                command.call();
+//            } catch (TransportException e) {
+//                authNeeded = true;
+//            }
+
+            // FOR NOW, assume that credentials are ALWAYS needed.
+            authNeeded = true;
+
+            // Try second attempt if first one failed, getting authentication as needed. If still failed, then
+            // report failure to user.
+            UsernamePasswordCredentialsProvider credentials = null;
+            if (authNeeded) {
+                try {
+                    RepoHelperBuilder.AuthDialogResponse response = RepoHelperBuilder.getAuthCredentialFromDialog(remoteURL);
+                    credentials = new UsernamePasswordCredentialsProvider(response.username, response.password);
+                    RepoHelper.wrapAuthentication(command, remoteURL, credentials);
+                    command.call();
+
+                } catch (TransportException e) {
+                    // If the URL doesn't have a repo, a Transport Exception is thrown when this command is called.
+                    //  We want the SessionController to report an InvalidRemoteException, though, because
+                    //  that's the issue.
+                    logger.error("Invalid remote exception thrown");
+                    throw new InvalidRemoteException("Caught invalid repository when building a ClonedRepoHelper.");
+                }
             }
 
             // Without the above try/catch block, the next line would run and throw the desired InvalidRemoteException,
             //  but it would create a destination folder for the repo before stopping. By catching the error above,
-            //  we prevent unnecessary folder creation.
-            RepoHelper repoHelper = new ClonedRepoHelper(destinationPath, remoteURL, this.sessionModel.getDefaultUsername());
+            //  we prevent unnecessary folder creation. By making it to this point, we've verified that the repo
+            // is valid and that we can authenticate to it.
+
+            RepoHelper repoHelper;
+            if (!authNeeded) {
+                repoHelper = new ClonedRepoHelper(destinationPath, remoteURL);
+            } else {
+                repoHelper = new ClonedRepoHelper(destinationPath, remoteURL, credentials);
+            }
 
             return repoHelper;
         } else {
@@ -185,6 +246,7 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
             throw new NoRepoSelectedException();
         }
     }
+
 
     public String getPrevDestinationPath() {
         return prevDestinationPath;

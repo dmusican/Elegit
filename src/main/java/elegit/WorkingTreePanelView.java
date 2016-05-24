@@ -1,4 +1,4 @@
-package main.java.elegit;
+package elegit;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -27,7 +27,7 @@ public class WorkingTreePanelView extends FileStructurePanelView{
     public List<TreeItem<RepoFile>> displayedFiles;
 
     public WorkingTreePanelView() {
-        super();
+        this.init();
     }
 
     @Override
@@ -38,9 +38,19 @@ public class WorkingTreePanelView extends FileStructurePanelView{
         super.init();
     }
 
+    /**
+     * @return the cell from CheckBoxTreeCell's implementation of a TreeView factory, with
+     * an added context menu for the given RepoFile
+     */
     @Override
     protected Callback<TreeView<RepoFile>, TreeCell<RepoFile>> getTreeCellFactory() {
-        return CheckBoxTreeCell.<RepoFile>forTreeView();
+        return arg -> {
+            TreeCell<RepoFile> cell = CheckBoxTreeCell.<RepoFile>forTreeView().call(arg);
+            cell.setOnContextMenuRequested(event -> {
+                if(cell.getTreeItem()!= null) cell.getTreeItem().getValue().showContextMenu(cell, event.getScreenX(), event.getScreenY());
+            });
+            return cell;
+        };
     }
 
     @Override
@@ -48,6 +58,12 @@ public class WorkingTreePanelView extends FileStructurePanelView{
         return new CheckBoxTreeItem<>(rootDirectory);
     }
 
+    /**
+     * Adds all tracked files in the repository with an updated status and displays them
+     * all as top-level items.
+     * @param repoFiles the files to add to the tree
+     * @param root the root of the tree
+     */
     @Override
     protected void addTreeItemsToRoot(List<RepoFile> repoFiles, TreeItem<RepoFile> root) {
         displayedFiles = new LinkedList<>();
@@ -113,6 +129,10 @@ public class WorkingTreePanelView extends FileStructurePanelView{
         isAnyFileSelectedProperty.bind(isSelectedPropertyHelper);
     }
 
+    /**
+     * @return all tracked files with an updated status
+     * @throws GitAPIException
+     */
     @Override
     public List<RepoFile> getFilesToDisplay() throws GitAPIException{
         return sessionModel.getAllChangedRepoFiles();
@@ -133,6 +153,10 @@ public class WorkingTreePanelView extends FileStructurePanelView{
         return checkedFiles;
     }
 
+    /**
+     * Sets all displayed items to have the given selected status
+     * @param selected true to check every box, false to uncheck every box
+     */
     public void setAllFilesSelected(boolean selected) {
         for (TreeItem fileLeaf : displayedFiles) {
             CheckBoxTreeItem checkBoxFile = (CheckBoxTreeItem) fileLeaf;

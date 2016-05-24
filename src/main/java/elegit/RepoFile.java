@@ -1,12 +1,13 @@
-package main.java.elegit;
+package elegit;
 
 import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuItem;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.controlsfx.control.PopOver;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.lib.Repository;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -31,25 +32,30 @@ import java.util.ArrayList;
  * unaffected by commits.
  *
  */
-public class RepoFile implements Comparable {
+public class RepoFile implements Comparable<RepoFile> {
 
     Path filePath;
-    Repository repo;
+    RepoHelper repo;
     static final Logger logger = LogManager.getLogger();
     protected ArrayList<RepoFile> children; // Only directories will use this!
 
     Button diffButton;
 
+    boolean showPopover;
     PopOver diffPopover;
 
-    public RepoFile(Path filePath, Repository repo) {
+    ContextMenu contextMenu;
+
+    public RepoFile(Path filePath, RepoHelper repo) {
         this.repo = repo;
 
         if(filePath.isAbsolute()){
-            this.filePath = Paths.get(repo.getDirectory().getParent()).relativize(filePath);
+            this.filePath = repo.getLocalPath().relativize(filePath);
         }else {
             this.filePath = filePath;
         }
+
+        showPopover = false;
 
         this.diffButton = new Button("UNCHANGED");
         this.diffButton.getStyleClass().add("diffButton");
@@ -69,9 +75,16 @@ public class RepoFile implements Comparable {
                 e1.printStackTrace();
             }
         });
+
+        this.contextMenu = new ContextMenu();
+
+        MenuItem addToIgnoreItem = new MenuItem("Add to .gitignore...");
+        addToIgnoreItem.setOnAction(event -> GitIgnoreEditor.show(this.repo, this.filePath));
+
+        this.contextMenu.getItems().addAll(addToIgnoreItem);
     }
 
-    public RepoFile(String filePathString, Repository repo) {
+    public RepoFile(String filePathString, RepoHelper repo) {
         this(Paths.get(filePathString), repo);
     }
 
@@ -111,7 +124,7 @@ public class RepoFile implements Comparable {
         return this.filePath;
     }
 
-    public Repository getRepo() {
+    public RepoHelper getRepo() {
         return this.repo;
     }
 
@@ -136,22 +149,31 @@ public class RepoFile implements Comparable {
     }
 
     public void showDiffPopover(Node owner) throws IOException, GitAPIException {
-        DiffHelper diffHelper = new DiffHelper(this.filePath, this.repo);
-        this.diffPopover.setContentNode(diffHelper.getDiffScrollPane());
-        this.diffPopover.setTitle("File Diffs");
-        this.diffPopover.show(owner);
+        if(showPopover) {
+            contextMenu.hide();
+
+            DiffHelper diffHelper = new DiffHelper(this.filePath, this.repo);
+            this.diffPopover.setContentNode(diffHelper.getDiffScrollPane());
+            this.diffPopover.setTitle("File Diffs");
+            this.diffPopover.show(owner);
+        }
+    }
+
+    public void showContextMenu(Node owner, double x, double y){
+        this.diffPopover.hide();
+        this.contextMenu.show(owner, x, y);
     }
 
     public boolean equals(Object o){
         if(o != null && o.getClass().equals(this.getClass())){
             RepoFile other = (RepoFile) o;
-            return this.filePath.equals(other.filePath) && other.getRepo().getDirectory().equals(getRepo().getDirectory());
+            return this.filePath.equals(other.filePath) && other.getRepo().getLocalPath().equals(getRepo().getLocalPath());
         }
         return false;
     }
 
     @Override
-    public int compareTo(Object o) {
-        return this.toString().compareToIgnoreCase(o.toString());
+    public int compareTo(RepoFile other) {
+        return this.toString().compareToIgnoreCase(other.toString());
     }
 }

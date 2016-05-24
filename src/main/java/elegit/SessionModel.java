@@ -1,10 +1,9 @@
-package main.java.elegit;
+package elegit;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import main.java.elegit.exceptions.CancelledAuthorizationException;
-import main.java.elegit.exceptions.MissingRepoException;
-import main.java.elegit.exceptions.NoOwnerInfoException;
+import elegit.exceptions.CancelledAuthorizationException;
+import elegit.exceptions.MissingRepoException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jgit.api.Git;
@@ -12,12 +11,15 @@ import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Repository;
 
+import javax.xml.bind.DatatypeConverter;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
@@ -32,6 +34,7 @@ public class SessionModel {
     // Keys for preferences recall
     private static final String RECENT_REPOS_LIST_KEY = "RECENT_REPOS_LIST";
     private static final String LAST_OPENED_REPO_PATH_KEY = "LAST_OPENED_REPO_PATH";
+    private static final String LAST_UUID_KEY="LAST_UUID";
 
     private RepoHelper currentRepoHelper;
     public ObjectProperty<RepoHelper> currentRepoHelperProperty;
@@ -72,24 +75,27 @@ public class SessionModel {
      */
     public void loadMostRecentRepoHelper() {
         try{
-        String lastOpenedRepoPathString = (String) PrefObj.getObject(this.preferences, LAST_OPENED_REPO_PATH_KEY);
-        if (lastOpenedRepoPathString != null) {
-            Path path = Paths.get(lastOpenedRepoPathString);
-            try {
-                ExistingRepoHelper existingRepoHelper = new ExistingRepoHelper(path, this.defaultUsername);
-                this.openRepoFromHelper(existingRepoHelper);
-            } catch (IllegalArgumentException e) {
-                logger.warn("Recent repo not found in directory it used to be in");
-                // The most recent repo is no longer in the directory it used to be in,
-                // so just don't load it.
-            }catch(GitAPIException | MissingRepoException e) {
-                logger.error("Git error or missing repo exception");
-                logger.debug(e.getStackTrace());
-                e.printStackTrace();
-            } catch (CancelledAuthorizationException e) {
+            String lastOpenedRepoPathString = (String) PrefObj.getObject(
+                    this.preferences, LAST_OPENED_REPO_PATH_KEY
+            );
+            if (lastOpenedRepoPathString != null) {
+                Path path = Paths.get(lastOpenedRepoPathString);
+                try {
+                    ExistingRepoHelper existingRepoHelper =
+                            new ExistingRepoHelper(path, this.defaultUsername);
+                    this.openRepoFromHelper(existingRepoHelper);
+                } catch (IllegalArgumentException e) {
+                    logger.warn("Recent repo not found in directory it used to be in");
+                    // The most recent repo is no longer in the directory it used to be in,
+                    // so just don't load it.
+                }catch(GitAPIException | MissingRepoException e) {
+                    logger.error("Git error or missing repo exception");
+                    logger.debug(e.getStackTrace());
+                    e.printStackTrace();
+                } catch (CancelledAuthorizationException e) {
                 // Should never be used, as no authorization is needed for loading local files.
+                }
             }
-        }
         }catch(IOException | BackingStoreException | ClassNotFoundException e){
             logger.error("Some sort of error loading most recent repo helper");
             logger.debug(e.getStackTrace());
@@ -131,22 +137,15 @@ public class SessionModel {
     }
 
     /**
-     * Adds a new repository (contained in a RepoHelper) to the session.
+     * Opens the given repository
      *
-     * @param anotherRepoHelper the RepoHelper to add.
+     * @param repoHelper the repository to open
      */
-    public void addRepo(RepoHelper anotherRepoHelper) {
-        this.allRepoHelpers.add(anotherRepoHelper);
-    }
-
-    /**
-     * Opens a repository stored at a certain index in the list of
-     * RepoHelpers.
-     *
-     * @param index the index of the repository to open.
-     */
-    public void openRepoAtIndex(int index) throws BackingStoreException, IOException, ClassNotFoundException {
-        this.currentRepoHelper = this.allRepoHelpers.get(index);
+    private void openRepo(RepoHelper repoHelper) throws BackingStoreException, IOException, ClassNotFoundException {
+        if(!this.allRepoHelpers.contains(repoHelper)) {
+            this.allRepoHelpers.add(repoHelper);
+        }
+        this.currentRepoHelper = repoHelper;
         currentRepoHelperProperty.set(this.currentRepoHelper);
         this.saveListOfRepoPathStrings();
         this.saveMostRecentRepoPathString();
@@ -164,11 +163,11 @@ public class SessionModel {
         if (matchedRepoHelper == null) {
             // So, this repo isn't loaded into the model yet
             this.allRepoHelpers.add(repoHelperToLoad);
-            this.openRepoAtIndex(this.allRepoHelpers.size() - 1);
+            this.openRepo(repoHelperToLoad);
         } else {
             // So, this repo is already loaded into the model
             if(matchedRepoHelper.exists()){
-                this.openRepoAtIndex(this.allRepoHelpers.indexOf(matchedRepoHelper));
+                this.openRepo(matchedRepoHelper);
             }else{
                 this.allRepoHelpers.remove(matchedRepoHelper);
                 throw new MissingRepoException();
@@ -184,9 +183,11 @@ public class SessionModel {
      *          (by directory), or null if there is no such RepoHelper already in the model.
      */
     private RepoHelper matchRepoWithAlreadyLoadedRepo(RepoHelper repoHelperCandidate) {
-        for (RepoHelper repoHelper : this.allRepoHelpers) {
-            if (repoHelper.getLocalPath().equals(repoHelperCandidate.getLocalPath())) {
-                return repoHelper;
+        if(repoHelperCandidate != null) {
+            for (RepoHelper repoHelper : this.allRepoHelpers) {
+                if (repoHelper.getLocalPath().equals(repoHelperCandidate.getLocalPath())) {
+                    return repoHelper;
+                }
             }
         }
         return null;
@@ -322,7 +323,7 @@ public class SessionModel {
     public DirectoryRepoFile getParentDirectoryRepoFile() throws GitAPIException, IOException {
         Path fullPath = this.currentRepoHelper.getLocalPath();
 
-        DirectoryRepoFile parentDirectoryRepoFile = new DirectoryRepoFile(fullPath, this.getCurrentRepo());
+        DirectoryRepoFile parentDirectoryRepoFile = new DirectoryRepoFile(fullPath, this.getCurrentRepoHelper());
         parentDirectoryRepoFile = this.populateDirectoryRepoFile(parentDirectoryRepoFile);
 
         return parentDirectoryRepoFile;
@@ -369,19 +370,19 @@ public class SessionModel {
                     //  Is it modified? Untracked/new? Missing? Just a plain file?
                     //  Construct the appropriate RepoFile and add it to the parent directory.
                     if (conflictingFiles.contains(relativizedPath.toString())) {
-                        ConflictingRepoFile conflictingFile = new ConflictingRepoFile(path, this.getCurrentRepo());
+                        ConflictingRepoFile conflictingFile = new ConflictingRepoFile(path, this.getCurrentRepoHelper());
                         superDirectory.addChild(conflictingFile);
                     } else if (modifiedFiles.contains(relativizedPath.toString())) {
-                        ModifiedRepoFile modifiedFile = new ModifiedRepoFile(path, this.getCurrentRepo());
+                        ModifiedRepoFile modifiedFile = new ModifiedRepoFile(path, this.getCurrentRepoHelper());
                         superDirectory.addChild(modifiedFile);
                     } else if (missingFiles.contains(relativizedPath.toString())) {
-                        MissingRepoFile missingFile = new MissingRepoFile(path, this.getCurrentRepo());
+                        MissingRepoFile missingFile = new MissingRepoFile(path, this.getCurrentRepoHelper());
                         superDirectory.addChild(missingFile);
                     } else if (untrackedFiles.contains(relativizedPath.toString())) {
-                        UntrackedRepoFile untrackedFile = new UntrackedRepoFile(path, this.getCurrentRepo());
+                        UntrackedRepoFile untrackedFile = new UntrackedRepoFile(path, this.getCurrentRepoHelper());
                         superDirectory.addChild(untrackedFile);
                     } else {
-                        RepoFile plainRepoFile = new RepoFile(path, this.getCurrentRepo());
+                        RepoFile plainRepoFile = new RepoFile(path, this.getCurrentRepoHelper());
                         superDirectory.addChild(plainRepoFile);
                     }
                 }
@@ -413,7 +414,7 @@ public class SessionModel {
         ArrayList<String> conflictingRepoFileStrings = new ArrayList<>();
 
         for (String conflictingFileString : conflictingFiles) {
-            ConflictingRepoFile conflictingRepoFile = new ConflictingRepoFile(conflictingFileString, this.getCurrentRepo());
+            ConflictingRepoFile conflictingRepoFile = new ConflictingRepoFile(conflictingFileString, this.getCurrentRepoHelper());
             changedRepoFiles.add(conflictingRepoFile);
 
             // Store these paths to make sure this file isn't registered as a modified file or something.
@@ -427,21 +428,21 @@ public class SessionModel {
 
         for (String modifiedFileString : modifiedFiles) {
             if (!conflictingRepoFileStrings.contains(modifiedFileString)) {
-                ModifiedRepoFile modifiedRepoFile = new ModifiedRepoFile(modifiedFileString, this.getCurrentRepo());
+                ModifiedRepoFile modifiedRepoFile = new ModifiedRepoFile(modifiedFileString, this.getCurrentRepoHelper());
                 changedRepoFiles.add(modifiedRepoFile);
             }
         }
 
         for (String missingFileString : missingFiles) {
             if (!conflictingRepoFileStrings.contains(missingFileString)) {
-                MissingRepoFile missingRepoFile = new MissingRepoFile(missingFileString, this.getCurrentRepo());
+                MissingRepoFile missingRepoFile = new MissingRepoFile(missingFileString, this.getCurrentRepoHelper());
                 changedRepoFiles.add(missingRepoFile);
             }
         }
 
         for (String untrackedFileString : untrackedFiles) {
             if (!conflictingRepoFileStrings.contains(untrackedFileString)) {
-                UntrackedRepoFile untrackedRepoFile = new UntrackedRepoFile(untrackedFileString, this.getCurrentRepo());
+                UntrackedRepoFile untrackedRepoFile = new UntrackedRepoFile(untrackedFileString, this.getCurrentRepoHelper());
                 changedRepoFiles.add(untrackedRepoFile);
             }
         }
@@ -462,7 +463,7 @@ public class SessionModel {
         Status status = new Git(this.getCurrentRepo()).status().call();
 
         for(String ignoredFileString : getIgnoredFiles(status)){
-            IgnoredRepoFile ignoredRepoFile = new IgnoredRepoFile(ignoredFileString, this.getCurrentRepo());
+            IgnoredRepoFile ignoredRepoFile = new IgnoredRepoFile(ignoredFileString, this.getCurrentRepoHelper());
             allFiles.add(ignoredRepoFile);
         }
 
@@ -475,19 +476,20 @@ public class SessionModel {
             paths.forEach(allPaths::add);
         }
 
-        List<Path> addedPaths = new LinkedList<>();
+        Set<Path> addedPaths = new HashSet<>();
         for(RepoFile file : allFiles){
-            addedPaths.add(file.getFilePath().toAbsolutePath());
+            addedPaths.add(file.getFilePath());
         }
 
         for(Path path : allPaths){
-            RepoFile temp;
-            if(path.toFile().isDirectory()){
-                temp = new DirectoryRepoFile(path, currentRepoHelper.getRepo());
-            }else{
-                temp = new RepoFile(path, currentRepoHelper.getRepo());
-            }
+            path = currentRepoHelper.getLocalPath().relativize(path);
             if(!addedPaths.contains(path)){
+                RepoFile temp;
+                if(path.toFile().isDirectory()){
+                    temp = new DirectoryRepoFile(path, currentRepoHelper);
+                }else{
+                    temp = new RepoFile(path, currentRepoHelper);
+                }
                 allFiles.add(temp);
                 addedPaths.add(path);
             }
@@ -544,11 +546,89 @@ public class SessionModel {
     public void clearStoredPreferences() throws BackingStoreException, IOException, ClassNotFoundException {
         PrefObj.putObject(this.preferences, RECENT_REPOS_LIST_KEY, null);
         PrefObj.putObject(this.preferences, LAST_OPENED_REPO_PATH_KEY, null);
+        PrefObj.putObject(this.preferences, LAST_UUID_KEY, null);
+    }
+
+    public void setAuthPref(String pathname, AuthMethod authTechnique) {
+        Preferences authPrefs = preferences.node("authentication");
+        authPrefs.putInt(hashPathname(pathname), authTechnique.getEnumValue());
+    }
+
+    public AuthMethod getAuthPref(String pathname)  {
+        Preferences authPrefs = preferences.node("authentication");
+        int enumValue = authPrefs.getInt(hashPathname(pathname), -1);
+        if (enumValue == -1)
+            throw new NoSuchElementException("AuthPref not present");
+
+        return AuthMethod.getEnumFromValue(enumValue);
+    }
+
+    public void removeAuthPref(String pathname) {
+        Preferences authPrefs = preferences.node("authentication");
+        authPrefs.remove(hashPathname(pathname));
+    }
+
+    public String[] listAuthPaths() {
+        Preferences authPrefs = preferences.node("authentication");
+        try {
+            return authPrefs.keys();
+        } catch (BackingStoreException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    // Preferences API has a limit of 80 characters max, and some pathnames
+    // may be longer than that. Hashing it will solve that problem.
+    String hashPathname(String pathname) {
+        MessageDigest md = null;
+        try {
+            md = MessageDigest.getInstance("SHA");
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
+        md.update(pathname.getBytes());
+        String prefKey = null;
+        //try {
+            //prefKey = new String(md.digest(), "US-ASCII");
+            prefKey = DatatypeConverter.printHexBinary(md.digest());
+            //prefKey = "hello";
+//        } catch (UnsupportedEncodingException e) {
+//            throw new RuntimeException(e);
+//        }
+        return prefKey;
     }
 
     public void removeRepoHelpers(List<RepoHelper> checkedItems) {
         for (RepoHelper item : checkedItems) {
             this.allRepoHelpers.remove(item);
         }
+    }
+
+    /**
+     * After the last RepoHelper is closed by user, sessionModel needs to be
+     * updated and reflect the new view.
+     */
+    public void resetSessionModel() {
+        try {
+            clearStoredPreferences();
+        } catch (Exception exception) {
+            exception.printStackTrace();
+        }
+        sessionModel = new SessionModel();
+    }
+
+    /**
+     * Once files are uploaded to the server, we have a UUID to remember for the next
+     * upload of files.
+     */
+    public void setLastUUID(String uuid) throws BackingStoreException, ClassNotFoundException, IOException {
+        PrefObj.putObject(this.preferences, LAST_UUID_KEY, uuid);
+    }
+
+    /**
+     * To upload a file to the server, we need to find the last uuid
+     */
+    public String getLastUUID() throws BackingStoreException, ClassNotFoundException, IOException {
+        return (String) PrefObj.getObject(this.preferences, LAST_UUID_KEY);
     }
 }

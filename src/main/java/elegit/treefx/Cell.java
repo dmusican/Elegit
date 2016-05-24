@@ -1,4 +1,4 @@
-package main.java.elegit.treefx;
+package elegit.treefx;
 
 import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
@@ -7,14 +7,16 @@ import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.scene.Node;
+import javafx.scene.control.Button;
 import javafx.scene.control.ContextMenu;
+import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.Pane;
 import javafx.scene.shape.Shape;
 import javafx.util.Duration;
-import main.java.elegit.CommitTreeController;
-import main.java.elegit.MatchedScrollPane;
+import elegit.CommitTreeController;
+import elegit.MatchedScrollPane;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,6 +33,9 @@ public class Cell extends Pane{
 
     // The size of the rectangle being drawn
     public static final int BOX_SIZE = 30;
+
+    //The height of the shift for the cells;
+    public static final int BOX_SHIFT = 20;
 
     // Limits on animation so the app doesn't begin to stutter
     private static final int MAX_NUM_CELLS_TO_ANIMATE = 5;
@@ -51,6 +56,8 @@ public class Cell extends Pane{
 
     private ContextMenu contextMenu;
 
+    private LabelCell refLabel;
+
     // The list of children of this cell
     List<Cell> children = new ArrayList<>();
 
@@ -65,6 +72,11 @@ public class Cell extends Pane{
 
     // Whether this cell has been moved to its appropriate location
     public BooleanProperty hasUpdatedPosition;
+
+    public Cell(String s) {
+        this.cellId = s;
+        this.time = 0;
+    }
 
     /**
      * Constructs a node with the given ID and a single parent node
@@ -85,6 +97,7 @@ public class Cell extends Pane{
         this.cellId = cellId;
         this.time = time;
         this.parents = new ParentCell(this, parent1, parent2);
+        this.refLabel = new LabelCell();
 
         setShape(DEFAULT_SHAPE);
 
@@ -95,7 +108,8 @@ public class Cell extends Pane{
         visibleProperty().bind(this.hasUpdatedPosition);
 
         columnLocationProperty.addListener((observable, oldValue, newValue) -> hasUpdatedPosition.set(oldValue.intValue()==newValue.intValue()));
-        rowLocationProperty.addListener((observable, oldValue, newValue) -> hasUpdatedPosition.set(oldValue.intValue()==newValue.intValue()));
+        rowLocationProperty.addListener((observable, oldValue, newValue) ->
+                hasUpdatedPosition.set(oldValue.intValue()==newValue.intValue()));
 
         tooltip = new Tooltip(cellId);
         tooltip.setWrapText(true);
@@ -130,13 +144,13 @@ public class Cell extends Pane{
 
             Shape placeHolder = (Shape) getBaseView();
             placeHolder.setTranslateX(x+TreeLayout.H_PAD);
-            placeHolder.setTranslateY(y);
+            placeHolder.setTranslateY(y+BOX_SHIFT);
             placeHolder.setOpacity(0.0);
             ((Pane)(this.getParent())).getChildren().add(placeHolder);
 
             TranslateTransition t = new TranslateTransition(Duration.millis(3000), this);
             t.setToX(x);
-            t.setToY(y);
+            t.setToY(y+BOX_SHIFT);
             t.setCycleCount(1);
             t.setOnFinished(event -> {
                 numCellsBeingAnimated--;
@@ -149,8 +163,9 @@ public class Cell extends Pane{
             }
         }else{
             setTranslateX(x);
-            setTranslateY(y);
+            setTranslateY(y+BOX_SHIFT);
         }
+        this.refLabel.translate(x);
         this.hasUpdatedPosition.set(true);
     }
 
@@ -177,8 +192,10 @@ public class Cell extends Pane{
         newView.getStyleClass().setAll(this.view.getStyleClass());
 
         this.view = newView;
-        getChildren().clear();
-        getChildren().add(newView);
+        Platform.runLater(() -> {
+            getChildren().clear();
+            getChildren().add(this.view);
+        });
     }
 
     /**
@@ -198,6 +215,15 @@ public class Cell extends Pane{
     public void setDisplayLabel(String label){
         tooltip.setText(label);
         this.label = label;
+    }
+
+    public void setRefLabel(List<String> refs){
+        this.refLabel.setLabels(refs);
+    }
+
+    public void setLabels(String displayLabel, List<String> refLabels){
+        setDisplayLabel(displayLabel);
+        setRefLabel(refLabels);
     }
 
     public void setContextMenu(ContextMenu contextMenu){
@@ -279,6 +305,8 @@ public class Cell extends Pane{
         return time;
     }
 
+    public Node getLabel() { return this.refLabel; }
+
     @Override
     public String toString(){
         return cellId;
@@ -334,6 +362,58 @@ public class Cell extends Pane{
             if(this.dad != null){
                 this.dad.addCellChild(cell);
             }
+        }
+    }
+
+    private class LabelCell extends Pane {
+
+        public void translate(double x) {
+            setTranslateX(x);
+        }
+
+        public void setLabels(List<String> labels) {
+            if (labels.size() < 1) {
+                Platform.runLater(() -> getChildren().clear());
+                return;
+            }
+
+            Label basic = new Label();
+            Label extended = new Label();
+            Button showExtended = new Button();
+
+            basic.setText(labels.get(0));
+
+            String extendedText = "";
+            boolean isFirst = true;
+            for (String label: labels) {
+                if (isFirst) {
+                    isFirst = false;
+                    extendedText += label;
+                    continue;
+                }
+                extendedText += "\n"+label;
+            }
+            extended.setText(extendedText);
+            extended.setVisible(false);
+
+            showExtended.setVisible(false);
+            if (labels.size()>1) {
+                showExtended.setVisible(true);
+                showExtended.setTranslateX(-5);
+                showExtended.setText("\u22EE");
+                showExtended.setStyle("-fx-background-color: rgba(0,0,0,0); -fx-padding: 1 0 0 0;");
+                showExtended.setOnMouseClicked(event -> {
+                    extended.setVisible(!extended.isVisible());
+                    basic.setVisible(!basic.isVisible());
+                });
+            }
+
+            Platform.runLater(() -> {
+                getChildren().clear();
+                getChildren().add(basic);
+                getChildren().add(extended);
+                getChildren().add(showExtended);
+            });
         }
     }
 }

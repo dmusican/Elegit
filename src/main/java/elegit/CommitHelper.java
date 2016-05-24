@@ -1,4 +1,4 @@
-package main.java.elegit;
+package elegit;
 
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.PersonIdent;
@@ -7,7 +7,9 @@ import org.eclipse.jgit.revwalk.RevCommit;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 /**
  * A wrapper class for commits to make them easier to interact with and preserves certain
@@ -25,12 +27,11 @@ public class CommitHelper{
     ParentCommitHelper parents;
     List<CommitHelper> children;
 
-    // The branches for which this commit is a head
-    Map<String, BranchHelper> branchesAsHead;
-
     // The short and full message of this commit
     String shortMessage;
     String fullMessage;
+
+    List<TagHelper> tags;
 
     /**
      * Constructs a helper for the given commit. Note that if c is not a fully parsed commit
@@ -44,7 +45,6 @@ public class CommitHelper{
         this.author = c.getAuthorIdent();
         this.children = new ArrayList<>();
         this.parents = new ParentCommitHelper(this, null, null);
-        this.branchesAsHead = new HashMap<>();
         this.fullMessage = c.getFullMessage();
         this.shortMessage = c.getShortMessage();
     }
@@ -89,7 +89,7 @@ public class CommitHelper{
      * @return the unique identifying string for this commit
      */
     public String getId(){
-        return CommitTreeModel.getId(this);
+        return RepoHelper.getCommitId(this);
     }
 
     /**
@@ -209,29 +209,6 @@ public class CommitHelper{
         return children;
     }
 
-    /**
-     * Notifies this commit that it is the head of the given branch
-     * @param branch the branch for which this commit is the head
-     */
-    public void setAsHead(BranchHelper branch){
-        branchesAsHead.put(branch.getRefPathString(), branch);
-    }
-
-    /**
-     * Notifies this commit that it is no longer the head of the given branch
-     * @param branch the branch for which this commit is no longer the head
-     */
-    public void removeAsHead(BranchHelper branch){
-        branchesAsHead.remove(branch.getRefPathString());
-    }
-
-    /**
-     * @return all branches for which this commit is the head
-     */
-    public List<BranchHelper> getBranchesAsHead(){
-        return new LinkedList<>(branchesAsHead.values());
-    }
-
     @Override
     public String toString(){
         String s = this.getAuthorName();
@@ -239,6 +216,67 @@ public class CommitHelper{
         s = s + " \t" + this.getName();
         s = s + " \t" + this.getMessage(false);
         return s;
+    }
+
+    /**
+     * @param t a TagHelper for a tag that references this commit
+     */
+    public void addTag(TagHelper t) {
+        if (this.tags == null)
+            this.tags = new ArrayList<>();
+        this.tags.add(t);
+    }
+
+    /**
+     * @param s a TagHelper that will be deleted
+     */
+    public void removeTag(String s) {
+        for (TagHelper tag: this.tags) {
+            if (tag.getName().equals(s)) {
+                this.tags.remove(tag);
+                return;
+            }
+        }
+    }
+
+    /**
+     * @return the list of tags that reference this commit
+     */
+    public List<TagHelper> getTags() {
+        if (this.tags == null)
+            this.tags = new ArrayList<>();
+        return this.tags;
+    }
+
+    public List<String> getTagNames() {
+        if (this.tags == null)
+            this.tags = new ArrayList<>();
+        ArrayList<String> tagNames = new ArrayList<>();
+        for (TagHelper tag: this.tags) {
+            tagNames.add(tag.getName());
+        }
+        return tagNames;
+    }
+
+    public boolean hasTags() {
+        return this.tags.size()!=0;
+    }
+
+    /**
+     * @return the commit object for this helper
+     */
+    public RevCommit getCommit() {
+        return this.commit;
+    }
+
+    @Override
+    public int hashCode(){
+        return this.commit.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object other){
+        return (other instanceof CommitHelper) && this.commit.equals(((CommitHelper) other).getCommit());
     }
 
     /**
