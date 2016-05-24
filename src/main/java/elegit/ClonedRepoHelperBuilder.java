@@ -202,18 +202,17 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
             // Try calling `git ls-remote ___` on the remote URL to see if it's valid
             TransportCommand command = Git.lsRemoteRepository().setRemote(remoteURL);
 
-            // Get authentication as needed. If still failed, then report failure to user.
-            UsernamePasswordCredentialsProvider credentials = null;
+            // Get authentication as needed. Set up both sets of credentials (username/password pair, as well
+            // as just password. Only one of these will be used, but that is determined automatically via the JGit
+            // callback mechanism.
             RepoHelperBuilder.AuthDialogResponse response = RepoHelperBuilder.getAuthCredentialFromDialog();
-            try {
-                if (response.protocol == AuthMethod.SSH) {
-                    RepoHelper.wrapAuthentication(command, response.password);
-                } else {
-                    credentials = new UsernamePasswordCredentialsProvider(response.username, response.password);
-                    RepoHelper.wrapAuthentication(command, credentials);
-                }
-                command.call();
+            UsernamePasswordCredentialsProvider credentials =
+                    new UsernamePasswordCredentialsProvider(response.username, response.password);
+            String sshPassword = response.password;
 
+            try {
+                RepoHelper.wrapAuthentication(command, credentials, sshPassword);
+                command.call();
             } catch (TransportException e) {
                 // If the URL doesn't have a repo, a Transport Exception is thrown when this command is called.
                 //  We want the SessionController to report an InvalidRemoteException, though, because
