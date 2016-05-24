@@ -69,17 +69,15 @@ public class AuthenticatedCloneTest {
         // Clone from dummy repo:
         String remoteURL = "https://github.com/TheElegitTeam/TestRepository.git";
 
-        ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, remoteURL);
+        UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider("", "");
+        ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, remoteURL, credentials);
         assertNotNull(helper);
 
     }
 
     @Test
     public void testLsHttpNoPassword() throws Exception {
-
-        TransportCommand command =
-                Git.lsRemoteRepository().setRemote("https://github.com/TheElegitTeam/TestRepository.git");
-        command.call();
+        testLsHttpUsernamePassword("httpNoUsernamePassword.txt");
     }
 
     @Test
