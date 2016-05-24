@@ -148,11 +148,43 @@ public abstract class RepoHelper {
     }
 
     protected void myWrapAuthentication(TransportCommand command) {
-        if (this.protocol.equals(AuthMethod.SSH)) {
+        /*if (this.protocol.equals(AuthMethod.SSH)) {
             wrapAuthentication(command, password);
         } else {
             wrapAuthentication(command, ownerAuth);
-        }
+        }*/
+
+        // Explained http://www.codeaffine.com/2014/12/09/jgit-authentication/
+        // and also https://www.eclipse.org/forums/index.php?t=msg&th=1077123&goto=1731236&#msg_1731236
+
+        // Credentials are used for all other protocols than SSH. Doesn't hurt to set them if they are unused.
+        command.setCredentialsProvider(ownerAuth);
+
+        command.setTransportConfigCallback(
+                new TransportConfigCallback() {
+                    @Override
+                    public void configure(Transport transport) {
+
+                        if (transport instanceof TransportGitSsh) {
+                            SshSessionFactory sshSessionFactory = new JschConfigSessionFactory() {
+                                @Override
+                                protected void configure(OpenSshConfig.Host host, Session session) {
+                                    session.setPassword(password);
+                                }
+
+                                @Override
+                                protected JSch createDefaultJSch(FS fs) throws JSchException {
+                                    JSch defaultJSch = super.createDefaultJSch(fs);
+                                    defaultJSch.removeAllIdentity();
+                                    return defaultJSch;
+                                }
+                            };
+                            SshTransport sshTransport = (SshTransport) transport;
+                            sshTransport.setSshSessionFactory(sshSessionFactory);
+                        }
+
+                    }
+                });
     }
 
     // Common setup tasks shared by constructors
