@@ -209,15 +209,6 @@ public class AuthenticatedCloneTest {
         helper.fetch();
         helper.pushAll();
         helper.pushTags();
-        SessionModel sm = SessionModel.getSessionModel();
-        String pathname = repoPath.toString();
-        assertEquals(sm.getAuthPref(pathname), AuthMethod.SSH);
-        assertNotEquals(sm.getAuthPref(pathname), AuthMethod.HTTPS);
-
-        sm.removeAuthPref(pathname);
-        exception.expect(NoSuchElementException.class);
-        exception.expectMessage("AuthPref not present");
-        sm.getAuthPref(pathname);
     }
 
     @Test

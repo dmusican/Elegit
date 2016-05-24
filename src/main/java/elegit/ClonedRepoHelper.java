@@ -20,7 +20,6 @@ public class ClonedRepoHelper extends RepoHelper {
     public ClonedRepoHelper(Path directoryPath, String remoteURL, UsernamePasswordCredentialsProvider ownerAuth)
             throws GitAPIException, IOException, CancelledAuthorizationException {
         super(directoryPath, ownerAuth);
-        protocol = AuthMethod.HTTPS;
         repo = obtainRepository(remoteURL);
         setup();
     }
@@ -29,7 +28,6 @@ public class ClonedRepoHelper extends RepoHelper {
     public ClonedRepoHelper(Path directoryPath, String remoteURL, String sshPassword)
             throws GitAPIException, IOException, CancelledAuthorizationException {
         super(directoryPath, sshPassword);
-        protocol = AuthMethod.SSH;
         repo = obtainRepository(remoteURL);
         setup();
     }
@@ -50,7 +48,6 @@ public class ClonedRepoHelper extends RepoHelper {
         Git cloneCall = cloneCommand.call();
 
         cloneCall.close();
-        SessionModel.getSessionModel().setAuthPref(destination.toString(), protocol);
         return cloneCall.getRepository();
     }
 

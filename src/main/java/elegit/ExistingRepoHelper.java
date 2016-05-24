@@ -15,11 +15,6 @@ import java.util.NoSuchElementException;
 public class ExistingRepoHelper extends RepoHelper {
     public ExistingRepoHelper(Path directoryPath) throws IOException, GitAPIException, CancelledAuthorizationException{
         super(directoryPath);
-        try {
-            protocol = SessionModel.getSessionModel().getAuthPref(directoryPath.toString());
-        } catch (NoSuchElementException e) {
-            protocol = AuthMethod.NONE;
-        }
         repo = obtainRepository();
         setup();
     }

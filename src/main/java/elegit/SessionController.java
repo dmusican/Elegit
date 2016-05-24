@@ -112,7 +112,6 @@ public class SessionController {
     public TextArea tagNameField;
 
     public Text browserText;
-    public Text authText;
     public URL remoteURL;
 
     public DataSubmitter d;
@@ -299,7 +298,6 @@ public class SessionController {
                     browserText.setText(URLString);
                 }
             }
-            authText.setText("Auth: " + currentRepoHelper.protocol.toString());
             Tooltip URLTooltip = new Tooltip(URLString);
             Tooltip.install(browserImageView, URLTooltip);
             Tooltip.install(browserText, URLTooltip);
@@ -1028,7 +1026,6 @@ public class SessionController {
             browserImageView.setVisible(!disable);
             commitMessageField.setDisable(disable);
             browserText.setVisible(!disable);
-            authText.setVisible(!disable);
         });
     }
 
@@ -1529,7 +1526,6 @@ public class SessionController {
                     RepoHelperBuilder.getAuthCredentialFromDialog();
             repoHelper.setAuthCredentials(new UsernamePasswordCredentialsProvider(response.username,
                                                                                   response.password));
-            repoHelper.protocol = AuthMethod.HTTPS;
         } catch (CancelledAuthorizationException e) {
             // take no action
         }

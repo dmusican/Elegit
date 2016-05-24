@@ -73,7 +73,6 @@ public abstract class RepoHelper {
 
     static final Logger logger = LogManager.getLogger();
     protected UsernamePasswordCredentialsProvider ownerAuth;
-    protected AuthMethod protocol;
 
     /**
      * Creates a RepoHelper object for holding a Repository and interacting with it
