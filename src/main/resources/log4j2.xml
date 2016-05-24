@@ -4,9 +4,6 @@
         <Console name="CONSOLE" target="SYSTEM_OUT">
             <PatternLayout pattern="%d{MM-dd-yyyy HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n" />
         </Console>
-        <!--<File name="TempFile" filename="${sys:logFolder}/elegit.log" ignoreExceptions="false">
-            <PatternLayout pattern="%d{MM-dd-yyyy HH:mm:ss.SSS};%t;%-5level;%c{1}.%M;%msg%n"/>
-        </File>-->
         <RollingFile name="RollingFile" filename="${sys:logFolder}/elegit.log"
                      filePattern="logs/elegit-%d{MM-dd-yyyy}.log" ignoreExceptions="false">
             <PatternLayout pattern="%d{MM-dd-yyyy HH:mm:ss.SSS};%t;%-5level;%c{1}.%M;%msg%n"/>

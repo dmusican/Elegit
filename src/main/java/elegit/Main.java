@@ -28,12 +28,6 @@ public class Main extends Application {
     public void start(Stage primaryStage) throws Exception{
 
         // -----------------------Logging Initialization Start---------------------------
-        /* Temp directory
-        this.logPath = Files.createTempDirectory("elegitLogs");
-        this.logPath.toFile().deleteOnExit();
-        System.setProperty("logFolder", logPath.toString());
-        */
-
         logPath = Paths.get("logs");
         String s = logPath.toAbsolutePath().toString();
         System.setProperty("logFolder", s);
