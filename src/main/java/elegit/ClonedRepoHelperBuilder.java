@@ -195,36 +195,31 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
             Path destinationPath = Paths.get(result.get().getKey());
             String remoteURL = result.get().getValue();
 
+            // Always use authentication. If authentication is unneeded (HTTP), it will still work even if the wrong
+            // username password is used. This is what Eclipse does; in fact, it asks for username/password in the
+            // same dialog box that the URL is entered.
+
             // Try calling `git ls-remote ___` on the remote URL to see if it's valid
-            // Attempt #1 below: see if can do it without authentication
-            boolean authNeeded = false;
             TransportCommand command = Git.lsRemoteRepository().setRemote(remoteURL);
-//            try {
-//                command.call();
-//            } catch (TransportException e) {
-//                authNeeded = true;
-//            }
 
-            // FOR NOW, assume that credentials are ALWAYS needed.
-            authNeeded = true;
-
-            // Try second attempt if first one failed, getting authentication as needed. If still failed, then
-            // report failure to user.
+            // Get authentication as needed. If still failed, then report failure to user.
             UsernamePasswordCredentialsProvider credentials = null;
-            if (authNeeded) {
-                try {
-                    RepoHelperBuilder.AuthDialogResponse response = RepoHelperBuilder.getAuthCredentialFromDialog();
+            RepoHelperBuilder.AuthDialogResponse response = RepoHelperBuilder.getAuthCredentialFromDialog();
+            try {
+                if (response.protocol == AuthMethod.SSH) {
+                    RepoHelper.wrapAuthentication(command, response.password);
+                } else {
                     credentials = new UsernamePasswordCredentialsProvider(response.username, response.password);
                     RepoHelper.wrapAuthentication(command, credentials);
-                    command.call();
-
-                } catch (TransportException e) {
-                    // If the URL doesn't have a repo, a Transport Exception is thrown when this command is called.
-                    //  We want the SessionController to report an InvalidRemoteException, though, because
-                    //  that's the issue.
-                    logger.error("Invalid remote exception thrown");
-                    throw new InvalidRemoteException("Caught invalid repository when building a ClonedRepoHelper.");
                 }
+                command.call();
+
+            } catch (TransportException e) {
+                // If the URL doesn't have a repo, a Transport Exception is thrown when this command is called.
+                //  We want the SessionController to report an InvalidRemoteException, though, because
+                //  that's the issue.
+                logger.error("Invalid remote exception thrown");
+                throw new InvalidRemoteException("Caught invalid repository when building a ClonedRepoHelper.");
             }
 
             // Without the above try/catch block, the next line would run and throw the desired InvalidRemoteException,
@@ -233,8 +228,8 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
             // is valid and that we can authenticate to it.
 
             RepoHelper repoHelper;
-            if (!authNeeded) {
-                repoHelper = new ClonedRepoHelper(destinationPath, remoteURL);
+            if (response.protocol == AuthMethod.SSH) {
+                repoHelper = new ClonedRepoHelper(destinationPath, remoteURL, response.password);
             } else {
                 repoHelper = new ClonedRepoHelper(destinationPath, remoteURL, credentials);
             }

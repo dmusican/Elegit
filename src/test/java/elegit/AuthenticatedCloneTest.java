@@ -154,6 +154,20 @@ public class AuthenticatedCloneTest {
         command.call();
     }
 
+    @Test
+    // Test Https access, with empty string credentials, to see if it works for a repo that is public
+    // ... and verify it fails with a bad username or password
+    public void testLsHttpUsernamePasswordEmpty() throws Exception {
+
+        UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider("a", "asdas");
+
+        TransportCommand command =
+                Git.lsRemoteRepository().setRemote("https://github.com/TheElegitTeam/TestRepository.git");
+        //RepoHelper.wrapAuthentication(command, credentials);
+        command.call();
+    }
+
+
     /* The sshPassword should contain two lines:
         repo ssh address
         password
@@ -232,7 +246,7 @@ public class AuthenticatedCloneTest {
     }
 
     @Test
-    public void testCallback() throws Exception {
+    public void testSshCallback() throws Exception {
         LsRemoteCommand command = Git.lsRemoteRepository();
         //command.setRemote("https://github.com/TheElegitTeam/TestRepository.git");
         command.setRemote("git@github.com:TheElegitTeam/TestRepository.git");
@@ -248,13 +262,16 @@ public class AuthenticatedCloneTest {
             @Override
             public void configure( Transport transport ) {
                 System.out.println(transport.getClass());
+                // This cast will fail if SSH is not the protocol used
                 SshTransport sshTransport = ( SshTransport )transport;
                 sshTransport.setSshSessionFactory( sshSessionFactory );
 
         }
         } );
+        // Command will fail if config not set up correctly; uses public/private key
         command.call();
 
     }
+
 
 }
