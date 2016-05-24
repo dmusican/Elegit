@@ -93,13 +93,16 @@ public abstract class RepoHelper {
             throws GitAPIException, IOException, CancelledAuthorizationException {
         this.localPath = directoryPath;
         this.ownerAuth = ownerAuth;
+        this.password = null;
     }
 
     public RepoHelper(Path directoryPath, String sshPassword)
             throws GitAPIException, IOException, CancelledAuthorizationException {
         this.localPath = directoryPath;
+        this.ownerAuth = null;
         this.password = sshPassword;
     }
+
 
     /* This method requires credentials be passed in as a parameter; that's because it must be used by
         lsRemoteRepository, for example, that is used before we've actually created a RepoHelper object. Without a
@@ -107,56 +110,17 @@ public abstract class RepoHelper {
      */
     static void wrapAuthentication(TransportCommand command,
                                    UsernamePasswordCredentialsProvider ownerAuth) {
-        // if (remoteURL.startsWith("https://") ||
-        //         remoteURL.startsWith("http://")) {
-
-        command.setCredentialsProvider(ownerAuth);
-        // } else {
-        //     throw new RuntimeException("Username/password authentication attempted on non-http(s).");
-        // }
+        wrapAuthentication(command, ownerAuth, null);
     }
 
 
-    static void wrapAuthentication(TransportCommand command, String password) {
-
-//        if (remoteURL.startsWith("ssh://")) {
-        // Explained http://www.codeaffine.com/2014/12/09/jgit-authentication/
-        SshSessionFactory sshSessionFactory = new JschConfigSessionFactory() {
-            @Override
-            protected void configure(OpenSshConfig.Host host, Session session) {
-                session.setPassword(password);
-            }
-
-            @Override
-            protected JSch createDefaultJSch(FS fs) throws JSchException {
-                JSch defaultJSch = super.createDefaultJSch(fs);
-                defaultJSch.removeAllIdentity();
-                return defaultJSch;
-            }
-        };
-        command.setTransportConfigCallback(
-                new TransportConfigCallback() {
-                    @Override
-                    public void configure(Transport transport) {
-                        SshTransport sshTransport = (SshTransport) transport;
-                        sshTransport.setSshSessionFactory(sshSessionFactory);
-                    }
-
-                });
-//        }
+    static void wrapAuthentication(TransportCommand command, String sshPassword) {
+        wrapAuthentication(command, null, sshPassword);
     }
 
-    protected void myWrapAuthentication(TransportCommand command) {
-        /*if (this.protocol.equals(AuthMethod.SSH)) {
-            wrapAuthentication(command, password);
-        } else {
-            wrapAuthentication(command, ownerAuth);
-        }*/
+    static void wrapAuthentication(TransportCommand command, UsernamePasswordCredentialsProvider ownerAuth,
+                                   String sshPassword) {
 
-        // Explained http://www.codeaffine.com/2014/12/09/jgit-authentication/
-        // and also https://www.eclipse.org/forums/index.php?t=msg&th=1077123&goto=1731236&#msg_1731236
-
-        // Credentials are used for all other protocols than SSH. Doesn't hurt to set them if they are unused.
         command.setCredentialsProvider(ownerAuth);
 
         command.setTransportConfigCallback(
@@ -168,7 +132,7 @@ public abstract class RepoHelper {
                             SshSessionFactory sshSessionFactory = new JschConfigSessionFactory() {
                                 @Override
                                 protected void configure(OpenSshConfig.Host host, Session session) {
-                                    session.setPassword(password);
+                                    session.setPassword(sshPassword);
                                 }
 
                                 @Override
@@ -184,6 +148,10 @@ public abstract class RepoHelper {
 
                     }
                 });
+    }
+
+    protected void myWrapAuthentication(TransportCommand command) {
+        wrapAuthentication(command, this.ownerAuth, this.password);
     }
 
     // Common setup tasks shared by constructors
