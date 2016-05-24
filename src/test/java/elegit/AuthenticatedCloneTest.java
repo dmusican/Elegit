@@ -213,7 +213,7 @@ public class AuthenticatedCloneTest {
         helper.pushTags();
         SessionModel sm = SessionModel.getSessionModel();
         String pathname = repoPath.toString();
-        assertEquals(sm.getAuthPref(pathname), AuthMethod.SSHPASSWORD);
+        assertEquals(sm.getAuthPref(pathname), AuthMethod.SSH);
         assertNotEquals(sm.getAuthPref(pathname), AuthMethod.HTTPS);
 
         sm.removeAuthPref(pathname);

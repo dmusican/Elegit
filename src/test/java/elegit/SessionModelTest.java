@@ -67,15 +67,15 @@ public class SessionModelTest {
     public void testSetAuthenticationPref() throws Exception {
         SessionModel sessionModel = SessionModel.getSessionModel();
         String pathname =  directoryPath.toString();
-        sessionModel.setAuthPref(pathname,AuthMethod.SSHPASSWORD);
-        assertEquals(AuthMethod.SSHPASSWORD,sessionModel.getAuthPref(pathname));
+        sessionModel.setAuthPref(pathname,AuthMethod.SSH);
+        assertEquals(AuthMethod.SSH,sessionModel.getAuthPref(pathname));
         boolean foundIt = false;
         for (String s : sessionModel.listAuthPaths())
             if (s.equals(sessionModel.hashPathname(pathname)))
                 foundIt = true;
         assertEquals(foundIt,true);
         AuthMethod authBack = sessionModel.getAuthPref(pathname);
-        assertEquals(authBack,AuthMethod.SSHPASSWORD);
+        assertEquals(authBack,AuthMethod.SSH);
         sessionModel.removeAuthPref(pathname);
 
         // Throw error on not there
@@ -88,14 +88,14 @@ public class SessionModelTest {
     public void testAuthMethodValues() throws Exception {
         AuthMethod http = AuthMethod.HTTP;
         AuthMethod https = AuthMethod.HTTPS;
-        AuthMethod sshpassword = AuthMethod.SSHPASSWORD;
+        AuthMethod ssh = AuthMethod.SSH;
         assertEquals(http.getEnumValue(),0);
         assertEquals(https.getEnumValue(),1);
-        assertEquals(sshpassword.getEnumValue(),2);
+        assertEquals(ssh.getEnumValue(),2);
         assertNotEquals(AuthMethod.HTTP,AuthMethod.getEnumFromValue(1));
         assertEquals(AuthMethod.HTTP,AuthMethod.getEnumFromValue(0));
         assertEquals(AuthMethod.HTTPS,AuthMethod.getEnumFromValue(1));
-        assertEquals(AuthMethod.SSHPASSWORD,AuthMethod.getEnumFromValue(2));
+        assertEquals(AuthMethod.SSH,AuthMethod.getEnumFromValue(2));
 
     }
 
@@ -104,7 +104,7 @@ public class SessionModelTest {
         SessionModel sessionModel = SessionModel.getSessionModel();
         String pathname = directoryPath.toString();
         System.out.println("..." + pathname);
-        sessionModel.setAuthPref(pathname,AuthMethod.SSHPASSWORD);
+        sessionModel.setAuthPref(pathname,AuthMethod.SSH);
         System.out.println(sessionModel.getAuthPref(pathname));
         for (String s : sessionModel.listAuthPaths()) {
             System.out.println(s);

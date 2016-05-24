@@ -37,7 +37,7 @@ public class ClonedRepoHelper extends RepoHelper {
     public ClonedRepoHelper(Path directoryPath, String remoteURL, String sshPassword)
             throws GitAPIException, IOException, CancelledAuthorizationException {
         super(directoryPath, sshPassword);
-        protocol = AuthMethod.SSHPASSWORD;
+        protocol = AuthMethod.SSH;
         repo = obtainRepository(remoteURL);
         setup();
     }

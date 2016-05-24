@@ -148,12 +148,10 @@ public abstract class RepoHelper {
     }
 
     protected void myWrapAuthentication(TransportCommand command) {
-        if (this.protocol.equals(AuthMethod.HTTP)) {
-            // do nothing
-        } else if (this.protocol.equals(AuthMethod.HTTPS)) {
-            wrapAuthentication(command, ownerAuth);
-        } else if (this.protocol.equals(AuthMethod.SSHPASSWORD)) {
+        if (this.protocol.equals(AuthMethod.SSH)) {
             wrapAuthentication(command, password);
+        } else {
+            wrapAuthentication(command, ownerAuth);
         }
     }
 

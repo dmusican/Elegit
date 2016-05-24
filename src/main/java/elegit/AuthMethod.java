@@ -8,10 +8,8 @@ import java.util.ArrayList;
 public enum AuthMethod {
     HTTP(0, "HTTP"),
     HTTPS(1, "HTTPS"),
-    SSHPASSWORD(2, "SSH/Password"),
-    SSHPUBLICKEY(3, "SSH/Public Key"),
-    NONE(4, "NONE"),
-    SSH(5, "SSH");
+    SSH(2, "SSH"),
+    NONE(3, "NONE");
 
     private final int enumValue;
     private final String enumString;
