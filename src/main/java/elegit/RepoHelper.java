@@ -50,6 +50,7 @@ public abstract class RepoHelper {
 
     protected Path localPath;
     protected File credentialsFile;
+    protected List<String> credentialsList;
 
     private List<CommitHelper> localCommits;
     private List<CommitHelper> remoteCommits;
@@ -112,6 +113,15 @@ public abstract class RepoHelper {
         this.credentialsFile = credentialsFile;
     }
 
+    public RepoHelper(Path directoryPath, List<String> credentialsList)
+            throws GitAPIException, IOException, CancelledAuthorizationException {
+        this.localPath = directoryPath;
+        this.ownerAuth = null;
+        this.password = null;
+        this.credentialsFile = null;
+        this.credentialsList = credentialsList;
+    }
+
 
 
     /* This method requires credentials be passed in as a parameter; that's because it must be used by
@@ -120,31 +130,35 @@ public abstract class RepoHelper {
      */
     static void wrapAuthentication(TransportCommand command,
                                    UsernamePasswordCredentialsProvider ownerAuth) {
-        wrapAuthentication(command, ownerAuth, null, null);
+        wrapAuthentication(command, ownerAuth, null, null, null);
     }
 
 
     static void wrapAuthentication(TransportCommand command, String sshPassword) {
-        wrapAuthentication(command, null, sshPassword, null);
+        wrapAuthentication(command, null, sshPassword, null, null);
     }
 
     static void wrapAuthentication(TransportCommand command, UsernamePasswordCredentialsProvider ownerAuth,
                                    String sshPassword) {
-        wrapAuthentication(command, ownerAuth, sshPassword, null);
+        wrapAuthentication(command, ownerAuth, sshPassword, null, null);
     }
 
     static void wrapAuthentication(TransportCommand command,
                                    File credentialsFile) {
-        wrapAuthentication(command, null, null, credentialsFile);
+        wrapAuthentication(command, null, null, credentialsFile, null);
+    }
+
+    static void wrapAuthentication(TransportCommand command, List<String> credentialsList) {
+        wrapAuthentication(command, null, null, null, credentialsList);
     }
 
     static void wrapAuthentication(TransportCommand command, UsernamePasswordCredentialsProvider ownerAuth,
-                                   String sshPassword, File credentialsFile) {
+                                   String sshPassword, File credentialsFile, List<String> credentialsList) {
 
         if (ownerAuth != null)
             command.setCredentialsProvider(ownerAuth);
         else
-            command.setCredentialsProvider(new ElegitCredentialsProvider(credentialsFile));
+            command.setCredentialsProvider(new ElegitCredentialsProvider(credentialsList));
 
         command.setTransportConfigCallback(
                 new TransportConfigCallback() {
@@ -174,7 +188,7 @@ public abstract class RepoHelper {
     }
 
     protected void myWrapAuthentication(TransportCommand command) {
-        wrapAuthentication(command, this.ownerAuth, this.password, this.credentialsFile);
+        wrapAuthentication(command, this.ownerAuth, this.password, this.credentialsFile, this.credentialsList);
     }
 
     // Common setup tasks shared by constructors

@@ -178,38 +178,41 @@ public class AuthenticatedCloneTest {
     @Test
     public void testLsSshPassword() throws Exception {
 
-        Path repoPath = directoryPath.resolve("testrepo");
         File urlFile = new File(testFileLocation + "sshPasswordURL.txt");
-        File passwordFile = new File(testFileLocation + "sshPasswordPassword.txt");
+        Path passwordFile = Paths.get(testFileLocation,"sshPasswordPassword.txt");
 
         // If a developer does not have this file present, test should just pass.
-        if ((!urlFile.exists() || !passwordFile.exists()) && looseTesting)
+        if ((!urlFile.exists() || !Files.exists(passwordFile) && looseTesting))
             return;
 
         Scanner scanner = new Scanner(urlFile);
         String remoteURL = scanner.next();
 
+        List<String> userCredentials = Files.readAllLines(passwordFile);
         TransportCommand command = Git.lsRemoteRepository().setRemote(remoteURL);
-        RepoHelper.wrapAuthentication(command, passwordFile);
+        RepoHelper.wrapAuthentication(command, userCredentials);
         command.call();
     }
 
     @Rule
     public ExpectedException exception = ExpectedException.none();
 
+
     @Test
     public void testSshPassword() throws Exception {
         Path repoPath = directoryPath.resolve("testrepo");
         File urlFile = new File(testFileLocation + "sshPasswordURL.txt");
-        File passwordFile = new File(testFileLocation + "sshPasswordPassword.txt");
+        Path passwordFile = Paths.get(testFileLocation,"sshPasswordPassword.txt");
 
         // If a developer does not have this file present, test should just pass.
-        if ((!urlFile.exists() || !passwordFile.exists()) && looseTesting)
+        if ((!urlFile.exists() || !Files.exists(passwordFile) && looseTesting))
             return;
 
         Scanner scanner = new Scanner(urlFile);
         String remoteURL = scanner.next();
-        ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, remoteURL, passwordFile);
+
+        List<String> userCredentials = Files.readAllLines(passwordFile);
+        ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, remoteURL, userCredentials);
         assertEquals(helper.getCompatibleAuthentication(),AuthMethod.SSH);
         helper.fetch();
         helper.pushAll();

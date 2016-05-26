@@ -7,7 +7,8 @@ import org.eclipse.jgit.transport.URIish;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.Scanner;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * Created by dmusican on 5/25/16.
@@ -15,16 +16,16 @@ import java.util.Scanner;
 public class ElegitCredentialsProvider extends CredentialsProvider {
 
     // Used for unit testing
-    private File credentialsFile;
+    private List<String> userCredentials;
 
     public ElegitCredentialsProvider() {
         super();
-        this.credentialsFile = null;
+        this.userCredentials = null;
     }
 
-    public ElegitCredentialsProvider(File credentialsFile) {
+    public ElegitCredentialsProvider(List<String> userCredentials) {
         super();
-        this.credentialsFile = credentialsFile;
+        this.userCredentials = userCredentials;
     }
 
     @Override
@@ -42,16 +43,9 @@ public class ElegitCredentialsProvider extends CredentialsProvider {
 
     @Override
     public boolean get(URIish urIish, CredentialItem... credentialItems) throws UnsupportedCredentialItem {
-        Scanner scanner = null;
-        if (credentialsFile != null) {
-            try {
-                scanner = new Scanner(credentialsFile);
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            }
-        }
+        Iterator<String> userCredentialsIterator = userCredentials.iterator();
         for(CredentialItem item : credentialItems) {
-            String nextValue = scanner.next();
+            String nextValue = userCredentialsIterator.next();
             if (item instanceof CredentialItem.Username) {
                 ((CredentialItem.Username)item).setValue(nextValue);
             } else if (item instanceof CredentialItem.Password) {
