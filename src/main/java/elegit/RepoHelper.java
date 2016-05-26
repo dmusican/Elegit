@@ -133,6 +133,10 @@ public abstract class RepoHelper {
         wrapAuthentication(command, ownerAuth, sshPassword, null);
     }
 
+    static void wrapAuthentication(TransportCommand command,
+                                   File credentialsFile) {
+        wrapAuthentication(command, null, null, credentialsFile);
+    }
 
     static void wrapAuthentication(TransportCommand command, UsernamePasswordCredentialsProvider ownerAuth,
                                    String sshPassword, File credentialsFile) {

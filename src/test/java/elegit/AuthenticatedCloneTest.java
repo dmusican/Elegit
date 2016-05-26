@@ -179,18 +179,18 @@ public class AuthenticatedCloneTest {
     public void testLsSshPassword() throws Exception {
 
         Path repoPath = directoryPath.resolve("testrepo");
-        File authData = new File(testFileLocation + "sshPassword.txt");
+        File urlFile = new File(testFileLocation + "sshPasswordURL.txt");
+        File passwordFile = new File(testFileLocation + "sshPasswordPassword.txt");
 
         // If a developer does not have this file present, test should just pass.
-        if (!authData.exists() && looseTesting)
+        if ((!urlFile.exists() || !passwordFile.exists()) && looseTesting)
             return;
 
-        Scanner scanner = new Scanner(authData);
+        Scanner scanner = new Scanner(urlFile);
         String remoteURL = scanner.next();
-        String password = scanner.next();
 
         TransportCommand command = Git.lsRemoteRepository().setRemote(remoteURL);
-        RepoHelper.wrapAuthentication(command, password);
+        RepoHelper.wrapAuthentication(command, passwordFile);
         command.call();
     }
 
