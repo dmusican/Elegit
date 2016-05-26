@@ -320,13 +320,15 @@ public abstract class RepoHelper {
                 .setMessage(commitMessage)
                 .call();
         git.close();
-        this.hasUnpushedCommitsProperty.set(true);
+
         // Update the local commits
         try {
             this.localCommits = parseAllLocalCommits();
         } catch (IOException e) {
             // This shouldn't occur once we have the repo up and running.
         }
+
+        this.hasUnpushedCommitsProperty.set(true);
     }
 
     /**
@@ -408,6 +410,13 @@ public abstract class RepoHelper {
         }
 
         git.close();
+
+        try {
+            this.remoteCommits = parseAllRemoteCommits();
+        } catch (IOException e) {
+            // This shouldn't occur once we have the repo up and running.
+        }
+
         this.hasUnpushedCommitsProperty.set(false);
     }
 
@@ -478,6 +487,12 @@ public abstract class RepoHelper {
         FetchResult result = fetch.call();
         git.close();
 
+        try {
+            this.remoteCommits = parseAllRemoteCommits();
+        } catch (IOException e) {
+            // This shouldn't occur once we have the repo up and running.
+        }
+
         this.branchManagerModel.getUpdatedRemoteBranches();
         this.hasUnmergedCommitsProperty.set(this.hasUnmergedCommits() || !result.getTrackingRefUpdates().isEmpty());
         return !result.getTrackingRefUpdates().isEmpty();
@@ -502,6 +517,12 @@ public abstract class RepoHelper {
                 .include(fetchHeadID)
                 .call();
         git.close();
+
+        try {
+            this.localCommits = parseAllLocalCommits();
+        } catch (IOException e) {
+            // This shouldn't occur once we have the repo up and running.
+        }
 
         MergeResult.MergeStatus status = result.getMergeStatus();
         this.hasUnmergedCommitsProperty.set(status == MergeResult.MergeStatus.ABORTED || status == MergeResult.MergeStatus.CHECKOUT_CONFLICT);
