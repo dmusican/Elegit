@@ -51,13 +51,16 @@ public class ElegitCredentialsProvider extends CredentialsProvider {
             }
         }
         for(CredentialItem item : credentialItems) {
+            String nextValue = scanner.next();
             if (item instanceof CredentialItem.Username) {
-                ((CredentialItem.Username)item).setValue(scanner.next());
+                ((CredentialItem.Username)item).setValue(nextValue);
             } else if (item instanceof CredentialItem.Password) {
-                ((CredentialItem.Password)item).setValue(scanner.next().toCharArray());
+                ((CredentialItem.Password)item).setValue(nextValue.toCharArray());
             } else if (item instanceof CredentialItem.StringType) {
-                ((CredentialItem.StringType)item).setValue(scanner.next());
+                ((CredentialItem.StringType)item).setValue(nextValue);
             } else {
+                System.out.println(item);
+                System.out.println(item.getPromptText());
                 throw new UnsupportedCredentialItem(urIish, "Case not covered in ElegitCredentialsProvider");
             }
 

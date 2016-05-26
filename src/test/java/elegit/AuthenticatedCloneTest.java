@@ -28,6 +28,9 @@ public class AuthenticatedCloneTest {
     private String testFileLocation;
     Path logPath;
 
+    // Used to indicate that if password files are missing, then tests should just pass
+    private boolean looseTesting;
+
 
     @Before
     public void setUp() throws Exception {
@@ -36,6 +39,8 @@ public class AuthenticatedCloneTest {
         directoryPath.toFile().deleteOnExit();
         testFileLocation = System.getProperty("user.home") + File.separator +
                            "elegitTests" + File.separator;
+        File strictTestingFile = new File(testFileLocation + "strictAuthenticationTesting.txt");
+        looseTesting = !strictTestingFile.exists();
     }
 
     @After
@@ -101,7 +106,7 @@ public class AuthenticatedCloneTest {
         File authData = new File(testFileLocation + filename);
 
         // If a developer does not have this file present, test should just pass.
-        if (!authData.exists())
+        if (!authData.exists() && looseTesting)
             return;
 
         Scanner scanner = new Scanner(authData);
@@ -177,7 +182,7 @@ public class AuthenticatedCloneTest {
         File authData = new File(testFileLocation + "sshPassword.txt");
 
         // If a developer does not have this file present, test should just pass.
-        if (!authData.exists())
+        if (!authData.exists() && looseTesting)
             return;
 
         Scanner scanner = new Scanner(authData);
@@ -195,16 +200,16 @@ public class AuthenticatedCloneTest {
     @Test
     public void testSshPassword() throws Exception {
         Path repoPath = directoryPath.resolve("testrepo");
-        File authData = new File(testFileLocation + "sshPassword.txt");
+        File urlFile = new File(testFileLocation + "sshPasswordURL.txt");
+        File passwordFile = new File(testFileLocation + "sshPasswordPassword.txt");
 
         // If a developer does not have this file present, test should just pass.
-        if (!authData.exists())
+        if ((!urlFile.exists() || !passwordFile.exists()) && looseTesting)
             return;
 
-        Scanner scanner = new Scanner(authData);
+        Scanner scanner = new Scanner(urlFile);
         String remoteURL = scanner.next();
-        String password = scanner.next();
-        ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, remoteURL, password);
+        ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, remoteURL, passwordFile);
         assertEquals(helper.getCompatibleAuthentication(),AuthMethod.SSH);
         helper.fetch();
         helper.pushAll();
@@ -218,7 +223,7 @@ public class AuthenticatedCloneTest {
         File passwordFile = new File(testFileLocation + "sshPrivateKeyPassword.txt");
 
         // If a developer does not have this file present, test should just pass.
-        if (!urlFile.exists() || !passwordFile.exists())
+        if ((!urlFile.exists() || !passwordFile.exists()) && looseTesting)
             return;
 
         Scanner scanner = new Scanner(urlFile);
