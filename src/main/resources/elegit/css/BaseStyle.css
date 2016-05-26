@@ -14,6 +14,10 @@
     -fx-font-family: "Menlo";
 }
 
+.button:pressed, .button:selected{
+    -fx-color: -fx-pressed-base;
+}
+
 
 .menu-bar {
     -fx-use-system-menu-bar: true;
