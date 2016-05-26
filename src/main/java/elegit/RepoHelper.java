@@ -321,6 +321,12 @@ public abstract class RepoHelper {
                 .call();
         git.close();
         this.hasUnpushedCommitsProperty.set(true);
+        // Update the local commits
+        try {
+            this.localCommits = parseAllLocalCommits();
+        } catch (IOException e) {
+            // This shouldn't occur once we have the repo up and running.
+        }
     }
 
     /**
