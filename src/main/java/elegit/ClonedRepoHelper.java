@@ -32,6 +32,14 @@ public class ClonedRepoHelper extends RepoHelper {
         setup();
     }
 
+    // Constructor specifically designed for unit testing; file containing credentials passed in
+    public ClonedRepoHelper(Path directoryPath, String remoteURL, File credentialsFile)
+            throws GitAPIException, IOException, CancelledAuthorizationException {
+        super(directoryPath, credentialsFile);
+        repo = obtainRepository(remoteURL);
+        setup();
+    }
+
     /**
      * Clones the repository into the desired folder and returns
      * the JGit Repository object.

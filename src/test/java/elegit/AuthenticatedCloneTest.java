@@ -212,6 +212,26 @@ public class AuthenticatedCloneTest {
     }
 
     @Test
+    public void testSshPrivateKey() throws Exception {
+        Path repoPath = directoryPath.resolve("testrepo");
+        File urlFile = new File(testFileLocation + "sshPrivateKeyURL.txt");
+        File passwordFile = new File(testFileLocation + "sshPrivateKeyPassword.txt");
+
+        // If a developer does not have this file present, test should just pass.
+        if (!urlFile.exists() || !passwordFile.exists())
+            return;
+
+        Scanner scanner = new Scanner(urlFile);
+        String remoteURL = scanner.next();
+        ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, remoteURL, passwordFile);
+        assertEquals(helper.getCompatibleAuthentication(),AuthMethod.SSH);
+        helper.fetch();
+        helper.pushAll();
+        helper.pushTags();
+        scanner.close();
+    }
+
+    @Test
     public void testTransportProtocols() throws Exception {
         List<TransportProtocol> protocols = TransportGitSsh.getTransportProtocols();
         for (TransportProtocol protocol : protocols) {

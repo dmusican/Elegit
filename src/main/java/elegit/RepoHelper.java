@@ -49,6 +49,7 @@ public abstract class RepoHelper {
     protected Repository repo;
 
     protected Path localPath;
+    protected File credentialsFile;
 
     private List<CommitHelper> localCommits;
     private List<CommitHelper> remoteCommits;
@@ -103,6 +104,15 @@ public abstract class RepoHelper {
         this.password = sshPassword;
     }
 
+    public RepoHelper(Path directoryPath, File credentialsFile)
+            throws GitAPIException, IOException, CancelledAuthorizationException {
+        this.localPath = directoryPath;
+        this.ownerAuth = null;
+        this.password = null;
+        this.credentialsFile = credentialsFile;
+    }
+
+
 
     /* This method requires credentials be passed in as a parameter; that's because it must be used by
         lsRemoteRepository, for example, that is used before we've actually created a RepoHelper object. Without a
@@ -110,18 +120,27 @@ public abstract class RepoHelper {
      */
     static void wrapAuthentication(TransportCommand command,
                                    UsernamePasswordCredentialsProvider ownerAuth) {
-        wrapAuthentication(command, ownerAuth, null);
+        wrapAuthentication(command, ownerAuth, null, null);
     }
 
 
     static void wrapAuthentication(TransportCommand command, String sshPassword) {
-        wrapAuthentication(command, null, sshPassword);
+        wrapAuthentication(command, null, sshPassword, null);
     }
 
     static void wrapAuthentication(TransportCommand command, UsernamePasswordCredentialsProvider ownerAuth,
                                    String sshPassword) {
+        wrapAuthentication(command, ownerAuth, sshPassword, null);
+    }
 
-        command.setCredentialsProvider(ownerAuth);
+
+    static void wrapAuthentication(TransportCommand command, UsernamePasswordCredentialsProvider ownerAuth,
+                                   String sshPassword, File credentialsFile) {
+
+        if (ownerAuth != null)
+            command.setCredentialsProvider(ownerAuth);
+        else
+            command.setCredentialsProvider(new ElegitCredentialsProvider(credentialsFile));
 
         command.setTransportConfigCallback(
                 new TransportConfigCallback() {
@@ -151,7 +170,7 @@ public abstract class RepoHelper {
     }
 
     protected void myWrapAuthentication(TransportCommand command) {
-        wrapAuthentication(command, this.ownerAuth, this.password);
+        wrapAuthentication(command, this.ownerAuth, this.password, this.credentialsFile);
     }
 
     // Common setup tasks shared by constructors
