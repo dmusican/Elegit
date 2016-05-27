@@ -198,7 +198,7 @@
                         <CommitTreePanelView fx:id="remoteCommitTreePanelView"/>
 
                         <Label StackPane.alignment="BOTTOM_LEFT"
-                               text="Remote Cache"
+                               text="Remote-Tracking"
                                id="commitTreeLabel">
                             <StackPane.margin>
                                 <Insets bottom="15.0" left="5.0"/>
