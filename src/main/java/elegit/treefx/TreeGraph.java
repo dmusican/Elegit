@@ -80,6 +80,7 @@ public class TreeGraph{
         Platform.runLater(() -> {
             // add components to treeGraph pane
             LinkedList<Node> moreToAdd = new LinkedList<Node>();
+            LinkedList<Node> moreToRemove = new LinkedList<Node>();
             for (Node n: queuedToAdd) {
                 if (n instanceof Cell)
                     moreToAdd.add(((Cell)n).getLabel());
@@ -88,7 +89,12 @@ public class TreeGraph{
             cellLayer.getChildren().addAll(moreToAdd);
 
             // remove components from treeGraph pane
+            for (Node n:queuedToRemove) {
+                if (n instanceof Cell)
+                    moreToRemove.add(((Cell)n).getLabel());
+            }
             cellLayer.getChildren().removeAll(queuedToRemove);
+            cellLayer.getChildren().removeAll(moreToRemove);
 
             queuedToAdd = new LinkedList<>();
             queuedToRemove = new LinkedList<>();
