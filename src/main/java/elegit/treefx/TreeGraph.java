@@ -93,8 +93,8 @@ public class TreeGraph{
                 if (n instanceof Cell)
                     moreToRemove.add(((Cell)n).getLabel());
             }
-            cellLayer.getChildren().removeAll(queuedToRemove);
             cellLayer.getChildren().removeAll(moreToRemove);
+            cellLayer.getChildren().removeAll(queuedToRemove);
 
             queuedToAdd = new LinkedList<>();
             queuedToRemove = new LinkedList<>();

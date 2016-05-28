@@ -58,6 +58,8 @@ public class Cell extends Pane{
 
     private LabelCell refLabel;
 
+    private Button refExtender;
+
     // The list of children of this cell
     List<Cell> children = new ArrayList<>();
 
@@ -367,6 +369,9 @@ public class Cell extends Pane{
 
     private class LabelCell extends Pane {
 
+        Label basic;
+        Label extended;
+
         public void translate(double x) {
             setTranslateX(x);
         }
@@ -377,8 +382,8 @@ public class Cell extends Pane{
                 return;
             }
 
-            Label basic = new Label();
-            Label extended = new Label();
+            basic = new Label();
+            extended = new Label();
             Button showExtended = new Button();
 
             basic.setText(labels.get(0));
@@ -407,6 +412,8 @@ public class Cell extends Pane{
                     basic.setVisible(!basic.isVisible());
                 });
             }
+
+            this.setMaxHeight(20);
 
             Platform.runLater(() -> {
                 getChildren().clear();
