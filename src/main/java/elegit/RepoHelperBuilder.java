@@ -49,7 +49,7 @@ public abstract class RepoHelperBuilder {
 
     SessionModel sessionModel;
     private String defaultFilePickerStartFolder = System.getProperty("user.home");
-    private static HashMap<String, UsernamePassword> repoToAuth = new HashMap<>();
+    //private static HashMap<String, UsernamePassword> repoToAuth = new HashMap<>();
 
     public RepoHelperBuilder(SessionModel sessionModel) {
         this.sessionModel = sessionModel;
@@ -86,14 +86,13 @@ public abstract class RepoHelperBuilder {
      *
      * @throws CancelledAuthorizationException if the user presses cancel or closes the dialog.
      */
-    public static AuthDialogResponse getAuthCredentialFromDialog(String remoteURL) throws
+    public static AuthDialogResponse getAuthCredentialFromDialog() throws
             CancelledAuthorizationException {
         logger.info("Creating authorization dialog");
         // Create the custom dialog.
         Dialog<AuthDialogResponse> dialog = new Dialog<>();
         dialog.setTitle("Authorize");
-        dialog.setHeaderText("Please enter your remote repository authentication.\n" +
-                             "Current URL: " + remoteURL);
+        dialog.setHeaderText("Please enter your remote repository authentication.");
 
         // Set the button types.
         ButtonType loginButtonType = new ButtonType("Authorize", ButtonBar.ButtonData.OK_DONE);
@@ -126,18 +125,18 @@ public abstract class RepoHelperBuilder {
 
         String hashedUsername = null;
         String hashedPassword = null;
-        if (repoToAuth.containsKey(remoteURL)) {
-            hashedUsername = repoToAuth.get(remoteURL).username;
-            hashedPassword = repoToAuth.get(remoteURL).password;
-        }
+//        if (repoToAuth.containsKey(remoteURL)) {
+//            hashedUsername = repoToAuth.get(remoteURL).username;
+//            hashedPassword = repoToAuth.get(remoteURL).password;
+//        }
         // Conditionally ask for the username if it hasn't yet been set.
         TextField username = new TextField();
-        if (hashedUsername == null) {
+//        if (hashedUsername == null) {
             username.setPromptText("Username");
-        } else {
-            username.setText(hashedUsername);
-            username.setEditable(false);
-        }
+//        } else {
+//            username.setText(hashedUsername);
+//            username.setEditable(false);
+//        }
         grid.add(username, 1, 1);
 
         grid.add(new Label("Password:"), 0, 2);
@@ -217,7 +216,7 @@ public abstract class RepoHelperBuilder {
                 logger.info("Selected remember password");
                 usernamePassword.password = result.get().password;
             }
-            repoToAuth.put(remoteURL,usernamePassword);
+            //repoToAuth.put(remoteURL,usernamePassword);
         } else {
             logger.info("Cancelled authorization dialog");
             throw new CancelledAuthorizationException();

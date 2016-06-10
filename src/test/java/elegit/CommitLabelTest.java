@@ -6,6 +6,7 @@ import javafx.application.Application;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.layout.Pane;
+import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -58,7 +59,9 @@ public class CommitLabelTest {
         this.directoryPath.toFile().delete();
         this.repoPath = directoryPath.resolve("commitlabeltestrepo");
 
-        helper = new ClonedRepoHelper(repoPath, remoteURL);
+        // This repo doesn't check username/password for read-only
+        UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider("", "");
+        helper = new ClonedRepoHelper(repoPath, remoteURL, credentials);
         assertNotNull(helper);
 
         // Get the commit trees

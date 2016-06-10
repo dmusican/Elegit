@@ -1,8 +1,8 @@
 package elegit;
 
-import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.TransportCommand;
-import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
+import com.jcraft.jsch.Session;
+import org.eclipse.jgit.api.*;
+import org.eclipse.jgit.transport.*;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -16,6 +16,7 @@ import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
 
@@ -27,6 +28,9 @@ public class AuthenticatedCloneTest {
     private String testFileLocation;
     Path logPath;
 
+    // Used to indicate that if password files are missing, then tests should just pass
+    private boolean looseTesting;
+
 
     @Before
     public void setUp() throws Exception {
@@ -35,6 +39,8 @@ public class AuthenticatedCloneTest {
         directoryPath.toFile().deleteOnExit();
         testFileLocation = System.getProperty("user.home") + File.separator +
                            "elegitTests" + File.separator;
+        File strictTestingFile = new File(testFileLocation + "strictAuthenticationTesting.txt");
+        looseTesting = !strictTestingFile.exists();
     }
 
     @After
@@ -63,36 +69,44 @@ public class AuthenticatedCloneTest {
     }
 
     @Test
-    public void testCloneHttpNoPassword() throws Exception {
+    public void     testCloneHttpNoPassword() throws Exception {
         Path repoPath = directoryPath.resolve("testrepo");
         // Clone from dummy repo:
         String remoteURL = "https://github.com/TheElegitTeam/TestRepository.git";
 
-        ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, remoteURL);
+        UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider("", "");
+        ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, remoteURL, credentials);
         assertNotNull(helper);
 
     }
 
     @Test
     public void testLsHttpNoPassword() throws Exception {
-
-        TransportCommand command =
-                Git.lsRemoteRepository().setRemote("https://github.com/TheElegitTeam/TestRepository.git");
-        command.call();
+        testLsHttpUsernamePassword("httpNoUsernamePassword.txt");
     }
+
+    @Test
+    public void testHttpUsernamePasswordPublic() throws Exception {
+        testHttpUsernamePassword("httpUsernamePassword.txt");
+    }
+
+    @Test
+    public void testHttpUsernamePasswordPrivate() throws Exception {
+        testHttpUsernamePassword("httpUsernamePasswordPrivate.txt");
+    }
+
 
     /* The httpUsernamePassword should contain three lines, containing:
         repo http(s) address
         username
         password
      */
-    @Test
-    public void testHttpUsernamePassword() throws Exception {
+    public void testHttpUsernamePassword(String filename) throws Exception {
         Path repoPath = directoryPath.resolve("testrepo");
-        File authData = new File(testFileLocation + "httpUsernamePassword.txt");
+        File authData = new File(testFileLocation + filename);
 
         // If a developer does not have this file present, test should just pass.
-        if (!authData.exists())
+        if (!authData.exists() && looseTesting)
             return;
 
         Scanner scanner = new Scanner(authData);
@@ -101,6 +115,7 @@ public class AuthenticatedCloneTest {
         String password = scanner.next();
         UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider(username, password);
         ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, remoteURL, credentials);
+        assertEquals(helper.getCompatibleAuthentication(),AuthMethod.HTTP);
         helper.fetch();
         Path fileLocation = repoPath.resolve("README.md");
         System.out.println(fileLocation);
@@ -114,10 +129,18 @@ public class AuthenticatedCloneTest {
     }
 
     @Test
-    public void testLsHttpUsernamePassword() throws Exception {
+    public void testLshHttpUsernamePasswordPublic() throws Exception {
+        testLsHttpUsernamePassword("httpUsernamePassword.txt");
+    }
 
-        Path repoPath = directoryPath.resolve("testrepo");
-        File authData = new File(testFileLocation + "httpUsernamePassword.txt");
+    @Test
+    public void testLshHttpUsernamePasswordPrivate() throws Exception {
+        testLsHttpUsernamePassword("httpUsernamePasswordPrivate.txt");
+    }
+
+    public void testLsHttpUsernamePassword(String filename) throws Exception {
+
+        File authData = new File(testFileLocation + filename);
 
         // If a developer does not have this file present, test should just pass.
         if (!authData.exists())
@@ -130,9 +153,23 @@ public class AuthenticatedCloneTest {
         UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider(username, password);
 
         TransportCommand command = Git.lsRemoteRepository().setRemote(remoteURL);
-        RepoHelper.wrapAuthentication(command, remoteURL, credentials);
+        RepoHelper.wrapAuthentication(command, credentials);
         command.call();
     }
+
+    @Test
+    // Test Https access, with empty string credentials, to see if it works for a repo that is public
+    // ... and verify it fails with a bad username or password
+    public void testLsHttpUsernamePasswordEmpty() throws Exception {
+
+        UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider("a", "asdas");
+
+        TransportCommand command =
+                Git.lsRemoteRepository().setRemote("https://github.com/TheElegitTeam/TestRepository.git");
+        //RepoHelper.wrapAuthentication(command, credentials);
+        command.call();
+    }
+
 
     /* The sshPassword should contain two lines:
         repo ssh address
@@ -141,50 +178,117 @@ public class AuthenticatedCloneTest {
     @Test
     public void testLsSshPassword() throws Exception {
 
-        Path repoPath = directoryPath.resolve("testrepo");
-        File authData = new File(testFileLocation + "sshPassword.txt");
+        File urlFile = new File(testFileLocation + "sshPasswordURL.txt");
+        Path passwordFile = Paths.get(testFileLocation,"sshPasswordPassword.txt");
 
         // If a developer does not have this file present, test should just pass.
-        if (!authData.exists())
+        if ((!urlFile.exists() || !Files.exists(passwordFile) && looseTesting))
             return;
 
-        Scanner scanner = new Scanner(authData);
+        Scanner scanner = new Scanner(urlFile);
         String remoteURL = scanner.next();
-        String password = scanner.next();
 
+        List<String> userCredentials = Files.readAllLines(passwordFile);
         TransportCommand command = Git.lsRemoteRepository().setRemote(remoteURL);
-        RepoHelper.wrapAuthentication(command, remoteURL, password);
+        RepoHelper.wrapAuthentication(command, userCredentials);
         command.call();
     }
 
     @Rule
     public ExpectedException exception = ExpectedException.none();
 
+
     @Test
     public void testSshPassword() throws Exception {
         Path repoPath = directoryPath.resolve("testrepo");
-        File authData = new File(testFileLocation + "sshPassword.txt");
+        File urlFile = new File(testFileLocation + "sshPasswordURL.txt");
+        Path passwordFile = Paths.get(testFileLocation,"sshPasswordPassword.txt");
 
         // If a developer does not have this file present, test should just pass.
-        if (!authData.exists())
+        if ((!urlFile.exists() || !Files.exists(passwordFile) && looseTesting))
             return;
 
-        Scanner scanner = new Scanner(authData);
+        Scanner scanner = new Scanner(urlFile);
         String remoteURL = scanner.next();
-        String password = scanner.next();
-        ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, remoteURL, password);
+
+        List<String> userCredentials = Files.readAllLines(passwordFile);
+        ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, remoteURL, userCredentials);
+        assertEquals(helper.getCompatibleAuthentication(),AuthMethod.SSH);
         helper.fetch();
         helper.pushAll();
         helper.pushTags();
-        SessionModel sm = SessionModel.getSessionModel();
-        String pathname = repoPath.toString();
-        assertEquals(sm.getAuthPref(pathname), AuthMethod.SSHPASSWORD);
-        assertNotEquals(sm.getAuthPref(pathname), AuthMethod.HTTPS);
-
-        sm.removeAuthPref(pathname);
-        exception.expect(NoSuchElementException.class);
-        exception.expectMessage("AuthPref not present");
-        sm.getAuthPref(pathname);
     }
+
+    @Test
+    public void testSshPrivateKey() throws Exception {
+        Path repoPath = directoryPath.resolve("testrepo");
+        File urlFile = new File(testFileLocation + "sshPrivateKeyURL.txt");
+        File passwordFile = new File(testFileLocation + "sshPrivateKeyPassword.txt");
+
+        // If a developer does not have this file present, test should just pass.
+        if ((!urlFile.exists() || !passwordFile.exists()) && looseTesting)
+            return;
+
+        Scanner scanner = new Scanner(urlFile);
+        String remoteURL = scanner.next();
+//        ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, remoteURL, passwordFile);
+//        assertEquals(helper.getCompatibleAuthentication(),AuthMethod.SSH);
+//        helper.fetch();
+//        helper.pushAll();
+//        helper.pushTags();
+//        scanner.close();
+    }
+
+    @Test
+    public void testTransportProtocols() throws Exception {
+        List<TransportProtocol> protocols = TransportGitSsh.getTransportProtocols();
+        for (TransportProtocol protocol : protocols) {
+            System.out.println(protocol + " " + protocol.getName());
+            for (String scheme : protocol.getSchemes()) {
+                System.out.println("\t" + scheme);
+            }
+        }
+        System.out.println();
+        for (TransportProtocol protocol : protocols) {
+            if (protocol.canHandle(new URIish("https://github.com/TheElegitTeam/TestRepository.git"))) {
+                assertEquals(protocol.getName(), "HTTP");
+                assertNotEquals(protocol.getName(), "SSH");
+            }
+
+            if (protocol.canHandle(new URIish("git@github.com:TheElegitTeam/TestRepository.git"))) {
+                assertEquals(protocol.getName(), "SSH");
+                assertNotEquals(protocol.getName(), "HTTP");
+            }
+        }
+    }
+
+    @Test
+    public void testSshCallback() throws Exception {
+        LsRemoteCommand command = Git.lsRemoteRepository();
+        //command.setRemote("https://github.com/TheElegitTeam/TestRepository.git");
+        command.setRemote("git@github.com:TheElegitTeam/TestRepository.git");
+
+        SshSessionFactory sshSessionFactory = new JschConfigSessionFactory() {
+            @Override
+            protected void configure(OpenSshConfig.Host host, Session session ) {
+                // do nothing
+            }
+        };
+
+        command.setTransportConfigCallback( new TransportConfigCallback() {
+            @Override
+            public void configure( Transport transport ) {
+                System.out.println(transport.getClass());
+                // This cast will fail if SSH is not the protocol used
+                SshTransport sshTransport = ( SshTransport )transport;
+                sshTransport.setSshSessionFactory( sshSessionFactory );
+
+        }
+        } );
+        // Command will fail if config not set up correctly; uses public/private key
+        command.call();
+
+    }
+
 
 }
