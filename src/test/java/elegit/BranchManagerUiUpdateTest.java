@@ -5,6 +5,7 @@ import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.MergeCommand;
 import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.transport.RefSpec;
+import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -64,7 +65,7 @@ public class BranchManagerUiUpdateTest {
 
         repoPath = directoryPath.resolve("testRepo");
         try {
-            helper = new ClonedRepoHelper(repoPath, REMOTE_URL);
+            helper = new ClonedRepoHelper(repoPath, REMOTE_URL, new UsernamePasswordCredentialsProvider("",""));
         } catch (Exception e) {
             e.printStackTrace();
         }
