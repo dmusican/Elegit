@@ -27,6 +27,8 @@ public class PushPullTest {
     private String testFileLocation;
     Path logPath;
 
+    // Used to indicate that if password files are missing, then tests should just pass
+    private boolean looseTesting;
 
     @Before
     public void setUp() throws Exception {
@@ -35,6 +37,8 @@ public class PushPullTest {
         //directoryPath.toFile().deleteOnExit();
         testFileLocation = System.getProperty("user.home") + File.separator +
                            "elegitTests" + File.separator;
+        File strictTestingFile = new File(testFileLocation + "strictAuthenticationTesting.txt");
+        looseTesting = !strictTestingFile.exists();
     }
 
     @After
@@ -67,7 +71,7 @@ public class PushPullTest {
         File authData = new File(testFileLocation + "httpUsernamePassword.txt");
 
         // If a developer does not have this file present, test should just pass.
-        if (!authData.exists())
+        if (!authData.exists() && looseTesting)
             return;
 
         Scanner scanner = new Scanner(authData);
@@ -112,7 +116,7 @@ public class PushPullTest {
         File authData = new File(testFileLocation + "httpUsernamePassword.txt");
 
         // If a developer does not have this file present, test should just pass.
-        if (!authData.exists())
+        if (!authData.exists() && looseTesting)
             return;
 
         Scanner scanner = new Scanner(authData);
@@ -132,7 +136,7 @@ public class PushPullTest {
         Path repoPathPull = directoryPath.resolve("pushpull2");
         ClonedRepoHelper clonedHelperPull = new ClonedRepoHelper(repoPathPull, remoteURL, credentials);
         assertNotNull(clonedHelperPull);
-        ExistingRepoHelper existingHelperPull = new ExistingRepoHelper(repoPathPull, username);
+        ExistingRepoHelper existingHelperPull = new ExistingRepoHelper(repoPathPull);
 
         // Update the file, then commit and push
         Path readmePath = repoPathPush.resolve("README.md");

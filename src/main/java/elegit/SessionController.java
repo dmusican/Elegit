@@ -277,9 +277,10 @@ public class SessionController {
      */
     public void setBrowserURL() {
         try {
-            if (this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
-            if (!this.theModel.getCurrentRepoHelper().exists()) throw new MissingRepoException();
-            List<String> remoteURLs = this.theModel.getCurrentRepoHelper().getLinkedRemoteRepoURLs();
+            RepoHelper currentRepoHelper = this.theModel.getCurrentRepoHelper();
+            if (currentRepoHelper == null) throw new NoRepoLoadedException();
+            if (!currentRepoHelper.exists()) throw new MissingRepoException();
+            List<String> remoteURLs = currentRepoHelper.getLinkedRemoteRepoURLs();
             if(remoteURLs.size() == 0){
                 this.showNoRemoteNotification();
                 return;
@@ -1352,7 +1353,7 @@ public class SessionController {
     }
 
     private void showNewRemoteChangesNotification(){
-        Platform.runLater(() -> {
+        /*Platform.runLater(() -> {
             logger.info("New remote repo changes");
             this.notificationPane.setText("There are new changes in the remote repository.");
 
@@ -1370,7 +1371,8 @@ public class SessionController {
             this.notificationPane.getActions().setAll(fetchAction, ignoreAction);
 
             this.notificationPane.show();
-        });
+        });*/
+        // TODO: fix issue where this popps up for freshly cloned repos
     }
 
     private void showNoFilesStagedForCommitNotification(){
@@ -1522,10 +1524,9 @@ public class SessionController {
 
         try {
             RepoHelperBuilder.AuthDialogResponse response =
-                    RepoHelperBuilder.getAuthCredentialFromDialog(repoHelper.remoteURL);
+                    RepoHelperBuilder.getAuthCredentialFromDialog();
             repoHelper.setAuthCredentials(new UsernamePasswordCredentialsProvider(response.username,
                                                                                   response.password));
-            repoHelper.protocol = AuthMethod.HTTPS;
         } catch (CancelledAuthorizationException e) {
             // take no action
         }

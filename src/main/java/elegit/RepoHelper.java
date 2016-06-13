@@ -1,8 +1,6 @@
 package elegit;
 
-import com.jcraft.jsch.JSch;
-import com.jcraft.jsch.JSchException;
-import com.jcraft.jsch.Session;
+import com.jcraft.jsch.*;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.fxml.FXMLLoader;
@@ -31,6 +29,7 @@ import org.eclipse.jgit.util.FS;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
@@ -47,12 +46,13 @@ public abstract class RepoHelper {
     public String username;
     protected String password;
 
-    private Repository repo;
-    protected String remoteURL;
+    protected Repository repo;
 
     protected Path localPath;
+    protected File credentialsFile;
+    protected List<String> credentialsList;
 
-	private List<CommitHelper> localCommits;
+    private List<CommitHelper> localCommits;
     private List<CommitHelper> remoteCommits;
 
     private List<TagHelper> upToDateTags;
@@ -75,114 +75,126 @@ public abstract class RepoHelper {
 
     static final Logger logger = LogManager.getLogger();
     protected UsernamePasswordCredentialsProvider ownerAuth;
-    protected AuthMethod protocol;
 
     /**
      * Creates a RepoHelper object for holding a Repository and interacting with it
      * through JGit.
      *
      * @param directoryPath the path of the repository.
-     * @throws GitAPIException if the obtainRepository() call throws this exception..
-     * @throws IOException if the obtainRepository() call throws this exception.
+     * @throws GitAPIException                 if the obtainRepository() call throws this exception..
+     * @throws IOException                     if the obtainRepository() call throws this exception.
      * @throws CancelledAuthorizationException if the obtainRepository() call throws this exception.
      */
-    public RepoHelper(Path directoryPath, String remoteURL) throws GitAPIException, IOException, CancelledAuthorizationException {
-        this.remoteURL = remoteURL;
-        this.username = null;
-
-        this.localPath = directoryPath;
-        this.protocol = AuthMethod.HTTP;
-
-        setup();
-    }
-
-    public RepoHelper(Path directoryPath, String remoteURL, UsernamePasswordCredentialsProvider ownerAuth)
-            throws GitAPIException, IOException, CancelledAuthorizationException {
-        this.localPath = directoryPath;
-        this.remoteURL = remoteURL;
-        this.ownerAuth = ownerAuth;
-        this.protocol = AuthMethod.HTTPS;
-        setup();
-    }
-
-    public RepoHelper(Path directoryPath, String remoteURL, String sshPassword)
-            throws GitAPIException, IOException, CancelledAuthorizationException {
-        this.localPath = directoryPath;
-        this.remoteURL = remoteURL;
-        this.password = sshPassword;
-        this.protocol = AuthMethod.SSHPASSWORD;
-        setup();
-    }
-
-    /// Constructor for ExistingRepoHelpers to inherit (they don't need the Remote URL)
     public RepoHelper(Path directoryPath) throws GitAPIException, IOException, CancelledAuthorizationException {
         this.username = null;
-        this.protocol = null;
         this.localPath = directoryPath;
 
-        setup();
-
     }
+
+    public RepoHelper(Path directoryPath, UsernamePasswordCredentialsProvider ownerAuth)
+            throws GitAPIException, IOException, CancelledAuthorizationException {
+        this.localPath = directoryPath;
+        this.ownerAuth = ownerAuth;
+        this.password = null;
+    }
+
+    public RepoHelper(Path directoryPath, String sshPassword)
+            throws GitAPIException, IOException, CancelledAuthorizationException {
+        this.localPath = directoryPath;
+        this.ownerAuth = null;
+        this.password = sshPassword;
+    }
+
+    public RepoHelper(Path directoryPath, File credentialsFile)
+            throws GitAPIException, IOException, CancelledAuthorizationException {
+        this.localPath = directoryPath;
+        this.ownerAuth = null;
+        this.password = null;
+        this.credentialsFile = credentialsFile;
+    }
+
+    public RepoHelper(Path directoryPath, List<String> credentialsList)
+            throws GitAPIException, IOException, CancelledAuthorizationException {
+        this.localPath = directoryPath;
+        this.ownerAuth = null;
+        this.password = null;
+        this.credentialsFile = null;
+        this.credentialsList = credentialsList;
+    }
+
+
 
     /* This method requires credentials be passed in as a parameter; that's because it must be used by
         lsRemoteRepository, for example, that is used before we've actually created a RepoHelper object. Without a
         RepoHelper, there isn't an ownerAuth instance variable, so we don't have it yet.
      */
-    static void wrapAuthentication(TransportCommand command, String remoteURL,
+    static void wrapAuthentication(TransportCommand command,
                                    UsernamePasswordCredentialsProvider ownerAuth) {
-       // if (remoteURL.startsWith("https://") ||
-       //         remoteURL.startsWith("http://")) {
-
-            command.setCredentialsProvider(ownerAuth);
-       // } else {
-       //     throw new RuntimeException("Username/password authentication attempted on non-http(s).");
-       // }
+        wrapAuthentication(command, ownerAuth, null, null, null);
     }
 
 
-    static void wrapAuthentication(TransportCommand command, String remoteURL,
-                                   String password) {
+    static void wrapAuthentication(TransportCommand command, String sshPassword) {
+        wrapAuthentication(command, null, sshPassword, null, null);
+    }
 
-//        if (remoteURL.startsWith("ssh://")) {
-            // Explained http://www.codeaffine.com/2014/12/09/jgit-authentication/
-            SshSessionFactory sshSessionFactory = new JschConfigSessionFactory() {
-                @Override
-                protected void configure(OpenSshConfig.Host host, Session session ) {
-                    session.setPassword(password);
-                }
-                @Override
-                protected JSch createDefaultJSch( FS fs ) throws JSchException {
-                    JSch defaultJSch = super.createDefaultJSch( fs );
-                    defaultJSch.removeAllIdentity();
-                    return defaultJSch;
-                }
-            };
-            command.setTransportConfigCallback(
-                    new TransportConfigCallback() {
-                        @Override
-                        public void configure( Transport transport ) {
-                            SshTransport sshTransport = (SshTransport)transport;
-                            sshTransport.setSshSessionFactory( sshSessionFactory );
+    static void wrapAuthentication(TransportCommand command, UsernamePasswordCredentialsProvider ownerAuth,
+                                   String sshPassword) {
+        wrapAuthentication(command, ownerAuth, sshPassword, null, null);
+    }
+
+    static void wrapAuthentication(TransportCommand command,
+                                   File credentialsFile) {
+        wrapAuthentication(command, null, null, credentialsFile, null);
+    }
+
+    static void wrapAuthentication(TransportCommand command, List<String> credentialsList) {
+        wrapAuthentication(command, null, null, null, credentialsList);
+    }
+
+    static void wrapAuthentication(TransportCommand command, UsernamePasswordCredentialsProvider ownerAuth,
+                                   String sshPassword, File credentialsFile, List<String> credentialsList) {
+
+        if (ownerAuth != null)
+            command.setCredentialsProvider(ownerAuth);
+        else
+            command.setCredentialsProvider(new ElegitCredentialsProvider(credentialsList));
+
+        command.setTransportConfigCallback(
+                new TransportConfigCallback() {
+                    @Override
+                    public void configure(Transport transport) {
+
+                        if (transport instanceof TransportGitSsh) {
+                            SshSessionFactory sshSessionFactory = new JschConfigSessionFactory() {
+                                @Override
+                                protected void configure(OpenSshConfig.Host host, Session session) {
+                                    session.setPassword(sshPassword);
+                                }
+
+                                @Override
+                                protected JSch createDefaultJSch(FS fs) throws JSchException {
+                                    JSch defaultJSch = super.createDefaultJSch(fs);
+                                    defaultJSch.removeAllIdentity();
+                                    return defaultJSch;
+                                }
+                            };
+                            SshTransport sshTransport = (SshTransport) transport;
+                            sshTransport.setSshSessionFactory(sshSessionFactory);
                         }
 
-                    });
-//        }
+                    }
+                });
     }
 
     protected void myWrapAuthentication(TransportCommand command) {
-        if (this.protocol.equals(AuthMethod.HTTP)) {
-            // do nothing
-        } else if (this.protocol.equals(AuthMethod.HTTPS)) {
-            wrapAuthentication(command, remoteURL, ownerAuth);
-        } else if (this.protocol.equals(AuthMethod.SSHPASSWORD)) {
-            wrapAuthentication(command, remoteURL, password);
-        }
+        wrapAuthentication(command, this.ownerAuth, this.password, this.credentialsFile, this.credentialsList);
     }
 
     // Common setup tasks shared by constructors
-    private void setup() throws GitAPIException, IOException, CancelledAuthorizationException {
+    protected void setup() throws GitAPIException, IOException, CancelledAuthorizationException {
+        //this.repo = this.obtainRepository();
         this.username = null;
-        this.repo = this.obtainRepository();
 
         this.commitIdMap = new HashMap<>();
         this.idMap = new HashMap<>();
@@ -206,23 +218,15 @@ public abstract class RepoHelper {
         hasUnpushedTagsProperty = new SimpleBooleanProperty();
 
     }
+
     /**
      * @return true if the corresponding repository still exists in the expected location
      */
-    public boolean exists(){
+    public boolean exists() {
         logger.debug("Checked if repo still exists");
         return localPath.toFile().exists() && localPath.toFile().list((dir, name) -> name.equals(".git")).length > 0;
     }
 
-    /**
-     * Gets or builds the repository using the appropriate method for
-     * the kind of repository (new, cloned, or existing).
-     *
-     * @return the RepoHelper's repository.
-     * @throws GitAPIException (see subclasses).
-     * @throws IOException (see subclasses).
-     */
-    protected abstract Repository obtainRepository() throws GitAPIException, IOException, CancelledAuthorizationException;
 
     /**
      * Adds a file to the repository.
@@ -261,13 +265,14 @@ public abstract class RepoHelper {
     /**
      * Gets a list of all remotes associated with this repository. The URLs
      * correspond to the output seen by running 'git remote -v'
+     *
      * @return a list of the remote URLs associated with this repository
      */
-    public List<String> getLinkedRemoteRepoURLs(){
+    public List<String> getLinkedRemoteRepoURLs() {
         Config storedConfig = this.repo.getConfig();
         Set<String> remotes = storedConfig.getSubsections("remote");
         ArrayList<String> urls = new ArrayList<>(remotes.size());
-        for(String remote : remotes){
+        for (String remote : remotes) {
             urls.add(storedConfig.getString("remote", remote, "url"));
         }
         return urls;
@@ -276,22 +281,22 @@ public abstract class RepoHelper {
     /**
      * @return true if this repository has an associated remote
      */
-    public boolean hasRemote(){
+    public boolean hasRemote() {
         return hasRemoteProperty.get();
     }
 
     /**
      * @return true if there are local commits that haven't been pushed
      */
-    public boolean hasUnpushedCommits(){
+    public boolean hasUnpushedCommits() {
         return hasUnpushedCommitsProperty.get();
     }
 
     /**
      * @return true if there are local tags that haven't been pushed
      */
-    public boolean hasUnpushedTags(){
-        if (this.unpushedTags==null || this.unpushedTags.size()==0) {
+    public boolean hasUnpushedTags() {
+        if (this.unpushedTags == null || this.unpushedTags.size() == 0) {
             this.hasUnpushedTagsProperty.set(false);
         }
         return hasUnpushedTagsProperty.get();
@@ -300,7 +305,7 @@ public abstract class RepoHelper {
     /**
      * @return true if there are remote commits that haven't been merged into local
      */
-    public boolean hasUnmergedCommits(){
+    public boolean hasUnmergedCommits() {
         return hasUnmergedCommitsProperty.get();
     }
 
@@ -312,7 +317,7 @@ public abstract class RepoHelper {
      */
     public void commit(String commitMessage) throws GitAPIException, MissingRepoException {
         logger.info("Attempting commit");
-        if(!exists()) throw new MissingRepoException();
+        if (!exists()) throw new MissingRepoException();
         // should this Git instance be class-level?
         Git git = new Git(this.repo);
         // git commit:
@@ -320,6 +325,14 @@ public abstract class RepoHelper {
                 .setMessage(commitMessage)
                 .call();
         git.close();
+
+        // Update the local commits
+        try {
+            this.localCommits = parseAllLocalCommits();
+        } catch (IOException e) {
+            // This shouldn't occur once we have the repo up and running.
+        }
+
         this.hasUnpushedCommitsProperty.set(true);
     }
 
@@ -331,7 +344,7 @@ public abstract class RepoHelper {
      */
     public void tag(String tagName, String commitName) throws GitAPIException, MissingRepoException, IOException, TagNameExistsException {
         logger.info("Attempting tag");
-        if(!exists()) throw new MissingRepoException();
+        if (!exists()) throw new MissingRepoException();
         Git git = new Git(this.repo);
         // This creates a lightweight tag
         // TODO: add support for annotated tags?
@@ -340,7 +353,7 @@ public abstract class RepoHelper {
             throw new TagNameExistsException();
         Ref r = git.tag().setName(tagName).setObjectId(c.getCommit()).setAnnotated(false).call();
         git.close();
-        TagHelper t = makeTagHelper(r,tagName);
+        TagHelper t = makeTagHelper(r, tagName);
         this.unpushedTags.add(t);
         this.hasUnpushedTagsProperty.set(true);
     }
@@ -352,8 +365,8 @@ public abstract class RepoHelper {
      */
     public void pushAll() throws GitAPIException, MissingRepoException, PushToAheadRemoteError {
         logger.info("Attempting push");
-        if(!exists()) throw new MissingRepoException();
-        if(!hasRemote()) throw new InvalidRemoteException("No remote repository");
+        if (!exists()) throw new MissingRepoException();
+        if (!hasRemote()) throw new InvalidRemoteException("No remote repository");
         Git git = new Git(this.repo);
         PushCommand push = git.push().setPushAll();
 
@@ -402,6 +415,13 @@ public abstract class RepoHelper {
         }
 
         git.close();
+
+        try {
+            this.remoteCommits = parseAllRemoteCommits();
+        } catch (IOException e) {
+            // This shouldn't occur once we have the repo up and running.
+        }
+
         this.hasUnpushedCommitsProperty.set(false);
     }
 
@@ -412,8 +432,8 @@ public abstract class RepoHelper {
      */
     public void pushTags() throws GitAPIException, MissingRepoException, PushToAheadRemoteError {
         logger.info("Attempting push tags");
-        if(!exists()) throw new MissingRepoException();
-        if(!hasRemote()) throw new InvalidRemoteException("No remote repository");
+        if (!exists()) throw new MissingRepoException();
+        if (!hasRemote()) throw new InvalidRemoteException("No remote repository");
         Git git = new Git(this.repo);
         PushCommand push = git.push().setPushAll();
         myWrapAuthentication(push);
@@ -453,7 +473,7 @@ public abstract class RepoHelper {
     public boolean fetch() throws
             GitAPIException, MissingRepoException, IOException {
         logger.info("Attempting fetch");
-        if(!exists()) throw new MissingRepoException();
+        if (!exists()) throw new MissingRepoException();
         Git git = new Git(this.repo);
 
         FetchCommand fetch = git.fetch().setTagOpt(TagOpt.AUTO_FOLLOW);
@@ -472,6 +492,12 @@ public abstract class RepoHelper {
         FetchResult result = fetch.call();
         git.close();
 
+        try {
+            this.remoteCommits = parseAllRemoteCommits();
+        } catch (IOException e) {
+            // This shouldn't occur once we have the repo up and running.
+        }
+
         this.branchManagerModel.getUpdatedRemoteBranches();
         this.hasUnmergedCommitsProperty.set(this.hasUnmergedCommits() || !result.getTrackingRefUpdates().isEmpty());
         return !result.getTrackingRefUpdates().isEmpty();
@@ -487,8 +513,8 @@ public abstract class RepoHelper {
      */
     public boolean mergeFromFetch() throws IOException, GitAPIException, MissingRepoException, ConflictingFilesException {
         logger.info("Attempting merge from fetch");
-        if(!exists()) throw new MissingRepoException();
-        if(!hasRemote()) throw new InvalidRemoteException("No remote repository");
+        if (!exists()) throw new MissingRepoException();
+        if (!hasRemote()) throw new InvalidRemoteException("No remote repository");
         Git git = new Git(this.repo);
         ObjectId fetchHeadID = this.repo.resolve("FETCH_HEAD");
 //        if(fetchHeadID == null); // This might pop up at some point as an issue. Might not though
@@ -497,10 +523,16 @@ public abstract class RepoHelper {
                 .call();
         git.close();
 
+        try {
+            this.localCommits = parseAllLocalCommits();
+        } catch (IOException e) {
+            // This shouldn't occur once we have the repo up and running.
+        }
+
         MergeResult.MergeStatus status = result.getMergeStatus();
         this.hasUnmergedCommitsProperty.set(status == MergeResult.MergeStatus.ABORTED || status == MergeResult.MergeStatus.CHECKOUT_CONFLICT);
         this.hasUnpushedCommitsProperty.set(this.hasUnpushedCommits() || status == MergeResult.MergeStatus.MERGED);
-        if(status == MergeResult.MergeStatus.CONFLICTING) throw new ConflictingFilesException(result.getConflicts());
+        if (status == MergeResult.MergeStatus.CONFLICTING) throw new ConflictingFilesException(result.getConflicts());
         return result.getMergeStatus().isSuccessful();
     }
 
@@ -525,14 +557,14 @@ public abstract class RepoHelper {
     /**
      * @return all local commits that have already been parsed
      */
-    public List<CommitHelper> getLocalCommits(){
+    public List<CommitHelper> getLocalCommits() {
         return this.localCommits;
     }
 
     /**
      * @return all remote commits that have already been parsed
      */
-    public List<CommitHelper> getRemoteCommits(){
+    public List<CommitHelper> getRemoteCommits() {
         return this.remoteCommits;
     }
 
@@ -576,17 +608,18 @@ public abstract class RepoHelper {
      * to a commit. If that fails, attempts to parse it as as a reference
      * string and find the ID it maps to, then returning the commit
      * associated with that id
+     *
      * @param idOrRefString either an ID or reference string corresponding
      *                      to an object in this repository
      * @return the commit associated with the parameter
      */
-    public CommitHelper getCommit(String idOrRefString){
-        if(commitIdMap.containsKey(idOrRefString)){
+    public CommitHelper getCommit(String idOrRefString) {
+        if (commitIdMap.containsKey(idOrRefString)) {
             return commitIdMap.get(idOrRefString);
-        }else{
-            try{
+        } else {
+            try {
                 return getCommit(repo.resolve(idOrRefString));
-            }catch(IOException e){
+            } catch (IOException e) {
                 logger.error("IOException during getCommit");
                 logger.debug(e.getStackTrace());
                 return null;
@@ -598,10 +631,10 @@ public abstract class RepoHelper {
      * @param id the id of the commit to get
      * @return the commit associated with the given id, if it has been parsed
      */
-    public CommitHelper getCommit(ObjectId id){
-        if(idMap.containsKey(id)){
+    public CommitHelper getCommit(ObjectId id) {
+        if (idMap.containsKey(id)) {
             return getCommit(idMap.get(id));
-        }else{
+        } else {
             return null;
         }
     }
@@ -613,7 +646,7 @@ public abstract class RepoHelper {
     public void deleteTag(String tagName) throws MissingRepoException, GitAPIException {
         TagHelper tagToRemove = tagIdMap.get(tagName);
 
-        if(!exists()) throw new MissingRepoException();
+        if (!exists()) throw new MissingRepoException();
         // should this Git instance be class-level?
         Git git = new Git(this.repo);
         // git tag -d
@@ -623,11 +656,10 @@ public abstract class RepoHelper {
         tagToRemove.getCommit().removeTag(tagName);
         if (!this.upToDateTags.remove(tagToRemove)) {
             this.unpushedTags.remove(tagToRemove);
-            if (this.unpushedTags.size()==0) {
+            if (this.unpushedTags.size() == 0) {
                 this.hasUnpushedTagsProperty.set(false);
             }
-        }
-        else {
+        } else {
             this.hasUnpushedTagsProperty.set(true);
         }
         this.tagIdMap.remove(tagName);
@@ -636,71 +668,74 @@ public abstract class RepoHelper {
     /**
      * @return a list of all commit IDs in this repository
      */
-    public List<String> getAllCommitIDs(){
+    public List<String> getAllCommitIDs() {
         return new ArrayList<>(commitIdMap.keySet());
     }
 
     /**
      * @return a list of all tag names in this repository
      */
-    public List<String> getAllTagNames(){
+    public List<String> getAllTagNames() {
         return new ArrayList<>(tagIdMap.keySet());
     }
 
     /**
      * @return the head of the current branch
      */
-    public CommitHelper getHead(){
+    public CommitHelper getHead() {
         return (this.branchHelper == null) ? null : this.branchHelper.getHead();
     }
 
     /**
      * Uses JGit to find and parse all local commits between the given branches and
      * every leaf in the repository
+     *
      * @param oldLocalBranches the previous branch heads associated with a branch name. Commits
      *                         older than the heads of these branches will be ignored
      * @return all local commits newer than the given branch heads
      * @throws GitAPIException
      * @throws IOException
      */
-    public List<CommitHelper> getNewLocalCommits(Map<String, BranchHelper> oldLocalBranches) throws GitAPIException, IOException{
+    public List<CommitHelper> getNewLocalCommits(Map<String, BranchHelper> oldLocalBranches) throws GitAPIException, IOException {
         return getNewCommits(oldLocalBranches, this.getListOfLocalBranches());
     }
 
     /**
      * Uses JGit to find and parse all remote commits between the given branches and
      * every leaf in the repository
+     *
      * @param oldRemoteBranches the previous branch heads associated with a branch name. Commits
-     *                         older than the heads of these branches will be ignored
+     *                          older than the heads of these branches will be ignored
      * @return all remote commits newer than the given branch heads
      * @throws GitAPIException
      * @throws IOException
      */
-    public List<CommitHelper> getNewRemoteCommits(Map<String, BranchHelper> oldRemoteBranches) throws GitAPIException, IOException{
+    public List<CommitHelper> getNewRemoteCommits(Map<String, BranchHelper> oldRemoteBranches) throws GitAPIException, IOException {
         return getNewCommits(oldRemoteBranches, this.getListOfRemoteBranches());
     }
 
     /**
      * Helper method that returns commits between the given old branch heads and new branch heads
+     *
      * @param oldBranches previous locations of branch heads
      * @param newBranches current locations of branch heads
      * @return a list of all commits found between oldBranches and newBranches
      * @throws GitAPIException
      * @throws IOException
      */
-    private List<CommitHelper> getNewCommits(Map<String, BranchHelper> oldBranches, List<? extends BranchHelper> newBranches) throws GitAPIException, IOException{
+    private List<CommitHelper> getNewCommits(Map<String, BranchHelper> oldBranches, List<? extends BranchHelper> newBranches) throws GitAPIException, IOException {
         List<ObjectId> startPoints = new ArrayList<>();
         List<ObjectId> stopPoints = new ArrayList<>();
 
-        for(BranchHelper newBranch : newBranches){
-            if(oldBranches.containsKey(newBranch.getBranchName())){
+        for (BranchHelper newBranch : newBranches) {
+            if (oldBranches.containsKey(newBranch.getBranchName())) {
                 ObjectId newBranchHeadID = newBranch.getHeadId();
                 ObjectId oldBranchHeadID = oldBranches.get(newBranch.getBranchName()).getHeadId();
-                if(!newBranchHeadID.equals(oldBranchHeadID)){
+                if (!newBranchHeadID.equals(oldBranchHeadID)) {
                     startPoints.add(newBranchHeadID);
                 }
                 stopPoints.add(oldBranchHeadID);
-            }else{
+            } else {
                 startPoints.add(newBranch.getHeadId());
             }
         }
@@ -712,10 +747,11 @@ public abstract class RepoHelper {
     /**
      * Constructs a list of all local commits found by parsing the repository for raw RevCommit objects,
      * then wrapping them into a CommitHelper with the appropriate parents and children
+     *
      * @return a list of CommitHelpers for all local commits
      * @throws IOException
      */
-    private List<CommitHelper> parseAllLocalCommits() throws IOException, GitAPIException{
+    private List<CommitHelper> parseAllLocalCommits() throws IOException, GitAPIException {
         PlotCommitList<PlotLane> commitList = this.parseAllRawLocalCommits();
         return wrapRawCommits(commitList);
     }
@@ -723,10 +759,11 @@ public abstract class RepoHelper {
     /**
      * Constructs a list of all remote commits found by parsing the repository for raw RevCommit objects,
      * then wrapping them into a CommitHelper with the appropriate parents and children
+     *
      * @return a list of CommitHelpers for all remote commits
      * @throws IOException
      */
-    private List<CommitHelper> parseAllRemoteCommits() throws IOException, GitAPIException{
+    private List<CommitHelper> parseAllRemoteCommits() throws IOException, GitAPIException {
         PlotCommitList<PlotLane> commitList = this.parseAllRawRemoteCommits();
         return wrapRawCommits(commitList);
     }
@@ -734,6 +771,7 @@ public abstract class RepoHelper {
     /**
      * Constructs a list of all local tags found by parsing the tag refs from the repo
      * then wrapping them into a TagHelper with the appropriate commit
+     *
      * @return a list of TagHelpers for all the tags
      * @throws IOException
      * @throws GitAPIException
@@ -741,43 +779,43 @@ public abstract class RepoHelper {
     public List<TagHelper> getAllLocalTags() throws IOException, GitAPIException {
         Map<String, Ref> tagMap = repo.getTags();
         List<TagHelper> tags = new ArrayList<>();
-        for (String s: tagMap.keySet()) {
+        for (String s : tagMap.keySet()) {
             Ref r = tagMap.get(s);
-            tags.add(makeTagHelper(r,s));
+            tags.add(makeTagHelper(r, s));
         }
         return tags;
     }
 
     /**
      * Looks through all the tags and checks that they are added to commit helpers
+     *
+     * @return true if there were changes, false if not
      * @throws IOException
      * @throws GitAPIException
-     * @return true if there were changes, false if not
      */
     public boolean updateTags() throws IOException, GitAPIException {
         Map<String, Ref> tagMap = repo.getTags();
         List<String> oldTagNames = getAllTagNames();
         int oldSize = oldTagNames.size();
-        for (String s: tagMap.keySet()) {
-            if (oldTagNames.contains(s)){
+        for (String s : tagMap.keySet()) {
+            if (oldTagNames.contains(s)) {
                 oldTagNames.remove(s);
                 if (tagsWithUnpushedCommits.contains(s)) {
                     tagsWithUnpushedCommits.remove(s);
                 }
                 continue;
-            }
-            else {
+            } else {
                 Ref r = tagMap.get(s);
-                makeTagHelper(r,s);
+                makeTagHelper(r, s);
             }
         }
         if (oldTagNames.size() > 0) { //There are tags that were deleted, so we remove them
-            for (String s: oldTagNames) {
+            for (String s : oldTagNames) {
                 this.commitIdMap.get(this.tagIdMap.get(s).getCommitId()).removeTag(s);
                 this.tagIdMap.remove(s);
             }
         }
-        if (oldSize==getAllTagNames().size() && oldTagNames.size()==0) {
+        if (oldSize == getAllTagNames().size() && oldTagNames.size() == 0) {
             return false;
         } else {
             return true;
@@ -787,7 +825,8 @@ public abstract class RepoHelper {
     /**
      * Helper method to make a tagHelper given a ref and a name of the tag. Also adds the
      * tag helper to the tagIdMap
-     * @param r the ref to make a tagHelper for. This can be a peeled or unpeeled tag
+     *
+     * @param r       the ref to make a tagHelper for. This can be a peeled or unpeeled tag
      * @param tagName the name of the tag
      * @return a tagHelper object with the information stored
      * @throws IOException
@@ -798,11 +837,10 @@ public abstract class RepoHelper {
         boolean isAnnotated = false;
 
         //Check if the tag is annotated or not, find the commit name accordingly
-        if (r.getPeeledObjectId()!=null) {
+        if (r.getPeeledObjectId() != null) {
             commitName = r.getPeeledObjectId().getName();
             isAnnotated = true;
-        }
-        else commitName=r.getObjectId().getName();
+        } else commitName = r.getObjectId().getName();
 
         // Find the commit helper associated with the commit name
         CommitHelper c = this.commitIdMap.get(commitName);
@@ -810,11 +848,10 @@ public abstract class RepoHelper {
 
         // If the commit that this tag points to isn't in the commitIdMap,
         // then that commit has not yet been pushed, so warn the user
-        if (c==null) {
+        if (c == null) {
             this.tagsWithUnpushedCommits.add(tagName);
             return null;
-        }
-        else if (this.tagsWithUnpushedCommits.contains(tagName)) {
+        } else if (this.tagsWithUnpushedCommits.contains(tagName)) {
             this.tagsWithUnpushedCommits.remove(tagName);
         }
 
@@ -841,53 +878,54 @@ public abstract class RepoHelper {
     /**
      * Given a list of raw JGit commit objects, constructs CommitHelper objects to wrap them and gives
      * them the appropriate parents and children. Updates the commit id and id maps appropriately.
+     *
      * @param commitList the raw commits to wrap
      * @return a list of CommitHelpers for the given commits
      * @throws IOException
      */
-    private List<CommitHelper> wrapRawCommits(PlotCommitList<PlotLane> commitList) throws IOException{
+    private List<CommitHelper> wrapRawCommits(PlotCommitList<PlotLane> commitList) throws IOException {
         List<CommitHelper> commitHelperList = new ArrayList<>();
         List<ObjectId> wrappedIDs = new ArrayList<>();
         List<CommitHelper> commitsWithMissingParents = new ArrayList<>();
-        for(int i = commitList.size()-1; i >= 0; i--){
+        for (int i = commitList.size() - 1; i >= 0; i--) {
             RevCommit curCommit = commitList.get(i);
             ObjectId curCommitID = curCommit.getId();
 
-            if(wrappedIDs.contains(curCommitID)){
+            if (wrappedIDs.contains(curCommitID)) {
                 continue;
             }
 
             CommitHelper curCommitHelper = new CommitHelper(curCommit);
             String curCommitHelperID = curCommitHelper.getId();
 
-            if(!commitIdMap.containsKey(curCommitHelperID)){
+            if (!commitIdMap.containsKey(curCommitHelperID)) {
                 commitIdMap.put(curCommitHelper.getId(), curCommitHelper);
                 idMap.put(curCommitID, curCommitHelper.getId());
-            }else{
+            } else {
                 curCommitHelper = commitIdMap.get(curCommitHelperID);
             }
             wrappedIDs.add(curCommitID);
 
             RevCommit[] parents = curCommit.getParents();
-            for(RevCommit p : parents){
+            for (RevCommit p : parents) {
                 CommitHelper parentCommitHelper = getCommit(p.getId());
-                if(parentCommitHelper == null){
+                if (parentCommitHelper == null) {
                     commitsWithMissingParents.add(curCommitHelper);
-                }else{
+                } else {
                     curCommitHelper.addParent(parentCommitHelper);
                 }
             }
 
             commitHelperList.add(curCommitHelper);
         }
-        while(!commitsWithMissingParents.isEmpty()){
+        while (!commitsWithMissingParents.isEmpty()) {
             CommitHelper curCommitHelper = commitsWithMissingParents.remove(0);
             RevCommit[] parents = curCommitHelper.commit.getParents();
-            for(RevCommit p : parents){
+            for (RevCommit p : parents) {
                 CommitHelper parentCommitHelper = getCommit(p.getId());
-                if(parentCommitHelper == null){
+                if (parentCommitHelper == null) {
                     commitsWithMissingParents.add(curCommitHelper);
-                }else if(!curCommitHelper.getParents().contains(parentCommitHelper)){
+                } else if (!curCommitHelper.getParents().contains(parentCommitHelper)) {
                     curCommitHelper.addParent(parentCommitHelper);
                 }
             }
@@ -899,21 +937,22 @@ public abstract class RepoHelper {
      * Utilizes JGit to walk through the repo and create raw commit objects - more
      * specifically, JGit objects of (super)type RevCommit. This is an expensive
      * operation and should only be called when necessary
+     *
      * @return a list of raw local commits
      * @throws IOException
      */
-    private PlotCommitList<PlotLane> parseAllRawLocalCommits() throws IOException, GitAPIException{
+    private PlotCommitList<PlotLane> parseAllRawLocalCommits() throws IOException, GitAPIException {
         ObjectId headId = repo.resolve("HEAD");
-        if(headId == null) return new PlotCommitList<>();
+        if (headId == null) return new PlotCommitList<>();
         List<ObjectId> examinedCommitIDs = new ArrayList<>();
         PlotCommitList<PlotLane> rawLocalCommits = parseRawCommits(headId, examinedCommitIDs);
         examinedCommitIDs.add(headId);
 
         List<LocalBranchHelper> branches = getListOfLocalBranches();
-        for(BranchHelper branch : branches){
+        for (BranchHelper branch : branches) {
             ObjectId branchId = branch.getHeadId();
             PlotCommitList<PlotLane> toAdd = parseRawCommits(branchId, examinedCommitIDs);
-            if(toAdd.size() > 0){
+            if (toAdd.size() > 0) {
                 rawLocalCommits.addAll(toAdd);
                 examinedCommitIDs.add(toAdd.get(0).getId());
             }
@@ -925,18 +964,19 @@ public abstract class RepoHelper {
      * Utilizes JGit to walk through the repo and create raw commit objects - more
      * specifically, JGit objects of (super)type RevCommit. This is an expensive
      * operation and should only be called when necessary
+     *
      * @return a list of raw remote commits
      * @throws IOException
      */
-    private PlotCommitList<PlotLane> parseAllRawRemoteCommits() throws IOException, GitAPIException{
+    private PlotCommitList<PlotLane> parseAllRawRemoteCommits() throws IOException, GitAPIException {
         List<ObjectId> examinedCommitIDs = new ArrayList<>();
         PlotCommitList<PlotLane> rawRemoteCommits = new PlotCommitList<>();
 
         List<RemoteBranchHelper> branches = getListOfRemoteBranches();
-        for(BranchHelper branch : branches){
+        for (BranchHelper branch : branches) {
             ObjectId branchId = branch.getHeadId();
             PlotCommitList<PlotLane> toAdd = parseRawCommits(branchId, examinedCommitIDs);
-            if(toAdd.size() > 0){
+            if (toAdd.size() > 0) {
                 rawRemoteCommits.addAll(toAdd);
                 examinedCommitIDs.add(toAdd.get(0).getId());
             }
@@ -948,20 +988,21 @@ public abstract class RepoHelper {
      * Utilizes JGit to walk through the repo and create raw commit objects - more
      * specifically, JGit objects of (super)type RevCommit. This is an expensive
      * operation and should only be called when necessary
+     *
      * @param startPoints the starting ids to parse from
-     * @param stopPoints the ids at which parsing should stop
+     * @param stopPoints  the ids at which parsing should stop
      * @return a list of raw commits starting from each id in startPoints, excluding those beyond each id in stopPoints
      * @throws IOException
      */
-    private PlotCommitList<PlotLane> parseRawCommits(List<ObjectId> startPoints, List<ObjectId> stopPoints) throws IOException{
+    private PlotCommitList<PlotLane> parseRawCommits(List<ObjectId> startPoints, List<ObjectId> stopPoints) throws IOException {
         PlotCommitList<PlotLane> plotCommitList = new PlotCommitList<>();
 
         PlotWalk w = new PlotWalk(repo);
-        for(ObjectId stopId : stopPoints){
+        for (ObjectId stopId : stopPoints) {
             w.markUninteresting(w.parseCommit(stopId));
         }
 
-        for(ObjectId startId : startPoints){
+        for (ObjectId startId : startPoints) {
             w.markStart(w.parseCommit(startId));
 
             PlotCommitList<PlotLane> temp = new PlotCommitList<>();
@@ -980,12 +1021,13 @@ public abstract class RepoHelper {
      * Utilizes JGit to walk through the repo and create raw commit objects - more
      * specifically, JGit objects of (super)type RevCommit. This is an expensive
      * operation and should only be called when necessary
+     *
      * @param startingID the starting point to parse from
      * @param stopPoints the ids at which parsing should stop
      * @return a list of raw commits starting from the given id
      * @throws IOException
      */
-    private PlotCommitList<PlotLane> parseRawCommits(ObjectId startingID, List<ObjectId> stopPoints) throws IOException{
+    private PlotCommitList<PlotLane> parseRawCommits(ObjectId startingID, List<ObjectId> stopPoints) throws IOException {
         List<ObjectId> asList = new ArrayList<>(1);
         asList.add(startingID);
         return parseRawCommits(asList, stopPoints);
@@ -994,11 +1036,12 @@ public abstract class RepoHelper {
     /**
      * Utilizes JGit to parse a commit with the given ID and returns it in
      * raw format
+     *
      * @param id the ID of the commit
      * @return the raw commit corresponding to the given ID
      * @throws IOException
      */
-    public RevCommit parseRawCommit(ObjectId id) throws IOException{
+    public RevCommit parseRawCommit(ObjectId id) throws IOException {
         RevWalk w = new RevWalk(repo);
         w.dispose();
         return w.parseCommit(id);
@@ -1007,13 +1050,14 @@ public abstract class RepoHelper {
     /**
      * Parses all relevant git ignore files for ignore patterns, and then checks all
      * tracked files and directories for whether they match an ignore pattern.
+     *
      * @return the set of paths (relative to the repo) of all tracked files that match an ignore pattern
      * @throws IOException
      */
     public Collection<String> getTrackedIgnoredFiles() throws IOException {
         // Build the ignore pattern matcher
         IgnoreNode ignoreNode = new IgnoreNode();
-        for(Path path : getGitIgnorePaths()) {
+        for (Path path : getGitIgnorePaths()) {
             ignoreNode.parse(new BufferedInputStream(Files.newInputStream(path)));
         }
 
@@ -1036,7 +1080,7 @@ public abstract class RepoHelper {
         while (treeWalk.next()) {
             String pathString = treeWalk.getPathString();
             // Make sure the stack matches the appropriate depth of this file/directory
-            while(treeWalk.getDepth() + 1 < isParentAtDepthIgnored.size()) {
+            while (treeWalk.getDepth() + 1 < isParentAtDepthIgnored.size()) {
                 isParentAtDepthIgnored.pop();
             }
             boolean isParentIgnored = isParentAtDepthIgnored.peek();
@@ -1048,8 +1092,8 @@ public abstract class RepoHelper {
 
                 // TODO: Does not support a result of 'CHECK_PARENT_NEGATE_FIRST_MATCH' (mainly because I don't know what that means)
                 // Update the stack with the information from this item
-                if(result == IgnoreNode.MatchResult.IGNORED) isParentAtDepthIgnored.push(true);
-                else if(result == IgnoreNode.MatchResult.NOT_IGNORED) isParentAtDepthIgnored.push(false);
+                if (result == IgnoreNode.MatchResult.IGNORED) isParentAtDepthIgnored.push(true);
+                else if (result == IgnoreNode.MatchResult.NOT_IGNORED) isParentAtDepthIgnored.push(false);
                 else isParentAtDepthIgnored.push(isParentAtDepthIgnored.peek());
 
                 treeWalk.enterSubtree();
@@ -1057,7 +1101,7 @@ public abstract class RepoHelper {
                 result = ignoreNode.isIgnored(pathString, false);
             }
             boolean isIgnored = (result == IgnoreNode.MatchResult.IGNORED) || (isParentIgnored && result == IgnoreNode.MatchResult.CHECK_PARENT);
-            if(isIgnored) trackedIgnoredFiles.add(pathString);
+            if (isIgnored) trackedIgnoredFiles.add(pathString);
         }
         return trackedIgnoredFiles;
     }
@@ -1066,16 +1110,17 @@ public abstract class RepoHelper {
      * Finds and returns a list of all files from which ignore patterns are pulled for this repository.
      * This includes the global ignore file (if it exists), the info/exclude file, and any .gitignore
      * files in the repositories file structure
+     *
      * @return a list of paths to files that define ignore rules for this repository
      */
     public List<Path> getGitIgnorePaths() throws IOException {
         List<Path> gitIgnorePaths = new LinkedList<>();
 
         Path globalIgnore = getGlobalGitIgnorePath();
-        if(globalIgnore != null) gitIgnorePaths.add(globalIgnore);
+        if (globalIgnore != null) gitIgnorePaths.add(globalIgnore);
 
         Path infoExclude = getInfoExcludePath();
-        if(infoExclude != null) gitIgnorePaths.add(infoExclude);
+        if (infoExclude != null) gitIgnorePaths.add(infoExclude);
 
         GitIgnoreFinder finder = new GitIgnoreFinder();
         Files.walkFileTree(this.localPath, finder);
@@ -1087,9 +1132,10 @@ public abstract class RepoHelper {
     /**
      * Returns the path to the configured global git ignore file, or null if no such file
      * has been configured
+     *
      * @return path to the global ignore file
      */
-    public Path getGlobalGitIgnorePath(){
+    public Path getGlobalGitIgnorePath() {
         Config repoConfig = this.repo.getConfig();
         FS fs = this.repo.getFS();
 
@@ -1106,9 +1152,10 @@ public abstract class RepoHelper {
     /**
      * Returns the path to this repositories info/exclude file, or null if that file does not exists.
      * The path to this is defined by Git as '$GIT_DIR/info/exclude'
+     *
      * @return path to this repositories info/exclude file
      */
-    public Path getInfoExcludePath(){
+    public Path getInfoExcludePath() {
         FS fs = this.repo.getFS();
 
         File repoExclude = fs.resolve(this.repo.getDirectory(), Constants.INFO_EXCLUDE);
@@ -1121,8 +1168,8 @@ public abstract class RepoHelper {
     }
 
     @Override
-    public boolean equals(Object o){
-        if(o != null && o.getClass().equals(this.getClass())){
+    public boolean equals(Object o) {
+        if (o != null && o.getClass().equals(this.getClass())) {
             RepoHelper other = (RepoHelper) o;
             return this.localPath.equals(other.localPath);
         }
@@ -1133,6 +1180,7 @@ public abstract class RepoHelper {
     /**
      * Utilizes JGit to get a list of all local branches. It both returns a list of remote branches,
      * but also simultaneously updates an instance variable holding that same list.
+     *
      * @return a list of all local branches
      * @throws GitAPIException
      * @throws IOException
@@ -1157,10 +1205,11 @@ public abstract class RepoHelper {
     /**
      * Utilizes JGit to get a list of all remote branches. It both returns a list of remote branches,
      * but also simultaneously updates an instance variable holding that same list.
+     *
      * @return a list of all remote branches
      * @throws GitAPIException
      */
-    public List<RemoteBranchHelper> getListOfRemoteBranches() throws GitAPIException, IOException{
+    public List<RemoteBranchHelper> getListOfRemoteBranches() throws GitAPIException, IOException {
         List<Ref> getBranchesCall = new Git(this.repo).branchList().setListMode(ListBranchCommand.ListMode.REMOTE).call();
 
         // Rebuild the remote branches list from scratch.
@@ -1180,6 +1229,7 @@ public abstract class RepoHelper {
     /**
      * Sets the currently checkout branch. Does not call 'git checkout'
      * or any variation, simply updates the local variable
+     *
      * @param branchHelper the new current branch
      */
     public void setCurrentBranch(LocalBranchHelper branchHelper) {
@@ -1196,13 +1246,14 @@ public abstract class RepoHelper {
     /**
      * Updates the current branch by checking the repository for which
      * branch is currently checked out
+     *
      * @throws IOException
      */
     public void refreshCurrentBranch() throws IOException {
         String currentBranchRefString = this.repo.getFullBranch();
 
-        for(LocalBranchHelper branch : localBranches){
-            if(branch.getRefPathString().equals(currentBranchRefString)){
+        for (LocalBranchHelper branch : localBranches) {
+            if (branch.getRefPathString().equals(currentBranchRefString)) {
                 this.setCurrentBranch(branch);
                 return;
             }
@@ -1228,14 +1279,15 @@ public abstract class RepoHelper {
     /**
      * Gets a list of the local branches of this repository. Also updates
      * the head of each local branch if it was missing
+     *
      * @return the local branches of this repository
      */
-    public List<BranchHelper> getLocalBranches(){
-        for(BranchHelper branch : localBranches){
-            if(branch.getHead() == null){
-                try{
+    public List<BranchHelper> getLocalBranches() {
+        for (BranchHelper branch : localBranches) {
+            if (branch.getHead() == null) {
+                try {
                     branch.getHeadId();
-                }catch(IOException e){
+                } catch (IOException e) {
                     logger.error("IOException getting local branches");
                     logger.debug(e.getStackTrace());
                     e.printStackTrace();
@@ -1248,14 +1300,15 @@ public abstract class RepoHelper {
     /**
      * Gets a list of the remote branches of this repository. Also updates
      * the head of each remote branch if it was missing
+     *
      * @return the remote branches of this repository
      */
-    public List<BranchHelper> getRemoteBranches(){
-        for(BranchHelper branch : remoteBranches){
-            if(branch.getHead() == null){
-                try{
+    public List<BranchHelper> getRemoteBranches() {
+        for (BranchHelper branch : remoteBranches) {
+            if (branch.getHead() == null) {
+                try {
                     branch.getHeadId();
-                }catch(IOException e){
+                } catch (IOException e) {
                     logger.error("IOException getting remote branches");
                     logger.debug(e.getStackTrace());
                     e.printStackTrace();
@@ -1302,20 +1355,21 @@ public abstract class RepoHelper {
      * a local branch, looks to see if there is a branch in the
      * remote branches that has the same name, and vice versa.
      * Note that tracking status is determined solely by name
+     *
      * @param branch the branch to check
      * @return true if branch is being tracked, else false
      */
-    public boolean isBranchTracked(BranchHelper branch){
+    public boolean isBranchTracked(BranchHelper branch) {
         String branchName = branch.getBranchName();
-        if(branch instanceof LocalBranchHelper){
-            for(BranchHelper remote : remoteBranches){
-                if(remote.getBranchName().equals(branchName)){
+        if (branch instanceof LocalBranchHelper) {
+            for (BranchHelper remote : remoteBranches) {
+                if (remote.getBranchName().equals(branchName)) {
                     return true;
                 }
             }
-        }else{
-            for(BranchHelper local : localBranches){
-                if(local.getBranchName().equals(branchName)){
+        } else {
+            for (BranchHelper local : localBranches) {
+                if (local.getBranchName().equals(branchName)) {
                     return true;
                 }
             }
@@ -1328,11 +1382,12 @@ public abstract class RepoHelper {
      * remote repository without fetching any changes. Equivalent
      * to 'git ls-remote -h -t' if includeTags is true, or
      * 'git ls-remote --heads' if false
+     *
      * @param includeTags whether to include the tags
      * @return a list of remotre references
      * @throws GitAPIException
      */
-    public Collection<Ref> getRefsFromRemote(boolean includeTags) throws GitAPIException{
+    public Collection<Ref> getRefsFromRemote(boolean includeTags) throws GitAPIException {
 
         //No UsernamePasswordCredentialsProvider is needed for this, as far as I can tell
         //TODO: see if UsernamePasswordCredentialsProvider is needed to getRefsFromRemote
@@ -1347,7 +1402,7 @@ public abstract class RepoHelper {
         if(includeTags) return new Git(repo).lsRemote().setHeads(true).setTags(true).setCredentialsProvider(ownerAuth).call();
         else return new Git(repo).lsRemote().setHeads(true).setCredentialsProvider(ownerAuth).call();*/
 
-        if(includeTags) return new Git(repo).lsRemote().setHeads(true).setTags(includeTags).call();
+        if (includeTags) return new Git(repo).lsRemote().setHeads(true).setTags(includeTags).call();
         else return new Git(repo).lsRemote().setHeads(true).call();
     }
 
@@ -1359,7 +1414,9 @@ public abstract class RepoHelper {
         return username;
     }
 
-    public void setUsername(String username) { this.username = username; }
+    public void setUsername(String username) {
+        this.username = username;
+    }
 
     public String getPassword() {
         return this.password;
@@ -1382,7 +1439,7 @@ public abstract class RepoHelper {
     }
 
     public void setUnpushedTags(List<TagHelper> tags) {
-        for (TagHelper tag: tags) {
+        for (TagHelper tag : tags) {
             if (this.upToDateTags.contains(tag)) {
                 this.upToDateTags.remove(tag);
             }
@@ -1424,4 +1481,36 @@ public abstract class RepoHelper {
             return matchedPaths;
         }
     }
+
+    /**
+     * Determine whether this repo is compatible with HTTP or SSH authentication.
+     * Those are the only two that this will particularly return, because these are the only
+     * two that are supported by JGit protocols; we will use other methods elsewhere to determine
+     * specifically how to connect with each.
+     */
+    public AuthMethod getCompatibleAuthentication() {
+
+        List<TransportProtocol> protocols = TransportGitSsh.getTransportProtocols();
+        List<String> repoURLs = getLinkedRemoteRepoURLs();
+        String repoURL = repoURLs.get(0);
+        for (TransportProtocol protocol : protocols) {
+            String protocolName = protocol.getName();
+            try {
+                if (protocol.canHandle(new URIish(repoURL))) {
+                    if (protocolName.equals("HTTP"))
+                        return AuthMethod.HTTP;
+                    else if (protocolName.equals("SSH"))
+                        return AuthMethod.SSH;
+                    else
+                        continue;
+                }
+            } catch (URISyntaxException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        // Failed to find an authentication method
+        return AuthMethod.NONE;
+    }
+
 }

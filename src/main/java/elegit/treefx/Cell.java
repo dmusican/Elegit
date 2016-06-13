@@ -12,6 +12,7 @@ import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.MouseButton;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.shape.Shape;
 import javafx.util.Duration;
@@ -57,6 +58,8 @@ public class Cell extends Pane{
     private ContextMenu contextMenu;
 
     private LabelCell refLabel;
+
+    private Button refExtender;
 
     // The list of children of this cell
     List<Cell> children = new ArrayList<>();
@@ -367,8 +370,19 @@ public class Cell extends Pane{
 
     private class LabelCell extends Pane {
 
+        Label basic;
+        Pane extended;
+        List<Label> extendedLabels;
+
         public void translate(double x) {
             setTranslateX(x);
+        }
+
+        public void addToolTip(Label l, String text) {
+            tooltip = new Tooltip(text);
+            tooltip.setWrapText(true);
+            tooltip.setMaxWidth(350);
+            Tooltip.install(l, tooltip);
         }
 
         public void setLabels(List<String> labels) {
@@ -377,23 +391,35 @@ public class Cell extends Pane{
                 return;
             }
 
-            Label basic = new Label();
-            Label extended = new Label();
+            basic = new Label();
+            extended = new GridPane();
             Button showExtended = new Button();
+            extendedLabels = new ArrayList<>();
 
-            basic.setText(labels.get(0));
-
-            String extendedText = "";
-            boolean isFirst = true;
-            for (String label: labels) {
-                if (isFirst) {
-                    isFirst = false;
-                    extendedText += label;
-                    continue;
-                }
-                extendedText += "\n"+label;
+            String basicText = labels.get(0);
+            if (basicText.length()>14) {
+                addToolTip(basic,basicText);
+                basicText = basicText.substring(0, 13) + "...";
             }
-            extended.setText(extendedText);
+            basic.setText(basicText);
+            basic.setVisible(true);
+            basic.setStyle("-fx-background-color: #F2F1EF;");
+
+            boolean isFirst = true;
+            int rowIndex=1;
+
+            for (String label: labels) {
+                Label currentLabel = new Label();
+                if (label.length()>14) {
+                    addToolTip(currentLabel, label);
+                    label = label.substring(0, 13) + "...";
+                }
+                currentLabel.setText(label);
+                GridPane.setRowIndex(currentLabel, rowIndex);
+                extendedLabels.add(currentLabel);
+                rowIndex++;
+            }
+            extended.getChildren().addAll(extendedLabels);
             extended.setVisible(false);
 
             showExtended.setVisible(false);
@@ -401,17 +427,19 @@ public class Cell extends Pane{
                 showExtended.setVisible(true);
                 showExtended.setTranslateX(-5);
                 showExtended.setText("\u22EE");
-                showExtended.setStyle("-fx-background-color: rgba(0,0,0,0); -fx-padding: 1 0 0 0;");
+                showExtended.setStyle("-fx-background-color: rgba(242,241,240,100); -fx-padding: 1 0 0 0;");
                 showExtended.setOnMouseClicked(event -> {
                     extended.setVisible(!extended.isVisible());
-                    basic.setVisible(!basic.isVisible());
+                    //basic.setVisible(!basic.isVisible());
                 });
             }
 
+            this.setMaxHeight(20);
+
             Platform.runLater(() -> {
                 getChildren().clear();
-                getChildren().add(basic);
                 getChildren().add(extended);
+                getChildren().add(basic);
                 getChildren().add(showExtended);
             });
         }

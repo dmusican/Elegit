@@ -10,23 +10,43 @@ import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.List;
 
 /**
  * A RepoHelper implementation for a repository cloned into an empty folder.
  */
 public class ClonedRepoHelper extends RepoHelper {
-    public ClonedRepoHelper(Path directoryPath, String remoteURL) throws IOException, GitAPIException, CancelledAuthorizationException{
-        super(directoryPath, remoteURL);
-    }
 
+    // Authentication via username/password combo
     public ClonedRepoHelper(Path directoryPath, String remoteURL, UsernamePasswordCredentialsProvider ownerAuth)
             throws GitAPIException, IOException, CancelledAuthorizationException {
-        super(directoryPath, remoteURL, ownerAuth);
+        super(directoryPath, ownerAuth);
+        repo = obtainRepository(remoteURL);
+        setup();
     }
 
+    // Authentication via SSH password; no username since thats encoded in the URL
     public ClonedRepoHelper(Path directoryPath, String remoteURL, String sshPassword)
             throws GitAPIException, IOException, CancelledAuthorizationException {
-        super(directoryPath, remoteURL, sshPassword);
+        super(directoryPath, sshPassword);
+        repo = obtainRepository(remoteURL);
+        setup();
+    }
+
+    // Constructor specifically designed for unit testing; file containing credentials passed in
+    public ClonedRepoHelper(Path directoryPath, String remoteURL, File credentialsFile)
+            throws GitAPIException, IOException, CancelledAuthorizationException {
+        super(directoryPath, credentialsFile);
+        repo = obtainRepository(remoteURL);
+        setup();
+    }
+
+    // Constructor specifically designed for unit testing; file containing credentials passed in
+    public ClonedRepoHelper(Path directoryPath, String remoteURL, List<String> credentialsList)
+            throws GitAPIException, IOException, CancelledAuthorizationException {
+        super(directoryPath, credentialsList);
+        repo = obtainRepository(remoteURL);
+        setup();
     }
 
     /**
@@ -36,17 +56,15 @@ public class ClonedRepoHelper extends RepoHelper {
      * @return the RepoHelper's associated Repository object.
      * @throws GitAPIException if the `git clone` call fails.
      */
-    @Override
-    protected Repository obtainRepository() throws GitAPIException, CancelledAuthorizationException {
+    protected Repository obtainRepository(String remoteURL) throws GitAPIException, CancelledAuthorizationException {
         CloneCommand cloneCommand = Git.cloneRepository();
-        cloneCommand.setURI(this.remoteURL);
+        cloneCommand.setURI(remoteURL);
         myWrapAuthentication(cloneCommand);
         File destination = this.localPath.toFile();
         cloneCommand.setDirectory(destination);
         Git cloneCall = cloneCommand.call();
 
         cloneCall.close();
-        SessionModel.getSessionModel().setAuthPref(destination.toString(), protocol);
         return cloneCall.getRepository();
     }
 

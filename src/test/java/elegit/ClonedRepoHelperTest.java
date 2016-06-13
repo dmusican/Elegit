@@ -1,5 +1,6 @@
 package elegit;
 
+import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -34,7 +35,9 @@ public class ClonedRepoHelperTest {
         // Clone from dummy repo:
         this.remoteURL = "https://github.com/TheElegitTeam/TestRepository.git";
 
-        helper = new ClonedRepoHelper(repoPath, remoteURL);
+        // This repo doesn't check username/password for read-only
+        UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider("", "");
+        helper = new ClonedRepoHelper(repoPath, remoteURL, credentials);
         assertNotNull(helper);
     }
 

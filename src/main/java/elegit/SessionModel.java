@@ -42,8 +42,6 @@ public class SessionModel {
     List<RepoHelper> allRepoHelpers;
     private static SessionModel sessionModel;
 
-    private String defaultUsername;
-
     Preferences preferences;
 
     static final Logger logger = LogManager.getLogger();
@@ -82,7 +80,7 @@ public class SessionModel {
                 Path path = Paths.get(lastOpenedRepoPathString);
                 try {
                     ExistingRepoHelper existingRepoHelper =
-                            new ExistingRepoHelper(path, this.defaultUsername);
+                            new ExistingRepoHelper(path);
                     this.openRepoFromHelper(existingRepoHelper);
                 } catch (IllegalArgumentException e) {
                     logger.warn("Recent repo not found in directory it used to be in");
@@ -114,7 +112,7 @@ public class SessionModel {
                 for (String pathString : storedRepoPathStrings) {
                     Path path = Paths.get(pathString);
                     try {
-                        ExistingRepoHelper existingRepoHelper = new ExistingRepoHelper(path, this.defaultUsername);
+                        ExistingRepoHelper existingRepoHelper = new ExistingRepoHelper(path);
                         this.allRepoHelpers.add(existingRepoHelper);
                     } catch (IllegalArgumentException e) {
                         logger.warn("Repository has been moved, we move along");
@@ -205,17 +203,6 @@ public class SessionModel {
      */
     public Repository getCurrentRepo() {
         return this.currentRepoHelper.getRepo();
-    }
-
-    /**
-     * @return the default owner that will be assigned to new repositories
-     */
-    public String getDefaultUsername() {
-        return this.defaultUsername;
-    }
-
-    public void setCurrentDefaultUsername(String username) {
-        this.defaultUsername = username;
     }
 
     /**

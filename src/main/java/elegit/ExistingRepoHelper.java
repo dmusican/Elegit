@@ -7,13 +7,16 @@ import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.NoSuchElementException;
 
 /**
  * A RepoHelper implementation for pre-existing repositories.
  */
 public class ExistingRepoHelper extends RepoHelper {
-    public ExistingRepoHelper(Path directoryPath, String username) throws IOException, GitAPIException, CancelledAuthorizationException{
-        super(directoryPath, username);
+    public ExistingRepoHelper(Path directoryPath) throws IOException, GitAPIException, CancelledAuthorizationException{
+        super(directoryPath);
+        repo = obtainRepository();
+        setup();
     }
 
     /**
@@ -23,7 +26,6 @@ public class ExistingRepoHelper extends RepoHelper {
      * @return the RepoHelper's associated Repository object.
      * @throws IOException if building the repository fails.
      */
-    @Override
     protected Repository obtainRepository() throws IOException {
         FileRepositoryBuilder builder = new FileRepositoryBuilder();
         return builder.findGitDir(this.localPath.toFile())
