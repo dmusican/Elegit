@@ -35,8 +35,6 @@ public class DataSubmitter {
     public String submitData(String uuid) {
         logger.info("Submit data called");
         String logPath = Paths.get("logs").toString();
-        System.out.println(Paths.get("logs").toAbsolutePath().toString());
-        System.out.println(logPath);
 
         File logDirectory = new File(logPath);
         File[] logsToUpload=logDirectory.listFiles();
