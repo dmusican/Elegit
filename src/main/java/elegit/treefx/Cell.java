@@ -397,9 +397,9 @@ public class Cell extends Pane{
             extendedLabels = new ArrayList<>();
 
             String basicText = labels.get(0);
-            if (basicText.length()>14) {
+            if (basicText.length()>13) {
                 addToolTip(basic,basicText);
-                basicText = basicText.substring(0, 13) + "...";
+                basicText = basicText.substring(0, 12) + "...";
             }
             basic.setText(basicText);
             basic.setVisible(true);
@@ -410,9 +410,9 @@ public class Cell extends Pane{
 
             for (String label: labels) {
                 Label currentLabel = new Label();
-                if (label.length()>14) {
+                if (label.length()>13) {
                     addToolTip(currentLabel, label);
-                    label = label.substring(0, 13) + "...";
+                    label = label.substring(0, 12) + "...";
                 }
                 currentLabel.setText(label);
                 GridPane.setRowIndex(currentLabel, rowIndex);
