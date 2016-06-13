@@ -22,16 +22,21 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.UUID;
 
 public class DataSubmitter {
     private static final String submitUrl = "http://elegit.mathcs.carleton.edu/logging/upload.php";
     private static final Logger logger = LogManager.getLogger();
+    private static final String LOG_FILE_NAME = "elegit.log";
     public DataSubmitter() {
     }
 
-    public String submitData(String uuid, String logPath) {
+    public String submitData(String uuid) {
         logger.info("Submit data called");
+        String logPath = Paths.get("logs").toString();
+        System.out.println(Paths.get("logs").toAbsolutePath().toString());
+        System.out.println(logPath);
 
         File logDirectory = new File(logPath);
         File[] logsToUpload=logDirectory.listFiles();
@@ -43,7 +48,7 @@ public class DataSubmitter {
         }
 
         for (File logFile: logsToUpload) {
-            if (!logFile.isFile() || !logFile.getName().equals("elegit.log")) {
+            if (!logFile.isFile() || logFile.getName().equals(LOG_FILE_NAME)) {
                 if (logsToUpload.length == 1) logger.info("No new logs to upload today");
                 break;
             }
@@ -93,9 +98,9 @@ public class DataSubmitter {
         }
         // Clean up the directory
         for (File file: logDirectory.listFiles()) {
-            file.delete();
+            if (!file.getName().equals(LOG_FILE_NAME))
+                file.delete();
         }
-        logDirectory.delete();
 
         return lastUUID;
     }

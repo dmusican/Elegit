@@ -841,6 +841,7 @@ public class SessionController {
     public void handleFetchButton(){
         logger.info("Fetch button clicked");
         gitFetch();
+        submitLog();
     }
 
     /**
@@ -1732,10 +1733,10 @@ public class SessionController {
         popover.show(this.removeRecentReposButton);
     }
 
-    public void submitLog(String logPath) {
+    public void submitLog() {
         try {
             String lastUUID = theModel.getLastUUID();
-            theModel.setLastUUID(d.submitData(lastUUID, logPath));
+            theModel.setLastUUID(d.submitData(lastUUID));
         } catch (BackingStoreException e) {
             e.printStackTrace();
         } catch (ClassNotFoundException e) {

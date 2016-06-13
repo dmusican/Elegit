@@ -60,8 +60,7 @@ public class Main extends Application {
 
         primaryStage.setOnCloseRequest(event -> {
                 // On close, upload the logs and delete the log.
-                logger.info("Closed");
-                sessionController.submitLog(this.logPath.toString());});
+                logger.info("Closed");});
 
         BusyWindow.setParentWindow(primaryStage);
 
