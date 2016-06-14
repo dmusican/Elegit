@@ -119,8 +119,10 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
         chooseDirectoryButton.setGraphic(folderIcon);
         chooseDirectoryButton.setOnAction(t -> {
             File cloneRepoDirectory = this.getDirectoryPathFromChooser("Choose clone destination folder", null);
-            enclosingFolderField.setText(cloneRepoDirectory.toString());
-            enclosingDirectoryPathText.setText(cloneRepoDirectory.toString() + File.separator);
+            if (cloneRepoDirectory != null) {
+                enclosingFolderField.setText(cloneRepoDirectory.toString());
+                enclosingDirectoryPathText.setText(cloneRepoDirectory.toString() + File.separator);
+            }
         });
 
         repoNameField = new TextField();
