@@ -199,24 +199,6 @@ public class BranchManagerController {
     }
 
     /**
-     * Creates a local branch tracking a remote branch.
-     *
-     * @param remoteBranchHelper the remote branch to be tracked.
-     * @return the LocalBranchHelper of the local branch tracking the given remote branch.
-     * @throws GitAPIException
-     * @throws IOException
-     */
-    private LocalBranchHelper createLocalTrackingBranchForRemote(RemoteBranchHelper remoteBranchHelper) throws GitAPIException, IOException {
-        String localBranchName=remoteBranchHelper.getBranchName().substring(7);
-        Ref trackingBranchRef = new Git(this.repo).branchCreate().
-                setName(localBranchName).
-                setUpstreamMode(CreateBranchCommand.SetupUpstreamMode.TRACK).
-                setStartPoint(remoteBranchHelper.getRefPathString()).
-                call();
-        return new LocalBranchHelper(trackingBranchRef, this.repoHelper);
-    }
-
-    /**
      * Tracks the selected branch (in the remoteListView) locally.
      *
      * @throws GitAPIException
@@ -227,7 +209,7 @@ public class BranchManagerController {
         RemoteBranchHelper selectedRemoteBranch = this.remoteListView.getSelectionModel().getSelectedItem();
         try {
             if (selectedRemoteBranch != null) {
-                LocalBranchHelper tracker = this.createLocalTrackingBranchForRemote(selectedRemoteBranch);
+                LocalBranchHelper tracker = this.repoHelper.trackRemoteBranch(selectedRemoteBranch);
                 this.localListView.getItems().add(tracker);
                 this.branchManagerModel.setLocalBranches(this.localListView.getItems());
             }
@@ -326,13 +308,11 @@ public class BranchManagerController {
      */
     public void mergeSelectedBranchWithCurrent() throws IOException, GitAPIException {
         logger.info("Merging selected branch with current");
-        Git git = new Git(this.repo);
+        // Get the branch to merge with
         LocalBranchHelper selectedBranch = this.localListView.getSelectionModel().getSelectedItem();
 
-        MergeCommand merge = git.merge();
-        merge.include(this.repo.resolve(selectedBranch.getRefPathString()));
-
-        MergeResult mergeResult = merge.call();
+        // Get the merge result from the branch merge
+        MergeResult mergeResult= this.repoHelper.mergeWithBranch(selectedBranch);
 
         if (mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.CONFLICTING)){
             this.showConflictsNotification();
@@ -356,7 +336,6 @@ public class BranchManagerController {
             System.out.println(mergeResult.getMergeStatus());
             // todo: handle all cases (maybe combine some)
         }
-        git.close();
     }
 
 

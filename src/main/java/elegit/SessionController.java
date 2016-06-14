@@ -1031,10 +1031,18 @@ public class SessionController {
     }
 
     /**
-     * Checks out the branch that is currently selected in the dropdown.
+     * Gets the selected branch from the dropdown and calls checkout
      */
-    public void loadSelectedBranch() {
+    public void handleCheckoutDropdown() {
         LocalBranchHelper selectedBranch = this.branchDropdownSelector.getValue();
+        checkoutBranch(selectedBranch);
+    }
+
+    /**
+     * Checks out the selected branch and updates the UI
+     * @param selectedBranch the branch to check out
+     */
+    public void checkoutBranch(LocalBranchHelper selectedBranch) {
         if(selectedBranch == null) return;
         Thread th = new Thread(new Task<Void>(){
             @Override
@@ -1085,6 +1093,8 @@ public class SessionController {
         th.setName("Branch Checkout");
         th.start();
     }
+
+
 
     /**
      * A helper helper method to enable or disable buttons/UI elements

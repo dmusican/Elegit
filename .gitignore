@@ -21,3 +21,4 @@ build
 Elegit.iml
 *.log
 target
+httpUsernamePassword.txt
