@@ -198,10 +198,10 @@ public class CommitLabelTest {
 
         // If we want "master" to be present, it's going to show up twice: once in the basic display
         // and once in the extended display
-        int expectedLocalCount = matchLocal ? 2 : 0;
+        int expectedLocalCount = matchLocal ? 1 : 0;
         // Likewise for "origin/master", except if "master" is also present then "origin/master" will
         // only show up in extended
-        int expectedRemoteCount = matchRemote ? (matchLocal ? 1 : 2) : 0;
+        int expectedRemoteCount = matchRemote ? (matchLocal ? 0 : 1) : 0;
 
         assertEquals(expectedLocalCount, localCount);
         assertEquals(expectedRemoteCount, remoteCount);
