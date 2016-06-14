@@ -14,6 +14,7 @@ import org.apache.logging.log4j.Logger;
 import javax.imageio.ImageIO;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /**
  * The starting point for this JavaFX application.
@@ -27,10 +28,9 @@ public class Main extends Application {
     public void start(Stage primaryStage) throws Exception{
 
         // -----------------------Logging Initialization Start---------------------------
-        // Create a temp directory for the files to be placed in
-        this.logPath = Files.createTempDirectory("elegitLogs");
-        this.logPath.toFile().deleteOnExit();
-        System.setProperty("logFolder", logPath.toString());
+        logPath = Paths.get("logs");
+        String s = logPath.toAbsolutePath().toString();
+        System.setProperty("logFolder", s);
 
         final Logger logger = LogManager.getLogger();
         // -----------------------Logging Initialization End-----------------------------
@@ -60,8 +60,7 @@ public class Main extends Application {
 
         primaryStage.setOnCloseRequest(event -> {
                 // On close, upload the logs and delete the log.
-                logger.info("Closed");
-                sessionController.submitLog(this.logPath.toString());});
+                logger.info("Closed");});
 
         BusyWindow.setParentWindow(primaryStage);
 
