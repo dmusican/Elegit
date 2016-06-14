@@ -326,13 +326,11 @@ public class BranchManagerController {
      */
     public void mergeSelectedBranchWithCurrent() throws IOException, GitAPIException {
         logger.info("Merging selected branch with current");
-        Git git = new Git(this.repo);
+        // Get the branch to merge with
         LocalBranchHelper selectedBranch = this.localListView.getSelectionModel().getSelectedItem();
 
-        MergeCommand merge = git.merge();
-        merge.include(this.repo.resolve(selectedBranch.getRefPathString()));
-
-        MergeResult mergeResult = merge.call();
+        // Get the merge result from the branch merge
+        MergeResult mergeResult= this.repoHelper.mergeWithBranch(selectedBranch);
 
         if (mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.CONFLICTING)){
             this.showConflictsNotification();
@@ -356,7 +354,6 @@ public class BranchManagerController {
             System.out.println(mergeResult.getMergeStatus());
             // todo: handle all cases (maybe combine some)
         }
-        git.close();
     }
 
 

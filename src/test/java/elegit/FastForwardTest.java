@@ -26,8 +26,6 @@ import static org.junit.Assert.assertTrue;
  * Created by erictwalker18. Enjoy!
  */
 public class FastForwardTest {
-
-
     private Path directoryPath;
     private String testFileLocation;
     private BranchHelper fast_helper, master_helper, remote_helper;
@@ -128,13 +126,10 @@ public class FastForwardTest {
                 break;
             }
         }
-        fast_helper.checkoutBranch();
+        master_helper.checkoutBranch();
 
         // Merge fast_forward into master
-        Git git = new Git(helperFast.getRepo());
-        MergeCommand merge = git.merge();
-        merge.include(helperFast.getRepo().resolve(fast_helper.getRefPathString()));
-        MergeResult mergeResult = merge.call();
+        helperFast.mergeWithBranch(fast_helper);
 
         // Check that Elegit recognizes there are unpushed commits
         assertEquals(true, helperFast.hasUnpushedCommits());

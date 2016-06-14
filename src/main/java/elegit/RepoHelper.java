@@ -536,6 +536,25 @@ public abstract class RepoHelper {
         return result.getMergeStatus().isSuccessful();
     }
 
+    public MergeResult mergeWithBranch(BranchHelper branchToMergeFrom) throws GitAPIException, IOException {
+        Git git = new Git(this.repo);
+
+        MergeCommand merge = git.merge();
+        merge.include(this.repo.resolve(branchToMergeFrom.getRefPathString()));
+
+        MergeResult mergeResult = merge.call();
+
+        // If the merge was successful, there was a new commit or fast forward, so there are unpushed
+        // commits. Otherwise, repo helper doesn't need to do anything else.
+        if (mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.MERGED)
+                || mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.FAST_FORWARD)){
+            this.hasUnpushedCommitsProperty.setValue(true);
+        }
+        git.close();
+
+        return mergeResult;
+    }
+
     public void closeRepo() {
         this.repo.close();
     }
