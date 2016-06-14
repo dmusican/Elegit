@@ -2,6 +2,7 @@ package elegit;
 
 import javafx.application.Platform;
 import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -55,8 +56,12 @@ public class ConflictingRepoFile extends RepoFile {
 
                 ButtonType resolveButton = new ButtonType("Resolve conflicts in editor");
                 ButtonType addButton = new ButtonType("Commit conflicting file");
+                ButtonType buttonTypeCancel = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
 
-                alert.getButtonTypes().setAll(addButton, resolveButton);
+                alert.getButtonTypes().setAll(addButton, resolveButton, buttonTypeCancel);
+
+                alert.setResizable(true);
+                alert.getDialogPane().setPrefSize(600, 200);
 
                 alert.setTitle("Adding conflicted file");
                 alert.setHeaderText("You're adding a conflicted file to the commit");
