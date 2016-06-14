@@ -45,15 +45,15 @@ public class Edge extends Group {
         this.addedMidPoints = false;
         midLineY = new SimpleDoubleProperty(0);
 
-        DoubleBinding startX = source.translateXProperty().add(source.widthProperty());
-        DoubleBinding startY = source.translateYProperty().add(source.heightProperty().divide(2.0));
+        DoubleBinding endX = source.translateXProperty().add(source.widthProperty());
+        DoubleBinding endY = source.translateYProperty().add(source.heightProperty().divide(2.0));
 
-        DoubleBinding endX = target.translateXProperty().add(0);
-        DoubleBinding endY = target.translateYProperty().add(target.heightProperty().divide(2.0));
+        DoubleBinding startX = target.translateXProperty().add(0);
+        DoubleBinding startY = target.translateYProperty().add(target.heightProperty().divide(2.0));
 
         path = new DirectedPath(startX, startY, endX, endY);
         checkAndAddMidPoints(startX, endX);
-        path.addPoint(endX.subtract(TreeLayout.H_SPACING / 4.), endY);
+        path.addPoint(endX.add(TreeLayout.H_SPACING / 4.), endY);
 
         source.translateXProperty().addListener((observable, oldValue, newValue) -> {
             checkAndAddMidPoints(startX, endX);
@@ -73,9 +73,9 @@ public class Edge extends Group {
         // Change the Y of the midpoints depending on whether the target is above, below, or at the same
         // level as the source
         midLineY.bind(new When(target.rowLocationProperty.subtract(source.rowLocationProperty).greaterThan(0))
-                .then(endY.subtract(TreeLayout.V_SPACING / 2.))
+                .then(endY.add(TreeLayout.V_SPACING / 2.))
                 .otherwise(new When(target.rowLocationProperty.subtract(source.rowLocationProperty).lessThan(0))
-                        .then(startY.subtract(TreeLayout.V_SPACING / 2.))
+                        .then(startY.add(TreeLayout.V_SPACING / 2.))
                         .otherwise(startY)));
 
 
@@ -103,8 +103,8 @@ public class Edge extends Group {
     private void checkAndAddMidPoints(DoubleBinding startX, DoubleBinding endX){
         if(target.columnLocationProperty.get() - source.columnLocationProperty.get() > 1){
             if(!addedMidPoints){
-                path.addPoint(startX.add(TreeLayout.H_SPACING / 3.), midLineY.add(0), 1);
-                path.addPoint(endX.subtract(TreeLayout.H_SPACING / 2.), midLineY.add(0), 2);
+                path.addPoint(startX.subtract(TreeLayout.H_SPACING / 3.), midLineY.add(0), 1);
+                path.addPoint(endX.add(TreeLayout.H_SPACING / 2.), midLineY.add(0), 2);
                 this.addedMidPoints = true;
             }
         }else{

@@ -67,7 +67,7 @@ public class DirectedPath extends Group{
      * Adds a point to the line at the given index, and updates the path and arrow
      * appropriately
      * @param newX the x of the new point
-     * @param newY the y of the new pontt
+     * @param newY the y of the new point
      * @param index the index to add the point in
      */
     public void addPoint(DoubleBinding newX, DoubleBinding newY, int index){
@@ -197,7 +197,7 @@ public class DirectedPath extends Group{
     }
 
     /**
-     * Helepr class that provides a binding to the Cos of a value
+     * Helper class that provides a binding to the Cos of a value
      */
     private class CosBinding extends DoubleBinding{
         private final DoubleBinding theta;
