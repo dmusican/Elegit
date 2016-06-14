@@ -1364,7 +1364,7 @@ public class SessionController {
     }
 
     private void showNewRemoteChangesNotification(){
-        /*Platform.runLater(() -> {
+        Platform.runLater(() -> {
             logger.info("New remote repo changes");
             this.notificationPane.setText("There are new changes in the remote repository.");
 
@@ -1382,8 +1382,7 @@ public class SessionController {
             this.notificationPane.getActions().setAll(fetchAction, ignoreAction);
 
             this.notificationPane.show();
-        });*/
-        // TODO: fix issue where this popps up for freshly cloned repos
+        });
     }
 
     private void showNoFilesStagedForCommitNotification(){
