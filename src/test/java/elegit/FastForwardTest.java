@@ -13,6 +13,7 @@ import org.junit.Test;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
+import java.rmi.Remote;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -28,7 +29,8 @@ import static org.junit.Assert.assertTrue;
 public class FastForwardTest {
     private Path directoryPath;
     private String testFileLocation;
-    private BranchHelper fast_helper, master_helper, remote_helper;
+    private RemoteBranchHelper remote_helper;
+    private LocalBranchHelper fast_helper, master_helper;
     Path logPath;
 
     // Used to indicate that if password files are missing, then tests should just pass
@@ -92,21 +94,11 @@ public class FastForwardTest {
         assertNotNull(helperFast);
 
         // Find the remote 'fast_branch'
-        List<BranchHelper> branchHelpers = helperFast.getRemoteBranches();
-        for (BranchHelper help: branchHelpers) {
-            if (help.getBranchName().equals("origin/fast_branch"))
-                remote_helper = help;
-        }
+        remote_helper = helperFast.getRemoteBranchByName("origin/fast_branch");
+
         // Track fast_branch and check it out
-        String localBranchName=remote_helper.getBranchName().substring(7);
-        Ref trackingBranchRef = new Git(helperFast.getRepo()).branchCreate().
-                setName(localBranchName).
-                setUpstreamMode(CreateBranchCommand.SetupUpstreamMode.TRACK).
-                setStartPoint(remote_helper.getRefPathString()).
-                call();
-        fast_helper = new LocalBranchHelper(trackingBranchRef, helperFast);
+        fast_helper = helperFast.trackRemoteBranch(remote_helper);
         fast_helper.checkoutBranch();
-        helperFast.setCurrentBranch((LocalBranchHelper) fast_helper);
 
         // Update the file in fast_branch
         Path filePath = repoPathFast.resolve("fastforward.txt");
@@ -119,13 +111,7 @@ public class FastForwardTest {
         helperFast.pushAll();
 
         //Checkout master
-        branchHelpers = helperFast.getLocalBranches();
-        for (BranchHelper help: branchHelpers) {
-            if (help.getBranchName().equals("master")) {
-                master_helper = help;
-                break;
-            }
-        }
+        master_helper = helperFast.getLocalBranchByName("master");
         master_helper.checkoutBranch();
 
         // Merge fast_forward into master

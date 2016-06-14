@@ -14,6 +14,7 @@ import org.controlsfx.control.NotificationPane;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
+import org.eclipse.jgit.api.errors.RefAlreadyExistsException;
 import org.eclipse.jgit.ignore.IgnoreNode;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.revplot.PlotCommitList;
@@ -536,6 +537,13 @@ public abstract class RepoHelper {
         return result.getMergeStatus().isSuccessful();
     }
 
+    /**
+     * Merges the current branch with the selected branch
+     * @param branchToMergeFrom the branch to merge into the current branch
+     * @return merge result, used in determining the notification in BranchManagerController
+     * @throws GitAPIException
+     * @throws IOException
+     */
     public MergeResult mergeWithBranch(BranchHelper branchToMergeFrom) throws GitAPIException, IOException {
         Git git = new Git(this.repo);
 
@@ -1216,11 +1224,6 @@ public abstract class RepoHelper {
     }
 
 
-    public List<LocalBranchHelper> getLocalBranchesFromManager() {
-        return this.branchManagerModel.getLocalBranches();
-    }
-
-
     /**
      * Utilizes JGit to get a list of all remote branches. It both returns a list of remote branches,
      * but also simultaneously updates an instance variable holding that same list.
@@ -1246,6 +1249,51 @@ public abstract class RepoHelper {
     }
 
     /**
+     * Method to get a branch helper by name
+     * @param branchname the branch to get
+     * @return the localBranchHelper with that name, or null if it is not found
+     */
+    public LocalBranchHelper getLocalBranchByName(String branchname) {
+        for (LocalBranchHelper helper: this.localBranches) {
+            if (helper.getBranchName().equals(branchname))
+                return helper;
+        }
+        return null;
+    }
+
+    /**
+     * Method to get a branch helper by name
+     * @param branchname the branch to get
+     * @return the remoteBranchHelper with that name, or null if it is not found
+     */
+    public RemoteBranchHelper getRemoteBranchByName(String branchname) {
+        for (RemoteBranchHelper helper: this.remoteBranches) {
+            if (helper.getBranchName().equals(branchname))
+                return helper;
+        }
+        return null;
+    }
+
+    /**
+     * Creates a local branch tracking a remote branch.
+     *
+     * @param remoteBranchHelper the remote branch to be tracked.
+     * @return the LocalBranchHelper of the local branch tracking the given remote branch.
+     * @throws GitAPIException
+     * @throws IOException
+     */
+    private LocalBranchHelper createLocalTrackingBranchForRemote(RemoteBranchHelper remoteBranchHelper) throws GitAPIException, IOException {
+        // Take off the 'origin/' before the branch name
+        String localBranchName=remoteBranchHelper.getBranchName().substring(7);
+        Ref trackingBranchRef = new Git(this.repo).branchCreate().
+                setName(localBranchName).
+                setUpstreamMode(CreateBranchCommand.SetupUpstreamMode.TRACK).
+                setStartPoint(remoteBranchHelper.getRefPathString()).
+                call();
+        return new LocalBranchHelper(trackingBranchRef, this);
+    }
+
+    /**
      * Sets the currently checkout branch. Does not call 'git checkout'
      * or any variation, simply updates the local variable
      *
@@ -1253,6 +1301,20 @@ public abstract class RepoHelper {
      */
     public void setCurrentBranch(LocalBranchHelper branchHelper) {
         this.branchHelper = branchHelper;
+    }
+
+    /**
+     * Creates a local branch and tracks it
+     * @param remoteBranchHelper the remote branch to track
+     * @return the localBranchHelper that was added
+     * @throws GitAPIException
+     * @throws IOException
+     * @throws RefAlreadyExistsException
+     */
+    public LocalBranchHelper trackRemoteBranch(RemoteBranchHelper remoteBranchHelper) throws GitAPIException, IOException, RefAlreadyExistsException {
+        LocalBranchHelper tracker = this.createLocalTrackingBranchForRemote(remoteBranchHelper);
+        this.localBranches.add(tracker);
+        return tracker;
     }
 
     /**
