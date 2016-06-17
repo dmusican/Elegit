@@ -43,21 +43,22 @@ public class ElegitCredentialsProvider extends CredentialsProvider {
 
     @Override
     public boolean get(URIish urIish, CredentialItem... credentialItems) throws UnsupportedCredentialItem {
-        Iterator<String> userCredentialsIterator = userCredentials.iterator();
-        for(CredentialItem item : credentialItems) {
-            String nextValue = userCredentialsIterator.next();
-            if (item instanceof CredentialItem.Username) {
-                ((CredentialItem.Username)item).setValue(nextValue);
-            } else if (item instanceof CredentialItem.Password) {
-                ((CredentialItem.Password)item).setValue(nextValue.toCharArray());
-            } else if (item instanceof CredentialItem.StringType) {
-                ((CredentialItem.StringType)item).setValue(nextValue);
-            } else {
-                System.out.println(item);
-                System.out.println(item.getPromptText());
-                throw new UnsupportedCredentialItem(urIish, "Case not covered in ElegitCredentialsProvider");
+        if (userCredentials != null) {
+            Iterator<String> userCredentialsIterator = userCredentials.iterator();
+            for(CredentialItem item : credentialItems) {
+                String nextValue = userCredentialsIterator.next();
+                if (item instanceof CredentialItem.Username) {
+                    ((CredentialItem.Username)item).setValue(nextValue);
+                } else if (item instanceof CredentialItem.Password) {
+                    ((CredentialItem.Password)item).setValue(nextValue.toCharArray());
+                } else if (item instanceof CredentialItem.StringType) {
+                    ((CredentialItem.StringType)item).setValue(nextValue);
+                } else {
+                    System.out.println(item);
+                    System.out.println(item.getPromptText());
+                    throw new UnsupportedCredentialItem(urIish, "Case not covered in ElegitCredentialsProvider");
+                }
             }
-
         }
         return true;
     }
