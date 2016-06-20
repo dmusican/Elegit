@@ -1409,6 +1409,19 @@ public abstract class RepoHelper {
         return new ArrayList<>(remoteBranches);
     }
 
+    /**
+     * Gets a list of all the branches of this repository. Also updates
+     * the head of each remote branch if it was missing
+     *
+     * @return the remote branches of this repository
+     */
+    public List<BranchHelper> getAllBranches() {
+        List<BranchHelper> allBranches = new ArrayList<>();
+        allBranches.addAll(getLocalBranches());
+        allBranches.addAll(getRemoteBranches());
+        return new ArrayList<>(allBranches);
+    }
+
     public Map<CommitHelper, List<BranchHelper>> getAllBranchHeads(){
         Map<CommitHelper, List<BranchHelper>> heads = new HashMap<>();
 
