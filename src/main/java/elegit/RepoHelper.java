@@ -596,6 +596,16 @@ public abstract class RepoHelper {
     }
 
     /**
+     * @return all commits (remote and local) that have been parsed
+     */
+    public List<CommitHelper> getAllCommits () {
+        List<CommitHelper> allCommits = new ArrayList<>();
+        allCommits.addAll(this.localCommits);
+        allCommits.addAll(this.remoteCommits);
+        return allCommits;
+    }
+
+    /**
      * Returns a formatted string that describes the given commit
      * @param commitHelper the commit to get a label for
      * @return the label for the commit
@@ -1444,13 +1454,13 @@ public abstract class RepoHelper {
         String branchName = branch.getBranchName();
         if (branch instanceof LocalBranchHelper) {
             for (BranchHelper remote : remoteBranches) {
-                if (remote.getBranchName().equals(branchName)) {
+                if (remote.getBranchName().substring(7).equals(branchName)) {
                     return true;
                 }
             }
         } else {
             for (BranchHelper local : localBranches) {
-                if (local.getBranchName().equals(branchName)) {
+                if (local.getBranchName().equals(branchName.substring(7))) {
                     return true;
                 }
             }
