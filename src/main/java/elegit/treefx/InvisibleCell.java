@@ -25,6 +25,12 @@ public class InvisibleCell extends Cell{
     public synchronized void setShape(CellShape newShape){
         if(view == null){
             setView(getBaseView());
+        } else {
+            Shape node = newShape.get();
+            node.setFill(null);
+            node.setStyle("-fx-stroke: " + CellState.STANDARD.getCssStringKey());
+            node.getStyleClass().setAll("cell", "invisCell");
+            setView(node);
         }
     }
 
