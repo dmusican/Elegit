@@ -660,7 +660,7 @@ public class SessionController {
                 @Override
                 protected Void call(){
                     try{
-                        if(!theModel.getCurrentRepoHelper().mergeFromFetch()){
+                        if(!theModel.getCurrentRepoHelper().mergeFromFetch().isSuccessful()){
                             showUnsuccessfulMergeNotification();
                         }
                         gitStatus();

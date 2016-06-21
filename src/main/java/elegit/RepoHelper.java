@@ -507,12 +507,13 @@ public abstract class RepoHelper {
     /**
      * Merges FETCH_HEAD into the current branch.
      * Combining fetch and merge is the same as `git -pull`.
+     * TODO: make this description more accurate. It's not that simple
      *
      * @throws IOException
      * @throws GitAPIException
      * @throws MissingRepoException
      */
-    public boolean mergeFromFetch() throws IOException, GitAPIException, MissingRepoException, ConflictingFilesException {
+    public MergeResult.MergeStatus mergeFromFetch() throws IOException, GitAPIException, MissingRepoException, ConflictingFilesException {
         logger.info("Attempting merge from fetch");
         if (!exists()) throw new MissingRepoException();
         if (!hasRemote()) throw new InvalidRemoteException("No remote repository");
@@ -534,7 +535,8 @@ public abstract class RepoHelper {
         this.hasUnmergedCommitsProperty.set(status == MergeResult.MergeStatus.ABORTED || status == MergeResult.MergeStatus.CHECKOUT_CONFLICT);
         this.hasUnpushedCommitsProperty.set(this.hasUnpushedCommits() || status == MergeResult.MergeStatus.MERGED);
         if (status == MergeResult.MergeStatus.CONFLICTING) throw new ConflictingFilesException(result.getConflicts());
-        return result.getMergeStatus().isSuccessful();
+        //return result.getMergeStatus().isSuccessful();
+        return status;
     }
 
     /**
