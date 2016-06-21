@@ -1307,7 +1307,9 @@ public abstract class RepoHelper {
                 setUpstreamMode(CreateBranchCommand.SetupUpstreamMode.TRACK).
                 setStartPoint(remoteBranchHelper.getRefPathString()).
                 call();
-        return new LocalBranchHelper(trackingBranchRef, this);
+        LocalBranchHelper newHelper = new LocalBranchHelper(trackingBranchRef, this);
+        this.localBranches.add(newHelper);
+        return newHelper;
     }
 
     /**
