@@ -48,8 +48,9 @@ public class CommitLabelTest {
         t.setDaemon(true);
         t.start();
 
+        Main.startLatch.await();
         // Sleep until the JavaFX environment is up and running
-        Thread.sleep(5000);
+        //Thread.sleep(1000);
     }
 
     @Before

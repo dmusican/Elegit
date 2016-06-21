@@ -15,12 +15,16 @@ import javax.imageio.ImageIO;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * The starting point for this JavaFX application.
  */
 public class Main extends Application {
     private Path logPath;
+
+    // Latch used to indicate when start is nearly complete; used for unit testing
+    public final static CountDownLatch startLatch = new CountDownLatch(1);
 
     public static SessionController sessionController;
 
@@ -75,6 +79,7 @@ public class Main extends Application {
         }
 
         primaryStage.setScene(scene);
+        startLatch.countDown();
         primaryStage.show();
     }
 
