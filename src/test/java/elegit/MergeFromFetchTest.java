@@ -142,7 +142,7 @@ public class MergeFromFetchTest {
         // Merge from the fetch
         boolean is_fast_forward = true;
         try {
-            is_fast_forward = helperFetch.mergeFromFetch().toString().equals("Fast Forward");
+            is_fast_forward = helperFetch.mergeFromFetch() == MergeResult.MergeStatus.FAST_FORWARD;
         } catch (IOException | GitAPIException | MissingRepoException e) { }
         catch (ConflictingFilesException e) {
             is_fast_forward = false;

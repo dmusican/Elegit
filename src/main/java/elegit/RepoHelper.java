@@ -505,25 +505,30 @@ public abstract class RepoHelper {
     }
 
     /**
-     * Merges FETCH_HEAD into the current branch.
-     * Combining fetch and merge is the same as `git -pull`.
-     * TODO: make this description more accurate. It's not that simple
+     * Merges the current branch with the remote branch that this is tracking, as
+     * found in the config for the repo
      *
      * @throws IOException
      * @throws GitAPIException
      * @throws MissingRepoException
+     * @return the merge status merging these two branches
      */
     public MergeResult.MergeStatus mergeFromFetch() throws IOException, GitAPIException, MissingRepoException, ConflictingFilesException {
         logger.info("Attempting merge from fetch");
         if (!exists()) throw new MissingRepoException();
         if (!hasRemote()) throw new InvalidRemoteException("No remote repository");
-        Git git = new Git(this.repo);
-        ObjectId fetchHeadID = this.repo.resolve("FETCH_HEAD");
-//        if(fetchHeadID == null); // This might pop up at some point as an issue. Might not though
-        MergeResult result = git.merge()
-                .include(fetchHeadID)
-                .call();
-        git.close();
+
+        // Get the remote branch the current branch is tracking
+        // and merge the current branch with the just fetched remote branch
+        MergeResult result;
+        Config config = repo.getConfig();
+        if (config.getSubsections("branch").contains(this.repo.getBranch())) {
+            String remote = config.getString("branch", this.repo.getBranch(), "remote")+"/";
+            String remote_tracking = config.getString("branch", this.repo.getBranch(), "merge");
+            result = mergeWithBranch(this.getRemoteBranchByName(remote+this.repo.shortenRefName(remote_tracking)));
+        } else {
+            return null;
+        }
 
         try {
             this.localCommits = parseAllLocalCommits();
