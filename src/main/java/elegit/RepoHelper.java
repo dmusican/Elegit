@@ -193,7 +193,7 @@ public abstract class RepoHelper {
     }
 
     // Common setup tasks shared by constructors
-    protected void setup() throws GitAPIException, IOException, CancelledAuthorizationException {
+    protected void setup() throws GitAPIException, IOException {
         //this.repo = this.obtainRepository();
         this.username = null;
 
