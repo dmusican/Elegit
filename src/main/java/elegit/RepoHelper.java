@@ -1474,13 +1474,15 @@ public abstract class RepoHelper {
         String branchName = branch.getBranchName();
         if (branch instanceof LocalBranchHelper) {
             for (BranchHelper remote : remoteBranches) {
-                if (this.repo.shortenRemoteBranchName(remote.getRefPathString()).equals(branchName)) {
+                if (this.repo.shortenRemoteBranchName(remote.getRefPathString())
+                        .equals(this.repo.shortenRefName(this.repo.getConfig().getString("branch", branchName, "merge")))) {
                     return true;
                 }
             }
         } else {
             for (BranchHelper local : localBranches) {
-                if (local.getBranchName().equals(this.repo.shortenRemoteBranchName(branch.getRefPathString()))) {
+                if (this.repo.shortenRefName(this.repo.getConfig().getString("branch", local.getBranchName(), "merge"))
+                        .equals(this.repo.shortenRemoteBranchName(branch.getRefPathString()))) {
                     return true;
                 }
             }

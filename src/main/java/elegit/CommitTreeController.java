@@ -193,7 +193,7 @@ public class CommitTreeController{
                 }
 
                 model.resetBranchHeads(true);
-                if(setBranchHeads(model, repo)) continue;
+                setBranchHeads(model, repo);
 
                 model.treeGraph.update();
                 model.view.displayTreeGraph(model.treeGraph, null);

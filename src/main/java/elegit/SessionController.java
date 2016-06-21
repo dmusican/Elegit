@@ -909,45 +909,39 @@ public class SessionController {
      */
     public void gitStatus(){
         RepositoryMonitor.pause();
-        Thread th = new Thread(new Task<Void>(){
-            @Override
-            protected Void call(){
-                try{
-                    localCommitTreeModel.update();
-                    remoteCommitTreeModel.update();
-                    if (theModel.getCurrentRepoHelper() != null &&
-                            theModel.getCurrentRepoHelper().updateTags()) {
-                        if (theModel.getCurrentRepoHelper().hasTagsWithUnpushedCommits()) {
-                            //showTagPointsToUnpushedCommitNotification();
-                        }
-                    }
 
-                    workingTreePanelView.drawDirectoryView();
-                    allFilesPanelView.drawDirectoryView();
-                    updateBranchDropdown();
-                } catch(MissingRepoException e){
-                    showMissingRepoNotification();
-                    setButtonsDisabled(true);
-                    refreshRecentReposInDropdown();
-                } catch(NoRepoLoadedException e){
-                    // TODO: I'm changing the way it handles exception,
-                    // assuming that the only time when this exception is
-                    // thrown is after user closes the last repo.
+        Platform.runLater(() -> {
+            try{
+                localCommitTreeModel.update();
+                remoteCommitTreeModel.update();
+                if (theModel.getCurrentRepoHelper() != null &&
+                        theModel.getCurrentRepoHelper().updateTags()) {
+                    if (theModel.getCurrentRepoHelper().hasTagsWithUnpushedCommits()) {
+                        //showTagPointsToUnpushedCommitNotification();
+                    }
+                }
+
+                workingTreePanelView.drawDirectoryView();
+                allFilesPanelView.drawDirectoryView();
+                updateBranchDropdown();
+            } catch(MissingRepoException e){
+                showMissingRepoNotification();
+                setButtonsDisabled(true);
+                refreshRecentReposInDropdown();
+            } catch(NoRepoLoadedException e){
+                // TODO: I'm changing the way it handles exception,
+                // assuming that the only time when this exception is
+                // thrown is after user closes the last repo.
 
                     /*showNoRepoLoadedNotification();
                     setButtonsDisabled(true);*/
-                } catch(Exception e) {
-                    showGenericErrorNotification();
-                    e.printStackTrace();
-                } finally{
-                    RepositoryMonitor.unpause();
-                }
-                return null;
+            } catch(Exception e) {
+                showGenericErrorNotification();
+                e.printStackTrace();
+            } finally{
+                RepositoryMonitor.unpause();
             }
         });
-        th.setDaemon(true);
-        th.setName("Git status");
-        th.start();
     }
 
     /**
