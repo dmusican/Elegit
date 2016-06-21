@@ -196,7 +196,7 @@ public class CommitTreeController{
                 setBranchHeads(model, repo);
 
                 model.treeGraph.update();
-                model.view.displayTreeGraph(model.treeGraph, null);
+                model.view.displayTreeGraph(model.treeGraph, model.sessionModel.getCurrentRepoHelper().getHead());
             }
         }
     }
@@ -208,6 +208,7 @@ public class CommitTreeController{
      */
     public static void focusCommitInGraph(CommitHelper commit){
         if(commit == null) return;
+
         for(CommitTreeModel model : allCommitTreeModels){
             if(model.treeGraph != null && model.treeGraph.treeGraphModel.containsID(commit.getId())){
                 Cell c = model.treeGraph.treeGraphModel.cellMap.get(commit.getId());

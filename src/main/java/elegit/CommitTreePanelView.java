@@ -62,13 +62,13 @@ public class CommitTreePanelView extends Region{
         Task<Void> endTask = new Task<Void>(){
             @Override
             protected Void call(){
-                MatchedScrollPane.ignoreScrolling(true);
                 try{
                     th.join();
                 }catch(InterruptedException e){
                     e.printStackTrace();
                 }
                 Platform.runLater(() -> {
+                    MatchedScrollPane.ignoreScrolling(true);
                     ScrollPane sp = treeGraph.getScrollPane();
                     sp.setOnMouseClicked(event -> CommitTreeController.handleMouseClicked());
                     getChildren().clear();
