@@ -75,31 +75,38 @@
                         </GridPane>
                     </StackPane>
 
+                    <Text   GridPane.columnIndex="2"
+                            GridPane.rowIndex="0"
+                            text="Checkout:"
+                            GridPane.halignment="RIGHT"/>
+
                     <ComboBox fx:id="branchDropdownSelector"
-                              GridPane.columnIndex="2"
+                              GridPane.columnIndex="3"
                               GridPane.rowIndex="0"
                               onMouseClicked="#updateBranchDropdown"
                               onAction="#handleCheckoutDropdown"/>
 
-                    <Button GridPane.columnIndex="3"
+                    <Button GridPane.columnIndex="4"
                             GridPane.rowIndex="0"
                             text="Manage branches"
                             fx:id="branchesButton"
                             onAction="#showBranchManager" />
 
-                    <Button GridPane.columnIndex="4"
+                    <HBox   GridPane.columnIndex="5"
                             GridPane.rowIndex="0"
-                            fx:id="changeLoginButton"
-                            text="Change login"
-                            onAction="#handleChangeLoginButton" />
+                            spacing="4.0">
 
-                    <Button GridPane.columnIndex="5"
-                            GridPane.rowIndex="0"
-                            text="Legend"
-                            fx:id="legendbutton"
-                            onAction="#showLegend" />
+                        <Button fx:id="changeLoginButton"
+                                text="Change login"
+                                onAction="#handleChangeLoginButton" />
 
-                    <GridPane alignment="TOP_CENTER"
+                        <Button text="Legend"
+                                fx:id="legendbutton"
+                                onAction="#showLegend" />
+
+                    </HBox>
+
+            <GridPane alignment="TOP_CENTER"
                               hgap="10"
                               vgap="10"
                               GridPane.vgrow="ALWAYS"
