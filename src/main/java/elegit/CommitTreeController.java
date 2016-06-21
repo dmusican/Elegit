@@ -172,16 +172,7 @@ public class CommitTreeController{
         }
 
         commitTreeModel.resetBranchHeads(true);
-        List<BranchHelper> modelBranches = commitTreeModel.getBranches();
-        if(modelBranches != null){
-            for(BranchHelper branch : modelBranches){
-                if(!commitTreeModel.sessionModel.getCurrentRepoHelper().isBranchTracked(branch)){
-                    commitTreeModel.setCommitAsUntrackedBranch(branch.getHead().getId());
-                }else{
-                    commitTreeModel.setCommitAsTrackedBranch(branch.getHead().getId());
-                }
-            }
-        }
+        setBranchHeads(commitTreeModel, repo);
 
         commitTreeModel.view.displayTreeGraph(commitTreeModel.treeGraph, commitTreeModel.sessionModel.getCurrentRepoHelper().getHead());
     }
@@ -202,15 +193,7 @@ public class CommitTreeController{
                 }
 
                 model.resetBranchHeads(true);
-                List<BranchHelper> modelBranches = model.getBranches();
-                if(modelBranches == null) continue;
-                for(BranchHelper branch : modelBranches){
-                    if(!model.sessionModel.getCurrentRepoHelper().isBranchTracked(branch)){
-                        model.setCommitAsUntrackedBranch(branch.getHeadId());
-                    }else{
-                        model.setCommitAsTrackedBranch(branch.getHeadId());
-                    }
-                }
+                if(setBranchHeads(model, repo)) continue;
 
                 model.treeGraph.update();
                 model.view.displayTreeGraph(model.treeGraph, null);
@@ -246,6 +229,27 @@ public class CommitTreeController{
                 Highlighter.emphasizeCell(c);
             }
         }
+    }
+
+    /**
+     * Loops through the branches and sets the cells that are branch heads to have the
+     * correct shape (untracked=circle, tracked=traingle)
+     * @param model: the commit tree model to set the branch heads for
+     * @return true if the model has branches, false if not
+     */
+    public static boolean setBranchHeads(CommitTreeModel model, RepoHelper repo) {
+        List<BranchHelper> modelBranches = model.getLocalRemoteBranches(repo);
+        if(modelBranches == null) return false;
+        for(BranchHelper branch : modelBranches){
+            if(!model.sessionModel.getCurrentRepoHelper().isBranchTracked(branch)){
+                model.setCommitAsUntrackedBranch(branch.getHead().getId());
+            }else{
+                model.setCommitAsTrackedBranch(branch.getHead().getId());
+            }
+        }
+
+
+        return true;
     }
 
     public static ObjectProperty<String> selectedIDProperty(){

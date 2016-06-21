@@ -477,7 +477,7 @@ public abstract class RepoHelper {
         if (!exists()) throw new MissingRepoException();
         Git git = new Git(this.repo);
 
-        FetchCommand fetch = git.fetch().setTagOpt(TagOpt.AUTO_FOLLOW);
+        FetchCommand fetch = git.fetch().setTagOpt(TagOpt.AUTO_FOLLOW).setRemoveDeletedRefs(true);
 
         myWrapAuthentication(fetch);
 
@@ -505,24 +505,30 @@ public abstract class RepoHelper {
     }
 
     /**
-     * Merges FETCH_HEAD into the current branch.
-     * Combining fetch and merge is the same as `git -pull`.
+     * Merges the current branch with the remote branch that this is tracking, as
+     * found in the config for the repo
      *
      * @throws IOException
      * @throws GitAPIException
      * @throws MissingRepoException
+     * @return the merge status merging these two branches
      */
-    public boolean mergeFromFetch() throws IOException, GitAPIException, MissingRepoException, ConflictingFilesException {
+    public MergeResult.MergeStatus mergeFromFetch() throws IOException, GitAPIException, MissingRepoException, ConflictingFilesException {
         logger.info("Attempting merge from fetch");
         if (!exists()) throw new MissingRepoException();
         if (!hasRemote()) throw new InvalidRemoteException("No remote repository");
-        Git git = new Git(this.repo);
-        ObjectId fetchHeadID = this.repo.resolve("FETCH_HEAD");
-//        if(fetchHeadID == null); // This might pop up at some point as an issue. Might not though
-        MergeResult result = git.merge()
-                .include(fetchHeadID)
-                .call();
-        git.close();
+
+        // Get the remote branch the current branch is tracking
+        // and merge the current branch with the just fetched remote branch
+        MergeResult result;
+        Config config = repo.getConfig();
+        if (config.getSubsections("branch").contains(this.repo.getBranch())) {
+            String remote = config.getString("branch", this.repo.getBranch(), "remote")+"/";
+            String remote_tracking = config.getString("branch", this.repo.getBranch(), "merge");
+            result = mergeWithBranch(this.getRemoteBranchByName(remote+this.repo.shortenRefName(remote_tracking)));
+        } else {
+            return null;
+        }
 
         try {
             this.localCommits = parseAllLocalCommits();
@@ -534,7 +540,8 @@ public abstract class RepoHelper {
         this.hasUnmergedCommitsProperty.set(status == MergeResult.MergeStatus.ABORTED || status == MergeResult.MergeStatus.CHECKOUT_CONFLICT);
         this.hasUnpushedCommitsProperty.set(this.hasUnpushedCommits() || status == MergeResult.MergeStatus.MERGED);
         if (status == MergeResult.MergeStatus.CONFLICTING) throw new ConflictingFilesException(result.getConflicts());
-        return result.getMergeStatus().isSuccessful();
+        //return result.getMergeStatus().isSuccessful();
+        return status;
     }
 
     /**
@@ -593,6 +600,16 @@ public abstract class RepoHelper {
      */
     public List<CommitHelper> getRemoteCommits() {
         return this.remoteCommits;
+    }
+
+    /**
+     * @return all commits (remote and local) that have been parsed
+     */
+    public List<CommitHelper> getAllCommits () {
+        List<CommitHelper> allCommits = new ArrayList<>();
+        allCommits.addAll(this.localCommits);
+        allCommits.addAll(this.remoteCommits);
+        return allCommits;
     }
 
     /**
@@ -1284,7 +1301,7 @@ public abstract class RepoHelper {
      */
     private LocalBranchHelper createLocalTrackingBranchForRemote(RemoteBranchHelper remoteBranchHelper) throws GitAPIException, IOException {
         // Take off the 'origin/' before the branch name
-        String localBranchName=remoteBranchHelper.getBranchName().substring(7);
+        String localBranchName=this.repo.shortenRemoteBranchName(remoteBranchHelper.getRefPathString());
         Ref trackingBranchRef = new Git(this.repo).branchCreate().
                 setName(localBranchName).
                 setUpstreamMode(CreateBranchCommand.SetupUpstreamMode.TRACK).
@@ -1399,6 +1416,19 @@ public abstract class RepoHelper {
         return new ArrayList<>(remoteBranches);
     }
 
+    /**
+     * Gets a list of all the branches of this repository. Also updates
+     * the head of each remote branch if it was missing
+     *
+     * @return the remote branches of this repository
+     */
+    public List<BranchHelper> getAllBranches() {
+        List<BranchHelper> allBranches = new ArrayList<>();
+        allBranches.addAll(getLocalBranches());
+        allBranches.addAll(getRemoteBranches());
+        return new ArrayList<>(allBranches);
+    }
+
     public Map<CommitHelper, List<BranchHelper>> getAllBranchHeads(){
         Map<CommitHelper, List<BranchHelper>> heads = new HashMap<>();
 
@@ -1444,13 +1474,13 @@ public abstract class RepoHelper {
         String branchName = branch.getBranchName();
         if (branch instanceof LocalBranchHelper) {
             for (BranchHelper remote : remoteBranches) {
-                if (remote.getBranchName().equals(branchName)) {
+                if (this.repo.shortenRemoteBranchName(remote.getRefPathString()).equals(branchName)) {
                     return true;
                 }
             }
         } else {
             for (BranchHelper local : localBranches) {
-                if (local.getBranchName().equals(branchName)) {
+                if (local.getBranchName().equals(this.repo.shortenRemoteBranchName(branch.getRefPathString()))) {
                     return true;
                 }
             }

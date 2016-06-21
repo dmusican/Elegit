@@ -87,7 +87,7 @@ public class RepositoryMonitor{
                             boolean hasFoundNewChanges = false;
 
                             for(BranchHelper branch : localOriginHeads){
-                                if(ref.getName().equals("refs/heads/"+branch.getBranchName().substring(7))){
+                                if(ref.getName().equals("refs/heads/"+repo.getRepo().shortenRemoteBranchName(branch.getRefPathString()))){
                                     hasFoundMatchingBranch = true;
                                     if(!branch.getHeadId().equals(ref.getObjectId())){
                                         hasFoundNewChanges = true;

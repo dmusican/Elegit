@@ -100,6 +100,15 @@ public abstract class CommitTreeModel{
     protected abstract List<BranchHelper> getAllBranches(RepoHelper repoHelper);
 
     /**
+     * Gets all local and remote branches from the repo helper, used for making the tree pretty
+     * @param repoHelper the helper to get all branches from
+     * @return a list of all local and remote branches
+     */
+    public List<BranchHelper> getLocalRemoteBranches(RepoHelper repoHelper) {
+        return repoHelper.getAllBranches();
+    }
+
+    /**
      * @param repoHelper the repository to get the commits from
      * @return a list of all commits tracked by this model
      */
