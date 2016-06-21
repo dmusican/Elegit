@@ -477,7 +477,7 @@ public abstract class RepoHelper {
         if (!exists()) throw new MissingRepoException();
         Git git = new Git(this.repo);
 
-        FetchCommand fetch = git.fetch().setTagOpt(TagOpt.AUTO_FOLLOW);
+        FetchCommand fetch = git.fetch().setTagOpt(TagOpt.AUTO_FOLLOW).setRemoveDeletedRefs(true);
 
         myWrapAuthentication(fetch);
 
@@ -1296,7 +1296,7 @@ public abstract class RepoHelper {
      */
     private LocalBranchHelper createLocalTrackingBranchForRemote(RemoteBranchHelper remoteBranchHelper) throws GitAPIException, IOException {
         // Take off the 'origin/' before the branch name
-        String localBranchName=remoteBranchHelper.getBranchName().substring(7);
+        String localBranchName=this.repo.shortenRemoteBranchName(remoteBranchHelper.getRefPathString());
         Ref trackingBranchRef = new Git(this.repo).branchCreate().
                 setName(localBranchName).
                 setUpstreamMode(CreateBranchCommand.SetupUpstreamMode.TRACK).
@@ -1469,13 +1469,13 @@ public abstract class RepoHelper {
         String branchName = branch.getBranchName();
         if (branch instanceof LocalBranchHelper) {
             for (BranchHelper remote : remoteBranches) {
-                if (remote.getBranchName().substring(7).equals(branchName)) {
+                if (this.repo.shortenRemoteBranchName(remote.getRefPathString()).equals(branchName)) {
                     return true;
                 }
             }
         } else {
             for (BranchHelper local : localBranches) {
-                if (local.getBranchName().equals(branchName.substring(7))) {
+                if (local.getBranchName().equals(this.repo.shortenRemoteBranchName(branch.getRefPathString()))) {
                     return true;
                 }
             }
