@@ -153,8 +153,6 @@ public class SessionController {
         this.workingTreePanelView.setSessionModel(this.theModel);
         this.allFilesPanelView.setSessionModel(this.theModel);
 
-        System.out.println("init: " + Platform.isFxApplicationThread());
-
         this.initializeLayoutParameters();
         this.initWorkingTreePanelTab();
         this.setButtonIconsAndTooltips();

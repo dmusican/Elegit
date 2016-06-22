@@ -1,6 +1,7 @@
 package elegit;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.MenuBar;
@@ -80,7 +81,9 @@ public class Main extends Application {
 
         primaryStage.setScene(scene);
         startLatch.countDown();
-        primaryStage.show();
+        Platform.runLater(() -> {
+            primaryStage.show();
+        });
     }
 
     public static void main(String[] args) {
