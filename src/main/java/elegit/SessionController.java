@@ -116,14 +116,18 @@ public class SessionController {
 
     public DataSubmitter d;
 
-    CommitTreeModel localCommitTreeModel;
-    CommitTreeModel remoteCommitTreeModel;
+    public CommitTreeModel localCommitTreeModel;
+    public CommitTreeModel remoteCommitTreeModel;
 
-    BooleanProperty isWorkingTreeTabSelected;
+    public BooleanProperty isWorkingTreeTabSelected;
 
     private volatile boolean isRecentRepoEventListenerBlocked = false;
 
     static final Logger logger = LogManager.getLogger(SessionController.class);
+
+    public ContextMenu newRepoOptionsMenu;
+    public MenuItem cloneOption;
+    public MenuItem existingOption;
 
     /**
      * Initializes the environment by obtaining the model
@@ -132,25 +136,125 @@ public class SessionController {
      * This method is automatically called by JavaFX.
      */
     public void initialize() {
+        // Creates the SessionModel
         this.theModel = SessionModel.getSessionModel();
 
+        // Creates a DataSubmitter for logging
         d = new DataSubmitter();
 
-        this.initializeLayoutParameters();
-
+        // Passes this to CommitTreeController
         CommitTreeController.sessionController = this;
 
-        this.workingTreePanelView.setSessionModel(this.theModel);
-        this.allFilesPanelView.setSessionModel(this.theModel);
-
-        isWorkingTreeTabSelected = new SimpleBooleanProperty(true);
-        isWorkingTreeTabSelected.bind(workingTreePanelTab.selectedProperty());
-        workingTreePanelTab.getTabPane().getSelectionModel().select(workingTreePanelTab);
-
+        // Creates the local and remote commit tree models
         this.localCommitTreeModel = new LocalCommitTreeModel(this.theModel, this.localCommitTreePanelView);
         this.remoteCommitTreeModel = new RemoteCommitTreeModel(this.theModel, this.remoteCommitTreePanelView);
 
-        // Add FontAwesome icons to buttons:
+        // Passes theModel to panel views
+        this.workingTreePanelView.setSessionModel(this.theModel);
+        this.allFilesPanelView.setSessionModel(this.theModel);
+
+        System.out.println("init: " + Platform.isFxApplicationThread());
+
+        this.initializeLayoutParameters();
+        this.initWorkingTreePanelTab();
+        this.setButtonIconsAndTooltips();
+        this.initDisable();
+
+        this.theModel.loadRecentRepoHelpersFromStoredPathStrings();
+        this.theModel.loadMostRecentRepoHelper();
+
+        this.initPanelViews();
+        this.updateUIEnabledStatus();
+        this.setRecentReposDropdownToCurrentRepo();
+        this.refreshRecentReposInDropdown();
+
+        this.initRepositoryMonitor();
+        this.handleUnpushedTags();
+    }
+
+    private void handleUnpushedTags() {
+        // ASK ERIC
+        //if (this.theModel.getCurrentRepoHelper()!= null && this.theModel.getCurrentRepoHelper().hasTagsWithUnpushedCommits()) {
+        //this.showTagPointsToUnpushedCommitNotification();
+        //}
+
+        // If some tags point to a commit in the remote tree, then these are unpushed tags,
+        // so we add them to the repohelper
+        if (remoteCommitTreeModel.getTagsToBePushed() != null) {
+            this.theModel.getCurrentRepoHelper().setUnpushedTags(remoteCommitTreeModel.getTagsToBePushed());
+        }
+    }
+
+    /**
+     * Disables/hides unusable items during startup
+     */
+    private void initDisable() {
+        // Buttons start out disabled, since no repo is loaded
+        this.setButtonsDisabled(true);
+
+        // Branch selector and trigger button starts invisible, since there's no repo and no branches
+        this.branchDropdownSelector.setVisible(false);
+    }
+
+    /**
+     * Initializes the workingTreePanelTab
+     */
+    private void initWorkingTreePanelTab() {
+        isWorkingTreeTabSelected = new SimpleBooleanProperty(true);
+        isWorkingTreeTabSelected.bind(workingTreePanelTab.selectedProperty());
+        workingTreePanelTab.getTabPane().getSelectionModel().select(workingTreePanelTab);
+    }
+
+    /**
+     * Initializes the repository monitor
+     */
+    private void initRepositoryMonitor() {
+        // bind currentRepoProperty with menuBar to update menuBar when repo gets changed.
+        RepositoryMonitor.bindMenu(theModel);
+
+        RepositoryMonitor.beginWatchingRemote(theModel);
+        RepositoryMonitor.hasFoundNewRemoteChanges.addListener((observable, oldValue, newValue) -> {
+            if(newValue) showNewRemoteChangesNotification();
+        });
+        RepositoryMonitor.beginWatchingLocal(this, theModel);
+    }
+
+    /**
+     * Sets up the layout parameters for things that cannot be set in FXML
+     */
+    private void initializeLayoutParameters(){
+        // Set minimum/maximum sizes for buttons
+        openRepoDirButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
+        gitStatusButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
+        commitButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
+        mergeFromFetchButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
+        pushTagsButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
+        pushButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
+        fetchButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
+        branchesButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
+        commitInfoNameCopyButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
+        commitInfoGoToButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
+        gitStatusButton.setMaxWidth(Double.MAX_VALUE);
+
+        // Set minimum sizes for other fields and views
+        workingTreePanelView.setMinSize(Control.USE_PREF_SIZE, 200);
+        allFilesPanelView.setMinSize(Control.USE_PREF_SIZE, 200);
+        commitMessageField.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
+        tagNameField.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
+        branchDropdownSelector.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
+        final int REPO_DROPDOWN_MAX_WIDTH = 147;
+        repoDropdownSelector.setMaxWidth(REPO_DROPDOWN_MAX_WIDTH);
+
+        commitInfoNameText.maxWidthProperty().bind(commitInfoMessageText.widthProperty()
+                .subtract(commitInfoGoToButton.widthProperty())
+                .subtract(commitInfoNameCopyButton.widthProperty())
+                .subtract(10)); // The gap between each button and this label is 5
+    }
+
+    /**
+     * Adds graphics and tooltips to the buttons
+     */
+    private void setButtonIconsAndTooltips() {
         Text openExternallyIcon = GlyphsDude.createIcon(FontAwesomeIcon.EXTERNAL_LINK);
         this.openRepoDirButton.setGraphic(openExternallyIcon);
         this.openRepoDirButton.setTooltip(new Tooltip("Open repository directory"));
@@ -171,6 +275,12 @@ public class SessionController {
         Text goToIcon = GlyphsDude.createIcon(FontAwesomeIcon.ARROW_CIRCLE_LEFT);
         this.commitInfoGoToButton.setGraphic(goToIcon);
 
+        Text downloadIcon = GlyphsDude.createIcon(FontAwesomeIcon.CLOUD_DOWNLOAD);
+        cloneOption.setGraphic(downloadIcon);
+
+        Text folderOpenIcon = GlyphsDude.createIcon(FontAwesomeIcon.FOLDER_OPEN);
+        existingOption.setGraphic(folderOpenIcon);
+
         this.commitButton.setTooltip(new Tooltip(
                 "Check in selected files to local repository"
         ));
@@ -184,94 +294,11 @@ public class SessionController {
                 "Update remote repository with local changes"
         ));
 
-        // Set up the "+" button for loading new repos (give it a menu)
-        Text downloadIcon = GlyphsDude.createIcon(FontAwesomeIcon.CLOUD_DOWNLOAD);
-        MenuItem cloneOption = new MenuItem("Clone repository", downloadIcon);
-        cloneOption.setOnAction(t -> {
-            logger.info("Load remote repo button clicked");
-            handleLoadRepoMenuItem(new ClonedRepoHelperBuilder(this.theModel));
-        });
-
-        Text folderOpenIcon = GlyphsDude.createIcon(FontAwesomeIcon.FOLDER_OPEN);
-        MenuItem existingOption = new MenuItem("Load existing repository", folderOpenIcon);
-        existingOption.setOnAction(t -> {
-            logger.info("Load local repo button clicked");
-            handleLoadRepoMenuItem(new ExistingRepoHelperBuilder(this.theModel));
-        });
-        ContextMenu newRepoOptionsMenu = new ContextMenu(cloneOption, existingOption);
-
-        this.loadNewRepoButton.setOnAction(e -> newRepoOptionsMenu.show(this.loadNewRepoButton, Side.BOTTOM ,0, 0));
-        this.loadNewRepoButton.setTooltip(new Tooltip("Load a new repository"));
-
-        // Buttons start out disabled, since no repo is loaded
-        this.setButtonsDisabled(true);
-
-        // Branch selector and trigger button starts invisible, since there's no repo and no branches
-        this.branchDropdownSelector.setVisible(false);
-
-        this.theModel.loadRecentRepoHelpersFromStoredPathStrings();
-        this.theModel.loadMostRecentRepoHelper();
-
-        this.initPanelViews();
-        this.updateUIEnabledStatus();
-        this.setRecentReposDropdownToCurrentRepo();
-        this.refreshRecentReposInDropdown();
-
-        // bind currentRepoProperty with menuBar to update menuBar
-        // when repo gets changed.
-        RepositoryMonitor.bindMenu(theModel);
-
-        RepositoryMonitor.beginWatchingRemote(theModel);
-        RepositoryMonitor.hasFoundNewRemoteChanges.addListener((observable, oldValue, newValue) -> {
-            if(newValue) showNewRemoteChangesNotification();
-        });
-        RepositoryMonitor.beginWatchingLocal(this, theModel);
-
-        if (this.theModel.getCurrentRepoHelper()!= null && this.theModel.getCurrentRepoHelper().hasTagsWithUnpushedCommits()) {
-            //this.showTagPointsToUnpushedCommitNotification();
-        }
-        // If some tags point to a commit in the remote tree, then these are unpushed tags,
-        // so we add them to the repohelper
-        if (remoteCommitTreeModel.getTagsToBePushed() != null) {
-            this.theModel.getCurrentRepoHelper().setUnpushedTags(remoteCommitTreeModel.getTagsToBePushed());
-        }
+        this.loadNewRepoButton.setTooltip(new Tooltip(
+                "Load a new repository"
+        ));
     }
 
-    /**
-     * Sets up the layout parameters for things that cannot be set in FXML
-     */
-    private void initializeLayoutParameters(){
-        openRepoDirButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
-        gitStatusButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
-        commitButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
-        mergeFromFetchButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
-        pushTagsButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
-        pushButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
-        fetchButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
-        branchesButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
-
-        gitStatusButton.setMaxWidth(Double.MAX_VALUE);
-
-        workingTreePanelView.setMinSize(Control.USE_PREF_SIZE, 200);
-        allFilesPanelView.setMinSize(Control.USE_PREF_SIZE, 200);
-        commitMessageField.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
-        tagNameField.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
-
-        branchDropdownSelector.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
-
-        final int REPO_DROPDOWN_MAX_WIDTH = 147;
-        repoDropdownSelector.setMaxWidth(REPO_DROPDOWN_MAX_WIDTH);
-
-
-        commitInfoNameCopyButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
-        commitInfoGoToButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
-
-        commitInfoNameText.maxWidthProperty().bind(commitInfoMessageText.widthProperty()
-                .subtract(commitInfoGoToButton.widthProperty())
-                .subtract(commitInfoNameCopyButton.widthProperty())
-                .subtract(10)); // The gap between each button and this label is 5
-
-    }
     /**
      * Populates the browser image with the remote URL
      */
@@ -334,6 +361,27 @@ public class SessionController {
                 this.branchDropdownSelector.setValue(currentBranch);
             }
         });
+    }
+
+    /**
+     * Called when the loadNewRepoButton gets pushed, shows a menu of options
+     */
+    public void handleLoadNewRepoButton() {
+        newRepoOptionsMenu.show(this.loadNewRepoButton, Side.BOTTOM ,0, 0);
+    }
+
+    /**
+     * Called when the "Load existing repository" option is clicked
+     */
+    public void handleLoadExistingRepoOption() {
+        handleLoadRepoMenuItem(new ExistingRepoHelperBuilder(this.theModel));
+    }
+
+    /**
+     * Called when the "Clone repository" option is clicked
+     */
+    public void handleCloneNewRepoOption() {
+        handleLoadRepoMenuItem(new ClonedRepoHelperBuilder(this.theModel));
     }
 
     /**
@@ -993,7 +1041,7 @@ public class SessionController {
             allFilesPanelView.drawDirectoryView();
             localCommitTreeModel.init();
             remoteCommitTreeModel.init();
-            setBrowserURL();
+            this.setBrowserURL();
         } catch (GitAPIException | IOException e) {
             showGenericErrorNotification();
         }
