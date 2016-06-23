@@ -22,3 +22,6 @@ Elegit.iml
 *.log
 target
 httpUsernamePassword.txt
+
+._.DS_Store
+.DS_Store
