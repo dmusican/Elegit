@@ -84,7 +84,6 @@ public class SessionController {
     public Button fetchButton;
     public Button branchesButton;
 
-    public ProgressIndicator fetchProgressIndicator;
     public ProgressIndicator pushProgressIndicator;
 
     public TextArea commitMessageField;
@@ -877,9 +876,6 @@ public class SessionController {
                     } catch(Exception e) {
                         showGenericErrorNotification();
                         e.printStackTrace();
-                    } finally{
-                        fetchProgressIndicator.setVisible(false);
-                        fetchButton.setVisible(true);
                     }
                     return null;
                 }
