@@ -572,6 +572,23 @@ public abstract class RepoHelper {
         return mergeResult;
     }
 
+    /**
+     * Creates a new local branch using git.
+     *
+     * @param branchName the name of the new branch.
+     * @return the new local branch's LocalBranchHelper.
+     * @throws GitAPIException
+     * @throws IOException
+     */
+    public LocalBranchHelper createNewLocalBranch(String branchName) throws GitAPIException, IOException {
+        Git git = new Git(this.repo);
+        Ref newBranch = git.branchCreate().setName(branchName).call();
+        LocalBranchHelper newLocalBranchHelper = new LocalBranchHelper(newBranch, this);
+
+        git.close();
+        return newLocalBranchHelper;
+    }
+
     public void closeRepo() {
         this.repo.close();
     }
