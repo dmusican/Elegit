@@ -686,7 +686,9 @@ public class SessionController {
                     } catch(GitAPIException | IOException e){
                         showGenericErrorNotification();
                         e.printStackTrace();
-                    } catch(Exception e) {
+                    } catch(NoTrackingException e) {
+                        showNoRemoteTrackingNotification();
+                    }catch (Exception e) {
                         showGenericErrorNotification();
                         e.printStackTrace();
                     }
@@ -1475,6 +1477,16 @@ public class SessionController {
         Platform.runLater(() -> {
             logger.warn("Tag points to unpushed warning.");
             this.notificationPane.setText("A tag points to an unpushed commit.");
+
+            this.notificationPane.getActions().clear();
+            this.notificationPane.show();
+        });
+    }
+
+    private void showNoRemoteTrackingNotification() {
+        Platform.runLater(() -> {
+            logger.warn("No remote tracking for current branch notification.");
+            this.notificationPane.setText("There is no remote tracking information for the current branch.");
 
             this.notificationPane.getActions().clear();
             this.notificationPane.show();

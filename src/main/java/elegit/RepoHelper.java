@@ -513,7 +513,8 @@ public abstract class RepoHelper {
      * @throws MissingRepoException
      * @return the merge status merging these two branches
      */
-    public MergeResult.MergeStatus mergeFromFetch() throws IOException, GitAPIException, MissingRepoException, ConflictingFilesException {
+    public MergeResult.MergeStatus mergeFromFetch() throws IOException, GitAPIException, MissingRepoException,
+            ConflictingFilesException, NoTrackingException {
         logger.info("Attempting merge from fetch");
         if (!exists()) throw new MissingRepoException();
         if (!hasRemote()) throw new InvalidRemoteException("No remote repository");
@@ -522,12 +523,13 @@ public abstract class RepoHelper {
         // and merge the current branch with the just fetched remote branch
         MergeResult result;
         Config config = repo.getConfig();
+        // Check if this branch is being tracked locally
         if (config.getSubsections("branch").contains(this.repo.getBranch())) {
             String remote = config.getString("branch", this.repo.getBranch(), "remote")+"/";
             String remote_tracking = config.getString("branch", this.repo.getBranch(), "merge");
             result = mergeWithBranch(this.getRemoteBranchByName(remote+this.repo.shortenRefName(remote_tracking)));
         } else {
-            return null;
+            throw new NoTrackingException();
         }
 
         try {
