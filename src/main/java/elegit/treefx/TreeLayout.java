@@ -20,7 +20,7 @@ public class TreeLayout{
     public static int cells_moved = 0;
 
     // Service to compute the location of where all cells should go
-    public static class ComputeCellPosService extends Service<Integer> {
+    public static class ComputeCellPosService extends Service {
         private List<Integer> minColumnUsedInRow;
         private List<Integer> minColumnWantedInRow;
         private List<Cell> allCellsSortedByTime;
@@ -36,13 +36,17 @@ public class TreeLayout{
             this.isInitialSetupFinished = isInitialSetupFinished;
         }
 
-        @Override
-        protected synchronized Task<Integer> createTask() {
-            return new Task<Integer>() {
-                @Override
-                protected Integer call() throws Exception {
-                    cellLocation = allCellsSortedByTime.size()-1 - getCellsMoved();
+        public void setCellLocation(int cellLocation) {
+            System.out.println("Cell location:"+cellLocation);
+            this.cellLocation = cellLocation;
+        }
 
+        @Override
+        protected synchronized Task createTask() {
+            return new Task() {
+                @Override
+                protected Void call() throws Exception {
+                    //cellLocation = allCellsSortedByTime.size()-1 - getCellsMoved();
                     if (cellLocation > allCellsSortedByTime.size()-1)
                         this.failed();
 
@@ -52,8 +56,6 @@ public class TreeLayout{
                     // Get where the cell should go based on which columns have been 'reserved'
                     int x = cellLocation;
                     int y = getRowOfCellInColumn(minColumnWantedInRow, x);
-
-                    System.out.println(x+ " "+y);
 
                     // See whether or not this cell will move
                     int oldColumnLocation = c.columnLocationProperty.get();
@@ -93,9 +95,7 @@ public class TreeLayout{
                         else
                             minColumnWantedInRow.add(row, getColumnOfCell(allCellsSortedByTime, parent));
                     }
-                    // Check that the cells have been moved
-                    upCellsMoved();
-                    return x;
+                    return null;
                 }
             };
         }
@@ -138,9 +138,6 @@ public class TreeLayout{
                     return i;
                 });
                 ComputeCellPosService mover = new ComputeCellPosService(allCellsSortedByTime, false);
-                mover.setOnSucceeded(event -> {
-                    mover.restart();
-                });
                 mover.setOnFailed(event -> {
                     // Schedule the moving of all cells
                     Task moveCells = new Task() {
@@ -150,10 +147,10 @@ public class TreeLayout{
                             int percent=0;
                             for (int i = 0; i < max; i++) {
                                 moveCell(allCellsSortedByTime.get(i));
-                                //if (max*100/i%100>percent) {
-                                    //updateProgress(i, max);
-                                    //percent++;
-                                //}
+                                if (max*100/i%100>percent) {
+                                    updateProgress(i, max);
+                                    percent++;
+                                }
                             }
                             return null;
                         }
@@ -167,6 +164,10 @@ public class TreeLayout{
                     }
                 });
                 mover.start();
+                for (int i=1; i<allCellsSortedByTime.size(); i++) {
+                    mover.setCellLocation(i);
+                    mover.restart();
+                }
                 return null;
             }
         };
@@ -198,10 +199,6 @@ public class TreeLayout{
     public static int getColumnOfCell(List<Cell> allCellsSortedByTime, Cell c){
         return allCellsSortedByTime.size() - 1 - allCellsSortedByTime.indexOf(c);
     }
-
-    public static int getCellsMoved() { return cells_moved; }
-
-    public static void upCellsMoved() { cells_moved++;  }
 
     /**
      * Helper method that updates the given cell's position to the coordinates corresponding
