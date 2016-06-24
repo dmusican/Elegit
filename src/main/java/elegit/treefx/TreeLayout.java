@@ -19,6 +19,7 @@ public class TreeLayout{
     public static int H_SPACING = Cell.BOX_SIZE * 3 + 5;
     public static int V_PAD = 10;
     public static int H_PAD = 25;
+    public static int cells_moved = 0;
 
     // Move cell service to move cells
     public static class MoveCellService  extends Service<Integer> {
@@ -35,11 +36,6 @@ public class TreeLayout{
             this.cellLocation = allCellsSortedByTime.size()-1;
             this.allCellsSortedByTime = allCellsSortedByTime;
             this.isInitialSetupFinished = isInitialSetupFinished;
-
-            // Set the service to run again until it's completed moving all cells.
-            this.setOnSucceeded(event -> {
-                this.restart();
-            });
         }
 
         @Override
@@ -47,45 +43,56 @@ public class TreeLayout{
             return new Task<Integer>() {
                 @Override
                 protected Integer call() throws Exception {
+                    cellLocation = allCellsSortedByTime.size()-1 - getCellsMoved();
+                    System.out.println(cellLocation);
+
+                    if (cellLocation > allCellsSortedByTime.size()-1)
+                        this.cancelled();
+
                     // Get cell at rightmost location not yet placed
                     Cell c = allCellsSortedByTime.get(allCellsSortedByTime.size()-1-cellLocation);
 
+                    // Get where the cell should go based on which columns have been 'reserved'
                     int x = cellLocation;
                     int y = getRowOfCellInColumn(minColumnWantedInRow, x);
 
-                    // If the cell was placed in a row but there were higher rows that
-                    // told the commit it might be placed there, we reset those rows
-                    for (int i=y; y<minColumnWantedInRow.size(); y++)
-                        if (minColumnWantedInRow.get(i) == i)
-                            minColumnWantedInRow.set(i, minColumnUsedInRow.get(i));
-                    //TODO: finish updating parent array, put this whole thing in a task and try it out!
-
+                    // See whether or not this cell will move
                     int oldColumnLocation = c.columnLocationProperty.get();
                     int oldRowLocation = c.rowLocationProperty.get();
                     c.columnLocationProperty.set(x);
                     c.rowLocationProperty.set(y);
 
-                    // If the cell has been used in a new row, add a row to columns used in rows
-                    if (y >= minColumnUsedInRow.size())
-                        minColumnUsedInRow.add(x);
-                    // Otherwise, just set that value
-                    else
-                        minColumnUsedInRow.set(y, x);
-
                     boolean hasCellMoved = oldColumnLocation >= 0 && oldRowLocation >= 0;
                     boolean willCellMove = oldColumnLocation != x || oldRowLocation != y;
 
+                    // Update where the cell has been placed
+                    if (y >= minColumnUsedInRow.size())
+                        minColumnUsedInRow.add(x);
+                    else
+                        minColumnUsedInRow.set(y, x);
+
+                    // Update the reserved rows
+                    for (int i=y; y<minColumnWantedInRow.size(); y++)
+                        if (minColumnWantedInRow.get(i) == i)
+                            minColumnWantedInRow.set(i, minColumnUsedInRow.get(i));
+
+                    // Move the cell
                     moveCell(c, isInitialSetupFinished && willCellMove, !hasCellMoved);
 
+                    // Update the reserved columns in rows with the cells parents, oldest to newest
                     List<Cell> list = c.getCellParents();
                     list.sort((c1, c2) -> Long.compare(c1.getTime(), c2.getTime()));
 
                     // For each parent, oldest to newest, place its want of row in the highest possible
                     for(Cell parent : list){
                         int row = getRowOfCellInColumn(minColumnWantedInRow, getColumnOfCell(allCellsSortedByTime, parent));
-                        minColumnUsedInRow.set(row, getColumnOfCell(allCellsSortedByTime, parent));
+                        if (minColumnWantedInRow.size() > row)
+                            minColumnWantedInRow.set(row, getColumnOfCell(allCellsSortedByTime, parent));
+                        else
+                            minColumnWantedInRow.add(row, getColumnOfCell(allCellsSortedByTime, parent));
                     }
-                    cellLocation++;
+                    // Check that the cells have been moved
+                    upCellsMoved();
                     return x;
                 }
             };
@@ -104,9 +111,6 @@ public class TreeLayout{
     public static Task getTreeLayoutTask(TreeGraph g){
 
         return new Task<Void>(){
-
-            private List<String> visited;
-            private List<Integer> minColumnUsedInRow;
 
             private List<Cell> allCellsSortedByTime;
 
@@ -131,90 +135,17 @@ public class TreeLayout{
                     }
                     return i;
                 });
-
-                relocateCells(visited, allCellsSortedByTime, minColumnUsedInRow, treeGraphModel.isInitialSetupFinished);
+                MoveCellService mover = new MoveCellService(allCellsSortedByTime, false);
+                mover.setOnSucceeded(event -> {
+                    mover.restart();
+                });
+                mover.start();
                 if(!isCancelled()){
                     treeGraphModel.isInitialSetupFinished = true;
                 }
                 return null;
             }
         };
-    }
-
-
-
-    /**
-     * Places all cells in the graph row by row, starting at the
-     * cell furthest to the left (the oldest cell). Tracks the column at
-     * which each row placed ends so as to make sure the space used
-     * is as compact as possible.
-     */
-    public static void relocateCells(List<String> visited, List<Cell> allCellsSortedByTime,
-                                     List<Integer> minColumnUsedInRow, boolean isInitialSetupFinished){
-        visited = new ArrayList<>();
-        minColumnUsedInRow = new ArrayList<>();
-
-        MoveCellService mover = new MoveCellService(minColumnUsedInRow, 0, allCellsSortedByTime,
-                isInitialSetupFinished);
-
-        for(int i = allCellsSortedByTime.size() - 1; i >= 0; i--){
-            Cell c = allCellsSortedByTime.get(i);
-            if(!visited.contains(c.getCellId())){
-                mover.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
-                    @Override
-                    public void handle(WorkerStateEvent event) {
-                        mover.restart();
-                    }
-                });
-                int maxCol = relocateCellAndChildRow(visited, allCellsSortedByTime,
-                        minColumnUsedInRow, c, isInitialSetupFinished);
-                updateMinColumnArray(minColumnUsedInRow, maxCol);
-            }
-        }
-    }
-
-    /**
-     * Places the given cell into the row closest to the
-     * top of the screen, and then chooses its child furthest
-     * to the right to place in next. Each recursive call happens
-     * on only a single of c's children to allow the rows to
-     * space correctly
-     * @param visited the list of visited cells
-     * @param allCellsSortedByTime sorted list of all cells by time
-     * @param animateRelocatedCells whether or not to animate the relocated cells
-     * @param c the cell to place
-     * @param minColumnUsedInRow map of max column used in each row
-     * @return the maximum column in which a cell was placed before
-     * it had no non-visited children
-     */
-    public static int relocateCellAndChildRow(List<String> visited, List<Cell> allCellsSortedByTime,
-            List<Integer> minColumnUsedInRow, Cell c, boolean animateRelocatedCells){
-        visited.add(c.getCellId());
-
-        int x = getColumnOfCell(allCellsSortedByTime, c);
-        int y = getRowOfCellInColumn(minColumnUsedInRow, x);
-
-        int oldColumnLocation = c.columnLocationProperty.get();
-        int oldRowLocation = c.rowLocationProperty.get();
-
-        c.columnLocationProperty.set(x);
-        c.rowLocationProperty.set(y);
-
-        boolean hasCellMoved = oldColumnLocation >= 0 && oldRowLocation >= 0;
-        boolean willCellMove = oldColumnLocation != x || oldRowLocation != y;
-
-        moveCell(c, animateRelocatedCells && willCellMove, !hasCellMoved);
-
-        List<Cell> list = c.getCellChildren();
-        list.sort((c1, c2) -> Long.compare(c2.getTime(), c1.getTime()));
-
-        for(Cell child : list){
-            if(!visited.contains(child.getCellId())){
-                return relocateCellAndChildRow(visited, allCellsSortedByTime,
-                        minColumnUsedInRow, child, animateRelocatedCells);
-            }
-        }
-        return x;
     }
 
 
@@ -244,20 +175,6 @@ public class TreeLayout{
         });
     }
 
-
-    /**
-     * Updates the array holding the max column used in every row
-     * @param minColumnUsedInRow the map of rows to min column used in each
-     * @param column the column to look at
-     */
-    public static void updateMinColumnArray(List<Integer> minColumnUsedInRow, int column, int row){
-        if(minColumnUsedInRow.size()-1 < row){
-            minColumnUsedInRow.add(row, column);
-        }else if(column > minColumnUsedInRow.get(row)){
-            minColumnUsedInRow.set(row, column);
-        }
-    }
-
     /**
      * Calculates the row closest to the top of the screen to place the
      * given cell based on the cell's column and the maximum heights recorded
@@ -284,5 +201,8 @@ public class TreeLayout{
     public static int getColumnOfCell(List<Cell> allCellsSortedByTime, Cell c){
         return allCellsSortedByTime.size() - 1 - allCellsSortedByTime.indexOf(c);
     }
+
+    public static int getCellsMoved() { return cells_moved; }
+    public static void upCellsMoved() { cells_moved++;  }
 
 }
