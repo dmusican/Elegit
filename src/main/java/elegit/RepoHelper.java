@@ -1475,14 +1475,28 @@ public abstract class RepoHelper {
     public boolean isBranchTracked(BranchHelper branch) {
         String branchName = branch.getBranchName();
         if (branch instanceof LocalBranchHelper) {
-            for (BranchHelper remote : remoteBranches) {
+            // We can check this easily by looking at the config file, but have to first
+            // check if there is an entry in the config file for LocalBranchHelper
+            String merge = this.repo.getConfig().getString("branch", branchName, "merge");
+
+            // If there is no entry in the config file for this branch, then it isn't tracked remotely
+            if (merge==null) return false;
+
+            // Otherwise there is a remote branch that the local branch is tracking remotely
+            return true;
+
+            /*for (BranchHelper remote : remoteBranches) {
                 if (this.repo.shortenRemoteBranchName(remote.getRefPathString())
                         .equals(this.repo.shortenRefName(this.repo.getConfig().getString("branch", branchName, "merge")))) {
                     return true;
                 }
-            }
+            }*/
         } else {
             for (BranchHelper local : localBranches) {
+                // Skip local branches that aren't tracked remotely, as they won't have a config entry
+                if (this.repo.getConfig().getString("branch", local.getBranchName(), "merge")==null) continue;
+
+                // Otherwise, we have to check all local branches to see if they're tracking the particular remote branch
                 if (this.repo.shortenRefName(this.repo.getConfig().getString("branch", local.getBranchName(), "merge"))
                         .equals(this.repo.shortenRemoteBranchName(branch.getRefPathString()))) {
                     return true;
