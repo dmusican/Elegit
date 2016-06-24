@@ -84,7 +84,6 @@ public class SessionController {
     public Button fetchButton;
     public Button branchesButton;
 
-    public ProgressIndicator fetchProgressIndicator;
     public ProgressIndicator pushProgressIndicator;
 
     public TextArea commitMessageField;
@@ -686,7 +685,9 @@ public class SessionController {
                     } catch(GitAPIException | IOException e){
                         showGenericErrorNotification();
                         e.printStackTrace();
-                    } catch(Exception e) {
+                    } catch(NoTrackingException e) {
+                        showNoRemoteTrackingNotification();
+                    }catch (Exception e) {
                         showGenericErrorNotification();
                         e.printStackTrace();
                     }
@@ -877,9 +878,6 @@ public class SessionController {
                     } catch(Exception e) {
                         showGenericErrorNotification();
                         e.printStackTrace();
-                    } finally{
-                        fetchProgressIndicator.setVisible(false);
-                        fetchButton.setVisible(true);
                     }
                     return null;
                 }
@@ -1475,6 +1473,16 @@ public class SessionController {
         Platform.runLater(() -> {
             logger.warn("Tag points to unpushed warning.");
             this.notificationPane.setText("A tag points to an unpushed commit.");
+
+            this.notificationPane.getActions().clear();
+            this.notificationPane.show();
+        });
+    }
+
+    private void showNoRemoteTrackingNotification() {
+        Platform.runLater(() -> {
+            logger.warn("No remote tracking for current branch notification.");
+            this.notificationPane.setText("There is no remote tracking information for the current branch.");
 
             this.notificationPane.getActions().clear();
             this.notificationPane.show();

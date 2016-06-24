@@ -47,8 +47,10 @@ public class DataSubmitter {
 
         for (File logFile: logsToUpload) {
             if (!logFile.isFile() || logFile.getName().equals(LOG_FILE_NAME)) {
-                if (logsToUpload.length == 1) logger.info("No new logs to upload today");
-                break;
+                if (logsToUpload.length == 1) {
+                    logger.info("No new logs to upload today");
+                    break;
+                }
             }
 
             // Move the file to a uuid filename for upload to the server.
@@ -93,6 +95,9 @@ public class DataSubmitter {
                 }
                 return null;
             }
+            // Delete the log file as we might be uploading more!
+            logFile.delete();
+
         }
         // Clean up the directory
         for (File file: logDirectory.listFiles()) {

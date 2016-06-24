@@ -266,12 +266,7 @@ public class BranchManagerController {
      * @throws IOException
      */
     private LocalBranchHelper createNewLocalBranch(String branchName) throws GitAPIException, IOException {
-        Git git = new Git(this.repo);
-        Ref newBranch = git.branchCreate().setName(branchName).call();
-        LocalBranchHelper newLocalBranchHelper = new LocalBranchHelper(newBranch, this.repoHelper);
-
-        git.close();
-        return newLocalBranchHelper;
+        return this.repoHelper.createNewLocalBranch(branchName);
     }
 
     /**

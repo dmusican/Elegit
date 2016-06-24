@@ -513,7 +513,8 @@ public abstract class RepoHelper {
      * @throws MissingRepoException
      * @return the merge status merging these two branches
      */
-    public MergeResult.MergeStatus mergeFromFetch() throws IOException, GitAPIException, MissingRepoException, ConflictingFilesException {
+    public MergeResult.MergeStatus mergeFromFetch() throws IOException, GitAPIException, MissingRepoException,
+            ConflictingFilesException, NoTrackingException {
         logger.info("Attempting merge from fetch");
         if (!exists()) throw new MissingRepoException();
         if (!hasRemote()) throw new InvalidRemoteException("No remote repository");
@@ -522,12 +523,13 @@ public abstract class RepoHelper {
         // and merge the current branch with the just fetched remote branch
         MergeResult result;
         Config config = repo.getConfig();
+        // Check if this branch is being tracked locally
         if (config.getSubsections("branch").contains(this.repo.getBranch())) {
             String remote = config.getString("branch", this.repo.getBranch(), "remote")+"/";
             String remote_tracking = config.getString("branch", this.repo.getBranch(), "merge");
             result = mergeWithBranch(this.getRemoteBranchByName(remote+this.repo.shortenRefName(remote_tracking)));
         } else {
-            return null;
+            throw new NoTrackingException();
         }
 
         try {
@@ -568,6 +570,23 @@ public abstract class RepoHelper {
         git.close();
 
         return mergeResult;
+    }
+
+    /**
+     * Creates a new local branch using git.
+     *
+     * @param branchName the name of the new branch.
+     * @return the new local branch's LocalBranchHelper.
+     * @throws GitAPIException
+     * @throws IOException
+     */
+    public LocalBranchHelper createNewLocalBranch(String branchName) throws GitAPIException, IOException {
+        Git git = new Git(this.repo);
+        Ref newBranch = git.branchCreate().setName(branchName).call();
+        LocalBranchHelper newLocalBranchHelper = new LocalBranchHelper(newBranch, this);
+
+        git.close();
+        return newLocalBranchHelper;
     }
 
     public void closeRepo() {
@@ -1475,14 +1494,28 @@ public abstract class RepoHelper {
     public boolean isBranchTracked(BranchHelper branch) {
         String branchName = branch.getBranchName();
         if (branch instanceof LocalBranchHelper) {
-            for (BranchHelper remote : remoteBranches) {
+            // We can check this easily by looking at the config file, but have to first
+            // check if there is an entry in the config file for LocalBranchHelper
+            String merge = this.repo.getConfig().getString("branch", branchName, "merge");
+
+            // If there is no entry in the config file for this branch, then it isn't tracked remotely
+            if (merge==null) return false;
+
+            // Otherwise there is a remote branch that the local branch is tracking remotely
+            return true;
+
+            /*for (BranchHelper remote : remoteBranches) {
                 if (this.repo.shortenRemoteBranchName(remote.getRefPathString())
                         .equals(this.repo.shortenRefName(this.repo.getConfig().getString("branch", branchName, "merge")))) {
                     return true;
                 }
-            }
+            }*/
         } else {
             for (BranchHelper local : localBranches) {
+                // Skip local branches that aren't tracked remotely, as they won't have a config entry
+                if (this.repo.getConfig().getString("branch", local.getBranchName(), "merge")==null) continue;
+
+                // Otherwise, we have to check all local branches to see if they're tracking the particular remote branch
                 if (this.repo.shortenRefName(this.repo.getConfig().getString("branch", local.getBranchName(), "merge"))
                         .equals(this.repo.shortenRemoteBranchName(branch.getRefPathString()))) {
                     return true;
