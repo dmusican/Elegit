@@ -1,11 +1,8 @@
 package elegit.treefx;
 
-import com.sun.xml.internal.fastinfoset.algorithm.BuiltInEncodingAlgorithm;
 import javafx.application.Platform;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
-import javafx.concurrent.WorkerStateEvent;
-import javafx.event.EventHandler;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,17 +16,18 @@ public class TreeLayout{
     public static int H_SPACING = Cell.BOX_SIZE * 3 + 5;
     public static int V_PAD = 10;
     public static int H_PAD = 25;
+
     public static int cells_moved = 0;
 
-    // Move cell service to move cells
-    public static class MoveCellService  extends Service<Integer> {
+    // Service to compute the location of where all cells should go
+    public static class ComputeCellPosService extends Service<Integer> {
         private List<Integer> minColumnUsedInRow;
         private List<Integer> minColumnWantedInRow;
         private List<Cell> allCellsSortedByTime;
         private boolean isInitialSetupFinished;
         private int cellLocation;
 
-        public MoveCellService(List<Cell> allCellsSortedByTime, boolean isInitialSetupFinished) {
+        public ComputeCellPosService(List<Cell> allCellsSortedByTime, boolean isInitialSetupFinished) {
             this.minColumnUsedInRow = new ArrayList<>();
             this.minColumnWantedInRow = new ArrayList<>();
 
@@ -44,10 +42,9 @@ public class TreeLayout{
                 @Override
                 protected Integer call() throws Exception {
                     cellLocation = allCellsSortedByTime.size()-1 - getCellsMoved();
-                    System.out.println(cellLocation);
 
                     if (cellLocation > allCellsSortedByTime.size()-1)
-                        this.cancelled();
+                        this.failed();
 
                     // Get cell at rightmost location not yet placed
                     Cell c = allCellsSortedByTime.get(allCellsSortedByTime.size()-1-cellLocation);
@@ -55,6 +52,8 @@ public class TreeLayout{
                     // Get where the cell should go based on which columns have been 'reserved'
                     int x = cellLocation;
                     int y = getRowOfCellInColumn(minColumnWantedInRow, x);
+
+                    System.out.println(x+ " "+y);
 
                     // See whether or not this cell will move
                     int oldColumnLocation = c.columnLocationProperty.get();
@@ -76,8 +75,11 @@ public class TreeLayout{
                         if (minColumnWantedInRow.get(i) == i)
                             minColumnWantedInRow.set(i, minColumnUsedInRow.get(i));
 
-                    // Move the cell
-                    moveCell(c, isInitialSetupFinished && willCellMove, !hasCellMoved);
+                    // Set the animation and use parent properties of the cell
+                    c.setAnimate(isInitialSetupFinished && willCellMove);
+                    c.setUseParentAsSource(!hasCellMoved);
+                    // Move the cell - this will happen in a thread
+                    //moveCell(c, isInitialSetupFinished && willCellMove, !hasCellMoved);
 
                     // Update the reserved columns in rows with the cells parents, oldest to newest
                     List<Cell> list = c.getCellParents();
@@ -135,44 +137,39 @@ public class TreeLayout{
                     }
                     return i;
                 });
-                MoveCellService mover = new MoveCellService(allCellsSortedByTime, false);
+                ComputeCellPosService mover = new ComputeCellPosService(allCellsSortedByTime, false);
                 mover.setOnSucceeded(event -> {
                     mover.restart();
                 });
+                mover.setOnFailed(event -> {
+                    // Schedule the moving of all cells
+                    Task moveCells = new Task() {
+                        @Override
+                        protected Object call() throws Exception {
+                            int max = allCellsSortedByTime.size()-1;
+                            int percent=0;
+                            for (int i = 0; i < max; i++) {
+                                moveCell(allCellsSortedByTime.get(i));
+                                //if (max*100/i%100>percent) {
+                                    //updateProgress(i, max);
+                                    //percent++;
+                                //}
+                            }
+                            return null;
+                        }
+                    };
+                    Thread th = new Thread(moveCells);
+                    th.setDaemon(true);
+                    th.setName("Cell Mover");
+                    th.start();
+                    if(!isCancelled()){
+                        treeGraphModel.isInitialSetupFinished = true;
+                    }
+                });
                 mover.start();
-                if(!isCancelled()){
-                    treeGraphModel.isInitialSetupFinished = true;
-                }
                 return null;
             }
         };
-    }
-
-
-    /**
-     * Helper method that updates the given cell's position to the coordinates corresponding
-     * to its stored row and column locations
-     * @param c the cell to move
-     * @param animate whether the given cell should have an animation towards its new position
-     * @param useParentPosAsSource whether the given cell should move to its first parent before
-     *                             being animated, to prevent animations starting from off screen
-     */
-    public static void moveCell(Cell c, boolean animate, boolean useParentPosAsSource){
-        Platform.runLater(new Task<Void>(){
-            @Override
-            protected Void call(){
-                if(animate && useParentPosAsSource && c.getCellParents().size()>0){
-                    double px = c.getCellParents().get(0).columnLocationProperty.get() * H_SPACING + H_PAD;
-                    double py = c.getCellParents().get(0).rowLocationProperty.get() * V_SPACING + V_PAD;
-                    c.moveTo(px, py, false, false);
-                }
-
-                double x = c.columnLocationProperty.get() * H_SPACING + H_PAD;
-                double y = c.rowLocationProperty.get() * V_SPACING + V_PAD;
-                c.moveTo(x, y, animate, animate && useParentPosAsSource);
-                return null;
-            }
-        });
     }
 
     /**
@@ -203,6 +200,32 @@ public class TreeLayout{
     }
 
     public static int getCellsMoved() { return cells_moved; }
+
     public static void upCellsMoved() { cells_moved++;  }
+
+    /**
+     * Helper method that updates the given cell's position to the coordinates corresponding
+     * to its stored row and column locations
+     * @param c the cell to move
+     */
+    public static void moveCell(Cell c){
+        Platform.runLater(new Task<Void>(){
+            @Override
+            protected Void call(){
+                boolean animate = c.getAnimate();
+                boolean useParentPosAsSource = c.getUseParentAsSource();
+                if(animate && useParentPosAsSource && c.getCellParents().size()>0){
+                    double px = c.getCellParents().get(0).columnLocationProperty.get() * H_SPACING + H_PAD;
+                    double py = c.getCellParents().get(0).rowLocationProperty.get() * V_SPACING + V_PAD;
+                    c.moveTo(px, py, false, false);
+                }
+
+                double x = c.columnLocationProperty.get() * H_SPACING + H_PAD;
+                double y = c.rowLocationProperty.get() * V_SPACING + V_PAD;
+                c.moveTo(x, y, animate, animate && useParentPosAsSource);
+                return null;
+            }
+        });
+    }
 
 }
