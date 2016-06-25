@@ -30,6 +30,9 @@ public class TreeLayout{
     /**
      * Mover service to go through moving the cells. Services are scheduled really well, so we
      * like using them for big repetitive things like this.
+     * TODO: make service move some number at a time
+     * TODO: look at progress bar nonsense
+     * TODO: test fetching/pushing/merging, see if it animates and stuff correctly
      */
     public static class MoveCellService extends Service {
         private int currentCell, percent, max;
