@@ -143,7 +143,8 @@ public class TreeLayout{
 
                 // For each parent, oldest to newest, place it in the highest row possible recursively
                 for(Cell parent : list){
-                    computeCellPosition(allCellsSortedByTime.indexOf(parent));
+                    computeCellPosition(allCellsSortedByTime.size()-1-allCellsSortedByTime.indexOf(parent));
+                    break;
                 }
             }
 
