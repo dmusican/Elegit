@@ -100,4 +100,8 @@ public class TreeGraph{
             queuedToRemove = new LinkedList<>();
         });
     }
+
+    public Pane getCellLayerPane() {
+        return cellLayer;
+    }
 }

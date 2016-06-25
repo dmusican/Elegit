@@ -1,8 +1,17 @@
 package elegit.treefx;
 
 import javafx.application.Platform;
+import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
+import javafx.scene.control.ProgressBar;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
+import javafx.scene.text.Text;
+import javafx.scene.layout.VBox;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,8 +51,10 @@ public class TreeLayout{
                     moveCell(allCellsSortedByTime.get(currentCell));
 
                     // Update progress if need be
-                    if (100-(max*100.0/currentCell%100)>percent) {
-                        updateProgress(currentCell, max);
+                    if (currentCell*100.0/max>percent) {
+                        Platform.runLater(() -> {
+                            updateProgress(currentCell, max);
+                        });
                         percent++;
                     }
                     return null;
@@ -69,6 +80,10 @@ public class TreeLayout{
             private List<Integer> movedCells;
             private boolean isInitialSetupFinished;
 
+
+            private SimpleDoubleProperty centerOfViewportX = new SimpleDoubleProperty(0);
+            private SimpleDoubleProperty centerOfViewportY = new SimpleDoubleProperty(0);
+
             /**
              * Extracts the TreeGraphModel, sorts its cells by time, then relocates
              * every cell. When complete, updates the model if necessary to show
@@ -82,25 +97,86 @@ public class TreeLayout{
                 allCellsSortedByTime = treeGraphModel.allCells;
                 sortListOfCells();
 
+                // Initialize variables
                 maxColUsedInRow = new ArrayList<>();
                 movedCells = new ArrayList<>();
-
 
                 // Compute the positions of cells recursively
                 for (int i=allCellsSortedByTime.size()-1; i>=0; i--) {
                     computeCellPosition(i);
                 }
 
+                // Once all cell's positions have been set, move them in a service
                 MoveCellService mover = new MoveCellService(allCellsSortedByTime);
+
+
+                //********************* Loading Bar Start *********************
+
+                // Prepare loading bar for while commits are loading
+                ScrollPane scrollPane = g.getScrollPane();
+                Pane cellLayer = g.getCellLayerPane();
+                ProgressBar progressBar = new ProgressBar();
+                Text loadingCommits = new Text("Loading commits...");
+                VBox loading = new VBox(progressBar, loadingCommits);
+                loading.setSpacing(5);
+                StackPane stackPane = new StackPane(loading);
+                stackPane.setLayoutY(100.0);
+                stackPane.setVisible(false);
+                cellLayer.getChildren().add(stackPane);
+
+
+                // Binds the progress bar location to the center of the viewport
+                stackPane.layoutXProperty().bind(centerOfViewportX);
+                stackPane.layoutYProperty().bind(centerOfViewportY);
+
+                // Adds listeners to the scrollbars to updates the progress bar's location and visibility
+                scrollPane.hvalueProperty().addListener(new ChangeListener<Number>() {
+                    @Override
+                    public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+                        if (mover.getProgress() < 1 - scrollPane.getHvalue()) {
+                            if (cellLayer.getLayoutBounds().getMaxX() > 0) {
+                                centerOfViewportX.set((double) newValue * cellLayer.getLayoutBounds().getMaxX()
+                                        + (0.5 - (double) newValue) * scrollPane.getViewportBounds().getWidth());
+                                centerOfViewportY.set(scrollPane.getVvalue() * cellLayer.getLayoutBounds().getMaxY()
+                                        + (0.5 - scrollPane.getVvalue()) * scrollPane.getViewportBounds().getHeight());
+                            }
+                            stackPane.setVisible(true);
+                        }else {
+                            stackPane.setVisible(false);
+                        }
+                    }
+                });
+
+                scrollPane.vvalueProperty().addListener(new ChangeListener<Number>() {
+                    @Override
+                    public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+                        if (mover.getProgress() < 1 - scrollPane.getHvalue()) {
+                            if (cellLayer.getLayoutBounds().getMaxX() > 0) {
+                                centerOfViewportX.set(scrollPane.getHvalue() * cellLayer.getLayoutBounds().getMaxX()
+                                        + (0.5 - scrollPane.getHvalue()) * scrollPane.getViewportBounds().getWidth());
+                                centerOfViewportY.set((double) newValue * cellLayer.getLayoutBounds().getMaxY()
+                                        + (0.5 - (double) newValue) * scrollPane.getViewportBounds().getHeight());
+                            }
+                            stackPane.setVisible(true);
+                        }else {
+                            stackPane.setVisible(false);
+                        }
+                    }
+                });
+
+                //********************** Loading Bar End **********************
+
+
                 mover.setOnSucceeded(event1 -> {
                     mover.setCurrentCell(mover.currentCell+1);
+                    progressBar.setProgress(mover.percent/100.0);
                     mover.restart();
                 });
                 mover.setOnCancelled(event1 -> {
                     treeGraphModel.isInitialSetupFinished = true;
+                    progressBar.progressProperty().unbind();
                 });
                 mover.start();
-
                 return null;
             }
 
