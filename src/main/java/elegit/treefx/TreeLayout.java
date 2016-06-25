@@ -21,15 +21,16 @@ public class TreeLayout{
 
     // Service to compute the location of where all cells should go
     public static class ComputeCellPosService extends Service {
-        private List<Integer> minColumnUsedInRow;
-        private List<Integer> minColumnWantedInRow;
+        private List<Integer> maxColumnUsedInRow;
+        private List<Integer> maxColumnWantedInRow;
         private List<Cell> allCellsSortedByTime;
         private boolean isInitialSetupFinished;
         private int cellLocation;
 
         public ComputeCellPosService(List<Cell> allCellsSortedByTime, boolean isInitialSetupFinished) {
-            this.minColumnUsedInRow = new ArrayList<>();
-            this.minColumnWantedInRow = new ArrayList<>();
+            this.maxColumnUsedInRow = new ArrayList<>();
+            this.maxColumnWantedInRow = new ArrayList<>();
+            this.maxColumnWantedInRow.add(0,allCellsSortedByTime.size());
 
             this.cellLocation = allCellsSortedByTime.size()-1;
             this.allCellsSortedByTime = allCellsSortedByTime;
@@ -52,7 +53,7 @@ public class TreeLayout{
 
                     // Get where the cell should go based on which columns have been 'reserved'
                     int x = cellLocation;
-                    int y = getRowOfCellInColumn(minColumnWantedInRow, x);
+                    int y = getRowOfCellInColumn(maxColumnWantedInRow, x);
 
                     // See whether or not this cell will move
                     int oldColumnLocation = c.columnLocationProperty.get();
@@ -64,15 +65,15 @@ public class TreeLayout{
                     boolean willCellMove = oldColumnLocation != x || oldRowLocation != y;
 
                     // Update where the cell has been placed
-                    if (y >= minColumnUsedInRow.size())
-                        minColumnUsedInRow.add(x);
+                    if (y >= maxColumnUsedInRow.size())
+                        maxColumnUsedInRow.add(x);
                     else
-                        minColumnUsedInRow.set(y, x);
+                        maxColumnUsedInRow.set(y, x);
 
                     // Update the reserved rows
-                    for (int i=y; y<minColumnWantedInRow.size(); y++)
-                        if (minColumnWantedInRow.get(i) == i)
-                            minColumnWantedInRow.set(i, minColumnUsedInRow.get(i));
+                    for (int i = y+1; y< maxColumnWantedInRow.size(); y++)
+                        if (maxColumnWantedInRow.get(i) == i)
+                            maxColumnWantedInRow.set(i, maxColumnUsedInRow.get(i));
 
                     // Set the animation and use parent properties of the cell
                     c.setAnimate(isInitialSetupFinished && willCellMove);
@@ -86,11 +87,13 @@ public class TreeLayout{
 
                     // For each parent, oldest to newest, place its want of row in the highest possible
                     for(Cell parent : list){
-                        int row = getRowOfCellInColumn(minColumnWantedInRow, getColumnOfCell(allCellsSortedByTime, parent));
-                        if (minColumnWantedInRow.size() > row)
-                            minColumnWantedInRow.set(row, getColumnOfCell(allCellsSortedByTime, parent));
+                        int col = allCellsSortedByTime.size() -1- allCellsSortedByTime.indexOf(parent);
+                        int row = getRowOfCellInColumn(maxColumnWantedInRow, col);
+                        System.out.println(col+" "+row);
+                        if (maxColumnWantedInRow.size() > row)
+                            maxColumnWantedInRow.set(row, col);
                         else
-                            minColumnWantedInRow.add(row, getColumnOfCell(allCellsSortedByTime, parent));
+                            maxColumnWantedInRow.add(row, col);
                     }
                     return null;
                 }
@@ -144,10 +147,10 @@ public class TreeLayout{
                             int percent=0;
                             for (int i = 0; i < max; i++) {
                                 moveCell(allCellsSortedByTime.get(i));
-                                if (max*100/i%100>percent) {
+                                /*if (i>0 && 100-(max*100.0/i%100)>percent) {
                                     updateProgress(i, max);
                                     percent++;
-                                }
+                                }*/
                             }
                             return null;
                         }
@@ -174,27 +177,16 @@ public class TreeLayout{
      * Calculates the row closest to the top of the screen to place the
      * given cell based on the cell's column and the maximum heights recorded
      * for each row
-     * @param minColumnUsedInRow the map of max columns used in each row
+     * @param maxColumnUsedInRow the map of max columns used in each row
      * @param cellCol the column the cell to examine is in
      * @return the lowest indexed row in which to place c
      */
-    public static int getRowOfCellInColumn(List<Integer> minColumnUsedInRow, int cellCol){
+    public static int getRowOfCellInColumn(List<Integer> maxColumnUsedInRow, int cellCol){
         int row = 0;
-        while(minColumnUsedInRow.size() > row && (cellCol > minColumnUsedInRow.get(row))){
+        while(maxColumnUsedInRow.size() > row && (cellCol > maxColumnUsedInRow.get(row))){
             row++;
         }
         return row;
-    }
-
-    /**
-     * Gets the column of the given cell, with column 0 being the right of the screen
-     * and the root cell of the tree being at the bottom
-     * @param allCellsSortedByTime the list of all cells sorted by time
-     * @param c the cell to examine
-     * @return the column index of this cell
-     */
-    public static int getColumnOfCell(List<Cell> allCellsSortedByTime, Cell c){
-        return allCellsSortedByTime.size() - 1 - allCellsSortedByTime.indexOf(c);
     }
 
     /**
