@@ -30,7 +30,6 @@ public class TreeLayout{
         public ComputeCellPosService(List<Cell> allCellsSortedByTime, boolean isInitialSetupFinished) {
             this.maxColumnUsedInRow = new ArrayList<>();
             this.maxColumnWantedInRow = new ArrayList<>();
-            this.maxColumnWantedInRow.add(0,allCellsSortedByTime.size());
 
             this.cellLocation = allCellsSortedByTime.size()-1;
             this.allCellsSortedByTime = allCellsSortedByTime;
@@ -45,7 +44,7 @@ public class TreeLayout{
                 @Override
                 protected Void call() throws Exception {
                     //cellLocation = allCellsSortedByTime.size()-1 - getCellsMoved();
-                    if (cellLocation > allCellsSortedByTime.size()-1)
+                    if (cellLocation < 0)
                         this.failed();
 
                     // Get cell at rightmost location not yet placed
@@ -71,9 +70,11 @@ public class TreeLayout{
                         maxColumnUsedInRow.set(y, x);
 
                     // Update the reserved rows
-                    for (int i = y+1; y< maxColumnWantedInRow.size(); y++)
+                    for (int i = y+1; i< maxColumnWantedInRow.size(); i++) {
                         if (maxColumnWantedInRow.get(i) == i)
                             maxColumnWantedInRow.set(i, maxColumnUsedInRow.get(i));
+                    }
+                    System.out.println(maxColumnWantedInRow);
 
                     // Set the animation and use parent properties of the cell
                     c.setAnimate(isInitialSetupFinished && willCellMove);
@@ -89,7 +90,6 @@ public class TreeLayout{
                     for(Cell parent : list){
                         int col = allCellsSortedByTime.size() -1- allCellsSortedByTime.indexOf(parent);
                         int row = getRowOfCellInColumn(maxColumnWantedInRow, col);
-                        System.out.println(col+" "+row);
                         if (maxColumnWantedInRow.size() > row)
                             maxColumnWantedInRow.set(row, col);
                         else
@@ -183,9 +183,11 @@ public class TreeLayout{
      */
     public static int getRowOfCellInColumn(List<Integer> maxColumnUsedInRow, int cellCol){
         int row = 0;
+        System.out.println(maxColumnUsedInRow+" "+cellCol);
         while(maxColumnUsedInRow.size() > row && (cellCol > maxColumnUsedInRow.get(row))){
             row++;
         }
+        System.out.println(" "+row+" "+cellCol);
         return row;
     }
 
