@@ -36,10 +36,7 @@ public class TreeLayout{
             this.isInitialSetupFinished = isInitialSetupFinished;
         }
 
-        public void setCellLocation(int cellLocation) {
-            System.out.println("Cell location:"+cellLocation);
-            this.cellLocation = cellLocation;
-        }
+        public void setCellLocation(int cellLocation) { this.cellLocation = cellLocation;  }
 
         @Override
         protected synchronized Task createTask() {
@@ -163,11 +160,11 @@ public class TreeLayout{
                         treeGraphModel.isInitialSetupFinished = true;
                     }
                 });
-                mover.start();
-                for (int i=1; i<allCellsSortedByTime.size(); i++) {
-                    mover.setCellLocation(i);
+                mover.setOnSucceeded(event -> {
+                    mover.setCellLocation(mover.cellLocation-1);
                     mover.restart();
-                }
+                });
+                mover.start();
                 return null;
             }
         };
