@@ -53,19 +53,15 @@ public class TreeLayout{
                 @Override
                 protected Object call() throws Exception {
                     for (int i=currentCell; i<currentCell+10; i++) {
-                        if (currentCell > allCellsSortedByTime.size() - 1) {
-                            this.updateProgress(1.0,1.0);
+                        if (i > allCellsSortedByTime.size() - 1) {
                             percent.set(100);
-                            this.done();
+                            this.cancelled();
                         }
                         moveCell(allCellsSortedByTime.get(i));
 
                         // Update progress if need be
-                        if (currentCell * 100.0 / max > percent.get()) {
-                            Platform.runLater(() -> {
-                                updateProgress((double) currentCell, (double) max);
-                            });
-                            percent.set(percent.get()+1);
+                        if (i * 100.0 / max > percent.get()) {
+                            percent.set(i*100/max);
                         }
                     }
                     return null;
@@ -196,8 +192,8 @@ public class TreeLayout{
                     mover.restart();
                 });
                 mover.setOnCancelled(event1 -> {
+                    mover.percent.set(100);
                     treeGraphModel.isInitialSetupFinished = true;
-                    progressBar.progressProperty().unbind();
                 });
                 mover.reset();
                 mover.start();
@@ -227,15 +223,16 @@ public class TreeLayout{
              * Helper method that computes the cell position for a given cell and its parents (oldest to newest), recursively
              * @param cellPosition position of cell to compute position for
              */
-            public void computeCellPosition(int cellPosition) {
+            private void computeCellPosition(int cellPosition) {
                 // Don't try to compute a new position if the cell has already been moved
                 if (movedCells.contains(cellPosition))
                     return;
 
-                // Get cell at rightmost location not yet placed
+                // Get cell at the inputted position
                 Cell c = allCellsSortedByTime.get(allCellsSortedByTime.size()-1-cellPosition);
 
                 setCellPosition(c, cellPosition, getRowOfCellInColumn(maxColUsedInRow, cellPosition));
+                System.out.println("col: "+c.columnLocationProperty.get()+" row: "+c.rowLocationProperty.get());
 
                 // Update the reserved columns in rows with the cells parents, oldest to newest
                 List<Cell> list = c.getCellParents();
@@ -248,7 +245,7 @@ public class TreeLayout{
                 }
             }
 
-            public void setCellPosition(Cell c, int x, int y) {
+            private void setCellPosition(Cell c, int x, int y) {
                 // See whether or not this cell will move
                 int oldColumnLocation = c.columnLocationProperty.get();
                 int oldRowLocation = c.rowLocationProperty.get();
