@@ -59,7 +59,9 @@ public class Cell extends Pane{
 
     private LabelCell refLabel;
 
-    private Button refExtender;
+    private boolean animate;
+
+    private boolean useParentAsSource;
 
     // The list of children of this cell
     List<Cell> children = new ArrayList<>();
@@ -229,6 +231,10 @@ public class Cell extends Pane{
         setRefLabel(refLabels);
     }
 
+    public void setAnimate(boolean animate) {this.animate = animate;}
+
+    public void setUseParentAsSource(boolean useParentAsSource) {this.useParentAsSource = useParentAsSource;}
+
     public void setContextMenu(ContextMenu contextMenu){
         this.contextMenu = contextMenu;
     }
@@ -254,6 +260,16 @@ public class Cell extends Pane{
     public List<Cell> getCellParents(){
         return parents.toList();
     }
+
+    /**
+     * @return whether or not this cell wants to be animated in the next transition
+     */
+    public boolean getAnimate() { return this.animate; }
+
+    /**
+     * @return whether or not to use the parent to base the animation off of
+     */
+    public boolean getUseParentAsSource() { return this.useParentAsSource; }
 
     /**
      * Removes the given cell from the children of this cell
