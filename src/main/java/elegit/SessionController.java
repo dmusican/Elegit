@@ -321,6 +321,14 @@ public class SessionController {
         Text folderOpenIcon = GlyphsDude.createIcon(FontAwesomeIcon.FOLDER_OPEN);
         existingOption.setGraphic(folderOpenIcon);
 
+        this.commitInfoGoToButton.setTooltip(new Tooltip(
+                "Go to selected commit"
+        ));
+
+        this.commitInfoNameCopyButton.setTooltip(new Tooltip(
+                "Copy commit ID"
+        ));
+
         this.commitButton.setTooltip(new Tooltip(
                 "Check in selected files to local repository"
         ));
