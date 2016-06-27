@@ -1738,7 +1738,7 @@ public class SessionController {
             this.theModel.removeRepoHelpers(checkedItems);
             popover.hide();
 
-            if (!this.theModel.getAllRepoHelpers().isEmpty()) {
+            if (!this.theModel.getAllRepoHelpers().isEmpty() && !this.theModel.getAllRepoHelpers().contains(theModel.getCurrentRepoHelper())) {
                 int newIndex = this.theModel.getAllRepoHelpers().size()-1;
                 RepoHelper newCurrentRepo = this.theModel.getAllRepoHelpers()
                         .get(newIndex);
@@ -1747,12 +1747,20 @@ public class SessionController {
                 repoDropdownSelector.setValue(newCurrentRepo);
 
                 this.refreshRecentReposInDropdown();
-            } else {
+            } else if (this.theModel.getAllRepoHelpers().isEmpty()){
                 theModel.resetSessionModel();
                 workingTreePanelView.resetFileStructurePanelView();
                 allFilesPanelView.resetFileStructurePanelView();
                 initialize();
+            }else {
+                try {
+                    theModel.openRepoFromHelper(theModel.getCurrentRepoHelper());
+                } catch (BackingStoreException | IOException | MissingRepoException | ClassNotFoundException e1) {
+                    e1.printStackTrace();
+                }
             }
+
+            this.refreshRecentReposInDropdown();
         });
 
         popover.show(this.removeRecentReposButton);
