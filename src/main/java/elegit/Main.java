@@ -81,9 +81,7 @@ public class Main extends Application {
 
         primaryStage.setScene(scene);
         startLatch.countDown();
-        Platform.runLater(() -> {
             primaryStage.show();
-        });
     }
 
     public static void main(String[] args) {
