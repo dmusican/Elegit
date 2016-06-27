@@ -1,7 +1,9 @@
 package elegit.treefx;
 
 import javafx.application.Platform;
+import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.concurrent.Service;
@@ -30,18 +32,17 @@ public class TreeLayout{
     /**
      * Mover service to go through moving the cells. Services are scheduled really well, so we
      * like using them for big repetitive things like this.
-     * TODO: make service move some number at a time
-     * TODO: look at progress bar nonsense
      * TODO: test fetching/pushing/merging, see if it animates and stuff correctly
      */
     public static class MoveCellService extends Service {
-        private int currentCell, percent, max;
+        private int currentCell, max;
         private List<Cell> allCellsSortedByTime;
+        private IntegerProperty percent;
 
         public MoveCellService (List<Cell> allCellsSortedByTime) {
             this.allCellsSortedByTime = allCellsSortedByTime;
             this.max = allCellsSortedByTime.size()-1;
-            this.percent = 0;
+            this.percent = new SimpleIntegerProperty(0);
             this.currentCell = 0;
         }
 
@@ -51,14 +52,21 @@ public class TreeLayout{
             return new Task() {
                 @Override
                 protected Object call() throws Exception {
-                    moveCell(allCellsSortedByTime.get(currentCell));
+                    for (int i=currentCell; i<currentCell+10; i++) {
+                        if (currentCell > allCellsSortedByTime.size() - 1) {
+                            this.updateProgress(1.0,1.0);
+                            percent.set(100);
+                            this.done();
+                        }
+                        moveCell(allCellsSortedByTime.get(i));
 
-                    // Update progress if need be
-                    if (currentCell*100.0/max>percent) {
-                        Platform.runLater(() -> {
-                            updateProgress(currentCell, max);
-                        });
-                        percent++;
+                        // Update progress if need be
+                        if (currentCell * 100.0 / max > percent.get()) {
+                            Platform.runLater(() -> {
+                                updateProgress((double) currentCell, (double) max);
+                            });
+                            percent.set(percent.get()+1);
+                        }
                     }
                     return null;
                 }
@@ -94,6 +102,7 @@ public class TreeLayout{
              */
             @Override
             protected Void call() throws Exception{
+
                 TreeGraphModel treeGraphModel = g.treeGraphModel;
                 isInitialSetupFinished = treeGraphModel.isInitialSetupFinished;
 
@@ -136,7 +145,7 @@ public class TreeLayout{
                 scrollPane.hvalueProperty().addListener(new ChangeListener<Number>() {
                     @Override
                     public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
-                        if (mover.getProgress() < 1 - scrollPane.getHvalue()) {
+                        if (mover.percent.get()/100.0 < 1 - scrollPane.getHvalue()) {
                             if (cellLayer.getLayoutBounds().getMaxX() > 0) {
                                 centerOfViewportX.set((double) newValue * cellLayer.getLayoutBounds().getMaxX()
                                         + (0.5 - (double) newValue) * scrollPane.getViewportBounds().getWidth());
@@ -153,7 +162,7 @@ public class TreeLayout{
                 scrollPane.vvalueProperty().addListener(new ChangeListener<Number>() {
                     @Override
                     public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
-                        if (mover.getProgress() < 1 - scrollPane.getHvalue()) {
+                        if (mover.percent.get()/100.0 < 1 - scrollPane.getHvalue()) {
                             if (cellLayer.getLayoutBounds().getMaxX() > 0) {
                                 centerOfViewportX.set(scrollPane.getHvalue() * cellLayer.getLayoutBounds().getMaxX()
                                         + (0.5 - scrollPane.getHvalue()) * scrollPane.getViewportBounds().getWidth());
@@ -167,18 +176,30 @@ public class TreeLayout{
                     }
                 });
 
+                mover.percent.addListener(new ChangeListener<Number>() {
+                    @Override
+                    public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+                        if (mover.percent.get()/100.0<1-scrollPane.getHvalue()) {
+
+                        } else {
+                            stackPane.setVisible(false);
+                        }
+                    }
+                });
+
                 //********************** Loading Bar End **********************
 
 
                 mover.setOnSucceeded(event1 -> {
-                    mover.setCurrentCell(mover.currentCell+1);
-                    progressBar.setProgress(mover.percent/100.0);
+                    mover.setCurrentCell(mover.currentCell+10);
+                    progressBar.setProgress(mover.percent.get()/100.0);
                     mover.restart();
                 });
                 mover.setOnCancelled(event1 -> {
                     treeGraphModel.isInitialSetupFinished = true;
                     progressBar.progressProperty().unbind();
                 });
+                mover.reset();
                 mover.start();
                 return null;
             }
