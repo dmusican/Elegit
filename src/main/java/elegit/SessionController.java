@@ -343,6 +343,10 @@ public class SessionController {
     private synchronized void handleLoadRepoMenuItem(RepoHelperBuilder builder){
         try{
             RepoHelper repoHelper = builder.getRepoHelperFromDialogs();
+            if(repoHelper.localPath.equals(theModel.getCurrentRepoHelper().localPath)) {
+                showSameRepoLoadedNotification();
+                return;
+            }
             BusyWindow.show();
             RepositoryMonitor.pause();
             Thread th = new Thread(new Task<Void>(){
@@ -1339,6 +1343,16 @@ public class SessionController {
         Platform.runLater(() -> {
             logger.warn("Remote repo couldn't be found warning");
             this.notificationPane.setText("The push failed because the remote repository couldn't be found.");
+
+            this.notificationPane.getActions().clear();
+            this.notificationPane.show();
+        });
+    }
+
+    private void showSameRepoLoadedNotification() {
+        Platform.runLater(() -> {
+            logger.warn("Same repo loaded");
+            this.notificationPane.setText("That repository is already open");
 
             this.notificationPane.getActions().clear();
             this.notificationPane.show();
