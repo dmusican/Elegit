@@ -63,7 +63,21 @@
                             <Button GridPane.rowIndex="0"
                                     GridPane.columnIndex="2"
                                     GridPane.halignment="RIGHT"
-                                    fx:id="loadNewRepoButton"/>
+                                    fx:id="loadNewRepoButton"
+                                    onAction="#handleLoadNewRepoButton">
+                                <contextMenu>
+                                    <ContextMenu fx:id="newRepoOptionsMenu">
+                                        <items>
+                                            <MenuItem fx:id="cloneOption"
+                                                      onAction="#handleCloneNewRepoOption"
+                                                      text="Clone repository"/>
+                                            <MenuItem fx:id="existingOption"
+                                                      onAction="#handleLoadExistingRepoOption"
+                                                      text="Load existing repository"/>
+                                        </items>
+                                    </ContextMenu>
+                                </contextMenu>
+                            </Button>
 
                             <Button GridPane.rowIndex="0"
                                     GridPane.columnIndex="3"

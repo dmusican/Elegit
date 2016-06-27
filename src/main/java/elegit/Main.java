@@ -1,6 +1,7 @@
 package elegit;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.MenuBar;
@@ -44,6 +45,8 @@ public class Main extends Application {
         // Handles some concurrency issues with gitStatus()
         RepositoryMonitor.pause();
 
+        BusyWindow.setParentWindow(primaryStage);
+
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/MainView.fxml"));
         fxmlLoader.load();
         Pane root = fxmlLoader.getRoot();
@@ -68,8 +71,6 @@ public class Main extends Application {
         primaryStage.setOnCloseRequest(event -> {
                 // On close, upload the logs and delete the log.
                 logger.info("Closed");});
-
-        BusyWindow.setParentWindow(primaryStage);
 
         Scene scene = new Scene(root, 1200, 650); // width, height
 
