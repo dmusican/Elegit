@@ -155,7 +155,7 @@ public class SessionController {
         this.initializeLayoutParameters();
         this.initWorkingTreePanelTab();
         this.setButtonIconsAndTooltips();
-        this.initDisable();
+        this.disableButtons();
 
         this.theModel.loadRecentRepoHelpersFromStoredPathStrings();
         this.theModel.loadMostRecentRepoHelper();
@@ -185,11 +185,8 @@ public class SessionController {
     /**
      * Disables/hides unusable items during startup
      */
-    private void initDisable() {
-        // Buttons start out disabled, since no repo is loaded
+    private void disableButtons() {
         this.setButtonsDisabled(true);
-
-        // Branch selector and trigger button starts invisible, since there's no repo and no branches
         this.branchDropdownSelector.setVisible(false);
     }
 
@@ -1141,14 +1138,9 @@ public class SessionController {
      */
     private void updateUIEnabledStatus() {
         try{
-            if(this.theModel.getCurrentRepoHelper() == null && this.theModel.getAllRepoHelpers().size() == 0) {
-                // (There's no repo for the buttons to interact with)
-                setButtonsDisabled(true);
-                Platform.runLater(() -> this.branchDropdownSelector.setVisible(false));
-            } else if (this.theModel.getCurrentRepoHelper() == null && this.theModel.getAllRepoHelpers().size() > 0) {
+            if(this.theModel.getCurrentRepoHelper() == null && this.theModel.getAllRepoHelpers().size() >= 0) {
                 // (There's no repo for buttons to interact with, but there are repos in the menu bar)
-                setButtonsDisabled(true);
-                Platform.runLater(() -> this.branchDropdownSelector.setVisible(false));
+                disableButtons();
             }else{
                 setButtonsDisabled(false);
                 this.updateBranchDropdown();
