@@ -137,7 +137,7 @@ public class SessionController {
      * This method is automatically called by JavaFX.
      */
     public void initialize() {
-        Thread initGUIThread = new Thread(new Task<Void>() {
+        /*Thread initGUIThread = new Thread(new Task<Void>() {
             @Override
             protected Void call() {
                 // Creates the SessionModel
@@ -179,9 +179,9 @@ public class SessionController {
 
         initGUIThread.setDaemon(true);
         initGUIThread.setName("initGUIThread");
-        initGUIThread.start();
+        initGUIThread.start(); */
 
-        /*// Creates the SessionModel
+        // Creates the SessionModel
         this.theModel = SessionModel.getSessionModel();
 
         // Creates a DataSubmitter for logging
@@ -212,7 +212,7 @@ public class SessionController {
         this.refreshRecentReposInDropdown();
 
         this.initRepositoryMonitor();
-        this.handleUnpushedTags();*/
+        this.handleUnpushedTags();
     }
 
     private void handleUnpushedTags() {
@@ -1078,8 +1078,8 @@ public class SessionController {
         try {
             workingTreePanelView.drawDirectoryView();
             allFilesPanelView.drawDirectoryView();
-            localCommitTreeModel.init();
             remoteCommitTreeModel.init();
+            localCommitTreeModel.init();
             this.setBrowserURL();
         } catch (GitAPIException | IOException e) {
             showGenericErrorNotification();

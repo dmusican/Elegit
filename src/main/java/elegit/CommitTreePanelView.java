@@ -40,7 +40,14 @@ public class CommitTreePanelView extends Region{
      * @param treeGraph the graph to be displayed
      */
     public synchronized void displayTreeGraph(TreeGraph treeGraph, CommitHelper commitToFocusOnLoad){
-        BusyWindow.show();
+
+        MatchedScrollPane.ignoreScrolling(true);
+        ScrollPane sp = treeGraph.getScrollPane();
+        sp.setOnMouseClicked(event -> CommitTreeController.handleMouseClicked());
+        getChildren().clear();
+        getChildren().add(anchorScrollPane(sp));
+        isLayoutThreadRunning = false;
+        MatchedScrollPane.ignoreScrolling(false);
 
         if(isLayoutThreadRunning){
             task.cancel();
@@ -62,21 +69,12 @@ public class CommitTreePanelView extends Region{
         Task<Void> endTask = new Task<Void>(){
             @Override
             protected Void call(){
-                try{
+                try {
                     th.join();
-                }catch(InterruptedException e){
+                } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
                 Platform.runLater(() -> {
-                    MatchedScrollPane.ignoreScrolling(true);
-                    ScrollPane sp = treeGraph.getScrollPane();
-                    sp.setOnMouseClicked(event -> CommitTreeController.handleMouseClicked());
-                    getChildren().clear();
-                    getChildren().add(anchorScrollPane(sp));
-                    isLayoutThreadRunning = false;
-
-                    MatchedScrollPane.ignoreScrolling(false);
-                    BusyWindow.hide();
                     CommitTreeController.focusCommitInGraph(commitToFocusOnLoad);
                 });
                 return null;
