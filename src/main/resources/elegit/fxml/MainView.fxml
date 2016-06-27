@@ -199,9 +199,6 @@
 
                     <StackPane GridPane.rowIndex="1"
                                 GridPane.columnIndex="6">
-                        <ProgressIndicator StackPane.alignment="CENTER"
-                                           visible="false"
-                                           fx:id="fetchProgressIndicator"/>
 
                         <ArrowButton StackPane.alignment="CENTER"
                                      id="codeButton"

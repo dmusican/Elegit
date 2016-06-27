@@ -42,6 +42,9 @@ public class Main extends Application {
 
         logger.info("Starting up.");
 
+        // Handles some concurrency issues with gitStatus()
+        RepositoryMonitor.pause();
+
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/MainView.fxml"));
         fxmlLoader.load();
         Pane root = fxmlLoader.getRoot();
@@ -81,7 +84,10 @@ public class Main extends Application {
 
         primaryStage.setScene(scene);
         startLatch.countDown();
-            primaryStage.show();
+        primaryStage.show();
+
+        // Handles some concurrency issues with gitStatus()
+        RepositoryMonitor.unpause();
     }
 
     public static void main(String[] args) {
