@@ -239,6 +239,8 @@ public class BranchManagerController {
                     git.branchDelete().setBranchNames(selectedBranch.getRefPathString()).call();
                     this.localListView.getItems().remove(selectedBranch);
                     this.branchManagerModel.setLocalBranches(this.localListView.getItems());
+                    this.remoteCommitTreeModel.setCommitAsUntrackedBranch(selectedBranch.getHeadId());
+                    this.localCommitTreeModel.setCommitAsUntrackedBranch(selectedBranch.getHeadId());
                 }
             } catch (NotMergedException e) {
                 logger.warn("Can't delete branch because not merged warning");
@@ -288,6 +290,14 @@ public class BranchManagerController {
                 git.branchDelete().setForce(true).setBranchNames(branchToDelete.getRefPathString()).call();
                 this.localListView.getItems().remove(branchToDelete);
                 this.branchManagerModel.setLocalBranches(this.localListView.getItems());
+
+                try {
+                    this.remoteCommitTreeModel.setCommitAsUntrackedBranch(branchToDelete.getHeadId());
+                    this.localCommitTreeModel.setCommitAsUntrackedBranch(branchToDelete.getHeadId());
+                }catch (IOException e) {
+                    this.showGenericErrorNotification();
+                    e.printStackTrace();
+                }
             }
         } catch (CannotDeleteCurrentBranchException e) {
             logger.warn("Can't delete current branch warning");
