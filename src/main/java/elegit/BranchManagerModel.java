@@ -21,11 +21,11 @@ public class BranchManagerModel {
     }
 
     public List<LocalBranchHelper> getLocalBranches() {
-        return this.localBranches;
+        return this.repoHelper.getLocalBranchesTyped();
     }
 
     public List<RemoteBranchHelper> getRemoteBranches() {
-        return this.remoteBranches;
+        return this.repoHelper.getRemoteBranchesTyped();
     }
 
     public void setLocalBranches(ObservableList<LocalBranchHelper>

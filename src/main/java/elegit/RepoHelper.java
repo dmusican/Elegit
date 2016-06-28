@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.rmi.Remote;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -1424,6 +1425,48 @@ public abstract class RepoHelper {
      */
     public List<BranchHelper> getRemoteBranches() {
         for (BranchHelper branch : remoteBranches) {
+            if (branch.getHead() == null) {
+                try {
+                    branch.getHeadId();
+                } catch (IOException e) {
+                    logger.error("IOException getting remote branches");
+                    logger.debug(e.getStackTrace());
+                    e.printStackTrace();
+                }
+            }
+        }
+        return new ArrayList<>(remoteBranches);
+    }
+
+    /**
+     * Gets a list of the local branches of this repository. Also updates
+     * the head of each local branch if it was missing
+     *
+     * @return the local branches of this repository
+     */
+    public List<LocalBranchHelper> getLocalBranchesTyped() {
+        for (LocalBranchHelper branch : localBranches) {
+            if (branch.getHead() == null) {
+                try {
+                    branch.getHeadId();
+                } catch (IOException e) {
+                    logger.error("IOException getting local branches");
+                    logger.debug(e.getStackTrace());
+                    e.printStackTrace();
+                }
+            }
+        }
+        return new ArrayList<>(localBranches);
+    }
+
+    /**
+     * Gets a list of the remote branches of this repository. Also updates
+     * the head of each remote branch if it was missing
+     *
+     * @return the remote branches of this repository
+     */
+    public List<RemoteBranchHelper> getRemoteBranchesTyped() {
+        for (RemoteBranchHelper branch : remoteBranches) {
             if (branch.getHead() == null) {
                 try {
                     branch.getHeadId();

@@ -444,7 +444,6 @@ public class SessionController {
             e.printStackTrace();
         } catch (IllegalArgumentException e) {
             showInvalidRepoNotification();
-            e.printStackTrace();
         } catch(JGitInternalException e){
             showNonEmptyFolderNotification(() -> handleLoadRepoMenuItem(builder));
         } catch(InvalidRemoteException e){
@@ -901,7 +900,9 @@ public class SessionController {
      */
     public void handleFetchButton(){
         logger.info("Fetch button clicked");
+        RepositoryMonitor.pause();
         gitFetch();
+        RepositoryMonitor.unpause();
         submitLog();
     }
 
