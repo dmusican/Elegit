@@ -771,6 +771,15 @@ public class SessionController {
                     try{
                         RepositoryMonitor.resetFoundNewChanges(false);
                         theModel.getCurrentRepoHelper().pushAll();
+                        // Update the trees if the push worked
+                        Platform.runLater(() -> {
+                            try {
+                                remoteCommitTreeModel.forceUpdate();
+                                localCommitTreeModel.forceUpdate();
+                            } catch (Exception e) {
+                                showGenericErrorNotification();
+                            }
+                        });
                         gitStatus();
                         pushed = true;
                     }  catch(InvalidRemoteException e){
@@ -1325,8 +1334,9 @@ public class SessionController {
                 }
             });
 
-            this.notificationPane.getActions().clear();
             this.notificationPane.getActions().setAll(authAction);*/
+
+            this.notificationPane.getActions().clear();
             this.notificationPane.show();
         });
     }

@@ -29,8 +29,8 @@ import static org.junit.Assert.assertTrue;
 public class FastForwardTest {
     private Path directoryPath;
     private String testFileLocation;
-    private RemoteBranchHelper remote_helper;
-    private LocalBranchHelper fast_helper, master_helper;
+    private RemoteBranchHelper remote_helper, remote_helperb;
+    private LocalBranchHelper fast_helper, master_helper, fast_helperb;
     Path logPath;
 
     // Used to indicate that if password files are missing, then tests should just pass
@@ -115,6 +115,66 @@ public class FastForwardTest {
         master_helper.checkoutBranch();
 
         // Merge fast_forward into master
+        helperFast.mergeWithBranch(fast_helper);
+
+        // Check that Elegit recognizes there are unpushed commits
+        assertEquals(true, helperFast.hasUnpushedCommits());
+
+        // Push changes
+        helperFast.pushAll();
+
+    }
+
+    @Test
+    public void testFastForwardCommitCanPush() throws Exception {
+        File authData = new File(testFileLocation + "httpUsernamePassword.txt");
+
+        // If a developer does not have this file present, test should just pass.
+        if (!authData.exists() && looseTesting)
+            return;
+
+        // a and b at the same spot
+        // make changes, commit to a
+        // push changes in a
+        // merge a into b
+        // check that we can push
+
+        Scanner scanner = new Scanner(authData);
+        String ignoreURL = scanner.next();
+        String username = scanner.next();
+        String password = scanner.next();
+        UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider(username, password);
+
+        String remoteURL = "https://github.com/TheElegitTeam/FastForwards.git";
+
+        // Repo that will commit to make a fast forward commit
+        Path repoPathFast = directoryPath.resolve("fastforward");
+        ClonedRepoHelper helperFast = new ClonedRepoHelper(repoPathFast, remoteURL, credentials);
+        assertNotNull(helperFast);
+
+        // Find the remote 'can_push'
+        remote_helper = helperFast.getRemoteBranchByName("origin/can_push");
+
+        // Track can_push and check it out
+        fast_helper = helperFast.trackRemoteBranch(remote_helper);
+        fast_helper.checkoutBranch();
+
+        // Update the file in can_push
+        Path filePath = repoPathFast.resolve("fastforward.txt");
+        String timestamp = (new Date()).toString() + "\n";
+        Files.write(filePath, timestamp.getBytes(), StandardOpenOption.APPEND);
+        helperFast.addFilePath(filePath);
+
+        // Commit changes in can_push and push
+        helperFast.commit("added a character");
+        helperFast.pushAll();
+
+        // Find the remote 'can_pushb' and check it out
+        remote_helperb = helperFast.getRemoteBranchByName("origin/can_pushb");
+        fast_helperb = helperFast.trackRemoteBranch(remote_helperb);
+        fast_helperb.checkoutBranch();
+
+        // Merge can_push into can_pushb
         helperFast.mergeWithBranch(fast_helper);
 
         // Check that Elegit recognizes there are unpushed commits
