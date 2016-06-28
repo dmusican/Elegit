@@ -94,6 +94,19 @@ public abstract class CommitTreeModel{
     }
 
     /**
+     * @return if there are updated refs, even if there are no new commits
+     */
+    private boolean hasUpdatedRemoteRefs() {
+        if(this.sessionModel != null) {
+            RepoHelper repo = this.sessionModel.getCurrentRepoHelper();
+            if (repo != null){
+
+            }
+        }
+        return false;
+    }
+
+    /**
      * @param repoHelper the repository to get the branches from
      * @return a list of all branches tracked by this model
      */
@@ -154,6 +167,16 @@ public abstract class CommitTreeModel{
         if(this.addNewCommitsToTree()){
             this.updateView();
         }
+    }
+
+    /**
+     * Updates the view for the commit tree model.
+     * WARNING: This is expensive, use only when necessary
+     * @throws IOException
+     */
+    public synchronized void forceUpdate() throws GitAPIException, IOException {
+        this.addNewCommitsToTree();
+        this.updateView();
     }
 
     /**
