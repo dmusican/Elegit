@@ -127,6 +127,13 @@
     -fx-stroke-dash-array: 3px, 5px;
 }
 
+#helpButton {
+    -fx-fill: -fx-cell-color-standard;
+}
+#helpButton:hover {
+    -fx-fill: -fx-cell-color-select;
+}
+
 * {
     -fx-button-fill: #52B3D9;
     -fx-button-hover-fill: #81CFE0;
