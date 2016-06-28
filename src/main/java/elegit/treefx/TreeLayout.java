@@ -141,43 +141,21 @@ public class TreeLayout{
                 scrollPane.hvalueProperty().addListener(new ChangeListener<Number>() {
                     @Override
                     public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
-                        if (mover.percent.get() / 100.0 < 1 - scrollPane.getHvalue()) {
-                            if (cellLayer.getLayoutBounds().getMaxX() > 0) {
-                                centerOfViewportX.set((double) newValue * cellLayer.getLayoutBounds().getMaxX()
-                                        + (0.5 - (double) newValue) * scrollPane.getViewportBounds().getWidth());
-                                centerOfViewportY.set(scrollPane.getVvalue() * cellLayer.getLayoutBounds().getMaxY()
-                                        + (0.5 - scrollPane.getVvalue()) * scrollPane.getViewportBounds().getHeight());
-                            }
-                            stackPane.setVisible(true);
-                        } else {
-                            stackPane.setVisible(false);
-                        }
+                        updateProgressBarLocation(mover, scrollPane, cellLayer, stackPane);
                     }
                 });
 
                 scrollPane.vvalueProperty().addListener(new ChangeListener<Number>() {
                     @Override
                     public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
-                        if (mover.percent.get() / 100.0 < 1 - scrollPane.getHvalue()) {
-                            if (cellLayer.getLayoutBounds().getMaxX() > 0) {
-                                centerOfViewportX.set(scrollPane.getHvalue() * cellLayer.getLayoutBounds().getMaxX()
-                                        + (0.5 - scrollPane.getHvalue()) * scrollPane.getViewportBounds().getWidth());
-                                centerOfViewportY.set((double) newValue * cellLayer.getLayoutBounds().getMaxY()
-                                        + (0.5 - (double) newValue) * scrollPane.getViewportBounds().getHeight());
-                            }
-                            stackPane.setVisible(true);
-                        } else {
-                            stackPane.setVisible(false);
-                        }
+                        updateProgressBarLocation(mover, scrollPane, cellLayer, stackPane);
                     }
                 });
 
                 mover.percent.addListener(new ChangeListener<Number>() {
                     @Override
                     public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
-                        if (mover.percent.get() / 100.0 < 1 - scrollPane.getHvalue()) {
-
-                        } else {
+                        if (mover.percent.get() / 100.0 >= 1 - scrollPane.getHvalue()) {
                             stackPane.setVisible(false);
                         }
                     }
@@ -197,6 +175,28 @@ public class TreeLayout{
                 mover.reset();
                 mover.start();
                 return null;
+            }
+
+
+            /**
+             * helper method to update progress bar location
+             * @param mover Service that moves the cells
+             * @param scrollPane ScrollPane the commit tree Pane is in
+             * @param cellLayer Pane that holds the commit tree
+             * @param stackPane StackPane that has the progress bar
+             */
+            private void updateProgressBarLocation(MoveCellService mover, ScrollPane scrollPane, Pane cellLayer, StackPane stackPane) {
+                if (mover.percent.get() / 100.0 < 1 - scrollPane.getHvalue()) {
+                    if (cellLayer.getLayoutBounds().getMaxX() > 0) {
+                        centerOfViewportX.set(scrollPane.getHvalue() * cellLayer.getLayoutBounds().getMaxX()
+                                + (0.5 - scrollPane.getHvalue()) * scrollPane.getViewportBounds().getWidth());
+                        centerOfViewportY.set(scrollPane.getVvalue() * cellLayer.getLayoutBounds().getMaxY()
+                                + (0.5 - scrollPane.getVvalue()) * scrollPane.getViewportBounds().getHeight());
+                    }
+                    stackPane.setVisible(true);
+                } else {
+                    stackPane.setVisible(false);
+                }
             }
 
 

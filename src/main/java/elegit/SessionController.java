@@ -137,49 +137,6 @@ public class SessionController {
      * This method is automatically called by JavaFX.
      */
     public void initialize() {
-        /*Thread initGUIThread = new Thread(new Task<Void>() {
-            @Override
-            protected Void call() {
-                // Creates the SessionModel
-                theModel = SessionModel.getSessionModel();
-
-                // Creates a DataSubmitter for logging
-                d = new DataSubmitter();
-
-                // Passes this to CommitTreeController
-                CommitTreeController.sessionController = sessionController;
-
-                // Creates the local and remote commit tree models
-                localCommitTreeModel = new LocalCommitTreeModel(theModel, localCommitTreePanelView);
-                remoteCommitTreeModel = new RemoteCommitTreeModel(theModel, remoteCommitTreePanelView);
-
-                // Passes theModel to panel views
-                workingTreePanelView.setSessionModel(theModel);
-                allFilesPanelView.setSessionModel(theModel);
-
-                initializeLayoutParameters();
-                initWorkingTreePanelTab();
-                setButtonIconsAndTooltips();
-                disableButtons();
-
-                theModel.loadRecentRepoHelpersFromStoredPathStrings();
-                theModel.loadMostRecentRepoHelper();
-
-                initPanelViews();
-                updateUIEnabledStatus();
-                setRecentReposDropdownToCurrentRepo();
-                refreshRecentReposInDropdown();
-
-                initRepositoryMonitor();
-                handleUnpushedTags();
-
-                return null;
-            }
-        });
-
-        initGUIThread.setDaemon(true);
-        initGUIThread.setName("initGUIThread");
-        initGUIThread.start(); */
 
         // Creates the SessionModel
         this.theModel = SessionModel.getSessionModel();
