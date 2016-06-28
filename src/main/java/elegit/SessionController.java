@@ -444,7 +444,6 @@ public class SessionController {
             e.printStackTrace();
         } catch (IllegalArgumentException e) {
             showInvalidRepoNotification();
-            e.printStackTrace();
         } catch(JGitInternalException e){
             showNonEmptyFolderNotification(() -> handleLoadRepoMenuItem(builder));
         } catch(InvalidRemoteException e){
