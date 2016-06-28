@@ -1334,8 +1334,9 @@ public class SessionController {
                 }
             });
 
-            this.notificationPane.getActions().clear();
             this.notificationPane.getActions().setAll(authAction);*/
+
+            this.notificationPane.getActions().clear();
             this.notificationPane.show();
         });
     }
