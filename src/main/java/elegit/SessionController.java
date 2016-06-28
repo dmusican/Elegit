@@ -130,8 +130,6 @@ public class SessionController {
     public MenuItem cloneOption;
     public MenuItem existingOption;
 
-    public SessionController sessionController = this;
-
     /**
      * Initializes the environment by obtaining the model
      * and putting the views on display.
@@ -160,7 +158,7 @@ public class SessionController {
         this.initializeLayoutParameters();
         this.initWorkingTreePanelTab();
         this.setButtonIconsAndTooltips();
-        this.disableButtons();
+        this.setButtonsDisabled(true);
 
         this.theModel.loadRecentRepoHelpersFromStoredPathStrings();
         this.theModel.loadMostRecentRepoHelper();
@@ -185,14 +183,6 @@ public class SessionController {
         if (remoteCommitTreeModel.getTagsToBePushed() != null) {
             this.theModel.getCurrentRepoHelper().setUnpushedTags(remoteCommitTreeModel.getTagsToBePushed());
         }
-    }
-
-    /**
-     * Disables/hides unusable items during startup
-     */
-    private void disableButtons() {
-        this.setButtonsDisabled(true);
-        this.branchDropdownSelector.setVisible(false);
     }
 
     /**
@@ -1090,6 +1080,16 @@ public class SessionController {
             browserImageView.setVisible(!disable);
             commitMessageField.setDisable(disable);
             browserText.setVisible(!disable);
+            branchesButton.setDisable(disable);
+            workingTreePanelTab.setDisable(disable);
+            allFilesPanelTab.setDisable(disable);
+            branchDropdownSelector.setDisable(disable);
+            removeRecentReposButton.setDisable(disable);
+            repoDropdownSelector.setDisable(disable);
+        });
+
+        notificationPane.setOnMousePressed(event -> {
+            if (disable) showNoRepoLoadedNotification();
         });
     }
 
@@ -1168,7 +1168,7 @@ public class SessionController {
         try{
             if(this.theModel.getCurrentRepoHelper() == null && this.theModel.getAllRepoHelpers().size() >= 0) {
                 // (There's no repo for buttons to interact with, but there are repos in the menu bar)
-                disableButtons();
+                setButtonsDisabled(true);
             }else{
                 setButtonsDisabled(false);
                 this.updateBranchDropdown();
@@ -1228,7 +1228,7 @@ public class SessionController {
     private void showNoRepoLoadedNotification() {
         Platform.runLater(() -> {
             logger.warn("No repo loaded warning.");
-            this.notificationPane.setText("You need to load a repository before you can perform operations on it!");
+            this.notificationPane.setText("You need to load a repository before you can perform operations on it. Click on the plus sign in the upper left corner!");
 
             this.notificationPane.getActions().clear();
             this.notificationPane.show();
