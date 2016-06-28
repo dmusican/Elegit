@@ -33,7 +33,6 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.rmi.Remote;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -210,7 +209,7 @@ public abstract class RepoHelper {
         this.upToDateTags = this.getAllLocalTags();
         this.unpushedTags = new ArrayList<>();
 
-        this.branchManagerModel = new BranchManagerModel(this.getListOfLocalBranches(), this.getListOfRemoteBranches(), this);
+        this.branchManagerModel = new BranchManagerModel(this);
 
         hasRemoteProperty = new SimpleBooleanProperty(!getLinkedRemoteRepoURLs().isEmpty());
 
@@ -500,7 +499,7 @@ public abstract class RepoHelper {
             // This shouldn't occur once we have the repo up and running.
         }
 
-        this.branchManagerModel.getUpdatedRemoteBranches();
+        getListOfRemoteBranches();
         this.hasUnmergedCommitsProperty.set(this.hasUnmergedCommits() || !result.getTrackingRefUpdates().isEmpty());
         return !result.getTrackingRefUpdates().isEmpty();
     }

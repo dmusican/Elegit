@@ -75,11 +75,8 @@ public class BranchManagerController {
             }
         }
 
-        List<LocalBranchHelper> localBranches = this.branchManagerModel.getLocalBranches();
-        List<RemoteBranchHelper> remoteBranches = this.branchManagerModel.getRemoteBranches();
-
-        this.remoteListView.setItems(FXCollections.observableArrayList(remoteBranches));
-        this.localListView.setItems(FXCollections.observableArrayList(localBranches));
+        this.remoteListView.setItems(FXCollections.observableArrayList(repoHelper.getRemoteBranchesTyped()));
+        this.localListView.setItems(FXCollections.observableArrayList(repoHelper.getLocalBranchesTyped()));
 
         this.remoteListView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
         this.remoteListView.setOnMouseClicked(e -> {
@@ -139,7 +136,6 @@ public class BranchManagerController {
             logger.info("New branch button clicked");
             LocalBranchHelper newLocalBranch = this.createNewLocalBranch(this.newBranchNameField.getText());
             this.localListView.getItems().add(newLocalBranch);
-            this.branchManagerModel.setLocalBranches(this.localListView.getItems());
             this.newBranchNameField.clear();
         } catch (InvalidRefNameException e1) {
             logger.warn("Invalid branch name warning");
@@ -215,7 +211,6 @@ public class BranchManagerController {
             if (selectedRemoteBranch != null) {
                 LocalBranchHelper tracker = this.repoHelper.trackRemoteBranch(selectedRemoteBranch);
                 this.localListView.getItems().add(tracker);
-                this.branchManagerModel.setLocalBranches(this.localListView.getItems());
                 this.remoteCommitTreeModel.setCommitAsTrackedBranch(selectedRemoteBranch.getHeadId());
                 this.localCommitTreeModel.setCommitAsTrackedBranch(selectedRemoteBranch.getHeadId());
             }
@@ -238,7 +233,6 @@ public class BranchManagerController {
                     // Local delete:
                     git.branchDelete().setBranchNames(selectedBranch.getRefPathString()).call();
                     this.localListView.getItems().remove(selectedBranch);
-                    this.branchManagerModel.setLocalBranches(this.localListView.getItems());
                     this.remoteCommitTreeModel.setCommitAsUntrackedBranch(selectedBranch.getHeadId());
                     this.localCommitTreeModel.setCommitAsUntrackedBranch(selectedBranch.getHeadId());
                 }
@@ -289,7 +283,6 @@ public class BranchManagerController {
                 // Local delete:
                 git.branchDelete().setForce(true).setBranchNames(branchToDelete.getRefPathString()).call();
                 this.localListView.getItems().remove(branchToDelete);
-                this.branchManagerModel.setLocalBranches(this.localListView.getItems());
 
                 try {
                     this.remoteCommitTreeModel.setCommitAsUntrackedBranch(branchToDelete.getHeadId());
