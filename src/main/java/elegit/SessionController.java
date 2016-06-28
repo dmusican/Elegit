@@ -942,7 +942,9 @@ public class SessionController {
      */
     public void handleFetchButton(){
         logger.info("Fetch button clicked");
+        RepositoryMonitor.pause();
         gitFetch();
+        RepositoryMonitor.unpause();
         submitLog();
     }
 
