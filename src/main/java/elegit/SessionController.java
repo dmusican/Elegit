@@ -31,6 +31,7 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import elegit.exceptions.*;
+import org.apache.commons.lang3.SystemUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.controlsfx.control.CheckListView;
@@ -41,6 +42,7 @@ import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.dircache.InvalidPathException;
 import org.eclipse.jgit.errors.NoMergeBaseException;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
+import sun.plugin2.util.SystemUtil;
 
 import java.awt.*;
 import java.io.IOException;
@@ -1007,34 +1009,40 @@ public class SessionController {
      */
     public void handleRemoteImageViewMouseClick(MouseEvent event){
         if(event.getButton() != MouseButton.PRIMARY) return;
-        Desktop desktop = Desktop.isDesktopSupported() ? Desktop.getDesktop() : null;
-        if (desktop != null && desktop.isSupported(Desktop.Action.BROWSE)) {
-            try {
-                if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
-                if(!this.theModel.getCurrentRepoHelper().exists()) throw new MissingRepoException();
+        try {
+            if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
+            if(!this.theModel.getCurrentRepoHelper().exists()) throw new MissingRepoException();
 
-                List<String> remoteURLs = this.theModel.getCurrentRepoHelper().getLinkedRemoteRepoURLs();
+            List<String> remoteURLs = this.theModel.getCurrentRepoHelper().getLinkedRemoteRepoURLs();
 
-                if(remoteURLs.size() == 0){
-                    this.showNoRemoteNotification();
-                }
-
-                for (String remoteURL : remoteURLs) {
-                    if(remoteURL.contains("@")){
-                        remoteURL = "https://"+remoteURL.replace(":","/").split("@")[1];
-                    }
-                    desktop.browse(new URI(remoteURL));
-                }
-            }catch(URISyntaxException | IOException e){
-                this.showGenericErrorNotification();
-            }catch(MissingRepoException e){
-                this.showMissingRepoNotification();
-                this.setButtonsDisabled(true);
-                this.refreshRecentReposInDropdown();
-            }catch(NoRepoLoadedException e){
-                this.showNoRepoLoadedNotification();
-                this.setButtonsDisabled(true);
+            if(remoteURLs.size() == 0){
+                this.showNoRemoteNotification();
             }
+
+            for (String remoteURL : remoteURLs) {
+                if(remoteURL.contains("@")){
+                    remoteURL = "https://"+remoteURL.replace(":","/").split("@")[1];
+                }
+                // Use desktop if the system isn't linux
+                if (!SystemUtils.IS_OS_LINUX) {
+                    Desktop desktop = Desktop.isDesktopSupported() ? Desktop.getDesktop() : null;
+                    if (desktop != null && desktop.isSupported(Desktop.Action.BROWSE))
+                        desktop.browse(new URI(remoteURL));
+                }else {
+                    Runtime runtime = Runtime.getRuntime();
+                    String[] args = {"xdg-open", remoteURL};
+                    runtime.exec(args);
+                }
+            }
+        }catch(URISyntaxException | IOException e){
+            this.showGenericErrorNotification();
+        }catch(MissingRepoException e){
+            this.showMissingRepoNotification();
+            this.setButtonsDisabled(true);
+            this.refreshRecentReposInDropdown();
+        }catch(NoRepoLoadedException e){
+            this.showNoRepoLoadedNotification();
+            this.setButtonsDisabled(true);
         }
     }
 
@@ -1181,9 +1189,18 @@ public class SessionController {
             try{
                 logger.info("Opening Repo Directory");
                 if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
-                Desktop.getDesktop().open(this.theModel.getCurrentRepoHelper().localPath.toFile());
+                // Use Desktop to open the current directory unless it's Linux
+                if (!SystemUtils.IS_OS_LINUX) {
+                    Desktop.getDesktop().open(this.theModel.getCurrentRepoHelper().localPath.toFile());
+                }
+                else {
+                    Runtime runtime = Runtime.getRuntime();
+                    String[] args = {"nautilus",this.theModel.getCurrentRepoHelper().localPath.toFile().toString()};
+                    runtime.exec(args);
+                }
             }catch(IOException | IllegalArgumentException e){
                 this.showFailedToOpenLocalNotification();
+                e.printStackTrace();
             }catch(NoRepoLoadedException e){
                 this.showNoRepoLoadedNotification();
                 setButtonsDisabled(true);
