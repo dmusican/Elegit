@@ -55,6 +55,7 @@ public class BranchManagerController {
     private SessionModel sessionModel;
     private BranchManagerModel branchManagerModel;
     private LocalCommitTreeModel localCommitTreeModel;
+    private RemoteCommitTreeModel remoteCommitTreeModel;
 
     static final Logger logger = LogManager.getLogger();
 
@@ -68,6 +69,9 @@ public class BranchManagerController {
             if (commitTreeModel.getViewName().equals(LocalCommitTreeModel
                     .LOCAL_TREE_VIEW_NAME)) {
                 this.localCommitTreeModel = (LocalCommitTreeModel)commitTreeModel;
+            } else if (commitTreeModel.getViewName().equals(RemoteCommitTreeModel
+                    .REMOTE_TREE_VIEW_NAME)) {
+                this.remoteCommitTreeModel = (RemoteCommitTreeModel)commitTreeModel;
             }
         }
 
@@ -212,6 +216,8 @@ public class BranchManagerController {
                 LocalBranchHelper tracker = this.repoHelper.trackRemoteBranch(selectedRemoteBranch);
                 this.localListView.getItems().add(tracker);
                 this.branchManagerModel.setLocalBranches(this.localListView.getItems());
+                this.remoteCommitTreeModel.setCommitAsTrackedBranch(selectedRemoteBranch.getHeadId());
+                this.localCommitTreeModel.setCommitAsTrackedBranch(selectedRemoteBranch.getHeadId());
             }
         } catch (RefAlreadyExistsException e) {
             logger.warn("Branch already exists locally warning");
