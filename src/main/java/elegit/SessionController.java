@@ -165,7 +165,7 @@ public class SessionController {
         this.theModel.loadRecentRepoHelpersFromStoredPathStrings();
         this.theModel.loadMostRecentRepoHelper();
 
-        this.initPanelViews();
+        this.initPanelViews(false);
         this.updateUIEnabledStatus();
         this.setRecentReposDropdownToCurrentRepo();
         this.refreshRecentReposInDropdown();
@@ -413,7 +413,7 @@ public class SessionController {
                         theModel.openRepoFromHelper(repoHelper);
                         setRecentReposDropdownToCurrentRepo();
 
-                        initPanelViews();
+                        initPanelViews(true);
                         updateUIEnabledStatus();
                     } catch(BackingStoreException | ClassNotFoundException e) {
                         // These should only occur when the recent repo information
@@ -506,7 +506,7 @@ public class SessionController {
                 try {
                     theModel.openRepoFromHelper(repoHelper);
 
-                    initPanelViews();
+                    initPanelViews(true);
                     updateUIEnabledStatus();
                 } catch (IOException e) {
                     // Somehow, the repository failed to get properly loaded
@@ -1059,8 +1059,10 @@ public class SessionController {
     /**
      * Initializes each panel of the view
      */
-	private synchronized void initPanelViews() {
-        BusyWindow.show();
+	private synchronized void initPanelViews(boolean showBusyWindow) {
+        if (showBusyWindow) {
+            BusyWindow.show();
+        }
 
         try {
             workingTreePanelView.drawDirectoryView();
@@ -1072,7 +1074,9 @@ public class SessionController {
             showGenericErrorNotification();
         }
 
-        BusyWindow.hide();
+        if (showBusyWindow) {
+            BusyWindow.hide();
+        }
     }
 
     /**

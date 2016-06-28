@@ -1,5 +1,6 @@
 package elegit.treefx;
 
+import elegit.Main;
 import javafx.application.Platform;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleDoubleProperty;
@@ -128,9 +129,7 @@ public class TreeLayout{
                 StackPane stackPane = new StackPane(loading);
                 stackPane.setLayoutY(100.0);
                 stackPane.setVisible(false);
-                Platform.runLater(() -> {
-                    cellLayer.getChildren().add(stackPane);
-                });
+                Platform.runLater(() -> cellLayer.getChildren().add(stackPane));
 
 
                 // Binds the progress bar location to the center of the viewport
@@ -138,26 +137,17 @@ public class TreeLayout{
                 stackPane.layoutYProperty().bind(centerOfViewportY);
 
                 // Adds listeners to the scrollbars to updates the progress bar's location and visibility
-                scrollPane.hvalueProperty().addListener(new ChangeListener<Number>() {
-                    @Override
-                    public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
-                        updateProgressBarLocation(mover, scrollPane, cellLayer, stackPane);
-                    }
+                scrollPane.hvalueProperty().addListener((observable, oldValue, newValue) -> {
+                    updateProgressBarLocation(mover, scrollPane, cellLayer, stackPane);
                 });
 
-                scrollPane.vvalueProperty().addListener(new ChangeListener<Number>() {
-                    @Override
-                    public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
-                        updateProgressBarLocation(mover, scrollPane, cellLayer, stackPane);
-                    }
+                scrollPane.vvalueProperty().addListener((observable, oldValue, newValue) -> {
+                    updateProgressBarLocation(mover, scrollPane, cellLayer, stackPane);
                 });
 
-                mover.percent.addListener(new ChangeListener<Number>() {
-                    @Override
-                    public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
-                        if (mover.percent.get() / 100.0 >= 1 - scrollPane.getHvalue()) {
-                            stackPane.setVisible(false);
-                        }
+                mover.percent.addListener((observable, oldValue, newValue) -> {
+                    if (mover.percent.get() / 100.0 >= 1 - scrollPane.getHvalue()) {
+                        stackPane.setVisible(false);
                     }
                 });
 
@@ -165,13 +155,15 @@ public class TreeLayout{
 
 
                 mover.setOnSucceeded(event1 -> {
-                    mover.setCurrentCell(mover.currentCell + 10);
-                    progressBar.setProgress(mover.percent.get() / 100.0);
-                    mover.restart();
+                    if (!Main.isAppClosed) {
+                        mover.setCurrentCell(mover.currentCell + 10);
+                        progressBar.setProgress(mover.percent.get() / 100.0);
+                        mover.restart();
+                    }else {
+                        mover.cancel();
+                    }
                 });
-                mover.setOnCancelled(event1 -> {
-                    treeGraphModel.isInitialSetupFinished = true;
-                });
+                mover.setOnCancelled(event1 -> treeGraphModel.isInitialSetupFinished = true);
                 mover.reset();
                 mover.start();
                 return null;

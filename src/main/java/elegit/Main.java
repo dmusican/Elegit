@@ -24,6 +24,9 @@ import java.util.concurrent.CountDownLatch;
 public class Main extends Application {
     private Path logPath;
 
+    // boolean used to stop the service that moves cells in TreeLayout
+    public static boolean isAppClosed;
+
     // Latch used to indicate when start is nearly complete; used for unit testing
     public final static CountDownLatch startLatch = new CountDownLatch(1);
 
@@ -88,6 +91,9 @@ public class Main extends Application {
 
         // Handles some concurrency issues with gitStatus()
         RepositoryMonitor.unpause();
+
+        // used to stop the service that moves cells in TreeLayout
+        primaryStage.setOnCloseRequest(event -> isAppClosed = true);
     }
 
     public static void main(String[] args) {
