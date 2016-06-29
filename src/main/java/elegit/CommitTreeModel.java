@@ -35,6 +35,9 @@ public abstract class CommitTreeModel{
     // A map from branch names to the branches themselves
     private Map<String, BranchHelper> branchMap;
 
+    // A list of commits in this model
+    private List<CommitHelper> commits;
+
     // A list of tags that haven't been pushed yet
     public List<TagHelper> tagsToBePushed;
 
