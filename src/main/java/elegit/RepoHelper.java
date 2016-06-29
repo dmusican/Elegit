@@ -217,6 +217,57 @@ public abstract class RepoHelper {
 
     }
 
+
+
+
+
+
+
+    /**
+     * Updates the entire model, including commits, branches and tags
+     * Note: this is expensive, but avoids possible errors that faster
+     * possible solutions have
+     *
+     * TODO: tags
+     */
+    public void updateModel() throws GitAPIException, IOException {
+        this.commitIdMap = new HashMap<>();
+        this.idMap = new HashMap<>();
+        // Update branches
+        branchModel.updateAllBranches();
+        // Reparse commits
+        this.parseAllLocalCommits();
+        this.parseAllRemoteCommits();
+    }
+
+    /**
+     * Checks for differences between a commit tree model and a repo model
+     * @param model the model to compare this repo with
+     * @return an update model that has all the differences between these
+     *
+     * TODO: tags and branches
+     */
+    public UpdateModel getChanges(CommitTreeModel model) {
+        UpdateModel updateModel = new UpdateModel();
+
+        // Added commits are all commits in the current repo helper that aren't in the model's list
+        List<CommitHelper> commitsToAdd = new ArrayList<>(this.getAllCommits());
+        commitsToAdd.removeAll(model.getCommitsInModel());
+        updateModel.setCommitsToAdd(commitsToAdd);
+
+        // Removed commits are those in the model, but not in the current repo helper
+        List<CommitHelper> commitsToRemove = new ArrayList<>(model.getCommitsInModel());
+        commitsToRemove.removeAll(this.getAllCommits());
+        updateModel.setCommitsToRemove(commitsToRemove);
+
+        return updateModel;
+    }
+
+
+
+
+
+
     /**
      * @return true if the corresponding repository still exists in the expected location
      */

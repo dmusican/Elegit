@@ -36,7 +36,9 @@ public abstract class CommitTreeModel{
     private Map<String, BranchHelper> branchMap;
 
     // A list of commits in this model
-    private List<CommitHelper> commits;
+    private List<CommitHelper> commitsInModel;
+    private List<BranchHelper> branchesInModel;
+    private List<TagHelper> tagsInModel;
 
     // A list of tags that haven't been pushed yet
     public List<TagHelper> tagsToBePushed;
@@ -442,4 +444,12 @@ public abstract class CommitTreeModel{
     }
 
     public abstract String getViewName();
+
+
+
+    public List<CommitHelper> getCommitsInModel() { return this.commitsInModel; }
+
+    public List<BranchHelper> getBranchesInModel() { return this.branchesInModel; }
+
+    public List<TagHelper> getTagsInModel() { return this.tagsInModel; }
 }

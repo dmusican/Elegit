@@ -8,6 +8,7 @@ import java.util.List;
  */
 public class UpdateModel {
     public List<CommitHelper> commitsToAdd, commitsToRemove;
+    // TODO: add branches and tags
 
     /**
      * Constructor without params, initializes lists
