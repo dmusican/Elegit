@@ -210,8 +210,9 @@ public abstract class RepoHelper {
 
         hasRemoteProperty = new SimpleBooleanProperty(!getLinkedRemoteRepoURLs().isEmpty());
 
+        // This should be if the remote/local heads are at different places...
         hasUnpushedCommitsProperty = new SimpleBooleanProperty(getAllCommitIDs().size() > remoteCommits.size());
-        hasUnmergedCommitsProperty = new SimpleBooleanProperty(getAllCommitIDs().size() > localCommits.size());
+        hasUnmergedCommitsProperty = new SimpleBooleanProperty(this.checkUnmergedCommits());
 
         hasUnpushedTagsProperty = new SimpleBooleanProperty();
 
@@ -558,6 +559,25 @@ public abstract class RepoHelper {
         if (status == MergeResult.MergeStatus.CONFLICTING) throw new ConflictingFilesException(result.getConflicts());
         //return result.getMergeStatus().isSuccessful();
         return status;
+    }
+
+    /**
+     * Checks if the remote tracking head refers to the same commit
+     * as the local head for the current branch
+     * @return true if there are unmerged commits in the current branch, else false
+     */
+    public boolean checkUnmergedCommits() {
+        Config config = this.repo.getConfig();
+        String remoteBranch = config.getString("branch", this.branchModel.getCurrentBranch().getBranchName(), "merge");
+        String remote = config.getString("branch", this.branchModel.getCurrentBranch().getBranchName(), "remote");
+        if (remoteBranch == null || remote == null) return false;
+        remoteBranch = remote + "/" + this.repo.shortenRefName(remoteBranch);
+        try {
+            return !this.branchModel.getBranchByName(BranchModel.BranchType.REMOTE, remoteBranch).getHead().getId()
+                    .equals(this.branchModel.getCurrentBranch().getHeadId());
+        } catch (IOException e) {
+            return false;
+        }
     }
 
     public void closeRepo() {

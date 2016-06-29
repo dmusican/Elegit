@@ -55,6 +55,7 @@ public class BranchModel {
         this.updateLocalBranches();
         this.updateRemoteBranches();
         this.refreshHeadIds();
+        this.refreshCurrentBranch();
     }
 
     /**
