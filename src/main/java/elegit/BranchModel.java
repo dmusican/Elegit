@@ -33,25 +33,25 @@ public class BranchModel {
 
     /**
      * Constructor. Sets the repo helper and updates the local and remote branches
+     *
      * @param repoHelper the repohelper to get branches for
      * @throws GitAPIException
      * @throws IOException
      */
     public BranchModel(RepoHelper repoHelper) throws GitAPIException, IOException {
         this.repoHelper = repoHelper;
-        this.updateLocalBranches();
-        this.updateRemoteBranches();
+        this.updateAllBranches();
     }
 
     /**
-     * Checks out the specified branch, updating the branch model to reflect that checkout
+     * Updates local and remote branches in the model
      *
-     * @param helper the branch helper to checkout
      * @throws GitAPIException
+     * @throws IOException
      */
-    public void checkoutBranch(BranchHelper helper) throws GitAPIException {
-        new Git(this.repoHelper.getRepo()).checkout().setName(helper.getBranchName()).call();
-        currentBranch = helper;
+    public void updateAllBranches() throws GitAPIException, IOException {
+        this.updateLocalBranches();
+        this.updateRemoteBranches();
     }
 
     /**
@@ -240,6 +240,22 @@ public class BranchModel {
      */
     public List<? extends BranchHelper> getBranchListTyped(BranchType type) {
         return (type==BranchType.LOCAL) ? this.localBranchesTyped : this.remoteBranchesTyped;
+    }
+
+    /**
+     * Getter for local branches
+     * @return list of local branches with type LocalBranchHelper
+     */
+    public List<LocalBranchHelper> getLocalBranchesTyped() {
+        return this.localBranchesTyped;
+    }
+
+    /**
+     * Getter for remote branches
+     * @return list of remote branches with type RemoteBranchHelper
+     */
+    public List<RemoteBranchHelper> getRemoteBranchesTyped() {
+        return this.remoteBranchesTyped;
     }
 
     /**

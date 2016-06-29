@@ -118,7 +118,7 @@ public abstract class CommitTreeModel{
      * @return a list of all local and remote branches
      */
     public List<BranchHelper> getLocalRemoteBranches(RepoHelper repoHelper) {
-        return repoHelper.getAllBranches();
+        return repoHelper.getBranchModel().getAllBranches();
     }
 
     /**
@@ -276,7 +276,7 @@ public abstract class CommitTreeModel{
 
         RepoHelper repo = sessionModel.getCurrentRepoHelper();
         String displayLabel = repo.getCommitDescriptorString(commitHelper, false);
-        List<String> branchLabels = repo.getBranchesWithHead(commitHelper);
+        List<String> branchLabels = repo.getBranchModel().getBranchesWithHead(commitHelper);
 
         graphModel.addCell(commitID, commitHelper.getWhen().getTime(), displayLabel, branchLabels, getContextMenu(commitHelper), parentIds, visible);
     }
@@ -379,7 +379,7 @@ public abstract class CommitTreeModel{
 
         RepoHelper repo = sessionModel.getCurrentRepoHelper();
         String displayLabel = repo.getCommitDescriptorString(commitId, false);
-        List<String> branchLabels = repo.getBranchesWithHead(commitId);
+        List<String> branchLabels = repo.getBranchModel().getBranchesWithHead(commitId);
         treeGraph.treeGraphModel.setCellLabels(commitId, displayLabel, branchLabels);
     }
 
@@ -400,7 +400,7 @@ public abstract class CommitTreeModel{
 
         RepoHelper repo = sessionModel.getCurrentRepoHelper();
         String displayLabel = repo.getCommitDescriptorString(commitId, false);
-        List<String> branchLabels = repo.getBranchesWithHead(commitId);
+        List<String> branchLabels = repo.getBranchModel().getBranchesWithHead(commitId);
         treeGraph.treeGraphModel.setCellLabels(commitId, displayLabel, branchLabels);
     }
 
@@ -421,7 +421,7 @@ public abstract class CommitTreeModel{
         if(updateLabels){
             for(String id : resetIDs){
                 String displayLabel = repo.getCommitDescriptorString(id, false);
-                List<String> branchLabels = repo.getBranchesWithHead(id);
+                List<String> branchLabels = repo.getBranchModel().getBranchesWithHead(id);
                 treeGraph.treeGraphModel.setCellLabels(id, displayLabel, branchLabels);
             }
         }

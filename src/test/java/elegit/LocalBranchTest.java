@@ -109,7 +109,7 @@ public class LocalBranchTest {
 
 
         // Make a new branch in fetcher and check it out
-        new_branch_fetch_helper = helperFetch.createNewLocalBranch("new_branch_name");
+        new_branch_fetch_helper = helperFetch.getBranchModel().createNewLocalBranch("new_branch_name");
         new_branch_fetch_helper.checkoutBranch();
 
         // Make some changes in new_branch in pusher

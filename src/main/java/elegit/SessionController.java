@@ -356,7 +356,8 @@ public class SessionController {
         if(currentRepoHelper==null) throw new NoRepoLoadedException();
         if(!currentRepoHelper.exists()) throw new MissingRepoException();
 
-        List<LocalBranchHelper> branches = currentRepoHelper.getListOfLocalBranches();
+        currentRepoHelper.getBranchModel().updateAllBranches();
+        List<LocalBranchHelper> branches = currentRepoHelper.getBranchModel().getLocalBranchesTyped();
 
         currentRepoHelper.getBranchModel().refreshCurrentBranch();
         LocalBranchHelper currentBranch = (LocalBranchHelper) currentRepoHelper.getBranchModel().getCurrentBranch();

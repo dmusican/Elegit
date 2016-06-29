@@ -78,7 +78,7 @@ public class RepositoryMonitor{
 
             while(!interrupted){
                 try{
-                    List<BranchHelper> localOriginHeads = repo.getRemoteBranches();
+                    List<BranchHelper> localOriginHeads = repo.getBranchModel().getBranchListUntyped(BranchModel.BranchType.REMOTE);
                     Collection<Ref> remoteHeads = repo.getRefsFromRemote(false);
 
                     if(localOriginHeads.size() >= remoteHeads.size()){

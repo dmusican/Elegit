@@ -30,7 +30,7 @@ public class RemoteCommitTreeModel extends CommitTreeModel{
 
     @Override
     protected List<BranchHelper> getAllBranches(RepoHelper repoHelper){
-        return repoHelper.getRemoteBranches();
+        return repoHelper.getBranchModel().getBranchListUntyped(BranchModel.BranchType.REMOTE);
     }
 
     @Override

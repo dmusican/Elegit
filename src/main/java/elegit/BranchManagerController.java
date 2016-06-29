@@ -71,8 +71,8 @@ public class BranchManagerController {
             }
         }
 
-        this.remoteListView.setItems(FXCollections.observableArrayList(repoHelper.getRemoteBranchesTyped()));
-        this.localListView.setItems(FXCollections.observableArrayList(repoHelper.getLocalBranchesTyped()));
+        this.remoteListView.setItems(FXCollections.observableArrayList(repoHelper.getBranchModel().getRemoteBranchesTyped()));
+        this.localListView.setItems(FXCollections.observableArrayList(repoHelper.getBranchModel().getLocalBranchesTyped()));
 
         this.remoteListView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
         this.remoteListView.setOnMouseClicked(e -> {
@@ -205,7 +205,7 @@ public class BranchManagerController {
         RemoteBranchHelper selectedRemoteBranch = this.remoteListView.getSelectionModel().getSelectedItem();
         try {
             if (selectedRemoteBranch != null) {
-                LocalBranchHelper tracker = this.repoHelper.trackRemoteBranch(selectedRemoteBranch);
+                LocalBranchHelper tracker = this.repoHelper.getBranchModel().trackRemoteBranch(selectedRemoteBranch);
                 this.localListView.getItems().add(tracker);
                 this.remoteCommitTreeModel.setCommitAsTrackedBranch(selectedRemoteBranch.getHeadId());
                 this.localCommitTreeModel.setCommitAsTrackedBranch(selectedRemoteBranch.getHeadId());
@@ -264,7 +264,7 @@ public class BranchManagerController {
      * @throws IOException
      */
     private LocalBranchHelper createNewLocalBranch(String branchName) throws GitAPIException, IOException {
-        return this.repoHelper.createNewLocalBranch(branchName);
+        return this.repoHelper.getBranchModel().createNewLocalBranch(branchName);
     }
 
     /**
@@ -312,7 +312,7 @@ public class BranchManagerController {
         LocalBranchHelper selectedBranch = this.localListView.getSelectionModel().getSelectedItem();
 
         // Get the merge result from the branch merge
-        MergeResult mergeResult= this.repoHelper.mergeWithBranch(selectedBranch);
+        MergeResult mergeResult= this.repoHelper.getBranchModel().mergeWithBranch(selectedBranch);
 
         if (mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.CONFLICTING)){
             this.showConflictsNotification();
@@ -340,7 +340,7 @@ public class BranchManagerController {
 
 
     private void updateBranchesOnSuccess() throws IOException, GitAPIException {
-        sessionModel.getCurrentRepoHelper().getListOfLocalBranches();
+        sessionModel.getCurrentRepoHelper().getBranchModel().updateLocalBranches();
         Platform.runLater(() -> {
             try {
                 CommitTreeController.update(sessionModel.getCurrentRepoHelper());

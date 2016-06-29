@@ -94,10 +94,10 @@ public class FastForwardTest {
         assertNotNull(helperFast);
 
         // Find the remote 'fast_branch'
-        remote_helper = helperFast.getRemoteBranchByName("origin/fast_branch");
+        remote_helper = (RemoteBranchHelper) helperFast.getBranchModel().getBranchByName(BranchModel.BranchType.REMOTE, "origin/fast_branch");
 
         // Track fast_branch and check it out
-        fast_helper = helperFast.trackRemoteBranch(remote_helper);
+        fast_helper = helperFast.getBranchModel().trackRemoteBranch(remote_helper);
         fast_helper.checkoutBranch();
 
         // Update the file in fast_branch
@@ -111,11 +111,11 @@ public class FastForwardTest {
         helperFast.pushAll();
 
         //Checkout master
-        master_helper = helperFast.getLocalBranchByName("master");
+        master_helper = (LocalBranchHelper) helperFast.getBranchModel().getBranchByName(BranchModel.BranchType.LOCAL, "master");
         master_helper.checkoutBranch();
 
         // Merge fast_forward into master
-        helperFast.mergeWithBranch(fast_helper);
+        helperFast.getBranchModel().mergeWithBranch(fast_helper);
 
         // Check that Elegit recognizes there are unpushed commits
         assertEquals(true, helperFast.hasUnpushedCommits());
@@ -153,10 +153,10 @@ public class FastForwardTest {
         assertNotNull(helperFast);
 
         // Find the remote 'can_push'
-        remote_helper = helperFast.getRemoteBranchByName("origin/can_push");
+        remote_helper = (RemoteBranchHelper) helperFast.getBranchModel().getBranchByName(BranchModel.BranchType.REMOTE, "origin/can_push");
 
         // Track can_push and check it out
-        fast_helper = helperFast.trackRemoteBranch(remote_helper);
+        fast_helper = helperFast.getBranchModel().trackRemoteBranch(remote_helper);
         fast_helper.checkoutBranch();
 
         // Update the file in can_push
@@ -170,12 +170,12 @@ public class FastForwardTest {
         helperFast.pushAll();
 
         // Find the remote 'can_pushb' and check it out
-        remote_helperb = helperFast.getRemoteBranchByName("origin/can_pushb");
-        fast_helperb = helperFast.trackRemoteBranch(remote_helperb);
+        remote_helperb = (RemoteBranchHelper) helperFast.getBranchModel().getBranchByName(BranchModel.BranchType.REMOTE, "origin/can_pushb");
+        fast_helperb = helperFast.getBranchModel().trackRemoteBranch(remote_helperb);
         fast_helperb.checkoutBranch();
 
         // Merge can_push into can_pushb
-        helperFast.mergeWithBranch(fast_helper);
+        helperFast.getBranchModel().mergeWithBranch(fast_helper);
 
         // Check that Elegit recognizes there are unpushed commits
         assertEquals(true, helperFast.hasUnpushedCommits());

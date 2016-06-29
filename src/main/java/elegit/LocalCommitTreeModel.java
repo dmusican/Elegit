@@ -30,7 +30,7 @@ public class LocalCommitTreeModel extends CommitTreeModel{
 
     @Override
     protected List<BranchHelper> getAllBranches(RepoHelper repoHelper){
-        return repoHelper.getLocalBranches();
+        return repoHelper.getBranchModel().getBranchListUntyped(BranchModel.BranchType.LOCAL);
     }
 
     @Override

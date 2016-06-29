@@ -244,7 +244,7 @@ public class CommitTreeController{
         List<BranchHelper> modelBranches = model.getLocalRemoteBranches(repo);
         if(modelBranches == null) return false;
         for(BranchHelper branch : modelBranches){
-            if(!model.sessionModel.getCurrentRepoHelper().isBranchTracked(branch)){
+            if(!model.sessionModel.getCurrentRepoHelper().getBranchModel().isBranchTracked(branch)){
                 model.setCommitAsUntrackedBranch(branch.getHead().getId());
             }else{
                 model.setCommitAsTrackedBranch(branch.getHead().getId());
