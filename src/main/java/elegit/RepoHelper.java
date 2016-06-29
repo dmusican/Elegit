@@ -66,7 +66,6 @@ public abstract class RepoHelper {
 
     private List<LocalBranchHelper> localBranches;
     private List<RemoteBranchHelper> remoteBranches;
-    private LocalBranchHelper branchHelper;
     private BranchModel branchModel;
 
     public BooleanProperty hasRemoteProperty;
@@ -201,6 +200,8 @@ public abstract class RepoHelper {
         this.idMap = new HashMap<>();
         this.tagIdMap = new HashMap<>();
 
+        this.branchModel = new BranchModel(this);
+
         this.localCommits = this.parseAllLocalCommits();
         this.remoteCommits = this.parseAllRemoteCommits();
 
@@ -208,8 +209,6 @@ public abstract class RepoHelper {
 
         this.upToDateTags = this.getAllLocalTags();
         this.unpushedTags = new ArrayList<>();
-
-        this.branchModel = new BranchModel(this);
 
         hasRemoteProperty = new SimpleBooleanProperty(!getLinkedRemoteRepoURLs().isEmpty());
 
@@ -740,13 +739,6 @@ public abstract class RepoHelper {
      */
     public List<String> getAllTagNames() {
         return new ArrayList<>(tagIdMap.keySet());
-    }
-
-    /**
-     * @return the head of the current branch
-     */
-    public CommitHelper getHead() {
-        return (this.branchHelper == null) ? null : this.branchHelper.getHead();
     }
 
     /**
@@ -1332,16 +1324,6 @@ public abstract class RepoHelper {
     }
 
     /**
-     * Sets the currently checkout branch. Does not call 'git checkout'
-     * or any variation, simply updates the local variable
-     *
-     * @param branchHelper the new current branch
-     */
-    public void setCurrentBranch(LocalBranchHelper branchHelper) {
-        this.branchHelper = branchHelper;
-    }
-
-    /**
      * Creates a local branch and tracks it
      * @param remoteBranchHelper the remote branch to track
      * @return the localBranchHelper that was added
@@ -1353,33 +1335,6 @@ public abstract class RepoHelper {
         LocalBranchHelper tracker = this.createLocalTrackingBranchForRemote(remoteBranchHelper);
         this.localBranches.add(tracker);
         return tracker;
-    }
-
-    /**
-     * @return the currently checkout out branch
-     */
-    public LocalBranchHelper getCurrentBranch() {
-        return this.branchHelper;
-    }
-
-    /**
-     * Updates the current branch by checking the repository for which
-     * branch is currently checked out
-     *
-     * @throws IOException
-     */
-    public void refreshCurrentBranch() throws IOException {
-        String currentBranchRefString = this.repo.getFullBranch();
-
-        for (LocalBranchHelper branch : localBranches) {
-            if (branch.getRefPathString().equals(currentBranchRefString)) {
-                this.setCurrentBranch(branch);
-                return;
-            }
-        }
-
-        LocalBranchHelper currentBranch = new LocalBranchHelper(currentBranchRefString, this);
-        this.setCurrentBranch(currentBranch);
     }
 
     public void showBranchManagerWindow() throws IOException {

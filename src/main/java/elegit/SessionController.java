@@ -358,8 +358,8 @@ public class SessionController {
 
         List<LocalBranchHelper> branches = currentRepoHelper.getListOfLocalBranches();
 
-        currentRepoHelper.refreshCurrentBranch();
-        LocalBranchHelper currentBranch = currentRepoHelper.getCurrentBranch();
+        currentRepoHelper.getBranchModel().refreshCurrentBranch();
+        LocalBranchHelper currentBranch = (LocalBranchHelper) currentRepoHelper.getBranchModel().getCurrentBranch();
 
         Platform.runLater(() -> {
             this.branchDropdownSelector.setVisible(true);
@@ -968,7 +968,7 @@ public class SessionController {
     public void onGitStatusButton(){
         logger.info("Git status button clicked");
         this.gitStatus();
-        CommitTreeController.focusCommitInGraph(theModel.getCurrentRepoHelper().getHead());
+        CommitTreeController.focusCommitInGraph(theModel.getCurrentRepoHelper().getBranchModel().getCurrentBranchHead());
     }
 
     /**

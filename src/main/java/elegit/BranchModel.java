@@ -31,8 +31,16 @@ public class BranchModel {
 
     static final Logger logger = LogManager.getLogger();
 
-    public BranchModel(RepoHelper repoHelper) {
+    /**
+     * Constructor. Sets the repo helper and updates the local and remote branches
+     * @param repoHelper the repohelper to get branches for
+     * @throws GitAPIException
+     * @throws IOException
+     */
+    public BranchModel(RepoHelper repoHelper) throws GitAPIException, IOException {
         this.repoHelper = repoHelper;
+        this.updateLocalBranches();
+        this.updateRemoteBranches();
     }
 
     /**
@@ -216,6 +224,13 @@ public class BranchModel {
      * @return the branch helper for the current branch
      */
     public BranchHelper getCurrentBranch() { return this.currentBranch; }
+
+    /**
+     * Getter for the current branch head in the model
+     *
+     * @return the commit helper for the head of the current branch
+     */
+    public CommitHelper getCurrentBranchHead() { return (this.currentBranch == null) ? null : this.currentBranch.getHead();}
 
     /**
      * Getter for list of branches

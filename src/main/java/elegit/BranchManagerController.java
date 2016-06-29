@@ -363,7 +363,7 @@ public class BranchManagerController {
      */
     public void swapMergeBranches() throws GitAPIException, IOException {
         LocalBranchHelper selectedBranch = this.localListView.getSelectionModel().getSelectedItem();
-        LocalBranchHelper checkedOutBranch = this.repoHelper.getCurrentBranch();
+        LocalBranchHelper checkedOutBranch = (LocalBranchHelper) this.repoHelper.getBranchModel().getCurrentBranch();
 
         selectedBranch.checkoutBranch();
         this.localListView.getSelectionModel().select(checkedOutBranch);
