@@ -395,14 +395,22 @@ public class SessionModel {
         Set<String> missingFiles = getMissingFiles(status);
         Set<String> untrackedFiles = getUntrackedFiles(status);
         Set<String> conflictingFiles = getConflictingFiles(status);
+        Set<String> conflictingThenModifiedFiles = ConflictingFileWatcher.getConflictingThenModifiedFiles();
 
         List<RepoFile> changedRepoFiles = new ArrayList<>();
 
         ArrayList<String> conflictingRepoFileStrings = new ArrayList<>();
 
+        for (String str : conflictingThenModifiedFiles) {
+            ConflictingThenModifiedRepoFile conflictingThenModifiedRepoFile = new ConflictingThenModifiedRepoFile(str, this.getCurrentRepoHelper());
+            changedRepoFiles.add(conflictingThenModifiedRepoFile);
+        }
+
         for (String conflictingFileString : conflictingFiles) {
-            ConflictingRepoFile conflictingRepoFile = new ConflictingRepoFile(conflictingFileString, this.getCurrentRepoHelper());
-            changedRepoFiles.add(conflictingRepoFile);
+            if(!conflictingThenModifiedFiles.contains(conflictingFileString)) {
+                ConflictingRepoFile conflictingRepoFile = new ConflictingRepoFile(conflictingFileString, this.getCurrentRepoHelper());
+                changedRepoFiles.add(conflictingRepoFile);
+            }
 
             // Store these paths to make sure this file isn't registered as a modified file or something.
             //  If it's conflicting, the app should focus only on the conflicting state of the

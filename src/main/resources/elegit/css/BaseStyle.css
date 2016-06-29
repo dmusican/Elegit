@@ -71,6 +71,11 @@
         -fx-background-color: blue;
     }
 
+    .diffButton#conflictingThenModifiedDiffButton {
+        -fx-background-top-color: #F22613;
+        -fx-background-bottom-color: #16a085;
+    }
+
 .diffText {
     -fx-font-family: "Menlo";
     -fx-font-size: 13;

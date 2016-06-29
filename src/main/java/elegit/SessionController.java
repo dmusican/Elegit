@@ -706,7 +706,7 @@ public class SessionController {
 
             Thread th = new Thread(new Task<Void>(){
                 @Override
-                protected Void call(){
+                protected Void call() throws GitAPIException {
                     try{
                         if(!theModel.getCurrentRepoHelper().mergeFromFetch().isSuccessful()){
                             showUnsuccessfulMergeNotification();
@@ -727,6 +727,7 @@ public class SessionController {
                         showMergingWithChangedFilesNotification();
                     } catch(ConflictingFilesException e){
                         showMergeConflictsNotification(e.getConflictingFiles());
+                        ConflictingFileWatcher.watchConflictingFiles(theModel.getCurrentRepoHelper());
                     } catch(MissingRepoException e){
                         showMissingRepoNotification();
                         setButtonsDisabled(true);

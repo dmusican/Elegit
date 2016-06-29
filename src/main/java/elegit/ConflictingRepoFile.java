@@ -41,8 +41,7 @@ public class ConflictingRepoFile extends RepoFile {
     }
 
     /**
-     * When this RepoFile is checkboxed and the user commits,
-     * open the conflicting file in an external editor.
+     * When this RepoFile is checkboxed and the user commits, display an alert.
      */
     @Override public boolean updateFileStatusInRepo() throws GitAPIException, IOException {
         ReentrantLock lock = new ReentrantLock();
