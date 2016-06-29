@@ -151,28 +151,13 @@ public abstract class CommitTreeModel{
         this.initView();
     }
 
-    /**
-     * Checks for new commits to add to the tree, and notifies the
-     * CommitTreeController that an update is needed if there are any
-     * @throws GitAPIException
-     * @throws IOException
-     */
-    public synchronized void update1() throws GitAPIException, IOException{
-        if(this.addNewCommitsToTree()){
-            this.updateView();
-        }
-    }
-
     public synchronized void update() throws GitAPIException, IOException {
         // Get the changes between this model and the repo after updating the repo
-        System.out.println("update called");
         this.sessionModel.getCurrentRepoHelper().updateModel();
         UpdateModel updates = this.getChanges();
 
         if (!updates.hasChanges()) return;
-        System.out.println("there are some changes!");
-        for (CommitHelper helper: updates.getCommitsToAdd())
-            System.out.println(helper.getId());
+
         this.addCommitsToTree(updates.getCommitsToAdd());
         this.removeCommitsFromTree(updates.getCommitsToRemove());
 
@@ -189,7 +174,7 @@ public abstract class CommitTreeModel{
      */
     public UpdateModel getChanges() {
         UpdateModel updateModel = new UpdateModel();
-        System.out.println("changes called");
+
         // Added commits are all commits in the current repo helper that aren't in the model's list
         List<CommitHelper> commitsToAdd = new ArrayList<>(this.getAllCommits());
         commitsToAdd.removeAll(this.getCommitsInModel());
@@ -309,7 +294,8 @@ public abstract class CommitTreeModel{
      */
     private void addCommitToTree(CommitHelper commitHelper, List<CommitHelper> parents, TreeGraphModel graphModel, boolean visible){
         List<String> parentIds = new ArrayList<>(parents.size());
-        this.commitsInModel.add(commitHelper);
+
+        if (visible) this.commitsInModel.add(commitHelper);
 
         for(CommitHelper parent : parents){
             if(!graphModel.containsID(RepoHelper.getCommitId(parent))){
