@@ -3,7 +3,9 @@ package elegit;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jgit.api.*;
+import org.eclipse.jgit.api.errors.CannotDeleteCurrentBranchException;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.api.errors.NotMergedException;
 import org.eclipse.jgit.api.errors.RefAlreadyExistsException;
 import org.eclipse.jgit.lib.Ref;
 
@@ -187,6 +189,35 @@ public class BranchModel {
 
         git.close();
         return newLocalBranchHelper;
+    }
+
+    /**
+     * Deletes a local branch, but will throw exceptions if the branch is not merged
+     *
+     * @param localBranchToDelete the branch helper of the branch to delete
+     * @throws NotMergedException
+     * @throws CannotDeleteCurrentBranchException
+     * @throws GitAPIException
+     */
+    public void deleteLocalBranch(LocalBranchHelper localBranchToDelete)
+            throws NotMergedException, CannotDeleteCurrentBranchException, GitAPIException {
+        Git git = new Git(this.repoHelper.getRepo());
+        git.branchDelete().setBranchNames(localBranchToDelete.getRefPathString()).call();
+        this.localBranchesTyped.remove(localBranchToDelete);
+        git.close();
+    }
+
+
+    /**
+     * Force deletes a branch, even if it is not merged in
+     *
+     * @param branchToDelete the branch helper of the branch to delete
+     */
+    public void forceDeleteLocalBranch(LocalBranchHelper branchToDelete) throws CannotDeleteCurrentBranchException, GitAPIException {
+        Git git = new Git(this.repoHelper.getRepo());
+        git.branchDelete().setForce(true).setBranchNames(branchToDelete.getRefPathString()).call();
+        this.localBranchesTyped.remove(branchToDelete);
+        git.close();
     }
 
     /**

@@ -221,13 +221,12 @@ public class BranchManagerController {
      */
     public void deleteSelectedLocalBranches() throws IOException {
         logger.info("Delete branches button clicked");
-        Git git = new Git(this.repo);
 
         for (LocalBranchHelper selectedBranch : this.localListView.getSelectionModel().getSelectedItems()) {
             try {
                 if (selectedBranch != null) {
                     // Local delete:
-                    git.branchDelete().setBranchNames(selectedBranch.getRefPathString()).call();
+                    this.repoHelper.getBranchModel().deleteLocalBranch(selectedBranch);
                     this.localListView.getItems().remove(selectedBranch);
                     this.remoteCommitTreeModel.setCommitAsUntrackedBranch(selectedBranch.getHeadId());
                     this.localCommitTreeModel.setCommitAsUntrackedBranch(selectedBranch.getHeadId());
@@ -243,7 +242,6 @@ public class BranchManagerController {
                 this.showGenericGitErrorNotificationWithBranch(selectedBranch);
             }
         }
-        git.close();
 
         try {
             updateBranchesOnSuccess();
@@ -272,12 +270,12 @@ public class BranchManagerController {
      */
     private void forceDeleteLocalBranch(LocalBranchHelper branchToDelete) {
         logger.info("Deleting local branch");
-        Git git = new Git(this.repo);
 
         try {
             if (branchToDelete != null) {
                 // Local delete:
-                git.branchDelete().setForce(true).setBranchNames(branchToDelete.getRefPathString()).call();
+                this.repoHelper.getBranchModel().forceDeleteLocalBranch(branchToDelete);
+                // Update local list view
                 this.localListView.getItems().remove(branchToDelete);
 
                 try {
@@ -296,7 +294,6 @@ public class BranchManagerController {
             this.showGenericGitErrorNotificationWithBranch(branchToDelete);
             e.printStackTrace();
         }
-        git.close();
     }
 
     /**
