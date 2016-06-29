@@ -67,7 +67,7 @@ public abstract class RepoHelper {
     private List<LocalBranchHelper> localBranches;
     private List<RemoteBranchHelper> remoteBranches;
     private LocalBranchHelper branchHelper;
-    private BranchManagerModel branchManagerModel;
+    private BranchModel branchModel;
 
     public BooleanProperty hasRemoteProperty;
     public BooleanProperty hasUnpushedCommitsProperty;
@@ -209,7 +209,7 @@ public abstract class RepoHelper {
         this.upToDateTags = this.getAllLocalTags();
         this.unpushedTags = new ArrayList<>();
 
-        this.branchManagerModel = new BranchManagerModel(this);
+        this.branchModel = new BranchModel(this);
 
         hasRemoteProperty = new SimpleBooleanProperty(!getLinkedRemoteRepoURLs().isEmpty());
 
@@ -1596,8 +1596,8 @@ public abstract class RepoHelper {
         else return new Git(repo).lsRemote().setHeads(true).call();
     }
 
-    public BranchManagerModel getBranchManagerModel() {
-        return this.branchManagerModel;
+    public BranchModel getBranchModel() {
+        return this.branchModel;
     }
 
     public String getUsername() {

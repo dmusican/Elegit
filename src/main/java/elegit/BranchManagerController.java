@@ -12,16 +12,12 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.controlsfx.control.NotificationPane;
 import org.controlsfx.control.action.Action;
-import org.eclipse.jgit.api.CreateBranchCommand;
 import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.MergeCommand;
 import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.api.errors.*;
-import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 
 import java.io.IOException;
-import java.util.List;
 
 /**
  *
@@ -53,7 +49,7 @@ public class BranchManagerController {
     private Button swapMergeBranchesButton;
 
     private SessionModel sessionModel;
-    private BranchManagerModel branchManagerModel;
+    private BranchModel branchModel;
     private LocalCommitTreeModel localCommitTreeModel;
     private RemoteCommitTreeModel remoteCommitTreeModel;
 
@@ -64,7 +60,7 @@ public class BranchManagerController {
         this.sessionModel = SessionModel.getSessionModel();
         this.repoHelper = this.sessionModel.getCurrentRepoHelper();
         this.repo = this.repoHelper.getRepo();
-        this.branchManagerModel = this.repoHelper.getBranchManagerModel();
+        this.branchModel = this.repoHelper.getBranchModel();
         for (CommitTreeModel commitTreeModel : CommitTreeController.allCommitTreeModels) {
             if (commitTreeModel.getViewName().equals(LocalCommitTreeModel
                     .LOCAL_TREE_VIEW_NAME)) {
