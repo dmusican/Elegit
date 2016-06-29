@@ -148,13 +148,13 @@ public abstract class CommitTreeModel{
      * Initializes the treeGraph, unselects any previously selected commit,
      * and then adds all commits tracked by this model to the tree
      */
-    public synchronized void init(){
-        treeGraph = this.createNewTreeGraph();
+    public synchronized void init() throws IOException {
+        this.createNewTreeGraph();
 
         CommitTreeController.resetSelection();
 
         this.addAllCommitsToTree();
-        this.initView();
+        this.updateView();
     }
 
     /**
@@ -165,6 +165,11 @@ public abstract class CommitTreeModel{
      */
     public synchronized void update() throws GitAPIException, IOException{
         if(this.addNewCommitsToTree()){
+
+            // adding these two lines makes it work
+            //this.createNewTreeGraph();
+            //this.addAllCommitsToTree();
+
             this.updateView();
         }
     }
@@ -246,10 +251,9 @@ public abstract class CommitTreeModel{
      * of all models accordingly
      * @return the newly created graph
      */
-    private TreeGraph createNewTreeGraph(){
+    private void createNewTreeGraph(){
         TreeGraphModel graphModel = new TreeGraphModel();
         treeGraph = new TreeGraph(graphModel);
-        return treeGraph;
     }
 
     /**
@@ -354,17 +358,6 @@ public abstract class CommitTreeModel{
     private void updateView() throws IOException{
         if(this.sessionModel != null && this.sessionModel.getCurrentRepoHelper() != null){
             CommitTreeController.update(sessionModel.getCurrentRepoHelper());
-        }else{
-            view.displayEmptyView();
-        }
-    }
-
-    /**
-     * Initializes the corresponding view if possible
-     */
-    private void initView(){
-        if(this.sessionModel != null && this.sessionModel.getCurrentRepoHelper() != null){
-            CommitTreeController.init(this);
         }else{
             view.displayEmptyView();
         }

@@ -69,7 +69,7 @@ public class SessionController {
     public Button loadNewRepoButton;
     public Button removeRecentReposButton;
 
-    private SessionModel theModel;
+    public SessionModel theModel;
 
     public Node root;
 
@@ -389,9 +389,11 @@ public class SessionController {
     private synchronized void handleLoadRepoMenuItem(RepoHelperBuilder builder){
         try{
             RepoHelper repoHelper = builder.getRepoHelperFromDialogs();
-            if(repoHelper.localPath.equals(theModel.getCurrentRepoHelper().localPath)) {
-                showSameRepoLoadedNotification();
-                return;
+            if (theModel.getCurrentRepoHelper() != null) {
+                if(repoHelper.localPath.equals(theModel.getCurrentRepoHelper().localPath)) {
+                    showSameRepoLoadedNotification();
+                    return;
+                }
             }
             BusyWindow.show();
             RepositoryMonitor.pause();
@@ -965,13 +967,13 @@ public class SessionController {
      * Updates the trees, changed files, and branch information. Equivalent
      * to 'git status'
      */
-    public void gitStatus(){
+    public void gitStatus() {
         RepositoryMonitor.pause();
 
         Platform.runLater(() -> {
             try{
-                localCommitTreeModel.update();
                 remoteCommitTreeModel.update();
+                localCommitTreeModel.update();
                 if (theModel.getCurrentRepoHelper() != null &&
                         theModel.getCurrentRepoHelper().updateTags()) {
                     if (theModel.getCurrentRepoHelper().hasTagsWithUnpushedCommits()) {
@@ -1804,6 +1806,8 @@ public class SessionController {
         List<RepoHelper> repoHelpers = this.theModel.getAllRepoHelpers();
         CheckListView<RepoHelper> repoCheckListView = new CheckListView<>(FXCollections.observableArrayList(repoHelpers));
 
+        RepoHelper tmp = theModel.getCurrentRepoHelper();
+
         // Remove the currently checked out repo:
         /*RepoHelper currentRepo = this.theModel.getCurrentRepoHelper();
         repoCheckListView.getItems().remove(currentRepo);*/
@@ -1819,7 +1823,7 @@ public class SessionController {
             this.theModel.removeRepoHelpers(checkedItems);
             popover.hide();
 
-            if (!this.theModel.getAllRepoHelpers().isEmpty() && !this.theModel.getAllRepoHelpers().contains(theModel.getCurrentRepoHelper())) {
+            if (!this.theModel.getAllRepoHelpers().isEmpty() && checkedItems.contains(tmp)) {
                 int newIndex = this.theModel.getAllRepoHelpers().size()-1;
                 RepoHelper newCurrentRepo = this.theModel.getAllRepoHelpers()
                         .get(newIndex);

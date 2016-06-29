@@ -5,8 +5,6 @@ import javafx.application.Platform;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
 import javafx.scene.control.ProgressBar;
@@ -39,8 +37,10 @@ public class TreeLayout{
         private int currentCell, max;
         private List<Cell> allCellsSortedByTime;
         private IntegerProperty percent;
+        public TreeGraph treeGraph;
 
-        public MoveCellService (List<Cell> allCellsSortedByTime) {
+        public MoveCellService (List<Cell> allCellsSortedByTime, TreeGraph treeGraph) {
+            this.treeGraph = treeGraph;
             this.allCellsSortedByTime = allCellsSortedByTime;
             this.max = allCellsSortedByTime.size()-1;
             this.percent = new SimpleIntegerProperty(0);
@@ -58,6 +58,7 @@ public class TreeLayout{
                             percent.set(100);
                             this.cancelled();
                         }
+                        System.out.println(treeGraph.getScrollPane().getId());
                         moveCell(allCellsSortedByTime.get(i));
 
                         // Update progress if need be
@@ -98,7 +99,8 @@ public class TreeLayout{
              * it has been through the layout process at least once already
              */
             @Override
-            protected Void call() throws Exception{
+            protected Void call() throws Exception {
+                System.out.println("HELLO?????????????????????????????????????????????????????????????????????????????");
 
                 TreeGraphModel treeGraphModel = g.treeGraphModel;
                 isInitialSetupFinished = treeGraphModel.isInitialSetupFinished;
@@ -110,13 +112,16 @@ public class TreeLayout{
                 maxColUsedInRow = new ArrayList<>();
                 movedCells = new ArrayList<>();
 
+                System.out.println("GREETINGS?????????????????????????????????????????????????????????????????????????????");
+
                 // Compute the positions of cells recursively
                 for (int i=allCellsSortedByTime.size()-1; i>=0; i--) {
+                    System.out.println(i + "  " + g.getScrollPane().getId());
                     computeCellPosition(i);
                 }
 
                 // Once all cell's positions have been set, move them in a service
-                MoveCellService mover = new MoveCellService(allCellsSortedByTime);
+                MoveCellService mover = new MoveCellService(allCellsSortedByTime, g);
 
                 //********************* Loading Bar Start *********************
                 // Prepare loading bar for while commits are loading
@@ -164,6 +169,7 @@ public class TreeLayout{
                     }
                 });
                 mover.setOnCancelled(event1 -> treeGraphModel.isInitialSetupFinished = true);
+                System.out.println("before mover: " + g.getScrollPane().getId());
                 mover.reset();
                 mover.start();
                 return null;
@@ -215,6 +221,7 @@ public class TreeLayout{
              * @param cellPosition position of cell to compute position for
              */
             private void computeCellPosition(int cellPosition) {
+                System.out.println("compute");
                 // Don't try to compute a new position if the cell has already been moved
                 if (movedCells.contains(cellPosition))
                     return;
@@ -242,6 +249,8 @@ public class TreeLayout{
                 int oldRowLocation = c.rowLocationProperty.get();
                 c.columnLocationProperty.set(x);
                 c.rowLocationProperty.set(y);
+
+                //System.out.println("column: " + c.columnLocationProperty + "   row: " + c.rowLocationProperty);
 
                 boolean hasCellMoved = oldColumnLocation >= 0 && oldRowLocation >= 0;
                 boolean willCellMove = oldColumnLocation != x || oldRowLocation != y;
@@ -283,6 +292,7 @@ public class TreeLayout{
      * @param c the cell to move
      */
     public static void moveCell(Cell c){
+        System.out.println("move: " + c.getCellId());
         Platform.runLater(new Task<Void>(){
             @Override
             protected Void call(){
@@ -297,6 +307,8 @@ public class TreeLayout{
                 double x = c.columnLocationProperty.get() * H_SPACING + H_PAD;
                 double y = c.rowLocationProperty.get() * V_SPACING + V_PAD;
                 c.moveTo(x, y, animate, animate && useParentPosAsSource);
+
+                //System.out.println("x: " + x + "    y: " + y);
                 return null;
             }
         });

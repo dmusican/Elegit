@@ -444,7 +444,7 @@ public class SessionModel {
      * @return a list of changed files, contained in RepoFile objects.
      * @throws GitAPIException if the `git status` calls fail.
      */
-    public List<RepoFile> getAllRepoFiles() throws GitAPIException, IOException {
+    public synchronized List<RepoFile> getAllRepoFiles() throws GitAPIException, IOException {
         List<RepoFile> allFiles = getAllChangedRepoFiles();
 
         Status status = new Git(this.getCurrentRepo()).status().call();

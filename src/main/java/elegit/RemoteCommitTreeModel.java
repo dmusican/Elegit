@@ -15,6 +15,7 @@ public class RemoteCommitTreeModel extends CommitTreeModel{
 
     public RemoteCommitTreeModel(SessionModel model, CommitTreePanelView view){
         super(model, view);
+        System.out.println("remote");
         this.view.setName(REMOTE_TREE_VIEW_NAME);
     }
 

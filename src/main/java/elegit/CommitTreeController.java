@@ -151,35 +151,9 @@ public class CommitTreeController{
     }
 
     /**
-     * Initializes the view corresponding to the given CommitTreeModel. Updates
-     * all tracked CommitTreeModels with branch heads and missing commits,
-     * but does not update their view
-     * @param commitTreeModel the model whose view should be updated
-     */
-    public static void init(CommitTreeModel commitTreeModel){
-        RepoHelper repo = commitTreeModel.sessionModel.getCurrentRepoHelper();
-
-        List<String> commitIDs = repo.getAllCommitIDs();
-        for(CommitTreeModel model : allCommitTreeModels){
-            if(model.treeGraph != null){
-                for(String id : commitIDs){
-                    if(!model.containsID(id)){
-                        model.addInvisibleCommit(id);
-                    }
-                }
-                model.treeGraph.update();
-            }
-        }
-
-        commitTreeModel.resetBranchHeads(true);
-        setBranchHeads(commitTreeModel, repo);
-
-        commitTreeModel.view.displayTreeGraph(commitTreeModel.treeGraph, commitTreeModel.sessionModel.getCurrentRepoHelper().getHead());
-    }
-
-    /**
      * Updates the views corresponding to all tracked CommitTreeModels after updating them
      * with branch heads and any missing commits
+     *
      * @param repo the repo from which the list of all commits is pulled
      */
     public static void update(RepoHelper repo) throws IOException{

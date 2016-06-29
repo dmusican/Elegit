@@ -15,6 +15,7 @@ public class LocalCommitTreeModel extends CommitTreeModel{
 
     public LocalCommitTreeModel(SessionModel model, CommitTreePanelView view){
         super(model, view);
+        System.out.println("local");
         this.view.setName(LOCAL_TREE_VIEW_NAME);
     }
 

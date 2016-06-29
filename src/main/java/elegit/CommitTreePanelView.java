@@ -13,6 +13,9 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+
 /**
  * Class for the local and remote panel views that handles the drawing of a tree structure
  * from a given treeGraph.
@@ -63,11 +66,17 @@ public class CommitTreePanelView extends Region{
     private void initCommitTreeScrollPanes(TreeGraph treeGraph) {
         MatchedScrollPane.ignoreScrolling(true);
         ScrollPane sp = treeGraph.getScrollPane();
+
+        Calendar cal = Calendar.getInstance();
+        SimpleDateFormat sdf = new SimpleDateFormat("SS");
+        System.out.println(sdf.format(cal.getTime()));
+
+        sp.setId(sdf.format(cal.getTime()));
+
         sp.setOnMouseClicked(event -> CommitTreeController.handleMouseClicked());
         getChildren().clear();
         getChildren().add(anchorScrollPane(sp));
         getChildren().add(computingCommitTree);
-        isLayoutThreadRunning = false;
         MatchedScrollPane.ignoreScrolling(false);
     }
 
@@ -78,6 +87,10 @@ public class CommitTreePanelView extends Region{
      * @param treeGraph the graph to be displayed
      */
     public synchronized void displayTreeGraph(TreeGraph treeGraph, CommitHelper commitToFocusOnLoad){
+        Calendar cal = Calendar.getInstance();
+        SimpleDateFormat sdf = new SimpleDateFormat("SS");
+        System.out.println("displayTreeGraph(): " + sdf.format(cal.getTime()));
+
         if (Platform.isFxApplicationThread()) {
             initCommitTreeScrollPanes(treeGraph);
         }else {
@@ -110,6 +123,7 @@ public class CommitTreePanelView extends Region{
                     e.printStackTrace();
                 }
                 Platform.runLater(() -> {
+                    isLayoutThreadRunning = false;
                     loading.setVisible(false);
                     CommitTreeController.focusCommitInGraph(commitToFocusOnLoad);
                 });
