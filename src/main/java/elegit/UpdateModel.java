@@ -7,7 +7,7 @@ import java.util.List;
  * Class to hold updates for a commit tree model
  */
 public class UpdateModel {
-    public List<CommitHelper> commitsToAdd, commitsToRemove;
+    private List<CommitHelper> commitsToAdd, commitsToRemove;
     // TODO: add branches and tags
 
     /**
@@ -26,6 +26,14 @@ public class UpdateModel {
     public UpdateModel(List<CommitHelper> commitsToAdd, List<CommitHelper> commitsToRemove) {
         this.commitsToAdd = commitsToAdd;
         this.commitsToRemove = commitsToRemove;
+    }
+
+    /**
+     * Method to see if there are changes in the update model
+     * @return if there are any changes that need to be processed
+     */
+    public boolean hasChanges() {
+        return this.commitsToAdd.size()+this.commitsToRemove.size()>0;
     }
 
     public void addCommit(CommitHelper commitHelper) { this.commitsToAdd.add(commitHelper); }

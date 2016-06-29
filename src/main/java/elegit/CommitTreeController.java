@@ -241,7 +241,7 @@ public class CommitTreeController{
      * @return true if the model has branches, false if not
      */
     public static boolean setBranchHeads(CommitTreeModel model, RepoHelper repo) {
-        List<BranchHelper> modelBranches = model.getLocalRemoteBranches(repo);
+        List<BranchHelper> modelBranches = repo.getBranchModel().getAllBranches();
         if(modelBranches == null) return false;
         for(BranchHelper branch : modelBranches){
             if(!model.sessionModel.getCurrentRepoHelper().getBranchModel().isBranchTracked(branch)){
@@ -250,8 +250,6 @@ public class CommitTreeController{
                 model.setCommitAsTrackedBranch(branch.getHead().getId());
             }
         }
-
-
         return true;
     }
 

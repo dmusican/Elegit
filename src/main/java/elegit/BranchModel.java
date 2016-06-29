@@ -54,6 +54,7 @@ public class BranchModel {
     public void updateAllBranches() throws GitAPIException, IOException {
         this.updateLocalBranches();
         this.updateRemoteBranches();
+        this.refreshHeadIds();
     }
 
     /**

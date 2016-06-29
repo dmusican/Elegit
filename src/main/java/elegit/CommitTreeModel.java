@@ -8,6 +8,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.ObjectId;
+import org.eclipse.jgit.util.IO;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -57,6 +58,7 @@ public abstract class CommitTreeModel{
         this.view.setName("Generic commit tree");
         CommitTreeController.allCommitTreeModels.add(this);
         branchMap = new HashMap<>();
+        this.commitsInModel = new ArrayList<>();
     }
 
     /**
@@ -96,19 +98,6 @@ public abstract class CommitTreeModel{
             }
         }
         return new ArrayList<>();
-    }
-
-    /**
-     * @return if there are updated refs, even if there are no new commits
-     */
-    private boolean hasUpdatedRemoteRefs() {
-        if(this.sessionModel != null) {
-            RepoHelper repo = this.sessionModel.getCurrentRepoHelper();
-            if (repo != null){
-
-            }
-        }
-        return false;
     }
 
     /**
@@ -168,10 +157,50 @@ public abstract class CommitTreeModel{
      * @throws GitAPIException
      * @throws IOException
      */
-    public synchronized void update() throws GitAPIException, IOException{
+    public synchronized void update1() throws GitAPIException, IOException{
         if(this.addNewCommitsToTree()){
             this.updateView();
         }
+    }
+
+    public synchronized void update() throws GitAPIException, IOException {
+        // Get the changes between this model and the repo after updating the repo
+        System.out.println("update called");
+        this.sessionModel.getCurrentRepoHelper().updateModel();
+        UpdateModel updates = this.getChanges();
+
+        if (!updates.hasChanges()) return;
+        System.out.println("there are some changes!");
+        for (CommitHelper helper: updates.getCommitsToAdd())
+            System.out.println(helper.getId());
+        this.addCommitsToTree(updates.getCommitsToAdd());
+        this.removeCommitsFromTree(updates.getCommitsToRemove());
+
+        this.updateView();
+    }
+
+
+    /**
+     * Helper method that checks for differences between a commit tree model and a repo model
+     *
+     * @return an update model that has all the differences between these
+     *
+     * TODO: tags and branches
+     */
+    public UpdateModel getChanges() {
+        UpdateModel updateModel = new UpdateModel();
+        System.out.println("changes called");
+        // Added commits are all commits in the current repo helper that aren't in the model's list
+        List<CommitHelper> commitsToAdd = new ArrayList<>(this.getAllCommits());
+        commitsToAdd.removeAll(this.getCommitsInModel());
+        updateModel.setCommitsToAdd(commitsToAdd);
+
+        // Removed commits are those in the model, but not in the current repo helper
+        List<CommitHelper> commitsToRemove = new ArrayList<>(this.commitsInModel);
+        commitsToRemove.removeAll(this.getAllCommits());
+        updateModel.setCommitsToRemove(commitsToRemove);
+
+        return updateModel;
     }
 
     /**
@@ -247,6 +276,20 @@ public abstract class CommitTreeModel{
     }
 
     /**
+     * Removes the given list of commits from the treeGraph
+     * @param commits the commits to remove
+     * @return true if commits were removed, else false
+     */
+    private boolean removeCommitsFromTree(List<CommitHelper> commits){
+        if(commits.size() == 0) return false;
+
+        for(CommitHelper curCommitHelper : commits)
+            this.removeCommitFromTree(curCommitHelper, treeGraph.treeGraphModel);
+
+        return true;
+    }
+
+    /**
      * Creates a new TreeGraph with a new model. Updates the list
      * of all models accordingly
      * @return the newly created graph
@@ -266,6 +309,7 @@ public abstract class CommitTreeModel{
      */
     private void addCommitToTree(CommitHelper commitHelper, List<CommitHelper> parents, TreeGraphModel graphModel, boolean visible){
         List<String> parentIds = new ArrayList<>(parents.size());
+        this.commitsInModel.add(commitHelper);
 
         for(CommitHelper parent : parents){
             if(!graphModel.containsID(RepoHelper.getCommitId(parent))){
@@ -285,6 +329,22 @@ public abstract class CommitTreeModel{
 
         graphModel.addCell(commitID, commitHelper.getWhen().getTime(), displayLabel, branchLabels, getContextMenu(commitHelper), parentIds, visible);
     }
+
+
+    /**
+     * Removes a single commit from the tree
+     *
+     * @param commitHelper the commit to remove
+     * @param graphModel the graph model to remove the commit from
+     */
+    private void removeCommitFromTree(CommitHelper commitHelper, TreeGraphModel graphModel){
+        String commitID = RepoHelper.getCommitId(commitHelper);
+        this.commitsInModel.remove(commitHelper);
+
+        if(graphModel.containsID(commitID) && graphModel.isVisible(commitID))
+            graphModel.removeCell(commitID);
+    }
+
 
     /**
      * Constructs and returns a context menu corresponding to the given commit. Will
