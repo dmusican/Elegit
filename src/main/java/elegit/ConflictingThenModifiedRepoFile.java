@@ -20,7 +20,7 @@ import java.util.concurrent.locks.ReentrantLock;
 /**
  * A subclass of the RepoFile class that holds a reference to
  * and interacts with a file in the repository that was conflicting
- * but was then modified
+ * but was then modified after the user was informed of the conflict
  */
 public class ConflictingThenModifiedRepoFile extends RepoFile {
 
