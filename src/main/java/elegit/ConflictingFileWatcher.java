@@ -16,23 +16,22 @@ import java.util.Set;
  *
  * Class used to watch a conflictingRepoFile to see if it's been modified
  * after the user has been informed that the file was conflicting
- *
- * http://docs.oracle.com/javase/tutorial/essential/io/notification.html#overview
- *
- * https://docs.oracle.com/javase/7/docs/api/java/nio/file/WatchService.html
  */
 
 public class ConflictingFileWatcher {
-    private static ArrayList<String> conflictingThenModifiedFiles = new ArrayList<>();
+    private static final ArrayList<String> conflictingThenModifiedFiles = new ArrayList<>();
     private static ArrayList<String> conflictingFiles = new ArrayList<>();
 
-    @SuppressWarnings("unchecked")
-    static WatchEvent<Path> cast(WatchEvent<?> event) {
-        return (WatchEvent<Path>)event;
-    }
-
+    /**
+     * returns a list of the files that were conflicting and then recently modified
+     * @return ArrayList<String>
+     */
     public static ArrayList<String> getConflictingThenModifiedFiles() {
         return conflictingThenModifiedFiles;
+    }
+
+    public static void removeFile(String file) {
+        conflictingThenModifiedFiles.remove(file);
     }
 
     public static void watchConflictingFiles(RepoHelper currentRepo) throws GitAPIException, IOException {
@@ -58,7 +57,9 @@ public class ConflictingFileWatcher {
                             Path path = (new File(event.context().toString())).toPath();
                             if(conflictingFiles.contains(path.toString())) {
                                 conflictingFiles.remove(path.toString());
-                                conflictingThenModifiedFiles.add(path.toString());
+                                synchronized (conflictingThenModifiedFiles) {
+                                    conflictingThenModifiedFiles.add(path.toString());
+                                }
                             }
                         }
                     }

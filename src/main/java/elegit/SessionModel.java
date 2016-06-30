@@ -401,17 +401,15 @@ public class SessionModel {
 
         ArrayList<String> conflictingRepoFileStrings = new ArrayList<>();
 
-        for (String str : conflictingThenModifiedFiles) {
-            ConflictingThenModifiedRepoFile conflictingThenModifiedRepoFile = new ConflictingThenModifiedRepoFile(str, this.getCurrentRepoHelper());
-            changedRepoFiles.add(conflictingThenModifiedRepoFile);
-        }
-
         for (String conflictingFileString : conflictingFiles) {
-            if(!conflictingThenModifiedFiles.contains(conflictingFileString)) {
+            // If a file is conflicting but was also recently modified, make it a ConflictingThenModifiedRepoFile instead
+            if(conflictingThenModifiedFiles.contains(conflictingFileString)) {
+                ConflictingThenModifiedRepoFile conflictingThenModifiedRepoFile = new ConflictingThenModifiedRepoFile(conflictingFileString, this.getCurrentRepoHelper());
+                changedRepoFiles.add(conflictingThenModifiedRepoFile);
+            }else {
                 ConflictingRepoFile conflictingRepoFile = new ConflictingRepoFile(conflictingFileString, this.getCurrentRepoHelper());
                 changedRepoFiles.add(conflictingRepoFile);
             }
-
             // Store these paths to make sure this file isn't registered as a modified file or something.
             //  If it's conflicting, the app should focus only on the conflicting state of the
             //  file first.
@@ -419,6 +417,13 @@ public class SessionModel {
             // e.g. If a modification causes a conflict, that file should have its conflicts resolved
             //      before it gets added.
             conflictingRepoFileStrings.add(conflictingFileString);
+        }
+
+        // If a file is no longer conflicting but was in conflictingThenModifiedFiles, remove it from the fileWatcher
+        for(String str : conflictingThenModifiedFiles) {
+            if(!conflictingFiles.contains(str)) {
+                ConflictingFileWatcher.removeFile(str);
+            }
         }
 
         for (String modifiedFileString : modifiedFiles) {

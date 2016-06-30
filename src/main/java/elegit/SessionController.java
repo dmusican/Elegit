@@ -389,9 +389,11 @@ public class SessionController {
     private synchronized void handleLoadRepoMenuItem(RepoHelperBuilder builder){
         try{
             RepoHelper repoHelper = builder.getRepoHelperFromDialogs();
-            if(repoHelper.localPath.equals(theModel.getCurrentRepoHelper().localPath)) {
-                showSameRepoLoadedNotification();
-                return;
+            if(theModel.getCurrentRepoHelper() != null ) {
+                if(repoHelper.localPath.equals(theModel.getCurrentRepoHelper().localPath)) {
+                    showSameRepoLoadedNotification();
+                    return;
+                }
             }
             BusyWindow.show();
             RepositoryMonitor.pause();
