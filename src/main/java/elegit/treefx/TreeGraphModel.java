@@ -317,51 +317,5 @@ public class TreeGraphModel{
         removedEdges.clear();
 
         numCellsProperty.set(allCells.size());
-
-        EdgeChecker checker = new EdgeChecker();
-        checker.setOnSucceeded(event -> checker.restart());
-        checker.createTask();
-    }
-
-
-    private class EdgeChecker extends Service {
-        private List<Cell> cellsToCheck;
-        private List<Cell> edgesToAdd;
-
-        public EdgeChecker() {
-            this.cellsToCheck = new ArrayList<>();
-            for (Cell c : allCells)
-                this.cellsToCheck.add(c);
-            edgesToAdd = new ArrayList<>();
-        }
-
-        @Override
-        protected Task createTask() {
-            try {// Check if it has edges to its parent
-                if (cellsToCheck.size() < 1) {
-                    this.cancelled();
-                    return null;
-                }
-                Cell c = cellsToCheck.remove(0);
-                List<Cell> parents = c.getCellParents();
-
-                edgesToAdd.clear();
-                for (Edge e : c.edges) {
-                    edgesToAdd.add(e.getTarget());
-                }
-
-                for (Cell parent : parents) {
-                    if (!edgesToAdd.contains(parent)) {
-                        System.out.println("adding an edge!");
-                        addEdge(parent, c);
-                    }
-                }
-                this.succeeded();
-            }
-            catch (Exception e) {
-                e.printStackTrace();
-            }
-            return null;
-        }
     }
 }
