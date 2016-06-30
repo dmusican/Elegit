@@ -22,7 +22,11 @@ import java.util.Set;
 public class ConflictingFileWatcher {
 
     // list of files that were modified after the user was informed they were conflicting
-    private static final ArrayList<String> conflictingThenModifiedFiles = new ArrayList<>();
+    private static ArrayList<String> conflictingThenModifiedFiles = new ArrayList<>();
+    private static ArrayList<String> conflictingFiles = new ArrayList<>();
+
+    // boolean to help deal with concurrency issues
+    private static boolean watching = false;
 
     /**
      * returns a list of the files that were conflicting and then recently modified
@@ -37,7 +41,9 @@ public class ConflictingFileWatcher {
      * @param file String to remove from list
      */
     public static void removeFile(String file) {
-        conflictingThenModifiedFiles.remove(file);
+        if(!watching) {
+            conflictingThenModifiedFiles.remove(file);
+        }
     }
 
     /**
@@ -50,56 +56,70 @@ public class ConflictingFileWatcher {
 
         if(currentRepo == null) return;
 
+        watching = true;
+
         Thread watcherThread = new Thread(new Task<Void>() {
 
             @Override
             protected Void call() throws IOException, GitAPIException {
                 // gets the conflicting files
-                Set<String> conflictingFiles = (new Git(currentRepo.getRepo()).status().call()).getConflicting();
+                Set<String> newConflictingFiles = (new Git(currentRepo.getRepo()).status().call()).getConflicting();
+                for(String newFile : newConflictingFiles) {
+                    if(!conflictingFiles.contains(newFile)) {
+                        conflictingFiles.add(newFile);
+                    }
+                }
 
                 // gets the path to the repo directory
                 Path directory = (new File(currentRepo.getRepo().getDirectory().getParent())).toPath();
-
-                // creates a WatchService
-                WatchService watcher = FileSystems.getDefault().newWatchService();
-
-                // a list of keys to represent the directories the service is watching
-                ArrayList<WatchKey> keys = new ArrayList<>();
 
                 // a list of paths that are already being watched
                 ArrayList<Path> alreadyWatching = new ArrayList<>();
 
                 // for each conflicting file, add a watcher to its parent directory if it's not already being watched
                 for(String fileToWatch : conflictingFiles) {
-                    Path fileToWatchPath = directory.resolve((new File(fileToWatch)).toPath().getParent());
+                    Path fileToWatchPath = directory.resolve((new File(fileToWatch)).toPath()).getParent();
                     if(!alreadyWatching.contains(fileToWatchPath)) {
                         alreadyWatching.add(fileToWatchPath);
-                        System.out.println(directory.resolve(fileToWatchPath));
-                        WatchKey key = fileToWatchPath.register(watcher, StandardWatchEventKinds.ENTRY_MODIFY);
-                        keys.add(key);
+                        watch(fileToWatchPath);
                     }
                 }
+                watching = false;
+                return null;
+            }
 
-                // while there are conflicting files, check each key to see if a file was modified
-                while(conflictingFiles.size() > 0) {
-                    for(WatchKey key : keys) {
-                        List<WatchEvent<?>> events = key.pollEvents();
-                        for(WatchEvent<?> event : events) {
-                            if (event.kind() == StandardWatchEventKinds.ENTRY_MODIFY) {
+            private void watch(Path directoryToWatch) throws IOException {
+                Thread watch = new Thread(new Task<Void>() {
+                    @Override
+                    protected Void call() throws IOException {
+                        // creates a WatchService
+                        WatchService watcher = FileSystems.getDefault().newWatchService();
+                        WatchKey key = directoryToWatch.register(watcher, StandardWatchEventKinds.ENTRY_MODIFY);
+
+                        // while there are conflicting files, check each key to see if a file was modified
+                        while(conflictingFiles.size() > 0) {
+                            List<WatchEvent<?>> events = key.pollEvents();
+                            for(WatchEvent<?> event : events) {
 
                                 // if a conflicting file was modified, remove it from conflictingFiles and add it to conflictingThenModifiedFiles
-                                Path path = (new File(event.context().toString())).toPath();
-                                if(conflictingFiles.contains(path.toString())) {
-                                    conflictingFiles.remove(path.toString());
-                                    synchronized (conflictingThenModifiedFiles) {
-                                        conflictingThenModifiedFiles.add(path.toString());
+                                String path = event.context().toString();
+                                for(String str : conflictingFiles) {
+                                    Path tmp = (new File(str)).toPath();
+                                    // the path in conflictingFiles is either the file name itself or a path that ends with the file name
+                                    if(tmp.endsWith(path) || tmp.toString().equals(path)) {
+                                        conflictingFiles.remove(tmp.toString());
+                                        conflictingThenModifiedFiles.add(tmp.toString());
                                     }
                                 }
                             }
+                            key.reset();
                         }
+                        return null;
                     }
-                }
-                return null;
+                });
+                watch.setDaemon(true);
+                watch.setName("watching a directory");
+                watch.start();
             }
         });
 
