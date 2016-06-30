@@ -185,6 +185,24 @@ public class TreeGraphModel{
     }
 
     /**
+     * Queues a cell to be removed by removing it from the cell map and
+     * putting it into the removed cells list
+     *
+     * @param id the cell id to remove
+     */
+    public void removeCell(String id) {
+        Cell cell = cellMap.get(id);
+        if(cellMap.containsKey(cell.getCellId())){
+            Cell oldCell = cellMap.remove(cell.getCellId());
+            for(Cell p : cell.getCellParents()){
+                p.removeCellChild(oldCell);
+            }
+            removedCells.add(oldCell);
+            this.removeEdges(oldCell);
+        }
+    }
+
+    /**
      * Removes all edges connected to the given cell
      * @param cell the cell whose edges will be removed
      */

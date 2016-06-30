@@ -105,9 +105,8 @@ public class PushPullTest {
         helperPull.fetch();
         helperPull.mergeFromFetch();
 
-        // Update lists of remote branches.
-        helperPull.getListOfLocalBranches();
-        helperPull.getListOfRemoteBranches();
+        // Update lists of branches
+        helperPull.getBranchModel().updateAllBranches();
 
     }
 

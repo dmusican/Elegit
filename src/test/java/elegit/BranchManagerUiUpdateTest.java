@@ -120,10 +120,11 @@ public class BranchManagerUiUpdateTest {
 
         // after update, should expect the heads of two branches
         // are the same commit
-        assertEquals(helper.getListOfLocalBranches().size(), 2);
+        helper.getBranchModel().updateLocalBranches();
+        assertEquals(helper.getBranchModel().getBranchListTyped(BranchModel.BranchType.LOCAL).size(), 2);
 
-        String masterHead = helper.getListOfLocalBranches().get(0).getHeadId().getName();
-        String randomHead = helper.getListOfLocalBranches().get(1).getHeadId().getName();
+        String masterHead = helper.getBranchModel().getBranchListTyped(BranchModel.BranchType.LOCAL).get(0).getHeadId().getName();
+        String randomHead = helper.getBranchModel().getBranchListTyped(BranchModel.BranchType.LOCAL).get(1).getHeadId().getName();
 
         assertEquals(masterHead, randomHead);
     }

@@ -12,16 +12,12 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.controlsfx.control.NotificationPane;
 import org.controlsfx.control.action.Action;
-import org.eclipse.jgit.api.CreateBranchCommand;
 import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.MergeCommand;
 import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.api.errors.*;
-import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 
 import java.io.IOException;
-import java.util.List;
 
 /**
  *
@@ -53,8 +49,9 @@ public class BranchManagerController {
     private Button swapMergeBranchesButton;
 
     private SessionModel sessionModel;
-    private BranchManagerModel branchManagerModel;
+    private BranchModel branchModel;
     private LocalCommitTreeModel localCommitTreeModel;
+    private RemoteCommitTreeModel remoteCommitTreeModel;
 
     static final Logger logger = LogManager.getLogger();
 
@@ -63,19 +60,19 @@ public class BranchManagerController {
         this.sessionModel = SessionModel.getSessionModel();
         this.repoHelper = this.sessionModel.getCurrentRepoHelper();
         this.repo = this.repoHelper.getRepo();
-        this.branchManagerModel = this.repoHelper.getBranchManagerModel();
+        this.branchModel = this.repoHelper.getBranchModel();
         for (CommitTreeModel commitTreeModel : CommitTreeController.allCommitTreeModels) {
             if (commitTreeModel.getViewName().equals(LocalCommitTreeModel
                     .LOCAL_TREE_VIEW_NAME)) {
                 this.localCommitTreeModel = (LocalCommitTreeModel)commitTreeModel;
+            } else if (commitTreeModel.getViewName().equals(RemoteCommitTreeModel
+                    .REMOTE_TREE_VIEW_NAME)) {
+                this.remoteCommitTreeModel = (RemoteCommitTreeModel)commitTreeModel;
             }
         }
 
-        List<LocalBranchHelper> localBranches = this.branchManagerModel.getLocalBranches();
-        List<RemoteBranchHelper> remoteBranches = this.branchManagerModel.getRemoteBranches();
-
-        this.remoteListView.setItems(FXCollections.observableArrayList(remoteBranches));
-        this.localListView.setItems(FXCollections.observableArrayList(localBranches));
+        this.remoteListView.setItems(FXCollections.observableArrayList(repoHelper.getBranchModel().getRemoteBranchesTyped()));
+        this.localListView.setItems(FXCollections.observableArrayList(repoHelper.getBranchModel().getLocalBranchesTyped()));
 
         this.remoteListView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
         this.remoteListView.setOnMouseClicked(e -> {
@@ -135,7 +132,6 @@ public class BranchManagerController {
             logger.info("New branch button clicked");
             LocalBranchHelper newLocalBranch = this.createNewLocalBranch(this.newBranchNameField.getText());
             this.localListView.getItems().add(newLocalBranch);
-            this.branchManagerModel.setLocalBranches(this.localListView.getItems());
             this.newBranchNameField.clear();
         } catch (InvalidRefNameException e1) {
             logger.warn("Invalid branch name warning");
@@ -209,9 +205,10 @@ public class BranchManagerController {
         RemoteBranchHelper selectedRemoteBranch = this.remoteListView.getSelectionModel().getSelectedItem();
         try {
             if (selectedRemoteBranch != null) {
-                LocalBranchHelper tracker = this.repoHelper.trackRemoteBranch(selectedRemoteBranch);
+                LocalBranchHelper tracker = this.repoHelper.getBranchModel().trackRemoteBranch(selectedRemoteBranch);
                 this.localListView.getItems().add(tracker);
-                this.branchManagerModel.setLocalBranches(this.localListView.getItems());
+                this.remoteCommitTreeModel.setCommitAsBranchHead(selectedRemoteBranch, true);
+                this.localCommitTreeModel.setCommitAsBranchHead(selectedRemoteBranch, true);
             }
         } catch (RefAlreadyExistsException e) {
             logger.warn("Branch already exists locally warning");
@@ -224,15 +221,15 @@ public class BranchManagerController {
      */
     public void deleteSelectedLocalBranches() throws IOException {
         logger.info("Delete branches button clicked");
-        Git git = new Git(this.repo);
 
         for (LocalBranchHelper selectedBranch : this.localListView.getSelectionModel().getSelectedItems()) {
             try {
                 if (selectedBranch != null) {
                     // Local delete:
-                    git.branchDelete().setBranchNames(selectedBranch.getRefPathString()).call();
+                    this.repoHelper.getBranchModel().deleteLocalBranch(selectedBranch);
                     this.localListView.getItems().remove(selectedBranch);
-                    this.branchManagerModel.setLocalBranches(this.localListView.getItems());
+                    this.remoteCommitTreeModel.setCommitAsBranchHead(selectedBranch, false);
+                    this.localCommitTreeModel.setCommitAsBranchHead(selectedBranch, false);
                 }
             } catch (NotMergedException e) {
                 logger.warn("Can't delete branch because not merged warning");
@@ -245,7 +242,6 @@ public class BranchManagerController {
                 this.showGenericGitErrorNotificationWithBranch(selectedBranch);
             }
         }
-        git.close();
 
         try {
             updateBranchesOnSuccess();
@@ -266,7 +262,7 @@ public class BranchManagerController {
      * @throws IOException
      */
     private LocalBranchHelper createNewLocalBranch(String branchName) throws GitAPIException, IOException {
-        return this.repoHelper.createNewLocalBranch(branchName);
+        return this.repoHelper.getBranchModel().createNewLocalBranch(branchName);
     }
 
     /**
@@ -274,14 +270,16 @@ public class BranchManagerController {
      */
     private void forceDeleteLocalBranch(LocalBranchHelper branchToDelete) {
         logger.info("Deleting local branch");
-        Git git = new Git(this.repo);
 
         try {
             if (branchToDelete != null) {
                 // Local delete:
-                git.branchDelete().setForce(true).setBranchNames(branchToDelete.getRefPathString()).call();
+                this.repoHelper.getBranchModel().forceDeleteLocalBranch(branchToDelete);
+                // Update local list view
                 this.localListView.getItems().remove(branchToDelete);
-                this.branchManagerModel.setLocalBranches(this.localListView.getItems());
+
+                this.remoteCommitTreeModel.setCommitAsBranchHead(branchToDelete, false);
+                this.localCommitTreeModel.setCommitAsBranchHead(branchToDelete, false);
             }
         } catch (CannotDeleteCurrentBranchException e) {
             logger.warn("Can't delete current branch warning");
@@ -291,7 +289,6 @@ public class BranchManagerController {
             this.showGenericGitErrorNotificationWithBranch(branchToDelete);
             e.printStackTrace();
         }
-        git.close();
     }
 
     /**
@@ -307,7 +304,7 @@ public class BranchManagerController {
         LocalBranchHelper selectedBranch = this.localListView.getSelectionModel().getSelectedItem();
 
         // Get the merge result from the branch merge
-        MergeResult mergeResult= this.repoHelper.mergeWithBranch(selectedBranch);
+        MergeResult mergeResult= this.repoHelper.getBranchModel().mergeWithBranch(selectedBranch);
 
         if (mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.CONFLICTING)){
             this.showConflictsNotification();
@@ -335,7 +332,7 @@ public class BranchManagerController {
 
 
     private void updateBranchesOnSuccess() throws IOException, GitAPIException {
-        sessionModel.getCurrentRepoHelper().getListOfLocalBranches();
+        sessionModel.getCurrentRepoHelper().getBranchModel().updateLocalBranches();
         Platform.runLater(() -> {
             try {
                 CommitTreeController.update(sessionModel.getCurrentRepoHelper());
@@ -358,7 +355,7 @@ public class BranchManagerController {
      */
     public void swapMergeBranches() throws GitAPIException, IOException {
         LocalBranchHelper selectedBranch = this.localListView.getSelectionModel().getSelectedItem();
-        LocalBranchHelper checkedOutBranch = this.repoHelper.getCurrentBranch();
+        LocalBranchHelper checkedOutBranch = (LocalBranchHelper) this.repoHelper.getBranchModel().getCurrentBranch();
 
         selectedBranch.checkoutBranch();
         this.localListView.getSelectionModel().select(checkedOutBranch);

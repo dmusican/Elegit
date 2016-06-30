@@ -421,7 +421,6 @@ public class Cell extends Pane{
             basic.setVisible(true);
             basic.setStyle("-fx-background-color: #F2F1EF;");
 
-            boolean isFirst = true;
             int rowIndex=1;
 
             for (String label: labels) {
@@ -446,7 +445,6 @@ public class Cell extends Pane{
                 showExtended.setStyle("-fx-background-color: rgba(242,241,240,100); -fx-padding: 1 0 0 0;");
                 showExtended.setOnMouseClicked(event -> {
                     extended.setVisible(!extended.isVisible());
-                    //basic.setVisible(!basic.isVisible());
                 });
             }
 

@@ -346,10 +346,11 @@ public class SessionController {
         if(currentRepoHelper==null) throw new NoRepoLoadedException();
         if(!currentRepoHelper.exists()) throw new MissingRepoException();
 
-        List<LocalBranchHelper> branches = currentRepoHelper.getListOfLocalBranches();
+        currentRepoHelper.getBranchModel().updateAllBranches();
+        List<LocalBranchHelper> branches = currentRepoHelper.getBranchModel().getLocalBranchesTyped();
 
-        currentRepoHelper.refreshCurrentBranch();
-        LocalBranchHelper currentBranch = currentRepoHelper.getCurrentBranch();
+        currentRepoHelper.getBranchModel().refreshCurrentBranch();
+        LocalBranchHelper currentBranch = (LocalBranchHelper) currentRepoHelper.getBranchModel().getCurrentBranch();
 
         Platform.runLater(() -> {
             this.branchDropdownSelector.setVisible(true);
@@ -771,11 +772,12 @@ public class SessionController {
                     try{
                         RepositoryMonitor.resetFoundNewChanges(false);
                         theModel.getCurrentRepoHelper().pushAll();
+                        gitStatus();
                         // Update the trees if the push worked
                         Platform.runLater(() -> {
                             try {
-                                remoteCommitTreeModel.forceUpdate();
-                                localCommitTreeModel.forceUpdate();
+                                remoteCommitTreeModel.update();
+                                localCommitTreeModel.update();
                             } catch (Exception e) {
                                 showGenericErrorNotification();
                             }
@@ -958,7 +960,7 @@ public class SessionController {
     public void onGitStatusButton(){
         logger.info("Git status button clicked");
         this.gitStatus();
-        CommitTreeController.focusCommitInGraph(theModel.getCurrentRepoHelper().getHead());
+        CommitTreeController.focusCommitInGraph(theModel.getCurrentRepoHelper().getBranchModel().getCurrentBranchHead());
     }
 
     /**
