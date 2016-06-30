@@ -343,7 +343,7 @@ public abstract class CommitTreeModel{
      */
     private void updateView() throws IOException{
         if(this.sessionModel != null && this.sessionModel.getCurrentRepoHelper() != null){
-            CommitTreeController.update(sessionModel.getCurrentRepoHelper());
+            CommitTreeController.update(this);
         }else{
             view.displayEmptyView();
         }

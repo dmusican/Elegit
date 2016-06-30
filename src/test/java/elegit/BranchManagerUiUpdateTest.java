@@ -116,7 +116,8 @@ public class BranchManagerUiUpdateTest {
         MergeResult mergeResult = merge.call();
         assertEquals(mergeResult.getMergeStatus(), MergeResult.MergeStatus.FAST_FORWARD);
 
-        CommitTreeController.update(helper);
+        // TODO: fix this if you ever run it
+        //CommitTreeController.update(helper);
 
         // after update, should expect the heads of two branches
         // are the same commit
