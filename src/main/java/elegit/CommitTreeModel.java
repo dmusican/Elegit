@@ -102,10 +102,10 @@ public abstract class CommitTreeModel{
         this.addCommitsToTree(updates.getCommitsToAdd());
         this.removeCommitsFromTree(updates.getCommitsToRemove());
 
+        this.updateView();
+
         this.resetBranchHeads(true);
         CommitTreeController.setBranchHeads(this, this.sessionModel.getCurrentRepoHelper());
-
-        this.updateView();
     }
 
 
