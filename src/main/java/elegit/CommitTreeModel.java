@@ -1,5 +1,6 @@
 package elegit;
 
+import elegit.treefx.CellShape;
 import javafx.scene.control.*;
 import elegit.treefx.Cell;
 import elegit.treefx.TreeGraph;
@@ -371,45 +372,21 @@ public abstract class CommitTreeModel{
     }
 
     /**
-     * Marks the commit with the given id as the head of a tracked branch in the tree
-     * @param commitId the id of the commit to mark
+     * Sets the shape and ref labels for a cell based on the current repo status
+     * @param commit the commit to set as a branch head
+     * @param tracked whether or not the branch is tracked
      */
-    public void setCommitAsTrackedBranch(String commitId){
-        treeGraph.treeGraphModel.setCellShape(commitId, Cell.TRACKED_BRANCH_HEAD_SHAPE);
+    public void setCommitAsBranchHead(ObjectId commit, boolean tracked) {
+        String commitId = commit.getName();
+
+        CellShape shape = (tracked) ? Cell.TRACKED_BRANCH_HEAD_SHAPE : Cell.UNTRACKED_BRANCH_HEAD_SHAPE;
+
+        treeGraph.treeGraphModel.setCellShape(commitId, shape);
 
         RepoHelper repo = sessionModel.getCurrentRepoHelper();
         String displayLabel = repo.getCommitDescriptorString(commitId, false);
         List<String> branchLabels = repo.getBranchModel().getBranchesWithHead(commitId);
         treeGraph.treeGraphModel.setCellLabels(commitId, displayLabel, branchLabels);
-    }
-
-    /**
-     * Marks the commit with the given id as the head of a tracked branch in the tree
-     * @param commitId the id of the commit to mark
-     */
-    public void setCommitAsTrackedBranch(ObjectId commitId){
-        setCommitAsTrackedBranch(commitId.getName());
-    }
-
-    /**
-     * Marks the commit with the given id as the head of an untracked branch in the tree
-     * @param commitId the id of the commit to mark
-     */
-    public void setCommitAsUntrackedBranch(String commitId){
-        treeGraph.treeGraphModel.setCellShape(commitId, Cell.UNTRACKED_BRANCH_HEAD_SHAPE);
-
-        RepoHelper repo = sessionModel.getCurrentRepoHelper();
-        String displayLabel = repo.getCommitDescriptorString(commitId, false);
-        List<String> branchLabels = repo.getBranchModel().getBranchesWithHead(commitId);
-        treeGraph.treeGraphModel.setCellLabels(commitId, displayLabel, branchLabels);
-    }
-
-    /**
-     * Marks the commit with the given id as the head of an untracked branch in the tree
-     * @param commitId the id of the commit to mark
-     */
-    public void setCommitAsUntrackedBranch(ObjectId commitId){
-        setCommitAsUntrackedBranch(commitId.getName());
     }
 
     /**

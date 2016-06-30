@@ -207,8 +207,8 @@ public class BranchManagerController {
             if (selectedRemoteBranch != null) {
                 LocalBranchHelper tracker = this.repoHelper.getBranchModel().trackRemoteBranch(selectedRemoteBranch);
                 this.localListView.getItems().add(tracker);
-                this.remoteCommitTreeModel.setCommitAsTrackedBranch(selectedRemoteBranch.getHeadId());
-                this.localCommitTreeModel.setCommitAsTrackedBranch(selectedRemoteBranch.getHeadId());
+                this.remoteCommitTreeModel.setCommitAsBranchHead(selectedRemoteBranch.getHeadId(), true);
+                this.localCommitTreeModel.setCommitAsBranchHead(selectedRemoteBranch.getHeadId(), true);
             }
         } catch (RefAlreadyExistsException e) {
             logger.warn("Branch already exists locally warning");
@@ -228,8 +228,8 @@ public class BranchManagerController {
                     // Local delete:
                     this.repoHelper.getBranchModel().deleteLocalBranch(selectedBranch);
                     this.localListView.getItems().remove(selectedBranch);
-                    this.remoteCommitTreeModel.setCommitAsUntrackedBranch(selectedBranch.getHeadId());
-                    this.localCommitTreeModel.setCommitAsUntrackedBranch(selectedBranch.getHeadId());
+                    this.remoteCommitTreeModel.setCommitAsBranchHead(selectedBranch.getHeadId(), false);
+                    this.localCommitTreeModel.setCommitAsBranchHead(selectedBranch.getHeadId(), false);
                 }
             } catch (NotMergedException e) {
                 logger.warn("Can't delete branch because not merged warning");
@@ -279,8 +279,8 @@ public class BranchManagerController {
                 this.localListView.getItems().remove(branchToDelete);
 
                 try {
-                    this.remoteCommitTreeModel.setCommitAsUntrackedBranch(branchToDelete.getHeadId());
-                    this.localCommitTreeModel.setCommitAsUntrackedBranch(branchToDelete.getHeadId());
+                    this.remoteCommitTreeModel.setCommitAsBranchHead(branchToDelete.getHeadId(), false);
+                    this.localCommitTreeModel.setCommitAsBranchHead(branchToDelete.getHeadId(), false);
                 }catch (IOException e) {
                     this.showGenericErrorNotification();
                     e.printStackTrace();
