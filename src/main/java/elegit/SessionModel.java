@@ -82,6 +82,7 @@ public class SessionModel {
                     ExistingRepoHelper existingRepoHelper =
                             new ExistingRepoHelper(path);
                     this.openRepoFromHelper(existingRepoHelper);
+                    return;
                 } catch (IllegalArgumentException e) {
                     logger.warn("Recent repo not found in directory it used to be in");
                     // The most recent repo is no longer in the directory it used to be in,
@@ -92,6 +93,15 @@ public class SessionModel {
                     e.printStackTrace();
                 } catch (CancelledAuthorizationException e) {
                 // Should never be used, as no authorization is needed for loading local files.
+                }
+            }
+            if (this.allRepoHelpers!=null && this.allRepoHelpers.size()>0) {
+                RepoHelper helper = this.allRepoHelpers.get(0);
+                try {
+                    this.openRepoFromHelper(helper);
+                } catch (MissingRepoException e) {
+                    logger.error("Missing repo exception");
+                    e.printStackTrace();
                 }
             }
         }catch(IOException | BackingStoreException | ClassNotFoundException e){
