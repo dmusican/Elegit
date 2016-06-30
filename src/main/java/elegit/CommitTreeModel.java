@@ -99,11 +99,10 @@ public abstract class CommitTreeModel{
 
         if (!updates.hasChanges()) return;
 
-        this.resetBranchHeads(true);
-
         this.addCommitsToTree(updates.getCommitsToAdd());
         this.removeCommitsFromTree(updates.getCommitsToRemove());
 
+        this.resetBranchHeads(true);
         CommitTreeController.setBranchHeads(this, this.sessionModel.getCurrentRepoHelper());
 
         this.updateView();
@@ -115,7 +114,7 @@ public abstract class CommitTreeModel{
      *
      * @return an update model that has all the differences between these
      *
-     * TODO: tags and branches
+     * TODO: tags
      */
     public UpdateModel getChanges() throws IOException {
         UpdateModel updateModel = new UpdateModel();

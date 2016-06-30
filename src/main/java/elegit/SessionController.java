@@ -782,6 +782,7 @@ public class SessionController {
                     try{
                         RepositoryMonitor.resetFoundNewChanges(false);
                         theModel.getCurrentRepoHelper().pushAll();
+                        gitStatus();
                         // Update the trees if the push worked
                         Platform.runLater(() -> {
                             try {
