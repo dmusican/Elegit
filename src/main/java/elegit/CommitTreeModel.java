@@ -86,8 +86,10 @@ public abstract class CommitTreeModel{
 
         CommitTreeController.resetSelection();
 
-        this.addAllCommitsToTree();
-        this.branchesInModel = getAllBranches(this.sessionModel.getCurrentRepoHelper());
+        if (this.sessionModel.getCurrentRepoHelper() != null) {
+            this.addAllCommitsToTree();
+            this.branchesInModel = getAllBranches(this.sessionModel.getCurrentRepoHelper());
+        }
 
         this.initView();
     }

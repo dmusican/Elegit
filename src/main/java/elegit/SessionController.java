@@ -774,15 +774,14 @@ public class SessionController {
                         theModel.getCurrentRepoHelper().pushAll();
                         gitStatus();
                         // Update the trees if the push worked
-                        Platform.runLater(() -> {
+                        /*Platform.runLater(() -> {
                             try {
                                 remoteCommitTreeModel.update();
                                 localCommitTreeModel.update();
                             } catch (Exception e) {
                                 showGenericErrorNotification();
                             }
-                        });
-                        gitStatus();
+                        });*/
                         pushed = true;
                     }  catch(InvalidRemoteException e){
                         showNoRemoteNotification();

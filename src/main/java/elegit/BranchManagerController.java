@@ -242,13 +242,6 @@ public class BranchManagerController {
                 this.showGenericGitErrorNotificationWithBranch(selectedBranch);
             }
         }
-
-        try {
-            updateBranchesOnSuccess();
-        } catch (GitAPIException e) {
-            logger.warn("Git error");
-            this.showGenericErrorNotification();
-        }
         // TODO: add optional delete from remote, too.
         // see http://stackoverflow.com/questions/11892766/how-to-remove-remote-branch-with-jgit
     }
@@ -318,31 +311,15 @@ public class BranchManagerController {
         } else if (mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.MERGED)
                 || mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.MERGED_NOT_COMMITTED)) {
             this.showMergeSuccessNotification();
-            this.updateBranchesOnSuccess();
 
         } else if (mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.FAST_FORWARD)) {
             this.showFastForwardMergeNotification();
-            this.updateBranchesOnSuccess();
 
         } else {
             System.out.println(mergeResult.getMergeStatus());
             // todo: handle all cases (maybe combine some)
         }
     }
-
-
-    private void updateBranchesOnSuccess() throws IOException, GitAPIException {
-        sessionModel.getCurrentRepoHelper().getBranchModel().updateLocalBranches();
-        Platform.runLater(() -> {
-            try {
-                CommitTreeController.update(sessionModel.getCurrentRepoHelper());
-                //CommitTreeController.sessionController.gitStatus();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        });
-    }
-
 
     /**
      * Swaps the branches to be merged.

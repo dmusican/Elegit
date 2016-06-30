@@ -192,11 +192,11 @@ public class CommitTreeController{
                     }
                 }
 
-                setBranchHeads(model, repo);
-
                 model.treeGraph.update();
                 model.view.displayTreeGraph(model.treeGraph, model.sessionModel
                         .getCurrentRepoHelper().getBranchModel().getCurrentBranchHead());
+
+                setBranchHeads(model, repo);
             }
         }
     }
