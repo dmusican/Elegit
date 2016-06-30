@@ -24,17 +24,7 @@ public class RemoteCommitTreeModel extends CommitTreeModel{
     }
 
     @Override
-    protected List<CommitHelper> getNewCommits(RepoHelper repoHelper, Map<String, BranchHelper> oldBranches) throws GitAPIException, IOException{
-        return repoHelper.getNewRemoteCommits(oldBranches);
-    }
-
-    @Override
     protected List<BranchHelper> getAllBranches(RepoHelper repoHelper){
         return repoHelper.getBranchModel().getBranchListUntyped(BranchModel.BranchType.REMOTE);
-    }
-
-    @Override
-    public String getViewName() {
-        return this.view.getName();
     }
 }

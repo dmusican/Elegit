@@ -785,8 +785,8 @@ public class SessionController {
                         // Update the trees if the push worked
                         Platform.runLater(() -> {
                             try {
-                                remoteCommitTreeModel.forceUpdate();
-                                localCommitTreeModel.forceUpdate();
+                                remoteCommitTreeModel.update();
+                                localCommitTreeModel.update();
                             } catch (Exception e) {
                                 showGenericErrorNotification();
                             }

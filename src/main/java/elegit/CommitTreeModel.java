@@ -80,27 +80,6 @@ public abstract class CommitTreeModel{
     }
 
     /**
-     * Gets any commits tracked by this model that haven't yet been recorded, and
-     * updates branch information
-     * @return a list of all new commits since the last update
-     * @throws GitAPIException
-     * @throws IOException
-     */
-    private List<CommitHelper> getNewCommits() throws GitAPIException, IOException{
-        if(this.sessionModel != null){
-            RepoHelper repo = this.sessionModel.getCurrentRepoHelper();
-            if(repo != null){
-                List<CommitHelper> commits = getNewCommits(repo, branchMap);
-                this.branches = getAllBranches(repo);
-                branchMap = new HashMap<>();
-                for(BranchHelper branch : branches) branchMap.put(branch.getBranchName(),branch);
-                return commits;
-            }
-        }
-        return new ArrayList<>();
-    }
-
-    /**
      * @param repoHelper the repository to get the branches from
      * @return a list of all branches tracked by this model
      */
@@ -120,15 +99,6 @@ public abstract class CommitTreeModel{
      * @return a list of all commits tracked by this model
      */
     protected abstract List<CommitHelper> getAllCommits(RepoHelper repoHelper);
-
-    /**
-     * @param repoHelper the repository to get the commits from
-     * @param oldBranches the branches already known about
-     * @return a list of all commits tracked by this model that haven't been added to the tree
-     * @throws GitAPIException
-     * @throws IOException
-     */
-    protected abstract List<CommitHelper> getNewCommits(RepoHelper repoHelper, Map<String, BranchHelper> oldBranches) throws GitAPIException, IOException;
 
     /**
      * @param id the id to check
@@ -189,16 +159,6 @@ public abstract class CommitTreeModel{
     }
 
     /**
-     * Updates the view for the commit tree model.
-     * WARNING: This is expensive, use only when necessary
-     * @throws IOException
-     */
-    public synchronized void forceUpdate() throws GitAPIException, IOException {
-        this.addNewCommitsToTree();
-        this.updateView();
-    }
-
-    /**
      * Adds a pseudo-cell of type InvisibleCell to the treeGraph.
      * @param id the id of the cell to add
      */
@@ -234,14 +194,14 @@ public abstract class CommitTreeModel{
     }
 
     /**
-     * Gets all commits tracked by this model that haven't been added to the tree,
-     * and adds them
-     * @return true if the tree was updated, otherwise false
-     * @throws GitAPIException
-     * @throws IOException
+     * Creates a new TreeGraph with a new model. Updates the list
+     * of all models accordingly
+     * @return the newly created graph
      */
-    private boolean addNewCommitsToTree() throws GitAPIException, IOException{
-        return this.addCommitsToTree(this.getNewCommits());
+    private TreeGraph createNewTreeGraph(){
+        TreeGraphModel graphModel = new TreeGraphModel();
+        treeGraph = new TreeGraph(graphModel);
+        return treeGraph;
     }
 
     /**
@@ -272,17 +232,6 @@ public abstract class CommitTreeModel{
             this.removeCommitFromTree(curCommitHelper, treeGraph.treeGraphModel);
 
         return true;
-    }
-
-    /**
-     * Creates a new TreeGraph with a new model. Updates the list
-     * of all models accordingly
-     * @return the newly created graph
-     */
-    private TreeGraph createNewTreeGraph(){
-        TreeGraphModel graphModel = new TreeGraphModel();
-        treeGraph = new TreeGraph(graphModel);
-        return treeGraph;
     }
 
     /**
@@ -478,18 +427,13 @@ public abstract class CommitTreeModel{
         }
     }
 
-    /**
-     * @return the branches tracked by this model
-     */
-    public List<BranchHelper> getBranches(){
-        return branches;
-    }
-
     public List<TagHelper> getTagsToBePushed() {
         return tagsToBePushed;
     }
 
-    public abstract String getViewName();
+    public String getViewName() {
+        return this.view.getName();
+    }
 
 
 

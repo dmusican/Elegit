@@ -573,7 +573,7 @@ public abstract class RepoHelper {
         if (remoteBranch == null || remote == null) return false;
         remoteBranch = remote + "/" + this.repo.shortenRefName(remoteBranch);
         try {
-            return !this.branchModel.getBranchByName(BranchModel.BranchType.REMOTE, remoteBranch).getHead().getId()
+            return !this.branchModel.getBranchByName(BranchModel.BranchType.REMOTE, remoteBranch).getHeadId()
                     .equals(this.branchModel.getCurrentBranch().getHeadId());
         } catch (IOException e) {
             return false;
