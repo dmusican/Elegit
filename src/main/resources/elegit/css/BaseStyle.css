@@ -72,8 +72,7 @@
     }
 
     .diffButton#conflictingThenModifiedDiffButton {
-        -fx-background-top-color: #F22613;
-        -fx-background-bottom-color: #16a085;
+        -fx-background-color: firebrick;
     }
 
 .diffText {

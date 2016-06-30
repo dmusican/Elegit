@@ -706,7 +706,7 @@ public class SessionController {
 
             Thread th = new Thread(new Task<Void>(){
                 @Override
-                protected Void call() throws GitAPIException {
+                protected Void call() throws GitAPIException, IOException {
                     try{
                         if(!theModel.getCurrentRepoHelper().mergeFromFetch().isSuccessful()){
                             showUnsuccessfulMergeNotification();
