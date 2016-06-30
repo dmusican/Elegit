@@ -26,8 +26,6 @@
                   spacing="10">
 
                 <Circle id="helpButton"
-                        fx:id="remoteCircle"
-                        opacity="0.5"
                         radius="20.0"/>
                 <Text text="An untracked branch head"/>
             </HBox>
@@ -38,8 +36,6 @@
                   spacing="10">
 
                 <Rectangle id="helpButton"
-                        fx:id="remoteSquare"
-                        opacity="0.5"
                         height="40"
                         width="40"/>
                 <Text text="A normal commit"/>
@@ -51,9 +47,7 @@
                   spacing="10">
 
                 <Polygon id="helpButton"
-                           fx:id="remoteTriangle"
-                           opacity="0.5"
-                           points="0,0,0,40,40,20"/>
+                         points="0,20,40,0,40,40"/>
                 <Text text="A normal branch head"/>
             </HBox>
 

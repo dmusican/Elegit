@@ -98,10 +98,10 @@ public class MergeFromFetchTest {
         /* ********************* EDIT AND PUSH SECTION ********************* */
 
         // Find the remote 'new_branch' for push repo
-        remote_helper_push = helperPush.getRemoteBranchByName("origin/new_branch");
+        remote_helper_push = (RemoteBranchHelper) helperPush.getBranchModel().getBranchByName(BranchModel.BranchType.REMOTE, "origin/new_branch");
         assertNotNull(remote_helper_push);
         // Track new_branch and check it out
-        new_branch_push_helper = helperPush.trackRemoteBranch(remote_helper_push);
+        new_branch_push_helper = helperPush.getBranchModel().trackRemoteBranch(remote_helper_push);
         new_branch_push_helper.checkoutBranch();
 
         // Make some different changes in new_branch
@@ -114,7 +114,7 @@ public class MergeFromFetchTest {
         helperPush.commit("added line in new_branch");
 
         // Make some changes in master
-        master_push_helper = helperPush.getLocalBranchByName("master");
+        master_push_helper = (LocalBranchHelper) helperPush.getBranchModel().getBranchByName(BranchModel.BranchType.LOCAL, "master");
         master_push_helper.checkoutBranch();
         filePath = repoPathPush.resolve("README.md");
         newBranchLine = "Line for master\n";
@@ -130,10 +130,10 @@ public class MergeFromFetchTest {
         /* ******************** FETCH AND MERGE SECTION ******************** */
 
         // Checkout new_branch
-        remote_helper_fetch = helperFetch.getRemoteBranchByName("origin/new_branch");
+        remote_helper_fetch = (RemoteBranchHelper) helperFetch.getBranchModel().getBranchByName(BranchModel.BranchType.REMOTE, "origin/new_branch");
         assertNotNull(remote_helper_fetch);
         // Track new_branch and check it out
-        new_branch_fetch_helper = helperFetch.trackRemoteBranch(remote_helper_fetch);
+        new_branch_fetch_helper = helperFetch.getBranchModel().trackRemoteBranch(remote_helper_fetch);
         new_branch_fetch_helper.checkoutBranch();
 
         // Fetch changes

@@ -63,8 +63,8 @@ public class LocalBranchHelper extends BranchHelper {
     /**
      * Checks out the branch in git.
      */
-    public void checkoutBranch() throws GitAPIException {
+    public void checkoutBranch() throws GitAPIException, IOException {
         new Git(this.repoHelper.getRepo()).checkout().setName(this.branchName).call();
-        this.repoHelper.setCurrentBranch(this);
+        this.repoHelper.getBranchModel().refreshCurrentBranch();
     }
 }

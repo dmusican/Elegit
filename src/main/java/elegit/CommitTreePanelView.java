@@ -111,6 +111,11 @@ public class CommitTreePanelView extends Region{
                 }
                 Platform.runLater(() -> {
                     loading.setVisible(false);
+                    try {
+                        Thread.sleep(3000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                     CommitTreeController.focusCommitInGraph(commitToFocusOnLoad);
                 });
                 return null;

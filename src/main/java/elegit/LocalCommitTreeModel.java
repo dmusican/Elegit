@@ -24,17 +24,7 @@ public class LocalCommitTreeModel extends CommitTreeModel{
     }
 
     @Override
-    protected List<CommitHelper> getNewCommits(RepoHelper repoHelper, Map<String, BranchHelper> oldBranches) throws GitAPIException, IOException{
-        return repoHelper.getNewLocalCommits(oldBranches);
-    }
-
-    @Override
     protected List<BranchHelper> getAllBranches(RepoHelper repoHelper){
-        return repoHelper.getLocalBranches();
-    }
-
-    @Override
-    public String getViewName() {
-        return this.view.getName();
+        return repoHelper.getBranchModel().getBranchListUntyped(BranchModel.BranchType.LOCAL);
     }
 }

@@ -171,10 +171,10 @@ public class CommitTreeController{
             }
         }
 
-        commitTreeModel.resetBranchHeads(true);
         setBranchHeads(commitTreeModel, repo);
 
-        commitTreeModel.view.displayTreeGraph(commitTreeModel.treeGraph, commitTreeModel.sessionModel.getCurrentRepoHelper().getHead());
+        commitTreeModel.view.displayTreeGraph(commitTreeModel.treeGraph, commitTreeModel.sessionModel
+                .getCurrentRepoHelper().getBranchModel().getCurrentBranchHead());
     }
 
     /**
@@ -192,11 +192,11 @@ public class CommitTreeController{
                     }
                 }
 
-                model.resetBranchHeads(true);
                 setBranchHeads(model, repo);
 
                 model.treeGraph.update();
-                model.view.displayTreeGraph(model.treeGraph, model.sessionModel.getCurrentRepoHelper().getHead());
+                model.view.displayTreeGraph(model.treeGraph, model.sessionModel
+                        .getCurrentRepoHelper().getBranchModel().getCurrentBranchHead());
             }
         }
     }
@@ -239,17 +239,16 @@ public class CommitTreeController{
      * @return true if the model has branches, false if not
      */
     public static boolean setBranchHeads(CommitTreeModel model, RepoHelper repo) {
-        List<BranchHelper> modelBranches = model.getLocalRemoteBranches(repo);
+        List<BranchHelper> modelBranches = repo.getBranchModel().getAllBranches();
         if(modelBranches == null) return false;
+        model.resetBranchHeads(true);
         for(BranchHelper branch : modelBranches){
-            if(!model.sessionModel.getCurrentRepoHelper().isBranchTracked(branch)){
-                model.setCommitAsUntrackedBranch(branch.getHead().getId());
+            if(!model.sessionModel.getCurrentRepoHelper().getBranchModel().isBranchTracked(branch)){
+                model.setCommitAsBranchHead(branch, false);
             }else{
-                model.setCommitAsTrackedBranch(branch.getHead().getId());
+                model.setCommitAsBranchHead(branch, true);
             }
         }
-
-
         return true;
     }
 

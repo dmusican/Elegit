@@ -33,7 +33,6 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.rmi.Remote;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -65,10 +64,7 @@ public abstract class RepoHelper {
     private Map<ObjectId, String> idMap;
     private Map<String, TagHelper> tagIdMap;
 
-    private List<LocalBranchHelper> localBranches;
-    private List<RemoteBranchHelper> remoteBranches;
-    private LocalBranchHelper branchHelper;
-    private BranchManagerModel branchManagerModel;
+    private BranchModel branchModel;
 
     public BooleanProperty hasRemoteProperty;
     public BooleanProperty hasUnpushedCommitsProperty;
@@ -202,6 +198,8 @@ public abstract class RepoHelper {
         this.idMap = new HashMap<>();
         this.tagIdMap = new HashMap<>();
 
+        this.branchModel = new BranchModel(this);
+
         this.localCommits = this.parseAllLocalCommits();
         this.remoteCommits = this.parseAllRemoteCommits();
 
@@ -210,15 +208,31 @@ public abstract class RepoHelper {
         this.upToDateTags = this.getAllLocalTags();
         this.unpushedTags = new ArrayList<>();
 
-        this.branchManagerModel = new BranchManagerModel(this.getListOfLocalBranches(), this.getListOfRemoteBranches(), this);
-
         hasRemoteProperty = new SimpleBooleanProperty(!getLinkedRemoteRepoURLs().isEmpty());
 
+        // This should be if the remote/local heads are at different places...
         hasUnpushedCommitsProperty = new SimpleBooleanProperty(getAllCommitIDs().size() > remoteCommits.size());
-        hasUnmergedCommitsProperty = new SimpleBooleanProperty(getAllCommitIDs().size() > localCommits.size());
+        hasUnmergedCommitsProperty = new SimpleBooleanProperty(this.checkUnmergedCommits());
 
         hasUnpushedTagsProperty = new SimpleBooleanProperty();
 
+    }
+
+    /**
+     * Updates the entire model, including commits, branches and tags
+     * Note: this is expensive, but avoids possible errors that faster
+     * possible solutions have
+     *
+     * TODO: tags
+     */
+    public void updateModel() throws GitAPIException, IOException {
+        this.commitIdMap = new HashMap<>();
+        this.idMap = new HashMap<>();
+        // Update branches
+        branchModel.updateAllBranches();
+        // Reparse commits
+        this.localCommits = this.parseAllLocalCommits();
+        this.remoteCommits = this.parseAllRemoteCommits();
     }
 
     /**
@@ -500,7 +514,7 @@ public abstract class RepoHelper {
             // This shouldn't occur once we have the repo up and running.
         }
 
-        this.branchManagerModel.getUpdatedRemoteBranches();
+        this.branchModel.updateRemoteBranches();
         this.hasUnmergedCommitsProperty.set(this.hasUnmergedCommits() || !result.getTrackingRefUpdates().isEmpty());
         return !result.getTrackingRefUpdates().isEmpty();
     }
@@ -528,7 +542,7 @@ public abstract class RepoHelper {
         if (config.getSubsections("branch").contains(this.repo.getBranch())) {
             String remote = config.getString("branch", this.repo.getBranch(), "remote")+"/";
             String remote_tracking = config.getString("branch", this.repo.getBranch(), "merge");
-            result = mergeWithBranch(this.getRemoteBranchByName(remote+this.repo.shortenRefName(remote_tracking)));
+            result = branchModel.mergeWithBranch(this.branchModel.getBranchByName(BranchModel.BranchType.REMOTE, remote+this.repo.shortenRefName(remote_tracking)));
         } else {
             throw new NoTrackingException();
         }
@@ -548,46 +562,22 @@ public abstract class RepoHelper {
     }
 
     /**
-     * Merges the current branch with the selected branch
-     * @param branchToMergeFrom the branch to merge into the current branch
-     * @return merge result, used in determining the notification in BranchManagerController
-     * @throws GitAPIException
-     * @throws IOException
+     * Checks if the remote tracking head refers to the same commit
+     * as the local head for the current branch
+     * @return true if there are unmerged commits in the current branch, else false
      */
-    public MergeResult mergeWithBranch(BranchHelper branchToMergeFrom) throws GitAPIException, IOException {
-        Git git = new Git(this.repo);
-
-        MergeCommand merge = git.merge();
-        merge.include(this.repo.resolve(branchToMergeFrom.getRefPathString()));
-
-        MergeResult mergeResult = merge.call();
-
-        // If the merge was successful, there was a new commit or fast forward, so there are unpushed
-        // commits. Otherwise, repo helper doesn't need to do anything else.
-        if (mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.MERGED)
-                || mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.FAST_FORWARD)){
-            this.hasUnpushedCommitsProperty.setValue(true);
+    public boolean checkUnmergedCommits() {
+        Config config = this.repo.getConfig();
+        String remoteBranch = config.getString("branch", this.branchModel.getCurrentBranch().getBranchName(), "merge");
+        String remote = config.getString("branch", this.branchModel.getCurrentBranch().getBranchName(), "remote");
+        if (remoteBranch == null || remote == null) return false;
+        remoteBranch = remote + "/" + this.repo.shortenRefName(remoteBranch);
+        try {
+            return !this.branchModel.getBranchByName(BranchModel.BranchType.REMOTE, remoteBranch).getHeadId()
+                    .equals(this.branchModel.getCurrentBranch().getHeadId());
+        } catch (IOException e) {
+            return false;
         }
-        git.close();
-
-        return mergeResult;
-    }
-
-    /**
-     * Creates a new local branch using git.
-     *
-     * @param branchName the name of the new branch.
-     * @return the new local branch's LocalBranchHelper.
-     * @throws GitAPIException
-     * @throws IOException
-     */
-    public LocalBranchHelper createNewLocalBranch(String branchName) throws GitAPIException, IOException {
-        Git git = new Git(this.repo);
-        Ref newBranch = git.branchCreate().setName(branchName).call();
-        LocalBranchHelper newLocalBranchHelper = new LocalBranchHelper(newBranch, this);
-
-        git.close();
-        return newLocalBranchHelper;
     }
 
     public void closeRepo() {
@@ -639,7 +629,7 @@ public abstract class RepoHelper {
      */
     public String getCommitDescriptorString(CommitHelper commitHelper, boolean fullCommitMessage){
         String s = commitHelper.getFormattedWhen() + "\n\n" + commitHelper.getMessage(fullCommitMessage);
-        List<BranchHelper> branches = getAllBranchHeads().get(commitHelper);
+        List<BranchHelper> branches = this.branchModel.getAllBranchHeads().get(commitHelper);
         if(branches != null){
             s += "\n\nHead of branches: ";
             for(BranchHelper branch : branches){
@@ -744,13 +734,6 @@ public abstract class RepoHelper {
     }
 
     /**
-     * @return the head of the current branch
-     */
-    public CommitHelper getHead() {
-        return (this.branchHelper == null) ? null : this.branchHelper.getHead();
-    }
-
-    /**
      * Uses JGit to find and parse all local commits between the given branches and
      * every leaf in the repository
      *
@@ -761,7 +744,7 @@ public abstract class RepoHelper {
      * @throws IOException
      */
     public List<CommitHelper> getNewLocalCommits(Map<String, BranchHelper> oldLocalBranches) throws GitAPIException, IOException {
-        return getNewCommits(oldLocalBranches, this.getListOfLocalBranches());
+        return getNewCommits(oldLocalBranches, this.branchModel.getBranchListTyped(BranchModel.BranchType.LOCAL));
     }
 
     /**
@@ -775,7 +758,7 @@ public abstract class RepoHelper {
      * @throws IOException
      */
     public List<CommitHelper> getNewRemoteCommits(Map<String, BranchHelper> oldRemoteBranches) throws GitAPIException, IOException {
-        return getNewCommits(oldRemoteBranches, this.getListOfRemoteBranches());
+        return getNewCommits(oldRemoteBranches, this.branchModel.getBranchListTyped(BranchModel.BranchType.REMOTE));
     }
 
     /**
@@ -1012,7 +995,7 @@ public abstract class RepoHelper {
         PlotCommitList<PlotLane> rawLocalCommits = parseRawCommits(headId, examinedCommitIDs);
         examinedCommitIDs.add(headId);
 
-        List<LocalBranchHelper> branches = getListOfLocalBranches();
+        List<LocalBranchHelper> branches = this.branchModel.getLocalBranchesTyped();
         for (BranchHelper branch : branches) {
             ObjectId branchId = branch.getHeadId();
             PlotCommitList<PlotLane> toAdd = parseRawCommits(branchId, examinedCommitIDs);
@@ -1036,8 +1019,7 @@ public abstract class RepoHelper {
         List<ObjectId> examinedCommitIDs = new ArrayList<>();
         PlotCommitList<PlotLane> rawRemoteCommits = new PlotCommitList<>();
 
-        List<RemoteBranchHelper> branches = getListOfRemoteBranches();
-        for (BranchHelper branch : branches) {
+        for (BranchHelper branch : this.branchModel.getRemoteBranchesTyped()) {
             ObjectId branchId = branch.getHeadId();
             PlotCommitList<PlotLane> toAdd = parseRawCommits(branchId, examinedCommitIDs);
             if (toAdd.size() > 0) {
@@ -1240,149 +1222,6 @@ public abstract class RepoHelper {
         return false;
     }
 
-
-    /**
-     * Utilizes JGit to get a list of all local branches. It both returns a list of remote branches,
-     * but also simultaneously updates an instance variable holding that same list.
-     *
-     * @return a list of all local branches
-     * @throws GitAPIException
-     * @throws IOException
-     */
-    public List<LocalBranchHelper> getListOfLocalBranches() throws GitAPIException, IOException {
-        List<Ref> getBranchesCall = new Git(this.repo).branchList().call();
-
-        localBranches = new ArrayList<>();
-        for (Ref ref : getBranchesCall) {
-            localBranches.add(new LocalBranchHelper(ref, this));
-        }
-
-        return localBranches;
-    }
-
-
-    /**
-     * Utilizes JGit to get a list of all remote branches. It both returns a list of remote branches,
-     * but also simultaneously updates an instance variable holding that same list.
-     *
-     * @return a list of all remote branches
-     * @throws GitAPIException
-     */
-    public List<RemoteBranchHelper> getListOfRemoteBranches() throws GitAPIException, IOException {
-        List<Ref> getBranchesCall = new Git(this.repo).branchList().setListMode(ListBranchCommand.ListMode.REMOTE).call();
-
-        // Rebuild the remote branches list from scratch.
-        remoteBranches = new ArrayList<>();
-
-        for (Ref ref : getBranchesCall) {
-
-            // It appears that grabbing the remote branches also gets the HEAD.
-            if (!ref.getName().equals("HEAD")) {
-                remoteBranches.add(new RemoteBranchHelper(ref, this));
-            }
-        }
-
-        return remoteBranches;
-    }
-
-    /**
-     * Method to get a branch helper by name
-     * @param branchname the branch to get
-     * @return the localBranchHelper with that name, or null if it is not found
-     */
-    public LocalBranchHelper getLocalBranchByName(String branchname) {
-        for (LocalBranchHelper helper: this.localBranches) {
-            if (helper.getBranchName().equals(branchname))
-                return helper;
-        }
-        return null;
-    }
-
-    /**
-     * Method to get a branch helper by name
-     * @param branchname the branch to get
-     * @return the remoteBranchHelper with that name, or null if it is not found
-     */
-    public RemoteBranchHelper getRemoteBranchByName(String branchname) {
-        for (RemoteBranchHelper helper: this.remoteBranches) {
-            if (helper.getBranchName().equals(branchname))
-                return helper;
-        }
-        return null;
-    }
-
-    /**
-     * Creates a local branch tracking a remote branch.
-     *
-     * @param remoteBranchHelper the remote branch to be tracked.
-     * @return the LocalBranchHelper of the local branch tracking the given remote branch.
-     * @throws GitAPIException
-     * @throws IOException
-     */
-    private LocalBranchHelper createLocalTrackingBranchForRemote(RemoteBranchHelper remoteBranchHelper) throws GitAPIException, IOException {
-        // Take off the 'origin/' before the branch name
-        String localBranchName=this.repo.shortenRemoteBranchName(remoteBranchHelper.getRefPathString());
-        Ref trackingBranchRef = new Git(this.repo).branchCreate().
-                setName(localBranchName).
-                setUpstreamMode(CreateBranchCommand.SetupUpstreamMode.TRACK).
-                setStartPoint(remoteBranchHelper.getRefPathString()).
-                call();
-        LocalBranchHelper newHelper = new LocalBranchHelper(trackingBranchRef, this);
-        this.localBranches.add(newHelper);
-        return newHelper;
-    }
-
-    /**
-     * Sets the currently checkout branch. Does not call 'git checkout'
-     * or any variation, simply updates the local variable
-     *
-     * @param branchHelper the new current branch
-     */
-    public void setCurrentBranch(LocalBranchHelper branchHelper) {
-        this.branchHelper = branchHelper;
-    }
-
-    /**
-     * Creates a local branch and tracks it
-     * @param remoteBranchHelper the remote branch to track
-     * @return the localBranchHelper that was added
-     * @throws GitAPIException
-     * @throws IOException
-     * @throws RefAlreadyExistsException
-     */
-    public LocalBranchHelper trackRemoteBranch(RemoteBranchHelper remoteBranchHelper) throws GitAPIException, IOException, RefAlreadyExistsException {
-        LocalBranchHelper tracker = this.createLocalTrackingBranchForRemote(remoteBranchHelper);
-        this.localBranches.add(tracker);
-        return tracker;
-    }
-
-    /**
-     * @return the currently checkout out branch
-     */
-    public LocalBranchHelper getCurrentBranch() {
-        return this.branchHelper;
-    }
-
-    /**
-     * Updates the current branch by checking the repository for which
-     * branch is currently checked out
-     *
-     * @throws IOException
-     */
-    public void refreshCurrentBranch() throws IOException {
-        String currentBranchRefString = this.repo.getFullBranch();
-
-        for (LocalBranchHelper branch : localBranches) {
-            if (branch.getRefPathString().equals(currentBranchRefString)) {
-                this.setCurrentBranch(branch);
-                return;
-            }
-        }
-
-        LocalBranchHelper currentBranch = new LocalBranchHelper(currentBranchRefString, this);
-        this.setCurrentBranch(currentBranch);
-    }
-
     public void showBranchManagerWindow() throws IOException {
         logger.info("Opened branch manager window");
         // Create and display the Stage:
@@ -1394,178 +1233,6 @@ public abstract class RepoHelper {
         stage.initModality(Modality.APPLICATION_MODAL);
         stage.setOnCloseRequest(event -> logger.info("Closed branch manager window"));
         stage.show();
-    }
-
-    /**
-     * Gets a list of the local branches of this repository. Also updates
-     * the head of each local branch if it was missing
-     *
-     * @return the local branches of this repository
-     */
-    public List<BranchHelper> getLocalBranches() {
-        for (BranchHelper branch : localBranches) {
-            if (branch.getHead() == null) {
-                try {
-                    branch.getHeadId();
-                } catch (IOException e) {
-                    logger.error("IOException getting local branches");
-                    logger.debug(e.getStackTrace());
-                    e.printStackTrace();
-                }
-            }
-        }
-        return new ArrayList<>(localBranches);
-    }
-
-    /**
-     * Gets a list of the remote branches of this repository. Also updates
-     * the head of each remote branch if it was missing
-     *
-     * @return the remote branches of this repository
-     */
-    public List<BranchHelper> getRemoteBranches() {
-        for (BranchHelper branch : remoteBranches) {
-            if (branch.getHead() == null) {
-                try {
-                    branch.getHeadId();
-                } catch (IOException e) {
-                    logger.error("IOException getting remote branches");
-                    logger.debug(e.getStackTrace());
-                    e.printStackTrace();
-                }
-            }
-        }
-        return new ArrayList<>(remoteBranches);
-    }
-
-    /**
-     * Gets a list of the local branches of this repository. Also updates
-     * the head of each local branch if it was missing
-     *
-     * @return the local branches of this repository
-     */
-    public List<LocalBranchHelper> getLocalBranchesTyped() {
-        for (LocalBranchHelper branch : localBranches) {
-            if (branch.getHead() == null) {
-                try {
-                    branch.getHeadId();
-                } catch (IOException e) {
-                    logger.error("IOException getting local branches");
-                    logger.debug(e.getStackTrace());
-                    e.printStackTrace();
-                }
-            }
-        }
-        return new ArrayList<>(localBranches);
-    }
-
-    /**
-     * Gets a list of the remote branches of this repository. Also updates
-     * the head of each remote branch if it was missing
-     *
-     * @return the remote branches of this repository
-     */
-    public List<RemoteBranchHelper> getRemoteBranchesTyped() {
-        for (RemoteBranchHelper branch : remoteBranches) {
-            if (branch.getHead() == null) {
-                try {
-                    branch.getHeadId();
-                } catch (IOException e) {
-                    logger.error("IOException getting remote branches");
-                    logger.debug(e.getStackTrace());
-                    e.printStackTrace();
-                }
-            }
-        }
-        return new ArrayList<>(remoteBranches);
-    }
-
-    /**
-     * Gets a list of all the branches of this repository. Also updates
-     * the head of each remote branch if it was missing
-     *
-     * @return the remote branches of this repository
-     */
-    public List<BranchHelper> getAllBranches() {
-        List<BranchHelper> allBranches = new ArrayList<>();
-        allBranches.addAll(getLocalBranches());
-        allBranches.addAll(getRemoteBranches());
-        return new ArrayList<>(allBranches);
-    }
-
-    public Map<CommitHelper, List<BranchHelper>> getAllBranchHeads(){
-        Map<CommitHelper, List<BranchHelper>> heads = new HashMap<>();
-
-        List<BranchHelper> branches = this.getLocalBranches();
-        branches.addAll(this.getRemoteBranches());
-
-        for(BranchHelper branch : branches){
-            CommitHelper head = branch.getHead();
-            if(heads.containsKey(head)){
-                heads.get(head).add(branch);
-            }else{
-                heads.put(head, Stream.of(branch).collect(Collectors.toList()));
-            }
-        }
-        return heads;
-    }
-
-    public List<String> getBranchesWithHead(String commitId) {
-        return getBranchesWithHead(getCommit(commitId));
-    }
-
-    public List<String> getBranchesWithHead(CommitHelper commit) {
-        List<BranchHelper> branches = getAllBranchHeads().get(commit);
-        List<String> branchLabels = new LinkedList<>();
-        if(branches != null) {
-            branchLabels = branches.stream()
-                    .map(BranchHelper::getBranchName)
-                    .collect(Collectors.toList());
-        }
-        return branchLabels;
-    }
-
-    /**
-     * Checks to see if the given branch is tracked. If branch is
-     * a local branch, looks to see if there is a branch in the
-     * remote branches that has the same name, and vice versa.
-     * Note that tracking status is determined solely by name
-     *
-     * @param branch the branch to check
-     * @return true if branch is being tracked, else false
-     */
-    public boolean isBranchTracked(BranchHelper branch) {
-        String branchName = branch.getBranchName();
-        if (branch instanceof LocalBranchHelper) {
-            // We can check this easily by looking at the config file, but have to first
-            // check if there is an entry in the config file for LocalBranchHelper
-            String merge = this.repo.getConfig().getString("branch", branchName, "merge");
-
-            // If there is no entry in the config file for this branch, then it isn't tracked remotely
-            if (merge==null) return false;
-
-            // Otherwise there is a remote branch that the local branch is tracking remotely
-            return true;
-
-            /*for (BranchHelper remote : remoteBranches) {
-                if (this.repo.shortenRemoteBranchName(remote.getRefPathString())
-                        .equals(this.repo.shortenRefName(this.repo.getConfig().getString("branch", branchName, "merge")))) {
-                    return true;
-                }
-            }*/
-        } else {
-            for (BranchHelper local : localBranches) {
-                // Skip local branches that aren't tracked remotely, as they won't have a config entry
-                if (this.repo.getConfig().getString("branch", local.getBranchName(), "merge")==null) continue;
-
-                // Otherwise, we have to check all local branches to see if they're tracking the particular remote branch
-                if (this.repo.shortenRefName(this.repo.getConfig().getString("branch", local.getBranchName(), "merge"))
-                        .equals(this.repo.shortenRemoteBranchName(branch.getRefPathString()))) {
-                    return true;
-                }
-            }
-        }
-        return false;
     }
 
     /**
@@ -1597,8 +1264,8 @@ public abstract class RepoHelper {
         else return new Git(repo).lsRemote().setHeads(true).call();
     }
 
-    public BranchManagerModel getBranchManagerModel() {
-        return this.branchManagerModel;
+    public BranchModel getBranchModel() {
+        return this.branchModel;
     }
 
     public String getUsername() {
