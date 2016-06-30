@@ -38,27 +38,41 @@ public class ConflictingFileWatcher {
         Thread watcherThread = new Thread(new Task<Void>() {
             @Override
             protected Void call() throws IOException, GitAPIException {
-                File pathName = new File(currentRepo.getRepo().getDirectory().getParent());
-                Path directory = pathName.toPath();
-                WatchService watcher = FileSystems.getDefault().newWatchService();
-                WatchKey key = directory.register(watcher, StandardWatchEventKinds.ENTRY_MODIFY);
-
                 Set<String> newConflictingFiles = (new Git(currentRepo.getRepo()).status().call()).getConflicting();
-                for(String filePath : newConflictingFiles) {
-                    if(!conflictingFiles.contains(filePath)) {
-                        conflictingFiles.add(filePath);
+                for(String conflictingFile : newConflictingFiles) {
+                    if(!conflictingFiles.contains(conflictingFile)) {
+                        conflictingFiles.add(conflictingFile);
+                    }
+                }
+
+                Path directory = (new File(currentRepo.getRepo().getDirectory().getParent())).toPath();
+                WatchService watcher = FileSystems.getDefault().newWatchService();
+
+                ArrayList<WatchKey> keys = new ArrayList<>();
+                ArrayList<Path> alreadyWatching = new ArrayList<>();
+                for(String fileToWatch : conflictingFiles) {
+                    Path fileToWatchPath = directory.resolve((new File(fileToWatch)).toPath());
+                    if(!alreadyWatching.contains(fileToWatchPath)) {
+                        alreadyWatching.add(fileToWatchPath);
+                        System.out.println(directory.resolve(fileToWatchPath));
+                        WatchKey key = fileToWatchPath.register(watcher, StandardWatchEventKinds.ENTRY_MODIFY);
+                        keys.add(key);
                     }
                 }
 
                 while(conflictingFiles.size() > 0) {
-                    List<WatchEvent<?>> events = key.pollEvents();
-                    for(WatchEvent<?> event : events) {
-                        if (event.kind() == StandardWatchEventKinds.ENTRY_MODIFY) {
-                            Path path = (new File(event.context().toString())).toPath();
-                            if(conflictingFiles.contains(path.toString())) {
-                                conflictingFiles.remove(path.toString());
-                                synchronized (conflictingThenModifiedFiles) {
-                                    conflictingThenModifiedFiles.add(path.toString());
+                    for(WatchKey key : keys) {
+                        List<WatchEvent<?>> events = key.pollEvents();
+                        for(WatchEvent<?> event : events) {
+                            if (event.kind() == StandardWatchEventKinds.ENTRY_MODIFY) {
+                                Path path = (new File(event.context().toString())).toPath();
+                                if(conflictingFiles.contains(path.toString())) {
+                                    conflictingFiles.remove(path.toString());
+                                    synchronized (conflictingThenModifiedFiles) {
+                                        conflictingThenModifiedFiles.add(path.toString());
+                                    }
+                                    key.cancel();
+                                    keys.remove(key);
                                 }
                             }
                         }
