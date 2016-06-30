@@ -8,7 +8,7 @@ import java.util.List;
  */
 public class UpdateModel {
     private List<CommitHelper> commitsToAdd, commitsToRemove;
-    private List<BranchHelper> branchesToAdd, branchesToRemove;
+    private List<BranchHelper> branchesToUpdate;
     // TODO: add tags
 
     /**
@@ -17,8 +17,7 @@ public class UpdateModel {
     public UpdateModel() {
         this.commitsToAdd = new ArrayList<>();
         this.commitsToRemove = new ArrayList<>();
-        this.branchesToAdd = new ArrayList<>();
-        this.branchesToRemove = new ArrayList<>();
+        this.branchesToUpdate = new ArrayList<>();
     }
 
     /**
@@ -37,11 +36,12 @@ public class UpdateModel {
      */
     public boolean hasChanges() {
         return this.commitsToAdd.size()+this.commitsToRemove.size()
-                +this.branchesToAdd.size()+this.branchesToRemove.size()>0;
+                +this.branchesToUpdate.size()>0;
     }
 
     public void addCommit(CommitHelper commitHelper) { this.commitsToAdd.add(commitHelper); }
     public void removeCommit(CommitHelper commitHelper) { this.commitsToRemove.add(commitHelper); }
+    public void addBranch(BranchHelper branch) { this.branchesToUpdate.add(branch); }
 
 
     // ********************* GETTERS AND SETTERS ************************
@@ -52,9 +52,7 @@ public class UpdateModel {
     public void setCommitsToAdd(List<CommitHelper> commitsToAdd) { this.commitsToAdd = commitsToAdd; }
     public void setCommitsToRemove(List<CommitHelper> commitsToRemove) { this.commitsToRemove = commitsToRemove; }
 
-    public List<BranchHelper> getBranchesToAdd() { return this.branchesToAdd; }
-    public List<BranchHelper> getBranchesToRemove() { return this.branchesToRemove; }
+    public List<BranchHelper> getBranchesToUpdate() { return this.branchesToUpdate; }
 
-    public void setBranchesToAdd(List<BranchHelper> branchesToAdd) { this.branchesToAdd = branchesToAdd; }
-    public void setBranchesToRemove(List<BranchHelper> branchesToRemove) { this.branchesToRemove = branchesToRemove; }
+    public void setBranchesToUpdate(List<BranchHelper> branchesToUpdate) { this.branchesToUpdate = branchesToUpdate; }
 }

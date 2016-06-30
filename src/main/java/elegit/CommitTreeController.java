@@ -171,7 +171,6 @@ public class CommitTreeController{
             }
         }
 
-        commitTreeModel.resetBranchHeads(true);
         setBranchHeads(commitTreeModel, repo);
 
         commitTreeModel.view.displayTreeGraph(commitTreeModel.treeGraph, commitTreeModel.sessionModel
@@ -193,7 +192,6 @@ public class CommitTreeController{
                     }
                 }
 
-                model.resetBranchHeads(true);
                 setBranchHeads(model, repo);
 
                 model.treeGraph.update();
@@ -243,11 +241,12 @@ public class CommitTreeController{
     public static boolean setBranchHeads(CommitTreeModel model, RepoHelper repo) {
         List<BranchHelper> modelBranches = repo.getBranchModel().getAllBranches();
         if(modelBranches == null) return false;
+        model.resetBranchHeads(true);
         for(BranchHelper branch : modelBranches){
             if(!model.sessionModel.getCurrentRepoHelper().getBranchModel().isBranchTracked(branch)){
-                model.setCommitAsBranchHead(branch.getHead().getObjectId(), false);
+                model.setCommitAsBranchHead(branch, false);
             }else{
-                model.setCommitAsBranchHead(branch.getHead().getObjectId(), true);
+                model.setCommitAsBranchHead(branch, true);
             }
         }
         return true;
