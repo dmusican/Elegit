@@ -4,6 +4,7 @@ import javafx.application.Platform;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.Tooltip;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jgit.api.AddCommand;
@@ -34,6 +35,7 @@ public class ConflictingRepoFile extends RepoFile {
         super(filePath, repo);
         diffButton.setText("CONFLICTING");
         diffButton.setId("conflictingDiffButton");
+        diffButton.setTooltip(new Tooltip("This file caused a merge conflict.\nEdit the file to fix the conflict."));
     }
 
     public ConflictingRepoFile(String filePathString, RepoHelper repo) {

@@ -48,6 +48,8 @@ public class ConflictingFileWatcher {
      */
     public static void watchConflictingFiles(RepoHelper currentRepo) throws GitAPIException, IOException {
 
+        if(currentRepo == null) return;
+
         Thread watcherThread = new Thread(new Task<Void>() {
 
             @Override

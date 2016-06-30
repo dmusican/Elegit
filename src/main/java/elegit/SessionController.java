@@ -170,6 +170,13 @@ public class SessionController {
 
         this.initRepositoryMonitor();
         this.handleUnpushedTags();
+
+        // if there are conflicting files on startup, watches them for changes
+        try {
+            ConflictingFileWatcher.watchConflictingFiles(theModel.getCurrentRepoHelper());
+        } catch (GitAPIException | IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private void handleUnpushedTags() {

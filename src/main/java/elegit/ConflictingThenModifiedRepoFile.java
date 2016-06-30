@@ -4,6 +4,7 @@ import javafx.application.Platform;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.Tooltip;
 import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -30,6 +31,7 @@ public class ConflictingThenModifiedRepoFile extends RepoFile {
         super(filePath, repo);
         diffButton.setText("CONFLICTING\nMODIFIED");
         diffButton.setId("conflictingThenModifiedDiffButton");
+        diffButton.setTooltip(new Tooltip("This file was conflicting, but was recently modified.\nCommit if the changes are finalized."));
     }
 
     public ConflictingThenModifiedRepoFile(String filePathString, RepoHelper repo) {

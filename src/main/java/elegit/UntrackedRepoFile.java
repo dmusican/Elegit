@@ -1,5 +1,6 @@
 package elegit;
 
+import javafx.scene.control.Tooltip;
 import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -16,6 +17,7 @@ public class UntrackedRepoFile extends RepoFile {
         super(filePath, repo);
         diffButton.setText("UNTRACKED");
         diffButton.setId("untrackedDiffButton");
+        diffButton.setTooltip(new Tooltip("This file has not been added to git. Commit to add it."));
     }
 
     public UntrackedRepoFile(String filePathString, RepoHelper repo) {

@@ -1,5 +1,6 @@
 package elegit;
 
+import javafx.scene.control.Tooltip;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.RmCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -16,6 +17,7 @@ public class MissingRepoFile extends RepoFile {
         super(filePath, repo);
         diffButton.setText("MISSING");
         diffButton.setId("missingDiffButton");
+        diffButton.setTooltip(new Tooltip("This file is missing."));
     }
 
     public MissingRepoFile(String filePathString, RepoHelper repo) {
