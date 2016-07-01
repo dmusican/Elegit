@@ -559,6 +559,18 @@ public abstract class RepoHelper {
         return status;
     }
 
+    /**
+     * Reverts the changes that happened in the given commit, stores changes in working directory
+     * if conflicting, otherwise, makes a new commit
+     *
+     * @param helper the commit to revert changes for
+     * @throws MissingRepoException
+     * @throws GitAPIException
+     *
+     * TODO: make it possible to revert a set of commits (git revert -n)
+     * see https://git-scm.com/docs/git-revert and
+     * http://download.eclipse.org/jgit/site/4.4.0.201606070830-r/apidocs/index.html
+     */
     public void revertToCommit(CommitHelper helper) throws MissingRepoException, GitAPIException {
         logger.info("Attempting revert");
         if (!exists()) throw new MissingRepoException();

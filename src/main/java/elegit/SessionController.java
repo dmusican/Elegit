@@ -921,6 +921,7 @@ public class SessionController {
                 protected Void call() {
                     try{
                         RepositoryMonitor.resetFoundNewChanges(false);
+                        // This should be changed... user should select the commit(s) to revert
                         theModel.getCurrentRepoHelper().revertToCommit(theModel.getCurrentRepoHelper().getAllCommits().get(1));
                         gitStatus();
                     }  catch(InvalidRemoteException e){
@@ -943,13 +944,13 @@ public class SessionController {
                         showGenericErrorNotification();
                         e.printStackTrace();
                     } finally{
-                        pushProgressIndicator.setVisible(false);
+                        //pushProgressIndicator.setVisible(false);
                     }
                     return null;
                 }
             });
             th.setDaemon(true);
-            th.setName("Git push");
+            th.setName("Git revert");
             th.start();
         }catch(NoRepoLoadedException e){
             this.showNoRepoLoadedNotification();
