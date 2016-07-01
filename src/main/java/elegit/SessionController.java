@@ -170,6 +170,13 @@ public class SessionController {
 
         this.initRepositoryMonitor();
         this.handleUnpushedTags();
+
+        // if there are conflicting files on startup, watches them for changes
+        try {
+            ConflictingFileWatcher.watchConflictingFiles(theModel.getCurrentRepoHelper());
+        } catch (GitAPIException | IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private void handleUnpushedTags() {
@@ -707,7 +714,7 @@ public class SessionController {
 
             Thread th = new Thread(new Task<Void>(){
                 @Override
-                protected Void call(){
+                protected Void call() throws GitAPIException, IOException {
                     try{
                         if(!theModel.getCurrentRepoHelper().mergeFromFetch().isSuccessful()){
                             showUnsuccessfulMergeNotification();
@@ -728,6 +735,7 @@ public class SessionController {
                         showMergingWithChangedFilesNotification();
                     } catch(ConflictingFilesException e){
                         showMergeConflictsNotification(e.getConflictingFiles());
+                        ConflictingFileWatcher.watchConflictingFiles(theModel.getCurrentRepoHelper());
                     } catch(MissingRepoException e){
                         showMissingRepoNotification();
                         setButtonsDisabled(true);

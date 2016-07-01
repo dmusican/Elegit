@@ -1,5 +1,6 @@
 package elegit;
 
+import javafx.scene.control.Tooltip;
 import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -16,6 +17,9 @@ public class ModifiedRepoFile extends RepoFile {
         super(filePath, repo);
         diffButton.setText("MODIFIED");
         diffButton.setId("modifiedDiffButton");
+        Tooltip tooltip = new Tooltip("This file was modified after your most recent commit.");
+        tooltip.setFont(new javafx.scene.text.Font(12));
+        diffButton.setTooltip(tooltip);
         showPopover = true;
     }
 

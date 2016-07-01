@@ -301,6 +301,7 @@ public class BranchManagerController {
 
         if (mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.CONFLICTING)){
             this.showConflictsNotification();
+            ConflictingFileWatcher.watchConflictingFiles(sessionModel.getCurrentRepoHelper());
 
         } else if (mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.ALREADY_UP_TO_DATE)) {
             this.showUpToDateNotification();
