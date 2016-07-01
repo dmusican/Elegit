@@ -17,7 +17,9 @@ public class MissingRepoFile extends RepoFile {
         super(filePath, repo);
         diffButton.setText("MISSING");
         diffButton.setId("missingDiffButton");
-        diffButton.setTooltip(new Tooltip("This file is missing."));
+        Tooltip tooltip = new Tooltip("This file is missing.");
+        tooltip.setFont(new javafx.scene.text.Font(12));
+        diffButton.setTooltip(tooltip);
     }
 
     public MissingRepoFile(String filePathString, RepoHelper repo) {

@@ -17,7 +17,9 @@ public class ModifiedRepoFile extends RepoFile {
         super(filePath, repo);
         diffButton.setText("MODIFIED");
         diffButton.setId("modifiedDiffButton");
-        diffButton.setTooltip(new Tooltip("This file was modified after your most recent commit."));
+        Tooltip tooltip = new Tooltip("This file was modified after your most recent commit.");
+        tooltip.setFont(new javafx.scene.text.Font(12));
+        diffButton.setTooltip(tooltip);
         showPopover = true;
     }
 

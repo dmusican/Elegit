@@ -8,7 +8,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
 import java.util.ArrayList;
-import java.util.Dictionary;
 import java.util.List;
 import java.util.Set;
 
@@ -48,6 +47,7 @@ public class ConflictingFileWatcher {
 
     /**
      * Spins off a new thread to watch the directories that contain conflicting files
+     *
      * @param currentRepo RepoHelper
      * @throws GitAPIException
      * @throws IOException
@@ -73,22 +73,21 @@ public class ConflictingFileWatcher {
                 // gets the path to the repo directory
                 Path directory = (new File(currentRepo.getRepo().getDirectory().getParent())).toPath();
 
-                // a list of paths that are already being watched
-                ArrayList<Path> alreadyWatching = new ArrayList<>();
-
-                // for each conflicting file, add a watcher to its parent directory if it's not already being watched
+                // for each conflicting file, watch its parent directory
                 for(String fileToWatch : conflictingFiles) {
                     Path fileToWatchPath = directory.resolve((new File(fileToWatch)).toPath()).getParent();
-                    if(!alreadyWatching.contains(fileToWatchPath)) {
-                        alreadyWatching.add(fileToWatchPath);
-                        watch(fileToWatchPath);
-                    }
+                    watch(fileToWatchPath, fileToWatch);
                 }
                 watching = false;
                 return null;
             }
 
-            private void watch(Path directoryToWatch) throws IOException {
+            /**
+             * Spins off a new thread to watch each directory
+             * @param directoryToWatch Path
+             * @throws IOException
+             */
+            private void watch(Path directoryToWatch, String fileToWatch) throws IOException {
                 Thread watch = new Thread(new Task<Void>() {
                     @Override
                     protected Void call() throws IOException {
@@ -96,23 +95,24 @@ public class ConflictingFileWatcher {
                         WatchService watcher = FileSystems.getDefault().newWatchService();
                         WatchKey key = directoryToWatch.register(watcher, StandardWatchEventKinds.ENTRY_MODIFY);
 
-                        // while there are conflicting files, check each key to see if a file was modified
-                        while(conflictingFiles.size() > 0) {
+                        // while the file is conflicting, check to see if its been modified
+                        while(conflictingFiles.contains(fileToWatch)) {
                             List<WatchEvent<?>> events = key.pollEvents();
                             for(WatchEvent<?> event : events) {
 
                                 // if a conflicting file was modified, remove it from conflictingFiles and add it to conflictingThenModifiedFiles
                                 String path = event.context().toString();
-                                for(String str : conflictingFiles) {
-                                    Path tmp = (new File(str)).toPath();
-                                    // the path in conflictingFiles is either the file name itself or a path that ends with the file name
-                                    if(tmp.endsWith(path) || tmp.toString().equals(path)) {
-                                        conflictingFiles.remove(tmp.toString());
-                                        conflictingThenModifiedFiles.add(tmp.toString());
-                                    }
+                                Path tmp = (new File(fileToWatch)).toPath();
+                                // the path in conflictingFiles is either the file name itself or a path that ends with the file name
+                                if(tmp.endsWith(path) || tmp.toString().equals(path)) {
+                                    conflictingFiles.remove(tmp.toString());
+                                    conflictingThenModifiedFiles.add(tmp.toString());
                                 }
                             }
-                            key.reset();
+                            boolean valid = key.reset();
+                            if(!valid) {
+                                break;
+                            }
                         }
                         return null;
                     }
@@ -124,7 +124,7 @@ public class ConflictingFileWatcher {
         });
 
         watcherThread.setDaemon(true);
-        watcherThread.setName("watcherThread");
+        watcherThread.setName("initializing a watcher");
         watcherThread.start();
     }
 }
