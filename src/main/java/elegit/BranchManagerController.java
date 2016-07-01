@@ -1,6 +1,5 @@
 package elegit;
 
-import com.sun.tools.corba.se.idl.constExpr.Not;
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import javafx.collections.FXCollections;
@@ -38,6 +37,7 @@ public class BranchManagerController {
     public ListView<LocalBranchHelper> localListView;
     private Repository repo;
     private RepoHelper repoHelper;
+    private BranchModel branchModel;
     @FXML
     private NotificationPane notificationPane;
 
@@ -51,7 +51,6 @@ public class BranchManagerController {
     private Button swapMergeBranchesButton;
 
     private SessionModel sessionModel;
-    private BranchModel branchModel;
     private LocalCommitTreeModel localCommitTreeModel;
     private RemoteCommitTreeModel remoteCommitTreeModel;
     private Stage stage;
@@ -59,11 +58,13 @@ public class BranchManagerController {
     static final Logger logger = LogManager.getLogger();
 
     public void initialize() throws Exception {
+
         logger.info("Started up branch manager");
+
         this.sessionModel = SessionModel.getSessionModel();
         this.repoHelper = this.sessionModel.getCurrentRepoHelper();
         this.repo = this.repoHelper.getRepo();
-        this.branchModel = this.repoHelper.getBranchModel();
+        this.branchModel = repoHelper.getBranchModel();
         for (CommitTreeModel commitTreeModel : CommitTreeController.allCommitTreeModels) {
             if (commitTreeModel.getViewName().equals(LocalCommitTreeModel
                     .LOCAL_TREE_VIEW_NAME)) {
@@ -73,50 +74,25 @@ public class BranchManagerController {
                 this.remoteCommitTreeModel = (RemoteCommitTreeModel)commitTreeModel;
             }
         }
-
-        this.remoteListView.setItems(FXCollections.observableArrayList(repoHelper.getBranchModel().getRemoteBranchesTyped()));
-        this.localListView.setItems(FXCollections.observableArrayList(repoHelper.getBranchModel().getLocalBranchesTyped()));
-
-        this.remoteListView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
-        this.remoteListView.setOnMouseClicked(e -> {
-
-            if (!localListView.getSelectionModel().isEmpty()) {
-                localListView.getSelectionModel().clearSelection();
-            }
-            try {
-                this.updateButtons();
-            } catch (IOException e1) {
-                logger.error("Branch manager remote list view mouse click error");
-                logger.debug(e1.getStackTrace());
-                e1.printStackTrace();
-            }
-        });
+        this.remoteListView.setItems(FXCollections.observableArrayList(branchModel.getRemoteBranchesTyped()));
+        this.localListView.setItems(FXCollections.observableArrayList(branchModel.getLocalBranchesTyped()));
 
         // Local list view can select multiple (for merges):
         this.localListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-        this.localListView.setOnMouseClicked(e -> {
-            if (!remoteListView.getSelectionModel().isEmpty()) {
-                remoteListView.getSelectionModel().clearSelection();
-            }
-            try {
-                this.updateButtons();
-            } catch (IOException e1) {
-                logger.error("Branch manager local list view mouse click error");
-                logger.debug(e1.getStackTrace());
-                e1.printStackTrace();
-            }
-        });
+        this.remoteListView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
 
+        this.setIcons();
+        this.updateButtons();
+    }
+
+    private void setIcons() {
         Text cloudDownIcon = GlyphsDude.createIcon(FontAwesomeIcon.CLOUD_DOWNLOAD);
         cloudDownIcon.setFill(Color.WHITE);
         this.trackRemoteBranchButton.setGraphic(cloudDownIcon);
 
-        this.trackRemoteBranchButton.setDisable(true);
-
         Text trashIcon = GlyphsDude.createIcon(FontAwesomeIcon.TRASH);
         trashIcon.setFill(Color.WHITE);
         this.deleteLocalBranchesButton.setGraphic(trashIcon);
-        this.deleteLocalBranchesButton.setDisable(true);
 
         Text arrowsIcon = GlyphsDude.createIcon(FontAwesomeIcon.EXCHANGE);
         arrowsIcon.setFill(Color.WHITE);
@@ -126,8 +102,6 @@ public class BranchManagerController {
         Text branchIcon = GlyphsDude.createIcon(FontAwesomeIcon.CODE_FORK);
         branchIcon.setFill(Color.WHITE);
         this.newBranchButton.setGraphic(branchIcon);
-
-        this.updateButtons();
     }
 
     public void showStage(NotificationPane pane) {
@@ -141,6 +115,32 @@ public class BranchManagerController {
 
     public void closeWindow() {
         stage.close();
+    }
+
+    public void handleRemoteListViewMouseClick() {
+        if (!localListView.getSelectionModel().isEmpty()) {
+            localListView.getSelectionModel().clearSelection();
+        }
+        try {
+            this.updateButtons();
+        } catch (IOException e1) {
+            logger.error("Branch manager remote list view mouse click error");
+            logger.debug(e1.getStackTrace());
+            e1.printStackTrace();
+        }
+    }
+
+    public void handleLocalListViewMouseClick() {
+        if (!remoteListView.getSelectionModel().isEmpty()) {
+            remoteListView.getSelectionModel().clearSelection();
+        }
+        try {
+            this.updateButtons();
+        } catch (IOException e1) {
+            logger.error("Branch manager local list view mouse click error");
+            logger.debug(e1.getStackTrace());
+            e1.printStackTrace();
+        }
     }
 
     public void onNewBranchButton() {
@@ -221,7 +221,7 @@ public class BranchManagerController {
         RemoteBranchHelper selectedRemoteBranch = this.remoteListView.getSelectionModel().getSelectedItem();
         try {
             if (selectedRemoteBranch != null) {
-                LocalBranchHelper tracker = this.repoHelper.getBranchModel().trackRemoteBranch(selectedRemoteBranch);
+                LocalBranchHelper tracker = this.branchModel.trackRemoteBranch(selectedRemoteBranch);
                 this.localListView.getItems().add(tracker);
                 this.remoteCommitTreeModel.setCommitAsBranchHead(selectedRemoteBranch, true);
                 this.localCommitTreeModel.setCommitAsBranchHead(selectedRemoteBranch, true);
@@ -242,7 +242,7 @@ public class BranchManagerController {
             try {
                 if (selectedBranch != null) {
                     // Local delete:
-                    this.repoHelper.getBranchModel().deleteLocalBranch(selectedBranch);
+                    this.branchModel.deleteLocalBranch(selectedBranch);
                     this.localListView.getItems().remove(selectedBranch);
                     this.remoteCommitTreeModel.setCommitAsBranchHead(selectedBranch, false);
                     this.localCommitTreeModel.setCommitAsBranchHead(selectedBranch, false);
@@ -271,7 +271,7 @@ public class BranchManagerController {
      * @throws IOException
      */
     private LocalBranchHelper createNewLocalBranch(String branchName) throws GitAPIException, IOException {
-        return this.repoHelper.getBranchModel().createNewLocalBranch(branchName);
+        return this.branchModel.createNewLocalBranch(branchName);
     }
 
     /**
@@ -283,7 +283,7 @@ public class BranchManagerController {
         try {
             if (branchToDelete != null) {
                 // Local delete:
-                this.repoHelper.getBranchModel().forceDeleteLocalBranch(branchToDelete);
+                this.branchModel.forceDeleteLocalBranch(branchToDelete);
                 // Update local list view
                 this.localListView.getItems().remove(branchToDelete);
 
@@ -313,7 +313,7 @@ public class BranchManagerController {
         LocalBranchHelper selectedBranch = this.localListView.getSelectionModel().getSelectedItem();
 
         // Get the merge result from the branch merge
-        MergeResult mergeResult= this.repoHelper.getBranchModel().mergeWithBranch(selectedBranch);
+        MergeResult mergeResult= this.branchModel.mergeWithBranch(selectedBranch);
 
         if (mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.CONFLICTING)){
             this.showConflictsNotification();
@@ -349,7 +349,7 @@ public class BranchManagerController {
      */
     public void swapMergeBranches() throws GitAPIException, IOException {
         LocalBranchHelper selectedBranch = this.localListView.getSelectionModel().getSelectedItem();
-        LocalBranchHelper checkedOutBranch = (LocalBranchHelper) this.repoHelper.getBranchModel().getCurrentBranch();
+        LocalBranchHelper checkedOutBranch = (LocalBranchHelper) this.branchModel.getCurrentBranch();
 
         selectedBranch.checkoutBranch();
         this.localListView.getSelectionModel().select(checkedOutBranch);
