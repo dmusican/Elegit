@@ -7,6 +7,7 @@ import elegit.treefx.TreeGraph;
 import elegit.treefx.TreeGraphModel;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.util.IO;
@@ -88,7 +89,8 @@ public abstract class CommitTreeModel{
 
         if (this.sessionModel.getCurrentRepoHelper() != null) {
             this.addAllCommitsToTree();
-            this.branchesInModel = getAllBranches(this.sessionModel.getCurrentRepoHelper());
+            //this.branchesInModel = getAllBranches(this.sessionModel.getCurrentRepoHelper());
+            this.branchesInModel = this.sessionModel.getCurrentRepoHelper().getBranchModel().getAllBranches();
         }
 
         this.initView();
@@ -106,7 +108,6 @@ public abstract class CommitTreeModel{
 
         this.updateView();
 
-        this.resetBranchHeads(true);
         CommitTreeController.setBranchHeads(this, this.sessionModel.getCurrentRepoHelper());
     }
 
@@ -131,18 +132,28 @@ public abstract class CommitTreeModel{
         commitsToRemove.removeAll(this.getAllCommits(this.sessionModel.getCurrentRepoHelper()));
         updateModel.setCommitsToRemove(commitsToRemove);
 
-        List<BranchHelper> branchesToUpdate = new ArrayList<>(this.getAllBranches(this.sessionModel.getCurrentRepoHelper()));
+        List<BranchHelper> branchesToUpdate = new ArrayList<>(this.sessionModel.getCurrentRepoHelper().getBranchModel().getAllBranches());
         Map<String, BranchHelper> currentBranchMap = new HashMap<>();
-        for (BranchHelper branch : this.branchesInModel) {
-            currentBranchMap.put(branch.getBranchName(), branch);
-        }
+        Map<String, BranchHelper> updateBranchMap = new HashMap<>();
 
+        for (BranchHelper branch : this.branchesInModel)
+            currentBranchMap.put(branch.getBranchName(), branch);
+        for (BranchHelper branch : branchesToUpdate)
+            updateBranchMap.put(branch.getBranchName(), branch);
+
+        // Check for added and changed branches
         for (BranchHelper branch : branchesToUpdate) {
             if (currentBranchMap.containsKey(branch.getBranchName()) &&
                     currentBranchMap.get(branch.getBranchName()).getHead().getId().equals(branch.getHeadId().getName()))
                 continue;
             updateModel.addBranch(branch);
         }
+        // Check if there are removed branches
+        for (BranchHelper branch : this.branchesInModel) {
+            if (!updateBranchMap.containsKey(branch.getBranchName()))
+                updateModel.addBranch(branch);
+        }
+
 
         return updateModel;
     }
@@ -362,18 +373,13 @@ public abstract class CommitTreeModel{
 
     /**
      * Sets the shape and ref labels for a cell based on the current repo status
-     * @param helper the branch helper that we want to set the head of
-     * @param tracked whether or not the branch is tracked
+     *
+     * @param helper the commit helper that we want to set as a branch head
+     * @param tracked whether or not the commit is the head of a tracked branch
      */
-    public void setCommitAsBranchHead(BranchHelper helper, boolean tracked) {
+    public void setCommitAsBranchHead(CommitHelper helper, boolean tracked) {
         String commitId="";
-        try {
-            commitId = helper.getHeadId().getName();
-        } catch (IOException e) {
-            e.printStackTrace();
-            return;
-        }
-
+        commitId = helper.getId();
         CellShape shape = (tracked) ? Cell.TRACKED_BRANCH_HEAD_SHAPE : Cell.UNTRACKED_BRANCH_HEAD_SHAPE;
 
         treeGraph.treeGraphModel.setCellShape(commitId, shape);
@@ -385,13 +391,18 @@ public abstract class CommitTreeModel{
     }
 
     /**
-     * Forgets information about tracked/untracked branch heads in the tree
+     * Forgets information about tracked/untracked branch heads in the tree and fills it back in
      */
     public void resetBranchHeads(boolean updateLabels){
         List<String> resetIDs = treeGraph.treeGraphModel.resetCellShapes();
         RepoHelper repo = sessionModel.getCurrentRepoHelper();
         if(updateLabels){
-            this.branchesInModel = this.getAllBranches(this.sessionModel.getCurrentRepoHelper());
+            try {
+                this.sessionModel.getCurrentRepoHelper().getBranchModel().updateAllBranches();
+            } catch (IOException | GitAPIException e) {
+                // Shouldn't happen
+            }
+            this.branchesInModel = this.sessionModel.getCurrentRepoHelper().getBranchModel().getAllBranches();
             for(String id : resetIDs){
                 String displayLabel = repo.getCommitDescriptorString(id, false);
                 List<String> branchLabels = repo.getBranchModel().getBranchesWithHead(id);
