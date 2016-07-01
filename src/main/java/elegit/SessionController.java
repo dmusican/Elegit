@@ -7,7 +7,6 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.concurrent.Task;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Side;
@@ -29,7 +28,6 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import javafx.stage.WindowEvent;
 import elegit.exceptions.*;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.logging.log4j.LogManager;
@@ -42,7 +40,6 @@ import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.dircache.InvalidPathException;
 import org.eclipse.jgit.errors.NoMergeBaseException;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
-import sun.plugin2.util.SystemUtil;
 
 import java.awt.*;
 import java.io.IOException;
@@ -98,7 +95,7 @@ public class SessionController {
 	public CommitTreePanelView localCommitTreePanelView;
     public CommitTreePanelView remoteCommitTreePanelView;
 
-    public ImageView browserImageView;
+    public ImageView remoteImage;
 
     public Label commitInfoNameText;
     public Label commitInfoAuthorText;
@@ -330,7 +327,7 @@ public class SessionController {
                 }
             }
             Tooltip URLTooltip = new Tooltip(URLString);
-            Tooltip.install(browserImageView, URLTooltip);
+            Tooltip.install(remoteImage, URLTooltip);
             Tooltip.install(browserText, URLTooltip);
         }
         catch(MissingRepoException e) {
@@ -981,12 +978,12 @@ public class SessionController {
             try{
                 localCommitTreeModel.update();
                 remoteCommitTreeModel.update();
-                if (theModel.getCurrentRepoHelper() != null &&
-                        theModel.getCurrentRepoHelper().updateTags()) {
-                    if (theModel.getCurrentRepoHelper().hasTagsWithUnpushedCommits()) {
+                //if (theModel.getCurrentRepoHelper() != null &&
+                        //theModel.getCurrentRepoHelper().updateTags()) {
+                    //if (theModel.getCurrentRepoHelper().hasTagsWithUnpushedCommits()) {
                         //showTagPointsToUnpushedCommitNotification();
-                    }
-                }
+                    //}
+                //}
 
                 workingTreePanelView.drawDirectoryView();
                 allFilesPanelView.drawDirectoryView();
@@ -1016,7 +1013,7 @@ public class SessionController {
      * corresponding remote url
      * @param event the mouse event corresponding to the click
      */
-    public void handleRemoteImageViewMouseClick(MouseEvent event){
+    public void handleRemoteMouseClick(MouseEvent event){
         if(event.getButton() != MouseButton.PRIMARY) return;
         try {
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
@@ -1095,7 +1092,7 @@ public class SessionController {
             fetchButton.setDisable(disable);
             selectAllButton.setDisable(disable);
             deselectAllButton.setDisable(disable);
-            browserImageView.setVisible(!disable);
+            remoteImage.setVisible(!disable);
             commitMessageField.setDisable(disable);
             browserText.setVisible(!disable);
             branchesButton.setDisable(disable);
@@ -1688,12 +1685,7 @@ public class SessionController {
             stage.setTitle("Legend");
             stage.setScene(new Scene(fxmlRoot, 250, 300));
             stage.initModality(Modality.APPLICATION_MODAL);
-            stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
-                @Override
-                public void handle(WindowEvent event) {
-                    logger.info("Closed legend");
-                }
-            });
+            stage.setOnCloseRequest(event -> logger.info("Closed legend"));
             stage.show();
         }catch(IOException e) {
             this.showGenericErrorNotification();
@@ -1720,9 +1712,7 @@ public class SessionController {
                     if (t.presentDeleteDialog()) {
                         try {
                             theModel.getCurrentRepoHelper().deleteTag(t.getName());
-                        } catch (MissingRepoException e) {
-                            e.printStackTrace();
-                        } catch (GitAPIException e) {
+                        } catch (MissingRepoException | GitAPIException e) {
                             e.printStackTrace();
                         }
                         if (!theModel.getCurrentRepoHelper().hasUnpushedTags()) {
@@ -1819,11 +1809,6 @@ public class SessionController {
         logger.info("Remove repos button clicked");
         List<RepoHelper> repoHelpers = this.theModel.getAllRepoHelpers();
         CheckListView<RepoHelper> repoCheckListView = new CheckListView<>(FXCollections.observableArrayList(repoHelpers));
-
-        // Remove the currently checked out repo:
-        /*RepoHelper currentRepo = this.theModel.getCurrentRepoHelper();
-        repoCheckListView.getItems().remove(currentRepo);*/
-
         Button removeSelectedButton = new Button("Remove repository shortcuts from Elegit");
 
         PopOver popover = new PopOver(new VBox(repoCheckListView, removeSelectedButton));

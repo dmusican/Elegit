@@ -85,6 +85,9 @@ public class BranchManagerController {
         this.updateButtons();
     }
 
+    /**
+     * A helper method that sets the icons and colors for buttons
+     */
     private void setIcons() {
         Text cloudDownIcon = GlyphsDude.createIcon(FontAwesomeIcon.CLOUD_DOWNLOAD);
         cloudDownIcon.setFill(Color.WHITE);
@@ -104,6 +107,10 @@ public class BranchManagerController {
         this.newBranchButton.setGraphic(branchIcon);
     }
 
+    /**
+     * Shows the branch manager
+     * @param pane NotificationPane
+     */
     public void showStage(NotificationPane pane) {
         stage = new Stage();
         stage.setTitle("Branch Manager");
@@ -113,10 +120,16 @@ public class BranchManagerController {
         stage.show();
     }
 
+    /**
+     * Closes the branch manager
+     */
     public void closeWindow() {
         stage.close();
     }
 
+    /**
+     * Handles a mouse click on the remote list view
+     */
     public void handleRemoteListViewMouseClick() {
         if (!localListView.getSelectionModel().isEmpty()) {
             localListView.getSelectionModel().clearSelection();
@@ -130,6 +143,9 @@ public class BranchManagerController {
         }
     }
 
+    /**
+     * Handles a mouse click on the local list view
+     */
     public void handleLocalListViewMouseClick() {
         if (!remoteListView.getSelectionModel().isEmpty()) {
             remoteListView.getSelectionModel().clearSelection();
