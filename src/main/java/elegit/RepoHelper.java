@@ -569,10 +569,13 @@ public abstract class RepoHelper {
         String remoteBranch = config.getString("branch", this.branchModel.getCurrentBranch().getBranchName(), "merge");
         String remote = config.getString("branch", this.branchModel.getCurrentBranch().getBranchName(), "remote");
         if (remoteBranch == null || remote == null) return false;
-        remoteBranch = remote + "/" + this.repo.shortenRefName(remoteBranch);
+        remoteBranch = remote + "/" + Repository.shortenRefName(remoteBranch);
         try {
-            return !this.branchModel.getBranchByName(BranchModel.BranchType.REMOTE, remoteBranch).getHeadId()
-                    .equals(this.branchModel.getCurrentBranch().getHeadId());
+            if (this.branchModel.getBranchByName(BranchModel.BranchType.REMOTE, remoteBranch) != null
+                    && this.branchModel.getCurrentBranch() != null) {
+                return !this.branchModel.getBranchByName(BranchModel.BranchType.REMOTE, remoteBranch).getHeadId()
+                        .equals(this.branchModel.getCurrentBranch().getHeadId());
+            }else return false;
         } catch (IOException e) {
             return false;
         }
