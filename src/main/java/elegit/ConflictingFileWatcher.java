@@ -25,7 +25,7 @@ public class ConflictingFileWatcher {
     private static ArrayList<String> conflictingFiles = new ArrayList<>();
 
     // boolean to help deal with concurrency issues
-    private static boolean watching = false;
+    private static int watching = 0;
 
     /**
      * returns a list of the files that were conflicting and then recently modified
@@ -40,7 +40,7 @@ public class ConflictingFileWatcher {
      * @param file String to remove from list
      */
     public static void removeFile(String file) {
-        if(!watching) {
+        if(watching == 0) {
             conflictingThenModifiedFiles.remove(file);
         }
     }
@@ -55,8 +55,6 @@ public class ConflictingFileWatcher {
     public static void watchConflictingFiles(RepoHelper currentRepo) throws GitAPIException, IOException {
 
         if(currentRepo == null) return;
-
-        watching = true;
 
         Thread watcherThread = new Thread(new Task<Void>() {
 
@@ -78,7 +76,6 @@ public class ConflictingFileWatcher {
                     Path fileToWatchPath = directory.resolve((new File(fileToWatch)).toPath()).getParent();
                     watch(fileToWatchPath, fileToWatch);
                 }
-                watching = false;
                 return null;
             }
 
@@ -105,8 +102,10 @@ public class ConflictingFileWatcher {
                                 Path tmp = (new File(fileToWatch)).toPath();
                                 // the path in conflictingFiles is either the file name itself or a path that ends with the file name
                                 if(tmp.endsWith(path) || tmp.toString().equals(path)) {
+                                    watching++;
                                     conflictingFiles.remove(tmp.toString());
                                     conflictingThenModifiedFiles.add(tmp.toString());
+                                    watching--;
                                 }
                             }
                             boolean valid = key.reset();
