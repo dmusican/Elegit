@@ -114,6 +114,25 @@ public class TreeGraphModel{
      * @return the edges removed since the last update
      */
     public List<Edge> getRemovedEdges() {
+        List<String> removedMap = new ArrayList<>();
+        for (Cell c : removedCells)
+            removedMap.add(c.getCellId());
+        List<Edge> oldRemoved = new ArrayList<>();
+        for (Edge e : removedEdges)
+            oldRemoved.add(e);
+
+        // If there are edges going to a cell being replaced, keep those
+        for (Edge e : oldRemoved) {
+            // Check that the old parent is being replaced and child is staying
+            if (cellMap.containsKey(e.getSource().getCellId())
+                    && removedMap.contains(e.getSource().getCellId())
+                    && cellMap.containsKey(e.getTarget().getCellId())
+                    && !removedMap.contains(e.getTarget().getCellId())) {
+                // Make a replacement edge if it doesn't already exist
+                addEdge(e.getSource().getCellId(), e.getTarget().getCellId());
+
+            }
+        }
         return removedEdges;
     }
 
@@ -148,6 +167,8 @@ public class TreeGraphModel{
         cell.setContextMenu(contextMenu);
         addCell(cell);
 
+        // Note: a commit can have at most two parents, that would
+        // result from a merge, so we only need two of these.
         if(parent1Id != null) this.addEdge(parent1Id, newId);
         if(parent2Id != null) this.addEdge(parent2Id, newId);
     }
@@ -220,8 +241,14 @@ public class TreeGraphModel{
      * @param cell the cell whose edges will be removed
      */
     private void removeEdges(Cell cell){
-        for(Edge e : cell.edges){
+        List<Edge> oldEdges = new ArrayList<>();
+        for (Edge e : cell.edges) {
+            oldEdges.add(e);
+        }
+        for(Edge e : oldEdges){
             removedEdges.add(e);
+            e.getTarget().edges.remove(e);
+            e.getSource().edges.remove(e);
         }
     }
 

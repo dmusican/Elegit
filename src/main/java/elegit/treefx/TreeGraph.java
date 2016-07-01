@@ -68,11 +68,11 @@ public class TreeGraph{
      * date
      */
     public synchronized void update() {
-        queuedToAdd.addAll(treeGraphModel.getAddedCells());
-        queuedToAdd.addAll(treeGraphModel.getAddedEdges());
-
         queuedToRemove.addAll(treeGraphModel.getRemovedCells());
         queuedToRemove.addAll(treeGraphModel.getRemovedEdges());
+
+        queuedToAdd.addAll(treeGraphModel.getAddedCells());
+        queuedToAdd.addAll(treeGraphModel.getAddedEdges());
 
         // merge added & removed cells with all cells
         treeGraphModel.merge();
