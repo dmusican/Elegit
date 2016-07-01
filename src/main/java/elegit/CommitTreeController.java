@@ -10,6 +10,7 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * The controller class for the commit trees. Handles mouse interaction, cell selection/highlighting,
@@ -248,16 +249,17 @@ public class CommitTreeController{
         } catch (IOException | GitAPIException e) {
             // This shouldn't happen once the repo is loaded and going
         }
-        List<BranchHelper> modelBranches = repo.getBranchModel().getAllBranches();
-        if(modelBranches == null) return false;
+        Map<CommitHelper, List<BranchHelper>> headIds = repo.getBranchModel().getAllBranchHeads();
+        if(headIds == null) return false;
         model.resetBranchHeads(true);
-        for(BranchHelper branch : modelBranches){
-            System.out.println("setting: "+branch.getBranchName());
-            if(!model.sessionModel.getCurrentRepoHelper().getBranchModel().isBranchTracked(branch)){
-                model.setCommitAsBranchHead(branch, false);
-            }else{
-                model.setCommitAsBranchHead(branch, true);
+        boolean isTracked;
+        for(CommitHelper head : headIds.keySet()){
+            isTracked = false;
+            for (BranchHelper branch : headIds.get(head)) {
+                if (model.sessionModel.getCurrentRepoHelper().getBranchModel().isBranchTracked(branch))
+                    isTracked = true;
             }
+            model.setCommitAsBranchHead(head, isTracked);
         }
         return true;
     }

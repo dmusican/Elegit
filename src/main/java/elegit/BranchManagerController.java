@@ -207,8 +207,8 @@ public class BranchManagerController {
             if (selectedRemoteBranch != null) {
                 LocalBranchHelper tracker = this.repoHelper.getBranchModel().trackRemoteBranch(selectedRemoteBranch);
                 this.localListView.getItems().add(tracker);
-                this.remoteCommitTreeModel.setCommitAsBranchHead(selectedRemoteBranch, true);
-                this.localCommitTreeModel.setCommitAsBranchHead(selectedRemoteBranch, true);
+                CommitTreeController.setBranchHeads(this.remoteCommitTreeModel, this.repoHelper);
+                CommitTreeController.setBranchHeads(this.localCommitTreeModel, this.repoHelper);
             }
         } catch (RefAlreadyExistsException e) {
             logger.warn("Branch already exists locally warning");

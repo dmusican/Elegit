@@ -365,18 +365,13 @@ public abstract class CommitTreeModel{
 
     /**
      * Sets the shape and ref labels for a cell based on the current repo status
-     * @param helper the branch helper that we want to set the head of
-     * @param tracked whether or not the branch is tracked
+     *
+     * @param helper the commit helper that we want to set as a branch head
+     * @param tracked whether or not the commit is the head of a tracked branch
      */
-    public void setCommitAsBranchHead(BranchHelper helper, boolean tracked) {
+    public void setCommitAsBranchHead(CommitHelper helper, boolean tracked) {
         String commitId="";
-        try {
-            commitId = helper.getHeadId().getName();
-        } catch (IOException e) {
-            e.printStackTrace();
-            return;
-        }
-
+        commitId = helper.getId();
         CellShape shape = (tracked) ? Cell.TRACKED_BRANCH_HEAD_SHAPE : Cell.UNTRACKED_BRANCH_HEAD_SHAPE;
 
         treeGraph.treeGraphModel.setCellShape(commitId, shape);
