@@ -78,6 +78,13 @@
                     onAction="#onNewBranchButton"
                     text="Create branch"/>
 
+            <Button GridPane.rowIndex="6"
+                    GridPane.columnIndex="1"
+                    GridPane.halignment="RIGHT"
+                    prefWidth="80"
+                    text="Cancel"
+                    onAction="#closeWindow"/>
+
         </GridPane>
     </content>
 

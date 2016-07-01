@@ -1604,7 +1604,14 @@ public class SessionController {
         try{
             logger.info("Branch manager clicked");
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
-            this.theModel.getCurrentRepoHelper().showBranchManagerWindow();
+
+            logger.info("Opened branch manager window");
+            // Create and display the Stage:
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/BranchManager.fxml"));
+            fxmlLoader.load();
+            BranchManagerController branchManagerController = fxmlLoader.getController();
+            NotificationPane fxmlRoot = fxmlLoader.getRoot();
+            branchManagerController.showStage(fxmlRoot);
         }catch(IOException e){
             this.showGenericErrorNotification();
             e.printStackTrace();

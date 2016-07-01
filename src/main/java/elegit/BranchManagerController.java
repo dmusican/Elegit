@@ -1,18 +1,20 @@
 package elegit;
 
+import com.sun.tools.corba.se.idl.constExpr.Not;
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
-import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.controlsfx.control.NotificationPane;
 import org.controlsfx.control.action.Action;
-import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.lib.Repository;
@@ -52,6 +54,7 @@ public class BranchManagerController {
     private BranchModel branchModel;
     private LocalCommitTreeModel localCommitTreeModel;
     private RemoteCommitTreeModel remoteCommitTreeModel;
+    private Stage stage;
 
     static final Logger logger = LogManager.getLogger();
 
@@ -125,6 +128,19 @@ public class BranchManagerController {
         this.newBranchButton.setGraphic(branchIcon);
 
         this.updateButtons();
+    }
+
+    public void showStage(NotificationPane pane) {
+        stage = new Stage();
+        stage.setTitle("Branch Manager");
+        stage.setScene(new Scene(pane, 550, 450));
+        stage.initModality(Modality.APPLICATION_MODAL);
+        stage.setOnCloseRequest(event -> logger.info("Closed branch manager window"));
+        stage.show();
+    }
+
+    public void closeWindow() {
+        stage.close();
     }
 
     public void onNewBranchButton() {
