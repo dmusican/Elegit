@@ -21,7 +21,7 @@ import static org.junit.Assert.*;
  */
 public class DuplicateRepoInvisCommitTest {
 
-    private static final String REMOTE_URL = "https://bitbucket.org/makik/duplicaterepoinviscommittestrepo.git";
+    private static final String REMOTE_URL = "https://github.com/TheElegitTeam/DuplicateRepoInvisCommitTestRepo.git";
 
     private Path directoryPath;
     private String testFileLocation;
@@ -107,31 +107,33 @@ public class DuplicateRepoInvisCommitTest {
         assertEquals(repo1OldHead.getId(), repo2OldHead.getId());
 
         // Push the previous commit
-//        repo1.pushAll();
-//
-//        // Fetch into the second repo
-//        repo2.fetch();
-//        repo2.mergeFromFetch();
-//
-//        CommitHelper repo2NewHead = repo2.getCommit("master");
-//        assertNotNull(repo2NewHead);
-//        assertEquals(repo1NewHead.getId(), repo2NewHead.getId());
-//
-//        List<CommitHelper> repo1LocalCommits = repo1.getLocalCommits();
-//        List<CommitHelper> repo1RemoteCommits = repo1.getRemoteCommits();
-//
-//        assertTrue(repo1LocalCommits.contains(repo1OldHead));
-//        assertTrue(repo1RemoteCommits.contains(repo1OldHead));
-//        assertTrue(repo1LocalCommits.contains(repo1NewHead));
-//        assertTrue(repo1RemoteCommits.contains(repo1NewHead));
-//
-//        List<CommitHelper> repo2LocalCommits = repo2.getLocalCommits();
-//        List<CommitHelper> repo2RemoteCommits = repo2.getRemoteCommits();
-//
-//        assertTrue(repo2LocalCommits.contains(repo2OldHead));
-//        assertTrue(repo2RemoteCommits.contains(repo2OldHead));
-//        assertTrue(repo2LocalCommits.contains(repo2NewHead));
-//        assertTrue(repo2RemoteCommits.contains(repo2NewHead));
-//
+        repo1.pushAll();
+
+        // Fetch into the second repo
+        repo2.fetch();
+        repo2.mergeFromFetch();
+
+        CommitHelper repo2NewHead = repo2.getCommit("master");
+        assertNotNull(repo2NewHead);
+        assertEquals(repo1NewHead.getId(), repo2NewHead.getId());
+
+        repo1.updateModel();
+        List<CommitHelper> repo1LocalCommits = repo1.getLocalCommits();
+        List<CommitHelper> repo1RemoteCommits = repo1.getRemoteCommits();
+
+        assertTrue(repo1LocalCommits.contains(repo1OldHead));
+        assertTrue(repo1RemoteCommits.contains(repo1OldHead));
+        assertTrue(repo1LocalCommits.contains(repo1NewHead));
+        assertTrue(repo1RemoteCommits.contains(repo1NewHead));
+
+        repo2.updateModel();
+        List<CommitHelper> repo2LocalCommits = repo2.getLocalCommits();
+        List<CommitHelper> repo2RemoteCommits = repo2.getRemoteCommits();
+
+        assertTrue(repo2LocalCommits.contains(repo2OldHead));
+        assertTrue(repo2RemoteCommits.contains(repo2OldHead));
+        assertTrue(repo2LocalCommits.contains(repo2NewHead));
+        assertTrue(repo2RemoteCommits.contains(repo2NewHead));
+
     }
 }

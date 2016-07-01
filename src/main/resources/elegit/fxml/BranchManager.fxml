@@ -29,7 +29,8 @@
                   spacing="10"
                   alignment="TOP_CENTER" >
 
-                <ListView fx:id="remoteListView" />
+                <ListView fx:id="remoteListView"
+                          onMouseClicked="#handleRemoteListViewMouseClick"/>
                 <Button fx:id="trackRemoteBranchButton"
                         onAction="#trackSelectedBranchLocally"
                         text="Track remote branch locally"/>
@@ -42,7 +43,8 @@
                   spacing="10"
                   alignment="TOP_CENTER">
 
-                <ListView fx:id="localListView" />
+                <ListView fx:id="localListView"
+                          onMouseClicked="#handleLocalListViewMouseClick"/>
                 <Button fx:id="deleteLocalBranchesButton"
                         onAction="#deleteSelectedLocalBranches"
                         text="Delete branch locally" />
@@ -77,6 +79,13 @@
                     fx:id="newBranchButton"
                     onAction="#onNewBranchButton"
                     text="Create branch"/>
+
+            <Button GridPane.rowIndex="6"
+                    GridPane.columnIndex="1"
+                    GridPane.halignment="RIGHT"
+                    prefWidth="80"
+                    text="Cancel"
+                    onAction="#closeWindow"/>
 
         </GridPane>
     </content>

@@ -7,6 +7,7 @@
 <?import java.net.URL?>
 <?import javafx.scene.image.*?>
 
+<?import javafx.scene.text.Font?>
 <AnchorPane
         fx:controller="elegit.SessionController"
         xmlns:fx="http://javafx.com/fxml"
@@ -175,26 +176,37 @@
 
                     <StackPane GridPane.rowIndex="1"
                                GridPane.columnIndex="7">
+                        <padding>
+                            <Insets bottom="40"/>
+                        </padding>
+                        <Text text="Remote"
+                              StackPane.alignment="BOTTOM_CENTER">
+                            <font>
+                                <Font size="26"/>
+                            </font>
+                        </Text>
+                    </StackPane>
 
+                    <StackPane GridPane.rowIndex="1"
+                               GridPane.columnIndex="7"
+                               onMouseClicked="#handleRemoteMouseClick">
                         <ImageView
-                                fx:id = "browserImageView"
+                                fx:id = "remoteImage"
                                 fitHeight="175"
                                 fitWidth="175"
                                 preserveRatio="true"
-                                onMouseClicked="#handleRemoteImageViewMouseClick">
+                                onMouseClicked="#handleRemoteMouseClick">
                             <image>
-                                <Image url="@browser_image.png"/>
+                                <Image url="@cloud.png"/>
                             </image>
                         </ImageView>
 
                         <Text fx:id="browserText"
-                              StackPane.alignment="CENTER"
-                              onMouseClicked="#handleRemoteImageViewMouseClick">
-                            <StackPane.margin>
-                                <Insets bottom="95.0" right="10.0"/>
-                            </StackPane.margin>
+                              onMouseClicked="#handleRemoteMouseClick">
+                            <font>
+                                <Font size="12" name="Sans Serif"/>
+                            </font>
                         </Text>
-
                     </StackPane>
 
                     <StackPane GridPane.rowIndex="1"

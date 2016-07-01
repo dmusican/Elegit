@@ -1220,19 +1220,6 @@ public abstract class RepoHelper {
         return false;
     }
 
-    public void showBranchManagerWindow() throws IOException {
-        logger.info("Opened branch manager window");
-        // Create and display the Stage:
-        NotificationPane fxmlRoot = FXMLLoader.load(getClass().getResource("/elegit/fxml/BranchManager.fxml"));
-
-        Stage stage = new Stage();
-        stage.setTitle("Branch Manager");
-        stage.setScene(new Scene(fxmlRoot, 550, 450));
-        stage.initModality(Modality.APPLICATION_MODAL);
-        stage.setOnCloseRequest(event -> logger.info("Closed branch manager window"));
-        stage.show();
-    }
-
     /**
      * Gets a list of references (branch heads and tags) from the
      * remote repository without fetching any changes. Equivalent
