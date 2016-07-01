@@ -1,6 +1,7 @@
 package elegit;
 
 import javafx.application.Platform;
+import javafx.scene.Node;
 import javafx.scene.control.TreeCell;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
@@ -31,6 +32,7 @@ public abstract class FileStructurePanelView extends Region{
         // This line isn't necessary for displaying the tree, but it does prevent the tabs from getting
         // cut off and displaying a drop down arrow to flip between them.
         // TODO: Figure out why and fix it
+        this.getChildren().clear();
         this.getChildren().add(this.directoryTreeView);
     }
 
