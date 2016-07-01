@@ -321,9 +321,7 @@ public abstract class RepoHelper {
     /**
      * @return true if there are remote commits that haven't been merged into local
      */
-    public boolean hasUnmergedCommits() {
-        return hasUnmergedCommitsProperty.get();
-    }
+    public boolean hasUnmergedCommits() { return checkUnmergedCommits(); }
 
     /**
      * Commits changes to the repository.

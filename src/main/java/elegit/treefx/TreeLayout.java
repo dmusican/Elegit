@@ -99,7 +99,6 @@ public class TreeLayout{
              */
             @Override
             protected Void call() throws Exception{
-
                 TreeGraphModel treeGraphModel = g.treeGraphModel;
                 isInitialSetupFinished = treeGraphModel.isInitialSetupFinished;
 
@@ -114,7 +113,6 @@ public class TreeLayout{
                 for (int i=allCellsSortedByTime.size()-1; i>=0; i--) {
                     computeCellPosition(i);
                 }
-
                 // Once all cell's positions have been set, move them in a service
                 MoveCellService mover = new MoveCellService(allCellsSortedByTime);
 
@@ -230,7 +228,7 @@ public class TreeLayout{
 
                 // For each parent, oldest to newest, place it in the highest row possible recursively
                 for(Cell parent : list){
-                    if (parent.getTime()>c.getTime()) break;
+                    if (parent.getTime()>c.getTime() || allCellsSortedByTime.indexOf(parent)<0) break;
                     computeCellPosition(allCellsSortedByTime.size()-1-allCellsSortedByTime.indexOf(parent));
                     break;
                 }
