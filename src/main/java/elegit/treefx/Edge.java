@@ -123,4 +123,7 @@ public class Edge extends Group {
         this.visible.set(enable);
     }
 
+    public Cell getSource() { return this.source; }
+    public Cell getTarget() { return this.target; }
+
 }
