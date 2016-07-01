@@ -134,18 +134,26 @@ public abstract class CommitTreeModel{
 
         List<BranchHelper> branchesToUpdate = new ArrayList<>(this.sessionModel.getCurrentRepoHelper().getBranchModel().getAllBranches());
         Map<String, BranchHelper> currentBranchMap = new HashMap<>();
+        Map<String, BranchHelper> updateBranchMap = new HashMap<>();
 
         for (BranchHelper branch : this.branchesInModel)
             currentBranchMap.put(branch.getBranchName(), branch);
+        for (BranchHelper branch : branchesToUpdate)
+            updateBranchMap.put(branch.getBranchName(), branch);
 
-
-        // Check that all the branches on remote have been loaded and updated
+        // Check for added and changed branches
         for (BranchHelper branch : branchesToUpdate) {
             if (currentBranchMap.containsKey(branch.getBranchName()) &&
                     currentBranchMap.get(branch.getBranchName()).getHead().getId().equals(branch.getHeadId().getName()))
                 continue;
             updateModel.addBranch(branch);
         }
+        // Check if there are removed branches
+        for (BranchHelper branch : this.branchesInModel) {
+            if (!updateBranchMap.containsKey(branch.getBranchName()))
+                updateModel.addBranch(branch);
+        }
+
 
         return updateModel;
     }
