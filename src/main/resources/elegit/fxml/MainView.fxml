@@ -270,6 +270,14 @@
                                      arrowUp="true"
                                      arrowRight="true"
                                      onAction="#handlePushButton"/>
+
+                        <ArrowButton StackPane.alignment="CENTER"
+                                     id="codeButton"
+                                     fx:id="revertButton"
+                                     text="Revert"
+                                     arrowUp="true"
+                                     arrowRight="true"
+                                     onAction="#handleRevertButton"/>
                     </StackPane>
 
                     <StackPane  GridPane.rowIndex="3"

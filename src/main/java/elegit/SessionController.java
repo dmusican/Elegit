@@ -80,6 +80,7 @@ public class SessionController {
     public Button mergeFromFetchButton;
     public Button pushTagsButton;
     public Button pushButton;
+    public Button revertButton;
     public Button fetchButton;
     public Button branchesButton;
 
@@ -223,6 +224,7 @@ public class SessionController {
         mergeFromFetchButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         pushTagsButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         pushButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
+        revertButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         fetchButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         branchesButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         commitInfoNameCopyButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
@@ -293,6 +295,10 @@ public class SessionController {
         ));
         this.pushButton.setTooltip(new Tooltip(
                 "Update remote repository with local changes"
+        ));
+        // TODO: Update this when revert has more functionality
+        this.pushButton.setTooltip(new Tooltip(
+                "Revert the changes in the most recent commit"
         ));
 
         this.loadNewRepoButton.setTooltip(new Tooltip(
@@ -901,6 +907,57 @@ public class SessionController {
     }
 
     /**
+     * Reverts the tree to remove the changes in the most recent commit
+     * TODO: make this revert selected commits by user, maybe move into the right click menu
+     */
+    public void handleRevertButton() {
+        try {
+            logger.info("Revert button clicked");
+
+            if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
+
+            Thread th = new Thread(new Task<Void>(){
+                @Override
+                protected Void call() {
+                    try{
+                        RepositoryMonitor.resetFoundNewChanges(false);
+                        theModel.getCurrentRepoHelper().revertToCommit(theModel.getCurrentRepoHelper().getAllCommits().get(1));
+                        gitStatus();
+                    }  catch(InvalidRemoteException e){
+                        showNoRemoteNotification();
+                    } catch (TransportException e) {
+                        if (e.getMessage().contains("git-receive-pack not found")) {
+                            // The error has this message if there is no longer a remote to push to
+                            showLostRemoteNotification();
+                        } else {
+                            showNotAuthorizedNotification(null);
+                        }
+                    } catch(MissingRepoException e){
+                        showMissingRepoNotification();
+                        setButtonsDisabled(true);
+                        refreshRecentReposInDropdown();
+                    } catch(GitAPIException e){
+                        showGenericErrorNotification();
+                        e.printStackTrace();
+                    } catch(Exception e) {
+                        showGenericErrorNotification();
+                        e.printStackTrace();
+                    } finally{
+                        pushProgressIndicator.setVisible(false);
+                    }
+                    return null;
+                }
+            });
+            th.setDaemon(true);
+            th.setName("Git push");
+            th.start();
+        }catch(NoRepoLoadedException e){
+            this.showNoRepoLoadedNotification();
+            setButtonsDisabled(true);
+        }
+    }
+
+    /**
      * Handles a click on the "Fetch" button. Calls gitFetch()
      */
     public void handleFetchButton(){
@@ -1089,6 +1146,7 @@ public class SessionController {
             mergeFromFetchButton.setDisable(disable);
             pushTagsButton.setDisable(disable);
             pushButton.setDisable(disable);
+            revertButton.setDisable(disable);
             fetchButton.setDisable(disable);
             selectAllButton.setDisable(disable);
             deselectAllButton.setDisable(disable);

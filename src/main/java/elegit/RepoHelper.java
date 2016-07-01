@@ -559,6 +559,25 @@ public abstract class RepoHelper {
         return status;
     }
 
+    public void revertToCommit(CommitHelper helper) throws MissingRepoException, GitAPIException {
+        logger.info("Attempting revert");
+        if (!exists()) throw new MissingRepoException();
+        // should this Git instance be class-level?
+        Git git = new Git(this.repo);
+        // git commit:
+        git.revert().include(helper.getObjectId()).call();
+        git.close();
+
+        // Update the local commits
+        try {
+            this.localCommits = parseAllLocalCommits();
+        } catch (IOException e) {
+            // This shouldn't occur once we have the repo up and running.
+        }
+
+        this.hasUnpushedCommitsProperty.set(true);
+    }
+
     /**
      * Checks if the remote tracking head refers to the same commit
      * as the local head for the current branch
