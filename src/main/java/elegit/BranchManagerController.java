@@ -228,8 +228,10 @@ public class BranchManagerController {
                     // Local delete:
                     this.repoHelper.getBranchModel().deleteLocalBranch(selectedBranch);
                     this.localListView.getItems().remove(selectedBranch);
-                    this.remoteCommitTreeModel.setCommitAsBranchHead(selectedBranch, false);
-                    this.localCommitTreeModel.setCommitAsBranchHead(selectedBranch, false);
+
+                    // Reset the branch heads
+                    CommitTreeController.setBranchHeads(this.localCommitTreeModel, this.repoHelper);
+                    CommitTreeController.setBranchHeads(this.remoteCommitTreeModel, this.repoHelper);
                 }
             } catch (NotMergedException e) {
                 logger.warn("Can't delete branch because not merged warning");
@@ -271,8 +273,9 @@ public class BranchManagerController {
                 // Update local list view
                 this.localListView.getItems().remove(branchToDelete);
 
-                this.remoteCommitTreeModel.setCommitAsBranchHead(branchToDelete, false);
-                this.localCommitTreeModel.setCommitAsBranchHead(branchToDelete, false);
+                // Reset the branch heads
+                CommitTreeController.setBranchHeads(this.localCommitTreeModel, this.repoHelper);
+                CommitTreeController.setBranchHeads(this.remoteCommitTreeModel, this.repoHelper);
             }
         } catch (CannotDeleteCurrentBranchException e) {
             logger.warn("Can't delete current branch warning");

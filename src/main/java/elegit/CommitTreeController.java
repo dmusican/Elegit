@@ -5,6 +5,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import elegit.treefx.Cell;
 import elegit.treefx.Highlighter;
 import elegit.treefx.TreeGraphModel;
+import org.eclipse.jgit.api.errors.GitAPIException;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -242,10 +243,16 @@ public class CommitTreeController{
      * @return true if the model has branches, false if not
      */
     public static boolean setBranchHeads(CommitTreeModel model, RepoHelper repo) {
+        try {
+            repo.getBranchModel().updateAllBranches();
+        } catch (IOException | GitAPIException e) {
+            // This shouldn't happen once the repo is loaded and going
+        }
         List<BranchHelper> modelBranches = repo.getBranchModel().getAllBranches();
         if(modelBranches == null) return false;
         model.resetBranchHeads(true);
         for(BranchHelper branch : modelBranches){
+            System.out.println("setting: "+branch.getBranchName());
             if(!model.sessionModel.getCurrentRepoHelper().getBranchModel().isBranchTracked(branch)){
                 model.setCommitAsBranchHead(branch, false);
             }else{
