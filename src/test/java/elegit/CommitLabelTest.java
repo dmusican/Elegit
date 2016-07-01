@@ -5,7 +5,9 @@ import elegit.treefx.Cell;
 import javafx.application.Application;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
+import org.controlsfx.control.spreadsheet.Grid;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.junit.After;
 import org.junit.Before;
@@ -57,7 +59,7 @@ public class CommitLabelTest {
     public void setUp() throws Exception {
         // Clone the testing repo into a temporary location
         this.directoryPath = Files.createTempDirectory("commitLabelTestRepos");
-        this.directoryPath.toFile().delete();
+        this.directoryPath.toFile().deleteOnExit();
         this.repoPath = directoryPath.resolve("commitlabeltestrepo");
 
         // This repo doesn't check username/password for read-only
@@ -109,8 +111,10 @@ public class CommitLabelTest {
         this.helper.addFilePath(file.toPath());
         this.helper.commit("Modified file.txt in a unit test!");
 
-        localCommitTreeModel.update();
-        remoteCommitTreeModel.update();
+        Main.sessionController.gitStatus();
+
+        //localCommitTreeModel.update();
+        //remoteCommitTreeModel.update();
 
         // Sleep to ensure worker threads finish
         Thread.sleep(5000);
@@ -136,6 +140,7 @@ public class CommitLabelTest {
         this.helper.addFilePath(file.toPath());
         this.helper.commit("Modified file.txt in a unit test again!");
 
+        Main.sessionController.gitStatus();
         localCommitTreeModel.update();
         remoteCommitTreeModel.update();
 
@@ -183,6 +188,11 @@ public class CommitLabelTest {
             if (n instanceof Label) {
                 Label l = (Label) n;
                 Collections.addAll(labels, l.getText().split("\n"));
+            } else if (n instanceof GridPane) {
+                for (Node m : ((GridPane) n).getChildren()) {
+                    Label l = (Label) m;
+                    Collections.addAll(labels, l.getText());
+                }
             }
         }
 
@@ -199,10 +209,10 @@ public class CommitLabelTest {
 
         // If we want "master" to be present, it's going to show up twice: once in the basic display
         // and once in the extended display
-        int expectedLocalCount = matchLocal ? 1 : 0;
+        int expectedLocalCount = matchLocal ? (matchRemote ? 1 : 2) : 0;
         // Likewise for "origin/master", except if "master" is also present then "origin/master" will
         // only show up in extended
-        int expectedRemoteCount = matchRemote ? (matchLocal ? 0 : 1) : 0;
+        int expectedRemoteCount = matchRemote ? 2 : 0;
 
         assertEquals(expectedLocalCount, localCount);
         assertEquals(expectedRemoteCount, remoteCount);
