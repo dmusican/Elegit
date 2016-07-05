@@ -2,6 +2,7 @@ package elegit;
 
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
+import elegit.treefx.TreeLayout;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -408,6 +409,7 @@ public class SessionController {
                         theModel.openRepoFromHelper(repoHelper);
                         setRecentReposDropdownToCurrentRepo();
 
+                        TreeLayout.stopMovingCells();
                         initPanelViews(true);
                         updateUIEnabledStatus();
                     } catch(BackingStoreException | ClassNotFoundException e) {
@@ -1830,6 +1832,7 @@ public class SessionController {
 
                 this.refreshRecentReposInDropdown();
             } else if (this.theModel.getAllRepoHelpers().isEmpty()){
+                TreeLayout.stopMovingCells();
                 theModel.resetSessionModel();
                 workingTreePanelView.resetFileStructurePanelView();
                 allFilesPanelView.resetFileStructurePanelView();
