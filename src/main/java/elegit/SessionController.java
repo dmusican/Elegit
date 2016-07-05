@@ -412,8 +412,10 @@ public class SessionController {
                         theModel.openRepoFromHelper(repoHelper);
                         setRecentReposDropdownToCurrentRepo();
 
-                        initPanelViews();
-                        updateUIEnabledStatus();
+                        Platform.runLater(() -> {
+                            initPanelViews();
+                            updateUIEnabledStatus();
+                        });
                     } catch(BackingStoreException | ClassNotFoundException e) {
                         // These should only occur when the recent repo information
                         // fails to be loaded or stored, respectively
@@ -506,8 +508,10 @@ public class SessionController {
                 try {
                     theModel.openRepoFromHelper(repoHelper);
 
-                    initPanelViews();
-                    updateUIEnabledStatus();
+                    Platform.runLater(() -> {
+                        initPanelViews();
+                        updateUIEnabledStatus();
+                    });
                 } catch (IOException e) {
                     // Somehow, the repository failed to get properly loaded
                     // TODO: better error message?
