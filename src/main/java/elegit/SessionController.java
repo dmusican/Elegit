@@ -760,6 +760,8 @@ public class SessionController {
                     }catch (Exception e) {
                         showGenericErrorNotification();
                         e.printStackTrace();
+                    }finally {
+                        BusyWindow.hide();
                     }
                     return null;
                 }
