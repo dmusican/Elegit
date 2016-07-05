@@ -4,10 +4,7 @@ import com.jcraft.jsch.Session;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.TransportException;
 import org.eclipse.jgit.transport.*;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.rules.ExpectedException;
 
 import java.io.File;
@@ -273,6 +270,16 @@ public class AuthenticatedCloneTest {
 
     @Test
     public void testSshCallback() throws Exception {
+
+        File urlFile = new File(testFileLocation + "keypairTesting.txt");
+
+        // If a developer does not have this file present, test should just pass.
+        if (!urlFile.exists() && looseTesting) {
+            System.out.println("Ignoring keypair testing. Create a keypairTesting.txt file if you wish.");
+            return;
+
+        }
+
         LsRemoteCommand command = Git.lsRemoteRepository();
         //command.setRemote("https://github.com/TheElegitTeam/TestRepository.git");
         command.setRemote("git@github.com:TheElegitTeam/TestRepository.git");
@@ -295,7 +302,13 @@ public class AuthenticatedCloneTest {
         }
         } );
         // Command will fail if config not set up correctly; uses public/private key
-        command.call();
+
+        try {
+            command.call();
+        } catch (TransportException e) {
+            fail("Public/private key authentication failed. You should set this up in your ssh/.config.");
+
+        }
 
     }
 
