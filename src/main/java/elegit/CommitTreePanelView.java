@@ -39,6 +39,8 @@ public class CommitTreePanelView extends Region{
     public CommitTreePanelView(){
         super();
         this.setPrefHeight(TREE_PANEL_HEIGHT);
+
+        initLoadingText();
     }
 
     /**
@@ -60,13 +62,13 @@ public class CommitTreePanelView extends Region{
      * @param treeGraph TreeGraph
      */
     private void initCommitTreeScrollPanes(TreeGraph treeGraph) {
-        initLoadingText();
         MatchedScrollPane.ignoreScrolling(true);
         ScrollPane sp = treeGraph.getScrollPane();
         sp.setOnMouseClicked(event -> CommitTreeController.handleMouseClicked());
         getChildren().clear();
         getChildren().add(anchorScrollPane(sp));
         getChildren().add(computingCommitTree);
+        loading.setVisible(true);
         isLayoutThreadRunning = false;
         MatchedScrollPane.ignoreScrolling(false);
     }
