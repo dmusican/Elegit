@@ -67,8 +67,10 @@ public class BusyWindow{
     public static void hide(){
         numProcessesActive--;
         if(numProcessesActive == 0) {
-            Platform.runLater(window::hide);
-            loadingMessage.setText("Loading...");
+            Platform.runLater(() -> {
+                window.hide();
+                loadingMessage.setText("Loading...");
+            });
         }
     }
 

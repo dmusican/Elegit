@@ -559,6 +559,8 @@ public class SessionController {
             if(!workingTreePanelView.isAnyFileSelected()) throw new NoFilesStagedForCommitException();
             if(commitMessage.length() == 0) throw new NoCommitMessageException();
 
+            BusyWindow.show();
+            BusyWindow.setLoadingText("Committing...");
             Thread th = new Thread(new Task<Void>(){
                 @Override
                 protected Void call() {
@@ -600,6 +602,8 @@ public class SessionController {
                     } catch(Exception e) {
                         showGenericErrorNotification();
                         e.printStackTrace();
+                    }finally {
+                        BusyWindow.hide();
                     }
                     return null;
                 }
@@ -714,6 +718,8 @@ public class SessionController {
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
             if(!this.theModel.getCurrentRepoHelper().hasUnmergedCommits()) throw new NoCommitsToMergeException();
 
+            BusyWindow.show();
+            BusyWindow.setLoadingText("Merging...");
             Thread th = new Thread(new Task<Void>(){
                 @Override
                 protected Void call() throws GitAPIException, IOException {
@@ -775,6 +781,8 @@ public class SessionController {
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
             if(!this.theModel.getCurrentRepoHelper().hasUnpushedCommits()) throw new NoCommitsToPushException();
 
+            BusyWindow.show();
+            BusyWindow.setLoadingText("Pushing...");
             Thread th = new Thread(new Task<Void>(){
                 @Override
                 protected Void call() {
@@ -821,6 +829,7 @@ public class SessionController {
                             pushTagsButton.setVisible(true);
                             pushButton.setVisible(false);
                         }
+                        BusyWindow.hide();
                     }
                     return null;
                 }
@@ -926,6 +935,8 @@ public class SessionController {
 
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
 
+            BusyWindow.show();
+            BusyWindow.setLoadingText("Fetching...");
             Thread th = new Thread(new Task<Void>(){
                 @Override
                 protected Void call() {
@@ -949,6 +960,8 @@ public class SessionController {
                     } catch(Exception e) {
                         showGenericErrorNotification();
                         e.printStackTrace();
+                    }finally {
+                        BusyWindow.hide();
                     }
                     return null;
                 }
