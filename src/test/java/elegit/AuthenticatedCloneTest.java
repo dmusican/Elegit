@@ -2,6 +2,7 @@ package elegit;
 
 import com.jcraft.jsch.Session;
 import org.eclipse.jgit.api.*;
+import org.eclipse.jgit.api.errors.TransportException;
 import org.eclipse.jgit.transport.*;
 import org.junit.After;
 import org.junit.Before;
@@ -12,12 +13,10 @@ import org.junit.rules.ExpectedException;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Scanner;
 
 import static org.junit.Assert.*;
@@ -31,6 +30,8 @@ public class AuthenticatedCloneTest {
     // Used to indicate that if password files are missing, then tests should just pass
     private boolean looseTesting;
 
+    private static final String GITHUB_REMOTE_URL = "https://github.com/TheElegitTeam/testrepo.git";
+    private static final String BITBUCKET_REMOTE_URL = "https://musicant@bitbucket.org/musicant/bbtestrepo.git";
 
     @Before
     public void setUp() throws Exception {
@@ -87,12 +88,12 @@ public class AuthenticatedCloneTest {
 
     @Test
     public void testHttpUsernamePasswordPublic() throws Exception {
-        testHttpUsernamePassword("httpUsernamePassword.txt");
+        testHttpUsernamePassword("httpUsernamePassword.txt", GITHUB_REMOTE_URL);
     }
 
     @Test
     public void testHttpUsernamePasswordPrivate() throws Exception {
-        testHttpUsernamePassword("httpUsernamePasswordPrivate.txt");
+        testHttpUsernamePassword("httpUsernamePasswordPrivate.txt", BITBUCKET_REMOTE_URL);
     }
 
 
@@ -101,7 +102,7 @@ public class AuthenticatedCloneTest {
         username
         password
      */
-    public void testHttpUsernamePassword(String filename) throws Exception {
+    public void testHttpUsernamePassword(String filename, String remoteURL) throws Exception {
         Path repoPath = directoryPath.resolve("testrepo");
         File authData = new File(testFileLocation + filename);
 
@@ -110,22 +111,30 @@ public class AuthenticatedCloneTest {
             return;
 
         Scanner scanner = new Scanner(authData);
-        String remoteURL = scanner.next();
+        String ignoreURL = scanner.next();
         String username = scanner.next();
         String password = scanner.next();
         UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider(username, password);
-        ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, remoteURL, credentials);
-        assertEquals(helper.getCompatibleAuthentication(),AuthMethod.HTTP);
-        helper.fetch();
-        Path fileLocation = repoPath.resolve("README.md");
-        System.out.println(fileLocation);
-        FileWriter fw = new FileWriter(fileLocation.toString(), true);
-        fw.write("1");
-        fw.close();
-        helper.addFilePath(fileLocation);
-        helper.commit("Appended to file");
-        helper.pushAll();
-        helper.pushTags();
+        try {
+            ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, remoteURL, credentials);
+            assertEquals(helper.getCompatibleAuthentication(),AuthMethod.HTTP);
+            helper.fetch();
+            Path fileLocation = repoPath.resolve("README.md");
+            System.out.println(fileLocation);
+            FileWriter fw = new FileWriter(fileLocation.toString(), true);
+            fw.write("1");
+            fw.close();
+            helper.addFilePath(fileLocation);
+            helper.commit("Appended to file");
+            helper.pushAll();
+            helper.pushTags();
+        } catch (TransportException e) {
+            e.printStackTrace();
+            fail("Test failed; it is likely that you have not name/password correctly in the" +
+                 "or you do not have access to the Bitbucket repo. Note that httpUsernamePassword.txt " +
+                 "should have GitHub authentication info; httpUsernamePasswordPrivate.txt should have" +
+                 "Bitbucket authentication info.");
+        }
     }
 
     @Test
@@ -147,12 +156,12 @@ public class AuthenticatedCloneTest {
             return;
 
         Scanner scanner = new Scanner(authData);
-        String remoteURL = scanner.next();
+        String ignoreURL = scanner.next();
         String username = scanner.next();
         String password = scanner.next();
         UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider(username, password);
 
-        TransportCommand command = Git.lsRemoteRepository().setRemote(remoteURL);
+        TransportCommand command = Git.lsRemoteRepository().setRemote(GITHUB_REMOTE_URL);
         RepoHelper.wrapAuthentication(command, credentials);
         command.call();
     }
