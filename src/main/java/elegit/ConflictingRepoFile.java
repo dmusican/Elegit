@@ -1,11 +1,10 @@
 package elegit;
 
 import javafx.application.Platform;
-import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonBar;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.Tooltip;
-import javafx.scene.text.*;
+import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Dialog;
+import javafx.scene.image.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jgit.api.AddCommand;
@@ -58,19 +57,25 @@ public class ConflictingRepoFile extends RepoFile {
             try{
                 Alert alert = new Alert(Alert.AlertType.WARNING);
 
-                ButtonType resolveButton = new ButtonType("Resolve conflicts in editor");
-                ButtonType addButton = new ButtonType("Commit conflicting file");
-                ButtonType buttonTypeCancel = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+                ButtonType resolveButton = new ButtonType("Open Editor");
+                ButtonType addButton = new ButtonType("Commit");
+                ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+                ButtonType helpButton = new ButtonType("Help", ButtonBar.ButtonData.HELP);
 
-                alert.getButtonTypes().setAll(addButton, resolveButton, buttonTypeCancel);
+                alert.getButtonTypes().setAll(helpButton, resolveButton, addButton, cancelButton);
 
                 alert.setResizable(true);
-                alert.getDialogPane().setPrefSize(600, 200);
+                alert.getDialogPane().setPrefSize(450, 200);
 
-                alert.setTitle("Adding conflicted file");
-                alert.setHeaderText("You're adding a conflicted file to the commit");
-                alert.setContentText("Make sure to resolve to conflicts first! After resolving them, you can add the " +
-                        "previously conflicting file to the commit. What do you want to do?");
+                alert.setTitle("Warning: conflicting file");
+                alert.setHeaderText("You're adding a conflicting file to the commit");
+                alert.setContentText("You can open an editor to resolve the conflicts, or commit the changes anyways. What do you want to do?");
+
+                ImageView img = new ImageView(new javafx.scene.image.Image("/elegit/conflict.png"));
+                img.setFitHeight(40);
+                img.setFitWidth(80);
+                img.setPreserveRatio(true);
+                alert.setGraphic(img);
 
                 Optional<ButtonType> result = alert.showAndWait();
 
@@ -80,7 +85,10 @@ public class ConflictingRepoFile extends RepoFile {
                 }else if(result.get() == addButton){
                     logger.info("Chose to add file");
                     setResultType("add");
-                }else{
+                }else if(result.get() == helpButton) {
+                    logger.info("Chose to get help");
+                    setResultType("help");
+                } else{
                     // User cancelled the dialog
                     logger.info("Cancelled dialog");
                     setResultType("cancel");
@@ -106,10 +114,9 @@ public class ConflictingRepoFile extends RepoFile {
                 AddCommand add = new Git(this.repo.getRepo()).add().addFilepattern(this.filePath.toString());
                 add.call();
                 return true;
-            }else{
-                // User cancelled the dialog
+            }else if (resultType.equals("help")){
+                showConflictHelpWindow();
             }
-            // TODO? add option for further commit help for first-timers? (like a manual page)
         }catch(InterruptedException ignored){
         }finally{
             lock.unlock();
@@ -119,5 +126,27 @@ public class ConflictingRepoFile extends RepoFile {
 
     private void setResultType(String s){
         resultType = s;
+    }
+
+    private void showConflictHelpWindow() {
+        Platform.runLater(() -> {
+            Alert window = new Alert(Alert.AlertType.INFORMATION);
+            window.setResizable(true);
+            window.getDialogPane().setPrefSize(550, 350);
+            window.setTitle("How to fix conflicting files");
+            window.setHeaderText("How to fix conflicting files");
+            window.setContentText("1. First, open up the file that is marked as conflicting.\n" +
+                    "2. In the file, you should see something like this:\n\n" +
+                    "\t<<<<<< <branch_name>\n" +
+                    "\tChanges being made on the branch that is being merged into.\n" +
+                    "\tIn most cases, this is the branch that you currently have checked out (i.e. HEAD).\n" +
+                    "\t=======\n" +
+                    "\tChanges made on the branch that is being merged in.\n" +
+                    "\t>>>>>>> <branch name>\n\n" +
+                    "3. Delete the contents you don't want to keep after the merge\n" +
+                    "4. Remove the markers (<<<<<<<, =======, >>>>>>>) git put in the file\n" +
+                    "5. Done! You can now safely commit the file");
+            window.showAndWait();
+        });
     }
 }

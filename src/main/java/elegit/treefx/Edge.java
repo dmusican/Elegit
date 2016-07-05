@@ -72,12 +72,17 @@ public class Edge extends Group {
 
         // Change the Y of the midpoints depending on whether the target is above, below, or at the same
         // level as the source
-        midLineY.bind(new When(target.rowLocationProperty.subtract(source.rowLocationProperty).greaterThan(0))
-                .then(endY.add(TreeLayout.V_SPACING / 2.))
-                .otherwise(new When(target.rowLocationProperty.subtract(source.rowLocationProperty).lessThan(0))
-                        .then(startY.add(TreeLayout.V_SPACING / 2.))
-                        .otherwise(startY)));
-
+        midLineY.bind(new When(target.columnLocationProperty.subtract(source.columnLocationProperty).lessThan(0))
+                .then(new When(target.rowLocationProperty.subtract(source.rowLocationProperty).greaterThan(0))
+                        .then(endY.add(TreeLayout.V_SPACING / 5.))
+                        .otherwise(new When(target.rowLocationProperty.subtract(source.rowLocationProperty).lessThan(0))
+                                .then(startY.add(TreeLayout.V_SPACING / 5.))
+                                .otherwise(startY)))
+                                    .otherwise(new When(target.rowLocationProperty.subtract(source.rowLocationProperty).greaterThan(0))
+                                            .then(endY.add(TreeLayout.V_SPACING / 2.))
+                                            .otherwise(new When(target.rowLocationProperty.subtract(source.rowLocationProperty).lessThan(0))
+                                                    .then(startY.add(TreeLayout.V_SPACING / 2.))
+                                                    .otherwise(startY))));
 
         if(source instanceof InvisibleCell || target instanceof InvisibleCell){
             path.setDashed(true);
@@ -101,7 +106,8 @@ public class Edge extends Group {
      * @param endX the ending x coordinate of this edge
      */
     private void checkAndAddMidPoints(DoubleBinding startX, DoubleBinding endX){
-        if(target.columnLocationProperty.get() - source.columnLocationProperty.get() > 1){
+        if(target.columnLocationProperty.get() - source.columnLocationProperty.get() > 1
+                || target.columnLocationProperty.get() - source.columnLocationProperty.get() < 0){
             if(!addedMidPoints){
                 path.addPoint(startX.subtract(TreeLayout.H_SPACING / 3.), midLineY.add(0), 1);
                 path.addPoint(endX.add(TreeLayout.H_SPACING / 2.), midLineY.add(0), 2);

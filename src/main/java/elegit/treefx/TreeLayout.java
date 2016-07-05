@@ -5,8 +5,6 @@ import javafx.application.Platform;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
 import javafx.scene.control.ProgressBar;
@@ -28,6 +26,7 @@ public class TreeLayout{
     public static int H_SPACING = Cell.BOX_SIZE * 3 + 5;
     public static int V_PAD = 10;
     public static int H_PAD = 25;
+    public static boolean movingCells;
 
 
     /**
@@ -45,6 +44,7 @@ public class TreeLayout{
             this.max = allCellsSortedByTime.size()-1;
             this.percent = new SimpleIntegerProperty(0);
             this.currentCell = 0;
+            movingCells = true;
         }
 
         public void setCurrentCell(int currentCell) { this.currentCell = currentCell; }
@@ -153,7 +153,7 @@ public class TreeLayout{
 
 
                 mover.setOnSucceeded(event1 -> {
-                    if (!Main.isAppClosed) {
+                    if (!Main.isAppClosed && movingCells) {
                         mover.setCurrentCell(mover.currentCell + 10);
                         progressBar.setProgress(mover.percent.get() / 100.0);
                         mover.restart();
@@ -161,12 +161,13 @@ public class TreeLayout{
                         mover.cancel();
                     }
                 });
+
                 mover.setOnCancelled(event1 -> treeGraphModel.isInitialSetupFinished = true);
+
                 mover.reset();
                 mover.start();
                 return null;
             }
-
 
             /**
              * helper method to update progress bar location
@@ -298,6 +299,10 @@ public class TreeLayout{
                 return null;
             }
         });
+    }
+
+    public static synchronized void stopMovingCells(){
+        movingCells = false;
     }
 
 }

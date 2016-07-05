@@ -1,10 +1,8 @@
 package elegit;
 
-import elegit.treefx.CellShape;
-import javafx.scene.control.*;
+import elegit.treefx.*;
 import elegit.treefx.Cell;
-import elegit.treefx.TreeGraph;
-import elegit.treefx.TreeGraphModel;
+import javafx.scene.control.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jgit.api.Git;
@@ -106,6 +104,7 @@ public abstract class CommitTreeModel{
         this.addCommitsToTree(updates.getCommitsToAdd());
         this.removeCommitsFromTree(updates.getCommitsToRemove());
 
+        TreeLayout.stopMovingCells();
         this.updateView();
 
         CommitTreeController.setBranchHeads(this, this.sessionModel.getCurrentRepoHelper());
