@@ -1,7 +1,6 @@
 package elegit;
 
 import javafx.application.Application;
-import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.MenuBar;
@@ -13,10 +12,12 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import javax.imageio.ImageIO;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Scanner;
 import java.util.concurrent.CountDownLatch;
+import java.util.prefs.BackingStoreException;
+import java.util.prefs.Preferences;
 
 /**
  * The starting point for this JavaFX application.
@@ -31,6 +32,18 @@ public class Main extends Application {
     public final static CountDownLatch startLatch = new CountDownLatch(1);
 
     public static SessionController sessionController;
+
+    public static void main(String[] args) {
+        // If this gets fancier, we should write a more robust command-line parser or use a library.
+        // At the moment, there's only one possible option.
+        if (args.length == 0) {
+            launch(args);
+        } else if (args[0].equals("clearprefs")) {
+            clearPreferences();
+        } else {
+            System.out.println("Invalid option.");
+        }
+    }
 
     @Override
     public void start(Stage primaryStage) throws Exception{
@@ -96,7 +109,18 @@ public class Main extends Application {
         primaryStage.setOnCloseRequest(event -> isAppClosed = true);
     }
 
-    public static void main(String[] args) {
-        launch(args);
+    private static void clearPreferences() {
+        Preferences prefs = Preferences.userNodeForPackage(Main.class);
+        try {
+            System.out.print("Are you sure you want to clear all prefs (yes/no)?");
+            Scanner inp = new Scanner(System.in);
+            String response = inp.next();
+            if (response.equals("yes")) {
+                prefs.removeNode();
+                System.out.println("Preferences cleared.");
+            }
+        } catch (BackingStoreException e) {
+            System.out.println("Error: can't access preferences.");
+        }
     }
 }
