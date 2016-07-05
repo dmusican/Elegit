@@ -401,6 +401,7 @@ public class SessionController {
             }
             RepositoryMonitor.pause();
             BusyWindow.show();
+            BusyWindow.setLoadingText("Loading the repository...");
             Thread th = new Thread(new Task<Void>(){
                 @Override
                 protected Void call() {
@@ -498,6 +499,7 @@ public class SessionController {
         logger.info("Switching repos");
         RepositoryMonitor.pause();
         BusyWindow.show();
+        BusyWindow.setLoadingText("Opening the repository...");
         Thread th = new Thread(new Task<Void>(){
             @Override
             protected Void call() throws Exception{
