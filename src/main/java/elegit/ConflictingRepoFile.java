@@ -2,6 +2,8 @@ package elegit;
 
 import javafx.application.Platform;
 import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Dialog;
 import javafx.scene.image.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -113,7 +115,7 @@ public class ConflictingRepoFile extends RepoFile {
                 add.call();
                 return true;
             }else if (resultType.equals("help")){
-                System.out.println("need to add help option");
+                showConflictHelpWindow();
             }
         }catch(InterruptedException ignored){
         }finally{
@@ -124,5 +126,27 @@ public class ConflictingRepoFile extends RepoFile {
 
     private void setResultType(String s){
         resultType = s;
+    }
+
+    private void showConflictHelpWindow() {
+        Platform.runLater(() -> {
+            Alert window = new Alert(Alert.AlertType.INFORMATION);
+            window.setResizable(true);
+            window.getDialogPane().setPrefSize(550, 350);
+            window.setTitle("How to fix conflicting files");
+            window.setHeaderText("How to fix conflicting files");
+            window.setContentText("1. First, open up the file that is marked as conflicting.\n" +
+                    "2. In the file, you should see something like this:\n\n" +
+                    "\t<<<<<< <branch_name>\n" +
+                    "\tChanges being made on the branch that is being merged into.\n" +
+                    "\tIn most cases, this is the branch that you currently have checked out (i.e. HEAD).\n" +
+                    "\t=======\n" +
+                    "\tChanges made on the branch that is being merged in.\n" +
+                    "\t>>>>>>> <branch name>\n\n" +
+                    "3. Delete the contents you don't want to keep after the merge\n" +
+                    "4. Remove the markers (<<<<<<<, =======, >>>>>>>) git put in the file\n" +
+                    "5. Done! You can now safely commit the file");
+            window.showAndWait();
+        });
     }
 }

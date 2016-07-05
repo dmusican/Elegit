@@ -106,19 +106,14 @@ public class Edge extends Group {
      * @param endX the ending x coordinate of this edge
      */
     private void checkAndAddMidPoints(DoubleBinding startX, DoubleBinding endX){
-        if(target.columnLocationProperty.get() - source.columnLocationProperty.get() > 1){
+        if(target.columnLocationProperty.get() - source.columnLocationProperty.get() > 1
+                || target.columnLocationProperty.get() - source.columnLocationProperty.get() < 0){
             if(!addedMidPoints){
                 path.addPoint(startX.subtract(TreeLayout.H_SPACING / 3.), midLineY.add(0), 1);
                 path.addPoint(endX.add(TreeLayout.H_SPACING / 2.), midLineY.add(0), 2);
                 this.addedMidPoints = true;
             }
-        }else if(target.columnLocationProperty.get() - source.columnLocationProperty.get() < 0) {
-            if(!addedMidPoints) {
-                path.addPoint(startX.add(TreeLayout.H_SPACING / 2.), midLineY.add(0), 1);
-                path.addPoint(endX.subtract(TreeLayout.H_SPACING / 3.), midLineY.add(0), 2);
-                this.addedMidPoints = true;
-            }
-        } else{
+        }else{
             if(addedMidPoints){
                 path.removePoint(2);
                 path.removePoint(1);
