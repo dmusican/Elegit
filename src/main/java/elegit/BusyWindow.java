@@ -5,7 +5,10 @@ import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.ProgressIndicator;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
+import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
@@ -37,7 +40,9 @@ public class BusyWindow{
     }
 
     private static Parent getRootOfScene(){
-        ProgressIndicator p = new ProgressIndicator();
+        //ProgressIndicator p = new ProgressIndicator();
+        //Text p = new Text("loading");
+        ImageView p = new ImageView(new Image("/elegit/loading.gif"));
         HBox parent = new HBox(p);
         parent.setAlignment(Pos.CENTER);
         return parent;

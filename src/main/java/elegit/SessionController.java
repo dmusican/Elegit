@@ -161,7 +161,7 @@ public class SessionController {
         this.theModel.loadRecentRepoHelpersFromStoredPathStrings();
         this.theModel.loadMostRecentRepoHelper();
 
-        this.initPanelViews(false);
+        this.initPanelViews();
         this.updateUIEnabledStatus();
         this.setRecentReposDropdownToCurrentRepo();
         this.refreshRecentReposInDropdown();
@@ -399,18 +399,19 @@ public class SessionController {
                 showSameRepoLoadedNotification();
                 return;
             }
-            BusyWindow.show();
             RepositoryMonitor.pause();
+            BusyWindow.show();
             Thread th = new Thread(new Task<Void>(){
                 @Override
                 protected Void call() {
                     try {
+                        TreeLayout.stopMovingCells();
+
                         refreshRecentReposInDropdown();
                         theModel.openRepoFromHelper(repoHelper);
                         setRecentReposDropdownToCurrentRepo();
 
-                        TreeLayout.stopMovingCells();
-                        initPanelViews(true);
+                        initPanelViews();
                         updateUIEnabledStatus();
                     } catch(BackingStoreException | ClassNotFoundException e) {
                         // These should only occur when the recent repo information
@@ -427,8 +428,8 @@ public class SessionController {
                         showGenericErrorNotification();
                         e.printStackTrace();
                     } finally{
-                        BusyWindow.hide();
                         RepositoryMonitor.unpause();
+                        BusyWindow.hide();
                     }
                     return null;
                 }
@@ -495,15 +496,15 @@ public class SessionController {
         if(isRecentRepoEventListenerBlocked || repoHelper == null) return;
 
         logger.info("Switching repos");
-        BusyWindow.show();
         RepositoryMonitor.pause();
+        BusyWindow.show();
         Thread th = new Thread(new Task<Void>(){
             @Override
             protected Void call() throws Exception{
                 try {
                     theModel.openRepoFromHelper(repoHelper);
 
-                    initPanelViews(true);
+                    initPanelViews();
                     updateUIEnabledStatus();
                 } catch (IOException e) {
                     // Somehow, the repository failed to get properly loaded
@@ -520,8 +521,8 @@ public class SessionController {
                     showGenericErrorNotification();
                     e.printStackTrace();
                 } finally{
-                    BusyWindow.hide();
                     RepositoryMonitor.unpause();
+                    BusyWindow.hide();
                 }
                 return null;
             }
@@ -1057,11 +1058,7 @@ public class SessionController {
     /**
      * Initializes each panel of the view
      */
-	private synchronized void initPanelViews(boolean showBusyWindow) {
-        if (showBusyWindow) {
-            BusyWindow.show();
-        }
-
+	private synchronized void initPanelViews() {
         try {
             workingTreePanelView.drawDirectoryView();
             allFilesPanelView.drawDirectoryView();
@@ -1070,10 +1067,6 @@ public class SessionController {
             this.setBrowserURL();
         } catch (GitAPIException | IOException e) {
             showGenericErrorNotification();
-        }
-
-        if (showBusyWindow) {
-            BusyWindow.hide();
         }
     }
 
