@@ -158,7 +158,6 @@ public class TreeLayout{
                         progressBar.setProgress(mover.percent.get() / 100.0);
                         mover.restart();
                     }else {
-                        System.out.println("stopped");
                         mover.cancel();
                     }
                 });

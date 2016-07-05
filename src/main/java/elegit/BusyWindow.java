@@ -5,7 +5,12 @@ import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.ProgressIndicator;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
+import javafx.scene.text.Font;
+import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
@@ -20,25 +25,32 @@ public class BusyWindow{
 
     private static int numProcessesActive = 0;
 
+    private static Text loadingMessage;
+
     private static Stage initWindow(){
         window = new Stage();
 
-        window.setMaxHeight(100);
-        window.setMaxWidth(150);
-        window.setMinHeight(100);
-        window.setMinWidth(150);
+        window.setMaxHeight(200);
+        window.setMaxWidth(300);
+        window.setMinHeight(200);
+        window.setMinWidth(300);
 
         window.initStyle(StageStyle.UNDECORATED);
         window.initModality(Modality.APPLICATION_MODAL);
+
+        loadingMessage = new Text("loading");
+        loadingMessage.setFont(new Font(20));
 
         window.setScene(new Scene(getRootOfScene()));
 
         return window;
     }
 
+    // link to .gif loading indicator creator: http://www.ajaxload.info
     private static Parent getRootOfScene(){
-        ProgressIndicator p = new ProgressIndicator();
-        HBox parent = new HBox(p);
+        ImageView img = new ImageView(new Image("/elegit/loading.gif"));
+        VBox parent = new VBox(img, loadingMessage);
+        parent.setSpacing(20);
         parent.setAlignment(Pos.CENTER);
         return parent;
     }
@@ -54,6 +66,15 @@ public class BusyWindow{
 
     public static void hide(){
         numProcessesActive--;
-        if(numProcessesActive == 0) Platform.runLater(window::hide);
+        if(numProcessesActive == 0) {
+            Platform.runLater(() -> {
+                window.hide();
+                loadingMessage.setText("Loading...");
+            });
+        }
+    }
+
+    public static void setLoadingText(String message) {
+        loadingMessage.setText(message);
     }
 }
