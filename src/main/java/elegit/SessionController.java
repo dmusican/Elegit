@@ -926,7 +926,6 @@ public class SessionController {
 
     /**
      * Reverts the tree to remove the changes in the most recent commit
-     * TODO: make this revert selected commits by user, maybe move into the right click menu
      */
     public void handleRevertButton(CommitHelper commit) {
         try {
@@ -983,9 +982,13 @@ public class SessionController {
         }
     }
 
+    /**
+     * Resets the tree to the given commit
+     * @param commit CommitHelper
+     */
     public void handleResetButton(CommitHelper commit) {
         try {
-            logger.info("Revert button clicked");
+            logger.info("Reset button clicked");
 
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
 
