@@ -420,10 +420,10 @@ public abstract class CommitTreeModel{
             img.setFitHeight(60);
             img.setFitWidth(60);
             alert.setGraphic(img);
-            alert.setContentText("Move the current branch tip backward to <commit>, " +
+            alert.setContentText("Move the current branch tip backward to the selected commit, " +
                     "reset the staging area to match, " +
                     "but leave the working directory alone. " +
-                    "All changes made since <commit> will reside in the working directory.");
+                    "All changes made since the selected commit will reside in the working directory.");
             alert.showAndWait();
         });
 
