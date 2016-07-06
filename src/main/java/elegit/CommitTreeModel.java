@@ -300,36 +300,27 @@ public abstract class CommitTreeModel{
         });
         infoItem.disableProperty().bind(CommitTreeController.selectedIDProperty().isEqualTo(commit.getId()));
 
-        Menu revertMenu = new Menu("Revert...");
-        MenuItem revertItem = new MenuItem("Revert to this commit");
-        MenuItem revertMultipleItem = new MenuItem("Revert multiple commits...");
-        MenuItem helpItem = new MenuItem("Help");
+        MenuItem mergeItem = new MenuItem("Merge with...");
+        mergeItem.setDisable(true);
 
-        revertItem.setOnAction(event -> CommitTreeController.sessionController.handleRevertButton());
+        MenuItem branchItem = new MenuItem("Branch from...");
+        branchItem.setDisable(true);
 
-        revertMultipleItem.setOnAction(event -> {
-            //pull up some sort of window
-        });
+        Menu relativesMenu = getRelativesMenu(commit);
+        Menu revertMenu = getRevertMenu(commit);
 
-        helpItem.setOnAction(event -> {
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.getDialogPane().setPrefSize(300, 300);
-            alert.setTitle("Revert Help");
-            alert.setHeaderText("What is revert?");
-            ImageView img = new ImageView(new Image("/elegit/undo.png"));
-            img.setFitHeight(60);
-            img.setFitWidth(60);
-            alert.setGraphic(img);
-            alert.setContentText("The git revert command undoes a committed snapshot. " +
-                    "But, instead of removing the commit from the project history, " +
-                    "it figures out how to undo the changes introduced by the commit and appends a new commit with the resulting content. " +
-                    "This prevents Git from losing history, " +
-                    "which is important for the integrity of your revision history and for reliable collaboration.");
-            alert.showAndWait();
-        });
+        contextMenu.getItems().addAll(revertMenu, new SeparatorMenuItem(), infoItem, relativesMenu,
+                new SeparatorMenuItem(), mergeItem, branchItem);
 
-        revertMenu.getItems().setAll(revertItem, revertMultipleItem, helpItem);
+        return contextMenu;
+    }
 
+    /**
+     * Helper method for getContextMenu that gets the relativesMenu
+     * @param commit CommitHelper
+     * @return relativesMenu
+     */
+    private Menu getRelativesMenu(CommitHelper commit) {
         Menu relativesMenu = new Menu("Show Relatives");
 
         CheckMenuItem showEdgesItem = new CheckMenuItem("Show Only Relatives' Connections");
@@ -369,16 +360,47 @@ public abstract class CommitTreeModel{
                 new SeparatorMenuItem(), allAncestorsItem, allDescendantsItem,
                 new SeparatorMenuItem(), showEdgesItem);
 
-        MenuItem mergeItem = new MenuItem("Merge with...");
-        mergeItem.setDisable(true);
+        return relativesMenu;
+    }
 
-        MenuItem branchItem = new MenuItem("Branch from...");
-        branchItem.setDisable(true);
+    /**
+     * Helper method for getContextMenu that initializes the revert part of the menu
+     * @param commit CommitHelper
+     * @return revertMenu
+     */
+    private Menu getRevertMenu(CommitHelper commit) {
+        Menu revertMenu = new Menu("Revert...");
+        MenuItem revertItem = new MenuItem("Revert to this commit");
+        MenuItem revertMultipleItem = new MenuItem("Revert multiple commits...");
+        revertMultipleItem.setDisable(true);
+        MenuItem helpItem = new MenuItem("Help");
 
-        contextMenu.getItems().addAll(revertMenu, new SeparatorMenuItem(), infoItem, relativesMenu,
-                new SeparatorMenuItem(), mergeItem, branchItem);
+        revertItem.setOnAction(event -> CommitTreeController.sessionController.handleRevertButton(commit));
 
-        return contextMenu;
+        revertMultipleItem.setOnAction(event -> {
+            //pull up some sort of window
+        });
+
+        helpItem.setOnAction(event -> {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.getDialogPane().setPrefSize(300, 300);
+            alert.setTitle("Revert Help");
+            alert.setHeaderText("What is revert?");
+            ImageView img = new ImageView(new Image("/elegit/undo.png"));
+            img.setFitHeight(60);
+            img.setFitWidth(60);
+            alert.setGraphic(img);
+            alert.setContentText("The git revert command undoes a committed snapshot. " +
+                    "But, instead of removing the commit from the project history, " +
+                    "it figures out how to undo the changes introduced by the commit and appends a new commit with the resulting content. " +
+                    "This prevents Git from losing history, " +
+                    "which is important for the integrity of your revision history and for reliable collaboration.");
+            alert.showAndWait();
+        });
+
+        revertMenu.getItems().setAll(revertItem, revertMultipleItem, helpItem);
+
+        return revertMenu;
     }
 
     /**

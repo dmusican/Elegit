@@ -928,7 +928,7 @@ public class SessionController {
      * Reverts the tree to remove the changes in the most recent commit
      * TODO: make this revert selected commits by user, maybe move into the right click menu
      */
-    public void handleRevertButton() {
+    public void handleRevertButton(CommitHelper commit) {
         try {
             logger.info("Revert button clicked");
 
@@ -940,29 +940,16 @@ public class SessionController {
                 @Override
                 protected Void call() {
                     try{
-                        String id = commitInfoNameText.getText();
-                        if(id != null) {
-                            CommitHelper commit = theModel.getCurrentRepoHelper().getCommit(id);
-                            RepositoryMonitor.resetFoundNewChanges(false);
-                            theModel.getCurrentRepoHelper().revertToCommit(commit);
-                            gitStatus();
-                        }else {
-                            showNoCommitSelectedNotification();
-                            return null;
-                        }
+                        theModel.getCurrentRepoHelper().revertToCommit(commit);
+                        gitStatus();
                     } catch(MultipleParentsNotAllowedException e) {
-
-                        String id = commitInfoNameText.getText();
-                        CommitHelper commit = theModel.getCurrentRepoHelper().getCommit(id);
-
                         if(commit.getParents().size() > 1) {
                             showCantRevertMultipleParentsNotification();
                         }
                         if (commit.getParents().size() == 0) {
                             showCantRevertZeroParentsNotification();
                         }
-                    }
-                    catch(InvalidRemoteException e){
+                    } catch(InvalidRemoteException e){
                         showNoRemoteNotification();
                     } catch (TransportException e) {
                         if (e.getMessage().contains("git-receive-pack not found")) {
@@ -1696,16 +1683,6 @@ public class SessionController {
         Platform.runLater(() -> {
             logger.warn("Tried to revert commit with zero parents.");
             this.notificationPane.setText("You cannot revert that commit because it has zero parents.");
-
-            this.notificationPane.getActions().clear();
-            this.notificationPane.show();
-        });
-    }
-
-    private void showNoCommitSelectedNotification() {
-        Platform.runLater(() -> {
-            logger.warn("Didn't select a commit to revert");
-            this.notificationPane.setText("You have to select a commit to revert.");
 
             this.notificationPane.getActions().clear();
             this.notificationPane.show();
