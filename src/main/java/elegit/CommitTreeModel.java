@@ -3,11 +3,14 @@ package elegit;
 import elegit.treefx.*;
 import elegit.treefx.Cell;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.ObjectId;
+import org.eclipse.jgit.lib.SymbolicRef;
 import org.eclipse.jgit.util.IO;
 
 import java.io.IOException;
@@ -297,6 +300,28 @@ public abstract class CommitTreeModel{
         });
         infoItem.disableProperty().bind(CommitTreeController.selectedIDProperty().isEqualTo(commit.getId()));
 
+        MenuItem mergeItem = new MenuItem("Merge with...");
+        mergeItem.setDisable(true);
+
+        MenuItem branchItem = new MenuItem("Branch from...");
+        branchItem.setDisable(true);
+
+        Menu relativesMenu = getRelativesMenu(commit);
+        Menu revertMenu = getRevertMenu(commit);
+        Menu resetMenu = getResetMenu(commit);
+
+        contextMenu.getItems().addAll(revertMenu, resetMenu, new SeparatorMenuItem(), infoItem, relativesMenu,
+                new SeparatorMenuItem(), mergeItem, branchItem);
+
+        return contextMenu;
+    }
+
+    /**
+     * Helper method for getContextMenu that gets the relativesMenu
+     * @param commit CommitHelper
+     * @return relativesMenu
+     */
+    private Menu getRelativesMenu(CommitHelper commit) {
         Menu relativesMenu = new Menu("Show Relatives");
 
         CheckMenuItem showEdgesItem = new CheckMenuItem("Show Only Relatives' Connections");
@@ -336,16 +361,75 @@ public abstract class CommitTreeModel{
                 new SeparatorMenuItem(), allAncestorsItem, allDescendantsItem,
                 new SeparatorMenuItem(), showEdgesItem);
 
-        MenuItem mergeItem = new MenuItem("Merge with...");
-        mergeItem.setDisable(true);
+        return relativesMenu;
+    }
 
-        MenuItem branchItem = new MenuItem("Branch from...");
-        branchItem.setDisable(true);
+    /**
+     * Helper method for getContextMenu that initializes the revert part of the menu
+     * @param commit CommitHelper
+     * @return revertMenu
+     */
+    private Menu getRevertMenu(CommitHelper commit) {
+        Menu revertMenu = new Menu("Revert...");
+        MenuItem revertItem = new MenuItem("Revert this commit");
+        MenuItem revertMultipleItem = new MenuItem("Revert multiple commits...");
+        revertMultipleItem.setDisable(true);
+        MenuItem helpItem = new MenuItem("Help");
 
-        contextMenu.getItems().addAll(infoItem, relativesMenu,
-                new SeparatorMenuItem(), mergeItem, branchItem);
+        revertItem.setOnAction(event -> CommitTreeController.sessionController.handleRevertButton(commit));
 
-        return contextMenu;
+        revertMultipleItem.setOnAction(event -> {
+            //pull up some sort of window
+        });
+
+        helpItem.setOnAction(event -> {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.getDialogPane().setPrefSize(300, 300);
+            alert.setTitle("Revert Help");
+            alert.setHeaderText("What is revert?");
+            ImageView img = new ImageView(new Image("/elegit/undo.png"));
+            img.setFitHeight(60);
+            img.setFitWidth(60);
+            alert.setGraphic(img);
+            alert.setContentText("The git revert command undoes a committed snapshot. " +
+                    "But, instead of removing the commit from the project history, " +
+                    "it figures out how to undo the changes introduced by the commit and appends a new commit with the resulting content. " +
+                    "This prevents Git from losing history, " +
+                    "which is important for the integrity of your revision history and for reliable collaboration.");
+            alert.showAndWait();
+        });
+
+        revertMenu.getItems().setAll(revertItem, revertMultipleItem, helpItem);
+
+        return revertMenu;
+    }
+
+    private Menu getResetMenu(CommitHelper commit) {
+        Menu resetMenu = new Menu("Reset...");
+        MenuItem resetItem = new MenuItem("Reset to this commit");
+        MenuItem helpItem = new MenuItem("Help");
+
+        resetItem.setOnAction(event -> CommitTreeController.sessionController.handleResetButton(commit));
+
+        helpItem.setOnAction(event -> {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.getDialogPane().setPrefSize(300, 300);
+            alert.setTitle("Reset Help");
+            alert.setHeaderText("What is reset?");
+            ImageView img = new ImageView(new Image("/elegit/undo.png"));
+            img.setFitHeight(60);
+            img.setFitWidth(60);
+            alert.setGraphic(img);
+            alert.setContentText("Move the current branch tip backward to the selected commit, " +
+                    "reset the staging area to match, " +
+                    "but leave the working directory alone. " +
+                    "All changes made since the selected commit will reside in the working directory.");
+            alert.showAndWait();
+        });
+
+        resetMenu.getItems().setAll(resetItem, helpItem);
+
+        return resetMenu;
     }
 
     /**

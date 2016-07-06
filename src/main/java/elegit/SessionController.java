@@ -295,6 +295,10 @@ public class SessionController {
         this.pushButton.setTooltip(new Tooltip(
                 "Update remote repository with local changes"
         ));
+        // TODO: Update this when revert has more functionality
+        this.pushButton.setTooltip(new Tooltip(
+                "Revert the changes in the most recent commit"
+        ));
 
         this.loadNewRepoButton.setTooltip(new Tooltip(
                 "Load a new repository"
@@ -917,6 +921,116 @@ public class SessionController {
             setButtonsDisabled(true);
         }catch(NoTagsToPushException e){
             this.showNoTagsToPushNotification();
+        }
+    }
+
+    /**
+     * Reverts the tree to remove the changes in the most recent commit
+     */
+    public void handleRevertButton(CommitHelper commit) {
+        try {
+            logger.info("Revert button clicked");
+
+            if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
+
+            BusyWindow.show();
+            BusyWindow.setLoadingText("Reverting...");
+            Thread th = new Thread(new Task<Void>(){
+                @Override
+                protected Void call() {
+                    try{
+                        theModel.getCurrentRepoHelper().revertToCommit(commit);
+                        gitStatus();
+                    } catch(MultipleParentsNotAllowedException e) {
+                        if(commit.getParents().size() > 1) {
+                            showCantRevertMultipleParentsNotification();
+                        }
+                        if (commit.getParents().size() == 0) {
+                            showCantRevertZeroParentsNotification();
+                        }
+                    } catch(InvalidRemoteException e){
+                        showNoRemoteNotification();
+                    } catch (TransportException e) {
+                        if (e.getMessage().contains("git-receive-pack not found")) {
+                            // The error has this message if there is no longer a remote to push to
+                            showLostRemoteNotification();
+                        } else {
+                            showNotAuthorizedNotification(null);
+                        }
+                    } catch(MissingRepoException e){
+                        showMissingRepoNotification();
+                        setButtonsDisabled(true);
+                        refreshRecentReposInDropdown();
+                    } catch(GitAPIException e){
+                        showGenericErrorNotification();
+                        e.printStackTrace();
+                    } catch(Exception e) {
+                        showGenericErrorNotification();
+                        e.printStackTrace();
+                    }finally {
+                        BusyWindow.hide();
+                    }
+                    return null;
+                }
+            });
+            th.setDaemon(true);
+            th.setName("Git revert");
+            th.start();
+        }catch(NoRepoLoadedException e){
+            this.showNoRepoLoadedNotification();
+            setButtonsDisabled(true);
+        }
+    }
+
+    /**
+     * Resets the tree to the given commit
+     * @param commit CommitHelper
+     */
+    public void handleResetButton(CommitHelper commit) {
+        try {
+            logger.info("Reset button clicked");
+
+            if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
+
+            BusyWindow.show();
+            BusyWindow.setLoadingText("Resetting...");
+            Thread th = new Thread(new Task<Void>(){
+                @Override
+                protected Void call() {
+                    try{
+                        theModel.getCurrentRepoHelper().resetToCommit(commit);
+                        gitStatus();
+                    }catch(InvalidRemoteException e){
+                        showNoRemoteNotification();
+                    } catch (TransportException e) {
+                        if (e.getMessage().contains("git-receive-pack not found")) {
+                            // The error has this message if there is no longer a remote to push to
+                            showLostRemoteNotification();
+                        } else {
+                            showNotAuthorizedNotification(null);
+                        }
+                    } catch(MissingRepoException e){
+                        showMissingRepoNotification();
+                        setButtonsDisabled(true);
+                        refreshRecentReposInDropdown();
+                    } catch(GitAPIException e){
+                        showGenericErrorNotification();
+                        e.printStackTrace();
+                    } catch(Exception e) {
+                        showGenericErrorNotification();
+                        e.printStackTrace();
+                    }finally {
+                        BusyWindow.hide();
+                    }
+                    return null;
+                }
+            });
+            th.setDaemon(true);
+            th.setName("Git reset");
+            th.start();
+        }catch(NoRepoLoadedException e){
+            this.showNoRepoLoadedNotification();
+            setButtonsDisabled(true);
         }
     }
 
@@ -1604,6 +1718,26 @@ public class SessionController {
         Platform.runLater(() -> {
             logger.warn("No remote tracking for current branch notification.");
             this.notificationPane.setText("There is no remote tracking information for the current branch.");
+
+            this.notificationPane.getActions().clear();
+            this.notificationPane.show();
+        });
+    }
+
+    private void showCantRevertMultipleParentsNotification() {
+        Platform.runLater(() -> {
+            logger.warn("Tried to revert commit with multiple parents.");
+            this.notificationPane.setText("You cannot revert that commit because it has two parents.");
+
+            this.notificationPane.getActions().clear();
+            this.notificationPane.show();
+        });
+    }
+
+    private void showCantRevertZeroParentsNotification() {
+        Platform.runLater(() -> {
+            logger.warn("Tried to revert commit with zero parents.");
+            this.notificationPane.setText("You cannot revert that commit because it has zero parents.");
 
             this.notificationPane.getActions().clear();
             this.notificationPane.show();
