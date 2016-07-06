@@ -370,7 +370,7 @@ public abstract class CommitTreeModel{
      */
     private Menu getRevertMenu(CommitHelper commit) {
         Menu revertMenu = new Menu("Revert...");
-        MenuItem revertItem = new MenuItem("Revert to this commit");
+        MenuItem revertItem = new MenuItem("Revert this commit");
         MenuItem revertMultipleItem = new MenuItem("Revert multiple commits...");
         revertMultipleItem.setDisable(true);
         MenuItem helpItem = new MenuItem("Help");
