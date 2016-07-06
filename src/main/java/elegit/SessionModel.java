@@ -429,13 +429,6 @@ public class SessionModel {
             conflictingRepoFileStrings.add(conflictingFileString);
         }
 
-        // If a file is no longer conflicting but was in conflictingThenModifiedFiles, remove it from the fileWatcher
-        for(String str : conflictingThenModifiedFiles) {
-            if(!conflictingFiles.contains(str)) {
-                ConflictingFileWatcher.removeFile(str);
-            }
-        }
-
         for (String modifiedFileString : modifiedFiles) {
             if (!conflictingRepoFileStrings.contains(modifiedFileString)) {
                 ModifiedRepoFile modifiedRepoFile = new ModifiedRepoFile(modifiedFileString, this.getCurrentRepoHelper());
