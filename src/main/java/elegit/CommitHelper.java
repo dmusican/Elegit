@@ -275,7 +275,8 @@ public class CommitHelper{
      */
     private class ParentCommitHelper{
 
-        private CommitHelper child, parent1, parent2;
+        private CommitHelper child;
+        private ArrayList<CommitHelper> parents;
 
         /**
          * Sets parent1 and parent2 to be the parents of child
@@ -283,7 +284,8 @@ public class CommitHelper{
          * @param parent the first parent commit
          */
         public ParentCommitHelper(CommitHelper child, CommitHelper parent){
-            this.parent1 = parent;
+            parents = new ArrayList<>();
+            parents.add(parent);
             this.setChild(child);
         }
 
@@ -291,20 +293,14 @@ public class CommitHelper{
          * @return the number of parent commits associated with this object
          */
         public int count(){
-            int count = 0;
-            if(parent1 != null) count++;
-            if(parent2 != null) count++;
-            return count;
+            return parents.size();
         }
 
         /**
          * @return the stored parent commits in list form
          */
         public List<CommitHelper> toList(){
-            List<CommitHelper> list = new ArrayList<>(2);
-            if(parent1 != null) list.add(parent1);
-            if(parent2 != null) list.add(parent2);
-            return list;
+            return parents;
         }
 
         /**
@@ -313,11 +309,10 @@ public class CommitHelper{
          */
         private void setChild(CommitHelper child){
             this.child = child;
-            if(this.parent1 != null){
-                this.parent1.addChild(child);
-            }
-            if(this.parent2 != null){
-                this.parent2.addChild(child);
+            for(CommitHelper parent : parents) {
+                if(parent != null) {
+                    parent.addChild(child);
+                }
             }
         }
 
@@ -326,14 +321,9 @@ public class CommitHelper{
          * @param parent the parent to add
          */
         public void addParent(CommitHelper parent){
-            if(parent != parent1 && parent != parent2) {
-                if(this.parent1 == null){
-                    this.parent1 = parent;
-                    this.parent1.addChild(this.child);
-                }else if(this.parent2 == null){
-                    this.parent2 = parent;
-                    this.parent2.addChild(this.child);
-                }
+            if(!parents.contains(parent)) {
+                parent.addChild(this.child);
+                parents.add(parent);
             }
         }
     }
