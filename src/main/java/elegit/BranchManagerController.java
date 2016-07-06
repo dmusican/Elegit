@@ -214,6 +214,7 @@ public class BranchManagerController {
         }
 
         // Update merge button
+        mergeButton.setMnemonicParsing(false);
         if (this.localListView.getSelectionModel().getSelectedIndices().size() == 1) {
             this.mergeButton.setDisable(false);
             this.swapMergeBranchesButton.setDisable(false);
