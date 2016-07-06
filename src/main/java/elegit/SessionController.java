@@ -83,7 +83,6 @@ public class SessionController {
     public Button pushButton;
     public Button fetchButton;
     public Button branchesButton;
-    public Button resetButton;
 
     public ProgressIndicator pushProgressIndicator;
 
@@ -984,7 +983,7 @@ public class SessionController {
         }
     }
 
-    /*public void handleResetButton() {
+    public void handleResetButton(CommitHelper commit) {
         try {
             logger.info("Revert button clicked");
 
@@ -996,8 +995,6 @@ public class SessionController {
                 @Override
                 protected Void call() {
                     try{
-                        String id = commitInfoNameText.getId();
-                        CommitHelper commit = theModel.getCurrentRepoHelper().getCommit(id);
                         theModel.getCurrentRepoHelper().resetToCommit(commit);
                         gitStatus();
                     }catch(InvalidRemoteException e){
@@ -1026,13 +1023,13 @@ public class SessionController {
                 }
             });
             th.setDaemon(true);
-            th.setName("Git revert");
+            th.setName("Git reset");
             th.start();
         }catch(NoRepoLoadedException e){
             this.showNoRepoLoadedNotification();
             setButtonsDisabled(true);
         }
-    }*/
+    }
 
     /**
      * Handles a click on the "Fetch" button. Calls gitFetch()
@@ -1231,7 +1228,6 @@ public class SessionController {
             branchDropdownSelector.setDisable(disable);
             removeRecentReposButton.setDisable(disable);
             repoDropdownSelector.setDisable(disable);
-            resetButton.setDisable(disable);
         });
 
         notificationPane.setOnMousePressed(event -> {

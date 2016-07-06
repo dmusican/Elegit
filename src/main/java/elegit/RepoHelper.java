@@ -590,10 +590,12 @@ public abstract class RepoHelper {
         this.hasUnpushedCommitsProperty.set(true);
     }
 
-    public void resetToCommit(CommitHelper commit) throws MissingRepoException {
+    public void resetToCommit(CommitHelper commit) throws MissingRepoException, GitAPIException {
         logger.info("Attempting reset");
         if (!exists()) throw new MissingRepoException();
         Git git = new Git(this.repo);
+        git.reset().setRef(commit.getId()).call();
+        git.close();
     }
 
     /**

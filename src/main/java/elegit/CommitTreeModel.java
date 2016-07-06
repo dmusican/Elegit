@@ -308,8 +308,9 @@ public abstract class CommitTreeModel{
 
         Menu relativesMenu = getRelativesMenu(commit);
         Menu revertMenu = getRevertMenu(commit);
+        Menu resetMenu = getResetMenu(commit);
 
-        contextMenu.getItems().addAll(revertMenu, new SeparatorMenuItem(), infoItem, relativesMenu,
+        contextMenu.getItems().addAll(revertMenu, resetMenu, new SeparatorMenuItem(), infoItem, relativesMenu,
                 new SeparatorMenuItem(), mergeItem, branchItem);
 
         return contextMenu;
@@ -401,6 +402,31 @@ public abstract class CommitTreeModel{
         revertMenu.getItems().setAll(revertItem, revertMultipleItem, helpItem);
 
         return revertMenu;
+    }
+
+    private Menu getResetMenu(CommitHelper commit) {
+        Menu resetMenu = new Menu("Reset...");
+        MenuItem resetItem = new MenuItem("Reset to this commit");
+        MenuItem helpItem = new MenuItem("Help");
+
+        resetItem.setOnAction(event -> CommitTreeController.sessionController.handleResetButton(commit));
+
+        helpItem.setOnAction(event -> {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.getDialogPane().setPrefSize(300, 300);
+            alert.setTitle("Reset Help");
+            alert.setHeaderText("What is reset?");
+            ImageView img = new ImageView(new Image("/elegit/undo.png"));
+            img.setFitHeight(60);
+            img.setFitWidth(60);
+            alert.setGraphic(img);
+            alert.setContentText("something");
+            alert.showAndWait();
+        });
+
+        resetMenu.getItems().setAll(resetItem, helpItem);
+
+        return resetMenu;
     }
 
     /**
