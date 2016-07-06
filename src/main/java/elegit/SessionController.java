@@ -1474,23 +1474,27 @@ public class SessionController {
 
     private void showNewRemoteChangesNotification(){
         Platform.runLater(() -> {
-            logger.info("New remote repo changes");
-            this.notificationPane.setText("There are new changes in the remote repository.");
+            // check if there are still new changes, in case this value changes while waiting in the
+            //  JavaFXApplication Thread queue
+            if(RepositoryMonitor.hasFoundNewRemoteChanges.getValue()) {
+                logger.info("New remote repo changes");
+                this.notificationPane.setText("There are new changes in the remote repository.");
 
-            Action fetchAction = new Action("Fetch", e -> {
-                this.notificationPane.hide();
-                gitFetch();
-            });
+                Action fetchAction = new Action("Fetch", e -> {
+                    this.notificationPane.hide();
+                    gitFetch();
+                });
 
-            Action ignoreAction = new Action("Ignore", e -> {
-                this.notificationPane.hide();
-                RepositoryMonitor.resetFoundNewChanges(true);
-            });
+                Action ignoreAction = new Action("Ignore", e -> {
+                    this.notificationPane.hide();
+                    RepositoryMonitor.resetFoundNewChanges(true);
+                });
 
-            this.notificationPane.getActions().clear();
-            this.notificationPane.getActions().setAll(fetchAction, ignoreAction);
+                this.notificationPane.getActions().clear();
+                this.notificationPane.getActions().setAll(fetchAction, ignoreAction);
 
-            this.notificationPane.show();
+                this.notificationPane.show();
+            }
         });
     }
 
