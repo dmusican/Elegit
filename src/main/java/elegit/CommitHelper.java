@@ -44,7 +44,7 @@ public class CommitHelper{
         this.commit = c;
         this.author = c.getAuthorIdent();
         this.children = new ArrayList<>();
-        this.parents = new ParentCommitHelper(this, null);
+        this.parents = new ParentCommitHelper(this);
         this.fullMessage = c.getFullMessage();
         this.shortMessage = c.getShortMessage();
     }
@@ -270,7 +270,7 @@ public class CommitHelper{
     }
 
     /**
-     * A helper class for the parents of a commit. Holds 0-2 commits that
+     * A helper class for the parents of a commit. Any number of commits that
      * can be parents of the same commit
      */
     private class ParentCommitHelper{
@@ -279,13 +279,22 @@ public class CommitHelper{
         private ArrayList<CommitHelper> parents;
 
         /**
-         * Sets parent1 and parent2 to be the parents of child
+         * Sets parent to be the parent of child
          * @param child the child commit
          * @param parent the first parent commit
          */
         public ParentCommitHelper(CommitHelper child, CommitHelper parent){
             parents = new ArrayList<>();
             parents.add(parent);
+            this.setChild(child);
+        }
+
+        /**
+         * Sets the child as the child, no parents yet
+         * @param child CommitHelper
+         */
+        public ParentCommitHelper(CommitHelper child){
+            parents = new ArrayList<>();
             this.setChild(child);
         }
 
