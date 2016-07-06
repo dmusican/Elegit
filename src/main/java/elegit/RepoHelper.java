@@ -590,6 +590,12 @@ public abstract class RepoHelper {
         this.hasUnpushedCommitsProperty.set(true);
     }
 
+    /**
+     * Resets to the given commit (not --hard: working directory unaffected)
+     * @param commit CommitHelper
+     * @throws MissingRepoException
+     * @throws GitAPIException
+     */
     public void resetToCommit(CommitHelper commit) throws MissingRepoException, GitAPIException {
         logger.info("Attempting reset");
         if (!exists()) throw new MissingRepoException();
