@@ -590,6 +590,12 @@ public abstract class RepoHelper {
         this.hasUnpushedCommitsProperty.set(true);
     }
 
+    public void resetToCommit(CommitHelper commit) throws MissingRepoException {
+        logger.info("Attempting reset");
+        if (!exists()) throw new MissingRepoException();
+        Git git = new Git(this.repo);
+    }
+
     /**
      * Checks if the remote tracking head refers to the same commit
      * as the local head for the current branch
