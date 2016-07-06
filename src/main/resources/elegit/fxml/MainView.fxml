@@ -248,10 +248,6 @@
 
                     <StackPane GridPane.rowIndex="2"
                                GridPane.columnIndex="5">
-                        <HBox alignment="CENTER_RIGHT">
-                            <ProgressIndicator visible="false"
-                                               fx:id="pushProgressIndicator"/>
-                        </HBox>
 
                         <ArrowButton StackPane.alignment="CENTER_RIGHT"
                                      id="codeButton"

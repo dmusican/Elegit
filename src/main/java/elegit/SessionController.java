@@ -84,8 +84,6 @@ public class SessionController {
     public Button fetchButton;
     public Button branchesButton;
 
-    public ProgressIndicator pushProgressIndicator;
-
     public TextArea commitMessageField;
 
     public Tab workingTreePanelTab;
@@ -801,15 +799,6 @@ public class SessionController {
                         RepositoryMonitor.resetFoundNewChanges(false);
                         theModel.getCurrentRepoHelper().pushAll();
                         gitStatus();
-                        // Update the trees if the push worked
-                        /*Platform.runLater(() -> {
-                            try {
-                                remoteCommitTreeModel.update();
-                                localCommitTreeModel.update();
-                            } catch (Exception e) {
-                                showGenericErrorNotification();
-                            }
-                        });*/
                         pushed = true;
                     }  catch(InvalidRemoteException e){
                         showNoRemoteNotification();
@@ -833,7 +822,6 @@ public class SessionController {
                         showGenericErrorNotification();
                         e.printStackTrace();
                     } finally{
-                        pushProgressIndicator.setVisible(false);
                         pushButton.setVisible(true);
                         if (pushed && theModel.getCurrentRepoHelper().hasUnpushedTags()) {
                             pushTagsButton.setVisible(true);
@@ -900,8 +888,6 @@ public class SessionController {
                         showGenericErrorNotification();
                         e.printStackTrace();
                         tagsPushed = false;
-                    } finally{
-                        pushProgressIndicator.setVisible(false);
                     }
                     if (tagsPushed) {
                         pushTagsButton.setVisible(false);
