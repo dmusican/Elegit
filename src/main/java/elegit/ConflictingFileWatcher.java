@@ -24,25 +24,12 @@ public class ConflictingFileWatcher {
     private static ArrayList<String> conflictingThenModifiedFiles = new ArrayList<>();
     private static ArrayList<String> conflictingFiles = new ArrayList<>();
 
-    // boolean to help deal with concurrency issues
-    private static int watching = 0;
-
     /**
      * returns a list of the files that were conflicting and then recently modified
      * @return ArrayList<String>
      */
     public static ArrayList<String> getConflictingThenModifiedFiles() {
         return conflictingThenModifiedFiles;
-    }
-
-    /**
-     * removes a file from the list of files that were modified after conflicting
-     * @param file String to remove from list
-     */
-    public static void removeFile(String file) {
-        if(watching == 0) {
-            conflictingThenModifiedFiles.remove(file);
-        }
     }
 
     /**
@@ -65,6 +52,12 @@ public class ConflictingFileWatcher {
                 for(String newFile : newConflictingFiles) {
                     if(!conflictingFiles.contains(newFile)) {
                         conflictingFiles.add(newFile);
+                    }
+                }
+                // removes files that aren't conflicting anymore from conflictingThenModifiedFiles
+                for(String marked : conflictingThenModifiedFiles) {
+                    if(!conflictingFiles.contains(marked)) {
+                        conflictingThenModifiedFiles.remove(marked);
                     }
                 }
 
@@ -102,10 +95,8 @@ public class ConflictingFileWatcher {
                                 Path tmp = (new File(fileToWatch)).toPath();
                                 // the path in conflictingFiles is either the file name itself or a path that ends with the file name
                                 if(tmp.endsWith(path) || tmp.toString().equals(path)) {
-                                    watching++;
                                     conflictingFiles.remove(tmp.toString());
                                     conflictingThenModifiedFiles.add(tmp.toString());
-                                    watching--;
                                 }
                             }
                             boolean valid = key.reset();
