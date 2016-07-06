@@ -936,15 +936,35 @@ public class SessionController {
 
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
 
+            BusyWindow.show();
+            BusyWindow.setLoadingText("Reverting...");
             Thread th = new Thread(new Task<Void>(){
                 @Override
                 protected Void call() {
                     try{
-                        RepositoryMonitor.resetFoundNewChanges(false);
-                        // This should be changed... user should select the commit(s) to revert
-                        theModel.getCurrentRepoHelper().revertToCommit(theModel.getCurrentRepoHelper().getAllCommits().get(1));
-                        gitStatus();
-                    }  catch(InvalidRemoteException e){
+                        String id = commitInfoNameText.getText();
+                        if(id != null) {
+                            CommitHelper commit = theModel.getCurrentRepoHelper().getCommit(id);
+                            RepositoryMonitor.resetFoundNewChanges(false);
+                            theModel.getCurrentRepoHelper().revertToCommit(commit);
+                            gitStatus();
+                        }else {
+                            showNoCommitSelectedNotification();
+                            return null;
+                        }
+                    } catch(MultipleParentsNotAllowedException e) {
+
+                        String id = commitInfoNameText.getText();
+                        CommitHelper commit = theModel.getCurrentRepoHelper().getCommit(id);
+
+                        if(commit.getParents().size() > 1) {
+                            showCantRevertMultipleParentsNotification();
+                        }
+                        if (commit.getParents().size() == 0) {
+                            showCantRevertZeroParentsNotification();
+                        }
+                    }
+                    catch(InvalidRemoteException e){
                         showNoRemoteNotification();
                     } catch (TransportException e) {
                         if (e.getMessage().contains("git-receive-pack not found")) {
@@ -963,8 +983,8 @@ public class SessionController {
                     } catch(Exception e) {
                         showGenericErrorNotification();
                         e.printStackTrace();
-                    } finally{
-                        //pushProgressIndicator.setVisible(false);
+                    }finally {
+                        BusyWindow.hide();
                     }
                     return null;
                 }
@@ -1659,6 +1679,36 @@ public class SessionController {
         Platform.runLater(() -> {
             logger.warn("No remote tracking for current branch notification.");
             this.notificationPane.setText("There is no remote tracking information for the current branch.");
+
+            this.notificationPane.getActions().clear();
+            this.notificationPane.show();
+        });
+    }
+
+    private void showCantRevertMultipleParentsNotification() {
+        Platform.runLater(() -> {
+            logger.warn("Tried to revert commit with multiple parents.");
+            this.notificationPane.setText("You cannot revert that commit because it has two parents.");
+
+            this.notificationPane.getActions().clear();
+            this.notificationPane.show();
+        });
+    }
+
+    private void showCantRevertZeroParentsNotification() {
+        Platform.runLater(() -> {
+            logger.warn("Tried to revert commit with zero parents.");
+            this.notificationPane.setText("You cannot revert that commit because it has zero parents.");
+
+            this.notificationPane.getActions().clear();
+            this.notificationPane.show();
+        });
+    }
+
+    private void showNoCommitSelectedNotification() {
+        Platform.runLater(() -> {
+            logger.warn("Didn't select a commit to revert");
+            this.notificationPane.setText("You have to select a commit to revert.");
 
             this.notificationPane.getActions().clear();
             this.notificationPane.show();

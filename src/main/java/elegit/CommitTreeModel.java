@@ -8,6 +8,7 @@ import org.apache.logging.log4j.Logger;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.ObjectId;
+import org.eclipse.jgit.lib.SymbolicRef;
 import org.eclipse.jgit.util.IO;
 
 import java.io.IOException;
@@ -296,6 +297,9 @@ public abstract class CommitTreeModel{
             CommitTreeController.selectCommit(commit.getId(), false, false, false);
         });
         infoItem.disableProperty().bind(CommitTreeController.selectedIDProperty().isEqualTo(commit.getId()));
+
+        MenuItem revertItem = new MenuItem("Revert to this commit");
+        revertItem.setOnAction(event1 -> System.out.println("make this do something"));
 
         Menu relativesMenu = new Menu("Show Relatives");
 

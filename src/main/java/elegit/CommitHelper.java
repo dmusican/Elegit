@@ -44,7 +44,7 @@ public class CommitHelper{
         this.commit = c;
         this.author = c.getAuthorIdent();
         this.children = new ArrayList<>();
-        this.parents = new ParentCommitHelper(this, null, null);
+        this.parents = new ParentCommitHelper(this, null);
         this.fullMessage = c.getFullMessage();
         this.shortMessage = c.getShortMessage();
     }
@@ -134,24 +134,14 @@ public class CommitHelper{
     }
 
     /**
-     * Sets the parents of this commit to be the two given commits. 0, 1, or 2
-     * of the parameters can be null for the corresponding number of parents
-     * @param parent1 the first parent
-     * @param parent2 the second parent
-     */
-    public void setParents(CommitHelper parent1, CommitHelper parent2){
-        this.parents = new ParentCommitHelper(this, parent1, parent2);
-    }
-
-    /**
      * Add an additional parent to this commit. If parent is null, this method
      * does effectively nothing
      * @param parent the commit to add
      */
     public void addParent(CommitHelper parent){
         if(parents == null){
-            this.parents = new ParentCommitHelper(this, parent, null);
-        }else{
+            this.parents = new ParentCommitHelper(this, parent);
+        }else {
             this.parents.addParent(parent);
         }
     }
@@ -285,17 +275,15 @@ public class CommitHelper{
      */
     private class ParentCommitHelper{
 
-        private CommitHelper child,mom,dad;
+        private CommitHelper child, parent1, parent2;
 
         /**
-         * Sets mom and dad to be the parents of child
+         * Sets parent1 and parent2 to be the parents of child
          * @param child the child commit
-         * @param mom the first parent commit
-         * @param dad the second parent commit
+         * @param parent the first parent commit
          */
-        public ParentCommitHelper(CommitHelper child, CommitHelper mom, CommitHelper dad){
-            this.mom = mom;
-            this.dad = dad;
+        public ParentCommitHelper(CommitHelper child, CommitHelper parent){
+            this.parent1 = parent;
             this.setChild(child);
         }
 
@@ -304,8 +292,8 @@ public class CommitHelper{
          */
         public int count(){
             int count = 0;
-            if(mom != null) count++;
-            if(dad != null) count++;
+            if(parent1 != null) count++;
+            if(parent2 != null) count++;
             return count;
         }
 
@@ -314,8 +302,8 @@ public class CommitHelper{
          */
         public List<CommitHelper> toList(){
             List<CommitHelper> list = new ArrayList<>(2);
-            if(mom != null) list.add(mom);
-            if(dad != null) list.add(dad);
+            if(parent1 != null) list.add(parent1);
+            if(parent2 != null) list.add(parent2);
             return list;
         }
 
@@ -325,11 +313,11 @@ public class CommitHelper{
          */
         private void setChild(CommitHelper child){
             this.child = child;
-            if(this.mom != null){
-                this.mom.addChild(child);
+            if(this.parent1 != null){
+                this.parent1.addChild(child);
             }
-            if(this.dad != null){
-                this.dad.addChild(child);
+            if(this.parent2 != null){
+                this.parent2.addChild(child);
             }
         }
 
@@ -338,12 +326,14 @@ public class CommitHelper{
          * @param parent the parent to add
          */
         public void addParent(CommitHelper parent){
-            if(this.mom == null){
-                this.mom = parent;
-                this.mom.addChild(this.child);
-            }else if(this.dad == null){
-                this.dad = parent;
-                this.dad.addChild(this.child);
+            if(parent != parent1 && parent != parent2) {
+                if(this.parent1 == null){
+                    this.parent1 = parent;
+                    this.parent1.addChild(this.child);
+                }else if(this.parent2 == null){
+                    this.parent2 = parent;
+                    this.parent2.addChild(this.child);
+                }
             }
         }
     }
