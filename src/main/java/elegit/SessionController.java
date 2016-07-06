@@ -81,7 +81,6 @@ public class SessionController {
     public Button mergeFromFetchButton;
     public Button pushTagsButton;
     public Button pushButton;
-    public Button revertButton;
     public Button fetchButton;
     public Button branchesButton;
 
@@ -225,7 +224,6 @@ public class SessionController {
         mergeFromFetchButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         pushTagsButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         pushButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
-        revertButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         fetchButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         branchesButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         commitInfoNameCopyButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
@@ -1183,7 +1181,6 @@ public class SessionController {
             mergeFromFetchButton.setDisable(disable);
             pushTagsButton.setDisable(disable);
             pushButton.setDisable(disable);
-            revertButton.setDisable(disable);
             fetchButton.setDisable(disable);
             selectAllButton.setDisable(disable);
             deselectAllButton.setDisable(disable);

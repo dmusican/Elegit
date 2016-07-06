@@ -305,9 +305,7 @@ public abstract class CommitTreeModel{
         MenuItem revertMultipleItem = new MenuItem("Revert multiple commits...");
         MenuItem helpItem = new MenuItem("Help");
 
-        revertItem.setOnAction(event -> {
-            //somehow call method from sessionController
-        });
+        revertItem.setOnAction(event -> CommitTreeController.sessionController.handleRevertButton());
 
         revertMultipleItem.setOnAction(event -> {
             //pull up some sort of window
