@@ -3,6 +3,8 @@ package elegit;
 import elegit.treefx.*;
 import elegit.treefx.Cell;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jgit.api.Git;
@@ -298,8 +300,37 @@ public abstract class CommitTreeModel{
         });
         infoItem.disableProperty().bind(CommitTreeController.selectedIDProperty().isEqualTo(commit.getId()));
 
+        Menu revertMenu = new Menu("Revert...");
         MenuItem revertItem = new MenuItem("Revert to this commit");
-        revertItem.setOnAction(event1 -> System.out.println("make this do something"));
+        MenuItem revertMultipleItem = new MenuItem("Revert multiple commits...");
+        MenuItem helpItem = new MenuItem("Help");
+
+        revertItem.setOnAction(event -> {
+            //somehow call method from sessionController
+        });
+
+        revertMultipleItem.setOnAction(event -> {
+            //pull up some sort of window
+        });
+
+        helpItem.setOnAction(event -> {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.getDialogPane().setPrefSize(300, 300);
+            alert.setTitle("Revert Help");
+            alert.setHeaderText("What is revert?");
+            ImageView img = new ImageView(new Image("/elegit/undo.png"));
+            img.setFitHeight(60);
+            img.setFitWidth(60);
+            alert.setGraphic(img);
+            alert.setContentText("The git revert command undoes a committed snapshot. " +
+                    "But, instead of removing the commit from the project history, " +
+                    "it figures out how to undo the changes introduced by the commit and appends a new commit with the resulting content. " +
+                    "This prevents Git from losing history, " +
+                    "which is important for the integrity of your revision history and for reliable collaboration.");
+            alert.showAndWait();
+        });
+
+        revertMenu.getItems().setAll(revertItem, revertMultipleItem, helpItem);
 
         Menu relativesMenu = new Menu("Show Relatives");
 
@@ -346,7 +377,7 @@ public abstract class CommitTreeModel{
         MenuItem branchItem = new MenuItem("Branch from...");
         branchItem.setDisable(true);
 
-        contextMenu.getItems().addAll(infoItem, relativesMenu,
+        contextMenu.getItems().addAll(revertMenu, new SeparatorMenuItem(), infoItem, relativesMenu,
                 new SeparatorMenuItem(), mergeItem, branchItem);
 
         return contextMenu;
