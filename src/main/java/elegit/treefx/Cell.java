@@ -336,7 +336,7 @@ public class Cell extends Pane{
      */
     private class ParentCell{
 
-        private Cell mom,dad;
+        private ArrayList<Cell> parents;
 
         /**
          * Sets the given child to have the given parents
@@ -345,8 +345,9 @@ public class Cell extends Pane{
          * @param dad the second parent
          */
         public ParentCell(Cell child, Cell mom, Cell dad){
-            this.mom = mom;
-            this.dad = dad;
+            parents = new ArrayList<>();
+            if(mom != null) parents.add(mom);
+            if(dad != null) parents.add(dad);
             this.setChild(child);
         }
 
@@ -354,20 +355,14 @@ public class Cell extends Pane{
          * @return the number of parent commits associated with this object
          */
         public int count(){
-            int count = 0;
-            if(mom != null) count++;
-            if(dad != null) count++;
-            return count;
+            return parents.size();
         }
 
         /**
          * @return the stored parent commits in list form
          */
         public ArrayList<Cell> toList(){
-            ArrayList<Cell> list = new ArrayList<>(2);
-            if(mom != null) list.add(mom);
-            if(dad != null) list.add(dad);
-            return list;
+            return parents;
         }
 
         /**
@@ -375,11 +370,10 @@ public class Cell extends Pane{
          * @param cell the child to add
          */
         private void setChild(Cell cell){
-            if(this.mom != null){
-                this.mom.addCellChild(cell);
-            }
-            if(this.dad != null){
-                this.dad.addCellChild(cell);
+            for(Cell parent : parents) {
+                if(parent != null) {
+                    parent.addCellChild(cell);
+                }
             }
         }
     }
