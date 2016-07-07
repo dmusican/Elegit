@@ -164,6 +164,7 @@ public abstract class RepoHelper {
                     public void configure(Transport transport) {
 
                         if (transport instanceof TransportGitSsh) {
+                            System.out.println("yep");
                             SshSessionFactory sshSessionFactory = new JschConfigSessionFactory() {
                                 @Override
                                 protected void configure(OpenSshConfig.Host host, Session session) {
