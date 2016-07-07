@@ -380,24 +380,10 @@ public abstract class CommitTreeModel{
 
         revertMultipleItem.setOnAction(event -> {
             //pull up some sort of window
+            //PopUpWindows.something
         });
 
-        helpItem.setOnAction(event -> {
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.getDialogPane().setPrefSize(300, 300);
-            alert.setTitle("Revert Help");
-            alert.setHeaderText("What is revert?");
-            ImageView img = new ImageView(new Image("/elegit/undo.png"));
-            img.setFitHeight(60);
-            img.setFitWidth(60);
-            alert.setGraphic(img);
-            alert.setContentText("The git revert command undoes a committed snapshot. " +
-                    "But, instead of removing the commit from the project history, " +
-                    "it figures out how to undo the changes introduced by the commit and appends a new commit with the resulting content. " +
-                    "This prevents Git from losing history, " +
-                    "which is important for the integrity of your revision history and for reliable collaboration.");
-            alert.showAndWait();
-        });
+        helpItem.setOnAction(event -> PopUpWindows.showRevertHelpAlert());
 
         revertMenu.getItems().setAll(revertItem, revertMultipleItem, helpItem);
 
@@ -411,21 +397,7 @@ public abstract class CommitTreeModel{
 
         resetItem.setOnAction(event -> CommitTreeController.sessionController.handleResetButton(commit));
 
-        helpItem.setOnAction(event -> {
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.getDialogPane().setPrefSize(300, 300);
-            alert.setTitle("Reset Help");
-            alert.setHeaderText("What is reset?");
-            ImageView img = new ImageView(new Image("/elegit/undo.png"));
-            img.setFitHeight(60);
-            img.setFitWidth(60);
-            alert.setGraphic(img);
-            alert.setContentText("Move the current branch tip backward to the selected commit, " +
-                    "reset the staging area to match, " +
-                    "but leave the working directory alone. " +
-                    "All changes made since the selected commit will reside in the working directory.");
-            alert.showAndWait();
-        });
+        helpItem.setOnAction(event -> PopUpWindows.showResetHelpAlert());
 
         resetMenu.getItems().setAll(resetItem, helpItem);
 
@@ -487,9 +459,11 @@ public abstract class CommitTreeModel{
             }
             this.branchesInModel = this.sessionModel.getCurrentRepoHelper().getBranchModel().getAllBranches();
             for(String id : resetIDs){
-                String displayLabel = repo.getCommitDescriptorString(id, false);
-                List<String> branchLabels = repo.getBranchModel().getBranchesWithHead(id);
-                treeGraph.treeGraphModel.setCellLabels(id, displayLabel, branchLabels);
+                if(this.sessionModel.getCurrentRepoHelper().getCommit(id) != null) {
+                    String displayLabel = repo.getCommitDescriptorString(id, false);
+                    List<String> branchLabels = repo.getBranchModel().getBranchesWithHead(id);
+                    treeGraph.treeGraphModel.setCellLabels(id, displayLabel, branchLabels);
+                }
             }
         }
     }

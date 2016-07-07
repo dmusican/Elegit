@@ -1475,22 +1475,11 @@ public class SessionController {
 
     private void showCheckoutConflictsNotification(List<String> conflictingPaths) {
         Platform.runLater(() -> {
-            logger.warn("Checkout conflicts warning");
-            String conflictList = "";
-            for(String pathName : conflictingPaths){
-                conflictList += "\n" + pathName;
-            }
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Conflicting files");
-            alert.setHeaderText("Can't checkout that branch");
-            alert.setContentText("You can't switch to that branch because of the following conflicting files between that branch and your current branch: "
-                    + conflictList);
-
             this.notificationPane.setText("You can't switch to that branch because there would be a merge conflict. Stash your changes or resolve conflicts first.");
 
             Action seeConflictsAction = new Action("See conflicts", e -> {
                 this.notificationPane.hide();
-                alert.showAndWait();
+                PopUpWindows.showCheckoutConflictsAlert(conflictingPaths);
             });
 
             this.notificationPane.getActions().clear();
@@ -1502,22 +1491,11 @@ public class SessionController {
 
     private void showMergeConflictsNotification(List<String> conflictingPaths){
         Platform.runLater(() -> {
-            logger.warn("Merge conflicts warning");
-            String conflictList = "";
-            for(String pathName : conflictingPaths){
-                conflictList += "\n" + pathName;
-            }
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Conflicting files");
-            alert.setHeaderText("Can't complete merge");
-            alert.setContentText("There were conflicts in the following files: "
-                    + conflictList);
-
             this.notificationPane.setText("Can't complete merge due to conflicts. Resolve the conflicts and commit all files to complete merging");
 
             Action seeConflictsAction = new Action("See conflicting files", e -> {
                 this.notificationPane.hide();
-                alert.showAndWait();
+                PopUpWindows.showtMergeConflictsAlert(conflictingPaths);
             });
 
             this.notificationPane.getActions().clear();

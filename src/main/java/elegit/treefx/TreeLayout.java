@@ -177,7 +177,7 @@ public class TreeLayout{
              * @param stackPane StackPane that has the progress bar
              */
             private void updateProgressBarLocation(MoveCellService mover, ScrollPane scrollPane, Pane cellLayer, StackPane stackPane) {
-                if (mover.percent.get() / 100.0 < 1 - scrollPane.getHvalue()) {
+                if (mover.percent.get() / 100.0 < 1 - scrollPane.getHvalue() && mover.percent.getValue() < 100) {
                     if (cellLayer.getLayoutBounds().getMaxX() > 0) {
                         centerOfViewportX.set(scrollPane.getHvalue() * cellLayer.getLayoutBounds().getMaxX()
                                 + (0.5 - scrollPane.getHvalue()) * scrollPane.getViewportBounds().getWidth());

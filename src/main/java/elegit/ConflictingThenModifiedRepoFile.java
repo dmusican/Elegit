@@ -53,31 +53,7 @@ public class ConflictingThenModifiedRepoFile extends RepoFile {
             logger.warn("Notification about conflicting the modified file");
             lock.lock();
             try{
-                Alert alert = new Alert(Alert.AlertType.INFORMATION);
-
-                ButtonType commitButton = new ButtonType("Commit");
-                ButtonType buttonTypeCancel = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
-
-                alert.getButtonTypes().setAll(commitButton, buttonTypeCancel);
-
-                alert.setResizable(true);
-                alert.getDialogPane().setPrefSize(300, 200);
-
-                alert.setTitle("Adding previously conflicting file");
-                alert.setHeaderText("You are adding a conflicting file that was recently modified to the commit");
-                alert.setContentText("If the file is what you want it to be, you should commit. Otherwise, modify the file accordingly.");
-
-                Optional<ButtonType> result = alert.showAndWait();
-
-                if(result.get() == commitButton){
-                    logger.info("Chose to resolve conflicts");
-                    setResultType("commit");
-                }else{
-                    // User cancelled the dialog
-                    logger.info("Cancelled dialog");
-                    setResultType("cancel");
-                }
-
+                resultType = PopUpWindows.showCommittingConflictingThenModifiedFileAlert();
                 finishedAlert.signal();
             }finally{
                 lock.unlock();
@@ -97,10 +73,6 @@ public class ConflictingThenModifiedRepoFile extends RepoFile {
             lock.unlock();
         }
         return false;
-    }
-
-    private void setResultType(String s){
-        resultType = s;
     }
 }
 
