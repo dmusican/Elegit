@@ -221,8 +221,9 @@ public class AuthenticatedCloneTest {
         scanner = new Scanner(passwordFile);
         String password = scanner.next();
 
-        ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, remoteURL, new ElegitUserInfoTest(password, null));
-
+        //ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, remoteURL, new ElegitUserInfoTest(password, null));
+        ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, remoteURL, password,
+                                                       new ElegitUserInfoTest(password,null));
         assertEquals(helper.getCompatibleAuthentication(),AuthMethod.SSH);
         helper.fetch();
         helper.pushAll();
@@ -246,8 +247,8 @@ public class AuthenticatedCloneTest {
         scanner = new Scanner(passwordFile);
         String passphrase = scanner.next();
 
-        ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, remoteURL, new ElegitUserInfoTest(null,passphrase));
-        System.out.println("ok, next");
+        ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, remoteURL, passphrase,
+                                                       new ElegitUserInfoTest(null, passphrase));
         assertEquals(helper.getCompatibleAuthentication(),AuthMethod.SSH);
         helper.fetch();
         helper.pushAll();

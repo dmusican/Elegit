@@ -113,6 +113,15 @@ public abstract class RepoHelper {
         this.userInfo = userInfo;
     }
 
+    public RepoHelper(Path directoryPath, String sshPassword, UserInfo userInfo)
+            throws GitAPIException, IOException, CancelledAuthorizationException {
+        this.localPath = directoryPath;
+        this.ownerAuth = null;
+        this.password = sshPassword;
+        this.credentialsFile = null;
+        this.userInfo = userInfo;
+    }
+
 
 
     /* This method requires credentials be passed in as a parameter; that's because it must be used by
