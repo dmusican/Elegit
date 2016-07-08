@@ -1,5 +1,6 @@
 package elegit;
 
+import com.jcraft.jsch.UserInfo;
 import elegit.exceptions.CancelledAuthorizationException;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
@@ -11,6 +12,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Scanner;
 
 /**
  * A RepoHelper implementation for a repository cloned into an empty folder.
@@ -41,10 +43,9 @@ public class ClonedRepoHelper extends RepoHelper {
         setup();
     }
 
-    // Constructor specifically designed for unit testing; file containing credentials passed in
-    public ClonedRepoHelper(Path directoryPath, String remoteURL, List<String> credentialsList)
+    public ClonedRepoHelper(Path directoryPath, String remoteURL, UserInfo userInfo)
             throws GitAPIException, IOException, CancelledAuthorizationException {
-        super(directoryPath, credentialsList);
+        super(directoryPath, userInfo);
         repo = obtainRepository(remoteURL);
         setup();
     }

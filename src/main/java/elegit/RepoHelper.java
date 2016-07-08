@@ -3,18 +3,12 @@ package elegit;
 import com.jcraft.jsch.*;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Scene;
-import javafx.stage.Modality;
-import javafx.stage.Stage;
 import elegit.exceptions.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.controlsfx.control.NotificationPane;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
-import org.eclipse.jgit.api.errors.RefAlreadyExistsException;
 import org.eclipse.jgit.ignore.IgnoreNode;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.revplot.PlotCommitList;
@@ -34,8 +28,6 @@ import java.net.URISyntaxException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * The abstract RepoHelper class, used for interacting with a repository.
@@ -52,6 +44,7 @@ public abstract class RepoHelper {
     protected Path localPath;
     protected File credentialsFile;
     protected List<String> credentialsList;
+    protected UserInfo userInfo;
 
     private List<CommitHelper> localCommits;
     private List<CommitHelper> remoteCommits;
@@ -111,13 +104,13 @@ public abstract class RepoHelper {
         this.credentialsFile = credentialsFile;
     }
 
-    public RepoHelper(Path directoryPath, List<String> credentialsList)
+    public RepoHelper(Path directoryPath, UserInfo userInfo)
             throws GitAPIException, IOException, CancelledAuthorizationException {
         this.localPath = directoryPath;
         this.ownerAuth = null;
         this.password = null;
         this.credentialsFile = null;
-        this.credentialsList = credentialsList;
+        this.userInfo = userInfo;
     }
 
 
@@ -128,30 +121,31 @@ public abstract class RepoHelper {
      */
     static void wrapAuthentication(TransportCommand command,
                                    UsernamePasswordCredentialsProvider ownerAuth) {
-        wrapAuthentication(command, ownerAuth, null, null, null);
+        wrapAuthentication(command, ownerAuth, null, null, null, null);
     }
 
 
     static void wrapAuthentication(TransportCommand command, String sshPassword) {
-        wrapAuthentication(command, null, sshPassword, null, null);
+        wrapAuthentication(command, null, sshPassword, null, null, null);
     }
 
     static void wrapAuthentication(TransportCommand command, UsernamePasswordCredentialsProvider ownerAuth,
                                    String sshPassword) {
-        wrapAuthentication(command, ownerAuth, sshPassword, null, null);
+        wrapAuthentication(command, ownerAuth, sshPassword, null, null, null);
     }
 
     static void wrapAuthentication(TransportCommand command,
                                    File credentialsFile) {
-        wrapAuthentication(command, null, null, credentialsFile, null);
+        wrapAuthentication(command, null, null, credentialsFile, null, null);
     }
 
     static void wrapAuthentication(TransportCommand command, List<String> credentialsList) {
-        wrapAuthentication(command, null, null, null, credentialsList);
+        wrapAuthentication(command, null, null, null, credentialsList, null);
     }
 
     static void wrapAuthentication(TransportCommand command, UsernamePasswordCredentialsProvider ownerAuth,
-                                   String sshPassword, File credentialsFile, List<String> credentialsList) {
+                                   String sshPassword, File credentialsFile, List<String> credentialsList,
+                                   UserInfo userInfo) {
 
         if (ownerAuth != null)
             command.setCredentialsProvider(ownerAuth);
@@ -169,6 +163,8 @@ public abstract class RepoHelper {
                                 @Override
                                 protected void configure(OpenSshConfig.Host host, Session session) {
                                     session.setPassword(sshPassword);
+                                    if (userInfo != null)
+                                        session.setUserInfo(userInfo);
                                 }
 
                                 @Override
@@ -187,7 +183,8 @@ public abstract class RepoHelper {
     }
 
     protected void myWrapAuthentication(TransportCommand command) {
-        wrapAuthentication(command, this.ownerAuth, this.password, this.credentialsFile, this.credentialsList);
+        wrapAuthentication(command, this.ownerAuth, this.password, this.credentialsFile, this.credentialsList,
+                           this.userInfo);
     }
 
     // Common setup tasks shared by constructors

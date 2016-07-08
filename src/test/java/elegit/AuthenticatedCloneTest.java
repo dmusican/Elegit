@@ -1,6 +1,7 @@
 package elegit;
 
 import com.jcraft.jsch.*;
+import javafx.application.Application;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.TransportException;
 import org.eclipse.jgit.transport.*;
@@ -9,9 +10,7 @@ import org.junit.rules.ExpectedException;
 
 import javax.swing.*;
 import java.awt.*;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -218,9 +217,14 @@ public class AuthenticatedCloneTest {
 
         Scanner scanner = new Scanner(urlFile);
         String remoteURL = scanner.next();
+        scanner.close();
+        scanner = new Scanner(passwordFile);
+        String password = scanner.next();
+        ByteArrayInputStream in = new ByteArrayInputStream((password + " " + password).getBytes());
 
-        List<String> userCredentials = Files.readAllLines(passwordFile);
-        ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, remoteURL, userCredentials);
+        System.setIn(in);
+        ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, remoteURL, new ElegitUserInfoTest(password, null));
+        System.setIn(System.in);
         assertEquals(helper.getCompatibleAuthentication(),AuthMethod.SSH);
         helper.fetch();
         helper.pushAll();
@@ -229,6 +233,7 @@ public class AuthenticatedCloneTest {
 
     @Test
     public void testSshPrivateKey() throws Exception {
+
         Path repoPath = directoryPath.resolve("testrepo");
         File urlFile = new File(testFileLocation + "sshPrivateKeyURL.txt");
         File passwordFile = new File(testFileLocation + "sshPrivateKeyPassword.txt");
@@ -239,7 +244,8 @@ public class AuthenticatedCloneTest {
 
         Scanner scanner = new Scanner(urlFile);
         String remoteURL = scanner.next();
-        ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, remoteURL, passwordFile);
+
+//        ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, remoteURL, passwordFile);
 //        assertEquals(helper.getCompatibleAuthentication(),AuthMethod.SSH);
 //        helper.fetch();
 //        helper.pushAll();
