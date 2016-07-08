@@ -220,11 +220,9 @@ public class AuthenticatedCloneTest {
         scanner.close();
         scanner = new Scanner(passwordFile);
         String password = scanner.next();
-        ByteArrayInputStream in = new ByteArrayInputStream((password + " " + password).getBytes());
 
-        System.setIn(in);
         ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, remoteURL, new ElegitUserInfoTest(password, null));
-        System.setIn(System.in);
+
         assertEquals(helper.getCompatibleAuthentication(),AuthMethod.SSH);
         helper.fetch();
         helper.pushAll();
@@ -244,13 +242,17 @@ public class AuthenticatedCloneTest {
 
         Scanner scanner = new Scanner(urlFile);
         String remoteURL = scanner.next();
+        scanner.close();
+        scanner = new Scanner(passwordFile);
+        String passphrase = scanner.next();
 
-//        ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, remoteURL, passwordFile);
-//        assertEquals(helper.getCompatibleAuthentication(),AuthMethod.SSH);
-//        helper.fetch();
-//        helper.pushAll();
-//        helper.pushTags();
-//        scanner.close();
+        ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, remoteURL, new ElegitUserInfoTest(null,passphrase));
+        System.out.println("ok, next");
+        assertEquals(helper.getCompatibleAuthentication(),AuthMethod.SSH);
+        helper.fetch();
+        helper.pushAll();
+        helper.pushTags();
+        scanner.close();
     }
 
     @Test
@@ -320,7 +322,7 @@ public class AuthenticatedCloneTest {
 
     }
 
-    @Test
+    // sample code. Used for reference, can delete once I finally have all this working.
     // From https://gist.githubusercontent.com/ymnk/2318108/raw/82819389a225265c2aa4ca11afc0b35e938607fe/UserAuthPubKey.java
     public void UserAuthPubKey() {
         try{

@@ -51,16 +51,14 @@ public class ElegitUserInfoTest implements UserInfo, UIKeyboardInteractive {
 
     @Override
     public boolean promptPassword(String s) {
-        System.out.println("Asking for password.");
+        System.out.println(s);
         return true;
     }
 
     @Override
     public boolean promptPassphrase(String s) {
-        System.out.println("Kindly enter your passphrase: ");
-        Scanner scanner = new Scanner(System.in);
-        passphrase = scanner.nextLine().trim();
-        return passphrase.length() > 0;
+        System.out.println(s);
+        return true;
 //
 //        final boolean response;
 //        FutureTask<Boolean> task = new FutureTask<Boolean>(new Runnable() {
@@ -84,10 +82,22 @@ public class ElegitUserInfoTest implements UserInfo, UIKeyboardInteractive {
 
     @Override
     public boolean promptYesNo(String s) {
-        System.out.print("(y)es or (n)o? ");
-        Scanner scanner = new Scanner(System.in);
-        String answer = scanner.next();
-        return answer.equals("y");
+
+        System.out.println(s);
+
+        // If the question is:
+        /////////////////////////////////////////
+        // The authenticity of host '...' can't be established.
+        // RSA key fingerprint is ...
+        // Are you sure you want to continue connecting?
+        ////////////////////////////////////////
+        // then for test purposes, the answer should be yes.
+
+        if (s.startsWith("The authenticity of host")) {
+            return true;
+        } else {
+            throw new RuntimeException("promptYesNo case not handled.");
+        }
     }
 
     @Override
