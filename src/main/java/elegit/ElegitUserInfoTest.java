@@ -14,7 +14,7 @@ import java.util.concurrent.FutureTask;
  * Class for purposes for JSch authentication (which JGit uses). This is the text-based version used
  * for unit tests.
  */
-public class ElegitUserInfoTest implements UserInfo, UIKeyboardInteractive {
+public class ElegitUserInfoTest implements UserInfo {
 
     private String password;
     private String passphrase;
@@ -22,21 +22,6 @@ public class ElegitUserInfoTest implements UserInfo, UIKeyboardInteractive {
     public ElegitUserInfoTest(String password, String passphrase) {
         this.password = password;
         this.passphrase = passphrase;
-    }
-
-    @Override
-    public String[] promptKeyboardInteractive(String destination, String name, String introduction,
-                                              String[] prompt, boolean[] echo) {
-        System.out.println("Destination: " + destination);
-        System.out.println("Name: " + name);
-        System.out.println("Introduction" + introduction);
-        Scanner scanner = new Scanner(System.in);
-        String[] results = new String[prompt.length];
-        for (int i=0; i < prompt.length; i++) {
-            System.out.print(i + ". " + prompt[i] + "(" + echo[i] + "): ");
-            results[i] = scanner.nextLine().trim();
-        }
-        return results;
     }
 
     @Override

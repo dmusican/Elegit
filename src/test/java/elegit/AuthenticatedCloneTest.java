@@ -197,7 +197,8 @@ public class AuthenticatedCloneTest {
 
         List<String> userCredentials = Files.readAllLines(passwordFile);
         TransportCommand command = Git.lsRemoteRepository().setRemote(remoteURL);
-        RepoHelper.wrapAuthentication(command, userCredentials);
+        //RepoHelper.wrapAuthentication(command, userCredentials);
+        RepoHelper.wrapAuthentication(command, new ElegitUserInfoTest(userCredentials.get(0), null));
         command.call();
     }
 

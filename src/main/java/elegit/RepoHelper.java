@@ -152,6 +152,10 @@ public abstract class RepoHelper {
         wrapAuthentication(command, null, null, null, credentialsList, null);
     }
 
+    static void wrapAuthentication(TransportCommand command, UserInfo userInfo) {
+        wrapAuthentication(command, null, null, null, null, userInfo);
+    }
+
     static void wrapAuthentication(TransportCommand command, UsernamePasswordCredentialsProvider ownerAuth,
                                    String sshPassword, File credentialsFile, List<String> credentialsList,
                                    UserInfo userInfo) {
@@ -171,8 +175,9 @@ public abstract class RepoHelper {
                                 @Override
                                 protected void configure(OpenSshConfig.Host host, Session session) {
                                     session.setPassword(sshPassword);
-                                    if (userInfo != null)
-                                        session.setUserInfo(userInfo);
+                                    System.out.println(userInfo);
+                                    //if (userInfo != null)
+                                    session.setUserInfo(userInfo);
                                 }
 
                                 @Override
