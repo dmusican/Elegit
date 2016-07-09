@@ -45,6 +45,7 @@ public class RepoHelper {
     protected File credentialsFile;
     protected List<String> credentialsList;
     protected UserInfo userInfo;
+    protected SshSessionFactory sshSessionFactory;
 
     private List<CommitHelper> localCommits;
     private List<CommitHelper> remoteCommits;
@@ -67,9 +68,7 @@ public class RepoHelper {
     static final Logger logger = LogManager.getLogger();
     protected UsernamePasswordCredentialsProvider ownerAuth;
 
-    public RepoHelper() {
 
-    }
     /**
      * Creates a RepoHelper object for holding a Repository and interacting with it
      * through JGit.
@@ -82,6 +81,7 @@ public class RepoHelper {
     public RepoHelper(Path directoryPath) throws GitAPIException, IOException, CancelledAuthorizationException {
         this.username = null;
         this.localPath = directoryPath;
+        setupSshSessionFactory();
 
     }
 
@@ -90,6 +90,7 @@ public class RepoHelper {
         this.localPath = directoryPath;
         this.ownerAuth = ownerAuth;
         this.password = null;
+        setupSshSessionFactory();
     }
 
     public RepoHelper(Path directoryPath, String sshPassword)
@@ -97,6 +98,7 @@ public class RepoHelper {
         this.localPath = directoryPath;
         this.ownerAuth = null;
         this.password = sshPassword;
+        setupSshSessionFactory();
     }
 
     public RepoHelper(Path directoryPath, File credentialsFile)
@@ -105,6 +107,7 @@ public class RepoHelper {
         this.ownerAuth = null;
         this.password = null;
         this.credentialsFile = credentialsFile;
+        setupSshSessionFactory();
     }
 
     public RepoHelper(Path directoryPath, UserInfo userInfo)
@@ -114,6 +117,7 @@ public class RepoHelper {
         this.password = null;
         this.credentialsFile = null;
         this.userInfo = userInfo;
+        setupSshSessionFactory();
     }
 
     public RepoHelper(Path directoryPath, String sshPassword, UserInfo userInfo)
@@ -123,6 +127,34 @@ public class RepoHelper {
         this.password = sshPassword;
         this.credentialsFile = null;
         this.userInfo = userInfo;
+        setupSshSessionFactory();
+    }
+
+    public RepoHelper(String sshPassword) {
+        this.password = sshPassword;
+        setupSshSessionFactory();
+    }
+
+    public RepoHelper(UserInfo userInfo) {
+        this.userInfo = userInfo;
+        setupSshSessionFactory();
+    }
+
+    public void setupSshSessionFactory() {
+        sshSessionFactory = new JschConfigSessionFactory() {
+            @Override
+            protected void configure(OpenSshConfig.Host host, Session session) {
+                session.setPassword(password);
+                session.setUserInfo(userInfo);
+            }
+
+            @Override
+            protected JSch createDefaultJSch(FS fs) throws JSchException {
+                JSch defaultJSch = super.createDefaultJSch(fs);
+                defaultJSch.removeAllIdentity();
+                return defaultJSch;
+            }
+        };
     }
 
 
@@ -159,6 +191,10 @@ public class RepoHelper {
         wrapAuthentication(command, null, null, null, null, userInfo);
     }
 
+    void wrapAuthentication(TransportCommand command) {
+        wrapAuthentication(command, null, null, null, null, null);
+    }
+
     void wrapAuthentication(TransportCommand command, UsernamePasswordCredentialsProvider ownerAuth,
                                    String sshPassword, File credentialsFile, List<String> credentialsList,
                                    UserInfo userInfo) {
@@ -174,22 +210,6 @@ public class RepoHelper {
                     public void configure(Transport transport) {
 
                         if (transport instanceof TransportGitSsh) {
-                            SshSessionFactory sshSessionFactory = new JschConfigSessionFactory() {
-                                @Override
-                                protected void configure(OpenSshConfig.Host host, Session session) {
-                                    session.setPassword(sshPassword);
-                                    System.out.println(userInfo);
-                                    //if (userInfo != null)
-                                    session.setUserInfo(userInfo);
-                                }
-
-                                @Override
-                                protected JSch createDefaultJSch(FS fs) throws JSchException {
-                                    JSch defaultJSch = super.createDefaultJSch(fs);
-                                    defaultJSch.removeAllIdentity();
-                                    return defaultJSch;
-                                }
-                            };
                             SshTransport sshTransport = (SshTransport) transport;
                             sshTransport.setSshSessionFactory(sshSessionFactory);
                         }

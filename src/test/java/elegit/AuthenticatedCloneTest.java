@@ -160,7 +160,7 @@ public class AuthenticatedCloneTest {
         UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider(username, password);
 
         TransportCommand command = Git.lsRemoteRepository().setRemote(GITHUB_REMOTE_URL);
-        RepoHelper helper = new RepoHelper();
+        RepoHelper helper = new RepoHelper("");
         helper.wrapAuthentication(command, credentials);
         command.call();
     }
@@ -198,8 +198,8 @@ public class AuthenticatedCloneTest {
 
         List<String> userCredentials = Files.readAllLines(passwordFile);
         TransportCommand command = Git.lsRemoteRepository().setRemote(remoteURL);
-        RepoHelper helper = new RepoHelper();
-        helper.wrapAuthentication(command, new ElegitUserInfoTest(userCredentials.get(0), null));
+        RepoHelper helper = new RepoHelper(new ElegitUserInfoTest(userCredentials.get(0), null));
+        helper.wrapAuthentication(command);
         command.call();
     }
 

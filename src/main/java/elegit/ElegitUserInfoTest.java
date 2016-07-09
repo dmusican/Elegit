@@ -59,7 +59,6 @@ public class ElegitUserInfoTest implements UserInfo {
 
     @Override
     public boolean promptYesNo(String s) {
-
         System.out.println(s);
 
         // If the question is:
