@@ -1,14 +1,6 @@
 package elegit;
 
-import com.jcraft.jsch.UIKeyboardInteractive;
 import com.jcraft.jsch.UserInfo;
-import com.sun.tools.doclets.formats.html.SourceToHTMLConverter;
-import javafx.application.Platform;
-import javafx.scene.control.TextInputDialog;
-
-import java.util.Optional;
-import java.util.Scanner;
-import java.util.concurrent.FutureTask;
 
 /**
  * Class for purposes for JSch authentication (which JGit uses). This is the text-based version used
