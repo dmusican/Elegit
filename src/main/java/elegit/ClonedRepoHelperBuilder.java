@@ -213,7 +213,8 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
             String sshPassword = response.password;
 
             try {
-                RepoHelper.wrapAuthentication(command, credentials, sshPassword);
+                RepoHelper lsHelper = new RepoHelper();
+                lsHelper.wrapAuthentication(command, credentials, sshPassword);
                 command.call();
             } catch (TransportException e) {
                 // If the URL doesn't have a repo, a Transport Exception is thrown when this command is called.

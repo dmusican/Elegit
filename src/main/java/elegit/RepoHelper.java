@@ -30,9 +30,9 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 
 /**
- * The abstract RepoHelper class, used for interacting with a repository.
+ * The RepoHelper class, used for interacting with a repository.
  */
-public abstract class RepoHelper {
+public class RepoHelper {
 
     //protected UsernamePasswordCredentialsProvider ownerAuth;
 
@@ -67,6 +67,9 @@ public abstract class RepoHelper {
     static final Logger logger = LogManager.getLogger();
     protected UsernamePasswordCredentialsProvider ownerAuth;
 
+    public RepoHelper() {
+
+    }
     /**
      * Creates a RepoHelper object for holding a Repository and interacting with it
      * through JGit.
@@ -128,35 +131,35 @@ public abstract class RepoHelper {
         lsRemoteRepository, for example, that is used before we've actually created a RepoHelper object. Without a
         RepoHelper, there isn't an ownerAuth instance variable, so we don't have it yet.
      */
-    static void wrapAuthentication(TransportCommand command,
+    void wrapAuthentication(TransportCommand command,
                                    UsernamePasswordCredentialsProvider ownerAuth) {
         wrapAuthentication(command, ownerAuth, null, null, null, null);
     }
 
 
-    static void wrapAuthentication(TransportCommand command, String sshPassword) {
+    void wrapAuthentication(TransportCommand command, String sshPassword) {
         wrapAuthentication(command, null, sshPassword, null, null, null);
     }
 
-    static void wrapAuthentication(TransportCommand command, UsernamePasswordCredentialsProvider ownerAuth,
+    void wrapAuthentication(TransportCommand command, UsernamePasswordCredentialsProvider ownerAuth,
                                    String sshPassword) {
         wrapAuthentication(command, ownerAuth, sshPassword, null, null, null);
     }
 
-    static void wrapAuthentication(TransportCommand command,
+    void wrapAuthentication(TransportCommand command,
                                    File credentialsFile) {
         wrapAuthentication(command, null, null, credentialsFile, null, null);
     }
 
-    static void wrapAuthentication(TransportCommand command, List<String> credentialsList) {
+    void wrapAuthentication(TransportCommand command, List<String> credentialsList) {
         wrapAuthentication(command, null, null, null, credentialsList, null);
     }
 
-    static void wrapAuthentication(TransportCommand command, UserInfo userInfo) {
+    void wrapAuthentication(TransportCommand command, UserInfo userInfo) {
         wrapAuthentication(command, null, null, null, null, userInfo);
     }
 
-    static void wrapAuthentication(TransportCommand command, UsernamePasswordCredentialsProvider ownerAuth,
+    void wrapAuthentication(TransportCommand command, UsernamePasswordCredentialsProvider ownerAuth,
                                    String sshPassword, File credentialsFile, List<String> credentialsList,
                                    UserInfo userInfo) {
 
