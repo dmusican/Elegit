@@ -66,6 +66,7 @@ public class CommitLabelTest {
         UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider("", "");
         helper = new ClonedRepoHelper(repoPath, remoteURL, credentials);
         assertNotNull(helper);
+        helper.obtainRepository(remoteURL);
 
         // Get the commit trees
         this.localCommitTreeModel = Main.sessionController.localCommitTreeModel;

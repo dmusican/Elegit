@@ -23,38 +23,33 @@ public class ClonedRepoHelper extends RepoHelper {
     public ClonedRepoHelper(Path directoryPath, String remoteURL, UsernamePasswordCredentialsProvider ownerAuth)
             throws GitAPIException, IOException, CancelledAuthorizationException {
         super(directoryPath, ownerAuth);
-        repo = obtainRepository(remoteURL);
-        setup();
+        //obtainRepository(remoteURL);
     }
 
     // Authentication via SSH password; no username since thats encoded in the URL
     public ClonedRepoHelper(Path directoryPath, String remoteURL, String sshPassword)
             throws GitAPIException, IOException, CancelledAuthorizationException {
         super(directoryPath, sshPassword);
-        repo = obtainRepository(remoteURL);
-        setup();
+        obtainRepository(remoteURL);
     }
 
     // Constructor specifically designed for unit testing; file containing credentials passed in
     public ClonedRepoHelper(Path directoryPath, String remoteURL, File credentialsFile)
             throws GitAPIException, IOException, CancelledAuthorizationException {
         super(directoryPath, credentialsFile);
-        repo = obtainRepository(remoteURL);
-        setup();
+        obtainRepository(remoteURL);
     }
 
     public ClonedRepoHelper(Path directoryPath, String remoteURL, UserInfo userInfo)
             throws GitAPIException, IOException, CancelledAuthorizationException {
         super(directoryPath, userInfo);
-        repo = obtainRepository(remoteURL);
-        setup();
+        obtainRepository(remoteURL);
     }
 
     public ClonedRepoHelper(Path directoryPath, String remoteURL, String sshPassword, UserInfo userInfo)
             throws GitAPIException, IOException, CancelledAuthorizationException {
         super(directoryPath, sshPassword, userInfo);
-        repo = obtainRepository(remoteURL);
-        setup();
+        obtainRepository(remoteURL);
     }
 
     /**
@@ -64,7 +59,8 @@ public class ClonedRepoHelper extends RepoHelper {
      * @return the RepoHelper's associated Repository object.
      * @throws GitAPIException if the `git clone` call fails.
      */
-    protected Repository obtainRepository(String remoteURL) throws GitAPIException, CancelledAuthorizationException {
+    protected void obtainRepository(String remoteURL) throws GitAPIException, IOException,
+            CancelledAuthorizationException {
         CloneCommand cloneCommand = Git.cloneRepository();
         cloneCommand.setURI(remoteURL);
         myWrapAuthentication(cloneCommand);
@@ -73,7 +69,8 @@ public class ClonedRepoHelper extends RepoHelper {
         Git cloneCall = cloneCommand.call();
 
         cloneCall.close();
-        return cloneCall.getRepository();
+        repo = cloneCall.getRepository();
+        setup();
     }
 
 }

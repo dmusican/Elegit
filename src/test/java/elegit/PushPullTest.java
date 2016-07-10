@@ -86,11 +86,13 @@ public class PushPullTest {
         Path repoPathPush = directoryPath.resolve("pushpull1");
         ClonedRepoHelper helperPush = new ClonedRepoHelper(repoPathPush, remoteURL, credentials);
         assertNotNull(helperPush);
+        helperPush.obtainRepository(remoteURL);
 
         // Repo that will pull
         Path repoPathPull = directoryPath.resolve("pushpull2");
         ClonedRepoHelper helperPull = new ClonedRepoHelper(repoPathPull, remoteURL, credentials);
         assertNotNull(helperPull);
+        helperPull.obtainRepository(remoteURL);
 
         // Update the file, then commit and push
         Path readmePath = repoPathPush.resolve("README.md");
@@ -130,11 +132,13 @@ public class PushPullTest {
         Path repoPathPush = directoryPath.resolve("pushpull1");
         ClonedRepoHelper helperPush = new ClonedRepoHelper(repoPathPush, remoteURL, credentials);
         assertNotNull(helperPush);
+        helperPush.obtainRepository(remoteURL);
 
         // Repo that will pull
         Path repoPathPull = directoryPath.resolve("pushpull2");
         ClonedRepoHelper clonedHelperPull = new ClonedRepoHelper(repoPathPull, remoteURL, credentials);
         assertNotNull(clonedHelperPull);
+        clonedHelperPull.obtainRepository(remoteURL);
         ExistingRepoHelper existingHelperPull = new ExistingRepoHelper(repoPathPull);
 
         // Update the file, then commit and push

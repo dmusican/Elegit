@@ -1,5 +1,6 @@
 package elegit;
 
+import com.sun.org.apache.regexp.internal.RE;
 import org.eclipse.jgit.api.CreateBranchCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.MergeCommand;
@@ -66,6 +67,7 @@ public class BranchManagerUiUpdateTest {
         repoPath = directoryPath.resolve("testRepo");
         try {
             helper = new ClonedRepoHelper(repoPath, REMOTE_URL, new UsernamePasswordCredentialsProvider("",""));
+            helper.obtainRepository(REMOTE_URL);
         } catch (Exception e) {
             e.printStackTrace();
         }

@@ -76,6 +76,7 @@ public class AuthenticatedCloneTest {
         UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider("", "");
         ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, remoteURL, credentials);
         assertNotNull(helper);
+        helper.obtainRepository(remoteURL);
 
     }
 
@@ -115,6 +116,7 @@ public class AuthenticatedCloneTest {
         UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider(username, password);
         try {
             ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, remoteURL, credentials);
+            helper.obtainRepository(remoteURL);
             assertEquals(helper.getCompatibleAuthentication(),AuthMethod.HTTP);
             helper.fetch();
             Path fileLocation = repoPath.resolve("README.md");

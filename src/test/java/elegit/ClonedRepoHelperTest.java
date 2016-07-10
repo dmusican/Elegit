@@ -38,6 +38,7 @@ public class ClonedRepoHelperTest {
         // This repo doesn't check username/password for read-only
         UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider("", "");
         helper = new ClonedRepoHelper(repoPath, remoteURL, credentials);
+        helper.obtainRepository(remoteURL);
         assertNotNull(helper);
     }
 

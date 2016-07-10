@@ -229,11 +229,12 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
             //  we prevent unnecessary folder creation. By making it to this point, we've verified that the repo
             // is valid and that we can authenticate to it.
 
-            RepoHelper repoHelper;
+            ClonedRepoHelper repoHelper;
             if (response.protocol == AuthMethod.SSH) {
                 repoHelper = new ClonedRepoHelper(destinationPath, remoteURL, response.password);
             } else {
                 repoHelper = new ClonedRepoHelper(destinationPath, remoteURL, credentials);
+                repoHelper.obtainRepository(remoteURL);
             }
 
             return repoHelper;

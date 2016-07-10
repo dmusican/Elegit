@@ -79,6 +79,7 @@ public class DuplicateRepoInvisCommitTest {
         Path repoPath1 = directoryPath.resolve("repo1");
         ClonedRepoHelper repo1 = new ClonedRepoHelper(repoPath1, REMOTE_URL, credentials);
         assertNotNull(repo1);
+        repo1.obtainRepository(REMOTE_URL);
 
         CommitHelper repo1OldHead = repo1.getCommit("master");
         assertNotNull(repo1OldHead);
@@ -101,6 +102,7 @@ public class DuplicateRepoInvisCommitTest {
         Path repoPath2 = directoryPath.resolve("repo2");
         ClonedRepoHelper repo2 = new ClonedRepoHelper(repoPath2, REMOTE_URL, credentials);
         assertNotNull(repo2);
+        repo2.obtainRepository(REMOTE_URL);
 
         CommitHelper repo2OldHead = repo2.getCommit("master");
         assertNotNull(repo2OldHead);

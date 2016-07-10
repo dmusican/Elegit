@@ -92,6 +92,7 @@ public class FastForwardTest {
         Path repoPathFast = directoryPath.resolve("fastforward");
         ClonedRepoHelper helperFast = new ClonedRepoHelper(repoPathFast, remoteURL, credentials);
         assertNotNull(helperFast);
+        helperFast.obtainRepository(remoteURL);
 
         // Find the remote 'fast_branch'
         remote_helper = (RemoteBranchHelper) helperFast.getBranchModel().getBranchByName(BranchModel.BranchType.REMOTE, "origin/fast_branch");
@@ -151,6 +152,7 @@ public class FastForwardTest {
         Path repoPathFast = directoryPath.resolve("fastforward");
         ClonedRepoHelper helperFast = new ClonedRepoHelper(repoPathFast, remoteURL, credentials);
         assertNotNull(helperFast);
+        helperFast.obtainRepository(remoteURL);
 
         // Find the remote 'can_push'
         remote_helper = (RemoteBranchHelper) helperFast.getBranchModel().getBranchByName(BranchModel.BranchType.REMOTE, "origin/can_push");
