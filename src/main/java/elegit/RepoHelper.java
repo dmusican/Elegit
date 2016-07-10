@@ -252,6 +252,10 @@ public class RepoHelper {
 
     }
 
+    public void setUsernamePasswordCredentials(UsernamePasswordCredentialsProvider ownerAuth) {
+        this.ownerAuth = ownerAuth;
+    }
+
     /**
      * Updates the entire model, including commits, branches and tags
      * Note: this is expensive, but avoids possible errors that faster

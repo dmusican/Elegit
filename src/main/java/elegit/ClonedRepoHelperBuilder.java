@@ -66,10 +66,22 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
         configureCloneButton(dialog);
 
         Optional<Pair<String, String>> result = dialog.showAndWait();
+        if (result.isPresent()) {
+            // Unpack the destination-remote Pair created above:
+            Path destinationPath = Paths.get(result.get().getKey());
+            String remoteURL = result.get().getValue();
 
-        RepoHelper repoHelper = processDialogResponses(result);
-        return repoHelper;
+            RepoHelperBuilder.AuthDialogResponse response = RepoHelperBuilder.getAuthCredentialFromDialog();
+            RepoHelper repoHelper = cloneRepositoryWithChecks(remoteURL, response);
+
+            return repoHelper;
+        } else {
+            logger.info("Cloned repo helper dialog canceled");
+            // This happens when the user pressed cancel.
+            throw new NoRepoSelectedException();
+        }
     }
+
 
     private Dialog<Pair<String, String>> createCloneDialog() {
         logger.info("Load remote repo dialog started");
@@ -191,28 +203,25 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
 
     }
 
-    private RepoHelper processDialogResponses(Optional<Pair<String, String>> result) throws GitAPIException, IOException, CancelledAuthorizationException, NoRepoSelectedException {
-        if (result.isPresent()) {
-            // Unpack the destination-remote Pair created above:
-            Path destinationPath = Paths.get(result.get().getKey());
-            String remoteURL = result.get().getValue();
+    static RepoHelper cloneRepositoryWithChecks(String remoteURL, RepoHelperBuilder.AuthDialogResponse response)
+            throws GitAPIException, IOException, CancelledAuthorizationException, NoRepoSelectedException {
 
-            // Always use authentication. If authentication is unneeded (HTTP), it will still work even if the wrong
-            // username password is used. This is what Eclipse does; in fact, it asks for username/password in the
-            // same dialog box that the URL is entered.
+        // Always use authentication. If authentication is unneeded (HTTP), it will still work even if the wrong
+        // username password is used. This is what Eclipse does; in fact, it asks for username/password in the
+        // same dialog box that the URL is entered.
+        //
+        // Set up both sets of credentials (username/password pair, as well
+        // as just password. Only one of these will be used, but that is determined automatically via the JGit
+        // callback mechanism.
+        UsernamePasswordCredentialsProvider credentials =
+                new UsernamePasswordCredentialsProvider(response.username, response.password);
+        String sshPassword = response.password;
 
-            // Try calling `git ls-remote ___` on the remote URL to see if it's valid
-            TransportCommand command = Git.lsRemoteRepository().setRemote(remoteURL);
+        // Try calling `git ls-remote ___` on the remote URL to see if it's valid
+        TransportCommand command = Git.lsRemoteRepository().setRemote(remoteURL);
 
-            // Get authentication as needed. Set up both sets of credentials (username/password pair, as well
-            // as just password. Only one of these will be used, but that is determined automatically via the JGit
-            // callback mechanism.
-            RepoHelperBuilder.AuthDialogResponse response = RepoHelperBuilder.getAuthCredentialFromDialog();
-            UsernamePasswordCredentialsProvider credentials =
-                    new UsernamePasswordCredentialsProvider(response.username, response.password);
-            String sshPassword = response.password;
 
-            ClonedRepoHelper repoHelper;
+        ClonedRepoHelper repoHelper;
             try {
                 repoHelper = new ClonedRepoHelper(sshPassword);
                 repoHelper.wrapAuthentication(command, credentials);
@@ -230,21 +239,14 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
             //  we prevent unnecessary folder creation. By making it to this point, we've verified that the repo
             // is valid and that we can authenticate to it.
 
-            ClonedRepoHelper repoHelper;
             if (response.protocol == AuthMethod.SSH) {
-                repoHelper = new ClonedRepoHelper(destinationPath, remoteURL, response.password);
                 repoHelper.obtainRepository(remoteURL);
             } else {
-                repoHelper = new ClonedRepoHelper(destinationPath, remoteURL, credentials);
+                repoHelper.setUsernamePasswordCredentials(credentials);
                 repoHelper.obtainRepository(remoteURL);
             }
 
             return repoHelper;
-        } else {
-            logger.info("Cloned repo helper dialog canceled");
-            // This happens when the user pressed cancel.
-            throw new NoRepoSelectedException();
-        }
     }
 
 

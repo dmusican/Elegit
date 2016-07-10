@@ -94,7 +94,7 @@ public class MergeFromFetchTest {
         Path repoPathFetch = directoryPath.resolve("fetcher");
         ClonedRepoHelper helperFetch = new ClonedRepoHelper(repoPathFetch, remoteURL, credentials);
         assertNotNull(helperPush);
-        helperPush.obtainRepository(remoteURL);
+        helperFetch.obtainRepository(remoteURL);
 
 
         /* ********************* EDIT AND PUSH SECTION ********************* */
