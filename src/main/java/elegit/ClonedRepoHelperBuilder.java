@@ -232,6 +232,7 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
             ClonedRepoHelper repoHelper;
             if (response.protocol == AuthMethod.SSH) {
                 repoHelper = new ClonedRepoHelper(destinationPath, remoteURL, response.password);
+                repoHelper.obtainRepository(remoteURL);
             } else {
                 repoHelper = new ClonedRepoHelper(destinationPath, remoteURL, credentials);
                 repoHelper.obtainRepository(remoteURL);

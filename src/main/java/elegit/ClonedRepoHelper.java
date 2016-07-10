@@ -23,33 +23,17 @@ public class ClonedRepoHelper extends RepoHelper {
     public ClonedRepoHelper(Path directoryPath, String remoteURL, UsernamePasswordCredentialsProvider ownerAuth)
             throws GitAPIException, IOException, CancelledAuthorizationException {
         super(directoryPath, ownerAuth);
-        //obtainRepository(remoteURL);
     }
 
     // Authentication via SSH password; no username since thats encoded in the URL
     public ClonedRepoHelper(Path directoryPath, String remoteURL, String sshPassword)
             throws GitAPIException, IOException, CancelledAuthorizationException {
         super(directoryPath, sshPassword);
-        obtainRepository(remoteURL);
-    }
-
-    // Constructor specifically designed for unit testing; file containing credentials passed in
-    public ClonedRepoHelper(Path directoryPath, String remoteURL, File credentialsFile)
-            throws GitAPIException, IOException, CancelledAuthorizationException {
-        super(directoryPath, credentialsFile);
-        obtainRepository(remoteURL);
-    }
-
-    public ClonedRepoHelper(Path directoryPath, String remoteURL, UserInfo userInfo)
-            throws GitAPIException, IOException, CancelledAuthorizationException {
-        super(directoryPath, userInfo);
-        obtainRepository(remoteURL);
     }
 
     public ClonedRepoHelper(Path directoryPath, String remoteURL, String sshPassword, UserInfo userInfo)
             throws GitAPIException, IOException, CancelledAuthorizationException {
         super(directoryPath, sshPassword, userInfo);
-        obtainRepository(remoteURL);
     }
 
     /**

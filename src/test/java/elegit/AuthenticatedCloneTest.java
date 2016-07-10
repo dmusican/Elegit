@@ -228,6 +228,7 @@ public class AuthenticatedCloneTest {
         //ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, remoteURL, new ElegitUserInfoTest(password, null));
         ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, remoteURL, password,
                                                        new ElegitUserInfoTest(password,null));
+        helper.obtainRepository(remoteURL);
         assertEquals(helper.getCompatibleAuthentication(),AuthMethod.SSH);
         helper.fetch();
         helper.pushAll();
@@ -253,6 +254,7 @@ public class AuthenticatedCloneTest {
 
         ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, remoteURL, passphrase,
                                                        new ElegitUserInfoTest(null, passphrase));
+        helper.obtainRepository(remoteURL);
         assertEquals(helper.getCompatibleAuthentication(),AuthMethod.SSH);
         helper.fetch();
         helper.pushAll();
