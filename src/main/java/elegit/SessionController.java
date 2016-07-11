@@ -52,6 +52,7 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.prefs.BackingStoreException;
@@ -83,6 +84,7 @@ public class SessionController {
     public Button pushButton;
     public Button fetchButton;
     public Button branchesButton;
+    public Button addButton;
 
     public TextArea commitMessageField;
 
@@ -219,6 +221,7 @@ public class SessionController {
         openRepoDirButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         gitStatusButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         commitButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
+        addButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         mergeFromFetchButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         pushTagsButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         pushButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
@@ -283,6 +286,9 @@ public class SessionController {
 
         this.commitButton.setTooltip(new Tooltip(
                 "Check in selected files to local repository"
+        ));
+        this.addButton.setTooltip(new Tooltip(
+                "Stage changes for selected files"
         ));
         this.mergeFromFetchButton.setTooltip(new Tooltip(
                 "Merge files from remote repository to local repository"
@@ -560,7 +566,7 @@ public class SessionController {
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
             if(!this.theModel.getCurrentRepoHelper().exists()) throw new MissingRepoException();
 
-            if(!workingTreePanelView.isAnyFileSelected()) throw new NoFilesStagedForCommitException();
+            if(!workingTreePanelView.isAnyFileSelected()) throw new NoFilesSelectedToAddException();
 
             BusyWindow.show();
             BusyWindow.setLoadingText("Adding...");
@@ -568,35 +574,26 @@ public class SessionController {
                 @Override
                 protected Void call() {
                     try{
-                        for(RepoFile checkedFile : workingTreePanelView.getCheckedFilesInDirectory())
-                            checkedFile.updateFileStatusInRepo();
+                        ArrayList<Path> filePathsToAdd = new ArrayList<>();
+                        // Try to add all files, throw exception if there are ones that can't be added
+                        for(RepoFile checkedFile : workingTreePanelView.getCheckedFilesInDirectory()) {
+                            if (checkedFile.canAdd())
+                                filePathsToAdd.add(checkedFile.getFilePath());
+                            else
+                                throw new UnableToAddException(checkedFile.filePath.toString());
+                        }
+
+                        theModel.getCurrentRepoHelper().addFilePaths(filePathsToAdd);
+                        gitStatus();
 
                     } catch(JGitInternalException e){
                         showGenericErrorNotification();
                         e.printStackTrace();
-                    } catch(MissingRepoException e){
-                        showMissingRepoNotification();
-                        setButtonsDisabled(true);
-                        refreshRecentReposInDropdown();
-                    } catch (TransportException e) {
-                        showNotAuthorizedNotification(null);
-                    } catch (WrongRepositoryStateException e) {
+                    } catch (UnableToAddException e) {
+                        showCannotAddFileNotification(e.filename);
+                    } catch (GitAPIException e) {
                         showGenericErrorNotification();
-                        e.printStackTrace();
-
-                        // TODO remove the above debug statements
-                        // This should hopefully not appear any more. Previously occurred when attempting to resolve
-                        // conflicts in an external editor
-                        // Do nothing.
-
-                    } catch(GitAPIException e){
-                        // Git error, or error presenting the file chooser window
-                        showGenericErrorNotification();
-                        e.printStackTrace();
-                    } catch(Exception e) {
-                        showGenericErrorNotification();
-                        e.printStackTrace();
-                    }finally {
+                    } finally {
                         BusyWindow.hide();
                     }
                     return null;
@@ -605,15 +602,12 @@ public class SessionController {
             th.setDaemon(true);
             th.setName("Git add");
             th.start();
-        } catch(NoRepoLoadedException e){
+        } catch (NoFilesSelectedToAddException e) {
+            this.showNoFilesSelectedForAddNotification();
+        } catch (NoRepoLoadedException e) {
             this.showNoRepoLoadedNotification();
-            setButtonsDisabled(true);
-        } catch(MissingRepoException e){
+        } catch (MissingRepoException e) {
             this.showMissingRepoNotification();
-            setButtonsDisabled(true);
-            refreshRecentReposInDropdown();
-        } catch(NoFilesStagedForCommitException e){
-            this.showNoFilesStagedForCommitNotification();
         }
     }
 
@@ -1265,6 +1259,7 @@ public class SessionController {
             gitStatusButton.setDisable(disable);
             tagButton.setDisable(disable);
             commitButton.setDisable(disable);
+            addButton.setDisable(disable);
             mergeFromFetchButton.setDisable(disable);
             pushTagsButton.setDisable(disable);
             pushButton.setDisable(disable);
@@ -1648,6 +1643,40 @@ public class SessionController {
             this.notificationPane.show();
         });
     }
+
+
+    private void showNoFilesSelectedForAddNotification(){
+        Platform.runLater(() -> {
+            logger.warn("No files selected for add warning");
+            this.notificationPane.setText("You need to select files to add");
+
+            this.notificationPane.getActions().clear();
+            this.notificationPane.show();
+        });
+    }
+
+
+    private void showNoFilesSelectedForRemoveNotification(){
+        Platform.runLater(() -> {
+            logger.warn("No files staged for remove warning");
+            this.notificationPane.setText("You need select files to remove");
+
+            this.notificationPane.getActions().clear();
+            this.notificationPane.show();
+        });
+    }
+
+
+    private void showCannotAddFileNotification(String filename) {
+        Platform.runLater(() -> {
+            logger.warn("Cannot add file notification");
+            this.notificationPane.setText("Cannot add "+filename+". It might already be added (staged).");
+
+            this.notificationPane.getActions().clear();
+            this.notificationPane.show();
+        });
+    }
+
 
     private void showNoCommitMessageNotification(){
         Platform.runLater(() -> {

@@ -271,8 +271,9 @@ public abstract class RepoHelper {
         // git add:
         AddCommand adder = git.add();
         for (Path filePath : filePaths) {
-            Path localizedFilePath = this.localPath.relativize(filePath);
-            adder.addFilepattern(localizedFilePath.toString());
+            //Path localizedFilePath = this.localPath.relativize(filePath);
+            //adder.addFilepattern(localizedFilePath.toString());
+            adder.addFilepattern(filePath.toString());
         }
         adder.call();
         git.close();
