@@ -1,5 +1,6 @@
 package elegit;
 
+import elegit.exceptions.MissingRepoException;
 import javafx.application.Platform;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonBar;
@@ -45,7 +46,7 @@ public class ConflictingThenModifiedRepoFile extends RepoFile {
     /**
      * When this RepoFile is checkboxed and the user commits, display an alert.
      */
-    @Override public boolean updateFileStatusInRepo() throws GitAPIException, IOException {
+    @Override public boolean updateFileStatusInRepo() throws GitAPIException, IOException, MissingRepoException {
         ReentrantLock lock = new ReentrantLock();
         Condition finishedAlert = lock.newCondition();
 
@@ -64,8 +65,7 @@ public class ConflictingThenModifiedRepoFile extends RepoFile {
         try{
             finishedAlert.await();
             if(resultType.equals("commit")){
-                AddCommand add = new Git(this.repo.getRepo()).add().addFilepattern(this.filePath.toString());
-                add.call();
+                this.repo.add(this.filePath.toString());
                 return true;
             }
         }catch(InterruptedException ignored){

@@ -1,5 +1,6 @@
 package elegit;
 
+import elegit.exceptions.MissingRepoException;
 import javafx.scene.control.Tooltip;
 import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.Git;
@@ -32,9 +33,8 @@ public class ModifiedRepoFile extends RepoFile {
      *
      * @throws GitAPIException if the `git add` command fails.
      */
-    @Override public boolean updateFileStatusInRepo() throws GitAPIException {
-        AddCommand add = new Git(this.repo.getRepo()).add().addFilepattern(this.filePath.toString());
-        add.call();
+    @Override public boolean updateFileStatusInRepo() throws GitAPIException, MissingRepoException {
+        this.repo.add(this.filePath.toString());
         return true;
     }
 }

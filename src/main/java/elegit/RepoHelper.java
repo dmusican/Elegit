@@ -324,6 +324,45 @@ public abstract class RepoHelper {
     public boolean hasUnmergedCommits() { return checkUnmergedCommits(); }
 
     /**
+     * Adds the file or directory to the index (stages files)
+     *
+     * @param filepattern the path to the file or directory to add
+     */
+    public void add(String filepattern) throws GitAPIException, MissingRepoException {
+        logger.info("Attempting add");
+        if (!exists()) throw new MissingRepoException();
+
+        Git git = new Git(this.repo);
+        // git add:
+        git.add()
+                .addFilepattern(filepattern)
+                .call();
+        git.close();
+
+        this.hasUnpushedCommitsProperty.set(true);
+    }
+
+
+    /**
+     * Removes the file or directory from the index
+     *
+     * @param filepattern the path to the file or directory to remove
+     */
+    public void remove(String filepattern) throws GitAPIException, MissingRepoException {
+        logger.info("Attempting remove");
+        if (!exists()) throw new MissingRepoException();
+
+        Git git = new Git(this.repo);
+        // git remove:
+        git.rm()
+                .addFilepattern(filepattern)
+                .call();
+        git.close();
+
+        this.hasUnpushedCommitsProperty.set(true);
+    }
+
+    /**
      * Commits changes to the repository.
      *
      * @param commitMessage the message for the commit.

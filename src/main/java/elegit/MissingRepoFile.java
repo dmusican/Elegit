@@ -1,5 +1,6 @@
 package elegit;
 
+import elegit.exceptions.MissingRepoException;
 import javafx.scene.control.Tooltip;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.RmCommand;
@@ -31,9 +32,8 @@ public class MissingRepoFile extends RepoFile {
      *
      * @throws GitAPIException if the `git rm` command fails.
      */
-    @Override public boolean updateFileStatusInRepo() throws GitAPIException {
-        RmCommand rm = new Git(this.repo.getRepo()).rm().addFilepattern(this.filePath.toString());
-        rm.call();
+    @Override public boolean updateFileStatusInRepo() throws GitAPIException, MissingRepoException {
+        this.repo.remove(this.filePath.toString());
         return true;
     }
 }
