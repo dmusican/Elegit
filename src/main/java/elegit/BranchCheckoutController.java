@@ -2,7 +2,9 @@ package elegit;
 
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -19,6 +21,12 @@ import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.lib.Repository;
 
 import java.io.IOException;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  *
@@ -27,28 +35,21 @@ import java.io.IOException;
  * deletion, and tracking of remotes.
  *
  */
-public class BranchManagerController {
+public class BranchCheckoutController {
 
     public Text branchOffFromText;
     public TextField newBranchNameField;
-    @FXML
-    private Button newBranchButton;
     public ListView<RemoteBranchHelper> remoteListView;
     public ListView<LocalBranchHelper> localListView;
     private Repository repo;
     private RepoHelper repoHelper;
     private BranchModel branchModel;
     @FXML
-    private NotificationPane notificationPane;
-
-    @FXML
-    private Button mergeButton;
-    @FXML
-    private Button deleteLocalBranchesButton;
+    private static NotificationPane notificationPane;
     @FXML
     private Button trackRemoteBranchButton;
     @FXML
-    private Button swapMergeBranchesButton;
+    private Button checkoutLocalBranchButton;
 
     private SessionModel sessionModel;
     private LocalCommitTreeModel localCommitTreeModel;
@@ -92,19 +93,6 @@ public class BranchManagerController {
         Text cloudDownIcon = GlyphsDude.createIcon(FontAwesomeIcon.CLOUD_DOWNLOAD);
         cloudDownIcon.setFill(Color.WHITE);
         this.trackRemoteBranchButton.setGraphic(cloudDownIcon);
-
-        Text trashIcon = GlyphsDude.createIcon(FontAwesomeIcon.TRASH);
-        trashIcon.setFill(Color.WHITE);
-        this.deleteLocalBranchesButton.setGraphic(trashIcon);
-
-        Text arrowsIcon = GlyphsDude.createIcon(FontAwesomeIcon.EXCHANGE);
-        arrowsIcon.setFill(Color.WHITE);
-        this.swapMergeBranchesButton.setGraphic(arrowsIcon);
-        this.swapMergeBranchesButton.setTooltip(new Tooltip("Swap which branch is merging into which."));
-
-        Text branchIcon = GlyphsDude.createIcon(FontAwesomeIcon.CODE_FORK);
-        branchIcon.setFill(Color.WHITE);
-        this.newBranchButton.setGraphic(branchIcon);
     }
 
     /**
@@ -194,12 +182,10 @@ public class BranchManagerController {
      * @throws IOException
      */
     private void updateButtons() throws IOException {
-        String currentBranchName = this.repo.getBranch();
-        this.branchOffFromText.setText(String.format("Branch off from %s:", currentBranchName));
 
         // Update delete button
         if (this.localListView.getSelectionModel().getSelectedIndices().size() > 0) {
-            this.deleteLocalBranchesButton.setDisable(false);
+            this.checkoutLocalBranchButton.setDisable(false);
             // But keep trackRemoteBranchButton disabled
             this.trackRemoteBranchButton.setDisable(true);
         }
@@ -208,22 +194,7 @@ public class BranchManagerController {
         if (this.remoteListView.getSelectionModel().getSelectedIndices().size() > 0) {
             this.trackRemoteBranchButton.setDisable(false);
             // But keep the other buttons disabled
-            this.deleteLocalBranchesButton.setDisable(true);
-            this.mergeButton.setDisable(true);
-            this.swapMergeBranchesButton.setDisable(true);
-        }
-
-        // Update merge button
-        mergeButton.setMnemonicParsing(false);
-        if (this.localListView.getSelectionModel().getSelectedIndices().size() == 1) {
-            this.mergeButton.setDisable(false);
-            this.swapMergeBranchesButton.setDisable(false);
-            String selectedBranchName = this.localListView.getSelectionModel().getSelectedItem().getBranchName();
-            this.mergeButton.setText(String.format("Merge %s into %s", selectedBranchName, currentBranchName));
-        } else {
-            this.mergeButton.setText(String.format("Merge selected branch into %s", currentBranchName));
-            this.mergeButton.setDisable(true);
-            this.swapMergeBranchesButton.setDisable(true);
+            this.checkoutLocalBranchButton.setDisable(true);
         }
     }
 
@@ -378,126 +349,186 @@ public class BranchManagerController {
         this.showBranchSwapNotification(selectedBranch.getBranchName());
     }
 
+    public static void checkoutBranch(LocalBranchHelper selectedBranch, SessionModel theSessionModel) {
+        if(selectedBranch == null) return;
+        Thread th = new Thread(new Task<Void>(){
+            @Override
+            protected Void call() {
+
+                try{
+                    // This is an edge case for new local repos.
+                    //
+                    // When a repo is first initialized,the `master` branch is checked-out,
+                    //  but it is "unborn" -- it doesn't exist yet in the `refs/heads` folder
+                    //  until there are commits.
+                    //
+                    // (see http://stackoverflow.com/a/21255920/5054197)
+                    //
+                    // So, check that there are refs in the refs folder (if there aren't, do nothing):
+                    String gitDirString = theSessionModel.getCurrentRepo().getDirectory().toString();
+                    Path refsHeadsFolder = Paths.get(gitDirString + "/refs/heads");
+                    DirectoryStream<Path> pathStream = Files.newDirectoryStream(refsHeadsFolder);
+                    Iterator<Path> pathStreamIterator = pathStream.iterator();
+
+                    if (pathStreamIterator.hasNext()){ // => There ARE branch refs in the folder
+                        selectedBranch.checkoutBranch();
+                        CommitTreeController.focusCommitInGraph(selectedBranch.getHead());
+                    }
+                }catch(CheckoutConflictException e){
+                    showCheckoutConflictsNotification(e.getConflictingPaths());
+                }catch(GitAPIException | IOException e){
+                    showGenericErrorNotification();
+                    e.printStackTrace();
+                }
+                return null;
+            }
+        });
+        th.setDaemon(true);
+        th.setName("Branch Checkout");
+        th.start();
+    }
+
+    public void handleCheckoutButton() {
+        closeWindow();
+        checkoutBranch(localListView.getSelectionModel().getSelectedItem(), sessionModel);
+    }
+
     /// BEGIN: ERROR NOTIFICATIONS:
 
     private void showBranchSwapNotification(String newlyCheckedOutBranchName) {
         logger.info("Checked out a branch notification");
-        this.notificationPane.setText(String.format("%s is now checked out.", newlyCheckedOutBranchName));
+        notificationPane.setText(String.format("%s is now checked out.", newlyCheckedOutBranchName));
 
-        this.notificationPane.getActions().clear();
-        this.notificationPane.show();
+        notificationPane.getActions().clear();
+        notificationPane.show();
     }
 
     private void showFastForwardMergeNotification() {
         logger.info("Fast forward merge complete notification");
-        this.notificationPane.setText("Fast-forward merge completed (HEAD was updated).");
+        notificationPane.setText("Fast-forward merge completed (HEAD was updated).");
 
-        this.notificationPane.getActions().clear();
-        this.notificationPane.show();
+        notificationPane.getActions().clear();
+        notificationPane.show();
     }
 
     private void showMergeSuccessNotification() {
         logger.info("Merge completed notification");
-        this.notificationPane.setText("Merge completed.");
+        notificationPane.setText("Merge completed.");
 
-        this.notificationPane.getActions().clear();
-        this.notificationPane.show();
+        notificationPane.getActions().clear();
+        notificationPane.show();
     }
 
     private void showFailedMergeNotification() {
         logger.warn("Merge failed notification");
-        this.notificationPane.setText("The merge failed.");
+        notificationPane.setText("The merge failed.");
 
-        this.notificationPane.getActions().clear();
-        this.notificationPane.show();
+        notificationPane.getActions().clear();
+        notificationPane.show();
     }
 
     private void showUpToDateNotification() {
         logger.warn("No merge necessary notification");
-        this.notificationPane.setText("No merge necessary. Those two branches are already up-to-date.");
+        notificationPane.setText("No merge necessary. Those two branches are already up-to-date.");
 
-        this.notificationPane.getActions().clear();
-        this.notificationPane.show();
+        notificationPane.getActions().clear();
+        notificationPane.show();
     }
 
     private void showGenericGitErrorNotificationWithBranch(LocalBranchHelper branch) {
         logger.warn("Git error on branch notification");
-        this.notificationPane.setText(String.format("Sorry, there was a git error on branch %s.", branch.getBranchName()));
+        notificationPane.setText(String.format("Sorry, there was a git error on branch %s.", branch.getBranchName()));
 
-        this.notificationPane.getActions().clear();
-        this.notificationPane.show();
+        notificationPane.getActions().clear();
+        notificationPane.show();
     }
 
     private void showGenericGitErrorNotification() {
         logger.warn("Git error notification");
-        this.notificationPane.setText("Sorry, there was a git error.");
+        notificationPane.setText("Sorry, there was a git error.");
 
-        this.notificationPane.getActions().clear();
-        this.notificationPane.show();
+        notificationPane.getActions().clear();
+        notificationPane.show();
     }
 
-    private void showGenericErrorNotification() {
+    private static void showGenericErrorNotification() {
         logger.warn("Generic error notification");
-        this.notificationPane.setText("Sorry, there was an error.");
+        notificationPane.setText("Sorry, there was an error.");
 
-        this.notificationPane.getActions().clear();
-        this.notificationPane.show();
+        notificationPane.getActions().clear();
+        notificationPane.show();
     }
 
     private void showNotMergedNotification(LocalBranchHelper nonmergedBranch) {
         logger.warn("Not merged notification");
-        this.notificationPane.setText("That branch has to be merged before you can do that.");
+        notificationPane.setText("That branch has to be merged before you can do that.");
 
         Action forceDeleteAction = new Action("Force delete", e -> {
             this.forceDeleteLocalBranch(nonmergedBranch);
-            this.notificationPane.hide();
+            notificationPane.hide();
         });
 
-        this.notificationPane.getActions().clear();
-        this.notificationPane.getActions().setAll(forceDeleteAction);
-        this.notificationPane.show();
+        notificationPane.getActions().clear();
+        notificationPane.getActions().setAll(forceDeleteAction);
+        notificationPane.show();
     }
 
     private void showCannotDeleteBranchNotification(LocalBranchHelper branch) {
         logger.warn("Cannot delete current branch notification");
-        this.notificationPane.setText(String.format("Sorry, %s can't be deleted right now. " +
+        notificationPane.setText(String.format("Sorry, %s can't be deleted right now. " +
                 "Try checking out a different branch first.", branch.getBranchName()));
         // probably because it's checked out
 
-        this.notificationPane.getActions().clear();
-        this.notificationPane.show();
+        notificationPane.getActions().clear();
+        notificationPane.show();
     }
 
     private void showRefAlreadyExistsNotification() {
         logger.info("Branch already exists notification");
-        this.notificationPane.setText("Looks like that branch already exists locally!");
+        notificationPane.setText("Looks like that branch already exists locally!");
 
-        this.notificationPane.getActions().clear();
-        this.notificationPane.show();
+        notificationPane.getActions().clear();
+        notificationPane.show();
     }
 
     private void showInvalidBranchNameNotification() {
         logger.warn("Invalid branch name notification");
-        this.notificationPane.setText("That branch name is invalid.");
+        notificationPane.setText("That branch name is invalid.");
 
-        this.notificationPane.getActions().clear();
-        this.notificationPane.show();
+        notificationPane.getActions().clear();
+        notificationPane.show();
     }
 
     private void showConflictsNotification() {
         logger.info("Merge conflicts notification");
-        this.notificationPane.setText("That merge resulted in conflicts. Check the working tree to resolve them.");
+        notificationPane.setText("That merge resulted in conflicts. Check the working tree to resolve them.");
 
-        this.notificationPane.getActions().clear();
-        this.notificationPane.show();
+        notificationPane.getActions().clear();
+        notificationPane.show();
     }
 
     private void showNoCommitsYetNotification() {
         logger.warn("No commits yet notification");
-        this.notificationPane.setText("You cannot make a branch since your repo has no commits yet. Make a commit first!");
+        notificationPane.setText("You cannot make a branch since your repo has no commits yet. Make a commit first!");
 
-        this.notificationPane.getActions().clear();
-        this.notificationPane.show();
+        notificationPane.getActions().clear();
+        notificationPane.show();
+    }
+
+    private static void showCheckoutConflictsNotification(List<String> conflictingPaths) {
+        Platform.runLater(() -> {
+            notificationPane.setText("You can't switch to that branch because there would be a merge conflict. Stash your changes or resolve conflicts first.");
+
+            Action seeConflictsAction = new Action("See conflicts", e -> {
+                notificationPane.hide();
+                PopUpWindows.showCheckoutConflictsAlert(conflictingPaths);
+            });
+
+            notificationPane.getActions().clear();
+            notificationPane.getActions().setAll(seeConflictsAction);
+
+            notificationPane.show();
+        });
     }
 
     /// END: ERROR NOTIFICATIONS ^^^

@@ -4,7 +4,7 @@
 <?import javafx.scene.text.Text?>
 <?import org.controlsfx.control.NotificationPane?>
 <?import java.net.URL?>
-<NotificationPane fx:controller="elegit.BranchManagerController"
+<NotificationPane fx:controller="elegit.BranchCheckoutController"
                   xmlns:fx="http://javafx.com/fxml"
                   fx:id="notificationPane">
     <content>
@@ -45,42 +45,13 @@
 
                 <ListView fx:id="localListView"
                           onMouseClicked="#handleLocalListViewMouseClick"/>
-                <Button fx:id="deleteLocalBranchesButton"
-                        onAction="#deleteSelectedLocalBranches"
-                        text="Delete branch locally" />
+                <Button fx:id="checkoutLocalBranchButton"
+                        onAction="#handleCheckoutButton"
+                        text="Checkout local branch" />
 
             </VBox>
 
-            <HBox GridPane.columnIndex="0"
-                  GridPane.rowIndex="3"
-                  GridPane.columnSpan="2"
-                  alignment="TOP_CENTER"
-                  spacing="10">
-
-                <Button fx:id="mergeButton"
-                        onAction="#mergeSelectedBranchWithCurrent"/>
-                <Button fx:id="swapMergeBranchesButton"
-                        onAction="#swapMergeBranches"/>
-
-            </HBox>
-
-            <Text GridPane.columnIndex="0"
-                  GridPane.rowIndex="4"
-                  GridPane.columnSpan="2"
-                  fx:id="branchOffFromText" />
-
-            <TextField GridPane.columnIndex="0"
-                       GridPane.rowIndex="5"
-                       fx:id="newBranchNameField"
-                       promptText="Branch name" />
-
-            <Button GridPane.columnIndex="1"
-                    GridPane.rowIndex="5"
-                    fx:id="newBranchButton"
-                    onAction="#onNewBranchButton"
-                    text="Create branch"/>
-
-            <Button GridPane.rowIndex="6"
+            <Button GridPane.rowIndex="3"
                     GridPane.columnIndex="1"
                     GridPane.halignment="RIGHT"
                     prefWidth="80"

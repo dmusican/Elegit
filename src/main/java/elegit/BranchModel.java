@@ -226,7 +226,7 @@ public class BranchModel {
      * Merges the current branch with the selected branch
      *
      * @param branchToMergeFrom the branch to merge into the current branch
-     * @return merge result, used in determining the notification in BranchManagerController
+     * @return merge result, used in determining the notification in BranchCheckoutController
      * @throws GitAPIException
      * @throws IOException
      */

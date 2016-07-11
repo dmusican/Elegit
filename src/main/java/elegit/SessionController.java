@@ -1228,72 +1228,6 @@ public class SessionController {
     }
 
     /**
-     * Gets the selected branch from the dropdown and calls checkout
-     */
-    public void handleCheckoutDropdown() {
-        LocalBranchHelper selectedBranch = this.branchDropdownSelector.getValue();
-        checkoutBranch(selectedBranch);
-    }
-
-    /**
-     * Checks out the selected branch and updates the UI
-     * @param selectedBranch the branch to check out
-     */
-    public void checkoutBranch(LocalBranchHelper selectedBranch) {
-        if(selectedBranch == null) return;
-        Thread th = new Thread(new Task<Void>(){
-            @Override
-            protected Void call() {
-
-                try{
-                    // This is an edge case for new local repos.
-                    //
-                    // When a repo is first initialized,the `master` branch is checked-out,
-                    //  but it is "unborn" -- it doesn't exist yet in the `refs/heads` folder
-                    //  until there are commits.
-                    //
-                    // (see http://stackoverflow.com/a/21255920/5054197)
-                    //
-                    // So, check that there are refs in the refs folder (if there aren't, do nothing):
-                    String gitDirString = theModel.getCurrentRepo().getDirectory().toString();
-                    Path refsHeadsFolder = Paths.get(gitDirString + "/refs/heads");
-                    DirectoryStream<Path> pathStream = Files.newDirectoryStream(refsHeadsFolder);
-                    Iterator<Path> pathStreamIterator = pathStream.iterator();
-
-                    if (pathStreamIterator.hasNext()){ // => There ARE branch refs in the folder
-                        selectedBranch.checkoutBranch();
-                        CommitTreeController.focusCommitInGraph(selectedBranch.getHead());
-                    }
-                }catch(CheckoutConflictException e){
-                    showCheckoutConflictsNotification(e.getConflictingPaths());
-                    try{
-                        updateBranchDropdown();
-                    }catch(NoRepoLoadedException e1){
-                        showNoRepoLoadedNotification();
-                        setButtonsDisabled(true);
-                    }catch(MissingRepoException e1){
-                        showMissingRepoNotification();
-                        setButtonsDisabled(true);
-                        refreshRecentReposInDropdown();
-                    }catch(GitAPIException | IOException e1){
-                        showGenericErrorNotification();
-                        e1.printStackTrace();
-                    }
-                }catch(GitAPIException | IOException e){
-                    showGenericErrorNotification();
-                    e.printStackTrace();
-                }
-                return null;
-            }
-        });
-        th.setDaemon(true);
-        th.setName("Branch Checkout");
-        th.start();
-    }
-
-
-
-    /**
      * A helper helper method to enable or disable buttons/UI elements
      * depending on whether there is a repo open for the buttons to
      * interact with.
@@ -1740,20 +1674,20 @@ public class SessionController {
     /**
      * Opens up the current repo helper's Branch Manager window after
      * passing in this SessionController object, so that the
-     * BranchManagerController can update the main window's views.
+     * BranchCheckoutController can update the main window's views.
      */
-    public void showBranchManager() {
+    public void showBranchCheckout() {
         try{
-            logger.info("Branch manager clicked");
+            logger.info("Branch checkout clicked");
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
 
-            logger.info("Opened branch manager window");
+            logger.info("Opened branch checkout window");
             // Create and display the Stage:
-            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/BranchManager.fxml"));
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/BranchController.fxml"));
             fxmlLoader.load();
-            BranchManagerController branchManagerController = fxmlLoader.getController();
+            BranchCheckoutController branchCheckoutController = fxmlLoader.getController();
             NotificationPane fxmlRoot = fxmlLoader.getRoot();
-            branchManagerController.showStage(fxmlRoot);
+            branchCheckoutController.showStage(fxmlRoot);
         }catch(IOException e){
             this.showGenericErrorNotification();
             e.printStackTrace();
@@ -2081,7 +2015,7 @@ public class SessionController {
                 }
                 if(checkout) {
                     if(newBranch != null) {
-                        checkoutBranch(newBranch);
+                        BranchCheckoutController.checkoutBranch(newBranch, theModel);
                     }
                 }
                 return null;

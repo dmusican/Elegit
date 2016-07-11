@@ -98,14 +98,13 @@
                     <ComboBox fx:id="branchDropdownSelector"
                               GridPane.columnIndex="3"
                               GridPane.rowIndex="0"
-                              onMouseClicked="#updateBranchDropdown"
-                              onAction="#handleCheckoutDropdown"/>
+                              onMouseClicked="#updateBranchDropdown"/>
 
                     <Button GridPane.columnIndex="4"
                             GridPane.rowIndex="0"
                             text="Manage branches"
                             fx:id="branchesButton"
-                            onAction="#handleNewBranchButton" />
+                            onAction="#showBranchCheckout" />
 
                     <HBox   GridPane.columnIndex="5"
                             GridPane.rowIndex="0"
@@ -173,6 +172,18 @@
                                 wrapText="true" />
 
                     </GridPane>
+
+                    <Button GridPane.columnIndex="0"
+                            GridPane.rowIndex="7"
+                            text="Create new branch"
+                            fx:id="newBranchButton"
+                            onAction="#handleNewBranchButton"/>
+
+                    <Button GridPane.columnIndex="0"
+                            GridPane.rowIndex="8"
+                            text="Checkout different branch"
+                            onAction="#showBranchCheckout"
+                            fx:id="checkoutButton"/>
 
                     <StackPane GridPane.rowIndex="1"
                                GridPane.columnIndex="7">
