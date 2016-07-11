@@ -104,6 +104,18 @@ public class RepoFile implements Comparable<RepoFile> {
     }
 
     /**
+     *
+     * @return whether or not this file can be added (staged)
+     */
+    public boolean canAdd() {
+        return false;
+    }
+
+    public boolean canRemove() {
+        return true;
+    }
+
+    /**
      * The files are *displayed* by only their location relative
      * to the repo, not the whole path.
      *

@@ -278,6 +278,42 @@ public abstract class RepoHelper {
         git.close();
     }
 
+
+
+    /**
+     * Removes a file from the repository.
+     *
+     * @param filePath the path of the file to remove.
+     * @throws GitAPIException if the `git rm` call fails.
+     */
+    public void removeFilePath(Path filePath) throws GitAPIException {
+        Git git = new Git(this.repo);
+        // git rm:
+        Path relativizedFilePath = this.localPath.relativize(filePath);
+        git.rm()
+                .addFilepattern(relativizedFilePath.toString())
+                .call();
+        git.close();
+    }
+
+    /**
+     * Removes multiple files from the repository.
+     *
+     * @param filePaths an ArrayList of file paths to remove.
+     * @throws GitAPIException if the `git rm` call fails.
+     */
+    public void removeFilePaths(ArrayList<Path> filePaths) throws GitAPIException {
+        Git git = new Git(this.repo);
+        // git rm:
+        RmCommand remover = git.rm();
+        for (Path filePath : filePaths) {
+            Path localizedFilePath = this.localPath.relativize(filePath);
+            remover.addFilepattern(localizedFilePath.toString());
+        }
+        remover.call();
+        git.close();
+    }
+
     /**
      * Gets a list of all remotes associated with this repository. The URLs
      * correspond to the output seen by running 'git remote -v'
@@ -322,45 +358,6 @@ public abstract class RepoHelper {
      * @return true if there are remote commits that haven't been merged into local
      */
     public boolean hasUnmergedCommits() { return checkUnmergedCommits(); }
-
-    /**
-     * Adds the file or directory to the index (stages files)
-     *
-     * @param filepattern the path to the file or directory to add
-     */
-    public void add(String filepattern) throws GitAPIException, MissingRepoException {
-        logger.info("Attempting add");
-        if (!exists()) throw new MissingRepoException();
-
-        Git git = new Git(this.repo);
-        // git add:
-        git.add()
-                .addFilepattern(filepattern)
-                .call();
-        git.close();
-
-        this.hasUnpushedCommitsProperty.set(true);
-    }
-
-
-    /**
-     * Removes the file or directory from the index
-     *
-     * @param filepattern the path to the file or directory to remove
-     */
-    public void remove(String filepattern) throws GitAPIException, MissingRepoException {
-        logger.info("Attempting remove");
-        if (!exists()) throw new MissingRepoException();
-
-        Git git = new Git(this.repo);
-        // git remove:
-        git.rm()
-                .addFilepattern(filepattern)
-                .call();
-        git.close();
-
-        this.hasUnpushedCommitsProperty.set(true);
-    }
 
     /**
      * Commits changes to the repository.

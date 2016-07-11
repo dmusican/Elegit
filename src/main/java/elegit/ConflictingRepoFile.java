@@ -76,7 +76,7 @@ public class ConflictingRepoFile extends RepoFile {
                     desktop.open(unrelativized);
                     break;
                 case "add":
-                    this.repo.add(this.filePath.toString());
+                    this.repo.addFilePath(this.filePath);
                     return true;
                 case "help":
                     PopUpWindows.showConflictingHelpAlert();

@@ -34,7 +34,7 @@ public class ModifiedRepoFile extends RepoFile {
      * @throws GitAPIException if the `git add` command fails.
      */
     @Override public boolean updateFileStatusInRepo() throws GitAPIException, MissingRepoException {
-        this.repo.add(this.filePath.toString());
+        this.repo.addFilePath(this.filePath);
         return true;
     }
 }

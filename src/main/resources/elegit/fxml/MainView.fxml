@@ -285,6 +285,15 @@
 
                     <ArrowButton GridPane.rowIndex="3"
                                  GridPane.columnIndex="1"
+                                 GridPane.valignment="TOP"
+                                 id="codeButton"
+                                 fx:id="addButton"
+                                 text="Add"
+                                 arrowRight="true"
+                                 onAction="#handleAddButton"/>
+
+                    <ArrowButton GridPane.rowIndex="3"
+                                 GridPane.columnIndex="1"
                                  GridPane.halignment="CENTER"
                                  id="codeButton"
                                  fx:id="commitButton"

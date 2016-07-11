@@ -551,8 +551,79 @@ public class SessionController {
     }
 
     /**
-     * Perform the updateFileStatusInRepo() method for each file whose
-     * checkbox is checked. Then commit with the commit message and push.
+     * Performs the updateFileStatusInRepo() method for each file whose
+     * checkbox is checked if all files have changes to be added
+     */
+    public void handleAddButton() {
+        try {
+            logger.info("Add button clicked");
+            if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
+            if(!this.theModel.getCurrentRepoHelper().exists()) throw new MissingRepoException();
+
+            String commitMessage = commitMessageField.getText();
+
+            if(!workingTreePanelView.isAnyFileSelected()) throw new NoFilesStagedForCommitException();
+            if(commitMessage.length() == 0) throw new NoCommitMessageException();
+
+            BusyWindow.show();
+            BusyWindow.setLoadingText("Adding...");
+            Thread th = new Thread(new Task<Void>(){
+                @Override
+                protected Void call() {
+                    try{
+                        for(RepoFile checkedFile : workingTreePanelView.getCheckedFilesInDirectory())
+                            checkedFile.updateFileStatusInRepo();
+
+                    } catch(JGitInternalException e){
+                        showGenericErrorNotification();
+                        e.printStackTrace();
+                    } catch(MissingRepoException e){
+                        showMissingRepoNotification();
+                        setButtonsDisabled(true);
+                        refreshRecentReposInDropdown();
+                    } catch (TransportException e) {
+                        showNotAuthorizedNotification(null);
+                    } catch (WrongRepositoryStateException e) {
+                        showGenericErrorNotification();
+                        e.printStackTrace();
+
+                        // TODO remove the above debug statements
+                        // This should hopefully not appear any more. Previously occurred when attempting to resolve
+                        // conflicts in an external editor
+                        // Do nothing.
+
+                    } catch(GitAPIException e){
+                        // Git error, or error presenting the file chooser window
+                        showGenericErrorNotification();
+                        e.printStackTrace();
+                    } catch(Exception e) {
+                        showGenericErrorNotification();
+                        e.printStackTrace();
+                    }finally {
+                        BusyWindow.hide();
+                    }
+                    return null;
+                }
+            });
+            th.setDaemon(true);
+            th.setName("Git add");
+            th.start();
+        } catch(NoRepoLoadedException e){
+            this.showNoRepoLoadedNotification();
+            setButtonsDisabled(true);
+        } catch(MissingRepoException e){
+            this.showMissingRepoNotification();
+            setButtonsDisabled(true);
+            refreshRecentReposInDropdown();
+        } catch(NoCommitMessageException e){
+            this.showNoCommitMessageNotification();
+        }catch(NoFilesStagedForCommitException e){
+            this.showNoFilesStagedForCommitNotification();
+        }
+    }
+
+    /**
+     * Commits all files that have been staged with the message
      */
     public void handleCommitButton() {
         try {
@@ -572,9 +643,6 @@ public class SessionController {
                 protected Void call() {
                     try{
                         boolean canCommit = true;
-                        for(RepoFile checkedFile : workingTreePanelView.getCheckedFilesInDirectory()){
-                            canCommit = canCommit && checkedFile.updateFileStatusInRepo();
-                        }
 
                         if(canCommit) {
                             theModel.getCurrentRepoHelper().commit(commitMessage);
@@ -601,7 +669,7 @@ public class SessionController {
                         // conflicts in an external editor
                         // Do nothing.
 
-                    } catch(GitAPIException | IOException e){
+                    } catch(GitAPIException e){
                         // Git error, or error presenting the file chooser window
                         showGenericErrorNotification();
                         e.printStackTrace();
@@ -1579,7 +1647,7 @@ public class SessionController {
     private void showNoFilesStagedForCommitNotification(){
         Platform.runLater(() -> {
             logger.warn("No files staged for commit warning");
-            this.notificationPane.setText("You need to select which files to commit");
+            this.notificationPane.setText("You need to add files before commiting");
 
             this.notificationPane.getActions().clear();
             this.notificationPane.show();

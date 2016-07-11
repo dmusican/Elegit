@@ -65,7 +65,7 @@ public class ConflictingThenModifiedRepoFile extends RepoFile {
         try{
             finishedAlert.await();
             if(resultType.equals("commit")){
-                this.repo.add(this.filePath.toString());
+                this.repo.addFilePath(this.filePath);
                 return true;
             }
         }catch(InterruptedException ignored){
