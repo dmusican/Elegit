@@ -50,11 +50,6 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.file.DirectoryStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.prefs.BackingStoreException;
@@ -1683,7 +1678,7 @@ public class SessionController {
 
             logger.info("Opened branch checkout window");
             // Create and display the Stage:
-            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/BranchController.fxml"));
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/BranchCheckout.fxml"));
             fxmlLoader.load();
             BranchCheckoutController branchCheckoutController = fxmlLoader.getController();
             NotificationPane fxmlRoot = fxmlLoader.getRoot();
@@ -2024,5 +2019,26 @@ public class SessionController {
         th.setDaemon(true);
         th.setName("createNewBranch");
         th.start();
+    }
+
+    public void handleGeneralMergeButton() {
+        try{
+            logger.info("Merge button clicked");
+            if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
+
+            logger.info("Opened merge window");
+            // Create and display the Stage:
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/MergeWindow.fxml"));
+            fxmlLoader.load();
+            MergeWindowController mergeWindowController = fxmlLoader.getController();
+            NotificationPane fxmlRoot = fxmlLoader.getRoot();
+            mergeWindowController.showStage(fxmlRoot);
+        }catch(IOException e){
+            this.showGenericErrorNotification();
+            e.printStackTrace();
+        }catch(NoRepoLoadedException e){
+            this.showNoRepoLoadedNotification();
+            setButtonsDisabled(true);
+        }
     }
 }

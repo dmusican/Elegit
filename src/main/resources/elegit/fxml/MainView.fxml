@@ -176,14 +176,17 @@
                     <Button GridPane.columnIndex="0"
                             GridPane.rowIndex="7"
                             text="Create new branch"
-                            fx:id="newBranchButton"
                             onAction="#handleNewBranchButton"/>
 
                     <Button GridPane.columnIndex="0"
                             GridPane.rowIndex="8"
                             text="Checkout different branch"
-                            onAction="#showBranchCheckout"
-                            fx:id="checkoutButton"/>
+                            onAction="#showBranchCheckout"/>
+
+                    <Button GridPane.columnIndex="0"
+                            GridPane.rowIndex="9"
+                            text="MERGE"
+                            onAction="#handleGeneralMergeButton"/>
 
                     <StackPane GridPane.rowIndex="1"
                                GridPane.columnIndex="7">
