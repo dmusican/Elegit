@@ -689,7 +689,26 @@ public class SessionController {
                 @Override
                 protected Void call() {
                     try{
-                        boolean canCommit = true;
+                            logger.info("Commit manager clicked");
+                            if(theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
+
+                            logger.info("Opened commit manager window");
+                            // Create and display the Stage:
+                            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/CommitView.fxml"));
+                            fxmlLoader.load();
+                            CommitController commitController = fxmlLoader.getController();
+                            NotificationPane fxmlRoot = fxmlLoader.getRoot();
+                            Platform.runLater(() -> commitController.showStage(fxmlRoot));
+                    }catch(IOException e){
+                        showGenericErrorNotification();
+                        e.printStackTrace();
+                    }catch(NoRepoLoadedException e){
+                        showNoRepoLoadedNotification();
+                        setButtonsDisabled(true);
+                    }catch(Exception e){
+                        e.printStackTrace();
+                    }
+                        /*boolean canCommit = true;
 
                         if(canCommit) {
                             theModel.getCurrentRepoHelper().commit(commitMessage);
@@ -723,7 +742,8 @@ public class SessionController {
                     } catch(Exception e) {
                         showGenericErrorNotification();
                         e.printStackTrace();
-                    }finally {
+                    }*/
+                    finally {
                         BusyWindow.hide();
                     }
                     return null;
