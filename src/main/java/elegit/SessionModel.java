@@ -288,10 +288,7 @@ public class SessionModel {
 
     /**
      * Calls `git status` and returns the set of modified files that Git reports.
-     * Also returns those considered changed rather than modified. Changed files
-     * appear for example when committing a fixed conflict while merging.
      *
-     * Changed files differ between the HEAD and the index
      * Modified files differ between the disk and the index
      *
      * @return a set of modified filenames in the working directory.
@@ -302,10 +299,7 @@ public class SessionModel {
             status = new Git(this.getCurrentRepo()).status().call();
         }
 
-        Set<String> modifiedAndChangedFiles = new HashSet<>(status.getChanged());
-        modifiedAndChangedFiles.addAll(status.getModified());
-
-        return modifiedAndChangedFiles;
+        return status.getModified();
     }
 
 
@@ -448,11 +442,13 @@ public class SessionModel {
             conflictingRepoFileStrings.add(conflictingFileString);
         }
 
-
         for (String stagedFileString : stagedFiles) {
-            if (!conflictingRepoFileStrings.contains(stagedFileString)) {
+            if (!conflictingRepoFileStrings.contains(stagedFileString) && !modifiedFiles.contains(stagedFileString)) {
                 StagedRepoFile stagedRepoFile = new StagedRepoFile(stagedFileString, this.getCurrentRepoHelper());
                 changedRepoFiles.add(stagedRepoFile);
+            } else if (!conflictingRepoFileStrings.contains(stagedFileString)) {
+                StagedAndModifiedRepoFile stagedAndModifiedRepoFile = new StagedAndModifiedRepoFile(stagedFileString, this.getCurrentRepoHelper());
+                changedRepoFiles.add(stagedAndModifiedRepoFile);
             }
         }
 

@@ -560,10 +560,7 @@ public class SessionController {
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
             if(!this.theModel.getCurrentRepoHelper().exists()) throw new MissingRepoException();
 
-            String commitMessage = commitMessageField.getText();
-
             if(!workingTreePanelView.isAnyFileSelected()) throw new NoFilesStagedForCommitException();
-            if(commitMessage.length() == 0) throw new NoCommitMessageException();
 
             BusyWindow.show();
             BusyWindow.setLoadingText("Adding...");
@@ -615,9 +612,7 @@ public class SessionController {
             this.showMissingRepoNotification();
             setButtonsDisabled(true);
             refreshRecentReposInDropdown();
-        } catch(NoCommitMessageException e){
-            this.showNoCommitMessageNotification();
-        }catch(NoFilesStagedForCommitException e){
+        } catch(NoFilesStagedForCommitException e){
             this.showNoFilesStagedForCommitNotification();
         }
     }

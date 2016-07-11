@@ -76,7 +76,11 @@
     }
 
     .diffButton#stagedDiffButton {
-        -fx-background-color: green;
+        -fx-background-color: #888800;
+    }
+
+    .diffButton#stagedModifiedDiffButton {
+            -fx-background-color: green;
     }
 
 .diffText {

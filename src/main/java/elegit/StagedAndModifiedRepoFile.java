@@ -8,23 +8,23 @@ import java.nio.file.Paths;
 /**
  * A subclass of RepoFile that contains a file that Git is ignoring.
  */
-public class StagedRepoFile extends RepoFile {
+public class StagedAndModifiedRepoFile extends RepoFile {
 
-    public StagedRepoFile(Path filePath, RepoHelper repo) {
+    public StagedAndModifiedRepoFile(Path filePath, RepoHelper repo) {
         super(filePath, repo);
-        diffButton.setText("STAGED");
-        diffButton.setId("stagedDiffButton");
+        diffButton.setText("STAGED\nMODIFIED");
+        diffButton.setId("stagedModifiedDiffButton");
         Tooltip tooltip = new Tooltip("This file has a version stored in your git index\n and is ready to commit.");
         tooltip.setFont(new javafx.scene.text.Font(12));
         diffButton.setTooltip(tooltip);
     }
 
-    public StagedRepoFile(String filePathString, RepoHelper repo) {
+    public StagedAndModifiedRepoFile(String filePathString, RepoHelper repo) {
         this(Paths.get(filePathString), repo);
     }
 
     @Override public boolean canAdd() {
-        return false;
+        return true;
     }
 
     @Override public boolean canRemove() {
