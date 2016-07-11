@@ -27,13 +27,7 @@ public class MissingRepoFile extends RepoFile {
         this(Paths.get(filePathString), repo);
     }
 
-    /**
-     * When this RepoFile is checkboxed and the user commits, we remove this file from the repository.
-     *
-     * @throws GitAPIException if the `git rm` command fails.
-     */
-    @Override public boolean updateFileStatusInRepo() throws GitAPIException, MissingRepoException {
-        this.repo.removeFilePath(this.filePath);
-        return true;
-    }
+    @Override public boolean canAdd() { return false; }
+
+    @Override public boolean canRemove() { return true; }
 }

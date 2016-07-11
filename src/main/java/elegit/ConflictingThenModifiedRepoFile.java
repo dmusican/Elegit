@@ -43,10 +43,7 @@ public class ConflictingThenModifiedRepoFile extends RepoFile {
         this(Paths.get(filePathString), repo);
     }
 
-    /**
-     * When this RepoFile is checkboxed and the user commits, display an alert.
-     */
-    @Override public boolean updateFileStatusInRepo() throws GitAPIException, IOException, MissingRepoException {
+    @Override public boolean canAdd() throws GitAPIException {
         ReentrantLock lock = new ReentrantLock();
         Condition finishedAlert = lock.newCondition();
 
@@ -64,8 +61,7 @@ public class ConflictingThenModifiedRepoFile extends RepoFile {
         lock.lock();
         try{
             finishedAlert.await();
-            if(resultType.equals("commit")){
-                this.repo.addFilePath(this.filePath);
+            if(resultType.equals("add")){
                 return true;
             }
         }catch(InterruptedException ignored){
@@ -74,5 +70,7 @@ public class ConflictingThenModifiedRepoFile extends RepoFile {
         }
         return false;
     }
+
+    @Override public boolean canRemove() { return true; }
 }
 

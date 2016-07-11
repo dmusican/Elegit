@@ -23,10 +23,7 @@ public class IgnoredRepoFile extends RepoFile {
         this(Paths.get(filePathString), repo);
     }
 
-    /**
-     * When this RepoFile is checkboxed and the user commits, do nothing.
-     */
-    @Override public boolean updateFileStatusInRepo() {
-        return true;
-    }
+    @Override public boolean canAdd() { return false; }
+
+    @Override public boolean canRemove() { return false; }
 }

@@ -45,10 +45,7 @@ public class ConflictingRepoFile extends RepoFile {
         this(Paths.get(filePathString), repo);
     }
 
-    /**
-     * When this RepoFile is checkboxed and the user commits, display an alert.
-     */
-    @Override public boolean updateFileStatusInRepo() throws GitAPIException, IOException, MissingRepoException {
+    @Override public boolean canAdd() throws GitAPIException, IOException{
         ReentrantLock lock = new ReentrantLock();
         Condition finishedAlert = lock.newCondition();
 
@@ -66,6 +63,7 @@ public class ConflictingRepoFile extends RepoFile {
         lock.lock();
         try{
             finishedAlert.await();
+            System.out.println(resultType);
             switch (resultType) {
                 case "resolve":
                     Desktop desktop = Desktop.getDesktop();
@@ -76,7 +74,6 @@ public class ConflictingRepoFile extends RepoFile {
                     desktop.open(unrelativized);
                     break;
                 case "add":
-                    this.repo.addFilePath(this.filePath);
                     return true;
                 case "help":
                     PopUpWindows.showConflictingHelpAlert();
@@ -87,5 +84,9 @@ public class ConflictingRepoFile extends RepoFile {
             lock.unlock();
         }
         return false;
+    }
+
+    @Override public boolean canRemove() {
+        return true;
     }
 }

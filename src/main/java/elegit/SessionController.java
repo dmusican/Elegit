@@ -591,7 +591,7 @@ public class SessionController {
                         e.printStackTrace();
                     } catch (UnableToAddException e) {
                         showCannotAddFileNotification(e.filename);
-                    } catch (GitAPIException e) {
+                    } catch (GitAPIException | IOException e) {
                         showGenericErrorNotification();
                     } finally {
                         BusyWindow.hide();

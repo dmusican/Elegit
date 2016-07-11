@@ -8,6 +8,7 @@ import javafx.scene.control.MenuItem;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.controlsfx.control.PopOver;
+import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 
 import java.io.IOException;
@@ -90,24 +91,10 @@ public class RepoFile implements Comparable<RepoFile> {
     }
 
     /**
-     * Performs that 'commit action' for the file when it is checkboxed and
-     * the user makes a commit. This method is typically overridden
-     * by RepoFile subclasses.
-     *
-     * In the case of plain RepoFiles, no action is required.
-     *
-     * @return true if the files updated status succeeded
-     * @throws GitAPIException if an interaction with Git fails (only applies to subclasses).
-     */
-    public boolean updateFileStatusInRepo() throws GitAPIException, IOException, MissingRepoException {
-        return true;
-    }
-
-    /**
      *
      * @return whether or not this file can be added (staged)
      */
-    public boolean canAdd() {
+    public boolean canAdd() throws GitAPIException, IOException {
         return false;
     }
 
