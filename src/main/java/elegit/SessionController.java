@@ -15,6 +15,7 @@ import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.Button;
+import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollPane;
@@ -25,6 +26,7 @@ import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.stage.Modality;
@@ -54,6 +56,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 import java.util.prefs.BackingStoreException;
 
 /**
@@ -1495,7 +1498,7 @@ public class SessionController {
 
             Action seeConflictsAction = new Action("See conflicting files", e -> {
                 this.notificationPane.hide();
-                PopUpWindows.showtMergeConflictsAlert(conflictingPaths);
+                PopUpWindows.showMergeConflictsAlert(conflictingPaths);
             });
 
             this.notificationPane.getActions().clear();
@@ -1706,6 +1709,30 @@ public class SessionController {
             this.notificationPane.getActions().clear();
             this.notificationPane.show();
         });
+    }
+
+    private void showInvalidBranchNameNotification() {
+        logger.warn("Invalid branch name notification");
+        this.notificationPane.setText("That branch name is invalid.");
+
+        this.notificationPane.getActions().clear();
+        this.notificationPane.show();
+    }
+
+    private void showNoCommitsYetNotification() {
+        logger.warn("No commits yet notification");
+        this.notificationPane.setText("You cannot make a branch since your repo has no commits yet. Make a commit first!");
+
+        this.notificationPane.getActions().clear();
+        this.notificationPane.show();
+    }
+
+    private void showGenericGitErrorNotification() {
+        logger.warn("Git error notification");
+        this.notificationPane.setText("Sorry, there was a git error.");
+
+        this.notificationPane.getActions().clear();
+        this.notificationPane.show();
     }
 
     // END: ERROR NOTIFICATIONS ^^^
@@ -1981,5 +2008,87 @@ public class SessionController {
             try { theModel.setLastUUID(""); }
             catch (Exception f) { }
         }
+    }
+
+    /**
+     * Pops up a window where the user can create a new branch
+     */
+    public void handleNewBranchButton() {
+        Dialog dialog = new Dialog();
+        dialog.setResizable(true);
+        dialog.setTitle("Create a new branch");
+        dialog.getDialogPane().setPrefWidth(300);
+
+        TextArea textArea = new TextArea();
+        textArea.setPromptText("new branch name...");
+        textArea.setEditable(true);
+        textArea.setPrefRowCount(1);
+        textArea.setPrefColumnCount(1);
+        textArea.setPrefHeight(1);
+        textArea.setWrapText(true);
+
+        CheckBox checkoutBranch = new CheckBox("checkout new branch once created");
+
+        ButtonType createBranchButton = new ButtonType("Create branch", ButtonBar.ButtonData.OTHER);
+        ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+
+        VBox vBox = new VBox(textArea, checkoutBranch);
+        vBox.setSpacing(5);
+        VBox.setVgrow(textArea, Priority.NEVER);
+
+        dialog.getDialogPane().setContent(vBox);
+        dialog.getDialogPane().getButtonTypes().addAll(createBranchButton, cancelButton);
+
+        Optional<?> result = dialog.showAndWait();
+
+        if(result.get() == createBranchButton) {
+            createNewBranch(textArea.getText(), checkoutBranch.isSelected());
+        }
+    }
+
+    /**
+     * Helper method that creates a new branch, and checks it out sometimes
+     * @param branchName String
+     * @param checkout boolean
+     */
+    private void createNewBranch(String branchName, boolean checkout) {
+        Thread th = new Thread(new Task<Void>() {
+            @Override
+            protected Void call() {
+                LocalBranchHelper newBranch = null;
+                try {
+                    logger.info("New branch button clicked");
+                    newBranch = theModel.getCurrentRepoHelper().getBranchModel().createNewLocalBranch(branchName);
+                } catch (InvalidRefNameException e1) {
+                    logger.warn("Invalid branch name warning");
+                    showInvalidBranchNameNotification();
+                } catch (RefNotFoundException e1) {
+                    // When a repo has no commits, you can't create branches because there
+                    //  are no commits to point to. This error gets raised when git can't find
+                    //  HEAD.
+                    logger.warn("Can't create branch without a commit in the repo warning");
+                    showNoCommitsYetNotification();
+                } catch (GitAPIException e1) {
+                    logger.warn("Git error");
+                    logger.debug(e1.getStackTrace());
+                    showGenericGitErrorNotification();
+                    e1.printStackTrace();
+                } catch (IOException e1) {
+                    logger.warn("Unspecified IOException");
+                    logger.debug(e1.getStackTrace());
+                    showGenericErrorNotification();
+                    e1.printStackTrace();
+                }
+                if(checkout) {
+                    if(newBranch != null) {
+                        checkoutBranch(newBranch);
+                    }
+                }
+                return null;
+            }
+        });
+        th.setDaemon(true);
+        th.setName("createNewBranch");
+        th.start();
     }
 }

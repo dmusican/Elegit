@@ -215,7 +215,7 @@ public class PopUpWindows {
      * Informs the user that there were conflicts
      * @param conflictingPaths conflicting files
      */
-    public static void showtMergeConflictsAlert(List<String> conflictingPaths) {
+    public static void showMergeConflictsAlert(List<String> conflictingPaths) {
         logger.warn("Merge conflicts warning");
         String conflictList = "";
         for(String pathName : conflictingPaths){

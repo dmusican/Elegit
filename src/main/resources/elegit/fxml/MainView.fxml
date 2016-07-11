@@ -105,7 +105,7 @@
                             GridPane.rowIndex="0"
                             text="Manage branches"
                             fx:id="branchesButton"
-                            onAction="#showBranchManager" />
+                            onAction="#handleNewBranchButton" />
 
                     <HBox   GridPane.columnIndex="5"
                             GridPane.rowIndex="0"
