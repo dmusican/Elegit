@@ -33,6 +33,14 @@ public class ConflictingFileWatcher {
     }
 
     /**
+     * removes the given file from the list
+     * @param fileToRemove String
+     */
+    public static void removeFile(String fileToRemove) {
+        conflictingThenModifiedFiles.remove(fileToRemove);
+    }
+
+    /**
      * Spins off a new thread to watch the directories that contain conflicting files
      *
      * @param currentRepo RepoHelper

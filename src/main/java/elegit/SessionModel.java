@@ -23,6 +23,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -405,7 +406,7 @@ public class SessionModel {
         Set<String> missingFiles = getMissingFiles(status);
         Set<String> untrackedFiles = getUntrackedFiles(status);
         Set<String> conflictingFiles = getConflictingFiles(status);
-        ArrayList<String> conflictingThenModifiedFiles = ConflictingFileWatcher.getConflictingThenModifiedFiles();
+        ArrayList<String> conflictingThenModifiedFiles = ConflictingFileWatcher.getConflictingThenModifiedFiles().stream().collect(Collectors.toCollection(ArrayList::new));
 
         List<RepoFile> changedRepoFiles = new ArrayList<>();
 
@@ -427,6 +428,13 @@ public class SessionModel {
             // e.g. If a modification causes a conflict, that file should have its conflicts resolved
             //      before it gets added.
             conflictingRepoFileStrings.add(conflictingFileString);
+        }
+
+        // Remove files from conflictingThenModifedFiles when they are no longer conflicting
+        for (String str : conflictingThenModifiedFiles) {
+            if(!conflictingFiles.contains(str)) {
+                ConflictingFileWatcher.removeFile(str);
+            }
         }
 
         for (String modifiedFileString : modifiedFiles) {
