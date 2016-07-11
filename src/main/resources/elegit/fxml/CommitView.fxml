@@ -25,39 +25,21 @@
                       gridLinesVisible="false"
                       id="gridPane">
 
-                <columnConstraints>
-                    <ColumnConstraints/>
-                    <ColumnConstraints/>
-                </columnConstraints>
-
-                <rowConstraints>
-                    <RowConstraints/>
-                    <RowConstraints/>
-                </rowConstraints>
-
-                <GridPane alignment="TOP_CENTER"
-                          hgap="10"
-                          vgap="10"
-                          GridPane.vgrow="ALWAYS"
-                          GridPane.rowIndex="0"
-                          GridPane.columnIndex="0"
-                          GridPane.rowSpan="1">
-
-                    <TabPane GridPane.rowIndex="1"
-                             GridPane.vgrow="ALWAYS">
-                        <Tab text="Working Tree"
-                             closable="false"
-                             fx:id="workingTreePanelTab">
-                            <WorkingTreePanelView fx:id="workingTreePanelView"/>
-                        </Tab>
-                        <Tab text="All Files"
-                             closable="false"
-                             fx:id="allFilesPanelTab">
-                            <AllFilesPanelView fx:id="allFilesPanelView"/>
-                        </Tab>
-                    </TabPane>
-
-                </GridPane>
+                <TabPane GridPane.rowIndex="0"
+                         GridPane.columnIndex="1"
+                         prefRowCount="2"
+                         GridPane.vgrow="ALWAYS">
+                    <Tab text="Working Tree"
+                         closable="false"
+                         fx:id="workingTreePanelTab">
+                        <WorkingTreePanelView fx:id="workingTreePanelView"/>
+                    </Tab>
+                    <Tab text="All Files"
+                         closable="false"
+                         fx:id="allFilesPanelTab">
+                        <AllFilesPanelView fx:id="allFilesPanelView"/>
+                    </Tab>
+                </TabPane>
 
 
                 <TextArea
