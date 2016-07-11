@@ -253,9 +253,8 @@ public abstract class RepoHelper {
     public void addFilePath(Path filePath) throws GitAPIException {
         Git git = new Git(this.repo);
         // git add:
-        Path relativizedFilePath = this.localPath.relativize(filePath);
         git.add()
-                .addFilepattern(relativizedFilePath.toString())
+                .addFilepattern(filePath.toString())
                 .call();
         git.close();
     }
@@ -290,9 +289,8 @@ public abstract class RepoHelper {
     public void removeFilePath(Path filePath) throws GitAPIException {
         Git git = new Git(this.repo);
         // git rm:
-        Path relativizedFilePath = this.localPath.relativize(filePath);
         git.rm()
-                .addFilepattern(relativizedFilePath.toString())
+                .addFilepattern(filePath.toString())
                 .call();
         git.close();
     }
@@ -308,8 +306,7 @@ public abstract class RepoHelper {
         // git rm:
         RmCommand remover = git.rm();
         for (Path filePath : filePaths) {
-            Path localizedFilePath = this.localPath.relativize(filePath);
-            remover.addFilepattern(localizedFilePath.toString());
+            remover.addFilepattern(filePath.toString());
         }
         remover.call();
         git.close();

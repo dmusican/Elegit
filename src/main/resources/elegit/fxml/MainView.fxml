@@ -291,6 +291,14 @@
                                  text="Add"
                                  arrowRight="true"
                                  onAction="#handleAddButton"/>
+                    <ArrowButton GridPane.rowIndex="3"
+                                 GridPane.columnIndex="1"
+                                 GridPane.valignment="BOTTOM"
+                                 id="codeButton"
+                                 fx:id="removeButton"
+                                 text="Remove"
+                                 arrowRight="true"
+                                 onAction="#handleRemoveButton"/>
 
                     <ArrowButton GridPane.rowIndex="3"
                                  GridPane.columnIndex="1"
