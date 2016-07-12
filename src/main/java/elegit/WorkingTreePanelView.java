@@ -170,4 +170,15 @@ public class WorkingTreePanelView extends FileStructurePanelView{
     public boolean isAnyFileSelected(){
         return isAnyFileSelectedProperty.get();
     }
+
+    /**
+     * @return true if any file has been staged, else false
+     */
+    public boolean isAnyFileStaged() {
+        for (TreeItem<RepoFile> treeItem: displayedFiles) {
+            if (treeItem.getValue() instanceof StagedAndModifiedRepoFile || treeItem.getValue() instanceof StagedRepoFile)
+                return true;
+        }
+        return false;
+    }
 }

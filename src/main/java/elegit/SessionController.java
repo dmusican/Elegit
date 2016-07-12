@@ -679,8 +679,7 @@ public class SessionController {
 
             String commitMessage = commitMessageField.getText();
 
-            if(!workingTreePanelView.isAnyFileSelected()) throw new NoFilesStagedForCommitException();
-            if(commitMessage.length() == 0) throw new NoCommitMessageException();
+            if(!workingTreePanelView.isAnyFileStaged()) throw new NoFilesStagedForCommitException();
 
             BusyWindow.show();
             BusyWindow.setLoadingText("Committing...");
@@ -694,6 +693,10 @@ public class SessionController {
                 FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/CommitView.fxml"));
                 fxmlLoader.load();
                 CommitController commitController = fxmlLoader.getController();
+                commitController.isClosed.addListener((observable, oldValue, newValue) -> {
+                    if (!oldValue.booleanValue()&&newValue.booleanValue())
+                        gitStatus();
+                });
                 GridPane fxmlRoot = fxmlLoader.getRoot();
                 commitController.showStage(fxmlRoot);
             }catch(IOException e){
@@ -708,50 +711,6 @@ public class SessionController {
             finally {
                 BusyWindow.hide();
             }
-            Thread th = new Thread(new Task<Void>(){
-                @Override
-                protected Void call() {
-                        /*boolean canCommit = true;
-
-                        if(canCommit) {
-                            theModel.getCurrentRepoHelper().commit(commitMessage);
-
-                            // Now clear the commit text and a view reload ( or `git status`) to show that something happened
-                            commitMessageField.clear();
-                            gitStatus();
-                        }
-                    } catch(JGitInternalException e){
-                        showGenericErrorNotification();
-                        e.printStackTrace();
-                    } catch(MissingRepoException e){
-                        showMissingRepoNotification();
-                        setButtonsDisabled(true);
-                        refreshRecentReposInDropdown();
-                    } catch (TransportException e) {
-                        showNotAuthorizedNotification(null);
-                    } catch (WrongRepositoryStateException e) {
-                        showGenericErrorNotification();
-                        e.printStackTrace();
-
-                        // TODO remove the above debug statements
-                        // This should hopefully not appear any more. Previously occurred when attempting to resolve
-                        // conflicts in an external editor
-                        // Do nothing.
-
-                    } catch(GitAPIException e){
-                        // Git error, or error presenting the file chooser window
-                        showGenericErrorNotification();
-                        e.printStackTrace();
-                    } catch(Exception e) {
-                        showGenericErrorNotification();
-                        e.printStackTrace();
-                    }*/
-                    return null;
-                }
-            });
-            th.setDaemon(true);
-            th.setName("Git commit");
-            th.start();
         } catch(NoRepoLoadedException e){
             this.showNoRepoLoadedNotification();
             setButtonsDisabled(true);
@@ -759,8 +718,6 @@ public class SessionController {
             this.showMissingRepoNotification();
             setButtonsDisabled(true);
             refreshRecentReposInDropdown();
-        } catch(NoCommitMessageException e){
-            this.showNoCommitMessageNotification();
         }catch(NoFilesStagedForCommitException e){
             this.showNoFilesStagedForCommitNotification();
         }
