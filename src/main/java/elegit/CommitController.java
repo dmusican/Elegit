@@ -25,13 +25,12 @@ public class CommitController {
     private Stage stage;
     private SessionModel sessionModel;
     private RepoHelper repoHelper;
-    private Repository repo;
     @FXML
     public Button commitButton;
     @FXML
     public TextArea commitMessageField;
     @FXML
-    public WorkingTreePanelView workingTreePanelView;
+    public StagedTreePanelView stagedFilesPanelView;
     @FXML
     public AllFilesPanelView allFilesPanelView;
 
@@ -52,10 +51,9 @@ public class CommitController {
 
         this.sessionModel = SessionModel.getSessionModel();
         this.repoHelper = this.sessionModel.getCurrentRepoHelper();
-        this.repo = this.repoHelper.getRepo();
         this.commitMessageField.requestFocus();
 
-        this.workingTreePanelView.setSessionModel(this.sessionModel);
+        this.stagedFilesPanelView.setSessionModel(this.sessionModel);
         this.allFilesPanelView.setSessionModel(this.sessionModel);
 
         updatePanelViews();
@@ -114,7 +112,7 @@ public class CommitController {
 
     public void updatePanelViews() {
         try {
-            workingTreePanelView.drawDirectoryView();
+            stagedFilesPanelView.drawDirectoryView();
             allFilesPanelView.drawDirectoryView();
         } catch (Exception e) {
             e.printStackTrace();

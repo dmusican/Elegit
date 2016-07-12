@@ -27,8 +27,8 @@
         <tabs>
             <Tab text="Changed Files"
                  closable="false"
-                 fx:id="workingTreePanelTab">
-                <WorkingTreePanelView fx:id="workingTreePanelView"/>
+                 fx:id="stagedFilesPanelTab">
+                <StagedTreePanelView fx:id="stagedFilesPanelView"/>
             </Tab>
             <Tab text="All Files"
                  closable="false"
