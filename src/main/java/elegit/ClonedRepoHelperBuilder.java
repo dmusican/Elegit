@@ -1,5 +1,6 @@
 package elegit;
 
+import com.jcraft.jsch.UserInfo;
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import javafx.application.Platform;
@@ -72,7 +73,8 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
             String remoteURL = result.get().getValue();
 
             RepoHelperBuilder.AuthDialogResponse response = RepoHelperBuilder.getAuthCredentialFromDialog();
-            RepoHelper repoHelper = cloneRepositoryWithChecks(remoteURL, destinationPath, response);
+            RepoHelper repoHelper = cloneRepositoryWithChecks(remoteURL, destinationPath, response,
+                                                              new ElegitUserInfoGUI());
 
             return repoHelper;
         } else {
@@ -204,7 +206,8 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
     }
 
     static RepoHelper cloneRepositoryWithChecks(String remoteURL, Path destinationPath,
-                                                RepoHelperBuilder.AuthDialogResponse response)
+                                                RepoHelperBuilder.AuthDialogResponse response,
+                                                UserInfo userInfo)
             throws GitAPIException, IOException, CancelledAuthorizationException, NoRepoSelectedException {
 
         // Always use authentication. If authentication is unneeded (HTTP), it will still work even if the wrong
@@ -224,7 +227,7 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
 
         ClonedRepoHelper repoHelper;
             try {
-                repoHelper = new ClonedRepoHelper(destinationPath, sshPassword);
+                repoHelper = new ClonedRepoHelper(destinationPath, remoteURL, sshPassword, userInfo);
                 repoHelper.wrapAuthentication(command, credentials);
                 command.call();
             } catch (TransportException e) {

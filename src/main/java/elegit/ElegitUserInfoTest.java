@@ -11,6 +11,11 @@ public class ElegitUserInfoTest implements UserInfo {
     private String password;
     private String passphrase;
 
+    public ElegitUserInfoTest() {
+        password = null;
+        passphrase = null;
+    }
+
     public ElegitUserInfoTest(String password, String passphrase) {
         this.password = password;
         this.passphrase = passphrase;

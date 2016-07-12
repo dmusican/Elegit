@@ -358,7 +358,8 @@ public class AuthenticatedCloneTest {
         RepoHelperBuilder.AuthDialogResponse response =
                 new RepoHelperBuilder.AuthDialogResponse(null, username, password, false);
 
-        ClonedRepoHelperBuilder.cloneRepositoryWithChecks(GITHUB_REMOTE_URL, repoPath, response);
+        ClonedRepoHelperBuilder.cloneRepositoryWithChecks(GITHUB_REMOTE_URL, repoPath, response,
+                                                          new ElegitUserInfoTest());
 
     }
 
