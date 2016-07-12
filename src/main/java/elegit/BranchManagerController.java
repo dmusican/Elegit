@@ -334,7 +334,6 @@ public class BranchManagerController {
         logger.info("Merging selected branch with current");
         Git git  = new Git(this.repo);
         Status status = git.status().call();
-        System.out.println(status.isClean());
         if (status.hasUncommittedChanges() || !status.isClean()) {
             this.showUncommittedChangesNotification();
             return;
