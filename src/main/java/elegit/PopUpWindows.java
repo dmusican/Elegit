@@ -263,4 +263,23 @@ public class PopUpWindows {
 
         return null;
     }
+
+    public static boolean showForceDeleteBranchAlert() {
+        Alert alert = new Alert(Alert.AlertType.WARNING);
+        alert.setTitle("Deleting unmerged branch");
+        alert.setHeaderText("The branch you are trying to delete is unmerged");
+        alert.setContentText("The work done on this branch is not represented in any other local branch. " +
+                "If you delete it, you will lose work done on this branch. " +
+                "What would you like to do?");
+
+        ButtonType deleteButton = new ButtonType("Delete branch");
+        ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+
+        alert.getButtonTypes().clear();
+        alert.getButtonTypes().addAll(deleteButton ,cancelButton);
+
+        Optional<?> result = alert.showAndWait();
+
+        return result.get() == deleteButton;
+    }
 }

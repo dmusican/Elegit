@@ -25,9 +25,7 @@ import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -227,7 +225,6 @@ public class SessionController {
         workingTreePanelView.setMinSize(Control.USE_PREF_SIZE, 200);
         allFilesPanelView.setMinSize(Control.USE_PREF_SIZE, 200);
         commitMessageField.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
-        tagNameField.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         branchDropdownSelector.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         final int REPO_DROPDOWN_MAX_WIDTH = 147;
         repoDropdownSelector.setMaxWidth(REPO_DROPDOWN_MAX_WIDTH);
@@ -1484,7 +1481,8 @@ public class SessionController {
         });
     }
 
-    private void showInvalidBranchNameNotification() {
+    // may be used - method which called these moved to CreateBranchWindowController
+    /*private void showInvalidBranchNameNotification() {
         logger.warn("Invalid branch name notification");
         this.notificationPane.setText("That branch name is invalid.");
 
@@ -1506,7 +1504,7 @@ public class SessionController {
 
         this.notificationPane.getActions().clear();
         this.notificationPane.show();
-    }
+    }*/
 
     // END: ERROR NOTIFICATIONS ^^^
 
@@ -1787,82 +1785,24 @@ public class SessionController {
      * Pops up a window where the user can create a new branch
      */
     public void handleNewBranchButton() {
-        Dialog dialog = new Dialog();
-        dialog.setResizable(true);
-        dialog.setTitle("Create a new branch");
-        dialog.getDialogPane().setPrefWidth(300);
+        try{
+            logger.info("Create/delete branch button clicked");
+            if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
 
-        TextArea textArea = new TextArea();
-        textArea.setPromptText("new branch name...");
-        textArea.setEditable(true);
-        textArea.setPrefRowCount(1);
-        textArea.setPrefColumnCount(1);
-        textArea.setPrefHeight(1);
-        textArea.setWrapText(true);
-
-        CheckBox checkoutBranch = new CheckBox("checkout new branch once created");
-
-        ButtonType createBranchButton = new ButtonType("Create branch", ButtonBar.ButtonData.OTHER);
-        ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
-
-        VBox vBox = new VBox(textArea, checkoutBranch);
-        vBox.setSpacing(5);
-        VBox.setVgrow(textArea, Priority.NEVER);
-
-        dialog.getDialogPane().setContent(vBox);
-        dialog.getDialogPane().getButtonTypes().addAll(createBranchButton, cancelButton);
-
-        Optional<?> result = dialog.showAndWait();
-
-        if(result.get() == createBranchButton) {
-            createNewBranch(textArea.getText(), checkoutBranch.isSelected());
+            logger.info("Opened create/delete branch window");
+            // Create and display the Stage:
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/CreateDeleteBranchWindow.fxml"));
+            fxmlLoader.load();
+            CreateDeleteBranchWindowController createDeleteBranchController = fxmlLoader.getController();
+            StackPane fxmlRoot = fxmlLoader.getRoot();
+            createDeleteBranchController.showStage(fxmlRoot);
+        }catch(IOException e){
+            this.showGenericErrorNotification();
+            e.printStackTrace();
+        }catch(NoRepoLoadedException e){
+            this.showNoRepoLoadedNotification();
+            setButtonsDisabled(true);
         }
-    }
-
-    /**
-     * Helper method that creates a new branch, and checks it out sometimes
-     * @param branchName String
-     * @param checkout boolean
-     */
-    private void createNewBranch(String branchName, boolean checkout) {
-        Thread th = new Thread(new Task<Void>() {
-            @Override
-            protected Void call() {
-                LocalBranchHelper newBranch = null;
-                try {
-                    logger.info("New branch button clicked");
-                    newBranch = theModel.getCurrentRepoHelper().getBranchModel().createNewLocalBranch(branchName);
-                } catch (InvalidRefNameException e1) {
-                    logger.warn("Invalid branch name warning");
-                    showInvalidBranchNameNotification();
-                } catch (RefNotFoundException e1) {
-                    // When a repo has no commits, you can't create branches because there
-                    //  are no commits to point to. This error gets raised when git can't find
-                    //  HEAD.
-                    logger.warn("Can't create branch without a commit in the repo warning");
-                    showNoCommitsYetNotification();
-                } catch (GitAPIException e1) {
-                    logger.warn("Git error");
-                    logger.debug(e1.getStackTrace());
-                    showGenericGitErrorNotification();
-                    e1.printStackTrace();
-                } catch (IOException e1) {
-                    logger.warn("Unspecified IOException");
-                    logger.debug(e1.getStackTrace());
-                    showGenericErrorNotification();
-                    e1.printStackTrace();
-                }
-                if(checkout) {
-                    if(newBranch != null) {
-                        BranchCheckoutController.checkoutBranch(newBranch, theModel);
-                    }
-                }
-                return null;
-            }
-        });
-        th.setDaemon(true);
-        th.setName("createNewBranch");
-        th.start();
     }
 
     /**

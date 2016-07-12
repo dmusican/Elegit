@@ -23,6 +23,7 @@ import org.eclipse.jgit.lib.BranchTrackingStatus;
 import org.eclipse.jgit.lib.Repository;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -32,30 +33,18 @@ import java.util.List;
  */
 public class MergeWindowController {
 
-    @FXML
-    private Text remoteTrackingBranchName;
-    @FXML
-    private Text localBranchName1;
-    @FXML
-    private Text localBranchName2;
-    @FXML
-    private Text intoLocalBranchText1;
-    @FXML
-    private Text intoLocalBranchText2;
-    @FXML
-    private CheckBox mergeRemoteTrackingCheckBox;
-    @FXML
-    private CheckBox mergeDifLocalBranchCheckBox;
-    @FXML
-    private NotificationPane notificationPane;
-    @FXML
-    private ComboBox<LocalBranchHelper> branchDropdownSelector = new ComboBox<>();
-    @FXML
-    private Button mergeButton;
-    @FXML
-    private Text mergeRemoteTrackingText;
-    @FXML
-    private Hyperlink trackLink;
+    @FXML private Text remoteTrackingBranchName;
+    @FXML private Text localBranchName1;
+    @FXML private Text localBranchName2;
+    @FXML private Text intoLocalBranchText1;
+    @FXML private Text intoLocalBranchText2;
+    @FXML private CheckBox mergeRemoteTrackingCheckBox;
+    @FXML private CheckBox mergeDifLocalBranchCheckBox;
+    @FXML private NotificationPane notificationPane;
+    @FXML private ComboBox<LocalBranchHelper> branchDropdownSelector = new ComboBox<>();
+    @FXML private Button mergeButton;
+    @FXML private Text mergeRemoteTrackingText;
+    @FXML private Hyperlink trackLink;
 
     Stage stage;
     SessionModel sessionModel;
@@ -82,15 +71,9 @@ public class MergeWindowController {
         branchDropdownSelector.setPromptText("local branches...");
 
         //init commit tree models
-        for (CommitTreeModel commitTreeModel : CommitTreeController.allCommitTreeModels) {
-            if (commitTreeModel.getViewName().equals(LocalCommitTreeModel
-                    .LOCAL_TREE_VIEW_NAME)) {
-                localCommitTreeModel = (LocalCommitTreeModel)commitTreeModel;
-            } else if (commitTreeModel.getViewName().equals(RemoteCommitTreeModel
-                    .REMOTE_TREE_VIEW_NAME)) {
-                remoteCommitTreeModel = (RemoteCommitTreeModel)commitTreeModel;
-            }
-        }
+        ArrayList<?> models = CommitTreeController.getCommitTreeModels();
+        localCommitTreeModel = (LocalCommitTreeModel) models.get(0);
+        remoteCommitTreeModel = (RemoteCommitTreeModel) models.get(1);
 
         initText();
         initCheckBoxes();
@@ -102,7 +85,6 @@ public class MergeWindowController {
      */
     public void initText() throws IOException {
         String curBranch = repoHelper.getBranchModel().getCurrentBranch().getBranchName();
-        System.out.println(curBranch);
         BranchTrackingStatus b = BranchTrackingStatus.of(repoHelper.getRepo(), curBranch);
         if(b == null) {
             disable = true;
@@ -261,6 +243,7 @@ public class MergeWindowController {
 
         if (mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.CONFLICTING)){
             this.showConflictsNotification();
+            Main.sessionController.gitStatus();
             ConflictingFileWatcher.watchConflictingFiles(sessionModel.getCurrentRepoHelper());
 
         } else if (mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.ALREADY_UP_TO_DATE)) {

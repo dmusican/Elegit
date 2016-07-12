@@ -6,11 +6,10 @@
 <?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ComboBox?>
-
 <?import javafx.scene.control.Hyperlink?>
 <?import javafx.scene.layout.VBox?>
-<?import org.controlsfx.control.CheckListView?>
 <?import javafx.scene.layout.StackPane?>
+
 <NotificationPane fx:controller="elegit.MergeWindowController"
                   xmlns:fx="http://javafx.com/fxml"
                   fx:id="notificationPane">

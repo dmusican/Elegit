@@ -191,38 +191,6 @@ public class BranchCheckoutController {
     }
 
     /**
-     * Deletes the selected branches (in the localListView) through git.
-     */
-    public void deleteSelectedLocalBranches() throws IOException {
-        logger.info("Delete branches button clicked");
-
-        for (LocalBranchHelper selectedBranch : this.localListView.getSelectionModel().getSelectedItems()) {
-            try {
-                if (selectedBranch != null) {
-                    // Local delete:
-                    this.branchModel.deleteLocalBranch(selectedBranch);
-                    this.localListView.getItems().remove(selectedBranch);
-
-                    // Reset the branch heads
-                    CommitTreeController.setBranchHeads(this.localCommitTreeModel, this.repoHelper);
-                    CommitTreeController.setBranchHeads(this.remoteCommitTreeModel, this.repoHelper);
-                }
-            } catch (NotMergedException e) {
-                logger.warn("Can't delete branch because not merged warning");
-                this.showNotMergedNotification(selectedBranch);
-            } catch (CannotDeleteCurrentBranchException e) {
-                logger.warn("Can't delete current branch warning");
-                this.showCannotDeleteBranchNotification(selectedBranch);
-            } catch (GitAPIException e) {
-                logger.warn("Git error");
-                this.showGenericGitErrorNotificationWithBranch(selectedBranch);
-            }
-        }
-        // TODO: add optional delete from remote, too.
-        // see http://stackoverflow.com/questions/11892766/how-to-remove-remote-branch-with-jgit
-    }
-
-    /**
      * Deletes a given local branch through git, forcefully.
      */
     private void forceDeleteLocalBranch(LocalBranchHelper branchToDelete) {
@@ -311,6 +279,7 @@ public class BranchCheckoutController {
         notificationPane.show();
     }
 
+    //may be used in CreateDeleteBranchWindowController
     private void showNotMergedNotification(LocalBranchHelper nonmergedBranch) {
         logger.warn("Not merged notification");
         notificationPane.setText("That branch has to be merged before you can do that.");

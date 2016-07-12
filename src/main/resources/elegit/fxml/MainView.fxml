@@ -175,7 +175,7 @@
 
                     <Button GridPane.columnIndex="0"
                             GridPane.rowIndex="7"
-                            text="Create new branch"
+                            text="Create/delete a branch"
                             onAction="#handleNewBranchButton"/>
 
                     <Button GridPane.columnIndex="0"
