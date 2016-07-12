@@ -1,6 +1,8 @@
 package elegit;
 
+import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.UserInfo;
+import elegit.exceptions.CancelledAuthorizationException;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
@@ -47,6 +49,7 @@ public class ElegitUserInfoGUI implements UserInfo {
         passphrase = prompt(s,"SSH public key authentication",
                                            "SSH public key authentication",
                                            "Enter your passphrase:");
+        //return false;
         return passphrase.isPresent();
     }
 
@@ -74,11 +77,13 @@ public class ElegitUserInfoGUI implements UserInfo {
         dialog.setResultConverter(dialogButton -> {
             if (dialogButton == ButtonType.OK)
                 return passwordField.getText();
-            else
+            else {
                 return null;
+            }
         });
 
-        return dialog.showAndWait();
+        Optional<String> result = dialog.showAndWait();
+        return result;
     }
 
     @Override
