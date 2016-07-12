@@ -1,13 +1,11 @@
 package elegit;
 
-import elegit.*;
 import elegit.treefx.Cell;
 import javafx.application.Application;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
-import org.controlsfx.control.spreadsheet.Grid;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.junit.After;
 import org.junit.Before;
@@ -67,14 +65,12 @@ public class CommitLabelTest {
         helper = new ClonedRepoHelper(repoPath, remoteURL, credentials);
         assertNotNull(helper);
 
-        // Get the commit trees
-        this.localCommitTreeModel = Main.sessionController.localCommitTreeModel;
-        this.remoteCommitTreeModel = Main.sessionController.remoteCommitTreeModel;
+        // Get the commit tree
+        this.localCommitTreeModel = Main.sessionController.commitTreeModel;
 
         // Load this repo in Elegit, and initialize
         SessionModel.getSessionModel().openRepoFromHelper(helper);
         localCommitTreeModel.init();
-        remoteCommitTreeModel.init();
 
         // Sleep to ensure completion of all worker threads
         Thread.sleep(5000);
@@ -113,7 +109,7 @@ public class CommitLabelTest {
 
         Main.sessionController.gitStatus();
 
-        //localCommitTreeModel.update();
+        //commitTreeModel.update();
         //remoteCommitTreeModel.update();
 
         // Sleep to ensure worker threads finish

@@ -95,8 +95,7 @@ public class SessionController {
     public WorkingTreePanelView workingTreePanelView;
     public AllFilesPanelView allFilesPanelView;
 
-	public CommitTreePanelView localCommitTreePanelView;
-    public CommitTreePanelView remoteCommitTreePanelView;
+	public CommitTreePanelView commitTreePanelView;
 
     public ImageView remoteImage;
 
@@ -117,8 +116,7 @@ public class SessionController {
 
     public DataSubmitter d;
 
-    public CommitTreeModel localCommitTreeModel;
-    public CommitTreeModel remoteCommitTreeModel;
+    public CommitTreeModel commitTreeModel;
 
     public BooleanProperty isWorkingTreeTabSelected;
 
@@ -147,9 +145,8 @@ public class SessionController {
         // Passes this to CommitTreeController
         CommitTreeController.sessionController = this;
 
-        // Creates the local and remote commit tree models
-        this.localCommitTreeModel = new LocalCommitTreeModel(this.theModel, this.localCommitTreePanelView);
-        this.remoteCommitTreeModel = new RemoteCommitTreeModel(this.theModel, this.remoteCommitTreePanelView);
+        // Creates the commit tree model
+        this.commitTreeModel = new LocalCommitTreeModel(this.theModel, this.commitTreePanelView);
 
         // Passes theModel to panel views
         this.workingTreePanelView.setSessionModel(this.theModel);
@@ -169,26 +166,12 @@ public class SessionController {
         this.refreshRecentReposInDropdown();
 
         this.initRepositoryMonitor();
-        this.handleUnpushedTags();
 
         // if there are conflicting files on startup, watches them for changes
         try {
             ConflictingFileWatcher.watchConflictingFiles(theModel.getCurrentRepoHelper());
         } catch (GitAPIException | IOException e) {
             e.printStackTrace();
-        }
-    }
-
-    private void handleUnpushedTags() {
-        // ASK ERIC
-        //if (this.theModel.getCurrentRepoHelper()!= null && this.theModel.getCurrentRepoHelper().hasTagsWithUnpushedCommits()) {
-        //this.showTagPointsToUnpushedCommitNotification();
-        //}
-
-        // If some tags point to a commit in the remote tree, then these are unpushed tags,
-        // so we add them to the repohelper
-        if (remoteCommitTreeModel.getTagsToBePushed() != null) {
-            this.theModel.getCurrentRepoHelper().setUnpushedTags(remoteCommitTreeModel.getTagsToBePushed());
         }
     }
 
@@ -1206,8 +1189,7 @@ public class SessionController {
 
         Platform.runLater(() -> {
             try{
-                localCommitTreeModel.update();
-                remoteCommitTreeModel.update();
+                commitTreeModel.update();
                 //if (theModel.getCurrentRepoHelper() != null &&
                         //theModel.getCurrentRepoHelper().updateTags()) {
                     //if (theModel.getCurrentRepoHelper().hasTagsWithUnpushedCommits()) {
@@ -1289,8 +1271,7 @@ public class SessionController {
         try {
             workingTreePanelView.drawDirectoryView();
             allFilesPanelView.drawDirectoryView();
-            remoteCommitTreeModel.init();
-            localCommitTreeModel.init();
+            commitTreeModel.init();
             this.setBrowserURL();
         } catch (GitAPIException | IOException e) {
             showGenericErrorNotification();

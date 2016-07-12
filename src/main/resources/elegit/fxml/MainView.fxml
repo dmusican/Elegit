@@ -220,23 +220,14 @@
                                      onAction="#handleFetchButton"/>
                     </StackPane>
 
-
-                    <StackPane GridPane.rowIndex="1"
-                               GridPane.columnIndex="2"
-                               GridPane.rowSpan="1"
-                               GridPane.columnSpan="4">
-                        <CommitTreePanelView fx:id="remoteCommitTreePanelView"/>
-
-                        <Label StackPane.alignment="BOTTOM_LEFT"
-                               text="Remote-Tracking"
-                               id="commitTreeLabel">
-                            <StackPane.margin>
-                                <Insets bottom="15.0" left="5.0"/>
-                            </StackPane.margin>
-                        </Label>
+                    <StackPane  GridPane.rowIndex="1"
+                                GridPane.columnIndex="2"
+                                GridPane.rowSpan="3"
+                                GridPane.columnSpan="4">
+                        <CommitTreePanelView fx:id="commitTreePanelView"/>
                     </StackPane>
 
-                    <ArrowButton GridPane.rowIndex="2"
+                    <ArrowButton GridPane.rowIndex="4"
                                  GridPane.columnIndex="2"
                                  GridPane.halignment="LEFT"
                                  id="codeButton"
@@ -246,7 +237,7 @@
                                  arrowLeft="true"
                                  onAction="#handleMergeFromFetchButton"/>
 
-                    <StackPane GridPane.rowIndex="2"
+                    <StackPane GridPane.rowIndex="4"
                                GridPane.columnIndex="5">
 
                         <ArrowButton StackPane.alignment="CENTER_RIGHT"
@@ -266,21 +257,6 @@
                                      arrowUp="true"
                                      arrowRight="true"
                                      onAction="#handlePushButton"/>
-                    </StackPane>
-
-                    <StackPane  GridPane.rowIndex="3"
-                                GridPane.columnIndex="2"
-                                GridPane.rowSpan="1"
-                                GridPane.columnSpan="4">
-                        <CommitTreePanelView fx:id="localCommitTreePanelView"/>
-
-                        <Label StackPane.alignment="BOTTOM_LEFT"
-                               text="Local"
-                               id="commitTreeLabel">
-                            <StackPane.margin>
-                                <Insets bottom="15.0" left="5.0"/>
-                            </StackPane.margin>
-                        </Label>
                     </StackPane>
 
                     <ArrowButton GridPane.rowIndex="3"
