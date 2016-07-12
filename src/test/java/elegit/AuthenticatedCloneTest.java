@@ -353,9 +353,12 @@ public class AuthenticatedCloneTest {
         String username = scanner.next();
         String password = scanner.next();
 
+        Path repoPath = directoryPath.resolve("testrepo");
+
         RepoHelperBuilder.AuthDialogResponse response =
                 new RepoHelperBuilder.AuthDialogResponse(null, username, password, false);
-        RepoHelper repoHelper = ClonedRepoHelperBuilder.cloneRepositoryWithChecks(GITHUB_REMOTE_URL, response);
+
+        ClonedRepoHelperBuilder.cloneRepositoryWithChecks(GITHUB_REMOTE_URL, repoPath, response);
 
     }
 
