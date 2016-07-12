@@ -6,11 +6,14 @@
 <?import javafx.scene.control.CheckBox?>
 
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.control.ComboBox?>
 <NotificationPane fx:controller="elegit.MergeWindowController"
                   xmlns:fx="http://javafx.com/fxml"
                   fx:id="notificationPane">
     <content>
-        <GridPane   vgap="20">
+        <GridPane   vgap="20"
+                    hgap="20">
 
             <padding>
                 <Insets bottom="10" left="10" right ="10" top="10"/>
@@ -21,13 +24,23 @@
                     GridPane.columnSpan="2"
                     text="What would you like to merge?"/>
 
+            <columnConstraints>
+                <ColumnConstraints/>
+                <ColumnConstraints/>
+                <ColumnConstraints/>
+                <ColumnConstraints/>
+                <ColumnConstraints/>
+                <ColumnConstraints/>
+            </columnConstraints>
+
             <HBox   GridPane.columnIndex="1"
                     GridPane.rowIndex="1"
-                    spacing="10">
+                    alignment="CENTER">
 
                 <CheckBox   fx:id="mergeRemoteTrackingCheckBox"/>
 
-                <Text   text="Merge remote-tracking branch "/>
+                <Text   text="Merge remote-tracking branch "
+                        fx:id="mergeRemoteTrackingText"/>
 
                 <Text   fx:id="remoteTrackingBranchName"/>
 
@@ -35,7 +48,7 @@
 
             <HBox   GridPane.columnIndex="1"
                     GridPane.rowIndex="2"
-                    spacing="10">
+                    alignment="CENTER">
 
                 <Text   fx:id="intoLocalBranchText1"/>
 
@@ -45,19 +58,19 @@
 
             <HBox   GridPane.columnIndex="1"
                     GridPane.rowIndex="3"
-                    spacing="10">
+                    alignment="CENTER">
 
                 <CheckBox   fx:id="mergeDifLocalBranchCheckBox"/>
 
                 <Text   text="Merge local branch "/>
 
-                <Text   fx:id="branchDropdownSelector"/>
+                <ComboBox   fx:id="branchDropdownSelector"/>
 
             </HBox>
 
             <HBox   GridPane.columnIndex="1"
                     GridPane.rowIndex="4"
-                    spacing="10">
+                    alignment="CENTER">
 
                 <Text   fx:id="intoLocalBranchText2"/>
 
@@ -65,15 +78,25 @@
 
             </HBox>
 
-            <Button text="Merge"
-                    onAction="#handleMergeButton"
-                    GridPane.columnIndex="0"
-                    GridPane.rowIndex="5"/>
-
-            <Button text="Cancel"
-                    onAction="#closeWindow"
+            <HBox   GridPane.columnIndex="1"
                     GridPane.rowIndex="5"
-                    GridPane.columnIndex="1"/>
+                    alignment="CENTER"
+                    spacing="50">
+
+                <Button text="Merge"
+                        onAction="#handleMergeButton"
+                        fx:id="mergeButton"
+                        GridPane.columnIndex="0"
+                        GridPane.rowIndex="5"/>
+
+                <Button text="Cancel"
+                        onAction="#closeWindow"
+                        GridPane.halignment="RIGHT"
+                        GridPane.rowIndex="5"
+                        GridPane.columnIndex="1"/>
+            </HBox>
+
+
 
         </GridPane>
     </content>

@@ -717,7 +717,7 @@ public class SessionController {
      * Merges in FETCH_HEAD (after a fetch).
      */
     public void handleMergeFromFetchButton() {
-        try{
+        /*try{
             logger.info("Merge from fetch button clicked");
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
             if(!this.theModel.getCurrentRepoHelper().hasUnmergedCommits()) throw new NoCommitsToMergeException();
@@ -774,7 +774,7 @@ public class SessionController {
             setButtonsDisabled(true);
         }catch(NoCommitsToMergeException e){
             this.showNoCommitsToMergeNotification();
-        }
+        }*/
     }
 
     /**
@@ -1194,7 +1194,7 @@ public class SessionController {
      *
      * @param disable a boolean for whether or not to disable the buttons.
      */
-    private void setButtonsDisabled(boolean disable) {
+    public void setButtonsDisabled(boolean disable) {
         Platform.runLater(() -> {
             openRepoDirButton.setDisable(disable);
             gitStatusButton.setDisable(disable);
@@ -1405,39 +1405,6 @@ public class SessionController {
         });
     }
 
-    private void showCheckoutConflictsNotification(List<String> conflictingPaths) {
-        Platform.runLater(() -> {
-            this.notificationPane.setText("You can't switch to that branch because there would be a merge conflict. Stash your changes or resolve conflicts first.");
-
-            Action seeConflictsAction = new Action("See conflicts", e -> {
-                this.notificationPane.hide();
-                PopUpWindows.showCheckoutConflictsAlert(conflictingPaths);
-            });
-
-            this.notificationPane.getActions().clear();
-            this.notificationPane.getActions().setAll(seeConflictsAction);
-
-            this.notificationPane.show();
-        });
-    }
-
-    private void showMergeConflictsNotification(List<String> conflictingPaths){
-        Platform.runLater(() -> {
-            this.notificationPane.setText("Can't complete merge due to conflicts. Resolve the conflicts and commit all files to complete merging");
-
-            Action seeConflictsAction = new Action("See conflicting files", e -> {
-                this.notificationPane.hide();
-                PopUpWindows.showMergeConflictsAlert(conflictingPaths);
-            });
-
-            this.notificationPane.getActions().clear();
-            this.notificationPane.getActions().setAll(seeConflictsAction);
-
-            this.notificationPane.show();
-        });
-    }
-
-
     private void showPushToAheadRemoteNotification(boolean allRefsRejected){
         Platform.runLater(() -> {
             logger.warn("Remote ahead of local warning");
@@ -1466,16 +1433,6 @@ public class SessionController {
         Platform.runLater(() -> {
             logger.warn("Same repo loaded");
             this.notificationPane.setText("That repository is already open");
-
-            this.notificationPane.getActions().clear();
-            this.notificationPane.show();
-        });
-    }
-
-    private void showUnsuccessfulMergeNotification(){
-        Platform.runLater(() -> {
-            logger.warn("Failed merged warning");
-            this.notificationPane.setText("Merging failed");
 
             this.notificationPane.getActions().clear();
             this.notificationPane.show();
@@ -1558,16 +1515,6 @@ public class SessionController {
         });
     }
 
-    private void showNoCommitsToMergeNotification(){
-        Platform.runLater(() -> {
-            logger.warn("No commits to merge warning");
-            this.notificationPane.setText("There aren't any commits to merge. Try fetching first");
-
-            this.notificationPane.getActions().clear();
-            this.notificationPane.show();
-        });
-    }
-
     private void showNoCommitsFetchedNotification(){
         Platform.runLater(() -> {
             logger.warn("No commits fetched warning");
@@ -1578,42 +1525,10 @@ public class SessionController {
         });
     }
 
-    private void showMergingWithChangedFilesNotification(){
-        Platform.runLater(() -> {
-            logger.warn("Can't merge with modified files warning");
-            this.notificationPane.setText("Can't merge with modified files present");
-
-            // TODO: I think some sort of help text would be nice here, so they know what to do
-
-            this.notificationPane.getActions().clear();
-            this.notificationPane.show();
-        });
-    }
-
     private void showTagExistsNotification() {
         Platform.runLater(()-> {
             logger.warn("Tag already exists warning.");
             this.notificationPane.setText("Sorry that tag already exists.");
-
-            this.notificationPane.getActions().clear();
-            this.notificationPane.show();
-        });
-    }
-
-    private void showTagPointsToUnpushedCommitNotification() {
-        Platform.runLater(() -> {
-            logger.warn("Tag points to unpushed warning.");
-            this.notificationPane.setText("A tag points to an unpushed commit.");
-
-            this.notificationPane.getActions().clear();
-            this.notificationPane.show();
-        });
-    }
-
-    private void showNoRemoteTrackingNotification() {
-        Platform.runLater(() -> {
-            logger.warn("No remote tracking for current branch notification.");
-            this.notificationPane.setText("There is no remote tracking information for the current branch.");
 
             this.notificationPane.getActions().clear();
             this.notificationPane.show();
@@ -2021,6 +1936,9 @@ public class SessionController {
         th.start();
     }
 
+    /**
+     * shows the merge window
+     */
     public void handleGeneralMergeButton() {
         try{
             logger.info("Merge button clicked");

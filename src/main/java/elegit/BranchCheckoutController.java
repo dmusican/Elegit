@@ -100,9 +100,10 @@ public class BranchCheckoutController {
      * @param pane NotificationPane
      */
     public void showStage(NotificationPane pane) {
+        notificationPane = pane;
         stage = new Stage();
         stage.setTitle("Branch Manager");
-        stage.setScene(new Scene(pane, 550, 450));
+        stage.setScene(new Scene(notificationPane, 550, 450));
         stage.initModality(Modality.APPLICATION_MODAL);
         stage.setOnCloseRequest(event -> logger.info("Closed branch manager window"));
         stage.show();
