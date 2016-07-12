@@ -1,6 +1,9 @@
 package elegit;
 
+import javafx.fxml.FXML;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.Control;
 import javafx.scene.layout.GridPane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -11,9 +14,24 @@ import javafx.stage.Stage;
 public class CommitController {
 
     private Stage stage;
+    @FXML
+    public Button commitButton;
+
+    /**
+     * Initialize method automatically called by JavaFX
+     *
+     * Sets up views and buttons
+     */
+    public void initialize(){
+        initializeLayoutParameters();
+    }
 
     public void handleCommitButton() {
         System.out.println("Commiting!");
+    }
+
+    private void initializeLayoutParameters() {
+        commitButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
     }
 
     /**

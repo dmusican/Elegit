@@ -304,7 +304,6 @@ public class SessionController {
         this.pushButton.setTooltip(new Tooltip(
                 "Update remote repository with local changes"
         ));
-        // TODO: Update this when revert has more functionality
         this.pushButton.setTooltip(new Tooltip(
                 "Revert the changes in the most recent commit"
         ));
@@ -685,29 +684,33 @@ public class SessionController {
 
             BusyWindow.show();
             BusyWindow.setLoadingText("Committing...");
+
+            try{
+                logger.info("Commit manager clicked");
+                if(theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
+
+                logger.info("Opened commit manager window");
+                // Create and display the Stage:
+                FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/CommitView.fxml"));
+                fxmlLoader.load();
+                CommitController commitController = fxmlLoader.getController();
+                GridPane fxmlRoot = fxmlLoader.getRoot();
+                commitController.showStage(fxmlRoot);
+            }catch(IOException e){
+                showGenericErrorNotification();
+                e.printStackTrace();
+            }catch(NoRepoLoadedException e){
+                showNoRepoLoadedNotification();
+                setButtonsDisabled(true);
+            }catch(Exception e) {
+                e.printStackTrace();
+            }
+            finally {
+                BusyWindow.hide();
+            }
             Thread th = new Thread(new Task<Void>(){
                 @Override
                 protected Void call() {
-                    try{
-                            logger.info("Commit manager clicked");
-                            if(theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
-
-                            logger.info("Opened commit manager window");
-                            // Create and display the Stage:
-                            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/CommitView.fxml"));
-                            fxmlLoader.load();
-                            CommitController commitController = fxmlLoader.getController();
-                            GridPane fxmlRoot = fxmlLoader.getRoot();
-                            Platform.runLater(() -> commitController.showStage(fxmlRoot));
-                    }catch(IOException e){
-                        showGenericErrorNotification();
-                        e.printStackTrace();
-                    }catch(NoRepoLoadedException e){
-                        showNoRepoLoadedNotification();
-                        setButtonsDisabled(true);
-                    }catch(Exception e){
-                        e.printStackTrace();
-                    }
                         /*boolean canCommit = true;
 
                         if(canCommit) {
@@ -743,9 +746,6 @@ public class SessionController {
                         showGenericErrorNotification();
                         e.printStackTrace();
                     }*/
-                    finally {
-                        BusyWindow.hide();
-                    }
                     return null;
                 }
             });
