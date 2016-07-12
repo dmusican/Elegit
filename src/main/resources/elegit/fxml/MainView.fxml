@@ -90,22 +90,6 @@
                         </GridPane>
                     </StackPane>
 
-                    <Text   GridPane.columnIndex="2"
-                            GridPane.rowIndex="0"
-                            text="Checkout:"
-                            GridPane.halignment="RIGHT"/>
-
-                    <ComboBox fx:id="branchDropdownSelector"
-                              GridPane.columnIndex="3"
-                              GridPane.rowIndex="0"
-                              onMouseClicked="#updateBranchDropdown"/>
-
-                    <Button GridPane.columnIndex="4"
-                            GridPane.rowIndex="0"
-                            text="Manage branches"
-                            fx:id="branchesButton"
-                            onAction="#showBranchCheckout" />
-
                     <HBox   GridPane.columnIndex="5"
                             GridPane.rowIndex="0"
                             spacing="4.0">
@@ -118,6 +102,11 @@
                                 fx:id="legendbutton"
                                 onAction="#showLegend" />
 
+                        <Button fx:id="gitStatusButton"
+                                text="git status"
+                                id="codeButton"
+                                onAction="#onGitStatusButton"/>
+
                     </HBox>
 
             <GridPane alignment="TOP_CENTER"
@@ -128,65 +117,79 @@
                               GridPane.columnIndex="0"
                               GridPane.rowSpan="3">
 
-                        <Button GridPane.columnIndex="0"
-                                GridPane.rowIndex="0"
-                                fx:id="gitStatusButton"
-                                text="git status"
-                                id="codeButton"
-                                onAction="#onGitStatusButton"/>
+                <VBox   GridPane.rowIndex="0"
+                        GridPane.halignment="CENTER"
+                        GridPane.columnIndex="0"
+                        alignment="CENTER">
 
-                        <TabPane GridPane.rowIndex="1"
-                                 GridPane.vgrow="ALWAYS">
-                            <Tab text="Working Tree"
-                                 closable="false"
-                                 fx:id="workingTreePanelTab">
-                                <WorkingTreePanelView fx:id="workingTreePanelView"/>
-                            </Tab>
-                            <Tab text="All Files"
-                                 closable="false"
-                                 fx:id="allFilesPanelTab">
-                                <AllFilesPanelView fx:id="allFilesPanelView"/>
-                            </Tab>
-                        </TabPane>
+                    <Text   fx:id="localRepoText"
+                            text="Local Repository"/>
 
-                        <HBox GridPane.columnIndex="0"
-                              GridPane.rowIndex="2"
-                              spacing="20"
-                              alignment="center" >
+                    <HBox   alignment="CENTER">
 
-                            <Button fx:id="selectAllButton"
-                                    text="Select All"
-                                    onAction="#onSelectAllButton"/>
+                        <Text   text="current local branch: "/>
 
-                            <Button fx:id="deselectAllButton"
-                                    text="Deselect All"
-                                    onAction="#onDeselectAllButton"/>
-                        </HBox>
+                        <Text   fx:id="currentLocalBranchText"/>
 
-                        <TextArea
-                                GridPane.rowIndex="3"
-                                fx:id="commitMessageField"
-                                prefRowCount="4"
-                                prefColumnCount="1"
-                                promptText="Commit message..."
-                                wrapText="true" />
+                    </HBox>
 
-                    </GridPane>
+                    <HBox   alignment="CENTER">
 
-                    <Button GridPane.columnIndex="0"
-                            GridPane.rowIndex="7"
-                            text="Create/delete a branch"
-                            onAction="#handleNewBranchButton"/>
+                        <Text   text="current remote-tracking branch: "/>
 
-                    <Button GridPane.columnIndex="0"
-                            GridPane.rowIndex="8"
-                            text="Checkout different branch"
-                            onAction="#showBranchCheckout"/>
+                        <Text   fx:id="currentRemoteTrackingBranchText"/>
 
-                    <Button GridPane.columnIndex="0"
-                            GridPane.rowIndex="9"
-                            text="MERGE"
-                            onAction="#handleGeneralMergeButton"/>
+                    </HBox>
+
+                </VBox>
+
+                <TabPane GridPane.rowIndex="1"
+                         GridPane.columnIndex="0"
+                         GridPane.vgrow="ALWAYS">
+                    <Tab text="Working Tree"
+                         closable="false"
+                         fx:id="workingTreePanelTab">
+                        <WorkingTreePanelView fx:id="workingTreePanelView"/>
+                    </Tab>
+                    <Tab text="All Files"
+                         closable="false"
+                         fx:id="allFilesPanelTab">
+                        <AllFilesPanelView fx:id="allFilesPanelView"/>
+                    </Tab>
+                </TabPane>
+
+                <HBox GridPane.columnIndex="0"
+                      GridPane.rowIndex="2"
+                      spacing="20"
+                      alignment="center" >
+
+                    <Button fx:id="selectAllButton"
+                            text="Select All"
+                            onAction="#onSelectAllButton"/>
+
+                    <Button fx:id="deselectAllButton"
+                            text="Deselect All"
+                            onAction="#onDeselectAllButton"/>
+                </HBox>
+
+                <Button GridPane.columnIndex="0"
+                        GridPane.rowIndex="4"
+                        GridPane.halignment="CENTER"
+                        text="Create/delete a branch"
+                        onAction="#handleNewBranchButton"/>
+
+                <Button GridPane.columnIndex="0"
+                        GridPane.rowIndex="3"
+                        GridPane.halignment="CENTER"
+                        text="Checkout different branch"
+                        onAction="#showBranchCheckout"/>
+
+                <Button GridPane.columnIndex="0"
+                        GridPane.rowIndex="5"
+                        text="MERGE"
+                        onAction="#handleGeneralMergeButton"/>
+
+            </GridPane>
 
                     <StackPane GridPane.rowIndex="1"
                                GridPane.columnIndex="7">

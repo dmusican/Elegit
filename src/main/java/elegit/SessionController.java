@@ -25,7 +25,9 @@ import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
-import javafx.scene.text.Text;
+import javafx.scene.paint.Color;
+import javafx.scene.text.*;
+import javafx.scene.text.Font;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import elegit.exceptions.*;
@@ -38,6 +40,8 @@ import org.controlsfx.control.PopOver;
 import org.controlsfx.control.action.Action;
 import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.dircache.InvalidPathException;
+import org.eclipse.jgit.lib.BranchTrackingStatus;
+import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
 import java.awt.*;
@@ -55,8 +59,6 @@ import java.util.prefs.BackingStoreException;
  * The controller for the entire session.
  */
 public class SessionController {
-
-    public ComboBox<LocalBranchHelper> branchDropdownSelector;
 
     public ComboBox<RepoHelper> repoDropdownSelector;
     public Button loadNewRepoButton;
@@ -76,11 +78,8 @@ public class SessionController {
     public Button pushTagsButton;
     public Button pushButton;
     public Button fetchButton;
-    public Button branchesButton;
     public Button addButton;
     public Button removeButton;
-
-    public TextArea commitMessageField;
 
     public Tab workingTreePanelTab;
     public Tab allFilesPanelTab;
@@ -98,6 +97,9 @@ public class SessionController {
     public Button commitInfoNameCopyButton;
     public Button commitInfoGoToButton;
     public TextArea commitInfoMessageText;
+    public Text localRepoText;
+    public Text currentLocalBranchText;
+    public Text currentRemoteTrackingBranchText;
 
     public ScrollPane tagsPane;
     public Label tagsLabel;
@@ -148,10 +150,10 @@ public class SessionController {
         this.allFilesPanelView.setSessionModel(this.theModel);
 
         this.initializeLayoutParameters();
-        this.initWorkingTreePanelTab();
+
         this.setButtonIconsAndTooltips();
         this.setButtonsDisabled(true);
-
+        this.initWorkingTreePanelTab();
         this.theModel.loadRecentRepoHelpersFromStoredPathStrings();
         this.theModel.loadMostRecentRepoHelper();
 
@@ -163,12 +165,39 @@ public class SessionController {
         this.initRepositoryMonitor();
         this.handleUnpushedTags();
 
+        this.initHeaderText();
+
         // if there are conflicting files on startup, watches them for changes
         try {
             ConflictingFileWatcher.watchConflictingFiles(theModel.getCurrentRepoHelper());
         } catch (GitAPIException | IOException e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * helper method to initialize text in the layout
+     */
+    private void initHeaderText() {
+        localRepoText.setFont(new Font(25));
+
+        currentLocalBranchText.setText(theModel.getCurrentRepoHelper().getBranchModel().getCurrentBranch().getBranchName());
+        currentLocalBranchText.setFont(new Font(15));
+        currentLocalBranchText.setFill(Color.DODGERBLUE);
+
+        String curBranch = theModel.getCurrentRepoHelper().getBranchModel().getCurrentBranch().getBranchName();
+        try {
+            BranchTrackingStatus b = BranchTrackingStatus.of(theModel.getCurrentRepoHelper().getRepo(), curBranch);
+            if(b != null) {
+                currentRemoteTrackingBranchText.setText(Repository.shortenRefName(b.getRemoteTrackingBranch()));
+            }else {
+                currentRemoteTrackingBranchText.setText("doesn't exist");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        currentRemoteTrackingBranchText.setFont(new Font(15));
+        currentRemoteTrackingBranchText.setFill(Color.DODGERBLUE);
     }
 
     private void handleUnpushedTags() {
@@ -220,7 +249,6 @@ public class SessionController {
         pushTagsButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         pushButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         fetchButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
-        branchesButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         commitInfoNameCopyButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         commitInfoGoToButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         gitStatusButton.setMaxWidth(Double.MAX_VALUE);
@@ -228,8 +256,6 @@ public class SessionController {
         // Set minimum sizes for other fields and views
         workingTreePanelView.setMinSize(Control.USE_PREF_SIZE, 200);
         allFilesPanelView.setMinSize(Control.USE_PREF_SIZE, 200);
-        commitMessageField.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
-        branchDropdownSelector.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         final int REPO_DROPDOWN_MAX_WIDTH = 147;
         repoDropdownSelector.setMaxWidth(REPO_DROPDOWN_MAX_WIDTH);
 
@@ -253,9 +279,6 @@ public class SessionController {
         Text minusIcon = GlyphsDude.createIcon(FontAwesomeIcon.MINUS);
         this.removeRecentReposButton.setGraphic(minusIcon);
         this.removeRecentReposButton.setTooltip(new Tooltip("Clear shortcuts to recently opened repos"));
-
-        Text branchIcon = GlyphsDude.createIcon(FontAwesomeIcon.CODE_FORK);
-        this.branchesButton.setGraphic(branchIcon);
 
         Text clipboardIcon = GlyphsDude.createIcon(FontAwesomeIcon.CLIPBOARD);
         this.commitInfoNameCopyButton.setGraphic(clipboardIcon);
@@ -338,32 +361,6 @@ public class SessionController {
         }catch(NoRepoLoadedException e) {
             this.setButtonsDisabled(true);
         }
-    }
-
-    /**
-     * Gets the local branches and populates the branch selector dropdown.
-     *
-     * @throws NoRepoLoadedException
-     * @throws MissingRepoException
-     */
-    public void updateBranchDropdown() throws NoRepoLoadedException, MissingRepoException, IOException, GitAPIException {
-        RepoHelper currentRepoHelper = this.theModel.getCurrentRepoHelper();
-        if(currentRepoHelper==null) throw new NoRepoLoadedException();
-        if(!currentRepoHelper.exists()) throw new MissingRepoException();
-
-        currentRepoHelper.getBranchModel().updateAllBranches();
-        List<LocalBranchHelper> branches = currentRepoHelper.getBranchModel().getLocalBranchesTyped();
-
-        currentRepoHelper.getBranchModel().refreshCurrentBranch();
-        LocalBranchHelper currentBranch = (LocalBranchHelper) currentRepoHelper.getBranchModel().getCurrentBranch();
-
-        Platform.runLater(() -> {
-            this.branchDropdownSelector.setVisible(true);
-            this.branchDropdownSelector.getItems().setAll(branches);
-            if(this.branchDropdownSelector.getValue() == null || !this.branchDropdownSelector.getValue().getBranchName().equals(currentBranch.getBranchName())){
-                this.branchDropdownSelector.setValue(currentBranch);
-            }
-        });
     }
 
     /**
@@ -664,8 +661,6 @@ public class SessionController {
             logger.info("Commit button clicked");
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
             if(!this.theModel.getCurrentRepoHelper().exists()) throw new MissingRepoException();
-
-            String commitMessage = commitMessageField.getText();
 
             if(!workingTreePanelView.isAnyFileStaged()) throw new NoFilesStagedForCommitException();
 
@@ -1127,18 +1122,6 @@ public class SessionController {
 
                 workingTreePanelView.drawDirectoryView();
                 allFilesPanelView.drawDirectoryView();
-                updateBranchDropdown();
-            } catch(MissingRepoException e){
-                showMissingRepoNotification();
-                setButtonsDisabled(true);
-                refreshRecentReposInDropdown();
-            } catch(NoRepoLoadedException e){
-                // TODO: I'm changing the way it handles exception,
-                // assuming that the only time when this exception is
-                // thrown is after user closes the last repo.
-
-                    /*showNoRepoLoadedNotification();
-                    setButtonsDisabled(true);*/
             } catch(Exception e) {
                 showGenericErrorNotification();
                 e.printStackTrace();
@@ -1226,12 +1209,9 @@ public class SessionController {
             selectAllButton.setDisable(disable);
             deselectAllButton.setDisable(disable);
             remoteImage.setVisible(!disable);
-            commitMessageField.setDisable(disable);
             browserText.setVisible(!disable);
-            branchesButton.setDisable(disable);
             workingTreePanelTab.setDisable(disable);
             allFilesPanelTab.setDisable(disable);
-            branchDropdownSelector.setDisable(disable);
             removeRecentReposButton.setDisable(disable);
             repoDropdownSelector.setDisable(disable);
         });
@@ -1247,24 +1227,11 @@ public class SessionController {
      * interact with.
      */
     private void updateUIEnabledStatus() {
-        try{
-            if(this.theModel.getCurrentRepoHelper() == null && this.theModel.getAllRepoHelpers().size() >= 0) {
-                // (There's no repo for buttons to interact with, but there are repos in the menu bar)
-                setButtonsDisabled(true);
-            }else{
-                setButtonsDisabled(false);
-                this.updateBranchDropdown();
-            }
-        }catch(NoRepoLoadedException e){
-            this.showNoRepoLoadedNotification();
+        if (this.theModel.getCurrentRepoHelper() == null && this.theModel.getAllRepoHelpers().size() >= 0) {
+            // (There's no repo for buttons to interact with, but there are repos in the menu bar)
             setButtonsDisabled(true);
-        }catch(MissingRepoException e){
-            this.showMissingRepoNotification();
-            setButtonsDisabled(true);
-            this.refreshRecentReposInDropdown();
-        } catch (GitAPIException | IOException e) {
-            this.showGenericErrorNotification();
-            e.printStackTrace();
+        } else {
+            setButtonsDisabled(false);
         }
     }
 
