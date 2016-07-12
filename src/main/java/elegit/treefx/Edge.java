@@ -45,11 +45,11 @@ public class Edge extends Group {
         this.addedMidPoints = false;
         midLineY = new SimpleDoubleProperty(0);
 
-        DoubleBinding endX = source.translateXProperty().add(source.widthProperty());
-        DoubleBinding endY = source.translateYProperty().add(source.heightProperty().divide(2.0));
+        DoubleBinding endX = source.translateXProperty().add(source.widthProperty().divide(2.0));
+        DoubleBinding endY = source.translateYProperty().add(0);
 
-        DoubleBinding startX = target.translateXProperty().add(0);
-        DoubleBinding startY = target.translateYProperty().add(target.heightProperty().divide(2.0));
+        DoubleBinding startX = target.translateXProperty().add(target.widthProperty().divide(2.0));
+        DoubleBinding startY = target.translateYProperty().add(target.heightProperty());
 
         path = new DirectedPath(startX, startY, endX, endY);
         checkAndAddMidPoints(startX, endX);
