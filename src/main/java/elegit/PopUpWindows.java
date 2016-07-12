@@ -34,7 +34,7 @@ public class PopUpWindows {
         Alert alert = new Alert(Alert.AlertType.WARNING);
 
         ButtonType resolveButton = new ButtonType("Open Editor");
-        ButtonType addButton = new ButtonType("Commit");
+        ButtonType addButton = new ButtonType("Add");
         ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
         ButtonType helpButton = new ButtonType("Help", ButtonBar.ButtonData.HELP);
 
@@ -44,8 +44,8 @@ public class PopUpWindows {
         alert.getDialogPane().setPrefSize(450, 200);
 
         alert.setTitle("Warning: conflicting file");
-        alert.setHeaderText("You're adding a conflicting file to the commit");
-        alert.setContentText("You can open an editor to resolve the conflicts, or commit the changes anyways. What do you want to do?");
+        alert.setHeaderText("You're adding a conflicting file");
+        alert.setContentText("You can open an editor to resolve the conflicts, or add the changes anyways. What do you want to do?");
 
         ImageView img = new ImageView(new javafx.scene.image.Image("/elegit/conflict.png"));
         img.setFitHeight(40);
@@ -93,7 +93,7 @@ public class PopUpWindows {
                     "\t>>>>>>> <branch name>\n\n" +
                     "3. Delete the contents you don't want to keep after the merge\n" +
                     "4. Remove the markers (<<<<<<<, =======, >>>>>>>) git put in the file\n" +
-                    "5. Done! You can now safely commit the file");
+                    "5. Done! You can now safely add and commit the file");
             window.showAndWait();
         });
     }

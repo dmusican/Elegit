@@ -300,18 +300,11 @@ public abstract class CommitTreeModel{
         });
         infoItem.disableProperty().bind(CommitTreeController.selectedIDProperty().isEqualTo(commit.getId()));
 
-        MenuItem mergeItem = new MenuItem("Merge with...");
-        mergeItem.setDisable(true);
-
-        MenuItem branchItem = new MenuItem("Branch from...");
-        branchItem.setDisable(true);
-
         Menu relativesMenu = getRelativesMenu(commit);
         Menu revertMenu = getRevertMenu(commit);
         Menu resetMenu = getResetMenu(commit);
 
-        contextMenu.getItems().addAll(revertMenu, resetMenu, new SeparatorMenuItem(), infoItem, relativesMenu,
-                new SeparatorMenuItem(), mergeItem, branchItem);
+        contextMenu.getItems().addAll(revertMenu, resetMenu, new SeparatorMenuItem(), infoItem, relativesMenu);
 
         return contextMenu;
     }

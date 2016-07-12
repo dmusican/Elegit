@@ -1,5 +1,6 @@
 package elegit;
 
+import elegit.exceptions.MissingRepoException;
 import javafx.scene.control.Tooltip;
 import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.Git;
@@ -27,14 +28,7 @@ public class ModifiedRepoFile extends RepoFile {
         this(Paths.get(filePathString), repo);
     }
 
-    /**
-     * When this RepoFile is checkboxed and the user commits, we add this file to the repository.
-     *
-     * @throws GitAPIException if the `git add` command fails.
-     */
-    @Override public boolean updateFileStatusInRepo() throws GitAPIException {
-        AddCommand add = new Git(this.repo.getRepo()).add().addFilepattern(this.filePath.toString());
-        add.call();
-        return true;
-    }
+    @Override public boolean canAdd() { return true; }
+
+    @Override public boolean canRemove() { return false; }
 }

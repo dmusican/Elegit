@@ -75,6 +75,14 @@
         -fx-background-color: firebrick;
     }
 
+    .diffButton#stagedDiffButton {
+        -fx-background-color: #888800;
+    }
+
+    .diffButton#stagedModifiedDiffButton {
+            -fx-background-color: green;
+    }
+
 .diffText {
     -fx-font-family: "Menlo";
     -fx-font-size: 13;
