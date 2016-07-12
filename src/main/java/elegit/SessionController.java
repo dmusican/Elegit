@@ -1583,7 +1583,7 @@ public class SessionController {
 
     private void showCheckoutConflictsNotification(List<String> conflictingPaths) {
         Platform.runLater(() -> {
-            this.notificationPane.setText("You can't switch to that branch because there would be a merge conflict. Stash your changes or resolve conflicts first.");
+            this.notificationPane.setText("Your local changes would be overwritten by checkout. Please commit your changes before you can switch branches.");
 
             Action seeConflictsAction = new Action("See conflicts", e -> {
                 this.notificationPane.hide();
