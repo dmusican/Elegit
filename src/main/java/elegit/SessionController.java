@@ -40,6 +40,7 @@ import org.controlsfx.control.action.Action;
 import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.dircache.InvalidPathException;
 import org.eclipse.jgit.errors.NoMergeBaseException;
+import org.eclipse.jgit.lib.BranchTrackingStatus;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
 import java.awt.*;
@@ -814,6 +815,12 @@ public class SessionController {
         try{
             logger.info("Merge from fetch button clicked");
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
+            BranchTrackingStatus status = BranchTrackingStatus.of(this.theModel.getCurrentRepo(), this.theModel.getCurrentRepo().getBranch());
+            if (status==null) {
+                throw new NoTrackingException();
+            } else if (status.getBehindCount()==0) {
+                throw new UpToDateException();
+            }
             if(!this.theModel.getCurrentRepoHelper().hasUnmergedCommits()) throw new NoCommitsToMergeException();
 
             BusyWindow.show();
@@ -868,6 +875,13 @@ public class SessionController {
             setButtonsDisabled(true);
         }catch(NoCommitsToMergeException e){
             this.showNoCommitsToMergeNotification();
+        }catch(NoTrackingException e) {
+            this.showNoRemoteTrackingNotification();
+        }catch(UpToDateException e) {
+            this.showUpToDateNotification();
+        }
+        catch(IOException e) {
+            this.showGenericErrorNotification();
         }
     }
 
@@ -1820,6 +1834,16 @@ public class SessionController {
         Platform.runLater(() -> {
             logger.warn("No remote tracking for current branch notification.");
             this.notificationPane.setText("There is no remote tracking information for the current branch.");
+
+            this.notificationPane.getActions().clear();
+            this.notificationPane.show();
+        });
+    }
+
+    private void showUpToDateNotification() {
+        Platform.runLater(() -> {
+            logger.warn("Up to date notification.");
+            this.notificationPane.setText("Already up to date.");
 
             this.notificationPane.getActions().clear();
             this.notificationPane.show();
