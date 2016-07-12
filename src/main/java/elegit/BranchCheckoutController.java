@@ -36,7 +36,6 @@ import java.util.List;
  */
 public class BranchCheckoutController {
 
-    public TextField newBranchNameField;
     public ListView<RemoteBranchHelper> remoteListView;
     public ListView<LocalBranchHelper> localListView;
     Repository repo;

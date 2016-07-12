@@ -1,11 +1,13 @@
 package elegit;
 
 import javafx.application.Platform;
-import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonBar;
-import javafx.scene.control.ButtonType;
+import javafx.collections.ObservableList;
+import javafx.geometry.Pos;
+import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.HBox;
+import javafx.scene.text.Text;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -228,5 +230,37 @@ public class PopUpWindows {
                 + conflictList);
 
         alert.showAndWait();
+    }
+
+    public static RemoteBranchHelper showTrackDifRemoteBranchDialog(ObservableList<RemoteBranchHelper> remoteBranches) {
+        Dialog dialog = new Dialog();
+        dialog.getDialogPane().setPrefSize(320, 100);
+        dialog.setTitle("Track a remote branch locally");
+
+        Text trackText = new Text("Track ");
+        Text localText = new Text(" locally.");
+
+        ComboBox<RemoteBranchHelper> dropdown = new ComboBox<>(remoteBranches);
+        dropdown.setPromptText("select a remote branch...");
+
+        HBox hBox = new HBox(trackText, dropdown, localText);
+        hBox.setSpacing(10);
+        hBox.setAlignment(Pos.CENTER);
+
+        dialog.getDialogPane().setContent(hBox);
+
+        ButtonType trackButton = new ButtonType("Track");
+        ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+
+        dialog.getDialogPane().getButtonTypes().addAll(trackButton, cancelButton);
+
+        Optional<?> result = dialog.showAndWait();
+
+        if(result.get() == trackButton) {
+            dialog.close();
+            return dropdown.getSelectionModel().getSelectedItem();
+        }
+
+        return null;
     }
 }

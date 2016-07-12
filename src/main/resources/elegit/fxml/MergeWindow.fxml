@@ -4,16 +4,18 @@
 <?import javafx.scene.text.Text?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.control.CheckBox?>
-
 <?import javafx.scene.control.Button?>
-<?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.control.ComboBox?>
+
+<?import javafx.scene.control.Hyperlink?>
+<?import javafx.scene.layout.VBox?>
+<?import org.controlsfx.control.CheckListView?>
+<?import javafx.scene.layout.StackPane?>
 <NotificationPane fx:controller="elegit.MergeWindowController"
                   xmlns:fx="http://javafx.com/fxml"
                   fx:id="notificationPane">
     <content>
-        <GridPane   vgap="20"
-                    hgap="20">
+        <GridPane>
 
             <padding>
                 <Insets bottom="10" left="10" right ="10" top="10"/>
@@ -24,20 +26,29 @@
                     GridPane.columnSpan="2"
                     text="What would you like to merge?"/>
 
-            <columnConstraints>
-                <ColumnConstraints/>
-                <ColumnConstraints/>
-                <ColumnConstraints/>
-                <ColumnConstraints/>
-                <ColumnConstraints/>
-                <ColumnConstraints/>
-            </columnConstraints>
+            <StackPane  GridPane.columnIndex="0"
+                        GridPane.rowIndex="1">
+
+                <CheckBox   fx:id="mergeRemoteTrackingCheckBox"/>
+
+                <padding>
+                    <Insets top="10"/>
+                </padding>
+
+            </StackPane>
+
+
+            <CheckBox   fx:id="mergeDifLocalBranchCheckBox"
+                        GridPane.columnIndex="0"
+                        GridPane.rowIndex="3"/>
 
             <HBox   GridPane.columnIndex="1"
                     GridPane.rowIndex="1"
                     alignment="CENTER">
 
-                <CheckBox   fx:id="mergeRemoteTrackingCheckBox"/>
+                <padding>
+                    <Insets top="10" left="20"/>
+                </padding>
 
                 <Text   text="Merge remote-tracking branch "
                         fx:id="mergeRemoteTrackingText"/>
@@ -60,11 +71,24 @@
                     GridPane.rowIndex="3"
                     alignment="CENTER">
 
-                <CheckBox   fx:id="mergeDifLocalBranchCheckBox"/>
+                <padding>
+                    <Insets bottom="10"/>
+                </padding>
 
                 <Text   text="Merge local branch "/>
 
-                <ComboBox   fx:id="branchDropdownSelector"/>
+                <VBox>
+
+                    <padding>
+                        <Insets top="20"/>
+                    </padding>
+
+                    <ComboBox   fx:id="branchDropdownSelector"/>
+
+                    <Hyperlink  fx:id="trackLink"
+                                onAction="#handleTrackDifBranch"
+                                text="locally track another branch..."/>
+                </VBox>
 
             </HBox>
 
@@ -82,6 +106,10 @@
                     GridPane.rowIndex="5"
                     alignment="CENTER"
                     spacing="50">
+
+                <padding>
+                    <Insets top="20"/>
+                </padding>
 
                 <Button text="Merge"
                         onAction="#handleMergeButton"

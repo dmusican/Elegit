@@ -6,9 +6,7 @@ import javafx.collections.FXCollections;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.ComboBox;
+import javafx.scene.control.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
@@ -51,22 +49,26 @@ public class MergeWindowController {
     @FXML
     private NotificationPane notificationPane;
     @FXML
-    private ComboBox<LocalBranchHelper> branchDropdownSelector;
+    private ComboBox<LocalBranchHelper> branchDropdownSelector = new ComboBox<>();
     @FXML
     private Button mergeButton;
     @FXML
     private Text mergeRemoteTrackingText;
+    @FXML
+    private Hyperlink trackLink;
 
     Stage stage;
     SessionModel sessionModel;
     RepoHelper repoHelper;
     BranchModel branchModel;
     boolean disable;
+    LocalCommitTreeModel localCommitTreeModel;
+    RemoteCommitTreeModel remoteCommitTreeModel;
 
     static final Logger logger = LogManager.getLogger();
 
     /**
-     * initilizes the window
+     * initializes the window
      * called when the fxml is loaded
      */
     public void initialize() throws IOException {
@@ -77,6 +79,18 @@ public class MergeWindowController {
 
         //init branch dropdown selector
         branchDropdownSelector.setItems(FXCollections.observableArrayList(branchModel.getLocalBranchesTyped()));
+        branchDropdownSelector.setPromptText("local branches...");
+
+        //init commit tree models
+        for (CommitTreeModel commitTreeModel : CommitTreeController.allCommitTreeModels) {
+            if (commitTreeModel.getViewName().equals(LocalCommitTreeModel
+                    .LOCAL_TREE_VIEW_NAME)) {
+                localCommitTreeModel = (LocalCommitTreeModel)commitTreeModel;
+            } else if (commitTreeModel.getViewName().equals(RemoteCommitTreeModel
+                    .REMOTE_TREE_VIEW_NAME)) {
+                remoteCommitTreeModel = (RemoteCommitTreeModel)commitTreeModel;
+            }
+        }
 
         initText();
         initCheckBoxes();
@@ -114,6 +128,8 @@ public class MergeWindowController {
         localBranchName2.setFill(Color.DODGERBLUE);
         remoteTrackingBranchName.setFont(new Font(18));
         remoteTrackingBranchName.setFill(Color.DODGERBLUE);
+
+        trackLink.setFont(new Font(10));
     }
 
     /**
@@ -142,7 +158,7 @@ public class MergeWindowController {
         notificationPane = pane;
         stage = new Stage();
         stage.setTitle("Merge");
-        stage.setScene(new Scene(notificationPane, 500, 250));
+        stage.setScene(new Scene(notificationPane, 450, 250));
         stage.initModality(Modality.APPLICATION_MODAL);
         stage.setOnCloseRequest(event -> logger.info("Closed merge window"));
         stage.show();
@@ -266,7 +282,26 @@ public class MergeWindowController {
         }
     }
 
-    /******* START ERROR NOTIIFICATIONS *******/
+    public void handleTrackDifBranch() {
+        RemoteBranchHelper toTrack = PopUpWindows.showTrackDifRemoteBranchDialog(FXCollections.observableArrayList(branchModel.getRemoteBranchesTyped()));
+        logger.info("Track remote branch locally (in merge window) button clicked");
+        try {
+            if (toTrack != null) {
+                LocalBranchHelper tracker = this.branchModel.trackRemoteBranch(toTrack);
+                this.branchDropdownSelector.getItems().add(tracker);
+                CommitTreeController.setBranchHeads(remoteCommitTreeModel, repoHelper);
+                CommitTreeController.setBranchHeads(localCommitTreeModel, repoHelper);
+            }
+        } catch (RefAlreadyExistsException e) {
+            logger.warn("Branch already exists locally warning");
+            this.showRefAlreadyExistsNotification();
+        } catch (GitAPIException | IOException e) {
+            showGenericErrorNotification();
+            e.printStackTrace();
+        }
+    }
+
+    /******* START ERROR NOTIFICATIONS *******/
 
     private void showFastForwardMergeNotification() {
         logger.info("Fast forward merge complete notification");
@@ -429,5 +464,13 @@ public class MergeWindowController {
         });
     }
 
-    /******* END ERROR NOTIIFICATIONS *******/
+    private void showRefAlreadyExistsNotification() {
+        logger.info("Branch already exists notification");
+        notificationPane.setText("Looks like that branch already exists locally!");
+
+        notificationPane.getActions().clear();
+        notificationPane.show();
+    }
+
+    /******* END ERROR NOTIFICATIONS *******/
 }
