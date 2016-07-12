@@ -697,7 +697,7 @@ public class SessionController {
                             FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/CommitView.fxml"));
                             fxmlLoader.load();
                             CommitController commitController = fxmlLoader.getController();
-                            NotificationPane fxmlRoot = fxmlLoader.getRoot();
+                            GridPane fxmlRoot = fxmlLoader.getRoot();
                             Platform.runLater(() -> commitController.showStage(fxmlRoot));
                     }catch(IOException e){
                         showGenericErrorNotification();

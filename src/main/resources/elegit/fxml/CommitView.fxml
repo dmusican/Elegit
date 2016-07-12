@@ -1,69 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import javafx.scene.text.Text?>
 <?import elegit.*?>
-<?import org.controlsfx.control.NotificationPane?>
 <?import java.net.URL?>
 <?import javafx.scene.image.*?>
-
 <?import javafx.scene.text.Font?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.text.*?>
+<?import java.lang.*?>
 
-<NotificationPane
-                  fx:controller="elegit.CommitController"
-                  xmlns:fx="http://javafx.com/fxml"
-                  fx:id="notificationPane"
-                  AnchorPane.bottomAnchor="5.0"
-                  AnchorPane.leftAnchor="5.0"
-                  AnchorPane.rightAnchor="5.0"
-                  AnchorPane.topAnchor="5.0">
-    <content>
-        <HBox fx:id="root">
-            <GridPane HBox.hgrow="ALWAYS"
-                      alignment="TOP_CENTER"
-                      hgap="5" vgap="5"
-                      gridLinesVisible="false"
-                      id="gridPane">
+<GridPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity"
+          prefHeight="250" prefWidth="400" xmlns:fx="http://javafx.com/fxml/1"
+          xmlns="http://javafx.com/javafx/8"
+          fx:controller="elegit.CommitController">
+<columnConstraints>
+    <ColumnConstraints hgrow="SOMETIMES" maxWidth="400" minWidth="10.0" prefWidth="173.0"/>
+    <ColumnConstraints hgrow="SOMETIMES" maxWidth="800" minWidth="10.0" prefWidth="227.0"/>
+</columnConstraints>
+<rowConstraints>
+    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+</rowConstraints>
+<children>
+    <TabPane prefHeight="250" prefWidth="125.0" tabClosingPolicy="UNAVAILABLE" GridPane.rowSpan="2">
+        <tabs>
+            <Tab text="Changed Files"
+                 closable="false"
+                 fx:id="workingTreePanelTab">
+                <WorkingTreePanelView fx:id="workingTreePanelView"/>
+            </Tab>
+            <Tab text="All Files"
+                 closable="false"
+                 fx:id="allFilesPanelTab">
+                <AllFilesPanelView fx:id="allFilesPanelView"/>
+            </Tab>
+        </tabs>
+    </TabPane>
+    <AnchorPane prefHeight="275" prefWidth="275.0" GridPane.columnIndex="1" GridPane.rowSpan="2">
+        <children>
+            <Label layoutX="20.0" layoutY="10.0" text="Commit Message"/>
+            <TextArea layoutX="20.0" layoutY="40.0" prefHeight="150.0" prefWidth="220.0" />
+            <ArrowButton layoutX="150.0" layoutY="300.0" mnemonicParsing="false"
+                         text="Commit"
+                         onAction="#handleCommitButton"
+                         fx:id="commitButton"
+                         id="codeButton"
+                         arrowRight="true"/>
+            <ArrowButton layoutX="150.0" layoutY="300.0" mnemonicParsing="false"
+                         id="codeButton"
+                         fx:id="commitButton"
+                         text="Commit"
+                         arrowRight="true"
+                         onAction="#handleCommitButton"/>
+        </children>
+    </AnchorPane>
+</children>
+<opaqueInsets>
+    <Insets />
+</opaqueInsets>
+<stylesheets>
+    <URL value="@../css/BaseStyle.css"/>
+</stylesheets>
+</GridPane>
 
-                <TabPane GridPane.rowIndex="0"
-                         GridPane.columnIndex="1"
-                         prefRowCount="2"
-                         GridPane.vgrow="ALWAYS">
-                    <Tab text="Working Tree"
-                         closable="false"
-                         fx:id="workingTreePanelTab">
-                        <WorkingTreePanelView fx:id="workingTreePanelView"/>
-                    </Tab>
-                    <Tab text="All Files"
-                         closable="false"
-                         fx:id="allFilesPanelTab">
-                        <AllFilesPanelView fx:id="allFilesPanelView"/>
-                    </Tab>
-                </TabPane>
-
-
-                <TextArea
-                        GridPane.rowIndex="0"
-                        GridPane.columnIndex="1"
-                        fx:id="commitMessageField"
-                        prefRowCount="4"
-                        prefColumnCount="1"
-                        promptText="Commit message..."
-                        wrapText="true" />
-
-                <ArrowButton GridPane.rowIndex="1"
-                             GridPane.columnIndex="1"
-                             GridPane.halignment="CENTER"
-                             id="codeButton"
-                             fx:id="commitButton"
-                             text="Commit"
-                             arrowRight="true"
-                             onAction="#handleCommitButton"/>
-            </GridPane>
-        </HBox>
-    </content>
-
-    <stylesheets>
-        <URL value="@../css/BaseStyle.css"/>
-    </stylesheets>
-</NotificationPane>

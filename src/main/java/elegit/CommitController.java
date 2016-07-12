@@ -1,9 +1,9 @@
 package elegit;
 
 import javafx.scene.Scene;
+import javafx.scene.layout.GridPane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import org.controlsfx.control.NotificationPane;
 
 /**
  * Created by Eric on 7/11/2016.
@@ -20,7 +20,7 @@ public class CommitController {
      * Shows the branch manager
      * @param pane NotificationPane
      */
-    public void showStage(NotificationPane pane) {
+    public void showStage(GridPane pane) {
         stage = new Stage();
         stage.setTitle("Commit");
         stage.setScene(new Scene(pane, 550, 450));
