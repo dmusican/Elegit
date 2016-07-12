@@ -1,9 +1,9 @@
 package elegit;
 
 import com.jcraft.jsch.UserInfo;
-import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.TextInputDialog;
+import javafx.geometry.Insets;
+import javafx.scene.control.*;
+import javafx.scene.layout.GridPane;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -15,57 +15,70 @@ import java.util.Optional;
  */
 public class ElegitUserInfoGUI implements UserInfo {
 
-    private String password;
-    private String passphrase;
+    private Optional<String> password;
+    private Optional<String> passphrase;
+
+    public ElegitUserInfoGUI() {
+        password = Optional.empty();
+        passphrase = Optional.empty();
+    }
 
     @Override
     public String getPassphrase() {
-        return passphrase;
+        return passphrase.get();
     }
 
     @Override
     public String getPassword() {
-        return password;
+        return password.get();
     }
 
     @Override
     public boolean promptPassword(String s) {
-        Optional<String> result = prompt(s,"SSH password authentication",
-                                           "SSH password authentication",
-                                           "Enter your password:");
-        if (result.isPresent()) {
-            password = result.get();
-            return true;
-        } else {
-            password = "";
-            return false;
-        }
+        password = prompt(s,"SSH password authentication",
+                                             "SSH password authentication",
+                                             "Enter your password:");
+        return password.isPresent();
     }
 
     @Override
     public boolean promptPassphrase(String s) {
 
-        Optional<String> result = prompt(s,"SSH public key authentication",
+        passphrase = prompt(s,"SSH public key authentication",
                                            "SSH public key authentication",
                                            "Enter your passphrase:");
-        if (result.isPresent()) {
-            passphrase = result.get();
-            return true;
-        } else {
-            passphrase = "";
-            return false;
-        }
+        return passphrase.isPresent();
     }
 
     private Optional<String> prompt(String s, String title, String headerText, String contentText) {
         System.out.println(s);
 
-        TextInputDialog prompt = new TextInputDialog();
-        prompt.setTitle(title);
-        prompt.setHeaderText(headerText);
-        prompt.setContentText(contentText);
-        Optional<String> result = prompt.showAndWait();
-        return result;
+        Dialog<String> dialog = new Dialog<>();
+
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new Insets(10, 10, 10, 10));
+
+        PasswordField passwordField = new PasswordField();
+        grid.add(passwordField,2,0);
+
+        dialog.getDialogPane().setContent(grid);
+
+        dialog.setTitle(title);
+        dialog.setHeaderText(s);
+        dialog.setContentText(s);
+
+        dialog.getDialogPane().getButtonTypes().setAll(ButtonType.OK, ButtonType.CANCEL);
+
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == ButtonType.OK)
+                return passwordField.getText();
+            else
+                return null;
+        });
+
+        return dialog.showAndWait();
     }
 
     @Override
@@ -98,7 +111,7 @@ public class ElegitUserInfoGUI implements UserInfo {
         alert.setContentText(s);
 
         alert.getButtonTypes().setAll(ButtonType.OK);
-        Optional<ButtonType> result = alert.showAndWait();
+        alert.showAndWait();
         return;
     }
 }

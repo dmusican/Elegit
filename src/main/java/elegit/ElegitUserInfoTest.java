@@ -41,25 +41,6 @@ public class ElegitUserInfoTest implements UserInfo {
     public boolean promptPassphrase(String s) {
         System.out.println(s);
         return true;
-//
-//        final boolean response;
-//        FutureTask<Boolean> task = new FutureTask<Boolean>(new Runnable() {
-//            @Override
-//            public void run() {
-//                TextInputDialog prompt = new TextInputDialog();
-//                prompt.setTitle("SSH public key authentication");
-//                prompt.setHeaderText("SSH public key authentication");
-//                prompt.setContentText("Enter your passphrase:");
-//                Optional<String> result = prompt.showAndWait();
-//                if (result.isPresent()) {
-//                    passphrase = result.get();
-//                    response = true;
-//                } else {
-//                    passphrase = "";
-//                    response = false;
-//                }
-//            }
-//        }}, response};
     }
 
     @Override
