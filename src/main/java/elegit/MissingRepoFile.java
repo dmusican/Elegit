@@ -1,5 +1,6 @@
 package elegit;
 
+import elegit.exceptions.MissingRepoException;
 import javafx.scene.control.Tooltip;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.RmCommand;
@@ -26,14 +27,7 @@ public class MissingRepoFile extends RepoFile {
         this(Paths.get(filePathString), repo);
     }
 
-    /**
-     * When this RepoFile is checkboxed and the user commits, we remove this file from the repository.
-     *
-     * @throws GitAPIException if the `git rm` command fails.
-     */
-    @Override public boolean updateFileStatusInRepo() throws GitAPIException {
-        RmCommand rm = new Git(this.repo.getRepo()).rm().addFilepattern(this.filePath.toString());
-        rm.call();
-        return true;
-    }
+    @Override public boolean canAdd() { return false; }
+
+    @Override public boolean canRemove() { return true; }
 }

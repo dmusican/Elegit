@@ -52,6 +52,7 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.prefs.BackingStoreException;
@@ -83,6 +84,8 @@ public class SessionController {
     public Button pushButton;
     public Button fetchButton;
     public Button branchesButton;
+    public Button addButton;
+    public Button removeButton;
 
     public TextArea commitMessageField;
 
@@ -219,6 +222,8 @@ public class SessionController {
         openRepoDirButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         gitStatusButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         commitButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
+        addButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
+        removeButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         mergeFromFetchButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         pushTagsButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         pushButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
@@ -284,6 +289,12 @@ public class SessionController {
         this.commitButton.setTooltip(new Tooltip(
                 "Check in selected files to local repository"
         ));
+        this.addButton.setTooltip(new Tooltip(
+                "Stage changes for selected files"
+        ));
+        this.removeButton.setTooltip(new Tooltip(
+                "Delete selected files and remove them from Git"
+        ));
         this.mergeFromFetchButton.setTooltip(new Tooltip(
                 "Merge files from remote repository to local repository"
         ));
@@ -293,7 +304,6 @@ public class SessionController {
         this.pushButton.setTooltip(new Tooltip(
                 "Update remote repository with local changes"
         ));
-        // TODO: Update this when revert has more functionality
         this.pushButton.setTooltip(new Tooltip(
                 "Revert the changes in the most recent commit"
         ));
@@ -551,8 +561,115 @@ public class SessionController {
     }
 
     /**
-     * Perform the updateFileStatusInRepo() method for each file whose
-     * checkbox is checked. Then commit with the commit message and push.
+     * Adds all files that are selected if they can be added
+     */
+    public void handleAddButton() {
+        try {
+            logger.info("Add button clicked");
+            if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
+            if(!this.theModel.getCurrentRepoHelper().exists()) throw new MissingRepoException();
+
+            if(!workingTreePanelView.isAnyFileSelected()) throw new NoFilesSelectedToAddException();
+
+            BusyWindow.show();
+            BusyWindow.setLoadingText("Adding...");
+            Thread th = new Thread(new Task<Void>(){
+                @Override
+                protected Void call() {
+                    try{
+                        ArrayList<Path> filePathsToAdd = new ArrayList<>();
+                        // Try to add all files, throw exception if there are ones that can't be added
+                        for(RepoFile checkedFile : workingTreePanelView.getCheckedFilesInDirectory()) {
+                            if (checkedFile.canAdd())
+                                filePathsToAdd.add(checkedFile.getFilePath());
+                            else
+                                throw new UnableToAddException(checkedFile.filePath.toString());
+                        }
+
+                        theModel.getCurrentRepoHelper().addFilePaths(filePathsToAdd);
+                        gitStatus();
+
+                    } catch(JGitInternalException e){
+                        showGenericErrorNotification();
+                        e.printStackTrace();
+                    } catch (UnableToAddException e) {
+                        showCannotAddFileNotification(e.filename);
+                    } catch (GitAPIException | IOException e) {
+                        showGenericErrorNotification();
+                    } finally {
+                        BusyWindow.hide();
+                    }
+                    return null;
+                }
+            });
+            th.setDaemon(true);
+            th.setName("Git add");
+            th.start();
+        } catch (NoFilesSelectedToAddException e) {
+            this.showNoFilesSelectedForAddNotification();
+        } catch (NoRepoLoadedException e) {
+            this.showNoRepoLoadedNotification();
+        } catch (MissingRepoException e) {
+            this.showMissingRepoNotification();
+        }
+    }
+
+    /**
+     * Removes all files from staging area that are selected if they can be removed
+     */
+    public void handleRemoveButton() {
+        try {
+            logger.info("Remove button clicked");
+            if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
+            if(!this.theModel.getCurrentRepoHelper().exists()) throw new MissingRepoException();
+
+            if(!workingTreePanelView.isAnyFileSelected()) throw new NoFilesSelectedToRemoveException();
+
+            BusyWindow.show();
+            BusyWindow.setLoadingText("Removing...");
+            Thread th = new Thread(new Task<Void>(){
+                @Override
+                protected Void call() {
+                    try{
+                        ArrayList<Path> filePathsToRemove = new ArrayList<>();
+                        // Try to remove all files, throw exception if there are ones that can't be added
+                        for(RepoFile checkedFile : workingTreePanelView.getCheckedFilesInDirectory()) {
+                            if (checkedFile.canRemove())
+                                filePathsToRemove.add(checkedFile.getFilePath());
+                            else
+                                throw new UnableToRemoveException(checkedFile.filePath.toString());
+                        }
+
+                        theModel.getCurrentRepoHelper().removeFilePaths(filePathsToRemove);
+                        gitStatus();
+
+                    } catch(JGitInternalException e){
+                        showGenericErrorNotification();
+                        e.printStackTrace();
+                    } catch (UnableToRemoveException e) {
+                        showCannotRemoveFileNotification(e.filename);
+                    } catch (GitAPIException e) {
+                        showGenericErrorNotification();
+                    } finally {
+                        BusyWindow.hide();
+                    }
+                    return null;
+                }
+            });
+            th.setDaemon(true);
+            th.setName("Git rm");
+            th.start();
+        } catch (NoFilesSelectedToRemoveException e) {
+            this.showNoFilesSelectedForRemoveNotification();
+        } catch (NoRepoLoadedException e) {
+            this.showNoRepoLoadedNotification();
+        } catch (MissingRepoException e) {
+            this.showMissingRepoNotification();
+        }
+    }
+
+    /**
+     * Commits all files that have been staged with the message
      */
     public void handleCommitButton() {
         try {
@@ -562,61 +679,38 @@ public class SessionController {
 
             String commitMessage = commitMessageField.getText();
 
-            if(!workingTreePanelView.isAnyFileSelected()) throw new NoFilesStagedForCommitException();
-            if(commitMessage.length() == 0) throw new NoCommitMessageException();
+            if(!workingTreePanelView.isAnyFileStaged()) throw new NoFilesStagedForCommitException();
 
             BusyWindow.show();
             BusyWindow.setLoadingText("Committing...");
-            Thread th = new Thread(new Task<Void>(){
-                @Override
-                protected Void call() {
-                    try{
-                        boolean canCommit = true;
-                        for(RepoFile checkedFile : workingTreePanelView.getCheckedFilesInDirectory()){
-                            canCommit = canCommit && checkedFile.updateFileStatusInRepo();
-                        }
 
-                        if(canCommit) {
-                            theModel.getCurrentRepoHelper().commit(commitMessage);
+            try{
+                logger.info("Commit manager clicked");
+                if(theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
 
-                            // Now clear the commit text and a view reload ( or `git status`) to show that something happened
-                            commitMessageField.clear();
-                            gitStatus();
-                        }
-                    } catch(JGitInternalException e){
-                        showGenericErrorNotification();
-                        e.printStackTrace();
-                    } catch(MissingRepoException e){
-                        showMissingRepoNotification();
-                        setButtonsDisabled(true);
-                        refreshRecentReposInDropdown();
-                    } catch (TransportException e) {
-                        showNotAuthorizedNotification(null);
-                    } catch (WrongRepositoryStateException e) {
-                        showGenericErrorNotification();
-                        e.printStackTrace();
-
-                        // TODO remove the above debug statements
-                        // This should hopefully not appear any more. Previously occurred when attempting to resolve
-                        // conflicts in an external editor
-                        // Do nothing.
-
-                    } catch(GitAPIException | IOException e){
-                        // Git error, or error presenting the file chooser window
-                        showGenericErrorNotification();
-                        e.printStackTrace();
-                    } catch(Exception e) {
-                        showGenericErrorNotification();
-                        e.printStackTrace();
-                    }finally {
-                        BusyWindow.hide();
-                    }
-                    return null;
-                }
-            });
-            th.setDaemon(true);
-            th.setName("Git commit");
-            th.start();
+                logger.info("Opened commit manager window");
+                // Create and display the Stage:
+                FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/CommitView.fxml"));
+                fxmlLoader.load();
+                CommitController commitController = fxmlLoader.getController();
+                commitController.isClosed.addListener((observable, oldValue, newValue) -> {
+                    if (!oldValue.booleanValue()&&newValue.booleanValue())
+                        gitStatus();
+                });
+                GridPane fxmlRoot = fxmlLoader.getRoot();
+                commitController.showStage(fxmlRoot);
+            }catch(IOException e){
+                showGenericErrorNotification();
+                e.printStackTrace();
+            }catch(NoRepoLoadedException e){
+                showNoRepoLoadedNotification();
+                setButtonsDisabled(true);
+            }catch(Exception e) {
+                e.printStackTrace();
+            }
+            finally {
+                BusyWindow.hide();
+            }
         } catch(NoRepoLoadedException e){
             this.showNoRepoLoadedNotification();
             setButtonsDisabled(true);
@@ -624,8 +718,6 @@ public class SessionController {
             this.showMissingRepoNotification();
             setButtonsDisabled(true);
             refreshRecentReposInDropdown();
-        } catch(NoCommitMessageException e){
-            this.showNoCommitMessageNotification();
         }catch(NoFilesStagedForCommitException e){
             this.showNoFilesStagedForCommitNotification();
         }
@@ -1202,6 +1294,8 @@ public class SessionController {
             gitStatusButton.setDisable(disable);
             tagButton.setDisable(disable);
             commitButton.setDisable(disable);
+            addButton.setDisable(disable);
+            removeButton.setDisable(disable);
             mergeFromFetchButton.setDisable(disable);
             pushTagsButton.setDisable(disable);
             pushButton.setDisable(disable);
@@ -1579,12 +1673,56 @@ public class SessionController {
     private void showNoFilesStagedForCommitNotification(){
         Platform.runLater(() -> {
             logger.warn("No files staged for commit warning");
-            this.notificationPane.setText("You need to select which files to commit");
+            this.notificationPane.setText("You need to add files before commiting");
 
             this.notificationPane.getActions().clear();
             this.notificationPane.show();
         });
     }
+
+
+    private void showNoFilesSelectedForAddNotification(){
+        Platform.runLater(() -> {
+            logger.warn("No files selected for add warning");
+            this.notificationPane.setText("You need to select files to add");
+
+            this.notificationPane.getActions().clear();
+            this.notificationPane.show();
+        });
+    }
+
+
+    private void showNoFilesSelectedForRemoveNotification(){
+        Platform.runLater(() -> {
+            logger.warn("No files staged for remove warning");
+            this.notificationPane.setText("You need select files to remove");
+
+            this.notificationPane.getActions().clear();
+            this.notificationPane.show();
+        });
+    }
+
+
+    private void showCannotAddFileNotification(String filename) {
+        Platform.runLater(() -> {
+            logger.warn("Cannot add file notification");
+            this.notificationPane.setText("Cannot add "+filename+". It might already be added (staged).");
+
+            this.notificationPane.getActions().clear();
+            this.notificationPane.show();
+        });
+    }
+
+    private void showCannotRemoveFileNotification(String filename) {
+        Platform.runLater(() -> {
+            logger.warn("Cannot remove file notification");
+            this.notificationPane.setText("Cannot remove "+filename+" because it hasn't been staged yet.");
+
+            this.notificationPane.getActions().clear();
+            this.notificationPane.show();
+        });
+    }
+
 
     private void showNoCommitMessageNotification(){
         Platform.runLater(() -> {

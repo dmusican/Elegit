@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import elegit.*?>
+<?import java.net.URL?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.text.Font?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.text.*?>
+<?import java.lang.*?>
+
+<GridPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity"
+          prefHeight="250" prefWidth="400" xmlns:fx="http://javafx.com/fxml/1"
+          xmlns="http://javafx.com/javafx/8"
+          fx:controller="elegit.CommitController"
+          fx:id="root">
+    <columnConstraints>
+        <ColumnConstraints hgrow="SOMETIMES" maxWidth="400" minWidth="10.0" prefWidth="173.0"/>
+        <ColumnConstraints hgrow="SOMETIMES" maxWidth="800" minWidth="10.0" prefWidth="227.0"/>
+    </columnConstraints>
+    <rowConstraints>
+        <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
+        <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
+    </rowConstraints>
+    <TabPane prefHeight="250" prefWidth="125.0" tabClosingPolicy="UNAVAILABLE" GridPane.rowSpan="2">
+        <tabs>
+            <Tab text="Changed Files"
+                 closable="false"
+                 fx:id="stagedFilesPanelTab">
+                <StagedTreePanelView fx:id="stagedFilesPanelView"/>
+            </Tab>
+            <Tab text="All Files"
+                 closable="false"
+                 fx:id="allFilesPanelTab">
+                <AllFilesPanelView fx:id="allFilesPanelView"/>
+            </Tab>
+        </tabs>
+    </TabPane>
+    <AnchorPane prefHeight="275" prefWidth="275.0" GridPane.columnIndex="1" GridPane.rowSpan="2">
+        <Label layoutX="20.0" layoutY="10.0" text="Commit Message"/>
+        <TextArea layoutX="20.0" layoutY="40.0" prefHeight="125.0" prefWidth="270.0"
+                    fx:id="commitMessageField"
+                    promptText="Commit message..."
+                    wrapText="true"/>
+        <ArrowButton layoutX="225.0" layoutY="400.0" prefHeight="50.0" prefWidth="100.0" mnemonicParsing="false"
+                     text="Commit"
+                     onAction="#handleCommitButton"
+                     fx:id="commitButton"
+                     id="codeButton"
+                     arrowRight="true"/>
+    </AnchorPane>
+<stylesheets>
+    <URL value="@../css/BaseStyle.css"/>
+</stylesheets>
+</GridPane>
+

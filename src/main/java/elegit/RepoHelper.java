@@ -253,9 +253,8 @@ public abstract class RepoHelper {
     public void addFilePath(Path filePath) throws GitAPIException {
         Git git = new Git(this.repo);
         // git add:
-        Path relativizedFilePath = this.localPath.relativize(filePath);
         git.add()
-                .addFilepattern(relativizedFilePath.toString())
+                .addFilepattern(filePath.toString())
                 .call();
         git.close();
     }
@@ -271,10 +270,45 @@ public abstract class RepoHelper {
         // git add:
         AddCommand adder = git.add();
         for (Path filePath : filePaths) {
-            Path localizedFilePath = this.localPath.relativize(filePath);
-            adder.addFilepattern(localizedFilePath.toString());
+            //Path localizedFilePath = this.localPath.relativize(filePath);
+            //adder.addFilepattern(localizedFilePath.toString());
+            adder.addFilepattern(filePath.toString());
         }
         adder.call();
+        git.close();
+    }
+
+
+
+    /**
+     * Removes a file from the repository.
+     *
+     * @param filePath the path of the file to remove.
+     * @throws GitAPIException if the `git rm` call fails.
+     */
+    public void removeFilePath(Path filePath) throws GitAPIException {
+        Git git = new Git(this.repo);
+        // git rm:
+        git.rm()
+                .addFilepattern(filePath.toString())
+                .call();
+        git.close();
+    }
+
+    /**
+     * Removes multiple files from the repository.
+     *
+     * @param filePaths an ArrayList of file paths to remove.
+     * @throws GitAPIException if the `git rm` call fails.
+     */
+    public void removeFilePaths(ArrayList<Path> filePaths) throws GitAPIException {
+        Git git = new Git(this.repo);
+        // git rm:
+        RmCommand remover = git.rm();
+        for (Path filePath : filePaths) {
+            remover.addFilepattern(filePath.toString());
+        }
+        remover.call();
         git.close();
     }
 
