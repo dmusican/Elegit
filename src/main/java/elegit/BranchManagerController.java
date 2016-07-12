@@ -2,6 +2,7 @@ package elegit;
 
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
+import elegit.exceptions.UncommitedChangesException;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.Scene;
@@ -14,7 +15,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.controlsfx.control.NotificationPane;
 import org.controlsfx.control.action.Action;
+import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.MergeResult;
+import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.lib.Repository;
 
@@ -329,6 +332,14 @@ public class BranchManagerController {
      */
     public void mergeSelectedBranchWithCurrent() throws IOException, GitAPIException {
         logger.info("Merging selected branch with current");
+        Git git  = new Git(this.repo);
+        Status status = git.status().call();
+        System.out.println(status.isClean());
+        if (status.hasUncommittedChanges() || !status.isClean()) {
+            this.showUncommittedChangesNotification();
+            return;
+        }
+
         // Get the branch to merge with
         LocalBranchHelper selectedBranch = this.localListView.getSelectionModel().getSelectedItem();
 
@@ -495,6 +506,14 @@ public class BranchManagerController {
     private void showNoCommitsYetNotification() {
         logger.warn("No commits yet notification");
         this.notificationPane.setText("You cannot make a branch since your repo has no commits yet. Make a commit first!");
+
+        this.notificationPane.getActions().clear();
+        this.notificationPane.show();
+    }
+
+    private void showUncommittedChangesNotification() {
+        logger.warn("Uncommitted changes notification");
+        this.notificationPane.setText("You need to commit your changes before merging.");
 
         this.notificationPane.getActions().clear();
         this.notificationPane.show();
