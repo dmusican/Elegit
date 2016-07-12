@@ -239,7 +239,7 @@ public class TreeLayout{
                 // See whether or not this cell will move
                 int oldColumnLocation = c.columnLocationProperty.get();
                 int oldRowLocation = c.rowLocationProperty.get();
-                c.columnLocationProperty.set(x);
+                c.columnLocationProperty.set(allCellsSortedByTime.size()-1-x);
                 c.rowLocationProperty.set(y);
 
                 boolean hasCellMoved = oldColumnLocation >= 0 && oldRowLocation >= 0;
