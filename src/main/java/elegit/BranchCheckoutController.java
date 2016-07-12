@@ -16,7 +16,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.controlsfx.control.NotificationPane;
 import org.controlsfx.control.action.Action;
-import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.lib.Repository;
 
@@ -37,11 +36,10 @@ import java.util.List;
  */
 public class BranchCheckoutController {
 
-    public Text branchOffFromText;
     public TextField newBranchNameField;
     public ListView<RemoteBranchHelper> remoteListView;
     public ListView<LocalBranchHelper> localListView;
-    private Repository repo;
+    Repository repo;
     private RepoHelper repoHelper;
     private BranchModel branchModel;
     @FXML
@@ -148,34 +146,6 @@ public class BranchCheckoutController {
         }
     }
 
-    public void onNewBranchButton() {
-        try {
-            logger.info("New branch button clicked");
-            LocalBranchHelper newLocalBranch = this.createNewLocalBranch(this.newBranchNameField.getText());
-            this.localListView.getItems().add(newLocalBranch);
-            this.newBranchNameField.clear();
-        } catch (InvalidRefNameException e1) {
-            logger.warn("Invalid branch name warning");
-            this.showInvalidBranchNameNotification();
-        } catch (RefNotFoundException e1) {
-            // When a repo has no commits, you can't create branches because there
-            //  are no commits to point to. This error gets raised when git can't find
-            //  HEAD.
-            logger.warn("Can't create branch without a commit in the repo warning");
-            this.showNoCommitsYetNotification();
-        } catch (GitAPIException e1) {
-            logger.warn("Git error");
-            logger.debug(e1.getStackTrace());
-            this.showGenericGitErrorNotification();
-            e1.printStackTrace();
-        } catch (IOException e1) {
-            logger.warn("Unspecified IOException");
-            logger.debug(e1.getStackTrace());
-            this.showGenericErrorNotification();
-            e1.printStackTrace();
-        }
-    }
-
     /**
      * Updates the track remote, merge, and delete local buttons'
      * text and/or disabled/enabled status.
@@ -254,18 +224,6 @@ public class BranchCheckoutController {
     }
 
     /**
-     * Creates a new local branch using git.
-     *
-     * @param branchName the name of the new branch.
-     * @return the new local branch's LocalBranchHelper.
-     * @throws GitAPIException
-     * @throws IOException
-     */
-    private LocalBranchHelper createNewLocalBranch(String branchName) throws GitAPIException, IOException {
-        return this.branchModel.createNewLocalBranch(branchName);
-    }
-
-    /**
      * Deletes a given local branch through git, forcefully.
      */
     private void forceDeleteLocalBranch(LocalBranchHelper branchToDelete) {
@@ -290,64 +248,6 @@ public class BranchCheckoutController {
             this.showGenericGitErrorNotificationWithBranch(branchToDelete);
             e.printStackTrace();
         }
-    }
-
-    /**
-     * Performs a git merge between the currently checked out branch and
-     * the selected local branch.
-     *
-     * @throws IOException
-     * @throws GitAPIException
-     */
-    public void mergeSelectedBranchWithCurrent() throws IOException, GitAPIException {
-        logger.info("Merging selected branch with current");
-        // Get the branch to merge with
-        LocalBranchHelper selectedBranch = this.localListView.getSelectionModel().getSelectedItem();
-
-        // Get the merge result from the branch merge
-        MergeResult mergeResult= this.branchModel.mergeWithBranch(selectedBranch);
-
-        if (mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.CONFLICTING)){
-            this.showConflictsNotification();
-            ConflictingFileWatcher.watchConflictingFiles(sessionModel.getCurrentRepoHelper());
-
-        } else if (mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.ALREADY_UP_TO_DATE)) {
-            this.showUpToDateNotification();
-
-        } else if (mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.FAILED)) {
-            this.showFailedMergeNotification();
-
-        } else if (mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.MERGED)
-                || mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.MERGED_NOT_COMMITTED)) {
-            this.showMergeSuccessNotification();
-
-        } else if (mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.FAST_FORWARD)) {
-            this.showFastForwardMergeNotification();
-
-        } else {
-            System.out.println(mergeResult.getMergeStatus());
-            // todo: handle all cases (maybe combine some)
-        }
-    }
-
-    /**
-     * Swaps the branches to be merged.
-     *
-     * For example, this action will change
-     * `Merge MASTER into DEVELOP` into `Merge DEVELOP into MASTER.`
-     *
-     * @throws GitAPIException
-     * @throws IOException
-     */
-    public void swapMergeBranches() throws GitAPIException, IOException {
-        LocalBranchHelper selectedBranch = this.localListView.getSelectionModel().getSelectedItem();
-        LocalBranchHelper checkedOutBranch = (LocalBranchHelper) this.branchModel.getCurrentBranch();
-
-        selectedBranch.checkoutBranch();
-        this.localListView.getSelectionModel().select(checkedOutBranch);
-        this.updateButtons();
-
-        this.showBranchSwapNotification(selectedBranch.getBranchName());
     }
 
     public static void checkoutBranch(LocalBranchHelper selectedBranch, SessionModel theSessionModel) {
@@ -396,57 +296,9 @@ public class BranchCheckoutController {
 
     /// BEGIN: ERROR NOTIFICATIONS:
 
-    private void showBranchSwapNotification(String newlyCheckedOutBranchName) {
-        logger.info("Checked out a branch notification");
-        notificationPane.setText(String.format("%s is now checked out.", newlyCheckedOutBranchName));
-
-        notificationPane.getActions().clear();
-        notificationPane.show();
-    }
-
-    private void showFastForwardMergeNotification() {
-        logger.info("Fast forward merge complete notification");
-        notificationPane.setText("Fast-forward merge completed (HEAD was updated).");
-
-        notificationPane.getActions().clear();
-        notificationPane.show();
-    }
-
-    private void showMergeSuccessNotification() {
-        logger.info("Merge completed notification");
-        notificationPane.setText("Merge completed.");
-
-        notificationPane.getActions().clear();
-        notificationPane.show();
-    }
-
-    private void showFailedMergeNotification() {
-        logger.warn("Merge failed notification");
-        notificationPane.setText("The merge failed.");
-
-        notificationPane.getActions().clear();
-        notificationPane.show();
-    }
-
-    private void showUpToDateNotification() {
-        logger.warn("No merge necessary notification");
-        notificationPane.setText("No merge necessary. Those two branches are already up-to-date.");
-
-        notificationPane.getActions().clear();
-        notificationPane.show();
-    }
-
     private void showGenericGitErrorNotificationWithBranch(LocalBranchHelper branch) {
         logger.warn("Git error on branch notification");
         notificationPane.setText(String.format("Sorry, there was a git error on branch %s.", branch.getBranchName()));
-
-        notificationPane.getActions().clear();
-        notificationPane.show();
-    }
-
-    private void showGenericGitErrorNotification() {
-        logger.warn("Git error notification");
-        notificationPane.setText("Sorry, there was a git error.");
 
         notificationPane.getActions().clear();
         notificationPane.show();
@@ -487,30 +339,6 @@ public class BranchCheckoutController {
     private void showRefAlreadyExistsNotification() {
         logger.info("Branch already exists notification");
         notificationPane.setText("Looks like that branch already exists locally!");
-
-        notificationPane.getActions().clear();
-        notificationPane.show();
-    }
-
-    private void showInvalidBranchNameNotification() {
-        logger.warn("Invalid branch name notification");
-        notificationPane.setText("That branch name is invalid.");
-
-        notificationPane.getActions().clear();
-        notificationPane.show();
-    }
-
-    private void showConflictsNotification() {
-        logger.info("Merge conflicts notification");
-        notificationPane.setText("That merge resulted in conflicts. Check the working tree to resolve them.");
-
-        notificationPane.getActions().clear();
-        notificationPane.show();
-    }
-
-    private void showNoCommitsYetNotification() {
-        logger.warn("No commits yet notification");
-        notificationPane.setText("You cannot make a branch since your repo has no commits yet. Make a commit first!");
 
         notificationPane.getActions().clear();
         notificationPane.show();

@@ -41,7 +41,6 @@ import org.controlsfx.control.PopOver;
 import org.controlsfx.control.action.Action;
 import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.dircache.InvalidPathException;
-import org.eclipse.jgit.errors.NoMergeBaseException;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
 import java.awt.*;
@@ -76,7 +75,6 @@ public class SessionController {
     public Button openRepoDirButton;
     public Button gitStatusButton;
     public Button commitButton;
-    public Button mergeFromFetchButton;
     public Button pushTagsButton;
     public Button pushButton;
     public Button fetchButton;
@@ -217,7 +215,6 @@ public class SessionController {
         openRepoDirButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         gitStatusButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         commitButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
-        mergeFromFetchButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         pushTagsButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         pushButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         fetchButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
@@ -281,9 +278,6 @@ public class SessionController {
 
         this.commitButton.setTooltip(new Tooltip(
                 "Check in selected files to local repository"
-        ));
-        this.mergeFromFetchButton.setTooltip(new Tooltip(
-                "Merge files from remote repository to local repository"
         ));
         this.fetchButton.setTooltip(new Tooltip(
                 "Download files from another repository to remote repository"
@@ -714,70 +708,6 @@ public class SessionController {
     }
 
     /**
-     * Merges in FETCH_HEAD (after a fetch).
-     */
-    public void handleMergeFromFetchButton() {
-        /*try{
-            logger.info("Merge from fetch button clicked");
-            if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
-            if(!this.theModel.getCurrentRepoHelper().hasUnmergedCommits()) throw new NoCommitsToMergeException();
-
-            BusyWindow.show();
-            BusyWindow.setLoadingText("Merging...");
-            Thread th = new Thread(new Task<Void>(){
-                @Override
-                protected Void call() throws GitAPIException, IOException {
-                    try{
-                        if(!theModel.getCurrentRepoHelper().mergeFromFetch().isSuccessful()){
-                            showUnsuccessfulMergeNotification();
-                        }
-                        gitStatus();
-                    } catch(InvalidRemoteException e){
-                        showNoRemoteNotification();
-                    } catch(TransportException e){
-                        showNotAuthorizedNotification(null);
-                    } catch (NoMergeBaseException | JGitInternalException e) {
-                        // Merge conflict
-                        System.out.println("*****");
-                        e.printStackTrace();
-                        // todo: figure out rare NoMergeBaseException.
-                        //  Has something to do with pushing conflicts.
-                        //  At this point in the stack, it's caught as a JGitInternalException.
-                    } catch(CheckoutConflictException e){
-                        showMergingWithChangedFilesNotification();
-                    } catch(ConflictingFilesException e){
-                        showMergeConflictsNotification(e.getConflictingFiles());
-                        ConflictingFileWatcher.watchConflictingFiles(theModel.getCurrentRepoHelper());
-                    } catch(MissingRepoException e){
-                        showMissingRepoNotification();
-                        setButtonsDisabled(true);
-                        refreshRecentReposInDropdown();
-                    } catch(GitAPIException | IOException e){
-                        showGenericErrorNotification();
-                        e.printStackTrace();
-                    } catch(NoTrackingException e) {
-                        showNoRemoteTrackingNotification();
-                    }catch (Exception e) {
-                        showGenericErrorNotification();
-                        e.printStackTrace();
-                    }finally {
-                        BusyWindow.hide();
-                    }
-                    return null;
-                }
-            });
-            th.setDaemon(true);
-            th.setName("Git merge FETCH_HEAD");
-            th.start();
-        }catch(NoRepoLoadedException e){
-            this.showNoRepoLoadedNotification();
-            setButtonsDisabled(true);
-        }catch(NoCommitsToMergeException e){
-            this.showNoCommitsToMergeNotification();
-        }*/
-    }
-
-    /**
      * Performs a `git push`
      */
     public void handlePushButton() {
@@ -1200,7 +1130,6 @@ public class SessionController {
             gitStatusButton.setDisable(disable);
             tagButton.setDisable(disable);
             commitButton.setDisable(disable);
-            mergeFromFetchButton.setDisable(disable);
             pushTagsButton.setDisable(disable);
             pushButton.setDisable(disable);
             fetchButton.setDisable(disable);

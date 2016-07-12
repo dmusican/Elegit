@@ -250,16 +250,6 @@
                         </Label>
                     </StackPane>
 
-                    <ArrowButton GridPane.rowIndex="2"
-                                 GridPane.columnIndex="2"
-                                 GridPane.halignment="LEFT"
-                                 id="codeButton"
-                                 fx:id="mergeFromFetchButton"
-                                 text="Merge"
-                                 arrowDown="true"
-                                 arrowLeft="true"
-                                 onAction="#handleMergeFromFetchButton"/>
-
                     <StackPane GridPane.rowIndex="2"
                                GridPane.columnIndex="5">
 
