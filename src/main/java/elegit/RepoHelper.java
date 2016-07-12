@@ -245,7 +245,7 @@ public abstract class RepoHelper {
 
 
     /**
-     * Adds a file to the repository.
+     * Adds a file to the repository, has relativizing for unit tests
      *
      * @param filePath the path of the file to add.
      * @throws GitAPIException if the `git add` call fails.
@@ -253,8 +253,9 @@ public abstract class RepoHelper {
     public void addFilePath(Path filePath) throws GitAPIException {
         Git git = new Git(this.repo);
         // git add:
+        Path relativizedFilePath = this.localPath.relativize(filePath);
         git.add()
-                .addFilepattern(filePath.toString())
+                .addFilepattern(relativizedFilePath.toString())
                 .call();
         git.close();
     }
