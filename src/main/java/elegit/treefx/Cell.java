@@ -40,7 +40,7 @@ public class Cell extends Pane{
     // Base shapes for different types of cells
     public static final CellShape DEFAULT_SHAPE = CellShape.SQUARE;
     public static final CellShape UNTRACKED_BRANCH_HEAD_SHAPE = CellShape.CIRCLE;
-    public static final CellShape TRACKED_BRANCH_HEAD_SHAPE = CellShape.TRIANGLE_LEFT;
+    public static final CellShape TRACKED_BRANCH_HEAD_SHAPE = CellShape.TRIANGLE_DOWN;
 
     // The size of the rectangle being drawn
     public static final int BOX_SIZE = 30;
