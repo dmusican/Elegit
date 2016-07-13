@@ -32,7 +32,6 @@
                             prefRowCount="1"
                             prefHeight="30"
                             wrapText="true"
-                            editable="true"
                             fx:id="newBranchTextArea"
                             promptText="new branch name..." />
 

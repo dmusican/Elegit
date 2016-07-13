@@ -87,7 +87,6 @@ public class SessionController {
     public AllFilesPanelView allFilesPanelView;
 
 	public CommitTreePanelView localCommitTreePanelView;
-    public CommitTreePanelView remoteCommitTreePanelView;
 
     public ImageView remoteImage;
 
@@ -97,7 +96,6 @@ public class SessionController {
     public Button commitInfoNameCopyButton;
     public Button commitInfoGoToButton;
     public TextArea commitInfoMessageText;
-    public Text localRepoText;
     public Text currentLocalBranchText;
     public Text currentRemoteTrackingBranchText;
 
@@ -109,12 +107,11 @@ public class SessionController {
     public Text browserText;
     public URL remoteURL;
 
-    public DataSubmitter d;
+    private DataSubmitter d;
 
     public CommitTreeModel localCommitTreeModel;
-    public CommitTreeModel remoteCommitTreeModel;
 
-    public BooleanProperty isWorkingTreeTabSelected;
+    private BooleanProperty isWorkingTreeTabSelected;
 
     private volatile boolean isRecentRepoEventListenerBlocked = false;
 
@@ -123,6 +120,8 @@ public class SessionController {
     public ContextMenu newRepoOptionsMenu;
     public MenuItem cloneOption;
     public MenuItem existingOption;
+    public Text needToFetch;
+    public GridPane commitInfoPane;
 
     /**
      * Initializes the environment by obtaining the model
@@ -143,7 +142,6 @@ public class SessionController {
 
         // Creates the local and remote commit tree models
         this.localCommitTreeModel = new LocalCommitTreeModel(this.theModel, this.localCommitTreePanelView);
-        this.remoteCommitTreeModel = new RemoteCommitTreeModel(this.theModel, this.remoteCommitTreePanelView);
 
         // Passes theModel to panel views
         this.workingTreePanelView.setSessionModel(this.theModel);
@@ -163,7 +161,6 @@ public class SessionController {
         this.refreshRecentReposInDropdown();
 
         this.initRepositoryMonitor();
-        this.handleUnpushedTags();
 
         this.initHeaderText();
 
@@ -179,13 +176,16 @@ public class SessionController {
      * helper method to initialize text in the layout
      */
     private void initHeaderText() {
-        localRepoText.setFont(new Font(25));
+        needToFetch.setText("not updating");
+        needToFetch.setFont(new Font(15));
+        needToFetch.setFill(Color.FIREBRICK);
 
-        currentLocalBranchText.setText(theModel.getCurrentRepoHelper().getBranchModel().getCurrentBranch().getBranchName());
+        //currentLocalBranchText.setText(theModel.getCurrentRepoHelper().getBranchModel().getCurrentBranch().getBranchName());
+        currentLocalBranchText.setText("not updating");
         currentLocalBranchText.setFont(new Font(15));
         currentLocalBranchText.setFill(Color.DODGERBLUE);
 
-        String curBranch = theModel.getCurrentRepoHelper().getBranchModel().getCurrentBranch().getBranchName();
+        /*String curBranch = theModel.getCurrentRepoHelper().getBranchModel().getCurrentBranch().getBranchName();
         try {
             BranchTrackingStatus b = BranchTrackingStatus.of(theModel.getCurrentRepoHelper().getRepo(), curBranch);
             if(b != null) {
@@ -195,22 +195,10 @@ public class SessionController {
             }
         } catch (IOException e) {
             e.printStackTrace();
-        }
+        }*/
+        currentRemoteTrackingBranchText.setText("not updating");
         currentRemoteTrackingBranchText.setFont(new Font(15));
         currentRemoteTrackingBranchText.setFill(Color.DODGERBLUE);
-    }
-
-    private void handleUnpushedTags() {
-        // ASK ERIC
-        //if (this.theModel.getCurrentRepoHelper()!= null && this.theModel.getCurrentRepoHelper().hasTagsWithUnpushedCommits()) {
-        //this.showTagPointsToUnpushedCommitNotification();
-        //}
-
-        // If some tags point to a commit in the remote tree, then these are unpushed tags,
-        // so we add them to the repohelper
-        if (remoteCommitTreeModel.getTagsToBePushed() != null) {
-            this.theModel.getCurrentRepoHelper().setUnpushedTags(remoteCommitTreeModel.getTagsToBePushed());
-        }
     }
 
     /**
@@ -258,6 +246,9 @@ public class SessionController {
         allFilesPanelView.setMinSize(Control.USE_PREF_SIZE, 200);
         final int REPO_DROPDOWN_MAX_WIDTH = 147;
         repoDropdownSelector.setMaxWidth(REPO_DROPDOWN_MAX_WIDTH);
+        tagNameField.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
+        commitInfoPane.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
+        commitInfoMessageText.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
 
         commitInfoNameText.maxWidthProperty().bind(commitInfoMessageText.widthProperty()
                 .subtract(commitInfoGoToButton.widthProperty())
@@ -1112,14 +1103,6 @@ public class SessionController {
         Platform.runLater(() -> {
             try{
                 localCommitTreeModel.update();
-                remoteCommitTreeModel.update();
-                //if (theModel.getCurrentRepoHelper() != null &&
-                        //theModel.getCurrentRepoHelper().updateTags()) {
-                    //if (theModel.getCurrentRepoHelper().hasTagsWithUnpushedCommits()) {
-                        //showTagPointsToUnpushedCommitNotification();
-                    //}
-                //}
-
                 workingTreePanelView.drawDirectoryView();
                 allFilesPanelView.drawDirectoryView();
             } catch(Exception e) {
@@ -1182,7 +1165,6 @@ public class SessionController {
         try {
             workingTreePanelView.drawDirectoryView();
             allFilesPanelView.drawDirectoryView();
-            remoteCommitTreeModel.init();
             localCommitTreeModel.init();
             this.setBrowserURL();
         } catch (GitAPIException | IOException e) {
