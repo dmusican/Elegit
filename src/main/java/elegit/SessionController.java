@@ -40,6 +40,7 @@ import org.controlsfx.control.PopOver;
 import org.controlsfx.control.action.Action;
 import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.dircache.InvalidPathException;
+import org.eclipse.jgit.lib.BranchTrackingStatus;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
 import java.awt.*;
@@ -121,6 +122,8 @@ public class SessionController {
     public MenuItem existingOption;
     public Text needToFetch;
     public Text commitsAheadText;
+
+    public Text branchStatusText;
 
     /**
      * Initializes the environment by obtaining the model
