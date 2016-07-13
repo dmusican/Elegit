@@ -10,6 +10,12 @@
     -fx-text-fill: #333333;
 }
 
+.branch-label {
+    -fx-text-fill: #FFFFFF;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}
+
 .button#codeButton {
     -fx-font-family: "Menlo";
 }

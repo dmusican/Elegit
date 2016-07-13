@@ -1,23 +1,33 @@
 package elegit.treefx;
 
+import de.jensd.fx.glyphs.GlyphsDude;
+import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.geometry.VPos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.MouseButton;
+import javafx.scene.layout.Background;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
+import javafx.scene.paint.Color;
 import javafx.scene.shape.Shape;
+import javafx.scene.text.Text;
 import javafx.util.Duration;
 import elegit.CommitTreeController;
 import elegit.MatchedScrollPane;
+import org.controlsfx.glyphfont.FontAwesome;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -170,7 +180,7 @@ public class Cell extends Pane{
             setTranslateX(x);
             setTranslateY(y+BOX_SHIFT);
         }
-        this.refLabel.translate(x);
+        this.refLabel.translate(x,y);
         this.hasUpdatedPosition.set(true);
     }
 
@@ -379,13 +389,16 @@ public class Cell extends Pane{
     }
 
     private class LabelCell extends Pane {
+        private final int MAX_COL_PER_ROW=8, MAX_CHAR_PER_LABEL=25;
 
-        Label basic;
+        Pane basic;
         Pane extended;
-        List<Label> extendedLabels;
+        List<Node> basicLabels;
+        List<Node> extendedLabels;
 
-        public void translate(double x) {
-            setTranslateX(x);
+        public void translate(double x, double y) {
+            setTranslateX(x+BOX_SIZE+10);
+            setTranslateY(y+BOX_SIZE-5);
         }
 
         public void addToolTip(Label l, String text) {
@@ -401,44 +414,68 @@ public class Cell extends Pane{
                 return;
             }
 
-            basic = new Label();
+            basic = new GridPane();
             extended = new GridPane();
             Button showExtended = new Button();
+            basicLabels = new ArrayList<>();
             extendedLabels = new ArrayList<>();
 
-            String basicText = labels.get(0);
-            if (basicText.length()>13) {
-                addToolTip(basic,basicText);
-                basicText = basicText.substring(0, 12) + "...";
-            }
-            basic.setText(basicText);
-            basic.setVisible(true);
-            basic.setStyle("-fx-background-color: #F2F1EF;");
+            int col=0;
+            int row=0;
+            for (String label : labels) {
 
-            int rowIndex=1;
-
-            for (String label: labels) {
+                // Label text
                 Label currentLabel = new Label();
-                if (label.length()>13) {
+                currentLabel.getStyleClass().remove(0);
+                currentLabel.getStyleClass().add("branch-label");
+                if (label.length()>MAX_CHAR_PER_LABEL) {
                     addToolTip(currentLabel, label);
-                    label = label.substring(0, 12) + "...";
+                    label = label.substring(0,24)+"...";
+                }
+                if (col>MAX_COL_PER_ROW) {
+                    row++;
+                    col=0;
                 }
                 currentLabel.setText(label);
-                GridPane.setRowIndex(currentLabel, rowIndex);
-                extendedLabels.add(currentLabel);
-                rowIndex++;
-            }
-            extended.getChildren().addAll(extendedLabels);
-            extended.setVisible(false);
 
+                // Label arrow
+                Text pointer = GlyphsDude.createIcon(FontAwesomeIcon.CHEVRON_LEFT);
+                pointer.setFill(Color.WHITE);
+
+                // Box to contain both items
+                HBox box = new HBox(0, pointer);
+                box.getChildren().add(currentLabel);
+                HBox.setMargin(pointer, new Insets(5,2,0,5));
+                HBox.setMargin(currentLabel, new Insets(0,5,0,0));
+                GridPane.setColumnIndex(box, col);
+                GridPane.setMargin(box, new Insets(0,0,0,5));
+                box.setStyle("-fx-background-color: #1E90FF; -fx-background-radius: 5;");
+
+                if (row>0) {
+                    GridPane.setRowIndex(box, row);
+                    //extendedLabels.add(box);
+                } else {
+                    basicLabels.add(box);
+                }
+                extendedLabels.add(box);
+
+                col++;
+            }
+            basic.getChildren().addAll(basicLabels);
+            extended.getChildren().addAll(extendedLabels);
+            basic.setVisible(true);
+
+            extended.setVisible(false);
             showExtended.setVisible(false);
-            if (labels.size()>1) {
+            if (row>0) {
                 showExtended.setVisible(true);
                 showExtended.setTranslateX(-5);
                 showExtended.setText("\u22EE");
-                showExtended.setStyle("-fx-background-color: rgba(242,241,240,100); -fx-padding: 1 0 0 0;");
+                showExtended.setStyle("-fx-background-color: rgba(244,244,244,100); -fx-padding: -3 0 0 0;" +
+                        "-fx-font-size:18px; -fx-font-weight:bold;");
                 showExtended.setOnMouseClicked(event -> {
                     extended.setVisible(!extended.isVisible());
+                    basic.setVisible(!basic.isVisible());
                 });
             }
 
