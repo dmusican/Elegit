@@ -259,6 +259,15 @@ public class BranchModel {
      */
     public BranchHelper getCurrentBranch() { return this.currentBranch; }
 
+    public String getCurrentRemoteBranch() throws IOException {
+        if (BranchTrackingStatus.of(this.repoHelper.repo, this.currentBranch.getBranchName())!=null) {
+            return this.repoHelper.repo.shortenRefName(
+                    BranchTrackingStatus.of(this.repoHelper.repo, this.currentBranch.getBranchName())
+                            .getRemoteTrackingBranch());
+        }
+        return null;
+    }
+
     /**
      * Getter for the current branch head in the model
      *
@@ -379,11 +388,13 @@ public class BranchModel {
     public boolean isBranchCurrent(BranchHelper branch) {
         if (this.currentBranch==branch)
             return true;
+        if (this.currentBranch==null)
+            return false;
         try {
             // If the branch is the local's remote tracking branch, it is current
-            if (branch instanceof RemoteBranchHelper && this.repoHelper.repo.shortenRefName(
-                    BranchTrackingStatus.of(this.repoHelper.repo, this.currentBranch.getBranchName())
-                            .getRemoteTrackingBranch()).equals(branch.getBranchName())) {
+            BranchTrackingStatus status = BranchTrackingStatus.of(this.repoHelper.repo, this.currentBranch.getBranchName());
+            if (branch instanceof RemoteBranchHelper && status != null && this.repoHelper.repo.shortenRefName(
+                    status.getRemoteTrackingBranch()).equals(branch.getBranchName())) {
                 return true;
             }
         } catch (IOException e) {

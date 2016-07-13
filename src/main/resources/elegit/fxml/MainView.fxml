@@ -116,7 +116,6 @@
                                 </font>
                             </Text>
                             <HBox   alignment="TOP_CENTER">
-                                <Text   text="New changes to Fetch: "/>
                                 <Text   fx:id="needToFetch"/>
                             </HBox>
                         </VBox>

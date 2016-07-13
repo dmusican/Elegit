@@ -162,7 +162,7 @@ public class SessionController {
 
         this.initRepositoryMonitor();
 
-        this.initHeaderText();
+        this.updateStatusText();
 
         // if there are conflicting files on startup, watches them for changes
         try {
@@ -173,32 +173,40 @@ public class SessionController {
     }
 
     /**
-     * helper method to initialize text in the layout
+     * Helper method to update the current local branch, remote tracking branch and
+     * whether or not there are remote changes to fetch
      */
-    private void initHeaderText() {
-        needToFetch.setText("not updating");
+    private void updateStatusText(){
+        boolean update;
+
+        update = RepositoryMonitor.hasFoundNewRemoteChanges.get();
+        String fetchText = update ? "New changes to fetch" : "Up to date";
+        Color fetchColor = update ? Color.FIREBRICK : Color.FORESTGREEN;
+        needToFetch.setText(fetchText);
         needToFetch.setFont(new Font(15));
-        needToFetch.setFill(Color.FIREBRICK);
+        needToFetch.setFill(fetchColor);
 
-        //currentLocalBranchText.setText(theModel.getCurrentRepoHelper().getBranchModel().getCurrentBranch().getBranchName());
-        currentLocalBranchText.setText("not updating");
-        currentLocalBranchText.setFont(new Font(15));
-        currentLocalBranchText.setFill(Color.DODGERBLUE);
+        String localBranch = this.theModel.getCurrentRepoHelper().getBranchModel().getCurrentBranch().branchName;
+        update = localBranch.equals(currentLocalBranchText.getText()) ? false : true;
+        if (update) {
+            currentLocalBranchText.setText(localBranch);
+            currentLocalBranchText.setFont(new Font(15));
+            currentLocalBranchText.setFill(Color.DODGERBLUE);
+        }
 
-        /*String curBranch = theModel.getCurrentRepoHelper().getBranchModel().getCurrentBranch().getBranchName();
+        String remoteBranch="";
         try {
-            BranchTrackingStatus b = BranchTrackingStatus.of(theModel.getCurrentRepoHelper().getRepo(), curBranch);
-            if(b != null) {
-                currentRemoteTrackingBranchText.setText(Repository.shortenRefName(b.getRemoteTrackingBranch()));
-            }else {
-                currentRemoteTrackingBranchText.setText("doesn't exist");
-            }
+            remoteBranch = this.theModel.getCurrentRepoHelper().getBranchModel().getCurrentRemoteBranch();
         } catch (IOException e) {
-            e.printStackTrace();
-        }*/
-        currentRemoteTrackingBranchText.setText("not updating");
-        currentRemoteTrackingBranchText.setFont(new Font(15));
-        currentRemoteTrackingBranchText.setFill(Color.DODGERBLUE);
+            // Startup should catch any chance of this
+        }
+        if (remoteBranch==null) remoteBranch = "Not tracking remote branch";
+        update = remoteBranch.equals(currentRemoteTrackingBranchText.getText()) ? false : true;
+        if (update) {
+            currentRemoteTrackingBranchText.setText(remoteBranch);
+            currentRemoteTrackingBranchText.setFont(new Font(15));
+            currentRemoteTrackingBranchText.setFill(Color.DODGERBLUE);
+        }
     }
 
     /**
@@ -219,7 +227,7 @@ public class SessionController {
 
         RepositoryMonitor.beginWatchingRemote(theModel);
         RepositoryMonitor.hasFoundNewRemoteChanges.addListener((observable, oldValue, newValue) -> {
-            if(newValue) showNewRemoteChangesNotification();
+            if(newValue) updateStatusText();
         });
         RepositoryMonitor.beginWatchingLocal(this, theModel);
     }
@@ -1105,6 +1113,7 @@ public class SessionController {
                 commitTreeModel.update();
                 workingTreePanelView.drawDirectoryView();
                 allFilesPanelView.drawDirectoryView();
+                updateStatusText();
             } catch(Exception e) {
                 showGenericErrorNotification();
                 e.printStackTrace();
