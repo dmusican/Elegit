@@ -1200,7 +1200,9 @@ public class SessionController {
 
         notificationPane.setOnMousePressed(event -> {
             if (disable) showNoRepoLoadedNotification();
+            if (notificationPane.isShowing()) notificationPane.hide();
         });
+        notificationPane.setShowFromTop(false);
     }
 
     /**
