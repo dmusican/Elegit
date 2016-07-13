@@ -98,6 +98,7 @@ public class SessionController {
     public TextArea commitInfoMessageText;
     public Text currentLocalBranchText;
     public Text currentRemoteTrackingBranchText;
+    public Text branchStatusText;
 
     public ScrollPane tagsPane;
     public Label tagsLabel;
@@ -195,17 +196,50 @@ public class SessionController {
         }
 
         String remoteBranch="";
+        BranchTrackingStatus status=null;
         try {
             remoteBranch = this.theModel.getCurrentRepoHelper().getBranchModel().getCurrentRemoteBranch();
+            status = BranchTrackingStatus.of(this.theModel.getCurrentRepo(), localBranch);
         } catch (IOException e) {
             // Startup should catch any chance of this
         }
-        if (remoteBranch==null) remoteBranch = "Not tracking remote branch";
+        if (remoteBranch==null) remoteBranch = "N/A";
         update = remoteBranch.equals(currentRemoteTrackingBranchText.getText()) ? false : true;
         if (update) {
             currentRemoteTrackingBranchText.setText(remoteBranch);
             currentRemoteTrackingBranchText.setFont(new Font(15));
             currentRemoteTrackingBranchText.setFill(Color.DODGERBLUE);
+        }
+
+        // Ahead/behind count
+        int ahead=0, behind=0;
+        String statusText="Up to date.";
+        if (status!=null && remoteBranch!=null) {
+            behind = status.getBehindCount();
+            ahead = status.getAheadCount();
+            if (ahead >0) {
+                statusText="Ahead "+ahead+" commit";
+                if (ahead > 1)
+                    statusText+="s";
+                if (behind > 0) {
+                    statusText += " and behind " + behind + " commit";
+                    if (behind > 1)
+                        statusText+="s";
+                }
+                statusText+=".";
+            } else if (behind > 0) {
+                statusText = "Behind " + behind + " commit";
+                if (behind > 1)
+                    statusText+="s";
+                statusText+=".";
+            }
+        }
+        update = statusText.equals(branchStatusText.getText()) ? false : true;
+        Color statusColor = statusText.equals("Up to date.") ? Color.FORESTGREEN : Color.FIREBRICK;
+        if (update) {
+            branchStatusText.setText(statusText);
+            branchStatusText.setFont(new Font(10));
+            branchStatusText.setFill(statusColor);
         }
     }
 
