@@ -50,7 +50,6 @@ public class BranchCheckoutController {
 
     private SessionModel sessionModel;
     private LocalCommitTreeModel localCommitTreeModel;
-    private RemoteCommitTreeModel remoteCommitTreeModel;
     private Stage stage;
 
     static final Logger logger = LogManager.getLogger();
@@ -67,9 +66,6 @@ public class BranchCheckoutController {
             if (commitTreeModel.getViewName().equals(LocalCommitTreeModel
                     .LOCAL_TREE_VIEW_NAME)) {
                 this.localCommitTreeModel = (LocalCommitTreeModel)commitTreeModel;
-            } else if (commitTreeModel.getViewName().equals(RemoteCommitTreeModel
-                    .REMOTE_TREE_VIEW_NAME)) {
-                this.remoteCommitTreeModel = (RemoteCommitTreeModel)commitTreeModel;
             }
         }
         this.remoteListView.setItems(FXCollections.observableArrayList(branchModel.getRemoteBranchesTyped()));
@@ -181,7 +177,6 @@ public class BranchCheckoutController {
             if (selectedRemoteBranch != null) {
                 LocalBranchHelper tracker = this.branchModel.trackRemoteBranch(selectedRemoteBranch);
                 this.localListView.getItems().add(tracker);
-                CommitTreeController.setBranchHeads(this.remoteCommitTreeModel, this.repoHelper);
                 CommitTreeController.setBranchHeads(this.localCommitTreeModel, this.repoHelper);
             }
         } catch (RefAlreadyExistsException e) {
@@ -205,7 +200,6 @@ public class BranchCheckoutController {
 
                 // Reset the branch heads
                 CommitTreeController.setBranchHeads(this.localCommitTreeModel, this.repoHelper);
-                CommitTreeController.setBranchHeads(this.remoteCommitTreeModel, this.repoHelper);
             }
         } catch (CannotDeleteCurrentBranchException e) {
             logger.warn("Can't delete current branch warning");

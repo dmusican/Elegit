@@ -52,7 +52,6 @@ public class MergeWindowController {
     BranchModel branchModel;
     boolean disable;
     LocalCommitTreeModel localCommitTreeModel;
-    RemoteCommitTreeModel remoteCommitTreeModel;
 
     static final Logger logger = LogManager.getLogger();
 
@@ -73,7 +72,6 @@ public class MergeWindowController {
         //init commit tree models
         ArrayList<?> models = CommitTreeController.getCommitTreeModels();
         localCommitTreeModel = (LocalCommitTreeModel) models.get(0);
-        remoteCommitTreeModel = (RemoteCommitTreeModel) models.get(1);
 
         initText();
         initCheckBoxes();
@@ -272,7 +270,6 @@ public class MergeWindowController {
             if (toTrack != null) {
                 LocalBranchHelper tracker = this.branchModel.trackRemoteBranch(toTrack);
                 this.branchDropdownSelector.getItems().add(tracker);
-                CommitTreeController.setBranchHeads(remoteCommitTreeModel, repoHelper);
                 CommitTreeController.setBranchHeads(localCommitTreeModel, repoHelper);
             }
         } catch (RefAlreadyExistsException e) {

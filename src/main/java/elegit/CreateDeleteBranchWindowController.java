@@ -37,7 +37,6 @@ public class CreateDeleteBranchWindowController {
     RepoHelper repoHelper;
     BranchModel branchModel;
     LocalCommitTreeModel localCommitTreeModel;
-    RemoteCommitTreeModel remoteCommitTreeModel;
 
     static final Logger logger = LogManager.getLogger();
 
@@ -69,7 +68,6 @@ public class CreateDeleteBranchWindowController {
         //init commit tree models
         ArrayList<?> models = CommitTreeController.getCommitTreeModels();
         localCommitTreeModel = (LocalCommitTreeModel) models.get(0);
-        remoteCommitTreeModel = (RemoteCommitTreeModel) models.get(1);
     }
 
     /**
@@ -170,7 +168,6 @@ public class CreateDeleteBranchWindowController {
 
                     // Reset the branch heads
                     CommitTreeController.setBranchHeads(localCommitTreeModel, repoHelper);
-                    CommitTreeController.setBranchHeads(remoteCommitTreeModel, repoHelper);
 
                     updateUser(" deleted ");
                 }
@@ -209,7 +206,6 @@ public class CreateDeleteBranchWindowController {
 
                 // Reset the branch heads
                 CommitTreeController.setBranchHeads(localCommitTreeModel, repoHelper);
-                CommitTreeController.setBranchHeads(remoteCommitTreeModel, repoHelper);
 
                 updateUser(" deleted ");
             }

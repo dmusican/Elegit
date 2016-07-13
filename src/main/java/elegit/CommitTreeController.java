@@ -279,9 +279,6 @@ public class CommitTreeController{
             if (commitTreeModel.getViewName().equals(LocalCommitTreeModel
                     .LOCAL_TREE_VIEW_NAME)) {
                 models.add(0, commitTreeModel);
-            } else if (commitTreeModel.getViewName().equals(RemoteCommitTreeModel
-                    .REMOTE_TREE_VIEW_NAME)) {
-                models.add(1, commitTreeModel);
             }
         }
         return models;
