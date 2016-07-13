@@ -1,13 +1,12 @@
 package elegit;
 
-import elegit.*;
 import elegit.treefx.Cell;
 import javafx.application.Application;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
-import org.controlsfx.control.spreadsheet.Grid;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.junit.After;
 import org.junit.Before;
@@ -33,7 +32,6 @@ public class CommitLabelTest {
     private static final String INITIAL_COMMIT_ID = "5b5be4419d6efa935a6af1b9bfc5602f9d925e12";
 
     private CommitTreeModel localCommitTreeModel;
-    private CommitTreeModel remoteCommitTreeModel;
 
     private Path directoryPath;
     private Path repoPath;
@@ -67,13 +65,12 @@ public class CommitLabelTest {
         helper = new ClonedRepoHelper(repoPath, remoteURL, credentials);
         assertNotNull(helper);
 
-        // Get the commit trees
-        this.localCommitTreeModel = Main.sessionController.localCommitTreeModel;
+        // Get the commit tree
+        this.localCommitTreeModel = Main.sessionController.commitTreeModel;
 
         // Load this repo in Elegit, and initialize
         SessionModel.getSessionModel().openRepoFromHelper(helper);
         localCommitTreeModel.init();
-        remoteCommitTreeModel.init();
 
         // Sleep to ensure completion of all worker threads
         Thread.sleep(5000);
@@ -97,7 +94,6 @@ public class CommitLabelTest {
     public void testAddFileAndCommit() throws Exception {
         // Make sure both "master" and "origin/master" labels are on the inital commit
         testCellLabelContainsMaster(localCommitTreeModel, INITIAL_COMMIT_ID, true, true);
-        testCellLabelContainsMaster(remoteCommitTreeModel, INITIAL_COMMIT_ID, true, true);
 
         // Get the tracked file in the testing repo, add a line and commit
         File file = Paths.get(this.repoPath.toString(), "file.txt").toFile();
@@ -112,8 +108,7 @@ public class CommitLabelTest {
 
         Main.sessionController.gitStatus();
 
-        //localCommitTreeModel.update();
-        //remoteCommitTreeModel.update();
+        //commitTreeModel.update();
 
         // Sleep to ensure worker threads finish
         Thread.sleep(5000);
@@ -126,10 +121,8 @@ public class CommitLabelTest {
 
         // Check the labels are appropriate again
         this.testCellLabelContainsMaster(localCommitTreeModel, newHeadID, true, false);
-        this.testCellLabelContainsMaster(remoteCommitTreeModel, newHeadID, true, false);
 
         this.testCellLabelContainsMaster(localCommitTreeModel, INITIAL_COMMIT_ID, false, true);
-        this.testCellLabelContainsMaster(remoteCommitTreeModel, INITIAL_COMMIT_ID, false, true);
 
         // Make another commit
         try(PrintWriter fileTextWriter = new PrintWriter( file )){
@@ -141,7 +134,6 @@ public class CommitLabelTest {
 
         Main.sessionController.gitStatus();
         localCommitTreeModel.update();
-        remoteCommitTreeModel.update();
 
         // Sleep to ensure worker threads finish
         Thread.sleep(5000);
@@ -155,13 +147,10 @@ public class CommitLabelTest {
 
         // Check the labels on every commit again
         this.testCellLabelContainsMaster(localCommitTreeModel, newHeadID, true, false);
-        this.testCellLabelContainsMaster(remoteCommitTreeModel, newHeadID, true, false);
 
         this.testCellLabelContainsMaster(localCommitTreeModel, oldHeadID, false, false);
-        this.testCellLabelContainsMaster(remoteCommitTreeModel, oldHeadID, false, false);
 
         this.testCellLabelContainsMaster(localCommitTreeModel, INITIAL_COMMIT_ID, false, true);
-        this.testCellLabelContainsMaster(remoteCommitTreeModel, INITIAL_COMMIT_ID, false, true);
     }
 
     /**
@@ -181,16 +170,19 @@ public class CommitLabelTest {
         Pane cellLabel = (Pane) cell.getLabel();
         assertNotNull(cellLabel);
 
+        // Label is a gridpane with a bunch of hboxes that contain labels and icons
         List<Node> labelNodes = cellLabel.getChildrenUnmodifiable();
         List<String> labels = new LinkedList<>();
         for (Node n : labelNodes) {
-            if (n instanceof Label) {
-                Label l = (Label) n;
-                Collections.addAll(labels, l.getText().split("\n"));
-            } else if (n instanceof GridPane) {
+            if (n instanceof GridPane) {
                 for (Node m : ((GridPane) n).getChildren()) {
-                    Label l = (Label) m;
-                    Collections.addAll(labels, l.getText());
+                    if (m instanceof HBox) {
+                        for (Node k : ((HBox) m).getChildren()){
+                            if (!(k instanceof Label)) continue;
+                            Label l = (Label) k;
+                            Collections.addAll(labels, l.getText());
+                        }
+                    }
                 }
             }
         }
@@ -208,10 +200,10 @@ public class CommitLabelTest {
 
         // If we want "master" to be present, it's going to show up twice: once in the basic display
         // and once in the extended display
-        int expectedLocalCount = matchLocal ? (matchRemote ? 1 : 2) : 0;
+        int expectedLocalCount = matchLocal ? 1 : 0;
         // Likewise for "origin/master", except if "master" is also present then "origin/master" will
         // only show up in extended
-        int expectedRemoteCount = matchRemote ? 2 : 0;
+        int expectedRemoteCount = matchRemote ? 1 : 0;
 
         assertEquals(expectedLocalCount, localCount);
         assertEquals(expectedRemoteCount, remoteCount);

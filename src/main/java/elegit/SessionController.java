@@ -86,7 +86,7 @@ public class SessionController {
     public WorkingTreePanelView workingTreePanelView;
     public AllFilesPanelView allFilesPanelView;
 
-	public CommitTreePanelView localCommitTreePanelView;
+	public CommitTreePanelView commitTreePanelView;
 
     public ImageView remoteImage;
 
@@ -107,11 +107,11 @@ public class SessionController {
     public Text browserText;
     public URL remoteURL;
 
-    private DataSubmitter d;
+    public DataSubmitter d;
 
-    public CommitTreeModel localCommitTreeModel;
+    public CommitTreeModel commitTreeModel;
 
-    private BooleanProperty isWorkingTreeTabSelected;
+    public BooleanProperty isWorkingTreeTabSelected;
 
     private volatile boolean isRecentRepoEventListenerBlocked = false;
 
@@ -140,8 +140,8 @@ public class SessionController {
         // Passes this to CommitTreeController
         CommitTreeController.sessionController = this;
 
-        // Creates the local and remote commit tree models
-        this.localCommitTreeModel = new LocalCommitTreeModel(this.theModel, this.localCommitTreePanelView);
+        // Creates the commit tree model
+        this.commitTreeModel = new LocalCommitTreeModel(this.theModel, this.commitTreePanelView);
 
         // Passes theModel to panel views
         this.workingTreePanelView.setSessionModel(this.theModel);
@@ -1102,7 +1102,7 @@ public class SessionController {
 
         Platform.runLater(() -> {
             try{
-                localCommitTreeModel.update();
+                commitTreeModel.update();
                 workingTreePanelView.drawDirectoryView();
                 allFilesPanelView.drawDirectoryView();
             } catch(Exception e) {
@@ -1165,7 +1165,7 @@ public class SessionController {
         try {
             workingTreePanelView.drawDirectoryView();
             allFilesPanelView.drawDirectoryView();
-            localCommitTreeModel.init();
+            commitTreeModel.init();
             this.setBrowserURL();
         } catch (GitAPIException | IOException e) {
             showGenericErrorNotification();

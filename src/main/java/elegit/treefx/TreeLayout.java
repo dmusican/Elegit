@@ -239,7 +239,7 @@ public class TreeLayout{
                 // See whether or not this cell will move
                 int oldColumnLocation = c.columnLocationProperty.get();
                 int oldRowLocation = c.rowLocationProperty.get();
-                c.columnLocationProperty.set(x);
+                c.columnLocationProperty.set(allCellsSortedByTime.size()-1-x);
                 c.rowLocationProperty.set(y);
 
                 boolean hasCellMoved = oldColumnLocation >= 0 && oldRowLocation >= 0;
@@ -290,12 +290,12 @@ public class TreeLayout{
                 if(animate && useParentPosAsSource && c.getCellParents().size()>0){
                     double px = c.getCellParents().get(0).columnLocationProperty.get() * H_SPACING + H_PAD;
                     double py = c.getCellParents().get(0).rowLocationProperty.get() * V_SPACING + V_PAD;
-                    c.moveTo(px, py, false, false);
+                    c.moveTo(py, px, false, false);
                 }
 
                 double x = c.columnLocationProperty.get() * H_SPACING + H_PAD;
                 double y = c.rowLocationProperty.get() * V_SPACING + V_PAD;
-                c.moveTo(x, y, animate, animate && useParentPosAsSource);
+                c.moveTo(y, x, animate, animate && useParentPosAsSource);
                 return null;
             }
         });
