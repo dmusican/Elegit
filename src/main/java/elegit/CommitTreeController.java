@@ -283,4 +283,11 @@ public class CommitTreeController{
         }
         return models;
     }
+
+    /**
+     * @return the commit tree model for the current session
+     */
+    public static CommitTreeModel getCommitTreeModel() {
+        return CommitTreeController.allCommitTreeModels.get(0);
+    }
 }

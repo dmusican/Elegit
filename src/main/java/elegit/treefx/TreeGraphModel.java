@@ -2,9 +2,7 @@ package elegit.treefx;
 
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
-import javafx.concurrent.Task;
 import javafx.scene.control.ContextMenu;
-import javafx.concurrent.Service;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -256,14 +254,29 @@ public class TreeGraphModel{
      * Sets the label for the cell with the given ID to be the given string
      * @param cellId the id of the cell to label
      * @param label the new label
+     * @param refs the branch names to include on the label
      */
     public void setCellLabels(String cellId, String label, List<String> refs){
         setCellLabels(cellMap.get(cellId), label, refs);
     }
 
+    /**
+     * Sets the labels for a given cell
+     * @param cell the cell to set labels for
+     * @param label the labels to put on the cell
+     * @param refs the list of refs to add
+     */
     public void setCellLabels(Cell cell, String label, List<String> refs){
         cell.setLabels(label, refs);
         if(refs.size() > 0) cellsWithNonDefaultShapesOrLabels.add(cell);
+    }
+
+    public void setCurrentCellLabels(String cellId, List<String> refs) {
+        setCurrentCellLabels(cellMap.get(cellId), refs);
+    }
+
+    public void setCurrentCellLabels(Cell cell, List<String> refs) {
+        cell.setCurrentLabels(refs);
     }
 
     /**

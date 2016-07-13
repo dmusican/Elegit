@@ -7,6 +7,7 @@ import org.eclipse.jgit.api.errors.CannotDeleteCurrentBranchException;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NotMergedException;
 import org.eclipse.jgit.api.errors.RefAlreadyExistsException;
+import org.eclipse.jgit.lib.BranchTrackingStatus;
 import org.eclipse.jgit.lib.Ref;
 
 import java.io.IOException;
@@ -258,6 +259,15 @@ public class BranchModel {
      */
     public BranchHelper getCurrentBranch() { return this.currentBranch; }
 
+    public String getCurrentRemoteBranch() throws IOException {
+        if (BranchTrackingStatus.of(this.repoHelper.repo, this.currentBranch.getBranchName())!=null) {
+            return this.repoHelper.repo.shortenRefName(
+                    BranchTrackingStatus.of(this.repoHelper.repo, this.currentBranch.getBranchName())
+                            .getRemoteTrackingBranch());
+        }
+        return null;
+    }
+
     /**
      * Getter for the current branch head in the model
      *
@@ -371,6 +381,30 @@ public class BranchModel {
     }
 
     /**
+     * Helper method to check if a branch is a current branch
+     * @param branch the branch to check
+     * @return true if the branch is the current branch or its remote tracking branch
+     */
+    public boolean isBranchCurrent(BranchHelper branch) {
+        if (this.currentBranch==branch)
+            return true;
+        if (this.currentBranch==null)
+            return false;
+        try {
+            // If the branch is the local's remote tracking branch, it is current
+            BranchTrackingStatus status = BranchTrackingStatus.of(this.repoHelper.repo, this.currentBranch.getBranchName());
+            if (branch instanceof RemoteBranchHelper && status != null && this.repoHelper.repo.shortenRefName(
+                    status.getRemoteTrackingBranch()).equals(branch.getBranchName())) {
+                return true;
+            }
+        } catch (IOException e) {
+            // Shouldn't happen here, session controller would catch this first
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    /**
      * Updates the heads of all local and remote branches, then returns a map of them
      * @return
      */
@@ -415,6 +449,18 @@ public class BranchModel {
                     .collect(Collectors.toList());
         }
         return branchLabels;
+    }
+
+    /**
+     * @return a list of the current branches, useful for the ref labels
+     */
+    public List<String> getCurrentBranches() {
+        List<String> branches = new ArrayList<>();
+        for (BranchHelper branch : getAllBranches()) {
+            if (isBranchCurrent(branch))
+                branches.add(branch.getBranchName());
+        }
+        return branches;
     }
 
 

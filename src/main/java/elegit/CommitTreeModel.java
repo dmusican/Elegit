@@ -3,15 +3,9 @@ package elegit;
 import elegit.treefx.*;
 import elegit.treefx.Cell;
 import javafx.scene.control.*;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.lib.ObjectId;
-import org.eclipse.jgit.lib.SymbolicRef;
-import org.eclipse.jgit.util.IO;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -436,6 +430,7 @@ public abstract class CommitTreeModel{
         String displayLabel = repo.getCommitDescriptorString(commitId, false);
         List<String> branchLabels = repo.getBranchModel().getBranchesWithHead(commitId);
         treeGraph.treeGraphModel.setCellLabels(commitId, displayLabel, branchLabels);
+        treeGraph.treeGraphModel.setCurrentCellLabels(commitId,this.sessionModel.getCurrentRepoHelper().getBranchModel().getCurrentBranches());
     }
 
     /**

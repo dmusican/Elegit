@@ -111,13 +111,17 @@
                                 </font>
                             </Text>
                             <HBox   alignment="CENTER">
-                                <Text   text="current local branch: "/>
+                                <Text   text="local branch: "/>
                                 <Text   fx:id="currentLocalBranchText"/>
                             </HBox>
-                            <VBox   alignment="CENTER">
-                                <Text   text="current remote-tracking branch: "/>
+                            <HBox   alignment="CENTER">
+                                <Text   text="remote-tracking branch: "/>
                                 <Text   fx:id="currentRemoteTrackingBranchText"/>
-                            </VBox>
+                            </HBox>
+                            <HBox   alignment="CENTER">
+                                <Text   text="Status: "/>
+                                <Text   fx:id="branchStatusText"/>
+                            </HBox>
                         </VBox>
 
 
@@ -145,7 +149,6 @@
                                 </font>
                             </Text>
                             <HBox   alignment="TOP_CENTER">
-                                <Text   text="New changes to Fetch: "/>
                                 <Text   fx:id="needToFetch"/>
                             </HBox>
                             <HBox   alignment="TOP_CENTER"

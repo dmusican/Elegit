@@ -236,6 +236,8 @@ public class BranchCheckoutController {
                         selectedBranch.checkoutBranch();
                         CommitTreeController.focusCommitInGraph(selectedBranch.getHead());
                     }
+                    // Reset the branch heads
+                    CommitTreeController.setBranchHeads(CommitTreeController.getCommitTreeModel(), theSessionModel.getCurrentRepoHelper());
                 }catch(CheckoutConflictException e){
                     showCheckoutConflictsNotification(e.getConflictingPaths());
                 }catch(GitAPIException | IOException e){
