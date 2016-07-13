@@ -102,11 +102,8 @@ public class MergeWindowController {
         localBranchName2.setText(curBranch);
         intoLocalBranchText2.setText("\t\tinto local branch ");
 
-        localBranchName1.setFont(new Font(18));
         localBranchName1.setFill(Color.DODGERBLUE);
-        localBranchName2.setFont(new Font(18));
         localBranchName2.setFill(Color.DODGERBLUE);
-        remoteTrackingBranchName.setFont(new Font(18));
         remoteTrackingBranchName.setFill(Color.DODGERBLUE);
 
         trackLink.setFont(new Font(10));

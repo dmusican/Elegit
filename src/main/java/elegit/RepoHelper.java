@@ -709,15 +709,10 @@ public abstract class RepoHelper {
      * @return the label for the commit
      */
     public String getCommitDescriptorString(CommitHelper commitHelper, boolean fullCommitMessage){
-        String s = commitHelper.getFormattedWhen() + "\n\n" + commitHelper.getMessage(fullCommitMessage);
-        List<BranchHelper> branches = this.branchModel.getAllBranchHeads().get(commitHelper);
-        if(branches != null){
-            s += "\n\nHead of branches: ";
-            for(BranchHelper branch : branches){
-                s = s + "\n" + branch.getBranchName();
-            }
-        }
-        return s;
+        return "Commit ID: " + commitHelper.getId().substring(0, 8) + "\n\n"
+                + "Author: " +  commitHelper.getAuthorName() + "\n\n"
+                + "Time: " + commitHelper.getFormattedWhen() + "\n\n"
+                + "Message: " + commitHelper.getMessage(fullCommitMessage);
     }
 
     /**

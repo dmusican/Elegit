@@ -40,8 +40,6 @@ import org.controlsfx.control.PopOver;
 import org.controlsfx.control.action.Action;
 import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.dircache.InvalidPathException;
-import org.eclipse.jgit.lib.BranchTrackingStatus;
-import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
 import java.awt.*;
@@ -80,6 +78,7 @@ public class SessionController {
     public Button fetchButton;
     public Button addButton;
     public Button removeButton;
+    public Button mergeButton;
 
     public Tab workingTreePanelTab;
     public Tab allFilesPanelTab;
@@ -90,14 +89,14 @@ public class SessionController {
 
     public ImageView remoteImage;
 
-    public Label commitInfoNameText;
-    public Label commitInfoAuthorText;
-    public Label commitInfoDateText;
+    public String commitInfoNameText = "";
     public Button commitInfoNameCopyButton;
     public Button commitInfoGoToButton;
     public TextArea commitInfoMessageText;
     public Text currentLocalBranchText;
     public Text currentRemoteTrackingBranchText;
+    public Button addDeleteBranchButton;
+    public Button checkoutButton;
 
     public ScrollPane tagsPane;
     public Label tagsLabel;
@@ -121,7 +120,7 @@ public class SessionController {
     public MenuItem cloneOption;
     public MenuItem existingOption;
     public Text needToFetch;
-    public GridPane commitInfoPane;
+    public Text commitsAheadText;
 
     /**
      * Initializes the environment by obtaining the model
@@ -185,6 +184,8 @@ public class SessionController {
         currentLocalBranchText.setFont(new Font(15));
         currentLocalBranchText.setFill(Color.DODGERBLUE);
 
+        commitsAheadText.setText("Commits ahead of remote: not updating");
+
         /*String curBranch = theModel.getCurrentRepoHelper().getBranchModel().getCurrentBranch().getBranchName();
         try {
             BranchTrackingStatus b = BranchTrackingStatus.of(theModel.getCurrentRepoHelper().getRepo(), curBranch);
@@ -234,12 +235,14 @@ public class SessionController {
         commitButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         addButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         removeButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
+        addDeleteBranchButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
+        mergeButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
+        checkoutButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         pushTagsButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         pushButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         fetchButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         commitInfoNameCopyButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         commitInfoGoToButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
-        gitStatusButton.setMaxWidth(Double.MAX_VALUE);
 
         // Set minimum sizes for other fields and views
         workingTreePanelView.setMinSize(Control.USE_PREF_SIZE, 200);
@@ -247,13 +250,7 @@ public class SessionController {
         final int REPO_DROPDOWN_MAX_WIDTH = 147;
         repoDropdownSelector.setMaxWidth(REPO_DROPDOWN_MAX_WIDTH);
         tagNameField.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
-        commitInfoPane.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         commitInfoMessageText.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
-
-        commitInfoNameText.maxWidthProperty().bind(commitInfoMessageText.widthProperty()
-                .subtract(commitInfoGoToButton.widthProperty())
-                .subtract(commitInfoNameCopyButton.widthProperty())
-                .subtract(10)); // The gap between each button and this label is 5
     }
 
     /**
@@ -313,6 +310,9 @@ public class SessionController {
         this.loadNewRepoButton.setTooltip(new Tooltip(
                 "Load a new repository"
         ));
+        this.mergeButton.setTooltip(new Tooltip(
+                "Merge two commits together"
+        ));
     }
 
     /**
@@ -342,8 +342,10 @@ public class SessionController {
                 }
             }
             Tooltip URLTooltip = new Tooltip(URLString);
-            Tooltip.install(remoteImage, URLTooltip);
             Tooltip.install(browserText, URLTooltip);
+
+            browserText.setFill(Color.DARKCYAN);
+            browserText.setUnderline(true);
         }
         catch(MissingRepoException e) {
             this.showMissingRepoNotification();
@@ -718,7 +720,7 @@ public class SessionController {
                 @Override
                 protected Void call() {
                     try{
-                        theModel.getCurrentRepoHelper().tag(tagName, commitInfoNameText.getText());
+                        theModel.getCurrentRepoHelper().tag(tagName, commitInfoNameText);
 
                         // Now clear the tag text and a view reload ( or `git status`) to show that something happened
                         tagNameField.clear();
@@ -1196,6 +1198,9 @@ public class SessionController {
             allFilesPanelTab.setDisable(disable);
             removeRecentReposButton.setDisable(disable);
             repoDropdownSelector.setDisable(disable);
+            addDeleteBranchButton.setDisable(disable);
+            checkoutButton.setDisable(disable);
+            mergeButton.setDisable(disable);
         });
 
         notificationPane.setOnMousePressed(event -> {
@@ -1719,9 +1724,7 @@ public class SessionController {
                 numTags++;
             }
             tagsPane.setContent(tags);
-            commitInfoNameText.setText(commit.getName());
-            commitInfoAuthorText.setText(commit.getAuthorName());
-            commitInfoDateText.setText(commit.getFormattedWhen());
+            commitInfoNameText = commit.getName();
             commitInfoMessageText.setVisible(true);
             commitInfoNameCopyButton.setVisible(true);
             commitInfoGoToButton.setVisible(true);
@@ -1742,9 +1745,6 @@ public class SessionController {
      */
     public void clearSelectedCommit(){
         Platform.runLater(() -> {
-            commitInfoNameText.setText("");
-            commitInfoAuthorText.setText("");
-            commitInfoDateText.setText("");
             commitInfoMessageText.setText("");
             commitInfoMessageText.setVisible(false);
             commitInfoNameCopyButton.setVisible(false);
@@ -1765,7 +1765,7 @@ public class SessionController {
         logger.info("Commit name copied");
         Clipboard clipboard = Clipboard.getSystemClipboard();
         ClipboardContent content = new ClipboardContent();
-        content.putString(commitInfoNameText.getText());
+        content.putString(commitInfoNameText);
         clipboard.setContent(content);
     }
 
@@ -1774,7 +1774,7 @@ public class SessionController {
      */
     public void handleGoToCommitButton(){
         logger.info("Go to commit button clicked");
-        String id = commitInfoNameText.getText();
+        String id = commitInfoNameText;
         CommitTreeController.focusCommitInGraph(id);
     }
 
