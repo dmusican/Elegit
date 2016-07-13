@@ -236,9 +236,17 @@ public class Cell extends Pane{
         this.refLabel.setLabels(refs);
     }
 
+    public void setCurrentRefLabel(List<String> refs) {
+        this.refLabel.setCurrentLabels(refs);
+    }
+
     public void setLabels(String displayLabel, List<String> refLabels){
         setDisplayLabel(displayLabel);
         setRefLabel(refLabels);
+    }
+
+    public void setCurrentLabels(List<String> refLabels) {
+        setCurrentRefLabel(refLabels);
     }
 
     public void setAnimate(boolean animate) {this.animate = animate;}
@@ -390,9 +398,13 @@ public class Cell extends Pane{
 
     private class LabelCell extends Pane {
         private final int MAX_COL_PER_ROW=8, MAX_CHAR_PER_LABEL=25;
+        private final String CURRENT_BOX_STYLE = "-fx-background-color: #1E90FF; -fx-background-radius: 5;";
+        private final String BOX_STYLE = "-fx-background-color: #CCCCCC; -fx-background-radius: 5;";
+        private final String CURRENT_LABEL_STYLE = "-fx-text-fill: #FFFFFF; -fx-font-size: 14px; -fx-font-weight: bold;";
+        private final String LABEL_STYLE = "-fx-text-fill: #333333; -fx-font-size: 14px; -fx-font-weight: bold;";
+
 
         Pane basic;
-        Pane extended;
         List<Node> basicLabels;
         List<Node> extendedLabels;
 
@@ -415,7 +427,6 @@ public class Cell extends Pane{
             }
 
             basic = new GridPane();
-            extended = new GridPane();
             Button showExtended = new Button();
             basicLabels = new ArrayList<>();
             extendedLabels = new ArrayList<>();
@@ -437,10 +448,11 @@ public class Cell extends Pane{
                     col=0;
                 }
                 currentLabel.setText(label);
+                currentLabel.setStyle(LABEL_STYLE);
 
                 // Label arrow
                 Text pointer = GlyphsDude.createIcon(FontAwesomeIcon.CHEVRON_LEFT);
-                pointer.setFill(Color.WHITE);
+                pointer.setFill(Color.web("#333333"));
 
                 // Box to contain both items
                 HBox box = new HBox(0, pointer);
@@ -449,7 +461,7 @@ public class Cell extends Pane{
                 HBox.setMargin(currentLabel, new Insets(0,5,0,0));
                 GridPane.setColumnIndex(box, col);
                 GridPane.setMargin(box, new Insets(0,0,5,5));
-                box.setStyle("-fx-background-color: #1E90FF; -fx-background-radius: 5;");
+                box.setStyle(BOX_STYLE);
 
                 if (row>0) {
                     GridPane.setRowIndex(box, row);
@@ -486,6 +498,17 @@ public class Cell extends Pane{
                 getChildren().add(basic);
                 getChildren().add(showExtended);
             });
+        }
+
+        public void setCurrentLabels(List<String> labels) {
+            for (Node n : basic.getChildren()) {
+                Label l = (Label) ((HBox)n).getChildren().get(1);
+                if (labels.contains(l.getText())) {
+                    n.setStyle(CURRENT_BOX_STYLE);
+                    l.setStyle(CURRENT_LABEL_STYLE);
+                    ((Text)((HBox) n).getChildren().get(0)).setFill(Color.web("#FFFFFF"));
+                }
+            }
         }
     }
 }
