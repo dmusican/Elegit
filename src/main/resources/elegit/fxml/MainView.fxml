@@ -118,10 +118,6 @@
                                 <Text   text="remote-tracking branch: "/>
                                 <Text   fx:id="currentRemoteTrackingBranchText"/>
                             </HBox>
-                            <HBox   alignment="CENTER">
-                                <Text   text="Status: "/>
-                                <Text   fx:id="branchStatusText"/>
-                            </HBox>
                         </VBox>
 
 
@@ -172,17 +168,21 @@
                                         <Image url="@cloud.png"/>
                                     </ImageView>
                                 </StackPane>
-                                <VBox   alignment="CENTER">
+                                <VBox   alignment="CENTER"
+                                        spacing="5">
                                     <Text   text="Local Repository">
                                         <font>
                                             <Font   size="25"/>
                                         </font>
                                     </Text>
-                                    <Text   fx:id="commitsAheadText"/>
                                     <Button fx:id="gitStatusButton"
                                             text="git status"
                                             id="codeButton"
                                             onAction="#onGitStatusButton"/>
+                                    <HBox   alignment="CENTER">
+                                        <Text   text="Status: "/>
+                                        <Text   fx:id="branchStatusText"/>
+                                    </HBox>
                                 </VBox>
                             </StackPane>
 
