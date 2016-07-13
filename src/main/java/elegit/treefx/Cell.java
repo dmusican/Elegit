@@ -448,24 +448,23 @@ public class Cell extends Pane{
                 HBox.setMargin(pointer, new Insets(5,2,0,5));
                 HBox.setMargin(currentLabel, new Insets(0,5,0,0));
                 GridPane.setColumnIndex(box, col);
-                GridPane.setMargin(box, new Insets(0,0,0,5));
+                GridPane.setMargin(box, new Insets(0,0,5,5));
                 box.setStyle("-fx-background-color: #1E90FF; -fx-background-radius: 5;");
 
                 if (row>0) {
                     GridPane.setRowIndex(box, row);
-                    //extendedLabels.add(box);
+                    box.setVisible(false);
+                    extendedLabels.add(box);
                 } else {
                     basicLabels.add(box);
                 }
-                extendedLabels.add(box);
 
                 col++;
             }
             basic.getChildren().addAll(basicLabels);
-            extended.getChildren().addAll(extendedLabels);
+            basic.getChildren().addAll(extendedLabels);
             basic.setVisible(true);
 
-            extended.setVisible(false);
             showExtended.setVisible(false);
             if (row>0) {
                 showExtended.setVisible(true);
@@ -474,8 +473,9 @@ public class Cell extends Pane{
                 showExtended.setStyle("-fx-background-color: rgba(244,244,244,100); -fx-padding: -3 0 0 0;" +
                         "-fx-font-size:18px; -fx-font-weight:bold;");
                 showExtended.setOnMouseClicked(event -> {
-                    extended.setVisible(!extended.isVisible());
-                    basic.setVisible(!basic.isVisible());
+                    for (Node n : extendedLabels) {
+                        n.setVisible(!n.isVisible());
+                    }
                 });
             }
 
@@ -483,7 +483,6 @@ public class Cell extends Pane{
 
             Platform.runLater(() -> {
                 getChildren().clear();
-                getChildren().add(extended);
                 getChildren().add(basic);
                 getChildren().add(showExtended);
             });
