@@ -176,6 +176,8 @@ public class Cell extends Pane{
         }
         this.refLabel.translate(x,y);
         this.hasUpdatedPosition.set(true);
+        if (!this.refLabel.isVisible())
+            this.refLabel.setVisible(true);
     }
 
     /**
@@ -528,6 +530,8 @@ public class Cell extends Pane{
             }
 
             this.setMaxHeight(20);
+
+            this.setVisible(false);
 
             Platform.runLater(() -> {
                 getChildren().clear();
