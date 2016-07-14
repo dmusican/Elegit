@@ -154,7 +154,7 @@ public class TreeGraphModel{
         Cell cell;
         switch(type) {
             case LOCAL:
-                cell = new Cell(newId, time, parent1Id == null ?
+                cell = new InvisibleCell(newId, time, parent1Id == null ?
                         null : cellMap.get(parent1Id), parent2Id == null ?
                         null : cellMap.get(parent2Id), Cell.CellType.LOCAL);
                 break;
@@ -299,6 +299,20 @@ public class TreeGraphModel{
         Cell cell = cellMap.get(cellId);
         cell.setShape(shape);
         cellsWithNonDefaultShapesOrLabels.add(cell);
+    }
+
+    /**
+     * Sets the type of the cell with the given ID to be the given type.
+     * If the type isn't the default (CellType.BOTH), adds it to the list
+     * of non-default cells.
+     * @param cellId the id of the cell to type
+     * @param type the new type
+     */
+    public void setCellType(String cellId, Cell.CellType type) {
+        Cell cell = cellMap.get(cellId);
+        cell.setCellType(type);
+        if (type != Cell.CellType.BOTH)
+            cellsWithNonDefaultShapesOrLabels.add(cell);
     }
 
     /**

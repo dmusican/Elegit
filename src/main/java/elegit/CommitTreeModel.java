@@ -248,8 +248,9 @@ public abstract class CommitTreeModel{
         RepoHelper repo = sessionModel.getCurrentRepoHelper();
         String displayLabel = repo.getCommitDescriptorString(commitHelper, false);
         List<String> branchLabels = repo.getBranchModel().getBranchesWithHead(commitHelper);
+        Cell.CellType computedType = repo.getCommitType(commitHelper);
 
-        if (type== null) this.commitsInModel.add(commitHelper);
+        if (computedType == Cell.CellType.BOTH || computedType == Cell.CellType.LOCAL) this.commitsInModel.add(commitHelper);
 
         for(CommitHelper parent : parents){
             if(!graphModel.containsID(RepoHelper.getCommitId(parent))){
@@ -260,6 +261,7 @@ public abstract class CommitTreeModel{
 
         String commitID = RepoHelper.getCommitId(commitHelper);
         if(graphModel.containsID(commitID) && graphModel.isVisible(commitID)){
+            graphModel.setCellType(commitID, repo.getCommitType(commitHelper));
             return;
         }
 

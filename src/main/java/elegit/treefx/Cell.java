@@ -325,6 +325,11 @@ public class Cell extends Pane{
         Platform.runLater(() -> setFillType((Shape) view, state));
     }
 
+    public void setCellType(CellType type) {
+        this.type = type;
+        Platform.runLater(() -> setFillType((Shape) view, CellState.STANDARD));
+    }
+
     /**
      * @return the unique ID of this cell
      */
