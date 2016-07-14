@@ -156,6 +156,7 @@
     -fx-button-fill: #52B3D9;
     -fx-button-hover-fill: #81CFE0;
     -fx-button-select-fill: #3498DB;
+    -fx-background-default: #F4F4F4;
 
     -fx-cell-color-standard: radial-gradient(center 50% 50%, radius 75%, -fx-button-fill, -fx-button-hover-fill);
     -fx-cell-color-highlight1: radial-gradient(center 50% 50%, radius 75%, #da60e4, #9b59b6);

@@ -15,7 +15,7 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
-import javafx.scene.paint.Color;
+import javafx.scene.paint.*;
 import javafx.scene.shape.Shape;
 import javafx.scene.text.Text;
 import javafx.util.Duration;
@@ -47,6 +47,7 @@ public class Cell extends Pane{
     // The displayed view
     Node view;
     private CellShape shape;
+    private CellType type;
     // The tooltip shown on hover
     Tooltip tooltip;
 
@@ -54,8 +55,6 @@ public class Cell extends Pane{
     private final String cellId;
     // The assigned time of this commit
     private final long time;
-    // The label displayed for this cell
-    private String label;
 
     private ContextMenu contextMenu;
 
@@ -90,8 +89,8 @@ public class Cell extends Pane{
      * @param cellId the ID of this node
      * @param parent the parent of this node
      */
-    public Cell(String cellId, long time, Cell parent){
-        this(cellId, time, parent, null);
+    public Cell(String cellId, long time, Cell parent, CellType type){
+        this(cellId, time, parent, null, type);
     }
 
     /**
@@ -100,11 +99,12 @@ public class Cell extends Pane{
      * @param parent1 the first parent of this node
      * @param parent2 the second parent of this node
      */
-    public Cell(String cellId, long time, Cell parent1, Cell parent2){
+    public Cell(String cellId, long time, Cell parent1, Cell parent2, CellType type){
         this.cellId = cellId;
         this.time = time;
         this.parents = new ParentCell(this, parent1, parent2);
         this.refLabel = new LabelCell();
+        this.type = type;
 
         setShape(DEFAULT_SHAPE);
 
@@ -135,6 +135,8 @@ public class Cell extends Pane{
         });
         this.setOnMouseEntered(event -> CommitTreeController.handleMouseover(this, true));
         this.setOnMouseExited(event -> CommitTreeController.handleMouseover(this, false));
+
+        this.view=getBaseView();
     }
 
     /**
@@ -181,7 +183,7 @@ public class Cell extends Pane{
      */
     protected Node getBaseView(){
         Node node = DEFAULT_SHAPE.get();
-        node.setStyle("-fx-fill: " + CellState.STANDARD.getCssStringKey());
+        setFillType((Shape)node, CellState.STANDARD);
         node.getStyleClass().setAll("cell");
         return node;
     }
@@ -202,6 +204,7 @@ public class Cell extends Pane{
         Platform.runLater(() -> {
             getChildren().clear();
             getChildren().add(this.view);
+            setFillType((Shape) this.view, CellState.STANDARD);
         });
     }
 
@@ -221,7 +224,6 @@ public class Cell extends Pane{
      */
     public void setDisplayLabel(String label){
         tooltip.setText(label);
-        this.label = label;
     }
 
     public void setRefLabel(List<String> refs){
@@ -317,7 +319,7 @@ public class Cell extends Pane{
      * @param state the new state of the cell
      */
     public void setCellState(CellState state){
-        Platform.runLater(() -> view.setStyle("-fx-fill: "+state.getCssStringKey()));
+        Platform.runLater(() -> setFillType((Shape) view, state));
     }
 
     /**
@@ -339,6 +341,38 @@ public class Cell extends Pane{
     @Override
     public String toString(){
         return cellId;
+    }
+
+
+
+    /**
+     * Sets the fill type of a shape based on this cell's type
+     * @param n the shape to set the fill of
+     * @param state the state of the cell, determines coloring
+     */
+    protected void setFillType(Shape n, CellState state) {
+        Color baseColor = Color.web(state.getBackgroundColor());
+        Stop[] stops = new Stop[] { new Stop(0, baseColor),new Stop(0.499, baseColor),new Stop(0.501, Color.web("#F4F4F4")), new Stop(1, Color.web("#F4F4F4"))};
+        Paint gradient;
+        switch(this.type) {
+            case LOCAL:
+                gradient = new LinearGradient(0,0,0,3,false, CycleMethod.REFLECT, stops);
+                break;
+            case REMOTE:
+                gradient = new LinearGradient(0,0,3,0,false, CycleMethod.REFLECT, stops);
+                break;
+            case BOTH:
+            default:
+                gradient = baseColor;
+        }
+        n.setFill(gradient);
+        n.setStyle("-fx-stroke: " + state.getCssStringKey());
+    }
+
+    public enum CellType {
+        BOTH,
+        LOCAL,
+        REMOTE;
     }
 
     /**
