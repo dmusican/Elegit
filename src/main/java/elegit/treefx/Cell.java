@@ -322,6 +322,11 @@ public class Cell extends Pane{
         Platform.runLater(() -> setFillType((Shape) view, state));
     }
 
+    public void setCellType(CellType type) {
+        this.type = type;
+        Platform.runLater(() -> setFillType((Shape) view, CellState.STANDARD));
+    }
+
     /**
      * @return the unique ID of this cell
      */
@@ -423,7 +428,7 @@ public class Cell extends Pane{
     }
 
     private class LabelCell extends Pane {
-        private final int MAX_COL_PER_ROW=8, MAX_CHAR_PER_LABEL=25;
+        private final int MAX_COL_PER_ROW=6, MAX_CHAR_PER_LABEL=25;
         private final String CURRENT_BOX_STYLE = "-fx-background-color: #1E90FF; -fx-background-radius: 5;";
         private final String BOX_STYLE = "-fx-background-color: #CCCCCC; -fx-background-radius: 5;";
         private final String CURRENT_LABEL_STYLE = "-fx-text-fill: #FFFFFF; -fx-font-size: 14px; -fx-font-weight: bold;";
