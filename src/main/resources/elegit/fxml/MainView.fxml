@@ -53,18 +53,12 @@
                             <Button id="warningButton"
                                     onAction="#chooseRecentReposToDelete"
                                     fx:id="removeRecentReposButton"/>
-                            <Button fx:id="changeLoginButton"
-                                    text="Change login"
-                                    onAction="#handleChangeLoginButton" />
-
-                            <Button text="Legend"
-                                    fx:id="legendbutton"
-                                    onAction="#showLegend" />
                         </HBox>
                     </StackPane>
 
 
                     <GridPane   vgap="10"
+                                hgap="10"
                                 id="gridPane">
                         <columnConstraints>
                             <ColumnConstraints/>
@@ -141,13 +135,18 @@
                             <HBox   alignment="TOP_CENTER">
                                 <Text   fx:id="needToFetch"/>
                             </HBox>
-                            <HBox   alignment="TOP_CENTER"
+                            <HBox   alignment="CENTER"
                                     style="-fx-cursor: hand"
                                     onMouseClicked="#handleRemoteMouseClick">
                                 <Text   text="remote: "/>
-                                <Text fx:id="browserText">
-                                </Text>
+                                <Text fx:id="browserText"/>
                             </HBox>
+                            <Button fx:id="changeLoginButton"
+                                    text="Change Login"
+                                    style="-fx-font-size: 10;"
+                                    prefHeight="25"
+                                    prefWidth="80"
+                                    onAction="#handleChangeLoginButton"/>
                         </VBox>
 
 
@@ -314,11 +313,15 @@
                         </VBox>
 
 
-                        <StackPane  GridPane.rowIndex="2"
-                                    GridPane.columnIndex="2"
-                                    GridPane.hgrow="ALWAYS">
+                        <VBox   GridPane.rowIndex="2"
+                                GridPane.columnIndex="2"
+                                GridPane.hgrow="ALWAYS"
+                                spacing="5">
                             <CommitTreePanelView fx:id="commitTreePanelView"/>
-                        </StackPane>
+                            <Hyperlink  fx:id="legendLink"
+                                        text="What do all these symbols mean?"
+                                        onAction="#showLegend"/>
+                        </VBox>
 
 
                     </GridPane>

@@ -77,6 +77,7 @@ public class SessionController {
     public Button addDeleteBranchButton;
     public Button checkoutButton;
     public Button tagButton;
+    public Button changeLoginButton;
 
     private SessionModel theModel;
 
@@ -126,6 +127,8 @@ public class SessionController {
 
     public MenuItem cloneOption;
     public MenuItem existingOption;
+
+    public Hyperlink legendLink;
 
 
     /**
@@ -287,6 +290,7 @@ public class SessionController {
         fetchButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         commitInfoNameCopyButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         commitInfoGoToButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
+        changeLoginButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
 
         // Set minimum sizes for other fields and views
         workingTreePanelView.setMinSize(Control.USE_PREF_SIZE, 200);
@@ -304,6 +308,8 @@ public class SessionController {
         anythingChecked = new SimpleBooleanProperty(false);
         addButton.disableProperty().bind(anythingChecked.not());
         removeButton.disableProperty().bind(anythingChecked.not());
+
+        legendLink.setFont(new Font(12));
 
         Text openExternallyIcon = GlyphsDude.createIcon(FontAwesomeIcon.EXTERNAL_LINK);
         this.openRepoDirButton.setGraphic(openExternallyIcon);
