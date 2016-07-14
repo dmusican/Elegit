@@ -10,10 +10,7 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
-import javafx.scene.control.Button;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.Label;
-import javafx.scene.control.Tooltip;
+import javafx.scene.control.*;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -475,11 +472,16 @@ public class Cell extends Pane{
             showExtended.setVisible(false);
             if (row>0) {
                 showExtended.setVisible(true);
-                showExtended.setTranslateX(-5);
-                showExtended.setText("\u22EE");
+                showExtended.setTranslateX(-6);
+                showExtended.setText("\u02c5");
                 showExtended.setStyle("-fx-background-color: rgba(244,244,244,100); -fx-padding: -3 0 0 0;" +
-                        "-fx-font-size:18px; -fx-font-weight:bold;");
+                        "-fx-font-size:28px; -fx-font-weight:bold;");
                 showExtended.setOnMouseClicked(event -> {
+                    if(showExtended.getText().equals("\u02c5")) {
+                        showExtended.setText("\u02c4");
+                    }else {
+                        showExtended.setText("\u02c5");
+                    }
                     for (Node n : extendedLabels) {
                         n.setVisible(!n.isVisible());
                     }
