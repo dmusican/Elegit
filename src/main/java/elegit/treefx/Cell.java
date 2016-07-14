@@ -9,15 +9,12 @@ import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.geometry.Insets;
-import javafx.geometry.Pos;
-import javafx.geometry.VPos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.MouseButton;
-import javafx.scene.layout.Background;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
@@ -26,8 +23,6 @@ import javafx.scene.shape.Shape;
 import javafx.scene.text.Text;
 import javafx.util.Duration;
 import elegit.CommitTreeController;
-import elegit.MatchedScrollPane;
-import org.controlsfx.glyphfont.FontAwesome;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -155,7 +150,7 @@ public class Cell extends Pane{
     public void moveTo(double x, double y, boolean animate, boolean emphasize){
         if(animate && numCellsBeingAnimated < MAX_NUM_CELLS_TO_ANIMATE){
             numCellsBeingAnimated++;
-            MatchedScrollPane.scrollTo(-1);
+            CommitTreeScrollPane.scrollTo(-1);
 
             Shape placeHolder = (Shape) getBaseView();
             placeHolder.setTranslateX(x+TreeLayout.H_PAD);

@@ -1,18 +1,18 @@
 package elegit.treefx;
 
 import elegit.Main;
+import elegit.SessionController;
 import javafx.application.Platform;
 import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
+import javafx.scene.Group;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
-import javafx.scene.layout.StackPane;
 import javafx.scene.text.Text;
-import javafx.scene.layout.VBox;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,7 +32,6 @@ public class TreeLayout{
     /**
      * Mover service to go through moving the cells. Services are scheduled really well, so we
      * like using them for big repetitive things like this.
-     * TODO: test fetching/pushing/merging, see if it animates and stuff correctly
      */
     public static class MoveCellService extends Service {
         private int currentCell, max;
@@ -88,10 +87,6 @@ public class TreeLayout{
             private List<Integer> movedCells;
             private boolean isInitialSetupFinished;
 
-
-            private SimpleDoubleProperty centerOfViewportX = new SimpleDoubleProperty(0);
-            private SimpleDoubleProperty centerOfViewportY = new SimpleDoubleProperty(0);
-
             /**
              * Extracts the TreeGraphModel, sorts its cells by time, then relocates
              * every cell. When complete, updates the model if necessary to show
@@ -117,40 +112,22 @@ public class TreeLayout{
                 MoveCellService mover = new MoveCellService(allCellsSortedByTime);
 
                 //********************* Loading Bar Start *********************
-                // Prepare loading bar for while commits are loading
-                ScrollPane scrollPane = g.getScrollPane();
                 Pane cellLayer = g.getCellLayerPane();
+                ScrollPane sp = g.getScrollPane();
                 ProgressBar progressBar = new ProgressBar();
-                Text loadingCommits = new Text("Loading commits...");
-                VBox loading = new VBox(progressBar, loadingCommits);
+                Text loadingCommits = new Text("Loading commits ");
+                HBox loading = new HBox(loadingCommits, progressBar);
                 loading.setSpacing(5);
-                StackPane stackPane = new StackPane(loading);
-                stackPane.setLayoutY(100.0);
-                stackPane.setVisible(false);
-                Platform.runLater(() -> cellLayer.getChildren().add(stackPane));
+                loading.setLayoutX(10);
+                loading.setLayoutY(10);
+                cellLayer.getChildren().add(loading);
 
-
-                // Binds the progress bar location to the center of the viewport
-                stackPane.layoutXProperty().bind(centerOfViewportX);
-                stackPane.layoutYProperty().bind(centerOfViewportY);
-
-                // Adds listeners to the scrollbars to updates the progress bar's location and visibility
-                scrollPane.hvalueProperty().addListener((observable, oldValue, newValue) -> {
-                    updateProgressBarLocation(mover, scrollPane, cellLayer, stackPane);
-                });
-
-                scrollPane.vvalueProperty().addListener((observable, oldValue, newValue) -> {
-                    updateProgressBarLocation(mover, scrollPane, cellLayer, stackPane);
-                });
-
-                mover.percent.addListener((observable, oldValue, newValue) -> {
-                    if (mover.percent.get() / 100.0 >= 1 - scrollPane.getHvalue()) {
-                        stackPane.setVisible(false);
+                mover.percent.addListener(((observable, oldValue, newValue) -> {
+                    if((int)newValue == 100) {
+                        loading.setVisible(false);
                     }
-                });
-
+                }));
                 //********************** Loading Bar End **********************
-
 
                 mover.setOnSucceeded(event1 -> {
                     if (!Main.isAppClosed && movingCells) {
@@ -168,28 +145,6 @@ public class TreeLayout{
                 mover.start();
                 return null;
             }
-
-            /**
-             * helper method to update progress bar location
-             * @param mover Service that moves the cells
-             * @param scrollPane ScrollPane the commit tree Pane is in
-             * @param cellLayer Pane that holds the commit tree
-             * @param stackPane StackPane that has the progress bar
-             */
-            private void updateProgressBarLocation(MoveCellService mover, ScrollPane scrollPane, Pane cellLayer, StackPane stackPane) {
-                if (mover.percent.get() / 100.0 < 1 - scrollPane.getHvalue() && mover.percent.getValue() < 100) {
-                    if (cellLayer.getLayoutBounds().getMaxX() > 0) {
-                        centerOfViewportX.set(scrollPane.getHvalue() * cellLayer.getLayoutBounds().getMaxX()
-                                + (0.5 - scrollPane.getHvalue()) * scrollPane.getViewportBounds().getWidth());
-                        centerOfViewportY.set(scrollPane.getVvalue() * cellLayer.getLayoutBounds().getMaxY()
-                                + (0.5 - scrollPane.getVvalue()) * scrollPane.getViewportBounds().getHeight());
-                    }
-                    stackPane.setVisible(true);
-                } else {
-                    stackPane.setVisible(false);
-                }
-            }
-
 
             /**
              * Helper method to sort the list of cells

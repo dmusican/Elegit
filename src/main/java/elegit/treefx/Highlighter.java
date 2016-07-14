@@ -4,7 +4,6 @@ import javafx.animation.ScaleTransition;
 import javafx.application.Platform;
 import javafx.scene.shape.Shape;
 import javafx.util.Duration;
-import elegit.MatchedScrollPane;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -204,7 +203,7 @@ public class Highlighter{
         }
 
         Platform.runLater(() -> {
-            MatchedScrollPane.scrollTo(c.columnLocationProperty.doubleValue() + 1);
+            CommitTreeScrollPane.scrollTo(c.columnLocationProperty.doubleValue() + 1);
             c.setCellState(CellState.EMPHASIZED);
 
             Shape s = (Shape) c.view;

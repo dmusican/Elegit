@@ -6,7 +6,6 @@ import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.Pane;
-import elegit.MatchedScrollPane;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -20,7 +19,7 @@ import java.util.List;
 public class TreeGraph{
 
     // The scroll pane that holds all drawn elements
-    private MatchedScrollPane scrollPane;
+    private CommitTreeScrollPane scrollPane;
 
     // The underlying model of the graph
     public TreeGraphModel treeGraphModel;
@@ -42,7 +41,7 @@ public class TreeGraph{
         cellLayer = new Pane();
         cellLayer.setPadding(new Insets(TreeLayout.V_PAD, TreeLayout.H_PAD, TreeLayout.V_PAD, TreeLayout.H_PAD));
 
-        scrollPane = new MatchedScrollPane(canvas);
+        scrollPane = new CommitTreeScrollPane(canvas);
 
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
         scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);

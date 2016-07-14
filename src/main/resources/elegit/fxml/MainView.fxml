@@ -155,11 +155,10 @@
                                         GridPane.columnIndex="2">
                                 <StackPane  alignment="TOP_CENTER">
                                     <ImageView
-                                            fitHeight="175"
-                                            fitWidth="175"
+                                            fitHeight="100"
+                                            fitWidth="100"
                                             opacity="0.25"
                                             preserveRatio="true">
-                                        <Image url="@cloud.png"/>
                                     </ImageView>
                                 </StackPane>
                                 <VBox   alignment="CENTER"
@@ -315,9 +314,8 @@
                                     GridPane.columnIndex="2"
                                     GridPane.hgrow="ALWAYS">
                             <CommitTreePanelView fx:id="commitTreePanelView"/>
-                            <StackPane.margin>
-                                <Insets bottom="15.0" left="5.0"/>
-                            </StackPane.margin>
+                            <StackPane  fx:id="loadingBar"
+                                        StackPane.alignment="TOP_CENTER"/>
                         </StackPane>
 
 
