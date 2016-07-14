@@ -154,7 +154,7 @@ public class TreeGraphModel{
         Cell cell;
         switch(type) {
             case LOCAL:
-                cell = new InvisibleCell(newId, time, parent1Id == null ?
+                cell = new Cell(newId, time, parent1Id == null ?
                         null : cellMap.get(parent1Id), parent2Id == null ?
                         null : cellMap.get(parent2Id), Cell.CellType.LOCAL);
                 break;
