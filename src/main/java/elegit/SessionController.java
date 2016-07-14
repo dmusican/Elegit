@@ -121,7 +121,6 @@ public class SessionController {
     public MenuItem cloneOption;
     public MenuItem existingOption;
     public Text needToFetch;
-    public Text commitsAheadText;
 
     public Text branchStatusText;
 
@@ -239,7 +238,6 @@ public class SessionController {
         Color statusColor = statusText.equals("Up to date.") ? Color.FORESTGREEN : Color.FIREBRICK;
         if (update) {
             branchStatusText.setText(statusText);
-            branchStatusText.setFont(new Font(10));
             branchStatusText.setFill(statusColor);
         }
     }
