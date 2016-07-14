@@ -40,6 +40,9 @@ public class WorkingTreePanelView extends FileStructurePanelView{
         this.displayedFiles = new LinkedList<>();
         isAnyFileSelectedProperty = new SimpleBooleanProperty(false);
 
+        // used to disable/enable add and remove buttons
+        isAnyFileSelectedProperty.addListener(((observable, oldValue, newValue) -> SessionController.anythingChecked.set(newValue)));
+
         super.init();
     }
 
@@ -101,7 +104,7 @@ public class WorkingTreePanelView extends FileStructurePanelView{
         BooleanProperty isSelectedPropertyHelper = new SimpleBooleanProperty(false);
 
         // Track all current children of root to make sure they should still be displayed
-        // starts at index 1 because the select all checbox is at index 0
+        // starts at index 1 because the select all checkbox is at index 0
         Map<TreeItem<RepoFile>, Boolean> shouldKeepChild = new HashMap<>();
         for(int i = 1; i < root.getChildren().size(); i++){
             shouldKeepChild.put(root.getChildren().get(i), false);

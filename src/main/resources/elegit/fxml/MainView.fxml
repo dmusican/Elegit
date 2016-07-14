@@ -64,7 +64,7 @@
                     </StackPane>
 
 
-                    <GridPane   hgap="10" vgap="10"
+                    <GridPane   vgap="10"
                                 id="gridPane">
                         <columnConstraints>
                             <ColumnConstraints/>
@@ -261,15 +261,18 @@
                                         fx:id="removeButton"
                                         text="Remove"
                                         onAction="#handleRemoveButton"/>
+                                <padding>
+                                    <Insets bottom="40"/>
+                                </padding>
                             </HBox>
-                            <Button text="Create/delete a branch"
-                                    id = "codeButton"
-                                    fx:id="addDeleteBranchButton"
-                                    onAction="#handleNewBranchButton"/>
                             <Button text="Checkout different branch"
                                     fx:id="checkoutButton"
                                     id = "codeButton"
                                     onAction="#showBranchCheckout"/>
+                            <Button text="Create/delete a branch"
+                                    id = "codeButton"
+                                    fx:id="addDeleteBranchButton"
+                                    onAction="#handleNewBranchButton"/>
                         </VBox>
 
 

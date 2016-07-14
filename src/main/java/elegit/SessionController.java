@@ -116,6 +116,7 @@ public class SessionController {
     public DataSubmitter d;
 
     public BooleanProperty isWorkingTreeTabSelected;
+    public static SimpleBooleanProperty anythingChecked;
 
     private volatile boolean isRecentRepoEventListenerBlocked = false;
 
@@ -300,6 +301,10 @@ public class SessionController {
      * Adds graphics and tooltips to the buttons
      */
     private void setButtonIconsAndTooltips() {
+        anythingChecked = new SimpleBooleanProperty(false);
+        addButton.disableProperty().bind(anythingChecked.not());
+        removeButton.disableProperty().bind(anythingChecked.not());
+
         Text openExternallyIcon = GlyphsDude.createIcon(FontAwesomeIcon.EXTERNAL_LINK);
         this.openRepoDirButton.setGraphic(openExternallyIcon);
         this.openRepoDirButton.setTooltip(new Tooltip("Open repository directory"));
@@ -424,8 +429,6 @@ public class SessionController {
             gitStatusButton.setDisable(disable);
             tagButton.setDisable(disable);
             commitButton.setDisable(disable);
-            addButton.setDisable(disable);
-            removeButton.setDisable(disable);
             pushTagsButton.setDisable(disable);
             pushButton.setDisable(disable);
             fetchButton.setDisable(disable);

@@ -1,7 +1,6 @@
 package elegit;
 
 import javafx.application.Platform;
-import javafx.scene.Node;
 import javafx.scene.control.TreeCell;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
