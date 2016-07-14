@@ -2,11 +2,14 @@ package elegit;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.scene.Node;
 import javafx.scene.control.CheckBoxTreeItem;
 import javafx.scene.control.TreeCell;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import javafx.scene.control.cell.CheckBoxTreeCell;
+import javafx.scene.text.Font;
+import javafx.scene.text.Text;
 import javafx.util.Callback;
 import org.eclipse.jgit.api.errors.GitAPIException;
 
@@ -25,6 +28,8 @@ public class WorkingTreePanelView extends FileStructurePanelView{
     public BooleanProperty isAnyFileSelectedProperty;
 
     public List<TreeItem<RepoFile>> displayedFiles;
+
+    private CheckBoxTreeItem<RepoFile> checkBox;
 
     public WorkingTreePanelView() {
         this.init();
@@ -55,8 +60,27 @@ public class WorkingTreePanelView extends FileStructurePanelView{
 
     @Override
     protected TreeItem<RepoFile> getRootTreeItem(DirectoryRepoFile rootDirectory) {
-        return new CheckBoxTreeItem<>(rootDirectory);
+        TreeItem<RepoFile> item = new CheckBoxTreeItem<>(rootDirectory);
+        initCheckBox();
+        item.getChildren().add(checkBox);
+        return item;
     }
+
+    private void initCheckBox() {
+        Text txt = new Text("select all");
+        txt.setFont(new Font(10));
+        checkBox = new CheckBoxTreeItem<>(null, txt);
+        checkBox.selectedProperty().addListener(((observable, oldValue, newValue) -> {
+            if(newValue) {
+                setAllFilesSelected(true);
+                txt.setText("deselect all");
+            }else {
+                setAllFilesSelected(false);
+                txt.setText("select all");
+            }
+        }));
+    }
+
 
     /**
      * Adds all tracked files in the repository with an updated status and displays them
@@ -68,12 +92,18 @@ public class WorkingTreePanelView extends FileStructurePanelView{
     protected void addTreeItemsToRoot(List<RepoFile> repoFiles, TreeItem<RepoFile> root) {
         displayedFiles = new LinkedList<>();
 
+        //re-adds the checkbox if it had been removed
+        if(root.getChildren().size() == 0) {
+            root.getChildren().add(checkBox);
+        }
+
         // Helper to construct 'isAnyFileSelectedProperty'
         BooleanProperty isSelectedPropertyHelper = new SimpleBooleanProperty(false);
 
         // Track all current children of root to make sure they should still be displayed
+        // starts at index 1 because the select all checbox is at index 0
         Map<TreeItem<RepoFile>, Boolean> shouldKeepChild = new HashMap<>();
-        for(int i = 0; i < root.getChildren().size(); i++){
+        for(int i = 1; i < root.getChildren().size(); i++){
             shouldKeepChild.put(root.getChildren().get(i), false);
         }
 
@@ -85,9 +115,10 @@ public class WorkingTreePanelView extends FileStructurePanelView{
             isSelectedPropertyHelper = new SimpleBooleanProperty();
 
             // Check if the file is already being displayed
+            // starts at index 1 because the select all checbox is at index 0
             boolean foundMatchingItem = false;
-            for(int i = 0; i < root.getChildren().size(); i++){
-                CheckBoxTreeItem<RepoFile> oldItem = (CheckBoxTreeItem) root.getChildren().get(i);
+            for(int i = 1; i < root.getChildren().size(); i++){
+                CheckBoxTreeItem<RepoFile> oldItem = (CheckBoxTreeItem<RepoFile>) root.getChildren().get(i);
 
                 if(oldItem.getValue().equals(repoFile)){
                     // The given file is already present, no additional processing necessary
@@ -124,6 +155,11 @@ public class WorkingTreePanelView extends FileStructurePanelView{
             if(!shouldKeepChild.get(item)){
                 root.getChildren().remove(item);
             }
+        }
+
+        //hides the checkbox if there are no files shown
+        if(root.getChildren().size() < 2) {
+            root.getChildren().remove(checkBox);
         }
 
         isAnyFileSelectedProperty.bind(isSelectedPropertyHelper);

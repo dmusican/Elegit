@@ -60,12 +60,6 @@
                             <Button text="Legend"
                                     fx:id="legendbutton"
                                     onAction="#showLegend" />
-                            <Button fx:id="selectAllButton"
-                                    text="Select All"
-                                    onAction="#onSelectAllButton"/>
-                            <Button fx:id="deselectAllButton"
-                                    text="Deselect All"
-                                    onAction="#onDeselectAllButton"/>
                         </HBox>
                     </StackPane>
 
@@ -96,7 +90,7 @@
                             <ImageView
                                     fitHeight="120"
                                     fitWidth="150"
-                                    opacity="0.15">
+                                    opacity="0.2">
                                 <Image url="@folder.png"/>
                             </ImageView>
                         </StackPane>
@@ -129,9 +123,9 @@
                                     fx:id = "remoteImage"
                                     fitHeight="175"
                                     fitWidth="175"
-                                    opacity="0.25"
+                                    opacity="0.2"
                                     preserveRatio="true">
-                                <Image url="@cloud.png"/>
+                                <Image url="@graycloud.png"/>
                             </ImageView>
                         </StackPane>
 
@@ -321,9 +315,6 @@
                                     GridPane.columnIndex="2"
                                     GridPane.hgrow="ALWAYS">
                             <CommitTreePanelView fx:id="commitTreePanelView"/>
-                            <StackPane.margin>
-                                <Insets bottom="15.0" left="5.0"/>
-                            </StackPane.margin>
                         </StackPane>
 
 

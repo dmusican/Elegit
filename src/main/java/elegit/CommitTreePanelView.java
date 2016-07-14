@@ -2,14 +2,14 @@ package elegit;
 
 import javafx.application.Platform;
 import javafx.concurrent.Task;
+import javafx.geometry.Insets;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.layout.Region;
+import javafx.scene.layout.*;
 import elegit.treefx.Cell;
 import elegit.treefx.TreeGraph;
 import elegit.treefx.TreeLayout;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.Paint;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 
@@ -31,7 +31,7 @@ public class CommitTreePanelView extends Region{
     private String name;
 
     private StackPane computingCommitTree;
-    private Text loading;
+    private Background bg;
 
     /**
      * Constructs a new view for the commit tree
@@ -47,14 +47,14 @@ public class CommitTreePanelView extends Region{
      * Helper method to initialize loading text
      */
     private void initLoadingText() {
-        loading = new Text("Computing commit tree graph...");
-        loading.setFont(new Font(15));
+        Text loading = new Text("Computing commit tree graph...");
+        loading.setFont(new Font(17));
         loading.setFill(Color.DODGERBLUE);
-        loading.setVisible(true);
-        VBox vBox = new VBox(loading);
-        computingCommitTree = new StackPane(vBox);
-        computingCommitTree.setLayoutX(170);
-        computingCommitTree.setLayoutY(120);
+        computingCommitTree = new StackPane(loading);
+        computingCommitTree.setLayoutX(10);
+        computingCommitTree.setLayoutY(10);
+        bg = new Background(new BackgroundFill(Color.WHITESMOKE, CornerRadii.EMPTY, Insets.EMPTY));
+        computingCommitTree.setBackground(bg);
     }
 
     /**
@@ -62,15 +62,16 @@ public class CommitTreePanelView extends Region{
      * @param treeGraph TreeGraph
      */
     private void initCommitTreeScrollPanes(TreeGraph treeGraph, boolean showLoadingText) {
-        MatchedScrollPane.ignoreScrolling(true);
         ScrollPane sp = treeGraph.getScrollPane();
         sp.setOnMouseClicked(event -> CommitTreeController.handleMouseClicked());
         getChildren().clear();
         getChildren().add(anchorScrollPane(sp));
         getChildren().add(computingCommitTree);
-        if(showLoadingText) loading.setVisible(true);
+        if(showLoadingText) {
+            computingCommitTree.setVisible(true);
+            computingCommitTree.setBackground(bg);
+        }
         isLayoutThreadRunning = false;
-        MatchedScrollPane.ignoreScrolling(false);
     }
 
     /**
@@ -112,7 +113,8 @@ public class CommitTreePanelView extends Region{
                     e.printStackTrace();
                 }
                 Platform.runLater(() -> {
-                    loading.setVisible(false);
+                    computingCommitTree.setVisible(false);
+                    computingCommitTree.setBackground(null);
                     CommitTreeController.focusCommitInGraph(commitToFocusOnLoad);
                 });
                 return null;
