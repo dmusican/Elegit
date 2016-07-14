@@ -143,23 +143,32 @@ public class TreeGraphModel{
      * @param displayLabel the displayLabel of the new cell
      * @param contextMenu the context menu that will appear when right clicking on a cell
      * @param parentIds the IDs of the parents of the new cell, if any
-     * @param visible whether the cell will be normal or invisible
+     * @param type the type of the cell, local, remote, or both
      */
     public void addCell(String newId, long time, String displayLabel,
                         List<String> refs, ContextMenu contextMenu,
-                        List<String> parentIds, boolean visible){
+                        List<String> parentIds, Cell.CellType type){
         String parent1Id = parentIds.size() > 0 ? parentIds.get(0) : null;
         String parent2Id = parentIds.size() > 1 ? parentIds.get(1) : null;
 
         Cell cell;
-        if(visible){
-            cell = new Cell(newId, time, parent1Id == null ?
-                    null : cellMap.get(parent1Id), parent2Id == null ?
-                    null : cellMap.get(parent2Id));
-        }else{
-            cell = new InvisibleCell(newId, time, parent1Id == null ?
-                    null : cellMap.get(parent1Id), parent2Id == null ?
-                    null : cellMap.get(parent2Id));
+        switch(type) {
+            case LOCAL:
+                cell = new InvisibleCell(newId, time, parent1Id == null ?
+                        null : cellMap.get(parent1Id), parent2Id == null ?
+                        null : cellMap.get(parent2Id), Cell.CellType.LOCAL);
+                break;
+            case REMOTE:
+                cell = new InvisibleCell(newId, time, parent1Id == null ?
+                        null : cellMap.get(parent1Id), parent2Id == null ?
+                        null : cellMap.get(parent2Id), Cell.CellType.REMOTE);
+                break;
+            case BOTH:
+            default:
+                cell = new Cell(newId, time, parent1Id == null ?
+                        null : cellMap.get(parent1Id), parent2Id == null ?
+                        null : cellMap.get(parent2Id), Cell.CellType.BOTH);
+                break;
         }
         setCellLabels(cell, displayLabel, refs);
         cell.setContextMenu(contextMenu);

@@ -1,6 +1,7 @@
 package elegit;
 
 import com.jcraft.jsch.*;
+import elegit.treefx.Cell;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.fxml.FXMLLoader;
@@ -767,6 +768,21 @@ public abstract class RepoHelper {
         } else {
             return null;
         }
+    }
+
+    /**
+     * Helper method to determine if a commit is on both local and remote,
+     * just on remote, or not merged in/tracked on local
+     * @param helper the commit to check
+     * @return the cell type, useful for drawing the tree
+     */
+    public Cell.CellType getCommitType(CommitHelper helper) {
+        if (this.localCommits.contains(helper))
+            if (this.remoteCommits.contains(helper))
+                return Cell.CellType.BOTH;
+            else
+                return Cell.CellType.LOCAL;
+        return Cell.CellType.REMOTE;
     }
 
     public TagHelper getTag(String tagName) {

@@ -1,15 +1,20 @@
 package elegit.treefx;
 
 import javafx.scene.Node;
+import javafx.scene.paint.Color;
+import javafx.scene.paint.CycleMethod;
+import javafx.scene.paint.LinearGradient;
+import javafx.scene.paint.Stop;
 import javafx.scene.shape.Shape;
 
 /**
  * A subclass of Cell that is drawn with a dashed line and transparent fill
  */
 public class InvisibleCell extends Cell{
+    CellType type;
 
-    public InvisibleCell(String cellId, long time, Cell parent1, Cell parent2){
-        super(cellId, time, parent1, parent2);
+    public InvisibleCell(String cellId, long time, Cell parent1, Cell parent2, CellType type){
+        super(cellId, time, parent1, parent2, type);
     }
 
     @Override
@@ -27,7 +32,7 @@ public class InvisibleCell extends Cell{
             setView(getBaseView());
         } else {
             Shape node = newShape.get();
-            node.setFill(null);
+            setFillType(node);
             node.setStyle("-fx-stroke: " + CellState.STANDARD.getCssStringKey());
             node.getStyleClass().setAll("cell", "invisCell");
             setView(node);

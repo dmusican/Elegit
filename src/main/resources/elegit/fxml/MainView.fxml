@@ -161,11 +161,11 @@
                                         GridPane.columnIndex="2">
                                 <StackPane  alignment="TOP_CENTER">
                                     <ImageView
-                                            fitHeight="175"
-                                            fitWidth="175"
+                                            fitHeight="137.5"
+                                            fitWidth="137.5"
                                             opacity="0.25"
                                             preserveRatio="true">
-                                        <Image url="@cloud.png"/>
+                                        <Image url="@repository.png"/>
                                     </ImageView>
                                 </StackPane>
                                 <VBox   alignment="CENTER"

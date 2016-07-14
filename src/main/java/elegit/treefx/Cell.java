@@ -22,6 +22,9 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.CycleMethod;
+import javafx.scene.paint.LinearGradient;
+import javafx.scene.paint.Stop;
 import javafx.scene.shape.Shape;
 import javafx.scene.text.Text;
 import javafx.util.Duration;
@@ -55,6 +58,7 @@ public class Cell extends Pane{
     // The displayed view
     Node view;
     private CellShape shape;
+    private CellType type;
     // The tooltip shown on hover
     Tooltip tooltip;
 
@@ -98,8 +102,8 @@ public class Cell extends Pane{
      * @param cellId the ID of this node
      * @param parent the parent of this node
      */
-    public Cell(String cellId, long time, Cell parent){
-        this(cellId, time, parent, null);
+    public Cell(String cellId, long time, Cell parent, CellType type){
+        this(cellId, time, parent, null, type);
     }
 
     /**
@@ -108,11 +112,12 @@ public class Cell extends Pane{
      * @param parent1 the first parent of this node
      * @param parent2 the second parent of this node
      */
-    public Cell(String cellId, long time, Cell parent1, Cell parent2){
+    public Cell(String cellId, long time, Cell parent1, Cell parent2, CellType type){
         this.cellId = cellId;
         this.time = time;
         this.parents = new ParentCell(this, parent1, parent2);
         this.refLabel = new LabelCell();
+        this.type = type;
 
         setShape(DEFAULT_SHAPE);
 
@@ -347,6 +352,35 @@ public class Cell extends Pane{
     @Override
     public String toString(){
         return cellId;
+    }
+
+
+
+    /**
+     * Sets the fill type of a shape based on this cell's type
+     * @param n the shape to set the fill of
+     */
+    protected void setFillType(Shape n) {
+        Stop[] stops = new Stop[] { new Stop(0, Color.web("#52B3D9")),new Stop(0.499, Color.web("#52B3D9")),new Stop(0.501, Color.web("#F4F4F4")), new Stop(1, Color.web("#F4F4F4"))};
+        LinearGradient gradient;
+        switch(this.type) {
+            case LOCAL:
+                gradient = new LinearGradient(0,0,0,3,false, CycleMethod.REFLECT, stops);
+                break;
+            case REMOTE:
+                gradient = new LinearGradient(0,0,3,0,false, CycleMethod.REFLECT, stops);
+                break;
+            case BOTH:
+            default:
+                gradient = new LinearGradient(0,0,2,2,false, CycleMethod.REFLECT, stops[0]);
+        }
+        n.setFill(gradient);
+    }
+
+    public enum CellType {
+        BOTH,
+        LOCAL,
+        REMOTE;
     }
 
     /**

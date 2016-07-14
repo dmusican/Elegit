@@ -160,6 +160,11 @@ public abstract class CommitTreeModel{
      */
     public void addInvisibleCommit(String id){
         CommitHelper invisCommit = sessionModel.getCurrentRepoHelper().getCommit(id);
+        Cell.CellType type;
+        if (sessionModel.getCurrentRepoHelper().getLocalCommits().contains(invisCommit))
+            type = Cell.CellType.LOCAL;
+        else
+            type = Cell.CellType.REMOTE;
 
         if (invisCommit != null) {
 
@@ -170,7 +175,7 @@ public abstract class CommitTreeModel{
             }
 
             this.addCommitToTree(invisCommit, invisCommit.getParents(),
-                    treeGraph.treeGraphModel, false);
+                    treeGraph.treeGraphModel, type);
 
             // If there are tags in the repo that haven't been pushed, allow them to be pushed
             if (invisCommit.getTags() != null) {
@@ -210,7 +215,7 @@ public abstract class CommitTreeModel{
 
         for(CommitHelper curCommitHelper : commits){
             List<CommitHelper> parents = curCommitHelper.getParents();
-            this.addCommitToTree(curCommitHelper, parents, treeGraph.treeGraphModel, true);
+            this.addCommitToTree(curCommitHelper, parents, treeGraph.treeGraphModel, null);
         }
 
         return true;
@@ -237,14 +242,18 @@ public abstract class CommitTreeModel{
      * @param parents a list of this commit's parents
      * @param graphModel the treeGraphModel to add the commit to
      */
-    private void addCommitToTree(CommitHelper commitHelper, List<CommitHelper> parents, TreeGraphModel graphModel, boolean visible){
+    private void addCommitToTree(CommitHelper commitHelper, List<CommitHelper> parents, TreeGraphModel graphModel, Cell.CellType type){
         List<String> parentIds = new ArrayList<>(parents.size());
 
-        if (visible) this.commitsInModel.add(commitHelper);
+        RepoHelper repo = sessionModel.getCurrentRepoHelper();
+        String displayLabel = repo.getCommitDescriptorString(commitHelper, false);
+        List<String> branchLabels = repo.getBranchModel().getBranchesWithHead(commitHelper);
+
+        if (type== null) this.commitsInModel.add(commitHelper);
 
         for(CommitHelper parent : parents){
             if(!graphModel.containsID(RepoHelper.getCommitId(parent))){
-                addCommitToTree(parent, parent.getParents(), graphModel, visible);
+                addCommitToTree(parent, parent.getParents(), graphModel, type);
             }
             parentIds.add(RepoHelper.getCommitId(parent));
         }
@@ -254,11 +263,7 @@ public abstract class CommitTreeModel{
             return;
         }
 
-        RepoHelper repo = sessionModel.getCurrentRepoHelper();
-        String displayLabel = repo.getCommitDescriptorString(commitHelper, false);
-        List<String> branchLabels = repo.getBranchModel().getBranchesWithHead(commitHelper);
-
-        graphModel.addCell(commitID, commitHelper.getWhen().getTime(), displayLabel, branchLabels, getContextMenu(commitHelper), parentIds, visible);
+        graphModel.addCell(commitID, commitHelper.getWhen().getTime(), displayLabel, branchLabels, getContextMenu(commitHelper), parentIds, repo.getCommitType(commitHelper));
     }
 
 
