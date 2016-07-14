@@ -30,6 +30,8 @@ public abstract class CommitTreeModel{
 
     // A list of commits in this model
     private List<CommitHelper> commitsInModel;
+    private List<CommitHelper> localCommitsInModel;
+    private List<CommitHelper> remoteCommitsInModel;
     private List<BranchHelper> branchesInModel;
     private List<TagHelper> tagsInModel;
 
@@ -50,6 +52,8 @@ public abstract class CommitTreeModel{
         this.view.setName("Generic commit tree");
         CommitTreeController.allCommitTreeModels.add(this);
         this.commitsInModel = new ArrayList<>();
+        this.localCommitsInModel = new ArrayList<>();
+        this.remoteCommitsInModel = new ArrayList<>();
         this.branchesInModel = new ArrayList<>();
     }
 
@@ -100,6 +104,7 @@ public abstract class CommitTreeModel{
 
         this.addCommitsToTree(updates.getCommitsToAdd());
         this.removeCommitsFromTree(updates.getCommitsToRemove());
+        this.updateCommitFills(updates.getCommitsToUpdate());
 
         TreeLayout.stopMovingCells();
         this.updateView();
@@ -117,6 +122,7 @@ public abstract class CommitTreeModel{
      */
     public UpdateModel getChanges() throws IOException {
         UpdateModel updateModel = new UpdateModel();
+        RepoHelper repo = this.sessionModel.getCurrentRepoHelper();
 
         // Added commits are all commits in the current repo helper that aren't in the model's list
         List<CommitHelper> commitsToAdd = new ArrayList<>(this.getAllCommits(this.sessionModel.getCurrentRepoHelper()));
@@ -127,6 +133,26 @@ public abstract class CommitTreeModel{
         List<CommitHelper> commitsToRemove = new ArrayList<>(this.commitsInModel);
         commitsToRemove.removeAll(this.getAllCommits(this.sessionModel.getCurrentRepoHelper()));
         updateModel.setCommitsToRemove(commitsToRemove);
+
+        // Updated commits are ones that have changed whether they are tracked locally
+        // or uploaded to the server.
+        // (remote-model's remote)+(model's remote-remote)+(local-model's local)+(model's local-local)
+        List<CommitHelper> commitsToUpdate = new ArrayList<>(this.localCommitsInModel);
+        commitsToUpdate.removeAll(repo.getLocalCommits());
+        updateModel.updateCommits(commitsToUpdate);
+        commitsToUpdate = new ArrayList<>(repo.getLocalCommits());
+        commitsToUpdate.removeAll(this.localCommitsInModel);
+        updateModel.updateCommits(commitsToUpdate);
+        commitsToUpdate = new ArrayList<>(this.remoteCommitsInModel);
+        commitsToUpdate.removeAll(repo.getRemoteCommits());
+        updateModel.updateCommits(commitsToUpdate);
+        commitsToUpdate = new ArrayList<>(repo.getRemoteCommits());
+        commitsToUpdate.removeAll(this.remoteCommitsInModel);
+        updateModel.updateCommits(commitsToUpdate);
+
+        System.out.println("Adding: "+commitsToAdd);
+        System.out.println("Removing: "+commitsToRemove);
+        System.out.println("Updating: "+updateModel.getCommitsToUpdate());
 
         List<BranchHelper> branchesToUpdate = new ArrayList<>(this.sessionModel.getCurrentRepoHelper().getBranchModel().getAllBranches());
         Map<String, BranchHelper> currentBranchMap = new HashMap<>();
@@ -160,11 +186,6 @@ public abstract class CommitTreeModel{
      */
     public void addInvisibleCommit(String id){
         CommitHelper invisCommit = sessionModel.getCurrentRepoHelper().getCommit(id);
-        Cell.CellType type;
-        if (sessionModel.getCurrentRepoHelper().getLocalCommits().contains(invisCommit))
-            type = Cell.CellType.LOCAL;
-        else
-            type = Cell.CellType.REMOTE;
 
         if (invisCommit != null) {
 
@@ -175,7 +196,7 @@ public abstract class CommitTreeModel{
             }
 
             this.addCommitToTree(invisCommit, invisCommit.getParents(),
-                    treeGraph.treeGraphModel, type);
+                    treeGraph.treeGraphModel);
 
             // If there are tags in the repo that haven't been pushed, allow them to be pushed
             if (invisCommit.getTags() != null) {
@@ -215,7 +236,7 @@ public abstract class CommitTreeModel{
 
         for(CommitHelper curCommitHelper : commits){
             List<CommitHelper> parents = curCommitHelper.getParents();
-            this.addCommitToTree(curCommitHelper, parents, treeGraph.treeGraphModel, null);
+            this.addCommitToTree(curCommitHelper, parents, treeGraph.treeGraphModel);
         }
 
         return true;
@@ -235,6 +256,15 @@ public abstract class CommitTreeModel{
         return true;
     }
 
+    private boolean updateCommitFills(List<CommitHelper> commits) {
+        if(commits.size() == 0) return false;
+
+        for(CommitHelper curCommitHelper : commits)
+            this.updateCommitFill(curCommitHelper, treeGraph.treeGraphModel, this.sessionModel.getCurrentRepoHelper());
+
+        return true;
+    }
+
     /**
      * Adds a single commit to the tree with the given parents. Ensures the given parents are
      * already added to the tree, and if they aren't, adds them
@@ -242,28 +272,34 @@ public abstract class CommitTreeModel{
      * @param parents a list of this commit's parents
      * @param graphModel the treeGraphModel to add the commit to
      */
-    private void addCommitToTree(CommitHelper commitHelper, List<CommitHelper> parents, TreeGraphModel graphModel, Cell.CellType type){
+    private void addCommitToTree(CommitHelper commitHelper, List<CommitHelper> parents, TreeGraphModel graphModel){
         List<String> parentIds = new ArrayList<>(parents.size());
 
         RepoHelper repo = sessionModel.getCurrentRepoHelper();
         String displayLabel = repo.getCommitDescriptorString(commitHelper, false);
         List<String> branchLabels = repo.getBranchModel().getBranchesWithHead(commitHelper);
+        Cell.CellType computedType = repo.getCommitType(commitHelper);
 
-        if (type== null) this.commitsInModel.add(commitHelper);
+        this.commitsInModel.add(commitHelper);
+        if (computedType == Cell.CellType.BOTH || computedType == Cell.CellType.LOCAL)
+            this.localCommitsInModel.add(commitHelper);
+        if (computedType == Cell.CellType.BOTH || computedType == Cell.CellType.REMOTE)
+            this.remoteCommitsInModel.add(commitHelper);
 
         for(CommitHelper parent : parents){
             if(!graphModel.containsID(RepoHelper.getCommitId(parent))){
-                addCommitToTree(parent, parent.getParents(), graphModel, type);
+                addCommitToTree(parent, parent.getParents(), graphModel);
             }
             parentIds.add(RepoHelper.getCommitId(parent));
         }
 
         String commitID = RepoHelper.getCommitId(commitHelper);
         if(graphModel.containsID(commitID) && graphModel.isVisible(commitID)){
+            graphModel.setCellType(commitID, computedType);
             return;
         }
 
-        graphModel.addCell(commitID, commitHelper.getWhen().getTime(), displayLabel, branchLabels, getContextMenu(commitHelper), parentIds, repo.getCommitType(commitHelper));
+        graphModel.addCell(commitID, commitHelper.getWhen().getTime(), displayLabel, branchLabels, getContextMenu(commitHelper), parentIds, computedType);
     }
 
 
@@ -277,9 +313,33 @@ public abstract class CommitTreeModel{
         String commitID = RepoHelper.getCommitId(commitHelper);
 
         this.commitsInModel.remove(commitHelper);
+        this.localCommitsInModel.remove(commitHelper);
+        this.remoteCommitsInModel.remove(commitHelper);
 
         if(graphModel.containsID(commitID) && graphModel.isVisible(commitID))
             graphModel.removeCell(commitID);
+    }
+
+    private void updateCommitFill(CommitHelper helper, TreeGraphModel graphModel, RepoHelper repo) {
+        Cell.CellType type = (repo.getLocalCommits().contains(helper)) ?
+                (repo.getRemoteCommits().contains(helper)) ? Cell.CellType.BOTH : Cell.CellType.LOCAL : Cell.CellType.REMOTE;
+        this.localCommitsInModel.remove(helper);
+        this.remoteCommitsInModel.remove(helper);
+        switch (type) {
+            case LOCAL:
+                this.localCommitsInModel.add(helper);
+                break;
+            case REMOTE:
+                this.remoteCommitsInModel.add(helper);
+                break;
+            case BOTH:
+                this.localCommitsInModel.add(helper);
+                this.remoteCommitsInModel.add(helper);
+                break;
+            default:
+                break;
+        }
+        graphModel.setCellType(helper.getId(), type);
     }
 
 
