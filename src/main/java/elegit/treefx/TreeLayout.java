@@ -113,7 +113,6 @@ public class TreeLayout{
 
                 //********************* Loading Bar Start *********************
                 Pane cellLayer = g.getCellLayerPane();
-                ScrollPane sp = g.getScrollPane();
                 ProgressBar progressBar = new ProgressBar();
                 Text loadingCommits = new Text("Loading commits ");
                 HBox loading = new HBox(loadingCommits, progressBar);

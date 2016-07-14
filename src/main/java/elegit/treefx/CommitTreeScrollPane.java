@@ -25,9 +25,7 @@ public class CommitTreeScrollPane extends ScrollPane{
     public CommitTreeScrollPane(Node node) {
         super(node);
 
-        vPos.addListener(((observable, oldValue, newValue) -> {
-            this.vvalueProperty().setValue(newValue);
-        }));
+        vPos.addListener(((observable, oldValue, newValue) -> this.vvalueProperty().setValue(newValue)));
 
         NumItemsProperty.addListener((observable, oldValue, newValue) -> numItems = newValue.intValue());
     }

@@ -314,8 +314,6 @@
                                     GridPane.columnIndex="2"
                                     GridPane.hgrow="ALWAYS">
                             <CommitTreePanelView fx:id="commitTreePanelView"/>
-                            <StackPane  fx:id="loadingBar"
-                                        StackPane.alignment="TOP_CENTER"/>
                         </StackPane>
 
 
