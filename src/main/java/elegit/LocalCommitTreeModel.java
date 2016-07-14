@@ -20,7 +20,7 @@ public class LocalCommitTreeModel extends CommitTreeModel{
 
     @Override
     protected List<CommitHelper> getAllCommits(RepoHelper repoHelper) {
-        return repoHelper.getLocalCommits();
+        return repoHelper.getAllCommits();
     }
 
     @Override

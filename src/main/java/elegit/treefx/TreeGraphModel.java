@@ -154,12 +154,12 @@ public class TreeGraphModel{
         Cell cell;
         switch(type) {
             case LOCAL:
-                cell = new InvisibleCell(newId, time, parent1Id == null ?
+                cell = new Cell(newId, time, parent1Id == null ?
                         null : cellMap.get(parent1Id), parent2Id == null ?
                         null : cellMap.get(parent2Id), Cell.CellType.LOCAL);
                 break;
             case REMOTE:
-                cell = new InvisibleCell(newId, time, parent1Id == null ?
+                cell = new Cell(newId, time, parent1Id == null ?
                         null : cellMap.get(parent1Id), parent2Id == null ?
                         null : cellMap.get(parent2Id), Cell.CellType.REMOTE);
                 break;
@@ -310,6 +310,8 @@ public class TreeGraphModel{
      */
     public void setCellType(String cellId, Cell.CellType type) {
         Cell cell = cellMap.get(cellId);
+        if (cell == null)
+            return;
         cell.setCellType(type);
         if (type != Cell.CellType.BOTH)
             cellsWithNonDefaultShapesOrLabels.add(cell);
