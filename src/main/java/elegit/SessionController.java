@@ -60,15 +60,9 @@ import java.util.prefs.BackingStoreException;
 public class SessionController {
 
     public ComboBox<RepoHelper> repoDropdownSelector;
+
     public Button loadNewRepoButton;
     public Button removeRecentReposButton;
-
-    private SessionModel theModel;
-
-    public Node root;
-
-    public NotificationPane notificationPane;
-
     public Button openRepoDirButton;
     public Button gitStatusButton;
     public Button commitButton;
@@ -78,36 +72,48 @@ public class SessionController {
     public Button addButton;
     public Button removeButton;
     public Button mergeButton;
+    public Button commitInfoNameCopyButton;
+    public Button commitInfoGoToButton;
+    public Button addDeleteBranchButton;
+    public Button checkoutButton;
+    public Button tagButton;
+
+    private SessionModel theModel;
+
+    public Node root;
+
+    public NotificationPane notificationPane;
 
     public Tab workingTreePanelTab;
     public Tab allFilesPanelTab;
+
     public WorkingTreePanelView workingTreePanelView;
     public AllFilesPanelView allFilesPanelView;
 
 	public CommitTreePanelView commitTreePanelView;
 
+    public CommitTreeModel commitTreeModel;
+
     public ImageView remoteImage;
 
     public String commitInfoNameText = "";
-    public Button commitInfoNameCopyButton;
-    public Button commitInfoGoToButton;
-    public TextArea commitInfoMessageText;
-    public Text currentLocalBranchText;
-    public Text currentRemoteTrackingBranchText;
-    public Button addDeleteBranchButton;
-    public Button checkoutButton;
 
-    public ScrollPane tagsPane;
-    public Label tagsLabel;
-    public Button tagButton;
+    public TextArea commitInfoMessageText;
     public TextArea tagNameField;
 
+    public Text currentLocalBranchText;
+    public Text currentRemoteTrackingBranchText;
     public Text browserText;
+    public Text needToFetch;
+    public Text branchStatusText;
+
+    public ScrollPane tagsPane;
+
+    public Label tagsLabel;
+
     public URL remoteURL;
 
     public DataSubmitter d;
-
-    public CommitTreeModel commitTreeModel;
 
     public BooleanProperty isWorkingTreeTabSelected;
 
@@ -116,11 +122,10 @@ public class SessionController {
     static final Logger logger = LogManager.getLogger(SessionController.class);
 
     public ContextMenu newRepoOptionsMenu;
+
     public MenuItem cloneOption;
     public MenuItem existingOption;
-    public Text needToFetch;
 
-    public Text branchStatusText;
 
     /**
      * Initializes the environment by obtaining the model
@@ -186,7 +191,7 @@ public class SessionController {
         needToFetch.setFill(fetchColor);
 
         String localBranch = this.theModel.getCurrentRepoHelper().getBranchModel().getCurrentBranch().branchName;
-        update = localBranch.equals(currentLocalBranchText.getText()) ? false : true;
+        update = !localBranch.equals(currentLocalBranchText.getText());
         if (update) {
             currentLocalBranchText.setText(localBranch);
             currentLocalBranchText.setFont(new Font(15));
@@ -202,7 +207,7 @@ public class SessionController {
             // Startup should catch any chance of this
         }
         if (remoteBranch==null) remoteBranch = "N/A";
-        update = remoteBranch.equals(currentRemoteTrackingBranchText.getText()) ? false : true;
+        update = !remoteBranch.equals(currentRemoteTrackingBranchText.getText());
         if (update) {
             currentRemoteTrackingBranchText.setText(remoteBranch);
             currentRemoteTrackingBranchText.setFont(new Font(15));
@@ -232,7 +237,7 @@ public class SessionController {
                 statusText+=".";
             }
         }
-        update = statusText.equals(branchStatusText.getText()) ? false : true;
+        update = !statusText.equals(branchStatusText.getText());
         Color statusColor = statusText.equals("Up to date.") ? Color.FORESTGREEN : Color.FIREBRICK;
         if (update) {
             branchStatusText.setText(statusText);
@@ -354,9 +359,23 @@ public class SessionController {
     }
 
     /**
+     * Initializes each panel of the view
+     */
+    private synchronized void initPanelViews() {
+        try {
+            workingTreePanelView.drawDirectoryView();
+            allFilesPanelView.drawDirectoryView();
+            commitTreeModel.init();
+            this.setBrowserURL();
+        } catch (GitAPIException | IOException e) {
+            showGenericErrorNotification();
+        }
+    }
+
+    /**
      * Populates the browser image with the remote URL
      */
-    public void setBrowserURL() {
+    private void setBrowserURL() {
         try {
             RepoHelper currentRepoHelper = this.theModel.getCurrentRepoHelper();
             if (currentRepoHelper == null) throw new NoRepoLoadedException();
@@ -391,6 +410,54 @@ public class SessionController {
             this.refreshRecentReposInDropdown();
         }catch(NoRepoLoadedException e) {
             this.setButtonsDisabled(true);
+        }
+    }
+
+    /**
+     * A helper method for enabling/disabling buttons.
+     *
+     * @param disable a boolean for whether or not to disable the buttons.
+     */
+    public void setButtonsDisabled(boolean disable) {
+        Platform.runLater(() -> {
+            openRepoDirButton.setDisable(disable);
+            gitStatusButton.setDisable(disable);
+            tagButton.setDisable(disable);
+            commitButton.setDisable(disable);
+            addButton.setDisable(disable);
+            removeButton.setDisable(disable);
+            pushTagsButton.setDisable(disable);
+            pushButton.setDisable(disable);
+            fetchButton.setDisable(disable);
+            remoteImage.setVisible(!disable);
+            browserText.setVisible(!disable);
+            workingTreePanelTab.setDisable(disable);
+            allFilesPanelTab.setDisable(disable);
+            removeRecentReposButton.setDisable(disable);
+            repoDropdownSelector.setDisable(disable);
+            addDeleteBranchButton.setDisable(disable);
+            checkoutButton.setDisable(disable);
+            mergeButton.setDisable(disable);
+        });
+
+        notificationPane.setOnMousePressed(event -> {
+            if (disable) showNoRepoLoadedNotification();
+            if (notificationPane.isShowing()) notificationPane.hide();
+        });
+        notificationPane.setShowFromTop(false);
+    }
+
+    /**
+     * A helper helper method to enable or disable buttons/UI elements
+     * depending on whether there is a repo open for the buttons to
+     * interact with.
+     */
+    private void updateUIEnabledStatus() {
+        if (this.theModel.getCurrentRepoHelper() == null && this.theModel.getAllRepoHelpers().size() >= 0) {
+            // (There's no repo for buttons to interact with, but there are repos in the menu bar)
+            setButtonsDisabled(true);
+        } else {
+            setButtonsDisabled(false);
         }
     }
 
@@ -1124,6 +1191,74 @@ public class SessionController {
     }
 
     /**
+     * Pops up a window where the user can create a new branch
+     */
+    public void handleNewBranchButton() {
+        try{
+            logger.info("Create/delete branch button clicked");
+            if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
+
+            logger.info("Opened create/delete branch window");
+            // Create and display the Stage:
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/CreateDeleteBranchWindow.fxml"));
+            fxmlLoader.load();
+            CreateDeleteBranchWindowController createDeleteBranchController = fxmlLoader.getController();
+            StackPane fxmlRoot = fxmlLoader.getRoot();
+            createDeleteBranchController.showStage(fxmlRoot);
+        }catch(IOException e){
+            this.showGenericErrorNotification();
+            e.printStackTrace();
+        }catch(NoRepoLoadedException e){
+            this.showNoRepoLoadedNotification();
+            setButtonsDisabled(true);
+        }
+    }
+
+    /**
+     * Copies the commit hash onto the clipboard
+     */
+    public void handleCommitNameCopyButton(){
+        logger.info("Commit name copied");
+        Clipboard clipboard = Clipboard.getSystemClipboard();
+        ClipboardContent content = new ClipboardContent();
+        content.putString(commitInfoNameText);
+        clipboard.setContent(content);
+    }
+
+    /**
+     * Jumps to the selected commit in the tree display
+     */
+    public void handleGoToCommitButton(){
+        logger.info("Go to commit button clicked");
+        String id = commitInfoNameText;
+        CommitTreeController.focusCommitInGraph(id);
+    }
+
+    /**
+     * shows the merge window
+     */
+    public void handleGeneralMergeButton() {
+        try{
+            logger.info("Merge button clicked");
+            if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
+
+            logger.info("Opened merge window");
+            // Create and display the Stage:
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/MergeWindow.fxml"));
+            fxmlLoader.load();
+            MergeWindowController mergeWindowController = fxmlLoader.getController();
+            NotificationPane fxmlRoot = fxmlLoader.getRoot();
+            mergeWindowController.showStage(fxmlRoot);
+        }catch(IOException e){
+            this.showGenericErrorNotification();
+            e.printStackTrace();
+        }catch(NoRepoLoadedException e){
+            this.showNoRepoLoadedNotification();
+            setButtonsDisabled(true);
+        }
+    }
+
+    /**
      * Updates the panel views when the "git status" button is clicked.
      * Highlights the current HEAD.
      */
@@ -1201,68 +1336,6 @@ public class SessionController {
     }
 
     /**
-     * Initializes each panel of the view
-     */
-	private synchronized void initPanelViews() {
-        try {
-            workingTreePanelView.drawDirectoryView();
-            allFilesPanelView.drawDirectoryView();
-            commitTreeModel.init();
-            this.setBrowserURL();
-        } catch (GitAPIException | IOException e) {
-            showGenericErrorNotification();
-        }
-    }
-
-    /**
-     * A helper method for enabling/disabling buttons.
-     *
-     * @param disable a boolean for whether or not to disable the buttons.
-     */
-    public void setButtonsDisabled(boolean disable) {
-        Platform.runLater(() -> {
-            openRepoDirButton.setDisable(disable);
-            gitStatusButton.setDisable(disable);
-            tagButton.setDisable(disable);
-            commitButton.setDisable(disable);
-            addButton.setDisable(disable);
-            removeButton.setDisable(disable);
-            pushTagsButton.setDisable(disable);
-            pushButton.setDisable(disable);
-            fetchButton.setDisable(disable);
-            remoteImage.setVisible(!disable);
-            browserText.setVisible(!disable);
-            workingTreePanelTab.setDisable(disable);
-            allFilesPanelTab.setDisable(disable);
-            removeRecentReposButton.setDisable(disable);
-            repoDropdownSelector.setDisable(disable);
-            addDeleteBranchButton.setDisable(disable);
-            checkoutButton.setDisable(disable);
-            mergeButton.setDisable(disable);
-        });
-
-        notificationPane.setOnMousePressed(event -> {
-            if (disable) showNoRepoLoadedNotification();
-            if (notificationPane.isShowing()) notificationPane.hide();
-        });
-        notificationPane.setShowFromTop(false);
-    }
-
-    /**
-     * A helper helper method to enable or disable buttons/UI elements
-     * depending on whether there is a repo open for the buttons to
-     * interact with.
-     */
-    private void updateUIEnabledStatus() {
-        if (this.theModel.getCurrentRepoHelper() == null && this.theModel.getAllRepoHelpers().size() >= 0) {
-            // (There's no repo for buttons to interact with, but there are repos in the menu bar)
-            setButtonsDisabled(true);
-        } else {
-            setButtonsDisabled(false);
-        }
-    }
-
-    /**
      * Opens the current repo directory (e.g. in Finder or Windows Explorer).
      */
     public void openRepoDirectory(){
@@ -1287,6 +1360,223 @@ public class SessionController {
                 setButtonsDisabled(true);
             }
         }
+    }
+
+    /**
+     * removes selected repo shortcuts
+     */
+    public void chooseRecentReposToDelete() {
+        logger.info("Remove repos button clicked");
+        List<RepoHelper> repoHelpers = this.theModel.getAllRepoHelpers();
+        CheckListView<RepoHelper> repoCheckListView = new CheckListView<>(FXCollections.observableArrayList(repoHelpers));
+        Button removeSelectedButton = new Button("Remove repository shortcuts from Elegit");
+
+        PopOver popover = new PopOver(new VBox(repoCheckListView, removeSelectedButton));
+        popover.setTitle("Manage Recent Repositories");
+
+        removeSelectedButton.setOnAction(e -> {
+            logger.info("Removed repos");
+            List<RepoHelper> checkedItems = repoCheckListView.getCheckModel().getCheckedItems();
+            this.theModel.removeRepoHelpers(checkedItems);
+            popover.hide();
+
+            if (!this.theModel.getAllRepoHelpers().isEmpty() && !this.theModel.getAllRepoHelpers().contains(theModel.getCurrentRepoHelper())) {
+                int newIndex = this.theModel.getAllRepoHelpers().size()-1;
+                RepoHelper newCurrentRepo = this.theModel.getAllRepoHelpers()
+                        .get(newIndex);
+
+                handleRecentRepoMenuItem(newCurrentRepo);
+                repoDropdownSelector.setValue(newCurrentRepo);
+
+                this.refreshRecentReposInDropdown();
+            } else if (this.theModel.getAllRepoHelpers().isEmpty()){
+                TreeLayout.stopMovingCells();
+                theModel.resetSessionModel();
+                workingTreePanelView.resetFileStructurePanelView();
+                allFilesPanelView.resetFileStructurePanelView();
+                initialize();
+            }else {
+                try {
+                    theModel.openRepoFromHelper(theModel.getCurrentRepoHelper());
+                } catch (BackingStoreException | IOException | MissingRepoException | ClassNotFoundException e1) {
+                    e1.printStackTrace();
+                }
+            }
+
+            this.refreshRecentReposInDropdown();
+        });
+
+        popover.show(this.removeRecentReposButton);
+    }
+
+    /**
+     * Opens up the current repo helper's Branch Manager window after
+     * passing in this SessionController object, so that the
+     * BranchCheckoutController can update the main window's views.
+     */
+    public void showBranchCheckout() {
+        try{
+            logger.info("Branch checkout clicked");
+            if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
+
+            logger.info("Opened branch checkout window");
+            // Create and display the Stage:
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/BranchCheckout.fxml"));
+            fxmlLoader.load();
+            BranchCheckoutController branchCheckoutController = fxmlLoader.getController();
+            NotificationPane fxmlRoot = fxmlLoader.getRoot();
+            branchCheckoutController.showStage(fxmlRoot);
+        }catch(IOException e){
+            this.showGenericErrorNotification();
+            e.printStackTrace();
+        }catch(NoRepoLoadedException e){
+            this.showNoRepoLoadedNotification();
+            setButtonsDisabled(true);
+        }
+    }
+
+    /**
+     * Called when the change login button is clicked.
+     */
+    public void handleChangeLoginButton() {
+        try {
+            logger.info("Username button clicked");
+
+            if(this.theModel.getCurrentRepoHelper() == null) {
+                throw new NoRepoLoadedException();
+            }
+            this.changeLogin();
+        } catch (NoRepoLoadedException e) {
+            showNoRepoLoadedNotification();
+            setButtonsDisabled(true);
+        }
+    }
+
+    /**
+     * Creates a new owner and sets it as the current default owner.
+     */
+    public boolean changeLogin() {
+        SessionModel sessionModel = SessionModel.getSessionModel();
+        RepoHelper repoHelper = sessionModel.getCurrentRepoHelper();
+
+        try {
+            RepoHelperBuilder.AuthDialogResponse response =
+                    RepoHelperBuilder.getAuthCredentialFromDialog();
+            repoHelper.setAuthCredentials(new UsernamePasswordCredentialsProvider(response.username,
+                    response.password));
+        } catch (CancelledAuthorizationException e) {
+            // take no action
+        }
+
+
+//        boolean switchedUser = true;
+//
+//        RepoHelper currentRepoHelper = theModel.getCurrentRepoHelper();
+//
+//        try {
+//            currentRepoHelper.presentUsernameDialog();
+//        } catch (CancelledUsernameException e) {
+//            switchedUser = false;
+//        }
+//
+//        this.updateLoginButtonText();
+//        if (switchedUser) {
+//            this.theModel.setCurrentDefaultUsername(currentRepoHelper.getUsername());
+//        }
+//
+//        return switchedUser;
+        return true;
+    }
+
+
+    /**
+     * Opens up the help page to inform users about what symbols mean
+     */
+    public void showLegend() {
+        try{
+            logger.info("Legend clicked");
+            // Create and display the Stage:
+            NotificationPane fxmlRoot = FXMLLoader.load(getClass().getResource("/elegit/fxml/Legend.fxml"));
+
+            Stage stage = new Stage();
+            stage.setTitle("Legend");
+            stage.setScene(new Scene(fxmlRoot, 250, 300));
+            stage.initModality(Modality.APPLICATION_MODAL);
+            stage.setOnCloseRequest(event -> logger.info("Closed legend"));
+            stage.show();
+        }catch(IOException e) {
+            this.showGenericErrorNotification();
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Displays information about the commit with the given id
+     * @param id the selected commit
+     */
+    public void selectCommit(String id){
+        Platform.runLater(() -> {
+            CommitHelper commit = this.theModel.getCurrentRepoHelper().getCommit(id);
+
+            GridPane tags = new GridPane();
+            tags.setPrefHeight(1);
+            int numTags = 0;
+            for (TagHelper t:commit.getTags()) {
+                Hyperlink link = new Hyperlink();
+                link.setText(t.getName());
+                link.setOnAction(event -> {
+                    logger.info("Delete tag dialog started.");
+                    if (t.presentDeleteDialog()) {
+                        try {
+                            theModel.getCurrentRepoHelper().deleteTag(t.getName());
+                        } catch (MissingRepoException | GitAPIException e) {
+                            e.printStackTrace();
+                        }
+                        if (!theModel.getCurrentRepoHelper().hasUnpushedTags()) {
+                            pushTagsButton.setVisible(false);
+                            pushButton.setVisible(true);
+                        }
+                        gitStatus();
+                        clearSelectedCommit();
+                        selectCommit(id);
+                    }
+                });
+                tags.add(link,numTags,0);
+                numTags++;
+            }
+            tagsPane.setContent(tags);
+            commitInfoNameText = commit.getName();
+            commitInfoMessageText.setVisible(true);
+            commitInfoNameCopyButton.setVisible(true);
+            commitInfoGoToButton.setVisible(true);
+
+            if (commit.hasTags()) {
+                tagsPane.setVisible(true);
+                tagsLabel.setVisible(true);
+            }
+            tagNameField.setVisible(true);
+            tagButton.setVisible(true);
+
+            commitInfoMessageText.setText(theModel.getCurrentRepoHelper().getCommitDescriptorString(commit, true));
+        });
+    }
+
+    /**
+     * Stops displaying commit information
+     */
+    public void clearSelectedCommit(){
+        Platform.runLater(() -> {
+            commitInfoMessageText.setText("");
+            commitInfoMessageText.setVisible(false);
+            commitInfoNameCopyButton.setVisible(false);
+            commitInfoGoToButton.setVisible(false);
+
+            tagsPane.setVisible(false);
+            tagsLabel.setVisible(false);
+            tagNameField.setText("");
+            tagNameField.setVisible(false);
+            tagButton.setVisible(false);
+        });
     }
 
     /// BEGIN: ERROR NOTIFICATIONS:
@@ -1628,239 +1918,6 @@ public class SessionController {
 
     // END: ERROR NOTIFICATIONS ^^^
 
-    /**
-     * Opens up the current repo helper's Branch Manager window after
-     * passing in this SessionController object, so that the
-     * BranchCheckoutController can update the main window's views.
-     */
-    public void showBranchCheckout() {
-        try{
-            logger.info("Branch checkout clicked");
-            if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
-
-            logger.info("Opened branch checkout window");
-            // Create and display the Stage:
-            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/BranchCheckout.fxml"));
-            fxmlLoader.load();
-            BranchCheckoutController branchCheckoutController = fxmlLoader.getController();
-            NotificationPane fxmlRoot = fxmlLoader.getRoot();
-            branchCheckoutController.showStage(fxmlRoot);
-        }catch(IOException e){
-            this.showGenericErrorNotification();
-            e.printStackTrace();
-        }catch(NoRepoLoadedException e){
-            this.showNoRepoLoadedNotification();
-            setButtonsDisabled(true);
-        }
-    }
-
-    /**
-     * Called when the change login button is clicked.
-     */
-    public void handleChangeLoginButton() {
-        try {
-            logger.info("Username button clicked");
-
-            if(this.theModel.getCurrentRepoHelper() == null) {
-                throw new NoRepoLoadedException();
-            }
-            this.changeLogin();
-        } catch (NoRepoLoadedException e) {
-            showNoRepoLoadedNotification();
-            setButtonsDisabled(true);
-        }
-    }
-
-    /**
-     * Creates a new owner and sets it as the current default owner.
-     */
-    public boolean changeLogin() {
-        SessionModel sessionModel = SessionModel.getSessionModel();
-        RepoHelper repoHelper = sessionModel.getCurrentRepoHelper();
-
-        try {
-            RepoHelperBuilder.AuthDialogResponse response =
-                    RepoHelperBuilder.getAuthCredentialFromDialog();
-            repoHelper.setAuthCredentials(new UsernamePasswordCredentialsProvider(response.username,
-                                                                                  response.password));
-        } catch (CancelledAuthorizationException e) {
-            // take no action
-        }
-
-
-//        boolean switchedUser = true;
-//
-//        RepoHelper currentRepoHelper = theModel.getCurrentRepoHelper();
-//
-//        try {
-//            currentRepoHelper.presentUsernameDialog();
-//        } catch (CancelledUsernameException e) {
-//            switchedUser = false;
-//        }
-//
-//        this.updateLoginButtonText();
-//        if (switchedUser) {
-//            this.theModel.setCurrentDefaultUsername(currentRepoHelper.getUsername());
-//        }
-//
-//        return switchedUser;
-        return true;
-    }
-
-
-    /**
-     * Opens up the help page to inform users about what symbols mean
-     */
-    public void showLegend() {
-        try{
-            logger.info("Legend clicked");
-            // Create and display the Stage:
-            NotificationPane fxmlRoot = FXMLLoader.load(getClass().getResource("/elegit/fxml/Legend.fxml"));
-
-            Stage stage = new Stage();
-            stage.setTitle("Legend");
-            stage.setScene(new Scene(fxmlRoot, 250, 300));
-            stage.initModality(Modality.APPLICATION_MODAL);
-            stage.setOnCloseRequest(event -> logger.info("Closed legend"));
-            stage.show();
-        }catch(IOException e) {
-            this.showGenericErrorNotification();
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     * Displays information about the commit with the given id
-     * @param id the selected commit
-     */
-    public void selectCommit(String id){
-        Platform.runLater(() -> {
-            CommitHelper commit = this.theModel.getCurrentRepoHelper().getCommit(id);
-
-            GridPane tags = new GridPane();
-            tags.setPrefHeight(1);
-            int numTags = 0;
-            for (TagHelper t:commit.getTags()) {
-                Hyperlink link = new Hyperlink();
-                link.setText(t.getName());
-                link.setOnAction(event -> {
-                    logger.info("Delete tag dialog started.");
-                    if (t.presentDeleteDialog()) {
-                        try {
-                            theModel.getCurrentRepoHelper().deleteTag(t.getName());
-                        } catch (MissingRepoException | GitAPIException e) {
-                            e.printStackTrace();
-                        }
-                        if (!theModel.getCurrentRepoHelper().hasUnpushedTags()) {
-                            pushTagsButton.setVisible(false);
-                            pushButton.setVisible(true);
-                        }
-                        gitStatus();
-                        clearSelectedCommit();
-                        selectCommit(id);
-                    }
-                });
-                tags.add(link,numTags,0);
-                numTags++;
-            }
-            tagsPane.setContent(tags);
-            commitInfoNameText = commit.getName();
-            commitInfoMessageText.setVisible(true);
-            commitInfoNameCopyButton.setVisible(true);
-            commitInfoGoToButton.setVisible(true);
-
-            if (commit.hasTags()) {
-                tagsPane.setVisible(true);
-                tagsLabel.setVisible(true);
-            }
-            tagNameField.setVisible(true);
-            tagButton.setVisible(true);
-
-            commitInfoMessageText.setText(theModel.getCurrentRepoHelper().getCommitDescriptorString(commit, true));
-        });
-    }
-
-    /**
-     * Stops displaying commit information
-     */
-    public void clearSelectedCommit(){
-        Platform.runLater(() -> {
-            commitInfoMessageText.setText("");
-            commitInfoMessageText.setVisible(false);
-            commitInfoNameCopyButton.setVisible(false);
-            commitInfoGoToButton.setVisible(false);
-
-            tagsPane.setVisible(false);
-            tagsLabel.setVisible(false);
-            tagNameField.setText("");
-            tagNameField.setVisible(false);
-            tagButton.setVisible(false);
-        });
-    }
-
-    /**
-     * Copies the commit hash onto the clipboard
-     */
-    public void handleCommitNameCopyButton(){
-        logger.info("Commit name copied");
-        Clipboard clipboard = Clipboard.getSystemClipboard();
-        ClipboardContent content = new ClipboardContent();
-        content.putString(commitInfoNameText);
-        clipboard.setContent(content);
-    }
-
-    /**
-     * Jumps to the selected commit in the tree display
-     */
-    public void handleGoToCommitButton(){
-        logger.info("Go to commit button clicked");
-        String id = commitInfoNameText;
-        CommitTreeController.focusCommitInGraph(id);
-    }
-
-    public void chooseRecentReposToDelete() {
-        logger.info("Remove repos button clicked");
-        List<RepoHelper> repoHelpers = this.theModel.getAllRepoHelpers();
-        CheckListView<RepoHelper> repoCheckListView = new CheckListView<>(FXCollections.observableArrayList(repoHelpers));
-        Button removeSelectedButton = new Button("Remove repository shortcuts from Elegit");
-
-        PopOver popover = new PopOver(new VBox(repoCheckListView, removeSelectedButton));
-        popover.setTitle("Manage Recent Repositories");
-
-        removeSelectedButton.setOnAction(e -> {
-            logger.info("Removed repos");
-            List<RepoHelper> checkedItems = repoCheckListView.getCheckModel().getCheckedItems();
-            this.theModel.removeRepoHelpers(checkedItems);
-            popover.hide();
-
-            if (!this.theModel.getAllRepoHelpers().isEmpty() && !this.theModel.getAllRepoHelpers().contains(theModel.getCurrentRepoHelper())) {
-                int newIndex = this.theModel.getAllRepoHelpers().size()-1;
-                RepoHelper newCurrentRepo = this.theModel.getAllRepoHelpers()
-                        .get(newIndex);
-
-                handleRecentRepoMenuItem(newCurrentRepo);
-                repoDropdownSelector.setValue(newCurrentRepo);
-
-                this.refreshRecentReposInDropdown();
-            } else if (this.theModel.getAllRepoHelpers().isEmpty()){
-                TreeLayout.stopMovingCells();
-                theModel.resetSessionModel();
-                workingTreePanelView.resetFileStructurePanelView();
-                allFilesPanelView.resetFileStructurePanelView();
-                initialize();
-            }else {
-                try {
-                    theModel.openRepoFromHelper(theModel.getCurrentRepoHelper());
-                } catch (BackingStoreException | IOException | MissingRepoException | ClassNotFoundException e1) {
-                    e1.printStackTrace();
-                }
-            }
-
-            this.refreshRecentReposInDropdown();
-        });
-
-        popover.show(this.removeRecentReposButton);
-    }
 
     public void submitLog() {
         try {
@@ -1875,54 +1932,6 @@ public class SessionController {
         } catch (Exception e) {
             try { theModel.setLastUUID(""); }
             catch (Exception f) { }
-        }
-    }
-
-    /**
-     * Pops up a window where the user can create a new branch
-     */
-    public void handleNewBranchButton() {
-        try{
-            logger.info("Create/delete branch button clicked");
-            if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
-
-            logger.info("Opened create/delete branch window");
-            // Create and display the Stage:
-            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/CreateDeleteBranchWindow.fxml"));
-            fxmlLoader.load();
-            CreateDeleteBranchWindowController createDeleteBranchController = fxmlLoader.getController();
-            StackPane fxmlRoot = fxmlLoader.getRoot();
-            createDeleteBranchController.showStage(fxmlRoot);
-        }catch(IOException e){
-            this.showGenericErrorNotification();
-            e.printStackTrace();
-        }catch(NoRepoLoadedException e){
-            this.showNoRepoLoadedNotification();
-            setButtonsDisabled(true);
-        }
-    }
-
-    /**
-     * shows the merge window
-     */
-    public void handleGeneralMergeButton() {
-        try{
-            logger.info("Merge button clicked");
-            if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
-
-            logger.info("Opened merge window");
-            // Create and display the Stage:
-            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/MergeWindow.fxml"));
-            fxmlLoader.load();
-            MergeWindowController mergeWindowController = fxmlLoader.getController();
-            NotificationPane fxmlRoot = fxmlLoader.getRoot();
-            mergeWindowController.showStage(fxmlRoot);
-        }catch(IOException e){
-            this.showGenericErrorNotification();
-            e.printStackTrace();
-        }catch(NoRepoLoadedException e){
-            this.showNoRepoLoadedNotification();
-            setButtonsDisabled(true);
         }
     }
 }
