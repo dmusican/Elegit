@@ -60,12 +60,6 @@
                             <Button text="Legend"
                                     fx:id="legendbutton"
                                     onAction="#showLegend" />
-                            <Button fx:id="selectAllButton"
-                                    text="Select All"
-                                    onAction="#onSelectAllButton"/>
-                            <Button fx:id="deselectAllButton"
-                                    text="Deselect All"
-                                    onAction="#onDeselectAllButton"/>
                         </HBox>
                     </StackPane>
 

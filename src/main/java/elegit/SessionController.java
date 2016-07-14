@@ -68,8 +68,6 @@ public class SessionController {
     public Node root;
 
     public NotificationPane notificationPane;
-    public Button selectAllButton;
-    public Button deselectAllButton;
 
     public Button openRepoDirButton;
     public Button gitStatusButton;
@@ -1231,8 +1229,6 @@ public class SessionController {
             pushTagsButton.setDisable(disable);
             pushButton.setDisable(disable);
             fetchButton.setDisable(disable);
-            selectAllButton.setDisable(disable);
-            deselectAllButton.setDisable(disable);
             remoteImage.setVisible(!disable);
             browserText.setVisible(!disable);
             workingTreePanelTab.setDisable(disable);
@@ -1819,24 +1815,6 @@ public class SessionController {
         logger.info("Go to commit button clicked");
         String id = commitInfoNameText;
         CommitTreeController.focusCommitInGraph(id);
-    }
-
-    /**
-     * Selects all files in the working tree for a commit.
-     *
-     */
-    public void onSelectAllButton() {
-        logger.info("Selected all files");
-        this.workingTreePanelView.setAllFilesSelected(true);
-    }
-
-    /**
-     * Deselects all files in the working tree for a commit.
-     *
-     */
-    public void onDeselectAllButton() {
-        logger.info("Deselected all files");
-        this.workingTreePanelView.setAllFilesSelected(false);
     }
 
     public void chooseRecentReposToDelete() {
