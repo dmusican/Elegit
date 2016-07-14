@@ -150,10 +150,6 @@ public abstract class CommitTreeModel{
         commitsToUpdate.removeAll(this.remoteCommitsInModel);
         updateModel.updateCommits(commitsToUpdate);
 
-        System.out.println("Adding: "+commitsToAdd);
-        System.out.println("Removing: "+commitsToRemove);
-        System.out.println("Updating: "+updateModel.getCommitsToUpdate());
-
         List<BranchHelper> branchesToUpdate = new ArrayList<>(this.sessionModel.getCurrentRepoHelper().getBranchModel().getAllBranches());
         Map<String, BranchHelper> currentBranchMap = new HashMap<>();
         Map<String, BranchHelper> updateBranchMap = new HashMap<>();
