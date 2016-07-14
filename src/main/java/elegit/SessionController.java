@@ -1149,6 +1149,7 @@ public class SessionController {
                 commitTreeModel.update();
                 workingTreePanelView.drawDirectoryView();
                 allFilesPanelView.drawDirectoryView();
+                this.theModel.getCurrentRepoHelper().updateTags();
                 updateStatusText();
             } catch(Exception e) {
                 showGenericErrorNotification();

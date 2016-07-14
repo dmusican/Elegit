@@ -252,6 +252,8 @@ public class CommitHelper{
         return this.tags.size()!=0;
     }
 
+    public boolean hasTag(String tagName) { return this.getTagNames().contains(tagName); }
+
     /**
      * @return the commit object for this helper
      */

@@ -917,11 +917,21 @@ public abstract class RepoHelper {
      * @throws GitAPIException
      */
     public boolean updateTags() throws IOException, GitAPIException {
-        Map<String, Ref> tagMap = repo.getTags();
         List<String> oldTagNames = getAllTagNames();
+        Map<String, Ref> tagMap = repo.getTags();
         int oldSize = oldTagNames.size();
         for (String s : tagMap.keySet()) {
             if (oldTagNames.contains(s)) {
+
+                //Check if the tag is annotated or not, find the commit name accordingly
+                String commitName;
+                if (tagMap.get(s).getPeeledObjectId() != null)
+                    commitName = tagMap.get(s).getPeeledObjectId().getName();
+                else commitName = tagMap.get(s).getObjectId().getName();
+                // Re add the tag if it isn't there
+                if (!commitIdMap.get(commitName).hasTag(s))
+                    commitIdMap.get(commitName).addTag(this.tagIdMap.get(s));
+
                 oldTagNames.remove(s);
                 if (tagsWithUnpushedCommits.contains(s)) {
                     tagsWithUnpushedCommits.remove(s);
