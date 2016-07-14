@@ -2,6 +2,7 @@ package elegit.treefx;
 
 import javafx.application.Platform;
 import javafx.geometry.Insets;
+import javafx.geometry.Point3D;
 import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.control.ScrollPane;
@@ -40,6 +41,9 @@ public class TreeGraph{
         Group canvas = new Group();
         cellLayer = new Pane();
         cellLayer.setPadding(new Insets(TreeLayout.V_PAD, TreeLayout.H_PAD, TreeLayout.V_PAD, TreeLayout.H_PAD));
+        // TODO: make the columns go back to being at the end and figure out rotation
+        cellLayer.setRotate(180);
+        cellLayer.setRotationAxis(new Point3D(0,0,0));
 
         scrollPane = new CommitTreeScrollPane(canvas);
 

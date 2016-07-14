@@ -249,7 +249,11 @@ public class TreeLayout{
 
                 double x = c.columnLocationProperty.get() * H_SPACING + H_PAD;
                 double y = c.rowLocationProperty.get() * V_SPACING + V_PAD;
-                c.moveTo(y, x, animate, animate && useParentPosAsSource);
+                try {
+                    c.moveTo(y, x, animate, animate && useParentPosAsSource);
+                } catch (Exception e) {
+                    System.out.println("blob");
+                }
                 return null;
             }
         });
