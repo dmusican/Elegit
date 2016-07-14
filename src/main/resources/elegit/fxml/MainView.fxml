@@ -90,7 +90,7 @@
                             <ImageView
                                     fitHeight="120"
                                     fitWidth="150"
-                                    opacity="0.15">
+                                    opacity="0.2">
                                 <Image url="@folder.png"/>
                             </ImageView>
                         </StackPane>
@@ -123,9 +123,9 @@
                                     fx:id = "remoteImage"
                                     fitHeight="175"
                                     fitWidth="175"
-                                    opacity="0.25"
+                                    opacity="0.2"
                                     preserveRatio="true">
-                                <Image url="@cloud.png"/>
+                                <Image url="@graycloud.png"/>
                             </ImageView>
                         </StackPane>
 
