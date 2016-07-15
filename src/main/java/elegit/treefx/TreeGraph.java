@@ -2,10 +2,12 @@ package elegit.treefx;
 
 import javafx.application.Platform;
 import javafx.geometry.Insets;
+import javafx.geometry.Point3D;
 import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.Pane;
+import javafx.scene.transform.Rotate;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -40,6 +42,8 @@ public class TreeGraph{
         Group canvas = new Group();
         cellLayer = new Pane();
         cellLayer.setPadding(new Insets(TreeLayout.V_PAD, TreeLayout.H_PAD, TreeLayout.V_PAD, TreeLayout.H_PAD));
+        cellLayer.setRotationAxis(Rotate.X_AXIS);
+        cellLayer.setRotate(180);
 
         scrollPane = new CommitTreeScrollPane(canvas);
 

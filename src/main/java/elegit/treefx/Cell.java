@@ -18,6 +18,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.paint.*;
 import javafx.scene.shape.Shape;
 import javafx.scene.text.Text;
+import javafx.scene.transform.Rotate;
 import javafx.util.Duration;
 import elegit.CommitTreeController;
 
@@ -32,7 +33,7 @@ public class Cell extends Pane{
     // Base shapes for different types of cells
     public static final CellShape DEFAULT_SHAPE = CellShape.SQUARE;
     public static final CellShape UNTRACKED_BRANCH_HEAD_SHAPE = CellShape.CIRCLE;
-    public static final CellShape TRACKED_BRANCH_HEAD_SHAPE = CellShape.TRIANGLE_DOWN;
+    public static final CellShape TRACKED_BRANCH_HEAD_SHAPE = CellShape.TRIANGLE_UP;
 
     // The size of the rectangle being drawn
     public static final int BOX_SIZE = 30;
@@ -530,6 +531,8 @@ public class Cell extends Pane{
             }
 
             this.setMaxHeight(20);
+            this.setRotationAxis(Rotate.X_AXIS);
+            this.setRotate(180);
 
             this.setVisible(false);
 

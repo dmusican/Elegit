@@ -58,11 +58,12 @@ public class TreeLayout{
                         if (i > allCellsSortedByTime.size() - 1) {
                             percent.set(100);
                             this.cancelled();
+                            return null;
                         }
                         moveCell(allCellsSortedByTime.get(i));
 
                         // Update progress if need be
-                        if (i * 100.0 / max > percent.get()) {
+                        if (i * 100.0 / max > percent.get() && percent.get()<100) {
                             percent.set(i*100/max);
                         }
                     }
@@ -212,7 +213,7 @@ public class TreeLayout{
                 // See whether or not this cell will move
                 int oldColumnLocation = c.columnLocationProperty.get();
                 int oldRowLocation = c.rowLocationProperty.get();
-                c.columnLocationProperty.set(allCellsSortedByTime.size()-1-x);
+                c.columnLocationProperty.set(x);
                 c.rowLocationProperty.set(y);
 
                 boolean hasCellMoved = oldColumnLocation >= 0 && oldRowLocation >= 0;
@@ -268,7 +269,11 @@ public class TreeLayout{
 
                 double x = c.columnLocationProperty.get() * H_SPACING + H_PAD;
                 double y = c.rowLocationProperty.get() * V_SPACING + V_PAD;
-                c.moveTo(y, x, animate, animate && useParentPosAsSource);
+                try {
+                    c.moveTo(y, x, animate, animate && useParentPosAsSource);
+                } catch (Exception e) {
+                    System.out.println("blob");
+                }
                 return null;
             }
         });
