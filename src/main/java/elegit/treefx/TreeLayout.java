@@ -1,17 +1,19 @@
 package elegit.treefx;
 
 import elegit.Main;
-import elegit.SessionController;
 import javafx.application.Platform;
 import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
-import javafx.scene.Group;
+import javafx.geometry.Pos;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 
 import java.util.ArrayList;
@@ -113,13 +115,30 @@ public class TreeLayout{
 
                 //********************* Loading Bar Start *********************
                 Pane cellLayer = g.getCellLayerPane();
+                ScrollPane sp = g.getScrollPane();
+                SimpleDoubleProperty viewportY = new SimpleDoubleProperty(0);
+                SimpleDoubleProperty viewportX = new SimpleDoubleProperty(0);
                 ProgressBar progressBar = new ProgressBar();
+
                 Text loadingCommits = new Text("Loading commits ");
-                HBox loading = new HBox(loadingCommits, progressBar);
+                loadingCommits.setFont(new Font(14));
+                VBox loading = new VBox(loadingCommits, progressBar);
+                loading.setAlignment(Pos.CENTER);
                 loading.setSpacing(5);
-                loading.setLayoutX(10);
-                loading.setLayoutY(10);
+                loading.layoutYProperty().bind(viewportY);
+                loading.layoutXProperty().bind(viewportX);
                 cellLayer.getChildren().add(loading);
+
+                sp.vvalueProperty().addListener(((observable, oldValue, newValue) -> {
+                    viewportY.set((double) newValue * cellLayer.getLayoutBounds().getMaxY() +
+                            (0.5 - (double) newValue) * sp.getViewportBounds().getHeight());
+                }));
+
+                sp.viewportBoundsProperty().addListener(((observable, oldValue, newValue) -> {
+                    viewportX.set(sp.getViewportBounds().getWidth() - loading.getWidth() - 35);
+                    viewportY.set(sp.getVvalue() * cellLayer.getLayoutBounds().getMaxY() +
+                            (0.5 - sp.getVvalue()) * sp.getViewportBounds().getHeight());
+                }));
 
                 mover.percent.addListener(((observable, oldValue, newValue) -> {
                     if((int)newValue == 100) {

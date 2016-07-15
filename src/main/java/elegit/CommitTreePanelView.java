@@ -30,47 +30,23 @@ public class CommitTreePanelView extends Region{
     private Thread th;
     private String name;
 
-    private StackPane computingCommitTree;
-    private Background bg;
-
     /**
      * Constructs a new view for the commit tree
      */
     public CommitTreePanelView(){
         super();
         this.setPrefHeight(TREE_PANEL_HEIGHT);
-
-        initLoadingText();
-    }
-
-    /**
-     * Helper method to initialize loading text
-     */
-    private void initLoadingText() {
-        Text loading = new Text("Computing commit tree graph...");
-        loading.setFont(new Font(17));
-        loading.setFill(Color.DODGERBLUE);
-        computingCommitTree = new StackPane(loading);
-        computingCommitTree.setLayoutX(10);
-        computingCommitTree.setLayoutY(10);
-        bg = new Background(new BackgroundFill(Color.WHITESMOKE, CornerRadii.EMPTY, Insets.EMPTY));
-        computingCommitTree.setBackground(bg);
     }
 
     /**
      * Helper method to initialize the commit tree scroll panes
      * @param treeGraph TreeGraph
      */
-    private void initCommitTreeScrollPanes(TreeGraph treeGraph, boolean showLoadingText) {
+    private void initCommitTreeScrollPanes(TreeGraph treeGraph) {
         ScrollPane sp = treeGraph.getScrollPane();
         sp.setOnMouseClicked(event -> CommitTreeController.handleMouseClicked());
         getChildren().clear();
         getChildren().add(anchorScrollPane(sp));
-        getChildren().add(computingCommitTree);
-        if(showLoadingText) {
-            computingCommitTree.setVisible(true);
-            computingCommitTree.setBackground(bg);
-        }
         isLayoutThreadRunning = false;
     }
 
@@ -80,11 +56,11 @@ public class CommitTreePanelView extends Region{
      * for the layout to finish and then updates the view
      * @param treeGraph the graph to be displayed
      */
-    public synchronized void displayTreeGraph(TreeGraph treeGraph, CommitHelper commitToFocusOnLoad, boolean showLoadingText){
+    public synchronized void displayTreeGraph(TreeGraph treeGraph, CommitHelper commitToFocusOnLoad){
         if (Platform.isFxApplicationThread()) {
-            initCommitTreeScrollPanes(treeGraph, showLoadingText);
+            initCommitTreeScrollPanes(treeGraph);
         }else {
-            Platform.runLater(() -> initCommitTreeScrollPanes(treeGraph, showLoadingText));
+            Platform.runLater(() -> initCommitTreeScrollPanes(treeGraph));
         }
 
         if(isLayoutThreadRunning){
@@ -113,8 +89,6 @@ public class CommitTreePanelView extends Region{
                     e.printStackTrace();
                 }
                 Platform.runLater(() -> {
-                    computingCommitTree.setVisible(false);
-                    computingCommitTree.setBackground(null);
                     CommitTreeController.focusCommitInGraph(commitToFocusOnLoad);
                 });
                 return null;
