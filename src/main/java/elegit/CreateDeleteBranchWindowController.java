@@ -36,7 +36,7 @@ public class CreateDeleteBranchWindowController {
     SessionModel sessionModel;
     RepoHelper repoHelper;
     BranchModel branchModel;
-    LocalCommitTreeModel localCommitTreeModel;
+    CommitTreeModel localCommitTreeModel;
 
     static final Logger logger = LogManager.getLogger();
 
@@ -46,7 +46,7 @@ public class CreateDeleteBranchWindowController {
         branchModel = repoHelper.getBranchModel();
         refreshLocalBranchesDropdown();
         localBranchesDropdown.setPromptText("Select a branch...");
-        newBranchTextArea.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
+        newBranchTextArea.setMinHeight(Control.USE_PREF_SIZE);
         createButton.setDisable(true);
         deleteButton.setDisable(true);
 
@@ -66,8 +66,7 @@ public class CreateDeleteBranchWindowController {
         }));
 
         //init commit tree models
-        ArrayList<?> models = CommitTreeController.getCommitTreeModels();
-        localCommitTreeModel = (LocalCommitTreeModel) models.get(0);
+        localCommitTreeModel = CommitTreeController.getCommitTreeModel();
     }
 
     /**
@@ -85,7 +84,7 @@ public class CreateDeleteBranchWindowController {
         stackPane = pane;
         stage = new Stage();
         stage.setTitle("Create or delete branch");
-        stage.setScene(new Scene(stackPane, 500, 180));
+        stage.setScene(new Scene(stackPane, 300, 200));
         stage.initModality(Modality.APPLICATION_MODAL);
         stage.setOnCloseRequest(event -> logger.info("Closed create/delete branch window"));
         stage.show();

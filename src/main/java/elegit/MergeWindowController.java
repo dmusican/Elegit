@@ -36,8 +36,7 @@ public class MergeWindowController {
     @FXML private Text remoteTrackingBranchName;
     @FXML private Text localBranchName1;
     @FXML private Text localBranchName2;
-    @FXML private Text intoLocalBranchText1;
-    @FXML private Text intoLocalBranchText2;
+    @FXML private Text intoLocalBranchText;
     @FXML private CheckBox mergeRemoteTrackingCheckBox;
     @FXML private CheckBox mergeDifLocalBranchCheckBox;
     @FXML private NotificationPane notificationPane;
@@ -51,7 +50,7 @@ public class MergeWindowController {
     RepoHelper repoHelper;
     BranchModel branchModel;
     boolean disable;
-    LocalCommitTreeModel localCommitTreeModel;
+    CommitTreeModel localCommitTreeModel;
 
     static final Logger logger = LogManager.getLogger();
 
@@ -70,8 +69,7 @@ public class MergeWindowController {
         branchDropdownSelector.setPromptText("local branches...");
 
         //init commit tree models
-        ArrayList<?> models = CommitTreeController.getCommitTreeModels();
-        localCommitTreeModel = (LocalCommitTreeModel) models.get(0);
+        localCommitTreeModel = CommitTreeController.getCommitTreeModel();
 
         initText();
         initCheckBoxes();
@@ -89,7 +87,7 @@ public class MergeWindowController {
             mergeRemoteTrackingText.setText("This branch does not have an upstream remote branch.");
             localBranchName1.setText("");
             remoteTrackingBranchName.setText("");
-            intoLocalBranchText1.setText("\t\tPush to create a remote branch");
+            intoLocalBranchText.setText("Push to create a remote branch");
 
         } else {
             disable = false;
@@ -97,10 +95,8 @@ public class MergeWindowController {
             curRemoteTrackingBranch = Repository.shortenRefName(curRemoteTrackingBranch);
             localBranchName1.setText(curBranch);
             remoteTrackingBranchName.setText(curRemoteTrackingBranch);
-            intoLocalBranchText1.setText("\t\tinto local branch ");
         }
         localBranchName2.setText(curBranch);
-        intoLocalBranchText2.setText("\t\tinto local branch ");
 
         localBranchName1.setFill(Color.DODGERBLUE);
         localBranchName2.setFill(Color.DODGERBLUE);
@@ -153,7 +149,8 @@ public class MergeWindowController {
      */
     public void handleMergeButton() throws GitAPIException, IOException {
         if(mergeDifLocalBranchCheckBox.isSelected()) {
-            localBranchMerge();
+            if(!branchDropdownSelector.getSelectionModel().isEmpty()) localBranchMerge();
+            else showSelectBranchNotification();
         }
         if(mergeRemoteTrackingCheckBox.isSelected()) {
             mergeFromFetch();
@@ -444,6 +441,14 @@ public class MergeWindowController {
     private void showRefAlreadyExistsNotification() {
         logger.info("Branch already exists notification");
         notificationPane.setText("Looks like that branch already exists locally!");
+
+        notificationPane.getActions().clear();
+        notificationPane.show();
+    }
+
+    private void showSelectBranchNotification() {
+        logger.info("Select a branch first notification");
+        notificationPane.setText("You need to select a branch first");
 
         notificationPane.getActions().clear();
         notificationPane.show();
