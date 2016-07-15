@@ -915,14 +915,16 @@ public class SessionController {
                     boolean pushed = false;
                     try{
                         RepositoryMonitor.resetFoundNewChanges(false);
-                        theModel.getCurrentRepoHelper().pushAll();
+                        theModel.getCurrentRepoHelper().pushBranch(theModel.getCurrentRepoHelper().getBranchModel().getCurrentBranch());
                         gitStatus();
                         pushed = true;
                     }  catch(InvalidRemoteException e){
                         showNoRemoteNotification();
-                    } catch(PushToAheadRemoteError e) {
-                        showPushToAheadRemoteNotification(e.isAllRefsRejected());
-                    } catch (TransportException e) {
+                    }
+                    //catch(PushToAheadRemoteError e) {
+                      //  showPushToAheadRemoteNotification(e.isAllRefsRejected());
+                    //}
+                    catch (TransportException e) {
                         if (e.getMessage().contains("git-receive-pack not found")) {
                             // The error has this message if there is no longer a remote to push to
                             showLostRemoteNotification();
@@ -1212,7 +1214,7 @@ public class SessionController {
             FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/CreateDeleteBranchWindow.fxml"));
             fxmlLoader.load();
             CreateDeleteBranchWindowController createDeleteBranchController = fxmlLoader.getController();
-            StackPane fxmlRoot = fxmlLoader.getRoot();
+            NotificationPane fxmlRoot = fxmlLoader.getRoot();
             createDeleteBranchController.showStage(fxmlRoot);
         }catch(IOException e){
             this.showGenericErrorNotification();
@@ -1899,31 +1901,6 @@ public class SessionController {
             this.notificationPane.show();
         });
     }
-
-    // may be used - method which called these moved to CreateBranchWindowController
-    /*private void showInvalidBranchNameNotification() {
-        logger.warn("Invalid branch name notification");
-        this.notificationPane.setText("That branch name is invalid.");
-
-        this.notificationPane.getActions().clear();
-        this.notificationPane.show();
-    }
-
-    private void showNoCommitsYetNotification() {
-        logger.warn("No commits yet notification");
-        this.notificationPane.setText("You cannot make a branch since your repo has no commits yet. Make a commit first!");
-
-        this.notificationPane.getActions().clear();
-        this.notificationPane.show();
-    }
-
-    private void showGenericGitErrorNotification() {
-        logger.warn("Git error notification");
-        this.notificationPane.setText("Sorry, there was a git error.");
-
-        this.notificationPane.getActions().clear();
-        this.notificationPane.show();
-    }*/
 
     // END: ERROR NOTIFICATIONS ^^^
 

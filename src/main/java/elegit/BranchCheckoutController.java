@@ -261,7 +261,9 @@ public class BranchCheckoutController {
 
     private void showGenericGitErrorNotificationWithBranch(LocalBranchHelper branch) {
         logger.warn("Git error on branch notification");
-        notificationPane.setText(String.format("Sorry, there was a git error on branch %s.", branch.getBranchName()));
+        Text txt = new Text(String.format("Sorry, there was a git error on branch %s.", branch.getBranchName()));
+        txt.setWrappingWidth(notificationPane.getWidth() / 2.0);
+        notificationPane.setGraphic(txt);
 
         notificationPane.getActions().clear();
         notificationPane.show();
@@ -269,32 +271,20 @@ public class BranchCheckoutController {
 
     private static void showGenericErrorNotification() {
         logger.warn("Generic error notification");
-        notificationPane.setText("Sorry, there was an error.");
+        Text txt = new Text("Sorry, there was an error.");
+        txt.setWrappingWidth(notificationPane.getWidth() / 2.0);
+        notificationPane.setGraphic(txt);
 
         notificationPane.getActions().clear();
-        notificationPane.show();
-    }
-
-    //may be used in CreateDeleteBranchWindowController
-    private void showNotMergedNotification(LocalBranchHelper nonmergedBranch) {
-        logger.warn("Not merged notification");
-        notificationPane.setText("That branch has to be merged before you can do that.");
-
-        Action forceDeleteAction = new Action("Force delete", e -> {
-            this.forceDeleteLocalBranch(nonmergedBranch);
-            notificationPane.hide();
-        });
-
-        notificationPane.getActions().clear();
-        notificationPane.getActions().setAll(forceDeleteAction);
         notificationPane.show();
     }
 
     private void showCannotDeleteBranchNotification(LocalBranchHelper branch) {
         logger.warn("Cannot delete current branch notification");
-        notificationPane.setText(String.format("Sorry, %s can't be deleted right now. " +
+        Text txt = new Text(String.format("Sorry, %s can't be deleted right now. " +
                 "Try checking out a different branch first.", branch.getBranchName()));
-        // probably because it's checked out
+        txt.setWrappingWidth(notificationPane.getWidth() / 2.0);
+        notificationPane.setGraphic(txt);
 
         notificationPane.getActions().clear();
         notificationPane.show();
@@ -302,7 +292,9 @@ public class BranchCheckoutController {
 
     private void showRefAlreadyExistsNotification() {
         logger.info("Branch already exists notification");
-        notificationPane.setText("Looks like that branch already exists locally!");
+        Text txt = new Text("Looks like that branch already exists locally!");
+        txt.setWrappingWidth(notificationPane.getWidth() / 2.0);
+        notificationPane.setGraphic(txt);
 
         notificationPane.getActions().clear();
         notificationPane.show();
@@ -310,7 +302,9 @@ public class BranchCheckoutController {
 
     private static void showCheckoutConflictsNotification(List<String> conflictingPaths) {
         Platform.runLater(() -> {
-            notificationPane.setText("You can't switch to that branch because there would be a merge conflict. Stash your changes or resolve conflicts first.");
+            Text txt = new Text("You can't switch to that branch because there would be a merge conflict. Stash your changes or resolve conflicts first.");
+            txt.setWrappingWidth(notificationPane.getWidth() / 2.0);
+            notificationPane.setGraphic(txt);
 
             Action seeConflictsAction = new Action("See conflicts", e -> {
                 notificationPane.hide();

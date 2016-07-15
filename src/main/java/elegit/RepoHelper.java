@@ -408,6 +408,35 @@ public abstract class RepoHelper {
         this.hasUnpushedTagsProperty.set(true);
     }
 
+    public void pushBranch(BranchHelper branchToPush) throws MissingRepoException, GitAPIException {
+        logger.info("attempting to push branch: " + branchToPush.getBranchName());
+        if (!exists()) throw new MissingRepoException();
+        if (!hasRemote()) throw new InvalidRemoteException("No remote repository");
+        Git git = new Git(this.repo);
+        PushCommand push = git.push().add(branchToPush.getBranchName());
+
+        myWrapAuthentication(push);
+        ProgressMonitor progress = new SimpleProgressMonitor();
+        push.setProgressMonitor(progress);
+
+        Iterable<PushResult> pushResult = push.call();
+
+        for(PushResult result : pushResult) {
+            System.out.println("result");
+            for(RemoteRefUpdate remoteRefUpdate : result.getRemoteUpdates()) {
+                System.out.println("ref update");
+            }
+        }
+
+        git.close();
+
+        try {
+            this.remoteCommits = parseAllRemoteCommits();
+        } catch (IOException e) {
+            // This shouldn't occur once we have the repo up and running.
+        }
+    }
+
     /**
      * Pushes all changes.
      *
