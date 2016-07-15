@@ -7,6 +7,7 @@ import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.Pane;
+import javafx.scene.transform.Rotate;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -41,9 +42,8 @@ public class TreeGraph{
         Group canvas = new Group();
         cellLayer = new Pane();
         cellLayer.setPadding(new Insets(TreeLayout.V_PAD, TreeLayout.H_PAD, TreeLayout.V_PAD, TreeLayout.H_PAD));
-        // TODO: make the columns go back to being at the end and figure out rotation
+        cellLayer.setRotationAxis(Rotate.X_AXIS);
         cellLayer.setRotate(180);
-        cellLayer.setRotationAxis(new Point3D(0,0,0));
 
         scrollPane = new CommitTreeScrollPane(canvas);
 

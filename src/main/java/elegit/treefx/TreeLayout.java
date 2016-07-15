@@ -60,7 +60,7 @@ public class TreeLayout{
                         moveCell(allCellsSortedByTime.get(i));
 
                         // Update progress if need be
-                        if (i * 100.0 / max > percent.get()) {
+                        if (i * 100.0 / max > percent.get() && percent.get()<100) {
                             percent.set(i*100/max);
                         }
                     }
@@ -193,7 +193,7 @@ public class TreeLayout{
                 // See whether or not this cell will move
                 int oldColumnLocation = c.columnLocationProperty.get();
                 int oldRowLocation = c.rowLocationProperty.get();
-                c.columnLocationProperty.set(allCellsSortedByTime.size()-1-x);
+                c.columnLocationProperty.set(x);
                 c.rowLocationProperty.set(y);
 
                 boolean hasCellMoved = oldColumnLocation >= 0 && oldRowLocation >= 0;
