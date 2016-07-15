@@ -915,7 +915,7 @@ public class SessionController {
                     boolean pushed = false;
                     try{
                         RepositoryMonitor.resetFoundNewChanges(false);
-                        theModel.getCurrentRepoHelper().pushBranch(theModel.getCurrentRepoHelper().getBranchModel().getCurrentBranch());
+                        theModel.getCurrentRepoHelper().pushAll();
                         gitStatus();
                         pushed = true;
                     }  catch(InvalidRemoteException e){
