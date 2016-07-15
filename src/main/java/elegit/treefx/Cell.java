@@ -535,7 +535,7 @@ public class Cell extends Pane{
             this.setRotationAxis(Rotate.X_AXIS);
             this.setRotate(180);
 
-            this.visibleProperty().bind(cell.hasUpdatedPosition);
+            this.visibleProperty().bind(cell.visibleProperty());
 
             Platform.runLater(() -> {
                 getChildren().clear();
