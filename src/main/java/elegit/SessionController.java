@@ -898,7 +898,7 @@ public class SessionController {
     }
 
     /**
-     * Performs a `git push`
+     * Performs a `git push` on the current branch only
      */
     public void handlePushButton() {
         try {
@@ -915,15 +915,15 @@ public class SessionController {
                     boolean pushed = false;
                     try{
                         RepositoryMonitor.resetFoundNewChanges(false);
-                        theModel.getCurrentRepoHelper().pushAll();
+                        theModel.getCurrentRepoHelper().pushCurrentBranch();
                         gitStatus();
                         pushed = true;
                     }  catch(InvalidRemoteException e){
                         showNoRemoteNotification();
                     }
-                    //catch(PushToAheadRemoteError e) {
-                      //  showPushToAheadRemoteNotification(e.isAllRefsRejected());
-                    //}
+                    catch(PushToAheadRemoteError e) {
+                        showPushToAheadRemoteNotification(e.isAllRefsRejected());
+                    }
                     catch (TransportException e) {
                         if (e.getMessage().contains("git-receive-pack not found")) {
                             // The error has this message if there is no longer a remote to push to

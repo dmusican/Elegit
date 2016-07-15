@@ -408,12 +408,19 @@ public abstract class RepoHelper {
         this.hasUnpushedTagsProperty.set(true);
     }
 
-    public void pushBranch(BranchHelper branchToPush) throws MissingRepoException, GitAPIException {
-        logger.info("attempting to push branch: " + branchToPush.getBranchName());
+    /**
+     * pushes only the current branch
+     * @throws MissingRepoException
+     * @throws GitAPIException
+     * @throws PushToAheadRemoteError
+     */
+    public void pushCurrentBranch() throws MissingRepoException, GitAPIException, PushToAheadRemoteError {
+        BranchHelper branchToPush = this.getBranchModel().getCurrentBranch();
+        logger.info("attempting to push current branch");
         if (!exists()) throw new MissingRepoException();
         if (!hasRemote()) throw new InvalidRemoteException("No remote repository");
         Git git = new Git(this.repo);
-        PushCommand push = git.push().add(branchToPush.getBranchName());
+        PushCommand push = git.push().add(branchToPush.getRefPathString());
 
         myWrapAuthentication(push);
         ProgressMonitor progress = new SimpleProgressMonitor();
@@ -422,9 +429,10 @@ public abstract class RepoHelper {
         Iterable<PushResult> pushResult = push.call();
 
         for(PushResult result : pushResult) {
-            System.out.println("result");
             for(RemoteRefUpdate remoteRefUpdate : result.getRemoteUpdates()) {
-                System.out.println("ref update");
+                if(!remoteRefUpdate.getStatus().equals(RemoteRefUpdate.Status.OK)) {
+                    throw new PushToAheadRemoteError(false);
+                }
             }
         }
 
