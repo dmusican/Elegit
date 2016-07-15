@@ -46,7 +46,7 @@ public class CreateDeleteBranchWindowController {
         branchModel = repoHelper.getBranchModel();
         refreshLocalBranchesDropdown();
         localBranchesDropdown.setPromptText("Select a branch...");
-        newBranchTextArea.setMinHeight(Control.USE_PREF_SIZE);
+        newBranchTextArea.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         createButton.setDisable(true);
         deleteButton.setDisable(true);
 
@@ -84,7 +84,7 @@ public class CreateDeleteBranchWindowController {
         stackPane = pane;
         stage = new Stage();
         stage.setTitle("Create or delete branch");
-        stage.setScene(new Scene(stackPane, 300, 200));
+        stage.setScene(new Scene(stackPane));
         stage.initModality(Modality.APPLICATION_MODAL);
         stage.setOnCloseRequest(event -> logger.info("Closed create/delete branch window"));
         stage.show();

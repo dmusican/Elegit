@@ -84,10 +84,12 @@ public class MergeWindowController {
         BranchTrackingStatus b = BranchTrackingStatus.of(repoHelper.getRepo(), curBranch);
         if(b == null) {
             disable = true;
-            mergeRemoteTrackingText.setText("This branch does not have an upstream remote branch.");
+            mergeRemoteTrackingText.setText("This branch does not have an\n" +
+                    "upstream remote branch.\n\n" +
+                    "Push to create a remote branch.");
             localBranchName1.setText("");
             remoteTrackingBranchName.setText("");
-            intoLocalBranchText.setText("Push to create a remote branch");
+            intoLocalBranchText.setText("");
 
         } else {
             disable = false;
@@ -99,8 +101,11 @@ public class MergeWindowController {
         localBranchName2.setText(curBranch);
 
         localBranchName1.setFill(Color.DODGERBLUE);
+        localBranchName1.setFont(new Font(16));
         localBranchName2.setFill(Color.DODGERBLUE);
+        localBranchName2.setFont(new Font(16));
         remoteTrackingBranchName.setFill(Color.DODGERBLUE);
+        remoteTrackingBranchName.setFont(new Font(16));
 
         trackLink.setFont(new Font(10));
     }
@@ -131,7 +136,7 @@ public class MergeWindowController {
         notificationPane = pane;
         stage = new Stage();
         stage.setTitle("Merge");
-        stage.setScene(new Scene(notificationPane, 450, 250));
+        stage.setScene(new Scene(notificationPane));
         stage.initModality(Modality.APPLICATION_MODAL);
         stage.setOnCloseRequest(event -> logger.info("Closed merge window"));
         stage.show();

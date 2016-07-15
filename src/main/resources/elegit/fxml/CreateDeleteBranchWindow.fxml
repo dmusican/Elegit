@@ -1,4 +1,3 @@
-<?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.text.Text?>
@@ -24,7 +23,7 @@
         <TabPane    VBox.vgrow="ALWAYS"
                     style="-fx-border-color: grey;">
             <padding>
-                <Insets top="5" bottom="5" right="5" left="5"/>
+                <Insets bottom="5"/>
             </padding>
             <Tab    text="Create"
                     closable="false">
@@ -35,7 +34,8 @@
                                 wrapText="true"
                                 fx:id="newBranchTextArea"
                                 promptText="new branch name..." />
-                    <HBox   spacing="5">
+                    <HBox   spacing="5"
+                            alignment="CENTER">
                         <CheckBox   fx:id="checkoutCheckBox"/>
                         <Text   text="checkout new branch once created"/>
                     </HBox>
