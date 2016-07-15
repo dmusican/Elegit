@@ -294,7 +294,16 @@
                                          fx:id="pushButton"
                                          text="Push"
                                          arrowRight="true"
-                                         onAction="#handlePushButton"/>
+                                         onAction="#handlePushButton">
+                                <contextMenu>
+                                    <ContextMenu    fx:id="pushMenu">
+                                        <items>
+                                            <MenuItem   text="Push all branches"
+                                                        onAction="#handlePushAllButton"/>
+                                        </items>
+                                    </ContextMenu>
+                                </contextMenu>
+                            </ArrowButton>
                         </VBox>
 
 

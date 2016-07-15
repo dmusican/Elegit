@@ -124,6 +124,7 @@ public class SessionController {
     static final Logger logger = LogManager.getLogger(SessionController.class);
 
     public ContextMenu newRepoOptionsMenu;
+    public ContextMenu pushMenu;
 
     public MenuItem cloneOption;
     public MenuItem existingOption;
@@ -310,6 +311,15 @@ public class SessionController {
         removeButton.disableProperty().bind(anythingChecked.not());
 
         legendLink.setFont(new Font(12));
+
+        pushButton.setOnMouseClicked(event -> {
+            if(event.getButton() == MouseButton.SECONDARY){
+                if(pushMenu != null){
+                    pushMenu.show(pushButton, event.getScreenX(), event.getScreenY());
+                }
+            }
+            event.consume();
+        });
 
         Text openExternallyIcon = GlyphsDude.createIcon(FontAwesomeIcon.EXTERNAL_LINK);
         this.openRepoDirButton.setGraphic(openExternallyIcon);
@@ -916,6 +926,72 @@ public class SessionController {
                     try{
                         RepositoryMonitor.resetFoundNewChanges(false);
                         theModel.getCurrentRepoHelper().pushCurrentBranch();
+                        gitStatus();
+                        pushed = true;
+                    }  catch(InvalidRemoteException e){
+                        showNoRemoteNotification();
+                    }
+                    catch(PushToAheadRemoteError e) {
+                        showPushToAheadRemoteNotification(e.isAllRefsRejected());
+                    }
+                    catch (TransportException e) {
+                        if (e.getMessage().contains("git-receive-pack not found")) {
+                            // The error has this message if there is no longer a remote to push to
+                            showLostRemoteNotification();
+                        } else {
+                            showNotAuthorizedNotification(null);
+                        }
+                    } catch(MissingRepoException e){
+                        showMissingRepoNotification();
+                        setButtonsDisabled(true);
+                        refreshRecentReposInDropdown();
+                    } catch(GitAPIException e){
+                        showGenericErrorNotification();
+                        e.printStackTrace();
+                    } catch(Exception e) {
+                        showGenericErrorNotification();
+                        e.printStackTrace();
+                    } finally{
+                        pushButton.setVisible(true);
+                        if (pushed && theModel.getCurrentRepoHelper().hasUnpushedTags()) {
+                            pushTagsButton.setVisible(true);
+                            pushButton.setVisible(false);
+                        }
+                        BusyWindow.hide();
+                    }
+                    return null;
+                }
+            });
+            th.setDaemon(true);
+            th.setName("Git push");
+            th.start();
+        }catch(NoRepoLoadedException e){
+            this.showNoRepoLoadedNotification();
+            setButtonsDisabled(true);
+        }catch(NoCommitsToPushException e){
+            this.showNoCommitsToPushNotification();
+        }
+    }
+
+    /**
+     * Performs a `git push` on the current branch only
+     */
+    public void handlePushAllButton() {
+        try {
+            logger.info("Push button clicked");
+
+            if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
+            if(!this.theModel.getCurrentRepoHelper().hasUnpushedCommits()) throw new NoCommitsToPushException();
+
+            BusyWindow.show();
+            BusyWindow.setLoadingText("Pushing...");
+            Thread th = new Thread(new Task<Void>(){
+                @Override
+                protected Void call() {
+                    boolean pushed = false;
+                    try{
+                        RepositoryMonitor.resetFoundNewChanges(false);
+                        theModel.getCurrentRepoHelper().pushAll();
                         gitStatus();
                         pushed = true;
                     }  catch(InvalidRemoteException e){
