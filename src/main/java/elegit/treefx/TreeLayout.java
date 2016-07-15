@@ -56,6 +56,7 @@ public class TreeLayout{
                         if (i > allCellsSortedByTime.size() - 1) {
                             percent.set(100);
                             this.cancelled();
+                            return null;
                         }
                         moveCell(allCellsSortedByTime.get(i));
 
