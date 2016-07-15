@@ -46,14 +46,14 @@ public class Edge extends Group {
         midLineX = new SimpleDoubleProperty(0);
 
         DoubleBinding endX = source.translateXProperty().add(source.widthProperty().divide(2.0));
-        DoubleBinding endY = source.translateYProperty().add(0);
+        DoubleBinding endY = source.translateYProperty().add(source.heightProperty());
 
         DoubleBinding startX = target.translateXProperty().add(target.widthProperty().divide(2.0));
-        DoubleBinding startY = target.translateYProperty().add(target.heightProperty());
+        DoubleBinding startY = target.translateYProperty().add(0);
 
         path = new DirectedPath(startX, startY, endX, endY);
         checkAndAddMidPoints(startY, endY);
-        path.addPoint(endX, endY.subtract(TreeLayout.H_SPACING / 4.));
+        path.addPoint(endX, endY.add(TreeLayout.H_SPACING / 4.));
 
         source.translateXProperty().addListener((observable, oldValue, newValue) -> {
             checkAndAddMidPoints(startY, endY);
@@ -106,11 +106,11 @@ public class Edge extends Group {
      * @param endY the ending y coordinate of this edge
      */
     private void checkAndAddMidPoints(DoubleBinding startY, DoubleBinding endY){
-        if(source.columnLocationProperty.get() - target.columnLocationProperty.get() > 1
-                || source.columnLocationProperty.get() - target.columnLocationProperty.get() < 0){
+        if(target.columnLocationProperty.get() - source.columnLocationProperty.get() > 1
+                || target.columnLocationProperty.get() - source.columnLocationProperty.get() < 0){
             if(!addedMidPoints){
-                path.addPoint(midLineX.add(0), startY.add(TreeLayout.H_SPACING/3.), 1);
-                path.addPoint(midLineX.add(0), endY.subtract(TreeLayout.H_SPACING/2.), 2);
+                path.addPoint(midLineX.add(0), startY.subtract(TreeLayout.H_SPACING/3.), 1);
+                path.addPoint(midLineX.add(0), endY.add(TreeLayout.H_SPACING/2.), 2);
                 this.addedMidPoints = true;
             }
         }else{

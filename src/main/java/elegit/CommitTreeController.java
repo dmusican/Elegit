@@ -188,22 +188,12 @@ public class CommitTreeController{
     public static void update(CommitTreeModel commitTreeModel){
         RepoHelper repo = commitTreeModel.sessionModel.getCurrentRepoHelper();
 
-        List<String> commitIDs = repo.getAllCommitIDs();
-        for(CommitTreeModel model : allCommitTreeModels){
-            if(model.treeGraph != null){
-                for(String id : commitIDs){
-                    if(!model.containsID(id)){
-                        model.addInvisibleCommit(id);
-                    }
-                }
-                model.treeGraph.update();
-            }
-        }
-
-        setBranchHeads(commitTreeModel, repo);
+        commitTreeModel.treeGraph.update();
 
         commitTreeModel.view.displayTreeGraph(commitTreeModel.treeGraph, commitTreeModel.sessionModel
                 .getCurrentRepoHelper().getBranchModel().getCurrentBranchHead());
+
+        setBranchHeads(commitTreeModel, repo);
     }
 
     /**

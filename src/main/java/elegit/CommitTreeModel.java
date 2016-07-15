@@ -102,8 +102,8 @@ public abstract class CommitTreeModel{
 
         if (!updates.hasChanges()) return;
 
-        this.addCommitsToTree(updates.getCommitsToAdd());
         this.removeCommitsFromTree(updates.getCommitsToRemove());
+        this.addCommitsToTree(updates.getCommitsToAdd());
         this.updateCommitFills(updates.getCommitsToUpdate());
 
         TreeLayout.stopMovingCells();
@@ -149,6 +149,10 @@ public abstract class CommitTreeModel{
         commitsToUpdate = new ArrayList<>(repo.getRemoteCommits());
         commitsToUpdate.removeAll(this.remoteCommitsInModel);
         updateModel.updateCommits(commitsToUpdate);
+
+        commitsToUpdate = updateModel.getCommitsToUpdate();
+        commitsToUpdate.removeAll(commitsToRemove);
+        updateModel.setCommitsToUpdate(commitsToUpdate);
 
         List<BranchHelper> branchesToUpdate = new ArrayList<>(this.sessionModel.getCurrentRepoHelper().getBranchModel().getAllBranches());
         Map<String, BranchHelper> currentBranchMap = new HashMap<>();
@@ -312,7 +316,7 @@ public abstract class CommitTreeModel{
         this.localCommitsInModel.remove(commitHelper);
         this.remoteCommitsInModel.remove(commitHelper);
 
-        if(graphModel.containsID(commitID) && graphModel.isVisible(commitID))
+        if(graphModel.containsID(commitID))
             graphModel.removeCell(commitID);
     }
 
