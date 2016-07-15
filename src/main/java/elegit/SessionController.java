@@ -1450,50 +1450,66 @@ public class SessionController {
     }
 
     /**
-     * removes selected repo shortcuts
+     * Shows a popover with all repos in a checklist
      */
     public void chooseRecentReposToDelete() {
         logger.info("Remove repos button clicked");
+
+        // creates a CheckListView with all the repos in it
         List<RepoHelper> repoHelpers = this.theModel.getAllRepoHelpers();
         CheckListView<RepoHelper> repoCheckListView = new CheckListView<>(FXCollections.observableArrayList(repoHelpers));
-        Button removeSelectedButton = new Button("Remove repository shortcuts from Elegit");
 
+        // creates a popover with the list and a button used to remove repo shortcuts
+        Button removeSelectedButton = new Button("Remove repository shortcuts from Elegit");
         PopOver popover = new PopOver(new VBox(repoCheckListView, removeSelectedButton));
         popover.setTitle("Manage Recent Repositories");
 
+        // shows the popover
+        popover.show(this.removeRecentReposButton);
+
         removeSelectedButton.setOnAction(e -> {
-            logger.info("Removed repos");
-            List<RepoHelper> checkedItems = repoCheckListView.getCheckModel().getCheckedItems();
-            this.theModel.removeRepoHelpers(checkedItems);
+            this.handleRemoveReposButton(repoCheckListView.getCheckModel().getCheckedItems());
             popover.hide();
+        });
+    }
 
-            if (!this.theModel.getAllRepoHelpers().isEmpty() && !this.theModel.getAllRepoHelpers().contains(theModel.getCurrentRepoHelper())) {
-                int newIndex = this.theModel.getAllRepoHelpers().size()-1;
-                RepoHelper newCurrentRepo = this.theModel.getAllRepoHelpers()
-                        .get(newIndex);
+    /**
+     * removes selected repo shortcuts
+     * @param checkedItems list of selected repos
+     */
+    private void handleRemoveReposButton(List<RepoHelper> checkedItems) {
+        logger.info("Removed repos");
+        this.theModel.removeRepoHelpers(checkedItems);
 
-                handleRecentRepoMenuItem(newCurrentRepo);
-                repoDropdownSelector.setValue(newCurrentRepo);
+        // If there are repos that aren't the current one, and the current repo is being removed, load a different repo
+        if (!this.theModel.getAllRepoHelpers().isEmpty() && !this.theModel.getAllRepoHelpers().contains(theModel.getCurrentRepoHelper())) {
+            int newIndex = this.theModel.getAllRepoHelpers().size()-1;
+            RepoHelper newCurrentRepo = this.theModel.getAllRepoHelpers()
+                    .get(newIndex);
 
-                this.refreshRecentReposInDropdown();
-            } else if (this.theModel.getAllRepoHelpers().isEmpty()){
-                TreeLayout.stopMovingCells();
-                theModel.resetSessionModel();
-                workingTreePanelView.resetFileStructurePanelView();
-                allFilesPanelView.resetFileStructurePanelView();
-                initialize();
-            }else {
-                try {
-                    theModel.openRepoFromHelper(theModel.getCurrentRepoHelper());
-                } catch (BackingStoreException | IOException | MissingRepoException | ClassNotFoundException e1) {
-                    e1.printStackTrace();
-                }
-            }
+            handleRecentRepoMenuItem(newCurrentRepo);
+            repoDropdownSelector.setValue(newCurrentRepo);
 
             this.refreshRecentReposInDropdown();
-        });
 
-        popover.show(this.removeRecentReposButton);
+            // If there are no repos, reset everything
+        } else if (this.theModel.getAllRepoHelpers().isEmpty()){
+            TreeLayout.stopMovingCells();
+            theModel.resetSessionModel();
+            workingTreePanelView.resetFileStructurePanelView();
+            allFilesPanelView.resetFileStructurePanelView();
+            initialize();
+
+            // The repos have been removed, this line just keeps the current repo loaded
+        }else {
+            try {
+                theModel.openRepoFromHelper(theModel.getCurrentRepoHelper());
+            } catch (BackingStoreException | IOException | MissingRepoException | ClassNotFoundException e1) {
+                e1.printStackTrace();
+            }
+        }
+
+        this.refreshRecentReposInDropdown();
     }
 
     /**
