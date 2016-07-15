@@ -269,7 +269,7 @@ public class PopUpWindows {
         alert.setTitle("Deleting unmerged branch");
         alert.setHeaderText("The branch you are trying to delete is unmerged");
         alert.setContentText("The work done on this branch is not represented in any other local branch. " +
-                "If you delete it, you will lose work done on this branch. " +
+                "If you delete it, you will lose any local work done on this branch. " +
                 "What would you like to do?");
 
         ButtonType deleteButton = new ButtonType("Delete branch");

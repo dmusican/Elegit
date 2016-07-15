@@ -102,10 +102,10 @@
                                 <Text   text="local branch: "/>
                                 <Text   fx:id="currentLocalBranchText"/>
                             </HBox>
-                            <HBox   alignment="CENTER">
+                            <VBox   alignment="CENTER">
                                 <Text   text="remote-tracking branch: "/>
                                 <Text   fx:id="currentRemoteTrackingBranchText"/>
-                            </HBox>
+                            </VBox>
                         </VBox>
 
 
