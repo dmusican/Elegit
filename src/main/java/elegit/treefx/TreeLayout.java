@@ -57,16 +57,16 @@ public class TreeLayout{
                     for (int i=currentCell; i<currentCell+10; i++) {
                         if (i > allCellsSortedByTime.size() - 1) {
                             percent.set(100);
-                            this.cancelled();
                             return null;
                         }
                         moveCell(allCellsSortedByTime.get(i));
 
                         // Update progress if need be
-                        if (i * 100.0 / max > percent.get() && percent.get()<100) {
-                            percent.set(i*100/max);
+                        if (i * 100.0 / max > percent.get() && percent.get() < 100) {
+                            percent.set(i * 100 / max);
                         }
                     }
+                    this.succeeded();
                     return null;
                 }
             };
@@ -97,71 +97,77 @@ public class TreeLayout{
              */
             @Override
             protected Void call() throws Exception{
-                TreeGraphModel treeGraphModel = g.treeGraphModel;
-                isInitialSetupFinished = treeGraphModel.isInitialSetupFinished;
+                try {
+                    TreeGraphModel treeGraphModel = g.treeGraphModel;
+                    isInitialSetupFinished = treeGraphModel.isInitialSetupFinished;
 
-                allCellsSortedByTime = treeGraphModel.allCells;
-                sortListOfCells();
+                    allCellsSortedByTime = treeGraphModel.allCells;
+                    sortListOfCells();
 
-                // Initialize variables
-                maxColUsedInRow = new ArrayList<>();
-                movedCells = new ArrayList<>();
+                    // Initialize variables
+                    maxColUsedInRow = new ArrayList<>();
+                    movedCells = new ArrayList<>();
 
-                // Compute the positions of cells recursively
-                for (int i=allCellsSortedByTime.size()-1; i>=0; i--) {
-                    computeCellPosition(i);
+                    // Compute the positions of cells recursively
+                    for (int i = allCellsSortedByTime.size() - 1; i >= 0; i--) {
+                        computeCellPosition(i);
+                    }
+                    // Once all cell's positions have been set, move them in a service
+                    MoveCellService mover = new MoveCellService(allCellsSortedByTime);
+
+                    //********************* Loading Bar Start *********************
+                    Pane cellLayer = g.getCellLayerPane();
+                    ScrollPane sp = g.getScrollPane();
+                    SimpleDoubleProperty viewportY = new SimpleDoubleProperty(0);
+                    SimpleDoubleProperty viewportX = new SimpleDoubleProperty(0);
+                    ProgressBar progressBar = new ProgressBar();
+
+                    Text loadingCommits = new Text("Loading commits ");
+                    loadingCommits.setFont(new Font(14));
+                    VBox loading = new VBox(loadingCommits, progressBar);
+                    loading.setAlignment(Pos.CENTER);
+                    loading.setSpacing(5);
+                    loading.layoutYProperty().bind(viewportY);
+                    loading.layoutXProperty().bind(viewportX);
+                    if (Platform.isFxApplicationThread()) {
+                        cellLayer.getChildren().add(loading);
+                    } else {
+                        Platform.runLater(() -> cellLayer.getChildren().add(loading));
+                    }
+
+                    sp.vvalueProperty().addListener(((observable, oldValue, newValue) -> {
+                        viewportY.set((double) newValue * cellLayer.getLayoutBounds().getMaxY() +
+                                (0.5 - (double) newValue) * sp.getViewportBounds().getHeight());
+                    }));
+
+                    sp.viewportBoundsProperty().addListener(((observable, oldValue, newValue) -> {
+                        viewportX.set(sp.getViewportBounds().getWidth() - loading.getWidth() - 35);
+                        viewportY.set(sp.getVvalue() * cellLayer.getLayoutBounds().getMaxY() +
+                                (0.5 - sp.getVvalue()) * sp.getViewportBounds().getHeight());
+                    }));
+
+                    mover.percent.addListener(((observable, oldValue, newValue) -> {
+                        if ((int) newValue == 100) {
+                            loading.setVisible(false);
+                        }
+                    }));
+                    //********************** Loading Bar End **********************
+
+                    mover.setOnSucceeded(event1 -> {
+                        if (!Main.isAppClosed && movingCells && mover.currentCell < allCellsSortedByTime.size() - 1) {
+                            mover.setCurrentCell(mover.currentCell + 10);
+                            progressBar.setProgress(mover.percent.get() / 100.0);
+                            mover.restart();
+                        } else {
+                            treeGraphModel.isInitialSetupFinished = true;
+                        }
+                    });
+
+                    mover.reset();
+                    mover.start();
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
-                // Once all cell's positions have been set, move them in a service
-                MoveCellService mover = new MoveCellService(allCellsSortedByTime);
-
-                //********************* Loading Bar Start *********************
-                Pane cellLayer = g.getCellLayerPane();
-                ScrollPane sp = g.getScrollPane();
-                SimpleDoubleProperty viewportY = new SimpleDoubleProperty(0);
-                SimpleDoubleProperty viewportX = new SimpleDoubleProperty(0);
-                ProgressBar progressBar = new ProgressBar();
-
-                Text loadingCommits = new Text("Loading commits ");
-                loadingCommits.setFont(new Font(14));
-                VBox loading = new VBox(loadingCommits, progressBar);
-                loading.setAlignment(Pos.CENTER);
-                loading.setSpacing(5);
-                loading.layoutYProperty().bind(viewportY);
-                loading.layoutXProperty().bind(viewportX);
-                cellLayer.getChildren().add(loading);
-
-                sp.vvalueProperty().addListener(((observable, oldValue, newValue) -> {
-                    viewportY.set((double) newValue * cellLayer.getLayoutBounds().getMaxY() +
-                            (0.5 - (double) newValue) * sp.getViewportBounds().getHeight());
-                }));
-
-                sp.viewportBoundsProperty().addListener(((observable, oldValue, newValue) -> {
-                    viewportX.set(sp.getViewportBounds().getWidth() - loading.getWidth() - 35);
-                    viewportY.set(sp.getVvalue() * cellLayer.getLayoutBounds().getMaxY() +
-                            (0.5 - sp.getVvalue()) * sp.getViewportBounds().getHeight());
-                }));
-
-                mover.percent.addListener(((observable, oldValue, newValue) -> {
-                    if((int)newValue == 100) {
-                        loading.setVisible(false);
-                    }
-                }));
-                //********************** Loading Bar End **********************
-
-                mover.setOnSucceeded(event1 -> {
-                    if (!Main.isAppClosed && movingCells) {
-                        mover.setCurrentCell(mover.currentCell + 10);
-                        progressBar.setProgress(mover.percent.get() / 100.0);
-                        mover.restart();
-                    }else {
-                        mover.cancel();
-                    }
-                });
-
-                mover.setOnCancelled(event1 -> treeGraphModel.isInitialSetupFinished = true);
-
-                mover.reset();
-                mover.start();
                 return null;
             }
 
@@ -213,6 +219,7 @@ public class TreeLayout{
                 // See whether or not this cell will move
                 int oldColumnLocation = c.columnLocationProperty.get();
                 int oldRowLocation = c.rowLocationProperty.get();
+
                 c.columnLocationProperty.set(x);
                 c.rowLocationProperty.set(y);
 
@@ -272,8 +279,9 @@ public class TreeLayout{
                 try {
                     c.moveTo(y, x, animate, animate && useParentPosAsSource);
                 } catch (Exception e) {
-                    System.out.println("blob");
+                    e.printStackTrace();
                 }
+
                 return null;
             }
         });

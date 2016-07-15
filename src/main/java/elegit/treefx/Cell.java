@@ -115,9 +115,10 @@ public class Cell extends Pane{
         this.hasUpdatedPosition = new SimpleBooleanProperty(false);
         visibleProperty().bind(this.hasUpdatedPosition);
 
-        columnLocationProperty.addListener((observable, oldValue, newValue) -> hasUpdatedPosition.set(oldValue.intValue()==newValue.intValue()));
+        columnLocationProperty.addListener((observable, oldValue, newValue) ->
+                hasUpdatedPosition.set(oldValue.intValue()==newValue.intValue() || (newValue.intValue()>-1)&&oldValue.intValue()>-1));
         rowLocationProperty.addListener((observable, oldValue, newValue) ->
-                hasUpdatedPosition.set(oldValue.intValue()==newValue.intValue()));
+                hasUpdatedPosition.set(oldValue.intValue()==newValue.intValue() || (newValue.intValue()>-1)&&oldValue.intValue()>-1));
 
         tooltip = new Tooltip(cellId);
         tooltip.setWrapText(true);
@@ -230,7 +231,7 @@ public class Cell extends Pane{
     }
 
     public void setRefLabel(List<String> refs){
-        this.refLabel.setLabels(refs);
+        this.refLabel.setLabels(refs, this);
     }
 
     public void setCurrentRefLabel(List<String> refs) {
@@ -454,7 +455,7 @@ public class Cell extends Pane{
             Tooltip.install(l, tooltip);
         }
 
-        public void setLabels(List<String> labels) {
+        public void setLabels(List<String> labels, Cell cell) {
             if (labels.size() < 1) {
                 Platform.runLater(() -> getChildren().clear());
                 return;
@@ -534,7 +535,7 @@ public class Cell extends Pane{
             this.setRotationAxis(Rotate.X_AXIS);
             this.setRotate(180);
 
-            this.setVisible(false);
+            this.visibleProperty().bind(cell.hasUpdatedPosition);
 
             Platform.runLater(() -> {
                 getChildren().clear();

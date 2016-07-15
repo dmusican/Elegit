@@ -109,8 +109,8 @@ public class Edge extends Group {
         if(target.columnLocationProperty.get() - source.columnLocationProperty.get() > 1
                 || target.columnLocationProperty.get() - source.columnLocationProperty.get() < 0){
             if(!addedMidPoints){
-                path.addPoint(midLineX.add(0), startY.subtract(TreeLayout.H_SPACING/2.), 1);
-                path.addPoint(midLineX.add(0), endY.add(TreeLayout.H_SPACING/3.), 2);
+                path.addPoint(midLineX.add(0), startY.subtract(TreeLayout.H_SPACING/3.), 1);
+                path.addPoint(midLineX.add(0), endY.add(TreeLayout.H_SPACING/2.), 2);
                 this.addedMidPoints = true;
             }
         }else{
