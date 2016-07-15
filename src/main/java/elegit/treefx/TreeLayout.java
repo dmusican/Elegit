@@ -15,6 +15,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
+import javafx.scene.transform.Rotate;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -135,6 +136,8 @@ public class TreeLayout{
                     loading.setSpacing(5);
                     loading.layoutYProperty().bind(viewportY);
                     loading.layoutXProperty().bind(viewportX);
+                    loading.setRotationAxis(Rotate.X_AXIS);
+                    loading.setRotate(180);
                     if (Platform.isFxApplicationThread()) {
                         cellLayer.getChildren().add(loading);
                     } else {
@@ -142,14 +145,15 @@ public class TreeLayout{
                     }
 
                     sp.vvalueProperty().addListener(((observable, oldValue, newValue) -> {
-                        viewportY.set((double) newValue * cellLayer.getLayoutBounds().getMaxY() +
-                                (0.5 - (double) newValue) * sp.getViewportBounds().getHeight());
+                        viewportY.set(cellLayer.getLayoutBounds().getMaxY()-((double) newValue * cellLayer.getLayoutBounds().getMaxY() +
+                                (0.5 - (double) newValue) * sp.getViewportBounds().getHeight()));
                     }));
 
                     sp.viewportBoundsProperty().addListener(((observable, oldValue, newValue) -> {
                         viewportX.set(sp.getViewportBounds().getWidth() - loading.getWidth() - 35);
-                        viewportY.set(sp.getVvalue() * cellLayer.getLayoutBounds().getMaxY() +
-                                (0.5 - sp.getVvalue()) * sp.getViewportBounds().getHeight());
+                        viewportY.set(cellLayer.getLayoutBounds().getMaxY()
+                                - (sp.getVvalue() * cellLayer.getLayoutBounds().getMaxY()
+                                + (0.5 - sp.getVvalue()) * sp.getViewportBounds().getHeight()));
                     }));
 
                     mover.percent.addListener(((observable, oldValue, newValue) -> {
