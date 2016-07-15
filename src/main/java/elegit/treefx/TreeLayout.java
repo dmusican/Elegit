@@ -54,19 +54,25 @@ public class TreeLayout{
             return new Task() {
                 @Override
                 protected Object call() throws Exception {
-                    for (int i=currentCell; i<currentCell+10; i++) {
-                        if (i > allCellsSortedByTime.size() - 1) {
-                            percent.set(100);
-                            return null;
-                        }
-                        moveCell(allCellsSortedByTime.get(i));
+                    // Try/catch is just in for debugging purposes, left because any
+                    // errors here are very hard to find without it
+                    try {
+                        for (int i = currentCell; i < currentCell + 10; i++) {
+                            if (i > allCellsSortedByTime.size() - 1) {
+                                percent.set(100);
+                                return null;
+                            }
+                            moveCell(allCellsSortedByTime.get(i));
 
-                        // Update progress if need be
-                        if (i * 100.0 / max > percent.get() && percent.get() < 100) {
-                            percent.set(i * 100 / max);
+                            // Update progress if need be
+                            if (i * 100.0 / max > percent.get() && percent.get() < 100) {
+                                percent.set(i * 100 / max);
+                            }
                         }
+                        this.succeeded();
+                    }catch (Exception e) {
+                        e.printStackTrace();
                     }
-                    this.succeeded();
                     return null;
                 }
             };
@@ -276,11 +282,8 @@ public class TreeLayout{
 
                 double x = c.columnLocationProperty.get() * H_SPACING + H_PAD;
                 double y = c.rowLocationProperty.get() * V_SPACING + V_PAD;
-                try {
-                    c.moveTo(y, x, animate, animate && useParentPosAsSource);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+
+                c.moveTo(y, x, animate, animate && useParentPosAsSource);
 
                 return null;
             }

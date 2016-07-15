@@ -1,7 +1,7 @@
 package elegit;
 
 import javafx.fxml.FXML;
-import org.controlsfx.control.NotificationPane;
+import javafx.scene.layout.GridPane;
 
 /**
  *
@@ -11,7 +11,7 @@ import org.controlsfx.control.NotificationPane;
  */
 public class LegendController {
     @FXML
-    private NotificationPane notificationPane;
+    private GridPane gridPane;
 
     private SessionModel sessionModel;
     private LegendModel legendModel;
@@ -19,15 +19,4 @@ public class LegendController {
     public void initialize() throws Exception {
         this.sessionModel = SessionModel.getSessionModel();
     }
-
-    /// BEGIN: ERROR NOTIFICATIONS:
-
-    private void showGenericErrorNotification() {
-        this.notificationPane.setText("Sorry, there was an error.");
-
-        this.notificationPane.getActions().clear();
-        this.notificationPane.show();
-    }
-
-    /// END: ERROR NOTIFICATIONS ^^^
 }

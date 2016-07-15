@@ -1505,11 +1505,11 @@ public class SessionController {
         try{
             logger.info("Legend clicked");
             // Create and display the Stage:
-            NotificationPane fxmlRoot = FXMLLoader.load(getClass().getResource("/elegit/fxml/Legend.fxml"));
+            GridPane fxmlRoot = FXMLLoader.load(getClass().getResource("/elegit/fxml/Legend.fxml"));
 
             Stage stage = new Stage();
             stage.setTitle("Legend");
-            stage.setScene(new Scene(fxmlRoot, 250, 300));
+            stage.setScene(new Scene(fxmlRoot, 500, 300));
             stage.initModality(Modality.APPLICATION_MODAL);
             stage.setOnCloseRequest(event -> logger.info("Closed legend"));
             stage.show();

@@ -145,11 +145,14 @@
     -fx-stroke-dash-array: 3px, 5px;
 }
 
-#helpButton {
-    -fx-fill: -fx-cell-color-standard;
+#helpButton-local {
+    -fx-fill: linear-gradient(from 0px 0px to 0px 3px, reflect, -fx-button-fill 0%, -fx-button-fill 49%, -fx-background-default 50%, -fx-background-default 100%);
 }
-#helpButton:hover {
-    -fx-fill: -fx-cell-color-select;
+#helpButton-remote {
+    -fx-fill: linear-gradient(from 0px 0px to 3px 0px, reflect, -fx-button-fill 0%, -fx-button-fill 49%, -fx-background-default 50%, -fx-background-default 100%);
+}
+#helpButton-both {
+    -fx-fill: -fx-button-hover-fill;
 }
 
 * {
