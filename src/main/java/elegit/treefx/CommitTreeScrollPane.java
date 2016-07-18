@@ -4,6 +4,7 @@ import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
+import javafx.geometry.VPos;
 import javafx.scene.Node;
 import javafx.scene.control.ScrollPane;
 
@@ -13,6 +14,7 @@ import javafx.scene.control.ScrollPane;
  * The commit tree scroll pane
  */
 public class CommitTreeScrollPane extends ScrollPane{
+    private final static double DEFAULT_SCROLL_POS = 1.0;
 
     // A property used to update the number of items in the scroll pane
     public final IntegerProperty NumItemsProperty = new SimpleIntegerProperty(1);
@@ -25,7 +27,8 @@ public class CommitTreeScrollPane extends ScrollPane{
     public CommitTreeScrollPane(Node node) {
         super(node);
 
-        vPos.addListener(((observable, oldValue, newValue) -> this.vvalueProperty().setValue(newValue)));
+        this.vvalueProperty().addListener((observable1, oldValue1, newValue1) -> vPos.setValue(newValue1));
+        vPos.addListener((observable1, oldValue1, newValue1) -> this.vvalueProperty().setValue(newValue1));
 
         NumItemsProperty.addListener((observable, oldValue, newValue) -> numItems = newValue.intValue());
     }
@@ -42,11 +45,11 @@ public class CommitTreeScrollPane extends ScrollPane{
      */
     public static void scrollTo(double pos){
         if(pos < 0 || pos > numItems){
-            vPos.set(1.0);
+            vPos.setValue(DEFAULT_SCROLL_POS);
         }else{
             double ratio = 1-pos/numItems;
             double offset = ratio >= 0.5 ? 1.0/numItems : -1.0/numItems;
-            vPos.set(ratio+offset);
+            vPos.set(1-(ratio+offset));
         }
     }
 }

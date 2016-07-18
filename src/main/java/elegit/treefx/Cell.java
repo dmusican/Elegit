@@ -456,8 +456,8 @@ public class Cell extends Pane{
         }
 
         public void setLabels(List<String> labels, Cell cell) {
+            Platform.runLater(() -> getChildren().clear());
             if (labels.size() < 1) {
-                Platform.runLater(() -> getChildren().clear());
                 return;
             }
 

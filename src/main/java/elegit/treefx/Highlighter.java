@@ -203,7 +203,7 @@ public class Highlighter{
         }
 
         Platform.runLater(() -> {
-            CommitTreeScrollPane.scrollTo(c.columnLocationProperty.doubleValue() + 1);
+            CommitTreeScrollPane.scrollTo(c.rowLocationProperty.doubleValue());
             c.setCellState(CellState.EMPHASIZED);
 
             Shape s = (Shape) c.view;
