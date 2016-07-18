@@ -144,21 +144,15 @@ public class TreeLayout{
                     }
 
                     sp.vvalueProperty().addListener(((observable, oldValue, newValue) -> {
-                        viewportY.set(cellLayer.getParent().getLayoutBounds().getMaxY()-((double) newValue * cellLayer.getParent().getLayoutBounds().getMaxY() +
+                        viewportY.set(cellLayer.getParent().getLayoutBounds().getHeight()-((double) newValue * cellLayer.getParent().getLayoutBounds().getHeight() +
                                 (0.5 - (double) newValue) * sp.getViewportBounds().getHeight()));
                     }));
 
                     sp.viewportBoundsProperty().addListener(((observable, oldValue, newValue) -> {
                         viewportX.set(sp.getViewportBounds().getWidth() - loading.getWidth() - 35);
-                        viewportY.set(cellLayer.getParent().getLayoutBounds().getMaxY()
-                                - (sp.getVvalue() * cellLayer.getParent().getLayoutBounds().getMaxY()
+                        viewportY.set(cellLayer.getParent().getLayoutBounds().getHeight()
+                                - (sp.getVvalue() * cellLayer.getParent().getLayoutBounds().getHeight()
                                 + (0.5 - sp.getVvalue()) * sp.getViewportBounds().getHeight()));
-                    }));
-
-                    mover.percent.addListener(((observable, oldValue, newValue) -> {
-                        if ((int) newValue == 100) {
-                            //loading.setVisible(false);
-                        }
                     }));
                     //********************** Loading Bar End **********************
 
@@ -169,6 +163,8 @@ public class TreeLayout{
                             mover.restart();
                         } else {
                             treeGraphModel.isInitialSetupFinished = true;
+                            loadingCommits.setVisible(false);
+                            progressBar.setVisible(false);
                         }
                     });
 
