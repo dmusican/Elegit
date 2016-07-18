@@ -233,7 +233,7 @@ public class TreeGraphModel{
      */
     public void removeCell(String id) {
         Cell cell = cellMap.get(id);
-        if(cellMap.containsKey(cell.getCellId())){
+        if(cell != null && cellMap.containsKey(cell.getCellId())){
             Cell oldCell = cellMap.remove(cell.getCellId());
             for(Cell p : cell.getCellParents()){
                 p.removeCellChild(oldCell);
