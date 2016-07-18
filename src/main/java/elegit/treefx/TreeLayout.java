@@ -12,7 +12,6 @@ import javafx.scene.control.ProgressBar;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.scene.transform.Rotate;
@@ -25,10 +24,10 @@ import java.util.List;
  */
 public class TreeLayout{
 
-    public static int V_SPACING = Cell.BOX_SIZE + 10;
-    public static int H_SPACING = Cell.BOX_SIZE * 3 + 5;
-    public static int V_PAD = 10;
-    public static int H_PAD = 25;
+    public static int H_SPACING = Cell.BOX_SIZE + 10;
+    public static int V_SPACING = Cell.BOX_SIZE * 3 + 5;
+    public static int H_PAD = 10;
+    public static int V_PAD = 25;
     public static boolean movingCells;
 
 
@@ -93,7 +92,7 @@ public class TreeLayout{
         return new Task<Void>(){
 
             private List<Cell> allCellsSortedByTime;
-            private List<Integer> maxColUsedInRow;
+            private List<Integer> minRowUsedInCol;
             private List<Integer> movedCells;
             private boolean isInitialSetupFinished;
 
@@ -112,7 +111,7 @@ public class TreeLayout{
                     sortListOfCells();
 
                     // Initialize variables
-                    maxColUsedInRow = new ArrayList<>();
+                    minRowUsedInCol = new ArrayList<>();
                     movedCells = new ArrayList<>();
 
                     // Compute the positions of cells recursively
@@ -211,7 +210,7 @@ public class TreeLayout{
                 // Get cell at the inputted position
                 Cell c = allCellsSortedByTime.get(allCellsSortedByTime.size()-1-cellPosition);
 
-                setCellPosition(c, cellPosition, getRowOfCellInColumn(maxColUsedInRow, cellPosition));
+                setCellPosition(c, getColumnOfCellInRow(minRowUsedInCol, cellPosition), cellPosition);
 
                 // Update the reserved columns in rows with the cells parents, oldest to newest
                 List<Cell> list = c.getCellParents();
@@ -225,6 +224,14 @@ public class TreeLayout{
                 }
             }
 
+            /**
+             * Helper method to set the position of a cell and update various
+             * parameters for the cell
+             *
+             * @param c the cell to set the position of
+             * @param x the new column of the cell
+             * @param y the new row of the cell
+             */
             private void setCellPosition(Cell c, int x, int y) {
                 // See whether or not this cell will move
                 int oldColumnLocation = c.columnLocationProperty.get();
@@ -237,34 +244,33 @@ public class TreeLayout{
                 boolean willCellMove = oldColumnLocation != x || oldRowLocation != y;
 
                 // Update where the cell has been placed
-                if (y >= maxColUsedInRow.size())
-                    maxColUsedInRow.add(x);
+                if (x >= minRowUsedInCol.size())
+                    minRowUsedInCol.add(y);
                 else
-                    maxColUsedInRow.set(y, x);
+                    minRowUsedInCol.set(x, y);
 
                 // Set the animation and use parent properties of the cell
                 c.setAnimate(isInitialSetupFinished && willCellMove);
                 c.setUseParentAsSource(!hasCellMoved);
 
-                this.movedCells.add(x);
+                this.movedCells.add(y);
             }
         };
     }
 
     /**
-     * Calculates the row closest to the top of the screen to place the
-     * given cell based on the cell's column and the maximum heights recorded
-     * for each row
-     * @param maxColumnUsedInRow the map of max columns used in each row
-     * @param cellCol the column the cell to examine is in
+     * Calculates the column closest to the left of the screen to place the
+     * given cell based on the cell's row and the heights of each column so far
+     * @param minRowUsedInCol the map of max rows used in each column
+     * @param cellRow the row the cell to examine is in
      * @return the lowest indexed row in which to place c
      */
-    private static int getRowOfCellInColumn(List<Integer> maxColumnUsedInRow, int cellCol){
-        int row = 0;
-        while(maxColumnUsedInRow.size() > row && (cellCol > maxColumnUsedInRow.get(row))){
-            row++;
+    private static int getColumnOfCellInRow(List<Integer> minRowUsedInCol, int cellRow){
+        int col = 0;
+        while(minRowUsedInCol.size() > col && (cellRow > minRowUsedInCol.get(col))){
+            col++;
         }
-        return row;
+        return col;
     }
 
     /**
@@ -281,13 +287,13 @@ public class TreeLayout{
                 if(animate && useParentPosAsSource && c.getCellParents().size()>0){
                     double px = c.getCellParents().get(0).columnLocationProperty.get() * H_SPACING + H_PAD;
                     double py = c.getCellParents().get(0).rowLocationProperty.get() * V_SPACING + V_PAD;
-                    c.moveTo(py, px, false, false);
+                    c.moveTo(px, py, false, false);
                 }
 
                 double x = c.columnLocationProperty.get() * H_SPACING + H_PAD;
                 double y = c.rowLocationProperty.get() * V_SPACING + V_PAD;
 
-                c.moveTo(y, x, animate, animate && useParentPosAsSource);
+                c.moveTo(x, y, animate, animate && useParentPosAsSource);
 
                 return null;
             }
