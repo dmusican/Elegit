@@ -1285,6 +1285,11 @@ public class SessionController {
         RepositoryMonitor.pause();
 
         Platform.runLater(() -> {
+            // If the layout is still going, don't run
+            if (commitTreePanelView.isLayoutThreadRunning) {
+                RepositoryMonitor.unpause();
+                return;
+            }
             try{
                 commitTreeModel.update();
                 workingTreePanelView.drawDirectoryView();

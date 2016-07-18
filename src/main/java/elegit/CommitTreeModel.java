@@ -108,8 +108,6 @@ public abstract class CommitTreeModel{
 
         TreeLayout.stopMovingCells();
         this.updateView();
-
-        CommitTreeController.setBranchHeads(this, this.sessionModel.getCurrentRepoHelper());
     }
 
 
@@ -316,8 +314,7 @@ public abstract class CommitTreeModel{
         this.localCommitsInModel.remove(commitHelper);
         this.remoteCommitsInModel.remove(commitHelper);
 
-        if(graphModel.containsID(commitID))
-            graphModel.removeCell(commitID);
+        graphModel.removeCell(commitID);
     }
 
     private void updateCommitFill(CommitHelper helper, TreeGraphModel graphModel, RepoHelper repo) {
