@@ -17,7 +17,7 @@ public class CommitTreePanelView extends Region{
 
     // Constants for panel size
     public static int TREE_PANEL_WIDTH = 500;
-    public static int TREE_PANEL_HEIGHT = (Cell.BOX_SIZE + TreeLayout.H_SPACING) * 5;
+    public static int TREE_PANEL_HEIGHT = (Cell.BOX_SIZE + TreeLayout.V_SPACING) * 5;
 
     // Thread information
     public boolean isLayoutThreadRunning = false;
