@@ -44,7 +44,7 @@ public class CommitTreeScrollPane extends ScrollPane{
         if(pos < 0 || pos > numItems){
             vPos.set(1.0);
         }else{
-            double ratio = pos/numItems;
+            double ratio = 1-pos/numItems;
             double offset = ratio >= 0.5 ? 1.0/numItems : -1.0/numItems;
             vPos.set(ratio+offset);
         }
