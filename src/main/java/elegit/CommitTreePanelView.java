@@ -1,17 +1,12 @@
 package elegit;
 
-import javafx.application.Platform;
-import javafx.concurrent.Task;
-import javafx.geometry.Insets;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.layout.*;
 import elegit.treefx.Cell;
 import elegit.treefx.TreeGraph;
 import elegit.treefx.TreeLayout;
-import javafx.scene.paint.Color;
-import javafx.scene.paint.Paint;
-import javafx.scene.text.Font;
-import javafx.scene.text.Text;
+import javafx.application.Platform;
+import javafx.concurrent.Task;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.layout.Region;
 
 /**
  * Class for the local and remote panel views that handles the drawing of a tree structure

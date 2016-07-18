@@ -145,20 +145,20 @@ public class TreeLayout{
                     }
 
                     sp.vvalueProperty().addListener(((observable, oldValue, newValue) -> {
-                        viewportY.set(cellLayer.getLayoutBounds().getMaxY()-((double) newValue * cellLayer.getLayoutBounds().getMaxY() +
+                        viewportY.set(cellLayer.getParent().getLayoutBounds().getMaxY()-((double) newValue * cellLayer.getParent().getLayoutBounds().getMaxY() +
                                 (0.5 - (double) newValue) * sp.getViewportBounds().getHeight()));
                     }));
 
                     sp.viewportBoundsProperty().addListener(((observable, oldValue, newValue) -> {
                         viewportX.set(sp.getViewportBounds().getWidth() - loading.getWidth() - 35);
-                        viewportY.set(cellLayer.getLayoutBounds().getMaxY()
-                                - (sp.getVvalue() * cellLayer.getLayoutBounds().getMaxY()
+                        viewportY.set(cellLayer.getParent().getLayoutBounds().getMaxY()
+                                - (sp.getVvalue() * cellLayer.getParent().getLayoutBounds().getMaxY()
                                 + (0.5 - sp.getVvalue()) * sp.getViewportBounds().getHeight()));
                     }));
 
                     mover.percent.addListener(((observable, oldValue, newValue) -> {
                         if ((int) newValue == 100) {
-                            loading.setVisible(false);
+                            //loading.setVisible(false);
                         }
                     }));
                     //********************** Loading Bar End **********************
@@ -276,19 +276,22 @@ public class TreeLayout{
         Platform.runLater(new Task<Void>(){
             @Override
             protected Void call(){
-                boolean animate = c.getAnimate();
-                boolean useParentPosAsSource = c.getUseParentAsSource();
-                if(animate && useParentPosAsSource && c.getCellParents().size()>0){
-                    double px = c.getCellParents().get(0).columnLocationProperty.get() * H_SPACING + H_PAD;
-                    double py = c.getCellParents().get(0).rowLocationProperty.get() * V_SPACING + V_PAD;
-                    c.moveTo(py, px, false, false);
+                try {
+                    boolean animate = c.getAnimate();
+                    boolean useParentPosAsSource = c.getUseParentAsSource();
+                    if (animate && useParentPosAsSource && c.getCellParents().size() > 0) {
+                        double px = c.getCellParents().get(0).columnLocationProperty.get() * H_SPACING + H_PAD;
+                        double py = c.getCellParents().get(0).rowLocationProperty.get() * V_SPACING + V_PAD;
+                        c.moveTo(py, px, false, false);
+                    }
+
+                    double x = c.columnLocationProperty.get() * H_SPACING + H_PAD;
+                    double y = c.rowLocationProperty.get() * V_SPACING + V_PAD;
+
+                    c.moveTo(y, x, animate, animate && useParentPosAsSource);
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
-
-                double x = c.columnLocationProperty.get() * H_SPACING + H_PAD;
-                double y = c.rowLocationProperty.get() * V_SPACING + V_PAD;
-
-                c.moveTo(y, x, animate, animate && useParentPosAsSource);
-
                 return null;
             }
         });

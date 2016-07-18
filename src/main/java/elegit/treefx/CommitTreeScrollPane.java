@@ -4,13 +4,10 @@ import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
-import javafx.geometry.VPos;
 import javafx.scene.Node;
 import javafx.scene.control.ScrollPane;
 
 /**
- * Created by connellyj on 7/14/16.
- *
  * The commit tree scroll pane
  */
 public class CommitTreeScrollPane extends ScrollPane{

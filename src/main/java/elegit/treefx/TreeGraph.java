@@ -2,7 +2,6 @@ package elegit.treefx;
 
 import javafx.application.Platform;
 import javafx.geometry.Insets;
-import javafx.geometry.Point3D;
 import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.control.ScrollPane;
@@ -41,9 +40,11 @@ public class TreeGraph{
 
         Group canvas = new Group();
         cellLayer = new Pane();
-        cellLayer.setPadding(new Insets(TreeLayout.V_PAD, TreeLayout.H_PAD, TreeLayout.V_PAD, TreeLayout.H_PAD));
+        cellLayer.setPadding(new Insets(TreeLayout.H_PAD-5, TreeLayout.H_PAD, TreeLayout.H_PAD-5, TreeLayout.H_PAD));
         cellLayer.setRotationAxis(Rotate.X_AXIS);
         cellLayer.setRotate(180);
+
+        cellLayer.layoutBoundsProperty().addListener((observable, oldValue, newValue) -> System.out.println(newValue));
 
         scrollPane = new CommitTreeScrollPane(canvas);
 
@@ -53,6 +54,7 @@ public class TreeGraph{
         scrollPane.NumItemsProperty.bind(m.numCellsProperty);
 
         canvas.getChildren().add(cellLayer);
+        canvas.setAutoSizeChildren(false);
 
         queuedToAdd = new LinkedList<>();
         queuedToRemove = new LinkedList<>();
@@ -82,8 +84,8 @@ public class TreeGraph{
 
         Platform.runLater(() -> {
             // add components to treeGraph pane
-            LinkedList<Node> moreToAdd = new LinkedList<Node>();
-            LinkedList<Node> moreToRemove = new LinkedList<Node>();
+            LinkedList<Node> moreToAdd = new LinkedList<>();
+            LinkedList<Node> moreToRemove = new LinkedList<>();
             for (Node n: queuedToAdd) {
                 if (n instanceof Cell)
                     moreToAdd.add(((Cell)n).getLabel());
