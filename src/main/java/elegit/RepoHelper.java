@@ -409,6 +409,43 @@ public abstract class RepoHelper {
     }
 
     /**
+     * pushes only the current branch
+     * @throws MissingRepoException
+     * @throws GitAPIException
+     * @throws PushToAheadRemoteError
+     */
+    public void pushCurrentBranch() throws MissingRepoException, GitAPIException, PushToAheadRemoteError {
+        BranchHelper branchToPush = this.getBranchModel().getCurrentBranch();
+        logger.info("attempting to push current branch");
+        if (!exists()) throw new MissingRepoException();
+        if (!hasRemote()) throw new InvalidRemoteException("No remote repository");
+        Git git = new Git(this.repo);
+        PushCommand push = git.push().add(branchToPush.getRefPathString());
+
+        myWrapAuthentication(push);
+        ProgressMonitor progress = new SimpleProgressMonitor();
+        push.setProgressMonitor(progress);
+
+        Iterable<PushResult> pushResult = push.call();
+
+        for(PushResult result : pushResult) {
+            for(RemoteRefUpdate remoteRefUpdate : result.getRemoteUpdates()) {
+                if(!remoteRefUpdate.getStatus().equals(RemoteRefUpdate.Status.OK)) {
+                    throw new PushToAheadRemoteError(false);
+                }
+            }
+        }
+
+        git.close();
+
+        try {
+            this.remoteCommits = parseAllRemoteCommits();
+        } catch (IOException e) {
+            // This shouldn't occur once we have the repo up and running.
+        }
+    }
+
+    /**
      * Pushes all changes.
      *
      * @throws GitAPIException if the `git push` call fails.

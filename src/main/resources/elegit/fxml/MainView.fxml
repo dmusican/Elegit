@@ -102,10 +102,10 @@
                                 <Text   text="local branch: "/>
                                 <Text   fx:id="currentLocalBranchText"/>
                             </HBox>
-                            <HBox   alignment="CENTER">
+                            <VBox   alignment="CENTER">
                                 <Text   text="remote-tracking branch: "/>
                                 <Text   fx:id="currentRemoteTrackingBranchText"/>
-                            </HBox>
+                            </VBox>
                         </VBox>
 
 
@@ -182,8 +182,13 @@
 
                         <VBox   GridPane.rowIndex="2"
                                 GridPane.columnIndex="4"
-                                alignment="BOTTOM_CENTER"
-                                spacing="10">
+                                alignment="TOP_CENTER"
+                                spacing="30">
+                            <ImageView  fitHeight="10"
+                                        fitWidth="250"
+                                        opacity=".4">
+                                <Image  url="@line.png"/>
+                            </ImageView>
                             <VBox   alignment="CENTER"
                                     spacing="5">
                                 <Text   text="Commit Info:"
@@ -194,7 +199,7 @@
                                     <TextArea wrapText="true"
                                               editable="false"
                                               prefWidth="230"
-                                              prefHeight="130"
+                                              prefHeight="230"
                                               fx:id="commitInfoMessageText"/>
                                 </StackPane>
                                 <HBox   spacing="15"
@@ -294,7 +299,16 @@
                                          fx:id="pushButton"
                                          text="Push"
                                          arrowRight="true"
-                                         onAction="#handlePushButton"/>
+                                         onAction="#handlePushButton">
+                                <contextMenu>
+                                    <ContextMenu    fx:id="pushMenu">
+                                        <items>
+                                            <MenuItem   text="Push all branches"
+                                                        onAction="#handlePushAllButton"/>
+                                        </items>
+                                    </ContextMenu>
+                                </contextMenu>
+                            </ArrowButton>
                         </VBox>
 
 

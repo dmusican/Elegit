@@ -259,22 +259,6 @@ public class CommitTreeController{
     }
 
     /**
-     * gets the local and remote commit tree models
-     * local at index 0, remote at index 1
-     * @return ArrayList models
-     */
-    public static ArrayList getCommitTreeModels() {
-        ArrayList<CommitTreeModel> models = new ArrayList<>(2);
-        for (CommitTreeModel commitTreeModel : CommitTreeController.allCommitTreeModels) {
-            if (commitTreeModel.getViewName().equals(LocalCommitTreeModel
-                    .LOCAL_TREE_VIEW_NAME)) {
-                models.add(0, commitTreeModel);
-            }
-        }
-        return models;
-    }
-
-    /**
      * @return the commit tree model for the current session
      */
     public static CommitTreeModel getCommitTreeModel() {

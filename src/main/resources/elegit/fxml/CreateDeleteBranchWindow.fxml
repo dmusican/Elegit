@@ -1,4 +1,3 @@
-<?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.text.Text?>
@@ -6,77 +5,65 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Button?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.Tab?>
+<?import org.controlsfx.control.NotificationPane?>
+
 <?import javafx.scene.layout.StackPane?>
 
-<?import javafx.geometry.Insets?>
-<StackPane fx:controller="elegit.CreateDeleteBranchWindowController"
-           fx:id="stackPane"
-           xmlns:fx="http://javafx.com/fxml">
-
-    <padding>
-        <Insets top="20" bottom="10" right="10" left="10"/>
-    </padding>
-
-    <GridPane   hgap="50"
-                vgap="20">
-
-        <StackPane  GridPane.rowIndex="0"
-                    GridPane.columnIndex="0"
-                    alignment="CENTER_LEFT">
-
-            <VBox   spacing="10"
-                    alignment="CENTER">
-
-                <TextArea   GridPane.vgrow="NEVER"
-                            prefColumnCount="1"
-                            prefRowCount="1"
-                            prefHeight="30"
-                            wrapText="true"
-                            fx:id="newBranchTextArea"
-                            promptText="new branch name..." />
-
-                <HBox   spacing="5">
-
-                    <CheckBox   fx:id="checkoutCheckBox"/>
-
-                    <Text   text="checkout new branch once created"/>
-
-                </HBox>
-
-                <Button text="Create branch"
-                        fx:id="createButton"
-                        onAction="#handleCreateBranch"/>
-            </VBox>
-
-        </StackPane>
-
-        <StackPane  GridPane.columnIndex="1"
-                    GridPane.rowIndex="0"
-                    alignment="CENTER_LEFT">
-
+<NotificationPane   fx:controller="elegit.CreateDeleteBranchWindowController"
+                    fx:id="notificationPane"
+                    xmlns:fx="http://javafx.com/fxml">
+    <content>
+        <StackPane>
             <padding>
-                <Insets top="10"/>
+                <Insets bottom="5"/>
             </padding>
-
-            <VBox   spacing="30"
+            <VBox   spacing="5"
                     alignment="CENTER">
-
-                <ComboBox   fx:id="localBranchesDropdown"/>
-
-                <Button text="Delete branch"
-                        fx:id="deleteButton"
-                        onAction="#handleDeleteBranch"/>
-
+                <TabPane    VBox.vgrow="ALWAYS"
+                            style="-fx-border-color: grey;">
+                    <padding>
+                        <Insets bottom="5"/>
+                    </padding>
+                    <Tab    text="Create"
+                            closable="false">
+                        <VBox   spacing="10"
+                                alignment="CENTER">
+                            <TextArea   VBox.vgrow="NEVER"
+                                        prefHeight="30"
+                                        wrapText="true"
+                                        fx:id="newBranchTextArea"
+                                        promptText="new branch name..." />
+                            <HBox   spacing="5"
+                                    alignment="CENTER">
+                                <CheckBox   fx:id="checkoutCheckBox"/>
+                                <Text   text="checkout new branch once created"/>
+                            </HBox>
+                            <Button text="Create branch"
+                                    fx:id="createButton"
+                                    onAction="#handleCreateBranch"/>
+                        </VBox>
+                    </Tab>
+                    <Tab    text="Delete"
+                            closable="false">
+                        <VBox   spacing="10"
+                                alignment="CENTER">
+                            <ComboBox   fx:id="localBranchesDropdown"/>
+                            <Button text="Delete branch"
+                                    fx:id="deleteButton"
+                                    onAction="#handleDeleteBranch"/>
+                        </VBox>
+                    </Tab>
+                </TabPane>
+                <Button text="Cancel"
+                        onAction="#closeWindow"/>
             </VBox>
-
         </StackPane>
+    </content>
+</NotificationPane>
 
-        <Button text="Cancel"
-                GridPane.rowIndex="1"
-                GridPane.columnIndex="0"
-                GridPane.columnSpan="2"
-                GridPane.halignment="CENTER"
-                onAction="#closeWindow"/>
 
-    </GridPane>
-</StackPane>
+
+

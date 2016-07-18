@@ -124,6 +124,7 @@ public class SessionController {
     static final Logger logger = LogManager.getLogger(SessionController.class);
 
     public ContextMenu newRepoOptionsMenu;
+    public ContextMenu pushMenu;
 
     public MenuItem cloneOption;
     public MenuItem existingOption;
@@ -310,6 +311,15 @@ public class SessionController {
         removeButton.disableProperty().bind(anythingChecked.not());
 
         legendLink.setFont(new Font(12));
+
+        pushButton.setOnMouseClicked(event -> {
+            if(event.getButton() == MouseButton.SECONDARY){
+                if(pushMenu != null){
+                    pushMenu.show(pushButton, event.getScreenX(), event.getScreenY());
+                }
+            }
+            event.consume();
+        });
 
         Text openExternallyIcon = GlyphsDude.createIcon(FontAwesomeIcon.EXTERNAL_LINK);
         this.openRepoDirButton.setGraphic(openExternallyIcon);
@@ -898,9 +908,75 @@ public class SessionController {
     }
 
     /**
-     * Performs a `git push`
+     * Performs a `git push` on the current branch only
      */
     public void handlePushButton() {
+        try {
+            logger.info("Push button clicked");
+
+            if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
+            if(!this.theModel.getCurrentRepoHelper().hasUnpushedCommits()) throw new NoCommitsToPushException();
+
+            BusyWindow.show();
+            BusyWindow.setLoadingText("Pushing...");
+            Thread th = new Thread(new Task<Void>(){
+                @Override
+                protected Void call() {
+                    boolean pushed = false;
+                    try{
+                        RepositoryMonitor.resetFoundNewChanges(false);
+                        theModel.getCurrentRepoHelper().pushCurrentBranch();
+                        gitStatus();
+                        pushed = true;
+                    }  catch(InvalidRemoteException e){
+                        showNoRemoteNotification();
+                    }
+                    catch(PushToAheadRemoteError e) {
+                        showPushToAheadRemoteNotification(e.isAllRefsRejected());
+                    }
+                    catch (TransportException e) {
+                        if (e.getMessage().contains("git-receive-pack not found")) {
+                            // The error has this message if there is no longer a remote to push to
+                            showLostRemoteNotification();
+                        } else {
+                            showNotAuthorizedNotification(null);
+                        }
+                    } catch(MissingRepoException e){
+                        showMissingRepoNotification();
+                        setButtonsDisabled(true);
+                        refreshRecentReposInDropdown();
+                    } catch(GitAPIException e){
+                        showGenericErrorNotification();
+                        e.printStackTrace();
+                    } catch(Exception e) {
+                        showGenericErrorNotification();
+                        e.printStackTrace();
+                    } finally{
+                        pushButton.setVisible(true);
+                        if (pushed && theModel.getCurrentRepoHelper().hasUnpushedTags()) {
+                            pushTagsButton.setVisible(true);
+                            pushButton.setVisible(false);
+                        }
+                        BusyWindow.hide();
+                    }
+                    return null;
+                }
+            });
+            th.setDaemon(true);
+            th.setName("Git push");
+            th.start();
+        }catch(NoRepoLoadedException e){
+            this.showNoRepoLoadedNotification();
+            setButtonsDisabled(true);
+        }catch(NoCommitsToPushException e){
+            this.showNoCommitsToPushNotification();
+        }
+    }
+
+    /**
+     * Performs a `git push` on the current branch only
+     */
+    public void handlePushAllButton() {
         try {
             logger.info("Push button clicked");
 
@@ -920,9 +996,11 @@ public class SessionController {
                         pushed = true;
                     }  catch(InvalidRemoteException e){
                         showNoRemoteNotification();
-                    } catch(PushToAheadRemoteError e) {
+                    }
+                    catch(PushToAheadRemoteError e) {
                         showPushToAheadRemoteNotification(e.isAllRefsRejected());
-                    } catch (TransportException e) {
+                    }
+                    catch (TransportException e) {
                         if (e.getMessage().contains("git-receive-pack not found")) {
                             // The error has this message if there is no longer a remote to push to
                             showLostRemoteNotification();
@@ -1212,7 +1290,7 @@ public class SessionController {
             FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/CreateDeleteBranchWindow.fxml"));
             fxmlLoader.load();
             CreateDeleteBranchWindowController createDeleteBranchController = fxmlLoader.getController();
-            StackPane fxmlRoot = fxmlLoader.getRoot();
+            NotificationPane fxmlRoot = fxmlLoader.getRoot();
             createDeleteBranchController.showStage(fxmlRoot);
         }catch(IOException e){
             this.showGenericErrorNotification();
@@ -1377,50 +1455,66 @@ public class SessionController {
     }
 
     /**
-     * removes selected repo shortcuts
+     * Shows a popover with all repos in a checklist
      */
     public void chooseRecentReposToDelete() {
         logger.info("Remove repos button clicked");
+
+        // creates a CheckListView with all the repos in it
         List<RepoHelper> repoHelpers = this.theModel.getAllRepoHelpers();
         CheckListView<RepoHelper> repoCheckListView = new CheckListView<>(FXCollections.observableArrayList(repoHelpers));
-        Button removeSelectedButton = new Button("Remove repository shortcuts from Elegit");
 
+        // creates a popover with the list and a button used to remove repo shortcuts
+        Button removeSelectedButton = new Button("Remove repository shortcuts from Elegit");
         PopOver popover = new PopOver(new VBox(repoCheckListView, removeSelectedButton));
         popover.setTitle("Manage Recent Repositories");
 
+        // shows the popover
+        popover.show(this.removeRecentReposButton);
+
         removeSelectedButton.setOnAction(e -> {
-            logger.info("Removed repos");
-            List<RepoHelper> checkedItems = repoCheckListView.getCheckModel().getCheckedItems();
-            this.theModel.removeRepoHelpers(checkedItems);
+            this.handleRemoveReposButton(repoCheckListView.getCheckModel().getCheckedItems());
             popover.hide();
+        });
+    }
 
-            if (!this.theModel.getAllRepoHelpers().isEmpty() && !this.theModel.getAllRepoHelpers().contains(theModel.getCurrentRepoHelper())) {
-                int newIndex = this.theModel.getAllRepoHelpers().size()-1;
-                RepoHelper newCurrentRepo = this.theModel.getAllRepoHelpers()
-                        .get(newIndex);
+    /**
+     * removes selected repo shortcuts
+     * @param checkedItems list of selected repos
+     */
+    private void handleRemoveReposButton(List<RepoHelper> checkedItems) {
+        logger.info("Removed repos");
+        this.theModel.removeRepoHelpers(checkedItems);
 
-                handleRecentRepoMenuItem(newCurrentRepo);
-                repoDropdownSelector.setValue(newCurrentRepo);
+        // If there are repos that aren't the current one, and the current repo is being removed, load a different repo
+        if (!this.theModel.getAllRepoHelpers().isEmpty() && !this.theModel.getAllRepoHelpers().contains(theModel.getCurrentRepoHelper())) {
+            int newIndex = this.theModel.getAllRepoHelpers().size()-1;
+            RepoHelper newCurrentRepo = this.theModel.getAllRepoHelpers()
+                    .get(newIndex);
 
-                this.refreshRecentReposInDropdown();
-            } else if (this.theModel.getAllRepoHelpers().isEmpty()){
-                TreeLayout.stopMovingCells();
-                theModel.resetSessionModel();
-                workingTreePanelView.resetFileStructurePanelView();
-                allFilesPanelView.resetFileStructurePanelView();
-                initialize();
-            }else {
-                try {
-                    theModel.openRepoFromHelper(theModel.getCurrentRepoHelper());
-                } catch (BackingStoreException | IOException | MissingRepoException | ClassNotFoundException e1) {
-                    e1.printStackTrace();
-                }
-            }
+            handleRecentRepoMenuItem(newCurrentRepo);
+            repoDropdownSelector.setValue(newCurrentRepo);
 
             this.refreshRecentReposInDropdown();
-        });
 
-        popover.show(this.removeRecentReposButton);
+            // If there are no repos, reset everything
+        } else if (this.theModel.getAllRepoHelpers().isEmpty()){
+            TreeLayout.stopMovingCells();
+            theModel.resetSessionModel();
+            workingTreePanelView.resetFileStructurePanelView();
+            allFilesPanelView.resetFileStructurePanelView();
+            initialize();
+
+            // The repos have been removed, this line just keeps the current repo loaded
+        }else {
+            try {
+                theModel.openRepoFromHelper(theModel.getCurrentRepoHelper());
+            } catch (BackingStoreException | IOException | MissingRepoException | ClassNotFoundException e1) {
+                e1.printStackTrace();
+            }
+        }
+
+        this.refreshRecentReposInDropdown();
     }
 
     /**
@@ -1904,31 +1998,6 @@ public class SessionController {
             this.notificationPane.show();
         });
     }
-
-    // may be used - method which called these moved to CreateBranchWindowController
-    /*private void showInvalidBranchNameNotification() {
-        logger.warn("Invalid branch name notification");
-        this.notificationPane.setText("That branch name is invalid.");
-
-        this.notificationPane.getActions().clear();
-        this.notificationPane.show();
-    }
-
-    private void showNoCommitsYetNotification() {
-        logger.warn("No commits yet notification");
-        this.notificationPane.setText("You cannot make a branch since your repo has no commits yet. Make a commit first!");
-
-        this.notificationPane.getActions().clear();
-        this.notificationPane.show();
-    }
-
-    private void showGenericGitErrorNotification() {
-        logger.warn("Git error notification");
-        this.notificationPane.setText("Sorry, there was a git error.");
-
-        this.notificationPane.getActions().clear();
-        this.notificationPane.show();
-    }*/
 
     // END: ERROR NOTIFICATIONS ^^^
 
