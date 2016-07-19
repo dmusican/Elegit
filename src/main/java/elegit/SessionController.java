@@ -978,8 +978,7 @@ public class SessionController {
             logger.info("Push button clicked");
 
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
-            // TODO: update this value for all branches
-            if(this.theModel.getCurrentRepoHelper().getAheadCount()<1) throw new NoCommitsToPushException();
+            if(this.theModel.getCurrentRepoHelper().getAheadCountAll()<1) throw new NoCommitsToPushException();
 
             BusyWindow.show();
             BusyWindow.setLoadingText("Pushing...");
@@ -1822,7 +1821,7 @@ public class SessionController {
             if(allRefsRejected){
                 this.notificationPane.setText("The remote repository is ahead of the local. You need to fetch and then merge (pull) before pushing.");
             }else{
-                this.notificationPane.setText("You need to merge in order to push all of your changes.");
+                this.notificationPane.setText("You need to fetch/merge in order to push all of your changes.");
             }
 
             this.notificationPane.getActions().clear();

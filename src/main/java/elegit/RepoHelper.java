@@ -328,12 +328,28 @@ public abstract class RepoHelper {
     }
 
     /**
-     * @return true if there are local commits that haven't been pushed
+     * @return the number of commits that local has that haven't been pushed
      */
     public int getAheadCount() throws IOException {
         return this.branchModel.getCurrentBranch().getStatus().getAheadCount();
     }
 
+    /**
+     * @return the number of commits that all branches are ahead of remote cumulatively
+     * @throws IOException
+     */
+    public int getAheadCountAll() throws IOException {
+        int aheadCount = 0;
+        for (BranchHelper helper : this.branchModel.getLocalBranchesTyped()) {
+            aheadCount += helper.getStatus().getAheadCount();
+        }
+        return aheadCount;
+    }
+
+    /**
+     * @return the number of commits that remote has that haven't been merged in
+     * @throws IOException
+     */
     public int getBehindCount() throws IOException {
         return this.branchModel.getCurrentBranch().getStatus().getBehindCount();
     }
