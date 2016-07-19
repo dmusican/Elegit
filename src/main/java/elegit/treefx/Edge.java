@@ -84,7 +84,7 @@ public class Edge extends Group {
                                 .then(startX.add(TreeLayout.H_SPACING / 2.))
                                 .otherwise(startX))));
 
-        if(source instanceof InvisibleCell || target instanceof InvisibleCell){
+        if(source.getCellType() != Cell.CellType.BOTH || target.getCellType() != Cell.CellType.BOTH){
             path.setDashed(true);
         }
         getChildren().add(path);

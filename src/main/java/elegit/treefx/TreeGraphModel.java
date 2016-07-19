@@ -81,14 +81,6 @@ public class TreeGraphModel{
     }
 
     /**
-     * @param id the id of the cell to check
-     * @return whether the given cell is visible or not
-     */
-    public boolean isVisible(String id){
-        return containsID(id) && !(cellMap.get(id) instanceof InvisibleCell);
-    }
-
-    /**
      * @return the cells added since the last update
      */
     public List<Cell> getAddedCells() {
@@ -136,8 +128,7 @@ public class TreeGraphModel{
 
     /**
      * Adds a new cell with the given ID, time, and labels to the tree whose
-     * parents are the cells with the given IDs. If visible is false, uses InvisibleCell
-     * instead of Cell
+     * parents are the cells with the given IDs.
      * @param newId the id of the new cell
      * @param time the time of the new cell
      * @param displayLabel the displayLabel of the new cell
@@ -148,36 +139,33 @@ public class TreeGraphModel{
     public void addCell(String newId, long time, String displayLabel,
                         List<String> refs, ContextMenu contextMenu,
                         List<String> parentIds, Cell.CellType type){
-        String parent1Id = parentIds.size() > 0 ? parentIds.get(0) : null;
-        String parent2Id = parentIds.size() > 1 ? parentIds.get(1) : null;
+        // Create a list of parents
+        List<Cell> parents = new ArrayList<>();
+        for (String parentId : parentIds) {
+            parents.add(cellMap.get(parentId));
+        }
 
         Cell cell;
         switch(type) {
             case LOCAL:
-                cell = new Cell(newId, time, parent1Id == null ?
-                        null : cellMap.get(parent1Id), parent2Id == null ?
-                        null : cellMap.get(parent2Id), Cell.CellType.LOCAL);
+                cell = new Cell(newId, time, parents, Cell.CellType.LOCAL);
                 break;
             case REMOTE:
-                cell = new Cell(newId, time, parent1Id == null ?
-                        null : cellMap.get(parent1Id), parent2Id == null ?
-                        null : cellMap.get(parent2Id), Cell.CellType.REMOTE);
+                cell = new Cell(newId, time, parents, Cell.CellType.REMOTE);
                 break;
             case BOTH:
             default:
-                cell = new Cell(newId, time, parent1Id == null ?
-                        null : cellMap.get(parent1Id), parent2Id == null ?
-                        null : cellMap.get(parent2Id), Cell.CellType.BOTH);
+                cell = new Cell(newId, time, parents, Cell.CellType.BOTH);
                 break;
         }
         setCellLabels(cell, displayLabel, refs);
         cell.setContextMenu(contextMenu);
         addCell(cell);
 
-        // Note: a commit can have at most two parents, that would
-        // result from a merge, so we only need two of these.
-        if(parent1Id != null) this.addEdge(parent1Id, newId);
-        if(parent2Id != null) this.addEdge(parent2Id, newId);
+        // Note: a merge can be the result of any number of commits if it
+        // is an octopus merge, so we add edges to all of them
+        for (String parentId : parentIds)
+            this.addEdge(parentId, newId);
     }
 
     /**

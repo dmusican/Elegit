@@ -179,33 +179,6 @@ public abstract class CommitTreeModel{
     }
 
     /**
-     * Adds a pseudo-cell of type InvisibleCell to the treeGraph.
-     * @param id the id of the cell to add
-     */
-    public void addInvisibleCommit(String id){
-        CommitHelper invisCommit = sessionModel.getCurrentRepoHelper().getCommit(id);
-
-        if (invisCommit != null) {
-
-            for(CommitHelper c : invisCommit.getParents()){
-                if(!treeGraph.treeGraphModel.containsID(c.getId())){
-                    addInvisibleCommit(c.getId());
-                }
-            }
-
-            this.addCommitToTree(invisCommit, invisCommit.getParents(),
-                    treeGraph.treeGraphModel);
-
-            // If there are tags in the repo that haven't been pushed, allow them to be pushed
-            if (invisCommit.getTags() != null) {
-                if (tagsToBePushed == null)
-                    tagsToBePushed = new ArrayList<>();
-                tagsToBePushed.addAll(invisCommit.getTags());
-            }
-        }
-    }
-
-    /**
      * Gets all commits tracked by this model and adds them to the tree
      * @return true if the tree was updated, otherwise false
      */
@@ -292,7 +265,7 @@ public abstract class CommitTreeModel{
         }
 
         String commitID = RepoHelper.getCommitId(commitHelper);
-        if(graphModel.containsID(commitID) && graphModel.isVisible(commitID)){
+        if(graphModel.containsID(commitID)){
             graphModel.setCellType(commitID, computedType);
             return;
         }

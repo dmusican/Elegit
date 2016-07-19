@@ -86,24 +86,15 @@ public class Cell extends Pane{
     }
 
     /**
-     * Constructs a node with the given ID and a single parent node
+     * Constructs a node with the given ID and the given parents
      * @param cellId the ID of this node
-     * @param parent the parent of this node
+     * @param parents the parent(s) of this cell
+     * @param type the type of cell to add
      */
-    public Cell(String cellId, long time, Cell parent, CellType type){
-        this(cellId, time, parent, null, type);
-    }
-
-    /**
-     * Constructs a node with the given ID and the two given parent nodes
-     * @param cellId the ID of this node
-     * @param parent1 the first parent of this node
-     * @param parent2 the second parent of this node
-     */
-    public Cell(String cellId, long time, Cell parent1, Cell parent2, CellType type){
+    public Cell(String cellId, long time, List<Cell> parents, CellType type){
         this.cellId = cellId;
         this.time = time;
-        this.parents = new ParentCell(this, parent1, parent2);
+        this.parents = new ParentCell(this, parents);
         this.refLabel = new LabelCell();
         this.type = type;
 
@@ -331,6 +322,10 @@ public class Cell extends Pane{
         Platform.runLater(() -> setFillType((Shape) view, CellState.STANDARD));
     }
 
+    public CellType getCellType() {
+        return this.type;
+    }
+
     /**
      * @return the unique ID of this cell
      */
@@ -394,13 +389,11 @@ public class Cell extends Pane{
         /**
          * Sets the given child to have the given parents
          * @param child the child cell
-         * @param mom the first parent
-         * @param dad the second parent
+         * @param parents the list of parents
          */
-        public ParentCell(Cell child, Cell mom, Cell dad){
-            parents = new ArrayList<>();
-            if(mom != null) parents.add(mom);
-            if(dad != null) parents.add(dad);
+        public ParentCell(Cell child, List<Cell> parents) {
+            this.parents = new ArrayList<>();
+            for (Cell parent : parents) this.parents.add(parent);
             this.setChild(child);
         }
 

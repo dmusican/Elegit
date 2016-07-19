@@ -161,17 +161,7 @@ public class CommitTreeController{
     public static void init(CommitTreeModel commitTreeModel){
         RepoHelper repo = commitTreeModel.sessionModel.getCurrentRepoHelper();
 
-        List<String> commitIDs = repo.getAllCommitIDs();
-        for(CommitTreeModel model : allCommitTreeModels){
-            if(model.treeGraph != null){
-                for(String id : commitIDs){
-                    if(!model.containsID(id)){
-                        model.addInvisibleCommit(id);
-                    }
-                }
-                model.treeGraph.update();
-            }
-        }
+        commitTreeModel.treeGraph.update();
 
         setBranchHeads(commitTreeModel, repo);
 
