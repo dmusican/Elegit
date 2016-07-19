@@ -317,9 +317,16 @@ public class Cell extends Pane{
         Platform.runLater(() -> setFillType((Shape) view, state));
     }
 
+    /**
+     * Sets the cell type to local, both or remote and resets edges accordingly
+     * @param type the type of the cell
+     */
     public void setCellType(CellType type) {
         this.type = type;
         Platform.runLater(() -> setFillType((Shape) view, CellState.STANDARD));
+        for (Edge e : edges) {
+            e.resetDashed();
+        }
     }
 
     public CellType getCellType() {

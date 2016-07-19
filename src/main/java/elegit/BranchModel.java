@@ -239,12 +239,6 @@ public class BranchModel {
 
         MergeResult mergeResult = merge.call();
 
-        // If the merge was successful, there was a new commit or fast forward, so there are unpushed
-        // commits. Otherwise, repo helper doesn't need to do anything else.
-        if (mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.MERGED)
-                || mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.FAST_FORWARD)){
-            this.repoHelper.hasUnpushedCommitsProperty.setValue(true);
-        }
         git.close();
 
         return mergeResult;

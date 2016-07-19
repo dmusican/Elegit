@@ -205,13 +205,6 @@ public class SessionController {
         }
 
         String remoteBranch="";
-        BranchTrackingStatus status=null;
-        try {
-            remoteBranch = this.theModel.getCurrentRepoHelper().getBranchModel().getCurrentRemoteBranch();
-            status = BranchTrackingStatus.of(this.theModel.getCurrentRepo(), localBranch);
-        } catch (IOException e) {
-            // Startup should catch any chance of this
-        }
         if (remoteBranch==null) remoteBranch = "N/A";
         update = !remoteBranch.equals(currentRemoteTrackingBranchText.getText());
         if (update) {
@@ -222,26 +215,28 @@ public class SessionController {
 
         // Ahead/behind count
         int ahead=0, behind=0;
+        try {
+            ahead = this.theModel.getCurrentRepoHelper().getAheadCount();
+            behind = this.theModel.getCurrentRepoHelper().getBehindCount();
+        } catch (IOException e) {
+            this.showGenericErrorNotification();
+        }
         String statusText="Up to date.";
-        if (status!=null && remoteBranch!=null) {
-            behind = status.getBehindCount();
-            ahead = status.getAheadCount();
-            if (ahead >0) {
-                statusText="Ahead "+ahead+" commit";
-                if (ahead > 1)
-                    statusText+="s";
-                if (behind > 0) {
-                    statusText += " and behind " + behind + " commit";
-                    if (behind > 1)
-                        statusText+="s";
-                }
-                statusText+=".";
-            } else if (behind > 0) {
-                statusText = "Behind " + behind + " commit";
+        if (ahead >0) {
+            statusText="Ahead "+ahead+" commit";
+            if (ahead > 1)
+                statusText+="s";
+            if (behind > 0) {
+                statusText += " and behind " + behind + " commit";
                 if (behind > 1)
                     statusText+="s";
-                statusText+=".";
             }
+            statusText+=".";
+        } else if (behind > 0) {
+            statusText = "Behind " + behind + " commit";
+            if (behind > 1)
+                statusText+="s";
+            statusText+=".";
         }
         update = !statusText.equals(branchStatusText.getText());
         Color statusColor = statusText.equals("Up to date.") ? Color.FORESTGREEN : Color.FIREBRICK;
@@ -850,6 +845,10 @@ public class SessionController {
                         // Now clear the tag text and a view reload ( or `git status`) to show that something happened
                         tagNameField.clear();
                         gitStatus();
+                        if (theModel.getCurrentRepoHelper().getAheadCount()<1) {
+                            pushTagsButton.setVisible(true);
+                            pushButton.setVisible(false);
+                        }
                     }catch(JGitInternalException e){
                         showGenericErrorNotification();
                         e.printStackTrace();
@@ -878,11 +877,6 @@ public class SessionController {
                     catch(Exception e) {
                         showGenericErrorNotification();
                         e.printStackTrace();
-                    }
-
-                    if (!theModel.getCurrentRepoHelper().hasUnpushedCommits()) {
-                        pushTagsButton.setVisible(true);
-                        pushButton.setVisible(false);
                     }
                     tagNameField.setText("");
                     clearSelectedCommit();
@@ -916,7 +910,7 @@ public class SessionController {
             logger.info("Push button clicked");
 
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
-            if(!this.theModel.getCurrentRepoHelper().hasUnpushedCommits()) throw new NoCommitsToPushException();
+            if(this.theModel.getCurrentRepoHelper().getAheadCount()<1) throw new NoCommitsToPushException();
 
             BusyWindow.show();
             BusyWindow.setLoadingText("Pushing...");
@@ -971,18 +965,21 @@ public class SessionController {
             setButtonsDisabled(true);
         }catch(NoCommitsToPushException e){
             this.showNoCommitsToPushNotification();
+        }catch(IOException e) {
+            this.showGenericErrorNotification();
         }
     }
 
     /**
-     * Performs a `git push` on the current branch only
+     * Performs a `git push` on all branches
      */
     public void handlePushAllButton() {
         try {
             logger.info("Push button clicked");
 
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
-            if(!this.theModel.getCurrentRepoHelper().hasUnpushedCommits()) throw new NoCommitsToPushException();
+            // TODO: update this value for all branches
+            if(this.theModel.getCurrentRepoHelper().getAheadCount()<1) throw new NoCommitsToPushException();
 
             BusyWindow.show();
             BusyWindow.setLoadingText("Pushing...");
@@ -1037,6 +1034,8 @@ public class SessionController {
             setButtonsDisabled(true);
         }catch(NoCommitsToPushException e){
             this.showNoCommitsToPushNotification();
+        }catch(IOException e) {
+            this.showGenericErrorNotification();
         }
     }
 

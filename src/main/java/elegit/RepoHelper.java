@@ -4,18 +4,12 @@ import com.jcraft.jsch.*;
 import elegit.treefx.Cell;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Scene;
-import javafx.stage.Modality;
-import javafx.stage.Stage;
 import elegit.exceptions.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.controlsfx.control.NotificationPane;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
-import org.eclipse.jgit.api.errors.RefAlreadyExistsException;
 import org.eclipse.jgit.ignore.IgnoreNode;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.revplot.PlotCommitList;
@@ -35,8 +29,6 @@ import java.net.URISyntaxException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * The abstract RepoHelper class, used for interacting with a repository.
@@ -68,7 +60,6 @@ public abstract class RepoHelper {
     private BranchModel branchModel;
 
     public BooleanProperty hasRemoteProperty;
-    public BooleanProperty hasUnpushedCommitsProperty;
     public BooleanProperty hasUnmergedCommitsProperty;
     public BooleanProperty hasUnpushedTagsProperty;
 
@@ -212,7 +203,6 @@ public abstract class RepoHelper {
         hasRemoteProperty = new SimpleBooleanProperty(!getLinkedRemoteRepoURLs().isEmpty());
 
         // This should be if the remote/local heads are at different places...
-        hasUnpushedCommitsProperty = new SimpleBooleanProperty(getAllCommitIDs().size() > remoteCommits.size());
         hasUnmergedCommitsProperty = new SimpleBooleanProperty(this.checkUnmergedCommits());
 
         hasUnpushedTagsProperty = new SimpleBooleanProperty();
@@ -340,8 +330,12 @@ public abstract class RepoHelper {
     /**
      * @return true if there are local commits that haven't been pushed
      */
-    public boolean hasUnpushedCommits() {
-        return hasUnpushedCommitsProperty.get();
+    public int getAheadCount() throws IOException {
+        return this.branchModel.getCurrentBranch().getStatus().getAheadCount();
+    }
+
+    public int getBehindCount() throws IOException {
+        return this.branchModel.getCurrentBranch().getStatus().getBehindCount();
     }
 
     /**
@@ -382,8 +376,6 @@ public abstract class RepoHelper {
         } catch (IOException e) {
             // This shouldn't occur once we have the repo up and running.
         }
-
-        this.hasUnpushedCommitsProperty.set(true);
     }
 
     /**
@@ -430,6 +422,7 @@ public abstract class RepoHelper {
 
         for(PushResult result : pushResult) {
             for(RemoteRefUpdate remoteRefUpdate : result.getRemoteUpdates()) {
+                System.out.println(remoteRefUpdate.getMessage());
                 if(!remoteRefUpdate.getStatus().equals(RemoteRefUpdate.Status.OK)) {
                     throw new PushToAheadRemoteError(false);
                 }
@@ -508,8 +501,6 @@ public abstract class RepoHelper {
         } catch (IOException e) {
             // This shouldn't occur once we have the repo up and running.
         }
-
-        this.hasUnpushedCommitsProperty.set(false);
     }
 
     /**
@@ -626,7 +617,6 @@ public abstract class RepoHelper {
 
         MergeResult.MergeStatus status = result.getMergeStatus();
         this.hasUnmergedCommitsProperty.set(status == MergeResult.MergeStatus.ABORTED || status == MergeResult.MergeStatus.CHECKOUT_CONFLICT);
-        this.hasUnpushedCommitsProperty.set(this.hasUnpushedCommits() || status == MergeResult.MergeStatus.MERGED);
         if (status == MergeResult.MergeStatus.CONFLICTING) throw new ConflictingFilesException(result.getConflicts());
         //return result.getMergeStatus().isSuccessful();
         return status;
@@ -659,8 +649,6 @@ public abstract class RepoHelper {
         } catch (IOException e) {
             // This shouldn't occur once we have the repo up and running.
         }
-
-        this.hasUnpushedCommitsProperty.set(true);
     }
 
     /**

@@ -30,7 +30,7 @@ public class CommitTreeScrollPane extends ScrollPane{
                 // bash it with repetition. However, more checks are needed
                 // to avoid an infinite loop.
                 double value = newValue.doubleValue()>1 ? 1 : newValue.doubleValue();
-                while (this.getVvalue() != value)
+                for (int i=0; i<3; i++)
                     this.vvalueProperty().setValue(value);
             }
         });

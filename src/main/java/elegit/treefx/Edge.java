@@ -132,4 +132,11 @@ public class Edge extends Group {
     public Cell getSource() { return this.source; }
     public Cell getTarget() { return this.target; }
 
+    public void resetDashed() {
+        if(source.getCellType() != Cell.CellType.BOTH || target.getCellType() != Cell.CellType.BOTH)
+            path.setDashed(true);
+        else
+            path.setDashed(false);
+    }
+
 }
