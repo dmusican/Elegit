@@ -19,13 +19,21 @@ public class CommitTreeScrollPane extends ScrollPane{
     // The number of horizontally arranged items present in the scroll panes
     private static int numItems = 1;
 
-    private static final DoubleProperty vPos = new SimpleDoubleProperty(0.0);
+    private static final DoubleProperty vPos = new SimpleDoubleProperty(-1.0);
 
     public CommitTreeScrollPane(Node node) {
         super(node);
 
-        this.vvalueProperty().addListener((observable1, oldValue1, newValue1) -> vPos.setValue(newValue1));
-        vPos.addListener((observable1, oldValue1, newValue1) -> this.vvalueProperty().setValue(newValue1));
+        vPos.addListener((observable, oldValue, newValue) -> {
+            if (newValue.doubleValue() != -1) {
+                // For some reason setVvalue doesn't take hold unless you
+                // bash it with repetition. However, more checks are needed
+                // to avoid an infinite loop.
+                double value = newValue.doubleValue()>1 ? 1 : newValue.doubleValue();
+                while (this.getVvalue() != value)
+                    this.vvalueProperty().setValue(value);
+            }
+        });
 
         NumItemsProperty.addListener((observable, oldValue, newValue) -> numItems = newValue.intValue());
     }
@@ -48,5 +56,6 @@ public class CommitTreeScrollPane extends ScrollPane{
             double offset = ratio >= 0.5 ? 1.0/numItems : -1.0/numItems;
             vPos.set(1-(ratio+offset));
         }
+        vPos.setValue(-1.0);
     }
 }

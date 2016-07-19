@@ -186,6 +186,7 @@ public class SessionController {
      * whether or not there are remote changes to fetch
      */
     private void updateStatusText(){
+        if (this.theModel.getCurrentRepoHelper()==null) return;
         boolean update;
 
         update = RepositoryMonitor.hasFoundNewRemoteChanges.get();
