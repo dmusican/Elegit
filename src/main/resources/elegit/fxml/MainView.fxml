@@ -343,6 +343,24 @@
             </HBox>
         </content>
     </NotificationPane>
+
+    <VBox fx:id="NewNotifications"
+          id="notification"
+          AnchorPane.bottomAnchor="0.0">
+        <AnchorPane prefWidth="1200"
+                    fx:id="latestNotification">
+            <Text   AnchorPane.leftAnchor="3"
+                    AnchorPane.bottomAnchor="0"
+                    fx:id="latestNotificationText">Some text</Text>
+            <ImageView  AnchorPane.rightAnchor="3"
+                        AnchorPane.bottomAnchor="3"
+                        fitHeight="10"
+                        fitWidth="10">
+                <Image url="@../images/graycloud.png"/>
+            </ImageView>
+        </AnchorPane>
+    </VBox>
+
     <stylesheets>
         <URL value="@../css/BaseStyle.css"/>
     </stylesheets>

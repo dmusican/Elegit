@@ -30,6 +30,12 @@
     -fx-background-color: -fx-button-select-fill;
 }
 
+#notification {
+    -fx-stroke-line-cap: round;
+    -fx-border-color: linear-gradient(from 0px 0px to 1200px 0px, -fx-background-default 0%, #555555 2%, #555555 98%, -fx-background-default 100%);;
+    -fx-border-width: 1 0 0 0;
+}
+
 .tree-cell:selected {
   -fx-background-color: #BFBFBF;
 }
