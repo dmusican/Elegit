@@ -4,10 +4,8 @@ import javafx.application.Platform;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.ProgressIndicator;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
@@ -48,7 +46,7 @@ public class BusyWindow{
 
     // link to .gif loading indicator creator: http://www.ajaxload.info
     private static Parent getRootOfScene(){
-        ImageView img = new ImageView(new Image("/elegit/loading.gif"));
+        ImageView img = new ImageView(new Image("/elegit/images/loading.gif"));
         VBox parent = new VBox(img, loadingMessage);
         parent.setSpacing(20);
         parent.setAlignment(Pos.CENTER);

@@ -85,7 +85,7 @@
                                     fitHeight="120"
                                     fitWidth="150"
                                     opacity="0.2">
-                                <Image url="@folder.png"/>
+                                <Image url="@../images/folder.png"/>
                             </ImageView>
                         </StackPane>
 
@@ -119,7 +119,7 @@
                                     fitWidth="175"
                                     opacity="0.2"
                                     preserveRatio="true">
-                                <Image url="@graycloud.png"/>
+                                <Image url="@../images/graycloud.png"/>
                             </ImageView>
                         </StackPane>
 
@@ -158,7 +158,7 @@
                                             fitWidth="137.5"
                                             opacity="0.25"
                                             preserveRatio="true">
-                                        <Image url="@repository.png"/>
+                                        <Image url="@../images/repository.png"/>
                                     </ImageView>
                                 </StackPane>
                                 <VBox   alignment="CENTER"
@@ -187,7 +187,7 @@
                             <ImageView  fitHeight="10"
                                         fitWidth="250"
                                         opacity=".4">
-                                <Image  url="@line.png"/>
+                                <Image  url="@../images/line.png"/>
                             </ImageView>
                             <VBox   alignment="CENTER"
                                     spacing="5">
