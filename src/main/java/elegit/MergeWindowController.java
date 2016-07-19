@@ -177,7 +177,7 @@ public class MergeWindowController {
         try{
             logger.info("Merge from fetch button clicked");
             if(sessionModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
-            if(!sessionModel.getCurrentRepoHelper().hasUnmergedCommits()) throw new NoCommitsToMergeException();
+            if(sessionModel.getCurrentRepoHelper().getBehindCount()<1) throw new NoCommitsToMergeException();
 
             BusyWindow.show();
             BusyWindow.setLoadingText("Merging...");
@@ -229,6 +229,8 @@ public class MergeWindowController {
             Main.sessionController.setButtonsDisabled(true);
         }catch(NoCommitsToMergeException e){
             this.showNoCommitsToMergeNotification();
+        }catch(IOException e) {
+            this.showGenericErrorNotification();
         }
     }
 

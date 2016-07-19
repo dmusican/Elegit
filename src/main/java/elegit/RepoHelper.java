@@ -60,7 +60,6 @@ public abstract class RepoHelper {
     private BranchModel branchModel;
 
     public BooleanProperty hasRemoteProperty;
-    public BooleanProperty hasUnmergedCommitsProperty;
     public BooleanProperty hasUnpushedTagsProperty;
 
     static final Logger logger = LogManager.getLogger();
@@ -201,9 +200,6 @@ public abstract class RepoHelper {
         this.unpushedTags = new ArrayList<>();
 
         hasRemoteProperty = new SimpleBooleanProperty(!getLinkedRemoteRepoURLs().isEmpty());
-
-        // This should be if the remote/local heads are at different places...
-        hasUnmergedCommitsProperty = new SimpleBooleanProperty(this.checkUnmergedCommits());
 
         hasUnpushedTagsProperty = new SimpleBooleanProperty();
 
@@ -368,11 +364,6 @@ public abstract class RepoHelper {
         }
         return hasUnpushedTagsProperty.get();
     }
-
-    /**
-     * @return true if there are remote commits that haven't been merged into local
-     */
-    public boolean hasUnmergedCommits() { return checkUnmergedCommits(); }
 
     /**
      * Commits changes to the repository.
@@ -598,7 +589,6 @@ public abstract class RepoHelper {
         }
 
         this.branchModel.updateRemoteBranches();
-        this.hasUnmergedCommitsProperty.set(this.hasUnmergedCommits() || !result.getTrackingRefUpdates().isEmpty());
         return !result.getTrackingRefUpdates().isEmpty();
     }
 
@@ -637,7 +627,6 @@ public abstract class RepoHelper {
         }
 
         MergeResult.MergeStatus status = result.getMergeStatus();
-        this.hasUnmergedCommitsProperty.set(status == MergeResult.MergeStatus.ABORTED || status == MergeResult.MergeStatus.CHECKOUT_CONFLICT);
         if (status == MergeResult.MergeStatus.CONFLICTING) throw new ConflictingFilesException(result.getConflicts());
         //return result.getMergeStatus().isSuccessful();
         return status;
