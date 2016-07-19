@@ -110,7 +110,7 @@ public class FastForwardTest {
         helperFast.getBranchModel().mergeWithBranch(fast_helper);
 
         // Check that Elegit recognizes there are unpushed commits
-        assertEquals(true, helperFast.getAheadCount());
+        assertEquals(true, helperFast.getAheadCount()>0);
 
         // Push changes
         helperFast.pushAll();
@@ -170,7 +170,7 @@ public class FastForwardTest {
         helperFast.getBranchModel().mergeWithBranch(fast_helper);
 
         // Check that Elegit recognizes there are unpushed commits
-        assertEquals(true, helperFast.getAheadCount());
+        assertEquals(true, helperFast.getAheadCount()>0);
 
         // Push changes
         helperFast.pushAll();
