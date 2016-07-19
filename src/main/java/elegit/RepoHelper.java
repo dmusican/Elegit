@@ -331,7 +331,9 @@ public abstract class RepoHelper {
      * @return the number of commits that local has that haven't been pushed
      */
     public int getAheadCount() throws IOException {
-        return this.branchModel.getCurrentBranch().getStatus().getAheadCount();
+        if (this.branchModel.getCurrentBranch().getStatus() != null)
+            return this.branchModel.getCurrentBranch().getStatus().getAheadCount();
+        else return -1;
     }
 
     /**
@@ -341,7 +343,8 @@ public abstract class RepoHelper {
     public int getAheadCountAll() throws IOException {
         int aheadCount = 0;
         for (BranchHelper helper : this.branchModel.getLocalBranchesTyped()) {
-            aheadCount += helper.getStatus().getAheadCount();
+            if (helper.getStatus() != null)
+                aheadCount += helper.getStatus().getAheadCount();
         }
         return aheadCount;
     }
@@ -351,7 +354,9 @@ public abstract class RepoHelper {
      * @throws IOException
      */
     public int getBehindCount() throws IOException {
-        return this.branchModel.getCurrentBranch().getStatus().getBehindCount();
+        if (this.branchModel.getCurrentBranch().getStatus() != null)
+            return this.branchModel.getCurrentBranch().getStatus().getBehindCount();
+        else return -1;
     }
 
     /**
