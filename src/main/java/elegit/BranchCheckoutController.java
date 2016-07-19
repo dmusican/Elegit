@@ -211,50 +211,44 @@ public class BranchCheckoutController {
         }
     }
 
-    public static void checkoutBranch(LocalBranchHelper selectedBranch, SessionModel theSessionModel) {
-        if(selectedBranch == null) return;
-        Thread th = new Thread(new Task<Void>(){
-            @Override
-            protected Void call() {
+    public static boolean checkoutBranch(LocalBranchHelper selectedBranch, SessionModel theSessionModel) {
+        if(selectedBranch == null) return false;
+        try{
+            // This is an edge case for new local repos.
+            //
+            // When a repo is first initialized,the `master` branch is checked-out,
+            //  but it is "unborn" -- it doesn't exist yet in the `refs/heads` folder
+            //  until there are commits.
+            //
+            // (see http://stackoverflow.com/a/21255920/5054197)
+            //
+            // So, check that there are refs in the refs folder (if there aren't, do nothing):
+            String gitDirString = theSessionModel.getCurrentRepo().getDirectory().toString();
+            Path refsHeadsFolder = Paths.get(gitDirString + "/refs/heads");
+            DirectoryStream<Path> pathStream = Files.newDirectoryStream(refsHeadsFolder);
+            Iterator<Path> pathStreamIterator = pathStream.iterator();
 
-                try{
-                    // This is an edge case for new local repos.
-                    //
-                    // When a repo is first initialized,the `master` branch is checked-out,
-                    //  but it is "unborn" -- it doesn't exist yet in the `refs/heads` folder
-                    //  until there are commits.
-                    //
-                    // (see http://stackoverflow.com/a/21255920/5054197)
-                    //
-                    // So, check that there are refs in the refs folder (if there aren't, do nothing):
-                    String gitDirString = theSessionModel.getCurrentRepo().getDirectory().toString();
-                    Path refsHeadsFolder = Paths.get(gitDirString + "/refs/heads");
-                    DirectoryStream<Path> pathStream = Files.newDirectoryStream(refsHeadsFolder);
-                    Iterator<Path> pathStreamIterator = pathStream.iterator();
-
-                    if (pathStreamIterator.hasNext()){ // => There ARE branch refs in the folder
-                        selectedBranch.checkoutBranch();
-                        CommitTreeController.focusCommitInGraph(selectedBranch.getHead());
-                    }
-                    // Reset the branch heads
-                    CommitTreeController.setBranchHeads(CommitTreeController.getCommitTreeModel(), theSessionModel.getCurrentRepoHelper());
-                }catch(CheckoutConflictException e){
-                    showCheckoutConflictsNotification(e.getConflictingPaths());
-                }catch(GitAPIException | IOException e){
-                    showGenericErrorNotification();
-                    e.printStackTrace();
-                }
-                return null;
+            if (pathStreamIterator.hasNext()){ // => There ARE branch refs in the folder
+                selectedBranch.checkoutBranch();
+                CommitTreeController.focusCommitInGraph(selectedBranch.getHead());
             }
-        });
-        th.setDaemon(true);
-        th.setName("Branch Checkout");
-        th.start();
+            // Reset the branch heads
+            CommitTreeController.setBranchHeads(CommitTreeController.getCommitTreeModel(), theSessionModel.getCurrentRepoHelper());
+            return true;
+        }catch(JGitInternalException e) {
+            showJGitInternalError(e);
+        }catch(CheckoutConflictException e){
+            showCheckoutConflictsNotification(e.getConflictingPaths());
+        }catch(GitAPIException | IOException e){
+            showGenericErrorNotification();
+            e.printStackTrace();
+        }
+        return false;
     }
 
     public void handleCheckoutButton() {
-        closeWindow();
-        checkoutBranch(localListView.getSelectionModel().getSelectedItem(), sessionModel);
+        if (checkoutBranch(localListView.getSelectionModel().getSelectedItem(), sessionModel))
+            closeWindow();
     }
 
     /// BEGIN: ERROR NOTIFICATIONS:
@@ -288,6 +282,21 @@ public class BranchCheckoutController {
 
         notificationPane.getActions().clear();
         notificationPane.show();
+    }
+
+    private static void showJGitInternalError(JGitInternalException e) {
+        Platform.runLater(()-> {
+            if (e.getCause().toString().contains("LockFailedException")) {
+                logger.warn("Lock failed warning.");
+                notificationPane.setText("Cannot lock .git/index. If no other git processes are running, manually remove all .lock files.");
+            } else {
+                logger.warn("Generic jgit internal warning.");
+                notificationPane.setText("Sorry, there was a Git error.");
+            }
+
+            notificationPane.getActions().clear();
+            notificationPane.show();
+        });
     }
 
     private void showRefAlreadyExistsNotification() {

@@ -17,6 +17,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.controlsfx.control.NotificationPane;
 import org.controlsfx.control.action.Action;
+import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.errors.NoMergeBaseException;
@@ -154,12 +155,18 @@ public class MergeWindowController {
      * handles the merge button
      */
     public void handleMergeButton() throws GitAPIException, IOException {
-        if(mergeDifLocalBranchCheckBox.isSelected()) {
-            if(!branchDropdownSelector.getSelectionModel().isEmpty()) localBranchMerge();
-            else showSelectBranchNotification();
-        }
-        if(mergeRemoteTrackingCheckBox.isSelected()) {
-            mergeFromFetch();
+        try {
+            if (mergeDifLocalBranchCheckBox.isSelected()) {
+                if (!branchDropdownSelector.getSelectionModel().isEmpty()) localBranchMerge();
+                else showSelectBranchNotification();
+            }
+            if (mergeRemoteTrackingCheckBox.isSelected()) {
+                mergeFromFetch();
+            }
+        } catch (JGitInternalException e) {
+            showJGitInternalError(e);
+        } catch (GitAPIException | IOException e) {
+            showGenericErrorNotification();
         }
     }
 
@@ -455,6 +462,21 @@ public class MergeWindowController {
             Text txt = new Text("Sorry, there was an error.");
             txt.setWrappingWidth(notificationPane.getWidth() / 2.0);
             notificationPane.setGraphic(txt);
+
+            this.notificationPane.getActions().clear();
+            this.notificationPane.show();
+        });
+    }
+
+    private void showJGitInternalError(JGitInternalException e) {
+        Platform.runLater(()-> {
+            if (e.getCause().toString().contains("LockFailedException")) {
+                logger.warn("Lock failed warning.");
+                this.notificationPane.setText("Cannot lock .git/index. If no other git processes are running, manually remove all .lock files.");
+            } else {
+                logger.warn("Generic jgit internal warning.");
+                this.notificationPane.setText("Sorry, there was a Git error.");
+            }
 
             this.notificationPane.getActions().clear();
             this.notificationPane.show();

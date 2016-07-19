@@ -40,6 +40,7 @@ import org.controlsfx.control.PopOver;
 import org.controlsfx.control.action.Action;
 import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.dircache.InvalidPathException;
+import org.eclipse.jgit.errors.LockFailedException;
 import org.eclipse.jgit.lib.BranchTrackingStatus;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
@@ -52,6 +53,7 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.locks.Lock;
 import java.util.prefs.BackingStoreException;
 
 /**
@@ -687,9 +689,8 @@ public class SessionController {
                         theModel.getCurrentRepoHelper().addFilePaths(filePathsToAdd);
                         gitStatus();
 
-                    } catch(JGitInternalException e){
-                        showGenericErrorNotification();
-                        e.printStackTrace();
+                    }catch (JGitInternalException e){
+                        showJGitInternalError(e);
                     } catch (UnableToAddException e) {
                         showCannotAddFileNotification(e.filename);
                     } catch (GitAPIException | IOException e) {
@@ -742,8 +743,7 @@ public class SessionController {
                         gitStatus();
 
                     } catch(JGitInternalException e){
-                        showGenericErrorNotification();
-                        e.printStackTrace();
+                        showJGitInternalError(e);
                     } catch (UnableToRemoveException e) {
                         showCannotRemoveFileNotification(e.filename);
                     } catch (GitAPIException e) {
@@ -850,8 +850,7 @@ public class SessionController {
                             pushButton.setVisible(false);
                         }
                     }catch(JGitInternalException e){
-                        showGenericErrorNotification();
-                        e.printStackTrace();
+                        showJGitInternalError(e);
                     } catch(MissingRepoException e){
                         showMissingRepoNotification();
                         setButtonsDisabled(true);
@@ -1692,6 +1691,21 @@ public class SessionController {
         Platform.runLater(()-> {
             logger.warn("Generic error warning.");
             this.notificationPane.setText("Sorry, there was an error.");
+
+            this.notificationPane.getActions().clear();
+            this.notificationPane.show();
+        });
+    }
+
+    private void showJGitInternalError(JGitInternalException e) {
+        Platform.runLater(()-> {
+            if (e.getCause().toString().contains("LockFailedException")) {
+                logger.warn("Lock failed warning.");
+                this.notificationPane.setText(e.getCause().getMessage()+". If no other git processes are running, manually remove all .lock files.");
+            } else {
+                logger.warn("Generic jgit internal warning.");
+                this.notificationPane.setText("Sorry, there was a Git error.");
+            }
 
             this.notificationPane.getActions().clear();
             this.notificationPane.show();
