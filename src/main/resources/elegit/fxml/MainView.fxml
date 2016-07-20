@@ -345,6 +345,7 @@
         <AnchorPane fx:id="latestNotification"
                     StackPane.alignment="BOTTOM_LEFT"
                     maxHeight="15">
+            <Line AnchorPane.topAnchor="2" id="notificationLine" />
             <Label   AnchorPane.leftAnchor="3"
                     AnchorPane.bottomAnchor="0"
                     fx:id="latestNotificationLabel"
@@ -356,7 +357,7 @@
                         fitWidth="11">
                 <Image url="@../images/notification_basic.png"/>
             </ImageView>
-            <Label fx:id="blob"
+            <Label fx:id="notificationNum"
                    id="notificationNum"
                    AnchorPane.bottomAnchor="6"
                    AnchorPane.rightAnchor="2"

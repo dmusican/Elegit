@@ -15,11 +15,10 @@ import org.apache.logging.log4j.Logger;
 
 /**
  * Controller class for notifications in a given window
- * TODO: implement buttons in notification/popup window for clicking on one?
  */
 public class NotificationController {
 
-    private final static int MIN_SCROLLPANE_HEIGHT = 37;
+    private final static int MIN_SCROLLPANE_HEIGHT = 20;
     private final static int BUTTON_WIDTH = 85;
 
     // FXML elements
@@ -29,7 +28,8 @@ public class NotificationController {
     ScrollPane notificationList;
     AnchorPane notificationListUI;
 
-    Line notificationLine;
+    Line resizeLine;
+    Line separatorLine;
     Button clearAllButton;
     Button minimizeButton;
     Label notificationNum;
@@ -47,10 +47,11 @@ public class NotificationController {
         this.notificationList=(ScrollPane) this.notificationListPane.getChildren().get(0);
         this.notificationListUI=(AnchorPane)this.notificationListPane.getChildren().get(1);
 
-        this.notificationLine = (Line) this.notificationListUI.getChildren().get(0);
+        this.resizeLine = (Line) this.notificationListUI.getChildren().get(0);
+        this.separatorLine = (Line) this.latestNotification.getChildren().get(0);
         this.clearAllButton = (Button) this.notificationListUI.getChildren().get(1);
         this.minimizeButton = (Button) this.notificationListUI.getChildren().get(2);
-        this.notificationNum = (Label) this.latestNotification.getChildren().get(2);
+        this.notificationNum = (Label) this.latestNotification.getChildren().get(3);
 
         initialize();
     }
@@ -63,11 +64,12 @@ public class NotificationController {
         this.notificationListPane.setMouseTransparent(true);
 
         this.latestNotification.setOnMouseClicked(event -> handleNotificationPane(event));
-        this.notificationLine.setOnMouseDragged(event -> handleLineDragged(event));
+        this.resizeLine.setOnMouseDragged(event -> handleLineDragged(event));
         this.minimizeButton.setOnMouseClicked(event -> hideNotificationList());
         this.clearAllButton.setOnMouseClicked(event -> clearAllNotifications());
 
-        this.notificationLine.endXProperty().bind(this.minimizeButton.layoutXProperty().add(BUTTON_WIDTH));
+        this.resizeLine.endXProperty().bind(this.minimizeButton.layoutXProperty().add(BUTTON_WIDTH));
+        this.separatorLine.endXProperty().bind(this.resizeLine.endXProperty());
 
         this.notificationListUI.setPickOnBounds(false);
     }
@@ -78,6 +80,8 @@ public class NotificationController {
      */
     public void handleNotificationPane(MouseEvent e) {
         if (e.getTarget().toString().contains("ImageView")) {
+            toggleNotificationList();
+        } else if (e.getClickCount()>1) {
             toggleNotificationList();
         }
     }
@@ -141,7 +145,7 @@ public class NotificationController {
                 removeNotification(line);
         });
 
-        ((Label) latestNotification.getChildren().get(0)).setText(notification);
+        ((Label) latestNotification.getChildren().get(1)).setText(notification);
 
         VBox vBox = (VBox) this.notificationList.getContent();
         vBox.getChildren().add(0,line);
@@ -186,7 +190,7 @@ public class NotificationController {
      * @param notificationText the string to set the latest notification text to
      */
     private void setLatestNotificationText(String notificationText) {
-        ((Label) latestNotification.getChildren().get(0)).setText(notificationText);
+        ((Label) latestNotification.getChildren().get(1)).setText(notificationText);
     }
 
     /**
