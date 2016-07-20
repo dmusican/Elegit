@@ -6,6 +6,7 @@
 <?import org.controlsfx.control.NotificationPane?>
 <?import java.net.URL?>
 <?import javafx.scene.image.*?>
+<?import javafx.scene.shape.*?>
 <?import javafx.scene.text.Font?>
 
 <AnchorPane
@@ -336,30 +337,39 @@
                                         text="What do all these symbols mean?"
                                         onAction="#showLegend"/>
                         </VBox>
-
-
                     </GridPane>
                 </VBox>
             </HBox>
         </content>
     </NotificationPane>
 
-    <VBox fx:id="NewNotifications"
-          id="notification"
-          AnchorPane.bottomAnchor="0.0">
-        <AnchorPane prefWidth="1200"
-                    fx:id="latestNotification">
+    <StackPane fx:id="notificationPane1"
+          AnchorPane.bottomAnchor="0.0"
+          prefWidth="1200">
+        <AnchorPane fx:id="latestNotification"
+                    StackPane.alignment="BOTTOM_LEFT"
+                    maxHeight="15">
             <Text   AnchorPane.leftAnchor="3"
                     AnchorPane.bottomAnchor="0"
                     fx:id="latestNotificationText">Some text</Text>
-            <ImageView  AnchorPane.rightAnchor="3"
-                        AnchorPane.bottomAnchor="3"
-                        fitHeight="10"
-                        fitWidth="10">
-                <Image url="@../images/graycloud.png"/>
+            <ImageView  AnchorPane.rightAnchor="5"
+                        AnchorPane.bottomAnchor="2"
+                        fitHeight="11"
+                        fitWidth="11">
+                <Image url="@../images/notification_basic.png"/>
             </ImageView>
         </AnchorPane>
-    </VBox>
+        <AnchorPane fx:id="notificationList"
+            prefWidth="1200">
+            <Rectangle width="1200" height="1"
+                       AnchorPane.topAnchor="0"
+                       id="notificationLine"/>
+            <ScrollPane prefWidth="1200"
+                        AnchorPane.topAnchor="1">
+                <Text>random item</Text>
+            </ScrollPane>
+        </AnchorPane>
+    </StackPane>
 
     <stylesheets>
         <URL value="@../css/BaseStyle.css"/>

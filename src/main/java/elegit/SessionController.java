@@ -8,6 +8,7 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.concurrent.Task;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Side;
@@ -133,6 +134,13 @@ public class SessionController {
 
     public Hyperlink legendLink;
 
+    // Notification pane
+    NotificationController notificationController;
+
+    @FXML StackPane notificationPane1;
+    @FXML AnchorPane latestNotification;
+    @FXML AnchorPane notificationList;
+
 
     /**
      * Initializes the environment by obtaining the model
@@ -181,6 +189,9 @@ public class SessionController {
         } catch (GitAPIException | IOException e) {
             e.printStackTrace();
         }
+
+        notificationController = new NotificationController(notificationPane1, latestNotification, notificationList);
+        notificationController.initialize();
     }
 
     /**
@@ -462,6 +473,13 @@ public class SessionController {
             if (notificationPane.isShowing()) notificationPane.hide();
         });
         notificationPane.setShowFromTop(false);
+
+        notificationPane1.setOnMouseClicked(event -> {
+            notificationController.handleNotificationPane(event);
+        });
+        notificationPane1.setOnMouseDragged(event -> {
+            notificationController.handleNotificationPane(event);
+        });
     }
 
     /**
@@ -2013,7 +2031,6 @@ public class SessionController {
     }
 
     // END: ERROR NOTIFICATIONS ^^^
-
 
     public void submitLog() {
         try {
