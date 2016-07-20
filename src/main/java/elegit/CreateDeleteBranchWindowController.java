@@ -27,6 +27,7 @@ import java.io.IOException;
 public class CreateDeleteBranchWindowController {
 
     @FXML private NotificationPane notificationPane;
+    @FXML private StackPane notificationPane1;
     @FXML private CheckBox checkoutCheckBox;
     @FXML private TextArea newBranchTextArea;
     @FXML private ComboBox<LocalBranchHelper> localBranchesDropdown;
@@ -39,8 +40,13 @@ public class CreateDeleteBranchWindowController {
     BranchModel branchModel;
     CommitTreeModel localCommitTreeModel;
 
+    NotificationController notificationController;
+
     static final Logger logger = LogManager.getLogger();
 
+    /**
+     * Initialize method called automatically by JavaFX
+     */
     public void initialize() {
         sessionModel = SessionModel.getSessionModel();
         repoHelper = sessionModel.getCurrentRepoHelper();
@@ -66,8 +72,10 @@ public class CreateDeleteBranchWindowController {
             }
         }));
 
-        //init commit tree models
+        // Get the current commit tree models
         localCommitTreeModel = CommitTreeController.getCommitTreeModel();
+
+        this.notificationController = new NotificationController(notificationPane1);
     }
 
     /**
@@ -249,12 +257,7 @@ public class CreateDeleteBranchWindowController {
 
     private void showInvalidBranchNameNotification() {
         logger.warn("Invalid branch name notification");
-        Text txt = new Text("That branch name is invalid.");
-        txt.setWrappingWidth(notificationPane.getWidth() / 2.0);
-        notificationPane.setGraphic(txt);
-
-        this.notificationPane.getActions().clear();
-        this.notificationPane.show();
+        notificationController.addNotification("That branch name is invalid.");
     }
 
     private void showNoCommitsYetNotification() {

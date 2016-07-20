@@ -72,6 +72,7 @@ public class NotificationController {
         this.separatorLine.endXProperty().bind(this.resizeLine.endXProperty());
 
         this.notificationListUI.setPickOnBounds(false);
+        this.notificationPane.setPickOnBounds(false);
     }
 
     /**
