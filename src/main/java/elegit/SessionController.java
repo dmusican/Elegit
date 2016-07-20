@@ -138,9 +138,6 @@ public class SessionController {
     NotificationController notificationController;
 
     @FXML StackPane notificationPane1;
-    @FXML AnchorPane latestNotification;
-    @FXML StackPane notificationListPane;
-    @FXML ScrollPane notificationList;
 
 
     /**
@@ -191,8 +188,7 @@ public class SessionController {
             e.printStackTrace();
         }
 
-        notificationController = new NotificationController(notificationPane1, latestNotification, notificationListPane, notificationList);
-        notificationController.initialize();
+        notificationController = new NotificationController(notificationPane1);
     }
 
     /**
@@ -475,13 +471,6 @@ public class SessionController {
             if (this.notificationController.isListPaneVisible()) this.notificationController.toggleNotificationList();
         });
         notificationPane.setShowFromTop(false);
-
-        notificationPane1.setOnMouseClicked(event -> {
-            notificationController.handleNotificationPane(event);
-        });
-        notificationPane1.setOnMouseDragged(event -> {
-            notificationController.handleNotificationPane(event);
-        });
     }
 
     /**
@@ -1996,6 +1985,7 @@ public class SessionController {
         Platform.runLater(() -> {
             logger.warn("No commits fetched warning");
             this.notificationPane.setText("No new commits were fetched");
+            this.notificationController.addNotification("No new commits were fetched");
 
             this.notificationPane.getActions().clear();
             this.notificationPane.show();

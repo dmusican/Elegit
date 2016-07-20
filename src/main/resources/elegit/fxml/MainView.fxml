@@ -349,9 +349,11 @@
         <AnchorPane fx:id="latestNotification"
                     StackPane.alignment="BOTTOM_LEFT"
                     maxHeight="15">
-            <Text   AnchorPane.leftAnchor="3"
+            <Label   AnchorPane.leftAnchor="3"
                     AnchorPane.bottomAnchor="0"
-                    fx:id="latestNotificationText">Some text</Text>
+                    fx:id="latestNotificationLabel"
+                     id="notification"
+                    text=""/>
             <ImageView  AnchorPane.rightAnchor="5"
                         AnchorPane.bottomAnchor="2"
                         fitHeight="11"
@@ -367,20 +369,21 @@
                     <content>
                         <VBox prefWidth="1175">
                             <children>
-                                <Label wrapText="true"
-                                       text="Sample text of a notification that has a really long message that might stretch all the way to the end or something and then continue after that onto the next line and just go on and on and on, maybe this will be long enough."/>
+
                             </children>
                         </VBox>
                     </content>
                 </ScrollPane>
                 <AnchorPane>
-                    <Line endX="1200.0" AnchorPane.topAnchor="0.0" id="notificationLine" />
-                    <Button AnchorPane.rightAnchor="10" AnchorPane.bottomAnchor="5" mnemonicParsing="false" prefHeight="22.0" prefWidth="75.0"
-                            id="codeButton"
-                            text="Minimize"/>
-                    <Button AnchorPane.leftAnchor="10" AnchorPane.bottomAnchor="5" mnemonicParsing="false" prefHeight="22.0" prefWidth="75.0"
-                            id="codeButton"
-                            text="Clear All"/>
+                    <children>
+                        <Line endX="1200.0" AnchorPane.topAnchor="0.0" id="notificationLine" />
+                        <Button AnchorPane.leftAnchor="10" AnchorPane.bottomAnchor="5" mnemonicParsing="false" prefHeight="22.0" prefWidth="75.0"
+                                id="codeButton"
+                                text="Clear All"/>
+                        <Button AnchorPane.rightAnchor="10" AnchorPane.bottomAnchor="5" mnemonicParsing="false" prefHeight="22.0" prefWidth="75.0"
+                                id="codeButton"
+                                text="Minimize"/>
+                    </children>
                 </AnchorPane>
             </children>
         </StackPane>

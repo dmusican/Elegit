@@ -1,12 +1,23 @@
 package elegit;
 
+import de.jensd.fx.glyphs.GlyphsDude;
+import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
+import javafx.scene.Node;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
+import javafx.scene.shape.Line;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Controller class for notifications in a given window
@@ -21,33 +32,46 @@ public class NotificationController {
     AnchorPane latestNotification;
     StackPane notificationListPane;
     ScrollPane notificationList;
+    AnchorPane notificationListUI;
 
-    private NotificationModel notificationModel;
+    Line notificationLine;
+    Button clearAllButton;
+    Button minimizeButton;
 
     static final Logger logger = LogManager.getLogger(SessionController.class);
 
     /**
      * Constructor method, gives the controller access to its various panes
-     * @param notificationPane the pane for all notification elements
-     * @param latestNotification the bar at the bottom for the latest notification
-     * @param notificationListPane the pane with all elements of the expanded view of notifications
-     * @param notificationList the expanded pane to scroll through all notifications
+     * @param notificationPane: the pane containing all notifications
      */
-    public NotificationController(StackPane notificationPane, AnchorPane latestNotification, StackPane notificationListPane, ScrollPane notificationList) {
+    public NotificationController(StackPane notificationPane) {
         this.notificationPane=notificationPane;
-        this.latestNotification=latestNotification;
-        this.notificationListPane=notificationListPane;
-        this.notificationList=notificationList;
+        this.latestNotification=(AnchorPane) notificationPane.getChildren().get(0);
+        this.notificationListPane=(StackPane) notificationPane.getChildren().get(1);
+        this.notificationList=(ScrollPane) this.notificationListPane.getChildren().get(0);
+        this.notificationListUI=(AnchorPane)this.notificationListPane.getChildren().get(1);
+
+        this.notificationLine=(Line) this.notificationListUI.getChildren().get(0);
+        this.clearAllButton = (Button) this.notificationListUI.getChildren().get(1);
+        this.minimizeButton = (Button) this.notificationListUI.getChildren().get(2);
+
+        initialize();
     }
 
     /**
-     * Initializes the environment
+     * Initializes the environment and sets up event handlers
      */
     public void initialize() {
-        this.notificationModel = new NotificationModel();
-
         this.notificationListPane.setVisible(false);
         this.notificationListPane.setMouseTransparent(true);
+
+        this.latestNotification.setOnMouseClicked(event -> handleNotificationPane(event));
+        this.notificationLine.setOnMouseDragged(event -> handleLineDragged(event));
+        this.notificationListPane.setOnMouseClicked(event -> handleListClick(event));
+        this.minimizeButton.setOnMouseClicked(event -> hideNotificationList());
+        this.clearAllButton.setOnMouseClicked(event -> clearAllNotifications());
+
+        this.notificationListUI.setPickOnBounds(false);
     }
 
     /**
@@ -55,24 +79,29 @@ public class NotificationController {
      * @param e the mouse event to handle
      */
     public void handleNotificationPane(MouseEvent e) {
-        if (e.getTarget().toString().contains("Line")) {
-            switch (e.getEventType().toString()) {
-                case "MOUSE_DRAGGED":
-                    if (notificationList.getHeight()<MIN_SCROLLPANE_HEIGHT || e.getSceneY()>(notificationList.getScene().getHeight()-MIN_SCROLLPANE_HEIGHT)) {
-                        notificationList.setPrefHeight(MIN_SCROLLPANE_HEIGHT);
-                        hideNotificationList();
-                        break;
-                    } else if (e.getSceneY()<(notificationList.getScene().getHeight()-MIN_SCROLLPANE_HEIGHT)) {
-                        showNotificationList();
-                    }
-                    notificationList.setPrefHeight(notificationList.getHeight()-e.getY());
-                    break;
-                default:
-                    break;
-            }
-        }
-        else if (e.getTarget().toString().contains("ImageView") || e.getTarget().toString().contains("Minimize")) {
+        if (e.getTarget().toString().contains("ImageView")) {
             toggleNotificationList();
+        }
+    }
+
+    /**
+     * Handler method for resizing the extended notification window
+     * @param e mouse event for dragging
+     */
+    public void handleLineDragged(MouseEvent e) {
+        if (notificationList.getHeight()<MIN_SCROLLPANE_HEIGHT || e.getSceneY()>(notificationList.getScene().getHeight()-MIN_SCROLLPANE_HEIGHT)) {
+            notificationList.setPrefHeight(MIN_SCROLLPANE_HEIGHT);
+            hideNotificationList();
+            return;
+        } else if (e.getSceneY()<(notificationList.getScene().getHeight()-MIN_SCROLLPANE_HEIGHT)) {
+            showNotificationList();
+        }
+        notificationList.setPrefHeight(notificationList.getHeight()-e.getY());
+    }
+
+    public void handleListClick(MouseEvent e) {
+        switch (e.getTarget().toString()) {
+            default: System.out.println(e);
         }
     }
 
@@ -104,5 +133,61 @@ public class NotificationController {
      */
     public boolean isListPaneVisible() {
         return this.notificationListPane.isVisible();
+    }
+
+    /**
+     * Adds a notification to the list of notifications
+     * @param notification the notification string to add
+     */
+    public void addNotification(String notification) {
+        Label line = new Label(notification);
+        line.setId("notification");
+        line.setGraphic(GlyphsDude.createIcon(FontAwesomeIcon.TIMES_CIRCLE));
+        line.setOnMouseClicked(event -> {
+            System.out.println(event);
+            if (event.getTarget().equals(line.getGraphic()))
+                removeNotification(line);
+        });
+
+        ((Label) latestNotification.getChildren().get(0)).setText(notification);
+
+        VBox vBox = (VBox) this.notificationList.getContent();
+        vBox.getChildren().add(0,line);
+    }
+
+    /**
+     * Removes a given notification
+     * @param notification the notification label to remove
+     */
+    public void removeNotification(Label notification) {
+        VBox vBox = (VBox) this.notificationList.getContent();
+
+        // Reset the latest notification text if needed
+        if (vBox.getChildren().indexOf(notification)==0) {
+            if (vBox.getChildren().size() > 1)
+                setLatestNotificationText(((Label) vBox.getChildren().get(1)).getText());
+            else
+                setLatestNotificationText("");
+        }
+
+        vBox.getChildren().remove(notification);
+    }
+
+    /**
+     * Helper method that clears all notifications
+     */
+    private void clearAllNotifications() {
+        VBox vBox = (VBox) this.notificationList.getContent();
+
+        vBox.getChildren().clear();
+        setLatestNotificationText("");
+    }
+
+    /**
+     * Helper method to set the latest notification text
+     * @param notificationText the string to set the latest notification text to
+     */
+    private void setLatestNotificationText(String notificationText) {
+        ((Label) latestNotification.getChildren().get(0)).setText(notificationText);
     }
 }
