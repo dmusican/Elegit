@@ -345,7 +345,8 @@
 
     <StackPane fx:id="notificationPane1"
           AnchorPane.bottomAnchor="0.0"
-          prefWidth="1200">
+          AnchorPane.rightAnchor="0.0"
+          AnchorPane.leftAnchor="0.0">
         <AnchorPane fx:id="latestNotification"
                     StackPane.alignment="BOTTOM_LEFT"
                     maxHeight="15">
@@ -354,20 +355,26 @@
                     fx:id="latestNotificationLabel"
                      id="notification"
                     text=""/>
-            <ImageView  AnchorPane.rightAnchor="5"
+            <ImageView  AnchorPane.rightAnchor="8"
                         AnchorPane.bottomAnchor="2"
                         fitHeight="11"
                         fitWidth="11">
                 <Image url="@../images/notification_basic.png"/>
             </ImageView>
+            <Label fx:id="blob"
+                   id="notificationNum"
+                   AnchorPane.bottomAnchor="6"
+                   AnchorPane.rightAnchor="2"
+                   StackPane.alignment="TOP_RIGHT"
+                   text=""/>
         </AnchorPane>
 
-        <StackPane fx:id="notificationListPane" prefWidth="1200.0">
+        <StackPane fx:id="notificationListPane">
             <children>
                 <ScrollPane fx:id="notificationList"
-                            prefWidth="1200.0" prefHeight="100">
+                            prefHeight="100">
                     <content>
-                        <VBox prefWidth="1175">
+                        <VBox>
                             <children>
 
                             </children>
@@ -376,7 +383,7 @@
                 </ScrollPane>
                 <AnchorPane>
                     <children>
-                        <Line endX="1200.0" AnchorPane.topAnchor="0.0" id="notificationLine" />
+                        <Line AnchorPane.topAnchor="0.0" id="notificationLine" />
                         <Button AnchorPane.leftAnchor="10" AnchorPane.bottomAnchor="5" mnemonicParsing="false" prefHeight="22.0" prefWidth="75.0"
                                 id="codeButton"
                                 text="Clear All"/>

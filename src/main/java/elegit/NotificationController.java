@@ -2,22 +2,16 @@ package elegit;
 
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
-import javafx.scene.Node;
-import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Line;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Controller class for notifications in a given window
@@ -25,7 +19,7 @@ import java.util.List;
 public class NotificationController {
 
     private final static int MIN_SCROLLPANE_HEIGHT = 37;
-    private final static int DEFAULT_SCROLLPANE_HEIGHT = 100;
+    private final static int BUTTON_WIDTH = 85;
 
     // FXML elements
     StackPane notificationPane;
@@ -37,6 +31,7 @@ public class NotificationController {
     Line notificationLine;
     Button clearAllButton;
     Button minimizeButton;
+    Label notificationNum;
 
     static final Logger logger = LogManager.getLogger(SessionController.class);
 
@@ -51,9 +46,10 @@ public class NotificationController {
         this.notificationList=(ScrollPane) this.notificationListPane.getChildren().get(0);
         this.notificationListUI=(AnchorPane)this.notificationListPane.getChildren().get(1);
 
-        this.notificationLine=(Line) this.notificationListUI.getChildren().get(0);
+        this.notificationLine = (Line) this.notificationListUI.getChildren().get(0);
         this.clearAllButton = (Button) this.notificationListUI.getChildren().get(1);
         this.minimizeButton = (Button) this.notificationListUI.getChildren().get(2);
+        this.notificationNum = (Label) this.latestNotification.getChildren().get(2);
 
         initialize();
     }
@@ -67,9 +63,10 @@ public class NotificationController {
 
         this.latestNotification.setOnMouseClicked(event -> handleNotificationPane(event));
         this.notificationLine.setOnMouseDragged(event -> handleLineDragged(event));
-        this.notificationListPane.setOnMouseClicked(event -> handleListClick(event));
         this.minimizeButton.setOnMouseClicked(event -> hideNotificationList());
         this.clearAllButton.setOnMouseClicked(event -> clearAllNotifications());
+
+        this.notificationLine.endXProperty().bind(this.minimizeButton.layoutXProperty().add(BUTTON_WIDTH));
 
         this.notificationListUI.setPickOnBounds(false);
     }
@@ -97,12 +94,6 @@ public class NotificationController {
             showNotificationList();
         }
         notificationList.setPrefHeight(notificationList.getHeight()-e.getY());
-    }
-
-    public void handleListClick(MouseEvent e) {
-        switch (e.getTarget().toString()) {
-            default: System.out.println(e);
-        }
     }
 
     /**
@@ -153,6 +144,8 @@ public class NotificationController {
 
         VBox vBox = (VBox) this.notificationList.getContent();
         vBox.getChildren().add(0,line);
+
+        setNotificationNum();
     }
 
     /**
@@ -171,6 +164,8 @@ public class NotificationController {
         }
 
         vBox.getChildren().remove(notification);
+
+        setNotificationNum();
     }
 
     /**
@@ -181,6 +176,8 @@ public class NotificationController {
 
         vBox.getChildren().clear();
         setLatestNotificationText("");
+
+        setNotificationNum();
     }
 
     /**
@@ -189,5 +186,14 @@ public class NotificationController {
      */
     private void setLatestNotificationText(String notificationText) {
         ((Label) latestNotification.getChildren().get(0)).setText(notificationText);
+    }
+
+    /**
+     * Helper method to set the number on the notifications
+     */
+    private void setNotificationNum() {
+        int num = ((VBox)this.notificationList.getContent()).getChildren().size();
+        if (num>0) this.notificationNum.setText(num+"");
+        else this.notificationNum.setText("");
     }
 }

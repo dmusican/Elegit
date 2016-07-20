@@ -17,6 +17,11 @@
     -fx-font-weight: normal;
 }
 
+.label#notificationNum {
+    -fx-font-size: 10;
+    -fx-font-weight: bold;
+}
+
 
 .branch-label {
     -fx-text-fill: #FFFFFF;
