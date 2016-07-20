@@ -139,7 +139,8 @@ public class SessionController {
 
     @FXML StackPane notificationPane1;
     @FXML AnchorPane latestNotification;
-    @FXML AnchorPane notificationList;
+    @FXML StackPane notificationListPane;
+    @FXML ScrollPane notificationList;
 
 
     /**
@@ -190,7 +191,7 @@ public class SessionController {
             e.printStackTrace();
         }
 
-        notificationController = new NotificationController(notificationPane1, latestNotification, notificationList);
+        notificationController = new NotificationController(notificationPane1, latestNotification, notificationListPane, notificationList);
         notificationController.initialize();
     }
 
