@@ -1,6 +1,6 @@
 package elegit;
 
-import javafx.scene.text.Text;
+import javafx.scene.control.Label;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,7 +10,7 @@ import java.util.List;
  */
 public class NotificationModel {
 
-    public List<Text> notificationList;
+    public List<Label> notificationList;
 
     /**
      * Default constructor
@@ -19,12 +19,12 @@ public class NotificationModel {
         this.notificationList = new ArrayList<>();
     }
 
-    public void addNotification(Text notification) {
+    public void addNotification(Label notification) {
         // Items are added to the beginning
         notificationList.add(0,notification);
     }
 
-    public void removeNotification(Text notification) {
+    public void removeNotification(Label notification) {
         notificationList.remove(notification);
     }
 }

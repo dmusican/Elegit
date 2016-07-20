@@ -62,8 +62,8 @@ public class NotificationController {
                         notificationList.setPrefHeight(MIN_SCROLLPANE_HEIGHT);
                         hideNotificationList();
                         break;
-                    } else if (!notificationListPane.isVisible() && e.getSceneY()<(notificationList.getScene().getHeight()-MIN_SCROLLPANE_HEIGHT)) {
-                        toggleNotificationList();
+                    } else if (e.getSceneY()<(notificationList.getScene().getHeight()-MIN_SCROLLPANE_HEIGHT)) {
+                        showNotificationList();
                     }
                     notificationList.setPrefHeight(notificationList.getHeight()-e.getY());
                     break;
@@ -76,15 +76,33 @@ public class NotificationController {
         }
     }
 
+    /**
+     * Toggles between the basic view of one notification to the extended list view
+     */
     public void toggleNotificationList() {
         this.notificationListPane.setVisible(!this.notificationListPane.isVisible());
         this.notificationListPane.setMouseTransparent(!this.notificationListPane.isMouseTransparent());
         this.latestNotification.setVisible(!this.latestNotification.isVisible());
     }
 
+    /**
+     * Helper method to hide the extended notification list if it is showing
+     */
     public void hideNotificationList() {
-        this.notificationListPane.setVisible(false);
-        this.notificationListPane.setMouseTransparent(false);
-        this.latestNotification.setVisible(true);
+        if (isListPaneVisible()) toggleNotificationList();
+    }
+
+    /**
+     * Helper method to show the extended notification list if isn't showing
+     */
+    public void showNotificationList() {
+        if (!isListPaneVisible()) toggleNotificationList();
+    }
+
+    /**
+     * @return true if the extended notification list is showing
+     */
+    public boolean isListPaneVisible() {
+        return this.notificationListPane.isVisible();
     }
 }
