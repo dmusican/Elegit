@@ -2,20 +2,20 @@ package elegit;
 
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
+import elegit.exceptions.*;
 import elegit.treefx.TreeLayout;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.concurrent.Task;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Side;
 import javafx.scene.Node;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
 import javafx.scene.control.Button;
+import javafx.scene.control.*;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollPane;
@@ -25,24 +25,23 @@ import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.*;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.scene.text.*;
 import javafx.scene.text.Font;
+import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import elegit.exceptions.*;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.controlsfx.control.CheckListView;
 import org.controlsfx.control.NotificationPane;
 import org.controlsfx.control.PopOver;
-import org.controlsfx.control.action.Action;
 import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.dircache.InvalidPathException;
-import org.eclipse.jgit.errors.LockFailedException;
-import org.eclipse.jgit.lib.BranchTrackingStatus;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
 import java.awt.*;
@@ -54,7 +53,6 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.locks.Lock;
 import java.util.prefs.BackingStoreException;
 
 /**
@@ -85,8 +83,6 @@ public class SessionController {
     private SessionModel theModel;
 
     public Node root;
-
-    public NotificationPane notificationPane;
 
     public Tab workingTreePanelTab;
     public Tab allFilesPanelTab;
@@ -465,12 +461,10 @@ public class SessionController {
             mergeButton.setDisable(disable);
         });
 
-        notificationPane.setOnMousePressed(event -> {
+        root.setOnMouseClicked(event -> {
             if (disable) showNoRepoLoadedNotification();
-            if (notificationPane.isShowing()) notificationPane.hide();
             if (this.notificationController.isListPaneVisible()) this.notificationController.toggleNotificationList();
         });
-        notificationPane.setShowFromTop(false);
     }
 
     /**
@@ -1694,15 +1688,14 @@ public class SessionController {
         });
     }
 
-    /// BEGIN: ERROR NOTIFICATIONS:
+    /// ******************************************************************************
+    /// ********                 BEGIN: ERROR NOTIFICATIONS:                  ********
+    /// ******************************************************************************
 
     private void showGenericErrorNotification() {
         Platform.runLater(()-> {
             logger.warn("Generic error warning.");
-            this.notificationPane.setText("Sorry, there was an error.");
-
-            this.notificationPane.getActions().clear();
-            this.notificationPane.show();
+            this.notificationController.addNotification("Sorry, there was an error.");
         });
     }
 
@@ -1710,44 +1703,32 @@ public class SessionController {
         Platform.runLater(()-> {
             if (e.getCause().toString().contains("LockFailedException")) {
                 logger.warn("Lock failed warning.");
-                this.notificationPane.setText(e.getCause().getMessage()+". If no other git processes are running, manually remove all .lock files.");
+                this.notificationController.addNotification(e.getCause().getMessage()+". If no other git processes are running, manually remove all .lock files.");
             } else {
                 logger.warn("Generic jgit internal warning.");
-                this.notificationPane.setText("Sorry, there was a Git error.");
+                this.notificationController.addNotification("Sorry, there was a Git error.");
             }
-
-            this.notificationPane.getActions().clear();
-            this.notificationPane.show();
         });
     }
 
     private void showNoRepoLoadedNotification() {
         Platform.runLater(() -> {
             logger.warn("No repo loaded warning.");
-            this.notificationPane.setText("You need to load a repository before you can perform operations on it. Click on the plus sign in the upper left corner!");
-
-            this.notificationPane.getActions().clear();
-            this.notificationPane.show();
+            this.notificationController.addNotification("You need to load a repository before you can perform operations on it. Click on the plus sign in the upper left corner!");
         });
     }
 
     private void showInvalidRepoNotification() {
         Platform.runLater(() -> {
             logger.warn("Invalid repo warning.");
-            this.notificationPane.setText("Make sure the directory you selected contains an existing (non-bare) Git repository.");
-
-            this.notificationPane.getActions().clear();
-            this.notificationPane.show();
+            this.notificationController.addNotification("Make sure the directory you selected contains an existing (non-bare) Git repository.");
         });
     }
 
     private void showMissingRepoNotification(){
         Platform.runLater(()-> {
             logger.warn("Missing repo warning");
-            this.notificationPane.setText("That repository no longer exists.");
-
-            this.notificationPane.getActions().clear();
-            this.notificationPane.show();
+            this.notificationController.addNotification("That repository no longer exists.");
         });
     }
 
@@ -1756,10 +1737,7 @@ public class SessionController {
             logger.warn("No remote repo warning");
             String name = this.theModel.getCurrentRepoHelper() != null ? this.theModel.getCurrentRepoHelper().toString() : "the current repository";
 
-            this.notificationPane.setText("There is no remote repository associated with " + name);
-
-            this.notificationPane.getActions().clear();
-            this.notificationPane.show();
+            this.notificationController.addNotification("There is no remote repository associated with " + name);
         });
     }
 
@@ -1768,143 +1746,65 @@ public class SessionController {
             logger.warn("Failed to load local repo warning");
             String path = this.theModel.getCurrentRepoHelper() != null ? this.theModel.getCurrentRepoHelper().getLocalPath().toString() : "the location of the local repository";
 
-            this.notificationPane.setText("Could not open directory at " + path);
-
-            this.notificationPane.getActions().clear();
-            this.notificationPane.show();
+            this.notificationController.addNotification("Could not open directory at " + path);
         });
     }
 
     private void showNonEmptyFolderNotification(Runnable callback) {
         Platform.runLater(()-> {
             logger.warn("Folder alread exists warning");
-            this.notificationPane.setText("Make sure a folder with that name doesn't already exist in that location");
-
-            Action okAction = new Action("OK", e -> {
-                this.notificationPane.hide();
-                if(callback != null) callback.run();
-            });
-
-            this.notificationPane.getActions().clear();
-            this.notificationPane.getActions().setAll(okAction);
-            this.notificationPane.show();
+            this.notificationController.addNotification("Make sure a folder with that name doesn't already exist in that location");
         });
     }
 
     private void showInvalidRemoteNotification(Runnable callback) {
         Platform.runLater(() -> {
             logger.warn("Invalid remote warning");
-            this.notificationPane.setText("Make sure you entered the correct remote URL.");
-
-            Action okAction = new Action("OK", e -> {
-                this.notificationPane.hide();
-                if(callback != null) callback.run();
-            });
-
-            this.notificationPane.getActions().clear();
-            this.notificationPane.getActions().setAll(okAction);
-            this.notificationPane.show();
+            this.notificationController.addNotification("Make sure you entered the correct remote URL.");
         });
     }
 
     private void showNotAuthorizedNotification(Runnable callback) {
         Platform.runLater(() -> {
             logger.warn("Invalid authorization warning");
-            this.notificationPane.setText("The authorization information you gave does not allow you to modify this repository. " +
+            this.notificationController.addNotification("The authorization information you gave does not allow you to modify this repository. " +
                     "Try reentering your password.");
-
-            /*
-            Action authAction = new Action("Authorize", e -> {
-                this.notificationPane.hide();
-                if(this.switchUser()){
-                    if(callback != null) callback.run();
-                }
-            });
-
-            this.notificationPane.getActions().setAll(authAction);*/
-
-            this.notificationPane.getActions().clear();
-            this.notificationPane.show();
         });
     }
 
     private void showRepoWasNotLoadedNotification() {
         Platform.runLater(() -> {
             logger.warn("Repo not loaded warning");
-            this.notificationPane.setText("Something went wrong, so no repository was loaded.");
-
-            this.notificationPane.getActions().clear();
-            this.notificationPane.show();
+            this.notificationController.addNotification("Something went wrong, so no repository was loaded.");
         });
     }
 
     private void showPushToAheadRemoteNotification(boolean allRefsRejected){
         Platform.runLater(() -> {
             logger.warn("Remote ahead of local warning");
-            if(allRefsRejected){
-                this.notificationPane.setText("The remote repository is ahead of the local. You need to fetch and then merge (pull) before pushing.");
-            }else{
-                this.notificationPane.setText("You need to fetch/merge in order to push all of your changes.");
-            }
-
-            this.notificationPane.getActions().clear();
-            this.notificationPane.show();
+            if(allRefsRejected) this.notificationController.addNotification("The remote repository is ahead of the local. You need to fetch and then merge (pull) before pushing.");
+            else this.notificationController.addNotification("You need to fetch/merge in order to push all of your changes.");
         });
     }
 
     private void showLostRemoteNotification() {
         Platform.runLater(() -> {
             logger.warn("Remote repo couldn't be found warning");
-            this.notificationPane.setText("The push failed because the remote repository couldn't be found.");
-
-            this.notificationPane.getActions().clear();
-            this.notificationPane.show();
+            this.notificationController.addNotification("The push failed because the remote repository couldn't be found.");
         });
     }
 
     private void showSameRepoLoadedNotification() {
         Platform.runLater(() -> {
             logger.warn("Same repo loaded");
-            this.notificationPane.setText("That repository is already open");
-
-            this.notificationPane.getActions().clear();
-            this.notificationPane.show();
-        });
-    }
-
-    private void showNewRemoteChangesNotification(){
-        Platform.runLater(() -> {
-            // check if there are still new changes, in case this value changes while waiting in the
-            //  JavaFXApplication Thread queue
-            if(RepositoryMonitor.hasFoundNewRemoteChanges.getValue()) {
-                logger.info("New remote repo changes");
-                this.notificationPane.setText("There are new changes in the remote repository.");
-
-                Action fetchAction = new Action("Fetch", e -> {
-                    this.notificationPane.hide();
-                    gitFetch();
-                });
-
-                Action ignoreAction = new Action("Ignore", e -> {
-                    this.notificationPane.hide();
-                    RepositoryMonitor.resetFoundNewChanges(true);
-                });
-
-                this.notificationPane.getActions().clear();
-                this.notificationPane.getActions().setAll(fetchAction, ignoreAction);
-
-                this.notificationPane.show();
-            }
+            this.notificationController.addNotification("That repository is already open");
         });
     }
 
     private void showNoFilesStagedForCommitNotification(){
         Platform.runLater(() -> {
             logger.warn("No files staged for commit warning");
-            this.notificationPane.setText("You need to add files before commiting");
-
-            this.notificationPane.getActions().clear();
-            this.notificationPane.show();
+            this.notificationController.addNotification("You need to add files before commiting");
         });
     }
 
@@ -1912,10 +1812,7 @@ public class SessionController {
     private void showNoFilesSelectedForAddNotification(){
         Platform.runLater(() -> {
             logger.warn("No files selected for add warning");
-            this.notificationPane.setText("You need to select files to add");
-
-            this.notificationPane.getActions().clear();
-            this.notificationPane.show();
+            this.notificationController.addNotification("You need to select files to add");
         });
     }
 
@@ -1923,10 +1820,7 @@ public class SessionController {
     private void showNoFilesSelectedForRemoveNotification(){
         Platform.runLater(() -> {
             logger.warn("No files staged for remove warning");
-            this.notificationPane.setText("You need select files to remove");
-
-            this.notificationPane.getActions().clear();
-            this.notificationPane.show();
+            this.notificationController.addNotification("You need select files to remove");
         });
     }
 
@@ -1934,91 +1828,63 @@ public class SessionController {
     private void showCannotAddFileNotification(String filename) {
         Platform.runLater(() -> {
             logger.warn("Cannot add file notification");
-            this.notificationPane.setText("Cannot add "+filename+". It might already be added (staged).");
-
-            this.notificationPane.getActions().clear();
-            this.notificationPane.show();
+            this.notificationController.addNotification("Cannot add "+filename+". It might already be added (staged).");
         });
     }
 
     private void showCannotRemoveFileNotification(String filename) {
         Platform.runLater(() -> {
             logger.warn("Cannot remove file notification");
-            this.notificationPane.setText("Cannot remove "+filename+" because it hasn't been staged yet.");
-
-            this.notificationPane.getActions().clear();
-            this.notificationPane.show();
+            this.notificationController.addNotification("Cannot remove "+filename+" because it hasn't been staged yet.");
         });
     }
 
     private void showNoTagNameNotification(){
         Platform.runLater(() -> {
             logger.warn("No tag name warning");
-            this.notificationPane.setText("You need to write a tag name in order to tag the commit");
-
-            this.notificationPane.getActions().clear();
-            this.notificationPane.show();
+            this.notificationController.addNotification("You need to write a tag name in order to tag the commit");
         });
     }
 
     private void showNoCommitsToPushNotification(){
         Platform.runLater(() -> {
             logger.warn("No local commits to push warning");
-            this.notificationPane.setText("There aren't any local commits to push");
-
-            this.notificationPane.getActions().clear();
-            this.notificationPane.show();
+            this.notificationController.addNotification("There aren't any local commits to push");
         });
     }
 
     private void showNoTagsToPushNotification(){
         Platform.runLater(() -> {
             logger.warn("No local tags to push warning");
-            this.notificationPane.setText("There aren't any local tags to push");
-
-            this.notificationPane.getActions().clear();
-            this.notificationPane.show();
+            this.notificationController.addNotification("There aren't any local tags to push");
         });
     }
 
     private void showNoCommitsFetchedNotification(){
         Platform.runLater(() -> {
             logger.warn("No commits fetched warning");
-            this.notificationPane.setText("No new commits were fetched");
             this.notificationController.addNotification("No new commits were fetched");
-
-            this.notificationPane.getActions().clear();
-            this.notificationPane.show();
         });
     }
 
     private void showTagExistsNotification() {
         Platform.runLater(()-> {
             logger.warn("Tag already exists warning.");
-            this.notificationPane.setText("Sorry that tag already exists.");
-
-            this.notificationPane.getActions().clear();
-            this.notificationPane.show();
+            this.notificationController.addNotification("Sorry that tag already exists in this repository.");
         });
     }
 
     private void showCantRevertMultipleParentsNotification() {
         Platform.runLater(() -> {
             logger.warn("Tried to revert commit with multiple parents.");
-            this.notificationPane.setText("You cannot revert that commit because it has two parents.");
-
-            this.notificationPane.getActions().clear();
-            this.notificationPane.show();
+            this.notificationController.addNotification("You cannot revert that commit because it has more than one parent.");
         });
     }
 
     private void showCantRevertZeroParentsNotification() {
         Platform.runLater(() -> {
             logger.warn("Tried to revert commit with zero parents.");
-            this.notificationPane.setText("You cannot revert that commit because it has zero parents.");
-
-            this.notificationPane.getActions().clear();
-            this.notificationPane.show();
+            this.notificationController.addNotification("You cannot revert that commit because it has zero parents.");
         });
     }
 

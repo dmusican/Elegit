@@ -15,6 +15,7 @@ import org.apache.logging.log4j.Logger;
 
 /**
  * Controller class for notifications in a given window
+ * TODO: implement buttons in notification/popup window for clicking on one?
  */
 public class NotificationController {
 
