@@ -138,6 +138,7 @@ public class NotificationController {
      */
     public void addNotification(String notification) {
         Label line = new Label(notification);
+        line.setWrapText(true);
         line.setId("notification");
         line.setGraphic(GlyphsDude.createIcon(FontAwesomeIcon.TIMES_CIRCLE));
         line.setOnMouseClicked(event -> {

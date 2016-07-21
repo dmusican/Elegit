@@ -1530,7 +1530,7 @@ public class SessionController {
             FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/BranchCheckout.fxml"));
             fxmlLoader.load();
             BranchCheckoutController branchCheckoutController = fxmlLoader.getController();
-            NotificationPane fxmlRoot = fxmlLoader.getRoot();
+            AnchorPane fxmlRoot = fxmlLoader.getRoot();
             branchCheckoutController.showStage(fxmlRoot);
         }catch(IOException e){
             this.showGenericErrorNotification();
