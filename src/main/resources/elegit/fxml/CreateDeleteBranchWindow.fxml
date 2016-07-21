@@ -2,15 +2,11 @@
 <?import javafx.scene.text.Text?>
 <?import javafx.scene.layout.*?>
 <?import javafx.geometry.Insets?>
-<?import org.controlsfx.control.NotificationPane?>
-<?import javafx.scene.image.*?>
-<?import javafx.scene.shape.*?>
 <?import java.net.URL?>
 
 <AnchorPane fx:controller="elegit.CreateDeleteBranchWindowController"
             fx:id="anchorRoot"
             xmlns:fx="http://javafx.com/fxml">
-    <children>
     <StackPane AnchorPane.rightAnchor="5"
                AnchorPane.leftAnchor="5"
                AnchorPane.topAnchor="5"
@@ -61,60 +57,7 @@
     </StackPane>
 
 
-    <!--******************* NOTIFICATION PANE *******************-->
-    <StackPane fx:id="notificationPane1"
-               AnchorPane.bottomAnchor="0.0"
-               AnchorPane.rightAnchor="0.0"
-               AnchorPane.leftAnchor="0.0">
-        <AnchorPane fx:id="latestNotification"
-                    StackPane.alignment="BOTTOM_LEFT"
-                    maxHeight="15">
-            <Line AnchorPane.topAnchor="2" id="notificationLine" />
-            <Label   AnchorPane.leftAnchor="3"
-                     AnchorPane.bottomAnchor="0"
-                     fx:id="latestNotificationLabel"
-                     id="notification"
-                     text=""/>
-            <ImageView  AnchorPane.rightAnchor="8"
-                        AnchorPane.bottomAnchor="2"
-                        fitHeight="11"
-                        fitWidth="11">
-                <Image url="@../images/notification_basic.png"/>
-            </ImageView>
-            <Label fx:id="notificationNum"
-                   id="notificationNum"
-                   AnchorPane.bottomAnchor="6"
-                   AnchorPane.rightAnchor="2"
-                   StackPane.alignment="TOP_RIGHT"
-                   text=""/>
-        </AnchorPane>
-        <StackPane fx:id="notificationListPane">
-            <children>
-                <ScrollPane fx:id="notificationList"
-                            prefHeight="100">
-                    <content>
-                        <VBox>
-                            <children>
-
-                            </children>
-                        </VBox>
-                    </content>
-                </ScrollPane>
-                <AnchorPane>
-                    <children>
-                        <Line AnchorPane.topAnchor="0.0" id="notificationLine" />
-                        <Button AnchorPane.leftAnchor="10" AnchorPane.bottomAnchor="5" mnemonicParsing="false" prefHeight="22.0" prefWidth="75.0"
-                                id="codeButton"
-                                text="Clear All"/>
-                        <Button AnchorPane.rightAnchor="10" AnchorPane.bottomAnchor="5" mnemonicParsing="false" prefHeight="22.0" prefWidth="75.0"
-                                id="codeButton"
-                                text="Minimize"/>
-                    </children>
-                </AnchorPane>
-            </children>
-        </StackPane>
-    </StackPane>
-    </children>
+    <fx:include source="NotificationPane.fxml" fx:id="notificationPane"/>
 
     <stylesheets>
         <URL value="@../css/BaseStyle.css"/>

@@ -14,7 +14,6 @@ import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.controlsfx.control.PopOver;
-import org.controlsfx.control.action.Action;
 import org.eclipse.jgit.api.errors.*;
 
 import java.io.IOException;
@@ -31,14 +30,14 @@ public class CreateDeleteBranchWindowController {
     @FXML private ComboBox<LocalBranchHelper> localBranchesDropdown;
     @FXML private Button createButton;
     @FXML private Button deleteButton;
+    @FXML private StackPane notificationPane;
+    @FXML private NotificationController notificationPaneController;
 
     private Stage stage;
     SessionModel sessionModel;
     RepoHelper repoHelper;
     private BranchModel branchModel;
     private CommitTreeModel localCommitTreeModel;
-
-    private NotificationController notificationController;
 
     static final Logger logger = LogManager.getLogger();
 
@@ -72,8 +71,6 @@ public class CreateDeleteBranchWindowController {
 
         // Get the current commit tree models
         localCommitTreeModel = CommitTreeController.getCommitTreeModel();
-
-        //this.notificationController = new NotificationController(notificationPane1);
     }
 
     /**
@@ -256,35 +253,35 @@ public class CreateDeleteBranchWindowController {
     private void showInvalidBranchNameNotification() {
         Platform.runLater(() -> {
             logger.warn("Invalid branch name notification");
-            notificationController.addNotification("That branch name is invalid.");
+            notificationPaneController.addNotification("That branch name is invalid.");
         });
     }
 
     private void showNoCommitsYetNotification() {
         Platform.runLater(() -> {
             logger.warn("No commits yet notification");
-            notificationController.addNotification("You cannot make a branch since your repo has no commits yet. Make a commit first!");
+            notificationPaneController.addNotification("You cannot make a branch since your repo has no commits yet. Make a commit first!");
         });
     }
 
     private void showGenericGitErrorNotification() {
         Platform.runLater(() -> {
             logger.warn("Git error notification");
-            notificationController.addNotification("Sorry, there was a git error.");
+            notificationPaneController.addNotification("Sorry, there was a git error.");
         });
     }
 
     private void showGenericErrorNotification() {
         Platform.runLater(()-> {
             logger.warn("Generic error warning.");
-            notificationController.addNotification("Sorry, there was an error.");
+            notificationPaneController.addNotification("Sorry, there was an error.");
         });
     }
 
     private void showCannotDeleteBranchNotification(LocalBranchHelper branch) {
         Platform.runLater(() -> {
             logger.warn("Cannot delete current branch notification");
-            notificationController.addNotification(String.format("Sorry, %s can't be deleted right now. " +
+            notificationPaneController.addNotification(String.format("Sorry, %s can't be deleted right now. " +
                     "Try checking out a different branch first.", branch.getBranchName()));
         });
     }
@@ -292,13 +289,13 @@ public class CreateDeleteBranchWindowController {
     private void showGenericGitErrorNotificationWithBranch(LocalBranchHelper branch) {
         Platform.runLater(() -> {
             logger.warn("Git error on branch notification");
-            notificationController.addNotification(String.format("Sorry, there was a git error on branch %s.", branch.getBranchName()));
+            notificationPaneController.addNotification(String.format("Sorry, there was a git error on branch %s.", branch.getBranchName()));
         });
     }
 
     private void showNotMergedNotification(LocalBranchHelper nonmergedBranch) {
         logger.warn("Not merged notification");
-        notificationController.addNotification("That branch has to be merged before you can do that.");
+        notificationPaneController.addNotification("That branch has to be merged before you can do that.");
 
         /*
         Action forceDeleteAction = new Action("Force delete", e -> {
