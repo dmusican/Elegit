@@ -231,12 +231,12 @@ public class CommitTreeController{
         }
         Map<CommitHelper, List<BranchHelper>> headIds = repo.getBranchModel().getAllBranchHeads();
         if(headIds == null) return false;
-        model.resetBranchHeads(true);
+        model.resetBranchHeads();
         boolean isTracked;
         for(CommitHelper head : headIds.keySet()){
             isTracked = false;
             for (BranchHelper branch : headIds.get(head)) {
-                if (model.sessionModel.getCurrentRepoHelper().getBranchModel().isBranchTracked(branch))
+                if (repo.getBranchModel().isBranchTracked(branch))
                     isTracked = true;
             }
             model.setCommitAsBranchHead(head, isTracked);

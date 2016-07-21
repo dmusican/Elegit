@@ -469,24 +469,17 @@ public abstract class CommitTreeModel{
     }
 
     /**
-     * Forgets information about tracked/untracked branch heads in the tree and fills it back in
+     * Forgets information about tracked/untracked branch heads in the tree and updates the model
      */
-    public void resetBranchHeads(boolean updateLabels){
+    public void resetBranchHeads(){
         List<String> resetIDs = treeGraph.treeGraphModel.resetCellShapes();
         RepoHelper repo = sessionModel.getCurrentRepoHelper();
-        if(updateLabels){
-            try {
-                this.sessionModel.getCurrentRepoHelper().getBranchModel().updateAllBranches();
-            } catch (IOException | GitAPIException e) {
-                // Shouldn't happen
-            }
-            this.branchesInModel = this.sessionModel.getCurrentRepoHelper().getBranchModel().getAllBranches();
-            for(String id : resetIDs){
-                if(this.sessionModel.getCurrentRepoHelper().getCommit(id) != null) {
-                    String displayLabel = repo.getCommitDescriptorString(id, false);
-                    List<String> branchLabels = repo.getBranchModel().getBranchesWithHead(id);
-                    treeGraph.treeGraphModel.setCellLabels(id, displayLabel, branchLabels);
-                }
+        this.branchesInModel = repo.getBranchModel().getAllBranches();
+        for(String id : resetIDs){
+            if(this.sessionModel.getCurrentRepoHelper().getCommit(id) != null) {
+                String displayLabel = repo.getCommitDescriptorString(id, false);
+                List<String> branchLabels = repo.getBranchModel().getBranchesWithHead(id);
+                treeGraph.treeGraphModel.setCellLabels(id, displayLabel, branchLabels);
             }
         }
     }
