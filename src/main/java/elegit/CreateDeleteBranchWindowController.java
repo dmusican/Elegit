@@ -6,13 +6,13 @@ import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.controlsfx.control.NotificationPane;
 import org.controlsfx.control.PopOver;
 import org.controlsfx.control.action.Action;
 import org.eclipse.jgit.api.errors.*;
@@ -20,13 +20,12 @@ import org.eclipse.jgit.api.errors.*;
 import java.io.IOException;
 
 /**
- * Created by connellyj on 7/12/16.
- *
  * Controller for the create/delete branch window
  */
 public class CreateDeleteBranchWindowController {
 
-    @FXML private NotificationPane notificationPane;
+    @FXML private AnchorPane anchorRoot;
+    @FXML private StackPane notificationPane1;
     @FXML private CheckBox checkoutCheckBox;
     @FXML private TextArea newBranchTextArea;
     @FXML private ComboBox<LocalBranchHelper> localBranchesDropdown;
@@ -39,8 +38,13 @@ public class CreateDeleteBranchWindowController {
     BranchModel branchModel;
     CommitTreeModel localCommitTreeModel;
 
+    NotificationController notificationController;
+
     static final Logger logger = LogManager.getLogger();
 
+    /**
+     * Initialize method called automatically by JavaFX
+     */
     public void initialize() {
         sessionModel = SessionModel.getSessionModel();
         repoHelper = sessionModel.getCurrentRepoHelper();
@@ -66,8 +70,10 @@ public class CreateDeleteBranchWindowController {
             }
         }));
 
-        //init commit tree models
+        // Get the current commit tree models
         localCommitTreeModel = CommitTreeController.getCommitTreeModel();
+
+        this.notificationController = new NotificationController(notificationPane1);
     }
 
     /**
@@ -79,13 +85,13 @@ public class CreateDeleteBranchWindowController {
 
     /**
      * shows the window
-     * @param pane NotificationPane root
+     * @param pane AnchorPane root
      */
-    public void showStage(NotificationPane pane) {
-        notificationPane = pane;
+    public void showStage(AnchorPane pane) {
+        anchorRoot = pane;
         stage = new Stage();
         stage.setTitle("Create or delete branch");
-        stage.setScene(new Scene(notificationPane));
+        stage.setScene(new Scene(anchorRoot));
         stage.initModality(Modality.APPLICATION_MODAL);
         stage.setOnCloseRequest(event -> logger.info("Closed create/delete branch window"));
         stage.show();
@@ -248,82 +254,57 @@ public class CreateDeleteBranchWindowController {
     //**************** BEGIN ERROR NOTIFICATIONS***************************
 
     private void showInvalidBranchNameNotification() {
-        logger.warn("Invalid branch name notification");
-        Text txt = new Text("That branch name is invalid.");
-        txt.setWrappingWidth(notificationPane.getWidth() / 2.0);
-        notificationPane.setGraphic(txt);
-
-        this.notificationPane.getActions().clear();
-        this.notificationPane.show();
+        Platform.runLater(() -> {
+            logger.warn("Invalid branch name notification");
+            notificationController.addNotification("That branch name is invalid.");
+        });
     }
 
     private void showNoCommitsYetNotification() {
-        logger.warn("No commits yet notification");
-        Text txt = new Text("You cannot make a branch since your repo has no commits yet. Make a commit first!");
-        txt.setWrappingWidth(notificationPane.getWidth() / 2.0);
-        notificationPane.setGraphic(txt);
-
-        this.notificationPane.getActions().clear();
-        this.notificationPane.show();
+        Platform.runLater(() -> {
+            logger.warn("No commits yet notification");
+            notificationController.addNotification("You cannot make a branch since your repo has no commits yet. Make a commit first!");
+        });
     }
 
     private void showGenericGitErrorNotification() {
-        logger.warn("Git error notification");
-        Text txt = new Text("Sorry, there was a git error.");
-        txt.setWrappingWidth(notificationPane.getWidth() / 2.0);
-        notificationPane.setGraphic(txt);
-
-        this.notificationPane.getActions().clear();
-        this.notificationPane.show();
+        Platform.runLater(() -> {
+            logger.warn("Git error notification");
+            notificationController.addNotification("Sorry, there was a git error.");
+        });
     }
 
     private void showGenericErrorNotification() {
         Platform.runLater(()-> {
             logger.warn("Generic error warning.");
-            Text txt = new Text("Sorry, there was an error.");
-            txt.setWrappingWidth(notificationPane.getWidth() / 2.0);
-            notificationPane.setGraphic(txt);
-
-            this.notificationPane.getActions().clear();
-            this.notificationPane.show();
+            notificationController.addNotification("Sorry, there was an error.");
         });
     }
 
     private void showCannotDeleteBranchNotification(LocalBranchHelper branch) {
-        logger.warn("Cannot delete current branch notification");
-        Text txt = new Text(String.format("Sorry, %s can't be deleted right now. " +
-                "Try checking out a different branch first.", branch.getBranchName()));
-        txt.setWrappingWidth(notificationPane.getWidth() / 2.0);
-        notificationPane.setGraphic(txt);
-
-        notificationPane.getActions().clear();
-        notificationPane.show();
+        Platform.runLater(() -> {
+            logger.warn("Cannot delete current branch notification");
+            notificationController.addNotification(String.format("Sorry, %s can't be deleted right now. " +
+                    "Try checking out a different branch first.", branch.getBranchName()));
+        });
     }
 
     private void showGenericGitErrorNotificationWithBranch(LocalBranchHelper branch) {
-        logger.warn("Git error on branch notification");
-        Text txt = new Text(String.format("Sorry, there was a git error on branch %s.", branch.getBranchName()));
-        txt.setWrappingWidth(notificationPane.getWidth() / 2.0);
-        notificationPane.setGraphic(txt);
-
-        notificationPane.getActions().clear();
-        notificationPane.show();
+        Platform.runLater(() -> {
+            logger.warn("Git error on branch notification");
+            notificationController.addNotification(String.format("Sorry, there was a git error on branch %s.", branch.getBranchName()));
+        });
     }
 
     private void showNotMergedNotification(LocalBranchHelper nonmergedBranch) {
         logger.warn("Not merged notification");
-        Text txt = new Text("That branch has to be merged before you can do that.");
-        txt.setWrappingWidth(notificationPane.getWidth() / 2.0);
-        notificationPane.setGraphic(txt);
+        notificationController.addNotification("That branch has to be merged before you can do that.");
 
+        /*
         Action forceDeleteAction = new Action("Force delete", e -> {
             this.forceDeleteBranch(nonmergedBranch);
-            notificationPane.hide();
-        });
-
-        notificationPane.getActions().clear();
-        notificationPane.getActions().setAll(forceDeleteAction);
-        notificationPane.show();
+            anchorPane.hide();
+        });*/
     }
 
     //**************** END ERROR NOTIFICATIONS***************************

@@ -1,23 +1,12 @@
 package elegit;
 
-import elegit.exceptions.MissingRepoException;
 import javafx.application.Platform;
-import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonBar;
-import javafx.scene.control.ButtonType;
 import javafx.scene.control.Tooltip;
-import javafx.scene.text.*;
 import javafx.scene.text.Font;
-import org.eclipse.jgit.api.AddCommand;
-import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 
-import java.awt.*;
-import java.io.File;
-import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Optional;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -51,7 +40,7 @@ public class ConflictingThenModifiedRepoFile extends RepoFile {
             logger.warn("Notification about conflicting the modified file");
             lock.lock();
             try{
-                resultType = PopUpWindows.showCommittingConflictingThenModifiedFileAlert();
+                resultType = PopUpWindows.showAddingingConflictingThenModifiedFileAlert();
                 finishedAlert.signal();
             }finally{
                 lock.unlock();

@@ -10,6 +10,19 @@
     -fx-text-fill: #333333;
 }
 
+
+
+.label#notification {
+    -fx-font-size: 12;
+    -fx-font-weight: normal;
+}
+
+.label#notificationNum {
+    -fx-font-size: 10;
+    -fx-font-weight: bold;
+}
+
+
 .branch-label {
     -fx-text-fill: #FFFFFF;
     -fx-font-size: 14px;
@@ -28,6 +41,11 @@
 .menu-bar {
     -fx-use-system-menu-bar: true;
     -fx-background-color: -fx-button-select-fill;
+}
+
+#notificationLine {
+    -fx-background-color: linear-gradient(from 0px 0px to 1200px 0px, -fx-background-default 0%, #555555 2%, #555555 98%, -fx-background-default 100%);;
+    -fx-cursor: v_resize;
 }
 
 .tree-cell:selected {

@@ -4,18 +4,17 @@ import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
-import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.controlsfx.control.NotificationPane;
-import org.controlsfx.control.action.Action;
 import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.lib.Repository;
 
@@ -42,15 +41,17 @@ public class BranchCheckoutController {
     private RepoHelper repoHelper;
     private BranchModel branchModel;
     @FXML
-    private static NotificationPane notificationPane;
+    private static AnchorPane anchorRoot;
     @FXML
     private Button trackRemoteBranchButton;
     @FXML
     private Button checkoutLocalBranchButton;
+    @FXML private StackPane notificationPane1;
 
     private SessionModel sessionModel;
     private LocalCommitTreeModel localCommitTreeModel;
     private Stage stage;
+    private static NotificationController notificationController;
 
     static final Logger logger = LogManager.getLogger();
 
@@ -77,6 +78,8 @@ public class BranchCheckoutController {
 
         this.setIcons();
         this.updateButtons();
+
+        this.notificationController = new NotificationController(notificationPane1);
     }
 
     /**
@@ -90,13 +93,13 @@ public class BranchCheckoutController {
 
     /**
      * Shows the branch manager
-     * @param pane NotificationPane
+     * @param pane AnchorPane root
      */
-    public void showStage(NotificationPane pane) {
-        notificationPane = pane;
+    public void showStage(AnchorPane pane) {
+        anchorRoot = pane;
         stage = new Stage();
         stage.setTitle("Branch Checkout");
-        stage.setScene(new Scene(notificationPane, 550, 450));
+        stage.setScene(new Scene(anchorRoot, 550, 450));
         stage.initModality(Modality.APPLICATION_MODAL);
         stage.setOnCloseRequest(event -> logger.info("Closed branch manager window"));
         stage.show();
@@ -255,75 +258,47 @@ public class BranchCheckoutController {
 
     private void showGenericGitErrorNotificationWithBranch(LocalBranchHelper branch) {
         logger.warn("Git error on branch notification");
-        Text txt = new Text(String.format("Sorry, there was a git error on branch %s.", branch.getBranchName()));
-        txt.setWrappingWidth(notificationPane.getWidth() / 2.0);
-        notificationPane.setGraphic(txt);
-
-        notificationPane.getActions().clear();
-        notificationPane.show();
+        this.notificationController.addNotification(String.format("Sorry, there was a git error on branch %s.", branch.getBranchName()));
     }
 
     private static void showGenericErrorNotification() {
         logger.warn("Generic error notification");
-        Text txt = new Text("Sorry, there was an error.");
-        txt.setWrappingWidth(notificationPane.getWidth() / 2.0);
-        notificationPane.setGraphic(txt);
-
-        notificationPane.getActions().clear();
-        notificationPane.show();
+        notificationController.addNotification("Sorry, there was an error.");
     }
 
     private void showCannotDeleteBranchNotification(LocalBranchHelper branch) {
         logger.warn("Cannot delete current branch notification");
-        Text txt = new Text(String.format("Sorry, %s can't be deleted right now. " +
+        notificationController.addNotification(String.format("Sorry, %s can't be deleted right now. " +
                 "Try checking out a different branch first.", branch.getBranchName()));
-        txt.setWrappingWidth(notificationPane.getWidth() / 2.0);
-        notificationPane.setGraphic(txt);
-
-        notificationPane.getActions().clear();
-        notificationPane.show();
     }
 
     private static void showJGitInternalError(JGitInternalException e) {
         Platform.runLater(()-> {
             if (e.getCause().toString().contains("LockFailedException")) {
                 logger.warn("Lock failed warning.");
-                notificationPane.setText("Cannot lock .git/index. If no other git processes are running, manually remove all .lock files.");
+                notificationController.addNotification("Cannot lock .git/index. If no other git processes are running, manually remove all .lock files.");
             } else {
                 logger.warn("Generic jgit internal warning.");
-                notificationPane.setText("Sorry, there was a Git error.");
+                notificationController.addNotification("Sorry, there was a Git error.");
             }
-
-            notificationPane.getActions().clear();
-            notificationPane.show();
         });
     }
 
     private void showRefAlreadyExistsNotification() {
         logger.info("Branch already exists notification");
-        Text txt = new Text("Looks like that branch already exists locally!");
-        txt.setWrappingWidth(notificationPane.getWidth() / 2.0);
-        notificationPane.setGraphic(txt);
-
-        notificationPane.getActions().clear();
-        notificationPane.show();
+        notificationController.addNotification("Looks like that branch already exists locally!");
     }
 
     private static void showCheckoutConflictsNotification(List<String> conflictingPaths) {
         Platform.runLater(() -> {
-            Text txt = new Text("You can't switch to that branch because there would be a merge conflict. Stash your changes or resolve conflicts first.");
-            txt.setWrappingWidth(notificationPane.getWidth() / 2.0);
-            notificationPane.setGraphic(txt);
+            logger.warn("Checkout conflicts warning");
+            notificationController.addNotification("You can't switch to that branch because there would be a merge conflict. Stash your changes or resolve conflicts first.");
 
+            /*
             Action seeConflictsAction = new Action("See conflicts", e -> {
-                notificationPane.hide();
+                anchorRoot.hide();
                 PopUpWindows.showCheckoutConflictsAlert(conflictingPaths);
-            });
-
-            notificationPane.getActions().clear();
-            notificationPane.getActions().setAll(seeConflictsAction);
-
-            notificationPane.show();
+            });*/
         });
     }
 

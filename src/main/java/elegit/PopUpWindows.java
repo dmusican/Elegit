@@ -47,7 +47,7 @@ public class PopUpWindows {
         alert.setHeaderText("You're adding a conflicting file");
         alert.setContentText("You can open an editor to resolve the conflicts, or add the changes anyways. What do you want to do?");
 
-        ImageView img = new ImageView(new javafx.scene.image.Image("/elegit/conflict.png"));
+        ImageView img = new ImageView(new javafx.scene.image.Image("/elegit/images/conflict.png"));
         img.setFitHeight(40);
         img.setFitWidth(80);
         img.setPreserveRatio(true);
@@ -107,7 +107,7 @@ public class PopUpWindows {
             alert.getDialogPane().setPrefSize(300, 300);
             alert.setTitle("Reset Help");
             alert.setHeaderText("What is reset?");
-            ImageView img = new ImageView(new Image("/elegit/undo.png"));
+            ImageView img = new ImageView(new Image("/elegit/images/undo.png"));
             img.setFitHeight(60);
             img.setFitWidth(60);
             alert.setGraphic(img);
@@ -128,7 +128,7 @@ public class PopUpWindows {
             alert.getDialogPane().setPrefSize(300, 300);
             alert.setTitle("Revert Help");
             alert.setHeaderText("What is revert?");
-            ImageView img = new ImageView(new Image("/elegit/undo.png"));
+            ImageView img = new ImageView(new Image("/elegit/images/undo.png"));
             img.setFitHeight(60);
             img.setFitWidth(60);
             alert.setGraphic(img);
@@ -142,15 +142,15 @@ public class PopUpWindows {
     }
 
     /**
-     * Informs the user that they are committing a previously conflicting file
+     * Informs the user that they are adding a previously conflicting file
      * @return String result from user input
      */
-    public static String showCommittingConflictingThenModifiedFileAlert() {
+    public static String showAddingingConflictingThenModifiedFileAlert() {
         String resultType;
 
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
 
-        ButtonType commitButton = new ButtonType("Commit");
+        ButtonType commitButton = new ButtonType("Add");
         ButtonType buttonTypeCancel = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
 
         alert.getButtonTypes().setAll(commitButton, buttonTypeCancel);
@@ -165,8 +165,8 @@ public class PopUpWindows {
         Optional<ButtonType> result = alert.showAndWait();
 
         if(result.get() == commitButton){
-            logger.info("Chose to commit");
-            resultType = "commit";
+            logger.info("Chose to add");
+            resultType = "add";
         }else{
             // User cancelled the dialog
             logger.info("Cancelled dialog");
@@ -272,7 +272,7 @@ public class PopUpWindows {
                 "If you delete it, you will lose any local work done on this branch. " +
                 "What would you like to do?");
 
-        ButtonType deleteButton = new ButtonType("Delete branch");
+        ButtonType deleteButton = new ButtonType("Force delete branch");
         ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
 
         alert.getButtonTypes().clear();

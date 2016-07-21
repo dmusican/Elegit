@@ -7,17 +7,16 @@ import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.layout.Region;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Modality;
+import javafx.stage.PopupWindow;
 import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.controlsfx.control.NotificationPane;
-import org.controlsfx.control.action.Action;
-import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.errors.NoMergeBaseException;
@@ -25,12 +24,9 @@ import org.eclipse.jgit.lib.BranchTrackingStatus;
 import org.eclipse.jgit.lib.Repository;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by connellyj on 7/11/16.
- *
  * Controller for the merge window
  */
 public class MergeWindowController {
@@ -41,11 +37,12 @@ public class MergeWindowController {
     @FXML private Text intoLocalBranchText;
     @FXML private CheckBox mergeRemoteTrackingCheckBox;
     @FXML private CheckBox mergeDifLocalBranchCheckBox;
-    @FXML private NotificationPane notificationPane;
+    @FXML private AnchorPane anchorRoot;
     @FXML private ComboBox<LocalBranchHelper> branchDropdownSelector = new ComboBox<>();
     @FXML private Button mergeButton;
     @FXML private Text mergeRemoteTrackingText;
     @FXML private Hyperlink trackLink;
+    @FXML private StackPane notificationPane1;
 
     Stage stage;
     SessionModel sessionModel;
@@ -53,6 +50,7 @@ public class MergeWindowController {
     BranchModel branchModel;
     boolean disable;
     CommitTreeModel localCommitTreeModel;
+    NotificationController notificationController;
 
     static final Logger logger = LogManager.getLogger();
 
@@ -75,6 +73,8 @@ public class MergeWindowController {
 
         initText();
         initCheckBoxes();
+
+        notificationController = new NotificationController(notificationPane1);
     }
 
     /**
@@ -132,13 +132,13 @@ public class MergeWindowController {
 
     /**
      * shows the window
-     * @param pane NotificationPane root
+     * @param pane AnchorPane root
      */
-    public void showStage(NotificationPane pane) {
-        notificationPane = pane;
+    public void showStage(AnchorPane pane) {
+        anchorRoot = pane;
         stage = new Stage();
         stage.setTitle("Merge");
-        stage.setScene(new Scene(notificationPane));
+        stage.setScene(new Scene(anchorRoot));
         stage.initModality(Modality.APPLICATION_MODAL);
         stage.setOnCloseRequest(event -> logger.info("Closed merge window"));
         stage.show();
@@ -203,6 +203,9 @@ public class MergeWindowController {
                         showMergingWithChangedFilesNotification();
                     } catch(ConflictingFilesException e){
                         showMergeConflictsNotification(e.getConflictingFiles());
+                        Platform.runLater(() -> {
+                            PopUpWindows.showMergeConflictsAlert(e.getConflictingFiles());
+                        });
                         ConflictingFileWatcher.watchConflictingFiles(sessionModel.getCurrentRepoHelper());
                     } catch(MissingRepoException e){
                         showMissingRepoNotification();
@@ -293,75 +296,40 @@ public class MergeWindowController {
 
     private void showFastForwardMergeNotification() {
         logger.info("Fast forward merge complete notification");
-        Text txt = new Text("Fast-forward merge completed.");
-        txt.setWrappingWidth(notificationPane.getWidth() / 2.0);
-        notificationPane.setGraphic(txt);
-
-        notificationPane.getActions().clear();
-        notificationPane.show();
+        notificationController.addNotification("Fast-forward merge completed.");
     }
 
     private void showMergeSuccessNotification() {
         logger.info("Merge completed notification");
-        Text txt = new Text("Merge completed.");
-        txt.setWrappingWidth(notificationPane.getWidth() / 2.0);
-        notificationPane.setGraphic(txt);
-
-        notificationPane.getActions().clear();
-        notificationPane.show();
+        notificationController.addNotification("Merge completed.");
     }
 
     private void showFailedMergeNotification() {
         logger.warn("Merge failed notification");
-        Text txt = new Text("The merge failed.");
-        txt.setWrappingWidth(notificationPane.getWidth() / 2.0);
-        notificationPane.setGraphic(txt);
-
-        notificationPane.getActions().clear();
-        notificationPane.show();
+        notificationController.addNotification("The merge failed.");
     }
 
     private void showUpToDateNotification() {
         logger.warn("No merge necessary notification");
-        Text txt = new Text("No merge necessary. Those two branches are already up-to-date.");
-        txt.setWrappingWidth(notificationPane.getWidth() / 2.0);
-        notificationPane.setGraphic(txt);
-
-        notificationPane.getActions().clear();
-        notificationPane.show();
+        notificationController.addNotification("No merge necessary. Those two branches are already up-to-date.");
     }
 
     private void showConflictsNotification() {
         logger.info("Merge conflicts notification");
-        Text txt = new Text("That merge resulted in conflicts. Check the working tree to resolve them.");
-        txt.setWrappingWidth(notificationPane.getWidth() / 2.0);
-        notificationPane.setGraphic(txt);
-
-        notificationPane.getActions().clear();
-        notificationPane.show();
+        notificationController.addNotification("That merge resulted in conflicts. Check the working tree to resolve them.");
     }
 
     private void showUnsuccessfulMergeNotification(){
         Platform.runLater(() -> {
             logger.warn("Failed merged warning");
-            Text txt = new Text("Merging failed");
-            txt.setWrappingWidth(notificationPane.getWidth() / 2.0);
-            notificationPane.setGraphic(txt);
-
-            this.notificationPane.getActions().clear();
-            this.notificationPane.show();
+            notificationController.addNotification("Merging failed");
         });
     }
 
     private void showNoRepoLoadedNotification() {
         Platform.runLater(() -> {
             logger.warn("No repo loaded");
-            Text txt = new Text("You need to load a repository before you can perform operations on it. Click on the plus sign in the upper left corner!");
-            txt.setWrappingWidth(notificationPane.getWidth() / 2.0);
-            notificationPane.setGraphic(txt);
-
-            this.notificationPane.getActions().clear();
-            this.notificationPane.show();
+            notificationController.addNotification("You need to load a repository before you can perform operations on it. Click on the plus sign in the upper left corner!");
         });
     }
 
@@ -369,104 +337,50 @@ public class MergeWindowController {
         Platform.runLater(()-> {
             logger.warn("No remote repo warning");
             String name = sessionModel.getCurrentRepoHelper() != null ? sessionModel.getCurrentRepoHelper().toString() : "the current repository";
-
-            Text txt = new Text("There is no remote repository associated with " + name);
-            txt.setWrappingWidth(notificationPane.getWidth() / 2.0);
-            notificationPane.setGraphic(txt);
-
-            this.notificationPane.getActions().clear();
-            this.notificationPane.show();
+            notificationController.addNotification("There is no remote repository associated with " + name);
         });
     }
 
     private void showNoCommitsToMergeNotification(){
         Platform.runLater(() -> {
             logger.warn("No commits to merge warning");
-            Text txt = new Text("There aren't any commits to merge. Try fetching first");
-            txt.setWrappingWidth(notificationPane.getWidth() / 2.0);
-            notificationPane.setGraphic(txt);
-
-            this.notificationPane.getActions().clear();
-            this.notificationPane.show();
+            notificationController.addNotification("There aren't any commits to merge. Try fetching first");
         });
     }
 
     private void showNotAuthorizedNotification(Runnable callback) {
         Platform.runLater(() -> {
             logger.warn("Invalid authorization");
-            Text txt = new Text("The authorization information you gave does not allow you to modify this repository. " +
+            notificationController.addNotification("The authorization information you gave does not allow you to modify this repository. " +
                     "Try reentering your password.");
-            txt.setWrappingWidth(notificationPane.getWidth() / 2.0);
-            notificationPane.setGraphic(txt);
-
-            /*
-            Action authAction = new Action("Authorize", e -> {
-                this.notificationPane.hide();
-                if(this.switchUser()){
-                    if(callback != null) callback.run();
-                }
-            });
-
-            this.notificationPane.getActions().setAll(authAction);*/
-
-            this.notificationPane.getActions().clear();
-            this.notificationPane.show();
         });
     }
 
     private void showMergingWithChangedFilesNotification(){
         Platform.runLater(() -> {
             logger.warn("Can't merge with modified files warning");
-            Text txt = new Text("Can't merge with modified files present");
-            txt.setWrappingWidth(notificationPane.getWidth() / 2.0);
-            notificationPane.setGraphic(txt);
-
-            // TODO: I think some sort of help text would be nice here, so they know what to do
-
-            this.notificationPane.getActions().clear();
-            this.notificationPane.show();
+            notificationController.addNotification("Can't merge with modified files present, please add/commit before merging.");
         });
     }
 
     private void showMergeConflictsNotification(List<String> conflictingPaths){
         Platform.runLater(() -> {
-            Text txt = new Text("Can't complete merge due to conflicts. Resolve the conflicts and commit all files to complete merging");
-            txt.setWrappingWidth(notificationPane.getWidth() / 2.0);
-            notificationPane.setGraphic(txt);
-
-            Action seeConflictsAction = new Action("See conflicting files", e -> {
-                this.notificationPane.hide();
-                PopUpWindows.showMergeConflictsAlert(conflictingPaths);
-            });
-
-            this.notificationPane.getActions().clear();
-            this.notificationPane.getActions().setAll(seeConflictsAction);
-
-            this.notificationPane.show();
+            logger.warn("Merge conflict warning");
+            notificationController.addNotification("Can't complete merge due to conflicts. Resolve the conflicts and commit all files to complete merging");
         });
     }
 
     private void showMissingRepoNotification(){
         Platform.runLater(()-> {
-            logger.warn("Missing repo");
-            Text txt = new Text("That repository no longer exists.");
-            txt.setWrappingWidth(notificationPane.getWidth() / 2.0);
-            notificationPane.setGraphic(txt);
-
-            this.notificationPane.getActions().clear();
-            this.notificationPane.show();
+            logger.warn("Missing repo notification");
+            notificationController.addNotification("That repository no longer exists.");
         });
     }
 
     private void showGenericErrorNotification() {
         Platform.runLater(()-> {
             logger.warn("Generic error.");
-            Text txt = new Text("Sorry, there was an error.");
-            txt.setWrappingWidth(notificationPane.getWidth() / 2.0);
-            notificationPane.setGraphic(txt);
-
-            this.notificationPane.getActions().clear();
-            this.notificationPane.show();
+            notificationController.addNotification("Sorry, there was an error.");
         });
     }
 
@@ -474,47 +388,29 @@ public class MergeWindowController {
         Platform.runLater(()-> {
             if (e.getCause().toString().contains("LockFailedException")) {
                 logger.warn("Lock failed warning.");
-                this.notificationPane.setText("Cannot lock .git/index. If no other git processes are running, manually remove all .lock files.");
+                notificationController.addNotification("Cannot lock .git/index. If no other git processes are running, manually remove all .lock files.");
             } else {
                 logger.warn("Generic jgit internal warning.");
-                this.notificationPane.setText("Sorry, there was a Git error.");
+                notificationController.addNotification("Sorry, there was a Git error.");
             }
-
-            this.notificationPane.getActions().clear();
-            this.notificationPane.show();
         });
     }
 
     private void showNoRemoteTrackingNotification() {
         Platform.runLater(() -> {
             logger.warn("No remote tracking for current branch notification.");
-            Text txt = new Text("There is no remote tracking information for the current branch.");
-            txt.setWrappingWidth(notificationPane.getWidth() / 2.0);
-            notificationPane.setGraphic(txt);
-
-            this.notificationPane.getActions().clear();
-            this.notificationPane.show();
+            notificationController.addNotification("There is no remote tracking information for the current branch.");
         });
     }
 
     private void showRefAlreadyExistsNotification() {
         logger.info("Branch already exists notification");
-        Text txt = new Text("Looks like that branch already exists locally!");
-        txt.setWrappingWidth(notificationPane.getWidth() / 2.0);
-        notificationPane.setGraphic(txt);
-
-        notificationPane.getActions().clear();
-        notificationPane.show();
+        notificationController.addNotification("That branch already exists locally.");
     }
 
     private void showSelectBranchNotification() {
         logger.info("Select a branch first notification");
-        Text txt = new Text("You need to select a branch first");
-        txt.setWrappingWidth(notificationPane.getWidth() / 2.0);
-        notificationPane.setGraphic(txt);
-
-        notificationPane.getActions().clear();
-        notificationPane.show();
+        notificationController.addNotification("You need to select a branch first");
     }
 
     ///******* END ERROR NOTIFICATIONS *******/

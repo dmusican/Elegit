@@ -1,19 +1,20 @@
-<?import org.controlsfx.control.NotificationPane?>
-<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.*?>
 <?import javafx.scene.text.Text?>
-<?import javafx.scene.layout.HBox?>
-<?import javafx.scene.control.CheckBox?>
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.ComboBox?>
-<?import javafx.scene.control.Hyperlink?>
-<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.*?>
 <?import javafx.geometry.Insets?>
+<?import java.net.URL?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.shape.*?>
 
-<NotificationPane fx:controller="elegit.MergeWindowController"
+<AnchorPane fx:controller="elegit.MergeWindowController"
                   xmlns:fx="http://javafx.com/fxml"
-                  fx:id="notificationPane">
-    <content>
-        <VBox   spacing="10">
+                  fx:id="anchorRoot">
+    <children>
+        <VBox   spacing="10"
+                AnchorPane.rightAnchor="5"
+                AnchorPane.leftAnchor="5"
+                AnchorPane.topAnchor="5"
+                AnchorPane.bottomAnchor="20">
             <padding>
                 <Insets bottom="10"/>
             </padding>
@@ -105,5 +106,64 @@
                         GridPane.columnIndex="1"/>
             </HBox>
         </VBox>
-    </content>
-</NotificationPane>
+
+        <!-- ******************* NOTIFICATION PANE ************************ -->
+        <StackPane fx:id="notificationPane1"
+                   AnchorPane.bottomAnchor="0.0"
+                   AnchorPane.rightAnchor="0.0"
+                   AnchorPane.leftAnchor="0.0">
+            <AnchorPane fx:id="latestNotification"
+                        StackPane.alignment="BOTTOM_LEFT"
+                        maxHeight="15">
+                <Line AnchorPane.topAnchor="2" id="notificationLine" />
+                <Label   AnchorPane.leftAnchor="3"
+                         AnchorPane.bottomAnchor="0"
+                         fx:id="latestNotificationLabel"
+                         id="notification"
+                         text=""/>
+                <ImageView  AnchorPane.rightAnchor="8"
+                            AnchorPane.bottomAnchor="2"
+                            fitHeight="11"
+                            fitWidth="11">
+                    <Image url="@../images/notification_basic.png"/>
+                </ImageView>
+                <Label fx:id="notificationNum"
+                       id="notificationNum"
+                       AnchorPane.bottomAnchor="6"
+                       AnchorPane.rightAnchor="2"
+                       StackPane.alignment="TOP_RIGHT"
+                       text=""/>
+            </AnchorPane>
+
+            <StackPane fx:id="notificationListPane">
+                <children>
+                    <ScrollPane fx:id="notificationList"
+                                prefHeight="100">
+                        <content>
+                            <VBox>
+                                <children>
+
+                                </children>
+                            </VBox>
+                        </content>
+                    </ScrollPane>
+                    <AnchorPane>
+                        <children>
+                            <Line AnchorPane.topAnchor="0.0" id="notificationLine" />
+                            <Button AnchorPane.leftAnchor="10" AnchorPane.bottomAnchor="5" mnemonicParsing="false" prefHeight="22.0" prefWidth="75.0"
+                                    id="codeButton"
+                                    text="Clear All"/>
+                            <Button AnchorPane.rightAnchor="10" AnchorPane.bottomAnchor="5" mnemonicParsing="false" prefHeight="22.0" prefWidth="75.0"
+                                    id="codeButton"
+                                    text="Minimize"/>
+                        </children>
+                    </AnchorPane>
+                </children>
+            </StackPane>
+        </StackPane>
+    </children>
+
+    <stylesheets>
+        <URL value="@../css/BaseStyle.css"/>
+    </stylesheets>
+</AnchorPane>
