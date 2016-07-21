@@ -33,6 +33,10 @@
     -fx-font-family: "Lucida Console";
 }
 
+.button#notificationButton {
+    -fx-font-size: 12px;
+}
+
 .button:pressed, .button:selected{
     -fx-color: -fx-pressed-base;
 }

@@ -20,7 +20,7 @@ import org.apache.logging.log4j.Logger;
 public class NotificationController {
 
     private final static int MIN_SCROLLPANE_HEIGHT = 20;
-    private final static int BUTTON_WIDTH = 110;
+    private final static int BUTTON_WIDTH = 85;
 
     // FXML elements
     @FXML StackPane notificationPane;
@@ -31,35 +31,15 @@ public class NotificationController {
 
     @FXML Line resizeLine;
     @FXML Line separatorLine;
-    @FXML Button clearAllButton;
     @FXML Button minimizeButton;
     @FXML Label notificationNum;
     @FXML Label latestNotificationLabel;
 
     static final Logger logger = LogManager.getLogger(SessionController.class);
 
-    /*
-     * Constructor method, gives the controller access to its various panes
-     * notificationPane: the pane containing all notifications
-
-    public NotificationController(StackPane notificationPane) {
-        this.notificationPane=notificationPane;
-        this.latestNotification=(AnchorPane) notificationPane.getChildren().get(0);
-        this.notificationListPane=(StackPane) notificationPane.getChildren().get(1);
-        this.notificationList=(ScrollPane) this.notificationListPane.getChildren().get(0);
-        this.notificationListUI=(AnchorPane)this.notificationListPane.getChildren().get(1);
-
-        this.resizeLine = (Line) this.notificationListUI.getChildren().get(0);
-        this.separatorLine = (Line) this.latestNotification.getChildren().get(0);
-        this.clearAllButton = (Button) this.notificationListUI.getChildren().get(1);
-        this.minimizeButton = (Button) this.notificationListUI.getChildren().get(2);
-        this.notificationNum = (Label) this.latestNotification.getChildren().get(3);
-
-        initialize();
-    }*/
-
     /**
-     * Initializes the environment and sets up event handlers
+     * Initializes the environment and sets up event handlers. Called
+     * automatically by JavaFX
      */
     public void initialize() {
         this.notificationListPane.setVisible(false);
@@ -68,9 +48,10 @@ public class NotificationController {
         this.latestNotification.setOnMouseClicked(this::handleNotificationPane);
         this.resizeLine.setOnMouseDragged(this::handleLineDragged);
         this.minimizeButton.setOnMouseClicked(event -> hideNotificationList());
-        this.clearAllButton.setOnMouseClicked(event -> clearAllNotifications());
 
-        this.resizeLine.endXProperty().bind(this.minimizeButton.layoutXProperty().add(BUTTON_WIDTH));
+        this.minimizeButton.boundsInParentProperty().addListener((observable, oldValue, newValue) ->
+            this.resizeLine.setEndX(newValue.getMinX()+BUTTON_WIDTH));
+        //this.resizeLine.endXProperty().bind(this.minimizeButton.boundsInParentProperty().add(BUTTON_WIDTH));
         this.separatorLine.endXProperty().bind(this.resizeLine.endXProperty());
 
         this.notificationListUI.setPickOnBounds(false);
@@ -148,7 +129,7 @@ public class NotificationController {
                 removeNotification(line);
         });
 
-        latestNotificationLabel.setText(notification);
+        setLatestNotificationText(notification);
 
         VBox vBox = (VBox) this.notificationList.getContent();
         vBox.getChildren().add(0,line);
@@ -179,6 +160,7 @@ public class NotificationController {
     /**
      * Helper method that clears all notifications
      */
+    @FXML
     private void clearAllNotifications() {
         VBox vBox = (VBox) this.notificationList.getContent();
 
