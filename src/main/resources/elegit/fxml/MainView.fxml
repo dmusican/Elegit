@@ -338,6 +338,7 @@
         </VBox>
     </HBox>
 
+    <!-- ******************* NOTIFICATION PANE ************************ -->
     <StackPane fx:id="notificationPane1"
           AnchorPane.bottomAnchor="0.0"
           AnchorPane.rightAnchor="0.0"

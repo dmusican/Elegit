@@ -24,7 +24,7 @@ import java.io.IOException;
  */
 public class CreateDeleteBranchWindowController {
 
-    @FXML private AnchorPane anchorPane;
+    @FXML private AnchorPane anchorRoot;
     @FXML private StackPane notificationPane1;
     @FXML private CheckBox checkoutCheckBox;
     @FXML private TextArea newBranchTextArea;
@@ -88,10 +88,10 @@ public class CreateDeleteBranchWindowController {
      * @param pane AnchorPane root
      */
     public void showStage(AnchorPane pane) {
-        anchorPane = pane;
+        anchorRoot = pane;
         stage = new Stage();
         stage.setTitle("Create or delete branch");
-        stage.setScene(new Scene(anchorPane));
+        stage.setScene(new Scene(anchorRoot));
         stage.initModality(Modality.APPLICATION_MODAL);
         stage.setOnCloseRequest(event -> logger.info("Closed create/delete branch window"));
         stage.show();
