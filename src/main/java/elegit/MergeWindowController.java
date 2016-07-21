@@ -9,8 +9,6 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.StackPane;
-import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -30,17 +28,16 @@ import java.util.List;
  */
 public class MergeWindowController {
 
-    @FXML private Text remoteTrackingBranchName;
-    @FXML private Text localBranchName1;
-    @FXML private Text localBranchName2;
-    @FXML private Text intoLocalBranchText;
+    @FXML private Label remoteTrackingBranchName;
+    @FXML private Label localBranchName1;
+    @FXML private Label localBranchName2;
+    @FXML private Label intoLocalBranchName;
     @FXML private CheckBox mergeRemoteTrackingCheckBox;
     @FXML private CheckBox mergeDifLocalBranchCheckBox;
     @FXML private AnchorPane anchorRoot;
-    @FXML private ComboBox<LocalBranchHelper> branchDropdownSelector = new ComboBox<>();
+    @FXML private ComboBox<LocalBranchHelper> branchDropdownSelector;
     @FXML private Button mergeButton;
     @FXML private Text mergeRemoteTrackingText;
-    @FXML private Hyperlink trackLink;
     @FXML private StackPane notificationPane;
     @FXML private NotificationController notificationPaneController;
 
@@ -88,7 +85,7 @@ public class MergeWindowController {
                     "Push to create a remote branch.");
             localBranchName1.setText("");
             remoteTrackingBranchName.setText("");
-            intoLocalBranchText.setText("");
+            intoLocalBranchName.setText("");
 
         } else {
             disable = false;
@@ -98,15 +95,6 @@ public class MergeWindowController {
             remoteTrackingBranchName.setText(curRemoteTrackingBranch);
         }
         localBranchName2.setText(curBranch);
-
-        localBranchName1.setFill(Color.DODGERBLUE);
-        localBranchName1.setFont(new Font(16));
-        localBranchName2.setFill(Color.DODGERBLUE);
-        localBranchName2.setFont(new Font(16));
-        remoteTrackingBranchName.setFill(Color.DODGERBLUE);
-        remoteTrackingBranchName.setFont(new Font(16));
-
-        trackLink.setFont(new Font(10));
     }
 
     /**

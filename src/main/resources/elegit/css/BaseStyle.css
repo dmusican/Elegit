@@ -10,6 +10,9 @@
     -fx-text-fill: #333333;
 }
 
+#merge-text {
+    -fx-font-size: 14px;
+}
 
 
 .label#notification {
@@ -19,6 +22,21 @@
 
 .label#notificationNum {
     -fx-font-size: 10;
+    -fx-font-weight: bold;
+}
+
+#branch-merge-box-tracked{
+    -fx-background-color: #1E90FF;
+    -fx-background-radius: 5;
+}
+#branch-merge-box-untracked{
+    -fx-background-color: #333333;
+    -fx-background-radius: 5;
+}
+
+.label#branch-merge {
+    -fx-text-fill: #FFFFFF;
+    -fx-font-size: 14px;
     -fx-font-weight: bold;
 }
 
@@ -50,6 +68,14 @@
 #notificationLine {
     -fx-background-color: linear-gradient(from 0px 0px to 1200px 0px, -fx-background-default 0%, #555555 2%, #555555 98%, -fx-background-default 100%);;
     -fx-cursor: v_resize;
+}
+
+#merge-arrow {
+    -fx-stroke-width: 3;
+    -fx-stroke: #333333;
+    -fx-stroke-line-cap: round;
+    -fx-fill: #00000000;
+
 }
 
 .tree-cell:selected {
