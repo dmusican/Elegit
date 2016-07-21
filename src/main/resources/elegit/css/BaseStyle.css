@@ -30,7 +30,7 @@
 }
 
 .button#codeButton {
-    -fx-font-family: "Menlo";
+    -fx-font-family: "Lucida Console";
 }
 
 .button:pressed, .button:selected{

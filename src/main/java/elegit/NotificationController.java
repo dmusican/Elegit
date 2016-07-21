@@ -2,6 +2,7 @@ package elegit;
 
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
+import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
@@ -19,27 +20,28 @@ import org.apache.logging.log4j.Logger;
 public class NotificationController {
 
     private final static int MIN_SCROLLPANE_HEIGHT = 20;
-    private final static int BUTTON_WIDTH = 85;
+    private final static int BUTTON_WIDTH = 110;
 
     // FXML elements
-    StackPane notificationPane;
-    AnchorPane latestNotification;
-    StackPane notificationListPane;
-    ScrollPane notificationList;
-    AnchorPane notificationListUI;
+    @FXML StackPane notificationPane;
+    @FXML AnchorPane latestNotification;
+    @FXML StackPane notificationListPane;
+    @FXML ScrollPane notificationList;
+    @FXML AnchorPane notificationListUI;
 
-    Line resizeLine;
-    Line separatorLine;
-    Button clearAllButton;
-    Button minimizeButton;
-    Label notificationNum;
+    @FXML Line resizeLine;
+    @FXML Line separatorLine;
+    @FXML Button clearAllButton;
+    @FXML Button minimizeButton;
+    @FXML Label notificationNum;
+    @FXML Label latestNotificationLabel;
 
     static final Logger logger = LogManager.getLogger(SessionController.class);
 
-    /**
+    /*
      * Constructor method, gives the controller access to its various panes
-     * @param notificationPane: the pane containing all notifications
-     */
+     * notificationPane: the pane containing all notifications
+
     public NotificationController(StackPane notificationPane) {
         this.notificationPane=notificationPane;
         this.latestNotification=(AnchorPane) notificationPane.getChildren().get(0);
@@ -54,7 +56,7 @@ public class NotificationController {
         this.notificationNum = (Label) this.latestNotification.getChildren().get(3);
 
         initialize();
-    }
+    }*/
 
     /**
      * Initializes the environment and sets up event handlers
@@ -63,8 +65,8 @@ public class NotificationController {
         this.notificationListPane.setVisible(false);
         this.notificationListPane.setMouseTransparent(true);
 
-        this.latestNotification.setOnMouseClicked(event -> handleNotificationPane(event));
-        this.resizeLine.setOnMouseDragged(event -> handleLineDragged(event));
+        this.latestNotification.setOnMouseClicked(this::handleNotificationPane);
+        this.resizeLine.setOnMouseDragged(this::handleLineDragged);
         this.minimizeButton.setOnMouseClicked(event -> hideNotificationList());
         this.clearAllButton.setOnMouseClicked(event -> clearAllNotifications());
 
@@ -79,7 +81,7 @@ public class NotificationController {
      * Handler method for the notification pane
      * @param e the mouse event to handle
      */
-    public void handleNotificationPane(MouseEvent e) {
+    private void handleNotificationPane(MouseEvent e) {
         if (e.getTarget().toString().contains("ImageView")) {
             toggleNotificationList();
         } else if (e.getClickCount()>1) {
@@ -91,7 +93,7 @@ public class NotificationController {
      * Handler method for resizing the extended notification window
      * @param e mouse event for dragging
      */
-    public void handleLineDragged(MouseEvent e) {
+    private void handleLineDragged(MouseEvent e) {
         if (notificationList.getHeight()<MIN_SCROLLPANE_HEIGHT || e.getSceneY()>(notificationList.getScene().getHeight()-MIN_SCROLLPANE_HEIGHT)) {
             notificationList.setPrefHeight(MIN_SCROLLPANE_HEIGHT);
             hideNotificationList();
@@ -105,7 +107,7 @@ public class NotificationController {
     /**
      * Toggles between the basic view of one notification to the extended list view
      */
-    public void toggleNotificationList() {
+    void toggleNotificationList() {
         this.notificationListPane.setVisible(!this.notificationListPane.isVisible());
         this.notificationListPane.setMouseTransparent(!this.notificationListPane.isMouseTransparent());
         this.latestNotification.setVisible(!this.latestNotification.isVisible());
@@ -114,21 +116,21 @@ public class NotificationController {
     /**
      * Helper method to hide the extended notification list if it is showing
      */
-    public void hideNotificationList() {
+    private void hideNotificationList() {
         if (isListPaneVisible()) toggleNotificationList();
     }
 
     /**
      * Helper method to show the extended notification list if isn't showing
      */
-    public void showNotificationList() {
+    private void showNotificationList() {
         if (!isListPaneVisible()) toggleNotificationList();
     }
 
     /**
      * @return true if the extended notification list is showing
      */
-    public boolean isListPaneVisible() {
+    boolean isListPaneVisible() {
         return this.notificationListPane.isVisible();
     }
 
@@ -136,7 +138,7 @@ public class NotificationController {
      * Adds a notification to the list of notifications
      * @param notification the notification string to add
      */
-    public void addNotification(String notification) {
+    void addNotification(String notification) {
         Label line = new Label(notification);
         line.setWrapText(true);
         line.setId("notification");
@@ -146,7 +148,7 @@ public class NotificationController {
                 removeNotification(line);
         });
 
-        ((Label) latestNotification.getChildren().get(1)).setText(notification);
+        latestNotificationLabel.setText(notification);
 
         VBox vBox = (VBox) this.notificationList.getContent();
         vBox.getChildren().add(0,line);
@@ -158,7 +160,7 @@ public class NotificationController {
      * Removes a given notification
      * @param notification the notification label to remove
      */
-    public void removeNotification(Label notification) {
+    private void removeNotification(Label notification) {
         VBox vBox = (VBox) this.notificationList.getContent();
 
         // Reset the latest notification text if needed
@@ -191,7 +193,7 @@ public class NotificationController {
      * @param notificationText the string to set the latest notification text to
      */
     private void setLatestNotificationText(String notificationText) {
-        ((Label) latestNotification.getChildren().get(1)).setText(notificationText);
+        latestNotificationLabel.setText(notificationText);
     }
 
     /**

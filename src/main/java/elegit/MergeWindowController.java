@@ -44,13 +44,13 @@ public class MergeWindowController {
     @FXML private Hyperlink trackLink;
     @FXML private StackPane notificationPane1;
 
-    Stage stage;
+    private Stage stage;
     SessionModel sessionModel;
     RepoHelper repoHelper;
-    BranchModel branchModel;
-    boolean disable;
-    CommitTreeModel localCommitTreeModel;
-    NotificationController notificationController;
+    private BranchModel branchModel;
+    private boolean disable;
+    private CommitTreeModel localCommitTreeModel;
+    private NotificationController notificationController;
 
     static final Logger logger = LogManager.getLogger();
 
@@ -74,12 +74,12 @@ public class MergeWindowController {
         initText();
         initCheckBoxes();
 
-        notificationController = new NotificationController(notificationPane1);
+        //notificationController = new NotificationController(notificationPane1);
     }
 
     /**
      * helper method to initialize some text
-     * @throws IOException
+     * @throws IOException if there is an error getting branch names
      */
     private void initText() throws IOException {
         String curBranch = repoHelper.getBranchModel().getCurrentBranch().getBranchName();
@@ -134,7 +134,7 @@ public class MergeWindowController {
      * shows the window
      * @param pane AnchorPane root
      */
-    public void showStage(AnchorPane pane) {
+    void showStage(AnchorPane pane) {
         anchorRoot = pane;
         stage = new Stage();
         stage.setTitle("Merge");
@@ -203,9 +203,7 @@ public class MergeWindowController {
                         showMergingWithChangedFilesNotification();
                     } catch(ConflictingFilesException e){
                         showMergeConflictsNotification(e.getConflictingFiles());
-                        Platform.runLater(() -> {
-                            PopUpWindows.showMergeConflictsAlert(e.getConflictingFiles());
-                        });
+                        Platform.runLater(() -> PopUpWindows.showMergeConflictsAlert(e.getConflictingFiles()));
                         ConflictingFileWatcher.watchConflictingFiles(sessionModel.getCurrentRepoHelper());
                     } catch(MissingRepoException e){
                         showMissingRepoNotification();
@@ -239,8 +237,8 @@ public class MergeWindowController {
 
     /**
      * merges the selected local branch with the current local branch
-     * @throws GitAPIException
-     * @throws IOException
+     * @throws GitAPIException if there is a merging error
+     * @throws IOException if there is an error with the file access of merge
      */
     private void localBranchMerge() throws GitAPIException, IOException {
         logger.info("Merging selected branch with current");

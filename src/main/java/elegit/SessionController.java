@@ -89,11 +89,11 @@ public class SessionController {
 
 	public CommitTreePanelView commitTreePanelView;
 
-    public CommitTreeModel commitTreeModel;
+    CommitTreeModel commitTreeModel;
 
     public ImageView remoteImage;
 
-    public String commitInfoNameText = "";
+    private String commitInfoNameText = "";
 
     public TextArea commitInfoMessageText;
     public TextArea tagNameField;
@@ -110,10 +110,10 @@ public class SessionController {
 
     public URL remoteURL;
 
-    public DataSubmitter d;
+    private DataSubmitter d;
 
-    public BooleanProperty isWorkingTreeTabSelected;
-    public static SimpleBooleanProperty anythingChecked;
+    private BooleanProperty isWorkingTreeTabSelected;
+    static SimpleBooleanProperty anythingChecked;
 
     private volatile boolean isRecentRepoEventListenerBlocked = false;
 
@@ -128,9 +128,8 @@ public class SessionController {
     public Hyperlink legendLink;
 
     // Notification pane
-    NotificationController notificationController;
-
-    @FXML StackPane notificationPane1;
+    @FXML private StackPane notificationPane;
+    @FXML private NotificationController notificationPaneController;
 
 
     /**
@@ -181,7 +180,7 @@ public class SessionController {
             e.printStackTrace();
         }
 
-        notificationController = new NotificationController(notificationPane1);
+
     }
 
     /**
@@ -208,7 +207,7 @@ public class SessionController {
         }
 
         String remoteBranch="";
-        if (remoteBranch==null) remoteBranch = "N/A";
+        //if (remoteBranch==null) remoteBranch = "N/A";
         update = !remoteBranch.equals(currentRemoteTrackingBranchText.getText());
         if (update) {
             currentRemoteTrackingBranchText.setText(remoteBranch);
@@ -438,7 +437,7 @@ public class SessionController {
      *
      * @param disable a boolean for whether or not to disable the buttons.
      */
-    public void setButtonsDisabled(boolean disable) {
+    void setButtonsDisabled(boolean disable) {
         Platform.runLater(() -> {
             openRepoDirButton.setDisable(disable);
             gitStatusButton.setDisable(disable);
@@ -460,7 +459,7 @@ public class SessionController {
 
         root.setOnMouseClicked(event -> {
             if (disable) showNoRepoLoadedNotification();
-            if (this.notificationController.isListPaneVisible()) this.notificationController.toggleNotificationList();
+            if (this.notificationPaneController.isListPaneVisible()) this.notificationPaneController.toggleNotificationList();
         });
     }
 
@@ -790,7 +789,7 @@ public class SessionController {
                 fxmlLoader.load();
                 CommitController commitController = fxmlLoader.getController();
                 commitController.isClosed.addListener((observable, oldValue, newValue) -> {
-                    if (!oldValue.booleanValue()&&newValue.booleanValue())
+                    if (!oldValue && newValue)
                         gitStatus();
                 });
                 GridPane fxmlRoot = fxmlLoader.getRoot();
@@ -857,15 +856,6 @@ public class SessionController {
                         refreshRecentReposInDropdown();
                     } catch (TransportException e) {
                         showNotAuthorizedNotification(null);
-                    } catch (WrongRepositoryStateException e) {
-                        showGenericErrorNotification();
-                        e.printStackTrace();
-
-                        // TODO remove the above debug statements
-                        // This should hopefully not appear any more. Previously occurred when attempting to resolve
-                        // conflicts in an external editor
-                        // Do nothing.
-
                     } catch(GitAPIException e){
                         // Git error
                         showGenericErrorNotification();
@@ -939,9 +929,6 @@ public class SessionController {
                         showMissingRepoNotification();
                         setButtonsDisabled(true);
                         refreshRecentReposInDropdown();
-                    } catch(GitAPIException e){
-                        showGenericErrorNotification();
-                        e.printStackTrace();
                     } catch(Exception e) {
                         showGenericErrorNotification();
                         e.printStackTrace();
@@ -1007,9 +994,6 @@ public class SessionController {
                         showMissingRepoNotification();
                         setButtonsDisabled(true);
                         refreshRecentReposInDropdown();
-                    } catch(GitAPIException e){
-                        showGenericErrorNotification();
-                        e.printStackTrace();
                     } catch(Exception e) {
                         showGenericErrorNotification();
                         e.printStackTrace();
@@ -1074,10 +1058,6 @@ public class SessionController {
                         setButtonsDisabled(true);
                         refreshRecentReposInDropdown();
                         tagsPushed = false;
-                    } catch(GitAPIException e){
-                        showGenericErrorNotification();
-                        e.printStackTrace();
-                        tagsPushed = false;
                     } catch(Exception e) {
                         showGenericErrorNotification();
                         e.printStackTrace();
@@ -1107,7 +1087,7 @@ public class SessionController {
     /**
      * Reverts the tree to remove the changes in the most recent commit
      */
-    public void handleRevertButton(CommitHelper commit) {
+    void handleRevertButton(CommitHelper commit) {
         try {
             logger.info("Revert button clicked");
 
@@ -1141,9 +1121,6 @@ public class SessionController {
                         showMissingRepoNotification();
                         setButtonsDisabled(true);
                         refreshRecentReposInDropdown();
-                    } catch(GitAPIException e){
-                        showGenericErrorNotification();
-                        e.printStackTrace();
                     } catch(Exception e) {
                         showGenericErrorNotification();
                         e.printStackTrace();
@@ -1166,7 +1143,7 @@ public class SessionController {
      * Resets the tree to the given commit
      * @param commit CommitHelper
      */
-    public void handleResetButton(CommitHelper commit) {
+    void handleResetButton(CommitHelper commit) {
         try {
             logger.info("Reset button clicked");
 
@@ -1193,9 +1170,6 @@ public class SessionController {
                         showMissingRepoNotification();
                         setButtonsDisabled(true);
                         refreshRecentReposInDropdown();
-                    } catch(GitAPIException e){
-                        showGenericErrorNotification();
-                        e.printStackTrace();
                     } catch(Exception e) {
                         showGenericErrorNotification();
                         e.printStackTrace();
@@ -1230,7 +1204,7 @@ public class SessionController {
      * remote as necessary.
      * Equivalent to `git fetch`
      */
-    public synchronized void gitFetch(){
+    private synchronized void gitFetch(){
         try{
 
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
@@ -1254,9 +1228,6 @@ public class SessionController {
                         showMissingRepoNotification();
                         setButtonsDisabled(true);
                         refreshRecentReposInDropdown();
-                    } catch(GitAPIException e){
-                        showGenericErrorNotification();
-                        e.printStackTrace();
                     } catch(Exception e) {
                         showGenericErrorNotification();
                         e.printStackTrace();
@@ -1357,7 +1328,7 @@ public class SessionController {
      * Updates the trees, changed files, and branch information. Equivalent
      * to 'git status'
      */
-    public void gitStatus(){
+    void gitStatus(){
         RepositoryMonitor.pause();
 
         Platform.runLater(() -> {
@@ -1561,7 +1532,7 @@ public class SessionController {
     /**
      * Creates a new owner and sets it as the current default owner.
      */
-    public boolean changeLogin() {
+    private boolean changeLogin() {
         SessionModel sessionModel = SessionModel.getSessionModel();
         RepoHelper repoHelper = sessionModel.getCurrentRepoHelper();
 
@@ -1620,7 +1591,7 @@ public class SessionController {
      * Displays information about the commit with the given id
      * @param id the selected commit
      */
-    public void selectCommit(String id){
+    void selectCommit(String id){
         Platform.runLater(() -> {
             CommitHelper commit = this.theModel.getCurrentRepoHelper().getCommit(id);
 
@@ -1670,7 +1641,7 @@ public class SessionController {
     /**
      * Stops displaying commit information
      */
-    public void clearSelectedCommit(){
+    void clearSelectedCommit(){
         Platform.runLater(() -> {
             commitInfoMessageText.setText("");
             commitInfoMessageText.setVisible(false);
@@ -1692,7 +1663,7 @@ public class SessionController {
     private void showGenericErrorNotification() {
         Platform.runLater(()-> {
             logger.warn("Generic error warning.");
-            this.notificationController.addNotification("Sorry, there was an error.");
+            this.notificationPaneController.addNotification("Sorry, there was an error.");
         });
     }
 
@@ -1700,10 +1671,10 @@ public class SessionController {
         Platform.runLater(()-> {
             if (e.getCause().toString().contains("LockFailedException")) {
                 logger.warn("Lock failed warning.");
-                this.notificationController.addNotification(e.getCause().getMessage()+". If no other git processes are running, manually remove all .lock files.");
+                this.notificationPaneController.addNotification(e.getCause().getMessage()+". If no other git processes are running, manually remove all .lock files.");
             } else {
                 logger.warn("Generic jgit internal warning.");
-                this.notificationController.addNotification("Sorry, there was a Git error.");
+                this.notificationPaneController.addNotification("Sorry, there was a Git error.");
             }
         });
     }
@@ -1711,21 +1682,21 @@ public class SessionController {
     private void showNoRepoLoadedNotification() {
         Platform.runLater(() -> {
             logger.warn("No repo loaded warning.");
-            this.notificationController.addNotification("You need to load a repository before you can perform operations on it. Click on the plus sign in the upper left corner!");
+            this.notificationPaneController.addNotification("You need to load a repository before you can perform operations on it. Click on the plus sign in the upper left corner!");
         });
     }
 
     private void showInvalidRepoNotification() {
         Platform.runLater(() -> {
             logger.warn("Invalid repo warning.");
-            this.notificationController.addNotification("Make sure the directory you selected contains an existing (non-bare) Git repository.");
+            this.notificationPaneController.addNotification("Make sure the directory you selected contains an existing (non-bare) Git repository.");
         });
     }
 
     private void showMissingRepoNotification(){
         Platform.runLater(()-> {
             logger.warn("Missing repo warning");
-            this.notificationController.addNotification("That repository no longer exists.");
+            this.notificationPaneController.addNotification("That repository no longer exists.");
         });
     }
 
@@ -1734,7 +1705,7 @@ public class SessionController {
             logger.warn("No remote repo warning");
             String name = this.theModel.getCurrentRepoHelper() != null ? this.theModel.getCurrentRepoHelper().toString() : "the current repository";
 
-            this.notificationController.addNotification("There is no remote repository associated with " + name);
+            this.notificationPaneController.addNotification("There is no remote repository associated with " + name);
         });
     }
 
@@ -1743,28 +1714,28 @@ public class SessionController {
             logger.warn("Failed to load local repo warning");
             String path = this.theModel.getCurrentRepoHelper() != null ? this.theModel.getCurrentRepoHelper().getLocalPath().toString() : "the location of the local repository";
 
-            this.notificationController.addNotification("Could not open directory at " + path);
+            this.notificationPaneController.addNotification("Could not open directory at " + path);
         });
     }
 
     private void showNonEmptyFolderNotification(Runnable callback) {
         Platform.runLater(()-> {
             logger.warn("Folder alread exists warning");
-            this.notificationController.addNotification("Make sure a folder with that name doesn't already exist in that location");
+            this.notificationPaneController.addNotification("Make sure a folder with that name doesn't already exist in that location");
         });
     }
 
     private void showInvalidRemoteNotification(Runnable callback) {
         Platform.runLater(() -> {
             logger.warn("Invalid remote warning");
-            this.notificationController.addNotification("Make sure you entered the correct remote URL.");
+            this.notificationPaneController.addNotification("Make sure you entered the correct remote URL.");
         });
     }
 
     private void showNotAuthorizedNotification(Runnable callback) {
         Platform.runLater(() -> {
             logger.warn("Invalid authorization warning");
-            this.notificationController.addNotification("The authorization information you gave does not allow you to modify this repository. " +
+            this.notificationPaneController.addNotification("The authorization information you gave does not allow you to modify this repository. " +
                     "Try reentering your password.");
         });
     }
@@ -1772,36 +1743,36 @@ public class SessionController {
     private void showRepoWasNotLoadedNotification() {
         Platform.runLater(() -> {
             logger.warn("Repo not loaded warning");
-            this.notificationController.addNotification("Something went wrong, so no repository was loaded.");
+            this.notificationPaneController.addNotification("Something went wrong, so no repository was loaded.");
         });
     }
 
     private void showPushToAheadRemoteNotification(boolean allRefsRejected){
         Platform.runLater(() -> {
             logger.warn("Remote ahead of local warning");
-            if(allRefsRejected) this.notificationController.addNotification("The remote repository is ahead of the local. You need to fetch and then merge (pull) before pushing.");
-            else this.notificationController.addNotification("You need to fetch/merge in order to push all of your changes.");
+            if(allRefsRejected) this.notificationPaneController.addNotification("The remote repository is ahead of the local. You need to fetch and then merge (pull) before pushing.");
+            else this.notificationPaneController.addNotification("You need to fetch/merge in order to push all of your changes.");
         });
     }
 
     private void showLostRemoteNotification() {
         Platform.runLater(() -> {
             logger.warn("Remote repo couldn't be found warning");
-            this.notificationController.addNotification("The push failed because the remote repository couldn't be found.");
+            this.notificationPaneController.addNotification("The push failed because the remote repository couldn't be found.");
         });
     }
 
     private void showSameRepoLoadedNotification() {
         Platform.runLater(() -> {
             logger.warn("Same repo loaded");
-            this.notificationController.addNotification("That repository is already open");
+            this.notificationPaneController.addNotification("That repository is already open");
         });
     }
 
     private void showNoFilesStagedForCommitNotification(){
         Platform.runLater(() -> {
             logger.warn("No files staged for commit warning");
-            this.notificationController.addNotification("You need to add files before commiting");
+            this.notificationPaneController.addNotification("You need to add files before commiting");
         });
     }
 
@@ -1809,7 +1780,7 @@ public class SessionController {
     private void showNoFilesSelectedForAddNotification(){
         Platform.runLater(() -> {
             logger.warn("No files selected for add warning");
-            this.notificationController.addNotification("You need to select files to add");
+            this.notificationPaneController.addNotification("You need to select files to add");
         });
     }
 
@@ -1817,7 +1788,7 @@ public class SessionController {
     private void showNoFilesSelectedForRemoveNotification(){
         Platform.runLater(() -> {
             logger.warn("No files staged for remove warning");
-            this.notificationController.addNotification("You need select files to remove");
+            this.notificationPaneController.addNotification("You need select files to remove");
         });
     }
 
@@ -1825,81 +1796,78 @@ public class SessionController {
     private void showCannotAddFileNotification(String filename) {
         Platform.runLater(() -> {
             logger.warn("Cannot add file notification");
-            this.notificationController.addNotification("Cannot add "+filename+". It might already be added (staged).");
+            this.notificationPaneController.addNotification("Cannot add "+filename+". It might already be added (staged).");
         });
     }
 
     private void showCannotRemoveFileNotification(String filename) {
         Platform.runLater(() -> {
             logger.warn("Cannot remove file notification");
-            this.notificationController.addNotification("Cannot remove "+filename+" because it hasn't been staged yet.");
+            this.notificationPaneController.addNotification("Cannot remove "+filename+" because it hasn't been staged yet.");
         });
     }
 
     private void showNoTagNameNotification(){
         Platform.runLater(() -> {
             logger.warn("No tag name warning");
-            this.notificationController.addNotification("You need to write a tag name in order to tag the commit");
+            this.notificationPaneController.addNotification("You need to write a tag name in order to tag the commit");
         });
     }
 
     private void showNoCommitsToPushNotification(){
         Platform.runLater(() -> {
             logger.warn("No local commits to push warning");
-            this.notificationController.addNotification("There aren't any local commits to push");
+            this.notificationPaneController.addNotification("There aren't any local commits to push");
         });
     }
 
     private void showNoTagsToPushNotification(){
         Platform.runLater(() -> {
             logger.warn("No local tags to push warning");
-            this.notificationController.addNotification("There aren't any local tags to push");
+            this.notificationPaneController.addNotification("There aren't any local tags to push");
         });
     }
 
     private void showNoCommitsFetchedNotification(){
         Platform.runLater(() -> {
             logger.warn("No commits fetched warning");
-            this.notificationController.addNotification("No new commits were fetched");
+            this.notificationPaneController.addNotification("No new commits were fetched");
         });
     }
 
     private void showTagExistsNotification() {
         Platform.runLater(()-> {
             logger.warn("Tag already exists warning.");
-            this.notificationController.addNotification("Sorry that tag already exists in this repository.");
+            this.notificationPaneController.addNotification("Sorry that tag already exists in this repository.");
         });
     }
 
     private void showCantRevertMultipleParentsNotification() {
         Platform.runLater(() -> {
             logger.warn("Tried to revert commit with multiple parents.");
-            this.notificationController.addNotification("You cannot revert that commit because it has more than one parent.");
+            this.notificationPaneController.addNotification("You cannot revert that commit because it has more than one parent.");
         });
     }
 
     private void showCantRevertZeroParentsNotification() {
         Platform.runLater(() -> {
             logger.warn("Tried to revert commit with zero parents.");
-            this.notificationController.addNotification("You cannot revert that commit because it has zero parents.");
+            this.notificationPaneController.addNotification("You cannot revert that commit because it has zero parents.");
         });
     }
 
     // END: ERROR NOTIFICATIONS ^^^
 
-    public void submitLog() {
+    private void submitLog() {
         try {
             String lastUUID = theModel.getLastUUID();
             theModel.setLastUUID(d.submitData(lastUUID));
-        } catch (BackingStoreException e) {
-            e.printStackTrace();
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
+        } catch (BackingStoreException | ClassNotFoundException | IOException e) {
             e.printStackTrace();
         } catch (Exception e) {
             try { theModel.setLastUUID(""); }
-            catch (Exception f) { }
+            catch (Exception f) { // This shouldn't happen
+            }
         }
     }
 }

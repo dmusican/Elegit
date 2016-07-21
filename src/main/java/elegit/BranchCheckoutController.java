@@ -79,7 +79,7 @@ public class BranchCheckoutController {
         this.setIcons();
         this.updateButtons();
 
-        this.notificationController = new NotificationController(notificationPane1);
+        //this.notificationController = new NotificationController(notificationPane1);
     }
 
     /**
@@ -95,7 +95,7 @@ public class BranchCheckoutController {
      * Shows the branch manager
      * @param pane AnchorPane root
      */
-    public void showStage(AnchorPane pane) {
+    void showStage(AnchorPane pane) {
         anchorRoot = pane;
         stage = new Stage();
         stage.setTitle("Branch Checkout");
@@ -119,13 +119,7 @@ public class BranchCheckoutController {
         if (!localListView.getSelectionModel().isEmpty()) {
             localListView.getSelectionModel().clearSelection();
         }
-        try {
-            this.updateButtons();
-        } catch (IOException e1) {
-            logger.error("Branch manager remote list view mouse click error");
-            logger.debug(e1.getStackTrace());
-            e1.printStackTrace();
-        }
+        this.updateButtons();
     }
 
     /**
@@ -135,22 +129,14 @@ public class BranchCheckoutController {
         if (!remoteListView.getSelectionModel().isEmpty()) {
             remoteListView.getSelectionModel().clearSelection();
         }
-        try {
-            this.updateButtons();
-        } catch (IOException e1) {
-            logger.error("Branch manager local list view mouse click error");
-            logger.debug(e1.getStackTrace());
-            e1.printStackTrace();
-        }
+        this.updateButtons();
     }
 
     /**
      * Updates the track remote, merge, and delete local buttons'
      * text and/or disabled/enabled status.
-     *
-     * @throws IOException
      */
-    private void updateButtons() throws IOException {
+    private void updateButtons() {
 
         // Update delete button
         if (this.localListView.getSelectionModel().getSelectedIndices().size() > 0) {
@@ -170,8 +156,8 @@ public class BranchCheckoutController {
     /**
      * Tracks the selected branch (in the remoteListView) locally.
      *
-     * @throws GitAPIException
-     * @throws IOException
+     * @throws GitAPIException if the git tracking goes wrong
+     * @throws IOException if writing to local directory fails
      */
     public void trackSelectedBranchLocally() throws GitAPIException, IOException {
         logger.info("Track remote branch locally button clicked");
@@ -214,7 +200,7 @@ public class BranchCheckoutController {
         }
     }
 
-    public static boolean checkoutBranch(LocalBranchHelper selectedBranch, SessionModel theSessionModel) {
+    static boolean checkoutBranch(LocalBranchHelper selectedBranch, SessionModel theSessionModel) {
         if(selectedBranch == null) return false;
         try{
             // This is an edge case for new local repos.
@@ -258,7 +244,7 @@ public class BranchCheckoutController {
 
     private void showGenericGitErrorNotificationWithBranch(LocalBranchHelper branch) {
         logger.warn("Git error on branch notification");
-        this.notificationController.addNotification(String.format("Sorry, there was a git error on branch %s.", branch.getBranchName()));
+        notificationController.addNotification(String.format("Sorry, there was a git error on branch %s.", branch.getBranchName()));
     }
 
     private static void showGenericErrorNotification() {

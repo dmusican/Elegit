@@ -32,13 +32,13 @@ public class CreateDeleteBranchWindowController {
     @FXML private Button createButton;
     @FXML private Button deleteButton;
 
-    Stage stage;
+    private Stage stage;
     SessionModel sessionModel;
     RepoHelper repoHelper;
-    BranchModel branchModel;
-    CommitTreeModel localCommitTreeModel;
+    private BranchModel branchModel;
+    private CommitTreeModel localCommitTreeModel;
 
-    NotificationController notificationController;
+    private NotificationController notificationController;
 
     static final Logger logger = LogManager.getLogger();
 
@@ -73,7 +73,7 @@ public class CreateDeleteBranchWindowController {
         // Get the current commit tree models
         localCommitTreeModel = CommitTreeController.getCommitTreeModel();
 
-        this.notificationController = new NotificationController(notificationPane1);
+        //this.notificationController = new NotificationController(notificationPane1);
     }
 
     /**
@@ -87,7 +87,7 @@ public class CreateDeleteBranchWindowController {
      * shows the window
      * @param pane AnchorPane root
      */
-    public void showStage(AnchorPane pane) {
+    void showStage(AnchorPane pane) {
         anchorRoot = pane;
         stage = new Stage();
         stage.setTitle("Create or delete branch");
@@ -113,7 +113,7 @@ public class CreateDeleteBranchWindowController {
      * @param branchName String
      * @param checkout boolean
      */
-    public void createNewBranch(String branchName, boolean checkout) {
+    private void createNewBranch(String branchName, boolean checkout) {
         Thread th = new Thread(new Task<Void>() {
             @Override
             protected Void call() {
