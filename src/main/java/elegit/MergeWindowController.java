@@ -13,7 +13,6 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Modality;
-import javafx.stage.PopupWindow;
 import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -42,7 +41,8 @@ public class MergeWindowController {
     @FXML private Button mergeButton;
     @FXML private Text mergeRemoteTrackingText;
     @FXML private Hyperlink trackLink;
-    @FXML private StackPane notificationPane1;
+    @FXML private StackPane notificationPane;
+    @FXML private NotificationController notificationPaneController;
 
     private Stage stage;
     SessionModel sessionModel;
@@ -50,7 +50,6 @@ public class MergeWindowController {
     private BranchModel branchModel;
     private boolean disable;
     private CommitTreeModel localCommitTreeModel;
-    private NotificationController notificationController;
 
     static final Logger logger = LogManager.getLogger();
 
@@ -73,8 +72,6 @@ public class MergeWindowController {
 
         initText();
         initCheckBoxes();
-
-        //notificationController = new NotificationController(notificationPane1);
     }
 
     /**
@@ -294,40 +291,40 @@ public class MergeWindowController {
 
     private void showFastForwardMergeNotification() {
         logger.info("Fast forward merge complete notification");
-        notificationController.addNotification("Fast-forward merge completed.");
+        notificationPaneController.addNotification("Fast-forward merge completed.");
     }
 
     private void showMergeSuccessNotification() {
         logger.info("Merge completed notification");
-        notificationController.addNotification("Merge completed.");
+        notificationPaneController.addNotification("Merge completed.");
     }
 
     private void showFailedMergeNotification() {
         logger.warn("Merge failed notification");
-        notificationController.addNotification("The merge failed.");
+        notificationPaneController.addNotification("The merge failed.");
     }
 
     private void showUpToDateNotification() {
         logger.warn("No merge necessary notification");
-        notificationController.addNotification("No merge necessary. Those two branches are already up-to-date.");
+        notificationPaneController.addNotification("No merge necessary. Those two branches are already up-to-date.");
     }
 
     private void showConflictsNotification() {
         logger.info("Merge conflicts notification");
-        notificationController.addNotification("That merge resulted in conflicts. Check the working tree to resolve them.");
+        notificationPaneController.addNotification("That merge resulted in conflicts. Check the working tree to resolve them.");
     }
 
     private void showUnsuccessfulMergeNotification(){
         Platform.runLater(() -> {
             logger.warn("Failed merged warning");
-            notificationController.addNotification("Merging failed");
+            notificationPaneController.addNotification("Merging failed");
         });
     }
 
     private void showNoRepoLoadedNotification() {
         Platform.runLater(() -> {
             logger.warn("No repo loaded");
-            notificationController.addNotification("You need to load a repository before you can perform operations on it. Click on the plus sign in the upper left corner!");
+            notificationPaneController.addNotification("You need to load a repository before you can perform operations on it. Click on the plus sign in the upper left corner!");
         });
     }
 
@@ -335,21 +332,21 @@ public class MergeWindowController {
         Platform.runLater(()-> {
             logger.warn("No remote repo warning");
             String name = sessionModel.getCurrentRepoHelper() != null ? sessionModel.getCurrentRepoHelper().toString() : "the current repository";
-            notificationController.addNotification("There is no remote repository associated with " + name);
+            notificationPaneController.addNotification("There is no remote repository associated with " + name);
         });
     }
 
     private void showNoCommitsToMergeNotification(){
         Platform.runLater(() -> {
             logger.warn("No commits to merge warning");
-            notificationController.addNotification("There aren't any commits to merge. Try fetching first");
+            notificationPaneController.addNotification("There aren't any commits to merge. Try fetching first");
         });
     }
 
     private void showNotAuthorizedNotification(Runnable callback) {
         Platform.runLater(() -> {
             logger.warn("Invalid authorization");
-            notificationController.addNotification("The authorization information you gave does not allow you to modify this repository. " +
+            notificationPaneController.addNotification("The authorization information you gave does not allow you to modify this repository. " +
                     "Try reentering your password.");
         });
     }
@@ -357,28 +354,28 @@ public class MergeWindowController {
     private void showMergingWithChangedFilesNotification(){
         Platform.runLater(() -> {
             logger.warn("Can't merge with modified files warning");
-            notificationController.addNotification("Can't merge with modified files present, please add/commit before merging.");
+            notificationPaneController.addNotification("Can't merge with modified files present, please add/commit before merging.");
         });
     }
 
     private void showMergeConflictsNotification(List<String> conflictingPaths){
         Platform.runLater(() -> {
             logger.warn("Merge conflict warning");
-            notificationController.addNotification("Can't complete merge due to conflicts. Resolve the conflicts and commit all files to complete merging");
+            notificationPaneController.addNotification("Can't complete merge due to conflicts. Resolve the conflicts and commit all files to complete merging");
         });
     }
 
     private void showMissingRepoNotification(){
         Platform.runLater(()-> {
             logger.warn("Missing repo notification");
-            notificationController.addNotification("That repository no longer exists.");
+            notificationPaneController.addNotification("That repository no longer exists.");
         });
     }
 
     private void showGenericErrorNotification() {
         Platform.runLater(()-> {
             logger.warn("Generic error.");
-            notificationController.addNotification("Sorry, there was an error.");
+            notificationPaneController.addNotification("Sorry, there was an error.");
         });
     }
 
@@ -386,10 +383,10 @@ public class MergeWindowController {
         Platform.runLater(()-> {
             if (e.getCause().toString().contains("LockFailedException")) {
                 logger.warn("Lock failed warning.");
-                notificationController.addNotification("Cannot lock .git/index. If no other git processes are running, manually remove all .lock files.");
+                notificationPaneController.addNotification("Cannot lock .git/index. If no other git processes are running, manually remove all .lock files.");
             } else {
                 logger.warn("Generic jgit internal warning.");
-                notificationController.addNotification("Sorry, there was a Git error.");
+                notificationPaneController.addNotification("Sorry, there was a Git error.");
             }
         });
     }
@@ -397,18 +394,18 @@ public class MergeWindowController {
     private void showNoRemoteTrackingNotification() {
         Platform.runLater(() -> {
             logger.warn("No remote tracking for current branch notification.");
-            notificationController.addNotification("There is no remote tracking information for the current branch.");
+            notificationPaneController.addNotification("There is no remote tracking information for the current branch.");
         });
     }
 
     private void showRefAlreadyExistsNotification() {
         logger.info("Branch already exists notification");
-        notificationController.addNotification("That branch already exists locally.");
+        notificationPaneController.addNotification("That branch already exists locally.");
     }
 
     private void showSelectBranchNotification() {
         logger.info("Select a branch first notification");
-        notificationController.addNotification("You need to select a branch first");
+        notificationPaneController.addNotification("You need to select a branch first");
     }
 
     ///******* END ERROR NOTIFICATIONS *******/
