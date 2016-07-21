@@ -25,10 +25,7 @@ import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
@@ -1291,7 +1288,7 @@ public class SessionController {
             FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/CreateDeleteBranchWindow.fxml"));
             fxmlLoader.load();
             CreateDeleteBranchWindowController createDeleteBranchController = fxmlLoader.getController();
-            NotificationPane fxmlRoot = fxmlLoader.getRoot();
+            AnchorPane fxmlRoot = fxmlLoader.getRoot();
             createDeleteBranchController.showStage(fxmlRoot);
         }catch(IOException e){
             this.showGenericErrorNotification();

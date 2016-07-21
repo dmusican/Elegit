@@ -272,7 +272,7 @@ public class PopUpWindows {
                 "If you delete it, you will lose any local work done on this branch. " +
                 "What would you like to do?");
 
-        ButtonType deleteButton = new ButtonType("Delete branch");
+        ButtonType deleteButton = new ButtonType("Force delete branch");
         ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
 
         alert.getButtonTypes().clear();

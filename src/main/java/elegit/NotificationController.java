@@ -141,7 +141,6 @@ public class NotificationController {
         line.setId("notification");
         line.setGraphic(GlyphsDude.createIcon(FontAwesomeIcon.TIMES_CIRCLE));
         line.setOnMouseClicked(event -> {
-            System.out.println(event);
             if (event.getTarget().equals(line.getGraphic()))
                 removeNotification(line);
         });
