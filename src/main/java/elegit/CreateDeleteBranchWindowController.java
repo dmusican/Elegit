@@ -17,6 +17,7 @@ import org.controlsfx.control.PopOver;
 import org.eclipse.jgit.api.errors.*;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * Controller for the create/delete branch window
@@ -145,7 +146,7 @@ public class CreateDeleteBranchWindowController {
                 }
                 if(checkout) {
                     if(newBranch != null) {
-                        BranchCheckoutController.checkoutBranch(newBranch, sessionModel);
+                        checkoutBranch(newBranch, sessionModel);
                     }
                 }
                 return null;
@@ -154,6 +155,29 @@ public class CreateDeleteBranchWindowController {
         th.setDaemon(true);
         th.setName("createNewBranch");
         th.start();
+    }
+
+    /**
+     * Checks out the selected local branch
+     * @param selectedBranch the local branch to check out
+     * @param theSessionModel the session model for resetting branch heads
+     * @return true if the checkout successfully happens, false if there is an error
+     */
+    private boolean checkoutBranch(LocalBranchHelper selectedBranch, SessionModel theSessionModel) {
+        if(selectedBranch == null) return false;
+        try {
+            selectedBranch.checkoutBranch();
+            CommitTreeController.focusCommitInGraph(selectedBranch.getHead());
+            CommitTreeController.setBranchHeads(CommitTreeController.getCommitTreeModel(), theSessionModel.getCurrentRepoHelper());
+            return true;
+        } catch (JGitInternalException e){
+            showJGitInternalError(e);
+        } catch (CheckoutConflictException e){
+            showCheckoutConflictsNotification(e.getConflictingPaths());
+        } catch (GitAPIException | IOException e) {
+            showGenericErrorNotification();
+        }
+        return false;
     }
 
     /**
@@ -303,6 +327,32 @@ public class CreateDeleteBranchWindowController {
             anchorPane.hide();
         });*/
     }
+
+    private void showJGitInternalError(JGitInternalException e) {
+        Platform.runLater(()-> {
+            if (e.getCause().toString().contains("LockFailedException")) {
+                logger.warn("Lock failed warning.");
+                notificationPaneController.addNotification("Cannot lock .git/index. If no other git processes are running, manually remove all .lock files.");
+            } else {
+                logger.warn("Generic jgit internal warning.");
+                notificationPaneController.addNotification("Sorry, there was a Git error.");
+            }
+        });
+    }
+
+    private void showCheckoutConflictsNotification(List<String> conflictingPaths) {
+        Platform.runLater(() -> {
+            logger.warn("Checkout conflicts warning");
+            notificationPaneController.addNotification("You can't switch to that branch because there would be a merge conflict. Stash your changes or resolve conflicts first.");
+
+            /*
+            Action seeConflictsAction = new Action("See conflicts", e -> {
+                anchorRoot.hide();
+                PopUpWindows.showCheckoutConflictsAlert(conflictingPaths);
+            });*/
+        });
+    }
+
 
     //**************** END ERROR NOTIFICATIONS***************************
 }

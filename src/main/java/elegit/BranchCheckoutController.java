@@ -46,12 +46,12 @@ public class BranchCheckoutController {
     private Button trackRemoteBranchButton;
     @FXML
     private Button checkoutLocalBranchButton;
-    @FXML private StackPane notificationPane1;
+    @FXML private StackPane notificationPane;
+    @FXML private NotificationController notificationPaneController;
 
     private SessionModel sessionModel;
     private LocalCommitTreeModel localCommitTreeModel;
     private Stage stage;
-    private static NotificationController notificationController;
 
     static final Logger logger = LogManager.getLogger();
 
@@ -78,8 +78,6 @@ public class BranchCheckoutController {
 
         this.setIcons();
         this.updateButtons();
-
-        //this.notificationController = new NotificationController(notificationPane1);
     }
 
     /**
@@ -200,37 +198,25 @@ public class BranchCheckoutController {
         }
     }
 
-    static boolean checkoutBranch(LocalBranchHelper selectedBranch, SessionModel theSessionModel) {
+    /**
+     * Checks out the selected local branch
+     * @param selectedBranch the local branch to check out
+     * @param theSessionModel the session model for resetting branch heads
+     * @return true if the checkout successfully happens, false if there is an error
+     */
+    private boolean checkoutBranch(LocalBranchHelper selectedBranch, SessionModel theSessionModel) {
         if(selectedBranch == null) return false;
-        try{
-            // This is an edge case for new local repos.
-            //
-            // When a repo is first initialized,the `master` branch is checked-out,
-            //  but it is "unborn" -- it doesn't exist yet in the `refs/heads` folder
-            //  until there are commits.
-            //
-            // (see http://stackoverflow.com/a/21255920/5054197)
-            //
-            // So, check that there are refs in the refs folder (if there aren't, do nothing):
-            String gitDirString = theSessionModel.getCurrentRepo().getDirectory().toString();
-            Path refsHeadsFolder = Paths.get(gitDirString + "/refs/heads");
-            DirectoryStream<Path> pathStream = Files.newDirectoryStream(refsHeadsFolder);
-            Iterator<Path> pathStreamIterator = pathStream.iterator();
-
-            if (pathStreamIterator.hasNext()){ // => There ARE branch refs in the folder
-                selectedBranch.checkoutBranch();
-                CommitTreeController.focusCommitInGraph(selectedBranch.getHead());
-            }
-            // Reset the branch heads
+        try {
+            selectedBranch.checkoutBranch();
+            CommitTreeController.focusCommitInGraph(selectedBranch.getHead());
             CommitTreeController.setBranchHeads(CommitTreeController.getCommitTreeModel(), theSessionModel.getCurrentRepoHelper());
             return true;
-        }catch(JGitInternalException e) {
+        } catch (JGitInternalException e){
             showJGitInternalError(e);
-        }catch(CheckoutConflictException e){
+        } catch (CheckoutConflictException e){
             showCheckoutConflictsNotification(e.getConflictingPaths());
-        }catch(GitAPIException | IOException e){
+        } catch (GitAPIException | IOException e) {
             showGenericErrorNotification();
-            e.printStackTrace();
         }
         return false;
     }
@@ -244,41 +230,41 @@ public class BranchCheckoutController {
 
     private void showGenericGitErrorNotificationWithBranch(LocalBranchHelper branch) {
         logger.warn("Git error on branch notification");
-        notificationController.addNotification(String.format("Sorry, there was a git error on branch %s.", branch.getBranchName()));
+        notificationPaneController.addNotification(String.format("Sorry, there was a git error on branch %s.", branch.getBranchName()));
     }
 
-    private static void showGenericErrorNotification() {
+    private void showGenericErrorNotification() {
         logger.warn("Generic error notification");
-        notificationController.addNotification("Sorry, there was an error.");
+        notificationPaneController.addNotification("Sorry, there was an error.");
     }
 
     private void showCannotDeleteBranchNotification(LocalBranchHelper branch) {
         logger.warn("Cannot delete current branch notification");
-        notificationController.addNotification(String.format("Sorry, %s can't be deleted right now. " +
+        notificationPaneController.addNotification(String.format("Sorry, %s can't be deleted right now. " +
                 "Try checking out a different branch first.", branch.getBranchName()));
     }
 
-    private static void showJGitInternalError(JGitInternalException e) {
+    private void showJGitInternalError(JGitInternalException e) {
         Platform.runLater(()-> {
             if (e.getCause().toString().contains("LockFailedException")) {
                 logger.warn("Lock failed warning.");
-                notificationController.addNotification("Cannot lock .git/index. If no other git processes are running, manually remove all .lock files.");
+                notificationPaneController.addNotification("Cannot lock .git/index. If no other git processes are running, manually remove all .lock files.");
             } else {
                 logger.warn("Generic jgit internal warning.");
-                notificationController.addNotification("Sorry, there was a Git error.");
+                notificationPaneController.addNotification("Sorry, there was a Git error.");
             }
         });
     }
 
     private void showRefAlreadyExistsNotification() {
         logger.info("Branch already exists notification");
-        notificationController.addNotification("Looks like that branch already exists locally!");
+        notificationPaneController.addNotification("Looks like that branch already exists locally!");
     }
 
-    private static void showCheckoutConflictsNotification(List<String> conflictingPaths) {
+    private void showCheckoutConflictsNotification(List<String> conflictingPaths) {
         Platform.runLater(() -> {
             logger.warn("Checkout conflicts warning");
-            notificationController.addNotification("You can't switch to that branch because there would be a merge conflict. Stash your changes or resolve conflicts first.");
+            notificationPaneController.addNotification("You can't switch to that branch because there would be a merge conflict. Stash your changes or resolve conflicts first.");
 
             /*
             Action seeConflictsAction = new Action("See conflicts", e -> {
