@@ -8,6 +8,7 @@ import javafx.fxml.FXML;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.text.Text;
 import javafx.stage.Modality;
@@ -31,15 +32,21 @@ public class MergeWindowController {
     @FXML private Label remoteTrackingBranchName;
     @FXML private Label localBranchName1;
     @FXML private Label localBranchName2;
-    @FXML private Label intoLocalBranchName;
-    @FXML private CheckBox mergeRemoteTrackingCheckBox;
-    @FXML private CheckBox mergeDifLocalBranchCheckBox;
     @FXML private AnchorPane anchorRoot;
     @FXML private ComboBox<LocalBranchHelper> branchDropdownSelector;
     @FXML private Button mergeButton;
     @FXML private Text mergeRemoteTrackingText;
     @FXML private StackPane notificationPane;
     @FXML private NotificationController notificationPaneController;
+
+    @FXML private HBox remoteBranchBox;
+    @FXML private Text intoText1;
+    @FXML private AnchorPane arrowPane;
+    @FXML private HBox localBranchBox1;
+    @FXML private TabPane mergeTypePane;
+
+    private static final int REMOTE_PANE=0;
+    private static final int LOCAL_PANE=1;
 
     private Stage stage;
     SessionModel sessionModel;
@@ -68,7 +75,7 @@ public class MergeWindowController {
         localCommitTreeModel = CommitTreeController.getCommitTreeModel();
 
         initText();
-        initCheckBoxes();
+        initMergeButton();
     }
 
     /**
@@ -83,9 +90,7 @@ public class MergeWindowController {
             mergeRemoteTrackingText.setText("This branch does not have an\n" +
                     "upstream remote branch.\n\n" +
                     "Push to create a remote branch.");
-            localBranchName1.setText("");
-            remoteTrackingBranchName.setText("");
-            intoLocalBranchName.setText("");
+            hideRemoteMerge();
 
         } else {
             disable = false;
@@ -98,21 +103,24 @@ public class MergeWindowController {
     }
 
     /**
-     * helper method to initialize the checkboxes
+     * Helper method that decides when the merge button will be enabled.
+     * If there is a remote tracking branch, always and if not, then only
+     * when on the merge local branches tab.
      */
-    private void initCheckBoxes() {
-        mergeDifLocalBranchCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
-            if(newValue && mergeRemoteTrackingCheckBox.selectedProperty().get()) {
-                mergeRemoteTrackingCheckBox.selectedProperty().setValue(false);
-            }
-        });
-        mergeRemoteTrackingCheckBox.disableProperty().setValue(disable);
-        mergeRemoteTrackingCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
-            if(newValue && mergeDifLocalBranchCheckBox.selectedProperty().get()) {
-                mergeDifLocalBranchCheckBox.selectedProperty().setValue(false);
-            }
-        });
-        mergeButton.disableProperty().bind(mergeDifLocalBranchCheckBox.selectedProperty().or(mergeRemoteTrackingCheckBox.selectedProperty()).not());
+    private void initMergeButton() {
+        if (disable)
+            mergeButton.disableProperty().bind(mergeTypePane.getSelectionModel().selectedIndexProperty().lessThan(1));
+    }
+
+    /**
+     * Helper method to hide the various items in the remote tracking pane
+     * if there is no remote-tracking branch for the current branch
+     */
+    private void hideRemoteMerge() {
+        remoteBranchBox.setVisible(false);
+        intoText1.setVisible(false);
+        arrowPane.setVisible(false);
+        localBranchBox1.setVisible(false);
     }
 
     /**
@@ -137,15 +145,16 @@ public class MergeWindowController {
     }
 
     /**
-     * handles the merge button
+     * Handler for merge button. Will merge selected local branch into the current
+     * branch if in the local tab, otherwise it will merge from fetch.
      */
     public void handleMergeButton() throws GitAPIException, IOException {
         try {
-            if (mergeDifLocalBranchCheckBox.isSelected()) {
+            if (mergeTypePane.getSelectionModel().isSelected(LOCAL_PANE)) {
                 if (!branchDropdownSelector.getSelectionModel().isEmpty()) localBranchMerge();
                 else showSelectBranchNotification();
             }
-            if (mergeRemoteTrackingCheckBox.isSelected()) {
+            if (mergeTypePane.getSelectionModel().isSelected(REMOTE_PANE)) {
                 mergeFromFetch();
             }
         } catch (JGitInternalException e) {

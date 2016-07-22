@@ -11,7 +11,7 @@
 <AnchorPane fx:controller="elegit.MergeWindowController"
                   xmlns:fx="http://javafx.com/fxml"
                   fx:id="anchorRoot"
-                    prefWidth="250" prefHeight="175">
+                    prefWidth="300" prefHeight="175">
     <VBox   spacing="10"
             AnchorPane.rightAnchor="5"
             AnchorPane.leftAnchor="5"
@@ -21,33 +21,39 @@
             <Insets bottom="10"/>
         </padding>
 
-        <TabPane tabClosingPolicy="UNAVAILABLE">
+        <TabPane tabClosingPolicy="UNAVAILABLE" fx:id="mergeTypePane">
             <tabs>
                 <Tab text="From Fetch">
                     <content>
-                        <GridPane hgap="3">
+                        <GridPane hgap="3" vgap="3">
                             <columnConstraints>
+                                <ColumnConstraints hgrow="NEVER"/>
+                                <ColumnConstraints hgrow="NEVER"/>
                                 <ColumnConstraints hgrow="SOMETIMES"/>
-                                <ColumnConstraints hgrow="ALWAYS"/>
                             </columnConstraints>
                             <Text   id="merge-text"
                                     fx:id="mergeRemoteTrackingText"
-                                    GridPane.rowIndex="0" GridPane.columnIndex="0" GridPane.columnSpan="2"
-                                    text="Merge remote tracking branch head"/>
-                            <HBox id="branch-merge-box-tracked" GridPane.rowIndex="1" GridPane.columnIndex="0" GridPane.halignment="RIGHT">
+                                    GridPane.rowIndex="0" GridPane.columnIndex="0" GridPane.columnSpan="3"
+                                    text="Merge remote-tracking branch head"/>
+                            <HBox id="branch-merge-box-tracked" GridPane.rowIndex="1" GridPane.columnIndex="0" GridPane.halignment="RIGHT"
+                                    alignment="CENTER" fx:id="remoteBranchBox">
                                 <Label  id="branch-merge" fx:id="remoteTrackingBranchName"/>
                             </HBox>
                             <Text   id="merge-text" strokeType="OUTSIDE" strokeWidth="0.0" text="into current branch"
-                                    GridPane.rowIndex="1" GridPane.columnIndex="1"/>
-                            <Group  GridPane.rowIndex="2" GridPane.columnIndex="0" GridPane.halignment="RIGHT">
-                                <QuadCurve  layoutX="50"
-                                            startY="-10" endX="20"
+                                    GridPane.rowIndex="1" GridPane.columnIndex="1" GridPane.columnSpan="2" fx:id="intoText1"/>
+                            <AnchorPane  GridPane.rowIndex="1" GridPane.columnIndex="0"
+                                    GridPane.rowSpan="2" GridPane.halignment="RIGHT" fx:id="arrowPane">
+                                <QuadCurve  AnchorPane.rightAnchor="17" AnchorPane.bottomAnchor="6.0"
+                                            controlY="12" endX="23" endY="12"
                                             id="merge-arrow"/>
-                                <Line   layoutX="50"
+                                <Line   AnchorPane.rightAnchor="0" AnchorPane.bottomAnchor="7"
+                                        layoutY="10"
                                         id="merge-arrow" startX="20" endX="40" />
-                            </Group>
+                                <Polygon    AnchorPane.bottomAnchor="2" AnchorPane.rightAnchor="-2"
+                                            id="merge-arrow" points="0, 0, 0, 6, 4, 3"/>
+                            </AnchorPane>
                             <HBox   GridPane.columnIndex="1" GridPane.rowIndex="2" GridPane.halignment="LEFT"
-                                    id="branch-merge-box-tracked">
+                                    id="branch-merge-box-tracked" fx:id="localBranchBox1">
                                 <Label id="branch-merge" fx:id="localBranchName1"/>
                             </HBox>
                         </GridPane>
@@ -61,102 +67,45 @@
                     </graphic>
                 </Tab>
                 <Tab text="Local Branches">
-                    <content>
-                        <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" >
-                            <ComboBox   fx:id="branchDropdownSelector"
-                                        GridPane.columnIndex="1"
-                                        GridPane.rowIndex="2"
-                                        GridPane.halignment="CENTER"/>
-                            <Label fx:id="localBranchName2" layoutX="351.0" layoutY="235.0" />
-                            <Label fx:id="intoLocalBranchName"
-                                   layoutX="61.0" layoutY="141.0" />
-                            <CheckBox   fx:id="mergeRemoteTrackingCheckBox"
-                                        GridPane.columnIndex="0"
-                                        GridPane.rowIndex="0"
-                                        GridPane.valignment="TOP"/>
-                            <CheckBox   fx:id="mergeDifLocalBranchCheckBox"
-                                        GridPane.columnIndex="0"
-                                        GridPane.rowIndex="0"
-                                        GridPane.valignment="TOP"/>
+                    <GridPane hgap="3" vgap="3">
+                        <columnConstraints>
+                            <ColumnConstraints hgrow="NEVER"/>
+                            <ColumnConstraints hgrow="NEVER"/>
+                            <ColumnConstraints hgrow="SOMETIMES"/>
+                        </columnConstraints>
+                        <Text   id="merge-text"
+                                GridPane.rowIndex="0" GridPane.columnIndex="0" GridPane.columnSpan="3"
+                                text="Merge local branch head"/>
+                        <HBox id="branch-merge-box-tracked" GridPane.rowIndex="1" GridPane.columnIndex="0" GridPane.halignment="RIGHT"
+                              alignment="CENTER">
+                            <ComboBox   fx:id="branchDropdownSelector"/>
+                        </HBox>
+                        <Text   id="merge-text" strokeType="OUTSIDE" strokeWidth="0.0" text="into current branch"
+                                GridPane.rowIndex="1" GridPane.columnIndex="1" GridPane.columnSpan="2"/>
+                        <AnchorPane  GridPane.rowIndex="1" GridPane.columnIndex="0"
+                                     GridPane.rowSpan="2" GridPane.halignment="RIGHT">
+                            <QuadCurve  AnchorPane.rightAnchor="17" AnchorPane.bottomAnchor="6.0"
+                                        controlY="12" endX="23" endY="12"
+                                        id="merge-arrow"/>
+                            <Line   AnchorPane.rightAnchor="0" AnchorPane.bottomAnchor="7"
+                                    layoutY="10"
+                                    id="merge-arrow" startX="20" endX="40" />
+                            <Polygon    AnchorPane.bottomAnchor="2" AnchorPane.rightAnchor="-2"
+                                        id="merge-arrow" points="0, 0, 0, 6, 4, 3"/>
                         </AnchorPane>
-                    </content>
+                        <HBox   GridPane.columnIndex="1" GridPane.rowIndex="2" GridPane.halignment="LEFT"
+                                id="branch-merge-box-tracked">
+                            <Label id="branch-merge" fx:id="localBranchName2"/>
+                        </HBox>
+                    </GridPane>
                 </Tab>
             </tabs>
         </TabPane>
-        <!--<HBox   alignment="TOP_CENTER">
-            <GridPane   style="-fx-border-color: grey; -fx-background-color: gainsboro;"
-                        vgap="5"
-                        hgap="10">
-                <padding>
-                    <Insets top="10" bottom="10" right="10" left="10"/>
-                </padding>
-                <Text   GridPane.columnIndex="1"
-                        GridPane.rowIndex="0"
-                        text="Merge remote-tracking"
-                        style="-fx-font-size: 15; -fx-underline: true;"/>
-                <CheckBox   fx:id="mergeRemoteTrackingCheckBox"
-                            GridPane.columnIndex="0"
-                            GridPane.rowIndex="0"
-                            GridPane.valignment="TOP"/>
-                <Text   text="Merge remote-tracking branch "
-                        fx:id="mergeRemoteTrackingText"
-                        GridPane.columnIndex="1"
-                        GridPane.rowIndex="1"
-                        GridPane.halignment="CENTER"/>
-                <Text   fx:id="remoteTrackingBranchName"
-                        GridPane.columnIndex="1"
-                        GridPane.rowIndex="2"
-                        GridPane.halignment="CENTER"/>
-                <Text   fx:id="intoLocalBranchText"
-                        text="into local branch"
-                        GridPane.columnIndex="1"
-                        GridPane.rowIndex="3"
-                        GridPane.halignment="CENTER"/>
-                <Text   fx:id="localBranchName1"
-                        GridPane.columnIndex="1"
-                        GridPane.rowIndex="4"
-                        GridPane.halignment="CENTER"/>
-            </GridPane>
-            <VBox   style="-fx-border-color: grey; -fx-background-color: gainsboro">
-                <padding>
-                    <Insets top="10" right="10"/>
-                </padding>
-                <GridPane   vgap="5"
-                            hgap="10">
-                    <padding>
-                        <Insets left="10" bottom="12"/>
-                    </padding>
-                    <Text   GridPane.columnIndex="1"
-                            GridPane.rowIndex="0"
-                            text="Merge local"
-                            style="-fx-font-size: 15; -fx-underline: true;"/>
-                    <CheckBox   fx:id="mergeDifLocalBranchCheckBox"
-                                GridPane.columnIndex="0"
-                                GridPane.rowIndex="0"
-                                GridPane.valignment="TOP"/>
-                    <Text   text="Merge local branch "
-                            GridPane.columnIndex="1"
-                            GridPane.rowIndex="1"
-                            GridPane.halignment="CENTER"/>
-                    <ComboBox   fx:id="branchDropdownSelector"
-                                GridPane.columnIndex="1"
-                                GridPane.rowIndex="2"
-                                GridPane.halignment="CENTER"/>
-                    <Text   text="into local branch"
-                            GridPane.columnIndex="1"
-                            GridPane.rowIndex="3"
-                            GridPane.halignment="CENTER"/>
-                    <Text   fx:id="localBranchName2"
-                            GridPane.columnIndex="1"
-                            GridPane.rowIndex="4"
-                            GridPane.halignment="CENTER"/>
-                </GridPane>
+        <!--    TODO: decide whether or not to keep this
                 <Hyperlink  fx:id="trackLink"
                             alignment="BOTTOM_LEFT"
                             onAction="#handleTrackDifBranch"
-                            text="locally track another branch..."/>
-            </VBox>
-        </HBox>-->
+                            text="locally track another branch..."/>-->
         <HBox   spacing="30"
                 alignment="TOP_CENTER">
             <Button text="Merge"

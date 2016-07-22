@@ -28,6 +28,7 @@
 #branch-merge-box-tracked{
     -fx-background-color: #1E90FF;
     -fx-background-radius: 5;
+    -fx-padding: 0 3 0 3;
 }
 #branch-merge-box-untracked{
     -fx-background-color: #333333;
@@ -38,6 +39,7 @@
     -fx-text-fill: #FFFFFF;
     -fx-font-size: 14px;
     -fx-font-weight: bold;
+    -fx-text-align: center;
 }
 
 
@@ -73,7 +75,7 @@
 #merge-arrow {
     -fx-stroke-width: 3;
     -fx-stroke: #333333;
-    -fx-stroke-line-cap: round;
+    -fx-stroke-line-cap: butt;
     -fx-fill: #00000000;
 
 }
