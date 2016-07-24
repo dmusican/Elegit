@@ -31,8 +31,18 @@
     -fx-padding: 0 3 0 3;
 }
 #branch-merge-box-untracked{
-    -fx-background-color: #333333;
+    -fx-background-color: #CCCCCC;
     -fx-background-radius: 5;
+    -fx-padding: 0 3 0 3;
+}
+
+#local-branch-selector {
+    -fx-text-fill: #333333;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-background-color: #CCCCCC;
+    -fx-background-radius: 5;
+    -fx-padding: -5 -5 -5 -5;
 }
 
 .label#branch-merge {
@@ -47,6 +57,14 @@
     -fx-text-fill: #FFFFFF;
     -fx-font-size: 14px;
     -fx-font-weight: bold;
+}
+
+.branch-label-selector {
+    -fx-text-fill: #FFFFFF;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-background-color: #CCCCCC;
+    -fx-background-radius: 5;
 }
 
 .button#codeButton {

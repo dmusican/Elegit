@@ -76,10 +76,6 @@
                         <Text   id="merge-text"
                                 GridPane.rowIndex="0" GridPane.columnIndex="0" GridPane.columnSpan="3"
                                 text="Merge local branch head"/>
-                        <HBox id="branch-merge-box-tracked" GridPane.rowIndex="1" GridPane.columnIndex="0" GridPane.halignment="RIGHT"
-                              alignment="CENTER">
-                            <ComboBox   fx:id="branchDropdownSelector"/>
-                        </HBox>
                         <Text   id="merge-text" strokeType="OUTSIDE" strokeWidth="0.0" text="into current branch"
                                 GridPane.rowIndex="1" GridPane.columnIndex="1" GridPane.columnSpan="2"/>
                         <AnchorPane  GridPane.rowIndex="1" GridPane.columnIndex="0"
@@ -97,6 +93,9 @@
                                 id="branch-merge-box-tracked">
                             <Label id="branch-merge" fx:id="localBranchName2"/>
                         </HBox>
+                        <!-- Combo box goes last so that it can be clicked -->
+                        <ComboBox   fx:id="branchDropdownSelector"
+                                    GridPane.rowIndex="1" GridPane.columnIndex="0" GridPane.halignment="RIGHT"/>
                     </GridPane>
                 </Tab>
             </tabs>

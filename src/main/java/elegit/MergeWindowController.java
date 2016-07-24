@@ -13,6 +13,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.util.Callback;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jgit.api.MergeResult;
@@ -69,7 +70,36 @@ public class MergeWindowController {
 
         //init branch dropdown selector
         branchDropdownSelector.setItems(FXCollections.observableArrayList(branchModel.getLocalBranchesTyped()));
-        branchDropdownSelector.setPromptText("local branches...");
+        branchDropdownSelector.setPromptText("...");
+
+        branchDropdownSelector.setCellFactory(new Callback<ListView<LocalBranchHelper>, ListCell<LocalBranchHelper>>() {
+            @Override
+            public ListCell<LocalBranchHelper> call(ListView<LocalBranchHelper> param) {
+                return new ListCell<LocalBranchHelper>() {
+
+                    private final Label branchName; {
+                        branchName = new Label();
+                        branchName.setStyle("-fx-text-fill: #333333;"+
+                        "-fx-font-size: 14px;"+
+                        "-fx-font-weight: bold;"+
+                        "-fx-background-color: #CCCCCC;"+
+                        "-fx-background-radius: 5;"+
+                        "-fx-padding: 0 3 0 3");
+                    }
+
+                    @Override protected void updateItem(LocalBranchHelper helper, boolean empty) {
+                        super.updateItem(helper, empty);
+
+                        if (helper == null || empty) { setGraphic(null); }
+                        else {
+                            branchName.setText(helper.getBranchName());
+                            setGraphic(branchName);
+                            setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+                        }
+                    }
+                };
+            }
+        });
 
         //init commit tree models
         localCommitTreeModel = CommitTreeController.getCommitTreeModel();
