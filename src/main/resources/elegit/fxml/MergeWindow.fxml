@@ -61,42 +61,51 @@
                     <graphic>
                         <ImageView fitHeight="53.5" fitWidth="17.5" pickOnBounds="true" preserveRatio="true">
                             <image>
-                                <Image url="@../images/repository.png" />
+                                <Image url="@../images/graycloud.png" />
                             </image>
                         </ImageView>
                     </graphic>
                 </Tab>
                 <Tab text="Local Branches">
-                    <GridPane hgap="3" vgap="3">
-                        <columnConstraints>
-                            <ColumnConstraints hgrow="NEVER"/>
-                            <ColumnConstraints hgrow="NEVER"/>
-                            <ColumnConstraints hgrow="SOMETIMES"/>
-                        </columnConstraints>
-                        <Text   id="merge-text"
-                                GridPane.rowIndex="0" GridPane.columnIndex="0" GridPane.columnSpan="3"
-                                text="Merge local branch head"/>
-                        <Text   id="merge-text" strokeType="OUTSIDE" strokeWidth="0.0" text="into current branch"
-                                GridPane.rowIndex="1" GridPane.columnIndex="1" GridPane.columnSpan="2"/>
-                        <AnchorPane  GridPane.rowIndex="1" GridPane.columnIndex="0"
-                                     GridPane.rowSpan="2" GridPane.halignment="RIGHT">
-                            <QuadCurve  AnchorPane.rightAnchor="17" AnchorPane.bottomAnchor="6.0"
-                                        controlY="12" endX="23" endY="12"
-                                        id="merge-arrow"/>
-                            <Line   AnchorPane.rightAnchor="0" AnchorPane.bottomAnchor="7"
-                                    layoutY="10"
-                                    id="merge-arrow" startX="20" endX="40" />
-                            <Polygon    AnchorPane.bottomAnchor="2" AnchorPane.rightAnchor="-2"
-                                        id="merge-arrow" points="0, 0, 0, 6, 4, 3"/>
-                        </AnchorPane>
-                        <HBox   GridPane.columnIndex="1" GridPane.rowIndex="2" GridPane.halignment="LEFT"
-                                id="branch-merge-box-tracked">
-                            <Label id="branch-merge" fx:id="localBranchName2"/>
-                        </HBox>
-                        <!-- Combo box goes last so that it can be clicked -->
-                        <ComboBox   fx:id="branchDropdownSelector"
-                                    GridPane.rowIndex="1" GridPane.columnIndex="0" GridPane.halignment="RIGHT"/>
-                    </GridPane>
+                    <content>
+                        <GridPane hgap="3" vgap="3">
+                            <columnConstraints>
+                                <ColumnConstraints hgrow="NEVER"/>
+                                <ColumnConstraints hgrow="NEVER"/>
+                                <ColumnConstraints hgrow="SOMETIMES"/>
+                            </columnConstraints>
+                            <Text   id="merge-text"
+                                    GridPane.rowIndex="0" GridPane.columnIndex="0" GridPane.columnSpan="3"
+                                    text="Merge local branch head"/>
+                            <Text   id="merge-text" strokeType="OUTSIDE" strokeWidth="0.0" text="into current branch"
+                                    GridPane.rowIndex="1" GridPane.columnIndex="1" GridPane.columnSpan="2"/>
+                            <AnchorPane  GridPane.rowIndex="1" GridPane.columnIndex="0"
+                                         GridPane.rowSpan="2" GridPane.halignment="RIGHT">
+                                <QuadCurve  AnchorPane.rightAnchor="17" AnchorPane.bottomAnchor="6.0"
+                                            controlY="12" endX="23" endY="12"
+                                            id="merge-arrow"/>
+                                <Line   AnchorPane.rightAnchor="0" AnchorPane.bottomAnchor="7"
+                                        layoutY="10"
+                                        id="merge-arrow" startX="20" endX="40" />
+                                <Polygon    AnchorPane.bottomAnchor="2" AnchorPane.rightAnchor="-2"
+                                            id="merge-arrow" points="0, 0, 0, 6, 4, 3"/>
+                            </AnchorPane>
+                            <HBox   GridPane.columnIndex="1" GridPane.rowIndex="2" GridPane.halignment="LEFT"
+                                    id="branch-merge-box-tracked">
+                                <Label id="branch-merge" fx:id="localBranchName2"/>
+                            </HBox>
+                            <!-- Combo box goes last so that it can be clicked -->
+                            <ComboBox   fx:id="branchDropdownSelector"
+                                        GridPane.rowIndex="1" GridPane.columnIndex="0" GridPane.halignment="RIGHT"/>
+                        </GridPane>
+                    </content>
+                    <graphic>
+                        <ImageView fitHeight="53.5" fitWidth="17.5" pickOnBounds="true" preserveRatio="true">
+                            <image>
+                                <Image url="@../images/repository.png" />
+                            </image>
+                        </ImageView>
+                    </graphic>
                 </Tab>
             </tabs>
         </TabPane>
