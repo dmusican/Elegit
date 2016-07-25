@@ -27,8 +27,7 @@ public class CommitTreeScrollPane extends ScrollPane{
         vPos.addListener((observable, oldValue, newValue) -> {
             if (newValue.doubleValue() != -1) {
                 // For some reason setVvalue doesn't take hold unless you
-                // bash it with repetition. However, more checks are needed
-                // to avoid an infinite loop.
+                // bash it with repetition.
                 double value = newValue.doubleValue()>1 ? 1 : newValue.doubleValue();
                 for (int i=0; i<3; i++)
                     this.vvalueProperty().setValue(value);

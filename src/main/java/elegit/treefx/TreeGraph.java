@@ -38,23 +38,17 @@ public class TreeGraph{
     public TreeGraph(TreeGraphModel m) {
         this.treeGraphModel = m;
 
-        Group canvas = new Group();
         cellLayer = new Pane();
-        cellLayer.setPadding(new Insets(TreeLayout.H_PAD-5, TreeLayout.H_PAD, TreeLayout.H_PAD-5, TreeLayout.H_PAD));
         cellLayer.setRotationAxis(Rotate.X_AXIS);
         cellLayer.setRotate(180);
+        cellLayer.setPadding(new Insets(0,0,Cell.BOX_SIZE+TreeLayout.V_PAD,0));
 
-        cellLayer.layoutBoundsProperty().addListener((observable, oldValue, newValue) -> System.out.println(newValue));
-
-        scrollPane = new CommitTreeScrollPane(canvas);
+        scrollPane = new CommitTreeScrollPane(cellLayer);
 
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
         scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
 
         scrollPane.NumItemsProperty.bind(m.numCellsProperty);
-
-        canvas.getChildren().add(cellLayer);
-        canvas.setAutoSizeChildren(false);
 
         queuedToAdd = new LinkedList<>();
         queuedToRemove = new LinkedList<>();

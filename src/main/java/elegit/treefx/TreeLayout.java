@@ -144,14 +144,14 @@ public class TreeLayout{
                     }
 
                     sp.vvalueProperty().addListener(((observable, oldValue, newValue) -> {
-                        viewportY.set(cellLayer.getParent().getLayoutBounds().getHeight()-((double) newValue * cellLayer.getParent().getLayoutBounds().getHeight() +
+                        viewportY.set(cellLayer.getLayoutBounds().getHeight()-((double) newValue * cellLayer.getLayoutBounds().getHeight() +
                                 (0.5 - (double) newValue) * sp.getViewportBounds().getHeight()));
                     }));
 
                     sp.viewportBoundsProperty().addListener(((observable, oldValue, newValue) -> {
                         viewportX.set(sp.getViewportBounds().getWidth() - loading.getWidth() - 35);
-                        viewportY.set(cellLayer.getParent().getLayoutBounds().getHeight()
-                                - (sp.getVvalue() * cellLayer.getParent().getLayoutBounds().getHeight()
+                        viewportY.set(cellLayer.getLayoutBounds().getHeight()
+                                - (sp.getVvalue() * cellLayer.getLayoutBounds().getHeight()
                                 + (0.5 - sp.getVvalue()) * sp.getViewportBounds().getHeight()));
                     }));
                     //********************** Loading Bar End **********************
