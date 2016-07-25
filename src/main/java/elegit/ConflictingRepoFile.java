@@ -63,7 +63,7 @@ public class ConflictingRepoFile extends RepoFile {
         lock.lock();
         try{
             finishedAlert.await();
-            System.out.println(resultType);
+            //System.out.println(resultType);
             switch (resultType) {
                 case "resolve":
                     Desktop desktop = Desktop.getDesktop();

@@ -171,7 +171,10 @@ public class MergeWindowController {
      * closes the window
      */
     public void closeWindow() {
-        stage.close();
+        if (Platform.isFxApplicationThread()) stage.close();
+        else {
+            Platform.runLater(() -> stage.close());
+        }
     }
 
     /**
@@ -186,6 +189,7 @@ public class MergeWindowController {
             }
             if (mergeTypePane.getSelectionModel().isSelected(REMOTE_PANE)) {
                 mergeFromFetch();
+                closeWindow();
             }
         } catch (JGitInternalException e) {
             showJGitInternalError(e);
@@ -211,6 +215,8 @@ public class MergeWindowController {
                     try{
                         if(!sessionModel.getCurrentRepoHelper().mergeFromFetch().isSuccessful()){
                             showUnsuccessfulMergeNotification();
+                        } else {
+                            closeWindow();
                         }
                         Main.sessionController.gitStatus();
                     } catch(InvalidRemoteException e){
