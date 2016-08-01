@@ -36,7 +36,7 @@ public class Cell extends Pane{
     public static final CellShape TRACKED_BRANCH_HEAD_SHAPE = CellShape.TRIANGLE_UP;
 
     // The size of the rectangle being drawn
-    public static final int BOX_SIZE = 30;
+    public static final int BOX_SIZE = 20;
 
     //The height of the shift for the cells;
     public static final int BOX_SHIFT = 20;
@@ -445,7 +445,7 @@ public class Cell extends Pane{
 
         public void translate(double x, double y) {
             setTranslateX(x+BOX_SIZE+10);
-            setTranslateY(y+BOX_SIZE-5);
+            setTranslateY(y+BOX_SIZE);
         }
 
         public void addToolTip(Label l, String text) {
