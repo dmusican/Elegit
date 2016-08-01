@@ -444,10 +444,16 @@ public class SessionModel {
         }
 
         // Remove files from conflictingThenModifedFiles when they are no longer conflicting
+
+        // We have to record these to avoid a ConcurrentModificationException
+        List<String> toRemove = new ArrayList<>();
         for (String str : conflictingThenModifiedFiles) {
             if(!conflictingFiles.contains(str)) {
-                ConflictingFileWatcher.removeFile(str);
+                toRemove.add(str);
             }
+        }
+        for (String str : toRemove) {
+            ConflictingFileWatcher.removeFile(str);
         }
         for (String stagedFileString : stagedFiles) {
             if (!conflictingRepoFileStrings.contains(stagedFileString) && !modifiedFiles.contains(stagedFileString)) {
