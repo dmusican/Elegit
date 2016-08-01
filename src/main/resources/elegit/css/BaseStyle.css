@@ -197,7 +197,20 @@
 .cell {
     -fx-stroke-type: inside;
     -fx-stroke-line-cap: butt;
+    -fx-stroke-width: 2px;
 }
+
+    .cell#local-cell {
+
+    }
+
+    .cell#remote-cell {
+
+    }
+
+    .cell#both-cell {
+
+    }
 
 .invisCell {
     -fx-stroke-dash-array: 2px, 3px;

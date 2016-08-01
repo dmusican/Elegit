@@ -12,11 +12,12 @@ import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.input.MouseButton;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
+import javafx.scene.layout.*;
 import javafx.scene.paint.*;
+import javafx.scene.shape.Circle;
 import javafx.scene.shape.Shape;
+import javafx.scene.shape.StrokeLineJoin;
+import javafx.scene.shape.StrokeType;
 import javafx.scene.text.Text;
 import javafx.scene.transform.Rotate;
 import javafx.util.Duration;
@@ -40,6 +41,12 @@ public class Cell extends Pane{
 
     //The height of the shift for the cells;
     public static final int BOX_SHIFT = 20;
+
+    // The inset for the background;
+    public static final int BOX_INSET = 1;
+    public static final int BOX_INSIDE = 2;
+
+    public static final String BACKGROUND_COLOR = "#F4F4F4";
 
     // Limits on animation so the app doesn't begin to stutter
     private static final int MAX_NUM_CELLS_TO_ANIMATE = 5;
@@ -177,7 +184,7 @@ public class Cell extends Pane{
      * @return the basic view for this cell
      */
     protected Node getBaseView(){
-        Node node = DEFAULT_SHAPE.get();
+        Node node = DEFAULT_SHAPE.getType(this.type);
         setFillType((Shape)node, CellState.STANDARD);
         node.getStyleClass().setAll("cell");
         return node;
@@ -192,7 +199,7 @@ public class Cell extends Pane{
             this.view = getBaseView();
         }
 
-        newView.setStyle(this.view.getStyle());
+        //newView.setStyle(this.view.getStyle());
         newView.getStyleClass().setAll(this.view.getStyleClass());
 
         this.view = newView;
@@ -209,7 +216,7 @@ public class Cell extends Pane{
      */
     public synchronized void setShape(CellShape newShape){
         if(this.shape == newShape) return;
-        setView(newShape.get());
+        setView(newShape.getType(this.type));
         this.shape = newShape;
     }
 
@@ -363,21 +370,26 @@ public class Cell extends Pane{
      */
     protected void setFillType(Shape n, CellState state) {
         Color baseColor = Color.web(state.getBackgroundColor());
-        Stop[] stops = new Stop[] { new Stop(0, baseColor),new Stop(0.499, baseColor),new Stop(0.501, Color.web("#F4F4F4")), new Stop(1, Color.web("#F4F4F4"))};
-        Paint gradient;
         switch(this.type) {
             case LOCAL:
-                gradient = new LinearGradient(0,0,0,3,false, CycleMethod.REFLECT, stops);
+                n.setId("local-cell");
+                n.setFill(baseColor);
                 break;
             case REMOTE:
-                gradient = new LinearGradient(0,0,3,0,false, CycleMethod.REFLECT, stops);
+                n.setId("remote-cell");
+                n.setFill(Color.web(BACKGROUND_COLOR));
+                n.setStroke(baseColor);
                 break;
             case BOTH:
+                n.setId("both-cell");
+                n.setFill(baseColor);
+                n.setStroke(baseColor);
+                break;
             default:
-                gradient = baseColor;
+                break;
         }
-        n.setFill(gradient);
-        n.setStyle("-fx-stroke: " + state.getCssStringKey());
+        //n.setFill(new BackgroundFill(baseColor, new CornerRadii(0),new Insets(5,5,5,5)));
+        //n.setStyle("-fx-stroke: " + state.getCssStringKey());
     }
 
     public enum CellType {
