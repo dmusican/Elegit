@@ -206,8 +206,14 @@ public class SessionController {
             currentLocalBranchText.setFill(Color.DODGERBLUE);
         }
 
-        String remoteBranch="";
-        //if (remoteBranch==null) remoteBranch = "N/A";
+        String remoteBranch = "N/A";
+        try {
+            remoteBranch = this.theModel.getCurrentRepoHelper().getBranchModel().getCurrentRemoteBranch();
+        } catch (IOException e) {
+            this.showGenericErrorNotification();
+        }
+        if (remoteBranch==null) remoteBranch = "N/A";
+
         update = !remoteBranch.equals(currentRemoteTrackingBranchText.getText());
         if (update) {
             currentRemoteTrackingBranchText.setText(remoteBranch);

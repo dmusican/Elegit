@@ -100,7 +100,7 @@
                     </HBox>
                     <VBox   alignment="CENTER">
                         <Text   text="remote-tracking branch: "/>
-                        <Text   fx:id="currentRemoteTrackingBranchText"/>
+                        <Text   fx:id="currentRemoteTrackingBranchText" text="N/A"/>
                     </VBox>
                 </VBox>
 
