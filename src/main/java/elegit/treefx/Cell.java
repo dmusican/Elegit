@@ -2,6 +2,7 @@ package elegit.treefx;
 
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
+import elegit.CommitTreeController;
 import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
@@ -10,18 +11,19 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
-import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.Label;
+import javafx.scene.control.Tooltip;
 import javafx.scene.input.MouseButton;
-import javafx.scene.layout.*;
-import javafx.scene.paint.*;
-import javafx.scene.shape.Circle;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
+import javafx.scene.paint.Color;
 import javafx.scene.shape.Shape;
-import javafx.scene.shape.StrokeLineJoin;
-import javafx.scene.shape.StrokeType;
 import javafx.scene.text.Text;
 import javafx.scene.transform.Rotate;
 import javafx.util.Duration;
-import elegit.CommitTreeController;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,7 +34,7 @@ import java.util.List;
 public class Cell extends Pane{
 
     // Base shapes for different types of cells
-    public static final CellShape DEFAULT_SHAPE = CellShape.SQUARE;
+    static final CellShape DEFAULT_SHAPE = CellShape.SQUARE;
     public static final CellShape UNTRACKED_BRANCH_HEAD_SHAPE = CellShape.CIRCLE;
     public static final CellShape TRACKED_BRANCH_HEAD_SHAPE = CellShape.TRIANGLE_UP;
 
@@ -40,13 +42,13 @@ public class Cell extends Pane{
     public static final int BOX_SIZE = 20;
 
     //The height of the shift for the cells;
-    public static final int BOX_SHIFT = 20;
+    private static final int BOX_SHIFT = 20;
 
     // The inset for the background;
-    public static final int BOX_INSET = 1;
-    public static final int BOX_INSIDE = 2;
+    static final int BOX_INSET = 1;
+    static final int BOX_INSIDE = 2;
 
-    public static final String BACKGROUND_COLOR = "#F4F4F4";
+    private static final String BACKGROUND_COLOR = "#F4F4F4";
 
     // Limits on animation so the app doesn't begin to stutter
     private static final int MAX_NUM_CELLS_TO_ANIMATE = 5;
@@ -57,7 +59,7 @@ public class Cell extends Pane{
     private CellShape shape;
     private CellType type;
     // The tooltip shown on hover
-    Tooltip tooltip;
+    private Tooltip tooltip;
 
     // The unique ID of this cell
     private final String cellId;
@@ -73,19 +75,19 @@ public class Cell extends Pane{
     private boolean useParentAsSource;
 
     // The list of children of this cell
-    List<Cell> children = new ArrayList<>();
+    private List<Cell> children = new ArrayList<>();
 
     // The parent object that holds the parents of this cell
-    ParentCell parents;
+    private ParentCell parents;
 
     // All edges that have this cell as an endpoint
     List<Edge> edges = new ArrayList<>();
 
     // The row and column location of this cell
-    public IntegerProperty columnLocationProperty, rowLocationProperty;
+    IntegerProperty columnLocationProperty, rowLocationProperty;
 
     // Whether this cell has been moved to its appropriate location
-    public BooleanProperty hasUpdatedPosition;
+    private BooleanProperty hasUpdatedPosition;
 
     public Cell(String s) {
         this.cellId = s;
@@ -146,7 +148,7 @@ public class Cell extends Pane{
      * @param animate whether to animate the transition from the old position
      * @param emphasize whether to have the Highlighter class emphasize this cell while it moves
      */
-    public void moveTo(double x, double y, boolean animate, boolean emphasize){
+    void moveTo(double x, double y, boolean animate, boolean emphasize){
         if(animate && numCellsBeingAnimated < MAX_NUM_CELLS_TO_ANIMATE){
             numCellsBeingAnimated++;
             CommitTreeScrollPane.scrollTo(-1);
@@ -183,7 +185,7 @@ public class Cell extends Pane{
     /**
      * @return the basic view for this cell
      */
-    protected Node getBaseView(){
+    private Node getBaseView(){
         Node node = DEFAULT_SHAPE.getType(this.type);
         setFillType((Shape)node, CellState.STANDARD);
         node.getStyleClass().setAll("cell");
@@ -224,32 +226,32 @@ public class Cell extends Pane{
      * Sets the tooltip to display the given text
      * @param label the text to display
      */
-    public void setDisplayLabel(String label){
+    private void setDisplayLabel(String label){
         tooltip.setText(label);
     }
 
-    public void setRefLabel(List<String> refs){
+    private void setRefLabel(List<String> refs){
         this.refLabel.setLabels(refs, this);
     }
 
-    public void setCurrentRefLabel(List<String> refs) {
+    private void setCurrentRefLabel(List<String> refs) {
         this.refLabel.setCurrentLabels(refs);
     }
 
-    public void setLabels(String displayLabel, List<String> refLabels){
+    void setLabels(String displayLabel, List<String> refLabels){
         setDisplayLabel(displayLabel);
         setRefLabel(refLabels);
     }
 
-    public void setCurrentLabels(List<String> refLabels) {
+    void setCurrentLabels(List<String> refLabels) {
         setCurrentRefLabel(refLabels);
     }
 
-    public void setAnimate(boolean animate) {this.animate = animate;}
+    void setAnimate(boolean animate) {this.animate = animate;}
 
-    public void setUseParentAsSource(boolean useParentAsSource) {this.useParentAsSource = useParentAsSource;}
+    void setUseParentAsSource(boolean useParentAsSource) {this.useParentAsSource = useParentAsSource;}
 
-    public void setContextMenu(ContextMenu contextMenu){
+    void setContextMenu(ContextMenu contextMenu){
         this.contextMenu = contextMenu;
     }
 
@@ -257,39 +259,39 @@ public class Cell extends Pane{
      * Adds a child to this cell
      * @param cell the new child
      */
-    public void addCellChild(Cell cell) {
+    private void addCellChild(Cell cell) {
         children.add(cell);
     }
 
     /**
      * @return the list of the children of this cell
      */
-    public List<Cell> getCellChildren() {
+    List<Cell> getCellChildren() {
         return children;
     }
 
     /**
      * @return the list of the parents of this cell
      */
-    public List<Cell> getCellParents(){
+    List<Cell> getCellParents(){
         return parents.toList();
     }
 
     /**
      * @return whether or not this cell wants to be animated in the next transition
      */
-    public boolean getAnimate() { return this.animate; }
+    boolean getAnimate() { return this.animate; }
 
     /**
      * @return whether or not to use the parent to base the animation off of
      */
-    public boolean getUseParentAsSource() { return this.useParentAsSource; }
+    boolean getUseParentAsSource() { return this.useParentAsSource; }
 
     /**
      * Removes the given cell from the children of this cell
      * @param cell the cell to remove
      */
-    public void removeCellChild(Cell cell) {
+    void removeCellChild(Cell cell) {
         children.remove(cell);
     }
 
@@ -303,7 +305,7 @@ public class Cell extends Pane{
      * @param depth how many generations down to check
      * @return true if cell is a descendant of this cell, otherwise false
      */
-    public boolean isChild(Cell cell, int depth){
+    private boolean isChild(Cell cell, int depth){
         depth--;
         if(children.contains(cell)) return true;
         else if(depth != 0){
@@ -320,7 +322,7 @@ public class Cell extends Pane{
      * Sets the state of this cell and adjusts the style accordingly
      * @param state the new state of the cell
      */
-    public void setCellState(CellState state){
+    void setCellState(CellState state){
         Platform.runLater(() -> setFillType((Shape) view, state));
     }
 
@@ -328,7 +330,7 @@ public class Cell extends Pane{
      * Sets the cell type to local, both or remote and resets edges accordingly
      * @param type the type of the cell
      */
-    public void setCellType(CellType type) {
+    void setCellType(CellType type) {
         this.type = type;
         Platform.runLater(() -> setFillType((Shape) view, CellState.STANDARD));
         for (Edge e : edges) {
@@ -336,7 +338,7 @@ public class Cell extends Pane{
         }
     }
 
-    public CellType getCellType() {
+    CellType getCellType() {
         return this.type;
     }
 
@@ -350,7 +352,7 @@ public class Cell extends Pane{
     /**
      * @return the time of this cell
      */
-    public long getTime(){
+    long getTime(){
         return time;
     }
 
@@ -368,34 +370,29 @@ public class Cell extends Pane{
      * @param n the shape to set the fill of
      * @param state the state of the cell, determines coloring
      */
-    protected void setFillType(Shape n, CellState state) {
+    private void setFillType(Shape n, CellState state) {
         Color baseColor = Color.web(state.getBackgroundColor());
         switch(this.type) {
             case LOCAL:
-                n.setId("local-cell");
                 n.setFill(baseColor);
                 break;
             case REMOTE:
-                n.setId("remote-cell");
                 n.setFill(Color.web(BACKGROUND_COLOR));
                 n.setStroke(baseColor);
                 break;
             case BOTH:
-                n.setId("both-cell");
                 n.setFill(baseColor);
                 n.setStroke(baseColor);
                 break;
             default:
                 break;
         }
-        //n.setFill(new BackgroundFill(baseColor, new CornerRadii(0),new Insets(5,5,5,5)));
-        //n.setStyle("-fx-stroke: " + state.getCssStringKey());
     }
 
     public enum CellType {
         BOTH,
         LOCAL,
-        REMOTE;
+        REMOTE
     }
 
     /**
@@ -410,7 +407,7 @@ public class Cell extends Pane{
          * @param child the child cell
          * @param parents the list of parents
          */
-        public ParentCell(Cell child, List<Cell> parents) {
+        ParentCell(Cell child, List<Cell> parents) {
             this.parents = new ArrayList<>();
             for (Cell parent : parents) this.parents.add(parent);
             this.setChild(child);
@@ -426,7 +423,7 @@ public class Cell extends Pane{
         /**
          * @return the stored parent commits in list form
          */
-        public ArrayList<Cell> toList(){
+        ArrayList<Cell> toList(){
             return parents;
         }
 
@@ -455,19 +452,19 @@ public class Cell extends Pane{
         List<Node> basicLabels;
         List<Node> extendedLabels;
 
-        public void translate(double x, double y) {
+        void translate(double x, double y) {
             setTranslateX(x+BOX_SIZE+10);
             setTranslateY(y+BOX_SIZE);
         }
 
-        public void addToolTip(Label l, String text) {
+        void addToolTip(Label l, String text) {
             tooltip = new Tooltip(text);
             tooltip.setWrapText(true);
             tooltip.setMaxWidth(350);
             Tooltip.install(l, tooltip);
         }
 
-        public void setLabels(List<String> labels, Cell cell) {
+        void setLabels(List<String> labels, Cell cell) {
             Platform.runLater(() -> getChildren().clear());
             if (labels.size() < 1) {
                 return;
@@ -556,7 +553,7 @@ public class Cell extends Pane{
             });
         }
 
-        public void setCurrentLabels(List<String> labels) {
+        void setCurrentLabels(List<String> labels) {
             for (Node n : basic.getChildren()) {
                 Label l = (Label) ((HBox)n).getChildren().get(1);
                 if (labels.contains(l.getText())) {

@@ -200,18 +200,6 @@
     -fx-stroke-width: 2px;
 }
 
-    .cell#local-cell {
-
-    }
-
-    .cell#remote-cell {
-
-    }
-
-    .cell#both-cell {
-
-    }
-
 .invisCell {
     -fx-stroke-dash-array: 2px, 3px;
     -fx-stroke-dash-offset: 1px;
@@ -226,15 +214,39 @@
     -fx-stroke-dash-array: 3px, 5px;
 }
 
-#helpButton-local {
-    -fx-fill: linear-gradient(from 0px 0px to 0px 3px, reflect, -fx-button-fill 0%, -fx-button-fill 49%, -fx-background-default 50%, -fx-background-default 100%);
+#helpButton {
+    -fx-fill: -fx-button-fill;
 }
+
+    #helpButton: hover {
+        -fx-fill: -fx-button-hover-fill;
+    }
+
+#helpButton-null {
+    -fx-padding: 1 1 1 1;
+    -fx-fill: -fx-background-default;
+}
+
+#helpButton-inside {
+    -fx-padding: 3 3 3 3;
+    -fx-fill: -fx-button-fill;
+}
+
+    #helpButton-inside: hover {
+            -fx-fill: -fx-button-hover-fill;
+        }
+
 #helpButton-remote {
-    -fx-fill: linear-gradient(from 0px 0px to 3px 0px, reflect, -fx-button-fill 0%, -fx-button-fill 49%, -fx-background-default 50%, -fx-background-default 100%);
+    -fx-stroke-type: inside;
+    -fx-stroke-line-cap: butt;
+    -fx-stroke-width: 2px;
+    -fx-stroke: -fx-button-fill;
+    -fx-fill: -fx-background-default;
 }
-#helpButton-both {
-    -fx-fill: -fx-button-hover-fill;
-}
+
+    #helpButton-remote: hover {
+        -fx-stroke: -fx-button-hover-fill;
+    }
 
 * {
     -fx-button-fill: #52B3D9;

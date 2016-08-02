@@ -3,8 +3,8 @@
 <?import javafx.scene.shape.Polygon?>
 <?import javafx.scene.shape.Rectangle?>
 <?import javafx.scene.text.Text?>
-<?import org.controlsfx.control.NotificationPane?>
 <?import java.net.URL?>
+<?import javafx.geometry.Insets?>
 <GridPane hgap="10"
           vgap="30"
           alignment="TOP_CENTER"
@@ -23,7 +23,7 @@
           alignment="CENTER_LEFT"
           spacing="10">
 
-        <Rectangle id="helpButton-local"
+        <Rectangle id="helpButton"
                 height="30"
                 width="30"/>
         <Text text="A commit in local but not remote"/>
@@ -35,8 +35,8 @@
           spacing="10">
 
         <Rectangle id="helpButton-remote"
-                   height="30"
-                   width="30"/>
+               height="30"
+               width="30"/>
         <Text text="A commit not tracked locally"/>
     </HBox>
     <HBox GridPane.columnIndex="0"
@@ -45,9 +45,17 @@
           alignment="CENTER_LEFT"
           spacing="10">
 
-        <Rectangle id="helpButton-both"
+        <StackPane>
+            <Rectangle id="helpButton"
                    height="30"
                    width="30"/>
+            <Rectangle id="helpButton-null"
+                       height="28"
+                       width="28"/>
+            <Rectangle id="helpButton-inside"
+                       height="26"
+                       width="26"/>
+        </StackPane>
         <Text text="A commit tracked locally and remotely"/>
     </HBox>
     <HBox GridPane.columnIndex="1"
@@ -65,9 +73,17 @@
           GridPane.rowSpan="1"
           alignment="CENTER_LEFT"
           spacing="10">
-
-        <Polygon id="helpButton-both"
-                 points="0,15,30,0,30,30"/>
+        <StackPane>
+            <Polygon id="helpButton-remote"
+                     points="0,0,30,0,15,30"
+                     style="-fx-stroke-width: 1px"/>
+            <Polygon id="helpButton"
+                     points="4,0,26,0,15,23">
+                <StackPane.margin>
+                    <Insets bottom="2.0" top="-1.0"/>
+                </StackPane.margin>
+            </Polygon>
+        </StackPane>
         <Text text="A normal branch head"/>
     </HBox>
 <stylesheets>
