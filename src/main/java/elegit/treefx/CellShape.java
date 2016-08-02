@@ -16,6 +16,11 @@ public enum CellShape{
     TRIANGLE_RIGHT,
     TRIANGLE_LEFT;
 
+    /**
+     * Gets a shape based on the type of a cell
+     * @param type the type of the cell (local, remote, or both)
+     * @return the shape of the cell, just the basic shape for local or remote and a concentric circle for both
+     */
     public Shape getType(Cell.CellType type) {
         Shape toReturn;
         switch (type) {
@@ -62,11 +67,15 @@ public enum CellShape{
      * @return the JavaFX object corresponding to the interior to the shape
      */
     public Shape getInside(int inset) {
+        int extraInset = inset;
+        if (inset==Cell.BOX_INSIDE)
+            extraInset += 1;
         switch(this){
             case CIRCLE:
-                return new Circle(Cell.BOX_SIZE / 2., Cell.BOX_SIZE / 2., Cell.BOX_SIZE / 2. - inset);
+                return new Circle(Cell.BOX_SIZE / 2., Cell.BOX_SIZE / 2., Cell.BOX_SIZE / 2. - extraInset);
             case TRIANGLE_UP:
-                return new Polygon(inset, Cell.BOX_SIZE-inset, Cell.BOX_SIZE-inset, Cell.BOX_SIZE-inset, Cell.BOX_SIZE / 2., inset);
+                return new Polygon(extraInset, Cell.BOX_SIZE-inset, Cell.BOX_SIZE-extraInset, Cell.BOX_SIZE-inset,
+                        Cell.BOX_SIZE / 2., extraInset+1);
             case TRIANGLE_DOWN:
                 return new Polygon(inset, inset, Cell.BOX_SIZE-inset, inset, Cell.BOX_SIZE / 2., Cell.BOX_SIZE-inset);
             case TRIANGLE_RIGHT:
