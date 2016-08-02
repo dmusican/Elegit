@@ -42,13 +42,23 @@
                 </Tab>
                 <Tab    text="Delete"
                         closable="false">
-                    <VBox   spacing="10"
-                            alignment="CENTER">
-                        <ComboBox   fx:id="localBranchesDropdown"/>
-                        <Button text="Delete branch"
-                                fx:id="deleteButton"
-                                onAction="#handleDeleteBranch"/>
-                    </VBox>
+                    <HBox spacing="30"
+                          alignment="CENTER">
+                        <VBox   spacing="10"
+                                alignment="CENTER">
+                            <ComboBox   fx:id="localBranchesDropdown"/>
+                            <Button text="Delete branch"
+                                    fx:id="deleteButton"
+                                    onAction="#handleDeleteLocalBranch"/>
+                        </VBox>
+                        <VBox   spacing="10"
+                                alignment="CENTER">
+                            <ComboBox   fx:id="remoteBranchesDropdown"/>
+                            <Button text="Delete branch"
+                                    fx:id="deleteButton2"
+                                    onAction="#handleDeleteRemoteBranch"/>
+                        </VBox>
+                    </HBox>
                 </Tab>
             </TabPane>
             <Button text="Cancel"

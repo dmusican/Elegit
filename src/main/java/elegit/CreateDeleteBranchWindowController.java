@@ -14,11 +14,7 @@ import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.controlsfx.control.PopOver;
-import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.PushCommand;
 import org.eclipse.jgit.api.errors.*;
-import org.eclipse.jgit.transport.PushResult;
-import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.transport.RemoteRefUpdate;
 
 import java.io.IOException;
@@ -34,8 +30,10 @@ public class CreateDeleteBranchWindowController {
     @FXML private CheckBox checkoutCheckBox;
     @FXML private TextArea newBranchTextArea;
     @FXML private ComboBox<LocalBranchHelper> localBranchesDropdown;
+    @FXML private ComboBox<RemoteBranchHelper> remoteBranchesDropdown;
     @FXML private Button createButton;
     @FXML private Button deleteButton;
+    @FXML private Button deleteButton2;
     @FXML private StackPane notificationPane;
     @FXML private NotificationController notificationPaneController;
 
@@ -54,8 +52,9 @@ public class CreateDeleteBranchWindowController {
         sessionModel = SessionModel.getSessionModel();
         repoHelper = sessionModel.getCurrentRepoHelper();
         branchModel = repoHelper.getBranchModel();
-        refreshLocalBranchesDropdown();
+        refreshBranchesDropDown();
         localBranchesDropdown.setPromptText("Select a branch...");
+        remoteBranchesDropdown.setPromptText("Select a branch...");
         newBranchTextArea.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         createButton.setDisable(true);
         deleteButton.setDisable(true);
@@ -70,8 +69,10 @@ public class CreateDeleteBranchWindowController {
         localBranchesDropdown.getSelectionModel().selectedIndexProperty().addListener(((observable, oldValue, newValue) -> {
             if((int) newValue == -1) {
                 deleteButton.setDisable(true);
+                deleteButton2.setDisable(true);
             }else {
                 deleteButton.setDisable(false);
+                deleteButton2.setDisable(false);
             }
         }));
 
@@ -80,15 +81,16 @@ public class CreateDeleteBranchWindowController {
     }
 
     /**
-     * helper method to update branch dropdown
+     * Helper method to update branch dropdown
      */
-    private void refreshLocalBranchesDropdown() {
+    private void refreshBranchesDropDown() {
         localBranchesDropdown.setItems(FXCollections.observableArrayList(branchModel.getLocalBranchesTyped()));
+        remoteBranchesDropdown.setItems(FXCollections.observableArrayList(branchModel.getRemoteBranchesTyped()));
     }
 
     /**
-     * shows the window
-     * @param pane AnchorPane root
+     * Shows the window
+     * @param pane the AnchorPane root
      */
     void showStage(AnchorPane pane) {
         anchorRoot = pane;
@@ -147,7 +149,7 @@ public class CreateDeleteBranchWindowController {
                     showGenericErrorNotification();
                     e1.printStackTrace();
                 }finally {
-                    refreshLocalBranchesDropdown();
+                    refreshBranchesDropDown();
                 }
                 if(checkout) {
                     if(newBranch != null) {
@@ -185,12 +187,26 @@ public class CreateDeleteBranchWindowController {
         return false;
     }
 
+    public void handleDeleteRemoteBranch() {
+        logger.info("Delete remote branches button clicked");
+        BranchHelper selectedBranch = remoteBranchesDropdown.getSelectionModel().getSelectedItem();
+
+        deleteBranch(selectedBranch);
+    }
+
+    public void handleDeleteLocalBranch() {
+        logger.info("Delete remote branches button clicked");
+        BranchHelper selectedBranch = remoteBranchesDropdown.getSelectionModel().getSelectedItem();
+
+        deleteBranch(selectedBranch);
+    }
+
     /**
-     * deletes selected branch
+     * Deletes the selected branch
+     *
+     * @param selectedBranch the branch selected to delete
      */
-    public void handleDeleteBranch() {
-        logger.info("Delete branches button clicked");
-        BranchHelper selectedBranch = localBranchesDropdown.getSelectionModel().getSelectedItem();
+    public void deleteBranch(BranchHelper selectedBranch) {
 
             try {
                 if (selectedBranch != null) {
@@ -201,7 +217,7 @@ public class CreateDeleteBranchWindowController {
                     else
                         deleteStatus = this.branchModel.deleteRemoteBranch(this.repoHelper.getBranchModel().getRemoteBranchesTyped().get(0));
 
-                    refreshLocalBranchesDropdown();
+                    refreshBranchesDropDown();
 
                     // Reset the branch heads
                     CommitTreeController.setBranchHeads(localCommitTreeModel, repoHelper);
@@ -227,7 +243,7 @@ public class CreateDeleteBranchWindowController {
                 logger.warn("Git error");
                 this.showGenericGitErrorNotificationWithBranch(selectedBranch);
             }finally {
-                refreshLocalBranchesDropdown();
+                refreshBranchesDropDown();
             }
     }
 
@@ -256,7 +272,7 @@ public class CreateDeleteBranchWindowController {
             this.showGenericGitErrorNotificationWithBranch(branchToDelete);
             e.printStackTrace();
         }finally {
-            refreshLocalBranchesDropdown();
+            refreshBranchesDropDown();
         }
     }
 
