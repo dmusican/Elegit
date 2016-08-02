@@ -25,7 +25,6 @@ import java.util.List;
 public class CreateDeleteBranchWindowController {
 
     @FXML private AnchorPane anchorRoot;
-    @FXML private StackPane notificationPane1;
     @FXML private CheckBox checkoutCheckBox;
     @FXML private TextArea newBranchTextArea;
     @FXML private ComboBox<LocalBranchHelper> localBranchesDropdown;
@@ -181,7 +180,7 @@ public class CreateDeleteBranchWindowController {
     }
 
     /**
-     * deletes selected branch
+     * Deletes the selected branch.
      */
     public void handleDeleteBranch() {
         logger.info("Delete branches button clicked");

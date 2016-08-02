@@ -151,7 +151,6 @@ public class Cell extends Pane{
     void moveTo(double x, double y, boolean animate, boolean emphasize){
         if(animate && numCellsBeingAnimated < MAX_NUM_CELLS_TO_ANIMATE){
             numCellsBeingAnimated++;
-            CommitTreeScrollPane.scrollTo(-1);
 
             Shape placeHolder = (Shape) getBaseView();
             placeHolder.setTranslateX(x+TreeLayout.H_PAD);

@@ -56,6 +56,8 @@ public class MergeWindowController {
     private boolean disable;
     private CommitTreeModel localCommitTreeModel;
 
+    private SessionController sessionController;
+
     static final Logger logger = LogManager.getLogger();
 
     /**
@@ -218,7 +220,7 @@ public class MergeWindowController {
                         } else {
                             closeWindow();
                         }
-                        Main.sessionController.gitStatus();
+                        sessionController.gitStatus();
                     } catch(InvalidRemoteException e){
                         showNoRemoteNotification();
                     } catch(TransportException e){
@@ -237,7 +239,7 @@ public class MergeWindowController {
                         ConflictingFileWatcher.watchConflictingFiles(sessionModel.getCurrentRepoHelper());
                     } catch(MissingRepoException e){
                         showMissingRepoNotification();
-                        Main.sessionController.setButtonsDisabled(true);
+                        sessionController.setButtonsDisabled(true);
                     } catch(GitAPIException | IOException e){
                         showGenericErrorNotification();
                         e.printStackTrace();
@@ -257,7 +259,7 @@ public class MergeWindowController {
             th.start();
         }catch(NoRepoLoadedException e){
             this.showNoRepoLoadedNotification();
-            Main.sessionController.setButtonsDisabled(true);
+            this.sessionController.setButtonsDisabled(true);
         }catch(NoCommitsToMergeException e){
             this.showNoCommitsToMergeNotification();
         }catch(IOException e) {
@@ -280,7 +282,7 @@ public class MergeWindowController {
 
         if (mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.CONFLICTING)){
             this.showConflictsNotification();
-            Main.sessionController.gitStatus();
+            this.sessionController.gitStatus();
             ConflictingFileWatcher.watchConflictingFiles(sessionModel.getCurrentRepoHelper());
 
         } else if (mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.ALREADY_UP_TO_DATE)) {
@@ -318,6 +320,14 @@ public class MergeWindowController {
             showGenericErrorNotification();
             e.printStackTrace();
         }
+    }
+
+    /**
+     * Setter method for sessionController, needed for merge operations
+     * @param sessionController the sessionController that made this window
+     */
+    void setSessionController(SessionController sessionController) {
+        this.sessionController = sessionController;
     }
 
     ///******* START ERROR NOTIFICATIONS *******/

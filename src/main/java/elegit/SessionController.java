@@ -1309,6 +1309,7 @@ public class SessionController {
             FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/MergeWindow.fxml"));
             fxmlLoader.load();
             MergeWindowController mergeWindowController = fxmlLoader.getController();
+            mergeWindowController.setSessionController(this);
             AnchorPane fxmlRoot = fxmlLoader.getRoot();
             mergeWindowController.showStage(fxmlRoot);
         }catch(IOException e){
