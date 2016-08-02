@@ -14,7 +14,12 @@ import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.controlsfx.control.PopOver;
+import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.PushCommand;
 import org.eclipse.jgit.api.errors.*;
+import org.eclipse.jgit.transport.PushResult;
+import org.eclipse.jgit.transport.RefSpec;
+import org.eclipse.jgit.transport.RemoteRefUpdate;
 
 import java.io.IOException;
 import java.util.List;
@@ -185,38 +190,45 @@ public class CreateDeleteBranchWindowController {
      */
     public void handleDeleteBranch() {
         logger.info("Delete branches button clicked");
-        LocalBranchHelper selectedBranch = localBranchesDropdown.getSelectionModel().getSelectedItem();
+        BranchHelper selectedBranch = localBranchesDropdown.getSelectionModel().getSelectedItem();
 
             try {
                 if (selectedBranch != null) {
-                    // Local delete:
-                    this.branchModel.deleteLocalBranch(selectedBranch);
+                    RemoteRefUpdate.Status deleteStatus;
+
+                    if (selectedBranch instanceof LocalBranchHelper)
+                        this.branchModel.deleteLocalBranch((LocalBranchHelper) selectedBranch);
+                    else
+                        deleteStatus = this.branchModel.deleteRemoteBranch(this.repoHelper.getBranchModel().getRemoteBranchesTyped().get(0));
+
                     refreshLocalBranchesDropdown();
 
                     // Reset the branch heads
                     CommitTreeController.setBranchHeads(localCommitTreeModel, repoHelper);
 
+                    // TODO: make this actually say what happened
                     updateUser(" deleted ");
                 }
             } catch (NotMergedException e) {
                 logger.warn("Can't delete branch because not merged warning");
                 Platform.runLater(() -> {
-                    if(PopUpWindows.showForceDeleteBranchAlert()) {
-                        forceDeleteBranch(selectedBranch);
+                    if(PopUpWindows.showForceDeleteBranchAlert() && selectedBranch instanceof LocalBranchHelper) {
+                        // If we need to force delete, then it must be a local branch
+                        forceDeleteBranch((LocalBranchHelper) selectedBranch);
                     }
                 });
                 this.showNotMergedNotification(selectedBranch);
             } catch (CannotDeleteCurrentBranchException e) {
                 logger.warn("Can't delete current branch warning");
                 this.showCannotDeleteBranchNotification(selectedBranch);
+            } catch (TransportException e) {
+                this.showNotAuthorizedNotification();
             } catch (GitAPIException e) {
                 logger.warn("Git error");
                 this.showGenericGitErrorNotificationWithBranch(selectedBranch);
             }finally {
                 refreshLocalBranchesDropdown();
             }
-        // TODO: add optional delete from remote, too.
-        // see http://stackoverflow.com/questions/11892766/how-to-remove-remote-branch-with-jgit
     }
 
     /**
@@ -302,7 +314,7 @@ public class CreateDeleteBranchWindowController {
         });
     }
 
-    private void showCannotDeleteBranchNotification(LocalBranchHelper branch) {
+    private void showCannotDeleteBranchNotification(BranchHelper branch) {
         Platform.runLater(() -> {
             logger.warn("Cannot delete current branch notification");
             notificationPaneController.addNotification(String.format("Sorry, %s can't be deleted right now. " +
@@ -310,14 +322,14 @@ public class CreateDeleteBranchWindowController {
         });
     }
 
-    private void showGenericGitErrorNotificationWithBranch(LocalBranchHelper branch) {
+    private void showGenericGitErrorNotificationWithBranch(BranchHelper branch) {
         Platform.runLater(() -> {
             logger.warn("Git error on branch notification");
             notificationPaneController.addNotification(String.format("Sorry, there was a git error on branch %s.", branch.getBranchName()));
         });
     }
 
-    private void showNotMergedNotification(LocalBranchHelper nonmergedBranch) {
+    private void showNotMergedNotification(BranchHelper nonmergedBranch) {
         logger.warn("Not merged notification");
         notificationPaneController.addNotification("That branch has to be merged before you can do that.");
 
@@ -350,6 +362,14 @@ public class CreateDeleteBranchWindowController {
                 anchorRoot.hide();
                 PopUpWindows.showCheckoutConflictsAlert(conflictingPaths);
             });*/
+        });
+    }
+
+    private void showNotAuthorizedNotification() {
+        Platform.runLater(() -> {
+            logger.warn("Invalid authorization warning");
+            this.notificationPaneController.addNotification("The authorization information you gave does not allow you to modify this repository. " +
+                    "Try reentering your password.");
         });
     }
 

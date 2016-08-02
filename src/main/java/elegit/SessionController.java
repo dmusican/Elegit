@@ -905,7 +905,9 @@ public class SessionController {
             logger.info("Push button clicked");
 
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
-            if(this.theModel.getCurrentRepoHelper().getAheadCount()<1) throw new NoCommitsToPushException();
+            if(this.theModel.getCurrentRepoHelper().getAheadCount()<1
+                    && !(this.theModel.getCurrentRepoHelper().getBranchModel().getCurrentRemoteBranch()==null)
+                    ) throw new NoCommitsToPushException();
 
             BusyWindow.show();
             BusyWindow.setLoadingText("Pushing...");
