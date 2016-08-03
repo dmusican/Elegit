@@ -35,7 +35,6 @@ import org.apache.commons.lang3.SystemUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.controlsfx.control.CheckListView;
-import org.controlsfx.control.NotificationPane;
 import org.controlsfx.control.PopOver;
 import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.dircache.InvalidPathException;
@@ -1105,7 +1104,7 @@ public class SessionController {
                 @Override
                 protected Void call() {
                     try{
-                        theModel.getCurrentRepoHelper().revertToCommit(commit);
+                        theModel.getCurrentRepoHelper().revertCommit(commit);
                         gitStatus();
                     } catch(MultipleParentsNotAllowedException e) {
                         if(commit.getParents().size() > 1) {
@@ -1161,7 +1160,7 @@ public class SessionController {
                 @Override
                 protected Void call() {
                     try{
-                        theModel.getCurrentRepoHelper().resetToCommit(commit);
+                        theModel.getCurrentRepoHelper().reset(commit);
                         gitStatus();
                     }catch(InvalidRemoteException e){
                         showNoRemoteNotification();

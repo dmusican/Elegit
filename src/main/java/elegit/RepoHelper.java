@@ -1,10 +1,12 @@
 package elegit;
 
-import com.jcraft.jsch.*;
+import com.jcraft.jsch.JSch;
+import com.jcraft.jsch.JSchException;
+import com.jcraft.jsch.Session;
+import elegit.exceptions.*;
 import elegit.treefx.Cell;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
-import elegit.exceptions.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jgit.api.*;
@@ -643,7 +645,7 @@ public abstract class RepoHelper {
      * see https://git-scm.com/docs/git-revert and
      * http://download.eclipse.org/jgit/site/4.4.0.201606070830-r/apidocs/index.html
      */
-    public void revertToCommit(CommitHelper helper) throws MissingRepoException, GitAPIException {
+    public void revertCommit(CommitHelper helper) throws MissingRepoException, GitAPIException {
         logger.info("Attempting revert");
         if (!exists()) throw new MissingRepoException();
         // should this Git instance be class-level?
@@ -660,17 +662,66 @@ public abstract class RepoHelper {
         }
     }
 
+    //******************** RESET SECTION ********************
+
+    // File resetting
+
     /**
-     * Resets to the given commit (not --hard: working directory unaffected)
-     * @param commit CommitHelper
+     * Resets the given file to the version in HEAD
+     *
+     * @param path the path of the file to reset
      * @throws MissingRepoException
      * @throws GitAPIException
      */
-    public void resetToCommit(CommitHelper commit) throws MissingRepoException, GitAPIException {
+    void reset(String path) throws MissingRepoException, GitAPIException {
+        logger.info("Attempting reset file");
+        if (!exists()) throw new MissingRepoException();
+        Git git = new Git(this.repo);
+        git.reset().addPath(path).call();
+        git.close();
+    }
+
+    /**
+     * Resets the given files to the version stored in HEAD
+     *
+     * @param paths a list of files to reset
+     * @throws MissingRepoException
+     * @throws GitAPIException
+     */
+    void reset(List<String> paths) throws MissingRepoException, GitAPIException {
+        logger.info("Attempting reset files");
+        if (!exists()) throw new MissingRepoException();
+        Git git = new Git(this.repo);
+        ResetCommand resetCommand = git.reset();
+        paths.forEach(resetCommand::addPath);
+        resetCommand.call();
+        git.close();
+    }
+
+    // Commit resetting
+    /**
+     * Resets to the given commit using the default mode: mixed
+     *
+     * @param commit the commit to reset to
+     * @throws MissingRepoException
+     * @throws GitAPIException
+     */
+    void reset(CommitHelper commit) throws MissingRepoException, GitAPIException {
+        reset(commit.getId(), ResetCommand.ResetType.MIXED);
+    }
+
+    /**
+     * Resets to the given commit with the given mode
+     * @param ref the ref (commit id or branch label) to reset to
+     * @param mode the mode of reset to use (hard, mixed, soft, merge, or keep)
+     * @throws MissingRepoException
+     * @throws GitAPIException
+     */
+    void reset(String ref, ResetCommand.ResetType mode) throws MissingRepoException, GitAPIException {
         logger.info("Attempting reset");
         if (!exists()) throw new MissingRepoException();
         Git git = new Git(this.repo);
-        git.reset().setRef(commit.getId()).call();
+        git.reset().setRef(ref).setMode(mode).call();
         git.close();
     }
 
