@@ -52,6 +52,24 @@
     -fx-text-align: center;
 }
 
+.label#branch-not-current {
+    -fx-text-fill: #333333;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-background-color: #CCCCCC;
+    -fx-background-radius: 5;
+    -fx-padding: 0 3 0 3;
+}
+
+.label#branch-current {
+    -fx-text-fill: #FFFFFF;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-background-color: #1E90FF;
+    -fx-background-radius: 5;
+    -fx-padding: 0 3 0 3;
+}
+
 
 .branch-label {
     -fx-text-fill: #FFFFFF;

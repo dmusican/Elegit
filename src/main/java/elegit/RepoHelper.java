@@ -434,7 +434,6 @@ public abstract class RepoHelper {
 
         for(PushResult result : pushResult) {
             for(RemoteRefUpdate remoteRefUpdate : result.getRemoteUpdates()) {
-                System.out.println(remoteRefUpdate.getMessage());
                 if(!remoteRefUpdate.getStatus().equals(RemoteRefUpdate.Status.OK)) {
                     throw new PushToAheadRemoteError(false);
                 }
@@ -858,6 +857,10 @@ public abstract class RepoHelper {
      */
     public List<String> getAllTagNames() {
         return new ArrayList<>(tagIdMap.keySet());
+    }
+
+    public boolean canPush() throws IOException {
+        return getAheadCount()>0 || branchModel.getCurrentRemoteBranch()==null;
     }
 
     /**

@@ -11,12 +11,17 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.util.Callback;
+import javafx.util.Duration;
+import javafx.util.StringConverter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.controlsfx.control.PopOver;
 import org.eclipse.jgit.api.errors.*;
+import org.eclipse.jgit.transport.RemoteRefUpdate;
 
 import java.io.IOException;
+import java.rmi.Remote;
 import java.util.List;
 
 /**
@@ -28,8 +33,10 @@ public class CreateDeleteBranchWindowController {
     @FXML private CheckBox checkoutCheckBox;
     @FXML private TextArea newBranchTextArea;
     @FXML private ComboBox<LocalBranchHelper> localBranchesDropdown;
+    @FXML private ComboBox<RemoteBranchHelper> remoteBranchesDropdown;
     @FXML private Button createButton;
     @FXML private Button deleteButton;
+    @FXML private Button deleteButton2;
     @FXML private StackPane notificationPane;
     @FXML private NotificationController notificationPaneController;
 
@@ -48,8 +55,9 @@ public class CreateDeleteBranchWindowController {
         sessionModel = SessionModel.getSessionModel();
         repoHelper = sessionModel.getCurrentRepoHelper();
         branchModel = repoHelper.getBranchModel();
-        refreshLocalBranchesDropdown();
-        localBranchesDropdown.setPromptText("Select a branch...");
+        refreshBranchesDropDown();
+        localBranchesDropdown.setPromptText("Select a local branch...");
+        remoteBranchesDropdown.setPromptText("Select a remote branch...");
         newBranchTextArea.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         createButton.setDisable(true);
         deleteButton.setDisable(true);
@@ -68,21 +76,83 @@ public class CreateDeleteBranchWindowController {
                 deleteButton.setDisable(false);
             }
         }));
+        deleteButton2.disableProperty().bind(remoteBranchesDropdown.getSelectionModel().selectedIndexProperty().lessThan(0));
 
         // Get the current commit tree models
         localCommitTreeModel = CommitTreeController.getCommitTreeModel();
     }
 
     /**
-     * helper method to update branch dropdown
+     * Helper method to update branch dropdown
      */
-    private void refreshLocalBranchesDropdown() {
+    private void refreshBranchesDropDown() {
         localBranchesDropdown.setItems(FXCollections.observableArrayList(branchModel.getLocalBranchesTyped()));
+        remoteBranchesDropdown.setItems(FXCollections.observableArrayList(branchModel.getRemoteBranchesTyped()));
+
+        // Add styling to the dropdowns
+        localBranchesDropdown.setCellFactory(new Callback<ListView<LocalBranchHelper>, ListCell<LocalBranchHelper>>() {
+            @Override
+            public ListCell<LocalBranchHelper> call(ListView<LocalBranchHelper> param) {
+                return new ListCell<LocalBranchHelper>() {
+
+                    private final Label branchName; {
+                        branchName = new Label();
+                    }
+
+                    @Override protected void updateItem(LocalBranchHelper helper, boolean empty) {
+                        super.updateItem(helper, empty);
+
+                        if (helper == null || empty) { setGraphic(null); }
+                        else {
+                            branchName.setText(helper.getBranchName());
+                            if (repoHelper.getBranchModel().getCurrentBranch().getBranchName().equals(branchName.getText()))
+                                branchName.setId("branch-current");
+                            else
+                                branchName.setId("branch-not-current");
+                            setGraphic(branchName);
+                            setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+                        }
+                    }
+                };
+            }
+        });
+        remoteBranchesDropdown.setCellFactory(new Callback<ListView<RemoteBranchHelper>, ListCell<RemoteBranchHelper>>() {
+            @Override
+            public ListCell<RemoteBranchHelper> call(ListView<RemoteBranchHelper> param) {
+                return new ListCell<RemoteBranchHelper>() {
+
+                    private final Label branchName; {
+                        branchName = new Label();
+                    }
+
+                    @Override protected void updateItem(RemoteBranchHelper helper, boolean empty) {
+                        super.updateItem(helper, empty);
+
+                        if (helper == null || empty) { setGraphic(null); }
+                        else {
+                            branchName.setText(helper.getBranchName());
+                            try {
+                                if (repoHelper.getBranchModel().getCurrentRemoteBranch() != null &&
+                                        repoHelper.getBranchModel().getCurrentRemoteBranch().equals(branchName.getText()))
+                                    branchName.setId("branch-current");
+                                else
+                                    branchName.setId("branch-not-current");
+                                setGraphic(branchName);
+                                setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+                            } catch(IOException e) {
+                                // This shouldn't happen
+                                setGraphic(null);
+                            }
+                        }
+                    }
+                };
+            }
+        });
     }
 
     /**
-     * shows the window
-     * @param pane AnchorPane root
+     * Shows the window
+     * @param pane the AnchorPane root
      */
     void showStage(AnchorPane pane) {
         anchorRoot = pane;
@@ -141,7 +211,7 @@ public class CreateDeleteBranchWindowController {
                     showGenericErrorNotification();
                     e1.printStackTrace();
                 }finally {
-                    refreshLocalBranchesDropdown();
+                    refreshBranchesDropDown();
                 }
                 if(checkout) {
                     if(newBranch != null) {
@@ -180,42 +250,81 @@ public class CreateDeleteBranchWindowController {
     }
 
     /**
-     * Deletes the selected branch.
+     * Deletes the selected remote branch
      */
-    public void handleDeleteBranch() {
-        logger.info("Delete branches button clicked");
-        LocalBranchHelper selectedBranch = localBranchesDropdown.getSelectionModel().getSelectedItem();
+    public void handleDeleteRemoteBranch() {
+        logger.info("Delete remote branches button clicked");
+        BranchHelper selectedBranch = remoteBranchesDropdown.getSelectionModel().getSelectedItem();
+
+        deleteBranch(selectedBranch);
+    }
+
+    /**
+     * Deletes the selected local branch
+     */
+    public void handleDeleteLocalBranch() {
+        logger.info("Delete remote branches button clicked");
+        BranchHelper selectedBranch = localBranchesDropdown.getSelectionModel().getSelectedItem();
+
+        deleteBranch(selectedBranch);
+    }
+
+    /**
+     * Deletes the selected branch
+     *
+     * @param selectedBranch the branch selected to delete
+     */
+    public void deleteBranch(BranchHelper selectedBranch) {
 
             try {
                 if (selectedBranch != null) {
-                    // Local delete:
-                    this.branchModel.deleteLocalBranch(selectedBranch);
-                    refreshLocalBranchesDropdown();
+                    RemoteRefUpdate.Status deleteStatus;
 
-                    // Reset the branch heads
-                    CommitTreeController.setBranchHeads(localCommitTreeModel, repoHelper);
-
-                    updateUser(" deleted ");
+                    if (selectedBranch instanceof LocalBranchHelper) {
+                        this.branchModel.deleteLocalBranch((LocalBranchHelper) selectedBranch);
+                        updateUser(selectedBranch.getBranchName() + " deleted.", BranchModel.BranchType.LOCAL);
+                    }else {
+                        deleteStatus = this.branchModel.deleteRemoteBranch((RemoteBranchHelper) selectedBranch);
+                        String updateMessage = selectedBranch.getBranchName();
+                        // There are a number of possible cases, see JGit's documentation on RemoteRefUpdate.Status
+                        // for the full list.
+                        switch (deleteStatus) {
+                            case OK:
+                                updateMessage += " deleted.";
+                                break;
+                            case NON_EXISTING:
+                                updateMessage += " no longer\nexists on the server.";
+                            default:
+                                updateMessage += " deletion\nfailed.";
+                        }
+                        updateUser(updateMessage, BranchModel.BranchType.REMOTE);
+                    }
                 }
             } catch (NotMergedException e) {
                 logger.warn("Can't delete branch because not merged warning");
                 Platform.runLater(() -> {
-                    if(PopUpWindows.showForceDeleteBranchAlert()) {
-                        forceDeleteBranch(selectedBranch);
+                    if(PopUpWindows.showForceDeleteBranchAlert() && selectedBranch instanceof LocalBranchHelper) {
+                        // If we need to force delete, then it must be a local branch
+                        forceDeleteBranch((LocalBranchHelper) selectedBranch);
                     }
                 });
                 this.showNotMergedNotification(selectedBranch);
             } catch (CannotDeleteCurrentBranchException e) {
                 logger.warn("Can't delete current branch warning");
                 this.showCannotDeleteBranchNotification(selectedBranch);
+            } catch (TransportException e) {
+                this.showNotAuthorizedNotification();
             } catch (GitAPIException e) {
                 logger.warn("Git error");
                 this.showGenericGitErrorNotificationWithBranch(selectedBranch);
-            }finally {
-                refreshLocalBranchesDropdown();
+            } catch (IOException e) {
+                logger.warn("IO error");
+                this.showGenericErrorNotification();
+            } finally {
+                refreshBranchesDropDown();
+                // Reset the branch heads
+                CommitTreeController.setBranchHeads(localCommitTreeModel, repoHelper);
             }
-        // TODO: add optional delete from remote, too.
-        // see http://stackoverflow.com/questions/11892766/how-to-remove-remote-branch-with-jgit
     }
 
     /**
@@ -243,12 +352,12 @@ public class CreateDeleteBranchWindowController {
             this.showGenericGitErrorNotificationWithBranch(branchToDelete);
             e.printStackTrace();
         }finally {
-            refreshLocalBranchesDropdown();
+            refreshBranchesDropDown();
         }
     }
 
     /**
-     * helper method that informs the user their action was successful
+     * Helper method that tells the user a local branch was created
      * @param type String
      */
     private void updateUser(String type) {
@@ -256,19 +365,35 @@ public class CreateDeleteBranchWindowController {
             Text txt = new Text(" Branch" + type);
             PopOver popOver = new PopOver(txt);
             popOver.setTitle("");
-            if(type.equals(" created ")) {
-                popOver.show(createButton);
-                popOver.detach();
-                newBranchTextArea.clear();
-                checkoutCheckBox.setSelected(false);
-            }else {
-                popOver.show(deleteButton);
-                popOver.detach();
-                localBranchesDropdown.getSelectionModel().clearSelection();
-            }
-
-
+            popOver.show(createButton);
+            popOver.detach();
+            newBranchTextArea.clear();
+            checkoutCheckBox.setSelected(false);
+            popOver.setAutoHide(true);
         });
+    }
+
+    /**
+     * Helper method to show a popover about a branch type
+     * @param branchType the type of branch that there is a status about
+     */
+    private void updateUser(String message, BranchModel.BranchType branchType) {
+        Text txt = new Text(message);
+        PopOver popOver = new PopOver(txt);
+        popOver.setTitle("");
+        Button buttonToShowOver;
+        ComboBox<? extends BranchHelper> dropdownToReset;
+        if (branchType == BranchModel.BranchType.LOCAL) {
+            buttonToShowOver = deleteButton;
+            dropdownToReset = localBranchesDropdown;
+        } else {
+            buttonToShowOver = deleteButton2;
+            dropdownToReset = remoteBranchesDropdown;
+        }
+        popOver.show(buttonToShowOver);
+        popOver.detach();
+        popOver.setAutoHide(true);
+        dropdownToReset.getSelectionModel().clearSelection();
     }
 
     //**************** BEGIN ERROR NOTIFICATIONS***************************
@@ -301,7 +426,7 @@ public class CreateDeleteBranchWindowController {
         });
     }
 
-    private void showCannotDeleteBranchNotification(LocalBranchHelper branch) {
+    private void showCannotDeleteBranchNotification(BranchHelper branch) {
         Platform.runLater(() -> {
             logger.warn("Cannot delete current branch notification");
             notificationPaneController.addNotification(String.format("Sorry, %s can't be deleted right now. " +
@@ -309,14 +434,14 @@ public class CreateDeleteBranchWindowController {
         });
     }
 
-    private void showGenericGitErrorNotificationWithBranch(LocalBranchHelper branch) {
+    private void showGenericGitErrorNotificationWithBranch(BranchHelper branch) {
         Platform.runLater(() -> {
             logger.warn("Git error on branch notification");
             notificationPaneController.addNotification(String.format("Sorry, there was a git error on branch %s.", branch.getBranchName()));
         });
     }
 
-    private void showNotMergedNotification(LocalBranchHelper nonmergedBranch) {
+    private void showNotMergedNotification(BranchHelper nonmergedBranch) {
         logger.warn("Not merged notification");
         notificationPaneController.addNotification("That branch has to be merged before you can do that.");
 
@@ -349,6 +474,14 @@ public class CreateDeleteBranchWindowController {
                 anchorRoot.hide();
                 PopUpWindows.showCheckoutConflictsAlert(conflictingPaths);
             });*/
+        });
+    }
+
+    private void showNotAuthorizedNotification() {
+        Platform.runLater(() -> {
+            logger.warn("Invalid authorization warning");
+            this.notificationPaneController.addNotification("The authorization information you gave does not allow you to modify this repository. " +
+                    "Try reentering your password.");
         });
     }
 
