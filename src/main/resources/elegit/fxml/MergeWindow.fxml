@@ -100,9 +100,9 @@
                         </GridPane>
                     </content>
                     <graphic>
-                        <ImageView fitHeight="53.5" fitWidth="17.5" pickOnBounds="true" preserveRatio="true">
+                        <ImageView fitWidth="13" opacity="0.5" pickOnBounds="true" preserveRatio="true">
                             <image>
-                                <Image url="@../images/repository.png" />
+                                <Image url="@../images/repository_small.png" />
                             </image>
                         </ImageView>
                     </graphic>
