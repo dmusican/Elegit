@@ -2,6 +2,7 @@
 <?import javafx.scene.text.Text?>
 <?import javafx.scene.layout.*?>
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.image.*?>
 <?import java.net.URL?>
 
 <AnchorPane fx:controller="elegit.CreateDeleteBranchWindowController"
@@ -44,20 +45,40 @@
                         closable="false">
                     <HBox spacing="30"
                           alignment="CENTER">
-                        <VBox   spacing="10"
+                        <StackPane>
+                            <ImageView
+                                    fx:id = "remoteImage"
+                                    fitHeight="137.5"
+                                    fitWidth="137.5"
+                                    opacity="0.2"
+                                    preserveRatio="true">
+                                <Image url="@../images/repository.png"/>
+                            </ImageView>
+                            <VBox   spacing="10"
+                                    alignment="CENTER">
+                                <ComboBox   fx:id="localBranchesDropdown"/>
+                                <Button text="Delete branch"
+                                        fx:id="deleteButton"
+                                        onAction="#handleDeleteLocalBranch"/>
+                            </VBox>
+                        </StackPane>
+                        <StackPane>
+                            <ImageView
+                                    fx:id = "remoteImage"
+                                    fitHeight="175"
+                                    fitWidth="175"
+                                    opacity="0.2"
+                                    preserveRatio="true">
+                                <Image url="@../images/graycloud.png"/>
+                            </ImageView>
+                            <VBox   spacing="10"
                                 alignment="CENTER">
-                            <ComboBox   fx:id="localBranchesDropdown"/>
-                            <Button text="Delete branch"
-                                    fx:id="deleteButton"
-                                    onAction="#handleDeleteLocalBranch"/>
-                        </VBox>
-                        <VBox   spacing="10"
-                                alignment="CENTER">
-                            <ComboBox   fx:id="remoteBranchesDropdown"/>
-                            <Button text="Delete branch"
-                                    fx:id="deleteButton2"
-                                    onAction="#handleDeleteRemoteBranch"/>
-                        </VBox>
+                                <ComboBox   fx:id="remoteBranchesDropdown"/>
+                                <Button text="Delete branch"
+                                        fx:id="deleteButton2"
+                                        onAction="#handleDeleteRemoteBranch"/>
+                            </VBox>
+                        </StackPane>
                     </HBox>
                 </Tab>
             </TabPane>

@@ -434,7 +434,6 @@ public abstract class RepoHelper {
 
         for(PushResult result : pushResult) {
             for(RemoteRefUpdate remoteRefUpdate : result.getRemoteUpdates()) {
-                System.out.println(remoteRefUpdate.getMessage());
                 if(!remoteRefUpdate.getStatus().equals(RemoteRefUpdate.Status.OK)) {
                     throw new PushToAheadRemoteError(false);
                 }
