@@ -11,6 +11,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.util.StringConverter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.controlsfx.control.PopOver;
@@ -69,12 +70,11 @@ public class CreateDeleteBranchWindowController {
         localBranchesDropdown.getSelectionModel().selectedIndexProperty().addListener(((observable, oldValue, newValue) -> {
             if((int) newValue == -1) {
                 deleteButton.setDisable(true);
-                deleteButton2.setDisable(true);
             }else {
                 deleteButton.setDisable(false);
-                deleteButton2.setDisable(false);
             }
         }));
+        deleteButton2.disableProperty().bind(remoteBranchesDropdown.getSelectionModel().selectedIndexProperty().lessThan(0));
 
         // Get the current commit tree models
         localCommitTreeModel = CommitTreeController.getCommitTreeModel();
@@ -86,6 +86,17 @@ public class CreateDeleteBranchWindowController {
     private void refreshBranchesDropDown() {
         localBranchesDropdown.setItems(FXCollections.observableArrayList(branchModel.getLocalBranchesTyped()));
         remoteBranchesDropdown.setItems(FXCollections.observableArrayList(branchModel.getRemoteBranchesTyped()));
+        remoteBranchesDropdown.setConverter(new StringConverter<RemoteBranchHelper>() {
+            @Override
+            public String toString(RemoteBranchHelper object) {
+                return object.getBranchName();
+            }
+
+            @Override
+            public RemoteBranchHelper fromString(String string) {
+                return (RemoteBranchHelper) repoHelper.getBranchModel().getBranchByName(BranchModel.BranchType.REMOTE, string);
+            }
+        });
     }
 
     /**
@@ -187,6 +198,9 @@ public class CreateDeleteBranchWindowController {
         return false;
     }
 
+    /**
+     * Deletes the selected remote branch
+     */
     public void handleDeleteRemoteBranch() {
         logger.info("Delete remote branches button clicked");
         BranchHelper selectedBranch = remoteBranchesDropdown.getSelectionModel().getSelectedItem();
@@ -194,6 +208,9 @@ public class CreateDeleteBranchWindowController {
         deleteBranch(selectedBranch);
     }
 
+    /**
+     * Deletes the selected local branch
+     */
     public void handleDeleteLocalBranch() {
         logger.info("Delete remote branches button clicked");
         BranchHelper selectedBranch = remoteBranchesDropdown.getSelectionModel().getSelectedItem();
@@ -215,7 +232,7 @@ public class CreateDeleteBranchWindowController {
                     if (selectedBranch instanceof LocalBranchHelper)
                         this.branchModel.deleteLocalBranch((LocalBranchHelper) selectedBranch);
                     else
-                        deleteStatus = this.branchModel.deleteRemoteBranch(this.repoHelper.getBranchModel().getRemoteBranchesTyped().get(0));
+                        deleteStatus = this.branchModel.deleteRemoteBranch((RemoteBranchHelper) selectedBranch);
 
                     refreshBranchesDropDown();
 
