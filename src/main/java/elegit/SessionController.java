@@ -36,6 +36,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.controlsfx.control.CheckListView;
 import org.controlsfx.control.PopOver;
+import org.eclipse.jgit.api.ResetCommand;
 import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.dircache.InvalidPathException;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
@@ -1145,10 +1146,20 @@ public class SessionController {
     }
 
     /**
-     * Resets the tree to the given commit
-     * @param commit CommitHelper
+     * Resets the tree to a given commit with default settings
+     *
+     * @param commit the commit to reset to
      */
     void handleResetButton(CommitHelper commit) {
+        handleAdvancedResetButton(commit, ResetCommand.ResetType.MIXED);
+    }
+
+    /**
+     * Resets the tree to the given commit, given a specific type
+     * @param commit CommitHelper
+     * @param type the type of reset to perform
+     */
+    void handleAdvancedResetButton(CommitHelper commit, ResetCommand.ResetType type) {
         try {
             logger.info("Reset button clicked");
 
@@ -1160,7 +1171,7 @@ public class SessionController {
                 @Override
                 protected Void call() {
                     try{
-                        theModel.getCurrentRepoHelper().reset(commit);
+                        theModel.getCurrentRepoHelper().reset(commit.getId(), type);
                         gitStatus();
                     }catch(InvalidRemoteException e){
                         showNoRemoteNotification();

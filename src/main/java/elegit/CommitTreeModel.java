@@ -5,6 +5,7 @@ import elegit.treefx.Cell;
 import javafx.scene.control.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.eclipse.jgit.api.ResetCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
 
 import java.io.IOException;
@@ -416,12 +417,31 @@ public abstract class CommitTreeModel{
         Menu resetMenu = new Menu("Reset...");
         MenuItem resetItem = new MenuItem("Reset to this commit");
         MenuItem helpItem = new MenuItem("Help");
+        Menu advancedMenu = getAdvancedResetMenu(commit);
 
         resetItem.setOnAction(event -> CommitTreeController.sessionController.handleResetButton(commit));
 
         helpItem.setOnAction(event -> PopUpWindows.showResetHelpAlert());
 
-        resetMenu.getItems().setAll(resetItem, helpItem);
+        resetMenu.getItems().setAll(resetItem, advancedMenu, helpItem);
+
+        return resetMenu;
+    }
+
+    private Menu getAdvancedResetMenu(CommitHelper commit) {
+        Menu resetMenu = new Menu("Advanced");
+        MenuItem hardItem = new MenuItem("reset --hard");
+        MenuItem mixedItem = new MenuItem("reset --mixed");
+        MenuItem softItem = new MenuItem("reset --soft");
+
+        hardItem.setOnAction(event ->
+                CommitTreeController.sessionController.handleAdvancedResetButton(commit, ResetCommand.ResetType.HARD));
+        mixedItem.setOnAction(event ->
+                CommitTreeController.sessionController.handleAdvancedResetButton(commit, ResetCommand.ResetType.MIXED));
+        softItem.setOnAction(event ->
+                CommitTreeController.sessionController.handleAdvancedResetButton(commit, ResetCommand.ResetType.SOFT));
+
+        resetMenu.getItems().setAll(hardItem, mixedItem, softItem);
 
         return resetMenu;
     }
