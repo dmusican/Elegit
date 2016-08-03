@@ -1,6 +1,7 @@
 package elegit;
 
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.ResetCommand;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.junit.After;
 import org.junit.Before;
@@ -65,10 +66,30 @@ public class ResetTest {
         }
     }
 
+    void setUpRepo() throws Exception {
+        File authData = new File(testFileLocation + "httpUsernamePassword.txt");
+
+        // If a developer does not have this file present, test should just pass.
+        if (!authData.exists() && looseTesting)
+            return;
+
+        Scanner scanner = new Scanner(authData);
+        String ignoreURL = scanner.next();
+        String username = scanner.next();
+        String password = scanner.next();
+        UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider(username, password);
+
+        String remoteURL = "https://github.com/TheElegitTeam/ResetTesting.git";
+
+        Path repoPath = directoryPath.resolve("repo");
+        helper = new ClonedRepoHelper(repoPath, remoteURL, credentials);
+        assertNotNull(helper);
+    }
+
     // Test to make sure creating a local branch lets us push and
     // that pushing will create the new branch.
     @Test
-    public void testBranchPushAndDelete() throws Exception {
+    public void testResetFile() throws Exception {
         File authData = new File(testFileLocation + "httpUsernamePassword.txt");
 
         // If a developer does not have this file present, test should just pass.
@@ -84,27 +105,15 @@ public class ResetTest {
         String remoteURL = "https://github.com/TheElegitTeam/ResetTesting.git";
 
         // Repo that will commit to master
-        Path repoPathPush = directoryPath.resolve("repo");
-        helper = new ClonedRepoHelper(repoPathPush, remoteURL, credentials);
+        Path repoPath = directoryPath.resolve("repo");
+        helper = new ClonedRepoHelper(repoPath, remoteURL, credentials);
         assertNotNull(helper);
-
-        /*
-        test reset file
-            1 file
-            >1 files
-        test reset commit
-            hard
-            mixed
-            soft
-            merge
-            keep
-         */
 
         Git git = new Git(helper.repo);
 
         /* ********************* FILE RESET SECTION ********************* */
         // Single file reset
-        Path filePath = repoPathPush.resolve("modify.txt");
+        Path filePath = repoPath.resolve("modify.txt");
         String text = "Lorem Ipsum";
         Files.write(filePath, text.getBytes(), StandardOpenOption.APPEND);
         helper.addFilePath(filePath);
@@ -115,7 +124,7 @@ public class ResetTest {
         assertEquals(0,git.status().call().getChanged().size());
 
         // Multiple file reset
-        Path readPath = repoPathPush.resolve("README.md");
+        Path readPath = repoPath.resolve("README.md");
         Files.write(readPath, text.getBytes(), StandardOpenOption.APPEND);
         ArrayList<Path> paths = new ArrayList<>();
         paths.add(filePath);
@@ -126,5 +135,59 @@ public class ResetTest {
         // Reset both the files and check that it worked
         helper.reset(paths);
         assertEquals(0,git.status().call().getChanged().size());
+
+        /* ********************* COMMIT RESET SECTION ********************* */
+        // TODO: merge, keep
+
+        helper.getBranchModel().updateAllBranches();
+        String oldHead = helper.getBranchModel().getCurrentBranch().getHead().getId();
+
+        modifyAddFile(filePath);
+        helper.commit("Modified a file");
+
+        helper.getBranchModel().updateAllBranches();
+        assertEquals(false, oldHead.equals(helper.getBranchModel().getCurrentBranch().getHead().getId()));
+
+        // hard reset (to previous commit)
+        helper.reset("HEAD~1", ResetCommand.ResetType.HARD);
+        helper.getBranchModel().updateAllBranches();
+        // Check that the files in the index and working directory got reset
+        assertEquals(0, git.status().call().getModified().size()
+                        + git.status().call().getChanged().size());
+        assertEquals(oldHead, helper.getBranchModel().getCurrentBranch().getHead().getId());
+
+        // mixed reset (to HEAD)
+        // modify and add file, then reset to head
+        modifyAddFile(filePath);
+        helper.reset("HEAD", ResetCommand.ResetType.MIXED);
+        helper.getBranchModel().updateAllBranches();
+        // Check that the file in the index got reset
+        assertEquals(0, git.status().call().getChanged().size());
+        assertEquals(1, git.status().call().getModified().size());
+
+
+        // soft reset (to HEAD~1)
+        // commit, then put changes in index and wd, check that they stayed
+        helper.addFilePath(filePath);
+        helper.commit("modified file");
+        modifyFile(readPath);
+        modifyAddFile(filePath);
+        helper.reset("HEAD~1", ResetCommand.ResetType.SOFT);
+        helper.getBranchModel().updateAllBranches();
+
+        assertEquals(oldHead, helper.getBranchModel().getCurrentBranch().getHead().getId());
+        assertEquals(1, git.status().call().getChanged().size());
+        assertEquals(1, git.status().call().getModified().size());
+    }
+
+    private void modifyFile(Path file) throws Exception {
+        String text = "Lorem Ipsum";
+        Files.write(file, text.getBytes(), StandardOpenOption.APPEND);
+    }
+
+    private void modifyAddFile(Path file) throws Exception {
+        String text = "Lorem Ipsum";
+        Files.write(file, text.getBytes(), StandardOpenOption.APPEND);
+        helper.addFilePath(file);
     }
 }
