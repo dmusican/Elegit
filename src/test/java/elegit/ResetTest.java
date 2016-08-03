@@ -137,8 +137,6 @@ public class ResetTest {
         assertEquals(0,git.status().call().getChanged().size());
 
         /* ********************* COMMIT RESET SECTION ********************* */
-        // TODO: merge, keep
-
         helper.getBranchModel().updateAllBranches();
         String oldHead = helper.getBranchModel().getCurrentBranch().getHead().getId();
 
