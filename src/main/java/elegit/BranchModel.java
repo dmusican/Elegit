@@ -6,6 +6,7 @@ import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.lib.BranchTrackingStatus;
 import org.eclipse.jgit.lib.Ref;
+import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.jgit.transport.RemoteRefUpdate;
 
@@ -229,13 +230,16 @@ public class BranchModel {
      * @return the status of the push to remote to delete
      * @throws GitAPIException
      */
-    RemoteRefUpdate.Status deleteRemoteBranch(RemoteBranchHelper branchHelper) throws GitAPIException {
+    RemoteRefUpdate.Status deleteRemoteBranch(RemoteBranchHelper branchHelper) throws GitAPIException, IOException {
         PushCommand pushCommand = new Git(this.repoHelper.repo).push();
         // We're deleting the branch on a remote, so there it shows up as refs/heads/<branchname>
         // instead of what it shows up on local: refs/<remote>/<branchname>, so we manually enter
         // this thing in here
         pushCommand.setRemote("origin").add(":refs/heads/"+branchHelper.parseBranchName());
         this.repoHelper.myWrapAuthentication(pushCommand);
+
+        // Update the remote branches in case it worked
+        updateRemoteBranches();
 
         boolean succeeded=false;
         for (PushResult result : pushCommand.call()) {
@@ -278,7 +282,7 @@ public class BranchModel {
 
     public String getCurrentRemoteBranch() throws IOException {
         if (BranchTrackingStatus.of(this.repoHelper.repo, this.currentBranch.getBranchName())!=null) {
-            return this.repoHelper.repo.shortenRefName(
+            return Repository.shortenRefName(
                     BranchTrackingStatus.of(this.repoHelper.repo, this.currentBranch.getBranchName())
                             .getRemoteTrackingBranch());
         }

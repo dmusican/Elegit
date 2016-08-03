@@ -859,6 +859,10 @@ public abstract class RepoHelper {
         return new ArrayList<>(tagIdMap.keySet());
     }
 
+    public boolean canPush() throws IOException {
+        return getAheadCount()>0 || branchModel.getCurrentRemoteBranch()==null;
+    }
+
     /**
      * Uses JGit to find and parse all local commits between the given branches and
      * every leaf in the repository

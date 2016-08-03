@@ -320,7 +320,10 @@ public class CreateDeleteBranchWindowController {
             } catch (GitAPIException e) {
                 logger.warn("Git error");
                 this.showGenericGitErrorNotificationWithBranch(selectedBranch);
-            }finally {
+            } catch (IOException e) {
+                logger.warn("IO error");
+                this.showGenericErrorNotification();
+            } finally {
                 refreshBranchesDropDown();
                 // Reset the branch heads
                 CommitTreeController.setBranchHeads(localCommitTreeModel, repoHelper);
