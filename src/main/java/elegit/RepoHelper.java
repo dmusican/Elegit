@@ -260,9 +260,9 @@ public abstract class RepoHelper {
         // git add:
         AddCommand adder = git.add();
         for (Path filePath : filePaths) {
-            //Path localizedFilePath = this.localPath.relativize(filePath);
-            //adder.addFilepattern(localizedFilePath.toString());
-            adder.addFilepattern(filePath.toString());
+            Path localizedFilePath = this.localPath.relativize(filePath);
+            adder.addFilepattern(localizedFilePath.toString());
+            //adder.addFilepattern(filePath.toString());
         }
         adder.call();
         git.close();
@@ -663,7 +663,7 @@ public abstract class RepoHelper {
     }
 
     //******************** RESET SECTION ********************
-
+    // Relativizing of repository paths is for unit testing
     // File resetting
 
     /**
@@ -673,11 +673,11 @@ public abstract class RepoHelper {
      * @throws MissingRepoException
      * @throws GitAPIException
      */
-    void reset(String path) throws MissingRepoException, GitAPIException {
+    void reset(Path path) throws MissingRepoException, GitAPIException {
         logger.info("Attempting reset file");
         if (!exists()) throw new MissingRepoException();
         Git git = new Git(this.repo);
-        git.reset().addPath(path).call();
+        git.reset().addPath(this.localPath.relativize(path).toString()).call();
         git.close();
     }
 
@@ -688,12 +688,12 @@ public abstract class RepoHelper {
      * @throws MissingRepoException
      * @throws GitAPIException
      */
-    void reset(List<String> paths) throws MissingRepoException, GitAPIException {
+    void reset(List<Path> paths) throws MissingRepoException, GitAPIException {
         logger.info("Attempting reset files");
         if (!exists()) throw new MissingRepoException();
         Git git = new Git(this.repo);
         ResetCommand resetCommand = git.reset();
-        paths.forEach(resetCommand::addPath);
+        paths.forEach(path -> resetCommand.addPath(this.localPath.relativize(path).toString()));
         resetCommand.call();
         git.close();
     }
