@@ -10,15 +10,19 @@ import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Shape;
 import javafx.scene.text.Text;
@@ -496,6 +500,10 @@ public class Cell extends Pane{
                 currentLabel.setText(label);
                 currentLabel.setStyle(LABEL_STYLE);
 
+                ImageView img = new ImageView(new Image("elegit/images/branch.png"));
+                img.setFitHeight(15);
+                img.setPreserveRatio(true);
+
                 // Label arrow
                 Text pointer = GlyphsDude.createIcon(FontAwesomeIcon.CHEVRON_LEFT);
                 pointer.setFill(Color.web("#333333"));
@@ -503,8 +511,10 @@ public class Cell extends Pane{
                 // Box to contain both items
                 HBox box = new HBox(0, pointer);
                 box.getChildren().add(currentLabel);
+                box.getChildren().add(img);
                 HBox.setMargin(pointer, new Insets(5,2,0,5));
                 HBox.setMargin(currentLabel, new Insets(0,5,0,0));
+                HBox.setMargin(img, new Insets(2,0,0,0));
                 GridPane.setColumnIndex(box, col);
                 GridPane.setMargin(box, new Insets(0,0,5,5));
                 box.setStyle(BOX_STYLE);
