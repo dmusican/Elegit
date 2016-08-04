@@ -106,14 +106,34 @@ public class RevertTest {
         helper.getBranchModel().refreshHeadIds();
         assertEquals(false, helper.getBranchModel().getCurrentBranchHead().getId().equals(oldHead));
         helper.revert(helper.getBranchModel().getCurrentBranchHead());
+        helper.updateModel();
+        helper.getBranchModel().refreshHeadIds();
+        CommitHelper firstRevert = helper.getBranchModel().getCurrentBranchHead();
         // The EDIT_TEXT should have been reverted
         assertEquals(1, Files.readAllLines(filePath).size());
         // And a new HEAD should be there
         assertEquals(false, helper.getBranchModel().getCurrentBranchHead().getId().equals(oldHead));
 
         /* ********************* MULTIPLE REVERT SECTION ********************* */
-        // make a commit, then another, then another, revert first and third, check content
+        // make 2 more commits revert first revert and third commit, check content
+        Path readPath = repoPath.resolve("README.md");
+        modifyAddFile(readPath, "Keep Text\n");
+        helper.commit("Modified file #2");
 
+        modifyAddFile(readPath, "Revert Text");
+        helper.commit("Modified file #3");
+        helper.updateModel();
+        List<CommitHelper> commitsToRevert = new ArrayList<>();
+        helper.getBranchModel().refreshHeadIds();
+        commitsToRevert.add(firstRevert);
+        commitsToRevert.add(helper.getBranchModel().getCurrentBranchHead());
+
+        // Revert and check content
+        helper.revertHelpers(commitsToRevert);
+        helper.getBranchModel().refreshHeadIds();
+        assertEquals(3, Files.readAllLines(readPath).size());
+        assertEquals("Keep Text", Files.readAllLines(readPath).get(2));
+        assertEquals(EDIT_STRING, Files.readAllLines(filePath).get(1));
     }
 
     private void modifyFile(Path file) throws Exception {
@@ -122,6 +142,11 @@ public class RevertTest {
 
     private void modifyAddFile(Path file) throws Exception {
         Files.write(file, EDIT_STRING.getBytes(), StandardOpenOption.APPEND);
+        helper.addFilePath(file);
+    }
+
+    private void modifyAddFile(Path file, String editString) throws Exception {
+        Files.write(file, editString.getBytes(), StandardOpenOption.APPEND);
         helper.addFilePath(file);
     }
 }

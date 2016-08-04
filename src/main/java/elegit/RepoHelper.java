@@ -644,7 +644,7 @@ public abstract class RepoHelper {
     void revertHelpers(List<CommitHelper> commits) throws MissingRepoException, GitAPIException {
         List<AnyObjectId> commitIds = new ArrayList<>();
         for (CommitHelper helper : commits)
-            commitIds.add(helper.getObjectId());
+            commitIds.add(helper.getCommit());
         revert(commitIds);
     }
 
@@ -659,8 +659,8 @@ public abstract class RepoHelper {
         if (!exists()) throw new MissingRepoException();
         Git git = new Git(this.repo);
         RevertCommand revertCommand = git.revert();
-        // Use the fancy foreach syntax
-        commits.forEach(revertCommand::include);
+        for (AnyObjectId commit : commits)
+            revertCommand.include(commit);
         revertCommand.call();
         git.close();
 
