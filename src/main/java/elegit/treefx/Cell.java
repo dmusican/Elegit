@@ -127,7 +127,10 @@ public class Cell extends Pane{
 
         this.setOnMouseClicked(event -> {
             if(event.getButton() == MouseButton.PRIMARY){
-                CommitTreeController.handleMouseClicked(this.cellId);
+                if (event.isShiftDown())
+                    CommitTreeController.handleMouseClickedShift(this);
+                else
+                    CommitTreeController.handleMouseClicked(this.cellId);
             }else if(event.getButton() == MouseButton.SECONDARY){
                 if(contextMenu != null){
                     contextMenu.show(this, event.getScreenX(), event.getScreenY());

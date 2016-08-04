@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Handles the conversion/creation of a list of commit helpers into a nice
@@ -396,14 +397,16 @@ public abstract class CommitTreeModel{
         Menu revertMenu = new Menu("Revert...");
         MenuItem revertItem = new MenuItem("Revert this commit");
         MenuItem revertMultipleItem = new MenuItem("Revert multiple commits...");
-        revertMultipleItem.setDisable(true);
+        revertMultipleItem.disableProperty().bind(CommitTreeController.multipleNotSelectedProperty);
         MenuItem helpItem = new MenuItem("Help");
 
         revertItem.setOnAction(event -> CommitTreeController.sessionController.handleRevertButton(commit));
 
         revertMultipleItem.setOnAction(event -> {
-            //pull up some sort of window
-            //PopUpWindows.something
+            // Some fancy lambda syntax and collect call
+            List<CommitHelper> commits = commitsInModel.stream().filter(commitHelper ->
+                    CommitTreeController.getSelectedIds().contains(commitHelper.getName())).collect(Collectors.toList());
+            CommitTreeController.sessionController.handleRevertMultipleButton(commits);
         });
 
         helpItem.setOnAction(event -> PopUpWindows.showRevertHelpAlert());

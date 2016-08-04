@@ -1091,7 +1091,66 @@ public class SessionController {
     }
 
     /**
+     * Adds a commit reverting the selected commits
+     * @param commits the commits to revert
+     */
+    void handleRevertMultipleButton(List<CommitHelper> commits) {
+        try {
+            logger.info("Revert button clicked");
+
+            if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
+
+            BusyWindow.show();
+            BusyWindow.setLoadingText("Reverting...");
+            Thread th = new Thread(new Task<Void>(){
+                @Override
+                protected Void call() {
+                    try{
+                        theModel.getCurrentRepoHelper().revertHelpers(commits);
+                        gitStatus();
+                    } catch(MultipleParentsNotAllowedException e) {
+                        for (CommitHelper commit : commits) {
+                            if (commit.getParents().size() > 1) {
+                                showCantRevertMultipleParentsNotification();
+                            }
+                            if (commit.getParents().size() == 0) {
+                                showCantRevertZeroParentsNotification();
+                            }
+                        }
+                    } catch(InvalidRemoteException e){
+                        showNoRemoteNotification();
+                    } catch (TransportException e) {
+                        if (e.getMessage().contains("git-receive-pack not found")) {
+                            // The error has this message if there is no longer a remote to push to
+                            showLostRemoteNotification();
+                        } else {
+                            showNotAuthorizedNotification(null);
+                        }
+                    } catch(MissingRepoException e){
+                        showMissingRepoNotification();
+                        setButtonsDisabled(true);
+                        refreshRecentReposInDropdown();
+                    } catch(Exception e) {
+                        showGenericErrorNotification();
+                        e.printStackTrace();
+                    }finally {
+                        BusyWindow.hide();
+                    }
+                    return null;
+                }
+            });
+            th.setDaemon(true);
+            th.setName("Git revert");
+            th.start();
+        }catch(NoRepoLoadedException e){
+            this.showNoRepoLoadedNotification();
+            setButtonsDisabled(true);
+        }
+    }
+
+    /**
      * Reverts the tree to remove the changes in the most recent commit
+     * @param commit: the commit to revert
      */
     void handleRevertButton(CommitHelper commit) {
         try {

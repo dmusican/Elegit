@@ -190,6 +190,15 @@ public class Highlighter{
     }
 
     /**
+     * Resets a single cell to the stand state
+     * @param cell the cell to reset to standard state
+     */
+    public static void resetCell(Cell cell) {
+        cell.setCellState(CellState.STANDARD);
+        cellStates.remove(cell);
+    }
+
+    /**
      * First requests the focus of the MatchedScrollPanes, then
      * sets the state of the given cell to emphasized, and fianlly
      * performs an animation on it. Currently, the animation is
