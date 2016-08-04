@@ -633,6 +633,8 @@ public abstract class RepoHelper {
         return status;
     }
 
+    //******************** REVERT SECTION ********************
+
     /**
      * Reverts the changes that happened in the given commit, stores changes in working directory
      * if conflicting, otherwise, makes a new commit
@@ -640,12 +642,8 @@ public abstract class RepoHelper {
      * @param helper the commit to revert changes for
      * @throws MissingRepoException
      * @throws GitAPIException
-     *
-     * TODO: make it possible to revert a set of commits (git revert -n)
-     * see https://git-scm.com/docs/git-revert and
-     * http://download.eclipse.org/jgit/site/4.4.0.201606070830-r/apidocs/index.html
      */
-    public void revertCommit(CommitHelper helper) throws MissingRepoException, GitAPIException {
+    void revert(CommitHelper helper) throws MissingRepoException, GitAPIException {
         logger.info("Attempting revert");
         if (!exists()) throw new MissingRepoException();
         // should this Git instance be class-level?
@@ -660,12 +658,14 @@ public abstract class RepoHelper {
         } catch (IOException e) {
             // This shouldn't occur once we have the repo up and running.
         }
+
+
     }
 
     //******************** RESET SECTION ********************
     // Relativizing of repository paths is for unit testing
-    // File resetting
 
+    // File resetting
     /**
      * Resets the given file to the version in HEAD
      *

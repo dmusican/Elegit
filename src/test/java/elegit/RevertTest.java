@@ -21,10 +21,11 @@ import static org.junit.Assert.assertTrue;
 /**
  * Created by Eric Walker.
  */
-public class ResetTest {
+public class RevertTest {
     private Path directoryPath;
     private String testFileLocation;
     private RepoHelper helper;
+    private static final String EDIT_STRING = "Lorem Ipsum";
     Path logPath;
 
     // Used to indicate that if password files are missing, then tests should just pass
@@ -90,82 +91,37 @@ public class ResetTest {
         assertNotNull(helper);
 
         Git git = new Git(helper.repo);
-
-        /* ********************* FILE RESET SECTION ********************* */
-        // Single file reset
         Path filePath = repoPath.resolve("modify.txt");
-        String text = "Lorem Ipsum";
-        Files.write(filePath, text.getBytes(), StandardOpenOption.APPEND);
-        helper.addFilePath(filePath);
-        // Check that the file is staged
-        assertEquals(1,git.status().call().getChanged().size());
-        // Reset the file and check that it worked
-        helper.reset(filePath);
-        assertEquals(0,git.status().call().getChanged().size());
 
-        // Multiple file reset
-        Path readPath = repoPath.resolve("README.md");
-        Files.write(readPath, text.getBytes(), StandardOpenOption.APPEND);
-        ArrayList<Path> paths = new ArrayList<>();
-        paths.add(filePath);
-        paths.add(readPath);
-        // Add both files and check that they are staged.
-        helper.addFilePaths(paths);
-        assertEquals(2,git.status().call().getChanged().size());
-        // Reset both the files and check that it worked
-        helper.reset(paths);
-        assertEquals(0,git.status().call().getChanged().size());
 
-        /* ********************* COMMIT RESET SECTION ********************* */
-        helper.getBranchModel().updateAllBranches();
-        String oldHead = helper.getBranchModel().getCurrentBranch().getHead().getId();
+        /* ********************* SINGLE REVERT SECTION ********************* */
+        // make a commit, then revert it, check that changes occurred
+
+        helper.getBranchModel().refreshHeadIds();
+        String oldHead = helper.getBranchModel().getCurrentBranchHead().getId();
 
         modifyAddFile(filePath);
-        helper.commit("Modified a file");
+        helper.commit("Modified file #1");
+        helper.updateModel();
+        helper.getBranchModel().refreshHeadIds();
+        assertEquals(false, helper.getBranchModel().getCurrentBranchHead().getId().equals(oldHead));
+        helper.revert(helper.getBranchModel().getCurrentBranchHead());
+        // The EDIT_TEXT should have been reverted
+        assertEquals(1, Files.readAllLines(filePath).size());
+        // And a new HEAD should be there
+        assertEquals(false, helper.getBranchModel().getCurrentBranchHead().getId().equals(oldHead));
 
-        helper.getBranchModel().updateAllBranches();
-        assertEquals(false, oldHead.equals(helper.getBranchModel().getCurrentBranch().getHead().getId()));
+        /* ********************* MULTIPLE REVERT SECTION ********************* */
+        // make a commit, then another, then another, revert first and third, check content
 
-        // hard reset (to previous commit)
-        helper.reset("HEAD~1", ResetCommand.ResetType.HARD);
-        helper.getBranchModel().updateAllBranches();
-        // Check that the files in the index and working directory got reset
-        assertEquals(0, git.status().call().getModified().size()
-                        + git.status().call().getChanged().size());
-        assertEquals(oldHead, helper.getBranchModel().getCurrentBranch().getHead().getId());
-
-        // mixed reset (to HEAD)
-        // modify and add file, then reset to head
-        modifyAddFile(filePath);
-        helper.reset("HEAD", ResetCommand.ResetType.MIXED);
-        helper.getBranchModel().updateAllBranches();
-        // Check that the file in the index got reset
-        assertEquals(0, git.status().call().getChanged().size());
-        assertEquals(1, git.status().call().getModified().size());
-
-
-        // soft reset (to HEAD~1)
-        // commit, then put changes in index and wd, check that they stayed
-        helper.addFilePath(filePath);
-        helper.commit("modified file");
-        modifyFile(readPath);
-        modifyAddFile(filePath);
-        helper.reset("HEAD~1", ResetCommand.ResetType.SOFT);
-        helper.getBranchModel().updateAllBranches();
-
-        assertEquals(oldHead, helper.getBranchModel().getCurrentBranch().getHead().getId());
-        assertEquals(1, git.status().call().getChanged().size());
-        assertEquals(1, git.status().call().getModified().size());
     }
 
     private void modifyFile(Path file) throws Exception {
-        String text = "Lorem Ipsum";
-        Files.write(file, text.getBytes(), StandardOpenOption.APPEND);
+        Files.write(file, EDIT_STRING.getBytes(), StandardOpenOption.APPEND);
     }
 
     private void modifyAddFile(Path file) throws Exception {
-        String text = "Lorem Ipsum";
-        Files.write(file, text.getBytes(), StandardOpenOption.APPEND);
+        Files.write(file, EDIT_STRING.getBytes(), StandardOpenOption.APPEND);
         helper.addFilePath(file);
     }
 }

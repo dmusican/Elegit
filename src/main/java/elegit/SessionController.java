@@ -1105,7 +1105,7 @@ public class SessionController {
                 @Override
                 protected Void call() {
                     try{
-                        theModel.getCurrentRepoHelper().revertCommit(commit);
+                        theModel.getCurrentRepoHelper().revert(commit);
                         gitStatus();
                     } catch(MultipleParentsNotAllowedException e) {
                         if(commit.getParents().size() > 1) {
