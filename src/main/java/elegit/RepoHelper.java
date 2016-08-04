@@ -636,6 +636,43 @@ public abstract class RepoHelper {
     //******************** REVERT SECTION ********************
 
     /**
+     * Reverts a list of commit helpers. Calls revert on their objectIds
+     * @param commits the commit helpers to revert
+     * @throws MissingRepoException
+     * @throws GitAPIException
+     */
+    void revertHelpers(List<CommitHelper> commits) throws MissingRepoException, GitAPIException {
+        List<AnyObjectId> commitIds = new ArrayList<>();
+        for (CommitHelper helper : commits)
+            commitIds.add(helper.getObjectId());
+        revert(commitIds);
+    }
+
+    /**
+     * Reverts all of the commits listed
+     * @param commits the object ids of commits to revert
+     * @throws MissingRepoException
+     * @throws GitAPIException
+     */
+    void revert(List<AnyObjectId> commits) throws MissingRepoException, GitAPIException {
+        logger.info("Attempting reverts");
+        if (!exists()) throw new MissingRepoException();
+        Git git = new Git(this.repo);
+        RevertCommand revertCommand = git.revert();
+        // Use the fancy foreach syntax
+        commits.forEach(revertCommand::include);
+        revertCommand.call();
+        git.close();
+
+        // Update the local commits
+        try {
+            this.localCommits = parseAllLocalCommits();
+        } catch (IOException e) {
+            // This shouldn't occur once we have the repo up and running.
+        }
+    }
+
+    /**
      * Reverts the changes that happened in the given commit, stores changes in working directory
      * if conflicting, otherwise, makes a new commit
      *
@@ -646,9 +683,8 @@ public abstract class RepoHelper {
     void revert(CommitHelper helper) throws MissingRepoException, GitAPIException {
         logger.info("Attempting revert");
         if (!exists()) throw new MissingRepoException();
-        // should this Git instance be class-level?
         Git git = new Git(this.repo);
-        // git commit:
+        // git revert:
         git.revert().include(helper.getObjectId()).call();
         git.close();
 
