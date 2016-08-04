@@ -63,6 +63,8 @@ public class CommitTreeController{
             Highlighter.resetCell(cell);
             selectedCellIds.remove(cell.getCellId());
             multipleNotSelectedProperty.setValue(selectedCellIds.size()<2);
+        } else if (selectedCellIds.size() == 0) {
+            selectCommit(cell.getCellId(), false, false, false);
         } else {
             selectCommitInGraph(cell.getCellId(), false, false, false);
         }
