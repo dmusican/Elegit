@@ -72,7 +72,7 @@ public class Cell extends Pane{
 
     private ContextMenu contextMenu;
 
-    private LabelCell refLabel;
+    private CellLabelContainer refLabel;
 
     private boolean animate;
 
@@ -108,7 +108,7 @@ public class Cell extends Pane{
         this.cellId = cellId;
         this.time = time;
         this.parents = new ParentCell(this, parents);
-        this.refLabel = new LabelCell();
+        this.refLabel = new CellLabelContainer();
         this.type = type;
 
         setShape(DEFAULT_SHAPE);
@@ -441,137 +441,6 @@ public class Cell extends Pane{
             for(Cell parent : parents) {
                 if(parent != null) {
                     parent.addCellChild(cell);
-                }
-            }
-        }
-    }
-
-    private class LabelCell extends Pane {
-        private final int MAX_COL_PER_ROW=6, MAX_CHAR_PER_LABEL=25;
-        private final String CURRENT_BOX_STYLE = "-fx-background-color: #1E90FF; -fx-background-radius: 5;";
-        private final String BOX_STYLE = "-fx-background-color: #CCCCCC; -fx-background-radius: 5;";
-        private final String CURRENT_LABEL_STYLE = "-fx-text-fill: #FFFFFF; -fx-font-size: 14px; -fx-font-weight: bold;";
-        private final String LABEL_STYLE = "-fx-text-fill: #333333; -fx-font-size: 14px; -fx-font-weight: bold;";
-
-
-        Pane basic;
-        List<Node> basicLabels;
-        List<Node> extendedLabels;
-
-        void translate(double x, double y) {
-            setTranslateX(x+BOX_SIZE+10);
-            setTranslateY(y+BOX_SIZE);
-        }
-
-        void addToolTip(Label l, String text) {
-            tooltip = new Tooltip(text);
-            tooltip.setWrapText(true);
-            tooltip.setMaxWidth(350);
-            Tooltip.install(l, tooltip);
-        }
-
-        void setLabels(List<String> labels, Cell cell) {
-            Platform.runLater(() -> getChildren().clear());
-            if (labels.size() < 1) {
-                return;
-            }
-
-            basic = new GridPane();
-            Button showExtended = new Button();
-            basicLabels = new ArrayList<>();
-            extendedLabels = new ArrayList<>();
-
-            int col=0;
-            int row=0;
-            for (String label : labels) {
-
-                // Label text
-                Label currentLabel = new Label();
-                currentLabel.getStyleClass().remove(0);
-                currentLabel.getStyleClass().add("branch-label");
-                if (label.length()>MAX_CHAR_PER_LABEL) {
-                    addToolTip(currentLabel, label);
-                    label = label.substring(0,24)+"...";
-                }
-                if (col>MAX_COL_PER_ROW) {
-                    row++;
-                    col=0;
-                }
-                currentLabel.setText(label);
-                currentLabel.setStyle(LABEL_STYLE);
-
-                ImageView img = new ImageView(new Image("elegit/images/branch.png"));
-                img.setFitHeight(15);
-                img.setPreserveRatio(true);
-
-                // Label arrow
-                Text pointer = GlyphsDude.createIcon(FontAwesomeIcon.CHEVRON_LEFT);
-                pointer.setFill(Color.web("#333333"));
-
-                // Box to contain both items
-                HBox box = new HBox(0, pointer);
-                box.getChildren().add(currentLabel);
-                box.getChildren().add(img);
-                HBox.setMargin(pointer, new Insets(5,2,0,5));
-                HBox.setMargin(currentLabel, new Insets(0,5,0,0));
-                HBox.setMargin(img, new Insets(2,0,0,0));
-                GridPane.setColumnIndex(box, col);
-                GridPane.setMargin(box, new Insets(0,0,5,5));
-                box.setStyle(BOX_STYLE);
-
-                if (row>0) {
-                    GridPane.setRowIndex(box, row);
-                    box.setVisible(false);
-                    extendedLabels.add(box);
-                } else {
-                    basicLabels.add(box);
-                }
-
-                col++;
-            }
-            basic.getChildren().addAll(basicLabels);
-            basic.getChildren().addAll(extendedLabels);
-            basic.setVisible(true);
-
-            showExtended.setVisible(false);
-            if (row>0) {
-                showExtended.setVisible(true);
-                showExtended.setTranslateX(-6);
-                showExtended.setText("\u02c5");
-                showExtended.setStyle("-fx-background-color: rgba(244,244,244,100); -fx-padding: -3 0 0 0;" +
-                        "-fx-font-size:28px; -fx-font-weight:bold;");
-                showExtended.setOnMouseClicked(event -> {
-                    if(showExtended.getText().equals("\u02c5")) {
-                        showExtended.setText("\u02c4");
-                    }else {
-                        showExtended.setText("\u02c5");
-                    }
-                    for (Node n : extendedLabels) {
-                        n.setVisible(!n.isVisible());
-                    }
-                });
-            }
-
-            this.setMaxHeight(20);
-            this.setRotationAxis(Rotate.X_AXIS);
-            this.setRotate(180);
-
-            this.visibleProperty().bind(cell.visibleProperty());
-
-            Platform.runLater(() -> {
-                getChildren().clear();
-                getChildren().add(basic);
-                getChildren().add(showExtended);
-            });
-        }
-
-        void setCurrentLabels(List<String> labels) {
-            for (Node n : basic.getChildren()) {
-                Label l = (Label) ((HBox)n).getChildren().get(1);
-                if (labels.contains(l.getText())) {
-                    n.setStyle(CURRENT_BOX_STYLE);
-                    l.setStyle(CURRENT_LABEL_STYLE);
-                    ((Text)((HBox) n).getChildren().get(0)).setFill(Color.web("#FFFFFF"));
                 }
             }
         }
