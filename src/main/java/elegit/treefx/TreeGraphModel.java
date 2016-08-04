@@ -263,7 +263,7 @@ public class TreeGraphModel{
      * @param label the labels to put on the cell
      * @param refs the list of refs to add
      */
-    public void setCellLabels(Cell cell, String label, List<String> refs){
+    private void setCellLabels(Cell cell, String label, List<String> refs){
         cell.setLabels(label, refs);
         if(refs.size() > 0) cellsWithNonDefaultShapesOrLabels.add(cell);
     }

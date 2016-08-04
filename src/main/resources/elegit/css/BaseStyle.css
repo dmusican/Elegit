@@ -85,6 +85,24 @@
     -fx-background-radius: 5;
 }
 
+
+.cell-label-box {
+    -fx-background-color: #CCCCCC;
+    -fx-background-radius: 5;
+}
+    .cell-label-box#regular { -fx-background-color: #CCCCCC; }
+    .cell-label-box#current { -fx-background-color: #1E90FF; }
+
+
+.cell-label {
+    -fx-text-fill: #333333;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}
+    .cell-label#regular { -fx-text-fill: #333333; }
+    .cell-label#current { -fx-text-fill: #FFFFFF; }
+
+
 .button#codeButton {
     -fx-font-family: "Lucida Console";
 }
