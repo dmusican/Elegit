@@ -1,6 +1,8 @@
 package elegit;
 
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.Property;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import elegit.treefx.Cell;
 import elegit.treefx.Highlighter;
@@ -21,13 +23,14 @@ public class CommitTreeController{
     // The list of all models controlled by this controller
     public static List<CommitTreeModel> allCommitTreeModels = new ArrayList<>();
 
-    // The id of the currently selected cell
-    private static String selectedCellID = null;
+    // The list of selected cells
+    private static List<String> selectedCellIds = new ArrayList<>();
 
     // The session controller if this controller needs to access other models/views
-    public static SessionController sessionController;
+    static SessionController sessionController;
 
     private static ObjectProperty<String> selectedIDProperty = new SimpleObjectProperty<>();
+    static Property<Boolean> multipleNotSelectedProperty = new SimpleBooleanProperty(true);
 
     /**
      * Takes in the cell that was clicked on, and either selects or deselects
@@ -35,17 +38,50 @@ public class CommitTreeController{
      * @param clickedCellId the id of the cell that was clicked
      */
     public static void handleMouseClicked(String clickedCellId){
-        if(clickedCellId.equals(selectedCellID)){
+        if(selectedCellIds.size()==1 && clickedCellId.equals(selectedCellIds.get(0))){
             resetSelection();
-        }else{
+        } else if (selectedCellIds.size()==0) {
+            selectCommit(clickedCellId, false, false, false);
+        } else {
+            resetSelection();
             selectCommit(clickedCellId, false, false, false);
         }
     }
 
     /**
+     * Takes in a cell that was clicked while holding shift, and
+     * selects or deselects is based on whether or not it was in the
+     * selected group
+     * @param cell the cell that was clicked with shift down
+     */
+    public static void handleMouseClickedShift(Cell cell) {
+        if (selectedCellIds.contains(cell.getCellId())) {
+            if (isSelected(cell.getCellId())) {
+                selectedIDProperty.set(null);
+                sessionController.clearSelectedCommit();
+            }
+            Highlighter.resetCell(cell);
+            selectedCellIds.remove(cell.getCellId());
+            multipleNotSelectedProperty.setValue(selectedCellIds.size()<2);
+        } else if (selectedCellIds.size() == 0) {
+            selectCommit(cell.getCellId(), false, false, false);
+        } else {
+            selectCommitInGraph(cell.getCellId(), false, false, false);
+        }
+    }
+
+    /**
+     * Getter method for all selected cells
+     * @return the list of selected cells
+     */
+    static List<String> getSelectedIds() {
+        return selectedCellIds;
+    }
+
+    /**
      * Handles mouse clicks that didn't happen on a cell. Deselects everything.
      */
-    public static void handleMouseClicked(){
+    static void handleMouseClicked(){
         resetSelection();
     }
 
@@ -74,8 +110,9 @@ public class CommitTreeController{
             selectCommitInGraph(commitID, m, true, ancestors, descendants, allGenerations);
         }
 
-        selectedCellID = commitID;
+        selectedCellIds.add(commitID);
         selectedIDProperty.set(commitID);
+        multipleNotSelectedProperty.setValue(selectedCellIds.size()<2);
 
 //        Edge.allVisible.set(selectedCellID == null);
     }
@@ -91,9 +128,9 @@ public class CommitTreeController{
             if(model.treeGraph == null) continue;
             TreeGraphModel m = model.treeGraph.treeGraphModel;
 
-            if(!isSelected(commitID)){
-                Highlighter.highlightCell(commitID, selectedCellID, m, isOverCell);
-                Highlighter.updateCellEdges(commitID, selectedCellID, m, isOverCell);
+            if(selectedCellIds.size()>0 && !isSelected(commitID)){
+                Highlighter.highlightCell(commitID, selectedCellIds.get(0), m, isOverCell);
+                Highlighter.updateCellEdges(commitID, selectedCellIds.get(0), m, isOverCell);
             }
         }
     }
@@ -135,10 +172,11 @@ public class CommitTreeController{
      * Deselects the currently selected commit, if there is one
      */
     public static void resetSelection(){
-        if(selectedCellID != null){
+        if(selectedCellIds.size() > 0){
             Highlighter.resetAll();
-            selectedCellID = null;
+            selectedCellIds.clear();
             selectedIDProperty.set(null);
+            multipleNotSelectedProperty.setValue(true);
         }
         sessionController.clearSelectedCommit();
     }
@@ -149,7 +187,7 @@ public class CommitTreeController{
      * @return true if it is selected, false otherwise
      */
     private static boolean isSelected(String cellID){
-        return selectedCellID != null && selectedCellID.equals(cellID);
+        return selectedCellIds.size()==1 && selectedCellIds.get(0).equals(cellID);
     }
 
     /**

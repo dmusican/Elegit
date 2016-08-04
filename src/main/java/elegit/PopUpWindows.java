@@ -125,7 +125,7 @@ public class PopUpWindows {
     public static void showRevertHelpAlert() {
         Platform.runLater(() -> {
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.getDialogPane().setPrefSize(300, 300);
+            alert.getDialogPane().setPrefSize(400, 300);
             alert.setTitle("Revert Help");
             alert.setHeaderText("What is revert?");
             ImageView img = new ImageView(new Image("/elegit/images/undo.png"));
@@ -136,7 +136,9 @@ public class PopUpWindows {
                     "But, instead of removing the commit from the project history, " +
                     "it figures out how to undo the changes introduced by the commit and appends a new commit with the resulting content. " +
                     "This prevents Git from losing history, " +
-                    "which is important for the integrity of your revision history and for reliable collaboration.");
+                    "which is important for the integrity of your revision history and for reliable collaboration.\n" +
+                    "To revert multiple commits, select multiple commits using shift+click, then right click on one of the "+
+                    "selected commits.");
             alert.showAndWait();
         });
     }

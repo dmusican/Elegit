@@ -5,6 +5,7 @@ import elegit.treefx.Cell;
 import javafx.scene.control.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.eclipse.jgit.api.ResetCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
 
 import java.io.IOException;
@@ -12,6 +13,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Handles the conversion/creation of a list of commit helpers into a nice
@@ -395,14 +397,16 @@ public abstract class CommitTreeModel{
         Menu revertMenu = new Menu("Revert...");
         MenuItem revertItem = new MenuItem("Revert this commit");
         MenuItem revertMultipleItem = new MenuItem("Revert multiple commits...");
-        revertMultipleItem.setDisable(true);
+        revertMultipleItem.disableProperty().bind(CommitTreeController.multipleNotSelectedProperty);
         MenuItem helpItem = new MenuItem("Help");
 
         revertItem.setOnAction(event -> CommitTreeController.sessionController.handleRevertButton(commit));
 
         revertMultipleItem.setOnAction(event -> {
-            //pull up some sort of window
-            //PopUpWindows.something
+            // Some fancy lambda syntax and collect call
+            List<CommitHelper> commits = commitsInModel.stream().filter(commitHelper ->
+                    CommitTreeController.getSelectedIds().contains(commitHelper.getName())).collect(Collectors.toList());
+            CommitTreeController.sessionController.handleRevertMultipleButton(commits);
         });
 
         helpItem.setOnAction(event -> PopUpWindows.showRevertHelpAlert());
@@ -416,12 +420,31 @@ public abstract class CommitTreeModel{
         Menu resetMenu = new Menu("Reset...");
         MenuItem resetItem = new MenuItem("Reset to this commit");
         MenuItem helpItem = new MenuItem("Help");
+        Menu advancedMenu = getAdvancedResetMenu(commit);
 
         resetItem.setOnAction(event -> CommitTreeController.sessionController.handleResetButton(commit));
 
         helpItem.setOnAction(event -> PopUpWindows.showResetHelpAlert());
 
-        resetMenu.getItems().setAll(resetItem, helpItem);
+        resetMenu.getItems().setAll(resetItem, advancedMenu, helpItem);
+
+        return resetMenu;
+    }
+
+    private Menu getAdvancedResetMenu(CommitHelper commit) {
+        Menu resetMenu = new Menu("Advanced");
+        MenuItem hardItem = new MenuItem("reset --hard");
+        MenuItem mixedItem = new MenuItem("reset --mixed");
+        MenuItem softItem = new MenuItem("reset --soft");
+
+        hardItem.setOnAction(event ->
+                CommitTreeController.sessionController.handleAdvancedResetButton(commit, ResetCommand.ResetType.HARD));
+        mixedItem.setOnAction(event ->
+                CommitTreeController.sessionController.handleAdvancedResetButton(commit, ResetCommand.ResetType.MIXED));
+        softItem.setOnAction(event ->
+                CommitTreeController.sessionController.handleAdvancedResetButton(commit, ResetCommand.ResetType.SOFT));
+
+        resetMenu.getItems().setAll(hardItem, mixedItem, softItem);
 
         return resetMenu;
     }

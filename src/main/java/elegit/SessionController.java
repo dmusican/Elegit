@@ -35,8 +35,8 @@ import org.apache.commons.lang3.SystemUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.controlsfx.control.CheckListView;
-import org.controlsfx.control.NotificationPane;
 import org.controlsfx.control.PopOver;
+import org.eclipse.jgit.api.ResetCommand;
 import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.dircache.InvalidPathException;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
@@ -1091,7 +1091,66 @@ public class SessionController {
     }
 
     /**
+     * Adds a commit reverting the selected commits
+     * @param commits the commits to revert
+     */
+    void handleRevertMultipleButton(List<CommitHelper> commits) {
+        try {
+            logger.info("Revert button clicked");
+
+            if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
+
+            BusyWindow.show();
+            BusyWindow.setLoadingText("Reverting...");
+            Thread th = new Thread(new Task<Void>(){
+                @Override
+                protected Void call() {
+                    try{
+                        theModel.getCurrentRepoHelper().revertHelpers(commits);
+                        gitStatus();
+                    } catch(MultipleParentsNotAllowedException e) {
+                        for (CommitHelper commit : commits) {
+                            if (commit.getParents().size() > 1) {
+                                showCantRevertMultipleParentsNotification();
+                            }
+                            if (commit.getParents().size() == 0) {
+                                showCantRevertZeroParentsNotification();
+                            }
+                        }
+                    } catch(InvalidRemoteException e){
+                        showNoRemoteNotification();
+                    } catch (TransportException e) {
+                        if (e.getMessage().contains("git-receive-pack not found")) {
+                            // The error has this message if there is no longer a remote to push to
+                            showLostRemoteNotification();
+                        } else {
+                            showNotAuthorizedNotification(null);
+                        }
+                    } catch(MissingRepoException e){
+                        showMissingRepoNotification();
+                        setButtonsDisabled(true);
+                        refreshRecentReposInDropdown();
+                    } catch(Exception e) {
+                        showGenericErrorNotification();
+                        e.printStackTrace();
+                    }finally {
+                        BusyWindow.hide();
+                    }
+                    return null;
+                }
+            });
+            th.setDaemon(true);
+            th.setName("Git revert");
+            th.start();
+        }catch(NoRepoLoadedException e){
+            this.showNoRepoLoadedNotification();
+            setButtonsDisabled(true);
+        }
+    }
+
+    /**
      * Reverts the tree to remove the changes in the most recent commit
+     * @param commit: the commit to revert
      */
     void handleRevertButton(CommitHelper commit) {
         try {
@@ -1105,7 +1164,7 @@ public class SessionController {
                 @Override
                 protected Void call() {
                     try{
-                        theModel.getCurrentRepoHelper().revertToCommit(commit);
+                        theModel.getCurrentRepoHelper().revert(commit);
                         gitStatus();
                     } catch(MultipleParentsNotAllowedException e) {
                         if(commit.getParents().size() > 1) {
@@ -1146,10 +1205,20 @@ public class SessionController {
     }
 
     /**
-     * Resets the tree to the given commit
-     * @param commit CommitHelper
+     * Resets the tree to a given commit with default settings
+     *
+     * @param commit the commit to reset to
      */
     void handleResetButton(CommitHelper commit) {
+        handleAdvancedResetButton(commit, ResetCommand.ResetType.MIXED);
+    }
+
+    /**
+     * Resets the tree to the given commit, given a specific type
+     * @param commit CommitHelper
+     * @param type the type of reset to perform
+     */
+    void handleAdvancedResetButton(CommitHelper commit, ResetCommand.ResetType type) {
         try {
             logger.info("Reset button clicked");
 
@@ -1161,7 +1230,7 @@ public class SessionController {
                 @Override
                 protected Void call() {
                     try{
-                        theModel.getCurrentRepoHelper().resetToCommit(commit);
+                        theModel.getCurrentRepoHelper().reset(commit.getId(), type);
                         gitStatus();
                     }catch(InvalidRemoteException e){
                         showNoRemoteNotification();
