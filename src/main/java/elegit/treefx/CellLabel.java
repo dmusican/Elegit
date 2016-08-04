@@ -93,11 +93,27 @@ public class CellLabel extends HBox {
         Tooltip.install(l, tooltip);
     }
 
+    /**
+     * Sets the various items to have the current style
+     * @param current whether or not this label is current
+     */
     void setCurrent(boolean current) {
         this.isCurrent = current;
 
         label.setId(isCurrent ? "current" : "regular");
         pointer.setFill(Color.web(isCurrent ? "#FFFFFF" : "333333"));
+        this.setId(isCurrent ? "current" : isTag ? "tag" : "regular");
+    }
+
+    /**
+     * Sets the various items to have the tag style
+     * @param tag whether or not this label is a tag
+     */
+    void setTag(boolean tag) {
+        this.isTag = tag;
+
+        this.setId(isCurrent ? "current" : isTag ? "tag" : "regular");
+        image = new ImageView(new Image(isTag ? "elegit/images/tag.png" : "elegit/images/branch.png"));
         this.setId(isCurrent ? "current" : isTag ? "tag" : "regular");
     }
 }

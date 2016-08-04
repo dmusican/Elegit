@@ -1,7 +1,5 @@
 package elegit.treefx;
 
-import de.jensd.fx.glyphs.GlyphsDude;
-import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import elegit.CommitTreeController;
 import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
@@ -9,24 +7,13 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
 import javafx.scene.Node;
-import javafx.scene.control.Button;
 import javafx.scene.control.ContextMenu;
-import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
-import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Shape;
-import javafx.scene.text.Text;
-import javafx.scene.transform.Rotate;
 import javafx.util.Duration;
 
 import java.util.ArrayList;
@@ -240,8 +227,12 @@ public class Cell extends Pane{
         this.refLabel.setLabels(refs, this);
     }
 
-    private void setCurrentRefLabel(List<String> refs) {
+    private void setCurrentRefLabels(List<String> refs) {
         this.refLabel.setCurrentLabels(refs);
+    }
+
+    private void setTagReflabels(List<String> tags) {
+        this.refLabel.setTagLabels(tags);
     }
 
     void setLabels(String displayLabel, List<String> refLabels){
@@ -250,7 +241,11 @@ public class Cell extends Pane{
     }
 
     void setCurrentLabels(List<String> refLabels) {
-        setCurrentRefLabel(refLabels);
+        setCurrentRefLabels(refLabels);
+    }
+
+    void setTagLabels(List<String> tagLabels) {
+        setTagLabels(tagLabels);
     }
 
     void setAnimate(boolean animate) {this.animate = animate;}

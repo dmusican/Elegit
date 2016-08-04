@@ -149,4 +149,14 @@ public class CellLabelContainer extends GridPane {
             if (n instanceof  CellLabel)
                 ((CellLabel) n).setCurrent(true);
     }
+
+    /**
+     * Helper method to set the tag cell labels
+     * @param labels the labels that refer to tags
+     */
+    void setTagLabels(List<String> labels) {
+        for (Node n : this.getChildren())
+            if (n instanceof  CellLabel)
+                ((CellLabel) n).setTag(true);
+    }
 }
