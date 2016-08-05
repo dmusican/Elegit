@@ -847,10 +847,6 @@ public class SessionController {
                         // Now clear the tag text and a view reload ( or `git status`) to show that something happened
                         tagNameField.clear();
                         gitStatus();
-                        if (theModel.getCurrentRepoHelper().getAheadCount()<1) {
-                            pushTagsButton.setVisible(true);
-                            pushButton.setVisible(false);
-                        }
                     }catch(JGitInternalException e){
                         showJGitInternalError(e);
                     } catch(MissingRepoException e){
@@ -1528,6 +1524,15 @@ public class SessionController {
                 allFilesPanelView.drawDirectoryView();
                 this.theModel.getCurrentRepoHelper().getTagModel().updateTags();
                 updateStatusText();
+
+                if (theModel.getCurrentRepoHelper().getAheadCount()<1 &&
+                        theModel.getCurrentRepoHelper().getTagModel().hasUnpushedTags()) {
+                    pushTagsButton.setVisible(true);
+                    pushButton.setVisible(false);
+                } else if (!pushButton.isVisible()) {
+                    pushTagsButton.setVisible(false);
+                    pushButton.setVisible(true);
+                }
             } catch(Exception e) {
                 showGenericErrorNotification();
                 e.printStackTrace();

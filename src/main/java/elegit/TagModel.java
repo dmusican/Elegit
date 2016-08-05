@@ -86,7 +86,11 @@ public class TagModel {
         if (oldTagNames.size() > 0) { //There are tags that were deleted, so we remove them
             for (String s : oldTagNames) {
                 this.repoHelper.getCommit(this.tagIdMap.get(s).getCommitId()).removeTag(s);
+                this.unpushedTags.remove(s);
+                this.upToDateTags.remove(tagIdMap.get(s));
+                tagsWithUnpushedCommits.remove(s);
                 this.tagIdMap.remove(s);
+                this.hasUnpushedTagsProperty.set(this.unpushedTags.size()==0);
             }
         }
         return !(oldSize == getAllTagNames().size() && oldTagNames.size() == 0);
@@ -192,7 +196,7 @@ public class TagModel {
                 this.hasUnpushedTagsProperty.set(false);
             }
         } else {
-            this.hasUnpushedTagsProperty.set(true);
+            this.hasUnpushedTagsProperty.set(this.unpushedTags.size()==0);
         }
         this.tagIdMap.remove(tagName);
     }
