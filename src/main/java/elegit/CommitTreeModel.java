@@ -370,7 +370,11 @@ public abstract class CommitTreeModel{
 
         MenuItem deleteitem = new MenuItem("Delete");
         deleteitem.setOnAction(event -> CommitTreeController.sessionController.deleteBranch(branch) );
-        contextMenu.getItems().addAll(deleteitem);
+
+        MenuItem checkoutItem = new MenuItem("Checkout");
+        checkoutItem.setOnAction(event -> CommitTreeController.sessionController.checkoutBranch(branch) );
+
+        contextMenu.getItems().addAll(deleteitem, checkoutItem);
 
         return contextMenu;
     }

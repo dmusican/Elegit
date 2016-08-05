@@ -189,7 +189,7 @@ public abstract class RepoHelper {
 
         this.localCommits = this.parseAllLocalCommits();
         this.remoteCommits = this.parseAllRemoteCommits();
-        
+
         this.tagModel = new TagModel(this);
 
         hasRemoteProperty = new SimpleBooleanProperty(!getLinkedRemoteRepoURLs().isEmpty());
@@ -871,7 +871,7 @@ public abstract class RepoHelper {
     }
 
     public boolean canPush() throws IOException {
-        return getAheadCount()>0 || branchModel.getCurrentRemoteBranch()==null;
+        return branchModel.getCurrentRemoteBranch() == null || getAheadCount() > 0;
     }
 
     /**

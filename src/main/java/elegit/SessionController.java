@@ -902,7 +902,7 @@ public class SessionController {
             logger.info("Push button clicked");
 
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
-            if(this.theModel.getCurrentRepoHelper().canPush()) throw new NoCommitsToPushException();
+            if(!this.theModel.getCurrentRepoHelper().canPush()) throw new NoCommitsToPushException();
 
             BusyWindow.show();
             BusyWindow.setLoadingText("Pushing...");
@@ -967,7 +967,7 @@ public class SessionController {
             logger.info("Push button clicked");
 
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
-            if(this.theModel.getCurrentRepoHelper().getAheadCountAll()<1) throw new NoCommitsToPushException();
+            if(this.theModel.getCurrentRepoHelper().canPush()) throw new NoCommitsToPushException();
 
             BusyWindow.show();
             BusyWindow.setLoadingText("Pushing...");
@@ -1087,6 +1087,38 @@ public class SessionController {
         }
     }
 
+
+    /**
+     * Checks out the selected local branch
+     * @param selectedBranch the branch to check out
+     * @return true if the checkout successfully happens, false if there is an error
+     */
+    public boolean checkoutBranch(BranchHelper selectedBranch) {
+        if(selectedBranch == null) return false;
+        // Track the branch if it is a remote branch that we're not yet tracking
+        if (selectedBranch instanceof RemoteBranchHelper) {
+            try {
+                theModel.getCurrentRepoHelper().getBranchModel().trackRemoteBranch((RemoteBranchHelper) selectedBranch);
+            } catch (RefAlreadyExistsException e) {
+                showRefAlreadyExistsNotification();
+            } catch (Exception e) {
+                showGenericErrorNotification();
+            }
+        }
+        try {
+            selectedBranch.checkoutBranch();
+            gitStatus();
+            return true;
+        } catch (JGitInternalException e){
+            showJGitInternalError(e);
+        } catch (CheckoutConflictException e){
+            showCheckoutConflictsNotification(e.getConflictingPaths());
+        } catch (GitAPIException | IOException e) {
+            showGenericErrorNotification();
+        }
+        return false;
+    }
+
     /**
      * Deletes the selected branch
      *
@@ -1156,7 +1188,7 @@ public class SessionController {
                 // Reset the branch heads
                 CommitTreeController.setBranchHeads(commitTreeModel, theModel.getCurrentRepoHelper());
 
-                updateUser(" deleted ");
+                updateUser(" deleted.");
             }
         } catch (CannotDeleteCurrentBranchException e) {
             this.showCannotDeleteBranchNotification(branchToDelete);
@@ -2001,6 +2033,24 @@ public class SessionController {
     private void showNotMergedNotification(BranchHelper nonmergedBranch) {
         logger.warn("Not merged notification");
         notificationPaneController.addNotification("That branch has to be merged before you can do that.");
+    }
+
+    private void showCheckoutConflictsNotification(List<String> conflictingPaths) {
+        Platform.runLater(() -> {
+            logger.warn("Checkout conflicts warning");
+            notificationPaneController.addNotification("You can't switch to that branch because there would be a merge conflict. Stash your changes or resolve conflicts first.");
+
+            /*
+            Action seeConflictsAction = new Action("See conflicts", e -> {
+                anchorRoot.hide();
+                PopUpWindows.showCheckoutConflictsAlert(conflictingPaths);
+            });*/
+        });
+    }
+
+    private void showRefAlreadyExistsNotification() {
+        logger.info("Branch already exists notification");
+        notificationPaneController.addNotification("Looks like that branch already exists locally!");
     }
 
     // END: ERROR NOTIFICATIONS ^^^

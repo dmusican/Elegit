@@ -146,9 +146,9 @@ public class BranchModel {
      * Creates a local branch and tracks it
      * @param remoteBranchHelper the remote branch to track
      * @return the localBranchHelper that was added
+     * @throws RefAlreadyExistsException
      * @throws GitAPIException
      * @throws IOException
-     * @throws RefAlreadyExistsException
      */
     public LocalBranchHelper trackRemoteBranch(RemoteBranchHelper remoteBranchHelper) throws RefAlreadyExistsException, GitAPIException, IOException {
         LocalBranchHelper tracker = this.createLocalTrackingBranchForRemote(remoteBranchHelper);
