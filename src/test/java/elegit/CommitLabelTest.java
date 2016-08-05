@@ -167,22 +167,18 @@ public class CommitLabelTest {
         assertNotNull(cell);
 
         // Pull the labels from the cell
-        Pane cellLabel = (Pane) cell.getLabel();
+        GridPane cellLabel = (GridPane) cell.getLabel();
         assertNotNull(cellLabel);
 
         // Label is a gridpane with a bunch of hboxes that contain labels and icons
         List<Node> labelNodes = cellLabel.getChildrenUnmodifiable();
         List<String> labels = new LinkedList<>();
-        for (Node n : labelNodes) {
-            if (n instanceof GridPane) {
-                for (Node m : ((GridPane) n).getChildren()) {
-                    if (m instanceof HBox) {
-                        for (Node k : ((HBox) m).getChildren()){
-                            if (!(k instanceof Label)) continue;
-                            Label l = (Label) k;
-                            Collections.addAll(labels, l.getText());
-                        }
-                    }
+        for (Node m : labelNodes) {
+            if (m instanceof HBox) {
+                for (Node k : ((HBox) m).getChildren()){
+                    if (!(k instanceof Label)) continue;
+                    Label l = (Label) k;
+                    Collections.addAll(labels, l.getText());
                 }
             }
         }

@@ -121,8 +121,6 @@ public abstract class CommitTreeModel{
      * Helper method that checks for differences between a commit tree model and a repo model
      *
      * @return an update model that has all the differences between these
-     *
-     * TODO: tags
      */
     public UpdateModel getChanges() throws IOException {
         UpdateModel updateModel = new UpdateModel();

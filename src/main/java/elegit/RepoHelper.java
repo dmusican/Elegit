@@ -200,17 +200,16 @@ public abstract class RepoHelper {
      * Updates the entire model, including commits, branches and tags
      * Note: this is expensive, but avoids possible errors that faster
      * possible solutions have
-     *
-     * TODO: tags
      */
     public void updateModel() throws GitAPIException, IOException {
         this.commitIdMap = new HashMap<>();
         this.idMap = new HashMap<>();
+
+        branchModel.updateAllBranches();
         // Reparse commits
         this.localCommits = this.parseAllLocalCommits();
         this.remoteCommits = this.parseAllRemoteCommits();
-        // Update branches and tags
-        branchModel.updateAllBranches();
+
         tagModel.updateTags();
     }
 
