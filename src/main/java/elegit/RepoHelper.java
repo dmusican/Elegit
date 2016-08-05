@@ -51,18 +51,13 @@ public abstract class RepoHelper {
     private List<CommitHelper> localCommits;
     private List<CommitHelper> remoteCommits;
 
-    private List<TagHelper> upToDateTags;
-    private List<TagHelper> unpushedTags;
-    private List<String> tagsWithUnpushedCommits;
-
     private Map<String, CommitHelper> commitIdMap;
     private Map<ObjectId, String> idMap;
-    private Map<String, TagHelper> tagIdMap;
 
     private BranchModel branchModel;
+    private TagModel tagModel;
 
     public BooleanProperty hasRemoteProperty;
-    public BooleanProperty hasUnpushedTagsProperty;
 
     static final Logger logger = LogManager.getLogger();
     protected UsernamePasswordCredentialsProvider ownerAuth;
@@ -189,21 +184,14 @@ public abstract class RepoHelper {
 
         this.commitIdMap = new HashMap<>();
         this.idMap = new HashMap<>();
-        this.tagIdMap = new HashMap<>();
 
         this.branchModel = new BranchModel(this);
+        this.tagModel = new TagModel(this);
 
         this.localCommits = this.parseAllLocalCommits();
         this.remoteCommits = this.parseAllRemoteCommits();
 
-        this.tagsWithUnpushedCommits = new ArrayList<>();
-
-        this.upToDateTags = this.getAllLocalTags();
-        this.unpushedTags = new ArrayList<>();
-
         hasRemoteProperty = new SimpleBooleanProperty(!getLinkedRemoteRepoURLs().isEmpty());
-
-        hasUnpushedTagsProperty = new SimpleBooleanProperty();
 
     }
 
@@ -217,11 +205,12 @@ public abstract class RepoHelper {
     public void updateModel() throws GitAPIException, IOException {
         this.commitIdMap = new HashMap<>();
         this.idMap = new HashMap<>();
-        // Update branches
-        branchModel.updateAllBranches();
         // Reparse commits
         this.localCommits = this.parseAllLocalCommits();
         this.remoteCommits = this.parseAllRemoteCommits();
+        // Update branches and tags
+        branchModel.updateAllBranches();
+        tagModel.updateTags();
     }
 
     /**
@@ -358,16 +347,6 @@ public abstract class RepoHelper {
     }
 
     /**
-     * @return true if there are local tags that haven't been pushed
-     */
-    public boolean hasUnpushedTags() {
-        if (this.unpushedTags == null || this.unpushedTags.size() == 0) {
-            this.hasUnpushedTagsProperty.set(false);
-        }
-        return hasUnpushedTagsProperty.get();
-    }
-
-    /**
      * Commits changes to the repository.
      *
      * @param commitMessage the message for the commit.
@@ -390,28 +369,6 @@ public abstract class RepoHelper {
         } catch (IOException e) {
             // This shouldn't occur once we have the repo up and running.
         }
-    }
-
-    /**
-     * Tags a commit
-     *
-     * @param tagName the name for the tag.
-     * @throws GitAPIException if the 'git tag' call fails.
-     */
-    public void tag(String tagName, String commitName) throws GitAPIException, MissingRepoException, IOException, TagNameExistsException {
-        logger.info("Attempting tag");
-        if (!exists()) throw new MissingRepoException();
-        Git git = new Git(this.repo);
-        // This creates a lightweight tag
-        // TODO: add support for annotated tags?
-        CommitHelper c = commitIdMap.get(commitName);
-        if (c.getTagNames().contains(tagName))
-            throw new TagNameExistsException();
-        Ref r = git.tag().setName(tagName).setObjectId(c.getCommit()).setAnnotated(false).call();
-        git.close();
-        TagHelper t = makeTagHelper(r, tagName);
-        this.unpushedTags.add(t);
-        this.hasUnpushedTagsProperty.set(true);
     }
 
     /**
@@ -521,7 +478,7 @@ public abstract class RepoHelper {
      *
      * @throws GitAPIException if the `git push --tags` call fails.
      */
-    public void pushTags() throws GitAPIException, MissingRepoException, PushToAheadRemoteError {
+    public void pushTags() throws GitAPIException, MissingRepoException, PushToAheadRemoteError, IOException {
         logger.info("Attempting push tags");
         if (!exists()) throw new MissingRepoException();
         if (!hasRemote()) throw new InvalidRemoteException("No remote repository");
@@ -550,9 +507,8 @@ public abstract class RepoHelper {
         }
 
         git.close();
-        this.upToDateTags.addAll(this.unpushedTags);
-        this.unpushedTags = new ArrayList<>();
-        this.hasUnpushedTagsProperty.set(false);
+
+        this.tagModel.updateTags();
     }
 
     /**
@@ -906,44 +862,11 @@ public abstract class RepoHelper {
         return Cell.CellType.REMOTE;
     }
 
-    public TagHelper getTag(String tagName) {
-        return tagIdMap.get(tagName);
-    }
-
-    public void deleteTag(String tagName) throws MissingRepoException, GitAPIException {
-        TagHelper tagToRemove = tagIdMap.get(tagName);
-
-        if (!exists()) throw new MissingRepoException();
-        // should this Git instance be class-level?
-        Git git = new Git(this.repo);
-        // git tag -d
-        git.tagDelete().setTags(tagToRemove.getName()).call();
-        git.close();
-
-        tagToRemove.getCommit().removeTag(tagName);
-        if (!this.upToDateTags.remove(tagToRemove)) {
-            this.unpushedTags.remove(tagToRemove);
-            if (this.unpushedTags.size() == 0) {
-                this.hasUnpushedTagsProperty.set(false);
-            }
-        } else {
-            this.hasUnpushedTagsProperty.set(true);
-        }
-        this.tagIdMap.remove(tagName);
-    }
-
     /**
      * @return a list of all commit IDs in this repository
      */
     public List<String> getAllCommitIDs() {
         return new ArrayList<>(commitIdMap.keySet());
-    }
-
-    /**
-     * @return a list of all tag names in this repository
-     */
-    public List<String> getAllTagNames() {
-        return new ArrayList<>(tagIdMap.keySet());
     }
 
     public boolean canPush() throws IOException {
@@ -1030,123 +953,6 @@ public abstract class RepoHelper {
     private List<CommitHelper> parseAllRemoteCommits() throws IOException, GitAPIException {
         PlotCommitList<PlotLane> commitList = this.parseAllRawRemoteCommits();
         return wrapRawCommits(commitList);
-    }
-
-    /**
-     * Constructs a list of all local tags found by parsing the tag refs from the repo
-     * then wrapping them into a TagHelper with the appropriate commit
-     *
-     * @return a list of TagHelpers for all the tags
-     * @throws IOException
-     * @throws GitAPIException
-     */
-    public List<TagHelper> getAllLocalTags() throws IOException, GitAPIException {
-        Map<String, Ref> tagMap = repo.getTags();
-        List<TagHelper> tags = new ArrayList<>();
-        for (String s : tagMap.keySet()) {
-            Ref r = tagMap.get(s);
-            tags.add(makeTagHelper(r, s));
-        }
-        return tags;
-    }
-
-    /**
-     * Looks through all the tags and checks that they are added to commit helpers
-     *
-     * @return true if there were changes, false if not
-     * @throws IOException
-     * @throws GitAPIException
-     */
-    public boolean updateTags() throws IOException, GitAPIException {
-        List<String> oldTagNames = getAllTagNames();
-        Map<String, Ref> tagMap = repo.getTags();
-        int oldSize = oldTagNames.size();
-        for (String s : tagMap.keySet()) {
-            if (oldTagNames.contains(s)) {
-
-                //Check if the tag is annotated or not, find the commit name accordingly
-                String commitName;
-                if (tagMap.get(s).getPeeledObjectId() != null)
-                    commitName = tagMap.get(s).getPeeledObjectId().getName();
-                else commitName = tagMap.get(s).getObjectId().getName();
-                // Re add the tag if it isn't there
-                if (!commitIdMap.get(commitName).hasTag(s))
-                    commitIdMap.get(commitName).addTag(this.tagIdMap.get(s));
-
-                oldTagNames.remove(s);
-                if (tagsWithUnpushedCommits.contains(s)) {
-                    tagsWithUnpushedCommits.remove(s);
-                }
-                continue;
-            } else {
-                Ref r = tagMap.get(s);
-                makeTagHelper(r, s);
-            }
-        }
-        if (oldTagNames.size() > 0) { //There are tags that were deleted, so we remove them
-            for (String s : oldTagNames) {
-                this.commitIdMap.get(this.tagIdMap.get(s).getCommitId()).removeTag(s);
-                this.tagIdMap.remove(s);
-            }
-        }
-        if (oldSize == getAllTagNames().size() && oldTagNames.size() == 0) {
-            return false;
-        } else {
-            return true;
-        }
-    }
-
-    /**
-     * Helper method to make a tagHelper given a ref and a name of the tag. Also adds the
-     * tag helper to the tagIdMap
-     *
-     * @param r       the ref to make a tagHelper for. This can be a peeled or unpeeled tag
-     * @param tagName the name of the tag
-     * @return a tagHelper object with the information stored
-     * @throws IOException
-     * @throws GitAPIException
-     */
-    private TagHelper makeTagHelper(Ref r, String tagName) throws IOException, GitAPIException {
-        String commitName;
-        boolean isAnnotated = false;
-
-        //Check if the tag is annotated or not, find the commit name accordingly
-        if (r.getPeeledObjectId() != null) {
-            commitName = r.getPeeledObjectId().getName();
-            isAnnotated = true;
-        } else commitName = r.getObjectId().getName();
-
-        // Find the commit helper associated with the commit name
-        CommitHelper c = this.commitIdMap.get(commitName);
-        TagHelper t;
-
-        // If the commit that this tag points to isn't in the commitIdMap,
-        // then that commit has not yet been pushed, so warn the user
-        if (c == null) {
-            this.tagsWithUnpushedCommits.add(tagName);
-            return null;
-        } else if (this.tagsWithUnpushedCommits.contains(tagName)) {
-            this.tagsWithUnpushedCommits.remove(tagName);
-        }
-
-        // If it's not an annotated tag, we make a lightweight tag helper
-        if (!isAnnotated) {
-            t = new TagHelper(tagName, c);
-            c.addTag(t);
-        }
-        // Otherwise, the tag has a message and all the stuff a commit has
-        else {
-            ObjectReader objectReader = repo.newObjectReader();
-            ObjectLoader objectLoader = objectReader.open(r.getObjectId());
-            RevTag tag = RevTag.parse(objectLoader.getBytes());
-            objectReader.close();
-            t = new TagHelper(tag, c);
-            c.addTag(t);
-        }
-        if (!tagIdMap.containsKey(tagName)) {
-            tagIdMap.put(tagName, t);
-        }
-        return t;
     }
 
     /**
@@ -1482,6 +1288,8 @@ public abstract class RepoHelper {
         return this.branchModel;
     }
 
+    public TagModel getTagModel() { return this.tagModel; }
+
     public String getUsername() {
         return username;
     }
@@ -1502,22 +1310,8 @@ public abstract class RepoHelper {
         this.ownerAuth = authCredentials;
     }
 
-    public boolean hasTagsWithUnpushedCommits() {
-        return this.tagsWithUnpushedCommits.size() > 0;
-    }
-
     public UsernamePasswordCredentialsProvider getOwnerAuthCredentials() throws CancelledAuthorizationException {
         return this.ownerAuth;
-    }
-
-    public void setUnpushedTags(List<TagHelper> tags) {
-        for (TagHelper tag : tags) {
-            if (this.upToDateTags.contains(tag)) {
-                this.upToDateTags.remove(tag);
-            }
-            this.unpushedTags.add(tag);
-        }
-        this.hasUnpushedTagsProperty.set(true);
     }
 
     /**

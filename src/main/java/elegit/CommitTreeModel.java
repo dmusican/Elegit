@@ -491,6 +491,16 @@ public abstract class CommitTreeModel{
         treeGraph.treeGraphModel.setCurrentCellLabels(commitId,this.sessionModel.getCurrentRepoHelper().getBranchModel().getCurrentBranches());
     }
 
+    public void setCommitRefLabels(CommitHelper helper) {
+        String commitId = helper.getId();
+        RepoHelper repo = sessionModel.getCurrentRepoHelper();
+        String displayLabel = repo.getCommitDescriptorString(commitId, false);
+        List<String> branchLabels = repo.getBranchModel().getBranchesWithHead(commitId);
+        List<String> tagLabels;
+        treeGraph.treeGraphModel.setCellLabels(commitId, displayLabel, branchLabels);
+        treeGraph.treeGraphModel.setCurrentCellLabels(commitId,this.sessionModel.getCurrentRepoHelper().getBranchModel().getCurrentBranches());
+    }
+
     /**
      * Forgets information about tracked/untracked branch heads in the tree and updates the model
      */

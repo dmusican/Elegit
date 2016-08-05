@@ -276,6 +276,10 @@ public class TreeGraphModel{
         cell.setCurrentLabels(refs);
     }
 
+    public void setTagCellLabels(String cellId, List<String> tags) {
+        cellMap.get(cellId).setTagLabels(tags);
+    }
+
     /**
      * Sets the shape of the cell with the given ID to be the given shape.
      * If the shape is not the default shape, adds it to the list of non-

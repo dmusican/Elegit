@@ -835,7 +835,7 @@ public class SessionController {
             if(!this.theModel.getCurrentRepoHelper().exists()) throw new MissingRepoException();
 
             String tagName = tagNameField.getText();
-            if (theModel.getCurrentRepoHelper().getTag(tagName) != null) {
+            if (theModel.getCurrentRepoHelper().getTagModel().getTag(tagName) != null) {
                 throw new TagNameExistsException();
             }
 
@@ -845,7 +845,7 @@ public class SessionController {
                 @Override
                 protected Void call() {
                     try{
-                        theModel.getCurrentRepoHelper().tag(tagName, commitInfoNameText);
+                        theModel.getCurrentRepoHelper().getTagModel().tag(tagName, commitInfoNameText);
 
                         // Now clear the tag text and a view reload ( or `git status`) to show that something happened
                         tagNameField.clear();
@@ -875,7 +875,7 @@ public class SessionController {
                     }
                     tagNameField.setText("");
                     clearSelectedCommit();
-                    selectCommit(theModel.getCurrentRepoHelper().getTag(tagName).getCommitId());
+                    selectCommit(theModel.getCurrentRepoHelper().getTagModel().getTag(tagName).getCommitId());
 
                     return null;
                 }
@@ -940,7 +940,7 @@ public class SessionController {
                         e.printStackTrace();
                     } finally{
                         pushButton.setVisible(true);
-                        if (pushed && theModel.getCurrentRepoHelper().hasUnpushedTags()) {
+                        if (pushed && theModel.getCurrentRepoHelper().getTagModel().hasUnpushedTags()) {
                             pushTagsButton.setVisible(true);
                             pushButton.setVisible(false);
                         }
@@ -1005,7 +1005,7 @@ public class SessionController {
                         e.printStackTrace();
                     } finally{
                         pushButton.setVisible(true);
-                        if (pushed && theModel.getCurrentRepoHelper().hasUnpushedTags()) {
+                        if (pushed && theModel.getCurrentRepoHelper().getTagModel().hasUnpushedTags()) {
                             pushTagsButton.setVisible(true);
                             pushButton.setVisible(false);
                         }
@@ -1035,7 +1035,7 @@ public class SessionController {
             logger.info("Push tags button clicked");
 
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
-            if(!this.theModel.getCurrentRepoHelper().hasUnpushedTags()) throw new NoTagsToPushException();
+            if(!this.theModel.getCurrentRepoHelper().getTagModel().hasUnpushedTags()) throw new NoTagsToPushException();
 
             Thread th = new Thread(new Task<Void>(){
                 @Override
@@ -1417,7 +1417,7 @@ public class SessionController {
                 commitTreeModel.update();
                 workingTreePanelView.drawDirectoryView();
                 allFilesPanelView.drawDirectoryView();
-                this.theModel.getCurrentRepoHelper().updateTags();
+                this.theModel.getCurrentRepoHelper().getTagModel().updateTags();
                 updateStatusText();
             } catch(Exception e) {
                 showGenericErrorNotification();
@@ -1681,11 +1681,11 @@ public class SessionController {
                     logger.info("Delete tag dialog started.");
                     if (t.presentDeleteDialog()) {
                         try {
-                            theModel.getCurrentRepoHelper().deleteTag(t.getName());
+                            theModel.getCurrentRepoHelper().getTagModel().deleteTag(t.getName());
                         } catch (MissingRepoException | GitAPIException e) {
                             e.printStackTrace();
                         }
-                        if (!theModel.getCurrentRepoHelper().hasUnpushedTags()) {
+                        if (!theModel.getCurrentRepoHelper().getTagModel().hasUnpushedTags()) {
                             pushTagsButton.setVisible(false);
                             pushButton.setVisible(true);
                         }
