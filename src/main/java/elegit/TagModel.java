@@ -19,8 +19,6 @@ import org.eclipse.jgit.lib.ObjectReader;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.revwalk.RevTag;
 
-import javax.swing.text.html.HTML;
-
 /**
  * Model that holds all the tags for a repoHelper object
  */
@@ -35,6 +33,13 @@ public class TagModel {
 
     static final Logger logger = LogManager.getLogger();
 
+    /**
+     * Initializes internal lists
+     *
+     * @param repoHelper the repoHelper this tag model holds tags for
+     * @throws GitAPIException
+     * @throws IOException
+     */
     public TagModel(RepoHelper repoHelper) throws GitAPIException, IOException {
         this.repoHelper = repoHelper;
         unpushedTags = new ArrayList<>();
@@ -91,6 +96,7 @@ public class TagModel {
      * Tags a commit
      *
      * @param tagName the name for the tag.
+     * @param commitName the id of the commit to apply this tag to
      * @throws GitAPIException if the 'git tag' call fails.
      */
     public void tag(String tagName, String commitName) throws GitAPIException, MissingRepoException, IOException, TagNameExistsException {
@@ -162,6 +168,13 @@ public class TagModel {
         return t;
     }
 
+    /**
+     * Deletes a given tag
+     *
+     * @param tagName the name of the tag to delete
+     * @throws MissingRepoException
+     * @throws GitAPIException
+     */
     public void deleteTag(String tagName) throws MissingRepoException, GitAPIException {
         TagHelper tagToRemove = tagIdMap.get(tagName);
 
@@ -184,6 +197,7 @@ public class TagModel {
         this.tagIdMap.remove(tagName);
     }
 
+    /* ************************ GETTERS ************************ */
     public TagHelper getTag(String tagName) { return tagIdMap.get(tagName); }
 
     public List<String> getAllTagNames() { return new ArrayList<>(tagIdMap.keySet()); }

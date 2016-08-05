@@ -3,10 +3,12 @@ package elegit.treefx;
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import javafx.geometry.Insets;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseButton;
 import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
@@ -20,6 +22,7 @@ public class CellLabel extends HBox {
     Text pointer;
     ImageView image;
     Label label;
+    ContextMenu contextMenu;
     private final int MAX_CHAR_PER_LABEL=25;
 
     CellLabel(String name, boolean isCurrent, boolean isTag) {
@@ -82,6 +85,27 @@ public class CellLabel extends HBox {
     }
 
     /**
+     * Sets the context menu and clicking
+     * @param menu the menu for this label
+     */
+    public void setContextMenu(ContextMenu menu) {
+        this.contextMenu = menu;
+        this.setPickOnBounds(true);
+
+        this.setOnMouseClicked(event -> {
+            contextMenu.show(this, event.getScreenX(), event.getScreenY());
+            if(event.getButton() == MouseButton.PRIMARY){
+                // TODO: do something here?
+            }else if(event.getButton() == MouseButton.SECONDARY){
+                if(contextMenu != null){
+                    contextMenu.show(this, event.getScreenX(), event.getScreenY());
+                }
+            }
+            event.consume();
+        });
+    }
+
+    /**
      * Helper method to add a tool tip to a label
      * @param l the label to add a tooltip to
      * @param text the text of the tooltip
@@ -115,5 +139,9 @@ public class CellLabel extends HBox {
 
         ((ImageView) this.getChildren().get(2)).setImage(new Image(isTag ? "elegit/images/tag.png" : "elegit/images/branch.png"));
         this.setId(isCurrent ? "current" : isTag ? "tag" : "regular");
+    }
+
+    String getName() {
+        return this.name;
     }
 }

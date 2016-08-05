@@ -132,7 +132,7 @@ public class TreeGraphModel{
      * @param newId the id of the new cell
      * @param time the time of the new cell
      * @param displayLabel the displayLabel of the new cell
-     * @param contextMenu the context menu that will appear when right clicking on a cell
+     * @param contextMenu the context contextMenu that will appear when right clicking on a cell
      * @param parentIds the IDs of the parents of the new cell, if any
      * @param type the type of the cell, local, remote, or both
      */
@@ -276,8 +276,12 @@ public class TreeGraphModel{
         cell.setCurrentLabels(refs);
     }
 
-    public void setTagCellLabels(String cellId, List<String> tags) {
+    public void setTagCellLabels(String cellId, Map<String, ContextMenu> tags) {
         cellMap.get(cellId).setTagLabels(tags);
+    }
+
+    public void setBranchCellLabels(String cellId, Map<String, ContextMenu> branches) {
+        cellMap.get(cellId).setBranchLabels(branches);
     }
 
     /**

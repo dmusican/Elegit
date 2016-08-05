@@ -1,14 +1,17 @@
 package elegit;
 
+import elegit.exceptions.MissingRepoException;
 import elegit.treefx.*;
 import elegit.treefx.Cell;
 import javafx.scene.control.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.message.LocalizedMessage;
 import org.eclipse.jgit.api.ResetCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
 
 import java.io.IOException;
+import java.rmi.Remote;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -330,6 +333,59 @@ public abstract class CommitTreeModel{
         graphModel.setCellType(helper.getId(), type);
     }
 
+    /**
+     * Constructs and returns a context menu corresponding to the given tag. Will
+     * be shown on right click on the tag label
+     * @param tagHelper
+     * @return
+     */
+    private ContextMenu getTagLabelMenu(TagHelper tagHelper) {
+        ContextMenu contextMenu = new ContextMenu();
+
+        MenuItem deleteitem = new MenuItem("Delete");
+        deleteitem.setOnAction(event -> {
+            logger.info("Delete tag dialog started.");
+            if (tagHelper.presentDeleteDialog()) {
+                try {
+                    sessionModel.getCurrentRepoHelper().getTagModel().deleteTag(tagHelper.getName());
+                    update();
+                } catch (GitAPIException | MissingRepoException | IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        contextMenu.getItems().addAll(deleteitem);
+
+        return contextMenu;
+    }
+
+    /**
+     * Constructs and returns a context menu corresponding to the given tag. Will
+     * be shown on right click on the tag label
+     * @param branch the branch to have a menu for
+     * @return
+     */
+    private ContextMenu getBranchLabelMenu(BranchHelper branch) {
+        ContextMenu contextMenu = new ContextMenu();
+
+        MenuItem deleteitem = new MenuItem("Delete");
+        deleteitem.setOnAction(event -> {
+            logger.info("Delete tag dialog started.");
+            try {
+                if (branch instanceof RemoteBranchHelper)
+                    sessionModel.getCurrentRepoHelper().getBranchModel().deleteRemoteBranch((RemoteBranchHelper) branch);
+                else
+                    sessionModel.getCurrentRepoHelper().getBranchModel().deleteLocalBranch((LocalBranchHelper) branch);
+                update();
+            } catch (GitAPIException | IOException e) {
+                e.printStackTrace();
+            }
+        });
+        contextMenu.getItems().addAll(deleteitem);
+
+        return contextMenu;
+    }
+
 
     /**
      * Constructs and returns a context menu corresponding to the given commit. Will
@@ -516,13 +572,16 @@ public abstract class CommitTreeModel{
         List<BranchHelper> branchLabels = repo.getBranchModel().getAllBranches();
         List<TagHelper> tagLabels = repo.getTagModel().getAllTags();
 
-        List<String> tags = new ArrayList<>();
+        Map<String, ContextMenu> branchMap = new HashMap<>();
+        Map<String, ContextMenu> tagMap = new HashMap<>();
+
         this.tagsInModel = repo.getTagModel().getAllTags();
 
         Map<String, List<String>> commitLabelMap = new HashMap<>();
 
         for (BranchHelper helper : branchLabels) {
             commitId = helper.getHead().getId();
+            branchMap.put(helper.getBranchName(), getBranchLabelMenu(helper));
             if (commitLabelMap.containsKey(commitId))
                 commitLabelMap.get(commitId).add(helper.getBranchName());
             else {
@@ -534,7 +593,7 @@ public abstract class CommitTreeModel{
 
         for (TagHelper helper : tagLabels) {
             commitId = helper.getCommitId();
-            tags.add(helper.getName());
+            tagMap.put(helper.getName(), getTagLabelMenu(helper));
             if (commitLabelMap.containsKey(commitId))
                 commitLabelMap.get(commitId).add(helper.getName());
             else {
@@ -549,7 +608,9 @@ public abstract class CommitTreeModel{
             String displayLabel = repo.getCommitDescriptorString(commit, false);
             treeGraph.treeGraphModel.setCellLabels(commit, displayLabel, commitLabelMap.get(commit));
             treeGraph.treeGraphModel.setCurrentCellLabels(commit, this.sessionModel.getCurrentRepoHelper().getBranchModel().getCurrentBranches());
-            treeGraph.treeGraphModel.setTagCellLabels(commit, tags);
+
+            treeGraph.treeGraphModel.setTagCellLabels(commit, tagMap);
+            treeGraph.treeGraphModel.setBranchCellLabels(commit, branchMap);
         }
     }
 

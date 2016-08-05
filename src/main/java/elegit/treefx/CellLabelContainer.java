@@ -6,6 +6,7 @@ import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
@@ -19,6 +20,7 @@ import javafx.scene.transform.Rotate;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static elegit.treefx.Cell.BOX_SIZE;
 
@@ -139,6 +141,7 @@ public class CellLabelContainer extends GridPane {
             getChildren().addAll(extendedLabels);
             getChildren().add(showExtended);
         });
+        this.setPickOnBounds(false);
     }
 
     /**
@@ -155,13 +158,29 @@ public class CellLabelContainer extends GridPane {
 
     /**
      * Helper method to set the tag cell labels
-     * @param labels the labels that refer to tags
+     * @param labels the labels that refer to tags and their menus
      */
-    void setTagLabels(List<String> labels) {
+    void setTagLabels(Map<String, ContextMenu> labels) {
         Platform.runLater(() -> {
             for (Node n : getChildren()) {
-                if (n instanceof CellLabel && labels.contains(((CellLabel) n).getLabel().getText()))
+                if (n instanceof CellLabel && labels.keySet().contains(((CellLabel) n).getLabel().getText())) {
                     ((CellLabel) n).setTag(true);
+                    ((CellLabel) n).setContextMenu(labels.get(((CellLabel) n).getName()));
+                }
+            }
+        });
+    }
+
+    /**
+     * Helper method to set the branch cell labels
+     * @param labels the labels that refer to branches and their menus
+     */
+    void setBranchLabels(Map<String, ContextMenu> labels) {
+        Platform.runLater(() -> {
+            for (Node n : getChildren()) {
+                if (n instanceof CellLabel && labels.keySet().contains(((CellLabel) n).getLabel().getText())) {
+                    ((CellLabel) n).setContextMenu(labels.get(((CellLabel) n).getName()));
+                }
             }
         });
     }

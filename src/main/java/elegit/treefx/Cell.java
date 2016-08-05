@@ -18,6 +18,7 @@ import javafx.util.Duration;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * A class that represents a node in a TreeGraph
@@ -231,10 +232,6 @@ public class Cell extends Pane{
         this.refLabel.setCurrentLabels(refs);
     }
 
-    private void setTagReflabels(List<String> tags) {
-        this.refLabel.setTagLabels(tags);
-    }
-
     void setLabels(String displayLabel, List<String> refLabels){
         setDisplayLabel(displayLabel);
         setRefLabel(refLabels);
@@ -244,8 +241,12 @@ public class Cell extends Pane{
         setCurrentRefLabels(refLabels);
     }
 
-    void setTagLabels(List<String> tagLabels) {
+    void setTagLabels(Map<String, ContextMenu> tagLabels) {
         this.refLabel.setTagLabels(tagLabels);
+    }
+
+    void setBranchLabels(Map<String, ContextMenu> branchLabels) {
+        this.refLabel.setBranchLabels(branchLabels);
     }
 
     void setAnimate(boolean animate) {this.animate = animate;}

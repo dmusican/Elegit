@@ -219,11 +219,6 @@
                                         fx:id="tagNameField"
                                         promptText="tag..." />
                         </HBox>
-                        <HBox   alignment="CENTER">
-                            <Label  fx:id="tagsLabel"
-                                    text="Tags: "/>
-                            <ScrollPane fx:id="tagsPane"/>
-                        </HBox>
                     </VBox>
                 </VBox>
 

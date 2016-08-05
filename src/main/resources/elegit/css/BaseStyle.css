@@ -89,6 +89,7 @@
 .cell-label-box {
     -fx-background-color: #CCCCCC;
     -fx-background-radius: 5;
+    -fx-effect: -fx-dropshadow;
 }
     .cell-label-box#regular { -fx-background-color: #CCCCCC; }
     .cell-label-box#current { -fx-background-color: #1E90FF; }

@@ -104,10 +104,6 @@ public class SessionController {
     public Text needToFetch;
     public Text branchStatusText;
 
-    public ScrollPane tagsPane;
-
-    public Label tagsLabel;
-
     public URL remoteURL;
 
     private DataSubmitter d;
@@ -1671,7 +1667,7 @@ public class SessionController {
         Platform.runLater(() -> {
             CommitHelper commit = this.theModel.getCurrentRepoHelper().getCommit(id);
 
-            GridPane tags = new GridPane();
+            /*GridPane tags = new GridPane();
             tags.setPrefHeight(1);
             int numTags = 0;
             for (TagHelper t:commit.getTags()) {
@@ -1697,16 +1693,11 @@ public class SessionController {
                 tags.add(link,numTags,0);
                 numTags++;
             }
-            tagsPane.setContent(tags);
+            tagsPane.setContent(tags);*/
             commitInfoNameText = commit.getName();
             commitInfoMessageText.setVisible(true);
             commitInfoNameCopyButton.setVisible(true);
             commitInfoGoToButton.setVisible(true);
-
-            if (commit.hasTags()) {
-                tagsPane.setVisible(true);
-                tagsLabel.setVisible(true);
-            }
             tagNameField.setVisible(true);
             tagButton.setVisible(true);
 
@@ -1724,8 +1715,6 @@ public class SessionController {
             commitInfoNameCopyButton.setVisible(false);
             commitInfoGoToButton.setVisible(false);
 
-            tagsPane.setVisible(false);
-            tagsLabel.setVisible(false);
             tagNameField.setText("");
             tagNameField.setVisible(false);
             tagButton.setVisible(false);
