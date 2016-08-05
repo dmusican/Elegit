@@ -134,6 +134,7 @@ public class CellLabelContainer extends GridPane {
         this.visibleProperty().bind(cell.visibleProperty());
 
         Platform.runLater(() -> {
+            getChildren().clear();
             getChildren().addAll(basicLabels);
             getChildren().addAll(extendedLabels);
             getChildren().add(showExtended);

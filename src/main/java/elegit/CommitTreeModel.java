@@ -155,6 +155,8 @@ public abstract class CommitTreeModel{
         commitsToUpdate.removeAll(commitsToRemove);
         updateModel.setCommitsToUpdate(commitsToUpdate);
 
+        /* ************************ BRANCHES ************************ */
+
         List<BranchHelper> branchesToUpdate = new ArrayList<>(this.sessionModel.getCurrentRepoHelper().getBranchModel().getAllBranches());
         Map<String, BranchHelper> currentBranchMap = new HashMap<>();
         Map<String, BranchHelper> updateBranchMap = new HashMap<>();
@@ -176,6 +178,19 @@ public abstract class CommitTreeModel{
             if (!updateBranchMap.containsKey(branch.getBranchName()))
                 updateModel.addBranch(branch);
         }
+
+        /* ************************ TAGS ************************ */
+        List<TagHelper> tagsInRepo = new ArrayList<>(this.sessionModel.getCurrentRepoHelper().getTagModel().getAllTags());
+
+        // Check for added tags
+        for (TagHelper tag : tagsInRepo)
+            if (!this.tagsInModel.contains(tag))
+                updateModel.addTag(tag);
+
+        // Check for removed tags
+        for (TagHelper tag : this.tagsInModel)
+            if (!tagsInRepo.contains(tag))
+                updateModel.addTag(tag);
 
 
         return updateModel;
@@ -502,6 +517,7 @@ public abstract class CommitTreeModel{
         List<TagHelper> tagLabels = repo.getTagModel().getAllTags();
 
         List<String> tags = new ArrayList<>();
+        this.tagsInModel = repo.getTagModel().getAllTags();
 
         Map<String, List<String>> commitLabelMap = new HashMap<>();
 
