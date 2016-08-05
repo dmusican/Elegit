@@ -275,56 +275,55 @@ public class CreateDeleteBranchWindowController {
      * @param selectedBranch the branch selected to delete
      */
     public void deleteBranch(BranchHelper selectedBranch) {
+        try {
+            if (selectedBranch != null) {
+                RemoteRefUpdate.Status deleteStatus;
 
-            try {
-                if (selectedBranch != null) {
-                    RemoteRefUpdate.Status deleteStatus;
-
-                    if (selectedBranch instanceof LocalBranchHelper) {
-                        this.branchModel.deleteLocalBranch((LocalBranchHelper) selectedBranch);
-                        updateUser(selectedBranch.getBranchName() + " deleted.", BranchModel.BranchType.LOCAL);
-                    }else {
-                        deleteStatus = this.branchModel.deleteRemoteBranch((RemoteBranchHelper) selectedBranch);
-                        String updateMessage = selectedBranch.getBranchName();
-                        // There are a number of possible cases, see JGit's documentation on RemoteRefUpdate.Status
-                        // for the full list.
-                        switch (deleteStatus) {
-                            case OK:
-                                updateMessage += " deleted.";
-                                break;
-                            case NON_EXISTING:
-                                updateMessage += " no longer\nexists on the server.";
-                            default:
-                                updateMessage += " deletion\nfailed.";
-                        }
-                        updateUser(updateMessage, BranchModel.BranchType.REMOTE);
+                if (selectedBranch instanceof LocalBranchHelper) {
+                    this.branchModel.deleteLocalBranch((LocalBranchHelper) selectedBranch);
+                    updateUser(selectedBranch.getBranchName() + " deleted.", BranchModel.BranchType.LOCAL);
+                }else {
+                    deleteStatus = this.branchModel.deleteRemoteBranch((RemoteBranchHelper) selectedBranch);
+                    String updateMessage = selectedBranch.getBranchName();
+                    // There are a number of possible cases, see JGit's documentation on RemoteRefUpdate.Status
+                    // for the full list.
+                    switch (deleteStatus) {
+                        case OK:
+                            updateMessage += " deleted.";
+                            break;
+                        case NON_EXISTING:
+                            updateMessage += " no longer\nexists on the server.";
+                        default:
+                            updateMessage += " deletion\nfailed.";
                     }
+                    updateUser(updateMessage, BranchModel.BranchType.REMOTE);
                 }
-            } catch (NotMergedException e) {
-                logger.warn("Can't delete branch because not merged warning");
-                Platform.runLater(() -> {
-                    if(PopUpWindows.showForceDeleteBranchAlert() && selectedBranch instanceof LocalBranchHelper) {
-                        // If we need to force delete, then it must be a local branch
-                        forceDeleteBranch((LocalBranchHelper) selectedBranch);
-                    }
-                });
-                this.showNotMergedNotification(selectedBranch);
-            } catch (CannotDeleteCurrentBranchException e) {
-                logger.warn("Can't delete current branch warning");
-                this.showCannotDeleteBranchNotification(selectedBranch);
-            } catch (TransportException e) {
-                this.showNotAuthorizedNotification();
-            } catch (GitAPIException e) {
-                logger.warn("Git error");
-                this.showGenericGitErrorNotificationWithBranch(selectedBranch);
-            } catch (IOException e) {
-                logger.warn("IO error");
-                this.showGenericErrorNotification();
-            } finally {
-                refreshBranchesDropDown();
-                // Reset the branch heads
-                CommitTreeController.setBranchHeads(localCommitTreeModel, repoHelper);
             }
+        } catch (NotMergedException e) {
+            logger.warn("Can't delete branch because not merged warning");
+            Platform.runLater(() -> {
+                if(PopUpWindows.showForceDeleteBranchAlert() && selectedBranch instanceof LocalBranchHelper) {
+                    // If we need to force delete, then it must be a local branch
+                    forceDeleteBranch((LocalBranchHelper) selectedBranch);
+                }
+            });
+            this.showNotMergedNotification(selectedBranch);
+        } catch (CannotDeleteCurrentBranchException e) {
+            logger.warn("Can't delete current branch warning");
+            this.showCannotDeleteBranchNotification(selectedBranch);
+        } catch (TransportException e) {
+            this.showNotAuthorizedNotification();
+        } catch (GitAPIException e) {
+            logger.warn("Git error");
+            this.showGenericGitErrorNotificationWithBranch(selectedBranch);
+        } catch (IOException e) {
+            logger.warn("IO error");
+            this.showGenericErrorNotification();
+        } finally {
+            refreshBranchesDropDown();
+            // Reset the branch heads
+            CommitTreeController.setBranchHeads(localCommitTreeModel, repoHelper);
+        }
     }
 
     /**

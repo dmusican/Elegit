@@ -336,8 +336,8 @@ public abstract class CommitTreeModel{
     /**
      * Constructs and returns a context menu corresponding to the given tag. Will
      * be shown on right click on the tag label
-     * @param tagHelper
-     * @return
+     * @param tagHelper the tag that this context menu will refer to
+     * @return the context menu with a delete option
      */
     private ContextMenu getTagLabelMenu(TagHelper tagHelper) {
         ContextMenu contextMenu = new ContextMenu();
@@ -360,27 +360,16 @@ public abstract class CommitTreeModel{
     }
 
     /**
-     * Constructs and returns a context menu corresponding to the given tag. Will
-     * be shown on right click on the tag label
+     * Constructs and returns a context menu corresponding to the given branch. Will
+     * be shown on right click on the branch label
      * @param branch the branch to have a menu for
-     * @return
+     * @return the context menu with various options related to branches
      */
     private ContextMenu getBranchLabelMenu(BranchHelper branch) {
         ContextMenu contextMenu = new ContextMenu();
 
         MenuItem deleteitem = new MenuItem("Delete");
-        deleteitem.setOnAction(event -> {
-            logger.info("Delete tag dialog started.");
-            try {
-                if (branch instanceof RemoteBranchHelper)
-                    sessionModel.getCurrentRepoHelper().getBranchModel().deleteRemoteBranch((RemoteBranchHelper) branch);
-                else
-                    sessionModel.getCurrentRepoHelper().getBranchModel().deleteLocalBranch((LocalBranchHelper) branch);
-                update();
-            } catch (GitAPIException | IOException e) {
-                e.printStackTrace();
-            }
-        });
+        deleteitem.setOnAction(event -> CommitTreeController.sessionController.deleteBranch(branch) );
         contextMenu.getItems().addAll(deleteitem);
 
         return contextMenu;

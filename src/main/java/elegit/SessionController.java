@@ -39,6 +39,7 @@ import org.controlsfx.control.PopOver;
 import org.eclipse.jgit.api.ResetCommand;
 import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.dircache.InvalidPathException;
+import org.eclipse.jgit.transport.RemoteRefUpdate;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
 import java.awt.*;
@@ -563,7 +564,7 @@ public class SessionController {
         } catch(InvalidRemoteException e){
             showInvalidRemoteNotification(() -> handleLoadRepoMenuItem(builder));
         } catch(TransportException e){
-            showNotAuthorizedNotification(() -> handleLoadRepoMenuItem(builder));
+            showNotAuthorizedNotification();
         } catch (NoRepoSelectedException | CancelledAuthorizationException e) {
             // The user pressed cancel on the dialog box, or
             // the user pressed cancel on the authorize dialog box. Do nothing!
@@ -857,7 +858,7 @@ public class SessionController {
                         setButtonsDisabled(true);
                         refreshRecentReposInDropdown();
                     } catch (TransportException e) {
-                        showNotAuthorizedNotification(null);
+                        showNotAuthorizedNotification();
                     } catch(GitAPIException e){
                         // Git error
                         showGenericErrorNotification();
@@ -925,7 +926,7 @@ public class SessionController {
                             // The error has this message if there is no longer a remote to push to
                             showLostRemoteNotification();
                         } else {
-                            showNotAuthorizedNotification(null);
+                            showNotAuthorizedNotification();
                         }
                     } catch(MissingRepoException e){
                         showMissingRepoNotification();
@@ -990,7 +991,7 @@ public class SessionController {
                             // The error has this message if there is no longer a remote to push to
                             showLostRemoteNotification();
                         } else {
-                            showNotAuthorizedNotification(null);
+                            showNotAuthorizedNotification();
                         }
                     } catch(MissingRepoException e){
                         showMissingRepoNotification();
@@ -1052,7 +1053,7 @@ public class SessionController {
                             // The error has this message if there is no longer a remote to push to
                             showLostRemoteNotification();
                         } else {
-                            showNotAuthorizedNotification(null);
+                            showNotAuthorizedNotification();
                         }
                         tagsPushed = false;
                     } catch(MissingRepoException e){
@@ -1083,6 +1084,86 @@ public class SessionController {
             setButtonsDisabled(true);
         }catch(NoTagsToPushException e){
             this.showNoTagsToPushNotification();
+        }
+    }
+
+    /**
+     * Deletes the selected branch
+     *
+     * @param selectedBranch the branch selected to delete
+     */
+    public void deleteBranch(BranchHelper selectedBranch) {
+        BranchModel branchModel = theModel.getCurrentRepoHelper().getBranchModel();
+        try {
+            if (selectedBranch != null) {
+                RemoteRefUpdate.Status deleteStatus;
+
+                if (selectedBranch instanceof LocalBranchHelper) {
+                    branchModel.deleteLocalBranch((LocalBranchHelper) selectedBranch);
+                    updateUser(selectedBranch.getBranchName() + " deleted.");
+                }else {
+                    deleteStatus = branchModel.deleteRemoteBranch((RemoteBranchHelper) selectedBranch);
+                    String updateMessage = selectedBranch.getBranchName();
+                    // There are a number of possible cases, see JGit's documentation on RemoteRefUpdate.Status
+                    // for the full list.
+                    switch (deleteStatus) {
+                        case OK:
+                            updateMessage += " deleted.";
+                            break;
+                        case NON_EXISTING:
+                            updateMessage += " no longer\nexists on the server.";
+                        default:
+                            updateMessage += " deletion\nfailed.";
+                    }
+                    updateUser(updateMessage);
+                }
+            }
+        } catch (NotMergedException e) {
+            logger.warn("Can't delete branch because not merged warning");
+            Platform.runLater(() -> {
+                if(PopUpWindows.showForceDeleteBranchAlert() && selectedBranch instanceof LocalBranchHelper) {
+                    // If we need to force delete, then it must be a local branch
+                    forceDeleteBranch((LocalBranchHelper) selectedBranch);
+                }
+            });
+            this.showNotMergedNotification(selectedBranch);
+        } catch (CannotDeleteCurrentBranchException e) {
+            logger.warn("Can't delete current branch warning");
+            this.showCannotDeleteBranchNotification(selectedBranch);
+        } catch (TransportException e) {
+            this.showNotAuthorizedNotification();
+        } catch (IOException | GitAPIException e) {
+            logger.warn("IO error");
+            this.showGenericErrorNotification();
+        } finally {
+            gitStatus();
+        }
+    }
+
+    /**
+     * force deletes a branch
+     * @param branchToDelete LocalBranchHelper
+     */
+    private void forceDeleteBranch(LocalBranchHelper branchToDelete) {
+        BranchModel branchModel = theModel.getCurrentRepoHelper().getBranchModel();
+        logger.info("Deleting local branch");
+
+        try {
+            if (branchToDelete != null) {
+                // Local delete:
+                branchModel.forceDeleteLocalBranch(branchToDelete);
+
+                // Reset the branch heads
+                CommitTreeController.setBranchHeads(commitTreeModel, theModel.getCurrentRepoHelper());
+
+                updateUser(" deleted ");
+            }
+        } catch (CannotDeleteCurrentBranchException e) {
+            this.showCannotDeleteBranchNotification(branchToDelete);
+        } catch (GitAPIException e) {
+            this.showGenericErrorNotification();
+        }finally {
+            gitStatus();
         }
     }
 
@@ -1120,7 +1201,7 @@ public class SessionController {
                             // The error has this message if there is no longer a remote to push to
                             showLostRemoteNotification();
                         } else {
-                            showNotAuthorizedNotification(null);
+                            showNotAuthorizedNotification();
                         }
                     } catch(MissingRepoException e){
                         showMissingRepoNotification();
@@ -1176,7 +1257,7 @@ public class SessionController {
                             // The error has this message if there is no longer a remote to push to
                             showLostRemoteNotification();
                         } else {
-                            showNotAuthorizedNotification(null);
+                            showNotAuthorizedNotification();
                         }
                     } catch(MissingRepoException e){
                         showMissingRepoNotification();
@@ -1235,7 +1316,7 @@ public class SessionController {
                             // The error has this message if there is no longer a remote to push to
                             showLostRemoteNotification();
                         } else {
-                            showNotAuthorizedNotification(null);
+                            showNotAuthorizedNotification();
                         }
                     } catch(MissingRepoException e){
                         showMissingRepoNotification();
@@ -1294,7 +1375,7 @@ public class SessionController {
                     } catch(InvalidRemoteException e){
                         showNoRemoteNotification();
                     } catch (TransportException e) {
-                        showNotAuthorizedNotification(null);
+                        showNotAuthorizedNotification();
                     } catch(MissingRepoException e){
                         showMissingRepoNotification();
                         setButtonsDisabled(true);
@@ -1466,6 +1547,21 @@ public class SessionController {
             this.showNoRepoLoadedNotification();
             this.setButtonsDisabled(true);
         }
+    }
+
+    /**
+     * Helper method that tells the user a local branch was created
+     * @param type String
+     */
+    private void updateUser(String type) {
+        Platform.runLater(() -> {
+            Text txt = new Text(" Branch" + type);
+            PopOver popOver = new PopOver(txt);
+            popOver.setTitle("");
+            popOver.show(commitTreePanelView);
+            popOver.detach();
+            popOver.setAutoHide(true);
+        });
     }
 
     /**
@@ -1667,33 +1763,6 @@ public class SessionController {
         Platform.runLater(() -> {
             CommitHelper commit = this.theModel.getCurrentRepoHelper().getCommit(id);
 
-            /*GridPane tags = new GridPane();
-            tags.setPrefHeight(1);
-            int numTags = 0;
-            for (TagHelper t:commit.getTags()) {
-                Hyperlink link = new Hyperlink();
-                link.setText(t.getName());
-                link.setOnAction(event -> {
-                    logger.info("Delete tag dialog started.");
-                    if (t.presentDeleteDialog()) {
-                        try {
-                            theModel.getCurrentRepoHelper().getTagModel().deleteTag(t.getName());
-                        } catch (MissingRepoException | GitAPIException e) {
-                            e.printStackTrace();
-                        }
-                        if (!theModel.getCurrentRepoHelper().getTagModel().hasUnpushedTags()) {
-                            pushTagsButton.setVisible(false);
-                            pushButton.setVisible(true);
-                        }
-                        gitStatus();
-                        clearSelectedCommit();
-                        selectCommit(id);
-                    }
-                });
-                tags.add(link,numTags,0);
-                numTags++;
-            }
-            tagsPane.setContent(tags);*/
             commitInfoNameText = commit.getName();
             commitInfoMessageText.setVisible(true);
             commitInfoNameCopyButton.setVisible(true);
@@ -1797,7 +1866,7 @@ public class SessionController {
         });
     }
 
-    private void showNotAuthorizedNotification(Runnable callback) {
+    private void showNotAuthorizedNotification() {
         Platform.runLater(() -> {
             logger.warn("Invalid authorization warning");
             this.notificationPaneController.addNotification("The authorization information you gave does not allow you to modify this repository. " +
@@ -1919,6 +1988,19 @@ public class SessionController {
             logger.warn("Tried to revert commit with zero parents.");
             this.notificationPaneController.addNotification("You cannot revert that commit because it has zero parents.");
         });
+    }
+
+    private void showCannotDeleteBranchNotification(BranchHelper branch) {
+        Platform.runLater(() -> {
+            logger.warn("Cannot delete current branch notification");
+            notificationPaneController.addNotification(String.format("Sorry, %s can't be deleted right now. " +
+                    "Try checking out a different branch first.", branch.getBranchName()));
+        });
+    }
+
+    private void showNotMergedNotification(BranchHelper nonmergedBranch) {
+        logger.warn("Not merged notification");
+        notificationPaneController.addNotification("That branch has to be merged before you can do that.");
     }
 
     // END: ERROR NOTIFICATIONS ^^^
