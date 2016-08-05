@@ -245,7 +245,7 @@ public class Cell extends Pane{
     }
 
     void setTagLabels(List<String> tagLabels) {
-        setTagLabels(tagLabels);
+        this.refLabel.setTagLabels(tagLabels);
     }
 
     void setAnimate(boolean animate) {this.animate = animate;}

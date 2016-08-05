@@ -186,10 +186,11 @@ public abstract class RepoHelper {
         this.idMap = new HashMap<>();
 
         this.branchModel = new BranchModel(this);
-        this.tagModel = new TagModel(this);
 
         this.localCommits = this.parseAllLocalCommits();
         this.remoteCommits = this.parseAllRemoteCommits();
+        
+        this.tagModel = new TagModel(this);
 
         hasRemoteProperty = new SimpleBooleanProperty(!getLinkedRemoteRepoURLs().isEmpty());
 

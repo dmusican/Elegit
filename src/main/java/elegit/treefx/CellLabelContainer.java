@@ -145,9 +145,11 @@ public class CellLabelContainer extends GridPane {
      * @param labels the labels that refer to the current refs
      */
     void setCurrentLabels(List<String> labels) {
-        for (Node n : this.getChildren())
-            if (n instanceof  CellLabel)
-                ((CellLabel) n).setCurrent(true);
+        Platform.runLater(() -> {
+            for (Node n : getChildren())
+                if (n instanceof CellLabel && labels.contains(((CellLabel) n).getLabel().getText()))
+                    ((CellLabel) n).setCurrent(true);
+        });
     }
 
     /**
@@ -155,8 +157,11 @@ public class CellLabelContainer extends GridPane {
      * @param labels the labels that refer to tags
      */
     void setTagLabels(List<String> labels) {
-        for (Node n : this.getChildren())
-            if (n instanceof  CellLabel)
-                ((CellLabel) n).setTag(true);
+        Platform.runLater(() -> {
+            for (Node n : getChildren()) {
+                if (n instanceof CellLabel && labels.contains(((CellLabel) n).getLabel().getText()))
+                    ((CellLabel) n).setTag(true);
+            }
+        });
     }
 }

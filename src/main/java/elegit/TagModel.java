@@ -19,6 +19,8 @@ import org.eclipse.jgit.lib.ObjectReader;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.revwalk.RevTag;
 
+import javax.swing.text.html.HTML;
+
 /**
  * Model that holds all the tags for a repoHelper object
  */
@@ -202,6 +204,10 @@ public class TagModel {
             tags.add(makeTagHelper(r, s));
         }
         return tags;
+    }
+
+    public List<TagHelper> getAllTags() {
+        return new ArrayList<>(tagIdMap.values());
     }
 
     public boolean hasUnpushedTags() { return hasUnpushedTagsProperty.get(); }

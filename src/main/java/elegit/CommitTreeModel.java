@@ -107,6 +107,7 @@ public abstract class CommitTreeModel{
         this.removeCommitsFromTree(updates.getCommitsToRemove());
         this.addCommitsToTree(updates.getCommitsToAdd());
         this.updateCommitFills(updates.getCommitsToUpdate());
+        this.updateAllRefLabels();
 
         TreeLayout.stopMovingCells();
         this.updateView();
@@ -483,22 +484,57 @@ public abstract class CommitTreeModel{
         CellShape shape = (tracked) ? Cell.TRACKED_BRANCH_HEAD_SHAPE : Cell.UNTRACKED_BRANCH_HEAD_SHAPE;
 
         treeGraph.treeGraphModel.setCellShape(commitId, shape);
-
+        /*
         RepoHelper repo = sessionModel.getCurrentRepoHelper();
         String displayLabel = repo.getCommitDescriptorString(commitId, false);
         List<String> branchLabels = repo.getBranchModel().getBranchesWithHead(commitId);
         treeGraph.treeGraphModel.setCellLabels(commitId, displayLabel, branchLabels);
-        treeGraph.treeGraphModel.setCurrentCellLabels(commitId,this.sessionModel.getCurrentRepoHelper().getBranchModel().getCurrentBranches());
+        treeGraph.treeGraphModel.setCurrentCellLabels(commitId,this.sessionModel.getCurrentRepoHelper().getBranchModel().getCurrentBranches());*/
     }
 
-    public void setCommitRefLabels(CommitHelper helper) {
-        String commitId = helper.getId();
+    /**
+     * Looks for all ref labels, then adds them to the commit tree graph
+     */
+    public void updateAllRefLabels() {
+        String commitId;
         RepoHelper repo = sessionModel.getCurrentRepoHelper();
-        String displayLabel = repo.getCommitDescriptorString(commitId, false);
-        List<String> branchLabels = repo.getBranchModel().getBranchesWithHead(commitId);
-        List<String> tagLabels;
-        treeGraph.treeGraphModel.setCellLabels(commitId, displayLabel, branchLabels);
-        treeGraph.treeGraphModel.setCurrentCellLabels(commitId,this.sessionModel.getCurrentRepoHelper().getBranchModel().getCurrentBranches());
+        List<BranchHelper> branchLabels = repo.getBranchModel().getAllBranches();
+        List<TagHelper> tagLabels = repo.getTagModel().getAllTags();
+
+        List<String> tags = new ArrayList<>();
+
+        Map<String, List<String>> commitLabelMap = new HashMap<>();
+
+        for (BranchHelper helper : branchLabels) {
+            commitId = helper.getHead().getId();
+            if (commitLabelMap.containsKey(commitId))
+                commitLabelMap.get(commitId).add(helper.getBranchName());
+            else {
+                List<String> newList = new ArrayList<>();
+                newList.add(helper.getBranchName());
+                commitLabelMap.put(commitId, newList);
+            }
+        }
+
+        for (TagHelper helper : tagLabels) {
+            commitId = helper.getCommitId();
+            tags.add(helper.getName());
+            if (commitLabelMap.containsKey(commitId))
+                commitLabelMap.get(commitId).add(helper.getName());
+            else {
+                List<String> newList = new ArrayList<>();
+                newList.add(helper.getName());
+                commitLabelMap.put(commitId, newList);
+            }
+        }
+
+        // Set the labels
+        for (String commit : commitLabelMap.keySet()) {
+            String displayLabel = repo.getCommitDescriptorString(commit, false);
+            treeGraph.treeGraphModel.setCellLabels(commit, displayLabel, commitLabelMap.get(commit));
+            treeGraph.treeGraphModel.setCurrentCellLabels(commit, this.sessionModel.getCurrentRepoHelper().getBranchModel().getCurrentBranches());
+            treeGraph.treeGraphModel.setTagCellLabels(commit, tags);
+        }
     }
 
     /**

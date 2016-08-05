@@ -279,6 +279,7 @@ public class CommitTreeController{
             }
             model.setCommitAsBranchHead(head, isTracked);
         }
+        model.updateAllRefLabels();
         return true;
     }
 

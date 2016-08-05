@@ -75,7 +75,7 @@ public class CellLabel extends HBox {
      * @return the imageView with the correct image
      */
     protected ImageView getImage() {
-        image = new ImageView(new Image(isTag ? "elegit/images/tag.png" : "elegit/images/branch.png"));
+        image = new ImageView(new Image(isTag ? "elegit/images/tag.png" : isCurrent ? "elegit/images/branch_white.png" : "elegit/images/branch.png"));
         image.setFitHeight(15);
         image.setPreserveRatio(true);
         return image;
@@ -100,7 +100,8 @@ public class CellLabel extends HBox {
     void setCurrent(boolean current) {
         this.isCurrent = current;
 
-        label.setId(isCurrent ? "current" : "regular");
+        this.getChildren().get(1).setId(isCurrent ? "current" : "regular");
+        ((ImageView) this.getChildren().get(2)).setImage(new Image(isCurrent ? "elegit/images/branch_white.png" : "elegit/images/branch.png"));
         pointer.setFill(Color.web(isCurrent ? "#FFFFFF" : "333333"));
         this.setId(isCurrent ? "current" : isTag ? "tag" : "regular");
     }
@@ -112,8 +113,7 @@ public class CellLabel extends HBox {
     void setTag(boolean tag) {
         this.isTag = tag;
 
-        this.setId(isCurrent ? "current" : isTag ? "tag" : "regular");
-        image = new ImageView(new Image(isTag ? "elegit/images/tag.png" : "elegit/images/branch.png"));
+        ((ImageView) this.getChildren().get(2)).setImage(new Image(isTag ? "elegit/images/tag.png" : "elegit/images/branch.png"));
         this.setId(isCurrent ? "current" : isTag ? "tag" : "regular");
     }
 }
