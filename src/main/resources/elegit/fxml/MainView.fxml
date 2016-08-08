@@ -17,7 +17,7 @@
           AnchorPane.rightAnchor="5"
           AnchorPane.leftAnchor="5"
           AnchorPane.topAnchor="5"
-          AnchorPane.bottomAnchor="5">
+          AnchorPane.bottomAnchor="20">
         <columnConstraints>
             <ColumnConstraints hgrow="NEVER"/>
             <ColumnConstraints hgrow="NEVER"/>
@@ -28,15 +28,15 @@
         <rowConstraints>
             <RowConstraints vgrow="NEVER"/>
             <RowConstraints vgrow="NEVER"/>
+            <RowConstraints vgrow="NEVER"/>
+            <RowConstraints vgrow="NEVER"/>
+            <RowConstraints vgrow="NEVER"/>
             <RowConstraints vgrow="ALWAYS"/>
-            <RowConstraints vgrow="NEVER"/>
-            <RowConstraints vgrow="NEVER"/>
-            <RowConstraints vgrow="NEVER"/>
             <RowConstraints vgrow="NEVER"/>
             <RowConstraints vgrow="NEVER"/>
         </rowConstraints>
 
-        <!-- TOP LEFT DROPDOWN, + AND - BUTTONS-->
+        <!-- Dropdown, open in file manager, plus and minus buttons -->
         <HBox spacing="5">
             <ComboBox id="repoDropdown"
                       fx:id="repoDropdownSelector"
@@ -138,11 +138,20 @@
                 GridPane.halignment="CENTER"/>
 
         <!-- Working directory and local repo separator -->
-        <StackPane GridPane.columnIndex="1"
-                   GridPane.rowSpan="8">
-            <Line id="notificationLine"
-                  StackPane.alignment="CENTER"
-                  endY="800"/>
+        <VBox GridPane.rowSpan="8"
+              GridPane.columnIndex="1"
+              prefWidth="4"
+              id="separator">
+            <GridPane.margin>
+               <Insets top="-5" left="8" right="8" bottom="-2"/>
+            </GridPane.margin>
+        </VBox>
+
+        <!-- Commit and merge buttons -->
+        <StackPane GridPane.columnIndex="0"
+                   GridPane.rowIndex="1"
+                   GridPane.columnSpan="3"
+                   pickOnBounds="false">
             <ArrowButton id="codeButton"
                          fx:id="commitButton"
                          text="Commit"
@@ -167,6 +176,7 @@
             </ImageView>
             <VBox   GridPane.halignment="CENTER"
                     spacing="5"
+                    alignment="CENTER"
                     GridPane.rowIndex="1"
                     GridPane.columnIndex="2">
                 <Text   text="Local Repository">

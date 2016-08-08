@@ -135,6 +135,10 @@
 
 }
 
+#separator {
+    -fx-background-color: #333333;
+}
+
 .tree-cell:selected {
   -fx-background-color: #BFBFBF;
 }

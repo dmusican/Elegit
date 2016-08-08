@@ -54,7 +54,7 @@ public abstract class FileStructurePanelView extends Region{
         // TreeViews must all have ONE root to hold the leafs. Don't show that root:
         this.directoryTreeView.setShowRoot(false);
 
-        this.directoryTreeView.prefHeightProperty().bind(this.heightProperty());
+        //this.directoryTreeView.prefHeightProperty().bind(this.heightProperty());
 
         Platform.runLater(() -> {
             this.getChildren().clear();

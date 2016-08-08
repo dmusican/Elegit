@@ -15,10 +15,6 @@ import javafx.scene.layout.Region;
  */
 public class CommitTreePanelView extends Region{
 
-    // Constants for panel size
-    public static int TREE_PANEL_WIDTH = 500;
-    public static int TREE_PANEL_HEIGHT = (Cell.BOX_SIZE + TreeLayout.V_SPACING) * 5;
-
     // Thread information
     public boolean isLayoutThreadRunning = false;
     private Task task;
@@ -30,7 +26,7 @@ public class CommitTreePanelView extends Region{
      */
     public CommitTreePanelView(){
         super();
-        this.setMinHeight(TREE_PANEL_HEIGHT);
+        this.setMinHeight(0);
     }
 
     /**
