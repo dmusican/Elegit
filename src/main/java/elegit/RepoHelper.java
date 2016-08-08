@@ -257,6 +257,40 @@ public abstract class RepoHelper {
         git.close();
     }
 
+    /**
+     * Checks out a file from the index
+     * @param filePath the file to check out
+     */
+    public void checkoutFile(Path filePath) {
+
+    }
+
+    /**
+     * Checks out files from the index
+     * @param filePaths the files to check out
+     */
+    public void checkoutFiles(List<Path> filePaths) {
+
+    }
+
+    /**
+     * Checks out a file from the specified point
+     * @param filePath the file to check out
+     * @param startPoint the tree-ish point to checkout the file from
+     */
+    public void checkoutFile(Path filePath, String startPoint) {
+
+    }
+
+    /**
+     * Checks out files from the specified point
+     * @param filePaths the files to check out
+     * @param startPoint the tree-ish point to checkout the file from
+     */
+    public void checkoutFiles(List<Path> filePaths, String startPoint) {
+
+    }
+
 
 
     /**
