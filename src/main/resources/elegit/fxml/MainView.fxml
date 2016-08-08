@@ -29,10 +29,8 @@
             <RowConstraints vgrow="NEVER"/>
             <RowConstraints vgrow="NEVER"/>
             <RowConstraints vgrow="NEVER"/>
+            <RowConstraints vgrow="ALWAYS"/>
             <RowConstraints vgrow="NEVER"/>
-            <RowConstraints vgrow="NEVER"/>
-            <RowConstraints vgrow="NEVER"/>
-            <RowConstraints vgrow="SOMETIMES"/>
             <RowConstraints vgrow="NEVER"/>
             <RowConstraints vgrow="NEVER"/>
         </rowConstraints>
@@ -149,19 +147,18 @@
                 fx:id="checkoutButton"
                 id = "codeButton"
                 onAction="#showBranchCheckout"
-                GridPane.rowIndex="7"
-                GridPane.rowSpan="1"
-                GridPane.halignment="CENTER"/>
+                GridPane.rowIndex="5"
+                GridPane.halignment="CENTER"
+                GridPane.valignment="BOTTOM"/>
         <Button text="Create/delete a branch"
                 id = "codeButton"
                 fx:id="addDeleteBranchButton"
                 onAction="#handleNewBranchButton"
-                GridPane.rowIndex="8"
-                GridPane.rowSpan="1"
+                GridPane.rowIndex="6"
                 GridPane.halignment="CENTER"/>
 
         <!-- Working directory and local repo separator -->
-        <VBox GridPane.rowSpan="8"
+        <VBox GridPane.rowSpan="7"
               GridPane.columnIndex="1"
               prefWidth="4"
               id="separator">
@@ -232,12 +229,12 @@
         <!-- Commit tree panel view and legend-->
         <CommitTreePanelView fx:id="commitTreePanelView"
                                 GridPane.rowIndex="3"
-                                GridPane.rowSpan="5"
+                                GridPane.rowSpan="3"
                                 GridPane.columnIndex="2"/>
         <Hyperlink  fx:id="legendLink"
                     text="What do all these symbols mean?"
                     onAction="#showLegend"
-                    GridPane.rowIndex="8"
+                    GridPane.rowIndex="6"
                     GridPane.columnIndex="2"/>
 
         <!-- Local repository and remote repository separator -->
@@ -340,13 +337,11 @@
         <!-- Commit info window -->
         <VBox GridPane.rowIndex="3"
                 GridPane.columnIndex="4"
-                alignment="CENTER">
-
-            <ImageView  fitHeight="10"
-                        fitWidth="250"
-                        opacity=".4">
-                <Image  url="@../images/line.png"/>
-            </ImageView>
+                alignment="TOP_CENTER"
+                spacing="5">
+            <GridPane.margin>
+                <Insets bottom="5"/>
+            </GridPane.margin>
             <Text   text="Commit Info:"
                     style="-fx-font-weight: bold;"/>
             <StackPane>
@@ -355,27 +350,23 @@
                 <TextArea wrapText="true"
                           editable="false"
                           prefWidth="230"
-                          prefHeight="230"
+                          prefHeight="300"
                           fx:id="commitInfoMessageText"/>
             </StackPane>
+            <!-- Go to commit and copy commit hash buttons -->
+            <HBox   spacing="15"
+                    alignment="CENTER">
+                <Button fx:id="commitInfoGoToButton"
+                        onAction="#handleGoToCommitButton"/>
+                <Button fx:id="commitInfoNameCopyButton"
+                        onAction="#handleCommitNameCopyButton"/>
+            </HBox>
         </VBox>
-
-        <!-- Go to commit and copy commit hash buttons -->
-        <HBox   spacing="15"
-                alignment="CENTER"
-                GridPane.rowIndex="4"
-                GridPane.columnIndex="4"
-                GridPane.halignment="CENTER">
-            <Button fx:id="commitInfoGoToButton"
-                    onAction="#handleGoToCommitButton"/>
-            <Button fx:id="commitInfoNameCopyButton"
-                    onAction="#handleCommitNameCopyButton"/>
-        </HBox>
 
         <!-- Tagging UI -->
         <HBox   alignment="CENTER"
                 spacing="5"
-                GridPane.rowIndex="5"
+                GridPane.rowIndex="4"
                 GridPane.columnIndex="4"
                 GridPane.halignment="CENTER">
             <ArrowButton id="codeButton"
