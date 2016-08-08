@@ -261,8 +261,9 @@ public abstract class RepoHelper {
      * Checks out a file from the index
      * @param filePath the file to check out
      */
-    public void checkoutFile(Path filePath) {
-
+    public void checkoutFile(Path filePath) throws GitAPIException {
+        Git git = new Git(this.repo);
+        git.checkout().addPath(filePath.toString()).call();
     }
 
     /**

@@ -765,6 +765,26 @@ public class SessionController {
         }
     }
 
+    /**Basic handler for the checkout button. Just checks out the given file
+     * from the index of HEAD
+     *
+     * @param filePath the path of the file to checkout from the index
+     */
+    public void handleCheckoutButton(Path filePath) {
+        try {
+            logger.info("Checkout file button clicked");
+            if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
+            if(!this.theModel.getCurrentRepoHelper().exists()) throw new MissingRepoException();
+            theModel.getCurrentRepoHelper().checkoutFile(filePath);
+        } catch (NoRepoLoadedException e) {
+            showNoRepoLoadedNotification();
+        } catch (MissingRepoException e) {
+            showMissingRepoNotification();
+        } catch (GitAPIException e) {
+            showGenericErrorNotification();
+        }
+    }
+
     /**
      * Commits all files that have been staged with the message
      */
