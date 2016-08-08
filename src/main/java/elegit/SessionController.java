@@ -455,6 +455,9 @@ public class SessionController {
             addDeleteBranchButton.setDisable(disable);
             checkoutButton.setDisable(disable);
             mergeButton.setDisable(disable);
+            needToFetch.setVisible(disable);
+            currentLocalBranchText.setVisible(disable);
+            currentRemoteTrackingBranchText.setVisible(disable);
         });
 
         root.setOnMouseClicked(event -> {
