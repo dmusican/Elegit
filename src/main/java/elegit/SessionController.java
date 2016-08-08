@@ -1103,6 +1103,10 @@ public class SessionController {
         }
         try {
             selectedBranch.checkoutBranch();
+
+            // If the checkout worked, update the branch heads and focus on that commit
+            CommitTreeController.setBranchHeads(CommitTreeController.getCommitTreeModel(), theModel.getCurrentRepoHelper());
+            CommitTreeController.focusCommitInGraph(theModel.getCurrentRepoHelper().getBranchModel().getCurrentBranchHead());
             gitStatus();
             return true;
         } catch (JGitInternalException e){
