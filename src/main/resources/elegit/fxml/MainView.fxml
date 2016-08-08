@@ -31,7 +31,8 @@
             <RowConstraints vgrow="NEVER"/>
             <RowConstraints vgrow="NEVER"/>
             <RowConstraints vgrow="NEVER"/>
-            <RowConstraints vgrow="ALWAYS"/>
+            <RowConstraints vgrow="NEVER"/>
+            <RowConstraints vgrow="SOMETIMES"/>
             <RowConstraints vgrow="NEVER"/>
             <RowConstraints vgrow="NEVER"/>
         </rowConstraints>
@@ -92,8 +93,30 @@
             </VBox>
         </StackPane>
 
+        <!-- Separator between headings and content -->
+        <HBox GridPane.rowIndex="2"
+              GridPane.columnSpan="3"
+              id="separator-dashed"
+              prefHeight="4">
+            <GridPane.margin>
+                <Insets top="10" bottom="10" left="-3" right="-15"/>
+            </GridPane.margin>
+            <Rectangle height="4"/>
+        </HBox>
+
+        <!-- Separator between remote and commit info -->
+        <HBox GridPane.rowIndex="2"
+              GridPane.columnIndex="4"
+              id="separator"
+              prefHeight="4">
+            <GridPane.margin>
+                <Insets top="10" bottom="10" left="-19" right="-15"/>
+            </GridPane.margin>
+            <Rectangle height="4"/>
+        </HBox>
+
         <!-- File tree panel view -->
-        <TabPane GridPane.rowIndex="2">
+        <TabPane GridPane.rowIndex="3">
             <Tab text="Working Tree"
                  closable="false"
                  fx:id="workingTreePanelTab">
@@ -109,7 +132,7 @@
         <!-- Add and remove buttons block -->
         <HBox   spacing="20"
                 GridPane.halignment="CENTER"
-                GridPane.rowIndex="3"
+                GridPane.rowIndex="4"
                 alignment="CENTER">
             <Button id="codeButton"
                     fx:id="addButton"
@@ -126,14 +149,14 @@
                 fx:id="checkoutButton"
                 id = "codeButton"
                 onAction="#showBranchCheckout"
-                GridPane.rowIndex="6"
+                GridPane.rowIndex="7"
                 GridPane.rowSpan="1"
                 GridPane.halignment="CENTER"/>
         <Button text="Create/delete a branch"
                 id = "codeButton"
                 fx:id="addDeleteBranchButton"
                 onAction="#handleNewBranchButton"
-                GridPane.rowIndex="7"
+                GridPane.rowIndex="8"
                 GridPane.rowSpan="1"
                 GridPane.halignment="CENTER"/>
 
@@ -143,25 +166,36 @@
               prefWidth="4"
               id="separator">
             <GridPane.margin>
-               <Insets top="-5" left="8" right="8" bottom="-2"/>
+               <Insets top="-5" left="15" right="15" bottom="-2"/>
             </GridPane.margin>
         </VBox>
 
         <!-- Commit and merge buttons -->
-        <StackPane GridPane.columnIndex="0"
-                   GridPane.rowIndex="1"
-                   GridPane.columnSpan="3"
-                   pickOnBounds="false">
-            <ArrowButton id="codeButton"
-                         fx:id="commitButton"
-                         text="Commit"
-                         arrowRight="true"
-                         onAction="#handleCommitButton"/>
-            <Button text="Merge"
-                    fx:id="mergeButton"
-                    id = "codeButton"
-                    onAction="#handleGeneralMergeButton"/>
-        </StackPane>
+        <ArrowButton id="codeButton"
+                     fx:id="commitButton"
+                     text="Commit"
+                     arrowRight="true"
+                     onAction="#handleCommitButton"
+                     GridPane.rowIndex="1"
+                     GridPane.columnIndex="1"
+                     GridPane.valignment="TOP"
+                     GridPane.halignment="LEFT">
+            <GridPane.margin>
+                <Insets left="-10" right="-40" top="20"/>
+            </GridPane.margin>
+        </ArrowButton>
+        <Button text="Merge"
+                fx:id="mergeButton"
+                id = "codeButton"
+                onAction="#handleGeneralMergeButton"
+                GridPane.rowIndex="1"
+                GridPane.columnIndex="1"
+                GridPane.valignment="BOTTOM"
+                GridPane.halignment="LEFT">
+            <GridPane.margin>
+                <Insets left="-10" right="-40" bottom="20"/>
+            </GridPane.margin>
+        </Button>
 
         <!-- Local Repository block -->
         <StackPane  GridPane.rowIndex="1"
@@ -197,47 +231,74 @@
 
         <!-- Commit tree panel view and legend-->
         <CommitTreePanelView fx:id="commitTreePanelView"
-                                GridPane.rowIndex="2"
+                                GridPane.rowIndex="3"
                                 GridPane.rowSpan="5"
                                 GridPane.columnIndex="2"/>
         <Hyperlink  fx:id="legendLink"
                     text="What do all these symbols mean?"
                     onAction="#showLegend"
-                    GridPane.rowIndex="7"
+                    GridPane.rowIndex="8"
                     GridPane.columnIndex="2"/>
 
         <!-- Local repository and remote repository separator -->
-        <VBox   GridPane.columnIndex="3"
-                GridPane.rowIndex="0"
-                GridPane.rowSpan="2"
-                GridPane.valignment="CENTER"
-                spacing="5">
-            <ArrowButton id="codeButton"
-                         fx:id="fetchButton"
-                         text="Fetch"
-                         arrowLeft="true"
-                         onAction="#handleFetchButton"/>
-            <ArrowButton id="codeButton"
-                         fx:id="pushTagsButton"
-                         text="Push Tags"
-                         arrowRight="true"
-                         visible="false"
-                         onAction="#handlePushTagsButton"/>
-            <ArrowButton id="codeButton"
-                         fx:id="pushButton"
-                         text="Push"
-                         arrowRight="true"
-                         onAction="#handlePushButton">
-                <contextMenu>
-                    <ContextMenu    fx:id="pushMenu">
-                        <items>
-                            <MenuItem   text="Push all branches"
-                                        onAction="#handlePushAllButton"/>
-                        </items>
-                    </ContextMenu>
-                </contextMenu>
-            </ArrowButton>
+        <VBox   GridPane.rowSpan="2"
+                GridPane.columnIndex="3"
+                id="separator"
+                prefWidth="4">
+            <GridPane.margin>
+                <Insets top="-5" left="15" right="15" bottom="-10"/>
+            </GridPane.margin>
         </VBox>
+
+        <!-- Fetch and push buttons -->
+        <ArrowButton id="codeButton"
+                     fx:id="fetchButton"
+                     text="Fetch"
+                     arrowLeft="true"
+                     onAction="#handleFetchButton"
+                     GridPane.columnIndex="3"
+                     GridPane.rowIndex="1"
+                     GridPane.halignment="RIGHT"
+                     GridPane.valignment="TOP">
+            <GridPane.margin>
+                <Insets top="20" left="-40" right="-10"/>
+            </GridPane.margin>
+        </ArrowButton>
+        <ArrowButton id="codeButton"
+                     fx:id="pushTagsButton"
+                     text="Push Tags"
+                     arrowRight="true"
+                     visible="false"
+                     onAction="#handlePushTagsButton"
+                     GridPane.columnIndex="3"
+                     GridPane.rowIndex="1"
+                     GridPane.halignment="RIGHT"
+                     GridPane.valignment="BOTTOM">
+            <GridPane.margin>
+                <Insets bottom="20" left="-100" right="-10"/>
+            </GridPane.margin>
+        </ArrowButton>
+        <ArrowButton id="codeButton"
+                     fx:id="pushButton"
+                     text="Push"
+                     arrowRight="true"
+                     onAction="#handlePushButton"
+                     GridPane.columnIndex="3"
+                     GridPane.rowIndex="1"
+                     GridPane.halignment="RIGHT"
+                     GridPane.valignment="BOTTOM">
+            <GridPane.margin>
+                <Insets bottom="20" left="-40" right="-10"/>
+            </GridPane.margin>
+            <contextMenu>
+                <ContextMenu    fx:id="pushMenu">
+                    <items>
+                        <MenuItem   text="Push all branches"
+                                    onAction="#handlePushAllButton"/>
+                    </items>
+                </ContextMenu>
+            </contextMenu>
+        </ArrowButton>
 
         <!-- Remote repository block -->
         <StackPane  GridPane.columnIndex="4"
@@ -277,9 +338,9 @@
         </StackPane>
 
         <!-- Commit info window -->
-        <VBox GridPane.rowIndex="2"
+        <VBox GridPane.rowIndex="3"
                 GridPane.columnIndex="4"
-                spacing="30">
+                alignment="CENTER">
 
             <ImageView  fitHeight="10"
                         fitWidth="250"
@@ -302,7 +363,7 @@
         <!-- Go to commit and copy commit hash buttons -->
         <HBox   spacing="15"
                 alignment="CENTER"
-                GridPane.rowIndex="3"
+                GridPane.rowIndex="4"
                 GridPane.columnIndex="4"
                 GridPane.halignment="CENTER">
             <Button fx:id="commitInfoGoToButton"
@@ -314,7 +375,7 @@
         <!-- Tagging UI -->
         <HBox   alignment="CENTER"
                 spacing="5"
-                GridPane.rowIndex="4"
+                GridPane.rowIndex="5"
                 GridPane.columnIndex="4"
                 GridPane.halignment="CENTER">
             <ArrowButton id="codeButton"

@@ -1,5 +1,5 @@
 .root {
-    -fx-background-color: #F2F1EF;
+    -fx-background-color: -fx-background-default;
     -fx-font-family: "Avenir";
     -fx-focus-color: #BFBFBF;
 }
@@ -136,7 +136,10 @@
 }
 
 #separator {
-    -fx-background-color: #333333;
+    -fx-background-color: #777777;
+}
+#separator-dashed {
+    -fx-background-color: linear-gradient(from 0px 0px to 10px 0px, repeat, -fx-background-default 0%, -fx-background-default 49%, #777777 51%, #777777 100%);
 }
 
 .tree-cell:selected {
