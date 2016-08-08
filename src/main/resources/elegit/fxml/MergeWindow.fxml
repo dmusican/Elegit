@@ -11,7 +11,7 @@
 <AnchorPane fx:controller="elegit.MergeWindowController"
                   xmlns:fx="http://javafx.com/fxml"
                   fx:id="anchorRoot"
-                    prefWidth="300" prefHeight="175">
+                    prefWidth="300" prefHeight="200">
     <VBox   spacing="10"
             AnchorPane.rightAnchor="5"
             AnchorPane.leftAnchor="5"
@@ -21,7 +21,8 @@
             <Insets bottom="10"/>
         </padding>
 
-        <TabPane tabClosingPolicy="UNAVAILABLE" fx:id="mergeTypePane">
+        <TabPane tabClosingPolicy="UNAVAILABLE" fx:id="mergeTypePane"
+                    VBox.vgrow="ALWAYS">
             <tabs>
                 <Tab text="From Fetch">
                     <content>
