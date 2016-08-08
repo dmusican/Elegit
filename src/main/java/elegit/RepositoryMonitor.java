@@ -34,19 +34,33 @@ public class RepositoryMonitor{
     private static Thread th;
     private static boolean interrupted = false;
 
+    private static SessionModel currentModel;
+
+    private static boolean alreadyWatching = false;
+
+    public static void setSessionModel(SessionModel model) {
+        currentModel = model;
+    }
+
+    public static void startWatching(SessionModel model, SessionController controller) {
+        setSessionModel(model);
+        if(!alreadyWatching){
+            beginWatchingLocal(controller);
+            beginWatchingRemote();
+            alreadyWatching = true;
+        }
+    }
+
     /**
      * Associates the given model with this monitor. Updating the current
      * repository will cause the monitor to stop watching the old repository
      * and begin watching the new one
-     * @param model the model to pull the repositories from
      */
-    public static void beginWatchingRemote(SessionModel model){
-        model.currentRepoHelperProperty.addListener(
-            (observable, oldValue, newValue) -> {
-                watchRepoForRemoteChanges(newValue);
-            }
+    private static void beginWatchingRemote(){
+        currentModel.currentRepoHelperProperty.addListener(
+            (observable, oldValue, newValue) -> watchRepoForRemoteChanges(newValue)
         );
-        watchRepoForRemoteChanges(model.getCurrentRepoHelper());
+        watchRepoForRemoteChanges(currentModel.getCurrentRepoHelper());
     }
 
     /**
@@ -157,10 +171,10 @@ public class RepositoryMonitor{
         hasFoundNewRemoteChanges.set(false);
     }
 
-    public static synchronized void beginWatchingLocal(SessionController controller, SessionModel model){
+    private static synchronized void beginWatchingLocal(SessionController controller){
         Thread thread = new Thread(() -> {
             while(true){
-                if(!pauseLocalMonitor && model.getCurrentRepoHelper() != null && model.getCurrentRepoHelper().exists()){
+                if(!pauseLocalMonitor && currentModel.getCurrentRepoHelper() != null && currentModel.getCurrentRepoHelper().exists()){
                     controller.gitStatus();
                 }
 

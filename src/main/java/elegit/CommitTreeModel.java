@@ -101,19 +101,22 @@ public abstract class CommitTreeModel{
     }
 
     public synchronized void update() throws GitAPIException, IOException {
-        // Get the changes between this model and the repo after updating the repo
-        this.sessionModel.getCurrentRepoHelper().updateModel();
-        UpdateModel updates = this.getChanges();
+        // Handles rare edge case with the RepositoryMonitor and removing repos
+        if(this.sessionModel.getCurrentRepoHelper() != null){
+            // Get the changes between this model and the repo after updating the repo
+            this.sessionModel.getCurrentRepoHelper().updateModel();
+            UpdateModel updates = this.getChanges();
 
-        if (!updates.hasChanges()) return;
+            if (!updates.hasChanges()) return;
 
-        this.removeCommitsFromTree(updates.getCommitsToRemove());
-        this.addCommitsToTree(updates.getCommitsToAdd());
-        this.updateCommitFills(updates.getCommitsToUpdate());
-        this.updateAllRefLabels();
+            this.removeCommitsFromTree(updates.getCommitsToRemove());
+            this.addCommitsToTree(updates.getCommitsToAdd());
+            this.updateCommitFills(updates.getCommitsToUpdate());
+            this.updateAllRefLabels();
 
-        TreeLayout.stopMovingCells();
-        this.updateView();
+            TreeLayout.stopMovingCells();
+            this.updateView();
+        }
     }
 
 
