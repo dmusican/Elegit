@@ -228,6 +228,40 @@ public abstract class RepoHelper {
      * @param filePath the path of the file to add.
      * @throws GitAPIException if the `git add` call fails.
      */
+    public void addFilePathTest(Path filePath) throws GitAPIException {
+        Git git = new Git(this.repo);
+        // git add:
+        Path relativizedFilePath = this.localPath.relativize(filePath);
+        git.add()
+                .addFilepattern(relativizedFilePath.toString())
+                .call();
+        git.close();
+    }
+
+    /**
+     * Adds multiple files to the repository, has relativizing for unit tests
+     *
+     * @param filePaths an ArrayList of file paths to add.
+     * @throws GitAPIException if the `git add` call fails.
+     */
+    public void addFilePathsTest(ArrayList<Path> filePaths) throws GitAPIException {
+        Git git = new Git(this.repo);
+        // git add:
+        AddCommand adder = git.add();
+        for (Path filePath : filePaths) {
+            Path localizedFilePath = this.localPath.relativize(filePath);
+            adder.addFilepattern(localizedFilePath.toString());
+        }
+        adder.call();
+        git.close();
+    }
+
+    /**
+     * Adds a file to the repository
+     *
+     * @param filePath the path of the file to add.
+     * @throws GitAPIException if the `git add` call fails.
+     */
     public void addFilePath(Path filePath) throws GitAPIException {
         Git git = new Git(this.repo);
         // git add:
@@ -249,9 +283,7 @@ public abstract class RepoHelper {
         // git add:
         AddCommand adder = git.add();
         for (Path filePath : filePaths) {
-            Path localizedFilePath = this.localPath.relativize(filePath);
-            adder.addFilepattern(localizedFilePath.toString());
-            //adder.addFilepattern(filePath.toString());
+            adder.addFilepattern(filePath.toString());
         }
         adder.call();
         git.close();
@@ -261,17 +293,21 @@ public abstract class RepoHelper {
      * Checks out a file from the index
      * @param filePath the file to check out
      */
-    public void checkoutFile(Path filePath) throws GitAPIException {
+    void checkoutFile(Path filePath) throws GitAPIException {
         Git git = new Git(this.repo);
-        git.checkout().addPath(filePath.toString()).call();
+        git.checkout().setStartPoint("HEAD").addPath(filePath.toString()).call();
     }
 
     /**
      * Checks out files from the index
      * @param filePaths the files to check out
      */
-    public void checkoutFiles(List<Path> filePaths) {
-
+    void checkoutFiles(List<Path> filePaths) throws GitAPIException {
+        Git git = new Git(this.repo);
+        CheckoutCommand checkout = git.checkout().setStartPoint("HEAD");
+        for (Path filePath : filePaths)
+            checkout.addPath(filePath.toString());
+        checkout.call();
     }
 
     /**
@@ -279,8 +315,9 @@ public abstract class RepoHelper {
      * @param filePath the file to check out
      * @param startPoint the tree-ish point to checkout the file from
      */
-    public void checkoutFile(Path filePath, String startPoint) {
-
+    void checkoutFile(Path filePath, String startPoint) throws GitAPIException {
+        Git git = new Git(this.repo);
+        git.checkout().setStartPoint(startPoint).addPath(filePath.toString()).call();
     }
 
     /**
@@ -288,11 +325,13 @@ public abstract class RepoHelper {
      * @param filePaths the files to check out
      * @param startPoint the tree-ish point to checkout the file from
      */
-    public void checkoutFiles(List<Path> filePaths, String startPoint) {
-
+    void checkoutFiles(List<Path> filePaths, String startPoint) throws GitAPIException {
+        Git git = new Git(this.repo);
+        CheckoutCommand checkout = git.checkout().setStartPoint(startPoint);
+        for (Path filePath : filePaths)
+            checkout.addPath(filePath.toString());
+        checkout.call();
     }
-
-
 
     /**
      * Removes a file from the repository.

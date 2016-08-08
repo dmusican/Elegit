@@ -6,7 +6,6 @@ import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.junit.After;
 import org.junit.Before;
@@ -103,7 +102,7 @@ public class CommitLabelTest {
             fileTextWriter.println("Add a line to the file");
         }
 
-        this.helper.addFilePath(file.toPath());
+        this.helper.addFilePathTest(file.toPath());
         this.helper.commit("Modified file.txt in a unit test!");
 
         Main.sessionController.gitStatus();
@@ -129,7 +128,7 @@ public class CommitLabelTest {
             fileTextWriter.println("Add another line to the file");
         }
 
-        this.helper.addFilePath(file.toPath());
+        this.helper.addFilePathTest(file.toPath());
         this.helper.commit("Modified file.txt in a unit test again!");
 
         Main.sessionController.gitStatus();

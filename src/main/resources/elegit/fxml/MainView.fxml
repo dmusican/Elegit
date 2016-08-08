@@ -137,12 +137,16 @@
                     text="Add"
                     onAction="#handleAddButton"/>
             <Button id="codeButton"
+                    fx:id="checkoutFileButton"
+                    text="Checkout"
+                    onAction="#handleCheckoutButton"/>
+            <Button id="codeButton"
                     fx:id="removeButton"
                     text="Remove"
                     onAction="#handleRemoveButton"/>
         </HBox>
 
-        <!-- Checkout button and create/delete branch button -->
+        <!-- Checkout branch button and create/delete branch button -->
         <Button text="Checkout different branch"
                 fx:id="checkoutButton"
                 id = "codeButton"
