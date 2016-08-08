@@ -30,7 +30,7 @@ public class CommitTreePanelView extends Region{
      */
     public CommitTreePanelView(){
         super();
-        this.setPrefHeight(TREE_PANEL_HEIGHT);
+        this.setMinHeight(TREE_PANEL_HEIGHT);
     }
 
     /**
