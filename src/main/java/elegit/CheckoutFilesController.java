@@ -4,7 +4,6 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.Scene;
 import javafx.scene.layout.GridPane;
-import javafx.stage.Modality;
 import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -20,7 +19,6 @@ public class CheckoutFilesController {
     private RepoHelper repoHelper;
 
     public BooleanProperty isClosed;
-    private Thread refresher;
 
     private static SessionController sessionController;
 
@@ -48,10 +46,8 @@ public class CheckoutFilesController {
         stage = new Stage();
         stage.setTitle("Checkout files");
         stage.setScene(new Scene(pane, 550, 450));
-        stage.initModality(Modality.APPLICATION_MODAL);
         stage.setOnCloseRequest(event -> {
             logger.info("Closed checkout files from commit window");
-            refresher.interrupt();
         });
         stage.show();
     }
