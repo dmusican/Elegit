@@ -18,7 +18,6 @@ import org.eclipse.jgit.revplot.PlotCommitList;
 import org.eclipse.jgit.revplot.PlotLane;
 import org.eclipse.jgit.revplot.PlotWalk;
 import org.eclipse.jgit.revwalk.RevCommit;
-import org.eclipse.jgit.revwalk.RevTag;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.transport.*;
 import org.eclipse.jgit.treewalk.TreeWalk;
@@ -228,6 +227,40 @@ public abstract class RepoHelper {
      * @param filePath the path of the file to add.
      * @throws GitAPIException if the `git add` call fails.
      */
+    public void addFilePathTest(Path filePath) throws GitAPIException {
+        Git git = new Git(this.repo);
+        // git add:
+        Path relativizedFilePath = this.localPath.relativize(filePath);
+        git.add()
+                .addFilepattern(relativizedFilePath.toString())
+                .call();
+        git.close();
+    }
+
+    /**
+     * Adds multiple files to the repository, has relativizing for unit tests
+     *
+     * @param filePaths an ArrayList of file paths to add.
+     * @throws GitAPIException if the `git add` call fails.
+     */
+    public void addFilePathsTest(ArrayList<Path> filePaths) throws GitAPIException {
+        Git git = new Git(this.repo);
+        // git add:
+        AddCommand adder = git.add();
+        for (Path filePath : filePaths) {
+            Path localizedFilePath = this.localPath.relativize(filePath);
+            adder.addFilepattern(localizedFilePath.toString());
+        }
+        adder.call();
+        git.close();
+    }
+
+    /**
+     * Adds a file to the repository
+     *
+     * @param filePath the path of the file to add.
+     * @throws GitAPIException if the `git add` call fails.
+     */
     public void addFilePath(Path filePath) throws GitAPIException {
         Git git = new Git(this.repo);
         // git add:
@@ -249,9 +282,7 @@ public abstract class RepoHelper {
         // git add:
         AddCommand adder = git.add();
         for (Path filePath : filePaths) {
-            Path localizedFilePath = this.localPath.relativize(filePath);
-            adder.addFilepattern(localizedFilePath.toString());
-            //adder.addFilepattern(filePath.toString());
+            adder.addFilepattern(filePath.toString());
         }
         adder.call();
         git.close();
@@ -261,16 +292,23 @@ public abstract class RepoHelper {
      * Checks out a file from the index
      * @param filePath the file to check out
      */
-    public void checkoutFile(Path filePath) {
-
+    void checkoutFile(Path filePath) throws GitAPIException {
+        Git git = new Git(this.repo);
+        git.checkout().setStartPoint("HEAD").addPath(filePath.toString()).call();
+        git.close();
     }
 
     /**
      * Checks out files from the index
      * @param filePaths the files to check out
      */
-    public void checkoutFiles(List<Path> filePaths) {
-
+    void checkoutFiles(List<Path> filePaths) throws GitAPIException {
+        Git git = new Git(this.repo);
+        CheckoutCommand checkout = git.checkout().setStartPoint("HEAD");
+        for (Path filePath : filePaths)
+            checkout.addPath(filePath.toString());
+        checkout.call();
+        git.close();
     }
 
     /**
@@ -278,20 +316,27 @@ public abstract class RepoHelper {
      * @param filePath the file to check out
      * @param startPoint the tree-ish point to checkout the file from
      */
-    public void checkoutFile(Path filePath, String startPoint) {
-
+    void checkoutFile(String filePath, String startPoint) throws GitAPIException {
+        Git git = new Git(this.repo);
+        git.checkout().setStartPoint(startPoint).addPath(filePath).call();
+        git.close();
     }
 
     /**
      * Checks out files from the specified point
      * @param filePaths the files to check out
      * @param startPoint the tree-ish point to checkout the file from
+     *
+     * @return the result of the checkout
      */
-    public void checkoutFiles(List<Path> filePaths, String startPoint) {
-
+    CheckoutResult checkoutFiles(List<String> filePaths, String startPoint) throws GitAPIException {
+        Git git = new Git(this.repo);
+        CheckoutCommand checkout = git.checkout().setStartPoint(startPoint);
+        for (String filePath : filePaths)
+            checkout.addPath(filePath);
+        checkout.call();
+        return checkout.getResult();
     }
-
-
 
     /**
      * Removes a file from the repository.

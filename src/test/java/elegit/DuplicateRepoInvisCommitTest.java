@@ -91,7 +91,7 @@ public class DuplicateRepoInvisCommitTest {
             fileTextWriter.println("Add a line");
         }
 
-        repo1.addFilePath(file.toPath());
+        repo1.addFilePathTest(file.toPath());
         repo1.commit("Modified file.txt in a unit test!");
 
         CommitHelper repo1NewHead = repo1.getCommit("master");

@@ -11,7 +11,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Scanner;
 
 import static org.junit.Assert.assertEquals;
@@ -96,7 +95,7 @@ public class ResetTest {
         Path filePath = repoPath.resolve("modify.txt");
         String text = "Lorem Ipsum";
         Files.write(filePath, text.getBytes(), StandardOpenOption.APPEND);
-        helper.addFilePath(filePath);
+        helper.addFilePathTest(filePath);
         // Check that the file is staged
         assertEquals(1,git.status().call().getChanged().size());
         // Reset the file and check that it worked
@@ -110,7 +109,7 @@ public class ResetTest {
         paths.add(filePath);
         paths.add(readPath);
         // Add both files and check that they are staged.
-        helper.addFilePaths(paths);
+        helper.addFilePathsTest(paths);
         assertEquals(2,git.status().call().getChanged().size());
         // Reset both the files and check that it worked
         helper.reset(paths);
@@ -146,7 +145,7 @@ public class ResetTest {
 
         // soft reset (to HEAD~1)
         // commit, then put changes in index and wd, check that they stayed
-        helper.addFilePath(filePath);
+        helper.addFilePathTest(filePath);
         helper.commit("modified file");
         modifyFile(readPath);
         modifyAddFile(filePath);
@@ -166,6 +165,6 @@ public class ResetTest {
     private void modifyAddFile(Path file) throws Exception {
         String text = "Lorem Ipsum";
         Files.write(file, text.getBytes(), StandardOpenOption.APPEND);
-        helper.addFilePath(file);
+        helper.addFilePathTest(file);
     }
 }

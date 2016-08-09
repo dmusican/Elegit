@@ -390,18 +390,16 @@ public abstract class CommitTreeModel{
     private ContextMenu getContextMenu(CommitHelper commit){
         ContextMenu contextMenu = new ContextMenu();
 
-        MenuItem infoItem = new MenuItem("Show Info");
-        infoItem.setOnAction(event -> {
-            logger.info("Showed info");
-            CommitTreeController.selectCommit(commit.getId(), false, false, false);
+        MenuItem checkoutItem = new MenuItem("Checkout files...");
+        checkoutItem.setOnAction(event -> {
+            logger.info("Checkout files from commit button clicked");
+            CommitTreeController.sessionController.handleCheckoutFilesButton(commit);
         });
-        infoItem.disableProperty().bind(CommitTreeController.selectedIDProperty().isEqualTo(commit.getId()));
-
         Menu relativesMenu = getRelativesMenu(commit);
         Menu revertMenu = getRevertMenu(commit);
         Menu resetMenu = getResetMenu(commit);
 
-        contextMenu.getItems().addAll(revertMenu, resetMenu, new SeparatorMenuItem(), infoItem, relativesMenu);
+        contextMenu.getItems().addAll(revertMenu, resetMenu, checkoutItem, new SeparatorMenuItem(), relativesMenu);
 
         return contextMenu;
     }

@@ -68,6 +68,7 @@ public class SessionController {
     public Button fetchButton;
     public Button addButton;
     public Button removeButton;
+    public Button checkoutFileButton;
     public Button mergeButton;
     public Button commitInfoNameCopyButton;
     public Button commitInfoGoToButton;
@@ -280,6 +281,7 @@ public class SessionController {
         gitStatusButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         commitButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         addButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
+        checkoutFileButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         removeButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         addDeleteBranchButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         mergeButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
@@ -305,6 +307,7 @@ public class SessionController {
      */
     private void setButtonIconsAndTooltips() {
         anythingChecked = new SimpleBooleanProperty(false);
+        checkoutFileButton.disableProperty().bind(anythingChecked.not());
         addButton.disableProperty().bind(anythingChecked.not());
         removeButton.disableProperty().bind(anythingChecked.not());
 
@@ -355,6 +358,9 @@ public class SessionController {
         ));
         this.addButton.setTooltip(new Tooltip(
                 "Stage changes for selected files"
+        ));
+        this.checkoutFileButton.setTooltip(new Tooltip(
+                "Checkout files from HEAD (discard all changes)"
         ));
         this.removeButton.setTooltip(new Tooltip(
                 "Delete selected files and remove them from Git"
@@ -766,6 +772,102 @@ public class SessionController {
             this.showNoRepoLoadedNotification();
         } catch (MissingRepoException e) {
             this.showMissingRepoNotification();
+        }
+    }
+
+    /**Basic handler for the checkout button. Just checks out the given file
+     * from the index of HEAD
+     *
+     * @param filePath the path of the file to checkout from the index
+     */
+    void handleCheckoutButton(Path filePath) {
+        try {
+            logger.info("Checkout file button clicked");
+            if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
+            if(!this.theModel.getCurrentRepoHelper().exists()) throw new MissingRepoException();
+            theModel.getCurrentRepoHelper().checkoutFile(filePath);
+        } catch (NoRepoLoadedException e) {
+            showNoRepoLoadedNotification();
+        } catch (MissingRepoException e) {
+            showMissingRepoNotification();
+        } catch (GitAPIException e) {
+            showGenericErrorNotification();
+        }
+    }
+
+    /**
+     * Handler for the checkout button
+     */
+    public void handleCheckoutButton() {
+        try {
+            logger.info("Checkout button clicked");
+            if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
+            if(!this.theModel.getCurrentRepoHelper().exists()) throw new MissingRepoException();
+
+            if(!workingTreePanelView.isAnyFileSelected()) throw new NoFilesSelectedToAddException();
+
+            BusyWindow.show();
+            BusyWindow.setLoadingText("Checking out...");
+            Thread th = new Thread(new Task<Void>(){
+                @Override
+                protected Void call() {
+                    try{
+                        ArrayList<Path> filePathsToCheckout = new ArrayList<>();
+                        // Try to add all files, throw exception if there are ones that can't be added
+                        for(RepoFile checkedFile : workingTreePanelView.getCheckedFilesInDirectory()) {
+                            filePathsToCheckout.add(checkedFile.getFilePath());
+                        }
+                        theModel.getCurrentRepoHelper().checkoutFiles(filePathsToCheckout);
+                        gitStatus();
+
+                    }catch (JGitInternalException e){
+                        showJGitInternalError(e);
+                    } catch (GitAPIException e) {
+                        showGenericErrorNotification();
+                    } finally {
+                        BusyWindow.hide();
+                    }
+                    return null;
+                }
+            });
+            th.setDaemon(true);
+            th.setName("Git checkout");
+            th.start();
+        } catch (NoFilesSelectedToAddException e) {
+            this.showNoFilesSelectedForAddNotification();
+        } catch (NoRepoLoadedException e) {
+            this.showNoRepoLoadedNotification();
+        } catch (MissingRepoException e) {
+            this.showMissingRepoNotification();
+        }
+    }
+
+
+    /**
+     * Shows the checkout files dialogue for a given commit
+     *
+     * @param commitHelper the commit to checkout files from
+     */
+    public void handleCheckoutFilesButton(CommitHelper commitHelper) {
+        try{
+            logger.info("Checkout files from commit button clicked");
+            if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
+
+            logger.info("Opened checkout files window");
+            // Create and display the Stage:
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/CheckoutFiles.fxml"));
+            fxmlLoader.load();
+            CheckoutFilesController checkoutFilesController = fxmlLoader.getController();
+            checkoutFilesController.setSessionController(this);
+            checkoutFilesController.setCommitHelper(commitHelper);
+            AnchorPane fxmlRoot = fxmlLoader.getRoot();
+            checkoutFilesController.showStage(fxmlRoot);
+        }catch(IOException e){
+            this.showGenericErrorNotification();
+            e.printStackTrace();
+        }catch(NoRepoLoadedException e){
+            this.showNoRepoLoadedNotification();
+            setButtonsDisabled(true);
         }
     }
 
