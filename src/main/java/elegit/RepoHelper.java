@@ -296,6 +296,7 @@ public abstract class RepoHelper {
     void checkoutFile(Path filePath) throws GitAPIException {
         Git git = new Git(this.repo);
         git.checkout().setStartPoint("HEAD").addPath(filePath.toString()).call();
+        git.close();
     }
 
     /**
@@ -308,6 +309,7 @@ public abstract class RepoHelper {
         for (Path filePath : filePaths)
             checkout.addPath(filePath.toString());
         checkout.call();
+        git.close();
     }
 
     /**
@@ -318,6 +320,7 @@ public abstract class RepoHelper {
     void checkoutFile(Path filePath, String startPoint) throws GitAPIException {
         Git git = new Git(this.repo);
         git.checkout().setStartPoint(startPoint).addPath(filePath.toString()).call();
+        git.close();
     }
 
     /**
@@ -331,6 +334,7 @@ public abstract class RepoHelper {
         for (Path filePath : filePaths)
             checkout.addPath(filePath.toString());
         checkout.call();
+        git.close();
     }
 
     /**

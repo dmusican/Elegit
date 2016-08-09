@@ -838,6 +838,34 @@ public class SessionController {
         }
     }
 
+
+    /**
+     * Shows the checkout files dialogue for a given commit
+     *
+     * @param commitHelper the commit to checkout files from
+     */
+    public void handleCheckoutFilesButton(CommitHelper commitHelper) {
+        try{
+            logger.info("Checkout files from commit button clicked");
+            if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
+
+            logger.info("Opened checkout files window");
+            // Create and display the Stage:
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/CheckoutFiles.fxml"));
+            fxmlLoader.load();
+            CheckoutFilesController checkoutFilesController = fxmlLoader.getController();
+            CheckoutFilesController.setSessionController(this);
+            GridPane fxmlRoot = fxmlLoader.getRoot();
+            checkoutFilesController.showStage(fxmlRoot);
+        }catch(IOException e){
+            this.showGenericErrorNotification();
+            e.printStackTrace();
+        }catch(NoRepoLoadedException e){
+            this.showNoRepoLoadedNotification();
+            setButtonsDisabled(true);
+        }
+    }
+
     /**
      * Commits all files that have been staged with the message
      */
