@@ -226,17 +226,17 @@ public class SessionController {
         }
         String statusText="Up to date.";
         if (ahead >0) {
-            statusText="Ahead "+ahead+" commit";
+            statusText=currentLocalBranchText.getText() + " ahead of " + currentRemoteTrackingBranchText.getText() + " by " + ahead + " commit";
             if (ahead > 1)
                 statusText+="s";
             if (behind > 0) {
-                statusText += " and behind " + behind + " commit";
+                statusText += "\nand behind by " + behind + " commit";
                 if (behind > 1)
                     statusText+="s";
             }
             statusText+=".";
         } else if (behind > 0) {
-            statusText = "Behind " + behind + " commit";
+            statusText = currentLocalBranchText.getText() + " behind " + currentRemoteTrackingBranchText.getText() + " by " + behind + " commit";
             if (behind > 1)
                 statusText+="s";
             statusText+=".";
