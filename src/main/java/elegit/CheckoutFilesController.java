@@ -123,6 +123,6 @@ public class CheckoutFilesController {
 
     void setCommitHelper(CommitHelper commitHelper) {
         this.commitHelper = commitHelper;
-        header.setText(header.getText()+"from "+commitHelper.getId().substring(0,8));
+        header.setText(header.getText()+commitHelper.getId().substring(0,8));
     }
 }

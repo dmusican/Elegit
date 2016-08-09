@@ -32,7 +32,7 @@
                 alignment="TOP_RIGHT"
                 spacing="5">
             <Label  fx:id="header"
-                    text="Checkout files"/>
+                    text="Checkout files from "/>
             <TextField  promptText="Enter filename"
                         fx:id="fileField"/>
             <Button text="Add"
