@@ -18,7 +18,6 @@ import org.eclipse.jgit.revplot.PlotCommitList;
 import org.eclipse.jgit.revplot.PlotLane;
 import org.eclipse.jgit.revplot.PlotWalk;
 import org.eclipse.jgit.revwalk.RevCommit;
-import org.eclipse.jgit.revwalk.RevTag;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.transport.*;
 import org.eclipse.jgit.treewalk.TreeWalk;
@@ -327,14 +326,16 @@ public abstract class RepoHelper {
      * Checks out files from the specified point
      * @param filePaths the files to check out
      * @param startPoint the tree-ish point to checkout the file from
+     *
+     * @return the result of the checkout
      */
-    void checkoutFiles(List<String> filePaths, String startPoint) throws GitAPIException {
+    CheckoutResult checkoutFiles(List<String> filePaths, String startPoint) throws GitAPIException {
         Git git = new Git(this.repo);
         CheckoutCommand checkout = git.checkout().setStartPoint(startPoint);
         for (String filePath : filePaths)
             checkout.addPath(filePath);
         checkout.call();
-        git.close();
+        return checkout.getResult();
     }
 
     /**

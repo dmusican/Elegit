@@ -2,20 +2,16 @@ package elegit;
 
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.SimpleBooleanProperty;
 import javafx.fxml.FXML;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.api.CheckoutResult;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,6 +29,7 @@ public class CheckoutFilesController {
     @FXML private TextField fileField;
     @FXML private VBox filesToCheckout;
     @FXML private NotificationController notificationPaneController;
+    @FXML private Label header;
 
     private List<String> fileNames;
 
@@ -71,11 +68,30 @@ public class CheckoutFilesController {
      */
     public void handleCheckoutButton() {
         try {
-            this.repoHelper.checkoutFiles(fileNames, commitHelper.getId());
-        } catch (GitAPIException e) {
-            e.printStackTrace();
-        } finally {
-            closeWindow();
+            CheckoutResult result = this.repoHelper.checkoutFiles(fileNames, commitHelper.getId());
+            switch (result.getStatus()) {
+                case CONFLICTS:
+                    notificationPaneController.addNotification("Checkout has not completed because of checkout conflicts");
+                    break;
+                case ERROR:
+                    notificationPaneController.addNotification("An error occurred during checkout");
+                    break;
+                case NONDELETED:
+                    notificationPaneController.addNotification("Checkout has completed, but some files could not be deleted.");
+                    break;
+                case NOT_TRIED:
+                    notificationPaneController.addNotification("Something went wrong... try checking out again.");
+                    break;
+                // The OK case happens when a file is changed in the index or an invalid file
+                // was entered, for now just call git status and close
+                // TODO: figure out if anything actually changed
+                case OK:
+                    sessionController.gitStatus();
+                    closeWindow();
+                    break;
+            }
+        } catch (Exception e) {
+            notificationPaneController.addNotification("Something went wrong.");
         }
     }
 
@@ -103,9 +119,10 @@ public class CheckoutFilesController {
 
     public void closeWindow() { this.stage.close(); }
 
-    void setSessionController(SessionController controller) {
-        this.sessionController = controller;
-    }
+    void setSessionController(SessionController controller) { this.sessionController = controller; }
 
-    void setCommitHelper(CommitHelper commitHelper) { this.commitHelper = commitHelper; }
+    void setCommitHelper(CommitHelper commitHelper) {
+        this.commitHelper = commitHelper;
+        header.setText(header.getText()+"from "+commitHelper.getId().substring(0,8));
+    }
 }

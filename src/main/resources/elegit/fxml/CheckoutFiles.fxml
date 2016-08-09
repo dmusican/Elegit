@@ -14,11 +14,11 @@
 <AnchorPane fx:controller="elegit.CheckoutFilesController"
             xmlns:fx="http://javafx.com/fxml"
             fx:id="anchorRoot"
-            prefWidth="300" prefHeight="200">
+            prefWidth="350" prefHeight="200">
     <GridPane   AnchorPane.bottomAnchor="20"
-                AnchorPane.topAnchor="0"
-                AnchorPane.leftAnchor="0"
-                AnchorPane.rightAnchor="0">
+                AnchorPane.topAnchor="5"
+                AnchorPane.leftAnchor="5"
+                AnchorPane.rightAnchor="5">
         <columnConstraints>
             <ColumnConstraints hgrow="NEVER"/>
             <ColumnConstraints hgrow="ALWAYS"/>
@@ -31,24 +31,26 @@
         <VBox   GridPane.valignment="TOP"
                 alignment="TOP_RIGHT"
                 spacing="5">
-            <Label  GridPane.halignment="CENTER"
-                    GridPane.valignment="TOP"
-                    fx:id="header"
-                    text="Checkout files from"/>
+            <Label  fx:id="header"
+                    text="Checkout files"/>
             <TextField  promptText="Enter filename"
                         fx:id="fileField"/>
-            <ArrowButton    text="Add"
-                            alignment="CENTER_RIGHT"
-                            onAction="#handleAddButton"/>
+            <Button text="Add"
+                    alignment="CENTER_RIGHT"
+                    onAction="#handleAddButton"/>
         </VBox>
 
         <Button fx:id="cancelButton"
                 GridPane.rowIndex="1"
                 GridPane.halignment="LEFT"
-                text="Cancel"/>
+                text="Cancel"
+                onAction="#closeWindow"/>
 
         <ScrollPane GridPane.columnIndex="1">
             <VBox   fx:id="filesToCheckout"/>
+            <GridPane.margin>
+                <Insets left="5"/>
+            </GridPane.margin>
         </ScrollPane>
 
         <Button fx:id="checkoutButton"
