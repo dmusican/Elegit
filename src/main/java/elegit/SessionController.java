@@ -854,8 +854,9 @@ public class SessionController {
             FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/CheckoutFiles.fxml"));
             fxmlLoader.load();
             CheckoutFilesController checkoutFilesController = fxmlLoader.getController();
-            CheckoutFilesController.setSessionController(this);
-            GridPane fxmlRoot = fxmlLoader.getRoot();
+            checkoutFilesController.setSessionController(this);
+            checkoutFilesController.setCommitHelper(commitHelper);
+            AnchorPane fxmlRoot = fxmlLoader.getRoot();
             checkoutFilesController.showStage(fxmlRoot);
         }catch(IOException e){
             this.showGenericErrorNotification();

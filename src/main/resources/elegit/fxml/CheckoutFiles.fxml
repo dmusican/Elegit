@@ -10,50 +10,59 @@
 <?import javafx.scene.text.*?>
 <?import java.lang.*?>
 
-<GridPane xmlns:fx="http://javafx.com/fxml"
-          fx:controller="elegit.CheckoutFilesController"
-          fx:id="root">
-    <columnConstraints>
-        <ColumnConstraints hgrow="NEVER"/>
-        <ColumnConstraints hgrow="ALWAYS"/>
-    </columnConstraints>
-    <rowConstraints>
-        <RowConstraints vgrow="NEVER"/>
-        <RowConstraints/>
-        <RowConstraints vgrow="NEVER"/>
-    </rowConstraints>
 
-    <Label  GridPane.columnSpan="2"
-            GridPane.halignment="CENTER"
-            fx:id="header"
-            text="Checkout files from"/>
+<AnchorPane fx:controller="elegit.CheckoutFilesController"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:id="anchorRoot"
+            prefWidth="300" prefHeight="200">
+    <GridPane   AnchorPane.bottomAnchor="20"
+                AnchorPane.topAnchor="0"
+                AnchorPane.leftAnchor="0"
+                AnchorPane.rightAnchor="0">
+        <columnConstraints>
+            <ColumnConstraints hgrow="NEVER"/>
+            <ColumnConstraints hgrow="ALWAYS"/>
+        </columnConstraints>
+        <rowConstraints>
+            <RowConstraints vgrow="ALWAYS"/>
+            <RowConstraints vgrow="NEVER"/>
+        </rowConstraints>
 
-    <VBox   GridPane.rowIndex="1"
-            GridPane.valignment="CENTER"
-            alignment="CENTER_RIGHT">
-        <TextField  promptText="Enter filename"
-                    fx:id="fileToAdd"/>
-        <ArrowButton    text="Add"
-                        alignment="CENTER_RIGHT"/>
-    </VBox>
+        <VBox   GridPane.valignment="TOP"
+                alignment="TOP_RIGHT"
+                spacing="5">
+            <Label  GridPane.halignment="CENTER"
+                    GridPane.valignment="TOP"
+                    fx:id="header"
+                    text="Checkout files from"/>
+            <TextField  promptText="Enter filename"
+                        fx:id="fileField"/>
+            <ArrowButton    text="Add"
+                            alignment="CENTER_RIGHT"
+                            onAction="#handleAddButton"/>
+        </VBox>
 
-    <Button fx:id="cancelButton"
-            GridPane.rowIndex="2"
-            GridPane.halignment="LEFT"
-            text="Cancel"/>
+        <Button fx:id="cancelButton"
+                GridPane.rowIndex="1"
+                GridPane.halignment="LEFT"
+                text="Cancel"/>
 
-    <ScrollPane fx:id="filesScroll"
+        <ScrollPane GridPane.columnIndex="1">
+            <VBox   fx:id="filesToCheckout"/>
+        </ScrollPane>
+
+        <Button fx:id="checkoutButton"
+                GridPane.rowIndex="1"
                 GridPane.columnIndex="1"
-                GridPane.rowIndex="1"/>
+                GridPane.halignment="RIGHT"
+                text="Checkout"
+                onAction="#handleCheckoutButton"/>
+    </GridPane>
 
-    <Button fx:id="checkoutButton"
-            GridPane.rowIndex="2"
-            GridPane.columnIndex="1"
-            GridPane.halignment="RIGHT"
-            text="Checkout"/>
+    <fx:include source="NotificationPane.fxml" fx:id="notificationPane"/>
 
     <stylesheets>
         <URL value="@../css/BaseStyle.css"/>
     </stylesheets>
-</GridPane>
+</AnchorPane>
 

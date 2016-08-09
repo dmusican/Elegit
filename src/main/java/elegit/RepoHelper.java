@@ -317,9 +317,9 @@ public abstract class RepoHelper {
      * @param filePath the file to check out
      * @param startPoint the tree-ish point to checkout the file from
      */
-    void checkoutFile(Path filePath, String startPoint) throws GitAPIException {
+    void checkoutFile(String filePath, String startPoint) throws GitAPIException {
         Git git = new Git(this.repo);
-        git.checkout().setStartPoint(startPoint).addPath(filePath.toString()).call();
+        git.checkout().setStartPoint(startPoint).addPath(filePath).call();
         git.close();
     }
 
@@ -328,11 +328,11 @@ public abstract class RepoHelper {
      * @param filePaths the files to check out
      * @param startPoint the tree-ish point to checkout the file from
      */
-    void checkoutFiles(List<Path> filePaths, String startPoint) throws GitAPIException {
+    void checkoutFiles(List<String> filePaths, String startPoint) throws GitAPIException {
         Git git = new Git(this.repo);
         CheckoutCommand checkout = git.checkout().setStartPoint(startPoint);
-        for (Path filePath : filePaths)
-            checkout.addPath(filePath.toString());
+        for (String filePath : filePaths)
+            checkout.addPath(filePath);
         checkout.call();
         git.close();
     }

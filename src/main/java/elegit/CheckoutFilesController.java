@@ -1,13 +1,24 @@
 package elegit;
 
+import de.jensd.fx.glyphs.GlyphsDude;
+import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.fxml.FXML;
 import javafx.scene.Scene;
+import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jgit.api.errors.GitAPIException;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Controller class for the checkout files window
@@ -15,12 +26,15 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 public class CheckoutFilesController {
 
     private Stage stage;
-    private SessionModel sessionModel;
+    private SessionController sessionController;
     private RepoHelper repoHelper;
+    private CommitHelper commitHelper;
 
-    public BooleanProperty isClosed;
+    @FXML private TextField fileField;
+    @FXML private VBox filesToCheckout;
+    @FXML private NotificationController notificationPaneController;
 
-    private static SessionController sessionController;
+    private List<String> fileNames;
 
     static final Logger logger = LogManager.getLogger();
 
@@ -32,20 +46,19 @@ public class CheckoutFilesController {
     public void initialize(){
         logger.info("Started up checkout files from commit window");
 
-        isClosed = new SimpleBooleanProperty(false);
-
-        this.sessionModel = SessionModel.getSessionModel();
-        this.repoHelper = this.sessionModel.getCurrentRepoHelper();
+        SessionModel sessionModel = SessionModel.getSessionModel();
+        this.repoHelper = sessionModel.getCurrentRepoHelper();
+        this.fileNames = new ArrayList<>();
     }
 
     /**
-     * Shows the branch manager
-     * @param pane NotificationPane
+     * Shows the checkout manager
+     * @param pane the anchor of the stage
      */
-    public void showStage(GridPane pane) {
+    public void showStage(AnchorPane pane) {
         stage = new Stage();
         stage.setTitle("Checkout files");
-        stage.setScene(new Scene(pane, 550, 450));
+        stage.setScene(new Scene(pane));
         stage.setOnCloseRequest(event -> {
             logger.info("Closed checkout files from commit window");
         });
@@ -58,18 +71,41 @@ public class CheckoutFilesController {
      */
     public void handleCheckoutButton() {
         try {
-            this.repoHelper.checkoutFiles(null);
+            this.repoHelper.checkoutFiles(fileNames, commitHelper.getId());
         } catch (GitAPIException e) {
             e.printStackTrace();
         } finally {
             closeWindow();
-            isClosed.setValue(true);
         }
+    }
+
+    public void handleAddButton() {
+        String fileName = fileField.getText();
+
+        // Don't allow adding the same file more than once
+        if (fileNames.contains(fileName)) {
+            notificationPaneController.addNotification(fileName+" has already been added.");
+            return;
+        }
+
+        Label line = new Label(fileName);
+        line.setWrapText(true);
+        line.setId("notification");
+        line.setGraphic(GlyphsDude.createIcon(FontAwesomeIcon.TIMES_CIRCLE));
+        line.setOnMouseClicked(event -> {
+            if (event.getTarget().equals(line.getGraphic()))
+                fileNames.remove(fileName);
+                filesToCheckout.getChildren().remove(line);
+        });
+        fileNames.add(fileName);
+        filesToCheckout.getChildren().add(0,line);
     }
 
     public void closeWindow() { this.stage.close(); }
 
-    static void setSessionController(SessionController controller) {
-        sessionController = controller;
+    void setSessionController(SessionController controller) {
+        this.sessionController = controller;
     }
+
+    void setCommitHelper(CommitHelper commitHelper) { this.commitHelper = commitHelper; }
 }
