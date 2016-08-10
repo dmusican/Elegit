@@ -54,7 +54,6 @@ public class CellLabelContainer extends GridPane {
      * @param y the y coordinate of the new location
      */
     public void translate(double x, double y) {
-        System.out.println(this.getHeight() + " " + this.basicLabels.size());
         setTranslateX(x+BOX_SIZE+10);
         setTranslateY(y+BOX_SIZE-5-(this.getHeight()-25));
     }
@@ -83,7 +82,7 @@ public class CellLabelContainer extends GridPane {
             return;
         }
 
-        Button showExtended = new Button();
+        Label showExtended = new Label();
         basicLabels = new ArrayList<>();
         extendedLabels = new ArrayList<>();
 
@@ -113,15 +112,16 @@ public class CellLabelContainer extends GridPane {
         showExtended.setVisible(false);
         if (row>0) {
             showExtended.setVisible(true);
-            showExtended.setTranslateX(-6);
-            showExtended.setText("\u02c5");
-            showExtended.setStyle("-fx-background-color: rgba(244,244,244,100); -fx-padding: -3 0 0 0;" +
-                    "-fx-font-size:12px; -fx-font-weight:bold;");
+            showExtended.setTranslateX(-10);
+            showExtended.setTranslateY(-3);
+            Node down = GlyphsDude.createIcon(FontAwesomeIcon.CHEVRON_DOWN);
+            Node up = GlyphsDude.createIcon(FontAwesomeIcon.CHEVRON_UP);
+            showExtended.setGraphic(down);
             showExtended.setOnMouseClicked(event -> {
-                if(showExtended.getText().equals("\u02c5")) {
-                    showExtended.setText("\u02c4");
+                if(showExtended.getGraphic().equals(down)) {
+                    showExtended.setGraphic(up);
                 }else {
-                    showExtended.setText("\u02c5");
+                    showExtended.setGraphic(down);
                 }
                 for (Node n : extendedLabels) {
                     n.setVisible(!n.isVisible());
