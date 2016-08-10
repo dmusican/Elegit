@@ -226,32 +226,32 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
 
 
         ClonedRepoHelper repoHelper;
-            try {
-                repoHelper = new ClonedRepoHelper(destinationPath, remoteURL, sshPassword, userInfo);
-                repoHelper.wrapAuthentication(command, credentials);
-                command.call();
-            } catch (TransportException e) {
-                // If the URL doesn't have a repo, a Transport Exception is thrown when this command is called.
-                //  We want the SessionController to report an InvalidRemoteException, though, because
-                //  that's the issue.
-                e.printStackTrace();
-                logger.error("Invalid remote exception thrown");
-                throw new InvalidRemoteException("Caught invalid repository when building a ClonedRepoHelper.");
-            }
+        try {
+            repoHelper = new ClonedRepoHelper(destinationPath, remoteURL, sshPassword, userInfo);
+            repoHelper.wrapAuthentication(command, credentials);
+            command.call();
+        } catch (TransportException e) {
+            // If the URL doesn't have a repo, a Transport Exception is thrown when this command is called.
+            //  We want the SessionController to report an InvalidRemoteException, though, because
+            //  that's the issue.
+            e.printStackTrace();
+            logger.error("Invalid remote exception thrown");
+            throw new InvalidRemoteException("Caught invalid repository when building a ClonedRepoHelper.");
+        }
 
-            // Without the above try/catch block, the next line would run and throw the desired InvalidRemoteException,
-            //  but it would create a destination folder for the repo before stopping. By catching the error above,
-            //  we prevent unnecessary folder creation. By making it to this point, we've verified that the repo
-            // is valid and that we can authenticate to it.
+        // Without the above try/catch block, the next line would run and throw the desired InvalidRemoteException,
+        //  but it would create a destination folder for the repo before stopping. By catching the error above,
+        //  we prevent unnecessary folder creation. By making it to this point, we've verified that the repo
+        // is valid and that we can authenticate to it.
 
-            if (response.protocol == AuthMethod.SSH) {
-                repoHelper.obtainRepository(remoteURL);
-            } else {
-                repoHelper.setUsernamePasswordCredentials(credentials);
-                repoHelper.obtainRepository(remoteURL);
-            }
+        if (response.protocol == AuthMethod.SSH) {
+            repoHelper.obtainRepository(remoteURL);
+        } else {
+            repoHelper.setUsernamePasswordCredentials(credentials);
+            repoHelper.obtainRepository(remoteURL);
+        }
 
-            return repoHelper;
+        return repoHelper;
     }
 
 

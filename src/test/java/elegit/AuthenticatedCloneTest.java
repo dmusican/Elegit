@@ -95,7 +95,6 @@ public class AuthenticatedCloneTest {
         testHttpUsernamePassword("httpUsernamePasswordPrivate.txt", BITBUCKET_REMOTE_URL);
     }
 
-
     /* The httpUsernamePassword should contain three lines, containing:
         repo http(s) address
         username
@@ -130,7 +129,60 @@ public class AuthenticatedCloneTest {
             helper.pushTags();
         } catch (TransportException e) {
             e.printStackTrace();
-            fail("Test failed; it is likely that you have not name/password correctly in the" +
+            fail("Test failed; it is likely that you have not name/password correctly in the file " +
+                 "or you do not have access to the Bitbucket repo. Note that httpUsernamePassword.txt " +
+                 "should have GitHub authentication info; httpUsernamePasswordPrivate.txt should have" +
+                 "Bitbucket authentication info.");
+        }
+    }
+
+
+    @Test
+    public void testHttpBadUsernamePasswordPublic() throws Exception {
+        testHttpBadUsernamePassword("httpUsernamePassword.txt", GITHUB_REMOTE_URL);
+    }
+
+
+    /* The httpUsernamePassword should contain three lines, containing:
+        repo http(s) address
+        username
+        password
+        -------
+        This is a version of the test where the username password is entered incorrectly at first,
+        and needs to be fixed later.
+     */
+    public void testHttpBadUsernamePassword(String filename, String remoteURL) throws Exception {
+        Path repoPath = directoryPath.resolve("testrepo");
+        File authData = new File(testFileLocation + filename);
+
+        // If a developer does not have this file present, test should just pass.
+        if (!authData.exists() && looseTesting)
+            return;
+
+        Scanner scanner = new Scanner(authData);
+        String ignoreURL = scanner.next();
+        String username = scanner.next();
+        String password = scanner.next();
+        UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider("", "");
+        try {
+            ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, remoteURL, credentials);
+            helper.obtainRepository(remoteURL);
+            assertEquals(helper.getCompatibleAuthentication(), AuthMethod.HTTP);
+            helper.fetch();
+            Path fileLocation = repoPath.resolve("README.md");
+            System.out.println(fileLocation);
+            FileWriter fw = new FileWriter(fileLocation.toString(), true);
+            fw.write("1");
+            fw.close();
+            helper.addFilePathTest(fileLocation);
+            helper.commit("Appended to file");
+            credentials = new UsernamePasswordCredentialsProvider(username, password);
+            helper.ownerAuth = credentials;
+            helper.pushAll();
+            helper.pushTags();
+        } catch (TransportException e) {
+            e.printStackTrace();
+            fail("Test failed; it is likely that you have not name/password correctly in the file " +
                  "or you do not have access to the Bitbucket repo. Note that httpUsernamePassword.txt " +
                  "should have GitHub authentication info; httpUsernamePasswordPrivate.txt should have" +
                  "Bitbucket authentication info.");

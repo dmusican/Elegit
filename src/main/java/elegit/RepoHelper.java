@@ -14,6 +14,7 @@ import org.apache.logging.log4j.Logger;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
+import org.eclipse.jgit.api.errors.TransportException;
 import org.eclipse.jgit.ignore.IgnoreNode;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.revplot.PlotCommitList;
@@ -516,6 +517,29 @@ public class RepoHelper {
         ProgressMonitor progress = new SimpleProgressMonitor();
         push.setProgressMonitor(progress);
 
+//        boolean authUpdateNeeded = false;
+//        Iterable<PushResult> pushResult = null;
+//        do {
+//            authUpdateNeeded = false;
+//            try {
+//                pushResult = push.call();
+//            } catch (TransportException e) {
+//                authUpdateNeeded = true;
+//                RepoHelperBuilder.AuthDialogResponse response;
+//                try {
+//                    response = RepoHelperBuilder.getAuthCredentialFromDialog();
+//                } catch (CancelledAuthorizationException e2) {
+//                    git.close();
+//                    return;
+//                }
+//                System.out.println(response.protocol);
+//                this.password = response.password;
+//                this.username = response.username;
+//                this.ownerAuth = new UsernamePasswordCredentialsProvider(username, password);
+//                myWrapAuthentication(push);
+//            }
+//        } while (authUpdateNeeded);
+
         Iterable<PushResult> pushResult = push.call();
 
         for(PushResult result : pushResult) {
@@ -550,28 +574,6 @@ public class RepoHelper {
         myWrapAuthentication(push);
         ProgressMonitor progress = new SimpleProgressMonitor();
         push.setProgressMonitor(progress);
-
-//        boolean authUpdateNeeded = false;
-//        Iterable<PushResult> pushResult = null;
-//        do {
-//            authUpdateNeeded = false;
-//            try {
-//                pushResult = push.call();
-//            } catch (TransportException e) {
-//                authUpdateNeeded = true;
-//                RepoHelperBuilder.AuthDialogResponse response;
-//                try {
-//                    response = RepoHelperBuilder.getAuthCredentialFromDialog(remoteURL);
-//                } catch (CancelledAuthorizationException e2) {
-//                    git.close();
-//                    return;
-//                }
-//                this.protocol = response.protocol;
-//                this.password = response.password;
-//                this.username = response.username;
-//                myWrapAuthentication(push);
-//            }
-//        } while (authUpdateNeeded);
 
         Iterable<PushResult> pushResult = push.call();
         boolean allPushesWereRejected = true;
