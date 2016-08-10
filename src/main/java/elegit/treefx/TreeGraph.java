@@ -6,7 +6,7 @@ import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.Pane;
-import elegit.MatchedScrollPane;
+import javafx.scene.transform.Rotate;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -20,7 +20,7 @@ import java.util.List;
 public class TreeGraph{
 
     // The scroll pane that holds all drawn elements
-    private MatchedScrollPane scrollPane;
+    private CommitTreeScrollPane scrollPane;
 
     // The underlying model of the graph
     public TreeGraphModel treeGraphModel;
@@ -38,18 +38,17 @@ public class TreeGraph{
     public TreeGraph(TreeGraphModel m) {
         this.treeGraphModel = m;
 
-        Group canvas = new Group();
         cellLayer = new Pane();
-        cellLayer.setPadding(new Insets(TreeLayout.V_PAD, TreeLayout.H_PAD, TreeLayout.V_PAD, TreeLayout.H_PAD));
+        cellLayer.setRotationAxis(Rotate.X_AXIS);
+        cellLayer.setRotate(180);
+        cellLayer.setPadding(new Insets(0,0,Cell.BOX_SIZE+TreeLayout.V_PAD,0));
 
-        scrollPane = new MatchedScrollPane(canvas);
+        scrollPane = new CommitTreeScrollPane(cellLayer);
 
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
         scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
 
         scrollPane.NumItemsProperty.bind(m.numCellsProperty);
-
-        canvas.getChildren().add(cellLayer);
 
         queuedToAdd = new LinkedList<>();
         queuedToRemove = new LinkedList<>();
@@ -79,8 +78,8 @@ public class TreeGraph{
 
         Platform.runLater(() -> {
             // add components to treeGraph pane
-            LinkedList<Node> moreToAdd = new LinkedList<Node>();
-            LinkedList<Node> moreToRemove = new LinkedList<Node>();
+            LinkedList<Node> moreToAdd = new LinkedList<>();
+            LinkedList<Node> moreToRemove = new LinkedList<>();
             for (Node n: queuedToAdd) {
                 if (n instanceof Cell)
                     moreToAdd.add(((Cell)n).getLabel());

@@ -88,7 +88,7 @@ public class ClonedRepoHelperTest {
 
     @Test
     public void testAddFileAndCommit() throws Exception {
-        assertFalse(this.helper.hasUnpushedCommits());
+        assertFalse(this.helper.getAheadCount()>0);
 
         Path newPath = Paths.get(this.directoryPath.toString(), "new.txt");
 
@@ -99,10 +99,10 @@ public class ClonedRepoHelperTest {
             newPathTextWriter.println("Dummy text for the new file to commit");
         }
 
-        this.helper.addFilePath(newPath);
+        this.helper.addFilePathTest(newPath);
         this.helper.commit("Added a new file in a unit test!");
 
-        assertTrue(this.helper.hasUnpushedCommits());
+        assertTrue(this.helper.getAheadCount()>0);
 
     }
 

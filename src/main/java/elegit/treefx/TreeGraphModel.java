@@ -2,9 +2,7 @@ package elegit.treefx;
 
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
-import javafx.concurrent.Task;
 import javafx.scene.control.ContextMenu;
-import javafx.concurrent.Service;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -83,14 +81,6 @@ public class TreeGraphModel{
     }
 
     /**
-     * @param id the id of the cell to check
-     * @return whether the given cell is visible or not
-     */
-    public boolean isVisible(String id){
-        return containsID(id) && !(cellMap.get(id) instanceof InvisibleCell);
-    }
-
-    /**
      * @return the cells added since the last update
      */
     public List<Cell> getAddedCells() {
@@ -138,39 +128,44 @@ public class TreeGraphModel{
 
     /**
      * Adds a new cell with the given ID, time, and labels to the tree whose
-     * parents are the cells with the given IDs. If visible is false, uses InvisibleCell
-     * instead of Cell
+     * parents are the cells with the given IDs.
      * @param newId the id of the new cell
      * @param time the time of the new cell
      * @param displayLabel the displayLabel of the new cell
-     * @param contextMenu the context menu that will appear when right clicking on a cell
+     * @param contextMenu the context contextMenu that will appear when right clicking on a cell
      * @param parentIds the IDs of the parents of the new cell, if any
-     * @param visible whether the cell will be normal or invisible
+     * @param type the type of the cell, local, remote, or both
      */
     public void addCell(String newId, long time, String displayLabel,
                         List<String> refs, ContextMenu contextMenu,
-                        List<String> parentIds, boolean visible){
-        String parent1Id = parentIds.size() > 0 ? parentIds.get(0) : null;
-        String parent2Id = parentIds.size() > 1 ? parentIds.get(1) : null;
+                        List<String> parentIds, Cell.CellType type){
+        // Create a list of parents
+        List<Cell> parents = new ArrayList<>();
+        for (String parentId : parentIds) {
+            parents.add(cellMap.get(parentId));
+        }
 
         Cell cell;
-        if(visible){
-            cell = new Cell(newId, time, parent1Id == null ?
-                    null : cellMap.get(parent1Id), parent2Id == null ?
-                    null : cellMap.get(parent2Id));
-        }else{
-            cell = new InvisibleCell(newId, time, parent1Id == null ?
-                    null : cellMap.get(parent1Id), parent2Id == null ?
-                    null : cellMap.get(parent2Id));
+        switch(type) {
+            case LOCAL:
+                cell = new Cell(newId, time, parents, Cell.CellType.LOCAL);
+                break;
+            case REMOTE:
+                cell = new Cell(newId, time, parents, Cell.CellType.REMOTE);
+                break;
+            case BOTH:
+            default:
+                cell = new Cell(newId, time, parents, Cell.CellType.BOTH);
+                break;
         }
         setCellLabels(cell, displayLabel, refs);
         cell.setContextMenu(contextMenu);
         addCell(cell);
 
-        // Note: a commit can have at most two parents, that would
-        // result from a merge, so we only need two of these.
-        if(parent1Id != null) this.addEdge(parent1Id, newId);
-        if(parent2Id != null) this.addEdge(parent2Id, newId);
+        // Note: a merge can be the result of any number of commits if it
+        // is an octopus merge, so we add edges to all of them
+        for (String parentId : parentIds)
+            this.addEdge(parentId, newId);
     }
 
     /**
@@ -226,7 +221,7 @@ public class TreeGraphModel{
      */
     public void removeCell(String id) {
         Cell cell = cellMap.get(id);
-        if(cellMap.containsKey(cell.getCellId())){
+        if(cell != null && cellMap.containsKey(cell.getCellId())){
             Cell oldCell = cellMap.remove(cell.getCellId());
             for(Cell p : cell.getCellParents()){
                 p.removeCellChild(oldCell);
@@ -256,14 +251,37 @@ public class TreeGraphModel{
      * Sets the label for the cell with the given ID to be the given string
      * @param cellId the id of the cell to label
      * @param label the new label
+     * @param refs the branch names to include on the label
      */
     public void setCellLabels(String cellId, String label, List<String> refs){
         setCellLabels(cellMap.get(cellId), label, refs);
     }
 
-    public void setCellLabels(Cell cell, String label, List<String> refs){
+    /**
+     * Sets the labels for a given cell
+     * @param cell the cell to set labels for
+     * @param label the labels to put on the cell
+     * @param refs the list of refs to add
+     */
+    private void setCellLabels(Cell cell, String label, List<String> refs){
         cell.setLabels(label, refs);
         if(refs.size() > 0) cellsWithNonDefaultShapesOrLabels.add(cell);
+    }
+
+    public void setCurrentCellLabels(String cellId, List<String> refs) {
+        setCurrentCellLabels(cellMap.get(cellId), refs);
+    }
+
+    public void setCurrentCellLabels(Cell cell, List<String> refs) {
+        cell.setCurrentLabels(refs);
+    }
+
+    public void setTagCellLabels(String cellId, Map<String, ContextMenu> tags) {
+        cellMap.get(cellId).setTagLabels(tags);
+    }
+
+    public void setBranchCellLabels(String cellId, Map<String, ContextMenu> branches) {
+        cellMap.get(cellId).setBranchLabels(branches);
     }
 
     /**
@@ -277,6 +295,22 @@ public class TreeGraphModel{
         Cell cell = cellMap.get(cellId);
         cell.setShape(shape);
         cellsWithNonDefaultShapesOrLabels.add(cell);
+    }
+
+    /**
+     * Sets the type of the cell with the given ID to be the given type.
+     * If the type isn't the default (CellType.BOTH), adds it to the list
+     * of non-default cells.
+     * @param cellId the id of the cell to type
+     * @param type the new type
+     */
+    public void setCellType(String cellId, Cell.CellType type) {
+        Cell cell = cellMap.get(cellId);
+        if (cell == null)
+            return;
+        cell.setCellType(type);
+        if (type != Cell.CellType.BOTH)
+            cellsWithNonDefaultShapesOrLabels.add(cell);
     }
 
     /**

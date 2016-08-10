@@ -3,6 +3,7 @@ Process for testing releases
 
 For each operating system (Windows, OS X, Linux)...
 
+0. Build and post built versions. Built package will be in target/jfx/native
 1. Install release
 2. Start Elegit
 3. Clone Elegit repo via HTTP

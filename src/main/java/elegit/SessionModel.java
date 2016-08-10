@@ -23,6 +23,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -265,7 +266,7 @@ public class SessionModel {
      * @throws GitAPIException
      */
     public Set<String> getConflictingFiles(Status status) throws GitAPIException {
-        if(status == null) {
+        if (status == null) {
             status = new Git(this.getCurrentRepo()).status().call();
         }
 
@@ -288,10 +289,7 @@ public class SessionModel {
 
     /**
      * Calls `git status` and returns the set of modified files that Git reports.
-     * Also returns those considered changed rather than modified. Changed files
-     * appear for example when committing a fixed conflict while merging.
      *
-     * Changed files differ between the HEAD and the index
      * Modified files differ between the disk and the index
      *
      * @return a set of modified filenames in the working directory.
@@ -302,10 +300,21 @@ public class SessionModel {
             status = new Git(this.getCurrentRepo()).status().call();
         }
 
-        Set<String> modifiedAndChangedFiles = new HashSet<>(status.getChanged());
-        modifiedAndChangedFiles.addAll(status.getModified());
+        return status.getModified();
+    }
 
-        return modifiedAndChangedFiles;
+
+    /**
+     * Calls `git status` and returns the set of staged files that Git reports.
+     *
+     * @return a set of modified filenames in the working directory.
+     * @throws GitAPIException if the `git status` call fails.
+     */
+    public Set<String> getStagedFiles(Status status) throws GitAPIException {
+        if(status == null) {
+            status = new Git(this.getCurrentRepo()).status().call();
+        }
+        return status.getChanged();
     }
 
     /**
@@ -357,6 +366,7 @@ public class SessionModel {
                     Set<String> missingFiles = getMissingFiles(status);
                     Set<String> untrackedFiles = getUntrackedFiles(status);
                     Set<String> conflictingFiles = getConflictingFiles(status);
+                    Set<String> stagedFiles = getStagedFiles(status);
 
                     // Relativize the path to the repository, because that's the file structure JGit
                     //  looks for in an 'add' command
@@ -369,7 +379,10 @@ public class SessionModel {
                     if (conflictingFiles.contains(relativizedPath.toString())) {
                         ConflictingRepoFile conflictingFile = new ConflictingRepoFile(path, this.getCurrentRepoHelper());
                         superDirectory.addChild(conflictingFile);
-                    } else if (modifiedFiles.contains(relativizedPath.toString())) {
+                    } else if (stagedFiles.contains(relativizedPath.toString())) {
+                        StagedRepoFile stagedFile = new StagedRepoFile(path, this.getCurrentRepoHelper());
+                        superDirectory.addChild(stagedFile);
+                    }else if (modifiedFiles.contains(relativizedPath.toString())) {
                         ModifiedRepoFile modifiedFile = new ModifiedRepoFile(path, this.getCurrentRepoHelper());
                         superDirectory.addChild(modifiedFile);
                     } else if (missingFiles.contains(relativizedPath.toString())) {
@@ -405,6 +418,7 @@ public class SessionModel {
         Set<String> missingFiles = getMissingFiles(status);
         Set<String> untrackedFiles = getUntrackedFiles(status);
         Set<String> conflictingFiles = getConflictingFiles(status);
+        Set<String> stagedFiles = getStagedFiles(status);
         ArrayList<String> conflictingThenModifiedFiles = ConflictingFileWatcher.getConflictingThenModifiedFiles();
 
         List<RepoFile> changedRepoFiles = new ArrayList<>();
@@ -429,8 +443,29 @@ public class SessionModel {
             conflictingRepoFileStrings.add(conflictingFileString);
         }
 
+        // Remove files from conflictingThenModifedFiles when they are no longer conflicting
+
+        // We have to record these to avoid a ConcurrentModificationException
+        List<String> toRemove = new ArrayList<>();
+        for (String str : conflictingThenModifiedFiles) {
+            if(!conflictingFiles.contains(str)) {
+                toRemove.add(str);
+            }
+        }
+        for (String str : toRemove) {
+            ConflictingFileWatcher.removeFile(str);
+        }
+        for (String stagedFileString : stagedFiles) {
+            if (!conflictingRepoFileStrings.contains(stagedFileString) && !modifiedFiles.contains(stagedFileString)) {
+                StagedRepoFile stagedRepoFile = new StagedRepoFile(stagedFileString, this.getCurrentRepoHelper());
+                changedRepoFiles.add(stagedRepoFile);
+            } else if (!conflictingRepoFileStrings.contains(stagedFileString)) {
+                StagedAndModifiedRepoFile stagedAndModifiedRepoFile = new StagedAndModifiedRepoFile(stagedFileString, this.getCurrentRepoHelper());
+                changedRepoFiles.add(stagedAndModifiedRepoFile);
+            }
+        }
         for (String modifiedFileString : modifiedFiles) {
-            if (!conflictingRepoFileStrings.contains(modifiedFileString)) {
+            if (!conflictingRepoFileStrings.contains(modifiedFileString) && !stagedFiles.contains(modifiedFileString)) {
                 ModifiedRepoFile modifiedRepoFile = new ModifiedRepoFile(modifiedFileString, this.getCurrentRepoHelper());
                 changedRepoFiles.add(modifiedRepoFile);
             }

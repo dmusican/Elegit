@@ -4,7 +4,6 @@ import javafx.animation.ScaleTransition;
 import javafx.application.Platform;
 import javafx.scene.shape.Shape;
 import javafx.util.Duration;
-import elegit.MatchedScrollPane;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -191,6 +190,15 @@ public class Highlighter{
     }
 
     /**
+     * Resets a single cell to the stand state
+     * @param cell the cell to reset to standard state
+     */
+    public static void resetCell(Cell cell) {
+        cell.setCellState(CellState.STANDARD);
+        cellStates.remove(cell);
+    }
+
+    /**
      * First requests the focus of the MatchedScrollPanes, then
      * sets the state of the given cell to emphasized, and fianlly
      * performs an animation on it. Currently, the animation is
@@ -204,7 +212,7 @@ public class Highlighter{
         }
 
         Platform.runLater(() -> {
-            MatchedScrollPane.scrollTo(c.columnLocationProperty.doubleValue() + 1);
+            CommitTreeScrollPane.scrollTo(c.rowLocationProperty.doubleValue());
             c.setCellState(CellState.EMPHASIZED);
 
             Shape s = (Shape) c.view;

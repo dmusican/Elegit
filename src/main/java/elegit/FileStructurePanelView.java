@@ -1,7 +1,6 @@
 package elegit;
 
 import javafx.application.Platform;
-import javafx.scene.Node;
 import javafx.scene.control.TreeCell;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
@@ -55,8 +54,6 @@ public abstract class FileStructurePanelView extends Region{
         // TreeViews must all have ONE root to hold the leafs. Don't show that root:
         this.directoryTreeView.setShowRoot(false);
 
-        this.directoryTreeView.prefHeightProperty().bind(this.heightProperty());
-
         Platform.runLater(() -> {
             this.getChildren().clear();
             this.getChildren().add(directoryTreeView);
@@ -83,7 +80,6 @@ public abstract class FileStructurePanelView extends Region{
     public void resetFileStructurePanelView() {
         this.directoryTreeView = new TreeView<>();
         this.directoryTreeView.setCellFactory(this.getTreeCellFactory());
-        this.directoryTreeView.prefHeightProperty().bind(this.heightProperty());
         this.getChildren().clear();
         this.getChildren().add(directoryTreeView);
     }

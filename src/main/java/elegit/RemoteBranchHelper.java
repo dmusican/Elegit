@@ -17,7 +17,7 @@ public class RemoteBranchHelper extends BranchHelper {
 
     @Override
     public String getBranchName(){
-        return "origin/"+super.getBranchName();
+        return repoHelper.repo.getRemoteName(this.refPathString)+"/"+super.getBranchName();
     }
 
     @Override

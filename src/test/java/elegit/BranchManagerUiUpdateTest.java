@@ -106,7 +106,7 @@ public class BranchManagerUiUpdateTest {
             fileTextWriter.println("Add a line to the file");
         }
 
-        this.helper.addFilePath(file.toPath());
+        this.helper.addFilePathTest(file.toPath());
         this.helper.commit("Modified test.txt in a unit test!");
 
         new Git(helper.getRepo()).checkout().setName("master").call();

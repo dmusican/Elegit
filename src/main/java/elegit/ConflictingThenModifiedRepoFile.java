@@ -1,22 +1,12 @@
 package elegit;
 
 import javafx.application.Platform;
-import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonBar;
-import javafx.scene.control.ButtonType;
 import javafx.scene.control.Tooltip;
-import javafx.scene.text.*;
 import javafx.scene.text.Font;
-import org.eclipse.jgit.api.AddCommand;
-import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 
-import java.awt.*;
-import java.io.File;
-import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Optional;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -42,10 +32,7 @@ public class ConflictingThenModifiedRepoFile extends RepoFile {
         this(Paths.get(filePathString), repo);
     }
 
-    /**
-     * When this RepoFile is checkboxed and the user commits, display an alert.
-     */
-    @Override public boolean updateFileStatusInRepo() throws GitAPIException, IOException {
+    @Override public boolean canAdd() throws GitAPIException {
         ReentrantLock lock = new ReentrantLock();
         Condition finishedAlert = lock.newCondition();
 
@@ -53,31 +40,7 @@ public class ConflictingThenModifiedRepoFile extends RepoFile {
             logger.warn("Notification about conflicting the modified file");
             lock.lock();
             try{
-                Alert alert = new Alert(Alert.AlertType.INFORMATION);
-
-                ButtonType commitButton = new ButtonType("Commit");
-                ButtonType buttonTypeCancel = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
-
-                alert.getButtonTypes().setAll(commitButton, buttonTypeCancel);
-
-                alert.setResizable(true);
-                alert.getDialogPane().setPrefSize(300, 200);
-
-                alert.setTitle("Adding previously conflicting file");
-                alert.setHeaderText("You are adding a conflicting file that was recently modified to the commit");
-                alert.setContentText("If the file is what you want it to be, you should commit. Otherwise, modify the file accordingly.");
-
-                Optional<ButtonType> result = alert.showAndWait();
-
-                if(result.get() == commitButton){
-                    logger.info("Chose to resolve conflicts");
-                    setResultType("commit");
-                }else{
-                    // User cancelled the dialog
-                    logger.info("Cancelled dialog");
-                    setResultType("cancel");
-                }
-
+                resultType = PopUpWindows.showAddingingConflictingThenModifiedFileAlert();
                 finishedAlert.signal();
             }finally{
                 lock.unlock();
@@ -87,9 +50,7 @@ public class ConflictingThenModifiedRepoFile extends RepoFile {
         lock.lock();
         try{
             finishedAlert.await();
-            if(resultType.equals("commit")){
-                AddCommand add = new Git(this.repo.getRepo()).add().addFilepattern(this.filePath.toString());
-                add.call();
+            if(resultType.equals("add")){
                 return true;
             }
         }catch(InterruptedException ignored){
@@ -99,8 +60,6 @@ public class ConflictingThenModifiedRepoFile extends RepoFile {
         return false;
     }
 
-    private void setResultType(String s){
-        resultType = s;
-    }
+    @Override public boolean canRemove() { return true; }
 }
 

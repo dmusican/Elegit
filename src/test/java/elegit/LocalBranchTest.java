@@ -3,8 +3,6 @@ package elegit;
 import elegit.exceptions.ConflictingFilesException;
 import elegit.exceptions.MissingRepoException;
 import elegit.exceptions.NoTrackingException;
-import org.eclipse.jgit.api.MergeCommand;
-import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.junit.After;
@@ -103,7 +101,7 @@ public class LocalBranchTest {
         Path filePath = repoPathPush.resolve("README.md");
         String timestamp = "testLocalBranchPush " + (new Date()).toString() + "\n";
         Files.write(filePath, timestamp.getBytes(), StandardOpenOption.APPEND);
-        helperPush.addFilePath(filePath);
+        helperPush.addFilePathTest(filePath);
 
         // Commit changes in master in pusher and push
         helperPush.commit("added line in master");
@@ -118,7 +116,7 @@ public class LocalBranchTest {
         filePath = repoPathFetch.resolve("README.md");
         timestamp = "testLocalBranchFetch " + (new Date()).toString() + "\n";
         Files.write(filePath, timestamp.getBytes(), StandardOpenOption.APPEND);
-        helperFetch.addFilePath(filePath);
+        helperFetch.addFilePathTest(filePath);
         /* ******************** FETCH AND MERGE SECTION ******************** */
 
         // Fetch changes

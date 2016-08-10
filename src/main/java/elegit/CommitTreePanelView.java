@@ -1,17 +1,12 @@
 package elegit;
 
+import elegit.treefx.Cell;
+import elegit.treefx.TreeGraph;
+import elegit.treefx.TreeLayout;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.Region;
-import elegit.treefx.Cell;
-import elegit.treefx.TreeGraph;
-import elegit.treefx.TreeLayout;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
-import javafx.scene.text.Text;
 
 /**
  * Class for the local and remote panel views that handles the drawing of a tree structure
@@ -20,57 +15,30 @@ import javafx.scene.text.Text;
  */
 public class CommitTreePanelView extends Region{
 
-    // Constants for panel size
-    public static int TREE_PANEL_WIDTH = 500;
-    public static int TREE_PANEL_HEIGHT = (Cell.BOX_SIZE + TreeLayout.H_SPACING) * 5;
-
     // Thread information
-    private boolean isLayoutThreadRunning = false;
+    public boolean isLayoutThreadRunning = false;
     private Task task;
     private Thread th;
     private String name;
-
-    private StackPane computingCommitTree;
-    private Text loading;
 
     /**
      * Constructs a new view for the commit tree
      */
     public CommitTreePanelView(){
         super();
-        this.setPrefHeight(TREE_PANEL_HEIGHT);
-
-        initLoadingText();
-    }
-
-    /**
-     * Helper method to initialize loading text
-     */
-    private void initLoadingText() {
-        loading = new Text("Computing commit tree graph...");
-        loading.setFont(new Font(15));
-        loading.setFill(Color.DODGERBLUE);
-        loading.setVisible(true);
-        VBox vBox = new VBox(loading);
-        computingCommitTree = new StackPane(vBox);
-        computingCommitTree.setLayoutX(170);
-        computingCommitTree.setLayoutY(120);
+        this.setMinHeight(0);
     }
 
     /**
      * Helper method to initialize the commit tree scroll panes
      * @param treeGraph TreeGraph
      */
-    private void initCommitTreeScrollPanes(TreeGraph treeGraph, boolean showLoadingText) {
-        MatchedScrollPane.ignoreScrolling(true);
+    private void initCommitTreeScrollPanes(TreeGraph treeGraph) {
         ScrollPane sp = treeGraph.getScrollPane();
         sp.setOnMouseClicked(event -> CommitTreeController.handleMouseClicked());
         getChildren().clear();
         getChildren().add(anchorScrollPane(sp));
-        getChildren().add(computingCommitTree);
-        if(showLoadingText) loading.setVisible(true);
         isLayoutThreadRunning = false;
-        MatchedScrollPane.ignoreScrolling(false);
     }
 
     /**
@@ -79,11 +47,11 @@ public class CommitTreePanelView extends Region{
      * for the layout to finish and then updates the view
      * @param treeGraph the graph to be displayed
      */
-    public synchronized void displayTreeGraph(TreeGraph treeGraph, CommitHelper commitToFocusOnLoad, boolean showLoadingText){
+    public synchronized void displayTreeGraph(TreeGraph treeGraph, CommitHelper commitToFocusOnLoad){
         if (Platform.isFxApplicationThread()) {
-            initCommitTreeScrollPanes(treeGraph, showLoadingText);
+            initCommitTreeScrollPanes(treeGraph);
         }else {
-            Platform.runLater(() -> initCommitTreeScrollPanes(treeGraph, showLoadingText));
+            Platform.runLater(() -> initCommitTreeScrollPanes(treeGraph));
         }
 
         if(isLayoutThreadRunning){
@@ -110,9 +78,10 @@ public class CommitTreePanelView extends Region{
                     th.join();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
+                } finally {
+                    isLayoutThreadRunning = false;
                 }
                 Platform.runLater(() -> {
-                    loading.setVisible(false);
                     CommitTreeController.focusCommitInGraph(commitToFocusOnLoad);
                 });
                 return null;

@@ -1,5 +1,5 @@
 .root {
-    -fx-background-color: #F2F1EF;
+    -fx-background-color: -fx-background-default;
     -fx-font-family: "Avenir";
     -fx-focus-color: #BFBFBF;
 }
@@ -10,8 +10,106 @@
     -fx-text-fill: #333333;
 }
 
+#merge-text {
+    -fx-font-size: 14px;
+}
+
+
+.label#notification {
+    -fx-font-size: 12;
+    -fx-font-weight: normal;
+}
+
+.label#notificationNum {
+    -fx-font-size: 10;
+    -fx-font-weight: bold;
+}
+
+#branch-merge-box-tracked{
+    -fx-background-color: #1E90FF;
+    -fx-background-radius: 5;
+    -fx-padding: 0 3 0 3;
+}
+#branch-merge-box-untracked{
+    -fx-background-color: #CCCCCC;
+    -fx-background-radius: 5;
+    -fx-padding: 0 3 0 3;
+}
+
+#local-branch-selector {
+    -fx-text-fill: #333333;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-background-color: #CCCCCC;
+    -fx-background-radius: 5;
+    -fx-padding: -5 -5 -5 -5;
+}
+
+.label#branch-merge {
+    -fx-text-fill: #FFFFFF;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-align: center;
+}
+
+.label#branch-not-current {
+    -fx-text-fill: #333333;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-background-color: #CCCCCC;
+    -fx-background-radius: 5;
+    -fx-padding: 0 3 0 3;
+}
+
+.label#branch-current {
+    -fx-text-fill: #FFFFFF;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-background-color: #1E90FF;
+    -fx-background-radius: 5;
+    -fx-padding: 0 3 0 3;
+}
+
+
+.branch-label {
+    -fx-text-fill: #FFFFFF;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}
+
+.branch-label-selector {
+    -fx-text-fill: #FFFFFF;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-background-color: #CCCCCC;
+    -fx-background-radius: 5;
+}
+
+
+.cell-label-box {
+    -fx-background-color: #CCCCCC;
+    -fx-background-radius: 5;
+    -fx-effect: -fx-dropshadow;
+}
+    .cell-label-box#regular { -fx-background-color: #CCCCCC; }
+    .cell-label-box#current { -fx-background-color: #1E90FF; }
+    .cell-label-box#tag { -fx-background-color: #FFD600; }
+
+
+.cell-label {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}
+    .cell-label#regular { -fx-text-fill: #333333; }
+    .cell-label#current { -fx-text-fill: #FFFFFF; }
+
+
 .button#codeButton {
-    -fx-font-family: "Menlo";
+    -fx-font-family: "Lucida Console";
+}
+
+.button#notificationButton {
+    -fx-font-size: 12px;
 }
 
 .button:pressed, .button:selected{
@@ -22,6 +120,26 @@
 .menu-bar {
     -fx-use-system-menu-bar: true;
     -fx-background-color: -fx-button-select-fill;
+}
+
+#notificationLine {
+    -fx-background-color: linear-gradient(from 0px 0px to 1200px 0px, -fx-background-default 0%, #555555 2%, #555555 98%, -fx-background-default 100%);;
+    -fx-cursor: v_resize;
+}
+
+#merge-arrow {
+    -fx-stroke-width: 3;
+    -fx-stroke: #333333;
+    -fx-stroke-line-cap: butt;
+    -fx-fill: #00000000;
+
+}
+
+#separator {
+    -fx-background-color: #777777;
+}
+#separator-dashed {
+    -fx-background-color: linear-gradient(from 0px 0px to 10px 0px, repeat, -fx-background-default 0%, -fx-background-default 49%, #777777 51%, #777777 100%);
 }
 
 .tree-cell:selected {
@@ -49,6 +167,7 @@
     -fx-font-size: 8px;
     -fx-font-family: "Avenir";
     -fx-text-fill: white;
+    -fx-effect: -fx-dropshadow;
 }
 
     .diffButton#missingDiffButton {
@@ -73,6 +192,14 @@
 
     .diffButton#conflictingThenModifiedDiffButton {
         -fx-background-color: firebrick;
+    }
+
+    .diffButton#stagedDiffButton {
+        -fx-background-color: #888800;
+    }
+
+    .diffButton#stagedModifiedDiffButton {
+            -fx-background-color: green;
     }
 
 .diffText {
@@ -115,6 +242,7 @@
 .cell {
     -fx-stroke-type: inside;
     -fx-stroke-line-cap: butt;
+    -fx-stroke-width: 2px;
 }
 
 .invisCell {
@@ -132,16 +260,46 @@
 }
 
 #helpButton {
-    -fx-fill: -fx-cell-color-standard;
+    -fx-fill: -fx-button-fill;
 }
-#helpButton:hover {
-    -fx-fill: -fx-cell-color-select;
+
+    #helpButton: hover {
+        -fx-fill: -fx-button-hover-fill;
+    }
+
+#helpButton-null {
+    -fx-padding: 1 1 1 1;
+    -fx-fill: -fx-background-default;
 }
+
+#helpButton-inside {
+    -fx-padding: 3 3 3 3;
+    -fx-fill: -fx-button-fill;
+}
+
+    #helpButton-inside: hover {
+            -fx-fill: -fx-button-hover-fill;
+        }
+
+#helpButton-remote {
+    -fx-stroke-type: inside;
+    -fx-stroke-line-cap: butt;
+    -fx-stroke-width: 2px;
+    -fx-stroke: -fx-button-fill;
+    -fx-fill: -fx-background-default;
+}
+
+    #helpButton-remote: hover {
+        -fx-stroke: -fx-button-hover-fill;
+    }
 
 * {
     -fx-button-fill: #52B3D9;
     -fx-button-hover-fill: #81CFE0;
     -fx-button-select-fill: #3498DB;
+    -fx-background-default: #F4F4F4;
+
+    -fx-dropshadow: dropshadow(three-pass-box, #777777, 4, 0, 0, 2);
 
     -fx-cell-color-standard: radial-gradient(center 50% 50%, radius 75%, -fx-button-fill, -fx-button-hover-fill);
     -fx-cell-color-highlight1: radial-gradient(center 50% 50%, radius 75%, #da60e4, #9b59b6);

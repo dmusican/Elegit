@@ -1,10 +1,5 @@
 package elegit;
 
-import org.eclipse.jgit.api.CreateBranchCommand;
-import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.MergeCommand;
-import org.eclipse.jgit.api.MergeResult;
-import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.junit.After;
 import org.junit.Before;
@@ -13,10 +8,7 @@ import org.junit.Test;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
-import java.rmi.Remote;
 import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Scanner;
 
 import static org.junit.Assert.assertEquals;
@@ -105,7 +97,7 @@ public class FastForwardTest {
         Path filePath = repoPathFast.resolve("fastforward.txt");
         String timestamp = (new Date()).toString() + "\n";
         Files.write(filePath, timestamp.getBytes(), StandardOpenOption.APPEND);
-        helperFast.addFilePath(filePath);
+        helperFast.addFilePathTest(filePath);
 
         // Commit changes in fast_branch and push
         helperFast.commit("added a character");
@@ -119,7 +111,7 @@ public class FastForwardTest {
         helperFast.getBranchModel().mergeWithBranch(fast_helper);
 
         // Check that Elegit recognizes there are unpushed commits
-        assertEquals(true, helperFast.hasUnpushedCommits());
+        assertEquals(true, helperFast.getAheadCount()>0);
 
         // Push changes
         helperFast.pushAll();
@@ -165,7 +157,7 @@ public class FastForwardTest {
         Path filePath = repoPathFast.resolve("fastforward.txt");
         String timestamp = (new Date()).toString() + "\n";
         Files.write(filePath, timestamp.getBytes(), StandardOpenOption.APPEND);
-        helperFast.addFilePath(filePath);
+        helperFast.addFilePathTest(filePath);
 
         // Commit changes in can_push and push
         helperFast.commit("added a character");
@@ -180,7 +172,7 @@ public class FastForwardTest {
         helperFast.getBranchModel().mergeWithBranch(fast_helper);
 
         // Check that Elegit recognizes there are unpushed commits
-        assertEquals(true, helperFast.hasUnpushedCommits());
+        assertEquals(true, helperFast.getAheadCount()>0);
 
         // Push changes
         helperFast.pushAll();

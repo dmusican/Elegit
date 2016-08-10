@@ -5,6 +5,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.MenuBar;
 import javafx.scene.image.Image;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 import org.apache.commons.lang3.SystemUtils;
@@ -71,13 +72,13 @@ public class Main extends Application {
         primaryStage.setTitle("Elegit");
 
         // sets the icon
-        Image img = new Image(getClass().getResourceAsStream("/elegit/elegit_icon.png"));
+        Image img = new Image(getClass().getResourceAsStream("/elegit/images/elegit_icon.png"));
         primaryStage.getIcons().add(img);
         // handles mac os dock icon
         if (SystemUtils.IS_OS_MAC) {
             java.awt.image.BufferedImage dock_img = ImageIO.read(
                     getClass().getResourceAsStream(
-                    "/elegit/elegit_icon.png"
+                            "/elegit/images/elegit_icon.png"
                 )
             );
             com.apple.eawt.Application.getApplication()

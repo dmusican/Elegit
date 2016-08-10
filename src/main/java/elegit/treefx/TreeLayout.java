@@ -7,12 +7,14 @@ import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
+import javafx.geometry.Pos;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.Pane;
-import javafx.scene.layout.StackPane;
-import javafx.scene.text.Text;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.Font;
+import javafx.scene.text.Text;
+import javafx.scene.transform.Rotate;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,17 +24,16 @@ import java.util.List;
  */
 public class TreeLayout{
 
-    public static int V_SPACING = Cell.BOX_SIZE + 10;
-    public static int H_SPACING = Cell.BOX_SIZE * 3 + 5;
-    public static int V_PAD = 10;
-    public static int H_PAD = 25;
+    public static int H_SPACING = Cell.BOX_SIZE + 10;
+    public static int V_SPACING = Cell.BOX_SIZE * 3 + 5;
+    public static int H_PAD = 10;
+    public static int V_PAD = 25;
     public static boolean movingCells;
 
 
     /**
      * Mover service to go through moving the cells. Services are scheduled really well, so we
      * like using them for big repetitive things like this.
-     * TODO: test fetching/pushing/merging, see if it animates and stuff correctly
      */
     public static class MoveCellService extends Service {
         private int currentCell, max;
@@ -53,17 +54,24 @@ public class TreeLayout{
             return new Task() {
                 @Override
                 protected Object call() throws Exception {
-                    for (int i=currentCell; i<currentCell+10; i++) {
-                        if (i > allCellsSortedByTime.size() - 1) {
-                            percent.set(100);
-                            this.cancelled();
-                        }
-                        moveCell(allCellsSortedByTime.get(i));
+                    // Try/catch is just in for debugging purposes, left because any
+                    // errors here are very hard to find without it
+                    try {
+                        for (int i = currentCell; i < currentCell + 10; i++) {
+                            if (i > allCellsSortedByTime.size() - 1) {
+                                percent.set(100);
+                                return null;
+                            }
+                            moveCell(allCellsSortedByTime.get(i));
 
-                        // Update progress if need be
-                        if (i * 100.0 / max > percent.get()) {
-                            percent.set(i*100/max);
+                            // Update progress if need be
+                            if (i * 100.0 / max > percent.get() && percent.get() < 100) {
+                                percent.set(i * 100 / max);
+                            }
                         }
+                        this.succeeded();
+                    }catch (Exception e) {
+                        e.printStackTrace();
                     }
                     return null;
                 }
@@ -84,13 +92,9 @@ public class TreeLayout{
         return new Task<Void>(){
 
             private List<Cell> allCellsSortedByTime;
-            private List<Integer> maxColUsedInRow;
+            private List<Integer> minRowUsedInCol;
             private List<Integer> movedCells;
             private boolean isInitialSetupFinished;
-
-
-            private SimpleDoubleProperty centerOfViewportX = new SimpleDoubleProperty(0);
-            private SimpleDoubleProperty centerOfViewportY = new SimpleDoubleProperty(0);
 
             /**
              * Extracts the TreeGraphModel, sorts its cells by time, then relocates
@@ -99,97 +103,78 @@ public class TreeLayout{
              */
             @Override
             protected Void call() throws Exception{
-                TreeGraphModel treeGraphModel = g.treeGraphModel;
-                isInitialSetupFinished = treeGraphModel.isInitialSetupFinished;
+                try {
+                    TreeGraphModel treeGraphModel = g.treeGraphModel;
+                    isInitialSetupFinished = treeGraphModel.isInitialSetupFinished;
 
-                allCellsSortedByTime = treeGraphModel.allCells;
-                sortListOfCells();
+                    allCellsSortedByTime = treeGraphModel.allCells;
+                    sortListOfCells();
 
-                // Initialize variables
-                maxColUsedInRow = new ArrayList<>();
-                movedCells = new ArrayList<>();
+                    // Initialize variables
+                    minRowUsedInCol = new ArrayList<>();
+                    movedCells = new ArrayList<>();
 
-                // Compute the positions of cells recursively
-                for (int i=allCellsSortedByTime.size()-1; i>=0; i--) {
-                    computeCellPosition(i);
+                    // Compute the positions of cells recursively
+                    for (int i = allCellsSortedByTime.size() - 1; i >= 0; i--) {
+                        computeCellPosition(i);
+                    }
+                    // Once all cell's positions have been set, move them in a service
+                    MoveCellService mover = new MoveCellService(allCellsSortedByTime);
+
+                    //********************* Loading Bar Start *********************
+                    Pane cellLayer = g.getCellLayerPane();
+                    ScrollPane sp = g.getScrollPane();
+                    SimpleDoubleProperty viewportY = new SimpleDoubleProperty(0);
+                    SimpleDoubleProperty viewportX = new SimpleDoubleProperty(0);
+                    ProgressBar progressBar = new ProgressBar();
+
+                    Text loadingCommits = new Text("Loading commits ");
+                    loadingCommits.setFont(new Font(14));
+                    VBox loading = new VBox(loadingCommits, progressBar);
+                    loading.setAlignment(Pos.CENTER);
+                    loading.setSpacing(5);
+                    loading.layoutYProperty().bind(viewportY);
+                    loading.layoutXProperty().bind(viewportX);
+                    loading.setRotationAxis(Rotate.X_AXIS);
+                    loading.setRotate(180);
+                    if (Platform.isFxApplicationThread()) {
+                        cellLayer.getChildren().add(loading);
+                    } else {
+                        Platform.runLater(() -> cellLayer.getChildren().add(loading));
+                    }
+
+                    sp.vvalueProperty().addListener(((observable, oldValue, newValue) -> {
+                        viewportY.set(cellLayer.getLayoutBounds().getHeight()-((double) newValue * cellLayer.getLayoutBounds().getHeight() +
+                                (0.5 - (double) newValue) * sp.getViewportBounds().getHeight()));
+                    }));
+
+                    sp.viewportBoundsProperty().addListener(((observable, oldValue, newValue) -> {
+                        viewportX.set(sp.getViewportBounds().getWidth() - loading.getWidth() - 35);
+                        viewportY.set(cellLayer.getLayoutBounds().getHeight()
+                                - (sp.getVvalue() * cellLayer.getLayoutBounds().getHeight()
+                                + (0.5 - sp.getVvalue()) * sp.getViewportBounds().getHeight()));
+                    }));
+                    //********************** Loading Bar End **********************
+
+                    mover.setOnSucceeded(event1 -> {
+                        if (!Main.isAppClosed && movingCells && mover.currentCell < allCellsSortedByTime.size() - 1) {
+                            mover.setCurrentCell(mover.currentCell + 10);
+                            progressBar.setProgress(mover.percent.get() / 100.0);
+                            mover.restart();
+                        } else {
+                            treeGraphModel.isInitialSetupFinished = true;
+                            loadingCommits.setVisible(false);
+                            progressBar.setVisible(false);
+                        }
+                    });
+
+                    mover.reset();
+                    mover.start();
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
-                // Once all cell's positions have been set, move them in a service
-                MoveCellService mover = new MoveCellService(allCellsSortedByTime);
-
-                //********************* Loading Bar Start *********************
-                // Prepare loading bar for while commits are loading
-                ScrollPane scrollPane = g.getScrollPane();
-                Pane cellLayer = g.getCellLayerPane();
-                ProgressBar progressBar = new ProgressBar();
-                Text loadingCommits = new Text("Loading commits...");
-                VBox loading = new VBox(progressBar, loadingCommits);
-                loading.setSpacing(5);
-                StackPane stackPane = new StackPane(loading);
-                stackPane.setLayoutY(100.0);
-                stackPane.setVisible(false);
-                Platform.runLater(() -> cellLayer.getChildren().add(stackPane));
-
-
-                // Binds the progress bar location to the center of the viewport
-                stackPane.layoutXProperty().bind(centerOfViewportX);
-                stackPane.layoutYProperty().bind(centerOfViewportY);
-
-                // Adds listeners to the scrollbars to updates the progress bar's location and visibility
-                scrollPane.hvalueProperty().addListener((observable, oldValue, newValue) -> {
-                    updateProgressBarLocation(mover, scrollPane, cellLayer, stackPane);
-                });
-
-                scrollPane.vvalueProperty().addListener((observable, oldValue, newValue) -> {
-                    updateProgressBarLocation(mover, scrollPane, cellLayer, stackPane);
-                });
-
-                mover.percent.addListener((observable, oldValue, newValue) -> {
-                    if (mover.percent.get() / 100.0 >= 1 - scrollPane.getHvalue()) {
-                        stackPane.setVisible(false);
-                    }
-                });
-
-                //********************** Loading Bar End **********************
-
-
-                mover.setOnSucceeded(event1 -> {
-                    if (!Main.isAppClosed && movingCells) {
-                        mover.setCurrentCell(mover.currentCell + 10);
-                        progressBar.setProgress(mover.percent.get() / 100.0);
-                        mover.restart();
-                    }else {
-                        mover.cancel();
-                    }
-                });
-
-                mover.setOnCancelled(event1 -> treeGraphModel.isInitialSetupFinished = true);
-
-                mover.reset();
-                mover.start();
                 return null;
             }
-
-            /**
-             * helper method to update progress bar location
-             * @param mover Service that moves the cells
-             * @param scrollPane ScrollPane the commit tree Pane is in
-             * @param cellLayer Pane that holds the commit tree
-             * @param stackPane StackPane that has the progress bar
-             */
-            private void updateProgressBarLocation(MoveCellService mover, ScrollPane scrollPane, Pane cellLayer, StackPane stackPane) {
-                if (mover.percent.get() / 100.0 < 1 - scrollPane.getHvalue()) {
-                    if (cellLayer.getLayoutBounds().getMaxX() > 0) {
-                        centerOfViewportX.set(scrollPane.getHvalue() * cellLayer.getLayoutBounds().getMaxX()
-                                + (0.5 - scrollPane.getHvalue()) * scrollPane.getViewportBounds().getWidth());
-                        centerOfViewportY.set(scrollPane.getVvalue() * cellLayer.getLayoutBounds().getMaxY()
-                                + (0.5 - scrollPane.getVvalue()) * scrollPane.getViewportBounds().getHeight());
-                    }
-                    stackPane.setVisible(true);
-                } else {
-                    stackPane.setVisible(false);
-                }
-            }
-
 
             /**
              * Helper method to sort the list of cells
@@ -221,7 +206,7 @@ public class TreeLayout{
                 // Get cell at the inputted position
                 Cell c = allCellsSortedByTime.get(allCellsSortedByTime.size()-1-cellPosition);
 
-                setCellPosition(c, cellPosition, getRowOfCellInColumn(maxColUsedInRow, cellPosition));
+                setCellPosition(c, getColumnOfCellInRow(minRowUsedInCol, cellPosition), cellPosition);
 
                 // Update the reserved columns in rows with the cells parents, oldest to newest
                 List<Cell> list = c.getCellParents();
@@ -235,10 +220,19 @@ public class TreeLayout{
                 }
             }
 
+            /**
+             * Helper method to set the position of a cell and update various
+             * parameters for the cell
+             *
+             * @param c the cell to set the position of
+             * @param x the new column of the cell
+             * @param y the new row of the cell
+             */
             private void setCellPosition(Cell c, int x, int y) {
                 // See whether or not this cell will move
                 int oldColumnLocation = c.columnLocationProperty.get();
                 int oldRowLocation = c.rowLocationProperty.get();
+
                 c.columnLocationProperty.set(x);
                 c.rowLocationProperty.set(y);
 
@@ -246,34 +240,33 @@ public class TreeLayout{
                 boolean willCellMove = oldColumnLocation != x || oldRowLocation != y;
 
                 // Update where the cell has been placed
-                if (y >= maxColUsedInRow.size())
-                    maxColUsedInRow.add(x);
+                if (x >= minRowUsedInCol.size())
+                    minRowUsedInCol.add(y);
                 else
-                    maxColUsedInRow.set(y, x);
+                    minRowUsedInCol.set(x, y);
 
                 // Set the animation and use parent properties of the cell
                 c.setAnimate(isInitialSetupFinished && willCellMove);
                 c.setUseParentAsSource(!hasCellMoved);
 
-                this.movedCells.add(x);
+                this.movedCells.add(y);
             }
         };
     }
 
     /**
-     * Calculates the row closest to the top of the screen to place the
-     * given cell based on the cell's column and the maximum heights recorded
-     * for each row
-     * @param maxColumnUsedInRow the map of max columns used in each row
-     * @param cellCol the column the cell to examine is in
+     * Calculates the column closest to the left of the screen to place the
+     * given cell based on the cell's row and the heights of each column so far
+     * @param minRowUsedInCol the map of max rows used in each column
+     * @param cellRow the row the cell to examine is in
      * @return the lowest indexed row in which to place c
      */
-    private static int getRowOfCellInColumn(List<Integer> maxColumnUsedInRow, int cellCol){
-        int row = 0;
-        while(maxColumnUsedInRow.size() > row && (cellCol > maxColumnUsedInRow.get(row))){
-            row++;
+    private static int getColumnOfCellInRow(List<Integer> minRowUsedInCol, int cellRow){
+        int col = 0;
+        while(minRowUsedInCol.size() > col && (cellRow > minRowUsedInCol.get(col))){
+            col++;
         }
-        return row;
+        return col;
     }
 
     /**
@@ -293,9 +286,11 @@ public class TreeLayout{
                     c.moveTo(px, py, false, false);
                 }
 
-                double x = c.columnLocationProperty.get() * H_SPACING + H_PAD;
-                double y = c.rowLocationProperty.get() * V_SPACING + V_PAD;
+                    double x = c.columnLocationProperty.get() * H_SPACING + H_PAD;
+                    double y = c.rowLocationProperty.get() * V_SPACING + V_PAD;
+
                 c.moveTo(x, y, animate, animate && useParentPosAsSource);
+
                 return null;
             }
         });

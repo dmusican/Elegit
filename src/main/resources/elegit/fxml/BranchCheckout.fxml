@@ -1,0 +1,72 @@
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Text?>
+<?import java.net.URL?>
+
+<AnchorPane fx:controller="elegit.BranchCheckoutController"
+                  xmlns:fx="http://javafx.com/fxml"
+                  fx:id="anchorRoot">
+
+    <GridPane hgap="10"
+              vgap="10"
+              alignment="TOP_CENTER"
+              AnchorPane.rightAnchor="5"
+              AnchorPane.leftAnchor="5"
+              AnchorPane.topAnchor="5"
+              AnchorPane.bottomAnchor="20">
+
+        <padding>
+            <Insets bottom="10" left="10" right ="10" top="10"/>
+        </padding>
+
+        <Text GridPane.columnIndex="0"
+              GridPane.rowIndex="0"
+              text="Remote branches:" />
+        <Text GridPane.columnIndex="1"
+              GridPane.rowIndex="0"
+              text="Local branches:" />
+
+        <VBox GridPane.columnIndex="0"
+              GridPane.rowIndex="1"
+              GridPane.rowSpan="2"
+              spacing="10"
+              alignment="TOP_CENTER" >
+
+            <ListView fx:id="remoteListView"
+                      onMouseClicked="#handleRemoteListViewMouseClick"/>
+            <Button fx:id="trackRemoteBranchButton"
+                    onAction="#trackSelectedBranchLocally"
+                    text="Track remote branch locally"/>
+
+        </VBox>
+
+        <VBox GridPane.columnIndex="1"
+              GridPane.rowIndex="1"
+              GridPane.rowSpan="2"
+              spacing="10"
+              alignment="TOP_CENTER">
+
+            <ListView fx:id="localListView"
+                      onMouseClicked="#handleLocalListViewMouseClick"/>
+            <Button fx:id="checkoutLocalBranchButton"
+                    onAction="#handleCheckoutButton"
+                    text="Checkout local branch" />
+
+        </VBox>
+
+        <Button GridPane.rowIndex="3"
+                GridPane.columnIndex="1"
+                GridPane.halignment="RIGHT"
+                prefWidth="80"
+                text="Cancel"
+                onAction="#closeWindow"/>
+
+    </GridPane>
+
+    <fx:include source="NotificationPane.fxml" fx:id="notificationPane"/>
+
+    <stylesheets>
+        <URL value="@../css/BaseStyle.css"/>
+    </stylesheets>
+</AnchorPane>

@@ -105,7 +105,7 @@ public class GitIgnoreEditor {
         }
 
         try{
-            showTrackingIgnoredFilesWarning(repoHelper.getTrackedIgnoredFiles());
+            PopUpWindows.showTrackingIgnoredFilesWarning(repoHelper.getTrackedIgnoredFiles());
         }catch (IOException ignored) {}
 
         window.close();
@@ -121,18 +121,6 @@ public class GitIgnoreEditor {
         } catch (IOException ignored){}
 
         return returnText;
-    }
-
-    private static void showTrackingIgnoredFilesWarning(Collection<String> trackedIgnoredFiles) {
-        if(trackedIgnoredFiles.size() > 0){
-            String fileStrings = "";
-            for(String s : trackedIgnoredFiles){
-                fileStrings += "\n"+s;
-            }
-            Alert alert = new Alert(Alert.AlertType.WARNING, "The following files are being tracked by Git, " +
-                    "but also match an ignore pattern. If you want to ignore these files, remove them from Git.\n"+fileStrings);
-            alert.showAndWait();
-        }
     }
 
     /**

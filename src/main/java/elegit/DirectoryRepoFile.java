@@ -29,4 +29,12 @@ public class DirectoryRepoFile extends RepoFile {
     public ArrayList<RepoFile> getChildren() {
         return children;
     }
+
+    @Override public boolean canAdd() {
+        return true;
+    }
+
+    @Override public boolean canRemove() {
+        return true;
+    }
 }

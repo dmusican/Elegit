@@ -1,6 +1,7 @@
 package elegit;
 
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.lib.BranchTrackingStatus;
 import org.eclipse.jgit.lib.ObjectId;
 
 import java.io.IOException;
@@ -95,5 +96,9 @@ public abstract class BranchHelper {
             setHead(repoHelper.getCommit(headId));
             return headId;
         }
+    }
+
+    public BranchTrackingStatus getStatus() throws IOException {
+        return BranchTrackingStatus.of(this.repoHelper.repo, this.branchName);
     }
 }

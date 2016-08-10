@@ -3,11 +3,12 @@ package elegit;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jgit.api.*;
-import org.eclipse.jgit.api.errors.CannotDeleteCurrentBranchException;
-import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.api.errors.NotMergedException;
-import org.eclipse.jgit.api.errors.RefAlreadyExistsException;
+import org.eclipse.jgit.api.errors.*;
+import org.eclipse.jgit.lib.BranchTrackingStatus;
 import org.eclipse.jgit.lib.Ref;
+import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.transport.PushResult;
+import org.eclipse.jgit.transport.RemoteRefUpdate;
 
 import java.io.IOException;
 import java.util.*;
@@ -145,9 +146,9 @@ public class BranchModel {
      * Creates a local branch and tracks it
      * @param remoteBranchHelper the remote branch to track
      * @return the localBranchHelper that was added
+     * @throws RefAlreadyExistsException
      * @throws GitAPIException
      * @throws IOException
-     * @throws RefAlreadyExistsException
      */
     public LocalBranchHelper trackRemoteBranch(RemoteBranchHelper remoteBranchHelper) throws RefAlreadyExistsException, GitAPIException, IOException {
         LocalBranchHelper tracker = this.createLocalTrackingBranchForRemote(remoteBranchHelper);
@@ -201,7 +202,7 @@ public class BranchModel {
      * @throws CannotDeleteCurrentBranchException
      * @throws GitAPIException
      */
-    public void deleteLocalBranch(LocalBranchHelper localBranchToDelete)
+    void deleteLocalBranch(LocalBranchHelper localBranchToDelete)
             throws NotMergedException, CannotDeleteCurrentBranchException, GitAPIException {
         Git git = new Git(this.repoHelper.getRepo());
         git.branchDelete().setBranchNames(localBranchToDelete.getRefPathString()).call();
@@ -215,7 +216,7 @@ public class BranchModel {
      *
      * @param branchToDelete the branch helper of the branch to delete
      */
-    public void forceDeleteLocalBranch(LocalBranchHelper branchToDelete) throws CannotDeleteCurrentBranchException, GitAPIException {
+    void forceDeleteLocalBranch(LocalBranchHelper branchToDelete) throws CannotDeleteCurrentBranchException, GitAPIException {
         Git git = new Git(this.repoHelper.getRepo());
         git.branchDelete().setForce(true).setBranchNames(branchToDelete.getRefPathString()).call();
         this.localBranchesTyped.remove(branchToDelete);
@@ -223,14 +224,41 @@ public class BranchModel {
     }
 
     /**
+     * Deletes a remote branch. Essentially a 'git push <remote> :<remote branch name>'
+     *
+     * @param branchHelper the remote branch to delete
+     * @return the status of the push to remote to delete
+     * @throws GitAPIException
+     */
+    RemoteRefUpdate.Status deleteRemoteBranch(RemoteBranchHelper branchHelper) throws GitAPIException, IOException {
+        PushCommand pushCommand = new Git(this.repoHelper.repo).push();
+        // We're deleting the branch on a remote, so there it shows up as refs/heads/<branchname>
+        // instead of what it shows up on local: refs/<remote>/<branchname>, so we manually enter
+        // this thing in here
+        pushCommand.setRemote("origin").add(":refs/heads/"+branchHelper.parseBranchName());
+        this.repoHelper.myWrapAuthentication(pushCommand);
+
+        // Update the remote branches in case it worked
+        updateRemoteBranches();
+
+        boolean succeeded=false;
+        for (PushResult result : pushCommand.call()) {
+            for (RemoteRefUpdate refUpdate : result.getRemoteUpdates()) {
+                return refUpdate.getStatus();
+            }
+        }
+        return null;
+    }
+
+    /**
      * Merges the current branch with the selected branch
      *
      * @param branchToMergeFrom the branch to merge into the current branch
-     * @return merge result, used in determining the notification in BranchManagerController
+     * @return merge result, used in determining the notification in BranchCheckoutController
      * @throws GitAPIException
      * @throws IOException
      */
-    public MergeResult mergeWithBranch(BranchHelper branchToMergeFrom) throws GitAPIException, IOException {
+    MergeResult mergeWithBranch(BranchHelper branchToMergeFrom) throws GitAPIException, IOException {
         Git git = new Git(this.repoHelper.getRepo());
 
         MergeCommand merge = git.merge();
@@ -238,12 +266,6 @@ public class BranchModel {
 
         MergeResult mergeResult = merge.call();
 
-        // If the merge was successful, there was a new commit or fast forward, so there are unpushed
-        // commits. Otherwise, repo helper doesn't need to do anything else.
-        if (mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.MERGED)
-                || mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.FAST_FORWARD)){
-            this.repoHelper.hasUnpushedCommitsProperty.setValue(true);
-        }
         git.close();
 
         return mergeResult;
@@ -257,6 +279,15 @@ public class BranchModel {
      * @return the branch helper for the current branch
      */
     public BranchHelper getCurrentBranch() { return this.currentBranch; }
+
+    public String getCurrentRemoteBranch() throws IOException {
+        if (BranchTrackingStatus.of(this.repoHelper.repo, this.currentBranch.getBranchName())!=null) {
+            return Repository.shortenRefName(
+                    BranchTrackingStatus.of(this.repoHelper.repo, this.currentBranch.getBranchName())
+                            .getRemoteTrackingBranch());
+        }
+        return null;
+    }
 
     /**
      * Getter for the current branch head in the model
@@ -371,6 +402,30 @@ public class BranchModel {
     }
 
     /**
+     * Helper method to check if a branch is a current branch
+     * @param branch the branch to check
+     * @return true if the branch is the current branch or its remote tracking branch
+     */
+    public boolean isBranchCurrent(BranchHelper branch) {
+        if (this.currentBranch==branch)
+            return true;
+        if (this.currentBranch==null)
+            return false;
+        try {
+            // If the branch is the local's remote tracking branch, it is current
+            BranchTrackingStatus status = BranchTrackingStatus.of(this.repoHelper.repo, this.currentBranch.getBranchName());
+            if (branch instanceof RemoteBranchHelper && status != null && this.repoHelper.repo.shortenRefName(
+                    status.getRemoteTrackingBranch()).equals(branch.getBranchName())) {
+                return true;
+            }
+        } catch (IOException e) {
+            // Shouldn't happen here, session controller would catch this first
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    /**
      * Updates the heads of all local and remote branches, then returns a map of them
      * @return
      */
@@ -415,6 +470,18 @@ public class BranchModel {
                     .collect(Collectors.toList());
         }
         return branchLabels;
+    }
+
+    /**
+     * @return a list of the current branches, useful for the ref labels
+     */
+    public List<String> getCurrentBranches() {
+        List<String> branches = new ArrayList<>();
+        for (BranchHelper branch : getAllBranches()) {
+            if (isBranchCurrent(branch))
+                branches.add(branch.getBranchName());
+        }
+        return branches;
     }
 
 

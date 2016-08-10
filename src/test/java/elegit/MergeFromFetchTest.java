@@ -2,7 +2,6 @@ package elegit;
 
 import elegit.exceptions.ConflictingFilesException;
 import elegit.exceptions.MissingRepoException;
-import org.eclipse.jgit.api.MergeCommand;
 import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
@@ -110,7 +109,7 @@ public class MergeFromFetchTest {
         Path filePath = repoPathPush.resolve("README.md");
         String newBranchLine = "Line for new branch\n";
         Files.write(filePath, newBranchLine.getBytes(), StandardOpenOption.APPEND);
-        helperPush.addFilePath(filePath);
+        helperPush.addFilePathTest(filePath);
 
         // Commit changes in new_branch
         helperPush.commit("added line in new_branch");
@@ -121,7 +120,7 @@ public class MergeFromFetchTest {
         filePath = repoPathPush.resolve("README.md");
         newBranchLine = "Line for master\n";
         Files.write(filePath, newBranchLine.getBytes(), StandardOpenOption.APPEND);
-        helperPush.addFilePath(filePath);
+        helperPush.addFilePathTest(filePath);
 
         // Commit the changes in master and push
         helperPush.commit("added line in master");
