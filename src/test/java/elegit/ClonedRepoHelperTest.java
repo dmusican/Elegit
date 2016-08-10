@@ -98,7 +98,7 @@ public class ClonedRepoHelperTest {
             newPathTextWriter.println("Dummy text for the new file to commit");
         }
 
-        this.helper.addFilePath(newPath);
+        this.helper.addFilePathTest(newPath);
         this.helper.commit("Added a new file in a unit test!");
 
         assertTrue(this.helper.getAheadCount()>0);

@@ -1,7 +1,6 @@
 package elegit;
 
 import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.ResetCommand;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.junit.After;
 import org.junit.Before;
@@ -142,11 +141,11 @@ public class RevertTest {
 
     private void modifyAddFile(Path file) throws Exception {
         Files.write(file, EDIT_STRING.getBytes(), StandardOpenOption.APPEND);
-        helper.addFilePath(file);
+        helper.addFilePathTest(file);
     }
 
     private void modifyAddFile(Path file, String editString) throws Exception {
         Files.write(file, editString.getBytes(), StandardOpenOption.APPEND);
-        helper.addFilePath(file);
+        helper.addFilePathTest(file);
     }
 }

@@ -83,7 +83,13 @@ public class RepoFile implements Comparable<RepoFile> {
         MenuItem addToIgnoreItem = new MenuItem("Add to .gitignore...");
         addToIgnoreItem.setOnAction(event -> GitIgnoreEditor.show(this.repo, this.filePath));
 
-        this.contextMenu.getItems().addAll(addToIgnoreItem);
+        MenuItem checkoutItem = new MenuItem("Checkout...");
+        SessionController controller = CommitTreeController.sessionController;
+        checkoutItem.setOnAction(event -> {
+            controller.handleCheckoutButton(filePath);
+        });
+
+        this.contextMenu.getItems().addAll(addToIgnoreItem, checkoutItem);
     }
 
     public RepoFile(String filePathString, RepoHelper repo) {

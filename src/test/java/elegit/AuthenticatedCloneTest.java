@@ -121,7 +121,7 @@ public class AuthenticatedCloneTest {
             FileWriter fw = new FileWriter(fileLocation.toString(), true);
             fw.write("1");
             fw.close();
-            helper.addFilePath(fileLocation);
+            helper.addFilePathTest(fileLocation);
             helper.commit("Appended to file");
             helper.pushAll();
             helper.pushTags();

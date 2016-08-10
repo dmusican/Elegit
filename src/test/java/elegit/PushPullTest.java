@@ -97,7 +97,7 @@ public class PushPullTest {
         System.out.println(readmePath);
         String timestamp = (new Date()).toString() + "\n";
         Files.write(readmePath, timestamp.getBytes(), StandardOpenOption.APPEND);
-        helperPush.addFilePath(readmePath);
+        helperPush.addFilePathTest(readmePath);
         helperPush.commit("added a character");
         helperPush.pushAll();
 
@@ -142,7 +142,7 @@ public class PushPullTest {
         System.out.println(readmePath);
         String timestamp = "testPushPullBothClonedExisting " + (new Date()).toString() + "\n";
         Files.write(readmePath, timestamp.getBytes(), StandardOpenOption.APPEND);
-        helperPush.addFilePath(readmePath);
+        helperPush.addFilePathTest(readmePath);
         helperPush.commit("added a character");
         helperPush.pushAll();
 

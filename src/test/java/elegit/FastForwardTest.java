@@ -96,7 +96,7 @@ public class FastForwardTest {
         Path filePath = repoPathFast.resolve("fastforward.txt");
         String timestamp = (new Date()).toString() + "\n";
         Files.write(filePath, timestamp.getBytes(), StandardOpenOption.APPEND);
-        helperFast.addFilePath(filePath);
+        helperFast.addFilePathTest(filePath);
 
         // Commit changes in fast_branch and push
         helperFast.commit("added a character");
@@ -155,7 +155,7 @@ public class FastForwardTest {
         Path filePath = repoPathFast.resolve("fastforward.txt");
         String timestamp = (new Date()).toString() + "\n";
         Files.write(filePath, timestamp.getBytes(), StandardOpenOption.APPEND);
-        helperFast.addFilePath(filePath);
+        helperFast.addFilePathTest(filePath);
 
         // Commit changes in can_push and push
         helperFast.commit("added a character");
