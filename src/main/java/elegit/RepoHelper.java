@@ -3,6 +3,7 @@ package elegit;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
+import com.jcraft.jsch.UserInfo;
 import elegit.exceptions.*;
 import elegit.treefx.Cell;
 import javafx.beans.property.BooleanProperty;
