@@ -2,7 +2,7 @@ package elegit;
 
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
-import javafx.event.EventHandler;
+import javafx.beans.property.ReadOnlyDoubleProperty;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.scene.control.Button;
@@ -171,6 +171,14 @@ public class NotificationController {
         vBox.getChildren().add(0,line);
 
         setNotificationNum();
+    }
+
+    /**
+     * Binds the max height of the notification pane to a little below the height of the parent anchor pane
+     * @param parentHeight the height property of the parent pane
+     */
+    void bindParentBounds(ReadOnlyDoubleProperty parentHeight) {
+        this.notificationPane.maxHeightProperty().bind(parentHeight.divide(1.1));
     }
 
     /**

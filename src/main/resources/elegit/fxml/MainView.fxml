@@ -10,6 +10,7 @@
 
 <AnchorPane
         fx:controller="elegit.SessionController"
+        fx:id="anchorRoot"
         xmlns:fx="http://javafx.com/fxml"
         prefWidth="1200"
         prefHeight="650">
@@ -266,20 +267,6 @@
             </GridPane.margin>
         </ArrowButton>
         <ArrowButton id="codeButton"
-                     fx:id="pushTagsButton"
-                     text="Push Tags"
-                     arrowRight="true"
-                     visible="false"
-                     onAction="#handlePushTagsButton"
-                     GridPane.columnIndex="3"
-                     GridPane.rowIndex="1"
-                     GridPane.halignment="RIGHT"
-                     GridPane.valignment="BOTTOM">
-            <GridPane.margin>
-                <Insets bottom="20" left="-100" right="-10"/>
-            </GridPane.margin>
-        </ArrowButton>
-        <ArrowButton id="codeButton"
                      fx:id="pushButton"
                      text="Push"
                      arrowRight="true"
@@ -296,6 +283,8 @@
                     <items>
                         <MenuItem   text="Push all branches"
                                     onAction="#handlePushAllButton"/>
+                        <MenuItem   text="push --tags"
+                                    onAction="#handlePushTagsButton"/>
                     </items>
                 </ContextMenu>
             </contextMenu>

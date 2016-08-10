@@ -175,10 +175,13 @@ public class CommitLabelTest {
         List<String> labels = new LinkedList<>();
         for (Node m : labelNodes) {
             if (m instanceof HBox) {
-                for (Node k : ((HBox) m).getChildren()){
-                    if (!(k instanceof Label)) continue;
-                    Label l = (Label) k;
-                    Collections.addAll(labels, l.getText());
+                for (Node n : ((HBox) m).getChildren()) {
+                    if (n instanceof HBox)
+                    for (Node k : ((HBox) n).getChildren()) {
+                        if (!(k instanceof Label)) continue;
+                        Label l = (Label) k;
+                        Collections.addAll(labels, l.getText());
+                    }
                 }
             }
         }

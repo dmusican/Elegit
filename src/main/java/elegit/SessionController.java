@@ -37,6 +37,7 @@ import org.controlsfx.control.PopOver;
 import org.eclipse.jgit.api.ResetCommand;
 import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.dircache.InvalidPathException;
+import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.jgit.transport.RemoteRefUpdate;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
@@ -63,7 +64,6 @@ public class SessionController {
     public Button openRepoDirButton;
     public Button gitStatusButton;
     public Button commitButton;
-    public Button pushTagsButton;
     public Button pushButton;
     public Button fetchButton;
     public Button addButton;
@@ -123,6 +123,8 @@ public class SessionController {
 
     public Hyperlink legendLink;
 
+    @FXML private AnchorPane anchorRoot;
+
     // Notification pane
     @FXML private StackPane notificationPane;
     @FXML private NotificationController notificationPaneController;
@@ -170,6 +172,8 @@ public class SessionController {
 
         this.updateStatusText();
 
+        this.notificationPaneController.bindParentBounds(anchorRoot.heightProperty());
+
         // if there are conflicting files on startup, watches them for changes
         try {
             ConflictingFileWatcher.watchConflictingFiles(theModel.getCurrentRepoHelper());
@@ -197,7 +201,7 @@ public class SessionController {
         needToFetch.setFont(new Font(15));
         needToFetch.setFill(fetchColor);
 
-        String localBranch = this.theModel.getCurrentRepoHelper().getBranchModel().getCurrentBranch().branchName;
+        String localBranch = this.theModel.getCurrentRepoHelper().getBranchModel().getCurrentBranch().getAbbrevName();
         update = !localBranch.equals(currentLocalBranchText.getText());
         if (update) {
             currentLocalBranchText.setText(localBranch);
@@ -207,7 +211,7 @@ public class SessionController {
 
         String remoteBranch = "N/A";
         try {
-            remoteBranch = this.theModel.getCurrentRepoHelper().getBranchModel().getCurrentRemoteBranch();
+            remoteBranch = this.theModel.getCurrentRepoHelper().getBranchModel().getCurrentRemoteAbbrevBranch();
         } catch (IOException e) {
             this.showGenericErrorNotification();
         }
@@ -289,7 +293,6 @@ public class SessionController {
         addDeleteBranchButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         mergeButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         checkoutButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
-        pushTagsButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         pushButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         fetchButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         commitInfoNameCopyButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
@@ -452,7 +455,6 @@ public class SessionController {
             gitStatusButton.setDisable(disable);
             tagButton.setDisable(disable);
             commitButton.setDisable(disable);
-            pushTagsButton.setDisable(disable);
             pushButton.setDisable(disable);
             fetchButton.setDisable(disable);
             remoteImage.setVisible(!disable);
@@ -1029,7 +1031,6 @@ public class SessionController {
                         }
                         helper.pushCurrentBranch();
                         gitStatus();
-                        pushed = true;
                     }  catch(InvalidRemoteException e){
                         showNoRemoteNotification();
                     }
@@ -1052,11 +1053,6 @@ public class SessionController {
                         showGenericErrorNotification();
                         e.printStackTrace();
                     } finally{
-                        pushButton.setVisible(true);
-                        if (pushed && theModel.getCurrentRepoHelper().getTagModel().hasUnpushedTags()) {
-                            pushTagsButton.setVisible(true);
-                            pushButton.setVisible(false);
-                        }
                         BusyWindow.hide();
                         if (authorizationSucceeded) {
                             authenticateOnNextCommand = false;
@@ -1094,19 +1090,17 @@ public class SessionController {
             logger.info("Push button clicked");
 
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
-            if(this.theModel.getCurrentRepoHelper().getAheadCount()<1) throw new NoCommitsToPushException();
+            if(this.theModel.getCurrentRepoHelper().getAheadCount()<1 && !this.theModel.getCurrentRepoHelper().canPush()) throw new NoCommitsToPushException();
 
             BusyWindow.show();
             BusyWindow.setLoadingText("Pushing...");
             Thread th = new Thread(new Task<Void>(){
                 @Override
                 protected Void call() {
-                    boolean pushed = false;
                     try{
                         RepositoryMonitor.resetFoundNewChanges(false);
                         theModel.getCurrentRepoHelper().pushAll();
                         gitStatus();
-                        pushed = true;
                     }  catch(InvalidRemoteException e){
                         showNoRemoteNotification();
                     }
@@ -1128,11 +1122,6 @@ public class SessionController {
                         showGenericErrorNotification();
                         e.printStackTrace();
                     } finally{
-                        pushButton.setVisible(true);
-                        if (pushed && theModel.getCurrentRepoHelper().getTagModel().hasUnpushedTags()) {
-                            pushTagsButton.setVisible(true);
-                            pushButton.setVisible(false);
-                        }
                         BusyWindow.hide();
                     }
                     return null;
@@ -1159,15 +1148,15 @@ public class SessionController {
             logger.info("Push tags button clicked");
 
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
-            if(!this.theModel.getCurrentRepoHelper().getTagModel().hasUnpushedTags()) throw new NoTagsToPushException();
 
             Thread th = new Thread(new Task<Void>(){
                 @Override
                 protected Void call() {
                     boolean tagsPushed = true;
+                    Iterable<PushResult> results = null;
                     try{
                         RepositoryMonitor.resetFoundNewChanges(false);
-                        theModel.getCurrentRepoHelper().pushTags();
+                        results = theModel.getCurrentRepoHelper().pushTags();
                         gitStatus();
                     }  catch(InvalidRemoteException e){
                         showNoRemoteNotification();
@@ -1192,25 +1181,28 @@ public class SessionController {
                         showGenericErrorNotification();
                         e.printStackTrace();
                         tagsPushed = false;
-                    }
-                    if (tagsPushed) {
-                        pushTagsButton.setVisible(false);
-                        pushButton.setVisible(true);
-                    }
-                    else {
-                        pushTagsButton.setVisible(true);
+                    } finally {
+                        boolean upToDate = true;
+                        if (tagsPushed) {
+                            if (results == null) upToDate = false;
+                            else
+                                for (PushResult result : results)
+                                    for (RemoteRefUpdate update : result.getRemoteUpdates())
+                                        if (update.getStatus() == RemoteRefUpdate.Status.OK)
+                                            upToDate=false;
+                        }
+                        if (upToDate) showTagsUpToDateNotification();
+                        else showTagsUpdatedNotification();
                     }
                     return null;
                 }
             });
             th.setDaemon(true);
-            th.setName("Git push");
+            th.setName("Git push --tags");
             th.start();
         }catch(NoRepoLoadedException e){
             this.showNoRepoLoadedNotification();
             setButtonsDisabled(true);
-        }catch(NoTagsToPushException e){
-            this.showNoTagsToPushNotification();
         }
     }
 
@@ -1574,6 +1566,7 @@ public class SessionController {
             FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/CreateDeleteBranchWindow.fxml"));
             fxmlLoader.load();
             CreateDeleteBranchWindowController createDeleteBranchController = fxmlLoader.getController();
+            createDeleteBranchController.setSessionController(this);
             AnchorPane fxmlRoot = fxmlLoader.getRoot();
             createDeleteBranchController.showStage(fxmlRoot);
         }catch(IOException e){
@@ -1654,20 +1647,12 @@ public class SessionController {
                 return;
             }
             try{
+                theModel.getCurrentRepoHelper().getBranchModel().updateAllBranches();
                 commitTreeModel.update();
                 workingTreePanelView.drawDirectoryView();
                 allFilesPanelView.drawDirectoryView();
                 this.theModel.getCurrentRepoHelper().getTagModel().updateTags();
                 updateStatusText();
-
-                if (theModel.getCurrentRepoHelper().getAheadCount()<1 &&
-                        theModel.getCurrentRepoHelper().getTagModel().hasUnpushedTags()) {
-                    pushTagsButton.setVisible(true);
-                    pushButton.setVisible(false);
-                } else if (!pushButton.isVisible()) {
-                    pushTagsButton.setVisible(false);
-                    pushButton.setVisible(true);
-                }
             } catch(Exception e) {
                 showGenericErrorNotification();
                 e.printStackTrace();
@@ -2127,10 +2112,17 @@ public class SessionController {
         });
     }
 
-    private void showNoTagsToPushNotification(){
+    private void showTagsUpToDateNotification(){
         Platform.runLater(() -> {
-            logger.warn("No local tags to push warning");
-            this.notificationPaneController.addNotification("There aren't any local tags to push");
+            logger.warn("Tags up to date notification");
+            this.notificationPaneController.addNotification("Tags are up to date with the remote");
+        });
+    }
+
+    private void showTagsUpdatedNotification(){
+        Platform.runLater(() -> {
+            logger.warn("Tags updated notification");
+            this.notificationPaneController.addNotification("Tags were updated");
         });
     }
 

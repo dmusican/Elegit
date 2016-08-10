@@ -1,5 +1,7 @@
 package elegit;
 
+import elegit.treefx.CellLabel;
+import elegit.treefx.CellLabelContainer;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
@@ -57,6 +59,15 @@ public class TagHelper{
      * @return the name of the tag
      */
     public String getName() { return this.tagName; }
+
+    /**
+     * @return the name of the tag, or an abbreviated version if it's too long
+     */
+    public String getAbbrevName() {
+        if (this.tagName.length()> CellLabel.MAX_CHAR_PER_LABEL)
+            return this.tagName.substring(0, 24) + "...";
+        return this.tagName;
+    }
 
     /**
      * @return the unique ObjectId of the tag

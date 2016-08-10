@@ -607,7 +607,7 @@ public class RepoHelper {
      *
      * @throws GitAPIException if the `git push --tags` call fails.
      */
-    public void pushTags() throws GitAPIException, MissingRepoException, PushToAheadRemoteError, IOException {
+    Iterable<PushResult> pushTags() throws GitAPIException, MissingRepoException, PushToAheadRemoteError, IOException {
         logger.info("Attempting push tags");
         if (!exists()) throw new MissingRepoException();
         if (!hasRemote()) throw new InvalidRemoteException("No remote repository");
@@ -638,6 +638,8 @@ public class RepoHelper {
         git.close();
 
         this.tagModel.updateTags();
+
+        return pushResult;
     }
 
     /**

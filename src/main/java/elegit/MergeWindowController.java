@@ -103,6 +103,8 @@ public class MergeWindowController {
             }
         });
 
+        this.notificationPaneController.bindParentBounds(anchorRoot.heightProperty());
+
         //init commit tree models
         localCommitTreeModel = CommitTreeController.getCommitTreeModel();
 

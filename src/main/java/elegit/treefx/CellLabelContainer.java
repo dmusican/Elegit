@@ -28,9 +28,9 @@ import static elegit.treefx.Cell.BOX_SIZE;
  * Class for the container that shows all the labels for a given cell
  */
 public class CellLabelContainer extends GridPane {
-    private final int MAX_COL_PER_ROW=6;
+    private final int MAX_COL_PER_ROW=4;
 
-    List<HBox> basicLabels;
+    HBox basicLabels;
     List<HBox> extendedLabels;
 
     /**
@@ -55,7 +55,7 @@ public class CellLabelContainer extends GridPane {
      */
     public void translate(double x, double y) {
         setTranslateX(x+BOX_SIZE+10);
-        setTranslateY(y+BOX_SIZE-5);
+        setTranslateY(y+BOX_SIZE-5-(this.getHeight()-25));
     }
 
     /**
@@ -82,29 +82,32 @@ public class CellLabelContainer extends GridPane {
             return;
         }
 
-        Button showExtended = new Button();
-        basicLabels = new ArrayList<>();
+        Label showExtended = new Label();
+        basicLabels = new HBox(5);
         extendedLabels = new ArrayList<>();
 
         int col=0;
         int row=0;
 
+        GridPane.setMargin(basicLabels, new Insets(0,0,5,5));
+        basicLabels.setPickOnBounds(false);
         for (String name : labels) {
             if (col>MAX_COL_PER_ROW) {
                 row++;
                 col=0;
+                HBox newLine = new HBox(5);
+                GridPane.setMargin(newLine, new Insets(0,0,5,5));
+                GridPane.setRowIndex(newLine, row);
+                newLine.setVisible(false);
+                newLine.setPickOnBounds(false);
+                extendedLabels.add(newLine);
             }
             CellLabel label = new CellLabel(name, false, false);
 
-            GridPane.setColumnIndex(label, col);
-            GridPane.setMargin(label, new Insets(0,0,5,5));
-
             if (row>0) {
-                GridPane.setRowIndex(label, row);
-                label.setVisible(false);
-                extendedLabels.add(label);
+                extendedLabels.get(row-1).getChildren().add(label);
             } else {
-                basicLabels.add(label);
+                basicLabels.getChildren().add(label);
             }
             col++;
         }
@@ -113,14 +116,15 @@ public class CellLabelContainer extends GridPane {
         if (row>0) {
             showExtended.setVisible(true);
             showExtended.setTranslateX(-6);
-            showExtended.setText("\u02c5");
-            showExtended.setStyle("-fx-background-color: rgba(244,244,244,100); -fx-padding: -3 0 0 0;" +
-                    "-fx-font-size:28px; -fx-font-weight:bold;");
+            showExtended.setTranslateY(-3);
+            Node down = GlyphsDude.createIcon(FontAwesomeIcon.CARET_DOWN);
+            Node up = GlyphsDude.createIcon(FontAwesomeIcon.CARET_UP);
+            showExtended.setGraphic(down);
             showExtended.setOnMouseClicked(event -> {
-                if(showExtended.getText().equals("\u02c5")) {
-                    showExtended.setText("\u02c4");
+                if(showExtended.getGraphic().equals(down)) {
+                    showExtended.setGraphic(up);
                 }else {
-                    showExtended.setText("\u02c5");
+                    showExtended.setGraphic(down);
                 }
                 for (Node n : extendedLabels) {
                     n.setVisible(!n.isVisible());
@@ -150,9 +154,14 @@ public class CellLabelContainer extends GridPane {
      */
     void setCurrentLabels(List<String> labels) {
         Platform.runLater(() -> {
-            for (Node n : getChildren())
-                if (n instanceof CellLabel && labels.contains(((CellLabel) n).getLabel().getText()))
-                    ((CellLabel) n).setCurrent(true);
+            for (Node m : getChildren()) {
+                if (m instanceof HBox) {
+                    for (Node n : ((HBox) m).getChildren()) {
+                        if (n instanceof CellLabel && labels.contains(((CellLabel) n).getLabel().getText()))
+                            ((CellLabel) n).setCurrent(true);
+                    }
+                }
+            }
         });
     }
 
@@ -162,10 +171,14 @@ public class CellLabelContainer extends GridPane {
      */
     void setTagLabels(Map<String, ContextMenu> labels) {
         Platform.runLater(() -> {
-            for (Node n : getChildren()) {
-                if (n instanceof CellLabel && labels.keySet().contains(((CellLabel) n).getLabel().getText())) {
-                    ((CellLabel) n).setTag(true);
-                    ((CellLabel) n).setContextMenu(labels.get(((CellLabel) n).getName()));
+            for (Node m : getChildren()) {
+                if (m instanceof HBox) {
+                    for (Node n : ((HBox) m).getChildren()) {
+                        if (n instanceof CellLabel && labels.keySet().contains(((CellLabel) n).getLabel().getText())) {
+                            ((CellLabel) n).setTag(true);
+                            ((CellLabel) n).setContextMenu(labels.get(((CellLabel) n).getName()));
+                        }
+                    }
                 }
             }
         });
@@ -177,9 +190,13 @@ public class CellLabelContainer extends GridPane {
      */
     void setBranchLabels(Map<String, ContextMenu> labels) {
         Platform.runLater(() -> {
-            for (Node n : getChildren()) {
-                if (n instanceof CellLabel && labels.keySet().contains(((CellLabel) n).getLabel().getText())) {
-                    ((CellLabel) n).setContextMenu(labels.get(((CellLabel) n).getName()));
+            for (Node m : getChildren()) {
+                if (m instanceof HBox) {
+                    for (Node n : ((HBox) m).getChildren()) {
+                        if (n instanceof CellLabel && labels.keySet().contains(((CellLabel) n).getLabel().getText())) {
+                            ((CellLabel) n).setContextMenu(labels.get(((CellLabel) n).getName()));
+                        }
+                    }
                 }
             }
         });

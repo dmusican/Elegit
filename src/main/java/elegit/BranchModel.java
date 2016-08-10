@@ -1,5 +1,6 @@
 package elegit;
 
+import elegit.treefx.CellLabel;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jgit.api.*;
@@ -289,6 +290,19 @@ public class BranchModel {
         return null;
     }
 
+    public String getCurrentRemoteAbbrevBranch() throws IOException {
+        if (BranchTrackingStatus.of(this.repoHelper.repo, this.currentBranch.getBranchName())!=null) {
+            String name =  Repository.shortenRefName(
+                    BranchTrackingStatus.of(this.repoHelper.repo, this.currentBranch.getBranchName())
+                            .getRemoteTrackingBranch());
+            if (name.length() > CellLabel.MAX_CHAR_PER_LABEL) {
+                name = name.substring(0,24)+"...";
+            }
+            return name;
+        }
+        return null;
+    }
+
     /**
      * Getter for the current branch head in the model
      *
@@ -480,6 +494,18 @@ public class BranchModel {
         for (BranchHelper branch : getAllBranches()) {
             if (isBranchCurrent(branch))
                 branches.add(branch.getBranchName());
+        }
+        return branches;
+    }
+
+    /**
+     * @return a list of the current branches, useful for the ref labels
+     */
+    public List<String> getCurrentAbbrevBranches() {
+        List<String> branches = new ArrayList<>();
+        for (BranchHelper branch : getAllBranches()) {
+            if (isBranchCurrent(branch))
+                branches.add(branch.getAbbrevName());
         }
         return branches;
     }

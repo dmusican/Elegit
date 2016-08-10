@@ -1,5 +1,6 @@
 package elegit;
 
+import elegit.treefx.CellLabel;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Ref;
 
@@ -18,6 +19,15 @@ public class RemoteBranchHelper extends BranchHelper {
     @Override
     public String getBranchName(){
         return repoHelper.repo.getRemoteName(this.refPathString)+"/"+super.getBranchName();
+    }
+
+    @Override
+    public String getAbbrevName(){
+        String name = getBranchName();
+        if (name.length() > CellLabel.MAX_CHAR_PER_LABEL) {
+            name = name.substring(0,24)+"...";
+        }
+        return name;
     }
 
     @Override

@@ -1,5 +1,6 @@
 package elegit;
 
+import elegit.treefx.CellLabel;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.BranchTrackingStatus;
 import org.eclipse.jgit.lib.ObjectId;
@@ -38,6 +39,15 @@ public abstract class BranchHelper {
     }
 
     public String getBranchName(){
+        return this.branchName;
+    }
+
+    /**
+     * @return the name of the branch, or an abbreviated version if it's too long
+     */
+    public String getAbbrevName() {
+        if (this.branchName.length()> CellLabel.MAX_CHAR_PER_LABEL)
+            return this.branchName.substring(0, 24) + "...";
         return this.branchName;
     }
 
