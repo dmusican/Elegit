@@ -1,0 +1,25 @@
+# Welcome to Jekyll!
+#
+# This config file is meant for settings that affect your whole blog, values
+# which you are expected to set up once and rarely need to edit after that.
+# For technical reasons, this file is *NOT* reloaded automatically when you use
+# 'jekyll serve'. If you change this file, please restart the server process.
+
+# Site settings
+title: Elegit
+#email: your-email@domain.com
+description: > # this means to ignore newlines until "baseurl:"
+  The version control system Git has become popular for developers who track and share code.
+  Elegit is a Git client for people who actually want to learn Git.
+  The goal of this project is to design and build a new Git client for use by students that helps them
+  use Git successfully with a minimum of challenges, likely by use of a subset of Git commands, but also
+  specifically with the goal of helping them learn at a deeper level how Git works.
+baseurl: "" # the subpath of your site, e.g. /blog
+url: "http://yourdomain.com" # the base hostname & protocol for your site
+#twitter_username: jekyllrb
+github_username:  dmusican
+
+# Build settings
+markdown: kramdown
+
+exclude: [vendor]
