@@ -41,7 +41,7 @@ public class BranchCheckoutController {
     private RepoHelper repoHelper;
     private BranchModel branchModel;
     @FXML
-    private static AnchorPane anchorRoot;
+    private AnchorPane anchorRoot;
     @FXML
     private Button trackRemoteBranchButton;
     @FXML
@@ -78,6 +78,8 @@ public class BranchCheckoutController {
 
         this.setIcons();
         this.updateButtons();
+
+        this.notificationPaneController.bindParentBounds(anchorRoot.heightProperty());
     }
 
     /**

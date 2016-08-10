@@ -30,6 +30,7 @@ public class CheckoutFilesController {
     @FXML private VBox filesToCheckout;
     @FXML private NotificationController notificationPaneController;
     @FXML private Label header;
+    @FXML private AnchorPane anchorRoot;
 
     private List<String> fileNames;
 
@@ -46,6 +47,8 @@ public class CheckoutFilesController {
         SessionModel sessionModel = SessionModel.getSessionModel();
         this.repoHelper = sessionModel.getCurrentRepoHelper();
         this.fileNames = new ArrayList<>();
+
+        this.notificationPaneController.bindParentBounds(anchorRoot.heightProperty());
     }
 
     /**

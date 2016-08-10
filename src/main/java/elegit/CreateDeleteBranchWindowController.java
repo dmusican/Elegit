@@ -80,6 +80,8 @@ public class CreateDeleteBranchWindowController {
 
         // Get the current commit tree models
         localCommitTreeModel = CommitTreeController.getCommitTreeModel();
+
+        this.notificationPaneController.bindParentBounds(anchorRoot.heightProperty());
     }
 
     /**

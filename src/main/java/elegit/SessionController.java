@@ -123,6 +123,8 @@ public class SessionController {
 
     public Hyperlink legendLink;
 
+    @FXML private AnchorPane anchorRoot;
+
     // Notification pane
     @FXML private StackPane notificationPane;
     @FXML private NotificationController notificationPaneController;
@@ -168,6 +170,8 @@ public class SessionController {
         this.initRepositoryMonitor();
 
         this.updateStatusText();
+
+        this.notificationPaneController.bindParentBounds(anchorRoot.heightProperty());
 
         // if there are conflicting files on startup, watches them for changes
         try {
