@@ -127,6 +127,7 @@ public class SessionController {
     @FXML private StackPane notificationPane;
     @FXML private NotificationController notificationPaneController;
 
+    private boolean authenticateOnNextCommand;
 
     /**
      * Initializes the environment by obtaining the model
@@ -175,6 +176,8 @@ public class SessionController {
         } catch (GitAPIException | IOException e) {
             e.printStackTrace();
         }
+
+        authenticateOnNextCommand = false;
 
 
     }
@@ -1003,15 +1006,28 @@ public class SessionController {
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
             if(!this.theModel.getCurrentRepoHelper().canPush()) throw new NoCommitsToPushException();
 
+            final RepoHelperBuilder.AuthDialogResponse response;
+            if (authenticateOnNextCommand) {
+                response = RepoHelperBuilder.getAuthCredentialFromDialog();
+            } else {
+                response = null;
+            }
+            
             BusyWindow.show();
             BusyWindow.setLoadingText("Pushing...");
             Thread th = new Thread(new Task<Void>(){
                 @Override
                 protected Void call() {
                     boolean pushed = false;
+                    boolean authorizationSucceeded = true;
                     try{
                         RepositoryMonitor.resetFoundNewChanges(false);
-                        theModel.getCurrentRepoHelper().pushCurrentBranch();
+                        RepoHelper helper = theModel.getCurrentRepoHelper();
+                        if (response != null) {
+                            helper.ownerAuth =
+                                    new UsernamePasswordCredentialsProvider(response.username, response.password);
+                        }
+                        helper.pushCurrentBranch();
                         gitStatus();
                         pushed = true;
                     }  catch(InvalidRemoteException e){
@@ -1026,6 +1042,7 @@ public class SessionController {
                             showLostRemoteNotification();
                         } else {
                             showNotAuthorizedNotification();
+                            authorizationSucceeded = false;
                         }
                     } catch(MissingRepoException e){
                         showMissingRepoNotification();
@@ -1041,6 +1058,14 @@ public class SessionController {
                             pushButton.setVisible(false);
                         }
                         BusyWindow.hide();
+                        if (authorizationSucceeded) {
+                            authenticateOnNextCommand = false;
+                        } else {
+                            authenticateOnNextCommand = true;
+                            Platform.runLater(() -> {
+                                handlePushButton();
+                            });
+                        }
                     }
                     return null;
                 }
@@ -1055,8 +1080,11 @@ public class SessionController {
             this.showNoCommitsToPushNotification();
         }catch(IOException e) {
             this.showGenericErrorNotification();
+        } catch (CancelledAuthorizationException e) {
+            this.showCommandCancelledNotification();
         }
     }
+
 
     /**
      * Performs a `git push` on all branches
@@ -2131,6 +2159,13 @@ public class SessionController {
         Platform.runLater(() -> {
             logger.warn("Tried to revert commit with zero parents.");
             this.notificationPaneController.addNotification("You cannot revert that commit because it has zero parents.");
+        });
+    }
+
+    private void showCommandCancelledNotification() {
+        Platform.runLater(() -> {
+            logger.warn("Command cancelled.");
+            this.notificationPaneController.addNotification("Command cancelled..");
         });
     }
 
