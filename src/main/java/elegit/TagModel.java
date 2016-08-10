@@ -29,8 +29,6 @@ public class TagModel {
     private List<String> tagsWithUnpushedCommits;
     private Map<String, TagHelper> tagIdMap;
 
-    public BooleanProperty hasUnpushedTagsProperty;
-
     static final Logger logger = LogManager.getLogger();
 
     /**
@@ -46,8 +44,6 @@ public class TagModel {
         tagsWithUnpushedCommits = new ArrayList<>();
         tagIdMap = new HashMap<>();
         upToDateTags = this.getAllLocalTags();
-
-        hasUnpushedTagsProperty = new SimpleBooleanProperty(false);
     }
 
     /**
@@ -57,7 +53,7 @@ public class TagModel {
      * @throws IOException
      * @throws GitAPIException
      */
-    public boolean updateTags() throws IOException, GitAPIException {
+    boolean updateTags() throws IOException, GitAPIException {
         List<String> oldTagNames = getAllTagNames();
         Map<String, Ref> tagMap = this.repoHelper.getRepo().getTags();
         int oldSize = oldTagNames.size();
@@ -90,7 +86,6 @@ public class TagModel {
                 this.upToDateTags.remove(tagIdMap.get(s));
                 tagsWithUnpushedCommits.remove(s);
                 this.tagIdMap.remove(s);
-                this.hasUnpushedTagsProperty.set(this.unpushedTags.size()==0);
             }
         }
         return !(oldSize == getAllTagNames().size() && oldTagNames.size() == 0);
@@ -116,7 +111,6 @@ public class TagModel {
         git.close();
         TagHelper t = makeTagHelper(r, tagName);
         this.unpushedTags.add(t);
-        this.hasUnpushedTagsProperty.set(true);
     }
 
     /**
@@ -190,14 +184,7 @@ public class TagModel {
         git.close();
 
         tagToRemove.getCommit().removeTag(tagName);
-        if (!this.upToDateTags.remove(tagToRemove)) {
-            this.unpushedTags.remove(tagToRemove);
-            if (this.unpushedTags.size() == 0) {
-                this.hasUnpushedTagsProperty.set(false);
-            }
-        } else {
-            this.hasUnpushedTagsProperty.set(this.unpushedTags.size()==0);
-        }
+        this.upToDateTags.remove(tagToRemove);
         this.tagIdMap.remove(tagName);
     }
 
@@ -227,6 +214,4 @@ public class TagModel {
     public List<TagHelper> getAllTags() {
         return new ArrayList<>(tagIdMap.values());
     }
-
-    public boolean hasUnpushedTags() { return hasUnpushedTagsProperty.get(); }
 }
