@@ -10,6 +10,7 @@
 
 <AnchorPane
         fx:controller="elegit.SessionController"
+        fx:id="anchorRoot"
         xmlns:fx="http://javafx.com/fxml"
         prefWidth="1200"
         prefHeight="650">

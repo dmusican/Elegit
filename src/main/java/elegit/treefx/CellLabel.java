@@ -23,7 +23,7 @@ public class CellLabel extends HBox {
     ImageView image;
     Label label;
     ContextMenu contextMenu;
-    private final int MAX_CHAR_PER_LABEL=25;
+    public static final int MAX_CHAR_PER_LABEL=25;
 
     CellLabel(String name, boolean isCurrent, boolean isTag) {
         this.name = name;

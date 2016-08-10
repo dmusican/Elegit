@@ -112,6 +112,7 @@ public abstract class CommitTreeModel{
             this.removeCommitsFromTree(updates.getCommitsToRemove());
             this.addCommitsToTree(updates.getCommitsToAdd());
             this.updateCommitFills(updates.getCommitsToUpdate());
+            this.resetBranchHeads();
             this.updateAllRefLabels();
 
             TreeLayout.stopMovingCells();
@@ -573,7 +574,7 @@ public abstract class CommitTreeModel{
 
         for (BranchHelper helper : branchLabels) {
             commitId = helper.getHead().getId();
-            branchMap.put(helper.getBranchName(), getBranchLabelMenu(helper));
+            branchMap.put(helper.getAbbrevName(), getBranchLabelMenu(helper));
             if (commitLabelMap.containsKey(commitId))
                 commitLabelMap.get(commitId).add(helper.getBranchName());
             else {
@@ -585,7 +586,7 @@ public abstract class CommitTreeModel{
 
         for (TagHelper helper : tagLabels) {
             commitId = helper.getCommitId();
-            tagMap.put(helper.getName(), getTagLabelMenu(helper));
+            tagMap.put(helper.getAbbrevName(), getTagLabelMenu(helper));
             if (commitLabelMap.containsKey(commitId))
                 commitLabelMap.get(commitId).add(helper.getName());
             else {
@@ -599,7 +600,7 @@ public abstract class CommitTreeModel{
         for (String commit : commitLabelMap.keySet()) {
             String displayLabel = repo.getCommitDescriptorString(commit, false);
             treeGraph.treeGraphModel.setCellLabels(commit, displayLabel, commitLabelMap.get(commit));
-            treeGraph.treeGraphModel.setCurrentCellLabels(commit, this.sessionModel.getCurrentRepoHelper().getBranchModel().getCurrentBranches());
+            treeGraph.treeGraphModel.setCurrentCellLabels(commit, this.sessionModel.getCurrentRepoHelper().getBranchModel().getCurrentAbbrevBranches());
 
             treeGraph.treeGraphModel.setTagCellLabels(commit, tagMap);
             treeGraph.treeGraphModel.setBranchCellLabels(commit, branchMap);
