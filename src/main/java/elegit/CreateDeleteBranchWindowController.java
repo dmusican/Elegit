@@ -12,8 +12,6 @@ import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Callback;
-import javafx.util.Duration;
-import javafx.util.StringConverter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.controlsfx.control.PopOver;
@@ -21,7 +19,6 @@ import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.transport.RemoteRefUpdate;
 
 import java.io.IOException;
-import java.rmi.Remote;
 import java.util.List;
 
 /**
@@ -45,6 +42,7 @@ public class CreateDeleteBranchWindowController {
     RepoHelper repoHelper;
     private BranchModel branchModel;
     private CommitTreeModel localCommitTreeModel;
+    private SessionController sessionController;
 
     static final Logger logger = LogManager.getLogger();
 
@@ -190,7 +188,7 @@ public class CreateDeleteBranchWindowController {
                 try {
                     logger.info("New branch button clicked");
                     newBranch = branchModel.createNewLocalBranch(branchName);
-
+                    sessionController.gitStatus();
                     updateUser(" created ");
 
                 } catch (InvalidRefNameException e1) {
@@ -395,6 +393,10 @@ public class CreateDeleteBranchWindowController {
         popOver.detach();
         popOver.setAutoHide(true);
         dropdownToReset.getSelectionModel().clearSelection();
+    }
+
+    void setSessionController(SessionController sessionController) {
+        this.sessionController = sessionController;
     }
 
     //**************** BEGIN ERROR NOTIFICATIONS***************************

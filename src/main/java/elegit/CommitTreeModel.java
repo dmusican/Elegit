@@ -112,6 +112,7 @@ public abstract class CommitTreeModel{
             this.removeCommitsFromTree(updates.getCommitsToRemove());
             this.addCommitsToTree(updates.getCommitsToAdd());
             this.updateCommitFills(updates.getCommitsToUpdate());
+            this.resetBranchHeads();
             this.updateAllRefLabels();
 
             TreeLayout.stopMovingCells();

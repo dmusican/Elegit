@@ -28,7 +28,7 @@ import static elegit.treefx.Cell.BOX_SIZE;
  * Class for the container that shows all the labels for a given cell
  */
 public class CellLabelContainer extends GridPane {
-    private final int MAX_COL_PER_ROW=6;
+    private final int MAX_COL_PER_ROW=4;
 
     List<HBox> basicLabels;
     List<HBox> extendedLabels;
@@ -54,8 +54,9 @@ public class CellLabelContainer extends GridPane {
      * @param y the y coordinate of the new location
      */
     public void translate(double x, double y) {
+        System.out.println(this.getHeight() + " " + this.basicLabels.size());
         setTranslateX(x+BOX_SIZE+10);
-        setTranslateY(y+BOX_SIZE-5);
+        setTranslateY(y+BOX_SIZE-5-(this.getHeight()-25));
     }
 
     /**
@@ -115,7 +116,7 @@ public class CellLabelContainer extends GridPane {
             showExtended.setTranslateX(-6);
             showExtended.setText("\u02c5");
             showExtended.setStyle("-fx-background-color: rgba(244,244,244,100); -fx-padding: -3 0 0 0;" +
-                    "-fx-font-size:28px; -fx-font-weight:bold;");
+                    "-fx-font-size:12px; -fx-font-weight:bold;");
             showExtended.setOnMouseClicked(event -> {
                 if(showExtended.getText().equals("\u02c5")) {
                     showExtended.setText("\u02c4");

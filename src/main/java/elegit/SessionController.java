@@ -1550,6 +1550,7 @@ public class SessionController {
             FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/CreateDeleteBranchWindow.fxml"));
             fxmlLoader.load();
             CreateDeleteBranchWindowController createDeleteBranchController = fxmlLoader.getController();
+            createDeleteBranchController.setSessionController(this);
             AnchorPane fxmlRoot = fxmlLoader.getRoot();
             createDeleteBranchController.showStage(fxmlRoot);
         }catch(IOException e){
@@ -1630,6 +1631,7 @@ public class SessionController {
                 return;
             }
             try{
+                theModel.getCurrentRepoHelper().getBranchModel().updateAllBranches();
                 commitTreeModel.update();
                 workingTreePanelView.drawDirectoryView();
                 allFilesPanelView.drawDirectoryView();
