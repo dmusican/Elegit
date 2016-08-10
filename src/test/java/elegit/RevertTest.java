@@ -23,7 +23,6 @@ import static org.junit.Assert.assertTrue;
 public class RevertTest {
     private Path directoryPath;
     private String testFileLocation;
-    private RepoHelper helper;
     private static final String EDIT_STRING = "Lorem Ipsum";
     Path logPath;
 
@@ -86,8 +85,10 @@ public class RevertTest {
 
         // Repo that will commit to master
         Path repoPath = directoryPath.resolve("repo");
-        helper = new ClonedRepoHelper(repoPath, remoteURL, credentials);
+        ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, remoteURL, credentials);
         assertNotNull(helper);
+        helper.obtainRepository(remoteURL);
+
 
         Git git = new Git(helper.repo);
         Path filePath = repoPath.resolve("modify.txt");
@@ -99,7 +100,7 @@ public class RevertTest {
         helper.getBranchModel().refreshHeadIds();
         String oldHead = helper.getBranchModel().getCurrentBranchHead().getId();
 
-        modifyAddFile(filePath);
+        modifyAddFile(helper, filePath);
         helper.commit("Modified file #1");
         helper.updateModel();
         helper.getBranchModel().refreshHeadIds();
@@ -116,10 +117,10 @@ public class RevertTest {
         /* ********************* MULTIPLE REVERT SECTION ********************* */
         // make 2 more commits revert first revert and third commit, check content
         Path readPath = repoPath.resolve("README.md");
-        modifyAddFile(readPath, "Keep Text\n");
+        modifyAddFile(helper, readPath, "Keep Text\n");
         helper.commit("Modified file #2");
 
-        modifyAddFile(readPath, "Revert Text");
+        modifyAddFile(helper, readPath, "Revert Text");
         helper.commit("Modified file #3");
         helper.updateModel();
         List<CommitHelper> commitsToRevert = new ArrayList<>();
@@ -135,16 +136,12 @@ public class RevertTest {
         assertEquals(EDIT_STRING, Files.readAllLines(filePath).get(1));
     }
 
-    private void modifyFile(Path file) throws Exception {
-        Files.write(file, EDIT_STRING.getBytes(), StandardOpenOption.APPEND);
-    }
-
-    private void modifyAddFile(Path file) throws Exception {
+    private void modifyAddFile(RepoHelper helper, Path file) throws Exception {
         Files.write(file, EDIT_STRING.getBytes(), StandardOpenOption.APPEND);
         helper.addFilePathTest(file);
     }
 
-    private void modifyAddFile(Path file, String editString) throws Exception {
+    private void modifyAddFile(RepoHelper helper, Path file, String editString) throws Exception {
         Files.write(file, editString.getBytes(), StandardOpenOption.APPEND);
         helper.addFilePathTest(file);
     }

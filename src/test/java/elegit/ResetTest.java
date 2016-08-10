@@ -23,7 +23,6 @@ import static org.junit.Assert.assertTrue;
 public class ResetTest {
     private Path directoryPath;
     private String testFileLocation;
-    private RepoHelper helper;
     Path logPath;
 
     // Used to indicate that if password files are missing, then tests should just pass
@@ -85,8 +84,10 @@ public class ResetTest {
 
         // Repo that will commit to master
         Path repoPath = directoryPath.resolve("repo");
-        helper = new ClonedRepoHelper(repoPath, remoteURL, credentials);
+        ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, remoteURL, credentials);
         assertNotNull(helper);
+        helper.obtainRepository(remoteURL);
+
 
         Git git = new Git(helper.repo);
 
@@ -119,7 +120,7 @@ public class ResetTest {
         helper.getBranchModel().updateAllBranches();
         String oldHead = helper.getBranchModel().getCurrentBranch().getHead().getId();
 
-        modifyAddFile(filePath);
+        modifyAddFile(helper, filePath);
         helper.commit("Modified a file");
 
         helper.getBranchModel().updateAllBranches();
@@ -135,7 +136,7 @@ public class ResetTest {
 
         // mixed reset (to HEAD)
         // modify and add file, then reset to head
-        modifyAddFile(filePath);
+        modifyAddFile(helper, filePath);
         helper.reset("HEAD", ResetCommand.ResetType.MIXED);
         helper.getBranchModel().updateAllBranches();
         // Check that the file in the index got reset
@@ -148,7 +149,7 @@ public class ResetTest {
         helper.addFilePathTest(filePath);
         helper.commit("modified file");
         modifyFile(readPath);
-        modifyAddFile(filePath);
+        modifyAddFile(helper, filePath);
         helper.reset("HEAD~1", ResetCommand.ResetType.SOFT);
         helper.getBranchModel().updateAllBranches();
 
@@ -162,7 +163,7 @@ public class ResetTest {
         Files.write(file, text.getBytes(), StandardOpenOption.APPEND);
     }
 
-    private void modifyAddFile(Path file) throws Exception {
+    private void modifyAddFile(RepoHelper helper, Path file) throws Exception {
         String text = "Lorem Ipsum";
         Files.write(file, text.getBytes(), StandardOpenOption.APPEND);
         helper.addFilePathTest(file);
