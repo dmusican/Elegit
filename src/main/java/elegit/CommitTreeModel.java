@@ -600,7 +600,7 @@ public abstract class CommitTreeModel{
         for (String commit : commitLabelMap.keySet()) {
             String displayLabel = repo.getCommitDescriptorString(commit, false);
             treeGraph.treeGraphModel.setCellLabels(commit, displayLabel, commitLabelMap.get(commit));
-            treeGraph.treeGraphModel.setCurrentCellLabels(commit, this.sessionModel.getCurrentRepoHelper().getBranchModel().getCurrentBranches());
+            treeGraph.treeGraphModel.setCurrentCellLabels(commit, this.sessionModel.getCurrentRepoHelper().getBranchModel().getCurrentAbbrevBranches());
 
             treeGraph.treeGraphModel.setTagCellLabels(commit, tagMap);
             treeGraph.treeGraphModel.setBranchCellLabels(commit, branchMap);

@@ -104,7 +104,7 @@ public class CreateDeleteBranchWindowController {
 
                         if (helper == null || empty) { setGraphic(null); }
                         else {
-                            branchName.setText(helper.getBranchName());
+                            branchName.setText(helper.getAbbrevName());
                             if (repoHelper.getBranchModel().getCurrentBranch().getBranchName().equals(branchName.getText()))
                                 branchName.setId("branch-current");
                             else
@@ -130,7 +130,7 @@ public class CreateDeleteBranchWindowController {
 
                         if (helper == null || empty) { setGraphic(null); }
                         else {
-                            branchName.setText(helper.getBranchName());
+                            branchName.setText(helper.getAbbrevName());
                             try {
                                 if (repoHelper.getBranchModel().getCurrentRemoteBranch() != null &&
                                         repoHelper.getBranchModel().getCurrentRemoteBranch().equals(branchName.getText()))
