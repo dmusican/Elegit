@@ -1787,7 +1787,7 @@ public class SessionController {
 
             Stage stage = new Stage();
             stage.setTitle("Legend");
-            stage.setScene(new Scene(fxmlRoot, 500, 300));
+            stage.setScene(new Scene(fxmlRoot));
             stage.initModality(Modality.APPLICATION_MODAL);
             stage.setOnCloseRequest(event -> logger.info("Closed legend"));
             stage.show();

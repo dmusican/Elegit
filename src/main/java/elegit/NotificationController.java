@@ -13,9 +13,7 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
-import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -86,7 +84,6 @@ public class NotificationController {
 
         hBox.setOnMouseClicked(event -> {
             showNotificationList();
-            notificationAlert.hide();
         });
     }
 
@@ -124,6 +121,9 @@ public class NotificationController {
         this.notificationListPane.setVisible(!this.notificationListPane.isVisible());
         this.notificationListPane.setMouseTransparent(!this.notificationListPane.isMouseTransparent());
         this.latestNotification.setVisible(!this.latestNotification.isVisible());
+        if(notificationListPane.isVisible()) {
+            this.notificationAlert.hide();
+        }
     }
 
     /**
@@ -137,7 +137,10 @@ public class NotificationController {
      * Helper method to show the extended notification list if isn't showing
      */
     private void showNotificationList() {
-        if (!isListPaneVisible()) toggleNotificationList();
+        if (!isListPaneVisible()) {
+            toggleNotificationList();
+            this.notificationAlert.hide();
+        }
     }
 
     /**

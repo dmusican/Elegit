@@ -11,40 +11,58 @@
           xmlns:fx="http://javafx.com/fxml"
           fx:controller="elegit.LegendController">
 
-    <rowConstraints>
-        <RowConstraints percentHeight="30"/>
-        <RowConstraints percentHeight="30"/>
-        <RowConstraints percentHeight="30"/>
-    </rowConstraints>
+    <padding>
+        <Insets top="10" bottom="10" right="10" left="10"/>
+    </padding>
 
-    <HBox GridPane.columnIndex="0"
+    <!-- Fill Legend Text -->
+    <HBox GridPane.rowSpan="1"
           GridPane.rowIndex="0"
-          GridPane.rowSpan="1"
-          alignment="CENTER_LEFT"
+          GridPane.columnIndex="0"
+          alignment="CENTER"
           spacing="10">
-
-        <Rectangle id="helpButton"
-                height="30"
-                width="30"/>
-        <Text text="A commit in local but not remote"/>
+        <Text   text="Fill Legend"
+                style="-fx-font-weight: bold; -fx-font-size: 16"/>
     </HBox>
+
+    <!-- Solid Fill -->
     <HBox GridPane.columnIndex="0"
           GridPane.rowIndex="1"
           GridPane.rowSpan="1"
           alignment="CENTER_LEFT"
           spacing="10">
-
-        <Rectangle id="helpButton-remote"
-               height="30"
-               width="30"/>
-        <Text text="A commit not tracked locally"/>
+        <Rectangle id="helpButton"
+                   height="30"
+                   width="30"/>
+        <Polygon    id="helpButton"
+                    points="0,0,30,0,15,30"/>
+        <Circle radius="15.0"
+                id="helpButton"/>
+        <Text text="A commit tracked locally but not remotely"/>
     </HBox>
+
+    <!-- Hollow Fill -->
     <HBox GridPane.columnIndex="0"
           GridPane.rowIndex="2"
           GridPane.rowSpan="1"
           alignment="CENTER_LEFT"
           spacing="10">
+        <Rectangle id="helpButton-remote"
+               height="30"
+               width="30"/>
+        <Polygon    id="helpButton-remote"
+                    points="0,0,30,0,15,30"/>
+        <Circle radius="15.0"
+                id="helpButton-remote"/>
+        <Text text="A commit tracked remotely but not locally"/>
+    </HBox>
 
+    <!-- Combo Fill -->
+    <HBox GridPane.columnIndex="0"
+          GridPane.rowIndex="3"
+          GridPane.rowSpan="1"
+          alignment="CENTER_LEFT"
+          spacing="10">
         <StackPane>
             <Rectangle id="helpButton"
                    height="30"
@@ -56,23 +74,14 @@
                        height="26"
                        width="26"/>
         </StackPane>
-        <Text text="A commit tracked locally and remotely"/>
-    </HBox>
-    <HBox GridPane.columnIndex="1"
-          GridPane.rowIndex="0"
-          GridPane.rowSpan="1"
-          alignment="CENTER_LEFT"
-          spacing="10">
-
-        <Circle id="helpButton-remote"
-                radius="15.0"/>
-        <Text text="An untracked branch head"/>
-    </HBox>
-    <HBox GridPane.columnIndex="1"
-          GridPane.rowIndex="2"
-          GridPane.rowSpan="1"
-          alignment="CENTER_LEFT"
-          spacing="10">
+        <StackPane>
+            <Circle id="helpButton"
+                    radius="15"/>
+            <Circle id="helpButton-null"
+                    radius="14"/>
+            <Circle id="helpButton-inside"
+                    radius="13"/>
+        </StackPane>
         <StackPane>
             <Polygon id="helpButton-remote"
                      points="0,0,30,0,15,30"
@@ -84,11 +93,65 @@
                 </StackPane.margin>
             </Polygon>
         </StackPane>
-        <Text text="A normal branch head"/>
+        <Text text="A commit tracked locally and remotely"/>
     </HBox>
+
+    <!-- Fill Legend and Shape Legend Separator -->
+    <VBox   GridPane.rowSpan="4"
+            GridPane.columnIndex="1"
+            id="separator"
+            prefWidth="2">
+        <GridPane.margin>
+            <Insets top="-5" left="15" right="15" bottom="-10"/>
+        </GridPane.margin>
+    </VBox>
+
+    <!-- Shape Legend Text -->
+    <HBox GridPane.rowSpan="1"
+          GridPane.rowIndex="0"
+          GridPane.columnIndex="2"
+          alignment="CENTER"
+          spacing="10">
+        <Text   text="Shape Legend"
+                style="-fx-font-weight: bold; -fx-font-size: 16"/>
+    </HBox>
+
+    <!-- Square -->
+    <HBox GridPane.columnIndex="2"
+          GridPane.rowIndex="1"
+          GridPane.rowSpan="1"
+          alignment="CENTER_LEFT"
+          spacing="10">
+        <Rectangle  height="30"
+                    width="30"
+                    style="-fx-fill: lightslategrey"/>
+        <Text text="A commit that is not a branch head"/>
+    </HBox>
+
+    <!-- Triangle -->
+    <HBox GridPane.columnIndex="2"
+          GridPane.rowIndex="2"
+          GridPane.rowSpan="1"
+          alignment="CENTER_LEFT"
+          spacing="10">
+        <Polygon points="0,0,30,0,15,30"
+                 style="-fx-fill: lightslategrey"/>
+        <Text text="Either a local branch head that has an associated&#10;remote-tracking branch, or vice versa."/>
+    </HBox>
+
+    <!-- Circle -->
+    <HBox GridPane.columnIndex="2"
+          GridPane.rowIndex="3"
+          GridPane.rowSpan="1"
+          alignment="CENTER_LEFT"
+          spacing="10">
+        <Circle radius="15.0"
+                style="-fx-fill: lightslategrey"/>
+        <Text text="Either a local branch head that does not have&#10;an associated remote-tracking branch, or vice versa."/>
+    </HBox>
+
 <stylesheets>
     <URL value="@../css/BaseStyle.css"/>
 </stylesheets>
-
 </GridPane>
 
