@@ -29,7 +29,6 @@ import static org.junit.Assert.assertTrue;
 public class RemoteBranchTest {
     private Path directoryPath;
     private String testFileLocation;
-    private RepoHelper helperPush;
     Path logPath;
 
     // Used to indicate that if password files are missing, then tests should just pass
@@ -91,8 +90,9 @@ public class RemoteBranchTest {
 
         // Repo that will commit to master
         Path repoPathPush = directoryPath.resolve("pusher");
-        helperPush = new ClonedRepoHelper(repoPathPush, remoteURL, credentials);
+        ClonedRepoHelper helperPush = new ClonedRepoHelper(repoPathPush, remoteURL, credentials);
         assertNotNull(helperPush);
+        helperPush.obtainRepository(remoteURL);
 
 
         /* ********************* BRANCH AND PUSH SECTION ********************* */
