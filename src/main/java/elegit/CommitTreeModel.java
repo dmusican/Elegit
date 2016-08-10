@@ -574,7 +574,7 @@ public abstract class CommitTreeModel{
 
         for (BranchHelper helper : branchLabels) {
             commitId = helper.getHead().getId();
-            branchMap.put(helper.getBranchName(), getBranchLabelMenu(helper));
+            branchMap.put(helper.getAbbrevName(), getBranchLabelMenu(helper));
             if (commitLabelMap.containsKey(commitId))
                 commitLabelMap.get(commitId).add(helper.getBranchName());
             else {
@@ -586,7 +586,7 @@ public abstract class CommitTreeModel{
 
         for (TagHelper helper : tagLabels) {
             commitId = helper.getCommitId();
-            tagMap.put(helper.getName(), getTagLabelMenu(helper));
+            tagMap.put(helper.getAbbrevName(), getTagLabelMenu(helper));
             if (commitLabelMap.containsKey(commitId))
                 commitLabelMap.get(commitId).add(helper.getName());
             else {

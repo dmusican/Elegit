@@ -112,10 +112,10 @@ public class CellLabelContainer extends GridPane {
         showExtended.setVisible(false);
         if (row>0) {
             showExtended.setVisible(true);
-            showExtended.setTranslateX(-10);
+            showExtended.setTranslateX(-6);
             showExtended.setTranslateY(-3);
-            Node down = GlyphsDude.createIcon(FontAwesomeIcon.CHEVRON_DOWN);
-            Node up = GlyphsDude.createIcon(FontAwesomeIcon.CHEVRON_UP);
+            Node down = GlyphsDude.createIcon(FontAwesomeIcon.CARET_DOWN);
+            Node up = GlyphsDude.createIcon(FontAwesomeIcon.CARET_UP);
             showExtended.setGraphic(down);
             showExtended.setOnMouseClicked(event -> {
                 if(showExtended.getGraphic().equals(down)) {
