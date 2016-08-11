@@ -1,119 +1,88 @@
-08-10-2016 08:17:11.896;JavaFX Application Thread;INFO ;Main.start;Starting up.
-08-10-2016 08:17:21.549;JavaFX Application Thread;INFO ;SessionController.showLegend;Legend clicked
-08-10-2016 08:17:32.828;JavaFX Application Thread;INFO ;SessionController.lambda$showLegend$13;Closed legend
-08-10-2016 08:17:34.077;JavaFX Application Thread;INFO ;SessionController.showLegend;Legend clicked
-08-10-2016 08:17:47.211;JavaFX Application Thread;INFO ;SessionController.lambda$showLegend$13;Closed legend
-08-10-2016 08:17:48.485;JavaFX Application Thread;INFO ;SessionController.showLegend;Legend clicked
-08-10-2016 08:18:09.652;JavaFX Application Thread;INFO ;SessionController.lambda$showLegend$13;Closed legend
-08-10-2016 08:19:52.454;JavaFX Application Thread;INFO ;Main.start;Starting up.
-08-10-2016 08:19:58.476;JavaFX Application Thread;INFO ;SessionController.showLegend;Legend clicked
-08-10-2016 08:20:10.753;JavaFX Application Thread;INFO ;SessionController.lambda$showLegend$13;Closed legend
-08-10-2016 08:21:07.323;JavaFX Application Thread;INFO ;Main.start;Starting up.
-08-10-2016 08:21:12.795;JavaFX Application Thread;INFO ;SessionController.showLegend;Legend clicked
-08-10-2016 08:21:19.045;JavaFX Application Thread;INFO ;SessionController.lambda$showLegend$13;Closed legend
-08-10-2016 08:21:53.884;JavaFX Application Thread;INFO ;Main.start;Starting up.
-08-10-2016 08:21:58.874;JavaFX Application Thread;INFO ;SessionController.showLegend;Legend clicked
-08-10-2016 08:22:05.379;JavaFX Application Thread;INFO ;SessionController.lambda$showLegend$13;Closed legend
-08-10-2016 08:23:01.472;JavaFX Application Thread;INFO ;Main.start;Starting up.
-08-10-2016 08:23:06.873;JavaFX Application Thread;INFO ;SessionController.showLegend;Legend clicked
-08-10-2016 08:23:14.238;JavaFX Application Thread;INFO ;SessionController.lambda$showLegend$13;Closed legend
-08-10-2016 08:27:33.414;JavaFX Application Thread;INFO ;Main.start;Starting up.
-08-10-2016 08:27:39.222;JavaFX Application Thread;INFO ;SessionController.showLegend;Legend clicked
-08-10-2016 08:27:42.085;JavaFX Application Thread;INFO ;SessionController.lambda$showLegend$13;Closed legend
-08-10-2016 08:29:39.258;JavaFX Application Thread;INFO ;Main.start;Starting up.
-08-10-2016 08:29:50.004;JavaFX Application Thread;INFO ;SessionController.showLegend;Legend clicked
-08-10-2016 08:30:04.642;JavaFX Application Thread;INFO ;SessionController.lambda$showLegend$13;Closed legend
-08-10-2016 08:30:15.724;JavaFX Application Thread;INFO ;SessionController.showLegend;Legend clicked
-08-10-2016 08:30:40.049;JavaFX Application Thread;INFO ;SessionController.lambda$showLegend$13;Closed legend
-08-10-2016 08:31:35.885;JavaFX Application Thread;INFO ;Main.start;Starting up.
-08-10-2016 08:31:41.227;JavaFX Application Thread;INFO ;SessionController.showLegend;Legend clicked
-08-10-2016 08:31:45.638;JavaFX Application Thread;INFO ;SessionController.lambda$showLegend$13;Closed legend
-08-10-2016 08:31:54.141;JavaFX Application Thread;INFO ;Main.start;Starting up.
-08-10-2016 08:31:58.843;JavaFX Application Thread;INFO ;SessionController.showLegend;Legend clicked
-08-10-2016 08:32:00.871;JavaFX Application Thread;INFO ;SessionController.lambda$showLegend$13;Closed legend
-08-10-2016 08:32:33.057;JavaFX Application Thread;INFO ;Main.start;Starting up.
-08-10-2016 08:32:38.114;JavaFX Application Thread;INFO ;SessionController.showLegend;Legend clicked
-08-10-2016 08:32:39.764;JavaFX Application Thread;INFO ;SessionController.lambda$showLegend$13;Closed legend
-08-10-2016 08:33:13.118;JavaFX Application Thread;INFO ;Main.start;Starting up.
-08-10-2016 08:33:17.482;JavaFX Application Thread;INFO ;SessionController.showLegend;Legend clicked
-08-10-2016 08:33:19.275;JavaFX Application Thread;INFO ;SessionController.lambda$showLegend$13;Closed legend
-08-10-2016 08:33:28.409;JavaFX Application Thread;INFO ;Main.start;Starting up.
-08-10-2016 08:33:33.033;JavaFX Application Thread;INFO ;SessionController.showLegend;Legend clicked
-08-10-2016 08:33:38.730;JavaFX Application Thread;INFO ;SessionController.lambda$showLegend$13;Closed legend
-08-10-2016 08:37:05.679;JavaFX Application Thread;INFO ;Main.start;Starting up.
-08-10-2016 08:37:11.279;JavaFX Application Thread;INFO ;SessionController.showLegend;Legend clicked
-08-10-2016 08:37:30.954;JavaFX Application Thread;INFO ;SessionController.lambda$showLegend$13;Closed legend
-08-10-2016 08:37:47.083;JavaFX Application Thread;INFO ;Main.start;Starting up.
-08-10-2016 08:37:51.814;JavaFX Application Thread;INFO ;SessionController.showLegend;Legend clicked
-08-10-2016 08:37:53.261;JavaFX Application Thread;INFO ;SessionController.lambda$showLegend$13;Closed legend
-08-10-2016 08:38:11.558;JavaFX Application Thread;INFO ;Main.start;Starting up.
-08-10-2016 08:38:16.310;JavaFX Application Thread;INFO ;SessionController.showLegend;Legend clicked
-08-10-2016 08:38:28.851;JavaFX Application Thread;INFO ;SessionController.lambda$showLegend$13;Closed legend
-08-10-2016 08:38:39.358;JavaFX Application Thread;INFO ;Main.start;Starting up.
-08-10-2016 08:38:44.158;JavaFX Application Thread;INFO ;SessionController.showLegend;Legend clicked
-08-10-2016 08:38:49.607;JavaFX Application Thread;INFO ;SessionController.lambda$showLegend$13;Closed legend
-08-10-2016 08:39:12.081;JavaFX Application Thread;INFO ;Main.start;Starting up.
-08-10-2016 08:39:17.277;JavaFX Application Thread;INFO ;SessionController.showLegend;Legend clicked
-08-10-2016 08:39:21.876;JavaFX Application Thread;INFO ;SessionController.lambda$showLegend$13;Closed legend
-08-10-2016 08:41:08.030;JavaFX Application Thread;INFO ;Main.start;Starting up.
-08-10-2016 08:41:13.156;JavaFX Application Thread;INFO ;SessionController.showLegend;Legend clicked
-08-10-2016 08:41:31.720;JavaFX Application Thread;INFO ;SessionController.lambda$showLegend$13;Closed legend
-08-10-2016 08:44:00.252;JavaFX Application Thread;INFO ;Main.start;Starting up.
-08-10-2016 08:44:04.850;JavaFX Application Thread;INFO ;SessionController.showLegend;Legend clicked
-08-10-2016 08:44:15.400;JavaFX Application Thread;INFO ;SessionController.lambda$showLegend$13;Closed legend
-08-10-2016 08:44:36.832;JavaFX Application Thread;INFO ;Main.start;Starting up.
-08-10-2016 08:44:41.385;JavaFX Application Thread;INFO ;SessionController.showLegend;Legend clicked
-08-10-2016 08:44:46.034;JavaFX Application Thread;INFO ;SessionController.lambda$showLegend$13;Closed legend
-08-10-2016 08:46:40.698;JavaFX Application Thread;INFO ;Main.start;Starting up.
-08-10-2016 08:46:45.784;JavaFX Application Thread;INFO ;SessionController.showLegend;Legend clicked
-08-10-2016 08:48:32.502;JavaFX Application Thread;INFO ;SessionController.lambda$showLegend$13;Closed legend
-08-10-2016 08:52:02.692;JavaFX Application Thread;INFO ;Main.start;Starting up.
-08-10-2016 08:52:07.892;JavaFX Application Thread;INFO ;SessionController.showLegend;Legend clicked
-08-10-2016 08:52:18.135;JavaFX Application Thread;INFO ;SessionController.lambda$showLegend$13;Closed legend
-08-10-2016 08:52:41.989;JavaFX Application Thread;INFO ;Main.start;Starting up.
-08-10-2016 08:52:46.779;JavaFX Application Thread;INFO ;SessionController.showLegend;Legend clicked
-08-10-2016 08:52:48.986;JavaFX Application Thread;INFO ;SessionController.lambda$showLegend$13;Closed legend
-08-10-2016 08:55:02.129;JavaFX Application Thread;INFO ;Main.start;Starting up.
-08-10-2016 08:55:07.090;JavaFX Application Thread;INFO ;SessionController.showLegend;Legend clicked
-08-10-2016 08:55:11.410;JavaFX Application Thread;INFO ;SessionController.lambda$showLegend$13;Closed legend
-08-10-2016 08:57:13.836;JavaFX Application Thread;INFO ;Main.start;Starting up.
-08-10-2016 08:57:19.064;JavaFX Application Thread;INFO ;SessionController.showLegend;Legend clicked
-08-10-2016 08:57:24.591;JavaFX Application Thread;INFO ;SessionController.lambda$showLegend$13;Closed legend
-08-10-2016 09:01:19.558;JavaFX Application Thread;INFO ;Main.start;Starting up.
-08-10-2016 09:01:24.590;JavaFX Application Thread;INFO ;SessionController.showLegend;Legend clicked
-08-10-2016 09:01:35.218;JavaFX Application Thread;INFO ;SessionController.lambda$showLegend$13;Closed legend
-08-10-2016 09:02:02.725;JavaFX Application Thread;INFO ;Main.start;Starting up.
-08-10-2016 09:02:07.180;JavaFX Application Thread;INFO ;SessionController.showLegend;Legend clicked
-08-10-2016 09:02:12.676;JavaFX Application Thread;INFO ;SessionController.lambda$showLegend$13;Closed legend
-08-10-2016 09:03:34.185;JavaFX Application Thread;INFO ;Main.start;Starting up.
-08-10-2016 09:03:38.788;JavaFX Application Thread;INFO ;SessionController.handlePushButton;Push button clicked
-08-10-2016 09:03:38.792;Git push;INFO ;RepoHelper.pushCurrentBranch;attempting to push current branch
-08-10-2016 09:03:39.011;JavaFX Application Thread;WARN ;SessionController.lambda$showNotAuthorizedNotification$25;Invalid authorization warning
-08-10-2016 09:03:46.091;JavaFX Application Thread;INFO ;SessionController.handlePushButton;Push button clicked
-08-10-2016 09:03:46.094;Git push;INFO ;RepoHelper.pushCurrentBranch;attempting to push current branch
-08-10-2016 09:03:46.223;JavaFX Application Thread;WARN ;SessionController.lambda$showNotAuthorizedNotification$25;Invalid authorization warning
-08-10-2016 09:04:06.067;JavaFX Application Thread;INFO ;SessionController.handleRevertButton;Revert button clicked
-08-10-2016 09:04:06.071;Git revert;INFO ;RepoHelper.revert;Attempting revert
-08-10-2016 09:04:06.114;JavaFX Application Thread;WARN ;SessionController.lambda$showCantRevertMultipleParentsNotification$40;Tried to revert commit with multiple parents.
-08-10-2016 09:06:50.346;JavaFX Application Thread;INFO ;Main.start;Starting up.
-08-10-2016 09:06:59.761;JavaFX Application Thread;INFO ;SessionController.handleRevertButton;Revert button clicked
-08-10-2016 09:06:59.765;Git revert;INFO ;RepoHelper.revert;Attempting revert
-08-10-2016 09:06:59.821;JavaFX Application Thread;WARN ;SessionController.lambda$showCantRevertMultipleParentsNotification$40;Tried to revert commit with multiple parents.
-08-10-2016 09:08:44.076;JavaFX Application Thread;INFO ;Main.start;Starting up.
-08-10-2016 09:08:52.927;JavaFX Application Thread;INFO ;CommitTreeModel.lambda$getContextMenu$3;Checkout files from commit button clicked
-08-10-2016 09:08:52.929;JavaFX Application Thread;INFO ;SessionController.handleCheckoutFilesButton;Checkout files from commit button clicked
-08-10-2016 09:08:52.933;JavaFX Application Thread;INFO ;SessionController.handleCheckoutFilesButton;Opened checkout files window
-08-10-2016 09:08:52.963;JavaFX Application Thread;INFO ;CheckoutFilesController.initialize;Started up checkout files from commit window
-08-10-2016 09:43:42.121;JavaFX Application Thread;INFO ;Main.start;Starting up.
-08-10-2016 09:43:54.813;JavaFX Application Thread;INFO ;SessionController.showBranchCheckout;Branch checkout clicked
-08-10-2016 09:43:54.814;JavaFX Application Thread;INFO ;SessionController.showBranchCheckout;Opened branch checkout window
-08-10-2016 09:43:54.843;JavaFX Application Thread;INFO ;BranchCheckoutController.initialize;Started up branch manager
-08-10-2016 09:44:08.442;JavaFX Application Thread;WARN ;BranchCheckoutController.lambda$showJGitInternalError$1;Lock failed warning.
-08-10-2016 09:44:31.644;JavaFX Application Thread;INFO ;SessionController.showLegend;Legend clicked
-08-10-2016 09:44:44.532;JavaFX Application Thread;INFO ;SessionController.lambda$showLegend$13;Closed legend
-08-10-2016 09:51:57.451;JavaFX Application Thread;INFO ;Main.start;Starting up.
-08-10-2016 09:52:07.967;JavaFX Application Thread;WARN ;SessionController.lambda$showJGitInternalError$17;Lock failed warning.
-08-10-2016 09:52:49.222;JavaFX Application Thread;INFO ;CommitTreeModel.lambda$getTagLabelMenu$0;Delete tag dialog started.
-08-10-2016 09:53:10.693;JavaFX Application Thread;INFO ;Main.start;Starting up.
-08-10-2016 09:53:20.358;JavaFX Application Thread;INFO ;CommitTreeModel.lambda$getTagLabelMenu$0;Delete tag dialog started.
-08-10-2016 09:53:23.956;JavaFX Application Thread;INFO ;CommitTreeModel.lambda$getTagLabelMenu$0;Delete tag dialog started.
+08-11-2016 11:20:48.002;JavaFX Application Thread;INFO ;Main.start;Starting up.
+08-11-2016 11:20:57.410;JavaFX Application Thread;INFO ;SessionController.handleGeneralMergeButton;Merge button clicked
+08-11-2016 11:20:57.411;JavaFX Application Thread;INFO ;SessionController.handleGeneralMergeButton;Opened merge window
+08-11-2016 11:21:02.676;JavaFX Application Thread;INFO ;MergeWindowController.lambda$showStage$0;Closed merge window
+08-11-2016 11:21:05.409;JavaFX Application Thread;INFO ;SessionController.handleNewBranchButton;Create/delete branch button clicked
+08-11-2016 11:21:05.411;JavaFX Application Thread;INFO ;SessionController.handleNewBranchButton;Opened create/delete branch window
+08-11-2016 11:21:24.570;createNewBranch;INFO ;CreateDeleteBranchWindowController.call;New branch button clicked
+08-11-2016 11:22:38.509;JavaFX Application Thread;INFO ;SessionController.pushBranchOrAll;Push button clicked
+08-11-2016 11:22:38.513;Git push;INFO ;RepoHelper.pushCurrentBranch;attempting to push current branch
+08-11-2016 11:22:38.727;JavaFX Application Thread;WARN ;SessionController.lambda$showNotAuthorizedNotification$25;Invalid authorization warning
+08-11-2016 11:22:38.798;JavaFX Application Thread;INFO ;SessionController.pushBranchOrAll;Push button clicked
+08-11-2016 11:22:38.802;JavaFX Application Thread;INFO ;RepoHelperBuilder.getAuthCredentialFromDialog;Creating authorization dialog
+08-11-2016 11:23:56.426;JavaFX Application Thread;INFO ;RepoHelperBuilder.handle;Closing authorization dialog
+08-11-2016 11:23:56.437;JavaFX Application Thread;INFO ;RepoHelperBuilder.getAuthCredentialFromDialog;Entered authorization credentials
+08-11-2016 11:23:56.442;Git push;INFO ;RepoHelper.pushCurrentBranch;attempting to push current branch
+08-11-2016 11:24:14.504;JavaFX Application Thread;INFO ;SessionController.pushBranchOrAll;Push button clicked
+08-11-2016 11:24:14.506;Git push;INFO ;RepoHelper.pushCurrentBranch;attempting to push current branch
+08-11-2016 11:24:14.798;JavaFX Application Thread;WARN ;SessionController.lambda$showPushToAheadRemoteNotification$27;Remote ahead of local warning
+08-11-2016 11:24:25.744;JavaFX Application Thread;INFO ;SessionController.handleChangeLoginButton;Username button clicked
+08-11-2016 11:24:25.745;JavaFX Application Thread;INFO ;RepoHelperBuilder.getAuthCredentialFromDialog;Creating authorization dialog
+08-11-2016 11:24:29.497;JavaFX Application Thread;INFO ;RepoHelperBuilder.handle;Closing authorization dialog
+08-11-2016 11:24:29.504;JavaFX Application Thread;INFO ;RepoHelperBuilder.getAuthCredentialFromDialog;Entered authorization credentials
+08-11-2016 11:24:35.839;JavaFX Application Thread;INFO ;SessionController.pushBranchOrAll;Push button clicked
+08-11-2016 11:24:35.841;Git push;INFO ;RepoHelper.pushCurrentBranch;attempting to push current branch
+08-11-2016 11:24:36.395;JavaFX Application Thread;WARN ;SessionController.lambda$showNotAuthorizedNotification$25;Invalid authorization warning
+08-11-2016 11:24:36.440;JavaFX Application Thread;INFO ;SessionController.pushBranchOrAll;Push button clicked
+08-11-2016 11:24:36.444;JavaFX Application Thread;INFO ;RepoHelperBuilder.getAuthCredentialFromDialog;Creating authorization dialog
+08-11-2016 11:24:42.079;JavaFX Application Thread;INFO ;RepoHelperBuilder.handle;Closing authorization dialog
+08-11-2016 11:24:42.087;JavaFX Application Thread;INFO ;RepoHelperBuilder.getAuthCredentialFromDialog;Entered authorization credentials
+08-11-2016 11:24:42.091;Git push;INFO ;RepoHelper.pushCurrentBranch;attempting to push current branch
+08-11-2016 11:24:42.392;JavaFX Application Thread;WARN ;SessionController.lambda$showPushToAheadRemoteNotification$27;Remote ahead of local warning
+08-11-2016 11:24:46.207;JavaFX Application Thread;INFO ;SessionController.handleFetchButton;Fetch button clicked
+08-11-2016 11:24:46.211;Git fetch;INFO ;RepoHelper.fetch;Attempting fetch
+08-11-2016 11:24:46.211;JavaFX Application Thread;INFO ;DataSubmitter.submitData;Submit data called
+08-11-2016 11:24:46.221;JavaFX Application Thread;INFO ;DataSubmitter.submitData;Making a new uuid.
+08-11-2016 11:24:46.245;JavaFX Application Thread;INFO ;DataSubmitter.submitData;Attempting to upload log: 98ba8efe-f47c-4823-aa3d-14d91b603071.log
+08-11-2016 11:24:46.404;JavaFX Application Thread;INFO ;DataSubmitter.submitData;POST http://elegit.mathcs.carleton.edu/logging/upload.php HTTP/1.1
+08-11-2016 11:24:46.536;JavaFX Application Thread;INFO ;DataSubmitter.submitData;Executing request: HTTP/1.1 200 OK
+08-11-2016 11:24:46.543;JavaFX Application Thread;INFO ;DataSubmitter.submitData;File 98ba8efe-f47c-4823-aa3d-14d91b603071.log has been uploaded.Couldn't find user, creating new user.Inserted entries into database
+08-11-2016 11:24:46.556;JavaFX Application Thread;INFO ;DataSubmitter.submitData;Attempting to upload log: 98ba8efe-f47c-4823-aa3d-14d91b603071.log
+08-11-2016 11:24:46.560;JavaFX Application Thread;INFO ;DataSubmitter.submitData;POST http://elegit.mathcs.carleton.edu/logging/upload.php HTTP/1.1
+08-11-2016 11:24:46.947;JavaFX Application Thread;INFO ;DataSubmitter.submitData;Executing request: HTTP/1.1 200 OK
+08-11-2016 11:24:46.948;JavaFX Application Thread;INFO ;DataSubmitter.submitData;File 98ba8efe-f47c-4823-aa3d-14d91b603071.log has been uploaded.Inserted entries into database
+08-11-2016 11:24:46.979;JavaFX Application Thread;INFO ;DataSubmitter.submitData;Attempting to upload log: 98ba8efe-f47c-4823-aa3d-14d91b603071.log
+08-11-2016 11:24:46.983;JavaFX Application Thread;INFO ;DataSubmitter.submitData;POST http://elegit.mathcs.carleton.edu/logging/upload.php HTTP/1.1
+08-11-2016 11:24:48.969;JavaFX Application Thread;INFO ;DataSubmitter.submitData;Executing request: HTTP/1.1 200 OK
+08-11-2016 11:24:48.971;JavaFX Application Thread;INFO ;DataSubmitter.submitData;File 98ba8efe-f47c-4823-aa3d-14d91b603071.log has been uploaded.Inserted entries into database
+08-11-2016 11:24:58.502;JavaFX Application Thread;INFO ;SessionController.handleGeneralMergeButton;Merge button clicked
+08-11-2016 11:24:58.504;JavaFX Application Thread;INFO ;SessionController.handleGeneralMergeButton;Opened merge window
+08-11-2016 11:25:27.259;JavaFX Application Thread;INFO ;MergeWindowController.lambda$showStage$0;Closed merge window
+08-11-2016 11:31:51.778;JavaFX Application Thread;INFO ;Main.start;Starting up.
+08-11-2016 11:31:56.683;JavaFX Application Thread;INFO ;SessionController.handleGeneralMergeButton;Merge button clicked
+08-11-2016 11:31:56.684;JavaFX Application Thread;INFO ;SessionController.handleGeneralMergeButton;Opened merge window
+08-11-2016 11:32:03.234;JavaFX Application Thread;INFO ;MergeWindowController.lambda$showStage$0;Closed merge window
+08-11-2016 11:33:43.227;JavaFX Application Thread;INFO ;Main.start;Starting up.
+08-11-2016 11:33:49.422;JavaFX Application Thread;INFO ;SessionController.handleGeneralMergeButton;Merge button clicked
+08-11-2016 11:33:49.423;JavaFX Application Thread;INFO ;SessionController.handleGeneralMergeButton;Opened merge window
+08-11-2016 11:35:05.451;JavaFX Application Thread;INFO ;Main.start;Starting up.
+08-11-2016 11:35:09.978;JavaFX Application Thread;INFO ;SessionController.handleGeneralMergeButton;Merge button clicked
+08-11-2016 11:35:09.980;JavaFX Application Thread;INFO ;SessionController.handleGeneralMergeButton;Opened merge window
+08-11-2016 11:35:27.054;JavaFX Application Thread;INFO ;MergeWindowController.lambda$showStage$0;Closed merge window
+08-11-2016 11:35:29.993;JavaFX Application Thread;INFO ;SessionController.handleGeneralMergeButton;Merge button clicked
+08-11-2016 11:35:29.995;JavaFX Application Thread;INFO ;SessionController.handleGeneralMergeButton;Opened merge window
+08-11-2016 11:37:29.283;JavaFX Application Thread;INFO ;SessionController.handleGeneralMergeButton;Merge button clicked
+08-11-2016 11:37:29.284;JavaFX Application Thread;INFO ;SessionController.handleGeneralMergeButton;Opened merge window
+08-11-2016 11:40:16.715;JavaFX Application Thread;INFO ;Main.start;Starting up.
+08-11-2016 11:40:21.556;JavaFX Application Thread;INFO ;SessionController.handleGeneralMergeButton;Merge button clicked
+08-11-2016 11:40:21.557;JavaFX Application Thread;INFO ;SessionController.handleGeneralMergeButton;Opened merge window
+08-11-2016 11:40:23.955;JavaFX Application Thread;INFO ;MergeWindowController.lambda$showStage$0;Closed merge window
+08-11-2016 11:55:51.918;JavaFX Application Thread;INFO ;Main.start;Starting up.
+08-11-2016 11:55:57.042;JavaFX Application Thread;INFO ;SessionController.handleGeneralMergeButton;Merge button clicked
+08-11-2016 11:55:57.043;JavaFX Application Thread;INFO ;SessionController.handleGeneralMergeButton;Opened merge window
+08-11-2016 11:56:00.077;JavaFX Application Thread;INFO ;MergeWindowController.lambda$showStage$0;Closed merge window
+08-11-2016 11:58:54.672;JavaFX Application Thread;INFO ;Main.start;Starting up.
+08-11-2016 11:59:00.409;JavaFX Application Thread;INFO ;SessionController.handleGeneralMergeButton;Merge button clicked
+08-11-2016 11:59:00.411;JavaFX Application Thread;INFO ;SessionController.handleGeneralMergeButton;Opened merge window
+08-11-2016 11:59:05.592;JavaFX Application Thread;INFO ;MergeWindowController.lambda$showStage$0;Closed merge window
+08-11-2016 12:00:42.756;JavaFX Application Thread;INFO ;Main.start;Starting up.
+08-11-2016 12:00:47.604;JavaFX Application Thread;INFO ;SessionController.handleGeneralMergeButton;Merge button clicked
+08-11-2016 12:00:47.606;JavaFX Application Thread;INFO ;SessionController.handleGeneralMergeButton;Opened merge window
+08-11-2016 12:00:54.443;JavaFX Application Thread;INFO ;MergeWindowController.lambda$showStage$0;Closed merge window
+08-11-2016 12:40:27.033;JavaFX Application Thread;INFO ;Main.start;Starting up.
+08-11-2016 12:40:34.278;JavaFX Application Thread;INFO ;SessionController.handleGeneralMergeButton;Merge button clicked
+08-11-2016 12:40:34.280;JavaFX Application Thread;INFO ;SessionController.handleGeneralMergeButton;Opened merge window
+08-11-2016 12:40:47.306;JavaFX Application Thread;INFO ;MergeWindowController.lambda$showStage$0;Closed merge window
+08-11-2016 12:42:50.580;JavaFX Application Thread;INFO ;Main.start;Starting up.
+08-11-2016 12:42:55.864;JavaFX Application Thread;INFO ;SessionController.handleGeneralMergeButton;Merge button clicked
+08-11-2016 12:42:55.865;JavaFX Application Thread;INFO ;SessionController.handleGeneralMergeButton;Opened merge window
