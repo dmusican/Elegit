@@ -15,7 +15,7 @@ description: > # this means to ignore newlines until "baseurl:"
   use Git successfully with a minimum of challenges, likely by use of a subset of Git commands, but also
   specifically with the goal of helping them learn at a deeper level how Git works.
 baseurl: "" # the subpath of your site, e.g. /blog
-url: "http://yourdomain.com" # the base hostname & protocol for your site
+url: "http://dmusican.github.io/Elegit" # the base hostname & protocol for your site
 #twitter_username: jekyllrb
 github_username:  dmusican
 

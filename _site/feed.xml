@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Elegit</title>
+    <description>The version control system Git has become popular for developers who track and share code. Elegit is a Git client for people who actually want to learn Git. The goal of this project is to design and build a new Git client for use by students that helps them use Git successfully with a minimum of challenges, likely by use of a subset of Git commands, but also specifically with the goal of helping them learn at a deeper level how Git works.
+</description>
+    <link>http://dmusican.github.io/Elegit/</link>
+    <atom:link href="http://dmusican.github.io/Elegit/feed.xml" rel="self" type="application/rss+xml"/>
+    <pubDate>Thu, 11 Aug 2016 10:25:40 -0500</pubDate>
+    <lastBuildDate>Thu, 11 Aug 2016 10:25:40 -0500</lastBuildDate>
+    <generator>Jekyll v3.1.6</generator>
+    
+      <item>
+        <title>Test Post</title>
+        <description>&lt;p&gt;Hello, I’m testing a blog post!&lt;/p&gt;
+</description>
+        <pubDate>Wed, 10 Aug 2016 03:35:00 -0500</pubDate>
+        <link>http://dmusican.github.io/Elegit/jekyll/update/2016/08/10/test-post.html</link>
+        <guid isPermaLink="true">http://dmusican.github.io/Elegit/jekyll/update/2016/08/10/test-post.html</guid>
+        
+        
+        <category>jekyll</category>
+        
+        <category>update</category>
+        
+      </item>
+    
+  </channel>
+</rss>
