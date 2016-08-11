@@ -172,33 +172,6 @@
             </GridPane.margin>
         </VBox>
 
-        <!-- Commit and merge buttons -->
-        <ArrowButton id="codeButton"
-                     fx:id="commitButton"
-                     text="Commit"
-                     arrowRight="true"
-                     onAction="#handleCommitButton"
-                     GridPane.rowIndex="1"
-                     GridPane.columnIndex="1"
-                     GridPane.valignment="TOP"
-                     GridPane.halignment="LEFT">
-            <GridPane.margin>
-                <Insets left="-10" right="-40" top="20"/>
-            </GridPane.margin>
-        </ArrowButton>
-        <Button text="Merge"
-                fx:id="mergeButton"
-                id = "codeButton"
-                onAction="#handleGeneralMergeButton"
-                GridPane.rowIndex="1"
-                GridPane.columnIndex="1"
-                GridPane.valignment="BOTTOM"
-                GridPane.halignment="LEFT">
-            <GridPane.margin>
-                <Insets left="-10" right="-40" bottom="20"/>
-            </GridPane.margin>
-        </Button>
-
         <!-- Local Repository block -->
         <StackPane  GridPane.rowIndex="1"
                     GridPane.columnIndex="2"
@@ -230,6 +203,33 @@
                 </HBox>
             </VBox>
         </StackPane>
+
+        <!-- Commit and merge buttons -->
+        <ArrowButton id="codeButton"
+                     fx:id="commitButton"
+                     text="Commit"
+                     arrowRight="true"
+                     onAction="#handleCommitButton"
+                     GridPane.rowIndex="1"
+                     GridPane.columnIndex="1"
+                     GridPane.valignment="TOP"
+                     GridPane.halignment="LEFT">
+            <GridPane.margin>
+                <Insets left="-10" right="-40" top="20"/>
+            </GridPane.margin>
+        </ArrowButton>
+        <Button text="Merge"
+                fx:id="mergeButton"
+                id = "codeButton"
+                onAction="#handleGeneralMergeButton"
+                GridPane.rowIndex="1"
+                GridPane.columnIndex="1"
+                GridPane.valignment="BOTTOM"
+                GridPane.halignment="LEFT">
+            <GridPane.margin>
+                <Insets left="-10" right="-40" bottom="20"/>
+            </GridPane.margin>
+        </Button>
 
         <!-- Commit tree panel view and legend-->
         <CommitTreePanelView fx:id="commitTreePanelView"
