@@ -684,6 +684,7 @@ public class SessionController {
             if(!this.theModel.getCurrentRepoHelper().exists()) throw new MissingRepoException();
 
             if(!workingTreePanelView.isAnyFileSelected()) throw new NoFilesSelectedToAddException();
+            if(workingTreePanelView.isAnyFileStagedSelected()) throw new StagedFileCheckedException();
 
             BusyWindow.show();
             BusyWindow.setLoadingText("Adding...");
@@ -724,6 +725,8 @@ public class SessionController {
             this.showNoRepoLoadedNotification();
         } catch (MissingRepoException e) {
             this.showMissingRepoNotification();
+        } catch (StagedFileCheckedException e) {
+            this.showStagedFilesSelectedNotification();
         }
     }
 
@@ -2030,6 +2033,13 @@ public class SessionController {
         Platform.runLater(() -> {
             logger.warn("No files selected for add warning");
             this.notificationPaneController.addNotification("You need to select files to add");
+        });
+    }
+
+    private void showStagedFilesSelectedNotification(){
+        Platform.runLater(() -> {
+            logger.warn("Staged files selected for commit warning");
+            this.notificationPaneController.addNotification("You can't add staged files!");
         });
     }
 

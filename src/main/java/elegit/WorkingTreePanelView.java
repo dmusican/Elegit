@@ -220,4 +220,15 @@ public class WorkingTreePanelView extends FileStructurePanelView{
         }
         return false;
     }
+
+    /**
+     * @return true if any file that is selected is a staged file
+     */
+    public boolean isAnyFileStagedSelected() {
+        for (RepoFile treeItem : getCheckedFilesInDirectory()) {
+            if (treeItem instanceof StagedRepoFile)
+                return true;
+        }
+        return false;
+    }
 }
