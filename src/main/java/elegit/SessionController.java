@@ -1207,6 +1207,7 @@ public class SessionController {
      */
     public void deleteBranch(BranchHelper selectedBranch) {
         BranchModel branchModel = theModel.getCurrentRepoHelper().getBranchModel();
+        boolean authorizationSucceeded = true;
         try {
             if (selectedBranch != null) {
                 RemoteRefUpdate.Status deleteStatus;
@@ -1215,6 +1216,12 @@ public class SessionController {
                     branchModel.deleteLocalBranch((LocalBranchHelper) selectedBranch);
                     updateUser(selectedBranch.getBranchName() + " deleted.");
                 }else {
+                    final RepoHelperBuilder.AuthDialogResponse response;
+                    if (authenticateOnNextCommand) {
+                        response = RepoHelperBuilder.getAuthCredentialFromDialog();
+                        selectedBranch.repoHelper.ownerAuth =
+                                new UsernamePasswordCredentialsProvider(response.username, response.password);
+                    }
                     deleteStatus = branchModel.deleteRemoteBranch((RemoteBranchHelper) selectedBranch);
                     String updateMessage = selectedBranch.getBranchName();
                     // There are a number of possible cases, see JGit's documentation on RemoteRefUpdate.Status
@@ -1245,11 +1252,21 @@ public class SessionController {
             this.showCannotDeleteBranchNotification(selectedBranch);
         } catch (TransportException e) {
             this.showNotAuthorizedNotification();
+            authorizationSucceeded = false;
         } catch (IOException | GitAPIException e) {
             logger.warn("IO error");
             this.showGenericErrorNotification();
+        } catch (CancelledAuthorizationException e) {
+            logger.warn("Cancelled authorization");
+            this.showCommandCancelledNotification();
         } finally {
             gitStatus();
+            if (authorizationSucceeded) {
+                authenticateOnNextCommand = false;
+            } else {
+                authenticateOnNextCommand = true;
+                deleteBranch(selectedBranch);
+            }
         }
     }
 
