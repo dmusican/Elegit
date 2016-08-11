@@ -314,7 +314,10 @@ public class SessionModel {
         if(status == null) {
             status = new Git(this.getCurrentRepo()).status().call();
         }
-        return status.getChanged();
+        HashSet<String> stagedFiles = new HashSet<>();
+        stagedFiles.addAll(status.getChanged());
+        stagedFiles.addAll(status.getAdded());
+        return stagedFiles;
     }
 
     /**

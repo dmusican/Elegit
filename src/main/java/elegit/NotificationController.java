@@ -80,7 +80,6 @@ public class NotificationController {
         notificationAlert = new PopOver(hBox);
         notificationAlert.setTitle("New Notification");
         notificationAlert.setArrowLocation(PopOver.ArrowLocation.BOTTOM_RIGHT);
-        notificationAlert.getRoot().setStyle("-fx-background-color: dodgerblue");
 
         hBox.setOnMouseClicked(event -> {
             showNotificationList();
@@ -241,6 +240,7 @@ public class NotificationController {
             notifcationText.setText(notification);
             notificationAlert.show(minimizeButton, 15);
             notificationAlert.detach();
+            notificationAlert.setAutoHide(true);
         }
     }
 }

@@ -375,10 +375,7 @@ public class SessionController {
                 "Download files from another repository to remote repository"
         ));
         this.pushButton.setTooltip(new Tooltip(
-                "Update remote repository with local changes"
-        ));
-        this.pushButton.setTooltip(new Tooltip(
-                "Revert the changes in the most recent commit"
+                "Update remote repository with local changes,\nright click for advanced options"
         ));
 
         this.loadNewRepoButton.setTooltip(new Tooltip(
@@ -684,6 +681,7 @@ public class SessionController {
             if(!this.theModel.getCurrentRepoHelper().exists()) throw new MissingRepoException();
 
             if(!workingTreePanelView.isAnyFileSelected()) throw new NoFilesSelectedToAddException();
+            if(workingTreePanelView.isAnyFileStagedSelected()) throw new StagedFileCheckedException();
 
             BusyWindow.show();
             BusyWindow.setLoadingText("Adding...");
@@ -724,6 +722,8 @@ public class SessionController {
             this.showNoRepoLoadedNotification();
         } catch (MissingRepoException e) {
             this.showMissingRepoNotification();
+        } catch (StagedFileCheckedException e) {
+            this.showStagedFilesSelectedNotification();
         }
     }
 
@@ -1016,7 +1016,8 @@ public class SessionController {
             logger.info("Push button clicked");
 
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
-            if(!this.theModel.getCurrentRepoHelper().canPush()) throw new NoCommitsToPushException();
+            if(pushType == PushType.BRANCH &&
+                    !this.theModel.getCurrentRepoHelper().canPush()) throw new NoCommitsToPushException();
 
             final RepoHelperBuilder.AuthDialogResponse response;
             if (authenticateOnNextCommand) {
@@ -2030,6 +2031,13 @@ public class SessionController {
         Platform.runLater(() -> {
             logger.warn("No files selected for add warning");
             this.notificationPaneController.addNotification("You need to select files to add");
+        });
+    }
+
+    private void showStagedFilesSelectedNotification(){
+        Platform.runLater(() -> {
+            logger.warn("Staged files selected for commit warning");
+            this.notificationPaneController.addNotification("You can't add staged files!");
         });
     }
 
