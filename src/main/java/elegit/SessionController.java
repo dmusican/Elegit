@@ -366,7 +366,7 @@ public class SessionController {
                 "Stage changes for selected files"
         ));
         this.checkoutFileButton.setTooltip(new Tooltip(
-                "Checkout files from HEAD (discard all changes)"
+                "Checkout files from the index (discard all unstaged changes)"
         ));
         this.removeButton.setTooltip(new Tooltip(
                 "Delete selected files and remove them from Git"
@@ -788,6 +788,7 @@ public class SessionController {
     void handleCheckoutButton(Path filePath) {
         try {
             logger.info("Checkout file button clicked");
+            if (! PopUpWindows.showCheckoutAlert()) throw new CancelledDialogueException();
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
             if(!this.theModel.getCurrentRepoHelper().exists()) throw new MissingRepoException();
             theModel.getCurrentRepoHelper().checkoutFile(filePath);
@@ -797,6 +798,8 @@ public class SessionController {
             showMissingRepoNotification();
         } catch (GitAPIException e) {
             showGenericErrorNotification();
+        } catch (CancelledDialogueException e) {
+            // Do nothing if the dialogue was cancelled.
         }
     }
 
@@ -811,39 +814,24 @@ public class SessionController {
 
             if(!workingTreePanelView.isAnyFileSelected()) throw new NoFilesSelectedToAddException();
 
-            BusyWindow.show();
-            BusyWindow.setLoadingText("Checking out...");
-            Thread th = new Thread(new Task<Void>(){
-                @Override
-                protected Void call() {
-                    try{
-                        ArrayList<Path> filePathsToCheckout = new ArrayList<>();
-                        // Try to add all files, throw exception if there are ones that can't be added
-                        for(RepoFile checkedFile : workingTreePanelView.getCheckedFilesInDirectory()) {
-                            filePathsToCheckout.add(checkedFile.getFilePath());
-                        }
-                        theModel.getCurrentRepoHelper().checkoutFiles(filePathsToCheckout);
-                        gitStatus();
-
-                    }catch (JGitInternalException e){
-                        showJGitInternalError(e);
-                    } catch (GitAPIException e) {
-                        showGenericErrorNotification();
-                    } finally {
-                        BusyWindow.hide();
-                    }
-                    return null;
-                }
-            });
-            th.setDaemon(true);
-            th.setName("Git checkout");
-            th.start();
+            if (! PopUpWindows.showCheckoutAlert()) throw new CancelledDialogueException();
+            ArrayList<Path> filePathsToCheckout = new ArrayList<>();
+            // Try to add all files, throw exception if there are ones that can't be added
+            for(RepoFile checkedFile : workingTreePanelView.getCheckedFilesInDirectory()) {
+                filePathsToCheckout.add(checkedFile.getFilePath());
+            }
+            theModel.getCurrentRepoHelper().checkoutFiles(filePathsToCheckout);
+            gitStatus();
         } catch (NoFilesSelectedToAddException e) {
             this.showNoFilesSelectedForAddNotification();
         } catch (NoRepoLoadedException e) {
             this.showNoRepoLoadedNotification();
         } catch (MissingRepoException e) {
             this.showMissingRepoNotification();
+        } catch (GitAPIException e) {
+            this.showGenericErrorNotification();
+        } catch (CancelledDialogueException e) {
+            // Do nothing
         }
     }
 

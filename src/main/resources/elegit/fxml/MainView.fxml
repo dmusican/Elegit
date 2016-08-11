@@ -129,7 +129,7 @@
         </TabPane>
 
         <!-- Add and remove buttons block -->
-        <HBox   spacing="20"
+        <HBox   spacing="10"
                 GridPane.halignment="CENTER"
                 GridPane.rowIndex="4"
                 alignment="CENTER">
@@ -139,7 +139,7 @@
                     onAction="#handleAddButton"/>
             <Button id="codeButton"
                     fx:id="checkoutFileButton"
-                    text="Checkout"
+                    text="Checkout Files"
                     onAction="#handleCheckoutButton"/>
             <Button id="codeButton"
                     fx:id="removeButton"

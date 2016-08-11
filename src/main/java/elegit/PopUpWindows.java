@@ -144,6 +144,26 @@ public class PopUpWindows {
     }
 
     /**
+     * Shows a warning about checking out files from the index
+     * @return
+     */
+    public static boolean showCheckoutAlert() {
+        Alert alert = new Alert(Alert.AlertType.WARNING);
+        ButtonType checkout = new ButtonType("Checkout");
+        ButtonType cancel = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+        alert.getButtonTypes().setAll(checkout, cancel);
+
+        alert.setTitle("Checkout Warning");
+        alert.setContentText("Are you sure you want to checkout the selected files?\n"+
+                            "This will discard all changes that have not been added (staged).");
+        Optional<ButtonType> result = alert.showAndWait();
+        if (result.isPresent())
+            return result.get()==checkout;
+        else
+            return false;
+    }
+
+    /**
      * Informs the user that they are adding a previously conflicting file
      * @return String result from user input
      */

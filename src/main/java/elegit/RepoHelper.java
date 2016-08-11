@@ -343,7 +343,7 @@ public class RepoHelper {
      */
     void checkoutFile(Path filePath) throws GitAPIException {
         Git git = new Git(this.repo);
-        git.checkout().setStartPoint("HEAD").addPath(filePath.toString()).call();
+        git.checkout().addPath(filePath.toString()).call();
         git.close();
     }
 
