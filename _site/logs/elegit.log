@@ -86,3 +86,4 @@
 08-11-2016 12:42:50.580;JavaFX Application Thread;INFO ;Main.start;Starting up.
 08-11-2016 12:42:55.864;JavaFX Application Thread;INFO ;SessionController.handleGeneralMergeButton;Merge button clicked
 08-11-2016 12:42:55.865;JavaFX Application Thread;INFO ;SessionController.handleGeneralMergeButton;Opened merge window
+08-11-2016 13:15:18.205;JavaFX Application Thread;INFO ;Main.start;Starting up.

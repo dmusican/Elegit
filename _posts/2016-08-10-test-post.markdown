@@ -1,8 +1,0 @@
----
-layout: post
-title:  "Test Post"
-date:   2016-08-10 3:35:00 -0500
-categories: jekyll update
----
-
-Hello, I'm testing a blog post!

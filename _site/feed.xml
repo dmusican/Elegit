@@ -6,17 +6,142 @@
 </description>
     <link>http://dmusican.github.io/Elegit/</link>
     <atom:link href="http://dmusican.github.io/Elegit/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Thu, 11 Aug 2016 12:47:57 -0500</pubDate>
-    <lastBuildDate>Thu, 11 Aug 2016 12:47:57 -0500</lastBuildDate>
+    <pubDate>Thu, 11 Aug 2016 15:50:11 -0500</pubDate>
+    <lastBuildDate>Thu, 11 Aug 2016 15:50:11 -0500</lastBuildDate>
     <generator>Jekyll v3.1.6</generator>
     
       <item>
-        <title>Test Post</title>
-        <description>&lt;p&gt;Hello, I’m testing a blog post!&lt;/p&gt;
+        <title>What is Git Revert?</title>
+        <description>&lt;p&gt;Great. Some genius decided it would be fun to put in 300 useless changes, 
+but it’s 72 commits ago. You can’t do a reset because you need those 72 
+commits, but you want to undo those changes, and not by hand. Enter &lt;code class=&quot;highlighter-rouge&quot;&gt;git revert&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;Git revert&lt;/code&gt; is relatively limited in the scope of things it does, 
+which is nice, so here’s how to use the command line version of it:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-git&quot; data-lang=&quot;git&quot;&gt;git revert [--[no-]edit] [-n] [-m parent-number] [-s] [-S[&amp;lt;keyid&amp;gt;]] &amp;lt;commit&amp;gt;…​
+git revert --continue
+git revert --quit
+git revert --abort&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;Basically, git revert takes your current files, and deletes any changes 
+from the commit(s) you give it, making a new commit. Options you have are:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;-e/--edit&lt;/code&gt;: edit the commit message before committing the revert 
+(this is default, add the no- between dashes and ‘edit’ to make it not ask you to write a message)&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;-m parent-number/--mainline parent-number&lt;/code&gt;: this lets you revert a 
+merge (which you usually can’t do because Git has no way of knowing which 
+parent was the one you want). However note that this makes it so that 
+future merges will not include any changes that are part of a commit 
+that was an ancestor to the reverted merge. For a complete explanation 
+of reverts and how to use them in this case, see https://github.com/git/git/blob/master/Documentation/howto/revert-a-faulty-merge.txt&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;-n/--no-commit&lt;/code&gt;: if you don’t want a commit to be automatically 
+created by the revert, then use this. This is useful if you’re reverting 
+more than one commit in a row, then you can do it all at once&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;-S[&amp;lt;keyid&amp;gt;]/--gpg-sign[=&amp;lt;keyid&amp;gt;]&lt;/code&gt;: the keyid argument is option and 
+defaults to the committer identity, but it has to be the no space option. 
+The GPG thing is just who is the author&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;-s/--signoff&lt;/code&gt;: add a signoff line at the end of the automatically 
+created message, this is explained in detail surrounding commit&lt;/li&gt;
+  &lt;li&gt;’–strategy=&lt;strategy&gt;&#39;: use the given merge strategy (should only be used once), 
+this is the same strategy thing that merge uses&lt;/strategy&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;-X&amp;lt;option&amp;gt;/--stategy-option=&amp;lt;option&amp;gt;&lt;/code&gt;: pass the merge strategy-specific 
+option to the merge strategy, this is explained more with merge&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;Some basic examples: &lt;code class=&quot;highlighter-rouge&quot;&gt;git revert HEAD~1&lt;/code&gt;: revert the changes of the parent of HEAD and create a new commit.&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;git revert -n branch~4..branch&lt;/code&gt;: revert all changes done by the last 5 
+commits of the branch ‘branch’, but don’t make a commit, just put changes 
+in the index and working directory&lt;/p&gt;
 </description>
-        <pubDate>Wed, 10 Aug 2016 03:35:00 -0500</pubDate>
-        <link>http://dmusican.github.io/Elegit/jekyll/update/2016/08/10/test-post.html</link>
-        <guid isPermaLink="true">http://dmusican.github.io/Elegit/jekyll/update/2016/08/10/test-post.html</guid>
+        <pubDate>Thu, 04 Aug 2016 01:50:00 -0500</pubDate>
+        <link>http://dmusican.github.io/Elegit/jekyll/update/2016/08/04/what-is-revert.html</link>
+        <guid isPermaLink="true">http://dmusican.github.io/Elegit/jekyll/update/2016/08/04/what-is-revert.html</guid>
+        
+        
+        <category>jekyll</category>
+        
+        <category>update</category>
+        
+      </item>
+    
+      <item>
+        <title>What is Git Reset?</title>
+        <description>&lt;p&gt;Oh no. I just committed a file containing my username, password, social 
+security number, and mother’s maiden name. How do I make sure this never 
+sees the light of day? Stack overflow would probably tell you “just do a 
+&lt;code class=&quot;highlighter-rouge&quot;&gt;git reset --hard&lt;/code&gt;”. But what does &lt;code class=&quot;highlighter-rouge&quot;&gt;git reset&lt;/code&gt; do?&lt;/p&gt;
+
+&lt;p&gt;The documentation page for reset actually lists the ability to erase 
+commits as the last of three usages for reset. These three options are:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-git&quot; data-lang=&quot;git&quot;&gt;git reset [-q] [&amp;lt;tree-ish&amp;gt;] [--] &amp;lt;paths&amp;gt;…​
+git reset (--patch | -p) [&amp;lt;tree-ish&amp;gt;] [--] [&amp;lt;paths&amp;gt;…​]
+git reset [--soft | --mixed [-N] | --hard | --merge | --keep] [-q] [&amp;lt;commit&amp;gt;]&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;The first is the way to undo &lt;code class=&quot;highlighter-rouge&quot;&gt;git add&lt;/code&gt;. If you added some file, text.txt, 
+that you really didn’t want to add, then typing in &lt;code class=&quot;highlighter-rouge&quot;&gt;git reset HEAD text.txt&lt;/code&gt; 
+(or &lt;code class=&quot;highlighter-rouge&quot;&gt;git reset -- text.txt&lt;/code&gt;) will remove text.txt from the index (where 
+it got put when you typed &lt;code class=&quot;highlighter-rouge&quot;&gt;git add text.txt&lt;/code&gt;, or did something more complicated 
+with the same effect). The &lt;code class=&quot;highlighter-rouge&quot;&gt;-q&lt;/code&gt; is for quiet, which would make Git only output 
+errors.&lt;/p&gt;
+
+&lt;p&gt;The next option is if you want to have a little more control over 
+what happens, so you could unstage just the password you saved, but not 
+the social security number that you want the world to know.&lt;/p&gt;
+
+&lt;p&gt;Finally, option 3 is for undoing entire commits, well, sort of. 
+First off, let’s get the usage - if you committed changes, and you just 
+want to go back 1 commit, you do a &lt;code class=&quot;highlighter-rouge&quot;&gt;git reset HEAD~1&lt;/code&gt;. What this really 
+does is change the file &lt;code class=&quot;highlighter-rouge&quot;&gt;.git/HEAD&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;.git/refs/heads/&amp;lt;current branch&amp;gt;&lt;/code&gt; 
+to contain the 40-character hash for the parent of &lt;code class=&quot;highlighter-rouge&quot;&gt;HEAD&lt;/code&gt; instead of the 
+hash for &lt;code class=&quot;highlighter-rouge&quot;&gt;HEAD&lt;/code&gt;. You can actually set this to any commit that you know the 
+hash for, so like &lt;code class=&quot;highlighter-rouge&quot;&gt;git reset acce7b&lt;/code&gt; will reset to the commit that starts 
+with that hash. There are several modes that you can specify here, 
+soft, mixed, hard, merge and keep:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;em&gt;Soft&lt;/em&gt;: only change the repository, don’t change anything in the index or 
+working directory
+Mixed: (the default) change the repository and reset the files in the 
+index to those stored in the commit (yes actually entirely stored in the 
+commit, see the commit post)&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;em&gt;Hard&lt;/em&gt;: reset everything! This throws away all changes in the index and 
+working directory and replaces them with the files in the commit&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;em&gt;Merge&lt;/em&gt;: resets the index and files in the working directory to what’s 
+stored in the commit, but it keeps files that have unstaged changes in 
+the working directory. An error is thrown and the reset stops if a file 
+is different between the current commit and the one to reset to and has 
+unstaged changes. Usually used to undo a ‘merge operation’.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;em&gt;Keep&lt;/em&gt;: does a hard reset, but aborts if there are local changes in a file 
+that changed between the target commit and the current commit and keeps 
+uncommitted changes in the working directory and index&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;Some useful things to know:
+&lt;code class=&quot;highlighter-rouge&quot;&gt;Git reset ORIG_HEAD&lt;/code&gt; after a pull or merge to undo it (add &lt;code class=&quot;highlighter-rouge&quot;&gt;--merge&lt;/code&gt; to avoid losing local changes)
+If you don’t specify anything, this will just un-stage changes in the index&lt;/p&gt;
+
+&lt;p&gt;What if I want to undo a commit way way back, but not everything in between?
+The answer is &lt;code class=&quot;highlighter-rouge&quot;&gt;git revert&lt;/code&gt;– for another day.&lt;/p&gt;
+</description>
+        <pubDate>Tue, 02 Aug 2016 01:50:00 -0500</pubDate>
+        <link>http://dmusican.github.io/Elegit/jekyll/update/2016/08/02/what-is-resert.html</link>
+        <guid isPermaLink="true">http://dmusican.github.io/Elegit/jekyll/update/2016/08/02/what-is-resert.html</guid>
         
         
         <category>jekyll</category>
