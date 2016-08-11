@@ -375,10 +375,7 @@ public class SessionController {
                 "Download files from another repository to remote repository"
         ));
         this.pushButton.setTooltip(new Tooltip(
-                "Update remote repository with local changes"
-        ));
-        this.pushButton.setTooltip(new Tooltip(
-                "Revert the changes in the most recent commit"
+                "Update remote repository with local changes,\nright click for advanced options"
         ));
 
         this.loadNewRepoButton.setTooltip(new Tooltip(
