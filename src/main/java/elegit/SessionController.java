@@ -1019,7 +1019,8 @@ public class SessionController {
             logger.info("Push button clicked");
 
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
-            if(!this.theModel.getCurrentRepoHelper().canPush()) throw new NoCommitsToPushException();
+            if(pushType == PushType.BRANCH &&
+                    !this.theModel.getCurrentRepoHelper().canPush()) throw new NoCommitsToPushException();
 
             final RepoHelperBuilder.AuthDialogResponse response;
             if (authenticateOnNextCommand) {
