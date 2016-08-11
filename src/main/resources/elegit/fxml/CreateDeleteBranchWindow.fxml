@@ -82,8 +82,14 @@
                     </HBox>
                 </Tab>
             </TabPane>
-            <Button text="Cancel"
-                    onAction="#closeWindow"/>
+            <AnchorPane>
+                <Button text="Cancel"
+                    onAction="#closeWindow"
+                    AnchorPane.leftAnchor="20"/>
+                <Button text="OK"
+                        onAction="#closeWindow"
+                        AnchorPane.rightAnchor="20"/>
+            </AnchorPane>
         </VBox>
     </StackPane>
 

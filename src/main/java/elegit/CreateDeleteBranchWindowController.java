@@ -257,6 +257,7 @@ public class CreateDeleteBranchWindowController {
         BranchHelper selectedBranch = remoteBranchesDropdown.getSelectionModel().getSelectedItem();
 
         deleteBranch(selectedBranch);
+        refreshBranchesDropDown();
     }
 
     /**
@@ -267,6 +268,7 @@ public class CreateDeleteBranchWindowController {
         BranchHelper selectedBranch = localBranchesDropdown.getSelectionModel().getSelectedItem();
 
         deleteBranch(selectedBranch);
+        refreshBranchesDropDown();
     }
 
     /**
