@@ -1090,16 +1090,30 @@ public class SessionController {
             logger.info("Push button clicked");
 
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
-            if(this.theModel.getCurrentRepoHelper().getAheadCount()<1 && !this.theModel.getCurrentRepoHelper().canPush()) throw new NoCommitsToPushException();
+            if(!this.theModel.getCurrentRepoHelper().canPush()) throw new NoCommitsToPushException();
+
+            final RepoHelperBuilder.AuthDialogResponse response;
+            if (authenticateOnNextCommand) {
+                response = RepoHelperBuilder.getAuthCredentialFromDialog();
+            } else {
+                response = null;
+            }
 
             BusyWindow.show();
             BusyWindow.setLoadingText("Pushing...");
             Thread th = new Thread(new Task<Void>(){
                 @Override
                 protected Void call() {
+                    boolean pushed = false;
+                    boolean authorizationSucceeded = true;
                     try{
                         RepositoryMonitor.resetFoundNewChanges(false);
-                        theModel.getCurrentRepoHelper().pushAll();
+                        RepoHelper helper = theModel.getCurrentRepoHelper();
+                        if (response != null) {
+                            helper.ownerAuth =
+                                    new UsernamePasswordCredentialsProvider(response.username, response.password);
+                        }
+                        helper.pushAll();
                         gitStatus();
                     }  catch(InvalidRemoteException e){
                         showNoRemoteNotification();
@@ -1113,6 +1127,7 @@ public class SessionController {
                             showLostRemoteNotification();
                         } else {
                             showNotAuthorizedNotification();
+                            authorizationSucceeded = false;
                         }
                     } catch(MissingRepoException e){
                         showMissingRepoNotification();
@@ -1123,6 +1138,14 @@ public class SessionController {
                         e.printStackTrace();
                     } finally{
                         BusyWindow.hide();
+                        if (authorizationSucceeded) {
+                            authenticateOnNextCommand = false;
+                        } else {
+                            authenticateOnNextCommand = true;
+                            Platform.runLater(() -> {
+                                handlePushAllButton();
+                            });
+                        }
                     }
                     return null;
                 }
@@ -1137,6 +1160,8 @@ public class SessionController {
             this.showNoCommitsToPushNotification();
         }catch(IOException e) {
             this.showGenericErrorNotification();
+        } catch (CancelledAuthorizationException e) {
+            this.showCommandCancelledNotification();
         }
     }
 
