@@ -129,7 +129,7 @@ public class SessionController {
     @FXML private StackPane notificationPane;
     @FXML private NotificationController notificationPaneController;
 
-    private boolean authenticateOnNextCommand;
+    boolean authenticateOnNextCommand;
 
     /**
      * Initializes the environment by obtaining the model
@@ -2115,7 +2115,7 @@ public class SessionController {
     private void showCommandCancelledNotification() {
         Platform.runLater(() -> {
             logger.warn("Command cancelled.");
-            this.notificationPaneController.addNotification("Command cancelled..");
+            this.notificationPaneController.addNotification("Command cancelled.");
         });
     }
 
