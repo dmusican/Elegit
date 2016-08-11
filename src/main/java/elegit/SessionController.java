@@ -1517,14 +1517,27 @@ public class SessionController {
 
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
 
+            final RepoHelperBuilder.AuthDialogResponse response;
+            if (authenticateOnNextCommand) {
+                response = RepoHelperBuilder.getAuthCredentialFromDialog();
+            } else {
+                response = null;
+            }
+
             BusyWindow.show();
             BusyWindow.setLoadingText("Fetching...");
             Thread th = new Thread(new Task<Void>(){
                 @Override
                 protected Void call() {
+                    boolean authorizationSucceeded = true;
                     try{
                         RepositoryMonitor.resetFoundNewChanges(false);
-                        if(!theModel.getCurrentRepoHelper().fetch()){
+                        RepoHelper helper = theModel.getCurrentRepoHelper();
+                        if (response != null) {
+                            helper.ownerAuth =
+                                    new UsernamePasswordCredentialsProvider(response.username, response.password);
+                        }
+                        if(!helper.fetch()){
                             showNoCommitsFetchedNotification();
                         }
                         gitStatus();
@@ -1532,6 +1545,7 @@ public class SessionController {
                         showNoRemoteNotification();
                     } catch (TransportException e) {
                         showNotAuthorizedNotification();
+                        authorizationSucceeded = false;
                     } catch(MissingRepoException e){
                         showMissingRepoNotification();
                         setButtonsDisabled(true);
@@ -1541,6 +1555,14 @@ public class SessionController {
                         e.printStackTrace();
                     }finally {
                         BusyWindow.hide();
+                        if (authorizationSucceeded) {
+                            authenticateOnNextCommand = false;
+                        } else {
+                            authenticateOnNextCommand = true;
+                            Platform.runLater(() -> {
+                                gitFetch();
+                            });
+                        }
                     }
                     return null;
                 }
@@ -1551,7 +1573,11 @@ public class SessionController {
         }catch(NoRepoLoadedException e) {
             this.showNoRepoLoadedNotification();
             setButtonsDisabled(true);
+        } catch (CancelledAuthorizationException e) {
+            this.showCommandCancelledNotification();
         }
+
+
     }
 
     /**
