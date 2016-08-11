@@ -1030,7 +1030,6 @@ public class SessionController {
             Thread th = new Thread(new Task<Void>(){
                 @Override
                 protected Void call() {
-                    boolean pushed = false;
                     boolean authorizationSucceeded = true;
                     try{
                         RepositoryMonitor.resetFoundNewChanges(false);
@@ -1107,14 +1106,28 @@ public class SessionController {
 
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
 
+            final RepoHelperBuilder.AuthDialogResponse response;
+            if (authenticateOnNextCommand) {
+                response = RepoHelperBuilder.getAuthCredentialFromDialog();
+            } else {
+                response = null;
+            }
+
+
             Thread th = new Thread(new Task<Void>(){
                 @Override
                 protected Void call() {
                     boolean tagsPushed = true;
+                    boolean authorizationSucceeded = true;
                     Iterable<PushResult> results = null;
                     try{
                         RepositoryMonitor.resetFoundNewChanges(false);
-                        results = theModel.getCurrentRepoHelper().pushTags();
+                        RepoHelper helper = theModel.getCurrentRepoHelper();
+                        if (response != null) {
+                            helper.ownerAuth =
+                                    new UsernamePasswordCredentialsProvider(response.username, response.password);
+                        }
+                        results = helper.pushTags();
                         gitStatus();
                     }  catch(InvalidRemoteException e){
                         showNoRemoteNotification();
@@ -1128,6 +1141,7 @@ public class SessionController {
                             showLostRemoteNotification();
                         } else {
                             showNotAuthorizedNotification();
+                            authorizationSucceeded = false;
                         }
                         tagsPushed = false;
                     } catch(MissingRepoException e){
@@ -1140,17 +1154,26 @@ public class SessionController {
                         e.printStackTrace();
                         tagsPushed = false;
                     } finally {
-                        boolean upToDate = true;
-                        if (tagsPushed) {
-                            if (results == null) upToDate = false;
-                            else
-                                for (PushResult result : results)
-                                    for (RemoteRefUpdate update : result.getRemoteUpdates())
-                                        if (update.getStatus() == RemoteRefUpdate.Status.OK)
-                                            upToDate=false;
+                        if (authorizationSucceeded) {
+                            authenticateOnNextCommand = false;
+                            boolean upToDate = true;
+                            if (tagsPushed) {
+                                if (results == null) upToDate = false;
+                                else
+                                    for (PushResult result : results)
+                                        for (RemoteRefUpdate update : result.getRemoteUpdates())
+                                            if (update.getStatus() == RemoteRefUpdate.Status.OK)
+                                                upToDate=false;
+                            }
+                            if (upToDate) showTagsUpToDateNotification();
+                            else showTagsUpdatedNotification();
+                        } else {
+                            authenticateOnNextCommand = true;
+                            Platform.runLater(() -> {
+                                handlePushTagsButton();
+                            });
                         }
-                        if (upToDate) showTagsUpToDateNotification();
-                        else showTagsUpdatedNotification();
+
                     }
                     return null;
                 }
@@ -1161,7 +1184,10 @@ public class SessionController {
         }catch(NoRepoLoadedException e){
             this.showNoRepoLoadedNotification();
             setButtonsDisabled(true);
+        } catch (CancelledAuthorizationException e) {
+            this.showCommandCancelledNotification();
         }
+
     }
 
 
