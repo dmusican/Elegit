@@ -654,7 +654,8 @@ public class RepoHelper {
         if (!exists()) throw new MissingRepoException();
         Git git = new Git(this.repo);
 
-        FetchCommand fetch = git.fetch().setTagOpt(TagOpt.AUTO_FOLLOW).setRemoveDeletedRefs(true);
+       // FetchCommand fetch = git.fetch().setTagOpt(TagOpt.AUTO_FOLLOW).setRemoveDeletedRefs(true);
+        FetchCommand fetch = git.fetch().setTagOpt(TagOpt.AUTO_FOLLOW);
 
         myWrapAuthentication(fetch);
 
