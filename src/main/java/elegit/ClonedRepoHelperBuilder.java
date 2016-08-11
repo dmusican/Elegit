@@ -234,7 +234,15 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
             // If the URL doesn't have a repo, a Transport Exception is thrown when this command is called.
             //  We want the SessionController to report an InvalidRemoteException, though, because
             //  that's the issue.
-            e.printStackTrace();
+            System.out.println(e.getMessage());
+            System.out.println(e.getMessage().endsWith("not authorized") || e.getMessage().endsWith("not authorized."));
+            System.out.println(e.getMessage().endsWith("not found") || e.getMessage().endsWith("not found."));
+            /*Throwable exception = e;
+            while (exception != null) {
+                System.err.println("======================");
+                exception.printStackTrace();
+                exception = exception.getCause();
+            }*/
             logger.error("Invalid remote exception thrown");
             throw new InvalidRemoteException("Caught invalid repository when building a ClonedRepoHelper.");
         }
