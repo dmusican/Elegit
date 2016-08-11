@@ -1,6 +1,7 @@
 package elegit;
 
 import elegit.exceptions.*;
+import elegit.treefx.CellLabel;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.concurrent.Task;
@@ -94,7 +95,10 @@ public class MergeWindowController {
 
                         if (helper == null || empty) { setGraphic(null); }
                         else {
-                            branchName.setText(helper.getBranchName());
+                            if(helper.getBranchName().length() > CellLabel.MAX_CHAR_PER_LABEL){
+                                branchName.setTooltip(new Tooltip(helper.getBranchName()));
+                            }
+                            branchName.setText(helper.getAbbrevName());
                             setGraphic(branchName);
                             setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
                         }
