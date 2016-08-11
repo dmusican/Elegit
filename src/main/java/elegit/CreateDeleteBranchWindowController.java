@@ -1,5 +1,6 @@
 package elegit;
 
+import elegit.exceptions.CancelledAuthorizationException;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.concurrent.Task;
@@ -17,6 +18,7 @@ import org.apache.logging.log4j.Logger;
 import org.controlsfx.control.PopOver;
 import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.transport.RemoteRefUpdate;
+import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
 import java.io.IOException;
 import java.util.List;
@@ -277,6 +279,7 @@ public class CreateDeleteBranchWindowController {
      * @param selectedBranch the branch selected to delete
      */
     public void deleteBranch(BranchHelper selectedBranch) {
+        boolean authorizationSucceeded = true;
         try {
             if (selectedBranch != null) {
                 RemoteRefUpdate.Status deleteStatus;
@@ -285,6 +288,13 @@ public class CreateDeleteBranchWindowController {
                     this.branchModel.deleteLocalBranch((LocalBranchHelper) selectedBranch);
                     updateUser(selectedBranch.getBranchName() + " deleted.", BranchModel.BranchType.LOCAL);
                 }else {
+                    final RepoHelperBuilder.AuthDialogResponse response;
+                    if (sessionController.authenticateOnNextCommand) {
+                        response = RepoHelperBuilder.getAuthCredentialFromDialog();
+                        repoHelper.ownerAuth =
+                                new UsernamePasswordCredentialsProvider(response.username, response.password);
+                    }
+
                     deleteStatus = this.branchModel.deleteRemoteBranch((RemoteBranchHelper) selectedBranch);
                     String updateMessage = selectedBranch.getBranchName();
                     // There are a number of possible cases, see JGit's documentation on RemoteRefUpdate.Status
@@ -315,16 +325,28 @@ public class CreateDeleteBranchWindowController {
             this.showCannotDeleteBranchNotification(selectedBranch);
         } catch (TransportException e) {
             this.showNotAuthorizedNotification();
+            authorizationSucceeded = false;
         } catch (GitAPIException e) {
             logger.warn("Git error");
             this.showGenericGitErrorNotificationWithBranch(selectedBranch);
         } catch (IOException e) {
             logger.warn("IO error");
             this.showGenericErrorNotification();
+        } catch (CancelledAuthorizationException e) {
+            logger.warn("Cancelled authorization");
+            this.showCommandCancelledNotification();
+
+
         } finally {
             refreshBranchesDropDown();
             // Reset the branch heads
             CommitTreeController.setBranchHeads(localCommitTreeModel, repoHelper);
+            if (authorizationSucceeded) {
+                sessionController.authenticateOnNextCommand = false;
+            } else {
+                sessionController.authenticateOnNextCommand = true;
+                deleteBranch(selectedBranch);
+            }
         }
     }
 
@@ -443,6 +465,13 @@ public class CreateDeleteBranchWindowController {
         Platform.runLater(() -> {
             logger.warn("Git error on branch notification");
             notificationPaneController.addNotification(String.format("Sorry, there was a git error on branch %s.", branch.getBranchName()));
+        });
+    }
+
+    private void showCommandCancelledNotification() {
+        Platform.runLater(() -> {
+            logger.warn("Command cancelled notification");
+            notificationPaneController.addNotification("Command cancelled.");
         });
     }
 

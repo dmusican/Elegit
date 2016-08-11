@@ -129,7 +129,7 @@ public class SessionController {
     @FXML private StackPane notificationPane;
     @FXML private NotificationController notificationPaneController;
 
-    private boolean authenticateOnNextCommand;
+    boolean authenticateOnNextCommand;
 
     /**
      * Initializes the environment by obtaining the model
@@ -1019,7 +1019,6 @@ public class SessionController {
             Thread th = new Thread(new Task<Void>(){
                 @Override
                 protected Void call() {
-                    boolean pushed = false;
                     boolean authorizationSucceeded = true;
                     try{
                         RepositoryMonitor.resetFoundNewChanges(false);
@@ -1096,14 +1095,28 @@ public class SessionController {
 
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
 
+            final RepoHelperBuilder.AuthDialogResponse response;
+            if (authenticateOnNextCommand) {
+                response = RepoHelperBuilder.getAuthCredentialFromDialog();
+            } else {
+                response = null;
+            }
+
+
             Thread th = new Thread(new Task<Void>(){
                 @Override
                 protected Void call() {
                     boolean tagsPushed = true;
+                    boolean authorizationSucceeded = true;
                     Iterable<PushResult> results = null;
                     try{
                         RepositoryMonitor.resetFoundNewChanges(false);
-                        results = theModel.getCurrentRepoHelper().pushTags();
+                        RepoHelper helper = theModel.getCurrentRepoHelper();
+                        if (response != null) {
+                            helper.ownerAuth =
+                                    new UsernamePasswordCredentialsProvider(response.username, response.password);
+                        }
+                        results = helper.pushTags();
                         gitStatus();
                     }  catch(InvalidRemoteException e){
                         showNoRemoteNotification();
@@ -1117,6 +1130,7 @@ public class SessionController {
                             showLostRemoteNotification();
                         } else {
                             showNotAuthorizedNotification();
+                            authorizationSucceeded = false;
                         }
                         tagsPushed = false;
                     } catch(MissingRepoException e){
@@ -1129,17 +1143,26 @@ public class SessionController {
                         e.printStackTrace();
                         tagsPushed = false;
                     } finally {
-                        boolean upToDate = true;
-                        if (tagsPushed) {
-                            if (results == null) upToDate = false;
-                            else
-                                for (PushResult result : results)
-                                    for (RemoteRefUpdate update : result.getRemoteUpdates())
-                                        if (update.getStatus() == RemoteRefUpdate.Status.OK)
-                                            upToDate=false;
+                        if (authorizationSucceeded) {
+                            authenticateOnNextCommand = false;
+                            boolean upToDate = true;
+                            if (tagsPushed) {
+                                if (results == null) upToDate = false;
+                                else
+                                    for (PushResult result : results)
+                                        for (RemoteRefUpdate update : result.getRemoteUpdates())
+                                            if (update.getStatus() == RemoteRefUpdate.Status.OK)
+                                                upToDate=false;
+                            }
+                            if (upToDate) showTagsUpToDateNotification();
+                            else showTagsUpdatedNotification();
+                        } else {
+                            authenticateOnNextCommand = true;
+                            Platform.runLater(() -> {
+                                handlePushTagsButton();
+                            });
                         }
-                        if (upToDate) showTagsUpToDateNotification();
-                        else showTagsUpdatedNotification();
+
                     }
                     return null;
                 }
@@ -1150,7 +1173,10 @@ public class SessionController {
         }catch(NoRepoLoadedException e){
             this.showNoRepoLoadedNotification();
             setButtonsDisabled(true);
+        } catch (CancelledAuthorizationException e) {
+            this.showCommandCancelledNotification();
         }
+
     }
 
 
@@ -1196,6 +1222,7 @@ public class SessionController {
      */
     public void deleteBranch(BranchHelper selectedBranch) {
         BranchModel branchModel = theModel.getCurrentRepoHelper().getBranchModel();
+        boolean authorizationSucceeded = true;
         try {
             if (selectedBranch != null) {
                 RemoteRefUpdate.Status deleteStatus;
@@ -1204,6 +1231,12 @@ public class SessionController {
                     branchModel.deleteLocalBranch((LocalBranchHelper) selectedBranch);
                     updateUser(selectedBranch.getBranchName() + " deleted.");
                 }else {
+                    final RepoHelperBuilder.AuthDialogResponse response;
+                    if (authenticateOnNextCommand) {
+                        response = RepoHelperBuilder.getAuthCredentialFromDialog();
+                        selectedBranch.repoHelper.ownerAuth =
+                                new UsernamePasswordCredentialsProvider(response.username, response.password);
+                    }
                     deleteStatus = branchModel.deleteRemoteBranch((RemoteBranchHelper) selectedBranch);
                     String updateMessage = selectedBranch.getBranchName();
                     // There are a number of possible cases, see JGit's documentation on RemoteRefUpdate.Status
@@ -1234,11 +1267,21 @@ public class SessionController {
             this.showCannotDeleteBranchNotification(selectedBranch);
         } catch (TransportException e) {
             this.showNotAuthorizedNotification();
+            authorizationSucceeded = false;
         } catch (IOException | GitAPIException e) {
             logger.warn("IO error");
             this.showGenericErrorNotification();
+        } catch (CancelledAuthorizationException e) {
+            logger.warn("Cancelled authorization");
+            this.showCommandCancelledNotification();
         } finally {
             gitStatus();
+            if (authorizationSucceeded) {
+                authenticateOnNextCommand = false;
+            } else {
+                authenticateOnNextCommand = true;
+                deleteBranch(selectedBranch);
+            }
         }
     }
 
@@ -1463,14 +1506,27 @@ public class SessionController {
 
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
 
+            final RepoHelperBuilder.AuthDialogResponse response;
+            if (authenticateOnNextCommand) {
+                response = RepoHelperBuilder.getAuthCredentialFromDialog();
+            } else {
+                response = null;
+            }
+
             BusyWindow.show();
             BusyWindow.setLoadingText("Fetching...");
             Thread th = new Thread(new Task<Void>(){
                 @Override
                 protected Void call() {
+                    boolean authorizationSucceeded = true;
                     try{
                         RepositoryMonitor.resetFoundNewChanges(false);
-                        if(!theModel.getCurrentRepoHelper().fetch()){
+                        RepoHelper helper = theModel.getCurrentRepoHelper();
+                        if (response != null) {
+                            helper.ownerAuth =
+                                    new UsernamePasswordCredentialsProvider(response.username, response.password);
+                        }
+                        if(!helper.fetch()){
                             showNoCommitsFetchedNotification();
                         }
                         gitStatus();
@@ -1478,6 +1534,7 @@ public class SessionController {
                         showNoRemoteNotification();
                     } catch (TransportException e) {
                         showNotAuthorizedNotification();
+                        authorizationSucceeded = false;
                     } catch(MissingRepoException e){
                         showMissingRepoNotification();
                         setButtonsDisabled(true);
@@ -1487,6 +1544,14 @@ public class SessionController {
                         e.printStackTrace();
                     }finally {
                         BusyWindow.hide();
+                        if (authorizationSucceeded) {
+                            authenticateOnNextCommand = false;
+                        } else {
+                            authenticateOnNextCommand = true;
+                            Platform.runLater(() -> {
+                                gitFetch();
+                            });
+                        }
                     }
                     return null;
                 }
@@ -1497,7 +1562,11 @@ public class SessionController {
         }catch(NoRepoLoadedException e) {
             this.showNoRepoLoadedNotification();
             setButtonsDisabled(true);
+        } catch (CancelledAuthorizationException e) {
+            this.showCommandCancelledNotification();
         }
+
+
     }
 
     /**
@@ -2111,7 +2180,7 @@ public class SessionController {
     private void showCommandCancelledNotification() {
         Platform.runLater(() -> {
             logger.warn("Command cancelled.");
-            this.notificationPaneController.addNotification("Command cancelled..");
+            this.notificationPaneController.addNotification("Command cancelled.");
         });
     }
 
