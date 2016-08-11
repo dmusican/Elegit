@@ -998,94 +998,20 @@ public class SessionController {
         }
     }
 
-    /**
-     * Performs a `git push` on the current branch only
-     */
+    enum PushType {BRANCH, ALL};
+
     public void handlePushButton() {
-        try {
-            logger.info("Push button clicked");
-
-            if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
-            if(!this.theModel.getCurrentRepoHelper().canPush()) throw new NoCommitsToPushException();
-
-            final RepoHelperBuilder.AuthDialogResponse response;
-            if (authenticateOnNextCommand) {
-                response = RepoHelperBuilder.getAuthCredentialFromDialog();
-            } else {
-                response = null;
-            }
-
-            BusyWindow.show();
-            BusyWindow.setLoadingText("Pushing...");
-            Thread th = new Thread(new Task<Void>(){
-                @Override
-                protected Void call() {
-                    boolean pushed = false;
-                    boolean authorizationSucceeded = true;
-                    try{
-                        RepositoryMonitor.resetFoundNewChanges(false);
-                        RepoHelper helper = theModel.getCurrentRepoHelper();
-                        if (response != null) {
-                            helper.ownerAuth =
-                                    new UsernamePasswordCredentialsProvider(response.username, response.password);
-                        }
-                        helper.pushCurrentBranch();
-                        gitStatus();
-                    }  catch(InvalidRemoteException e){
-                        showNoRemoteNotification();
-                    }
-                    catch(PushToAheadRemoteError e) {
-                        showPushToAheadRemoteNotification(e.isAllRefsRejected());
-                    }
-                    catch (TransportException e) {
-                        if (e.getMessage().contains("git-receive-pack not found")) {
-                            // The error has this message if there is no longer a remote to push to
-                            showLostRemoteNotification();
-                        } else {
-                            showNotAuthorizedNotification();
-                            authorizationSucceeded = false;
-                        }
-                    } catch(MissingRepoException e){
-                        showMissingRepoNotification();
-                        setButtonsDisabled(true);
-                        refreshRecentReposInDropdown();
-                    } catch(Exception e) {
-                        showGenericErrorNotification();
-                        e.printStackTrace();
-                    } finally{
-                        BusyWindow.hide();
-                        if (authorizationSucceeded) {
-                            authenticateOnNextCommand = false;
-                        } else {
-                            authenticateOnNextCommand = true;
-                            Platform.runLater(() -> {
-                                handlePushButton();
-                            });
-                        }
-                    }
-                    return null;
-                }
-            });
-            th.setDaemon(true);
-            th.setName("Git push");
-            th.start();
-        }catch(NoRepoLoadedException e){
-            this.showNoRepoLoadedNotification();
-            setButtonsDisabled(true);
-        }catch(NoCommitsToPushException e){
-            this.showNoCommitsToPushNotification();
-        }catch(IOException e) {
-            this.showGenericErrorNotification();
-        } catch (CancelledAuthorizationException e) {
-            this.showCommandCancelledNotification();
-        }
+        pushBranchOrAll(PushType.BRANCH);
     }
 
+    public void handlePushAllButton() {
+        pushBranchOrAll(PushType.ALL);
+    }
 
     /**
-     * Performs a `git push` on all branches
+     * Performs a `git push` on either current branch or all branches, depending on enum parameter.
      */
-    public void handlePushAllButton() {
+    public void pushBranchOrAll(PushType pushType) {
         try {
             logger.info("Push button clicked");
 
@@ -1113,7 +1039,13 @@ public class SessionController {
                             helper.ownerAuth =
                                     new UsernamePasswordCredentialsProvider(response.username, response.password);
                         }
-                        helper.pushAll();
+                        if (pushType == PushType.BRANCH) {
+                            helper.pushCurrentBranch();
+                        } else if (pushType == PushType.ALL) {
+                            helper.pushAll();
+                        } else {
+                            assert false : "PushType enum case not handled";
+                        }
                         gitStatus();
                     }  catch(InvalidRemoteException e){
                         showNoRemoteNotification();
@@ -1143,7 +1075,7 @@ public class SessionController {
                         } else {
                             authenticateOnNextCommand = true;
                             Platform.runLater(() -> {
-                                handlePushAllButton();
+                                pushBranchOrAll(pushType);
                             });
                         }
                     }
@@ -1164,6 +1096,7 @@ public class SessionController {
             this.showCommandCancelledNotification();
         }
     }
+
 
     /**
      * Performs a `git push --tags`
