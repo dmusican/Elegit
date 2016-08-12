@@ -1120,12 +1120,26 @@ public class SessionController {
                         }
                         results = helper.pushTags();
                         gitStatus();
-                    }  catch(InvalidRemoteException e){
+
+                        boolean upToDate = true;
+
+                        if (results == null)
+                            upToDate = false;
+                        else
+                            for (PushResult result : results)
+                                for (RemoteRefUpdate update : result.getRemoteUpdates())
+                                    if (update.getStatus() == RemoteRefUpdate.Status.OK)
+                                        upToDate=false;
+
+                        if (upToDate)
+                            showTagsUpToDateNotification();
+                        else
+                            showTagsUpdatedNotification();
+
+                    } catch(InvalidRemoteException e){
                         showNoRemoteNotification();
-                        tagsPushed = false;
                     } catch(PushToAheadRemoteError e) {
                         showPushToAheadRemoteNotification(e.isAllRefsRejected());
-                        tagsPushed = false;
                     } catch (TransportException e) {
                         if (e.getMessage().contains("git-receive-pack not found")) {
                             // The error has this message if there is no longer a remote to push to
@@ -1134,38 +1148,24 @@ public class SessionController {
                             showNotAuthorizedNotification();
                             authorizationSucceeded = false;
                         }
-                        tagsPushed = false;
                     } catch(MissingRepoException e){
                         showMissingRepoNotification();
                         setButtonsDisabled(true);
                         refreshRecentReposInDropdown();
-                        tagsPushed = false;
                     } catch(Exception e) {
                         showGenericErrorNotification();
                         e.printStackTrace();
-                        tagsPushed = false;
-                    } finally {
-                        if (authorizationSucceeded) {
-                            authenticateOnNextCommand = false;
-                            boolean upToDate = true;
-                            if (tagsPushed) {
-                                if (results == null) upToDate = false;
-                                else
-                                    for (PushResult result : results)
-                                        for (RemoteRefUpdate update : result.getRemoteUpdates())
-                                            if (update.getStatus() == RemoteRefUpdate.Status.OK)
-                                                upToDate=false;
-                            }
-                            if (upToDate) showTagsUpToDateNotification();
-                            else showTagsUpdatedNotification();
-                        } else {
-                            authenticateOnNextCommand = true;
-                            Platform.runLater(() -> {
-                                handlePushTagsButton();
-                            });
-                        }
-
                     }
+
+                    if (authorizationSucceeded) {
+                        authenticateOnNextCommand = false;
+                    } else {
+                        authenticateOnNextCommand = true;
+                        Platform.runLater(() -> {
+                            handlePushTagsButton();
+                        });
+                    }
+
                     return null;
                 }
             });
