@@ -131,6 +131,7 @@ public class TreeLayout{
                     Text loadingCommits = new Text("Loading commits ");
                     loadingCommits.setFont(new Font(14));
                     VBox loading = new VBox(loadingCommits, progressBar);
+                    loading.setPickOnBounds(false);
                     loading.setAlignment(Pos.CENTER);
                     loading.setSpacing(5);
                     loading.layoutYProperty().bind(viewportY);
