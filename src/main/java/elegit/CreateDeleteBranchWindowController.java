@@ -289,7 +289,7 @@ public class CreateDeleteBranchWindowController {
                     updateUser(selectedBranch.getBranchName() + " deleted.", BranchModel.BranchType.LOCAL);
                 }else {
                     final RepoHelperBuilder.AuthDialogResponse response;
-                    if (sessionController.authenticateOnNextCommand) {
+                    if (sessionController.authenticationFailedLastTime) {
                         response = RepoHelperBuilder.getAuthCredentialFromDialog();
                         repoHelper.ownerAuth =
                                 new UsernamePasswordCredentialsProvider(response.username, response.password);
@@ -342,9 +342,9 @@ public class CreateDeleteBranchWindowController {
             // Reset the branch heads
             CommitTreeController.setBranchHeads(localCommitTreeModel, repoHelper);
             if (authorizationSucceeded) {
-                sessionController.authenticateOnNextCommand = false;
+                sessionController.authenticationFailedLastTime = false;
             } else {
-                sessionController.authenticateOnNextCommand = true;
+                sessionController.authenticationFailedLastTime = true;
                 deleteBranch(selectedBranch);
             }
         }
