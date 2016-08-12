@@ -1246,26 +1246,7 @@ public class SessionController {
                     branchModel.deleteLocalBranch((LocalBranchHelper) selectedBranch);
                     updateUser(selectedBranch.getBranchName() + " deleted.");
                 }else {
-                    final RepoHelperBuilder.AuthDialogResponse response;
-                    if (authenticationFailedLastTime) {
-                        response = RepoHelperBuilder.getAuthCredentialFromDialog();
-                        selectedBranch.repoHelper.ownerAuth =
-                                new UsernamePasswordCredentialsProvider(response.username, response.password);
-                    }
-                    deleteStatus = branchModel.deleteRemoteBranch((RemoteBranchHelper) selectedBranch);
-                    String updateMessage = selectedBranch.getBranchName();
-                    // There are a number of possible cases, see JGit's documentation on RemoteRefUpdate.Status
-                    // for the full list.
-                    switch (deleteStatus) {
-                        case OK:
-                            updateMessage += " deleted.";
-                            break;
-                        case NON_EXISTING:
-                            updateMessage += " no longer\nexists on the server.";
-                        default:
-                            updateMessage += " deletion\nfailed.";
-                    }
-                    updateUser(updateMessage);
+                    deleteRemoteBranch(selectedBranch, branchModel);
                 }
             }
         } catch (NotMergedException e) {
@@ -1298,6 +1279,30 @@ public class SessionController {
                 deleteBranch(selectedBranch);
             }
         }
+    }
+
+    private void deleteRemoteBranch(BranchHelper selectedBranch, BranchModel branchModel) throws CancelledAuthorizationException, GitAPIException, IOException {
+        RemoteRefUpdate.Status deleteStatus;
+        final RepoHelperBuilder.AuthDialogResponse response;
+        if (authenticationFailedLastTime) {
+            response = RepoHelperBuilder.getAuthCredentialFromDialog();
+            selectedBranch.repoHelper.ownerAuth =
+                    new UsernamePasswordCredentialsProvider(response.username, response.password);
+        }
+        deleteStatus = branchModel.deleteRemoteBranch((RemoteBranchHelper) selectedBranch);
+        String updateMessage = selectedBranch.getBranchName();
+        // There are a number of possible cases, see JGit's documentation on RemoteRefUpdate.Status
+        // for the full list.
+        switch (deleteStatus) {
+            case OK:
+                updateMessage += " deleted.";
+                break;
+            case NON_EXISTING:
+                updateMessage += " no longer\nexists on the server.";
+            default:
+                updateMessage += " deletion\nfailed.";
+        }
+        updateUser(updateMessage);
     }
 
     /**
