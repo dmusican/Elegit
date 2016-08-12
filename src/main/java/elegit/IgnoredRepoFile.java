@@ -14,9 +14,7 @@ public class IgnoredRepoFile extends RepoFile {
         super(filePath, repo);
         diffButton.setText("IGNORED");
         diffButton.setId("ignoredDiffButton");
-        Tooltip tooltip = new Tooltip("This file is being ignored because it's in your .gitignore.\nRemove it from your .gitignore if you ant to add it to git");
-        tooltip.setFont(new javafx.scene.text.Font(12));
-        diffButton.setTooltip(tooltip);
+        diffButton.setTooltip(getToolTip("This file is being ignored because it's in your .gitignore.\nRemove it from your .gitignore if you ant to add it to git"));
     }
 
     public IgnoredRepoFile(String filePathString, RepoHelper repo) {

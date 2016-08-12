@@ -5,6 +5,8 @@ import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.Tooltip;
+import javafx.scene.text.Font;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.controlsfx.control.PopOver;
@@ -167,6 +169,12 @@ public class RepoFile implements Comparable<RepoFile> {
     public void showContextMenu(Node owner, double x, double y){
         this.diffPopover.hide();
         this.contextMenu.show(owner, x, y);
+    }
+
+    protected Tooltip getToolTip(String message) {
+        Tooltip tooltip = new Tooltip(message);
+        tooltip.setFont(new Font(10));
+        return tooltip;
     }
 
     public boolean equals(Object o){
