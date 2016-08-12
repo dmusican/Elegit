@@ -1058,15 +1058,17 @@ public class SessionController {
                         e.printStackTrace();
                     } finally{
                         BusyWindow.hide();
-                        if (authorizationSucceeded) {
-                            authenticateOnNextCommand = false;
-                        } else {
-                            authenticateOnNextCommand = true;
-                            Platform.runLater(() -> {
-                                pushBranchOrAll(pushType);
-                            });
-                        }
                     }
+
+                    if (authorizationSucceeded) {
+                        authenticateOnNextCommand = false;
+                    } else {
+                        authenticateOnNextCommand = true;
+                        Platform.runLater(() -> {
+                            pushBranchOrAll(pushType);
+                        });
+                    }
+
                     return null;
                 }
             });
