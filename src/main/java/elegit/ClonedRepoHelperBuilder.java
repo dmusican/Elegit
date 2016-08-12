@@ -225,10 +225,9 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
         TransportCommand command = Git.lsRemoteRepository().setRemote(remoteURL);
 
 
-        ClonedRepoHelper repoHelper;
+        ClonedRepoHelper repoHelper = new ClonedRepoHelper(destinationPath, remoteURL, sshPassword, userInfo);
+        repoHelper.wrapAuthentication(command, credentials);
         try {
-            repoHelper = new ClonedRepoHelper(destinationPath, remoteURL, sshPassword, userInfo);
-            repoHelper.wrapAuthentication(command, credentials);
             command.call();
         } catch (TransportException e) {
             // If the URL doesn't have a repo, a Transport Exception is thrown when this command is called.
@@ -243,8 +242,12 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
                 exception.printStackTrace();
                 exception = exception.getCause();
             }*/
-            logger.error("Invalid remote exception thrown");
-            throw new InvalidRemoteException("Caught invalid repository when building a ClonedRepoHelper.");
+            if (e.getMessage().endsWith("not found") || e.getMessage().endsWith("not found.")) {
+                logger.error("Invalid remote exception thrown");
+                throw new InvalidRemoteException("Caught invalid repository when building a ClonedRepoHelper.");
+            } else if (e.getMessage().endsWith("not authorized") || e.getMessage().endsWith("not authorized.")) {
+                logger.error("Authentication error");
+            }
         }
 
         // Without the above try/catch block, the next line would run and throw the desired InvalidRemoteException,
