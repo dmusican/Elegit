@@ -367,10 +367,8 @@
                          text="Tag"
                          arrowLeft="true"
                          onAction="#handleTagButton"/>
-            <TextArea   prefHeight="30"
+            <TextField   prefHeight="30"
                         prefWidth="170"
-                        prefRowCount="1"
-                        wrapText="true"
                         fx:id="tagNameField"
                         promptText="tag..." />
         </HBox>

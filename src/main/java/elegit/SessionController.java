@@ -18,6 +18,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.*;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
@@ -96,7 +97,7 @@ public class SessionController {
     private String commitInfoNameText = "";
 
     public TextArea commitInfoMessageText;
-    public TextArea tagNameField;
+    public TextField tagNameField;
 
     public Text currentLocalBranchText;
     public Text currentRemoteTrackingBranchText;
@@ -326,6 +327,10 @@ public class SessionController {
                 }
             }
             event.consume();
+        });
+
+        tagNameField.setOnKeyTyped(event -> {
+            if (event.getCharacter().equals("\r")) handleTagButton();
         });
 
         Text openExternallyIcon = GlyphsDude.createIcon(FontAwesomeIcon.EXTERNAL_LINK);
@@ -937,19 +942,21 @@ public class SessionController {
             Thread th = new Thread(new Task<Void>(){
                 @Override
                 protected Void call() {
-                    try{
+                    try {
                         theModel.getCurrentRepoHelper().getTagModel().tag(tagName, commitInfoNameText);
 
                         // Now clear the tag text and a view reload ( or `git status`) to show that something happened
                         tagNameField.clear();
                         gitStatus();
-                    }catch(JGitInternalException e){
+                    } catch (JGitInternalException e) {
                         showJGitInternalError(e);
-                    } catch(MissingRepoException e){
+                    } catch (MissingRepoException e) {
                         showMissingRepoNotification();
                         setButtonsDisabled(true);
                         refreshRecentReposInDropdown();
-                    } catch (TransportException e) {
+                    } catch (InvalidTagNameException e) {
+                        showInvalidTagNameNotification(tagName);
+                    }catch (TransportException e) {
                         showNotAuthorizedNotification();
                     } catch(GitAPIException e){
                         // Git error
@@ -2036,6 +2043,13 @@ public class SessionController {
         Platform.runLater(() -> {
             logger.warn("Invalid remote warning");
             this.notificationPaneController.addNotification("Make sure you entered the correct remote URL.");
+        });
+    }
+
+    private void showInvalidTagNameNotification(String tagName) {
+        Platform.runLater(() -> {
+            logger.warn("Invalid tag name exception");
+            this.notificationPaneController.addNotification("The tag name '"+tagName+"' is invalid.\nRemove any of .~^:?*[]{}@ and try again.");
         });
     }
 

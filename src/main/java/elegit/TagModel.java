@@ -14,6 +14,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.api.errors.InvalidTagNameException;
 import org.eclipse.jgit.lib.ObjectLoader;
 import org.eclipse.jgit.lib.ObjectReader;
 import org.eclipse.jgit.lib.Ref;
@@ -98,7 +99,8 @@ public class TagModel {
      * @param commitName the id of the commit to apply this tag to
      * @throws GitAPIException if the 'git tag' call fails.
      */
-    public void tag(String tagName, String commitName) throws GitAPIException, MissingRepoException, IOException, TagNameExistsException {
+    public void tag(String tagName, String commitName) throws GitAPIException, MissingRepoException,
+            IOException, TagNameExistsException, InvalidTagNameException {
         logger.info("Attempting tag");
         if (!repoHelper.exists()) throw new MissingRepoException();
         Git git = new Git(this.repoHelper.getRepo());
