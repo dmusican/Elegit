@@ -68,69 +68,69 @@ public class CellLabelContainer extends GridPane {
      * @param cell the cell these labels are associated with
      */
     void setLabels(List<String> labels, Cell cell) {
-        Platform.runLater(() -> getChildren().clear());
-        if (labels.size() < 1) {
-            return;
-        }
-
-        Label showExtended = new Label();
-        basicLabels = new HBox(5);
-        extendedLabels = new ArrayList<>();
-
-        int col=0;
-        int row=0;
-
-        GridPane.setMargin(basicLabels, new Insets(0,0,5,5));
-        basicLabels.setPickOnBounds(false);
-        for (String name : labels) {
-            if (col>MAX_COL_PER_ROW) {
-                row++;
-                col=0;
-                HBox newLine = new HBox(5);
-                GridPane.setMargin(newLine, new Insets(0,0,5,5));
-                GridPane.setRowIndex(newLine, row);
-                newLine.setVisible(false);
-                newLine.setPickOnBounds(false);
-                extendedLabels.add(newLine);
-            }
-            CellLabel label = new CellLabel(name, false, false);
-
-            if (row>0) {
-                extendedLabels.get(row-1).getChildren().add(label);
-            } else {
-                basicLabels.getChildren().add(label);
-            }
-            col++;
-        }
-
-        showExtended.setVisible(false);
-        if (row>0) {
-            showExtended.setVisible(true);
-            showExtended.setTranslateX(-6);
-            showExtended.setTranslateY(-3);
-            Node down = GlyphsDude.createIcon(FontAwesomeIcon.CARET_DOWN);
-            Node up = GlyphsDude.createIcon(FontAwesomeIcon.CARET_UP);
-            showExtended.setGraphic(down);
-            showExtended.setOnMouseClicked(event -> {
-                if(showExtended.getGraphic().equals(down)) {
-                    showExtended.setGraphic(up);
-                }else {
-                    showExtended.setGraphic(down);
-                }
-                for (Node n : extendedLabels) {
-                    n.setVisible(!n.isVisible());
-                }
-            });
-        }
-
-        // We rotate the labels because it's more efficient than having our tree
-        // upside down and moving everything around often.
-        this.setMaxHeight(20);
-        this.setRotationAxis(Rotate.X_AXIS);
-        this.setRotate(180);
-        this.visibleProperty().bind(cell.visibleProperty());
-
         Platform.runLater(() -> {
+            getChildren().clear();
+            if (labels.size() < 1) {
+                return;
+            }
+
+            Label showExtended = new Label();
+            basicLabels = new HBox(5);
+            extendedLabels = new ArrayList<>();
+
+            int col=0;
+            int row=0;
+
+            GridPane.setMargin(basicLabels, new Insets(0,0,5,5));
+            basicLabels.setPickOnBounds(false);
+            for (String name : labels) {
+                if (col>MAX_COL_PER_ROW) {
+                    row++;
+                    col=0;
+                    HBox newLine = new HBox(5);
+                    GridPane.setMargin(newLine, new Insets(0,0,5,5));
+                    GridPane.setRowIndex(newLine, row);
+                    newLine.setVisible(false);
+                    newLine.setPickOnBounds(false);
+                    extendedLabels.add(newLine);
+                }
+                CellLabel label = new CellLabel(name, false, false);
+
+                if (row>0) {
+                    extendedLabels.get(row-1).getChildren().add(label);
+                } else {
+                    basicLabels.getChildren().add(label);
+                }
+                col++;
+            }
+
+            showExtended.setVisible(false);
+            if (row>0) {
+                showExtended.setVisible(true);
+                showExtended.setTranslateX(-6);
+                showExtended.setTranslateY(-3);
+                Node down = GlyphsDude.createIcon(FontAwesomeIcon.CARET_DOWN);
+                Node up = GlyphsDude.createIcon(FontAwesomeIcon.CARET_UP);
+                showExtended.setGraphic(down);
+                showExtended.setOnMouseClicked(event -> {
+                    if(showExtended.getGraphic().equals(down)) {
+                        showExtended.setGraphic(up);
+                    }else {
+                        showExtended.setGraphic(down);
+                    }
+                    for (Node n : extendedLabels) {
+                        n.setVisible(!n.isVisible());
+                    }
+                });
+            }
+
+            // We rotate the labels because it's more efficient than having our tree
+            // upside down and moving everything around often.
+            this.setMaxHeight(20);
+            this.setRotationAxis(Rotate.X_AXIS);
+            this.setRotate(180);
+            this.visibleProperty().bind(cell.visibleProperty());
+
             getChildren().clear();
             getChildren().addAll(basicLabels);
             getChildren().addAll(extendedLabels);
