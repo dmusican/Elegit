@@ -24,7 +24,8 @@
             <tabs>
                 <Tab text="From Fetch">
                     <content>
-                        <GridPane hgap="3" vgap="3">
+                        <HBox alignment="CENTER">
+                        <GridPane hgap="3" vgap="3" alignment="CENTER">
                             <columnConstraints>
                                 <ColumnConstraints hgrow="NEVER"/>
                                 <ColumnConstraints hgrow="NEVER"/>
@@ -32,7 +33,7 @@
                             </columnConstraints>
                             <Text   id="merge-text"
                                     fx:id="mergeRemoteTrackingText"
-                                    GridPane.rowIndex="0" GridPane.columnIndex="0" GridPane.columnSpan="3"
+                                    GridPane.rowIndex="0" GridPane.columnIndex="0" GridPane.columnSpan="3" GridPane.halignment="LEFT"
                                     text="Merge remote-tracking branch head"/>
                             <HBox id="branch-merge-box-tracked" GridPane.rowIndex="1" GridPane.columnIndex="0" GridPane.halignment="RIGHT"
                                     alignment="CENTER" fx:id="remoteBranchBox">
@@ -56,6 +57,7 @@
                                 <Label id="branch-merge" fx:id="localBranchName1"/>
                             </HBox>
                         </GridPane>
+                        </HBox>
                     </content>
                     <graphic>
                         <ImageView fitHeight="53.5" fitWidth="17.5" pickOnBounds="true" preserveRatio="true">
@@ -67,16 +69,17 @@
                 </Tab>
                 <Tab text="Local Branches">
                     <content>
-                        <GridPane hgap="3" vgap="3">
+                        <HBox alignment="CENTER">
+                        <GridPane hgap="3" vgap="3" alignment="CENTER">
                             <columnConstraints>
                                 <ColumnConstraints hgrow="NEVER"/>
                                 <ColumnConstraints hgrow="NEVER"/>
                                 <ColumnConstraints hgrow="SOMETIMES"/>
                             </columnConstraints>
                             <Text   id="merge-text"
-                                    GridPane.rowIndex="0" GridPane.columnIndex="0" GridPane.columnSpan="3"
+                                    GridPane.rowIndex="0" GridPane.columnIndex="0" GridPane.columnSpan="3" GridPane.halignment="CENTER"
                                     text="Merge local branch head"/>
-                            <Text   id="merge-text" strokeType="OUTSIDE" strokeWidth="0.0" text="into current branch"
+                            <Text   id="merge-text" strokeType="OUTSIDE" text="into current branch"
                                     GridPane.rowIndex="1" GridPane.columnIndex="1" GridPane.columnSpan="2"/>
                             <AnchorPane  GridPane.rowIndex="1" GridPane.columnIndex="0"
                                          GridPane.rowSpan="2" GridPane.halignment="RIGHT">
@@ -97,6 +100,7 @@
                             <ComboBox   fx:id="branchDropdownSelector"
                                         GridPane.rowIndex="1" GridPane.columnIndex="0" GridPane.halignment="RIGHT"/>
                         </GridPane>
+                        </HBox>
                     </content>
                     <graphic>
                         <ImageView fitWidth="13" opacity="0.5" pickOnBounds="true" preserveRatio="true">
