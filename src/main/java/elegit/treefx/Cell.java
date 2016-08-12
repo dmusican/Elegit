@@ -183,6 +183,7 @@ public class Cell extends Pane{
         Node node = DEFAULT_SHAPE.getType(this.type);
         setFillType((Shape)node, CellState.STANDARD);
         node.getStyleClass().setAll("cell");
+        node.setId("tree-cell");
         return node;
     }
 
@@ -197,6 +198,7 @@ public class Cell extends Pane{
 
         //newView.setStyle(this.view.getStyle());
         newView.getStyleClass().setAll(this.view.getStyleClass());
+        newView.setId(this.view.getId());
 
         this.view = newView;
         Platform.runLater(() -> {
