@@ -93,7 +93,7 @@
 }
     .cell-label-box#regular { -fx-background-color: #CCCCCC; }
     .cell-label-box#current { -fx-background-color: #1E90FF; }
-    .cell-label-box#tag { -fx-background-color: #FFD600; }
+    .cell-label-box#tag { -fx-background-color: #8BC34A; }
 
 
 .cell-label {
