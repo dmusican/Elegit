@@ -50,6 +50,8 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.prefs.BackingStoreException;
 
 /**
@@ -1246,7 +1248,8 @@ public class SessionController {
                     branchModel.deleteLocalBranch((LocalBranchHelper) selectedBranch);
                     updateUser(selectedBranch.getBranchName() + " deleted.");
                 }else {
-                    deleteRemoteBranch(selectedBranch, branchModel);
+                    deleteRemoteBranch(selectedBranch, branchModel,
+                                       (String message) -> updateUser(message));
                 }
             }
         } catch (NotMergedException e) {
@@ -1278,9 +1281,8 @@ public class SessionController {
         }
     }
 
-    private void deleteRemoteBranch(BranchHelper selectedBranch, BranchModel branchModel) {
+    void deleteRemoteBranch(BranchHelper selectedBranch, BranchModel branchModel, Consumer<String> updateFn) {
         try {
-            RemoteRefUpdate.Status deleteStatus;
             final RepoHelperBuilder.AuthDialogResponse credentialResponse = askUserForCredentials();
 
             BusyWindow.show();
@@ -1291,7 +1293,7 @@ public class SessionController {
                 protected Void call() {
                     authenticationFailedLastTime = false;
                     try {
-                        deleteRemoteBranchDetails(credentialResponse, selectedBranch, branchModel);
+                        deleteRemoteBranchDetails(credentialResponse, selectedBranch, branchModel, updateFn);
                     } catch (TransportException e) {
                         showNotAuthorizedNotification();
                         authenticationFailedLastTime = true;
@@ -1301,7 +1303,7 @@ public class SessionController {
 
                     if (authenticationFailedLastTime) {
                         Platform.runLater(() -> {
-                            deleteRemoteBranch(selectedBranch, branchModel);
+                            deleteRemoteBranch(selectedBranch, branchModel, updateFn);
                         });
                     }
 
@@ -1318,7 +1320,7 @@ public class SessionController {
     }
 
     private void deleteRemoteBranchDetails(RepoHelperBuilder.AuthDialogResponse response, BranchHelper selectedBranch,
-                                           BranchModel branchModel) throws TransportException {
+                                           BranchModel branchModel, Consumer<String> updateFn) throws TransportException {
 
         try {
             if (response != null) {
@@ -1338,7 +1340,7 @@ public class SessionController {
                 default:
                     updateMessage += " deletion\nfailed.";
             }
-            updateUser(updateMessage);
+            updateFn.accept(updateMessage);
         } catch (TransportException e) {
             throw e;
         } catch (GitAPIException | IOException e) {
@@ -1793,6 +1795,7 @@ public class SessionController {
             popOver.setAutoHide(true);
         });
     }
+
 
     /**
      * Opens the current repo directory (e.g. in Finder or Windows Explorer).

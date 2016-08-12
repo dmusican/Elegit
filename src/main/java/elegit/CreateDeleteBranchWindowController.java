@@ -288,27 +288,29 @@ public class CreateDeleteBranchWindowController {
                     this.branchModel.deleteLocalBranch((LocalBranchHelper) selectedBranch);
                     updateUser(selectedBranch.getBranchName() + " deleted.", BranchModel.BranchType.LOCAL);
                 }else {
-                    final RepoHelperBuilder.AuthDialogResponse response;
-                    if (sessionController.authenticationFailedLastTime) {
-                        response = RepoHelperBuilder.getAuthCredentialFromDialog();
-                        repoHelper.ownerAuth =
-                                new UsernamePasswordCredentialsProvider(response.username, response.password);
-                    }
-
-                    deleteStatus = this.branchModel.deleteRemoteBranch((RemoteBranchHelper) selectedBranch);
-                    String updateMessage = selectedBranch.getBranchName();
-                    // There are a number of possible cases, see JGit's documentation on RemoteRefUpdate.Status
-                    // for the full list.
-                    switch (deleteStatus) {
-                        case OK:
-                            updateMessage += " deleted.";
-                            break;
-                        case NON_EXISTING:
-                            updateMessage += " no longer\nexists on the server.";
-                        default:
-                            updateMessage += " deletion\nfailed.";
-                    }
-                    updateUser(updateMessage, BranchModel.BranchType.REMOTE);
+                    sessionController.deleteRemoteBranch(selectedBranch, branchModel,
+                                       (String message) -> updateUser(message, BranchModel.BranchType.REMOTE));
+//                    final RepoHelperBuilder.AuthDialogResponse response;
+//                    if (sessionController.authenticationFailedLastTime) {
+//                        response = RepoHelperBuilder.getAuthCredentialFromDialog();
+//                        repoHelper.ownerAuth =
+//                                new UsernamePasswordCredentialsProvider(response.username, response.password);
+//                    }
+//
+//                    deleteStatus = this.branchModel.deleteRemoteBranch((RemoteBranchHelper) selectedBranch);
+//                    String updateMessage = selectedBranch.getBranchName();
+//                    // There are a number of possible cases, see JGit's documentation on RemoteRefUpdate.Status
+//                    // for the full list.
+//                    switch (deleteStatus) {
+//                        case OK:
+//                            updateMessage += " deleted.";
+//                            break;
+//                        case NON_EXISTING:
+//                            updateMessage += " no longer\nexists on the server.";
+//                        default:
+//                            updateMessage += " deletion\nfailed.";
+//                    }
+//                    updateUser(updateMessage, BranchModel.BranchType.REMOTE);
                 }
             }
         } catch (NotMergedException e) {
@@ -329,13 +331,13 @@ public class CreateDeleteBranchWindowController {
         } catch (GitAPIException e) {
             logger.warn("Git error");
             this.showGenericGitErrorNotificationWithBranch(selectedBranch);
-        } catch (IOException e) {
-            logger.warn("IO error");
-            this.showGenericErrorNotification();
-        } catch (CancelledAuthorizationException e) {
-            logger.warn("Cancelled authorization");
-            this.showCommandCancelledNotification();
-
+//        } catch (IOException e) {
+//            logger.warn("IO error");
+//            this.showGenericErrorNotification();
+//        } catch (CancelledAuthorizationException e) {
+//            logger.warn("Cancelled authorization");
+//            this.showCommandCancelledNotification();
+//
 
         } finally {
             refreshBranchesDropDown();
@@ -401,6 +403,7 @@ public class CreateDeleteBranchWindowController {
      * @param branchType the type of branch that there is a status about
      */
     private void updateUser(String message, BranchModel.BranchType branchType) {
+        Platform.runLater(() -> {
         Text txt = new Text(message);
         PopOver popOver = new PopOver(txt);
         popOver.setTitle("");
@@ -413,10 +416,13 @@ public class CreateDeleteBranchWindowController {
             buttonToShowOver = deleteButton2;
             dropdownToReset = remoteBranchesDropdown;
         }
+        System.out.println("here i am " + message);
         popOver.show(buttonToShowOver);
+        System.out.println("showed");
         popOver.detach();
         popOver.setAutoHide(true);
         dropdownToReset.getSelectionModel().clearSelection();
+        });
     }
 
     void setSessionController(SessionController sessionController) {
