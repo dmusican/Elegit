@@ -547,9 +547,11 @@ public abstract class CommitTreeModel{
         RepoHelper repo = sessionModel.getCurrentRepoHelper();
         List<BranchHelper> branchLabels = repo.getBranchModel().getAllBranches();
         List<TagHelper> tagLabels = repo.getTagModel().getAllTags();
+        List<RemoteBranchHelper> remotes = repo.getBranchModel().getRemoteBranchesTyped();
 
         Map<String, ContextMenu> branchMap = new HashMap<>();
         Map<String, ContextMenu> tagMap = new HashMap<>();
+        List<String> remoteBranches = new ArrayList<>();
 
         this.tagsInModel = repo.getTagModel().getAllTags();
 
@@ -579,6 +581,10 @@ public abstract class CommitTreeModel{
             }
         }
 
+        for (RemoteBranchHelper helper : remotes) {
+            remoteBranches.add(helper.getBranchName());
+        }
+
         // Set the labels
         for (String commit : commitLabelMap.keySet()) {
             String displayLabel = repo.getCommitDescriptorString(commit, false);
@@ -587,6 +593,7 @@ public abstract class CommitTreeModel{
 
             treeGraph.treeGraphModel.setTagCellLabels(commit, tagMap);
             treeGraph.treeGraphModel.setBranchCellLabels(commit, branchMap);
+            treeGraph.treeGraphModel.setRemoteBranchCells(commit, remoteBranches);
         }
     }
 

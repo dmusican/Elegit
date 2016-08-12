@@ -40,15 +40,6 @@ public class CellLabelContainer extends GridPane {
     public CellLabelContainer() { }
 
     /**
-     * Constructor, adds labels to the container
-     * @param labels the labels to add
-     * @param cell the cell these labels are associated with
-     */
-    public CellLabelContainer(List<String> labels, Cell cell) {
-        setLabels(labels, cell);
-    }
-
-    /**
      * Translates the container to a given location
      * @param x the x coordinate of the new location
      * @param y the y coordinate of the new location
@@ -195,6 +186,24 @@ public class CellLabelContainer extends GridPane {
                     for (Node n : ((HBox) m).getChildren()) {
                         if (n instanceof CellLabel && labels.keySet().contains(((CellLabel) n).getLabel().getText())) {
                             ((CellLabel) n).setContextMenu(labels.get(((CellLabel) n).getName()));
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    /**
+     * Helper method to set the remote branch cell icons
+     * @param labels the labels to set as remote
+     */
+    void setRemoteLabels(List<String>  labels) {
+        Platform.runLater(() -> {
+            for (Node m : getChildren()) {
+                if (m instanceof HBox) {
+                    for (Node n : ((HBox) m).getChildren()) {
+                        if (n instanceof CellLabel && labels.contains(((CellLabel) n).getLabel().getText())) {
+                            ((CellLabel) n).setRemote(true);
                         }
                     }
                 }

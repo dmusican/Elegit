@@ -251,6 +251,10 @@ public class Cell extends Pane{
         this.refLabel.setBranchLabels(branchLabels);
     }
 
+    void setRemoteLabels(List<String> branchLabels) {
+        this.refLabel.setRemoteLabels(branchLabels);
+    }
+
     void setAnimate(boolean animate) {this.animate = animate;}
 
     void setUseParentAsSource(boolean useParentAsSource) {this.useParentAsSource = useParentAsSource;}
