@@ -1264,12 +1264,9 @@ public class SessionController {
         } catch (TransportException e) {
             this.showNotAuthorizedNotification();
             authorizationSucceeded = false;
-        } catch (IOException | GitAPIException e) {
+        } catch (GitAPIException e) {
             logger.warn("IO error");
             this.showGenericErrorNotification();
-        } catch (CancelledAuthorizationException e) {
-            logger.warn("Cancelled authorization");
-            this.showCommandCancelledNotification();
         } finally {
             gitStatus();
             if (authorizationSucceeded) {
@@ -1281,28 +1278,73 @@ public class SessionController {
         }
     }
 
-    private void deleteRemoteBranch(BranchHelper selectedBranch, BranchModel branchModel) throws CancelledAuthorizationException, GitAPIException, IOException {
-        RemoteRefUpdate.Status deleteStatus;
-        final RepoHelperBuilder.AuthDialogResponse response;
-        if (authenticationFailedLastTime) {
-            response = RepoHelperBuilder.getAuthCredentialFromDialog();
-            selectedBranch.repoHelper.ownerAuth =
-                    new UsernamePasswordCredentialsProvider(response.username, response.password);
+    private void deleteRemoteBranch(BranchHelper selectedBranch, BranchModel branchModel) {
+        try {
+            RemoteRefUpdate.Status deleteStatus;
+            final RepoHelperBuilder.AuthDialogResponse credentialResponse = askUserForCredentials();
+
+            BusyWindow.show();
+            BusyWindow.setLoadingText("Deleting remote branch...");
+
+            Thread th = new Thread(new Task<Void>() {
+                @Override
+                protected Void call() {
+                    authenticationFailedLastTime = false;
+                    try {
+                        deleteRemoteBranchDetails(credentialResponse, selectedBranch, branchModel);
+                    } catch (TransportException e) {
+                        showNotAuthorizedNotification();
+                        authenticationFailedLastTime = true;
+                    } finally {
+                        BusyWindow.hide();
+                    }
+
+                    if (authenticationFailedLastTime) {
+                        Platform.runLater(() -> {
+                            deleteRemoteBranch(selectedBranch, branchModel);
+                        });
+                    }
+
+                    return null;
+                }
+            });
+            th.setDaemon(true);
+            th.setName("Git delete remote branch");
+            th.start();
+
+        } catch (CancelledAuthorizationException e) {
+            this.showCommandCancelledNotification();
         }
-        deleteStatus = branchModel.deleteRemoteBranch((RemoteBranchHelper) selectedBranch);
-        String updateMessage = selectedBranch.getBranchName();
-        // There are a number of possible cases, see JGit's documentation on RemoteRefUpdate.Status
-        // for the full list.
-        switch (deleteStatus) {
-            case OK:
-                updateMessage += " deleted.";
-                break;
-            case NON_EXISTING:
-                updateMessage += " no longer\nexists on the server.";
-            default:
-                updateMessage += " deletion\nfailed.";
+    }
+
+    private void deleteRemoteBranchDetails(RepoHelperBuilder.AuthDialogResponse response, BranchHelper selectedBranch,
+                                           BranchModel branchModel) throws TransportException {
+
+        try {
+            if (response != null) {
+                selectedBranch.repoHelper.ownerAuth =
+                        new UsernamePasswordCredentialsProvider(response.username, response.password);
+            }
+            RemoteRefUpdate.Status deleteStatus = branchModel.deleteRemoteBranch((RemoteBranchHelper) selectedBranch);
+            String updateMessage = selectedBranch.getBranchName();
+            // There are a number of possible cases, see JGit's documentation on RemoteRefUpdate.Status
+            // for the full list.
+            switch (deleteStatus) {
+                case OK:
+                    updateMessage += " deleted.";
+                    break;
+                case NON_EXISTING:
+                    updateMessage += " no longer\nexists on the server.";
+                default:
+                    updateMessage += " deletion\nfailed.";
+            }
+            updateUser(updateMessage);
+        } catch (TransportException e) {
+            throw e;
+        } catch (GitAPIException | IOException e) {
+            logger.warn("IO error");
+            this.showGenericErrorNotification();
         }
-        updateUser(updateMessage);
     }
 
     /**
