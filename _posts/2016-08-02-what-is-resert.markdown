@@ -40,23 +40,24 @@ with that hash. There are several modes that you can specify here,
 soft, mixed, hard, merge and keep:
 
 1. *Soft*: only change the repository, don’t change anything in the index or 
-working directory
-Mixed: (the default) change the repository and reset the files in the 
+working directory.
+
+2. *Mixed*: (the default) change the repository and reset the files in the 
 index to those stored in the commit (yes actually entirely stored in the 
-commit, see the commit post)
+commit, see the commit post).
 
-2. *Hard*: reset everything! This throws away all changes in the index and 
-working directory and replaces them with the files in the commit
+3. *Hard*: reset everything! This throws away all changes in the index and 
+working directory and replaces them with the files in the commit.
 
-3. *Merge*: resets the index and files in the working directory to what’s 
+4. *Merge*: resets the index and files in the working directory to what’s 
 stored in the commit, but it keeps files that have unstaged changes in 
 the working directory. An error is thrown and the reset stops if a file 
 is different between the current commit and the one to reset to and has 
 unstaged changes. Usually used to undo a ‘merge operation’.
 
-4. *Keep*: does a hard reset, but aborts if there are local changes in a file 
+5. *Keep*: does a hard reset, but aborts if there are local changes in a file 
 that changed between the target commit and the current commit and keeps 
-uncommitted changes in the working directory and index
+uncommitted changes in the working directory and index.
 
 
 ___
