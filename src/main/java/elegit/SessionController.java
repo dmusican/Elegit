@@ -3,6 +3,7 @@ package elegit;
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import elegit.exceptions.*;
+import elegit.treefx.CellLabel;
 import elegit.treefx.TreeLayout;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
@@ -16,6 +17,7 @@ import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.*;
+import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
@@ -99,8 +101,11 @@ public class SessionController {
     public TextArea commitInfoMessageText;
     public TextField tagNameField;
 
-    public Text currentLocalBranchText;
-    public Text currentRemoteTrackingBranchText;
+    public HBox currentLocalBranchHbox;
+    public HBox currentRemoteTrackingBranchHbox;
+    private Label currentLocalBranchLabel;
+    private Label currentRemoteTrackingLabel;
+
     public Text browserText;
     public Text needToFetch;
     public Text branchStatusText;
@@ -171,7 +176,7 @@ public class SessionController {
 
         this.initRepositoryMonitor();
 
-        this.updateStatusText();
+        this.initStatusText();
 
         this.notificationPaneController.bindParentBounds(anchorRoot.heightProperty());
 
@@ -185,6 +190,45 @@ public class SessionController {
         authenticateOnNextCommand = false;
 
 
+    }
+
+    /**
+     * Helper method that creates the labels for the branch names
+     */
+    private void initStatusText() {
+        currentRemoteTrackingLabel = new Label("N/A");
+        currentLocalBranchLabel = new Label("N/A");
+        initCellLabel(currentLocalBranchLabel, currentLocalBranchHbox);
+        initCellLabel(currentRemoteTrackingLabel, currentRemoteTrackingBranchHbox);
+
+        updateStatusText();
+    }
+
+    /**
+     * Helper method that sets style for cell labels
+     * @param label the label that contains the branch name
+     * @param hbox  the hbox that contains the label
+     */
+    private void initCellLabel(Label label, HBox hbox){
+        hbox.getStyleClass().clear();
+        hbox.getStyleClass().add("cell-label-box");
+        label.getStyleClass().clear();
+        label.getStyleClass().add("cell-label");
+        label.setId("current");
+        hbox.setId("current");
+        hbox.getChildren().add(label);
+    }
+
+    /**
+     * Helper method for adding tooltips to nodes
+     * @param n the node to attach a tooltip to
+     * @param text the text for the tooltip
+     */
+    private void addToolTip(Node n, String text) {
+        Tooltip tooltip = new Tooltip(text);
+        tooltip.setWrapText(true);
+        tooltip.setMaxWidth(350);
+        Tooltip.install(n, tooltip);
     }
 
     /**
@@ -202,27 +246,30 @@ public class SessionController {
         needToFetch.setFont(new Font(15));
         needToFetch.setFill(fetchColor);
 
-        String localBranch = this.theModel.getCurrentRepoHelper().getBranchModel().getCurrentBranch().getAbbrevName();
-        update = !localBranch.equals(currentLocalBranchText.getText());
+        BranchHelper localBranch = this.theModel.getCurrentRepoHelper().getBranchModel().getCurrentBranch();
+        update = !localBranch.getAbbrevName().equals(currentLocalBranchLabel.getText());
         if (update) {
-            currentLocalBranchText.setText(localBranch);
-            currentLocalBranchText.setFont(new Font(15));
-            currentLocalBranchText.setFill(Color.DODGERBLUE);
+            currentLocalBranchLabel.setText(localBranch.getAbbrevName());
+            addToolTip(currentLocalBranchHbox, localBranch.getBranchName());
         }
 
         String remoteBranch = "N/A";
+        String remoteBranchFull = "N/A";
         try {
             remoteBranch = this.theModel.getCurrentRepoHelper().getBranchModel().getCurrentRemoteAbbrevBranch();
+            remoteBranchFull = this.theModel.getCurrentRepoHelper().getBranchModel().getCurrentRemoteBranch();
         } catch (IOException e) {
             this.showGenericErrorNotification();
         }
-        if (remoteBranch==null) remoteBranch = "N/A";
+        if (remoteBranch==null) {
+            remoteBranch = "N/A";
+            remoteBranchFull = "N/A";
+        }
 
-        update = !remoteBranch.equals(currentRemoteTrackingBranchText.getText());
+        update = !remoteBranch.equals(currentRemoteTrackingLabel.getText());
         if (update) {
-            currentRemoteTrackingBranchText.setText(remoteBranch);
-            currentRemoteTrackingBranchText.setFont(new Font(15));
-            currentRemoteTrackingBranchText.setFill(Color.DODGERBLUE);
+            currentRemoteTrackingLabel.setText(remoteBranch);
+            addToolTip(currentRemoteTrackingBranchHbox, remoteBranchFull);
         }
 
         // Ahead/behind count
@@ -235,7 +282,7 @@ public class SessionController {
         }
         String statusText="Up to date.";
         if (ahead >0) {
-            statusText=currentLocalBranchText.getText() + " ahead of " + currentRemoteTrackingBranchText.getText() + " by " + ahead + " commit";
+            statusText= currentLocalBranchLabel.getText() + " ahead of " + currentRemoteTrackingLabel.getText() + " by " + ahead + " commit";
             if (ahead > 1)
                 statusText+="s";
             if (behind > 0) {
@@ -245,7 +292,7 @@ public class SessionController {
             }
             statusText+=".";
         } else if (behind > 0) {
-            statusText = currentLocalBranchText.getText() + " behind " + currentRemoteTrackingBranchText.getText() + " by " + behind + " commit";
+            statusText = currentLocalBranchLabel.getText() + " behind " + currentRemoteTrackingLabel.getText() + " by " + behind + " commit";
             if (behind > 1)
                 statusText+="s";
             statusText+=".";
@@ -469,8 +516,8 @@ public class SessionController {
             checkoutButton.setDisable(disable);
             mergeButton.setDisable(disable);
             needToFetch.setVisible(!disable);
-            currentLocalBranchText.setVisible(!disable);
-            currentRemoteTrackingBranchText.setVisible(!disable);
+            currentLocalBranchHbox.setVisible(!disable);
+            currentRemoteTrackingBranchHbox.setVisible(!disable);
             branchStatusText.setVisible(!disable);
         });
 

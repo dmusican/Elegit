@@ -83,12 +83,29 @@
                 </Text>
                 <HBox   alignment="CENTER">
                     <Text   text="local branch: "/>
-                    <Text   fx:id="currentLocalBranchText"/>
+                    <HBox   fx:id="currentLocalBranchHbox"
+                            alignment="CENTER">
+                        <padding>
+                            <Insets right="5" left="5"/>
+                        </padding>
+                    </HBox>
                 </HBox>
-                <VBox   alignment="CENTER">
-                    <Text   text="remote-tracking branch: "/>
-                    <Text   fx:id="currentRemoteTrackingBranchText" text="N/A"/>
-                </VBox>
+                <GridPane   alignment="CENTER">
+                    <Text   GridPane.columnIndex="0"
+                            GridPane.rowIndex="0"
+                            GridPane.halignment="CENTER"
+                            text="remote-tracking branch: "/>
+                    <HBox   GridPane.columnIndex="0"
+                            GridPane.rowIndex="1"
+                            GridPane.hgrow="NEVER"
+                            GridPane.halignment="CENTER"
+                            fx:id="currentRemoteTrackingBranchHbox"
+                            alignment="CENTER">
+                        <padding>
+                            <Insets right="5" left="5"/>
+                        </padding>
+                    </HBox>
+                </GridPane>
             </VBox>
         </StackPane>
 
