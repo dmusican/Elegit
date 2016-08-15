@@ -335,12 +335,6 @@
                     <Text   text="remote: "/>
                     <Text fx:id="browserText"/>
                 </HBox>
-                <Button fx:id="changeLoginButton"
-                        text="Change Login"
-                        style="-fx-font-size: 10;"
-                        prefHeight="25"
-                        prefWidth="80"
-                        onAction="#handleChangeLoginButton"/>
             </VBox>
         </StackPane>
 

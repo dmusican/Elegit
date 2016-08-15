@@ -78,7 +78,6 @@ public class SessionController {
     public Button addDeleteBranchButton;
     public Button checkoutButton;
     public Button tagButton;
-    public Button changeLoginButton;
 
     private SessionModel theModel;
 
@@ -345,7 +344,6 @@ public class SessionController {
         fetchButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         commitInfoNameCopyButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         commitInfoGoToButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
-        changeLoginButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
 
         // Set minimum sizes for other fields and views
         workingTreePanelView.setMinSize(Control.USE_PREF_SIZE, 200);
@@ -1906,60 +1904,6 @@ public class SessionController {
             setButtonsDisabled(true);
         }
     }
-
-    /**
-     * Called when the change login button is clicked.
-     */
-    public void handleChangeLoginButton() {
-        try {
-            logger.info("Username button clicked");
-
-            if(this.theModel.getCurrentRepoHelper() == null) {
-                throw new NoRepoLoadedException();
-            }
-            this.changeLogin();
-        } catch (NoRepoLoadedException e) {
-            showNoRepoLoadedNotification();
-            setButtonsDisabled(true);
-        }
-    }
-
-    /**
-     * Creates a new owner and sets it as the current default owner.
-     */
-    private boolean changeLogin() {
-        SessionModel sessionModel = SessionModel.getSessionModel();
-        RepoHelper repoHelper = sessionModel.getCurrentRepoHelper();
-
-        try {
-            RepoHelperBuilder.AuthDialogResponse response =
-                    RepoHelperBuilder.getAuthCredentialFromDialog();
-            repoHelper.setAuthCredentials(new UsernamePasswordCredentialsProvider(response.username,
-                    response.password));
-        } catch (CancelledAuthorizationException e) {
-            // take no action
-        }
-
-
-//        boolean switchedUser = true;
-//
-//        RepoHelper currentRepoHelper = theModel.getCurrentRepoHelper();
-//
-//        try {
-//            currentRepoHelper.presentUsernameDialog();
-//        } catch (CancelledUsernameException e) {
-//            switchedUser = false;
-//        }
-//
-//        this.updateLoginButtonText();
-//        if (switchedUser) {
-//            this.theModel.setCurrentDefaultUsername(currentRepoHelper.getUsername());
-//        }
-//
-//        return switchedUser;
-        return true;
-    }
-
 
     /**
      * Opens up the help page to inform users about what symbols mean
