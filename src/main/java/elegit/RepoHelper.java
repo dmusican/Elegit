@@ -505,7 +505,7 @@ public class RepoHelper {
      * @throws GitAPIException
      * @throws PushToAheadRemoteError
      */
-    public void pushCurrentBranch() throws MissingRepoException, GitAPIException, PushToAheadRemoteError {
+    public void pushCurrentBranch() throws MissingRepoException, GitAPIException, PushToAheadRemoteError, IOException {
         BranchHelper branchToPush = this.getBranchModel().getCurrentBranch();
         logger.info("attempting to push current branch");
         if (!exists()) throw new MissingRepoException();
@@ -552,11 +552,29 @@ public class RepoHelper {
 
         git.close();
 
-        try {
-            this.remoteCommits = parseAllRemoteCommits();
-        } catch (IOException e) {
-            // This shouldn't occur once we have the repo up and running.
+        if(this.getBranchModel().getCurrentRemoteBranch() == null) {
+            setUpstreamBranch(branchToPush);
         }
+
+        this.remoteCommits = parseAllRemoteCommits();
+    }
+
+    /**
+     * Helper method for push that sets the upstream branch
+     * @param branch local branch that needs an upstream branch
+     */
+    private void setUpstreamBranch(BranchHelper branch) throws IOException {
+        Git git = new Git(this.repo);
+        StoredConfig config = git.getRepository().getConfig();
+        String branchName = branch.getBranchName();
+        String remoteName = "";
+        // TODO: the remote needs to be specifically selected in some way (this only works if there's one remote)
+        for(String remote : config.getSubsections("remote")) {
+            remoteName = remote;
+        }
+        config.setString(ConfigConstants.CONFIG_BRANCH_SECTION, branchName,  ConfigConstants.CONFIG_KEY_REMOTE, remoteName);
+        config.setString(ConfigConstants.CONFIG_BRANCH_SECTION, branchName, ConfigConstants.CONFIG_KEY_MERGE, Constants.R_HEADS + branchName);
+        config.save();
     }
 
     /**
@@ -564,7 +582,7 @@ public class RepoHelper {
      *
      * @throws GitAPIException if the `git push` call fails.
      */
-    public void pushAll() throws GitAPIException, MissingRepoException, PushToAheadRemoteError {
+    public void pushAll() throws GitAPIException, MissingRepoException, PushToAheadRemoteError, IOException {
         logger.info("Attempting push");
         if (!exists()) throw new MissingRepoException();
         if (!hasRemote()) throw new InvalidRemoteException("No remote repository");
@@ -595,11 +613,11 @@ public class RepoHelper {
 
         git.close();
 
-        try {
-            this.remoteCommits = parseAllRemoteCommits();
-        } catch (IOException e) {
-            // This shouldn't occur once we have the repo up and running.
+        for(LocalBranchHelper branch : this.branchModel.getLocalBranchesTyped()) {
+            setUpstreamBranch(branch);
         }
+
+        this.remoteCommits = parseAllRemoteCommits();
     }
 
     /**

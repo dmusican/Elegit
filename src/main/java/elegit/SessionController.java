@@ -1040,7 +1040,7 @@ public class SessionController {
         }
     }
 
-    enum PushType {BRANCH, ALL};
+    private enum PushType {BRANCH, ALL}
 
     public void handlePushButton() {
         pushBranchOrAll(PushType.BRANCH);
