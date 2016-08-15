@@ -6,9 +6,119 @@
 </description>
     <link>http://dmusican.github.io/Elegit/</link>
     <atom:link href="http://dmusican.github.io/Elegit/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Thu, 11 Aug 2016 15:50:11 -0500</pubDate>
-    <lastBuildDate>Thu, 11 Aug 2016 15:50:11 -0500</lastBuildDate>
+    <pubDate>Mon, 15 Aug 2016 08:39:53 -0500</pubDate>
+    <lastBuildDate>Mon, 15 Aug 2016 08:39:53 -0500</lastBuildDate>
     <generator>Jekyll v3.1.6</generator>
+    
+      <item>
+        <title>What is Git Commit?</title>
+        <description>&lt;p&gt;Anyone who has successfully used Git in any form has probably used the 
+command &lt;code class=&quot;highlighter-rouge&quot;&gt;git commit&lt;/code&gt;. In its most basic form, with just a commit message, 
+this does a few things: it stores the files in the staging area, or index, 
+in a new commit with a log message from the user, which is supposed to 
+describe the changes (but is more often than not “asdf”) and it updates 
+the current branch to have a head at the latest commit. Simple, right?&lt;/p&gt;
+
+&lt;p&gt;Wait, what does any of that mean? “Storing files in the index in a commit”? 
+Well, Git is all about being lightweight and not storing anything it doesn’t 
+need to, so this means that Git doesn’t want to have complete copies of 
+every single file for every single commit. You might ask, why not just 
+store what changed? This would be correct for most other version control 
+systems like CVS, Subversion, Perforce, Bazaar, etc., but Git doesn’t do this. 
+Git takes “snapshots” of the files in the directory you’re tracking. 
+A snapshot will just include a pointer to a previous snapshot if a particular 
+file hasn’t changed, but will store new versions. If you were to look at 
+the actual data of a commit, you would see the content of all the files 
+that Git is tracking. This supposedly makes Git more powerful in terms 
+of branching, but that’s for another day.&lt;/p&gt;
+
+&lt;p&gt;Anyway, Git stores a beautiful “snapshot” in the local repository, then 
+it also changes the contents of two files to be the commit hash 
+(the 40-character fa90c29… that you see after the commit happens). 
+These files happen to be &lt;code class=&quot;highlighter-rouge&quot;&gt;.git/refs/heads/&amp;lt;current branch name&amp;gt;&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;.git/HEAD&lt;/code&gt;, 
+which are just Git’s place to store the head of the specified branch 
+(note, it’s a pointer, not a full commit) and the head of the current branch.&lt;/p&gt;
+
+&lt;p&gt;So, Git has created a new commit and updated a branch head. What about the other things that you can do? 
+Answer is: way more than you ever wanted to do or even think about. 
+Commit has a number of parameters, as can be seen in the synopsis of the help page:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-git&quot; data-lang=&quot;git&quot;&gt;git commit [-a | --interactive | --patch] [-s] [-v] [-u&amp;lt;mode&amp;gt;] [--amend]
+	   [--dry-run] [(-c | -C | --fixup | --squash) &amp;lt;commit&amp;gt;]
+	   [-F &amp;lt;file&amp;gt; | -m &amp;lt;msg&amp;gt;] [--reset-author] [--allow-empty]
+	   [--allow-empty-message] [--no-verify] [-e] [--author=&amp;lt;author&amp;gt;]
+	   [--date=&amp;lt;date&amp;gt;] [--cleanup=&amp;lt;mode&amp;gt;] [--[no-]status]
+	   [-i | -o] [-S[&amp;lt;keyid&amp;gt;]] [--] [&amp;lt;file&amp;gt;…​]&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;How do we read this? It means &lt;code class=&quot;highlighter-rouge&quot;&gt;git commit&lt;/code&gt; can be followed by these things. Let’s take them one brace at a time:&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;[-a | --interactive | --patch]&lt;/code&gt;: these say how to choose which files to look at. &lt;code class=&quot;highlighter-rouge&quot;&gt;Git commit&lt;/code&gt; 
+just looks at the index, but adding -a will look at all files in the working 
+directory that are also in the index, and stage changes in modified files.&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;--interactive or --patch&lt;/code&gt; will give you an interface to choose which changes to commit.&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;-s/--signoff&lt;/code&gt;: this will automatically add a signed-off by line by the 
+committer at the end of the commit message. This typically is used to certify 
+that a committer has the rights to submit the particular commit&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;-v/--verbose&lt;/code&gt;: this will show the diff between the current HEAD commit 
+and what would be committed at the bottom of the message template that is 
+generated, useful for writing commit messages so you can see what you did.&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;-u[&amp;lt;mode&amp;gt;]/--untracked-files[=&amp;lt;mode&amp;gt;]&lt;/code&gt;: shows the untracked files. The 
+mode can be &lt;code class=&quot;highlighter-rouge&quot;&gt;no&lt;/code&gt;: show no untracked files, &lt;code class=&quot;highlighter-rouge&quot;&gt;normal&lt;/code&gt;: show untracked files 
+in the root directory and untracked directories, and &lt;code class=&quot;highlighter-rouge&quot;&gt;all&lt;/code&gt;: show all 
+untracked files, even those in untracked directories. Usage looks like 
+&lt;code class=&quot;highlighter-rouge&quot;&gt;git commit -uno&lt;/code&gt; or &lt;code class=&quot;highlighter-rouge&quot;&gt;git commit --untracked-files=all&lt;/code&gt;. The default when using &lt;code class=&quot;highlighter-rouge&quot;&gt;-u&lt;/code&gt; 
+is all and when not using it, the default is &lt;code class=&quot;highlighter-rouge&quot;&gt;normal&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;--amend&lt;/code&gt;: this one is to be used responsibly. If you ‘accidentally’ wrote “asdf” 
+as your commit message, or forgot to include a file in a commit, you can 
+amend the head of the current branch with this. If you do &lt;code class=&quot;highlighter-rouge&quot;&gt;git commit --amend&lt;/code&gt;, 
+command line will pull up an editor that has the previous commit message already in it, 
+then once you finish writing your commit message, this new commit will replace the 
+old head of the current branch. This commit will have the same parent(s) 
+and authors as the current commit, but DO NOT USE if this commit has already 
+been published. Rewriting history is bad.&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;--dry-run&lt;/code&gt;: this is for those who don’t have Git magic (e.g. me, you, everyone…) 
+and want to know what the heck will happen when you press enter with a 
+complicated command. For example, &lt;code class=&quot;highlighter-rouge&quot;&gt;git commit -a --dry-run&lt;/code&gt; will show you 
+all files that will be committed or not if you run the command &lt;code class=&quot;highlighter-rouge&quot;&gt;git commit -a&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;[(-c | -C | --fixup | --squash) &amp;lt;commit&amp;gt;]&lt;/code&gt;: &lt;code class=&quot;highlighter-rouge&quot;&gt;-C &amp;lt;commit&amp;gt;/--reuse-message=&amp;lt;commit&amp;gt;&lt;/code&gt; 
+will reuse the log message and authorship from &lt;code class=&quot;highlighter-rouge&quot;&gt;&amp;lt;commit&amp;gt;&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;-c &amp;lt;commit&amp;gt;/--reedit-message=&amp;lt;commit&amp;gt;&lt;/code&gt; 
+does the same thing as &lt;code class=&quot;highlighter-rouge&quot;&gt;-C&lt;/code&gt;, but will show you the editor before actually making changes. 
+&lt;code class=&quot;highlighter-rouge&quot;&gt;--fixup=&amp;lt;commit&amp;gt;&lt;/code&gt; will make a commit that is to be used with rebase &lt;code class=&quot;highlighter-rouge&quot;&gt;--autosquash&lt;/code&gt; 
+with the message of &lt;code class=&quot;highlighter-rouge&quot;&gt;&amp;lt;commit&amp;gt;&lt;/code&gt; prefixed by “fixup! ”. Finally &lt;code class=&quot;highlighter-rouge&quot;&gt;--squash=&amp;lt;commit&amp;gt;&lt;/code&gt; 
+does the same thing as &lt;code class=&quot;highlighter-rouge&quot;&gt;--fixup&lt;/code&gt;, but uses the prefix “squash! “, and can be used 
+with the options &lt;code class=&quot;highlighter-rouge&quot;&gt;-m&lt;/code&gt;/&lt;code class=&quot;highlighter-rouge&quot;&gt;-c&lt;/code&gt;/&lt;code class=&quot;highlighter-rouge&quot;&gt;-C&lt;/code&gt;/&lt;code class=&quot;highlighter-rouge&quot;&gt;-F&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;[-F &amp;lt;file&amp;gt; | -m &amp;lt;msg&amp;gt;]&lt;/code&gt;: this specifies the message of the commit. &lt;code class=&quot;highlighter-rouge&quot;&gt;-F&lt;/code&gt; 
+will take the commit message from the specified files, &lt;code class=&quot;highlighter-rouge&quot;&gt;-m&lt;/code&gt; 
+will take it from the next input. For example: &lt;code class=&quot;highlighter-rouge&quot;&gt;git commit -m “Added 9001 files and beat Goku in single combat”&lt;/code&gt; 
+adds a commit with that message.&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;--reset-author&lt;/code&gt;: this is used with the &lt;code class=&quot;highlighter-rouge&quot;&gt;-C&lt;/code&gt;/&lt;code class=&quot;highlighter-rouge&quot;&gt;-c&lt;/code&gt;/&lt;code class=&quot;highlighter-rouge&quot;&gt;--amend&lt;/code&gt; options, and will 
+make the author of the commit you, rather than whoever made the commit you’re changing.&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;--allow-empty&lt;/code&gt;: this allows you to commit with no changes. Not recommended by me.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;Whew… halfway! We’ll cover the rest in the next iteration of this post.&lt;/p&gt;
+</description>
+        <pubDate>Fri, 12 Aug 2016 01:50:00 -0500</pubDate>
+        <link>http://dmusican.github.io/Elegit/jekyll/update/2016/08/12/what-is-commit.html</link>
+        <guid isPermaLink="true">http://dmusican.github.io/Elegit/jekyll/update/2016/08/12/what-is-commit.html</guid>
+        
+        
+        <category>jekyll</category>
+        
+        <category>update</category>
+        
+      </item>
     
       <item>
         <title>What is Git Revert?</title>
@@ -107,14 +217,16 @@ soft, mixed, hard, merge and keep:&lt;/p&gt;
 &lt;ol&gt;
   &lt;li&gt;
     &lt;p&gt;&lt;em&gt;Soft&lt;/em&gt;: only change the repository, don’t change anything in the index or 
-working directory
-Mixed: (the default) change the repository and reset the files in the 
+working directory.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;em&gt;Mixed&lt;/em&gt;: (the default) change the repository and reset the files in the 
 index to those stored in the commit (yes actually entirely stored in the 
-commit, see the commit post)&lt;/p&gt;
+commit, see the commit post).&lt;/p&gt;
   &lt;/li&gt;
   &lt;li&gt;
     &lt;p&gt;&lt;em&gt;Hard&lt;/em&gt;: reset everything! This throws away all changes in the index and 
-working directory and replaces them with the files in the commit&lt;/p&gt;
+working directory and replaces them with the files in the commit.&lt;/p&gt;
   &lt;/li&gt;
   &lt;li&gt;
     &lt;p&gt;&lt;em&gt;Merge&lt;/em&gt;: resets the index and files in the working directory to what’s 
@@ -126,7 +238,7 @@ unstaged changes. Usually used to undo a ‘merge operation’.&lt;/p&gt;
   &lt;li&gt;
     &lt;p&gt;&lt;em&gt;Keep&lt;/em&gt;: does a hard reset, but aborts if there are local changes in a file 
 that changed between the target commit and the current commit and keeps 
-uncommitted changes in the working directory and index&lt;/p&gt;
+uncommitted changes in the working directory and index.&lt;/p&gt;
   &lt;/li&gt;
 &lt;/ol&gt;
 
