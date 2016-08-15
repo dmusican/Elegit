@@ -1,9 +1,11 @@
 package elegit;
 
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
+import javafx.scene.control.Dialog;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
@@ -14,6 +16,9 @@ import org.apache.logging.log4j.Logger;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Created by connellyj on 7/7/16.
@@ -303,5 +308,60 @@ public class PopUpWindows {
         Optional<?> result = alert.showAndWait();
 
         return result.get() == deleteButton;
+    }
+
+    public static String pickRemoteToPushTo(Set<String> remotes) {
+        ReentrantLock lock = new ReentrantLock();
+        Condition finishedAlert = lock.newCondition();
+
+        final String[] result = new String[1];
+
+        Platform.runLater(() -> {
+            try {
+                Alert alert = new Alert(Alert.AlertType.NONE);
+                alert.setTitle("Multiple remotes found");
+                alert.setHeaderText("There are multiple remote repositories associated with this repository. Pick one to push to.");
+
+                ComboBox remoteRepos = new ComboBox();
+                remoteRepos.setItems(FXCollections.observableArrayList(remotes));
+
+                ButtonType okButton = new ButtonType("OK", ButtonBar.ButtonData.OK_DONE);
+                ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+
+                alert.getDialogPane().setContent(remoteRepos);
+                alert.getButtonTypes().addAll(cancelButton, okButton);
+
+                Optional<?> alertResult = alert.showAndWait();
+
+                if(alertResult.isPresent()) {
+                    if(alertResult.get() == okButton) {
+                        if(remoteRepos.getSelectionModel().getSelectedItem() != null) {
+                            result[0] =  (String) remoteRepos.getSelectionModel().getSelectedItem();
+                        }
+                    }
+                }
+
+                finishedAlert.signal();
+            }finally {
+                lock.unlock();
+            }
+        });
+
+        lock.lock();
+
+        try {
+            finishedAlert.await();
+
+            if(result[0] != null) {
+                return result[0];
+            }
+
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }finally {
+            lock.unlock();
+        }
+
+        return "cancel";
     }
 }

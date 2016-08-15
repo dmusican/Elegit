@@ -511,7 +511,11 @@ public class RepoHelper {
         if (!exists()) throw new MissingRepoException();
         if (!hasRemote()) throw new InvalidRemoteException("No remote repository");
         Git git = new Git(this.repo);
-        PushCommand push = git.push().add(branchToPush.getRefPathString());
+
+        String remote = getRemote();
+        if (remote.equals("cancel")) return;
+
+        PushCommand push = git.push().setRemote(remote).add(branchToPush.getRefPathString());
 
         myWrapAuthentication(push);
         ProgressMonitor progress = new SimpleProgressMonitor();
@@ -567,14 +571,20 @@ public class RepoHelper {
         Git git = new Git(this.repo);
         StoredConfig config = git.getRepository().getConfig();
         String branchName = branch.getBranchName();
-        String remoteName = "";
-        // TODO: the remote needs to be specifically selected in some way (this only works if there's one remote)
-        for(String remote : config.getSubsections("remote")) {
-            remoteName = remote;
-        }
+        String remoteName = getRemote();
         config.setString(ConfigConstants.CONFIG_BRANCH_SECTION, branchName,  ConfigConstants.CONFIG_KEY_REMOTE, remoteName);
         config.setString(ConfigConstants.CONFIG_BRANCH_SECTION, branchName, ConfigConstants.CONFIG_KEY_MERGE, Constants.R_HEADS + branchName);
         config.save();
+    }
+
+    private String getRemote() {
+        Git git = new Git(this.repo);
+        StoredConfig config = git.getRepository().getConfig();
+        Set<String> remotes = config.getSubsections("remote");
+        if (remotes.size() == 1) {
+            //return (String) remotes.toArray()[0];
+        }
+        return PopUpWindows.pickRemoteToPushTo(remotes);
     }
 
     /**
@@ -587,7 +597,11 @@ public class RepoHelper {
         if (!exists()) throw new MissingRepoException();
         if (!hasRemote()) throw new InvalidRemoteException("No remote repository");
         Git git = new Git(this.repo);
-        PushCommand push = git.push().setPushAll();
+
+        String remote = getRemote();
+        if (remote.equals("cancel")) return;
+
+        PushCommand push = git.push().setRemote(remote).setPushAll();
 
         myWrapAuthentication(push);
         ProgressMonitor progress = new SimpleProgressMonitor();
