@@ -1345,7 +1345,7 @@ public class SessionController {
             throw e;
         } catch (GitAPIException | IOException e) {
             logger.warn("IO error");
-            this.showGenericErrorNotification();
+            this.showGenericErrorNotification();    
         }
     }
 
