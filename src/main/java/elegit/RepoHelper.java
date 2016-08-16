@@ -518,7 +518,8 @@ public class RepoHelper {
      * @throws GitAPIException
      * @throws PushToAheadRemoteError
      */
-    public void prepareToPushCurrentBranch(boolean isTest) throws MissingRepoException, GitAPIException, PushToAheadRemoteError, IOException, NoCommitsToPushException {
+    public PushCommand prepareToPushCurrentBranch(boolean isTest) throws MissingRepoException, GitAPIException,
+            PushToAheadRemoteError, IOException, NoCommitsToPushException {
         BranchHelper branchToPush = this.getBranchModel().getCurrentBranch();
         logger.info("attempting to push current branch");
         if (!exists()) throw new MissingRepoException();
@@ -526,7 +527,8 @@ public class RepoHelper {
 
 
         String remote = getRemote();
-        if (remote.equals("cancel")) return;
+        if (remote.equals("cancel"))
+            throw new InvalidRemoteException("No remote selected.");
 
         Git git = new Git(this.repo);
         PushCommand push = git.push().setRemote(remote).add(branchToPush.getRefPathString());
@@ -542,10 +544,11 @@ public class RepoHelper {
             }
         }
 
-        pushCurrentBranch(git, push);
+        return push;
+        //pushCurrentBranch(git, push);
     }
 
-    private void pushCurrentBranch(Git git, PushCommand push) throws GitAPIException, PushToAheadRemoteError, IOException {
+    public void pushCurrentBranch(PushCommand push) throws GitAPIException, PushToAheadRemoteError, IOException {
         myWrapAuthentication(push);
         Iterable<PushResult> pushResult = push.call();
 
@@ -557,7 +560,7 @@ public class RepoHelper {
             }
         }
 
-        git.close();
+        push.getRepository().close();
 
         this.remoteCommits = parseAllRemoteCommits();
     }
@@ -595,16 +598,19 @@ public class RepoHelper {
      *
      * @throws GitAPIException if the `git push` call fails.
      */
-    public void pushAll() throws GitAPIException, MissingRepoException, PushToAheadRemoteError, IOException, NoCommitsToPushException {
+    public PushCommand prepareToPushAll() throws GitAPIException, MissingRepoException, PushToAheadRemoteError,
+            IOException, NoCommitsToPushException {
         logger.info("Attempting push");
         if (!exists()) throw new MissingRepoException();
         if (!hasRemote()) throw new InvalidRemoteException("No remote repository");
-        Git git = new Git(this.repo);
 
         // Gets the remote
         String remote = getRemote();
-        if (remote.equals("cancel")) return;
+        if (remote.equals("cancel"))
+            throw new InvalidRemoteException("No remote selected.");
 
+
+        Git git = new Git(this.repo);
         PushCommand push = git.push().setRemote(remote);
 
         ArrayList<LocalBranchHelper> untrackedLocalBranches = new ArrayList<>();
@@ -634,10 +640,15 @@ public class RepoHelper {
             }
         }
 
-        myWrapAuthentication(push);
         ProgressMonitor progress = new SimpleProgressMonitor();
         push.setProgressMonitor(progress);
 
+        return push;
+        //pushAll(git, push);
+    }
+
+    public void pushAll(PushCommand push) throws GitAPIException, PushToAheadRemoteError, IOException {
+        myWrapAuthentication(push);
         Iterable<PushResult> pushResult = push.call();
         boolean allPushesWereRejected = true;
         boolean anyPushWasRejected = false;
@@ -656,7 +667,7 @@ public class RepoHelper {
             throw new PushToAheadRemoteError(allPushesWereRejected);
         }
 
-        git.close();
+        push.getRepository().close();
 
         this.remoteCommits = parseAllRemoteCommits();
     }

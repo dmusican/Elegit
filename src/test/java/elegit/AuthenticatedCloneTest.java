@@ -1,15 +1,12 @@
 package elegit;
 
 import com.jcraft.jsch.*;
-import javafx.application.Application;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.TransportException;
 import org.eclipse.jgit.transport.*;
 import org.junit.*;
 import org.junit.rules.ExpectedException;
 
-import javax.swing.*;
-import java.awt.*;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -125,7 +122,7 @@ public class AuthenticatedCloneTest {
             fw.close();
             helper.addFilePathTest(fileLocation);
             helper.commit("Appended to file");
-            helper.pushAll();
+            helper.prepareToPushAll();
             helper.pushTags();
         } catch (TransportException e) {
             e.printStackTrace();
@@ -178,7 +175,7 @@ public class AuthenticatedCloneTest {
             helper.commit("Appended to file");
             credentials = new UsernamePasswordCredentialsProvider(username, password);
             helper.ownerAuth = credentials;
-            helper.pushAll();
+            helper.prepareToPushAll();
             helper.pushTags();
         } catch (TransportException e) {
             e.printStackTrace();
@@ -283,7 +280,7 @@ public class AuthenticatedCloneTest {
         helper.obtainRepository(remoteURL);
         assertEquals(helper.getCompatibleAuthentication(), AuthMethod.SSH);
         helper.fetch();
-        helper.pushAll();
+        helper.prepareToPushAll();
         helper.pushTags();
     }
 
@@ -309,7 +306,7 @@ public class AuthenticatedCloneTest {
         helper.obtainRepository(remoteURL);
         assertEquals(helper.getCompatibleAuthentication(), AuthMethod.SSH);
         helper.fetch();
-        helper.pushAll();
+        helper.prepareToPushAll();
         helper.pushTags();
         scanner.close();
     }

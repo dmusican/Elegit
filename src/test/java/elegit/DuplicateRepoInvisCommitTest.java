@@ -109,7 +109,7 @@ public class DuplicateRepoInvisCommitTest {
         assertEquals(repo1OldHead.getId(), repo2OldHead.getId());
 
         // Push the previous commit
-        repo1.pushAll();
+        repo1.prepareToPushAll();
 
         // Fetch into the second repo
         repo2.fetch();

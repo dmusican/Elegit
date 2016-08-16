@@ -125,7 +125,7 @@ public class MergeFromFetchTest {
         // Commit the changes in master and push
         helperPush.commit("added line in master");
 
-        helperPush.pushAll();
+        helperPush.prepareToPushAll();
 
 
         /* ******************** FETCH AND MERGE SECTION ******************** */

@@ -36,6 +36,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.controlsfx.control.CheckListView;
 import org.controlsfx.control.PopOver;
+import org.eclipse.jgit.api.PushCommand;
 import org.eclipse.jgit.api.ResetCommand;
 import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.dircache.InvalidPathException;
@@ -1088,6 +1089,18 @@ public class SessionController {
             if(pushType == PushType.BRANCH &&
                     !this.theModel.getCurrentRepoHelper().canPush()) throw new NoCommitsToPushException();
 
+            RepoHelper helper = theModel.getCurrentRepoHelper();
+            final PushCommand push;
+            if (pushType == PushType.BRANCH) {
+                push = helper.prepareToPushCurrentBranch(false);
+            } else if (pushType == PushType.ALL) {
+                push = helper.prepareToPushAll();
+            } else {
+                push = null;
+                assert false : "PushType enum case not handled";
+            }
+
+
             final RepoHelperBuilder.AuthDialogResponse credentialResponse = askUserForCredentials();
 
             BusyWindow.show();
@@ -1097,7 +1110,7 @@ public class SessionController {
                 protected Void call() {
                     authenticationFailedLastTime = false;
                     try {
-                        pushBranchOrAllDetails(credentialResponse, pushType);
+                        pushBranchOrAllDetails(credentialResponse, pushType, push);
                     } catch (TransportException e) {
                         showNotAuthorizedNotification();
                         authenticationFailedLastTime = true;
@@ -1117,19 +1130,29 @@ public class SessionController {
             th.setDaemon(true);
             th.setName("Git push");
             th.start();
-        }catch(NoRepoLoadedException e){
+        } catch(NoRepoLoadedException e){
             this.showNoRepoLoadedNotification();
             setButtonsDisabled(true);
-        }catch(NoCommitsToPushException e){
+        } catch(NoCommitsToPushException e){
             this.showNoCommitsToPushNotification();
-        }catch(IOException e) {
+        } catch(IOException e) {
             this.showGenericErrorNotification();
         } catch (CancelledAuthorizationException e) {
             this.showCommandCancelledNotification();
+        } catch (PushToAheadRemoteError pushToAheadRemoteError) {
+            pushToAheadRemoteError.printStackTrace();
+        } catch (MissingRepoException e) {
+            showMissingRepoNotification();
+            setButtonsDisabled(true);
+            refreshRecentReposInDropdown();
+        } catch (GitAPIException e) {
+            showGenericErrorNotification();
+            e.printStackTrace();
         }
     }
 
-    private void pushBranchOrAllDetails(RepoHelperBuilder.AuthDialogResponse response, PushType pushType) throws
+    private void pushBranchOrAllDetails(RepoHelperBuilder.AuthDialogResponse response, PushType pushType,
+                                        PushCommand push) throws
             TransportException {
         try{
             RepositoryMonitor.resetFoundNewChanges(false);
@@ -1139,17 +1162,17 @@ public class SessionController {
                         new UsernamePasswordCredentialsProvider(response.username, response.password);
             }
             if (pushType == PushType.BRANCH) {
-                helper.prepareToPushCurrentBranch(false);
+                helper.pushCurrentBranch(push);
             } else if (pushType == PushType.ALL) {
-                helper.pushAll();
+                helper.pushAll(push);
             } else {
                 assert false : "PushType enum case not handled";
             }
             gitStatus();
         } catch (InvalidRemoteException e) {
             showNoRemoteNotification();
-        } catch (NoCommitsToPushException e) {
-            showNoCommitsToPushNotification();
+        //} catch (NoCommitsToPushException e) {
+        //    showNoCommitsToPushNotification();
         } catch (PushToAheadRemoteError e) {
             showPushToAheadRemoteNotification(e.isAllRefsRejected());
         } catch (TransportException e) {
@@ -1159,10 +1182,10 @@ public class SessionController {
             } else {
                 throw e;
             }
-        } catch(MissingRepoException e){
-            showMissingRepoNotification();
-            setButtonsDisabled(true);
-            refreshRecentReposInDropdown();
+        //} catch(MissingRepoException e){
+        //    showMissingRepoNotification();
+        //    setButtonsDisabled(true);
+        //    refreshRecentReposInDropdown();
         } catch(Exception e) {
             showGenericErrorNotification();
             e.printStackTrace();

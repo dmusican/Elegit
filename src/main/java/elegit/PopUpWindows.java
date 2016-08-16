@@ -32,6 +32,7 @@ public class PopUpWindows {
 
     /**
      * Informs the user that they are about to commit a conflicting file
+     *
      * @return String user's response to the dialog
      */
     public static String showCommittingConflictingFileAlert() {
@@ -61,16 +62,16 @@ public class PopUpWindows {
 
         Optional<ButtonType> result = alert.showAndWait();
 
-        if(result.get() == resolveButton){
+        if (result.get() == resolveButton) {
             logger.info("Chose to resolve conflicts");
             resultType = "resolve";
-        }else if(result.get() == addButton){
+        } else if (result.get() == addButton) {
             logger.info("Chose to add file");
             resultType = "add";
-        }else if(result.get() == helpButton) {
+        } else if (result.get() == helpButton) {
             logger.info("Chose to get help");
             resultType = "help";
-        } else{
+        } else {
             // User cancelled the dialog
             logger.info("Cancelled dialog");
             resultType = "cancel";
@@ -90,16 +91,16 @@ public class PopUpWindows {
             window.setTitle("How to fix conflicting files");
             window.setHeaderText("How to fix conflicting files");
             window.setContentText("1. First, open up the file that is marked as conflicting.\n" +
-                    "2. In the file, you should see something like this:\n\n" +
-                    "\t<<<<<< <branch_name>\n" +
-                    "\tChanges being made on the branch that is being merged into.\n" +
-                    "\tIn most cases, this is the branch that you currently have checked out (i.e. HEAD).\n" +
-                    "\t=======\n" +
-                    "\tChanges made on the branch that is being merged in.\n" +
-                    "\t>>>>>>> <branch name>\n\n" +
-                    "3. Delete the contents you don't want to keep after the merge\n" +
-                    "4. Remove the markers (<<<<<<<, =======, >>>>>>>) git put in the file\n" +
-                    "5. Done! You can now safely add and commit the file");
+                                  "2. In the file, you should see something like this:\n\n" +
+                                  "\t<<<<<< <branch_name>\n" +
+                                  "\tChanges being made on the branch that is being merged into.\n" +
+                                  "\tIn most cases, this is the branch that you currently have checked out (i.e. HEAD).\n" +
+                                  "\t=======\n" +
+                                  "\tChanges made on the branch that is being merged in.\n" +
+                                  "\t>>>>>>> <branch name>\n\n" +
+                                  "3. Delete the contents you don't want to keep after the merge\n" +
+                                  "4. Remove the markers (<<<<<<<, =======, >>>>>>>) git put in the file\n" +
+                                  "5. Done! You can now safely add and commit the file");
             window.showAndWait();
         });
     }
@@ -118,9 +119,9 @@ public class PopUpWindows {
             img.setFitWidth(60);
             alert.setGraphic(img);
             alert.setContentText("Move the current branch tip backward to the selected commit, " +
-                    "reset the staging area to match, " +
-                    "but leave the working directory alone. " +
-                    "All changes made since the selected commit will reside in the working directory.");
+                                 "reset the staging area to match, " +
+                                 "but leave the working directory alone. " +
+                                 "All changes made since the selected commit will reside in the working directory.");
             alert.showAndWait();
         });
     }
@@ -139,18 +140,19 @@ public class PopUpWindows {
             img.setFitWidth(60);
             alert.setGraphic(img);
             alert.setContentText("The git revert command undoes a committed snapshot. " +
-                    "But, instead of removing the commit from the project history, " +
-                    "it figures out how to undo the changes introduced by the commit and appends a new commit with the resulting content. " +
-                    "This prevents Git from losing history, " +
-                    "which is important for the integrity of your revision history and for reliable collaboration.\n" +
-                    "To revert multiple commits, select multiple commits using shift+click, then right click on one of the "+
-                    "selected commits.");
+                                 "But, instead of removing the commit from the project history, " +
+                                 "it figures out how to undo the changes introduced by the commit and appends a new commit with the resulting content. " +
+                                 "This prevents Git from losing history, " +
+                                 "which is important for the integrity of your revision history and for reliable collaboration.\n" +
+                                 "To revert multiple commits, select multiple commits using shift+click, then right click on one of the " +
+                                 "selected commits.");
             alert.showAndWait();
         });
     }
 
     /**
      * Shows a warning about checking out files from the index
+     *
      * @return
      */
     public static boolean showCheckoutAlert() {
@@ -160,17 +162,18 @@ public class PopUpWindows {
         alert.getButtonTypes().setAll(checkout, cancel);
 
         alert.setTitle("Checkout Warning");
-        alert.setContentText("Are you sure you want to checkout the selected files?\n"+
-                            "This will discard all changes that have not been added (staged).");
+        alert.setContentText("Are you sure you want to checkout the selected files?\n" +
+                             "This will discard all changes that have not been added (staged).");
         Optional<ButtonType> result = alert.showAndWait();
         if (result.isPresent())
-            return result.get()==checkout;
+            return result.get() == checkout;
         else
             return false;
     }
 
     /**
      * Informs the user that they are adding a previously conflicting file
+     *
      * @return String result from user input
      */
     public static String showAddingingConflictingThenModifiedFileAlert() {
@@ -192,10 +195,10 @@ public class PopUpWindows {
 
         Optional<ButtonType> result = alert.showAndWait();
 
-        if(result.get() == commitButton){
+        if (result.get() == commitButton) {
             logger.info("Chose to add");
             resultType = "add";
-        }else{
+        } else {
             // User cancelled the dialog
             logger.info("Cancelled dialog");
             resultType = "cancel";
@@ -206,17 +209,18 @@ public class PopUpWindows {
 
     /**
      * Informs the user that they are tracking ignored files
+     *
      * @param trackedIgnoredFiles collections of files being ignored
      */
     public static void showTrackingIgnoredFilesWarning(Collection<String> trackedIgnoredFiles) {
         Platform.runLater(() -> {
-            if(trackedIgnoredFiles.size() > 0){
+            if (trackedIgnoredFiles.size() > 0) {
                 String fileStrings = "";
-                for(String s : trackedIgnoredFiles){
-                    fileStrings += "\n"+s;
+                for (String s : trackedIgnoredFiles) {
+                    fileStrings += "\n" + s;
                 }
                 Alert alert = new Alert(Alert.AlertType.WARNING, "The following files are being tracked by Git, " +
-                        "but also match an ignore pattern. If you want to ignore these files, remove them from Git.\n"+fileStrings);
+                                                                 "but also match an ignore pattern. If you want to ignore these files, remove them from Git.\n" + fileStrings);
                 alert.showAndWait();
             }
         });
@@ -224,38 +228,40 @@ public class PopUpWindows {
 
     /**
      * Informs the user that there are conflicting files so they can't checkout a different branch
+     *
      * @param conflictingPaths conflicting files
      */
     public static void showCheckoutConflictsAlert(List<String> conflictingPaths) {
         logger.warn("Checkout conflicts warning");
         String conflictList = "";
-        for(String pathName : conflictingPaths){
+        for (String pathName : conflictingPaths) {
             conflictList += "\n" + pathName;
         }
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle("Conflicting files");
         alert.setHeaderText("Can't checkout that branch");
         alert.setContentText("You can't switch to that branch because of the following conflicting files between that branch and your current branch: "
-                + conflictList);
+                             + conflictList);
 
         alert.showAndWait();
     }
 
     /**
      * Informs the user that there were conflicts
+     *
      * @param conflictingPaths conflicting files
      */
     public static void showMergeConflictsAlert(List<String> conflictingPaths) {
         logger.warn("Merge conflicts warning");
         String conflictList = "";
-        for(String pathName : conflictingPaths){
+        for (String pathName : conflictingPaths) {
             conflictList += "\n" + pathName;
         }
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle("Conflicting files");
         alert.setHeaderText("Can't complete merge");
         alert.setContentText("There were conflicts in the following files: "
-                + conflictList);
+                             + conflictList);
 
         alert.showAndWait();
     }
@@ -284,7 +290,7 @@ public class PopUpWindows {
 
         Optional<?> result = dialog.showAndWait();
 
-        if(result.get() == trackButton) {
+        if (result.get() == trackButton) {
             dialog.close();
             return dropdown.getSelectionModel().getSelectedItem();
         }
@@ -297,14 +303,14 @@ public class PopUpWindows {
         alert.setTitle("Deleting unmerged branch");
         alert.setHeaderText("The branch you are trying to delete is unmerged");
         alert.setContentText("The work done on this branch is not represented in any other local branch. " +
-                "If you delete it, you will lose any local work done on this branch. " +
-                "What would you like to do?");
+                             "If you delete it, you will lose any local work done on this branch. " +
+                             "What would you like to do?");
 
         ButtonType deleteButton = new ButtonType("Force delete branch");
         ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
 
         alert.getButtonTypes().clear();
-        alert.getButtonTypes().addAll(deleteButton ,cancelButton);
+        alert.getButtonTypes().addAll(deleteButton, cancelButton);
 
         Optional<?> result = alert.showAndWait();
 
@@ -337,14 +343,14 @@ public class PopUpWindows {
 
                 Optional<?> alertResult = alert.showAndWait();
 
-                if(alertResult.isPresent()) {
-                    if(alertResult.get() == okButton) {
+                if (alertResult.isPresent()) {
+                    if (alertResult.get() == okButton) {
                         result[0] = remoteRepos.getSelectionModel().getSelectedItem();
                     }
                 }
 
                 finishedAlert.signal();
-            }finally {
+            } finally {
                 lock.unlock();
             }
         });
@@ -354,13 +360,13 @@ public class PopUpWindows {
         try {
             finishedAlert.await();
 
-            if(result[0] != null) {
+            if (result[0] != null) {
                 return result[0];
             }
 
         } catch (InterruptedException e) {
             e.printStackTrace();
-        }finally {
+        } finally {
             lock.unlock();
         }
 
@@ -389,7 +395,7 @@ public class PopUpWindows {
 
         Optional<?> alertResult = alert.showAndWait();
 
-        if(alertResult.isPresent()) {
+        if (alertResult.isPresent()) {
             if (alertResult.get() == okButton && !textArea.getText().equals("")) {
                 return textArea.getText();
             }
@@ -398,125 +404,79 @@ public class PopUpWindows {
     }
 
     public static ArrayList<LocalBranchHelper> getUntrackedBranchesToPush(ArrayList<LocalBranchHelper> branches) {
-        ReentrantLock lock = new ReentrantLock();
-        Condition finishedAlert = lock.newCondition();
 
         final ArrayList<LocalBranchHelper> result = new ArrayList<>(branches.size());
 
-        Platform.runLater(() -> {
-            try {
-                lock.lock();
+        Alert alert = new Alert(Alert.AlertType.NONE);
+        alert.setTitle("Untracked local branches");
+        alert.setHeaderText("There are untracked local branches.\n" +
+                            "Select which branches to track remotely,\n" +
+                            "Or click Continue to move on.");
 
-                Alert alert = new Alert(Alert.AlertType.NONE);
-                alert.setTitle("Untracked local branches");
-                alert.setHeaderText("There are untracked local branches.\n" +
-                        "Select which branches to track remotely,\n" +
-                        "Or click Continue to move on.");
+        CheckListView<LocalBranchHelper> untrackedBranches = new CheckListView<>(FXCollections.observableArrayList(branches));
 
-                CheckListView<LocalBranchHelper> untrackedBranches = new CheckListView<>(FXCollections.observableArrayList(branches));
+        ButtonType okButton = new ButtonType("Continue", ButtonBar.ButtonData.CANCEL_CLOSE);
+        ButtonType trackButton = new ButtonType("Track Branches", ButtonBar.ButtonData.APPLY);
 
-                ButtonType okButton = new ButtonType("Continue", ButtonBar.ButtonData.CANCEL_CLOSE);
-                ButtonType trackButton = new ButtonType("Track Branches", ButtonBar.ButtonData.APPLY);
+        alert.getDialogPane().setContent(untrackedBranches);
+        alert.getButtonTypes().addAll(trackButton, okButton);
 
-                alert.getDialogPane().setContent(untrackedBranches);
-                alert.getButtonTypes().addAll(trackButton, okButton);
+        Optional<?> alertResult = alert.showAndWait();
 
-                Optional<?> alertResult = alert.showAndWait();
-
-                if(alertResult.isPresent()) {
-                    if(alertResult.get() == trackButton) {
-                        result.addAll(untrackedBranches.getCheckModel().getCheckedItems());
-                    }
-                }
-
-                finishedAlert.signal();
-            }finally {
-                lock.unlock();
+        if (alertResult.isPresent()) {
+            if (alertResult.get() == trackButton) {
+                result.addAll(untrackedBranches.getCheckModel().getCheckedItems());
             }
-        });
-
-        lock.lock();
-
-        try {
-            finishedAlert.await();
-
-            if(result.size() > 0) {
-                return result;
-            }
-
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }finally {
-            lock.unlock();
         }
 
-        return null;
+        if (result.size() > 0)
+            return result;
+        else
+            return null;
     }
 
     public static boolean trackCurrentBranchRemotely(String branchName) {
-        ReentrantLock lock = new ReentrantLock();
-        Condition finishedAlert = lock.newCondition();
 
         final boolean[] result = new boolean[1];
         result[0] = false;
 
-        Platform.runLater(() -> {
-            try {
-                lock.lock();
+        Alert alert = new Alert(Alert.AlertType.NONE);
+        alert.setTitle("push -u");
 
-                Alert alert = new Alert(Alert.AlertType.NONE);
-                alert.setTitle("push -u");
+        Label branchLabel = new Label(branchName);
+        HBox branchBox = new HBox(branchLabel);
+        // The CSS style classes weren't working here
+        branchBox.setStyle("    -fx-background-color: #1E90FF;\n" +
+                           "    -fx-background-radius: 5;\n" +
+                           "    -fx-padding: 0 3 0 3;");
+        branchLabel.setStyle("    -fx-text-fill: #FFFFFF;\n" +
+                             "    -fx-font-size: 14px;\n" +
+                             "    -fx-font-weight: bold;\n" +
+                             "    -fx-text-align: center;");
 
-                Label branchLabel = new Label(branchName);
-                HBox branchBox = new HBox(branchLabel);
-                // The CSS style classes weren't working here
-                branchBox.setStyle("    -fx-background-color: #1E90FF;\n" +
-                        "    -fx-background-radius: 5;\n" +
-                        "    -fx-padding: 0 3 0 3;");
-                branchLabel.setStyle("    -fx-text-fill: #FFFFFF;\n" +
-                        "    -fx-font-size: 14px;\n" +
-                        "    -fx-font-weight: bold;\n" +
-                        "    -fx-text-align: center;");
+        Text txt1 = new Text(" is not currently tracked remotely.");
+        Text txt2 = new Text("Would you like to create an upstream remote branch?");
+        txt1.setFont(new Font(14));
+        txt2.setFont(new Font(14));
 
-                Text txt1 = new Text(" is not currently tracked remotely.");
-                Text txt2 = new Text("Would you like to create an upstream remote branch?");
-                txt1.setFont(new Font(14));
-                txt2.setFont(new Font(14));
+        HBox hBox = new HBox(branchBox, txt1);
 
-                HBox hBox = new HBox(branchBox, txt1);
+        VBox vBox = new VBox(hBox, txt2);
+        vBox.setSpacing(10);
+        vBox.setAlignment(Pos.CENTER);
 
-                VBox vBox = new VBox(hBox, txt2);
-                vBox.setSpacing(10);
-                vBox.setAlignment(Pos.CENTER);
+        ButtonType okButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+        ButtonType trackButton = new ButtonType("Yes", ButtonBar.ButtonData.APPLY);
 
-                ButtonType okButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
-                ButtonType trackButton = new ButtonType("Yes", ButtonBar.ButtonData.APPLY);
+        alert.getDialogPane().setContent(vBox);
+        alert.getButtonTypes().addAll(trackButton, okButton);
 
-                alert.getDialogPane().setContent(vBox);
-                alert.getButtonTypes().addAll(trackButton, okButton);
+        Optional<?> alertResult = alert.showAndWait();
 
-                Optional<?> alertResult = alert.showAndWait();
-
-                if(alertResult.isPresent()) {
-                    if(alertResult.get() == trackButton) {
-                        result[0] = true;
-                    }
-                }
-
-                finishedAlert.signal();
-            }finally {
-                lock.unlock();
+        if (alertResult.isPresent()) {
+            if (alertResult.get() == trackButton) {
+                result[0] = true;
             }
-        });
-
-        lock.lock();
-
-        try {
-            finishedAlert.await();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }finally {
-            lock.unlock();
         }
 
         return result[0];
