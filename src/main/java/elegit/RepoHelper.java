@@ -518,44 +518,21 @@ public class RepoHelper {
      * @throws GitAPIException
      * @throws PushToAheadRemoteError
      */
-    public void pushCurrentBranch(boolean isTest) throws MissingRepoException, GitAPIException, PushToAheadRemoteError, IOException, NoCommitsToPushException {
+    public void prepareToPushCurrentBranch(boolean isTest) throws MissingRepoException, GitAPIException, PushToAheadRemoteError, IOException, NoCommitsToPushException {
         BranchHelper branchToPush = this.getBranchModel().getCurrentBranch();
         logger.info("attempting to push current branch");
         if (!exists()) throw new MissingRepoException();
         if (!hasRemote()) throw new InvalidRemoteException("No remote repository");
-        Git git = new Git(this.repo);
+
 
         String remote = getRemote();
         if (remote.equals("cancel")) return;
 
+        Git git = new Git(this.repo);
         PushCommand push = git.push().setRemote(remote).add(branchToPush.getRefPathString());
 
-        myWrapAuthentication(push);
         ProgressMonitor progress = new SimpleProgressMonitor();
         push.setProgressMonitor(progress);
-
-//        boolean authUpdateNeeded = false;
-//        Iterable<PushResult> pushResult = null;
-//        do {
-//            authUpdateNeeded = false;
-//            try {
-//                pushResult = push.call();
-//            } catch (TransportException e) {
-//                authUpdateNeeded = true;
-//                RepoHelperBuilder.AuthDialogResponse response;
-//                try {
-//                    response = RepoHelperBuilder.getAuthCredentialFromDialog();
-//                } catch (CancelledAuthorizationException e2) {
-//                    git.close();
-//                    return;
-//                }
-//                System.out.println(response.protocol);
-//                this.password = response.password;
-//                this.username = response.username;
-//                this.ownerAuth = new UsernamePasswordCredentialsProvider(username, password);
-//                myWrapAuthentication(push);
-//            }
-//        } while (authUpdateNeeded);
 
         if(this.getBranchModel().getCurrentRemoteBranch() == null) {
             if(isTest || PopUpWindows.trackCurrentBranchRemotely(branchToPush.getBranchName())){
@@ -565,6 +542,11 @@ public class RepoHelper {
             }
         }
 
+        pushCurrentBranch(git, push);
+    }
+
+    private void pushCurrentBranch(Git git, PushCommand push) throws GitAPIException, PushToAheadRemoteError, IOException {
+        myWrapAuthentication(push);
         Iterable<PushResult> pushResult = push.call();
 
         for(PushResult result : pushResult) {

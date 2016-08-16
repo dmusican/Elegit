@@ -53,7 +53,6 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.prefs.BackingStoreException;
 
 /**
@@ -1140,7 +1139,7 @@ public class SessionController {
                         new UsernamePasswordCredentialsProvider(response.username, response.password);
             }
             if (pushType == PushType.BRANCH) {
-                helper.pushCurrentBranch(false);
+                helper.prepareToPushCurrentBranch(false);
             } else if (pushType == PushType.ALL) {
                 helper.pushAll();
             } else {
