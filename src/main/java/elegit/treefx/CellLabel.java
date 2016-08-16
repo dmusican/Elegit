@@ -18,7 +18,7 @@ import javafx.scene.text.Text;
  */
 public class CellLabel extends HBox {
     private String name;
-    boolean isCurrent, isTag;
+    boolean isCurrent, isTag, isRemote;
     Text pointer;
     ImageView image;
     Label label;
@@ -29,6 +29,7 @@ public class CellLabel extends HBox {
         this.name = name;
         this.isCurrent = isCurrent;
         this.isTag = isTag;
+        this.isRemote = false;
 
         Text pointer = getPointer();
         Label label = getLabel();
@@ -106,6 +107,15 @@ public class CellLabel extends HBox {
     }
 
     /**
+     * Sets the cell label to be a remote branch type
+     * @param isRemote whether or not the ref label is remote
+     */
+    void setRemote(boolean isRemote) {
+        this.isRemote = true;
+        refreshIcon();
+    }
+
+    /**
      * Helper method to add a tool tip to a label
      * @param l the label to add a tooltip to
      * @param text the text of the tooltip
@@ -143,5 +153,23 @@ public class CellLabel extends HBox {
 
     String getName() {
         return this.name;
+    }
+
+    /**
+     * Refreshes the icon based on various boolean values
+     */
+    void refreshIcon() {
+        String image = "elegit/images/";
+        if (isTag) {
+            image += "tag.png";
+        } else if (isCurrent) {
+            if (isRemote)
+                image += "remote_white.png";
+            else
+                image += "remote.png";
+        } else {
+            image += "branch.png";
+        }
+        ((ImageView) this.getChildren().get(2)).setImage(new Image(image));
     }
 }

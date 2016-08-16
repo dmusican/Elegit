@@ -308,6 +308,8 @@ public class MergeWindowController {
             System.out.println(mergeResult.getMergeStatus());
             // todo: handle all cases (maybe combine some)
         }
+        // Tell the rest of the UI to update
+        sessionController.gitStatus();
     }
 
     public void handleTrackDifBranch() {

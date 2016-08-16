@@ -14,9 +14,7 @@ public class StagedAndModifiedRepoFile extends RepoFile {
         super(filePath, repo);
         diffButton.setText("STAGED\nMODIFIED");
         diffButton.setId("stagedModifiedDiffButton");
-        Tooltip tooltip = new Tooltip("This file has a version stored in your git index\n and is ready to commit.");
-        tooltip.setFont(new javafx.scene.text.Font(12));
-        diffButton.setTooltip(tooltip);
+        diffButton.setTooltip(getToolTip("This file has a version stored in your git index\nand other changes in the working directory."));
     }
 
     public StagedAndModifiedRepoFile(String filePathString, RepoHelper repo) {

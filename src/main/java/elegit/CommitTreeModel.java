@@ -413,9 +413,6 @@ public abstract class CommitTreeModel{
     private Menu getRelativesMenu(CommitHelper commit) {
         Menu relativesMenu = new Menu("Show Relatives");
 
-        CheckMenuItem showEdgesItem = new CheckMenuItem("Show Only Relatives' Connections");
-        showEdgesItem.setDisable(true);
-
         MenuItem parentsItem = new MenuItem("Parents");
         parentsItem.setOnAction(event -> {
             logger.info("Selected see parents");
@@ -434,21 +431,7 @@ public abstract class CommitTreeModel{
             CommitTreeController.selectCommit(commit.getId(), true, true, false);
         });
 
-        MenuItem allAncestorsItem = new MenuItem("Ancestors");
-        allAncestorsItem.setOnAction(event -> {
-            logger.info("Selected see ancestors");
-            CommitTreeController.selectCommit(commit.getId(), true, false, true);
-        });
-
-        MenuItem allDescendantsItem = new MenuItem("Descendants");
-        allDescendantsItem.setOnAction(event -> {
-            logger.info("Selected see descendants");
-            CommitTreeController.selectCommit(commit.getId(), false, true, true);
-        });
-
-        relativesMenu.getItems().setAll(parentsItem, childrenItem, parentsAndChildrenItem,
-                new SeparatorMenuItem(), allAncestorsItem, allDescendantsItem,
-                new SeparatorMenuItem(), showEdgesItem);
+        relativesMenu.getItems().setAll(parentsItem, childrenItem, parentsAndChildrenItem);
 
         return relativesMenu;
     }
@@ -564,9 +547,11 @@ public abstract class CommitTreeModel{
         RepoHelper repo = sessionModel.getCurrentRepoHelper();
         List<BranchHelper> branchLabels = repo.getBranchModel().getAllBranches();
         List<TagHelper> tagLabels = repo.getTagModel().getAllTags();
+        List<RemoteBranchHelper> remotes = repo.getBranchModel().getRemoteBranchesTyped();
 
         Map<String, ContextMenu> branchMap = new HashMap<>();
         Map<String, ContextMenu> tagMap = new HashMap<>();
+        List<String> remoteBranches = new ArrayList<>();
 
         this.tagsInModel = repo.getTagModel().getAllTags();
 
@@ -596,6 +581,10 @@ public abstract class CommitTreeModel{
             }
         }
 
+        for (RemoteBranchHelper helper : remotes) {
+            remoteBranches.add(helper.getBranchName());
+        }
+
         // Set the labels
         for (String commit : commitLabelMap.keySet()) {
             String displayLabel = repo.getCommitDescriptorString(commit, false);
@@ -604,6 +593,7 @@ public abstract class CommitTreeModel{
 
             treeGraph.treeGraphModel.setTagCellLabels(commit, tagMap);
             treeGraph.treeGraphModel.setBranchCellLabels(commit, branchMap);
+            treeGraph.treeGraphModel.setRemoteBranchCells(commit, remoteBranches);
         }
     }
 

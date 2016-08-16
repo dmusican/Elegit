@@ -36,9 +36,7 @@ public class ConflictingRepoFile extends RepoFile {
         super(filePath, repo);
         diffButton.setText("CONFLICTING");
         diffButton.setId("conflictingDiffButton");
-        Tooltip tooltip = new Tooltip("This file caused a merge conflict.\nEdit the file to fix the conflict.");
-        tooltip.setFont(new javafx.scene.text.Font(12));
-        diffButton.setTooltip(tooltip);
+        diffButton.setTooltip(getToolTip("This file caused a merge conflict.\nEdit the file to fix the conflict."));
     }
 
     public ConflictingRepoFile(String filePathString, RepoHelper repo) {

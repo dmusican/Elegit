@@ -17,8 +17,7 @@
         </padding>
         <VBox   spacing="5"
                 alignment="CENTER">
-            <TabPane    VBox.vgrow="ALWAYS"
-                        style="-fx-border-color: grey;">
+            <TabPane    VBox.vgrow="ALWAYS">
                 <padding>
                     <Insets bottom="5"/>
                 </padding>
@@ -36,60 +35,66 @@
                             <CheckBox   fx:id="checkoutCheckBox"/>
                             <Text   text="checkout new branch once created"/>
                         </HBox>
-                        <Button text="Create branch"
-                                fx:id="createButton"
-                                onAction="#handleCreateBranch"/>
+                        <AnchorPane>
+                            <Button text="Cancel"
+                                    onAction="#closeWindow"
+                                    AnchorPane.leftAnchor="10"/>
+                            <Button text="Create branch"
+                                    fx:id="createButton"
+                                    onAction="#handleCreateBranch"
+                                    AnchorPane.rightAnchor="10"/>
+                        </AnchorPane>
                     </VBox>
                 </Tab>
-                <Tab    text="Delete"
+                <Tab    text="Delete Local"
                         closable="false">
-                    <HBox spacing="30"
-                          alignment="CENTER">
+                    <VBox   alignment="CENTER">
                         <StackPane>
                             <ImageView
-                                    fx:id = "remoteImage"
                                     fitHeight="137.5"
                                     fitWidth="137.5"
                                     opacity="0.2"
                                     preserveRatio="true">
                                 <Image url="@../images/repository.png"/>
                             </ImageView>
-                            <VBox   spacing="10"
-                                    alignment="CENTER">
-                                <ComboBox   fx:id="localBranchesDropdown"/>
-                                <Button text="Delete branch"
-                                        fx:id="deleteButton"
-                                        onAction="#handleDeleteLocalBranch"/>
-                            </VBox>
+                            <ComboBox   fx:id="localBranchesDropdown"/>
                         </StackPane>
+                        <AnchorPane>
+                            <Button text="Delete branch"
+                                    fx:id="deleteButton"
+                                    AnchorPane.rightAnchor="10"
+                                    onAction="#handleDeleteLocalBranch"/>
+                            <Button text="Cancel"
+                                    onAction="#closeWindow"
+                                    AnchorPane.leftAnchor="10"/>
+                        </AnchorPane>
+                    </VBox>
+                </Tab>
+                <Tab    text="Delete Remote"
+                        closable="false">
+                    <VBox   alignment="CENTER">
                         <StackPane>
                             <ImageView
-                                    fx:id = "remoteImage"
                                     fitHeight="175"
                                     fitWidth="175"
                                     opacity="0.2"
                                     preserveRatio="true">
                                 <Image url="@../images/graycloud.png"/>
                             </ImageView>
-                            <VBox   spacing="10"
-                                alignment="CENTER">
-                                <ComboBox   fx:id="remoteBranchesDropdown"/>
-                                <Button text="Delete branch"
-                                        fx:id="deleteButton2"
-                                        onAction="#handleDeleteRemoteBranch"/>
-                            </VBox>
+                            <ComboBox   fx:id="remoteBranchesDropdown"/>
                         </StackPane>
-                    </HBox>
+                        <AnchorPane>
+                            <Button text="Delete branch"
+                                    fx:id="deleteButton2"
+                                    onAction="#handleDeleteRemoteBranch"
+                                    AnchorPane.rightAnchor="10"/>
+                            <Button text="Cancel"
+                                    onAction="#closeWindow"
+                                    AnchorPane.leftAnchor="10"/>
+                        </AnchorPane>
+                    </VBox>
                 </Tab>
             </TabPane>
-            <AnchorPane>
-                <Button text="Cancel"
-                    onAction="#closeWindow"
-                    AnchorPane.leftAnchor="20"/>
-                <Button text="OK"
-                        onAction="#closeWindow"
-                        AnchorPane.rightAnchor="20"/>
-            </AnchorPane>
         </VBox>
     </StackPane>
 

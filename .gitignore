@@ -25,3 +25,6 @@ httpUsernamePassword.txt
 
 ._.DS_Store
 .DS_Store
+
+#jekyll folder
+vendor/*

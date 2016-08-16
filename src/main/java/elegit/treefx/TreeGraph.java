@@ -2,7 +2,6 @@ package elegit.treefx;
 
 import javafx.application.Platform;
 import javafx.geometry.Insets;
-import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.Pane;
@@ -26,7 +25,7 @@ public class TreeGraph{
     public TreeGraphModel treeGraphModel;
 
     // The layer within which the cells will be added
-    Pane cellLayer;
+    private Pane cellLayer;
 
     private volatile List<Node> queuedToAdd;
     private volatile List<Node> queuedToRemove;
@@ -101,7 +100,7 @@ public class TreeGraph{
         });
     }
 
-    public Pane getCellLayerPane() {
+    Pane getCellLayerPane() {
         return cellLayer;
     }
 }

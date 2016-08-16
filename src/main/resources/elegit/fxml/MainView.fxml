@@ -83,12 +83,29 @@
                 </Text>
                 <HBox   alignment="CENTER">
                     <Text   text="local branch: "/>
-                    <Text   fx:id="currentLocalBranchText"/>
+                    <HBox   fx:id="currentLocalBranchHbox"
+                            alignment="CENTER">
+                        <padding>
+                            <Insets right="5" left="5"/>
+                        </padding>
+                    </HBox>
                 </HBox>
-                <VBox   alignment="CENTER">
-                    <Text   text="remote-tracking branch: "/>
-                    <Text   fx:id="currentRemoteTrackingBranchText" text="N/A"/>
-                </VBox>
+                <GridPane   alignment="CENTER">
+                    <Text   GridPane.columnIndex="0"
+                            GridPane.rowIndex="0"
+                            GridPane.halignment="CENTER"
+                            text="remote-tracking branch: "/>
+                    <HBox   GridPane.columnIndex="0"
+                            GridPane.rowIndex="1"
+                            GridPane.hgrow="NEVER"
+                            GridPane.halignment="CENTER"
+                            fx:id="currentRemoteTrackingBranchHbox"
+                            alignment="CENTER">
+                        <padding>
+                            <Insets right="5" left="5"/>
+                        </padding>
+                    </HBox>
+                </GridPane>
             </VBox>
         </StackPane>
 
@@ -209,11 +226,19 @@
                      fx:id="commitButton"
                      text="Commit"
                      arrowRight="true"
-                     onAction="#handleCommitButton"
+                     onAction="#handleCommitNormal"
                      GridPane.rowIndex="1"
                      GridPane.columnIndex="1"
                      GridPane.valignment="TOP"
                      GridPane.halignment="LEFT">
+            <contextMenu>
+                <ContextMenu    fx:id="commitContextMenu">
+                    <items>
+                        <MenuItem   text="Commit -a"
+                                    onAction="#handleCommitAll"/>
+                    </items>
+                </ContextMenu>
+            </contextMenu>
             <GridPane.margin>
                 <Insets left="-10" right="-40" top="20"/>
             </GridPane.margin>
@@ -279,7 +304,7 @@
                 <Insets bottom="20" left="-40" right="-10"/>
             </GridPane.margin>
             <contextMenu>
-                <ContextMenu    fx:id="pushMenu">
+                <ContextMenu    fx:id="pushContextMenu">
                     <items>
                         <MenuItem   text="Push all branches"
                                     onAction="#handlePushAllButton"/>
@@ -318,12 +343,6 @@
                     <Text   text="remote: "/>
                     <Text fx:id="browserText"/>
                 </HBox>
-                <Button fx:id="changeLoginButton"
-                        text="Change Login"
-                        style="-fx-font-size: 10;"
-                        prefHeight="25"
-                        prefWidth="80"
-                        onAction="#handleChangeLoginButton"/>
             </VBox>
         </StackPane>
 
@@ -367,10 +386,8 @@
                          text="Tag"
                          arrowLeft="true"
                          onAction="#handleTagButton"/>
-            <TextArea   prefHeight="30"
+            <TextField   prefHeight="30"
                         prefWidth="170"
-                        prefRowCount="1"
-                        wrapText="true"
                         fx:id="tagNameField"
                         promptText="tag..." />
         </HBox>

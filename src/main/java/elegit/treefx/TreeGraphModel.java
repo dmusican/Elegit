@@ -284,6 +284,10 @@ public class TreeGraphModel{
         cellMap.get(cellId).setBranchLabels(branches);
     }
 
+    public void setRemoteBranchCells(String cellId, List<String> remoteBranches) {
+        cellMap.get(cellId).setRemoteLabels(remoteBranches);
+    }
+
     /**
      * Sets the shape of the cell with the given ID to be the given shape.
      * If the shape is not the default shape, adds it to the list of non-

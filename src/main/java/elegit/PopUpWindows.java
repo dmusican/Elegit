@@ -1,19 +1,25 @@
 package elegit;
 
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
+import javafx.scene.control.Dialog;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
+import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.controlsfx.control.CheckListView;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Created by connellyj on 7/7/16.
@@ -303,5 +309,216 @@ public class PopUpWindows {
         Optional<?> result = alert.showAndWait();
 
         return result.get() == deleteButton;
+    }
+
+    public static String pickRemoteToPushTo(Set<String> remotes) {
+        ReentrantLock lock = new ReentrantLock();
+        Condition finishedAlert = lock.newCondition();
+
+        final String[] result = new String[1];
+
+        Platform.runLater(() -> {
+            try {
+                lock.lock();
+
+                Alert alert = new Alert(Alert.AlertType.NONE);
+                alert.setTitle("Multiple remotes found");
+                alert.setHeaderText("There are multiple remote repositories associated with this repository.\nPick one to push to.");
+
+                ComboBox<String> remoteRepos = new ComboBox<>();
+                remoteRepos.setPromptText("Choose a remote...");
+                remoteRepos.setItems(FXCollections.observableArrayList(remotes));
+
+                ButtonType okButton = new ButtonType("OK", ButtonBar.ButtonData.OK_DONE);
+                ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+
+                alert.getDialogPane().setContent(remoteRepos);
+                alert.getButtonTypes().addAll(cancelButton, okButton);
+
+                Optional<?> alertResult = alert.showAndWait();
+
+                if(alertResult.isPresent()) {
+                    if(alertResult.get() == okButton) {
+                        result[0] = remoteRepos.getSelectionModel().getSelectedItem();
+                    }
+                }
+
+                finishedAlert.signal();
+            }finally {
+                lock.unlock();
+            }
+        });
+
+        lock.lock();
+
+        try {
+            finishedAlert.await();
+
+            if(result[0] != null) {
+                return result[0];
+            }
+
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }finally {
+            lock.unlock();
+        }
+
+        return "cancel";
+    }
+
+    public static String getCommitMessage() {
+        Alert alert = new Alert(Alert.AlertType.NONE);
+        alert.setTitle("Commit message");
+        alert.setResizable(true);
+
+        TextArea textArea = new TextArea();
+        textArea.setPromptText("Commit Message...");
+        textArea.setWrapText(true);
+        textArea.setPrefSize(250, 150);
+        textArea.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
+
+        HBox hBox = new HBox(textArea);
+        hBox.setAlignment(Pos.CENTER);
+
+        ButtonType okButton = new ButtonType("Commit", ButtonBar.ButtonData.OK_DONE);
+        ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+
+        alert.getDialogPane().setContent(hBox);
+        alert.getButtonTypes().addAll(cancelButton, okButton);
+
+        Optional<?> alertResult = alert.showAndWait();
+
+        if(alertResult.isPresent()) {
+            if (alertResult.get() == okButton && !textArea.getText().equals("")) {
+                return textArea.getText();
+            }
+        }
+        return "cancel";
+    }
+
+    public static ArrayList<LocalBranchHelper> getUntrackedBranchesToPush(ArrayList<LocalBranchHelper> branches) {
+        ReentrantLock lock = new ReentrantLock();
+        Condition finishedAlert = lock.newCondition();
+
+        final ArrayList<LocalBranchHelper> result = new ArrayList<>(branches.size());
+
+        Platform.runLater(() -> {
+            try {
+                lock.lock();
+
+                Alert alert = new Alert(Alert.AlertType.NONE);
+                alert.setTitle("Untracked local branches");
+                alert.setHeaderText("There are untracked local branches.\n" +
+                        "Select which branches to track remotely,\n" +
+                        "Or click Continue to move on.");
+
+                CheckListView<LocalBranchHelper> untrackedBranches = new CheckListView<>(FXCollections.observableArrayList(branches));
+
+                ButtonType okButton = new ButtonType("Continue", ButtonBar.ButtonData.CANCEL_CLOSE);
+                ButtonType trackButton = new ButtonType("Track Branches", ButtonBar.ButtonData.APPLY);
+
+                alert.getDialogPane().setContent(untrackedBranches);
+                alert.getButtonTypes().addAll(trackButton, okButton);
+
+                Optional<?> alertResult = alert.showAndWait();
+
+                if(alertResult.isPresent()) {
+                    if(alertResult.get() == trackButton) {
+                        result.addAll(untrackedBranches.getCheckModel().getCheckedItems());
+                    }
+                }
+
+                finishedAlert.signal();
+            }finally {
+                lock.unlock();
+            }
+        });
+
+        lock.lock();
+
+        try {
+            finishedAlert.await();
+
+            if(result.size() > 0) {
+                return result;
+            }
+
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }finally {
+            lock.unlock();
+        }
+
+        return null;
+    }
+
+    public static boolean trackCurrentBranchRemotely(String branchName) {
+        ReentrantLock lock = new ReentrantLock();
+        Condition finishedAlert = lock.newCondition();
+
+        final boolean[] result = new boolean[1];
+        result[0] = false;
+
+        Platform.runLater(() -> {
+            try {
+                lock.lock();
+
+                Alert alert = new Alert(Alert.AlertType.NONE);
+                alert.setTitle("push -u");
+
+                Label branchLabel = new Label(branchName);
+                HBox branchBox = new HBox(branchLabel);
+                // The CSS style classes weren't working here
+                branchBox.setStyle("    -fx-background-color: #1E90FF;\n" +
+                        "    -fx-background-radius: 5;\n" +
+                        "    -fx-padding: 0 3 0 3;");
+                branchLabel.setStyle("    -fx-text-fill: #FFFFFF;\n" +
+                        "    -fx-font-size: 14px;\n" +
+                        "    -fx-font-weight: bold;\n" +
+                        "    -fx-text-align: center;");
+
+                Text txt1 = new Text(" is not currently tracked remotely.");
+                Text txt2 = new Text("Would you like to create an upstream remote branch?");
+                txt1.setFont(new Font(14));
+                txt2.setFont(new Font(14));
+
+                HBox hBox = new HBox(branchBox, txt1);
+
+                VBox vBox = new VBox(hBox, txt2);
+                vBox.setSpacing(10);
+                vBox.setAlignment(Pos.CENTER);
+
+                ButtonType okButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+                ButtonType trackButton = new ButtonType("Yes", ButtonBar.ButtonData.APPLY);
+
+                alert.getDialogPane().setContent(vBox);
+                alert.getButtonTypes().addAll(trackButton, okButton);
+
+                Optional<?> alertResult = alert.showAndWait();
+
+                if(alertResult.isPresent()) {
+                    if(alertResult.get() == trackButton) {
+                        result[0] = true;
+                    }
+                }
+
+                finishedAlert.signal();
+            }finally {
+                lock.unlock();
+            }
+        });
+
+        lock.lock();
+
+        try {
+            finishedAlert.await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }finally {
+            lock.unlock();
+        }
+
+        return result[0];
     }
 }

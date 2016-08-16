@@ -16,8 +16,10 @@ import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.*;
+import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
@@ -77,7 +79,6 @@ public class SessionController {
     public Button addDeleteBranchButton;
     public Button checkoutButton;
     public Button tagButton;
-    public Button changeLoginButton;
 
     private SessionModel theModel;
 
@@ -98,10 +99,13 @@ public class SessionController {
     private String commitInfoNameText = "";
 
     public TextArea commitInfoMessageText;
-    public TextArea tagNameField;
+    public TextField tagNameField;
 
-    public Text currentLocalBranchText;
-    public Text currentRemoteTrackingBranchText;
+    public HBox currentLocalBranchHbox;
+    public HBox currentRemoteTrackingBranchHbox;
+    private Label currentLocalBranchLabel;
+    private Label currentRemoteTrackingLabel;
+
     public Text browserText;
     public Text needToFetch;
     public Text branchStatusText;
@@ -118,7 +122,8 @@ public class SessionController {
     static final Logger logger = LogManager.getLogger(SessionController.class);
 
     public ContextMenu newRepoOptionsMenu;
-    public ContextMenu pushMenu;
+    public ContextMenu pushContextMenu;
+    public ContextMenu commitContextMenu;
 
     public MenuItem cloneOption;
     public MenuItem existingOption;
@@ -159,6 +164,7 @@ public class SessionController {
 
         this.initializeLayoutParameters();
 
+        this.initButtons();
         this.setButtonIconsAndTooltips();
         this.setButtonsDisabled(true);
         this.initWorkingTreePanelTab();
@@ -172,7 +178,7 @@ public class SessionController {
 
         this.initRepositoryMonitor();
 
-        this.updateStatusText();
+        this.initStatusText();
 
         this.notificationPaneController.bindParentBounds(anchorRoot.heightProperty());
 
@@ -186,6 +192,45 @@ public class SessionController {
         authenticationFailedLastTime = false;
 
 
+    }
+
+    /**
+     * Helper method that creates the labels for the branch names
+     */
+    private void initStatusText() {
+        currentRemoteTrackingLabel = new Label("N/A");
+        currentLocalBranchLabel = new Label("N/A");
+        initCellLabel(currentLocalBranchLabel, currentLocalBranchHbox);
+        initCellLabel(currentRemoteTrackingLabel, currentRemoteTrackingBranchHbox);
+
+        updateStatusText();
+    }
+
+    /**
+     * Helper method that sets style for cell labels
+     * @param label the label that contains the branch name
+     * @param hbox  the hbox that contains the label
+     */
+    private void initCellLabel(Label label, HBox hbox){
+        hbox.getStyleClass().clear();
+        hbox.getStyleClass().add("cell-label-box");
+        label.getStyleClass().clear();
+        label.getStyleClass().add("cell-label");
+        label.setId("current");
+        hbox.setId("current");
+        hbox.getChildren().add(label);
+    }
+
+    /**
+     * Helper method for adding tooltips to nodes
+     * @param n the node to attach a tooltip to
+     * @param text the text for the tooltip
+     */
+    private void addToolTip(Node n, String text) {
+        Tooltip tooltip = new Tooltip(text);
+        tooltip.setWrapText(true);
+        tooltip.setMaxWidth(350);
+        Tooltip.install(n, tooltip);
     }
 
     /**
@@ -203,27 +248,30 @@ public class SessionController {
         needToFetch.setFont(new Font(15));
         needToFetch.setFill(fetchColor);
 
-        String localBranch = this.theModel.getCurrentRepoHelper().getBranchModel().getCurrentBranch().getAbbrevName();
-        update = !localBranch.equals(currentLocalBranchText.getText());
+        BranchHelper localBranch = this.theModel.getCurrentRepoHelper().getBranchModel().getCurrentBranch();
+        update = !localBranch.getAbbrevName().equals(currentLocalBranchLabel.getText());
         if (update) {
-            currentLocalBranchText.setText(localBranch);
-            currentLocalBranchText.setFont(new Font(15));
-            currentLocalBranchText.setFill(Color.DODGERBLUE);
+            currentLocalBranchLabel.setText(localBranch.getAbbrevName());
+            addToolTip(currentLocalBranchHbox, localBranch.getBranchName());
         }
 
         String remoteBranch = "N/A";
+        String remoteBranchFull = "N/A";
         try {
             remoteBranch = this.theModel.getCurrentRepoHelper().getBranchModel().getCurrentRemoteAbbrevBranch();
+            remoteBranchFull = this.theModel.getCurrentRepoHelper().getBranchModel().getCurrentRemoteBranch();
         } catch (IOException e) {
             this.showGenericErrorNotification();
         }
-        if (remoteBranch==null) remoteBranch = "N/A";
+        if (remoteBranch==null) {
+            remoteBranch = "N/A";
+            remoteBranchFull = "N/A";
+        }
 
-        update = !remoteBranch.equals(currentRemoteTrackingBranchText.getText());
+        update = !remoteBranch.equals(currentRemoteTrackingLabel.getText());
         if (update) {
-            currentRemoteTrackingBranchText.setText(remoteBranch);
-            currentRemoteTrackingBranchText.setFont(new Font(15));
-            currentRemoteTrackingBranchText.setFill(Color.DODGERBLUE);
+            currentRemoteTrackingLabel.setText(remoteBranch);
+            addToolTip(currentRemoteTrackingBranchHbox, remoteBranchFull);
         }
 
         // Ahead/behind count
@@ -236,7 +284,7 @@ public class SessionController {
         }
         String statusText="Up to date.";
         if (ahead >0) {
-            statusText=currentLocalBranchText.getText() + " ahead of " + currentRemoteTrackingBranchText.getText() + " by " + ahead + " commit";
+            statusText= currentLocalBranchLabel.getText() + " ahead of " + currentRemoteTrackingLabel.getText() + " by " + ahead + " commit";
             if (ahead > 1)
                 statusText+="s";
             if (behind > 0) {
@@ -246,7 +294,7 @@ public class SessionController {
             }
             statusText+=".";
         } else if (behind > 0) {
-            statusText = currentLocalBranchText.getText() + " behind " + currentRemoteTrackingBranchText.getText() + " by " + behind + " commit";
+            statusText = currentLocalBranchLabel.getText() + " behind " + currentRemoteTrackingLabel.getText() + " by " + behind + " commit";
             if (behind > 1)
                 statusText+="s";
             statusText+=".";
@@ -299,7 +347,6 @@ public class SessionController {
         fetchButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         commitInfoNameCopyButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         commitInfoGoToButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
-        changeLoginButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
 
         // Set minimum sizes for other fields and views
         workingTreePanelView.setMinSize(Control.USE_PREF_SIZE, 200);
@@ -311,9 +358,9 @@ public class SessionController {
     }
 
     /**
-     * Adds graphics and tooltips to the buttons
+     * Adds context menus and properties to buttons
      */
-    private void setButtonIconsAndTooltips() {
+    private void initButtons() {
         anythingChecked = new SimpleBooleanProperty(false);
         checkoutFileButton.disableProperty().bind(anythingChecked.not());
         addButton.disableProperty().bind(anythingChecked.not());
@@ -323,13 +370,31 @@ public class SessionController {
 
         pushButton.setOnMouseClicked(event -> {
             if(event.getButton() == MouseButton.SECONDARY){
-                if(pushMenu != null){
-                    pushMenu.show(pushButton, event.getScreenX(), event.getScreenY());
+                if(pushContextMenu != null){
+                    pushContextMenu.show(pushButton, event.getScreenX(), event.getScreenY());
                 }
             }
             event.consume();
         });
 
+        commitButton.setOnMouseClicked(event -> {
+            if(event.getButton() == MouseButton.SECONDARY){
+                if(commitContextMenu != null){
+                    commitContextMenu.show(commitButton, event.getScreenX(), event.getScreenY());
+                }
+            }
+            event.consume();
+        });
+
+        tagNameField.setOnKeyTyped(event -> {
+            if (event.getCharacter().equals("\r")) handleTagButton();
+        });
+    }
+
+    /**
+     * Adds graphics and tooltips to the buttons
+     */
+    private void setButtonIconsAndTooltips() {
         Text openExternallyIcon = GlyphsDude.createIcon(FontAwesomeIcon.EXTERNAL_LINK);
         this.openRepoDirButton.setGraphic(openExternallyIcon);
         this.openRepoDirButton.setTooltip(new Tooltip("Open repository directory"));
@@ -466,8 +531,8 @@ public class SessionController {
             checkoutButton.setDisable(disable);
             mergeButton.setDisable(disable);
             needToFetch.setVisible(!disable);
-            currentLocalBranchText.setVisible(!disable);
-            currentRemoteTrackingBranchText.setVisible(!disable);
+            currentLocalBranchHbox.setVisible(!disable);
+            currentRemoteTrackingBranchHbox.setVisible(!disable);
             branchStatusText.setVisible(!disable);
         });
 
@@ -866,35 +931,48 @@ public class SessionController {
         }
     }
 
+    private enum CommitType{NORMAL, ALL}
+
+    public void handleCommitAll() {
+        handleCommitButton(CommitType.ALL);
+    }
+
+    public void handleCommitNormal() {
+        handleCommitButton(CommitType.NORMAL);
+    }
+
     /**
      * Commits all files that have been staged with the message
      */
-    public void handleCommitButton() {
+    public void handleCommitButton(CommitType type) {
         try {
             logger.info("Commit button clicked");
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
             if(!this.theModel.getCurrentRepoHelper().exists()) throw new MissingRepoException();
 
-            if(!workingTreePanelView.isAnyFileStaged()) throw new NoFilesStagedForCommitException();
-
-            BusyWindow.show();
-            BusyWindow.setLoadingText("Committing...");
+            if(!workingTreePanelView.isAnyFileStaged() && type.equals(CommitType.NORMAL)) throw new NoFilesStagedForCommitException();
 
             try{
-                logger.info("Commit manager clicked");
+                logger.info("Commit button clicked");
                 if(theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
 
-                logger.info("Opened commit manager window");
-                // Create and display the Stage:
-                FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/CommitView.fxml"));
-                fxmlLoader.load();
-                CommitController commitController = fxmlLoader.getController();
-                commitController.isClosed.addListener((observable, oldValue, newValue) -> {
-                    if (!oldValue && newValue)
-                        gitStatus();
-                });
-                GridPane fxmlRoot = fxmlLoader.getRoot();
-                commitController.showStage(fxmlRoot);
+                if(type.equals(CommitType.NORMAL)) {
+                    BusyWindow.show();
+                    BusyWindow.setLoadingText("Committing...");
+                    logger.info("Opened commit manager window");
+                    // Create and display the Stage:
+                    FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/CommitView.fxml"));
+                    fxmlLoader.load();
+                    CommitController commitController = fxmlLoader.getController();
+                    commitController.isClosed.addListener((observable, oldValue, newValue) -> {
+                        if (!oldValue && newValue)
+                            gitStatus();
+                    });
+                    GridPane fxmlRoot = fxmlLoader.getRoot();
+                    commitController.showStage(fxmlRoot);
+                }else {
+                    theModel.getCurrentRepoHelper().commitAll();
+                }
             }catch(IOException e){
                 showGenericErrorNotification();
                 e.printStackTrace();
@@ -939,19 +1017,21 @@ public class SessionController {
             Thread th = new Thread(new Task<Void>(){
                 @Override
                 protected Void call() {
-                    try{
+                    try {
                         theModel.getCurrentRepoHelper().getTagModel().tag(tagName, commitInfoNameText);
 
                         // Now clear the tag text and a view reload ( or `git status`) to show that something happened
                         tagNameField.clear();
                         gitStatus();
-                    }catch(JGitInternalException e){
+                    } catch (JGitInternalException e) {
                         showJGitInternalError(e);
-                    } catch(MissingRepoException e){
+                    } catch (MissingRepoException e) {
                         showMissingRepoNotification();
                         setButtonsDisabled(true);
                         refreshRecentReposInDropdown();
-                    } catch (TransportException e) {
+                    } catch (InvalidTagNameException e) {
+                        showInvalidTagNameNotification(tagName);
+                    }catch (TransportException e) {
                         showNotAuthorizedNotification();
                     } catch(GitAPIException e){
                         // Git error
@@ -988,7 +1068,7 @@ public class SessionController {
         }
     }
 
-    enum PushType {BRANCH, ALL};
+    public enum PushType {BRANCH, ALL}
 
     public void handlePushButton() {
         pushBranchOrAll(PushType.BRANCH);
@@ -1060,20 +1140,20 @@ public class SessionController {
                         new UsernamePasswordCredentialsProvider(response.username, response.password);
             }
             if (pushType == PushType.BRANCH) {
-                helper.pushCurrentBranch();
+                helper.pushCurrentBranch(false);
             } else if (pushType == PushType.ALL) {
                 helper.pushAll();
             } else {
                 assert false : "PushType enum case not handled";
             }
             gitStatus();
-        }  catch(InvalidRemoteException e){
+        } catch (InvalidRemoteException e) {
             showNoRemoteNotification();
-        }
-        catch(PushToAheadRemoteError e) {
+        } catch (NoCommitsToPushException e) {
+            showNoCommitsToPushNotification();
+        } catch (PushToAheadRemoteError e) {
             showPushToAheadRemoteNotification(e.isAllRefsRejected());
-        }
-        catch (TransportException e) {
+        } catch (TransportException e) {
             if (e.getMessage().contains("git-receive-pack not found")) {
                 // The error has this message if there is no longer a remote to push to
                 showLostRemoteNotification();
@@ -1787,7 +1867,7 @@ public class SessionController {
      */
     private void updateUser(String type) {
         Platform.runLater(() -> {
-            Text txt = new Text(" Branch" + type);
+            Text txt = new Text(" Branch " + type);
             PopOver popOver = new PopOver(txt);
             popOver.setTitle("");
             popOver.show(commitTreePanelView);
@@ -1912,60 +1992,6 @@ public class SessionController {
             setButtonsDisabled(true);
         }
     }
-
-    /**
-     * Called when the change login button is clicked.
-     */
-    public void handleChangeLoginButton() {
-        try {
-            logger.info("Username button clicked");
-
-            if(this.theModel.getCurrentRepoHelper() == null) {
-                throw new NoRepoLoadedException();
-            }
-            this.changeLogin();
-        } catch (NoRepoLoadedException e) {
-            showNoRepoLoadedNotification();
-            setButtonsDisabled(true);
-        }
-    }
-
-    /**
-     * Creates a new owner and sets it as the current default owner.
-     */
-    private boolean changeLogin() {
-        SessionModel sessionModel = SessionModel.getSessionModel();
-        RepoHelper repoHelper = sessionModel.getCurrentRepoHelper();
-
-        try {
-            RepoHelperBuilder.AuthDialogResponse response =
-                    RepoHelperBuilder.getAuthCredentialFromDialog();
-            repoHelper.setAuthCredentials(new UsernamePasswordCredentialsProvider(response.username,
-                    response.password));
-        } catch (CancelledAuthorizationException e) {
-            // take no action
-        }
-
-
-//        boolean switchedUser = true;
-//
-//        RepoHelper currentRepoHelper = theModel.getCurrentRepoHelper();
-//
-//        try {
-//            currentRepoHelper.presentUsernameDialog();
-//        } catch (CancelledUsernameException e) {
-//            switchedUser = false;
-//        }
-//
-//        this.updateLoginButtonText();
-//        if (switchedUser) {
-//            this.theModel.setCurrentDefaultUsername(currentRepoHelper.getUsername());
-//        }
-//
-//        return switchedUser;
-        return true;
-    }
-
 
     /**
      * Opens up the help page to inform users about what symbols mean
@@ -2096,6 +2122,13 @@ public class SessionController {
         Platform.runLater(() -> {
             logger.warn("Invalid remote warning");
             this.notificationPaneController.addNotification("Make sure you entered the correct remote URL.");
+        });
+    }
+
+    private void showInvalidTagNameNotification(String tagName) {
+        Platform.runLater(() -> {
+            logger.warn("Invalid tag name exception");
+            this.notificationPaneController.addNotification("The tag name '"+tagName+"' is invalid.\nRemove any of .~^:?*[]{}@ and try again.");
         });
     }
 

@@ -110,7 +110,7 @@ public class RemoteBranchTest {
         // Check that we can push
         assertEquals(true, helperPush.canPush());
 
-        helperPush.pushCurrentBranch();
+        helperPush.pushCurrentBranch(true);
         helperPush.updateModel();
         // Check that there is a remote branch now
         assertEquals(true, helperPush.getBranchModel().getRemoteBranchesTyped().toString().contains("new_branch"));
