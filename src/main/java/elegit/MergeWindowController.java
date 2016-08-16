@@ -197,7 +197,6 @@ public class MergeWindowController {
             }
             if (mergeTypePane.getSelectionModel().isSelected(REMOTE_PANE)) {
                 mergeFromFetch();
-                closeWindow();
             }
         } catch (JGitInternalException e) {
             showJGitInternalError(e);
