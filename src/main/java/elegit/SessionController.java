@@ -1808,7 +1808,7 @@ public class SessionController {
      */
     private void updateUser(String type) {
         Platform.runLater(() -> {
-            Text txt = new Text(" Branch" + type);
+            Text txt = new Text(" Branch " + type);
             PopOver popOver = new PopOver(txt);
             popOver.setTitle("");
             popOver.show(commitTreePanelView);
