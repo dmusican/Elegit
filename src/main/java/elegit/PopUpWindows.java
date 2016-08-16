@@ -10,14 +10,14 @@ import javafx.scene.control.Dialog;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
+import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.controlsfx.control.CheckListView;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -395,5 +395,130 @@ public class PopUpWindows {
             }
         }
         return "cancel";
+    }
+
+    public static ArrayList<LocalBranchHelper> getUntrackedBranchesToPush(ArrayList<LocalBranchHelper> branches) {
+        ReentrantLock lock = new ReentrantLock();
+        Condition finishedAlert = lock.newCondition();
+
+        final ArrayList<LocalBranchHelper> result = new ArrayList<>(branches.size());
+
+        Platform.runLater(() -> {
+            try {
+                lock.lock();
+
+                Alert alert = new Alert(Alert.AlertType.NONE);
+                alert.setTitle("Untracked local branches");
+                alert.setHeaderText("There are untracked local branches.\n" +
+                        "Select which branches to track remotely,\n" +
+                        "Or click Continue to move on.");
+
+                CheckListView<LocalBranchHelper> untrackedBranches = new CheckListView<>(FXCollections.observableArrayList(branches));
+
+                ButtonType okButton = new ButtonType("Continue", ButtonBar.ButtonData.CANCEL_CLOSE);
+                ButtonType trackButton = new ButtonType("Track Branches", ButtonBar.ButtonData.APPLY);
+
+                alert.getDialogPane().setContent(untrackedBranches);
+                alert.getButtonTypes().addAll(trackButton, okButton);
+
+                Optional<?> alertResult = alert.showAndWait();
+
+                if(alertResult.isPresent()) {
+                    if(alertResult.get() == trackButton) {
+                        result.addAll(untrackedBranches.getCheckModel().getCheckedItems());
+                    }
+                }
+
+                finishedAlert.signal();
+            }finally {
+                lock.unlock();
+            }
+        });
+
+        lock.lock();
+
+        try {
+            finishedAlert.await();
+
+            if(result.size() > 0) {
+                return result;
+            }
+
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }finally {
+            lock.unlock();
+        }
+
+        return null;
+    }
+
+    public static boolean trackCurrentBranchRemotely(String branchName) {
+        ReentrantLock lock = new ReentrantLock();
+        Condition finishedAlert = lock.newCondition();
+
+        final boolean[] result = new boolean[1];
+        result[0] = false;
+
+        Platform.runLater(() -> {
+            try {
+                lock.lock();
+
+                Alert alert = new Alert(Alert.AlertType.NONE);
+                alert.setTitle("push -u");
+
+                Label branchLabel = new Label(branchName);
+                HBox branchBox = new HBox(branchLabel);
+                // The CSS style classes weren't working here
+                branchBox.setStyle("    -fx-background-color: #1E90FF;\n" +
+                        "    -fx-background-radius: 5;\n" +
+                        "    -fx-padding: 0 3 0 3;");
+                branchLabel.setStyle("    -fx-text-fill: #FFFFFF;\n" +
+                        "    -fx-font-size: 14px;\n" +
+                        "    -fx-font-weight: bold;\n" +
+                        "    -fx-text-align: center;");
+
+                Text txt1 = new Text(" is not currently tracked remotely.");
+                Text txt2 = new Text("Would you like to create an upstream remote branch?");
+                txt1.setFont(new Font(14));
+                txt2.setFont(new Font(14));
+
+                HBox hBox = new HBox(branchBox, txt1);
+
+                VBox vBox = new VBox(hBox, txt2);
+                vBox.setSpacing(10);
+                vBox.setAlignment(Pos.CENTER);
+
+                ButtonType okButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+                ButtonType trackButton = new ButtonType("Yes", ButtonBar.ButtonData.APPLY);
+
+                alert.getDialogPane().setContent(vBox);
+                alert.getButtonTypes().addAll(trackButton, okButton);
+
+                Optional<?> alertResult = alert.showAndWait();
+
+                if(alertResult.isPresent()) {
+                    if(alertResult.get() == trackButton) {
+                        result[0] = true;
+                    }
+                }
+
+                finishedAlert.signal();
+            }finally {
+                lock.unlock();
+            }
+        });
+
+        lock.lock();
+
+        try {
+            finishedAlert.await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }finally {
+            lock.unlock();
+        }
+
+        return result[0];
     }
 }

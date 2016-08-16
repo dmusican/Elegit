@@ -8,13 +8,11 @@ import elegit.exceptions.*;
 import elegit.treefx.Cell;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
-import elegit.exceptions.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
-import org.eclipse.jgit.api.errors.TransportException;
 import org.eclipse.jgit.ignore.IgnoreNode;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.revplot.PlotCommitList;
@@ -520,7 +518,7 @@ public class RepoHelper {
      * @throws GitAPIException
      * @throws PushToAheadRemoteError
      */
-    public void pushCurrentBranch() throws MissingRepoException, GitAPIException, PushToAheadRemoteError, IOException {
+    public void pushCurrentBranch(boolean isTest) throws MissingRepoException, GitAPIException, PushToAheadRemoteError, IOException, NoCommitsToPushException {
         BranchHelper branchToPush = this.getBranchModel().getCurrentBranch();
         logger.info("attempting to push current branch");
         if (!exists()) throw new MissingRepoException();
@@ -559,6 +557,14 @@ public class RepoHelper {
 //            }
 //        } while (authUpdateNeeded);
 
+        if(this.getBranchModel().getCurrentRemoteBranch() == null) {
+            if(isTest || PopUpWindows.trackCurrentBranchRemotely(branchToPush.getBranchName())){
+                setUpstreamBranch(branchToPush, remote);
+            }else {
+                throw new NoCommitsToPushException();
+            }
+        }
+
         Iterable<PushResult> pushResult = push.call();
 
         for(PushResult result : pushResult) {
@@ -570,10 +576,6 @@ public class RepoHelper {
         }
 
         git.close();
-
-        if(this.getBranchModel().getCurrentRemoteBranch() == null) {
-            setUpstreamBranch(branchToPush, remote);
-        }
 
         this.remoteCommits = parseAllRemoteCommits();
     }
@@ -611,16 +613,44 @@ public class RepoHelper {
      *
      * @throws GitAPIException if the `git push` call fails.
      */
-    public void pushAll() throws GitAPIException, MissingRepoException, PushToAheadRemoteError, IOException {
+    public void pushAll() throws GitAPIException, MissingRepoException, PushToAheadRemoteError, IOException, NoCommitsToPushException {
         logger.info("Attempting push");
         if (!exists()) throw new MissingRepoException();
         if (!hasRemote()) throw new InvalidRemoteException("No remote repository");
         Git git = new Git(this.repo);
 
+        // Gets the remote
         String remote = getRemote();
         if (remote.equals("cancel")) return;
 
-        PushCommand push = git.push().setRemote(remote).setPushAll();
+        PushCommand push = git.push().setRemote(remote);
+
+        ArrayList<LocalBranchHelper> untrackedLocalBranches = new ArrayList<>();
+        ArrayList<LocalBranchHelper> branchesToTrack = new ArrayList<>();
+
+        // Gets all local branches with remote branches and adds them to the push call
+        for(LocalBranchHelper branch : this.branchModel.getLocalBranchesTyped()) {
+            if(BranchTrackingStatus.of(this.repo, branch.getBranchName()) != null) {
+                push.add(branch.getRefPathString());
+            }else {
+                untrackedLocalBranches.add(branch);
+            }
+        }
+
+        // Asks the user which untracked local branches to push and track
+        if(untrackedLocalBranches.size() > 0) {
+            branchesToTrack = PopUpWindows.getUntrackedBranchesToPush(untrackedLocalBranches);
+            if(branchesToTrack != null) {
+                for(LocalBranchHelper branch : branchesToTrack) {
+                    push.add(branch.getRefPathString());
+                    setUpstreamBranch(branch, remote);
+                }
+            }else {
+                if(this.getAheadCountAll() < 1) {
+                    throw new NoCommitsToPushException();
+                }
+            }
+        }
 
         myWrapAuthentication(push);
         ProgressMonitor progress = new SimpleProgressMonitor();
@@ -645,10 +675,6 @@ public class RepoHelper {
         }
 
         git.close();
-
-        for(LocalBranchHelper branch : this.branchModel.getLocalBranchesTyped()) {
-            setUpstreamBranch(branch, remote);
-        }
 
         this.remoteCommits = parseAllRemoteCommits();
     }

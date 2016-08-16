@@ -1066,7 +1066,7 @@ public class SessionController {
         }
     }
 
-    private enum PushType {BRANCH, ALL}
+    public enum PushType {BRANCH, ALL}
 
     public void handlePushButton() {
         pushBranchOrAll(PushType.BRANCH);
@@ -1108,15 +1108,17 @@ public class SessionController {
                                     new UsernamePasswordCredentialsProvider(response.username, response.password);
                         }
                         if (pushType == PushType.BRANCH) {
-                            helper.pushCurrentBranch();
+                            helper.pushCurrentBranch(false);
                         } else if (pushType == PushType.ALL) {
                             helper.pushAll();
                         } else {
                             assert false : "PushType enum case not handled";
                         }
                         gitStatus();
-                    }  catch(InvalidRemoteException e){
+                    }catch(InvalidRemoteException e){
                         showNoRemoteNotification();
+                    }catch (NoCommitsToPushException e){
+                        showNoCommitsToPushNotification();
                     }
                     catch(PushToAheadRemoteError e) {
                         showPushToAheadRemoteNotification(e.isAllRefsRejected());
