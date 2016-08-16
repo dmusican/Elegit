@@ -1,5 +1,6 @@
 package elegit;
 
+import org.eclipse.jgit.api.PushCommand;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.junit.After;
 import org.junit.Before;
@@ -101,7 +102,8 @@ public class RemoteBranchTest {
         // Check that we can push
         assertEquals(true, helperPush.canPush());
 
-        helperPush.prepareToPushCurrentBranch(true);
+        PushCommand push = helperPush.prepareToPushCurrentBranch(true);
+        helperPush.pushCurrentBranch(push);
         helperPush.updateModel();
         // Check that there is a remote branch now
         assertEquals(true, helperPush.getBranchModel().getRemoteBranchesTyped().toString().contains("new_branch"));

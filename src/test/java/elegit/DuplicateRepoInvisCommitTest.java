@@ -1,5 +1,6 @@
 package elegit;
 
+import org.eclipse.jgit.api.PushCommand;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.junit.After;
 import org.junit.Before;
@@ -109,7 +110,8 @@ public class DuplicateRepoInvisCommitTest {
         assertEquals(repo1OldHead.getId(), repo2OldHead.getId());
 
         // Push the previous commit
-        repo1.prepareToPushAll();
+        PushCommand push = repo1.prepareToPushAll();
+        repo1.pushAll(push);
 
         // Fetch into the second repo
         repo2.fetch();
