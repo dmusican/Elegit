@@ -52,6 +52,8 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.prefs.BackingStoreException;
 
 /**
@@ -134,7 +136,7 @@ public class SessionController {
     @FXML private StackPane notificationPane;
     @FXML private NotificationController notificationPaneController;
 
-    boolean authenticateOnNextCommand;
+    boolean authenticationFailedLastTime;
 
     /**
      * Initializes the environment by obtaining the model
@@ -187,7 +189,7 @@ public class SessionController {
             e.printStackTrace();
         }
 
-        authenticateOnNextCommand = false;
+        authenticationFailedLastTime = false;
 
 
     }
@@ -1087,68 +1089,29 @@ public class SessionController {
             if(pushType == PushType.BRANCH &&
                     !this.theModel.getCurrentRepoHelper().canPush()) throw new NoCommitsToPushException();
 
-            final RepoHelperBuilder.AuthDialogResponse response;
-            if (authenticateOnNextCommand) {
-                response = RepoHelperBuilder.getAuthCredentialFromDialog();
-            } else {
-                response = null;
-            }
+            final RepoHelperBuilder.AuthDialogResponse credentialResponse = askUserForCredentials();
 
             BusyWindow.show();
             BusyWindow.setLoadingText("Pushing...");
             Thread th = new Thread(new Task<Void>(){
                 @Override
                 protected Void call() {
-                    boolean authorizationSucceeded = true;
-                    try{
-                        RepositoryMonitor.resetFoundNewChanges(false);
-                        RepoHelper helper = theModel.getCurrentRepoHelper();
-                        if (response != null) {
-                            helper.ownerAuth =
-                                    new UsernamePasswordCredentialsProvider(response.username, response.password);
-                        }
-                        if (pushType == PushType.BRANCH) {
-                            helper.pushCurrentBranch(false);
-                        } else if (pushType == PushType.ALL) {
-                            helper.pushAll();
-                        } else {
-                            assert false : "PushType enum case not handled";
-                        }
-                        gitStatus();
-                    }catch(InvalidRemoteException e){
-                        showNoRemoteNotification();
-                    }catch (NoCommitsToPushException e){
-                        showNoCommitsToPushNotification();
-                    }
-                    catch(PushToAheadRemoteError e) {
-                        showPushToAheadRemoteNotification(e.isAllRefsRejected());
-                    }
-                    catch (TransportException e) {
-                        if (e.getMessage().contains("git-receive-pack not found")) {
-                            // The error has this message if there is no longer a remote to push to
-                            showLostRemoteNotification();
-                        } else {
-                            showNotAuthorizedNotification();
-                            authorizationSucceeded = false;
-                        }
-                    } catch(MissingRepoException e){
-                        showMissingRepoNotification();
-                        setButtonsDisabled(true);
-                        refreshRecentReposInDropdown();
-                    } catch(Exception e) {
-                        showGenericErrorNotification();
-                        e.printStackTrace();
-                    } finally{
+                    authenticationFailedLastTime = false;
+                    try {
+                        pushBranchOrAllDetails(credentialResponse, pushType);
+                    } catch (TransportException e) {
+                        showNotAuthorizedNotification();
+                        authenticationFailedLastTime = true;
+                    } finally {
                         BusyWindow.hide();
-                        if (authorizationSucceeded) {
-                            authenticateOnNextCommand = false;
-                        } else {
-                            authenticateOnNextCommand = true;
-                            Platform.runLater(() -> {
-                                pushBranchOrAll(pushType);
-                            });
-                        }
                     }
+
+                    if (authenticationFailedLastTime) {
+                        Platform.runLater(() -> {
+                            pushBranchOrAll(pushType);
+                        });
+                    }
+
                     return null;
                 }
             });
@@ -1167,6 +1130,56 @@ public class SessionController {
         }
     }
 
+    private void pushBranchOrAllDetails(RepoHelperBuilder.AuthDialogResponse response, PushType pushType) throws
+            TransportException {
+        try{
+            RepositoryMonitor.resetFoundNewChanges(false);
+            RepoHelper helper = theModel.getCurrentRepoHelper();
+            if (response != null) {
+                helper.ownerAuth =
+                        new UsernamePasswordCredentialsProvider(response.username, response.password);
+            }
+            if (pushType == PushType.BRANCH) {
+                helper.pushCurrentBranch(false);
+            } else if (pushType == PushType.ALL) {
+                helper.pushAll();
+            } else {
+                assert false : "PushType enum case not handled";
+            }
+            gitStatus();
+        } catch (InvalidRemoteException e) {
+            showNoRemoteNotification();
+        } catch (NoCommitsToPushException e) {
+            showNoCommitsToPushNotification();
+        } catch (PushToAheadRemoteError e) {
+            showPushToAheadRemoteNotification(e.isAllRefsRejected());
+        } catch (TransportException e) {
+            if (e.getMessage().contains("git-receive-pack not found")) {
+                // The error has this message if there is no longer a remote to push to
+                showLostRemoteNotification();
+            } else {
+                throw e;
+            }
+        } catch(MissingRepoException e){
+            showMissingRepoNotification();
+            setButtonsDisabled(true);
+            refreshRecentReposInDropdown();
+        } catch(Exception e) {
+            showGenericErrorNotification();
+            e.printStackTrace();
+        }
+    }
+
+    private RepoHelperBuilder.AuthDialogResponse askUserForCredentials() throws CancelledAuthorizationException {
+        final RepoHelperBuilder.AuthDialogResponse response;
+        if (authenticationFailedLastTime) {
+            response = RepoHelperBuilder.getAuthCredentialFromDialog();
+        } else {
+            response = null;
+        }
+        return response;
+    }
+
 
     /**
      * Performs a `git push --tags`
@@ -1177,75 +1190,29 @@ public class SessionController {
 
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
 
-            final RepoHelperBuilder.AuthDialogResponse response;
-            if (authenticateOnNextCommand) {
-                response = RepoHelperBuilder.getAuthCredentialFromDialog();
-            } else {
-                response = null;
-            }
+            final RepoHelperBuilder.AuthDialogResponse credentialResponse = askUserForCredentials();
 
-
+            BusyWindow.show();
+            BusyWindow.setLoadingText("Pushing tags...");
             Thread th = new Thread(new Task<Void>(){
                 @Override
                 protected Void call() {
-                    boolean tagsPushed = true;
-                    boolean authorizationSucceeded = true;
-                    Iterable<PushResult> results = null;
-                    try{
-                        RepositoryMonitor.resetFoundNewChanges(false);
-                        RepoHelper helper = theModel.getCurrentRepoHelper();
-                        if (response != null) {
-                            helper.ownerAuth =
-                                    new UsernamePasswordCredentialsProvider(response.username, response.password);
-                        }
-                        results = helper.pushTags();
-                        gitStatus();
-                    }  catch(InvalidRemoteException e){
-                        showNoRemoteNotification();
-                        tagsPushed = false;
-                    } catch(PushToAheadRemoteError e) {
-                        showPushToAheadRemoteNotification(e.isAllRefsRejected());
-                        tagsPushed = false;
+                    authenticationFailedLastTime = false;
+                    try {
+                        handlePushTagsButtonDetails(credentialResponse);
                     } catch (TransportException e) {
-                        if (e.getMessage().contains("git-receive-pack not found")) {
-                            // The error has this message if there is no longer a remote to push to
-                            showLostRemoteNotification();
-                        } else {
-                            showNotAuthorizedNotification();
-                            authorizationSucceeded = false;
-                        }
-                        tagsPushed = false;
-                    } catch(MissingRepoException e){
-                        showMissingRepoNotification();
-                        setButtonsDisabled(true);
-                        refreshRecentReposInDropdown();
-                        tagsPushed = false;
-                    } catch(Exception e) {
-                        showGenericErrorNotification();
-                        e.printStackTrace();
-                        tagsPushed = false;
+                        showNotAuthorizedNotification();
+                        authenticationFailedLastTime = true;
                     } finally {
-                        if (authorizationSucceeded) {
-                            authenticateOnNextCommand = false;
-                            boolean upToDate = true;
-                            if (tagsPushed) {
-                                if (results == null) upToDate = false;
-                                else
-                                    for (PushResult result : results)
-                                        for (RemoteRefUpdate update : result.getRemoteUpdates())
-                                            if (update.getStatus() == RemoteRefUpdate.Status.OK)
-                                                upToDate=false;
-                            }
-                            if (upToDate) showTagsUpToDateNotification();
-                            else showTagsUpdatedNotification();
-                        } else {
-                            authenticateOnNextCommand = true;
-                            Platform.runLater(() -> {
-                                handlePushTagsButton();
-                            });
-                        }
-
+                        BusyWindow.hide();
                     }
+
+                    if (authenticationFailedLastTime) {
+                        Platform.runLater(() -> {
+                            handlePushTagsButton();
+                        });
+                    }
+
                     return null;
                 }
             });
@@ -1259,6 +1226,54 @@ public class SessionController {
             this.showCommandCancelledNotification();
         }
 
+    }
+
+    private void handlePushTagsButtonDetails(RepoHelperBuilder.AuthDialogResponse response) throws TransportException {
+        Iterable<PushResult> results;
+        try{
+            RepositoryMonitor.resetFoundNewChanges(false);
+            RepoHelper helper = theModel.getCurrentRepoHelper();
+            if (response != null) {
+                helper.ownerAuth =
+                        new UsernamePasswordCredentialsProvider(response.username, response.password);
+            }
+            results = helper.pushTags();
+            gitStatus();
+
+            boolean upToDate = true;
+
+            if (results == null)
+                upToDate = false;
+            else
+                for (PushResult result : results)
+                    for (RemoteRefUpdate update : result.getRemoteUpdates())
+                        if (update.getStatus() == RemoteRefUpdate.Status.OK)
+                            upToDate=false;
+
+            if (upToDate)
+                showTagsUpToDateNotification();
+            else
+                showTagsUpdatedNotification();
+
+        } catch(InvalidRemoteException e){
+            showNoRemoteNotification();
+        } catch(PushToAheadRemoteError e) {
+            showPushToAheadRemoteNotification(e.isAllRefsRejected());
+        } catch (TransportException e) {
+            if (e.getMessage().contains("git-receive-pack not found")) {
+                // The error has this message if there is no longer a remote to push to
+                showLostRemoteNotification();
+            } else {
+                throw e;
+            }
+        } catch(MissingRepoException e){
+            showMissingRepoNotification();
+            setButtonsDisabled(true);
+            refreshRecentReposInDropdown();
+        } catch(Exception e) {
+            showGenericErrorNotification();
+            e.printStackTrace();
+        }
     }
 
 
@@ -1313,26 +1328,8 @@ public class SessionController {
                     branchModel.deleteLocalBranch((LocalBranchHelper) selectedBranch);
                     updateUser(selectedBranch.getBranchName() + " deleted.");
                 }else {
-                    final RepoHelperBuilder.AuthDialogResponse response;
-                    if (authenticateOnNextCommand) {
-                        response = RepoHelperBuilder.getAuthCredentialFromDialog();
-                        selectedBranch.repoHelper.ownerAuth =
-                                new UsernamePasswordCredentialsProvider(response.username, response.password);
-                    }
-                    deleteStatus = branchModel.deleteRemoteBranch((RemoteBranchHelper) selectedBranch);
-                    String updateMessage = selectedBranch.getBranchName();
-                    // There are a number of possible cases, see JGit's documentation on RemoteRefUpdate.Status
-                    // for the full list.
-                    switch (deleteStatus) {
-                        case OK:
-                            updateMessage += " deleted.";
-                            break;
-                        case NON_EXISTING:
-                            updateMessage += " no longer\nexists on the server.";
-                        default:
-                            updateMessage += " deletion\nfailed.";
-                    }
-                    updateUser(updateMessage);
+                    deleteRemoteBranch(selectedBranch, branchModel,
+                                       (String message) -> updateUser(message));
                 }
             }
         } catch (NotMergedException e) {
@@ -1350,20 +1347,85 @@ public class SessionController {
         } catch (TransportException e) {
             this.showNotAuthorizedNotification();
             authorizationSucceeded = false;
-        } catch (IOException | GitAPIException e) {
+        } catch (GitAPIException e) {
             logger.warn("IO error");
             this.showGenericErrorNotification();
-        } catch (CancelledAuthorizationException e) {
-            logger.warn("Cancelled authorization");
-            this.showCommandCancelledNotification();
         } finally {
             gitStatus();
             if (authorizationSucceeded) {
-                authenticateOnNextCommand = false;
+                authenticationFailedLastTime = false;
             } else {
-                authenticateOnNextCommand = true;
+                authenticationFailedLastTime = true;
                 deleteBranch(selectedBranch);
             }
+        }
+    }
+
+    void deleteRemoteBranch(BranchHelper selectedBranch, BranchModel branchModel, Consumer<String> updateFn) {
+        try {
+            final RepoHelperBuilder.AuthDialogResponse credentialResponse = askUserForCredentials();
+
+            BusyWindow.show();
+            BusyWindow.setLoadingText("Deleting remote branch...");
+
+            Thread th = new Thread(new Task<Void>() {
+                @Override
+                protected Void call() {
+                    authenticationFailedLastTime = false;
+                    try {
+                        deleteRemoteBranchDetails(credentialResponse, selectedBranch, branchModel, updateFn);
+                    } catch (TransportException e) {
+                        showNotAuthorizedNotification();
+                        authenticationFailedLastTime = true;
+                    } finally {
+                        BusyWindow.hide();
+                    }
+
+                    if (authenticationFailedLastTime) {
+                        Platform.runLater(() -> {
+                            deleteRemoteBranch(selectedBranch, branchModel, updateFn);
+                        });
+                    }
+
+                    return null;
+                }
+            });
+            th.setDaemon(true);
+            th.setName("Git delete remote branch");
+            th.start();
+
+        } catch (CancelledAuthorizationException e) {
+            this.showCommandCancelledNotification();
+        }
+    }
+
+    private void deleteRemoteBranchDetails(RepoHelperBuilder.AuthDialogResponse response, BranchHelper selectedBranch,
+                                           BranchModel branchModel, Consumer<String> updateFn) throws TransportException {
+
+        try {
+            if (response != null) {
+                selectedBranch.repoHelper.ownerAuth =
+                        new UsernamePasswordCredentialsProvider(response.username, response.password);
+            }
+            RemoteRefUpdate.Status deleteStatus = branchModel.deleteRemoteBranch((RemoteBranchHelper) selectedBranch);
+            String updateMessage = selectedBranch.getBranchName();
+            // There are a number of possible cases, see JGit's documentation on RemoteRefUpdate.Status
+            // for the full list.
+            switch (deleteStatus) {
+                case OK:
+                    updateMessage += " deleted.";
+                    break;
+                case NON_EXISTING:
+                    updateMessage += " no longer\nexists on the server.";
+                default:
+                    updateMessage += " deletion\nfailed.";
+            }
+            updateFn.accept(updateMessage);
+        } catch (TransportException e) {
+            throw e;
+        } catch (GitAPIException | IOException e) {
+            logger.warn("IO error");
+            this.showGenericErrorNotification();
         }
     }
 
@@ -1588,12 +1650,7 @@ public class SessionController {
 
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
 
-            final RepoHelperBuilder.AuthDialogResponse response;
-            if (authenticateOnNextCommand) {
-                response = RepoHelperBuilder.getAuthCredentialFromDialog();
-            } else {
-                response = null;
-            }
+            final RepoHelperBuilder.AuthDialogResponse response = askUserForCredentials();
 
             BusyWindow.show();
             BusyWindow.setLoadingText("Fetching...");
@@ -1627,9 +1684,9 @@ public class SessionController {
                     }finally {
                         BusyWindow.hide();
                         if (authorizationSucceeded) {
-                            authenticateOnNextCommand = false;
+                            authenticationFailedLastTime = false;
                         } else {
-                            authenticateOnNextCommand = true;
+                            authenticationFailedLastTime = true;
                             Platform.runLater(() -> {
                                 gitFetch();
                             });
@@ -1818,6 +1875,7 @@ public class SessionController {
             popOver.setAutoHide(true);
         });
     }
+
 
     /**
      * Opens the current repo directory (e.g. in Finder or Windows Explorer).
