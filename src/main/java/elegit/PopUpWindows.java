@@ -3,6 +3,7 @@ package elegit;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.control.Dialog;
@@ -338,9 +339,7 @@ public class PopUpWindows {
 
                 if(alertResult.isPresent()) {
                     if(alertResult.get() == okButton) {
-                        if(remoteRepos.getSelectionModel().getSelectedItem() != null) {
-                            result[0] = remoteRepos.getSelectionModel().getSelectedItem();
-                        }
+                        result[0] = remoteRepos.getSelectionModel().getSelectedItem();
                     }
                 }
 
@@ -365,6 +364,36 @@ public class PopUpWindows {
             lock.unlock();
         }
 
+        return "cancel";
+    }
+
+    public static String getCommitMessage() {
+        Alert alert = new Alert(Alert.AlertType.NONE);
+        alert.setTitle("Commit message");
+        alert.setResizable(true);
+
+        TextArea textArea = new TextArea();
+        textArea.setPromptText("Commit Message...");
+        textArea.setWrapText(true);
+        textArea.setPrefSize(250, 150);
+        textArea.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
+
+        HBox hBox = new HBox(textArea);
+        hBox.setAlignment(Pos.CENTER);
+
+        ButtonType okButton = new ButtonType("Commit", ButtonBar.ButtonData.OK_DONE);
+        ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+
+        alert.getDialogPane().setContent(hBox);
+        alert.getButtonTypes().addAll(cancelButton, okButton);
+
+        Optional<?> alertResult = alert.showAndWait();
+
+        if(alertResult.isPresent()) {
+            if (alertResult.get() == okButton && !textArea.getText().equals("")) {
+                return textArea.getText();
+            }
+        }
         return "cancel";
     }
 }

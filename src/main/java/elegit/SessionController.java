@@ -3,7 +3,6 @@ package elegit;
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import elegit.exceptions.*;
-import elegit.treefx.CellLabel;
 import elegit.treefx.TreeLayout;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
@@ -121,7 +120,8 @@ public class SessionController {
     static final Logger logger = LogManager.getLogger(SessionController.class);
 
     public ContextMenu newRepoOptionsMenu;
-    public ContextMenu pushMenu;
+    public ContextMenu pushContextMenu;
+    public ContextMenu commitContextMenu;
 
     public MenuItem cloneOption;
     public MenuItem existingOption;
@@ -162,6 +162,7 @@ public class SessionController {
 
         this.initializeLayoutParameters();
 
+        this.initButtons();
         this.setButtonIconsAndTooltips();
         this.setButtonsDisabled(true);
         this.initWorkingTreePanelTab();
@@ -355,9 +356,9 @@ public class SessionController {
     }
 
     /**
-     * Adds graphics and tooltips to the buttons
+     * Adds context menus and properties to buttons
      */
-    private void setButtonIconsAndTooltips() {
+    private void initButtons() {
         anythingChecked = new SimpleBooleanProperty(false);
         checkoutFileButton.disableProperty().bind(anythingChecked.not());
         addButton.disableProperty().bind(anythingChecked.not());
@@ -367,8 +368,17 @@ public class SessionController {
 
         pushButton.setOnMouseClicked(event -> {
             if(event.getButton() == MouseButton.SECONDARY){
-                if(pushMenu != null){
-                    pushMenu.show(pushButton, event.getScreenX(), event.getScreenY());
+                if(pushContextMenu != null){
+                    pushContextMenu.show(pushButton, event.getScreenX(), event.getScreenY());
+                }
+            }
+            event.consume();
+        });
+
+        commitButton.setOnMouseClicked(event -> {
+            if(event.getButton() == MouseButton.SECONDARY){
+                if(commitContextMenu != null){
+                    commitContextMenu.show(commitButton, event.getScreenX(), event.getScreenY());
                 }
             }
             event.consume();
@@ -377,7 +387,12 @@ public class SessionController {
         tagNameField.setOnKeyTyped(event -> {
             if (event.getCharacter().equals("\r")) handleTagButton();
         });
+    }
 
+    /**
+     * Adds graphics and tooltips to the buttons
+     */
+    private void setButtonIconsAndTooltips() {
         Text openExternallyIcon = GlyphsDude.createIcon(FontAwesomeIcon.EXTERNAL_LINK);
         this.openRepoDirButton.setGraphic(openExternallyIcon);
         this.openRepoDirButton.setTooltip(new Tooltip("Open repository directory"));
@@ -914,35 +929,48 @@ public class SessionController {
         }
     }
 
+    private enum CommitType{NORMAL, ALL}
+
+    public void handleCommitAll() {
+        handleCommitButton(CommitType.ALL);
+    }
+
+    public void handleCommitNormal() {
+        handleCommitButton(CommitType.NORMAL);
+    }
+
     /**
      * Commits all files that have been staged with the message
      */
-    public void handleCommitButton() {
+    public void handleCommitButton(CommitType type) {
         try {
             logger.info("Commit button clicked");
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
             if(!this.theModel.getCurrentRepoHelper().exists()) throw new MissingRepoException();
 
-            if(!workingTreePanelView.isAnyFileStaged()) throw new NoFilesStagedForCommitException();
-
-            BusyWindow.show();
-            BusyWindow.setLoadingText("Committing...");
+            if(!workingTreePanelView.isAnyFileStaged() && type.equals(CommitType.NORMAL)) throw new NoFilesStagedForCommitException();
 
             try{
-                logger.info("Commit manager clicked");
+                logger.info("Commit button clicked");
                 if(theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
 
-                logger.info("Opened commit manager window");
-                // Create and display the Stage:
-                FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/CommitView.fxml"));
-                fxmlLoader.load();
-                CommitController commitController = fxmlLoader.getController();
-                commitController.isClosed.addListener((observable, oldValue, newValue) -> {
-                    if (!oldValue && newValue)
-                        gitStatus();
-                });
-                GridPane fxmlRoot = fxmlLoader.getRoot();
-                commitController.showStage(fxmlRoot);
+                if(type.equals(CommitType.NORMAL)) {
+                    BusyWindow.show();
+                    BusyWindow.setLoadingText("Committing...");
+                    logger.info("Opened commit manager window");
+                    // Create and display the Stage:
+                    FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/CommitView.fxml"));
+                    fxmlLoader.load();
+                    CommitController commitController = fxmlLoader.getController();
+                    commitController.isClosed.addListener((observable, oldValue, newValue) -> {
+                        if (!oldValue && newValue)
+                            gitStatus();
+                    });
+                    GridPane fxmlRoot = fxmlLoader.getRoot();
+                    commitController.showStage(fxmlRoot);
+                }else {
+                    theModel.getCurrentRepoHelper().commitAll();
+                }
             }catch(IOException e){
                 showGenericErrorNotification();
                 e.printStackTrace();

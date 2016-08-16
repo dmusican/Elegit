@@ -226,11 +226,19 @@
                      fx:id="commitButton"
                      text="Commit"
                      arrowRight="true"
-                     onAction="#handleCommitButton"
+                     onAction="#handleCommitNormal"
                      GridPane.rowIndex="1"
                      GridPane.columnIndex="1"
                      GridPane.valignment="TOP"
                      GridPane.halignment="LEFT">
+            <contextMenu>
+                <ContextMenu    fx:id="commitContextMenu">
+                    <items>
+                        <MenuItem   text="Commit -a"
+                                    onAction="#handleCommitAll"/>
+                    </items>
+                </ContextMenu>
+            </contextMenu>
             <GridPane.margin>
                 <Insets left="-10" right="-40" top="20"/>
             </GridPane.margin>
@@ -296,7 +304,7 @@
                 <Insets bottom="20" left="-40" right="-10"/>
             </GridPane.margin>
             <contextMenu>
-                <ContextMenu    fx:id="pushMenu">
+                <ContextMenu    fx:id="pushContextMenu">
                     <items>
                         <MenuItem   text="Push all branches"
                                     onAction="#handlePushAllButton"/>
