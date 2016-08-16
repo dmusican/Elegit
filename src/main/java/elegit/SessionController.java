@@ -1071,23 +1071,24 @@ public class SessionController {
     public enum PushType {BRANCH, ALL}
 
     public void handlePushButton() {
-        pushBranchOrAll(PushType.BRANCH);
+        pushBranchOrAllSetup(PushType.BRANCH);
     }
 
     public void handlePushAllButton() {
-        pushBranchOrAll(PushType.ALL);
+        pushBranchOrAllSetup(PushType.ALL);
     }
 
-    /**
-     * Performs a `git push` on either current branch or all branches, depending on enum parameter.
-     */
-    public void pushBranchOrAll(PushType pushType) {
+    // Set up the push command. Involves querying the user to see if remote branches should be made.
+    // This query is done once.
+    private void pushBranchOrAllSetup(PushType pushType)  {
+
         try {
+
             logger.info("Push button clicked");
 
-            if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
-            if(pushType == PushType.BRANCH &&
-                    !this.theModel.getCurrentRepoHelper().canPush()) throw new NoCommitsToPushException();
+            if (this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
+            if (pushType == PushType.BRANCH &&
+                !this.theModel.getCurrentRepoHelper().canPush()) throw new NoCommitsToPushException();
 
             RepoHelper helper = theModel.getCurrentRepoHelper();
             final PushCommand push;
@@ -1100,7 +1101,34 @@ public class SessionController {
                 assert false : "PushType enum case not handled";
             }
 
+            pushBranchOrAll(pushType, push);
 
+        } catch (NoRepoLoadedException e) {
+            this.showNoRepoLoadedNotification();
+            setButtonsDisabled(true);
+        } catch (NoCommitsToPushException e) {
+            this.showNoCommitsToPushNotification();
+        } catch (IOException e) {
+            this.showGenericErrorNotification();
+        } catch (PushToAheadRemoteError pushToAheadRemoteError) {
+            pushToAheadRemoteError.printStackTrace();
+        } catch (MissingRepoException e) {
+            showMissingRepoNotification();
+            setButtonsDisabled(true);
+            refreshRecentReposInDropdown();
+        } catch (GitAPIException e) {
+            showGenericErrorNotification();
+            e.printStackTrace();
+        }
+
+    }
+
+    /**
+     * Performs a `git push` on either current branch or all branches, depending on enum parameter.
+     * This is recursively re-called if authentication fails.
+     */
+    public void pushBranchOrAll(PushType pushType, PushCommand push) {
+        try {
             final RepoHelperBuilder.AuthDialogResponse credentialResponse = askUserForCredentials();
 
             BusyWindow.show();
@@ -1120,7 +1148,7 @@ public class SessionController {
 
                     if (authenticationFailedLastTime) {
                         Platform.runLater(() -> {
-                            pushBranchOrAll(pushType);
+                            pushBranchOrAll(pushType, push);
                         });
                     }
 
@@ -1130,24 +1158,8 @@ public class SessionController {
             th.setDaemon(true);
             th.setName("Git push");
             th.start();
-        } catch(NoRepoLoadedException e){
-            this.showNoRepoLoadedNotification();
-            setButtonsDisabled(true);
-        } catch(NoCommitsToPushException e){
-            this.showNoCommitsToPushNotification();
-        } catch(IOException e) {
-            this.showGenericErrorNotification();
         } catch (CancelledAuthorizationException e) {
             this.showCommandCancelledNotification();
-        } catch (PushToAheadRemoteError pushToAheadRemoteError) {
-            pushToAheadRemoteError.printStackTrace();
-        } catch (MissingRepoException e) {
-            showMissingRepoNotification();
-            setButtonsDisabled(true);
-            refreshRecentReposInDropdown();
-        } catch (GitAPIException e) {
-            showGenericErrorNotification();
-            e.printStackTrace();
         }
     }
 
