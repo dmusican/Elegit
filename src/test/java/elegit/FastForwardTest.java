@@ -101,7 +101,7 @@ public class FastForwardTest {
 
         // Commit changes in fast_branch and push
         helperFast.commit("added a character");
-        helperFast.pushAll();
+        helperFast.prepareToPushAll();
 
         //Checkout master
         master_helper = (LocalBranchHelper) helperFast.getBranchModel().getBranchByName(BranchModel.BranchType.LOCAL, "master");
@@ -114,7 +114,7 @@ public class FastForwardTest {
         assertEquals(true, helperFast.getAheadCount()>0);
 
         // Push changes
-        helperFast.pushAll();
+        helperFast.prepareToPushAll();
 
     }
 
@@ -161,7 +161,7 @@ public class FastForwardTest {
 
         // Commit changes in can_push and push
         helperFast.commit("added a character");
-        helperFast.pushAll();
+        helperFast.prepareToPushAll();
 
         // Find the remote 'can_pushb' and check it out
         remote_helperb = (RemoteBranchHelper) helperFast.getBranchModel().getBranchByName(BranchModel.BranchType.REMOTE, "origin/can_pushb");
@@ -175,7 +175,7 @@ public class FastForwardTest {
         assertEquals(true, helperFast.getAheadCount()>0);
 
         // Push changes
-        helperFast.pushAll();
+        helperFast.prepareToPushAll();
 
     }
 }

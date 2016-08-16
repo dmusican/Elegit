@@ -105,7 +105,7 @@ public class LocalBranchTest {
 
         // Commit changes in master in pusher and push
         helperPush.commit("added line in master");
-        helperPush.pushAll();
+        helperPush.prepareToPushAll();
 
 
         // Make a new branch in fetcher and check it out
