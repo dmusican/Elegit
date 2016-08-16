@@ -409,13 +409,12 @@ public class PopUpWindows {
 
                 Alert alert = new Alert(Alert.AlertType.NONE);
                 alert.setTitle("Untracked local branches");
-                alert.setHeaderText("There are untracked local branches.\n" +
-                        "Select which branches to track remotely,\n" +
-                        "Or click Continue to move on.");
+                alert.setHeaderText("The branches below are not tracked remotely.\n" +
+                        "Select the branches you want to create an upstream remote branch for.");
 
                 CheckListView<LocalBranchHelper> untrackedBranches = new CheckListView<>(FXCollections.observableArrayList(branches));
 
-                ButtonType okButton = new ButtonType("Continue", ButtonBar.ButtonData.CANCEL_CLOSE);
+                ButtonType okButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
                 ButtonType trackButton = new ButtonType("Track Branches", ButtonBar.ButtonData.APPLY);
 
                 alert.getDialogPane().setContent(untrackedBranches);
