@@ -557,7 +557,7 @@ public class RepoHelper {
         git.close();
 
         if(this.getBranchModel().getCurrentRemoteBranch() == null) {
-            setUpstreamBranch(branchToPush);
+            setUpstreamBranch(branchToPush, remote);
         }
 
         this.remoteCommits = parseAllRemoteCommits();
@@ -566,23 +566,27 @@ public class RepoHelper {
     /**
      * Helper method for push that sets the upstream branch
      * @param branch local branch that needs an upstream branch
+     * @param remote String
      */
-    private void setUpstreamBranch(BranchHelper branch) throws IOException {
+    private void setUpstreamBranch(BranchHelper branch, String remote) throws IOException {
         Git git = new Git(this.repo);
         StoredConfig config = git.getRepository().getConfig();
         String branchName = branch.getBranchName();
-        String remoteName = getRemote();
-        config.setString(ConfigConstants.CONFIG_BRANCH_SECTION, branchName,  ConfigConstants.CONFIG_KEY_REMOTE, remoteName);
+        config.setString(ConfigConstants.CONFIG_BRANCH_SECTION, branchName,  ConfigConstants.CONFIG_KEY_REMOTE, remote);
         config.setString(ConfigConstants.CONFIG_BRANCH_SECTION, branchName, ConfigConstants.CONFIG_KEY_MERGE, Constants.R_HEADS + branchName);
         config.save();
     }
 
+    /**
+     * Helper method that returns either the only remote, or the remote chosen by the user
+     * @return String remote
+     */
     private String getRemote() {
         Git git = new Git(this.repo);
         StoredConfig config = git.getRepository().getConfig();
         Set<String> remotes = config.getSubsections("remote");
         if (remotes.size() == 1) {
-            //return (String) remotes.toArray()[0];
+            return (String) remotes.toArray()[0];
         }
         return PopUpWindows.pickRemoteToPushTo(remotes);
     }
@@ -628,7 +632,7 @@ public class RepoHelper {
         git.close();
 
         for(LocalBranchHelper branch : this.branchModel.getLocalBranchesTyped()) {
-            setUpstreamBranch(branch);
+            setUpstreamBranch(branch, remote);
         }
 
         this.remoteCommits = parseAllRemoteCommits();

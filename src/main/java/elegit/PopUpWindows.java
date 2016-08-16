@@ -318,11 +318,14 @@ public class PopUpWindows {
 
         Platform.runLater(() -> {
             try {
+                lock.lock();
+
                 Alert alert = new Alert(Alert.AlertType.NONE);
                 alert.setTitle("Multiple remotes found");
-                alert.setHeaderText("There are multiple remote repositories associated with this repository. Pick one to push to.");
+                alert.setHeaderText("There are multiple remote repositories associated with this repository.\nPick one to push to.");
 
-                ComboBox remoteRepos = new ComboBox();
+                ComboBox<String> remoteRepos = new ComboBox<>();
+                remoteRepos.setPromptText("Choose a remote...");
                 remoteRepos.setItems(FXCollections.observableArrayList(remotes));
 
                 ButtonType okButton = new ButtonType("OK", ButtonBar.ButtonData.OK_DONE);
@@ -336,7 +339,7 @@ public class PopUpWindows {
                 if(alertResult.isPresent()) {
                     if(alertResult.get() == okButton) {
                         if(remoteRepos.getSelectionModel().getSelectedItem() != null) {
-                            result[0] =  (String) remoteRepos.getSelectionModel().getSelectedItem();
+                            result[0] = remoteRepos.getSelectionModel().getSelectedItem();
                         }
                     }
                 }
