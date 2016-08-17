@@ -63,6 +63,7 @@ public class CheckoutFilesController {
             logger.info("Closed checkout files from commit window");
         });
         stage.show();
+        this.notificationPaneController.setAnchor(stage);
     }
 
     /**
@@ -71,6 +72,10 @@ public class CheckoutFilesController {
      */
     public void handleCheckoutButton() {
         try {
+            if(fileNames.size() == 0) {
+                notificationPaneController.addNotification("You need to add some files first");
+                return;
+            }
             CheckoutResult result = this.repoHelper.checkoutFiles(fileNames, commitHelper.getId());
             switch (result.getStatus()) {
                 case CONFLICTS:
@@ -107,17 +112,22 @@ public class CheckoutFilesController {
             return;
         }
 
-        Label line = new Label(fileName);
-        line.setWrapText(true);
-        line.setId("notification");
-        line.setGraphic(GlyphsDude.createIcon(FontAwesomeIcon.TIMES_CIRCLE));
-        line.setOnMouseClicked(event -> {
-            if (event.getTarget().equals(line.getGraphic()))
-                fileNames.remove(fileName);
+        if(!fileName.equals("")){
+            Label line = new Label(fileName);
+            line.setWrapText(true);
+            line.setId("notification");
+            line.setGraphic(GlyphsDude.createIcon(FontAwesomeIcon.TIMES_CIRCLE));
+            line.setOnMouseClicked(event -> {
+                if (event.getTarget().equals(line.getGraphic()))
+                    fileNames.remove(fileName);
                 filesToCheckout.getChildren().remove(line);
-        });
-        fileNames.add(fileName);
-        filesToCheckout.getChildren().add(0,line);
+            });
+            fileNames.add(fileName);
+            filesToCheckout.getChildren().add(0,line);
+        }else {
+            notificationPaneController.addNotification("You need to type a file name first");
+            return;
+        }
     }
 
     public void closeWindow() { this.stage.close(); }

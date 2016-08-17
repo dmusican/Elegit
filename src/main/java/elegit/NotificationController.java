@@ -9,15 +9,17 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.scene.shape.Line;
 import javafx.scene.text.Text;
+import javafx.stage.PopupWindow;
+import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.controlsfx.control.PopOver;
+
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * Controller class for notifications in a given window
@@ -41,7 +43,8 @@ public class NotificationController {
     @FXML Label latestNotificationLabel;
 
     private PopOver notificationAlert;
-    private Text notifcationText;
+    private TimerTask hideBubbleTask;
+    private Stage anchor;
 
     static final Logger logger = LogManager.getLogger(SessionController.class);
 
@@ -65,25 +68,32 @@ public class NotificationController {
         this.notificationPane.setPickOnBounds(false);
 
         this.notificationNum.setPickOnBounds(false);
-
-        initNotificationBubble();
     }
 
-    private void initNotificationBubble() {
-        notifcationText = new Text("");
+    public void setAnchor(Stage stage) {
+        this.anchor = stage;
+    }
+
+    /**
+     * Updates the notification alert
+     * @param notification new alert
+     * @return new PopOver
+     */
+    private PopOver updateNotificationBubble(String notification) {
+        Text notifcationText = new Text(notification);
         notifcationText.setWrappingWidth(230);
         notifcationText.setStyle("-fx-font-weight: bold");
 
         HBox hBox = new HBox(notifcationText);
         hBox.setPadding(new Insets(0, 5, 0, 5));
+        hBox.setOnMouseClicked(event -> showNotificationList());
 
-        notificationAlert = new PopOver(hBox);
-        notificationAlert.setTitle("New Notification");
-        notificationAlert.setArrowLocation(PopOver.ArrowLocation.BOTTOM_RIGHT);
+        PopOver popOver = new PopOver(hBox);
+        popOver.setTitle("New Notification");
+        popOver.setArrowLocation(PopOver.ArrowLocation.BOTTOM_RIGHT);
+        popOver.setAnchorLocation(PopupWindow.AnchorLocation.CONTENT_BOTTOM_RIGHT);
 
-        hBox.setOnMouseClicked(event -> {
-            showNotificationList();
-        });
+        return popOver;
     }
 
     /**
@@ -121,7 +131,7 @@ public class NotificationController {
         this.notificationListPane.setMouseTransparent(!this.notificationListPane.isMouseTransparent());
         this.latestNotification.setVisible(!this.latestNotification.isVisible());
         if(notificationListPane.isVisible()) {
-            this.notificationAlert.hide();
+            hideBubble();
         }
     }
 
@@ -138,7 +148,7 @@ public class NotificationController {
     private void showNotificationList() {
         if (!isListPaneVisible()) {
             toggleNotificationList();
-            this.notificationAlert.hide();
+            hideBubble();
         }
     }
 
@@ -237,10 +247,34 @@ public class NotificationController {
      */
     private void showBubble(String notification) {
         if(!isListPaneVisible()) {
-            notifcationText.setText(notification);
-            notificationAlert.show(minimizeButton, 15);
+            notificationAlert = updateNotificationBubble(notification);
+            notificationAlert.show(this.anchor, anchor.getX() + anchor.getWidth() - 15, anchor.getY() + anchor.getHeight() - 15);
             notificationAlert.detach();
             notificationAlert.setAutoHide(true);
+
+            hideBubbleTask();
         }
+    }
+
+    /**
+     * Hides the notification alert 4 seconds after the most recent alert
+     */
+    private void hideBubbleTask(){
+        if(hideBubbleTask != null) hideBubbleTask.cancel();
+        Timer timer = new Timer(true);
+        hideBubbleTask = new TimerTask() {
+            @Override
+            public void run() {
+                hideBubble();
+            }
+        };
+        timer.schedule(hideBubbleTask, 4000);
+    }
+
+    /**
+     * Helper method that hides the notification Alert
+     */
+    private void hideBubble() {
+        notificationAlert.hide();
     }
 }

@@ -162,6 +162,7 @@ public class CreateDeleteBranchWindowController {
         stage.initModality(Modality.APPLICATION_MODAL);
         stage.setOnCloseRequest(event -> logger.info("Closed create/delete branch window"));
         stage.show();
+        this.notificationPaneController.setAnchor(stage);
     }
 
     /**
