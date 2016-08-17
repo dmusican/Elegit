@@ -718,11 +718,17 @@ public class RepoHelper {
      * @throws GitAPIException
      * @throws MissingRepoException
      */
-    public boolean fetch() throws
+    public boolean fetch(boolean prune) throws
             GitAPIException, MissingRepoException, IOException {
         logger.info("Attempting fetch");
         if (!exists()) throw new MissingRepoException();
         Git git = new Git(this.repo);
+        StoredConfig config = this.repo.getConfig();
+
+        if(prune){
+            config.setString("fetch", null, "prune", "true");
+            config.save();
+        }
 
         FetchCommand fetch = git.fetch().setTagOpt(TagOpt.AUTO_FOLLOW);
 
@@ -747,6 +753,12 @@ public class RepoHelper {
         }
 
         this.branchModel.updateRemoteBranches();
+
+        if(prune){
+            config.unsetSection("fetch", null);
+            config.save();
+        }
+
         return !result.getTrackingRefUpdates().isEmpty();
     }
 

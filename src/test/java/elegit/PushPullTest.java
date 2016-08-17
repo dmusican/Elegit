@@ -104,7 +104,7 @@ public class PushPullTest {
         helperPush.prepareToPushAll();
 
         // Now do the pull (well, a fetch)
-        helperPull.fetch();
+        helperPull.fetch(false);
         helperPull.mergeFromFetch();
 
         // Update lists of branches
@@ -151,7 +151,7 @@ public class PushPullTest {
         helperPush.prepareToPushAll();
 
         // Now do the pull (well, a fetch)
-        existingHelperPull.fetch();
+        existingHelperPull.fetch(false);
         existingHelperPull.mergeFromFetch();
 
     }

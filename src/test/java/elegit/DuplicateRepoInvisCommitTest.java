@@ -114,7 +114,7 @@ public class DuplicateRepoInvisCommitTest {
         repo1.pushAll(push);
 
         // Fetch into the second repo
-        repo2.fetch();
+        repo2.fetch(false);
         repo2.mergeFromFetch();
 
         CommitHelper repo2NewHead = repo2.getCommit("master");

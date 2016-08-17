@@ -290,6 +290,14 @@
             <GridPane.margin>
                 <Insets top="20" left="-40" right="-10"/>
             </GridPane.margin>
+            <contextMenu>
+                <ContextMenu    fx:id="fetchContextMenu">
+                    <items>
+                        <MenuItem   text="Fetch -p"
+                                    onAction="#handlePruneFetch"/>
+                    </items>
+                </ContextMenu>
+            </contextMenu>
         </ArrowButton>
         <ArrowButton id="codeButton"
                      fx:id="pushButton"

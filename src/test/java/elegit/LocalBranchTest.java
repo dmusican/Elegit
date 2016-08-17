@@ -120,7 +120,7 @@ public class LocalBranchTest {
         /* ******************** FETCH AND MERGE SECTION ******************** */
 
         // Fetch changes
-        helperFetch.fetch();
+        helperFetch.fetch(false);
 
         // Merge from the fetch
         boolean local_branch_is_tracked = false;

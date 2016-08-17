@@ -124,6 +124,7 @@ public class SessionController {
     public ContextMenu newRepoOptionsMenu;
     public ContextMenu pushContextMenu;
     public ContextMenu commitContextMenu;
+    public ContextMenu fetchContextMenu;
 
     public MenuItem cloneOption;
     public MenuItem existingOption;
@@ -251,8 +252,10 @@ public class SessionController {
         BranchHelper localBranch = this.theModel.getCurrentRepoHelper().getBranchModel().getCurrentBranch();
         update = !localBranch.getAbbrevName().equals(currentLocalBranchLabel.getText());
         if (update) {
-            currentLocalBranchLabel.setText(localBranch.getAbbrevName());
-            addToolTip(currentLocalBranchHbox, localBranch.getBranchName());
+            Platform.runLater(() -> {
+                currentLocalBranchLabel.setText(localBranch.getAbbrevName());
+                addToolTip(currentLocalBranchHbox, localBranch.getBranchName());
+            });
         }
 
         String remoteBranch = "N/A";
@@ -268,10 +271,14 @@ public class SessionController {
             remoteBranchFull = "N/A";
         }
 
+        String remoteBranchFinal = remoteBranch;
+        String remoteBranchFullFinal = remoteBranchFull;
         update = !remoteBranch.equals(currentRemoteTrackingLabel.getText());
         if (update) {
-            currentRemoteTrackingLabel.setText(remoteBranch);
-            addToolTip(currentRemoteTrackingBranchHbox, remoteBranchFull);
+            Platform.runLater(() -> {
+                currentRemoteTrackingLabel.setText(remoteBranchFinal);
+                addToolTip(currentRemoteTrackingBranchHbox, remoteBranchFullFinal);
+            });
         }
 
         // Ahead/behind count
@@ -381,6 +388,15 @@ public class SessionController {
             if(event.getButton() == MouseButton.SECONDARY){
                 if(commitContextMenu != null){
                     commitContextMenu.show(commitButton, event.getScreenX(), event.getScreenY());
+                }
+            }
+            event.consume();
+        });
+
+        fetchButton.setOnMouseClicked(event -> {
+            if(event.getButton() == MouseButton.SECONDARY){
+                if(fetchContextMenu != null){
+                    fetchContextMenu.show(fetchButton, event.getScreenX(), event.getScreenY());
                 }
             }
             event.consume();
@@ -1664,14 +1680,29 @@ public class SessionController {
     }
 
     /**
+     * Calls git fetch
+     * @param prune boolean should prune
+     */
+    public void handleFetchButton(boolean prune) {
+        logger.info("Fetch button clicked");
+        RepositoryMonitor.pause();
+        gitFetch(prune);
+        RepositoryMonitor.unpause();
+        submitLog();
+    }
+
+    /**
+     * Handles a click on Fetch -p
+     */
+    public void handlePruneFetch() {
+        handleFetchButton(true);
+    }
+
+    /**
      * Handles a click on the "Fetch" button. Calls gitFetch()
      */
     public void handleFetchButton(){
-        logger.info("Fetch button clicked");
-        RepositoryMonitor.pause();
-        gitFetch();
-        RepositoryMonitor.unpause();
-        submitLog();
+        handleFetchButton(false);
     }
 
     /**
@@ -1679,7 +1710,7 @@ public class SessionController {
      * remote as necessary.
      * Equivalent to `git fetch`
      */
-    private synchronized void gitFetch(){
+    private synchronized void gitFetch(boolean prune){
         try{
 
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
@@ -1699,7 +1730,7 @@ public class SessionController {
                             helper.ownerAuth =
                                     new UsernamePasswordCredentialsProvider(response.username, response.password);
                         }
-                        if(!helper.fetch()){
+                        if(!helper.fetch(prune)){
                             showNoCommitsFetchedNotification();
                         }
                         gitStatus();
@@ -1722,7 +1753,7 @@ public class SessionController {
                         } else {
                             authenticationFailedLastTime = true;
                             Platform.runLater(() -> {
-                                gitFetch();
+                                gitFetch(prune);
                             });
                         }
                     }

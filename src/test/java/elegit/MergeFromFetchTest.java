@@ -140,7 +140,7 @@ public class MergeFromFetchTest {
         new_branch_fetch_helper.checkoutBranch();
 
         // Fetch changes
-        helperFetch.fetch();
+        helperFetch.fetch(false);
 
         // Merge from the fetch
         boolean is_fast_forward = true;

@@ -114,7 +114,7 @@ public class AuthenticatedCloneTest {
             ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, remoteURL, credentials);
             helper.obtainRepository(remoteURL);
             assertEquals(helper.getCompatibleAuthentication(), AuthMethod.HTTP);
-            helper.fetch();
+            helper.fetch(false);
             Path fileLocation = repoPath.resolve("README.md");
             System.out.println(fileLocation);
             FileWriter fw = new FileWriter(fileLocation.toString(), true);
@@ -165,7 +165,7 @@ public class AuthenticatedCloneTest {
             ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, remoteURL, credentials);
             helper.obtainRepository(remoteURL);
             assertEquals(helper.getCompatibleAuthentication(), AuthMethod.HTTP);
-            helper.fetch();
+            helper.fetch(false);
             Path fileLocation = repoPath.resolve("README.md");
             System.out.println(fileLocation);
             FileWriter fw = new FileWriter(fileLocation.toString(), true);
@@ -279,7 +279,7 @@ public class AuthenticatedCloneTest {
                                                        new ElegitUserInfoTest(password, null));
         helper.obtainRepository(remoteURL);
         assertEquals(helper.getCompatibleAuthentication(), AuthMethod.SSH);
-        helper.fetch();
+        helper.fetch(false);
         helper.prepareToPushAll();
         helper.pushTags();
     }
@@ -305,7 +305,7 @@ public class AuthenticatedCloneTest {
                                                        new ElegitUserInfoTest(null, passphrase));
         helper.obtainRepository(remoteURL);
         assertEquals(helper.getCompatibleAuthentication(), AuthMethod.SSH);
-        helper.fetch();
+        helper.fetch(false);
         helper.prepareToPushAll();
         helper.pushTags();
         scanner.close();
