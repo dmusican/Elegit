@@ -9,6 +9,7 @@ import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.message.LocalizedMessage;
 import org.eclipse.jgit.api.ResetCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.lib.ObjectId;
 
 import java.io.IOException;
 import java.rmi.Remote;
@@ -166,16 +167,19 @@ public abstract class CommitTreeModel{
         Map<String, BranchHelper> currentBranchMap = new HashMap<>();
         Map<String, BranchHelper> updateBranchMap = new HashMap<>();
 
-        for (BranchHelper branch : this.branchesInModel)
+        for (BranchHelper branch : this.branchesInModel) {
             currentBranchMap.put(branch.getBranchName(), branch);
+        }
         for (BranchHelper branch : branchesToUpdate)
             updateBranchMap.put(branch.getBranchName(), branch);
 
         // Check for added and changed branches
         for (BranchHelper branch : branchesToUpdate) {
-            if (currentBranchMap.containsKey(branch.getBranchName()) &&
-                    currentBranchMap.get(branch.getBranchName()).getHead().getId().equals(branch.getHeadId().getName()))
-                continue;
+            if (currentBranchMap.containsKey(branch.getBranchName())){
+                if(currentBranchMap.get(branch.getBranchName()).getHead().getId().equals(branch.getHeadId().getName())){
+                    continue;
+                }
+            }
             updateModel.addBranch(branch);
         }
         // Check if there are removed branches

@@ -33,8 +33,8 @@ public abstract class BranchHelper {
      */
     public BranchHelper(String refPathString, RepoHelper repoHelper) {
         this.refPathString = refPathString;
-        this.setHead(repoHelper.getCommit(refPathString));
         this.repoHelper = repoHelper;
+        this.setHead(this.repoHelper.getCommit(refPathString));
         this.branchName = this.parseBranchName();
     }
 
