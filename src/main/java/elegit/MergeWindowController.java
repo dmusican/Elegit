@@ -173,6 +173,7 @@ public class MergeWindowController {
         stage.initModality(Modality.APPLICATION_MODAL);
         stage.setOnCloseRequest(event -> logger.info("Closed merge window"));
         stage.show();
+        this.notificationPaneController.setAnchor(stage);
     }
 
     /**

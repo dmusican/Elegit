@@ -137,6 +137,8 @@ public class SessionController {
 
     public StackPane statusTextPane;
 
+    private Stage mainStage;
+
     @FXML private AnchorPane anchorRoot;
 
     // Notification pane
@@ -199,8 +201,11 @@ public class SessionController {
         }
 
         authenticationFailedLastTime = false;
+    }
 
-
+    public void setStage(Stage stage) {
+        this.mainStage = stage;
+        notificationPaneController.setAnchor(mainStage);
     }
 
     /**

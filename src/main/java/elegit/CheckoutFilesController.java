@@ -63,6 +63,7 @@ public class CheckoutFilesController {
             logger.info("Closed checkout files from commit window");
         });
         stage.show();
+        this.notificationPaneController.setAnchor(stage);
     }
 
     /**

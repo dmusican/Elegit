@@ -103,6 +103,7 @@ public class BranchCheckoutController {
         stage.initModality(Modality.APPLICATION_MODAL);
         stage.setOnCloseRequest(event -> logger.info("Closed branch manager window"));
         stage.show();
+        this.notificationPaneController.setAnchor(stage);
     }
 
     /**
