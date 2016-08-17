@@ -1466,7 +1466,7 @@ public class SessionController {
                     updateMessage += " deleted.";
                     break;
                 case NON_EXISTING:
-                    updateMessage += " no longer\nexists on the server.";
+                    updateMessage += " no longer\nexists on the server.\nFetch -p to remove " + updateMessage;
                 default:
                     updateMessage += " deletion\nfailed.";
             }
