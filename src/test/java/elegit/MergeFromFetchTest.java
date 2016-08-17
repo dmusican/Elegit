@@ -3,6 +3,7 @@ package elegit;
 import elegit.exceptions.ConflictingFilesException;
 import elegit.exceptions.MissingRepoException;
 import org.eclipse.jgit.api.MergeResult;
+import org.eclipse.jgit.api.PushCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.junit.After;
@@ -125,7 +126,8 @@ public class MergeFromFetchTest {
         // Commit the changes in master and push
         helperPush.commit("added line in master");
 
-        helperPush.pushAll();
+        PushCommand push = helperPush.prepareToPushAll();
+        helperPush.pushAll(push);
 
 
         /* ******************** FETCH AND MERGE SECTION ******************** */

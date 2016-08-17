@@ -1,12 +1,6 @@
 package elegit;
 
-import elegit.exceptions.ConflictingFilesException;
-import elegit.exceptions.MissingRepoException;
-import elegit.exceptions.NoTrackingException;
-import org.eclipse.jgit.api.MergeCommand;
-import org.eclipse.jgit.api.MergeResult;
-import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.lib.BranchTrackingStatus;
+import org.eclipse.jgit.api.PushCommand;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.junit.After;
 import org.junit.Before;
@@ -15,8 +9,6 @@ import org.junit.Test;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
-import java.rmi.Remote;
-import java.util.Date;
 import java.util.Scanner;
 
 import static org.junit.Assert.assertEquals;
@@ -110,7 +102,8 @@ public class RemoteBranchTest {
         // Check that we can push
         assertEquals(true, helperPush.canPush());
 
-        helperPush.pushCurrentBranch(true);
+        PushCommand push = helperPush.prepareToPushCurrentBranch(true);
+        helperPush.pushCurrentBranch(push);
         helperPush.updateModel();
         // Check that there is a remote branch now
         assertEquals(true, helperPush.getBranchModel().getRemoteBranchesTyped().toString().contains("new_branch"));
