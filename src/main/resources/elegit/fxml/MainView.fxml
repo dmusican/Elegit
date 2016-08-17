@@ -211,12 +211,17 @@
                     </font>
                 </Text>
                 <Button fx:id="gitStatusButton"
-                        text="git status"
+                        text="Refresh"
                         id="codeButton"
-                        onAction="#onGitStatusButton"/>
+                        onAction="#onRefreshButton"/>
                 <HBox   alignment="CENTER">
                     <Text   text="Status: "/>
-                    <Text   fx:id="branchStatusText"/>
+                    <StackPane  fx:id="statusTextPane">
+                        <Text   fx:id="branchStatusText"/>
+                        <Text   text="Updating..."
+                                fx:id="updatingText"
+                                fill="orangered"/>
+                    </StackPane>
                 </HBox>
             </VBox>
         </StackPane>

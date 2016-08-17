@@ -53,6 +53,8 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.function.Consumer;
 import java.util.prefs.BackingStoreException;
 
@@ -103,12 +105,14 @@ public class SessionController {
 
     public HBox currentLocalBranchHbox;
     public HBox currentRemoteTrackingBranchHbox;
+
     private Label currentLocalBranchLabel;
     private Label currentRemoteTrackingLabel;
 
     public Text browserText;
     public Text needToFetch;
     public Text branchStatusText;
+    public Text updatingText;
 
     public URL remoteURL;
 
@@ -131,6 +135,8 @@ public class SessionController {
 
     public Hyperlink legendLink;
 
+    public StackPane statusTextPane;
+
     @FXML private AnchorPane anchorRoot;
 
     // Notification pane
@@ -138,6 +144,8 @@ public class SessionController {
     @FXML private NotificationController notificationPaneController;
 
     boolean authenticationFailedLastTime;
+    private boolean isGitStatusDone;
+    private boolean isTimerDone;
 
     /**
      * Initializes the environment by obtaining the model
@@ -199,6 +207,9 @@ public class SessionController {
      * Helper method that creates the labels for the branch names
      */
     private void initStatusText() {
+        updatingText.setVisible(false);
+        branchStatusText.visibleProperty().bind(updatingText.visibleProperty().not());
+
         currentRemoteTrackingLabel = new Label("N/A");
         currentLocalBranchLabel = new Label("N/A");
         initCellLabel(currentLocalBranchLabel, currentLocalBranchHbox);
@@ -549,7 +560,7 @@ public class SessionController {
             needToFetch.setVisible(!disable);
             currentLocalBranchHbox.setVisible(!disable);
             currentRemoteTrackingBranchHbox.setVisible(!disable);
-            branchStatusText.setVisible(!disable);
+            statusTextPane.setVisible(!disable);
         });
 
         root.setOnMouseClicked(event -> {
@@ -1847,10 +1858,39 @@ public class SessionController {
      * Updates the panel views when the "git status" button is clicked.
      * Highlights the current HEAD.
      */
-    public void onGitStatusButton(){
+    public void onRefreshButton(){
         logger.info("Git status button clicked");
+        showUpdatingText(true);
         this.gitStatus();
+        showUpdatingText(false);
         CommitTreeController.focusCommitInGraph(theModel.getCurrentRepoHelper().getBranchModel().getCurrentBranchHead());
+    }
+
+    /**
+     * Replaces branch status text with "updating" for 0.75 seconds OR the duration of gitStatus()
+     */
+    private void showUpdatingText(boolean setVisible) {
+        if(setVisible){
+            isGitStatusDone = false;
+            isTimerDone = false;
+            updatingText.setVisible(true);
+
+            Timer timer = new Timer(true);
+            timer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    if(isGitStatusDone){
+                        updatingText.setVisible(false);
+                    }
+                    isTimerDone = true;
+                }
+            }, 750);
+        }else {
+            isGitStatusDone = true;
+            if(isTimerDone) {
+                updatingText.setVisible(false);
+            }
+        }
     }
 
     /**
