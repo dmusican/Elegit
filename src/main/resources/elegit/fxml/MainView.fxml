@@ -287,7 +287,7 @@
                      fx:id="fetchButton"
                      text="Fetch"
                      arrowLeft="true"
-                     onAction="#handleFetchButton"
+                     onAction="#handleNormalFetchButton"
                      GridPane.columnIndex="3"
                      GridPane.rowIndex="1"
                      GridPane.halignment="RIGHT"
@@ -299,7 +299,7 @@
                 <ContextMenu    fx:id="fetchContextMenu">
                     <items>
                         <MenuItem   text="Fetch -p"
-                                    onAction="#handlePruneFetch"/>
+                                    onAction="#handlePruneFetchButton"/>
                     </items>
                 </ContextMenu>
             </contextMenu>

@@ -17,7 +17,8 @@
         </padding>
         <VBox   spacing="5"
                 alignment="CENTER">
-            <TabPane    VBox.vgrow="ALWAYS">
+            <TabPane    VBox.vgrow="ALWAYS"
+                        fx:id="tabPane">
                 <padding>
                     <Insets bottom="5"/>
                 </padding>
@@ -47,7 +48,8 @@
                     </VBox>
                 </Tab>
                 <Tab    text="Delete Local"
-                        closable="false">
+                        closable="false"
+                        fx:id="deleteLocalTab">
                     <VBox   alignment="CENTER">
                         <StackPane>
                             <ImageView
@@ -71,7 +73,8 @@
                     </VBox>
                 </Tab>
                 <Tab    text="Delete Remote"
-                        closable="false">
+                        closable="false"
+                        fx:id="deleteRemoteTab">
                     <VBox   alignment="CENTER">
                         <StackPane>
                             <ImageView

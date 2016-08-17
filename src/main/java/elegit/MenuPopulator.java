@@ -10,6 +10,7 @@ public class MenuPopulator {
 
     private MenuBar menuBar;
     private AtomicBoolean populated;
+    private SessionController sessionController;
 
     private static MenuPopulator instance;
 
@@ -18,6 +19,10 @@ public class MenuPopulator {
         populated = new AtomicBoolean(false);
     }
 
+    /**
+     * Either returns the current MenuPopulator or creates a new one
+     * @return MenuPopulator
+     */
     public static MenuPopulator getInstance() {
         if (instance == null) {
             instance = new MenuPopulator();
@@ -25,6 +30,19 @@ public class MenuPopulator {
         return instance;
     }
 
+    /**
+     * Sets the SessionController that has all the git commands in it
+     * @param sc SessionController
+     */
+    public void setSessionController(SessionController sc) {
+        this.sessionController = sc;
+    }
+
+    /**
+     * Returns a populated MenuBar
+     * @return MenuBar
+     * @throws IllegalStateException if the MenuBar doesn't exist
+     */
     public MenuBar populate() throws IllegalStateException {
         if (menuBar == null) {
             throw new IllegalStateException();
@@ -32,18 +50,195 @@ public class MenuPopulator {
         if (isPopulated()) return menuBar;
         populated.set(true);
 
-        Menu menuFile = new Menu("File");
+        Menu menuFile = initFileMenu();
+        Menu menuEdit = initEditMenu();
+        Menu menuRepository = initRepositoryMenu();
 
-        Menu menuEdit = new Menu("Edit");
+        menuBar.getMenus().addAll(menuFile, menuEdit, menuRepository);
+        return menuBar;
+    }
+
+    /**
+     * Initializes the "File" menu
+     * @return Menu
+     */
+    private Menu initFileMenu() {
+        return new Menu("File");
+    }
+
+    /**
+     * Initliazes the "Edit" menu
+     * @return Menu
+     */
+    private Menu initEditMenu() {
+        Menu menu = new Menu("Edit");
+
         MenuItem openGitIgnoreItem = new MenuItem(".gitignore...");
         openGitIgnoreItem.setOnAction(event ->
                 GitIgnoreEditor.show(
                         SessionModel.getSessionModel().getCurrentRepoHelper(),
                         null));
-        menuEdit.getItems().add(openGitIgnoreItem);
 
-        menuBar.getMenus().addAll(menuFile, menuEdit);
-        return menuBar;
+        menu.getItems().add(openGitIgnoreItem);
+
+        return menu;
+    }
+
+    /**
+     * Initializes the "Repository" menu
+     * @return Menu
+     */
+    private Menu initRepositoryMenu() {
+        Menu menu = new Menu("Repository");
+
+        Menu branchMenu = initBranchMenu();
+        Menu checkoutMenu = initCheckoutMenu();
+        Menu cloneMenu = initCloneMenu();
+        Menu commitMenu = initCommitMenu();
+        Menu fetchMenu = initFetchMenu();
+        Menu mergeMenu = initMergeMenu();
+        Menu pullMenu = initPullMenu();
+        Menu pushMenu = initPushMenu();
+
+        menu.getItems().addAll(branchMenu, checkoutMenu, cloneMenu,
+                commitMenu, fetchMenu, mergeMenu, pullMenu, pushMenu);
+
+        return menu;
+    }
+
+    /**
+     * Helper method that initializes the "Branch" sub-menu
+     * @return Menu
+     */
+    private Menu initBranchMenu() {
+        Menu branchMenu = new Menu("Branch");
+
+        MenuItem branch = new MenuItem("create branch");
+        branch.setOnAction(event -> sessionController.handleNewBranchButton());
+
+        MenuItem branch_d = new MenuItem("delete branch");
+        branch.setOnAction(event -> sessionController.handleNewBranchButton("local"));
+
+        MenuItem branch_r_d = new MenuItem("delete remote branch");
+        branch.setOnAction(event -> sessionController.handleNewBranchButton("remote"));
+
+        branchMenu.getItems().addAll(branch, branch_d, branch_r_d);
+
+        return branchMenu;
+    }
+
+    /**
+     * Helper method that initializes the "Checkout" sub-menu
+     * @return Menu
+     */
+    private Menu initCheckoutMenu() {
+        Menu checkoutMenu = new Menu("Checkout");
+        return checkoutMenu;
+    }
+
+    /**
+     * Helper method that initializes the "Clone" sub-menu
+     * @return Menu
+     */
+    private Menu initCloneMenu() {
+        Menu cloneMenu = new Menu("Clone");
+
+        MenuItem clone = new MenuItem("clone");
+        clone.setOnAction(event -> sessionController.handleCloneNewRepoOption());
+
+        cloneMenu.getItems().addAll(clone);
+
+        return cloneMenu;
+    }
+
+    /**
+     * Helper method that initializes the "Commit" sub-menu
+     * @return Menu
+     */
+    private Menu initCommitMenu() {
+        Menu commitMenu = new Menu("Commit");
+
+        MenuItem commit = new MenuItem("commit");
+        commit.setOnAction(event -> sessionController.handleCommitNormal());
+
+        MenuItem commit_a = new MenuItem("commit -a");
+        commit_a.setOnAction(event -> sessionController.handleCommitAll());
+
+        commitMenu.getItems().addAll(commit, commit_a);
+
+        return commitMenu;
+    }
+
+    /**
+     * Helper method that initializes the "Fetch" sub-menu
+     * @return Menu
+     */
+    private Menu initFetchMenu() {
+        Menu fetchMenu = new Menu("Fetch");
+
+        MenuItem fetch = new MenuItem("fetch");
+        fetch.setOnAction(event -> sessionController.handleNormalFetchButton());
+
+        MenuItem fetch_p = new MenuItem("fetch -p");
+        fetch_p.setOnAction(event -> sessionController.handlePruneFetchButton());
+
+        fetchMenu.getItems().addAll(fetch, fetch_p);
+
+        return fetchMenu;
+    }
+
+    /**
+     * Helper method that initializes the "Merge" sub-menu
+     * @return Menu
+     */
+    private Menu initMergeMenu() {
+        Menu mergeMenu = new Menu("Merge");
+
+        MenuItem merge = new MenuItem("merge from fetch");
+        merge.setOnAction(event -> sessionController.mergeFromFetch());
+
+        MenuItem merge_branch = new MenuItem("merge local branches");
+        merge_branch.setOnAction(event -> sessionController.handleGeneralMergeButton(true));
+
+        mergeMenu.getItems().addAll(merge, merge_branch);
+
+        return mergeMenu;
+    }
+
+    /**
+     * Helper method that initializes the "Pull" sub-menu
+     * @return Menu
+     */
+    private Menu initPullMenu() {
+        Menu pullMenu = new Menu("Pull");
+
+        MenuItem pull = new MenuItem("pull");
+        pull.setOnAction(event -> sessionController.handlePullButton());
+
+        pullMenu.getItems().addAll(pull);
+
+        return pullMenu;
+    }
+
+    /**
+     * Helper method that initializes the "Push" sub-menu
+     * @return Menu
+     */
+    private Menu initPushMenu() {
+        Menu pushMenu = new Menu("Push");
+
+        MenuItem push = new MenuItem("push current branch");
+        push.setOnAction(event -> sessionController.handlePushButton());
+
+        MenuItem push_all = new MenuItem("push all");
+        push_all.setOnAction(event -> sessionController.handlePushButton());
+
+        MenuItem push_tags = new MenuItem("push --tags");
+        push_tags.setOnAction(event -> sessionController.handlePushTagsButton());
+
+        pushMenu.getItems().addAll(push, push_all, push_tags);
+
+        return pushMenu;
     }
 
     private static boolean isPopulated() {
@@ -55,8 +250,10 @@ public class MenuPopulator {
             getInstance().populate();
         }
 
-        getInstance().menuBar.getMenus().get(1).getItems().get(0).setDisable
-                (true);
+        // disables .gitignore option in the "Edit" menu
+        getInstance().menuBar.getMenus().get(1).getItems().get(0).setDisable(true);
+        // disables the "Repository" menu
+        getInstance().menuBar.getMenus().get(2).setDisable(true);
     }
 
     public static synchronized void menuConfigNormal() {
@@ -64,7 +261,9 @@ public class MenuPopulator {
             getInstance().populate();
         }
 
-        getInstance().menuBar.getMenus().get(1).getItems().get(0).setDisable
-                (false);
+        // enables .gitignore option in the "Edit" menu
+        getInstance().menuBar.getMenus().get(1).getItems().get(0).setDisable(false);
+        // enables the "Repository" menu
+        getInstance().menuBar.getMenus().get(2).setDisable(false);
     }
 }

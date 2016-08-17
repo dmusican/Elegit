@@ -93,6 +93,7 @@ public class Main extends Application {
 
         // create the menu bar here
         MenuBar menuBar = MenuPopulator.getInstance().populate();
+        MenuPopulator.getInstance().setSessionController(sessionController);
         // for now we'll only display menu on mac os
         // because it blocks repo dropdown menu on other platforms
         if (SystemUtils.IS_OS_MAC) {

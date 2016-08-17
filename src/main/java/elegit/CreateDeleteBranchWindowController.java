@@ -38,6 +38,9 @@ public class CreateDeleteBranchWindowController {
     @FXML private Button deleteButton2;
     @FXML private StackPane notificationPane;
     @FXML private NotificationController notificationPaneController;
+    @FXML private TabPane tabPane;
+    @FXML private Tab deleteLocalTab;
+    @FXML private Tab deleteRemoteTab;
 
     private Stage stage;
     SessionModel sessionModel;
@@ -156,7 +159,7 @@ public class CreateDeleteBranchWindowController {
      * Shows the window
      * @param pane the AnchorPane root
      */
-    void showStage(AnchorPane pane) {
+    void showStage(AnchorPane pane, String tab) {
         anchorRoot = pane;
         stage = new Stage();
         stage.setTitle("Create or delete branch");
@@ -164,6 +167,10 @@ public class CreateDeleteBranchWindowController {
         stage.initModality(Modality.APPLICATION_MODAL);
         stage.setOnCloseRequest(event -> logger.info("Closed create/delete branch window"));
         stage.show();
+        if(tab != null) {
+            if(tab.equals("local")) tabPane.getSelectionModel().select(deleteLocalTab);
+            if(tab.equals("remote")) tabPane.getSelectionModel().select(deleteRemoteTab);
+        }
         this.notificationPaneController.setAnchor(stage);
     }
 

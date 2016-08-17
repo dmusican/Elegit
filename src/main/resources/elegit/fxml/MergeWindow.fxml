@@ -67,7 +67,8 @@
                         </ImageView>
                     </graphic>
                 </Tab>
-                <Tab text="Local Branches">
+                <Tab text="Local Branches"
+                     fx:id="localBranchTab">
                     <content>
                         <HBox alignment="CENTER">
                         <GridPane hgap="3" vgap="3" alignment="CENTER">

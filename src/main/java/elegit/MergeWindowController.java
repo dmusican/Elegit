@@ -46,6 +46,7 @@ public class MergeWindowController {
     @FXML private AnchorPane arrowPane;
     @FXML private HBox localBranchBox1;
     @FXML private TabPane mergeTypePane;
+    @FXML private Tab localBranchTab;
 
     private static final int REMOTE_PANE=0;
     private static final int LOCAL_PANE=1;
@@ -165,7 +166,7 @@ public class MergeWindowController {
      * shows the window
      * @param pane AnchorPane root
      */
-    void showStage(AnchorPane pane) {
+    void showStage(AnchorPane pane, boolean localTabOpen) {
         anchorRoot = pane;
         stage = new Stage();
         stage.setTitle("Merge");
@@ -173,6 +174,7 @@ public class MergeWindowController {
         stage.initModality(Modality.APPLICATION_MODAL);
         stage.setOnCloseRequest(event -> logger.info("Closed merge window"));
         stage.show();
+        if(localTabOpen) mergeTypePane.getSelectionModel().select(localBranchTab);
         this.notificationPaneController.setAnchor(stage);
     }
 
@@ -210,67 +212,7 @@ public class MergeWindowController {
      * merges the remote-tracking branch associated with the current branch into the current local branch
      */
     private void mergeFromFetch() {
-        try{
-            logger.info("Merge from fetch button clicked");
-            if(sessionModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
-            if(sessionModel.getCurrentRepoHelper().getBehindCount()<1) throw new NoCommitsToMergeException();
-
-            BusyWindow.show();
-            BusyWindow.setLoadingText("Merging...");
-            Thread th = new Thread(new Task<Void>(){
-                @Override
-                protected Void call() throws GitAPIException, IOException {
-                    try{
-                        if(!sessionModel.getCurrentRepoHelper().mergeFromFetch().isSuccessful()){
-                            showUnsuccessfulMergeNotification();
-                        } else {
-                            closeWindow();
-                        }
-                        sessionController.gitStatus();
-                    } catch(InvalidRemoteException e){
-                        showNoRemoteNotification();
-                    } catch(TransportException e){
-                        showNotAuthorizedNotification(null);
-                    } catch (NoMergeBaseException | JGitInternalException e) {
-                        // Merge conflict
-                        e.printStackTrace();
-                        // todo: figure out rare NoMergeBaseException.
-                        //  Has something to do with pushing conflicts.
-                        //  At this point in the stack, it's caught as a JGitInternalException.
-                    } catch(CheckoutConflictException e){
-                        showMergingWithChangedFilesNotification();
-                    } catch(ConflictingFilesException e){
-                        showMergeConflictsNotification(e.getConflictingFiles());
-                        Platform.runLater(() -> PopUpWindows.showMergeConflictsAlert(e.getConflictingFiles()));
-                        ConflictingFileWatcher.watchConflictingFiles(sessionModel.getCurrentRepoHelper());
-                    } catch(MissingRepoException e){
-                        showMissingRepoNotification();
-                        sessionController.setButtonsDisabled(true);
-                    } catch(GitAPIException | IOException e){
-                        showGenericErrorNotification();
-                        e.printStackTrace();
-                    } catch(NoTrackingException e) {
-                        showNoRemoteTrackingNotification();
-                    }catch (Exception e) {
-                        showGenericErrorNotification();
-                        e.printStackTrace();
-                    }finally {
-                        BusyWindow.hide();
-                    }
-                    return null;
-                }
-            });
-            th.setDaemon(true);
-            th.setName("Git merge FETCH_HEAD");
-            th.start();
-        }catch(NoRepoLoadedException e){
-            this.showNoRepoLoadedNotification();
-            this.sessionController.setButtonsDisabled(true);
-        }catch(NoCommitsToMergeException e){
-            this.showNoCommitsToMergeNotification();
-        }catch(IOException e) {
-            this.showGenericErrorNotification();
-        }
+        sessionController.mergeFromFetch(notificationPaneController, stage);
     }
 
     /**
@@ -365,64 +307,6 @@ public class MergeWindowController {
         notificationPaneController.addNotification("That merge resulted in conflicts. Check the working tree to resolve them.");
     }
 
-    private void showUnsuccessfulMergeNotification(){
-        Platform.runLater(() -> {
-            logger.warn("Failed merged warning");
-            notificationPaneController.addNotification("Merging failed");
-        });
-    }
-
-    private void showNoRepoLoadedNotification() {
-        Platform.runLater(() -> {
-            logger.warn("No repo loaded");
-            notificationPaneController.addNotification("You need to load a repository before you can perform operations on it. Click on the plus sign in the upper left corner!");
-        });
-    }
-
-    private void showNoRemoteNotification(){
-        Platform.runLater(()-> {
-            logger.warn("No remote repo warning");
-            String name = sessionModel.getCurrentRepoHelper() != null ? sessionModel.getCurrentRepoHelper().toString() : "the current repository";
-            notificationPaneController.addNotification("There is no remote repository associated with " + name);
-        });
-    }
-
-    private void showNoCommitsToMergeNotification(){
-        Platform.runLater(() -> {
-            logger.warn("No commits to merge warning");
-            notificationPaneController.addNotification("There aren't any commits to merge. Try fetching first");
-        });
-    }
-
-    private void showNotAuthorizedNotification(Runnable callback) {
-        Platform.runLater(() -> {
-            logger.warn("Invalid authorization");
-            notificationPaneController.addNotification("The authorization information you gave does not allow you to modify this repository. " +
-                    "Try reentering your password.");
-        });
-    }
-
-    private void showMergingWithChangedFilesNotification(){
-        Platform.runLater(() -> {
-            logger.warn("Can't merge with modified files warning");
-            notificationPaneController.addNotification("Can't merge with modified files present, please add/commit before merging.");
-        });
-    }
-
-    private void showMergeConflictsNotification(List<String> conflictingPaths){
-        Platform.runLater(() -> {
-            logger.warn("Merge conflict warning");
-            notificationPaneController.addNotification("Can't complete merge due to conflicts. Resolve the conflicts and commit all files to complete merging");
-        });
-    }
-
-    private void showMissingRepoNotification(){
-        Platform.runLater(()-> {
-            logger.warn("Missing repo notification");
-            notificationPaneController.addNotification("That repository no longer exists.");
-        });
-    }
-
     private void showGenericErrorNotification() {
         Platform.runLater(()-> {
             logger.warn("Generic error.");
@@ -439,13 +323,6 @@ public class MergeWindowController {
                 logger.warn("Generic jgit internal warning.");
                 notificationPaneController.addNotification("Sorry, there was a Git error.");
             }
-        });
-    }
-
-    private void showNoRemoteTrackingNotification() {
-        Platform.runLater(() -> {
-            logger.warn("No remote tracking for current branch notification.");
-            notificationPaneController.addNotification("There is no remote tracking information for the current branch.");
         });
     }
 

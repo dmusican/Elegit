@@ -40,6 +40,7 @@ import org.eclipse.jgit.api.PushCommand;
 import org.eclipse.jgit.api.ResetCommand;
 import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.dircache.InvalidPathException;
+import org.eclipse.jgit.errors.NoMergeBaseException;
 import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.jgit.transport.RemoteRefUpdate;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
@@ -1699,10 +1700,10 @@ public class SessionController {
      * Calls git fetch
      * @param prune boolean should prune
      */
-    public void handleFetchButton(boolean prune) {
+    public void handleFetchButton(boolean prune, boolean pull) {
         logger.info("Fetch button clicked");
         RepositoryMonitor.pause();
-        gitFetch(prune);
+        gitFetch(prune, pull);
         RepositoryMonitor.unpause();
         submitLog();
     }
@@ -1710,15 +1711,22 @@ public class SessionController {
     /**
      * Handles a click on Fetch -p
      */
-    public void handlePruneFetch() {
-        handleFetchButton(true);
+    public void handlePruneFetchButton() {
+        handleFetchButton(true, false);
     }
 
     /**
      * Handles a click on the "Fetch" button. Calls gitFetch()
      */
-    public void handleFetchButton(){
-        handleFetchButton(false);
+    public void handleNormalFetchButton(){
+        handleFetchButton(false, false);
+    }
+
+    /**
+     * Peforms a git pull
+     */
+    public void handlePullButton() {
+        handleFetchButton(false, true);
     }
 
     /**
@@ -1726,7 +1734,7 @@ public class SessionController {
      * remote as necessary.
      * Equivalent to `git fetch`
      */
-    private synchronized void gitFetch(boolean prune){
+    private synchronized void gitFetch(boolean prune, boolean pull){
         try{
 
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
@@ -1748,6 +1756,8 @@ public class SessionController {
                         }
                         if(!helper.fetch(prune)){
                             showNoCommitsFetchedNotification();
+                        }else {
+                            if(pull) mergeFromFetch();
                         }
                         gitStatus();
                     } catch(InvalidRemoteException e){
@@ -1768,9 +1778,7 @@ public class SessionController {
                             authenticationFailedLastTime = false;
                         } else {
                             authenticationFailedLastTime = true;
-                            Platform.runLater(() -> {
-                                gitFetch(prune);
-                            });
+                            Platform.runLater(() -> gitFetch(prune, pull));
                         }
                     }
                     return null;
@@ -1785,14 +1793,90 @@ public class SessionController {
         } catch (CancelledAuthorizationException e) {
             this.showCommandCancelledNotification();
         }
+    }
 
+    /**
+     * Does a merge from fetch
+     */
+    public void mergeFromFetch() {
+        mergeFromFetch(notificationPaneController, null);
+    }
 
+    /**
+     * merges the remote-tracking branch associated with the current branch into the current local branch
+     */
+    public void mergeFromFetch(NotificationController notificationController, Stage stageToClose) {
+        try{
+            logger.info("Merge from fetch button clicked");
+            if(theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
+            if(theModel.getCurrentRepoHelper().getBehindCount()<1) throw new NoCommitsToMergeException();
+
+            BusyWindow.show();
+            BusyWindow.setLoadingText("Merging...");
+            Thread th = new Thread(new Task<Void>(){
+                @Override
+                protected Void call() throws GitAPIException, IOException {
+                    try{
+                        if(!theModel.getCurrentRepoHelper().mergeFromFetch().isSuccessful()){
+                            showUnsuccessfulMergeNotification(notificationController);
+                        } else {
+                            if(stageToClose != null) Platform.runLater(stageToClose::close);
+                        }
+                        gitStatus();
+                    } catch(InvalidRemoteException e){
+                        showNoRemoteNotification(notificationController);
+                    } catch(TransportException e){
+                        showNotAuthorizedNotification(notificationController);
+                    } catch (NoMergeBaseException | JGitInternalException e) {
+                        // Merge conflict
+                        e.printStackTrace();
+                        // todo: figure out rare NoMergeBaseException.
+                        //  Has something to do with pushing conflicts.
+                        //  At this point in the stack, it's caught as a JGitInternalException.
+                    } catch(CheckoutConflictException e){
+                        showMergingWithChangedFilesNotification(notificationController);
+                    } catch(ConflictingFilesException e){
+                        showMergeConflictsNotification(notificationController);
+                        Platform.runLater(() -> PopUpWindows.showMergeConflictsAlert(e.getConflictingFiles()));
+                        ConflictingFileWatcher.watchConflictingFiles(theModel.getCurrentRepoHelper());
+                    } catch(MissingRepoException e){
+                        showMissingRepoNotification(notificationController);
+                        setButtonsDisabled(true);
+                    } catch(GitAPIException | IOException e){
+                        showGenericErrorNotification(notificationController);
+                        e.printStackTrace();
+                    } catch(NoTrackingException e) {
+                        showNoRemoteTrackingNotification(notificationController);
+                    }catch (Exception e) {
+                        showGenericErrorNotification(notificationController);
+                        e.printStackTrace();
+                    }finally {
+                        BusyWindow.hide();
+                    }
+                    return null;
+                }
+            });
+            th.setDaemon(true);
+            th.setName("Git merge FETCH_HEAD");
+            th.start();
+        }catch(NoRepoLoadedException e){
+            this.showNoRepoLoadedNotification(notificationController);
+            this.setButtonsDisabled(true);
+        }catch(NoCommitsToMergeException e){
+            this.showNoCommitsToMergeNotification(notificationController);
+        }catch(IOException e) {
+            this.showGenericErrorNotification(notificationController);
+        }
+    }
+
+    public void handleNewBranchButton() {
+        handleNewBranchButton(null);
     }
 
     /**
      * Pops up a window where the user can create a new branch
      */
-    public void handleNewBranchButton() {
+    public void handleNewBranchButton(String tab) {
         try{
             logger.info("Create/delete branch button clicked");
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
@@ -1804,7 +1888,7 @@ public class SessionController {
             CreateDeleteBranchWindowController createDeleteBranchController = fxmlLoader.getController();
             createDeleteBranchController.setSessionController(this);
             AnchorPane fxmlRoot = fxmlLoader.getRoot();
-            createDeleteBranchController.showStage(fxmlRoot);
+            createDeleteBranchController.showStage(fxmlRoot, tab);
         }catch(IOException e){
             this.showGenericErrorNotification();
             e.printStackTrace();
@@ -1834,10 +1918,14 @@ public class SessionController {
         CommitTreeController.focusCommitInGraph(id);
     }
 
+    public void handleGeneralMergeButton(){
+        handleGeneralMergeButton(false);
+    }
+
     /**
      * shows the merge window
      */
-    public void handleGeneralMergeButton() {
+    public void handleGeneralMergeButton(boolean localTabOpen) {
         try{
             logger.info("Merge button clicked");
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
@@ -1849,7 +1937,7 @@ public class SessionController {
             MergeWindowController mergeWindowController = fxmlLoader.getController();
             mergeWindowController.setSessionController(this);
             AnchorPane fxmlRoot = fxmlLoader.getRoot();
-            mergeWindowController.showStage(fxmlRoot);
+            mergeWindowController.showStage(fxmlRoot, localTabOpen);
         }catch(IOException e){
             this.showGenericErrorNotification();
             e.printStackTrace();
@@ -2163,10 +2251,17 @@ public class SessionController {
     /// ********                 BEGIN: ERROR NOTIFICATIONS:                  ********
     /// ******************************************************************************
 
+    private void showGenericErrorNotification(NotificationController nc) {
+        Platform.runLater(()-> {
+            logger.warn("Generic error warning.");
+            nc.addNotification("Sorry, there was an error.");
+        });
+    }
+
     private void showGenericErrorNotification() {
         Platform.runLater(()-> {
             logger.warn("Generic error warning.");
-            this.notificationPaneController.addNotification("Sorry, there was an error.");
+            notificationPaneController.addNotification("Sorry, there was an error.");
         });
     }
 
@@ -2182,10 +2277,17 @@ public class SessionController {
         });
     }
 
+    private void showNoRepoLoadedNotification(NotificationController nc) {
+        Platform.runLater(() -> {
+            logger.warn("No repo loaded warning.");
+            nc.addNotification("You need to load a repository before you can perform operations on it. Click on the plus sign in the upper left corner!");
+        });
+    }
+
     private void showNoRepoLoadedNotification() {
         Platform.runLater(() -> {
             logger.warn("No repo loaded warning.");
-            this.notificationPaneController.addNotification("You need to load a repository before you can perform operations on it. Click on the plus sign in the upper left corner!");
+            notificationPaneController.addNotification("You need to load a repository before you can perform operations on it. Click on the plus sign in the upper left corner!");
         });
     }
 
@@ -2196,10 +2298,26 @@ public class SessionController {
         });
     }
 
+    private void showMissingRepoNotification(NotificationController nc){
+        Platform.runLater(()-> {
+            logger.warn("Missing repo warning");
+            nc.addNotification("That repository no longer exists.");
+        });
+    }
+
     private void showMissingRepoNotification(){
         Platform.runLater(()-> {
             logger.warn("Missing repo warning");
-            this.notificationPaneController.addNotification("That repository no longer exists.");
+            notificationPaneController.addNotification("That repository no longer exists.");
+        });
+    }
+
+    private void showNoRemoteNotification(NotificationController nc){
+        Platform.runLater(()-> {
+            logger.warn("No remote repo warning");
+            String name = this.theModel.getCurrentRepoHelper() != null ? this.theModel.getCurrentRepoHelper().toString() : "the current repository";
+
+            nc.addNotification("There is no remote repository associated with " + name);
         });
     }
 
@@ -2208,7 +2326,7 @@ public class SessionController {
             logger.warn("No remote repo warning");
             String name = this.theModel.getCurrentRepoHelper() != null ? this.theModel.getCurrentRepoHelper().toString() : "the current repository";
 
-            this.notificationPaneController.addNotification("There is no remote repository associated with " + name);
+            notificationPaneController.addNotification("There is no remote repository associated with " + name);
         });
     }
 
@@ -2242,10 +2360,18 @@ public class SessionController {
         });
     }
 
+    private void showNotAuthorizedNotification(NotificationController nc) {
+        Platform.runLater(() -> {
+            logger.warn("Invalid authorization warning");
+            nc.addNotification("The authorization information you gave does not allow you to modify this repository. " +
+                    "Try reentering your password.");
+        });
+    }
+
     private void showNotAuthorizedNotification() {
         Platform.runLater(() -> {
             logger.warn("Invalid authorization warning");
-            this.notificationPaneController.addNotification("The authorization information you gave does not allow you to modify this repository. " +
+            notificationPaneController.addNotification("The authorization information you gave does not allow you to modify this repository. " +
                     "Try reentering your password.");
         });
     }
@@ -2416,6 +2542,41 @@ public class SessionController {
     private void showRefAlreadyExistsNotification() {
         logger.info("Branch already exists notification");
         notificationPaneController.addNotification("Looks like that branch already exists locally!");
+    }
+
+    private void showUnsuccessfulMergeNotification(NotificationController nc){
+        Platform.runLater(() -> {
+            logger.warn("Failed merged warning");
+            nc.addNotification("Merging failed");
+        });
+    }
+
+    private void showMergingWithChangedFilesNotification(NotificationController nc){
+        Platform.runLater(() -> {
+            logger.warn("Can't merge with modified files warning");
+            nc.addNotification("Can't merge with modified files present, please add/commit before merging.");
+        });
+    }
+
+    private void showMergeConflictsNotification(NotificationController nc){
+        Platform.runLater(() -> {
+            logger.warn("Merge conflict warning");
+            nc.addNotification("Can't complete merge due to conflicts. Resolve the conflicts and commit all files to complete merging");
+        });
+    }
+
+    private void showNoRemoteTrackingNotification(NotificationController nc) {
+        Platform.runLater(() -> {
+            logger.warn("No remote tracking for current branch notification.");
+            nc.addNotification("There is no remote tracking information for the current branch.");
+        });
+    }
+
+    private void showNoCommitsToMergeNotification(NotificationController nc){
+        Platform.runLater(() -> {
+            logger.warn("No commits to merge warning");
+            nc.addNotification("There aren't any commits to merge. Try fetching first");
+        });
     }
 
     // END: ERROR NOTIFICATIONS ^^^
