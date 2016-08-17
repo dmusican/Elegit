@@ -193,7 +193,10 @@ public class CreateDeleteBranchWindowController {
                     sessionController.gitStatus();
                     updateUser(" created ");
 
-                } catch (InvalidRefNameException e1) {
+                } catch (RefAlreadyExistsException e){
+                    logger.warn("Branch already exists warning");
+                    showRefAlreadyExistsNotification(branchName);
+                }catch (InvalidRefNameException e1) {
                     logger.warn("Invalid branch name warning");
                     showInvalidBranchNameNotification();
                 } catch (RefNotFoundException e1) {
@@ -522,6 +525,13 @@ public class CreateDeleteBranchWindowController {
             logger.warn("Invalid authorization warning");
             this.notificationPaneController.addNotification("The authorization information you gave does not allow you to modify this repository. " +
                     "Try reentering your password.");
+        });
+    }
+
+    private void showRefAlreadyExistsNotification(String ref) {
+        Platform.runLater(()-> {
+            logger.warn("Ref already exists warning");
+            this.notificationPaneController.addNotification(ref + " already exists. Choose a different name.");
         });
     }
 
