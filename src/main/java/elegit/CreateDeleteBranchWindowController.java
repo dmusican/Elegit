@@ -1,6 +1,5 @@
 package elegit;
 
-import elegit.exceptions.CancelledAuthorizationException;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.concurrent.Task;
@@ -18,7 +17,6 @@ import org.apache.logging.log4j.Logger;
 import org.controlsfx.control.PopOver;
 import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.transport.RemoteRefUpdate;
-import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
 import java.io.IOException;
 import java.util.List;
@@ -294,7 +292,7 @@ public class CreateDeleteBranchWindowController {
                     sessionController.deleteRemoteBranch(selectedBranch, branchModel,
                                        (String message) -> updateUser(message, BranchModel.BranchType.REMOTE));
 //                    final RepoHelperBuilder.AuthDialogResponse response;
-//                    if (sessionController.authenticationFailedLastTime) {
+//                    if (sessionController.tryCommandAgainWithHTTPAuth) {
 //                        response = RepoHelperBuilder.getAuthCredentialFromDialog();
 //                        repoHelper.ownerAuth =
 //                                new UsernamePasswordCredentialsProvider(response.username, response.password);
@@ -347,9 +345,9 @@ public class CreateDeleteBranchWindowController {
             // Reset the branch heads
             CommitTreeController.setBranchHeads(localCommitTreeModel, repoHelper);
             if (authorizationSucceeded) {
-                sessionController.authenticationFailedLastTime = false;
+                sessionController.tryCommandAgainWithHTTPAuth = false;
             } else {
-                sessionController.authenticationFailedLastTime = true;
+                sessionController.tryCommandAgainWithHTTPAuth = true;
                 deleteBranch(selectedBranch);
             }
         }

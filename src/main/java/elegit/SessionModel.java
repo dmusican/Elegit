@@ -81,7 +81,7 @@ public class SessionModel {
                 Path path = Paths.get(lastOpenedRepoPathString);
                 try {
                     ExistingRepoHelper existingRepoHelper =
-                            new ExistingRepoHelper(path);
+                            new ExistingRepoHelper(path, new ElegitUserInfoGUI());
                     this.openRepoFromHelper(existingRepoHelper);
                     return;
                 } catch (IllegalArgumentException e) {
@@ -123,7 +123,7 @@ public class SessionModel {
                 for (String pathString : storedRepoPathStrings) {
                     Path path = Paths.get(pathString);
                     try {
-                        ExistingRepoHelper existingRepoHelper = new ExistingRepoHelper(path);
+                        ExistingRepoHelper existingRepoHelper = new ExistingRepoHelper(path, new ElegitUserInfoGUI());
                         this.allRepoHelpers.add(existingRepoHelper);
                     } catch (IllegalArgumentException e) {
                         logger.warn("Repository has been moved, we move along");

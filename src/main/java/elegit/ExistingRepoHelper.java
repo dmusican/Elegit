@@ -1,5 +1,6 @@
 package elegit;
 
+import com.jcraft.jsch.UserInfo;
 import elegit.exceptions.CancelledAuthorizationException;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Repository;
@@ -15,6 +16,13 @@ import java.util.NoSuchElementException;
 public class ExistingRepoHelper extends RepoHelper {
     public ExistingRepoHelper(Path directoryPath) throws IOException, GitAPIException, CancelledAuthorizationException{
         super(directoryPath);
+        repo = obtainRepository();
+        setup();
+    }
+
+    public ExistingRepoHelper(Path directoryPath, UserInfo userInfo) throws IOException, GitAPIException,
+            CancelledAuthorizationException{
+        super(directoryPath, userInfo);
         repo = obtainRepository();
         setup();
     }

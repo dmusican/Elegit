@@ -143,7 +143,7 @@ public class SessionController {
     @FXML private StackPane notificationPane;
     @FXML private NotificationController notificationPaneController;
 
-    boolean authenticationFailedLastTime;
+    boolean tryCommandAgainWithHTTPAuth;
     private boolean isGitStatusDone;
     private boolean isTimerDone;
 
@@ -198,7 +198,7 @@ public class SessionController {
             e.printStackTrace();
         }
 
-        authenticationFailedLastTime = false;
+        tryCommandAgainWithHTTPAuth = false;
 
 
     }
@@ -1163,17 +1163,16 @@ public class SessionController {
             Thread th = new Thread(new Task<Void>(){
                 @Override
                 protected Void call() {
-                    authenticationFailedLastTime = false;
+                    tryCommandAgainWithHTTPAuth = false;
                     try {
                         pushBranchOrAllDetails(credentialResponse, pushType, push);
                     } catch (TransportException e) {
-                        showNotAuthorizedNotification();
-                        authenticationFailedLastTime = true;
+                        determineIfTryAgain(e);
                     } finally {
                         BusyWindow.hide();
                     }
 
-                    if (authenticationFailedLastTime) {
+                    if (tryCommandAgainWithHTTPAuth) {
                         Platform.runLater(() -> {
                             pushBranchOrAll(pushType, push);
                         });
@@ -1188,6 +1187,13 @@ public class SessionController {
         } catch (CancelledAuthorizationException e) {
             this.showCommandCancelledNotification();
         }
+    }
+
+    private void determineIfTryAgain(TransportException e) {
+        showNotAuthorizedNotification();
+        // Don't try again with HTTP authentication if SSH prompt for authentication is canceled
+        if (!e.getMessage().endsWith("Auth cancel"))
+            tryCommandAgainWithHTTPAuth = true;
     }
 
     private void pushBranchOrAllDetails(RepoHelperBuilder.AuthDialogResponse response, PushType pushType,
@@ -1233,7 +1239,7 @@ public class SessionController {
 
     private RepoHelperBuilder.AuthDialogResponse askUserForCredentials() throws CancelledAuthorizationException {
         final RepoHelperBuilder.AuthDialogResponse response;
-        if (authenticationFailedLastTime) {
+        if (tryCommandAgainWithHTTPAuth) {
             response = RepoHelperBuilder.getAuthCredentialFromDialog();
         } else {
             response = null;
@@ -1258,17 +1264,16 @@ public class SessionController {
             Thread th = new Thread(new Task<Void>(){
                 @Override
                 protected Void call() {
-                    authenticationFailedLastTime = false;
+                    tryCommandAgainWithHTTPAuth = false;
                     try {
                         handlePushTagsButtonDetails(credentialResponse);
                     } catch (TransportException e) {
-                        showNotAuthorizedNotification();
-                        authenticationFailedLastTime = true;
+                        determineIfTryAgain(e);
                     } finally {
                         BusyWindow.hide();
                     }
 
-                    if (authenticationFailedLastTime) {
+                    if (tryCommandAgainWithHTTPAuth) {
                         Platform.runLater(() -> {
                             handlePushTagsButton();
                         });
@@ -1414,9 +1419,9 @@ public class SessionController {
         } finally {
             gitStatus();
             if (authorizationSucceeded) {
-                authenticationFailedLastTime = false;
+                tryCommandAgainWithHTTPAuth = false;
             } else {
-                authenticationFailedLastTime = true;
+                tryCommandAgainWithHTTPAuth = true;
                 deleteBranch(selectedBranch);
             }
         }
@@ -1432,17 +1437,16 @@ public class SessionController {
             Thread th = new Thread(new Task<Void>() {
                 @Override
                 protected Void call() {
-                    authenticationFailedLastTime = false;
+                    tryCommandAgainWithHTTPAuth = false;
                     try {
                         deleteRemoteBranchDetails(credentialResponse, selectedBranch, branchModel, updateFn);
                     } catch (TransportException e) {
-                        showNotAuthorizedNotification();
-                        authenticationFailedLastTime = true;
+                        determineIfTryAgain(e);
                     } finally {
                         BusyWindow.hide();
                     }
 
-                    if (authenticationFailedLastTime) {
+                    if (tryCommandAgainWithHTTPAuth) {
                         Platform.runLater(() -> {
                             deleteRemoteBranch(selectedBranch, branchModel, updateFn);
                         });
@@ -1733,7 +1737,7 @@ public class SessionController {
             Thread th = new Thread(new Task<Void>(){
                 @Override
                 protected Void call() {
-                    boolean authorizationSucceeded = true;
+                    tryCommandAgainWithHTTPAuth = false;
                     try{
                         RepositoryMonitor.resetFoundNewChanges(false);
                         RepoHelper helper = theModel.getCurrentRepoHelper();
@@ -1748,8 +1752,7 @@ public class SessionController {
                     } catch(InvalidRemoteException e){
                         showNoRemoteNotification();
                     } catch (TransportException e) {
-                        showNotAuthorizedNotification();
-                        authorizationSucceeded = false;
+                        determineIfTryAgain(e);
                     } catch(MissingRepoException e){
                         showMissingRepoNotification();
                         setButtonsDisabled(true);
@@ -1759,15 +1762,12 @@ public class SessionController {
                         e.printStackTrace();
                     }finally {
                         BusyWindow.hide();
-                        if (authorizationSucceeded) {
-                            authenticationFailedLastTime = false;
-                        } else {
-                            authenticationFailedLastTime = true;
-                            Platform.runLater(() -> {
-                                gitFetch(prune);
-                            });
-                        }
                     }
+
+                    if (tryCommandAgainWithHTTPAuth)
+                        Platform.runLater(() -> {
+                            gitFetch(prune);
+                        });
                     return null;
                 }
             });

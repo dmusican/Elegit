@@ -139,7 +139,7 @@ public class PushPullTest {
         ClonedRepoHelper clonedHelperPull = new ClonedRepoHelper(repoPathPull, remoteURL, credentials);
         assertNotNull(clonedHelperPull);
         clonedHelperPull.obtainRepository(remoteURL);
-        ExistingRepoHelper existingHelperPull = new ExistingRepoHelper(repoPathPull);
+        ExistingRepoHelper existingHelperPull = new ExistingRepoHelper(repoPathPull, new ElegitUserInfoTest());
 
         // Update the file, then commit and push
         Path readmePath = repoPathPush.resolve("README.md");
