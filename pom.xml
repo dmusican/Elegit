@@ -26,7 +26,7 @@
                     <vendor>The Elegit Team</vendor>
                     <appName>Elegit</appName>
                     <mainClass>elegit.Main</mainClass>
-                    <nativeReleaseVersion>0.7</nativeReleaseVersion>
+                    <nativeReleaseVersion>0.8</nativeReleaseVersion>
                 </configuration>
             </plugin>
         </plugins>
