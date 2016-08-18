@@ -21,10 +21,12 @@
                 <Menu   text="Edit">
                     <items>
                         <MenuItem   text=".gitignore"
-                                    fx:id="gitIgnoreMenuItem"/>
+                                    fx:id="gitIgnoreMenuItem"
+                                    onAction="#handleGitIgnoreMenuItem"/>
                     </items>
                 </Menu>
-                <Menu   text="Repository">
+                <Menu   text="Repository"
+                        fx:id="repoMenu">
                     <items>
                         <Menu   text="Branch">
                             <MenuItem   text="create branch"
