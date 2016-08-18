@@ -986,20 +986,10 @@ public class SessionController {
 
             if(!workingTreePanelView.isAnyFileStaged() && type.equals(CommitType.NORMAL)) throw new NoFilesStagedForCommitException();
 
-            try{
-                if(type.equals(CommitType.NORMAL)) {
-                    commitNormal();
-                }else {
-                    commitAll();
-                }
-            }catch(IOException e){
-                showGenericErrorNotification();
-                e.printStackTrace();
-            }catch(Exception e) {
-                e.printStackTrace();
-            }
-            finally {
-                //BusyWindow.hide();   // HERE YOU ARE, MY FRIEND
+            if(type.equals(CommitType.NORMAL)) {
+                commitNormal();
+            }else {
+                commitAll();
             }
         } catch(NoRepoLoadedException e){
             this.showNoRepoLoadedNotification();
@@ -1008,8 +998,13 @@ public class SessionController {
             this.showMissingRepoNotification();
             setButtonsDisabled(true);
             refreshRecentReposInDropdown();
-        }catch(NoFilesStagedForCommitException e){
+        } catch(NoFilesStagedForCommitException e){
             this.showNoFilesStagedForCommitNotification();
+        } catch(IOException e){
+            showGenericErrorNotification();
+            e.printStackTrace();
+        } catch(Exception e) {
+            e.printStackTrace();
         }
     }
 
