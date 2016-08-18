@@ -25,7 +25,7 @@ import static org.junit.Assert.*;
  */
 public class BranchManagerUiUpdateTest {
 
-    private static final String REMOTE_URL = "https://github.com/shangdrk/BranchManagerUiUpdateTestRepo";
+    private static final String REMOTE_URL = "https://github.com/TheElegitTeam/BranchManagerUiUpdateTestRepo";
     private static final String BRANCH_NAME = "random";
 
     Path logPath;

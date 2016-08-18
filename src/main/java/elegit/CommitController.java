@@ -39,6 +39,8 @@ public class CommitController {
 
     static final Logger logger = LogManager.getLogger();
 
+    static SessionController sessionController;
+
     /**
      * Initialize method automatically called by JavaFX
      *
@@ -125,13 +127,17 @@ public class CommitController {
      */
     public void handleCommitButton() {
         try {
-            this.repoHelper.commit(this.commitMessageField.getText());
+            String messageText = commitMessageField.getText();
+            closeWindow();
+            BusyWindow.show();
+            BusyWindow.setLoadingText("Committing...");
+            this.repoHelper.commit(messageText);
         } catch (GitAPIException e) {
             e.printStackTrace();
         } catch (MissingRepoException e) {
             e.printStackTrace();
         } finally {
-            closeWindow();
+            BusyWindow.hide();
             isClosed.setValue(true);
         }
     }

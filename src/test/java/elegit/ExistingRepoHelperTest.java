@@ -63,7 +63,8 @@ public class ExistingRepoHelperTest {
         SessionModel.getSessionModel().setAuthPref(localPath.toString(), AuthMethod.HTTPS);
 
         String username = null;
-        ExistingRepoHelper repoHelper = new ExistingRepoHelper(Paths.get(localPath.getAbsolutePath()));
+        ExistingRepoHelper repoHelper = new ExistingRepoHelper(Paths.get(localPath.getAbsolutePath()),
+                                                               new ElegitUserInfoTest());
         git.close();
     }
 }

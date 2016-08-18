@@ -3,6 +3,7 @@ package elegit;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.UserInfo;
 import elegit.exceptions.CancelledAuthorizationException;
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
@@ -10,6 +11,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.Optional;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.FutureTask;
 
 /**
  * Class for purposes for JSch authentication (which JGit uses). This is the text-based version used
@@ -54,35 +58,52 @@ public class ElegitUserInfoGUI implements UserInfo {
     }
 
     private Optional<String> prompt(String s, String title, String headerText, String contentText) {
-        System.out.println(s);
+        FutureTask<Optional<String>> futureTask = new FutureTask<>(new Callable<Optional<String>>() {
+            @Override
+            public Optional<String> call() throws Exception {
+                System.out.println(s);
 
-        Dialog<String> dialog = new Dialog<>();
+                Dialog<String> dialog = new Dialog<>();
 
-        GridPane grid = new GridPane();
-        grid.setHgap(10);
-        grid.setVgap(10);
-        grid.setPadding(new Insets(10, 10, 10, 10));
+                GridPane grid = new GridPane();
+                grid.setHgap(10);
+                grid.setVgap(10);
+                grid.setPadding(new Insets(10, 10, 10, 10));
 
-        PasswordField passwordField = new PasswordField();
-        grid.add(passwordField,2,0);
+                PasswordField passwordField = new PasswordField();
+                grid.add(passwordField,2,0);
 
-        dialog.getDialogPane().setContent(grid);
+                dialog.getDialogPane().setContent(grid);
 
-        dialog.setTitle(title);
-        dialog.setHeaderText(s);
-        dialog.setContentText(s);
+                dialog.setTitle(title);
+                dialog.setHeaderText(s);
+                dialog.setContentText(s);
 
-        dialog.getDialogPane().getButtonTypes().setAll(ButtonType.OK, ButtonType.CANCEL);
+                dialog.getDialogPane().getButtonTypes().setAll(ButtonType.OK, ButtonType.CANCEL);
 
-        dialog.setResultConverter(dialogButton -> {
-            if (dialogButton == ButtonType.OK)
-                return passwordField.getText();
-            else {
-                return null;
+                dialog.setResultConverter(dialogButton -> {
+                    if (dialogButton == ButtonType.OK)
+                        return passwordField.getText();
+                    else {
+                        return null;
+                    }
+                });
+
+                Optional<String> result = dialog.showAndWait();
+                return result;
+
             }
-        });
 
-        Optional<String> result = dialog.showAndWait();
+        });
+        Platform.runLater(futureTask);
+        Optional<String> result = Optional.of("");
+        try {
+            return futureTask.get();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        }
         return result;
     }
 

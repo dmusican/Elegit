@@ -37,7 +37,7 @@ public class ExistingRepoHelperBuilder extends RepoHelperBuilder {
 
         Path directoryPath = existingRepoDirectoryFile.toPath();
 
-        RepoHelper existingRepoHelper = new ExistingRepoHelper(directoryPath);
+        RepoHelper existingRepoHelper = new ExistingRepoHelper(directoryPath, new ElegitUserInfoGUI());
 
         return existingRepoHelper;
     }

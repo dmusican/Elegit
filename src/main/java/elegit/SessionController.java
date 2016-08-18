@@ -146,7 +146,7 @@ public class SessionController {
     @FXML private StackPane notificationPane;
     @FXML private NotificationController notificationPaneController;
 
-    boolean authenticationFailedLastTime;
+    boolean tryCommandAgainWithHTTPAuth;
     private boolean isGitStatusDone;
     private boolean isTimerDone;
 
@@ -157,15 +157,15 @@ public class SessionController {
      * This method is automatically called by JavaFX.
      */
     public void initialize() {
-
         // Creates the SessionModel
         this.theModel = SessionModel.getSessionModel();
 
         // Creates a DataSubmitter for logging
         d = new DataSubmitter();
 
-        // Passes this to CommitTreeController
+        // Gives other controllers acccess to this one
         CommitTreeController.sessionController = this;
+        CommitController.sessionController = this;
 
         // Creates the commit tree model
         this.commitTreeModel = new LocalCommitTreeModel(this.theModel, this.commitTreePanelView);
@@ -180,9 +180,11 @@ public class SessionController {
         this.setButtonIconsAndTooltips();
         this.setButtonsDisabled(true);
         this.initWorkingTreePanelTab();
+        // SLOW
         this.theModel.loadRecentRepoHelpersFromStoredPathStrings();
         this.theModel.loadMostRecentRepoHelper();
 
+        // SLOW
         this.initPanelViews();
         this.updateUIEnabledStatus();
         this.setRecentReposDropdownToCurrentRepo();
@@ -201,7 +203,7 @@ public class SessionController {
             e.printStackTrace();
         }
 
-        authenticationFailedLastTime = false;
+        tryCommandAgainWithHTTPAuth = false;
     }
 
     public void setStage(Stage stage) {
@@ -985,38 +987,10 @@ public class SessionController {
 
             if(!workingTreePanelView.isAnyFileStaged() && type.equals(CommitType.NORMAL)) throw new NoFilesStagedForCommitException();
 
-            try{
-                logger.info("Commit button clicked");
-                if(theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
-
-                if(type.equals(CommitType.NORMAL)) {
-                    BusyWindow.show();
-                    BusyWindow.setLoadingText("Committing...");
-                    logger.info("Opened commit manager window");
-                    // Create and display the Stage:
-                    FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/CommitView.fxml"));
-                    fxmlLoader.load();
-                    CommitController commitController = fxmlLoader.getController();
-                    commitController.isClosed.addListener((observable, oldValue, newValue) -> {
-                        if (!oldValue && newValue)
-                            gitStatus();
-                    });
-                    GridPane fxmlRoot = fxmlLoader.getRoot();
-                    commitController.showStage(fxmlRoot);
-                }else {
-                    theModel.getCurrentRepoHelper().commitAll();
-                }
-            }catch(IOException e){
-                showGenericErrorNotification();
-                e.printStackTrace();
-            }catch(NoRepoLoadedException e){
-                showNoRepoLoadedNotification();
-                setButtonsDisabled(true);
-            }catch(Exception e) {
-                e.printStackTrace();
-            }
-            finally {
-                BusyWindow.hide();
+            if(type.equals(CommitType.NORMAL)) {
+                commitNormal();
+            }else {
+                commitAll();
             }
         } catch(NoRepoLoadedException e){
             this.showNoRepoLoadedNotification();
@@ -1025,10 +999,55 @@ public class SessionController {
             this.showMissingRepoNotification();
             setButtonsDisabled(true);
             refreshRecentReposInDropdown();
-        }catch(NoFilesStagedForCommitException e){
+        } catch(NoFilesStagedForCommitException e){
             this.showNoFilesStagedForCommitNotification();
+        } catch(IOException e){
+            showGenericErrorNotification();
+            e.printStackTrace();
+        } catch(Exception e) {
+            e.printStackTrace();
         }
     }
+
+    private void commitAll() {
+        String message = PopUpWindows.getCommitMessage();
+        if(message.equals("cancel")) return;
+
+        BusyWindow.show();
+        BusyWindow.setLoadingText("Committing all...");
+
+        Thread th = new Thread(new Task<Void>() {
+            @Override
+            protected Void call() {
+                try {
+                    theModel.getCurrentRepoHelper().commitAll(message);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                } finally {
+                    BusyWindow.hide();
+                }
+                return null;
+            }
+        });
+        th.setDaemon(true);
+        th.setName("Git commit all");
+        th.start();
+    }
+
+    private void commitNormal() throws IOException {
+        logger.info("Opened commit manager window");
+        // Create and display the Stage:
+        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/CommitView.fxml"));
+        fxmlLoader.load();
+        CommitController commitController = fxmlLoader.getController();
+        commitController.isClosed.addListener((observable, oldValue, newValue) -> {
+            if (!oldValue && newValue)
+                gitStatus();
+        });
+        GridPane fxmlRoot = fxmlLoader.getRoot();
+        commitController.showStage(fxmlRoot);
+    }
+
 
     /**
      * Checks things are ready for a tag, then performs a git-tag
@@ -1169,17 +1188,16 @@ public class SessionController {
             Thread th = new Thread(new Task<Void>(){
                 @Override
                 protected Void call() {
-                    authenticationFailedLastTime = false;
+                    tryCommandAgainWithHTTPAuth = false;
                     try {
                         pushBranchOrAllDetails(credentialResponse, pushType, push);
                     } catch (TransportException e) {
-                        showNotAuthorizedNotification();
-                        authenticationFailedLastTime = true;
+                        determineIfTryAgain(e);
                     } finally {
                         BusyWindow.hide();
                     }
 
-                    if (authenticationFailedLastTime) {
+                    if (tryCommandAgainWithHTTPAuth) {
                         Platform.runLater(() -> {
                             pushBranchOrAll(pushType, push);
                         });
@@ -1194,6 +1212,13 @@ public class SessionController {
         } catch (CancelledAuthorizationException e) {
             this.showCommandCancelledNotification();
         }
+    }
+
+    private void determineIfTryAgain(TransportException e) {
+        showNotAuthorizedNotification();
+        // Don't try again with HTTP authentication if SSH prompt for authentication is canceled
+        if (!e.getMessage().endsWith("Auth cancel"))
+            tryCommandAgainWithHTTPAuth = true;
     }
 
     private void pushBranchOrAllDetails(RepoHelperBuilder.AuthDialogResponse response, PushType pushType,
@@ -1239,7 +1264,7 @@ public class SessionController {
 
     private RepoHelperBuilder.AuthDialogResponse askUserForCredentials() throws CancelledAuthorizationException {
         final RepoHelperBuilder.AuthDialogResponse response;
-        if (authenticationFailedLastTime) {
+        if (tryCommandAgainWithHTTPAuth) {
             response = RepoHelperBuilder.getAuthCredentialFromDialog();
         } else {
             response = null;
@@ -1264,17 +1289,16 @@ public class SessionController {
             Thread th = new Thread(new Task<Void>(){
                 @Override
                 protected Void call() {
-                    authenticationFailedLastTime = false;
+                    tryCommandAgainWithHTTPAuth = false;
                     try {
                         handlePushTagsButtonDetails(credentialResponse);
                     } catch (TransportException e) {
-                        showNotAuthorizedNotification();
-                        authenticationFailedLastTime = true;
+                        determineIfTryAgain(e);
                     } finally {
                         BusyWindow.hide();
                     }
 
-                    if (authenticationFailedLastTime) {
+                    if (tryCommandAgainWithHTTPAuth) {
                         Platform.runLater(() -> {
                             handlePushTagsButton();
                         });
@@ -1420,9 +1444,9 @@ public class SessionController {
         } finally {
             gitStatus();
             if (authorizationSucceeded) {
-                authenticationFailedLastTime = false;
+                tryCommandAgainWithHTTPAuth = false;
             } else {
-                authenticationFailedLastTime = true;
+                tryCommandAgainWithHTTPAuth = true;
                 deleteBranch(selectedBranch);
             }
         }
@@ -1438,17 +1462,16 @@ public class SessionController {
             Thread th = new Thread(new Task<Void>() {
                 @Override
                 protected Void call() {
-                    authenticationFailedLastTime = false;
+                    tryCommandAgainWithHTTPAuth = false;
                     try {
                         deleteRemoteBranchDetails(credentialResponse, selectedBranch, branchModel, updateFn);
                     } catch (TransportException e) {
-                        showNotAuthorizedNotification();
-                        authenticationFailedLastTime = true;
+                        determineIfTryAgain(e);
                     } finally {
                         BusyWindow.hide();
                     }
 
-                    if (authenticationFailedLastTime) {
+                    if (tryCommandAgainWithHTTPAuth) {
                         Platform.runLater(() -> {
                             deleteRemoteBranch(selectedBranch, branchModel, updateFn);
                         });
@@ -1746,7 +1769,7 @@ public class SessionController {
             Thread th = new Thread(new Task<Void>(){
                 @Override
                 protected Void call() {
-                    boolean authorizationSucceeded = true;
+                    tryCommandAgainWithHTTPAuth = false;
                     try{
                         RepositoryMonitor.resetFoundNewChanges(false);
                         RepoHelper helper = theModel.getCurrentRepoHelper();
@@ -1763,8 +1786,7 @@ public class SessionController {
                     } catch(InvalidRemoteException e){
                         showNoRemoteNotification();
                     } catch (TransportException e) {
-                        showNotAuthorizedNotification();
-                        authorizationSucceeded = false;
+                        determineIfTryAgain(e);
                     } catch(MissingRepoException e){
                         showMissingRepoNotification();
                         setButtonsDisabled(true);
@@ -1774,13 +1796,12 @@ public class SessionController {
                         e.printStackTrace();
                     }finally {
                         BusyWindow.hide();
-                        if (authorizationSucceeded) {
-                            authenticationFailedLastTime = false;
-                        } else {
-                            authenticationFailedLastTime = true;
-                            Platform.runLater(() -> gitFetch(prune, pull));
-                        }
                     }
+
+                    if (tryCommandAgainWithHTTPAuth)
+                        Platform.runLater(() -> {
+                            gitFetch(prune, pull);
+                        });
                     return null;
                 }
             });
