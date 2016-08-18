@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>What is Git Commit?</title>
+    <meta name="description" content="Anyone who has successfully used Git in any form has probably used the command git commit. In its most basic form, with just a commit message, this does a fe...">
+
+    <link rel="stylesheet" href="http://dmusican.github.io/Elegit/css/main.css">
+    <link rel="canonical" href="http://dmusican.github.io/Elegit/jekyll/update/2016/08/12/what-is-commit.html">
+    <link rel="alternate" type="application/rss+xml" title="Elegit" href="feed.xml">
+</head>
+
+  <body>
+
+    <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link href='https://fonts.googleapis.com/css?family=Architects+Daughter' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="http://dmusican.github.io/Elegit/stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="http://dmusican.github.io/Elegit/stylesheets/github-light.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="http://dmusican.github.io/Elegit/stylesheets/print.css" media="print">
+
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+
+    <title>Elegit: a teaching git client</title>
+</head>
+
+<header id="elegitHeader">
+    <div class="inner">
+        <a href="http://dmusican.github.io/Elegit"><h1>Elegit</h1></a>
+        <h2>A GUI client for people who want to learn Git.</h2>
+        <a href="https://github.com/dmusican/Elegit" class="button"><small>View project on</small> GitHub</a>
+    </div>
+</header>
+
+    <div class="page-content">
+      <div class="wrapper">
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title" itemprop="name headline">What is Git Commit?</h1>
+    <p class="post-meta"><time datetime="2016-08-12T01:50:00-05:00" itemprop="datePublished">Aug 12, 2016</time> • <span itemprop="author" itemscope itemtype="http://schema.org/Person"><span itemprop="name">Eric Walker</span></span></p>
+  </header>
+
+  <div class="post-content" itemprop="articleBody">
+    <p>Anyone who has successfully used Git in any form has probably used the 
+command <code class="highlighter-rouge">git commit</code>. In its most basic form, with just a commit message, 
+this does a few things: it stores the files in the staging area, or index, 
+in a new commit with a log message from the user, which is supposed to 
+describe the changes (but is more often than not “asdf”) and it updates 
+the current branch to have a head at the latest commit. Simple, right?</p>
+
+<p>Wait, what does any of that mean? “Storing files in the index in a commit”? 
+Well, Git is all about being lightweight and not storing anything it doesn’t 
+need to, so this means that Git doesn’t want to have complete copies of 
+every single file for every single commit. You might ask, why not just 
+store what changed? This would be correct for most other version control 
+systems like CVS, Subversion, Perforce, Bazaar, etc., but Git doesn’t do this. 
+Git takes “snapshots” of the files in the directory you’re tracking. 
+A snapshot will just include a pointer to a previous snapshot if a particular 
+file hasn’t changed, but will store new versions. If you were to look at 
+the actual data of a commit, you would see the content of all the files 
+that Git is tracking. This supposedly makes Git more powerful in terms 
+of branching, but that’s for another day.</p>
+
+<p>Anyway, Git stores a beautiful “snapshot” in the local repository, then 
+it also changes the contents of two files to be the commit hash 
+(the 40-character fa90c29… that you see after the commit happens). 
+These files happen to be <code class="highlighter-rouge">.git/refs/heads/&lt;current branch name&gt;</code> and <code class="highlighter-rouge">.git/HEAD</code>, 
+which are just Git’s place to store the head of the specified branch 
+(note, it’s a pointer, not a full commit) and the head of the current branch.</p>
+
+<p>So, Git has created a new commit and updated a branch head. What about the other things that you can do? 
+Answer is: way more than you ever wanted to do or even think about. 
+Commit has a number of parameters, as can be seen in the synopsis of the help page:</p>
+
+<figure class="highlight"><pre><code class="language-git" data-lang="git">git commit [-a | --interactive | --patch] [-s] [-v] [-u&lt;mode&gt;] [--amend]
+	   [--dry-run] [(-c | -C | --fixup | --squash) &lt;commit&gt;]
+	   [-F &lt;file&gt; | -m &lt;msg&gt;] [--reset-author] [--allow-empty]
+	   [--allow-empty-message] [--no-verify] [-e] [--author=&lt;author&gt;]
+	   [--date=&lt;date&gt;] [--cleanup=&lt;mode&gt;] [--[no-]status]
+	   [-i | -o] [-S[&lt;keyid&gt;]] [--] [&lt;file&gt;…​]</code></pre></figure>
+
+<p>How do we read this? It means <code class="highlighter-rouge">git commit</code> can be followed by these things. Let’s take them one brace at a time:</p>
+
+<p><code class="highlighter-rouge">[-a | --interactive | --patch]</code>: these say how to choose which files to look at. <code class="highlighter-rouge">Git commit</code> 
+just looks at the index, but adding -a will look at all files in the working 
+directory that are also in the index, and stage changes in modified files.</p>
+
+<p><code class="highlighter-rouge">--interactive or --patch</code> will give you an interface to choose which changes to commit.</p>
+
+<p><code class="highlighter-rouge">-s/--signoff</code>: this will automatically add a signed-off by line by the 
+committer at the end of the commit message. This typically is used to certify 
+that a committer has the rights to submit the particular commit</p>
+
+<p><code class="highlighter-rouge">-v/--verbose</code>: this will show the diff between the current HEAD commit 
+and what would be committed at the bottom of the message template that is 
+generated, useful for writing commit messages so you can see what you did.</p>
+
+<p><code class="highlighter-rouge">-u[&lt;mode&gt;]/--untracked-files[=&lt;mode&gt;]</code>: shows the untracked files. The 
+mode can be <code class="highlighter-rouge">no</code>: show no untracked files, <code class="highlighter-rouge">normal</code>: show untracked files 
+in the root directory and untracked directories, and <code class="highlighter-rouge">all</code>: show all 
+untracked files, even those in untracked directories. Usage looks like 
+<code class="highlighter-rouge">git commit -uno</code> or <code class="highlighter-rouge">git commit --untracked-files=all</code>. The default when using <code class="highlighter-rouge">-u</code> 
+is all and when not using it, the default is <code class="highlighter-rouge">normal</code>.</p>
+
+<p><code class="highlighter-rouge">--amend</code>: this one is to be used responsibly. If you ‘accidentally’ wrote “asdf” 
+as your commit message, or forgot to include a file in a commit, you can 
+amend the head of the current branch with this. If you do <code class="highlighter-rouge">git commit --amend</code>, 
+command line will pull up an editor that has the previous commit message already in it, 
+then once you finish writing your commit message, this new commit will replace the 
+old head of the current branch. This commit will have the same parent(s) 
+and authors as the current commit, but DO NOT USE if this commit has already 
+been published. Rewriting history is bad.</p>
+
+<p><code class="highlighter-rouge">--dry-run</code>: this is for those who don’t have Git magic (e.g. me, you, everyone…) 
+and want to know what the heck will happen when you press enter with a 
+complicated command. For example, <code class="highlighter-rouge">git commit -a --dry-run</code> will show you 
+all files that will be committed or not if you run the command <code class="highlighter-rouge">git commit -a</code>.</p>
+
+<p><code class="highlighter-rouge">[(-c | -C | --fixup | --squash) &lt;commit&gt;]</code>: <code class="highlighter-rouge">-C &lt;commit&gt;/--reuse-message=&lt;commit&gt;</code> 
+will reuse the log message and authorship from <code class="highlighter-rouge">&lt;commit&gt;</code>, <code class="highlighter-rouge">-c &lt;commit&gt;/--reedit-message=&lt;commit&gt;</code> 
+does the same thing as <code class="highlighter-rouge">-C</code>, but will show you the editor before actually making changes. 
+<code class="highlighter-rouge">--fixup=&lt;commit&gt;</code> will make a commit that is to be used with rebase <code class="highlighter-rouge">--autosquash</code> 
+with the message of <code class="highlighter-rouge">&lt;commit&gt;</code> prefixed by “fixup! ”. Finally <code class="highlighter-rouge">--squash=&lt;commit&gt;</code> 
+does the same thing as <code class="highlighter-rouge">--fixup</code>, but uses the prefix “squash! “, and can be used 
+with the options <code class="highlighter-rouge">-m</code>/<code class="highlighter-rouge">-c</code>/<code class="highlighter-rouge">-C</code>/<code class="highlighter-rouge">-F</code>.</p>
+
+<p><code class="highlighter-rouge">[-F &lt;file&gt; | -m &lt;msg&gt;]</code>: this specifies the message of the commit. <code class="highlighter-rouge">-F</code> 
+will take the commit message from the specified files, <code class="highlighter-rouge">-m</code> 
+will take it from the next input. For example: <code class="highlighter-rouge">git commit -m “Added 9001 files and beat Goku in single combat”</code> 
+adds a commit with that message.</p>
+
+<p><code class="highlighter-rouge">--reset-author</code>: this is used with the <code class="highlighter-rouge">-C</code>/<code class="highlighter-rouge">-c</code>/<code class="highlighter-rouge">--amend</code> options, and will 
+make the author of the commit you, rather than whoever made the commit you’re changing.</p>
+
+<p><code class="highlighter-rouge">--allow-empty</code>: this allows you to commit with no changes. Not recommended by me.</p>
+
+<hr />
+
+<p>Whew… halfway! We’ll cover the rest in the next iteration of this post.</p>
+
+  </div>
+
+</article>
+
+      </div>
+    </div>
+
+  </body>
+
+</html>

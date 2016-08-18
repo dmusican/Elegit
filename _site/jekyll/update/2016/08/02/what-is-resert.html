@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>What is Git Reset?</title>
+    <meta name="description" content="Oh no. I just committed a file containing my username, password, social security number, and mother’s maiden name. How do I make sure this never sees the lig...">
+
+    <link rel="stylesheet" href="http://dmusican.github.io/Elegit/css/main.css">
+    <link rel="canonical" href="http://dmusican.github.io/Elegit/jekyll/update/2016/08/02/what-is-resert.html">
+    <link rel="alternate" type="application/rss+xml" title="Elegit" href="feed.xml">
+</head>
+
+  <body>
+
+    <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link href='https://fonts.googleapis.com/css?family=Architects+Daughter' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="http://dmusican.github.io/Elegit/stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="http://dmusican.github.io/Elegit/stylesheets/github-light.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="http://dmusican.github.io/Elegit/stylesheets/print.css" media="print">
+
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+
+    <title>Elegit: a teaching git client</title>
+</head>
+
+<header id="elegitHeader">
+    <div class="inner">
+        <a href="http://dmusican.github.io/Elegit"><h1>Elegit</h1></a>
+        <h2>A GUI client for people who want to learn Git.</h2>
+        <a href="https://github.com/dmusican/Elegit" class="button"><small>View project on</small> GitHub</a>
+    </div>
+</header>
+
+    <div class="page-content">
+      <div class="wrapper">
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title" itemprop="name headline">What is Git Reset?</h1>
+    <p class="post-meta"><time datetime="2016-08-02T01:50:00-05:00" itemprop="datePublished">Aug 2, 2016</time> • <span itemprop="author" itemscope itemtype="http://schema.org/Person"><span itemprop="name">Eric Walker</span></span></p>
+  </header>
+
+  <div class="post-content" itemprop="articleBody">
+    <p>Oh no. I just committed a file containing my username, password, social 
+security number, and mother’s maiden name. How do I make sure this never 
+sees the light of day? Stack overflow would probably tell you “just do a 
+<code class="highlighter-rouge">git reset --hard</code>”. But what does <code class="highlighter-rouge">git reset</code> do?</p>
+
+<p>The documentation page for reset actually lists the ability to erase 
+commits as the last of three usages for reset. These three options are:</p>
+
+<figure class="highlight"><pre><code class="language-git" data-lang="git">git reset [-q] [&lt;tree-ish&gt;] [--] &lt;paths&gt;…​
+git reset (--patch | -p) [&lt;tree-ish&gt;] [--] [&lt;paths&gt;…​]
+git reset [--soft | --mixed [-N] | --hard | --merge | --keep] [-q] [&lt;commit&gt;]</code></pre></figure>
+
+<p>The first is the way to undo <code class="highlighter-rouge">git add</code>. If you added some file, text.txt, 
+that you really didn’t want to add, then typing in <code class="highlighter-rouge">git reset HEAD text.txt</code> 
+(or <code class="highlighter-rouge">git reset -- text.txt</code>) will remove text.txt from the index (where 
+it got put when you typed <code class="highlighter-rouge">git add text.txt</code>, or did something more complicated 
+with the same effect). The <code class="highlighter-rouge">-q</code> is for quiet, which would make Git only output 
+errors.</p>
+
+<p>The next option is if you want to have a little more control over 
+what happens, so you could unstage just the password you saved, but not 
+the social security number that you want the world to know.</p>
+
+<p>Finally, option 3 is for undoing entire commits, well, sort of. 
+First off, let’s get the usage - if you committed changes, and you just 
+want to go back 1 commit, you do a <code class="highlighter-rouge">git reset HEAD~1</code>. What this really 
+does is change the file <code class="highlighter-rouge">.git/HEAD</code> and <code class="highlighter-rouge">.git/refs/heads/&lt;current branch&gt;</code> 
+to contain the 40-character hash for the parent of <code class="highlighter-rouge">HEAD</code> instead of the 
+hash for <code class="highlighter-rouge">HEAD</code>. You can actually set this to any commit that you know the 
+hash for, so like <code class="highlighter-rouge">git reset acce7b</code> will reset to the commit that starts 
+with that hash. There are several modes that you can specify here, 
+soft, mixed, hard, merge and keep:</p>
+
+<ol>
+  <li>
+    <p><em>Soft</em>: only change the repository, don’t change anything in the index or 
+working directory.</p>
+  </li>
+  <li>
+    <p><em>Mixed</em>: (the default) change the repository and reset the files in the 
+index to those stored in the commit (yes actually entirely stored in the 
+commit, see the commit post).</p>
+  </li>
+  <li>
+    <p><em>Hard</em>: reset everything! This throws away all changes in the index and 
+working directory and replaces them with the files in the commit.</p>
+  </li>
+  <li>
+    <p><em>Merge</em>: resets the index and files in the working directory to what’s 
+stored in the commit, but it keeps files that have unstaged changes in 
+the working directory. An error is thrown and the reset stops if a file 
+is different between the current commit and the one to reset to and has 
+unstaged changes. Usually used to undo a ‘merge operation’.</p>
+  </li>
+  <li>
+    <p><em>Keep</em>: does a hard reset, but aborts if there are local changes in a file 
+that changed between the target commit and the current commit and keeps 
+uncommitted changes in the working directory and index.</p>
+  </li>
+</ol>
+
+<hr />
+
+<p>Some useful things to know:
+<code class="highlighter-rouge">Git reset ORIG_HEAD</code> after a pull or merge to undo it (add <code class="highlighter-rouge">--merge</code> to avoid losing local changes)
+If you don’t specify anything, this will just un-stage changes in the index</p>
+
+<p>What if I want to undo a commit way way back, but not everything in between?
+The answer is <code class="highlighter-rouge">git revert</code>– for another day.</p>
+
+  </div>
+
+</article>
+
+      </div>
+    </div>
+
+  </body>
+
+</html>

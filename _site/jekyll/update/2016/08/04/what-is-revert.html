@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>What is Git Revert?</title>
+    <meta name="description" content="Great. Some genius decided it would be fun to put in 300 useless changes, but it’s 72 commits ago. You can’t do a reset because you need those 72 commits, bu...">
+
+    <link rel="stylesheet" href="http://dmusican.github.io/Elegit/css/main.css">
+    <link rel="canonical" href="http://dmusican.github.io/Elegit/jekyll/update/2016/08/04/what-is-revert.html">
+    <link rel="alternate" type="application/rss+xml" title="Elegit" href="feed.xml">
+</head>
+
+  <body>
+
+    <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link href='https://fonts.googleapis.com/css?family=Architects+Daughter' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="http://dmusican.github.io/Elegit/stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="http://dmusican.github.io/Elegit/stylesheets/github-light.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="http://dmusican.github.io/Elegit/stylesheets/print.css" media="print">
+
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+
+    <title>Elegit: a teaching git client</title>
+</head>
+
+<header id="elegitHeader">
+    <div class="inner">
+        <a href="http://dmusican.github.io/Elegit"><h1>Elegit</h1></a>
+        <h2>A GUI client for people who want to learn Git.</h2>
+        <a href="https://github.com/dmusican/Elegit" class="button"><small>View project on</small> GitHub</a>
+    </div>
+</header>
+
+    <div class="page-content">
+      <div class="wrapper">
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title" itemprop="name headline">What is Git Revert?</h1>
+    <p class="post-meta"><time datetime="2016-08-04T01:50:00-05:00" itemprop="datePublished">Aug 4, 2016</time> • <span itemprop="author" itemscope itemtype="http://schema.org/Person"><span itemprop="name">Eric Walker</span></span></p>
+  </header>
+
+  <div class="post-content" itemprop="articleBody">
+    <p>Great. Some genius decided it would be fun to put in 300 useless changes, 
+but it’s 72 commits ago. You can’t do a reset because you need those 72 
+commits, but you want to undo those changes, and not by hand. Enter <code class="highlighter-rouge">git revert</code>.</p>
+
+<p><code class="highlighter-rouge">Git revert</code> is relatively limited in the scope of things it does, 
+which is nice, so here’s how to use the command line version of it:</p>
+
+<figure class="highlight"><pre><code class="language-git" data-lang="git">git revert [--[no-]edit] [-n] [-m parent-number] [-s] [-S[&lt;keyid&gt;]] &lt;commit&gt;…​
+git revert --continue
+git revert --quit
+git revert --abort</code></pre></figure>
+
+<p>Basically, git revert takes your current files, and deletes any changes 
+from the commit(s) you give it, making a new commit. Options you have are:</p>
+
+<ol>
+  <li><code class="highlighter-rouge">-e/--edit</code>: edit the commit message before committing the revert 
+(this is default, add the no- between dashes and ‘edit’ to make it not ask you to write a message)</li>
+  <li><code class="highlighter-rouge">-m parent-number/--mainline parent-number</code>: this lets you revert a 
+merge (which you usually can’t do because Git has no way of knowing which 
+parent was the one you want). However note that this makes it so that 
+future merges will not include any changes that are part of a commit 
+that was an ancestor to the reverted merge. For a complete explanation 
+of reverts and how to use them in this case, see https://github.com/git/git/blob/master/Documentation/howto/revert-a-faulty-merge.txt</li>
+  <li><code class="highlighter-rouge">-n/--no-commit</code>: if you don’t want a commit to be automatically 
+created by the revert, then use this. This is useful if you’re reverting 
+more than one commit in a row, then you can do it all at once</li>
+  <li><code class="highlighter-rouge">-S[&lt;keyid&gt;]/--gpg-sign[=&lt;keyid&gt;]</code>: the keyid argument is option and 
+defaults to the committer identity, but it has to be the no space option. 
+The GPG thing is just who is the author</li>
+  <li><code class="highlighter-rouge">-s/--signoff</code>: add a signoff line at the end of the automatically 
+created message, this is explained in detail surrounding commit</li>
+  <li>’–strategy=<strategy>': use the given merge strategy (should only be used once), 
+this is the same strategy thing that merge uses</strategy></li>
+  <li><code class="highlighter-rouge">-X&lt;option&gt;/--stategy-option=&lt;option&gt;</code>: pass the merge strategy-specific 
+option to the merge strategy, this is explained more with merge</li>
+</ol>
+
+<hr />
+
+<p>Some basic examples: <code class="highlighter-rouge">git revert HEAD~1</code>: revert the changes of the parent of HEAD and create a new commit.</p>
+
+<p><code class="highlighter-rouge">git revert -n branch~4..branch</code>: revert all changes done by the last 5 
+commits of the branch ‘branch’, but don’t make a commit, just put changes 
+in the index and working directory</p>
+
+  </div>
+
+</article>
+
+      </div>
+    </div>
+
+  </body>
+
+</html>
