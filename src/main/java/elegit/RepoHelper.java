@@ -481,6 +481,7 @@ public class RepoHelper {
     public void commit(String commitMessage) throws GitAPIException, MissingRepoException {
         logger.info("Attempting commit");
         if (!exists()) throw new MissingRepoException();
+
         Git git = new Git(this.repo);
         // git commit:
         git.commit()
@@ -492,24 +493,19 @@ public class RepoHelper {
         try {
             this.localCommits = parseAllLocalCommits();
         } catch (IOException e) {
-            // This shouldn't occur once we have the repo up and running.
+            e.printStackTrace();
         }
     }
 
-    public void commitAll() throws MissingRepoException, GitAPIException, IOException {
+    public void commitAll(String message) throws MissingRepoException, GitAPIException, IOException {
         if (!exists()) throw new MissingRepoException();
 
-        String message = PopUpWindows.getCommitMessage();
-        if(message.equals("cancel")) return;
 
-        BusyWindow.show();
-        BusyWindow.setLoadingText("Committing...");
-
-        Git git = new Git(this.repo);
+        Git git = new Git(repo);
         git.commit().setMessage(message).setAll(true).call();
         git.close();
 
-        this.localCommits = parseAllLocalCommits();
+        localCommits = parseAllLocalCommits();
     }
 
     /**

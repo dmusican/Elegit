@@ -156,15 +156,15 @@ public class SessionController {
      * This method is automatically called by JavaFX.
      */
     public void initialize() {
-
         // Creates the SessionModel
         this.theModel = SessionModel.getSessionModel();
 
         // Creates a DataSubmitter for logging
         d = new DataSubmitter();
 
-        // Passes this to CommitTreeController
+        // Gives other controllers acccess to this one
         CommitTreeController.sessionController = this;
+        CommitController.sessionController = this;
 
         // Creates the commit tree model
         this.commitTreeModel = new LocalCommitTreeModel(this.theModel, this.commitTreePanelView);
@@ -179,9 +179,11 @@ public class SessionController {
         this.setButtonIconsAndTooltips();
         this.setButtonsDisabled(true);
         this.initWorkingTreePanelTab();
+        // SLOW
         this.theModel.loadRecentRepoHelpersFromStoredPathStrings();
         this.theModel.loadMostRecentRepoHelper();
 
+        // SLOW
         this.initPanelViews();
         this.updateUIEnabledStatus();
         this.setRecentReposDropdownToCurrentRepo();
@@ -985,37 +987,19 @@ public class SessionController {
             if(!workingTreePanelView.isAnyFileStaged() && type.equals(CommitType.NORMAL)) throw new NoFilesStagedForCommitException();
 
             try{
-                logger.info("Commit button clicked");
-                if(theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
-
                 if(type.equals(CommitType.NORMAL)) {
-                    BusyWindow.show();
-                    BusyWindow.setLoadingText("Committing...");
-                    logger.info("Opened commit manager window");
-                    // Create and display the Stage:
-                    FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/CommitView.fxml"));
-                    fxmlLoader.load();
-                    CommitController commitController = fxmlLoader.getController();
-                    commitController.isClosed.addListener((observable, oldValue, newValue) -> {
-                        if (!oldValue && newValue)
-                            gitStatus();
-                    });
-                    GridPane fxmlRoot = fxmlLoader.getRoot();
-                    commitController.showStage(fxmlRoot);
+                    commitNormal();
                 }else {
-                    theModel.getCurrentRepoHelper().commitAll();
+                    commitAll();
                 }
             }catch(IOException e){
                 showGenericErrorNotification();
                 e.printStackTrace();
-            }catch(NoRepoLoadedException e){
-                showNoRepoLoadedNotification();
-                setButtonsDisabled(true);
             }catch(Exception e) {
                 e.printStackTrace();
             }
             finally {
-                BusyWindow.hide();
+                //BusyWindow.hide();   // HERE YOU ARE, MY FRIEND
             }
         } catch(NoRepoLoadedException e){
             this.showNoRepoLoadedNotification();
@@ -1028,6 +1012,46 @@ public class SessionController {
             this.showNoFilesStagedForCommitNotification();
         }
     }
+
+    private void commitAll() {
+        String message = PopUpWindows.getCommitMessage();
+        if(message.equals("cancel")) return;
+
+        BusyWindow.show();
+        BusyWindow.setLoadingText("Committing all...");
+
+        Thread th = new Thread(new Task<Void>() {
+            @Override
+            protected Void call() {
+                try {
+                    theModel.getCurrentRepoHelper().commitAll(message);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                } finally {
+                    BusyWindow.hide();
+                }
+                return null;
+            }
+        });
+        th.setDaemon(true);
+        th.setName("Git commit all");
+        th.start();
+    }
+
+    private void commitNormal() throws IOException {
+        logger.info("Opened commit manager window");
+        // Create and display the Stage:
+        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/CommitView.fxml"));
+        fxmlLoader.load();
+        CommitController commitController = fxmlLoader.getController();
+        commitController.isClosed.addListener((observable, oldValue, newValue) -> {
+            if (!oldValue && newValue)
+                gitStatus();
+        });
+        GridPane fxmlRoot = fxmlLoader.getRoot();
+        commitController.showStage(fxmlRoot);
+    }
+
 
     /**
      * Checks things are ready for a tag, then performs a git-tag
