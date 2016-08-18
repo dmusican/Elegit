@@ -17,6 +17,8 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.*;
 import javafx.scene.control.Label;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
@@ -82,6 +84,7 @@ public class SessionController {
     public Button addDeleteBranchButton;
     public Button checkoutButton;
     public Button tagButton;
+    public Button pushTagsButton;
 
     private SessionModel theModel;
 
@@ -89,6 +92,8 @@ public class SessionController {
 
     public Tab workingTreePanelTab;
     public Tab allFilesPanelTab;
+
+    public TabPane filesTabPane;
 
     public WorkingTreePanelView workingTreePanelView;
     public AllFilesPanelView allFilesPanelView;
@@ -145,6 +150,10 @@ public class SessionController {
     // Notification pane
     @FXML private StackPane notificationPane;
     @FXML private NotificationController notificationPaneController;
+
+    // Menu Bar
+    @FXML private MenuItem gitIgnoreMenuItem;
+    @FXML private Menu repoMenu;
 
     boolean tryCommandAgainWithHTTPAuth;
     private boolean isGitStatusDone;
@@ -206,6 +215,10 @@ public class SessionController {
         tryCommandAgainWithHTTPAuth = false;
     }
 
+    /**
+     * Helper method that passes the main stage to session controller
+     * @param stage Stage
+     */
     public void setStage(Stage stage) {
         this.mainStage = stage;
         notificationPaneController.setAnchor(mainStage);
@@ -346,9 +359,6 @@ public class SessionController {
      * Initializes the repository monitor
      */
     private void initRepositoryMonitor() {
-        // bind currentRepoProperty with menuBar to update menuBar when repo gets changed.
-        RepositoryMonitor.bindMenu(theModel);
-
         RepositoryMonitor.startWatching(theModel, this);
         RepositoryMonitor.hasFoundNewRemoteChanges.addListener((observable, oldValue, newValue) -> {
             if(newValue) updateStatusText();
@@ -370,13 +380,15 @@ public class SessionController {
         mergeButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         checkoutButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         pushButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
+        pushTagsButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         fetchButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         commitInfoNameCopyButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         commitInfoGoToButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
 
         // Set minimum sizes for other fields and views
-        workingTreePanelView.setMinSize(Control.USE_PREF_SIZE, 200);
-        allFilesPanelView.setMinSize(Control.USE_PREF_SIZE, 200);
+        filesTabPane.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
+        workingTreePanelView.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
+        allFilesPanelView.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         final int REPO_DROPDOWN_MAX_WIDTH = 147;
         repoDropdownSelector.setMaxWidth(REPO_DROPDOWN_MAX_WIDTH);
         tagNameField.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
@@ -565,16 +577,26 @@ public class SessionController {
             addDeleteBranchButton.setDisable(disable);
             checkoutButton.setDisable(disable);
             mergeButton.setDisable(disable);
+            pushTagsButton.setDisable(disable);
             needToFetch.setVisible(!disable);
             currentLocalBranchHbox.setVisible(!disable);
             currentRemoteTrackingBranchHbox.setVisible(!disable);
             statusTextPane.setVisible(!disable);
+            updateMenuBarEnabledStatus(disable);
         });
 
         root.setOnMouseClicked(event -> {
             if (disable) showNoRepoLoadedNotification();
             if (this.notificationPaneController.isListPaneVisible()) this.notificationPaneController.toggleNotificationList();
         });
+    }
+
+    /**
+     * Helper method for disabling the menu bar
+     */
+    private void updateMenuBarEnabledStatus(boolean disable) {
+        repoMenu.setDisable(disable);
+        gitIgnoreMenuItem.setDisable(disable);
     }
 
     /**
@@ -589,6 +611,13 @@ public class SessionController {
         } else {
             setButtonsDisabled(false);
         }
+    }
+
+    /**
+     * Opens an editor for the .gitignore
+     */
+    public void handleGitIgnoreMenuItem() {
+        GitIgnoreEditor.show(SessionModel.getSessionModel().getCurrentRepoHelper(), null);
     }
 
     /**
@@ -1021,6 +1050,7 @@ public class SessionController {
             protected Void call() {
                 try {
                     theModel.getCurrentRepoHelper().commitAll(message);
+                    gitStatus();
                 } catch (Exception e) {
                     e.printStackTrace();
                 } finally {
@@ -1862,13 +1892,25 @@ public class SessionController {
     }
 
     public void handleNewBranchButton() {
-        handleNewBranchButton(null);
+        handleCreateOrDeleteBranchButton("create");
+    }
+
+    public void handleDeleteLocalBranchButton() {
+        handleCreateOrDeleteBranchButton("local");
+    }
+
+    public void handleDeleteRemoteBranchButton() {
+        handleCreateOrDeleteBranchButton("remote");
+    }
+
+    public void handleCreateOrDeleteBranchButton() {
+        handleCreateOrDeleteBranchButton(null);
     }
 
     /**
      * Pops up a window where the user can create a new branch
      */
-    public void handleNewBranchButton(String tab) {
+    public void handleCreateOrDeleteBranchButton(String tab) {
         try{
             logger.info("Create/delete branch button clicked");
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
@@ -1910,8 +1952,12 @@ public class SessionController {
         CommitTreeController.focusCommitInGraph(id);
     }
 
-    public void handleGeneralMergeButton(){
+    public void handleMergeFromFetchButton(){
         handleGeneralMergeButton(false);
+    }
+
+    public void handleBranchMergeButton() {
+        handleGeneralMergeButton(true);
     }
 
     /**

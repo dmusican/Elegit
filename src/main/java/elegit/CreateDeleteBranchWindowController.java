@@ -39,6 +39,7 @@ public class CreateDeleteBranchWindowController {
     @FXML private TabPane tabPane;
     @FXML private Tab deleteLocalTab;
     @FXML private Tab deleteRemoteTab;
+    @FXML private Tab createTab;
 
     private Stage stage;
     SessionModel sessionModel;
@@ -165,10 +166,9 @@ public class CreateDeleteBranchWindowController {
         stage.initModality(Modality.APPLICATION_MODAL);
         stage.setOnCloseRequest(event -> logger.info("Closed create/delete branch window"));
         stage.show();
-        if(tab != null) {
-            if(tab.equals("local")) tabPane.getSelectionModel().select(deleteLocalTab);
-            if(tab.equals("remote")) tabPane.getSelectionModel().select(deleteRemoteTab);
-        }
+        if(tab.equals("create")) tabPane.getSelectionModel().select(createTab);
+        if(tab.equals("local")) tabPane.getSelectionModel().select(deleteLocalTab);
+        if(tab.equals("remote")) tabPane.getSelectionModel().select(deleteRemoteTab);
         this.notificationPaneController.setAnchor(stage);
     }
 

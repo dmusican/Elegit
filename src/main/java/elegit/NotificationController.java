@@ -68,6 +68,9 @@ public class NotificationController {
         this.notificationPane.setPickOnBounds(false);
 
         this.notificationNum.setPickOnBounds(false);
+
+        notificationList.setMaxWidth(1200);
+        notificationListPane.setMaxWidth(1200);
     }
 
     public void setAnchor(Stage stage) {
@@ -275,6 +278,6 @@ public class NotificationController {
      * Helper method that hides the notification Alert
      */
     private void hideBubble() {
-        notificationAlert.hide();
+        if(notificationAlert != null) notificationAlert.hide();
     }
 }

@@ -189,25 +189,6 @@ public class RepositoryMonitor{
         thread.start();
     }
 
-    public static synchronized void bindMenu(SessionModel model) {
-        model.currentRepoHelperProperty.addListener(
-                (observable, oldValue, newValue) -> {
-                    Platform.runLater(() -> {
-                        if (newValue != null) {
-                            MenuPopulator.menuConfigNormal();
-                        } else {
-                            MenuPopulator.menuConfigNoRepo();
-                        }
-                    });
-                }
-        );
-        if (model.getCurrentRepoHelper() == null) {
-            MenuPopulator.menuConfigNoRepo();
-        } else {
-            MenuPopulator.menuConfigNormal();
-        }
-    }
-
     private static void pauseWatchingRemote(long millis){
         ignoreNewRemoteChanges = true;
 

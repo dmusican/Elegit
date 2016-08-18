@@ -132,20 +132,17 @@ public class PopUpWindows {
     public static void showRevertHelpAlert() {
         Platform.runLater(() -> {
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.getDialogPane().setPrefSize(400, 300);
+            alert.getDialogPane().setPrefWidth(500);
             alert.setTitle("Revert Help");
             alert.setHeaderText("What is revert?");
             ImageView img = new ImageView(new Image("/elegit/images/undo.png"));
             img.setFitHeight(60);
             img.setFitWidth(60);
             alert.setGraphic(img);
-            alert.setContentText("The git revert command undoes a committed snapshot. " +
-                                 "But, instead of removing the commit from the project history, " +
-                                 "it figures out how to undo the changes introduced by the commit and appends a new commit with the resulting content. " +
-                                 "This prevents Git from losing history, " +
-                                 "which is important for the integrity of your revision history and for reliable collaboration.\n" +
-                                 "To revert multiple commits, select multiple commits using shift+click, then right click on one of the " +
-                                 "selected commits.");
+            alert.setContentText("Basically, git revert takes your current files, " +
+                    "and deletes any changes from the commit(s) you give it, making a new commit. " +
+                    "See\n\nhttp://dmusican.github.io/Elegit/jekyll/update/2016/08/04/what-is-revert.html\n\n" +
+                    "for more information");
             alert.showAndWait();
         });
     }

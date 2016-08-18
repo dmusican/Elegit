@@ -6,6 +6,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.MenuBar;
 import javafx.scene.image.Image;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 import org.apache.commons.lang3.SystemUtils;
@@ -62,14 +63,14 @@ public class Main extends Application {
         // Handles some concurrency issues with gitStatus()
         RepositoryMonitor.pause();
 
+        // Initialize the busy window
         BusyWindow.setParentWindow(primaryStage);
 
+        // Load the fxml
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/MainView.fxml"));
         fxmlLoader.load();
-        Pane root = fxmlLoader.getRoot();
+        BorderPane root = fxmlLoader.getRoot();
         sessionController = fxmlLoader.getController();
-
-        primaryStage.setTitle("Elegit");
 
         // sets the icon
         Image img = new Image(getClass().getResourceAsStream("/elegit/images/elegit_icon.png"));
@@ -85,21 +86,17 @@ public class Main extends Application {
                     .setDockIconImage(dock_img);
         }
 
+        // creates the scene
+        Scene scene = new Scene(root, 1200, 705);
+
+        // setup and show the stage
         primaryStage.setOnCloseRequest(event -> {
-                // On close, upload the logs and delete the log.
-                logger.info("Closed");});
-
-        Scene scene = new Scene(root, 1200, 650); // width, height
-
-        // create the menu bar here
-        MenuBar menuBar = MenuPopulator.getInstance().populate();
-        MenuPopulator.getInstance().setSessionController(sessionController);
-        // for now we'll only display menu on mac os
-        // because it blocks repo dropdown menu on other platforms
-        if (SystemUtils.IS_OS_MAC) {
-            ((Pane) scene.getRoot()).getChildren().addAll(menuBar);
-        }
-
+            // On close, upload the logs and delete the log.
+            logger.info("Closed");
+            // used to stop the service that moves cells in TreeLayout
+            isAppClosed = true;
+        });
+        primaryStage.setTitle("Elegit");
         primaryStage.setScene(scene);
         sessionController.setStage(primaryStage);
         startLatch.countDown();
@@ -107,9 +104,6 @@ public class Main extends Application {
 
         // Handles some concurrency issues with gitStatus()
         RepositoryMonitor.unpause();
-
-        // used to stop the service that moves cells in TreeLayout
-        primaryStage.setOnCloseRequest(event -> isAppClosed = true);
     }
 
     private static void clearPreferences() {
