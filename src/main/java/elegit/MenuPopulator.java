@@ -117,10 +117,10 @@ public class MenuPopulator {
         branch.setOnAction(event -> sessionController.handleNewBranchButton());
 
         MenuItem branch_d = new MenuItem("delete branch");
-        branch.setOnAction(event -> sessionController.handleNewBranchButton("local"));
+        branch_d.setOnAction(event -> sessionController.handleNewBranchButton("local"));
 
         MenuItem branch_r_d = new MenuItem("delete remote branch");
-        branch.setOnAction(event -> sessionController.handleNewBranchButton("remote"));
+        branch_r_d.setOnAction(event -> sessionController.handleNewBranchButton("remote"));
 
         branchMenu.getItems().addAll(branch, branch_d, branch_r_d);
 
@@ -133,6 +133,12 @@ public class MenuPopulator {
      */
     private Menu initCheckoutMenu() {
         Menu checkoutMenu = new Menu("Checkout");
+
+        MenuItem checkout = new MenuItem("checkout branch");
+        checkout.setOnAction(event -> sessionController.showBranchCheckout());
+
+        checkoutMenu.getItems().addAll(checkout);
+
         return checkoutMenu;
     }
 
