@@ -91,17 +91,14 @@ public class MenuPopulator {
     private Menu initRepositoryMenu() {
         Menu menu = new Menu("Repository");
 
-        Menu branchMenu = initBranchMenu();
-        Menu checkoutMenu = initCheckoutMenu();
-        Menu cloneMenu = initCloneMenu();
-        Menu commitMenu = initCommitMenu();
-        Menu fetchMenu = initFetchMenu();
-        Menu mergeMenu = initMergeMenu();
-        Menu pullMenu = initPullMenu();
-        Menu pushMenu = initPushMenu();
-
-        menu.getItems().addAll(branchMenu, checkoutMenu, cloneMenu,
-                commitMenu, fetchMenu, mergeMenu, pullMenu, pushMenu);
+        menu.getItems().addAll(initBranchMenu(),
+                initCheckoutMenu(),
+                initCloneMenu(),
+                initCommitMenu(),
+                initFetchMenu(),
+                initMergeMenu(),
+                initPullMenu(),
+                initPushMenu());
 
         return menu;
     }

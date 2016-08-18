@@ -93,12 +93,15 @@ public class Main extends Application {
 
         // create the menu bar here
         MenuBar menuBar = MenuPopulator.getInstance().populate();
+        // pass SessionController to the menuBar
         MenuPopulator.getInstance().setSessionController(sessionController);
+        // if possible, uses the system menu bar if the current platform supports it
+        menuBar.setUseSystemMenuBar(true);
         // for now we'll only display menu on mac os
         // because it blocks repo dropdown menu on other platforms
-        if (SystemUtils.IS_OS_MAC) {
+        //if (SystemUtils.IS_OS_MAC) {
             ((Pane) scene.getRoot()).getChildren().addAll(menuBar);
-        }
+        //}
 
         primaryStage.setScene(scene);
         sessionController.setStage(primaryStage);
