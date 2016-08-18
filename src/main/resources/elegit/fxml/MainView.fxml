@@ -386,7 +386,7 @@
                              GridPane.halignment="RIGHT"
                              GridPane.valignment="BOTTOM">
                     <GridPane.margin>
-                        <Insets bottom="20" left="-40" right="-10"/>
+                        <Insets bottom="28" left="-40" right="-10"/>
                     </GridPane.margin>
                     <contextMenu>
                         <ContextMenu    fx:id="pushContextMenu">
@@ -398,6 +398,19 @@
                             </items>
                         </ContextMenu>
                     </contextMenu>
+                </ArrowButton>
+                <ArrowButton id="codeButton"
+                             fx:id="pushTagsButton"
+                             text="Push Tags"
+                             arrowRight="true"
+                             onAction="#handlePushTagsButton"
+                             GridPane.columnIndex="3"
+                             GridPane.rowIndex="1"
+                             GridPane.halignment="RIGHT"
+                             GridPane.valignment="BOTTOM">
+                    <GridPane.margin>
+                        <Insets left="-50" right="-20"/>
+                    </GridPane.margin>
                 </ArrowButton>
 
                 <!-- Remote repository block -->

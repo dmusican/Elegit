@@ -84,6 +84,7 @@ public class SessionController {
     public Button addDeleteBranchButton;
     public Button checkoutButton;
     public Button tagButton;
+    public Button pushTagsButton;
 
     private SessionModel theModel;
 
@@ -377,6 +378,7 @@ public class SessionController {
         mergeButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         checkoutButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         pushButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
+        pushTagsButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         fetchButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         commitInfoNameCopyButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         commitInfoGoToButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
@@ -572,6 +574,7 @@ public class SessionController {
             addDeleteBranchButton.setDisable(disable);
             checkoutButton.setDisable(disable);
             mergeButton.setDisable(disable);
+            pushTagsButton.setDisable(disable);
             needToFetch.setVisible(!disable);
             currentLocalBranchHbox.setVisible(!disable);
             currentRemoteTrackingBranchHbox.setVisible(!disable);
