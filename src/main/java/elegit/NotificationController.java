@@ -68,6 +68,9 @@ public class NotificationController {
         this.notificationPane.setPickOnBounds(false);
 
         this.notificationNum.setPickOnBounds(false);
+
+        notificationList.setMaxWidth(1200);
+        notificationListPane.setMaxWidth(1200);
     }
 
     public void setAnchor(Stage stage) {
