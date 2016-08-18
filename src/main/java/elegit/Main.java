@@ -89,15 +89,6 @@ public class Main extends Application {
         // creates the scene
         Scene scene = new Scene(root, 1200, 650);
 
-        // Haven't tested if FXML menu bar version works on OSX
-        if (SystemUtils.IS_OS_MAC) {
-            // create the menu bar here
-            MenuBar menuBar = MenuPopulator.getInstance().populate();
-            // pass SessionController to the menuBar
-            MenuPopulator.getInstance().setSessionController(sessionController);
-            ((BorderPane) scene.getRoot()).getChildren().addAll(menuBar);
-        }
-
         // setup and show the stage
         primaryStage.setOnCloseRequest(event -> {
             // On close, upload the logs and delete the log.
