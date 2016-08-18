@@ -275,6 +275,6 @@ public class NotificationController {
      * Helper method that hides the notification Alert
      */
     private void hideBubble() {
-        notificationAlert.hide();
+        if(notificationAlert != null) notificationAlert.hide();
     }
 }
