@@ -1050,6 +1050,7 @@ public class SessionController {
             protected Void call() {
                 try {
                     theModel.getCurrentRepoHelper().commitAll(message);
+                    gitStatus();
                 } catch (Exception e) {
                     e.printStackTrace();
                 } finally {
