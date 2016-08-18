@@ -55,6 +55,10 @@ public class MenuPopulator {
         Menu menuRepository = initRepositoryMenu();
 
         menuBar.getMenus().addAll(menuFile, menuEdit, menuRepository);
+
+        menuBar.setUseSystemMenuBar(true);
+
+
         return menuBar;
     }
 
@@ -114,10 +118,10 @@ public class MenuPopulator {
         branch.setOnAction(event -> sessionController.handleNewBranchButton());
 
         MenuItem branch_d = new MenuItem("delete branch");
-        branch_d.setOnAction(event -> sessionController.handleNewBranchButton("local"));
+        branch_d.setOnAction(event -> sessionController.handleCreateOrDeleteBranchButton("local"));
 
         MenuItem branch_r_d = new MenuItem("delete remote branch");
-        branch_r_d.setOnAction(event -> sessionController.handleNewBranchButton("remote"));
+        branch_r_d.setOnAction(event -> sessionController.handleCreateOrDeleteBranchButton("remote"));
 
         branchMenu.getItems().addAll(branch, branch_d, branch_r_d);
 
@@ -201,7 +205,7 @@ public class MenuPopulator {
         merge.setOnAction(event -> sessionController.mergeFromFetch());
 
         MenuItem merge_branch = new MenuItem("merge local branches");
-        merge_branch.setOnAction(event -> sessionController.handleGeneralMergeButton(true));
+        merge_branch.setOnAction(event -> sessionController.handleBranchMergeButton());
 
         mergeMenu.getItems().addAll(merge, merge_branch);
 

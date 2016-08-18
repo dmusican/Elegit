@@ -23,7 +23,8 @@
                     <Insets bottom="5"/>
                 </padding>
                 <Tab    text="Create"
-                        closable="false">
+                        closable="false"
+                        fx:id="createTab">
                     <VBox   spacing="10"
                             alignment="CENTER">
                         <TextArea   VBox.vgrow="NEVER"

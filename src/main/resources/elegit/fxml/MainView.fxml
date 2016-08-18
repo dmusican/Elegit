@@ -8,408 +8,479 @@
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.shape.*?>
 
-<AnchorPane
-        fx:controller="elegit.SessionController"
-        fx:id="anchorRoot"
-        xmlns:fx="http://javafx.com/fxml"
-        prefWidth="1200"
-        prefHeight="650">
-    <GridPane fx:id="root"
-          AnchorPane.rightAnchor="5"
-          AnchorPane.leftAnchor="5"
-          AnchorPane.topAnchor="5"
-          AnchorPane.bottomAnchor="20">
-        <columnConstraints>
-            <ColumnConstraints hgrow="NEVER"/>
-            <ColumnConstraints hgrow="NEVER"/>
-            <ColumnConstraints hgrow="ALWAYS"/>
-            <ColumnConstraints hgrow="NEVER"/>
-            <ColumnConstraints hgrow="NEVER"/>
-        </columnConstraints>
-        <rowConstraints>
-            <RowConstraints vgrow="NEVER"/>
-            <RowConstraints vgrow="NEVER"/>
-            <RowConstraints vgrow="NEVER"/>
-            <RowConstraints vgrow="ALWAYS"/>
-            <RowConstraints vgrow="NEVER"/>
-            <RowConstraints vgrow="NEVER"/>
-            <RowConstraints vgrow="NEVER"/>
-        </rowConstraints>
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="elegit.SessionController">
 
-        <!-- Dropdown, open in file manager, plus and minus buttons -->
-        <HBox spacing="5">
-            <ComboBox id="repoDropdown"
-                      fx:id="repoDropdownSelector"
-                      onAction="#loadSelectedRepo"/>
+    <!-- the top section of the border pane -->
+    <top>
+        <!-- Menu bar -->
+        <MenuBar    GridPane.rowIndex="0"
+                    useSystemMenuBar="true">
+            <menus>
+                <Menu   text="File"/>
+                <Menu   text="Edit">
+                    <items>
+                        <MenuItem   text=".gitignore"
+                                    fx:id="gitIgnoreMenuItem"/>
+                    </items>
+                </Menu>
+                <Menu   text="Repository">
+                    <items>
+                        <Menu   text="Branch">
+                            <MenuItem   text="create branch"
+                                        onAction="#handleNewBranchButton"/>
+                            <MenuItem   text="delete local branch"
+                                        onAction="#handleDeleteLocalBranchButton"/>
+                            <MenuItem   text="delete remote branch"
+                                        onAction="#handleDeleteRemoteBranchButton"/>
+                        </Menu>
+                        <Menu   text="Checkout">
+                            <MenuItem   text="checkout branch"
+                                        onAction="#showBranchCheckout"/>
+                        </Menu>
+                        <Menu   text="Clone">
+                            <MenuItem   text="clone"
+                                        onAction="#handleCloneNewRepoOption"/>
+                        </Menu>
+                        <Menu   text="Commmit">
+                            <MenuItem   text="commit"
+                                        onAction="#handleCommitNormal"/>
+                            <MenuItem   text="commit -a"
+                                        onAction="#handleCommitAll"/>
+                        </Menu>
+                        <Menu   text="Fetch">
+                            <MenuItem   text="fetch"
+                                        onAction="#handleNormalFetchButton"/>
+                            <MenuItem   text="fetch -p"
+                                        onAction="#handlePruneFetchButton"/>
+                        </Menu>
+                        <Menu   text="Merge">
+                            <MenuItem   text="merge from fetch"
+                                        onAction="#mergeFromFetch"/>
+                            <MenuItem   text="merge local branches"
+                                        onAction="#handleBranchMergeButton"/>
+                        </Menu>
+                        <Menu   text="Pull">
+                            <MenuItem   text="pull"
+                                        onAction="#handlePullButton"/>
+                        </Menu>
+                        <Menu   text="Push">
+                            <MenuItem   text="push current branch"
+                                        onAction="#handlePushButton"/>
+                            <MenuItem   text="push all branches"
+                                        onAction="#handlePushAllButton"/>
+                            <MenuItem   text="push tags"
+                                        onAction="#handlePushTagsButton"/>
+                        </Menu>
+                    </items>
+                </Menu>
+            </menus>
+        </MenuBar>
+    </top>
 
-            <Button fx:id="openRepoDirButton"
-                    onAction="#openRepoDirectory"/>
+    <!-- the center part of the border pane -->
+    <center>
+        <AnchorPane
+                fx:id="anchorRoot"
+                prefWidth="1200"
+                prefHeight="650">
+            <GridPane fx:id="root"
+                  AnchorPane.rightAnchor="5"
+                  AnchorPane.leftAnchor="5"
+                  AnchorPane.topAnchor="5"
+                  AnchorPane.bottomAnchor="20">
+                <columnConstraints>
+                    <ColumnConstraints hgrow="NEVER"/>
+                    <ColumnConstraints hgrow="NEVER"/>
+                    <ColumnConstraints hgrow="ALWAYS"/>
+                    <ColumnConstraints hgrow="NEVER"/>
+                    <ColumnConstraints hgrow="NEVER"/>
+                </columnConstraints>
+                <rowConstraints>
+                    <RowConstraints vgrow="NEVER"/>
+                    <RowConstraints vgrow="NEVER"/>
+                    <RowConstraints vgrow="NEVER"/>
+                    <RowConstraints vgrow="ALWAYS"/>
+                    <RowConstraints vgrow="NEVER"/>
+                    <RowConstraints vgrow="NEVER"/>
+                    <RowConstraints vgrow="NEVER"/>
+                </rowConstraints>
 
-            <Button fx:id="loadNewRepoButton"
-                    onAction="#handleLoadNewRepoButton">
-                <contextMenu>
-                    <ContextMenu fx:id="newRepoOptionsMenu">
-                        <items>
-                            <MenuItem fx:id="cloneOption"
-                                      onAction="#handleCloneNewRepoOption"
-                                      text="Clone repository"/>
-                            <MenuItem fx:id="existingOption"
-                                      onAction="#handleLoadExistingRepoOption"
-                                      text="Load existing repository"/>
-                        </items>
-                    </ContextMenu>
-                </contextMenu>
-            </Button>
-            <Button id="warningButton"
-                    onAction="#chooseRecentReposToDelete"
-                    fx:id="removeRecentReposButton"/>
-        </HBox>
+                <!-- Dropdown, open in file manager, plus and minus buttons -->
+                <HBox spacing="5">
+                    <ComboBox id="repoDropdown"
+                              fx:id="repoDropdownSelector"
+                              onAction="#loadSelectedRepo"/>
 
-        <!-- Working Directory block -->
-        <StackPane  GridPane.rowIndex="1"
-                    GridPane.valignment="TOP"
-                    alignment="TOP_CENTER">
-            <ImageView
-                    fitHeight="120"
-                    fitWidth="150"
-                    opacity="0.2">
-                <Image url="@../images/folder.png"/>
-            </ImageView>
-            <VBox   alignment="CENTER">
-                <Text   text="Working Directory">
-                    <font>
-                        <Font   size="25"/>
-                    </font>
-                </Text>
-                <HBox   alignment="CENTER">
-                    <Text   text="local branch: "/>
-                    <HBox   fx:id="currentLocalBranchHbox"
-                            alignment="CENTER">
-                        <padding>
-                            <Insets right="5" left="5"/>
-                        </padding>
-                    </HBox>
+                    <Button fx:id="openRepoDirButton"
+                            onAction="#openRepoDirectory"/>
+
+                    <Button fx:id="loadNewRepoButton"
+                            onAction="#handleLoadNewRepoButton">
+                        <contextMenu>
+                            <ContextMenu fx:id="newRepoOptionsMenu">
+                                <items>
+                                    <MenuItem fx:id="cloneOption"
+                                              onAction="#handleCloneNewRepoOption"
+                                              text="Clone repository"/>
+                                    <MenuItem fx:id="existingOption"
+                                              onAction="#handleLoadExistingRepoOption"
+                                              text="Load existing repository"/>
+                                </items>
+                            </ContextMenu>
+                        </contextMenu>
+                    </Button>
+                    <Button id="warningButton"
+                            onAction="#chooseRecentReposToDelete"
+                            fx:id="removeRecentReposButton"/>
                 </HBox>
-                <GridPane   alignment="CENTER">
-                    <Text   GridPane.columnIndex="0"
-                            GridPane.rowIndex="0"
-                            GridPane.halignment="CENTER"
-                            text="remote-tracking branch: "/>
-                    <HBox   GridPane.columnIndex="0"
+
+                <!-- Working Directory block -->
+                <StackPane  GridPane.rowIndex="1"
+                            GridPane.valignment="TOP"
+                            alignment="TOP_CENTER">
+                    <ImageView
+                            fitHeight="120"
+                            fitWidth="150"
+                            opacity="0.2">
+                        <Image url="@../images/folder.png"/>
+                    </ImageView>
+                    <VBox   alignment="CENTER">
+                        <Text   text="Working Directory">
+                            <font>
+                                <Font   size="25"/>
+                            </font>
+                        </Text>
+                        <HBox   alignment="CENTER">
+                            <Text   text="local branch: "/>
+                            <HBox   fx:id="currentLocalBranchHbox"
+                                    alignment="CENTER">
+                                <padding>
+                                    <Insets right="5" left="5"/>
+                                </padding>
+                            </HBox>
+                        </HBox>
+                        <GridPane   alignment="CENTER">
+                            <Text   GridPane.columnIndex="0"
+                                    GridPane.rowIndex="0"
+                                    GridPane.halignment="CENTER"
+                                    text="remote-tracking branch: "/>
+                            <HBox   GridPane.columnIndex="0"
+                                    GridPane.rowIndex="1"
+                                    GridPane.hgrow="NEVER"
+                                    GridPane.halignment="CENTER"
+                                    fx:id="currentRemoteTrackingBranchHbox"
+                                    alignment="CENTER">
+                                <padding>
+                                    <Insets right="5" left="5"/>
+                                </padding>
+                            </HBox>
+                        </GridPane>
+                    </VBox>
+                </StackPane>
+
+                <!-- Separator between headings and content -->
+                <HBox GridPane.rowIndex="2"
+                      GridPane.columnSpan="3"
+                      id="separator-dashed"
+                      prefHeight="4">
+                    <GridPane.margin>
+                        <Insets top="10" bottom="10" left="-3" right="-15"/>
+                    </GridPane.margin>
+                    <Rectangle height="4"/>
+                </HBox>
+
+                <!-- Separator between remote and commit info -->
+                <HBox GridPane.rowIndex="2"
+                      GridPane.columnIndex="4"
+                      id="separator"
+                      prefHeight="4">
+                    <GridPane.margin>
+                        <Insets top="10" bottom="10" left="-19" right="-15"/>
+                    </GridPane.margin>
+                    <Rectangle height="4"/>
+                </HBox>
+
+                <!-- File tree panel view -->
+                <TabPane GridPane.rowIndex="3">
+                    <Tab text="Working Tree"
+                         closable="false"
+                         fx:id="workingTreePanelTab">
+                        <WorkingTreePanelView fx:id="workingTreePanelView"/>
+                    </Tab>
+                    <Tab text="All Files"
+                         closable="false"
+                         fx:id="allFilesPanelTab">
+                        <AllFilesPanelView fx:id="allFilesPanelView"/>
+                    </Tab>
+                </TabPane>
+
+                <!-- Add and remove buttons block -->
+                <HBox   spacing="10"
+                        GridPane.halignment="CENTER"
+                        GridPane.rowIndex="4"
+                        alignment="CENTER">
+                    <Button id="codeButton"
+                            fx:id="addButton"
+                            text="Add"
+                            onAction="#handleAddButton"/>
+                    <Button id="codeButton"
+                            fx:id="checkoutFileButton"
+                            text="Checkout Files"
+                            onAction="#handleCheckoutButton"/>
+                    <Button id="codeButton"
+                            fx:id="removeButton"
+                            text="Remove"
+                            onAction="#handleRemoveButton"/>
+                </HBox>
+
+                <!-- Checkout branch button and create/delete branch button -->
+                <Button text="Checkout different branch"
+                        fx:id="checkoutButton"
+                        id = "codeButton"
+                        onAction="#showBranchCheckout"
+                        GridPane.rowIndex="5"
+                        GridPane.halignment="CENTER"
+                        GridPane.valignment="BOTTOM"/>
+                <Button text="Create/delete a branch"
+                        id = "codeButton"
+                        fx:id="addDeleteBranchButton"
+                        onAction="#handleCreateOrDeleteBranchButton"
+                        GridPane.rowIndex="6"
+                        GridPane.halignment="CENTER"/>
+
+                <!-- Working directory and local repo separator -->
+                <VBox GridPane.rowSpan="7"
+                      GridPane.columnIndex="1"
+                      prefWidth="4"
+                      id="separator">
+                    <GridPane.margin>
+                       <Insets top="-5" left="15" right="15" bottom="-2"/>
+                    </GridPane.margin>
+                </VBox>
+
+                <!-- Local Repository block -->
+                <StackPane  GridPane.rowIndex="1"
+                            GridPane.columnIndex="2"
+                            GridPane.halignment="CENTER">
+                    <ImageView
+                            fitHeight="137.5"
+                            fitWidth="137.5"
+                            opacity="0.25"
+                            preserveRatio="true">
+                        <Image url="@../images/repository.png"/>
+                    </ImageView>
+                    <VBox   GridPane.halignment="CENTER"
+                            spacing="5"
+                            alignment="CENTER"
                             GridPane.rowIndex="1"
-                            GridPane.hgrow="NEVER"
-                            GridPane.halignment="CENTER"
-                            fx:id="currentRemoteTrackingBranchHbox"
-                            alignment="CENTER">
-                        <padding>
-                            <Insets right="5" left="5"/>
-                        </padding>
-                    </HBox>
-                </GridPane>
-            </VBox>
-        </StackPane>
+                            GridPane.columnIndex="2">
+                        <Text   text="Local Repository">
+                            <font>
+                                <Font   size="25"/>
+                            </font>
+                        </Text>
+                        <Button fx:id="gitStatusButton"
+                                text="Refresh"
+                                id="codeButton"
+                                onAction="#onRefreshButton"/>
+                        <HBox   alignment="CENTER">
+                            <Text   text="Status: "/>
+                            <StackPane  fx:id="statusTextPane">
+                                <Text   fx:id="branchStatusText"/>
+                                <Text   text="Updating..."
+                                        fx:id="updatingText"
+                                        fill="orangered"/>
+                            </StackPane>
+                        </HBox>
+                    </VBox>
+                </StackPane>
 
-        <!-- Separator between headings and content -->
-        <HBox GridPane.rowIndex="2"
-              GridPane.columnSpan="3"
-              id="separator-dashed"
-              prefHeight="4">
-            <GridPane.margin>
-                <Insets top="10" bottom="10" left="-3" right="-15"/>
-            </GridPane.margin>
-            <Rectangle height="4"/>
-        </HBox>
+                <!-- Commit and merge buttons -->
+                <ArrowButton id="codeButton"
+                             fx:id="commitButton"
+                             text="Commit"
+                             arrowRight="true"
+                             onAction="#handleCommitNormal"
+                             GridPane.rowIndex="1"
+                             GridPane.columnIndex="1"
+                             GridPane.valignment="TOP"
+                             GridPane.halignment="LEFT">
+                    <contextMenu>
+                        <ContextMenu    fx:id="commitContextMenu">
+                            <items>
+                                <MenuItem   text="Commit -a"
+                                            onAction="#handleCommitAll"/>
+                            </items>
+                        </ContextMenu>
+                    </contextMenu>
+                    <GridPane.margin>
+                        <Insets left="-10" right="-40" top="20"/>
+                    </GridPane.margin>
+                </ArrowButton>
+                <Button text="Merge"
+                        fx:id="mergeButton"
+                        id = "codeButton"
+                        onAction="#handleMergeFromFetchButton"
+                        GridPane.rowIndex="1"
+                        GridPane.columnIndex="1"
+                        GridPane.valignment="BOTTOM"
+                        GridPane.halignment="LEFT">
+                    <GridPane.margin>
+                        <Insets left="-10" right="-40" bottom="20"/>
+                    </GridPane.margin>
+                </Button>
 
-        <!-- Separator between remote and commit info -->
-        <HBox GridPane.rowIndex="2"
-              GridPane.columnIndex="4"
-              id="separator"
-              prefHeight="4">
-            <GridPane.margin>
-                <Insets top="10" bottom="10" left="-19" right="-15"/>
-            </GridPane.margin>
-            <Rectangle height="4"/>
-        </HBox>
+                <!-- Commit tree panel view and legend-->
+                <CommitTreePanelView fx:id="commitTreePanelView"
+                                        GridPane.rowIndex="3"
+                                        GridPane.rowSpan="3"
+                                        GridPane.columnIndex="2"/>
+                <Hyperlink  fx:id="legendLink"
+                            text="What do all these symbols mean?"
+                            onAction="#showLegend"
+                            GridPane.rowIndex="6"
+                            GridPane.columnIndex="2"/>
 
-        <!-- File tree panel view -->
-        <TabPane GridPane.rowIndex="3">
-            <Tab text="Working Tree"
-                 closable="false"
-                 fx:id="workingTreePanelTab">
-                <WorkingTreePanelView fx:id="workingTreePanelView"/>
-            </Tab>
-            <Tab text="All Files"
-                 closable="false"
-                 fx:id="allFilesPanelTab">
-                <AllFilesPanelView fx:id="allFilesPanelView"/>
-            </Tab>
-        </TabPane>
+                <!-- Local repository and remote repository separator -->
+                <VBox   GridPane.rowSpan="2"
+                        GridPane.columnIndex="3"
+                        id="separator"
+                        prefWidth="4">
+                    <GridPane.margin>
+                        <Insets top="-5" left="15" right="15" bottom="-10"/>
+                    </GridPane.margin>
+                </VBox>
 
-        <!-- Add and remove buttons block -->
-        <HBox   spacing="10"
-                GridPane.halignment="CENTER"
-                GridPane.rowIndex="4"
-                alignment="CENTER">
-            <Button id="codeButton"
-                    fx:id="addButton"
-                    text="Add"
-                    onAction="#handleAddButton"/>
-            <Button id="codeButton"
-                    fx:id="checkoutFileButton"
-                    text="Checkout Files"
-                    onAction="#handleCheckoutButton"/>
-            <Button id="codeButton"
-                    fx:id="removeButton"
-                    text="Remove"
-                    onAction="#handleRemoveButton"/>
-        </HBox>
+                <!-- Fetch and push buttons -->
+                <ArrowButton id="codeButton"
+                             fx:id="fetchButton"
+                             text="Fetch"
+                             arrowLeft="true"
+                             onAction="#handleNormalFetchButton"
+                             GridPane.columnIndex="3"
+                             GridPane.rowIndex="1"
+                             GridPane.halignment="RIGHT"
+                             GridPane.valignment="TOP">
+                    <GridPane.margin>
+                        <Insets top="20" left="-40" right="-10"/>
+                    </GridPane.margin>
+                    <contextMenu>
+                        <ContextMenu    fx:id="fetchContextMenu">
+                            <items>
+                                <MenuItem   text="Fetch -p"
+                                            onAction="#handlePruneFetchButton"/>
+                            </items>
+                        </ContextMenu>
+                    </contextMenu>
+                </ArrowButton>
+                <ArrowButton id="codeButton"
+                             fx:id="pushButton"
+                             text="Push"
+                             arrowRight="true"
+                             onAction="#handlePushButton"
+                             GridPane.columnIndex="3"
+                             GridPane.rowIndex="1"
+                             GridPane.halignment="RIGHT"
+                             GridPane.valignment="BOTTOM">
+                    <GridPane.margin>
+                        <Insets bottom="20" left="-40" right="-10"/>
+                    </GridPane.margin>
+                    <contextMenu>
+                        <ContextMenu    fx:id="pushContextMenu">
+                            <items>
+                                <MenuItem   text="Push all branches"
+                                            onAction="#handlePushAllButton"/>
+                                <MenuItem   text="push --tags"
+                                            onAction="#handlePushTagsButton"/>
+                            </items>
+                        </ContextMenu>
+                    </contextMenu>
+                </ArrowButton>
 
-        <!-- Checkout branch button and create/delete branch button -->
-        <Button text="Checkout different branch"
-                fx:id="checkoutButton"
-                id = "codeButton"
-                onAction="#showBranchCheckout"
-                GridPane.rowIndex="5"
-                GridPane.halignment="CENTER"
-                GridPane.valignment="BOTTOM"/>
-        <Button text="Create/delete a branch"
-                id = "codeButton"
-                fx:id="addDeleteBranchButton"
-                onAction="#handleNewBranchButton"
-                GridPane.rowIndex="6"
-                GridPane.halignment="CENTER"/>
+                <!-- Remote repository block -->
+                <StackPane  GridPane.columnIndex="4"
+                            GridPane.rowIndex="1"
+                            GridPane.valignment="TOP"
+                            alignment="TOP_CENTER">
+                    <ImageView
+                            fx:id = "remoteImage"
+                            fitHeight="175"
+                            fitWidth="175"
+                            opacity="0.2"
+                            preserveRatio="true">
+                        <Image url="@../images/graycloud.png"/>
+                    </ImageView>
+                    <VBox   alignment="CENTER">
+                        <Text text="Remote Repository">
+                            <font>
+                                <Font size="25"/>
+                            </font>
+                        </Text>
+                        <HBox   alignment="TOP_CENTER">
+                            <Text   fx:id="needToFetch"/>
+                        </HBox>
+                        <HBox   alignment="CENTER"
+                                style="-fx-cursor: hand"
+                                onMouseClicked="#handleRemoteMouseClick">
+                            <Text   text="remote: "/>
+                            <Text fx:id="browserText"/>
+                        </HBox>
+                    </VBox>
+                </StackPane>
 
-        <!-- Working directory and local repo separator -->
-        <VBox GridPane.rowSpan="7"
-              GridPane.columnIndex="1"
-              prefWidth="4"
-              id="separator">
-            <GridPane.margin>
-               <Insets top="-5" left="15" right="15" bottom="-2"/>
-            </GridPane.margin>
-        </VBox>
-
-        <!-- Local Repository block -->
-        <StackPane  GridPane.rowIndex="1"
-                    GridPane.columnIndex="2"
-                    GridPane.halignment="CENTER">
-            <ImageView
-                    fitHeight="137.5"
-                    fitWidth="137.5"
-                    opacity="0.25"
-                    preserveRatio="true">
-                <Image url="@../images/repository.png"/>
-            </ImageView>
-            <VBox   GridPane.halignment="CENTER"
-                    spacing="5"
-                    alignment="CENTER"
-                    GridPane.rowIndex="1"
-                    GridPane.columnIndex="2">
-                <Text   text="Local Repository">
-                    <font>
-                        <Font   size="25"/>
-                    </font>
-                </Text>
-                <Button fx:id="gitStatusButton"
-                        text="Refresh"
-                        id="codeButton"
-                        onAction="#onRefreshButton"/>
-                <HBox   alignment="CENTER">
-                    <Text   text="Status: "/>
-                    <StackPane  fx:id="statusTextPane">
-                        <Text   fx:id="branchStatusText"/>
-                        <Text   text="Updating..."
-                                fx:id="updatingText"
-                                fill="orangered"/>
+                <!-- Commit info window -->
+                <VBox GridPane.rowIndex="3"
+                        GridPane.columnIndex="4"
+                        alignment="TOP_CENTER"
+                        spacing="5">
+                    <GridPane.margin>
+                        <Insets bottom="5"/>
+                    </GridPane.margin>
+                    <Text   text="Commit Info:"
+                            style="-fx-font-weight: bold;"/>
+                    <StackPane>
+                        <Text   text="No commit selected"
+                                StackPane.alignment="TOP_CENTER"/>
+                        <TextArea wrapText="true"
+                                  editable="false"
+                                  prefWidth="230"
+                                  prefHeight="300"
+                                  fx:id="commitInfoMessageText"/>
                     </StackPane>
-                </HBox>
-            </VBox>
-        </StackPane>
+                    <!-- Go to commit and copy commit hash buttons -->
+                    <HBox   spacing="15"
+                            alignment="CENTER">
+                        <Button fx:id="commitInfoGoToButton"
+                                onAction="#handleGoToCommitButton"/>
+                        <Button fx:id="commitInfoNameCopyButton"
+                                onAction="#handleCommitNameCopyButton"/>
+                    </HBox>
+                </VBox>
 
-        <!-- Commit and merge buttons -->
-        <ArrowButton id="codeButton"
-                     fx:id="commitButton"
-                     text="Commit"
-                     arrowRight="true"
-                     onAction="#handleCommitNormal"
-                     GridPane.rowIndex="1"
-                     GridPane.columnIndex="1"
-                     GridPane.valignment="TOP"
-                     GridPane.halignment="LEFT">
-            <contextMenu>
-                <ContextMenu    fx:id="commitContextMenu">
-                    <items>
-                        <MenuItem   text="Commit -a"
-                                    onAction="#handleCommitAll"/>
-                    </items>
-                </ContextMenu>
-            </contextMenu>
-            <GridPane.margin>
-                <Insets left="-10" right="-40" top="20"/>
-            </GridPane.margin>
-        </ArrowButton>
-        <Button text="Merge"
-                fx:id="mergeButton"
-                id = "codeButton"
-                onAction="#handleGeneralMergeButton"
-                GridPane.rowIndex="1"
-                GridPane.columnIndex="1"
-                GridPane.valignment="BOTTOM"
-                GridPane.halignment="LEFT">
-            <GridPane.margin>
-                <Insets left="-10" right="-40" bottom="20"/>
-            </GridPane.margin>
-        </Button>
-
-        <!-- Commit tree panel view and legend-->
-        <CommitTreePanelView fx:id="commitTreePanelView"
-                                GridPane.rowIndex="3"
-                                GridPane.rowSpan="3"
-                                GridPane.columnIndex="2"/>
-        <Hyperlink  fx:id="legendLink"
-                    text="What do all these symbols mean?"
-                    onAction="#showLegend"
-                    GridPane.rowIndex="6"
-                    GridPane.columnIndex="2"/>
-
-        <!-- Local repository and remote repository separator -->
-        <VBox   GridPane.rowSpan="2"
-                GridPane.columnIndex="3"
-                id="separator"
-                prefWidth="4">
-            <GridPane.margin>
-                <Insets top="-5" left="15" right="15" bottom="-10"/>
-            </GridPane.margin>
-        </VBox>
-
-        <!-- Fetch and push buttons -->
-        <ArrowButton id="codeButton"
-                     fx:id="fetchButton"
-                     text="Fetch"
-                     arrowLeft="true"
-                     onAction="#handleNormalFetchButton"
-                     GridPane.columnIndex="3"
-                     GridPane.rowIndex="1"
-                     GridPane.halignment="RIGHT"
-                     GridPane.valignment="TOP">
-            <GridPane.margin>
-                <Insets top="20" left="-40" right="-10"/>
-            </GridPane.margin>
-            <contextMenu>
-                <ContextMenu    fx:id="fetchContextMenu">
-                    <items>
-                        <MenuItem   text="Fetch -p"
-                                    onAction="#handlePruneFetchButton"/>
-                    </items>
-                </ContextMenu>
-            </contextMenu>
-        </ArrowButton>
-        <ArrowButton id="codeButton"
-                     fx:id="pushButton"
-                     text="Push"
-                     arrowRight="true"
-                     onAction="#handlePushButton"
-                     GridPane.columnIndex="3"
-                     GridPane.rowIndex="1"
-                     GridPane.halignment="RIGHT"
-                     GridPane.valignment="BOTTOM">
-            <GridPane.margin>
-                <Insets bottom="20" left="-40" right="-10"/>
-            </GridPane.margin>
-            <contextMenu>
-                <ContextMenu    fx:id="pushContextMenu">
-                    <items>
-                        <MenuItem   text="Push all branches"
-                                    onAction="#handlePushAllButton"/>
-                        <MenuItem   text="push --tags"
-                                    onAction="#handlePushTagsButton"/>
-                    </items>
-                </ContextMenu>
-            </contextMenu>
-        </ArrowButton>
-
-        <!-- Remote repository block -->
-        <StackPane  GridPane.columnIndex="4"
-                    GridPane.rowIndex="1"
-                    GridPane.valignment="TOP"
-                    alignment="TOP_CENTER">
-            <ImageView
-                    fx:id = "remoteImage"
-                    fitHeight="175"
-                    fitWidth="175"
-                    opacity="0.2"
-                    preserveRatio="true">
-                <Image url="@../images/graycloud.png"/>
-            </ImageView>
-            <VBox   alignment="CENTER">
-                <Text text="Remote Repository">
-                    <font>
-                        <Font size="25"/>
-                    </font>
-                </Text>
-                <HBox   alignment="TOP_CENTER">
-                    <Text   fx:id="needToFetch"/>
-                </HBox>
+                <!-- Tagging UI -->
                 <HBox   alignment="CENTER"
-                        style="-fx-cursor: hand"
-                        onMouseClicked="#handleRemoteMouseClick">
-                    <Text   text="remote: "/>
-                    <Text fx:id="browserText"/>
+                        spacing="5"
+                        GridPane.rowIndex="4"
+                        GridPane.columnIndex="4"
+                        GridPane.halignment="CENTER">
+                    <ArrowButton id="codeButton"
+                                 fx:id="tagButton"
+                                 text="Tag"
+                                 arrowLeft="true"
+                                 onAction="#handleTagButton"/>
+                    <TextField   prefHeight="30"
+                                prefWidth="170"
+                                fx:id="tagNameField"
+                                promptText="tag..." />
                 </HBox>
-            </VBox>
-        </StackPane>
+            </GridPane>
 
-        <!-- Commit info window -->
-        <VBox GridPane.rowIndex="3"
-                GridPane.columnIndex="4"
-                alignment="TOP_CENTER"
-                spacing="5">
-            <GridPane.margin>
-                <Insets bottom="5"/>
-            </GridPane.margin>
-            <Text   text="Commit Info:"
-                    style="-fx-font-weight: bold;"/>
-            <StackPane>
-                <Text   text="No commit selected"
-                        StackPane.alignment="TOP_CENTER"/>
-                <TextArea wrapText="true"
-                          editable="false"
-                          prefWidth="230"
-                          prefHeight="300"
-                          fx:id="commitInfoMessageText"/>
-            </StackPane>
-            <!-- Go to commit and copy commit hash buttons -->
-            <HBox   spacing="15"
-                    alignment="CENTER">
-                <Button fx:id="commitInfoGoToButton"
-                        onAction="#handleGoToCommitButton"/>
-                <Button fx:id="commitInfoNameCopyButton"
-                        onAction="#handleCommitNameCopyButton"/>
-            </HBox>
-        </VBox>
+            <fx:include source="NotificationPane.fxml" fx:id="notificationPane"/>
 
-        <!-- Tagging UI -->
-        <HBox   alignment="CENTER"
-                spacing="5"
-                GridPane.rowIndex="4"
-                GridPane.columnIndex="4"
-                GridPane.halignment="CENTER">
-            <ArrowButton id="codeButton"
-                         fx:id="tagButton"
-                         text="Tag"
-                         arrowLeft="true"
-                         onAction="#handleTagButton"/>
-            <TextField   prefHeight="30"
-                        prefWidth="170"
-                        fx:id="tagNameField"
-                        promptText="tag..." />
-        </HBox>
-
-    </GridPane>
-
-    <fx:include source="NotificationPane.fxml" fx:id="notificationPane"/>
-
-    <stylesheets>
-        <URL value="@../css/BaseStyle.css"/>
-    </stylesheets>
-</AnchorPane>
+            <stylesheets>
+                <URL value="@../css/BaseStyle.css"/>
+            </stylesheets>
+        </AnchorPane>
+    </center>
+</BorderPane>

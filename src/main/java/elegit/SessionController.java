@@ -17,6 +17,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.*;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
@@ -141,6 +142,7 @@ public class SessionController {
     private Stage mainStage;
 
     @FXML private AnchorPane anchorRoot;
+    @FXML private MenuBar menuBar;
 
     // Notification pane
     @FXML private StackPane notificationPane;
@@ -203,9 +205,28 @@ public class SessionController {
             e.printStackTrace();
         }
 
+        initMenuBar();
+
         tryCommandAgainWithHTTPAuth = false;
     }
 
+    private void initMenuBar() {
+        // create the menu bar here
+        this.menuBar = MenuPopulator.getInstance().populate();
+        // pass SessionController to the menuBar
+        MenuPopulator.getInstance().setSessionController(this);
+        // if possible, uses the system menu bar if the current platform supports it
+        this.menuBar.setUseSystemMenuBar(true);
+        // for now we'll only display menu on mac os
+        // because it blocks repo dropdown menu on other platforms
+        //if (SystemUtils.IS_OS_MAC) {
+        //}
+    }
+
+    /**
+     * Helper method that passes the main stage to session controller
+     * @param stage Stage
+     */
     public void setStage(Stage stage) {
         this.mainStage = stage;
         notificationPaneController.setAnchor(mainStage);
@@ -1891,13 +1912,25 @@ public class SessionController {
     }
 
     public void handleNewBranchButton() {
-        handleNewBranchButton(null);
+        handleCreateOrDeleteBranchButton("create");
+    }
+
+    public void handleDeleteLocalBranchButton() {
+        handleCreateOrDeleteBranchButton("local");
+    }
+
+    public void handleDeleteRemoteBranchButton() {
+        handleCreateOrDeleteBranchButton("remote");
+    }
+
+    public void handleCreateOrDeleteBranchButton() {
+        handleCreateOrDeleteBranchButton(null);
     }
 
     /**
      * Pops up a window where the user can create a new branch
      */
-    public void handleNewBranchButton(String tab) {
+    public void handleCreateOrDeleteBranchButton(String tab) {
         try{
             logger.info("Create/delete branch button clicked");
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
@@ -1939,8 +1972,12 @@ public class SessionController {
         CommitTreeController.focusCommitInGraph(id);
     }
 
-    public void handleGeneralMergeButton(){
+    public void handleMergeFromFetchButton(){
         handleGeneralMergeButton(false);
+    }
+
+    public void handleBranchMergeButton() {
+        handleGeneralMergeButton(true);
     }
 
     /**
