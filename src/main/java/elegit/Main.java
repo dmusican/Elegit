@@ -87,7 +87,7 @@ public class Main extends Application {
         }
 
         // creates the scene
-        Scene scene = new Scene(root, 1200, 650);
+        Scene scene = new Scene(root, 1200, 705);
 
         // setup and show the stage
         primaryStage.setOnCloseRequest(event -> {

@@ -93,6 +93,8 @@ public class SessionController {
     public Tab workingTreePanelTab;
     public Tab allFilesPanelTab;
 
+    public TabPane filesTabPane;
+
     public WorkingTreePanelView workingTreePanelView;
     public AllFilesPanelView allFilesPanelView;
 
@@ -384,8 +386,9 @@ public class SessionController {
         commitInfoGoToButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
 
         // Set minimum sizes for other fields and views
-        workingTreePanelView.setMinSize(Control.USE_PREF_SIZE, 200);
-        allFilesPanelView.setMinSize(Control.USE_PREF_SIZE, 200);
+        filesTabPane.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
+        workingTreePanelView.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
+        allFilesPanelView.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         final int REPO_DROPDOWN_MAX_WIDTH = 147;
         repoDropdownSelector.setMaxWidth(REPO_DROPDOWN_MAX_WIDTH);
         tagNameField.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);

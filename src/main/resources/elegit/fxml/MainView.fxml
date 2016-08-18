@@ -204,7 +204,8 @@
                 </HBox>
 
                 <!-- File tree panel view -->
-                <TabPane GridPane.rowIndex="3">
+                <TabPane GridPane.rowIndex="3"
+                         fx:id="filesTabPane">
                     <Tab text="Working Tree"
                          closable="false"
                          fx:id="workingTreePanelTab">
