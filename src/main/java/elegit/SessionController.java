@@ -17,6 +17,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.*;
 import javafx.scene.control.Label;
+import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextArea;
@@ -142,11 +143,14 @@ public class SessionController {
     private Stage mainStage;
 
     @FXML private AnchorPane anchorRoot;
-    @FXML private MenuBar menuBar;
 
     // Notification pane
     @FXML private StackPane notificationPane;
     @FXML private NotificationController notificationPaneController;
+
+    // Menu Bar
+    @FXML private MenuItem gitIgnoreMenuItem;
+    @FXML private Menu repoMenu;
 
     boolean tryCommandAgainWithHTTPAuth;
     private boolean isGitStatusDone;
@@ -205,22 +209,7 @@ public class SessionController {
             e.printStackTrace();
         }
 
-        initMenuBar();
-
         tryCommandAgainWithHTTPAuth = false;
-    }
-
-    private void initMenuBar() {
-        // create the menu bar here
-        this.menuBar = MenuPopulator.getInstance().populate();
-        // pass SessionController to the menuBar
-        MenuPopulator.getInstance().setSessionController(this);
-        // if possible, uses the system menu bar if the current platform supports it
-        this.menuBar.setUseSystemMenuBar(true);
-        // for now we'll only display menu on mac os
-        // because it blocks repo dropdown menu on other platforms
-        //if (SystemUtils.IS_OS_MAC) {
-        //}
     }
 
     /**
@@ -367,9 +356,6 @@ public class SessionController {
      * Initializes the repository monitor
      */
     private void initRepositoryMonitor() {
-        // bind currentRepoProperty with menuBar to update menuBar when repo gets changed.
-        RepositoryMonitor.bindMenu(theModel);
-
         RepositoryMonitor.startWatching(theModel, this);
         RepositoryMonitor.hasFoundNewRemoteChanges.addListener((observable, oldValue, newValue) -> {
             if(newValue) updateStatusText();
@@ -590,12 +576,21 @@ public class SessionController {
             currentLocalBranchHbox.setVisible(!disable);
             currentRemoteTrackingBranchHbox.setVisible(!disable);
             statusTextPane.setVisible(!disable);
+            updateMenuBarEnabledStatus(disable);
         });
 
         root.setOnMouseClicked(event -> {
             if (disable) showNoRepoLoadedNotification();
             if (this.notificationPaneController.isListPaneVisible()) this.notificationPaneController.toggleNotificationList();
         });
+    }
+
+    /**
+     * Helper method for disabling the menu bar
+     */
+    private void updateMenuBarEnabledStatus(boolean disable) {
+        repoMenu.setDisable(disable);
+        gitIgnoreMenuItem.setDisable(disable);
     }
 
     /**
@@ -610,6 +605,13 @@ public class SessionController {
         } else {
             setButtonsDisabled(false);
         }
+    }
+
+    /**
+     * Opens an editor for the .gitignore
+     */
+    public void handleGitIgnoreMenuItem() {
+        GitIgnoreEditor.show(SessionModel.getSessionModel().getCurrentRepoHelper(), null);
     }
 
     /**
