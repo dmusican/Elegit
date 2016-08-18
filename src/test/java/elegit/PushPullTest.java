@@ -1,5 +1,6 @@
 package elegit;
 
+import org.eclipse.jgit.api.PushCommand;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.junit.After;
 import org.junit.Before;
@@ -153,6 +154,40 @@ public class PushPullTest {
         // Now do the pull (well, a fetch)
         existingHelperPull.fetch(false);
         existingHelperPull.mergeFromFetch();
+
+    }
+
+    @Test
+    public void cloneThenPushTestWithoutAuthentication() throws Exception {
+        File authData = new File(testFileLocation + "httpUsernamePassword.txt");
+
+        // If a developer does not have this file present, test should just pass.
+        if (!authData.exists() && looseTesting)
+            return;
+
+        Scanner scanner = new Scanner(authData);
+        String ignoreURL = scanner.next();
+        String username = scanner.next();
+        String password = scanner.next();
+        UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider(username, password);
+
+        String remoteURL = "https://github.com/TheElegitTeam/PushPullTests.git";
+        //String remoteURL = "https://github.com/connellyj/HelloWorld.git";
+
+        Path repoPathPush = directoryPath.resolve("clonepush");
+        ClonedRepoHelper helperPush = new ClonedRepoHelper(repoPathPush, remoteURL, credentials);
+        assertNotNull(helperPush);
+        helperPush.obtainRepository(remoteURL);
+
+        // Update the file, then commit and push
+        Path readmePath = repoPathPush.resolve("README.md");
+        System.out.println(readmePath);
+        String timestamp = (new Date()).toString() + "\n";
+        Files.write(readmePath, timestamp.getBytes(), StandardOpenOption.APPEND);
+        helperPush.addFilePathTest(readmePath);
+        helperPush.commit("added a character");
+        PushCommand push = helperPush.prepareToPushAll();
+        helperPush.pushAll(push);
 
     }
 

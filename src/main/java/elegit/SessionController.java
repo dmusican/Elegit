@@ -675,7 +675,7 @@ public class SessionController {
         } catch(InvalidRemoteException e){
             showInvalidRemoteNotification(() -> handleLoadRepoMenuItem(builder));
         } catch(TransportException e){
-            showNotAuthorizedNotification();
+            showTransportExceptionNotification(e);
         } catch (NoRepoSelectedException | CancelledAuthorizationException e) {
             // The user pressed cancel on the dialog box, or
             // the user pressed cancel on the authorize dialog box. Do nothing!
@@ -1084,7 +1084,7 @@ public class SessionController {
                     } catch (InvalidTagNameException e) {
                         showInvalidTagNameNotification(tagName);
                     }catch (TransportException e) {
-                        showNotAuthorizedNotification();
+                        showTransportExceptionNotification(e);
                     } catch(GitAPIException e){
                         // Git error
                         showGenericErrorNotification();
@@ -1215,7 +1215,8 @@ public class SessionController {
     }
 
     private void determineIfTryAgain(TransportException e) {
-        showNotAuthorizedNotification();
+        showTransportExceptionNotification(e);
+
         // Don't try again with HTTP authentication if SSH prompt for authentication is canceled
         if (!e.getMessage().endsWith("Auth cancel"))
             tryCommandAgainWithHTTPAuth = true;
@@ -1241,21 +1242,10 @@ public class SessionController {
             gitStatus();
         } catch (InvalidRemoteException e) {
             showNoRemoteNotification();
-        //} catch (NoCommitsToPushException e) {
-        //    showNoCommitsToPushNotification();
         } catch (PushToAheadRemoteError e) {
             showPushToAheadRemoteNotification(e.isAllRefsRejected());
         } catch (TransportException e) {
-            if (e.getMessage().contains("git-receive-pack not found")) {
-                // The error has this message if there is no longer a remote to push to
-                showLostRemoteNotification();
-            } else {
-                throw e;
-            }
-        //} catch(MissingRepoException e){
-        //    showMissingRepoNotification();
-        //    setButtonsDisabled(true);
-        //    refreshRecentReposInDropdown();
+            throw e;
         } catch(Exception e) {
             showGenericErrorNotification();
             e.printStackTrace();
@@ -1350,17 +1340,13 @@ public class SessionController {
             showNoRemoteNotification();
         } catch(PushToAheadRemoteError e) {
             showPushToAheadRemoteNotification(e.isAllRefsRejected());
-        } catch (TransportException e) {
-            if (e.getMessage().contains("git-receive-pack not found")) {
-                // The error has this message if there is no longer a remote to push to
-                showLostRemoteNotification();
-            } else {
-                throw e;
-            }
-        } catch(MissingRepoException e){
+        } catch(MissingRepoException e) {
             showMissingRepoNotification();
             setButtonsDisabled(true);
             refreshRecentReposInDropdown();
+        } catch (TransportException e) {
+            throw e;
+
         } catch(Exception e) {
             showGenericErrorNotification();
             e.printStackTrace();
@@ -1436,7 +1422,7 @@ public class SessionController {
             logger.warn("Can't delete current branch warning");
             this.showCannotDeleteBranchNotification(selectedBranch);
         } catch (TransportException e) {
-            this.showNotAuthorizedNotification();
+            this.showTransportExceptionNotification(e);
             authorizationSucceeded = false;
         } catch (GitAPIException e) {
             logger.warn("IO error");
@@ -1576,12 +1562,7 @@ public class SessionController {
                     } catch(InvalidRemoteException e){
                         showNoRemoteNotification();
                     } catch (TransportException e) {
-                        if (e.getMessage().contains("git-receive-pack not found")) {
-                            // The error has this message if there is no longer a remote to push to
-                            showLostRemoteNotification();
-                        } else {
-                            showNotAuthorizedNotification();
-                        }
+                        showTransportExceptionNotification(e);
                     } catch(MissingRepoException e){
                         showMissingRepoNotification();
                         setButtonsDisabled(true);
@@ -1632,12 +1613,7 @@ public class SessionController {
                     } catch(InvalidRemoteException e){
                         showNoRemoteNotification();
                     } catch (TransportException e) {
-                        if (e.getMessage().contains("git-receive-pack not found")) {
-                            // The error has this message if there is no longer a remote to push to
-                            showLostRemoteNotification();
-                        } else {
-                            showNotAuthorizedNotification();
-                        }
+                        showTransportExceptionNotification(e);
                     } catch(MissingRepoException e){
                         showMissingRepoNotification();
                         setButtonsDisabled(true);
@@ -1691,12 +1667,7 @@ public class SessionController {
                     }catch(InvalidRemoteException e){
                         showNoRemoteNotification();
                     } catch (TransportException e) {
-                        if (e.getMessage().contains("git-receive-pack not found")) {
-                            // The error has this message if there is no longer a remote to push to
-                            showLostRemoteNotification();
-                        } else {
-                            showNotAuthorizedNotification();
-                        }
+                        showTransportExceptionNotification(e);
                     } catch(MissingRepoException e){
                         showMissingRepoNotification();
                         setButtonsDisabled(true);
@@ -1847,7 +1818,7 @@ public class SessionController {
                     } catch(InvalidRemoteException e){
                         showNoRemoteNotification(notificationController);
                     } catch(TransportException e){
-                        showNotAuthorizedNotification(notificationController);
+                        showTransportExceptionNotification(notificationController, e);
                     } catch (NoMergeBaseException | JGitInternalException e) {
                         // Merge conflict
                         e.printStackTrace();
@@ -2381,21 +2352,36 @@ public class SessionController {
         });
     }
 
-    private void showNotAuthorizedNotification(NotificationController nc) {
+    private void showTransportExceptionNotification(TransportException e) {
         Platform.runLater(() -> {
-            logger.warn("Invalid authorization warning");
-            nc.addNotification("The authorization information you gave does not allow you to modify this repository. " +
-                    "Try reentering your password.");
+            showTransportExceptionNotification(notificationPaneController, e);
+        });
+
+    }
+    private void showTransportExceptionNotification(NotificationController nc, TransportException e) {
+        Platform.runLater(() -> {
+
+            if (e.getMessage().endsWith("git-receive-pack not permitted")) {
+                logger.warn("Invalid authorization for repo warning");
+                notificationPaneController.addNotification("Your login is correct, but you do not" +
+                                                           " have permission to do this " +
+                                                           "operation to this repository.");
+            } else if (e.getMessage().endsWith("git-receive-pack not found")) {
+                logger.warn("Remote repo couldn't be found warning");
+                this.notificationPaneController.addNotification("The push failed because the remote repository couldn't be found.");
+            } else if (e.getMessage().endsWith("not authorized")) {
+                logger.warn("Invalid authorization warning");
+                nc.addNotification("The username/password combination you have provided is incorrect. " +
+                                   "Try reentering your password.");
+            } else {
+                logger.warn("Transport exception");
+                nc.addNotification("Error in connecting: " + e.getMessage());
+            }
+
         });
     }
 
-    private void showNotAuthorizedNotification() {
-        Platform.runLater(() -> {
-            logger.warn("Invalid authorization warning");
-            notificationPaneController.addNotification("The authorization information you gave does not allow you to modify this repository. " +
-                    "Try reentering your password.");
-        });
-    }
+
 
     private void showRepoWasNotLoadedNotification() {
         Platform.runLater(() -> {
