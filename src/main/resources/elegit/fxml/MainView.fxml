@@ -17,7 +17,13 @@
         <MenuBar    GridPane.rowIndex="0"
                     useSystemMenuBar="true">
             <menus>
-                <Menu   text="File"/>
+                <Menu   text="File">
+                    <items>
+                        <MenuItem   text="Toggle Logging"
+                                    fx:id="loggingToggle"
+                                    onAction="#handleToggleLoggingMenuItem"/>
+                    </items>
+                </Menu>
                 <Menu   text="Edit">
                     <items>
                         <MenuItem   text=".gitignore"
