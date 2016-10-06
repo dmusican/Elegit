@@ -81,6 +81,32 @@ public class PopUpWindows {
     }
 
     /**
+     * Asks the user for permission to log anonymous usage data
+     * @return true if the user selected yes to
+     */
+    static boolean getLoggingPermissions() {
+        Alert window = new Alert(Alert.AlertType.INFORMATION);
+
+        ButtonType okButton = new ButtonType("Share");
+        ButtonType buttonTypeCancel = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+
+        window.getButtonTypes().setAll(okButton, buttonTypeCancel);
+        window.setResizable(true);
+        window.getDialogPane().setPrefSize(550, 350);
+        window.setTitle("Usage Data");
+        window.setHeaderText("Share anonymous usage data");
+        window.setContentText("Click OK if you want to share anonymous usage data with us," +
+                "which helps us improve this tool. This can be changed at any time with the\n" +
+                "preferences menu.");
+        Optional<ButtonType> result = window.showAndWait();
+
+        if (result.get() == okButton) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * Shows a window with instructions on how to fix a conflict
      */
     public static void showConflictingHelpAlert() {

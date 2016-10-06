@@ -630,6 +630,14 @@ public class SessionController {
         logger.log(Level.INFO, "Toggled logging to "+isOn);
     }
 
+    public void removeLoggingPrefs() {
+        try {
+            PrefObj.removeObject(this.preferences, LOGGING_LEVEL_KEY);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     /**
      * Opens an editor for the .gitignore
      */
@@ -2666,6 +2674,7 @@ public class SessionController {
 
     /**
      * Initialization method that loads the level of logging from preferences
+     * This will show a popup window if there is no preference
      * @throws BackingStoreException
      * @throws IOException
      * @throws ClassNotFoundException
@@ -2673,8 +2682,7 @@ public class SessionController {
     void loadLogging() {
         Level storedLevel = getLoggingLevel();
         if (storedLevel == null) {
-            System.out.println("Null level");
-            storedLevel = Level.INFO;
+            storedLevel = PopUpWindows.getLoggingPermissions() ? Level.INFO : Level.OFF;
         }
         changeLogging(storedLevel);
     }
