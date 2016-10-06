@@ -2692,11 +2692,14 @@ public class SessionController {
      * @throws ClassNotFoundException
      */
     void loadLogging() {
-        Level storedLevel = getLoggingLevel();
-        if (storedLevel == null) {
-            storedLevel = PopUpWindows.getLoggingPermissions() ? Level.INFO : Level.OFF;
-        }
-        changeLogging(storedLevel);
+        Platform.runLater(() -> {
+            Level storedLevel = getLoggingLevel();
+            if (storedLevel == null) {
+                storedLevel = PopUpWindows.getLoggingPermissions() ? Level.INFO : Level.OFF;
+            }
+            changeLogging(storedLevel);
+            logger.info("Starting up.");
+        });
     }
 
     /**

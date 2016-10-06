@@ -74,9 +74,6 @@ public class Main extends Application {
 
         sessionController.loadLogging();
 
-
-        logger.info("Starting up.");
-
         // sets the icon
         Image img = new Image(getClass().getResourceAsStream("/elegit/images/elegit_icon.png"));
         primaryStage.getIcons().add(img);
