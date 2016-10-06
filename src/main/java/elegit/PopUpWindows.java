@@ -92,11 +92,11 @@ public class PopUpWindows {
 
         window.getButtonTypes().setAll(okButton, buttonTypeCancel);
         window.setResizable(true);
-        window.getDialogPane().setPrefSize(550, 350);
+        window.getDialogPane().setPrefSize(300, 200);
         window.setTitle("Usage Data");
         window.setHeaderText("Share anonymous usage data");
         window.setContentText("Click OK if you want to share anonymous usage data with us," +
-                "which helps us improve this tool. This can be changed at any time with the\n" +
+                "which helps us improve this tool. This can be changed at any time with the" +
                 "preferences menu.");
         Optional<ButtonType> result = window.showAndWait();
 

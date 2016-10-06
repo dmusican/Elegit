@@ -17,11 +17,14 @@
         <MenuBar    GridPane.rowIndex="0"
                     useSystemMenuBar="true">
             <menus>
-                <Menu   text="File">
+                <Menu   text="Preferences">
                     <items>
-                        <MenuItem   text="Toggle Logging"
+                        <MenuItem   text="Turn Logging Off"
                                     fx:id="loggingToggle"
-                                    onAction="#handleToggleLoggingMenuItem"/>
+                                    onAction="#handleLoggingOffMenuItem"/>
+                        <MenuItem   text="Turn Logging On"
+                                    fx:id="loggingToggle"
+                                    onAction="#handleLoggingOnMenuItem"/>
                         <MenuItem   text="Remove logging prefs"
                                     fx:id="templogginpref"
                                     onAction="#removeLoggingPrefs"/>

@@ -624,10 +624,22 @@ public class SessionController {
         }
     }
 
-    public void handleToggleLoggingMenuItem() {
-        changeLogging(getLoggingLevel()==Level.INFO ? Level.OFF : Level.INFO);
-        String isOn = getLoggingLevel() == Level.INFO ? "on" : "off";
-        logger.log(Level.INFO, "Toggled logging to "+isOn);
+    public void handleLoggingOnMenuItem() {
+        changeLogging(Level.INFO);
+        PopOver popOver = new PopOver(new Text("Toggled logging on"));
+        popOver.show(commitTreePanelView);
+        popOver.detach();
+        popOver.setAutoHide(true);
+        logger.log(Level.INFO, "Toggled logging on");
+    }
+
+    public void handleLoggingOffMenuItem() {
+        changeLogging(Level.OFF);
+        PopOver popOver = new PopOver(new Text("Toggled logging off"));
+        popOver.setTitle("");
+        popOver.show(commitTreePanelView);
+        popOver.detach();
+        popOver.setAutoHide(true);
     }
 
     public void removeLoggingPrefs() {
