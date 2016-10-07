@@ -30,6 +30,7 @@
                     <items>
                         <Menu   text="Branch">
                             <MenuItem   text="create branch"
+                                        fx:id="createBranchMenuItem"
                                         onAction="#handleNewBranchButton"/>
                             <MenuItem   text="delete local branch"
                                         onAction="#handleDeleteLocalBranchButton"/>
@@ -42,16 +43,19 @@
                         </Menu>
                         <Menu   text="Clone">
                             <MenuItem   text="clone"
+                                        fx:id="cloneMenuItem"
                                         onAction="#handleCloneNewRepoOption"/>
                         </Menu>
                         <Menu   text="Commmit">
                             <MenuItem   text="commit"
+                                        fx:id="commitNormalMenuItem"
                                         onAction="#handleCommitNormal"/>
                             <MenuItem   text="commit -a"
                                         onAction="#handleCommitAll"/>
                         </Menu>
                         <Menu   text="Fetch">
                             <MenuItem   text="fetch"
+                                        fx:id="normalFetchMenuItem"
                                         onAction="#handleNormalFetchButton"/>
                             <MenuItem   text="fetch -p"
                                         onAction="#handlePruneFetchButton"/>
@@ -64,10 +68,12 @@
                         </Menu>
                         <Menu   text="Pull">
                             <MenuItem   text="pull"
+                                        fx:id="pullMenuItem"
                                         onAction="#handlePullButton"/>
                         </Menu>
                         <Menu   text="Push">
                             <MenuItem   text="push current branch"
+                                        fx:id="pushMenuItem"
                                         onAction="#handlePushButton"/>
                             <MenuItem   text="push all branches"
                                         onAction="#handlePushAllButton"/>

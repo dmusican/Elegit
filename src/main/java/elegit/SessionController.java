@@ -23,10 +23,7 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.Clipboard;
-import javafx.scene.input.ClipboardContent;
-import javafx.scene.input.MouseButton;
-import javafx.scene.input.MouseEvent;
+import javafx.scene.input.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -154,6 +151,12 @@ public class SessionController {
     // Menu Bar
     @FXML private MenuItem gitIgnoreMenuItem;
     @FXML private Menu repoMenu;
+    @FXML private MenuItem cloneMenuItem;
+    @FXML private MenuItem createBranchMenuItem;
+    @FXML private MenuItem commitNormalMenuItem;
+    @FXML private MenuItem normalFetchMenuItem;
+    @FXML private MenuItem pullMenuItem;
+    @FXML private MenuItem pushMenuItem;
 
     boolean tryCommandAgainWithHTTPAuth;
     private boolean isGitStatusDone;
@@ -202,6 +205,8 @@ public class SessionController {
         this.initRepositoryMonitor();
 
         this.initStatusText();
+
+        this.initMenuBarShortcuts();
 
         this.notificationPaneController.bindParentBounds(anchorRoot.heightProperty());
 
@@ -589,6 +594,26 @@ public class SessionController {
             if (disable) showNoRepoLoadedNotification();
             if (this.notificationPaneController.isListPaneVisible()) this.notificationPaneController.toggleNotificationList();
         });
+    }
+
+    /**
+     * Sets up keyboard shortcuts for menu items
+     *
+     *  Combinations:
+     *  CMD-N   Clone
+     *  Shift + CMD-B   Branch
+     *  Shift + CMD-C   Commit
+     *  Shift + CMD-F   Fetch
+     *  Shift + CMD-L   Pull
+     *  Shift + CMD-P   Push (current branch)
+     */
+    private void initMenuBarShortcuts() {
+        this.cloneMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.N, KeyCombination.META_DOWN));
+        this.createBranchMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.B, KeyCombination.META_DOWN, KeyCombination.SHIFT_DOWN));
+        this.commitNormalMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.C, KeyCombination.META_DOWN, KeyCombination.SHIFT_DOWN));
+        this.normalFetchMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.F, KeyCombination.META_DOWN, KeyCombination.SHIFT_DOWN));
+        this.pullMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.L, KeyCombination.META_DOWN, KeyCombination.SHIFT_DOWN));
+        this.pushMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.P, KeyCombination.META_DOWN, KeyCombination.SHIFT_DOWN));
     }
 
     /**
