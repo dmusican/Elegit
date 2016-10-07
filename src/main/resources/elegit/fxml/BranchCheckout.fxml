@@ -4,8 +4,6 @@
 <?import javafx.scene.text.Text?>
 <?import java.net.URL?>
 
-<!-- Test Comment -->
-
 <AnchorPane fx:controller="elegit.BranchCheckoutController"
                   xmlns:fx="http://javafx.com/fxml"
                   fx:id="anchorRoot">

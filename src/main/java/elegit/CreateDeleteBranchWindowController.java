@@ -18,6 +18,7 @@ import org.controlsfx.control.PopOver;
 import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.transport.RemoteRefUpdate;
 
+import java.awt.event.ActionEvent;
 import java.io.IOException;
 import java.util.List;
 
@@ -28,7 +29,7 @@ public class CreateDeleteBranchWindowController {
 
     @FXML private AnchorPane anchorRoot;
     @FXML private CheckBox checkoutCheckBox;
-    @FXML private TextArea newBranchTextArea;
+    @FXML private TextField newBranchTextField;
     @FXML private ComboBox<LocalBranchHelper> localBranchesDropdown;
     @FXML private ComboBox<RemoteBranchHelper> remoteBranchesDropdown;
     @FXML private Button createButton;
@@ -60,16 +61,19 @@ public class CreateDeleteBranchWindowController {
         refreshBranchesDropDown();
         localBranchesDropdown.setPromptText("Select a local branch...");
         remoteBranchesDropdown.setPromptText("Select a remote branch...");
-        newBranchTextArea.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
+        newBranchTextField.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         createButton.setDisable(true);
         deleteButton.setDisable(true);
 
-        newBranchTextArea.textProperty().addListener(((observable, oldValue, newValue) -> {
+        newBranchTextField.textProperty().addListener(((observable, oldValue, newValue) -> {
             if(newValue.equals("")) {
                 createButton.setDisable(true);
             }else {
                 createButton.setDisable(false);
             }
+        }));
+        newBranchTextField.setOnAction((event -> {
+            closeWindow();
         }));
         localBranchesDropdown.getSelectionModel().selectedIndexProperty().addListener(((observable, oldValue, newValue) -> {
             if((int) newValue == -1) {
@@ -180,7 +184,7 @@ public class CreateDeleteBranchWindowController {
     }
 
     public void handleCreateBranch() {
-        createNewBranch(newBranchTextArea.getText(), checkoutCheckBox.isSelected());
+        createNewBranch(newBranchTextField.getText(), checkoutCheckBox.isSelected());
     }
 
     /**
@@ -401,7 +405,7 @@ public class CreateDeleteBranchWindowController {
             popOver.setTitle("");
             popOver.show(createButton);
             popOver.detach();
-            newBranchTextArea.clear();
+            newBranchTextField.clear();
             checkoutCheckBox.setSelected(false);
             popOver.setAutoHide(true);
         });
@@ -436,6 +440,11 @@ public class CreateDeleteBranchWindowController {
 
     void setSessionController(SessionController sessionController) {
         this.sessionController = sessionController;
+    }
+
+    @FXML
+    public void onEnter(ActionEvent ae) {
+        System.out.println("Enter key pressed!");
     }
 
     //**************** BEGIN ERROR NOTIFICATIONS***************************

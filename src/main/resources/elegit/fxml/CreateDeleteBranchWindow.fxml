@@ -27,11 +27,10 @@
                         fx:id="createTab">
                     <VBox   spacing="10"
                             alignment="CENTER">
-                        <TextArea   VBox.vgrow="NEVER"
+                        <TextField  VBox.vgrow="NEVER"
                                     prefHeight="30"
-                                    wrapText="true"
-                                    fx:id="newBranchTextArea"
-                                    promptText="new branch name..." />
+                                    fx:id="newBranchTextField"
+                                    promptText="new branch name..."/>
                         <HBox   spacing="5"
                                 alignment="CENTER">
                             <CheckBox   fx:id="checkoutCheckBox"/>
