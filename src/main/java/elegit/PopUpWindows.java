@@ -88,15 +88,15 @@ public class PopUpWindows {
         Alert window = new Alert(Alert.AlertType.INFORMATION);
 
         ButtonType okButton = new ButtonType("Share");
-        ButtonType buttonTypeCancel = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+        ButtonType buttonTypeCancel = new ButtonType("Don't Share", ButtonBar.ButtonData.CANCEL_CLOSE);
 
         window.getButtonTypes().setAll(okButton, buttonTypeCancel);
         window.setResizable(true);
         window.getDialogPane().setPrefSize(300, 200);
         window.setTitle("Usage Data");
         window.setHeaderText("Share anonymous usage data");
-        window.setContentText("Click OK if you want to share anonymous usage data with us," +
-                "which helps us improve this tool. This can be changed at any time with the" +
+        window.setContentText("Click Share if you want to share anonymous usage data with us, " +
+                "which helps us improve this tool. This can be changed at any time with the " +
                 "preferences menu.");
         Optional<ButtonType> result = window.showAndWait();
 
