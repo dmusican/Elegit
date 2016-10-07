@@ -642,14 +642,6 @@ public class SessionController {
         popOver.setAutoHide(true);
     }
 
-    public void removeLoggingPrefs() {
-        try {
-            PrefObj.removeObject(this.preferences, LOGGING_LEVEL_KEY);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
     /**
      * Opens an editor for the .gitignore
      */

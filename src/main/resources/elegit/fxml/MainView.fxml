@@ -25,9 +25,6 @@
                         <MenuItem   text="Turn Logging On"
                                     fx:id="loggingToggle"
                                     onAction="#handleLoggingOnMenuItem"/>
-                        <MenuItem   text="Remove logging prefs"
-                                    fx:id="templogginpref"
-                                    onAction="#removeLoggingPrefs"/>
                     </items>
                 </Menu>
                 <Menu   text="Edit">
