@@ -1904,7 +1904,7 @@ public class SessionController {
     }
 
     public void handleCreateOrDeleteBranchButton() {
-        handleCreateOrDeleteBranchButton(null);
+        handleCreateOrDeleteBranchButton("create");
     }
 
     /**
