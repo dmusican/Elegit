@@ -73,7 +73,7 @@ public class CreateDeleteBranchWindowController {
             }
         }));
         newBranchTextField.setOnAction((event -> {
-            closeWindow();
+            createNewBranch(newBranchTextField.getText(), checkoutCheckBox.isSelected());
         }));
         localBranchesDropdown.getSelectionModel().selectedIndexProperty().addListener(((observable, oldValue, newValue) -> {
             if((int) newValue == -1) {
