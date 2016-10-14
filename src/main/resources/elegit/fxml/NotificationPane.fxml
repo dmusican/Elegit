@@ -18,7 +18,7 @@
     <AnchorPane fx:id="latestNotification"
                 StackPane.alignment="BOTTOM_LEFT"
                 maxHeight="15">
-        <Line AnchorPane.topAnchor="2" id="notificationLine" fx:id="separatorLine" />
+        <Line AnchorPane.topAnchor="2" AnchorPane.rightAnchor="0" AnchorPane.leftAnchor="0" id="notificationLine" fx:id="separatorLine" />
         <Label AnchorPane.leftAnchor="3"
                AnchorPane.bottomAnchor="0"
                fx:id="latestNotificationLabel"
@@ -43,7 +43,7 @@
             </VBox>
         </ScrollPane>
         <AnchorPane fx:id="notificationListUI">
-            <Line AnchorPane.topAnchor="0.0" id="notificationLine" fx:id="resizeLine" />
+            <Line AnchorPane.topAnchor="0.0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" id="notificationLine" fx:id="resizeLine" />
             <Button AnchorPane.leftAnchor="10" AnchorPane.bottomAnchor="5" mnemonicParsing="false" prefHeight="22.0" prefWidth="75.0"
                     id="notificationButton"
                     text="Clear All"

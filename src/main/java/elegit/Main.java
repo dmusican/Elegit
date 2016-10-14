@@ -3,17 +3,19 @@ package elegit;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
-import javafx.scene.control.MenuBar;
 import javafx.scene.image.Image;
-import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 import org.apache.commons.lang3.SystemUtils;
+import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.config.Configuration;
+import org.apache.logging.log4j.core.config.LoggerConfig;
 
 import javax.imageio.ImageIO;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Scanner;
@@ -56,10 +58,8 @@ public class Main extends Application {
         System.setProperty("logFolder", s);
 
         final Logger logger = LogManager.getLogger();
+
         // -----------------------Logging Initialization End-----------------------------
-
-        logger.info("Starting up.");
-
         // Handles some concurrency issues with gitStatus()
         RepositoryMonitor.pause();
 
@@ -71,6 +71,8 @@ public class Main extends Application {
         fxmlLoader.load();
         BorderPane root = fxmlLoader.getRoot();
         sessionController = fxmlLoader.getController();
+
+        sessionController.loadLogging();
 
         // sets the icon
         Image img = new Image(getClass().getResourceAsStream("/elegit/images/elegit_icon.png"));
@@ -87,7 +89,7 @@ public class Main extends Application {
         }
 
         // creates the scene
-        Scene scene = new Scene(root, 1200, 705);
+        Scene scene = new Scene(root, 1200, 730);
 
         // setup and show the stage
         primaryStage.setOnCloseRequest(event -> {

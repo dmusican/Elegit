@@ -31,8 +31,12 @@ import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import org.apache.commons.lang3.SystemUtils;
+import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.config.Configuration;
+import org.apache.logging.log4j.core.config.LoggerConfig;
 import org.controlsfx.control.CheckListView;
 import org.controlsfx.control.PopOver;
 import org.eclipse.jgit.api.PushCommand;
@@ -57,6 +61,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.function.Consumer;
 import java.util.prefs.BackingStoreException;
+import java.util.prefs.Preferences;
 
 /**
  * The controller for the entire session.
@@ -149,6 +154,7 @@ public class SessionController {
     @FXML private NotificationController notificationPaneController;
 
     // Menu Bar
+    @FXML private MenuItem loggingToggle;
     @FXML private MenuItem gitIgnoreMenuItem;
     @FXML private Menu repoMenu;
     @FXML private MenuItem cloneMenuItem;
@@ -161,6 +167,9 @@ public class SessionController {
     boolean tryCommandAgainWithHTTPAuth;
     private boolean isGitStatusDone;
     private boolean isTimerDone;
+
+    Preferences preferences;
+    private static final String LOGGING_LEVEL_KEY="LOGGING_LEVEL";
 
     /**
      * Initializes the environment by obtaining the model
@@ -218,6 +227,8 @@ public class SessionController {
         }
 
         tryCommandAgainWithHTTPAuth = false;
+
+        this.preferences = Preferences.userNodeForPackage(this.getClass());
     }
 
     /**
@@ -636,6 +647,24 @@ public class SessionController {
         } else {
             setButtonsDisabled(false);
         }
+    }
+
+    public void handleLoggingOnMenuItem() {
+        changeLogging(Level.INFO);
+        PopOver popOver = new PopOver(new Text("Toggled logging on"));
+        popOver.show(commitTreePanelView);
+        popOver.detach();
+        popOver.setAutoHide(true);
+        logger.log(Level.INFO, "Toggled logging on");
+    }
+
+    public void handleLoggingOffMenuItem() {
+        changeLogging(Level.OFF);
+        PopOver popOver = new PopOver(new Text("Toggled logging off"));
+        popOver.setTitle("");
+        popOver.show(commitTreePanelView);
+        popOver.detach();
+        popOver.setAutoHide(true);
     }
 
     /**
@@ -2669,6 +2698,56 @@ public class SessionController {
             try { theModel.setLastUUID(""); }
             catch (Exception f) { // This shouldn't happen
             }
+        }
+    }
+
+    /**
+     * Initialization method that loads the level of logging from preferences
+     * This will show a popup window if there is no preference
+     * @throws BackingStoreException
+     * @throws IOException
+     * @throws ClassNotFoundException
+     */
+    void loadLogging() {
+        Platform.runLater(() -> {
+            Level storedLevel = getLoggingLevel();
+            if (storedLevel == null) {
+                storedLevel = PopUpWindows.getLoggingPermissions() ? Level.INFO : Level.OFF;
+            }
+            changeLogging(storedLevel);
+            logger.info("Starting up.");
+        });
+    }
+
+    /**
+     * Helper method to change whether or not this session is logging, also
+     * stores this in preferences
+     * @param level the level to set the logging to
+     */
+    void changeLogging(Level level) {
+        LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
+        Configuration config = ctx.getConfiguration();
+        LoggerConfig loggerConfig = config.getLoggerConfig(LogManager.ROOT_LOGGER_NAME);
+        loggerConfig.setLevel(level);
+        ctx.updateLoggers();
+
+        setLoggingLevelPref(level);
+    }
+
+    Level getLoggingLevel() {
+        try {
+            return (Level) PrefObj.getObject(this.preferences, LOGGING_LEVEL_KEY);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    void setLoggingLevelPref(Level level) {
+        try {
+            PrefObj.putObject(this.preferences, LOGGING_LEVEL_KEY, level);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }

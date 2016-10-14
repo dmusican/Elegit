@@ -17,7 +17,16 @@
         <MenuBar    GridPane.rowIndex="0"
                     useSystemMenuBar="true">
             <menus>
-                <Menu   text="File"/>
+                <Menu   text="Preferences">
+                    <items>
+                        <MenuItem   text="Turn Logging Off"
+                                    fx:id="loggingToggle"
+                                    onAction="#handleLoggingOffMenuItem"/>
+                        <MenuItem   text="Turn Logging On"
+                                    fx:id="loggingToggle"
+                                    onAction="#handleLoggingOnMenuItem"/>
+                    </items>
+                </Menu>
                 <Menu   text="Edit">
                     <items>
                         <MenuItem   text=".gitignore"
@@ -191,7 +200,7 @@
                 <HBox GridPane.rowIndex="2"
                       GridPane.columnSpan="3"
                       id="separator-dashed"
-                      prefHeight="4">
+                      minHeight="4">
                     <GridPane.margin>
                         <Insets top="10" bottom="10" left="-3" right="-15"/>
                     </GridPane.margin>
@@ -202,7 +211,7 @@
                 <HBox GridPane.rowIndex="2"
                       GridPane.columnIndex="4"
                       id="separator"
-                      prefHeight="4">
+                      minHeight="4">
                     <GridPane.margin>
                         <Insets top="10" bottom="10" left="-19" right="-15"/>
                     </GridPane.margin>
@@ -261,7 +270,7 @@
                 <!-- Working directory and local repo separator -->
                 <VBox GridPane.rowSpan="7"
                       GridPane.columnIndex="1"
-                      prefWidth="4"
+                      minWidth="4"
                       id="separator">
                     <GridPane.margin>
                        <Insets top="-5" left="15" right="15" bottom="-2"/>
@@ -355,7 +364,7 @@
                 <VBox   GridPane.rowSpan="2"
                         GridPane.columnIndex="3"
                         id="separator"
-                        prefWidth="4">
+                        minWidth="4">
                     <GridPane.margin>
                         <Insets top="-5" left="15" right="15" bottom="-10"/>
                     </GridPane.margin>
