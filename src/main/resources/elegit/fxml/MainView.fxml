@@ -221,12 +221,12 @@
                 <!-- File tree panel view -->
                 <TabPane GridPane.rowIndex="3"
                          fx:id="filesTabPane">
-                    <Tab text="Working Tree"
+                    <Tab text="Changed Files"
                          closable="false"
                          fx:id="workingTreePanelTab">
                         <WorkingTreePanelView fx:id="workingTreePanelView"/>
                     </Tab>
-                    <Tab text="All Files"
+                    <Tab text="Working Tree"
                          closable="false"
                          fx:id="allFilesPanelTab">
                         <AllFilesPanelView fx:id="allFilesPanelView"/>

@@ -25,12 +25,12 @@
     </rowConstraints>
     <TabPane prefHeight="250" prefWidth="125.0" tabClosingPolicy="UNAVAILABLE" GridPane.rowSpan="2">
         <tabs>
-            <Tab text="Changed Files"
+            <Tab text="Index"
                  closable="false"
                  fx:id="stagedFilesPanelTab">
                 <StagedTreePanelView fx:id="stagedFilesPanelView"/>
             </Tab>
-            <Tab text="All Files"
+            <Tab text="Working Tree"
                  closable="false"
                  fx:id="allFilesPanelTab">
                 <AllFilesPanelView fx:id="allFilesPanelView"/>
