@@ -281,6 +281,19 @@ public class BranchModel {
      */
     public BranchHelper getCurrentBranch() { return this.currentBranch; }
 
+    /**
+     * Getter for the current remote branch head
+     * @return the head of the current remote branch (if one exists)
+     * @throws IOException
+     */
+    public CommitHelper getCurrentRemoteBranchHead() throws IOException {
+        String remoteBranch = getCurrentRemoteBranch();
+        if (remoteBranch != null) {
+            return getBranchByName(BranchType.REMOTE, remoteBranch).getHead();
+        }
+        return null;
+    }
+
     public String getCurrentRemoteBranch() throws IOException {
         if (BranchTrackingStatus.of(this.repoHelper.repo, this.currentBranch.getBranchName())!=null) {
             return Repository.shortenRefName(
