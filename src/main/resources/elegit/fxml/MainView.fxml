@@ -38,55 +38,55 @@
                         fx:id="repoMenu">
                     <items>
                         <Menu   text="Branch">
-                            <MenuItem   text="create branch"
+                            <MenuItem   text="Create Branch"
                                         fx:id="createBranchMenuItem"
                                         onAction="#handleNewBranchButton"/>
-                            <MenuItem   text="delete local branch"
+                            <MenuItem   text="Delete Local Branch"
                                         onAction="#handleDeleteLocalBranchButton"/>
-                            <MenuItem   text="delete remote branch"
+                            <MenuItem   text="Delete Remote Branch"
                                         onAction="#handleDeleteRemoteBranchButton"/>
                         </Menu>
                         <Menu   text="Checkout">
-                            <MenuItem   text="checkout branch"
+                            <MenuItem   text="Checkout Branch"
                                         onAction="#showBranchCheckout"/>
                         </Menu>
                         <Menu   text="Clone">
-                            <MenuItem   text="clone"
+                            <MenuItem   text="Clone"
                                         fx:id="cloneMenuItem"
                                         onAction="#handleCloneNewRepoOption"/>
                         </Menu>
                         <Menu   text="Commmit">
-                            <MenuItem   text="commit"
+                            <MenuItem   text="Commit"
                                         fx:id="commitNormalMenuItem"
                                         onAction="#handleCommitNormal"/>
-                            <MenuItem   text="commit -a"
+                            <MenuItem   text="Commit -a"
                                         onAction="#handleCommitAll"/>
                         </Menu>
                         <Menu   text="Fetch">
-                            <MenuItem   text="fetch"
+                            <MenuItem   text="Fetch"
                                         fx:id="normalFetchMenuItem"
                                         onAction="#handleNormalFetchButton"/>
-                            <MenuItem   text="fetch -p"
+                            <MenuItem   text="Fetch -p"
                                         onAction="#handlePruneFetchButton"/>
                         </Menu>
                         <Menu   text="Merge">
-                            <MenuItem   text="merge from fetch"
+                            <MenuItem   text="Merge From Fetch"
                                         onAction="#mergeFromFetch"/>
-                            <MenuItem   text="merge local branches"
+                            <MenuItem   text="Merge Local Branches"
                                         onAction="#handleBranchMergeButton"/>
                         </Menu>
                         <Menu   text="Pull">
-                            <MenuItem   text="pull"
+                            <MenuItem   text="Pull"
                                         fx:id="pullMenuItem"
                                         onAction="#handlePullButton"/>
                         </Menu>
                         <Menu   text="Push">
-                            <MenuItem   text="push current branch"
+                            <MenuItem   text="Push Current Branch"
                                         fx:id="pushMenuItem"
                                         onAction="#handlePushButton"/>
-                            <MenuItem   text="push all branches"
+                            <MenuItem   text="Push All Branches"
                                         onAction="#handlePushAllButton"/>
-                            <MenuItem   text="push tags"
+                            <MenuItem   text="Push Tags"
                                         onAction="#handlePushTagsButton"/>
                         </Menu>
                     </items>
@@ -163,7 +163,7 @@
                         <Image url="@../images/folder.png"/>
                     </ImageView>
                     <VBox   alignment="CENTER">
-                        <Text   text="Working Directory">
+                        <Text   text="Working Tree">
                             <font>
                                 <Font   size="25"/>
                             </font>
@@ -197,15 +197,15 @@
                 </StackPane>
 
                 <!-- Separator between headings and content -->
-                <HBox GridPane.rowIndex="2"
-                      GridPane.columnSpan="3"
-                      id="separator-dashed"
-                      minHeight="4">
-                    <GridPane.margin>
-                        <Insets top="10" bottom="10" left="-3" right="-15"/>
-                    </GridPane.margin>
-                    <Rectangle height="4"/>
-                </HBox>
+                <!--<HBox GridPane.rowIndex="2"-->
+                      <!--GridPane.columnSpan="3"-->
+                      <!--id="separator-dashed"-->
+                      <!--minHeight="4">-->
+                    <!--<GridPane.margin>-->
+                        <!--<Insets top="10" bottom="10" left="-3" right="-15"/>-->
+                    <!--</GridPane.margin>-->
+                    <!--<Rectangle height="4"/>-->
+                <!--</HBox>-->
 
                 <!-- Separator between remote and commit info -->
                 <HBox GridPane.rowIndex="2"
@@ -226,7 +226,7 @@
                          fx:id="workingTreePanelTab">
                         <WorkingTreePanelView fx:id="workingTreePanelView"/>
                     </Tab>
-                    <Tab text="Working Tree"
+                    <Tab text="All Files"
                          closable="false"
                          fx:id="allFilesPanelTab">
                         <AllFilesPanelView fx:id="allFilesPanelView"/>

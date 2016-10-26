@@ -185,6 +185,7 @@ public class CreateDeleteBranchWindowController {
 
     public void handleCreateBranch() {
         createNewBranch(newBranchTextField.getText(), checkoutCheckBox.isSelected());
+        stage.close();
     }
 
     /**
@@ -206,7 +207,7 @@ public class CreateDeleteBranchWindowController {
                 } catch (RefAlreadyExistsException e){
                     logger.warn("Branch already exists warning");
                     showRefAlreadyExistsNotification(branchName);
-                }catch (InvalidRefNameException e1) {
+                } catch (InvalidRefNameException e1) {
                     logger.warn("Invalid branch name warning");
                     showInvalidBranchNameNotification();
                 } catch (RefNotFoundException e1) {
