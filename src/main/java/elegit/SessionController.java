@@ -302,14 +302,17 @@ public class SessionController {
         if (update) {
             Platform.runLater(() -> {
                 currentLocalBranchLabel.setText(localBranch.getAbbrevName());
+                currentLocalBranchLabel.setOnMouseClicked((event -> CommitTreeController.focusCommitInGraph(localBranch.getHead())));
                 addToolTip(currentLocalBranchHbox, localBranch.getBranchName());
             });
         }
 
         String remoteBranch = "N/A";
         String remoteBranchFull = "N/A";
+        CommitHelper remoteHead = null;
         try {
             remoteBranch = this.theModel.getCurrentRepoHelper().getBranchModel().getCurrentRemoteAbbrevBranch();
+            remoteHead = this.theModel.getCurrentRepoHelper().getBranchModel().getCurrentRemoteBranchHead();
             remoteBranchFull = this.theModel.getCurrentRepoHelper().getBranchModel().getCurrentRemoteBranch();
         } catch (IOException e) {
             this.showGenericErrorNotification();
@@ -323,8 +326,11 @@ public class SessionController {
         String remoteBranchFullFinal = remoteBranchFull;
         update = !remoteBranch.equals(currentRemoteTrackingLabel.getText());
         if (update) {
+            CommitHelper finalRemoteHead = remoteHead;
             Platform.runLater(() -> {
                 currentRemoteTrackingLabel.setText(remoteBranchFinal);
+                if (finalRemoteHead != null)
+                    currentRemoteTrackingLabel.setOnMouseClicked((event -> CommitTreeController.focusCommitInGraph(finalRemoteHead)));
                 addToolTip(currentRemoteTrackingBranchHbox, remoteBranchFullFinal);
             });
         }
