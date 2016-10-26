@@ -191,6 +191,19 @@ public class NotificationController {
     }
 
     /**
+     * Helper method that clears all notifications
+     */
+    @FXML
+    void clearAllNotifications() {
+        VBox vBox = (VBox) this.notificationList.getContent();
+
+        vBox.getChildren().clear();
+        setLatestNotificationText("");
+
+        setNotificationNum();
+    }
+
+    /**
      * Removes a given notification
      * @param notification the notification label to remove
      */
@@ -206,19 +219,6 @@ public class NotificationController {
         }
 
         vBox.getChildren().remove(notification);
-
-        setNotificationNum();
-    }
-
-    /**
-     * Helper method that clears all notifications
-     */
-    @FXML
-    private void clearAllNotifications() {
-        VBox vBox = (VBox) this.notificationList.getContent();
-
-        vBox.getChildren().clear();
-        setLatestNotificationText("");
 
         setNotificationNum();
     }

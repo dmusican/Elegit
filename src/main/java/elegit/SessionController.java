@@ -713,6 +713,7 @@ public class SessionController {
                 showSameRepoLoadedNotification();
                 return;
             }
+
             RepositoryMonitor.pause();
             BusyWindow.show();
             BusyWindow.setLoadingText("Loading the repository...");
@@ -812,6 +813,7 @@ public class SessionController {
     private synchronized void handleRecentRepoMenuItem(RepoHelper repoHelper){
         if(isRecentRepoEventListenerBlocked || repoHelper == null) return;
 
+        this.notificationPaneController.clearAllNotifications();
         logger.info("Switching repos");
         RepositoryMonitor.pause();
         BusyWindow.show();
