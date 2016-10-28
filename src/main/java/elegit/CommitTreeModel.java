@@ -374,13 +374,13 @@ public abstract class CommitTreeModel{
     private ContextMenu getBranchLabelMenu(BranchHelper branch) {
         ContextMenu contextMenu = new ContextMenu();
 
-        MenuItem deleteitem = new MenuItem("Delete");
-        deleteitem.setOnAction(event -> CommitTreeController.sessionController.deleteBranch(branch) );
-
         MenuItem checkoutItem = new MenuItem("Checkout");
         checkoutItem.setOnAction(event -> CommitTreeController.sessionController.checkoutBranch(branch) );
 
-        contextMenu.getItems().addAll(deleteitem, checkoutItem);
+        MenuItem deleteitem = new MenuItem("Delete");
+        deleteitem.setOnAction(event -> CommitTreeController.sessionController.deleteBranch(branch) );
+
+        contextMenu.getItems().addAll(checkoutItem, deleteitem);
 
         return contextMenu;
     }
