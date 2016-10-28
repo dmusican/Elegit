@@ -17,7 +17,9 @@ import javafx.stage.Stage;
 import javafx.util.Callback;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.MergeResult;
+import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.errors.NoMergeBaseException;
 import org.eclipse.jgit.lib.BranchTrackingStatus;
@@ -237,11 +239,18 @@ public class MergeWindowController {
             this.showUpToDateNotification();
 
         } else if (mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.FAILED)) {
-            this.showFailedMergeNotification();
-
+            Status status = new Git(this.sessionModel.getCurrentRepo()).status().call();
+            if (!this.sessionModel.getModifiedFiles(status).equals(this.sessionModel.getStagedFiles(status))) {
+                this.showChangedFilesNotification();
+            } else {
+                this.showFailedMergeNotification();
+            }
         } else if (mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.MERGED)
                 || mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.MERGED_NOT_COMMITTED)) {
             this.showMergeSuccessNotification();
+            // Why does this cause an infinite error loop?
+//            sessionController.gitStatus();
+//            closeWindow();
 
         } else if (mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.FAST_FORWARD)) {
             this.showFastForwardMergeNotification();
@@ -295,6 +304,11 @@ public class MergeWindowController {
     private void showFailedMergeNotification() {
         logger.warn("Merge failed notification");
         notificationPaneController.addNotification("The merge failed.");
+    }
+
+    private void showChangedFilesNotification() {
+        logger.warn("Merge failed because of changed files notification");
+        notificationPaneController.addNotification("Merge failed. Commit or stash any changed files.");
     }
 
     private void showUpToDateNotification() {

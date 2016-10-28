@@ -483,7 +483,7 @@ public class SessionController {
         Text goToIcon = GlyphsDude.createIcon(FontAwesomeIcon.ARROW_CIRCLE_LEFT);
         this.commitInfoGoToButton.setGraphic(goToIcon);
 
-        Text barsIcon = GlyphsDude.createIcon(FontAwesomeIcon.ARROW_CIRCLE_LEFT);
+        Text barsIcon = GlyphsDude.createIcon(FontAwesomeIcon.BARS);
         this.commitInfoButton.setGraphic(barsIcon);
 
         Text downloadIcon = GlyphsDude.createIcon(FontAwesomeIcon.CLOUD_DOWNLOAD);
