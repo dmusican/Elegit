@@ -83,6 +83,7 @@ public class SessionController {
     public Button mergeButton;
     public Button commitInfoNameCopyButton;
     public Button commitInfoGoToButton;
+    public Button commitInfoButton;
     public Button addDeleteBranchButton;
     public Button checkoutButton;
     public Button tagButton;
@@ -400,6 +401,7 @@ public class SessionController {
         fetchButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         commitInfoNameCopyButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         commitInfoGoToButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
+        commitInfoButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
 
         // Set minimum sizes for other fields and views
         filesTabPane.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
@@ -474,6 +476,9 @@ public class SessionController {
 
         Text goToIcon = GlyphsDude.createIcon(FontAwesomeIcon.ARROW_CIRCLE_LEFT);
         this.commitInfoGoToButton.setGraphic(goToIcon);
+
+        Text barsIcon = GlyphsDude.createIcon(FontAwesomeIcon.ARROW_CIRCLE_LEFT);
+        this.commitInfoButton.setGraphic(barsIcon);
 
         Text downloadIcon = GlyphsDude.createIcon(FontAwesomeIcon.CLOUD_DOWNLOAD);
         cloneOption.setGraphic(downloadIcon);
@@ -2316,6 +2321,7 @@ public class SessionController {
             commitInfoMessageText.setVisible(true);
             commitInfoNameCopyButton.setVisible(true);
             commitInfoGoToButton.setVisible(true);
+            commitInfoButton.setVisible(true);
             tagNameField.setVisible(true);
             tagButton.setVisible(true);
 
@@ -2332,6 +2338,7 @@ public class SessionController {
             commitInfoMessageText.setVisible(false);
             commitInfoNameCopyButton.setVisible(false);
             commitInfoGoToButton.setVisible(false);
+            commitInfoButton.setVisible(false);
 
             tagNameField.setText("");
             tagNameField.setVisible(false);

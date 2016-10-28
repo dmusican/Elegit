@@ -468,8 +468,13 @@
                     <GridPane.margin>
                         <Insets bottom="5"/>
                     </GridPane.margin>
-                    <Text   text="Commit Info:"
-                            style="-fx-font-weight: bold;"/>
+                    <HBox   spacing="120"
+                            alignment="CENTER">
+                        <Text   text="Commit Info:"
+                                style="-fx-font-weight: bold;"/>
+                        <Button fx:id="commitInfoButton"
+                                onAction="#handleGoToCommitButton"/>
+                    </HBox>
                     <StackPane>
                         <Text   text="No commit selected"
                                 StackPane.alignment="TOP_CENTER"/>
