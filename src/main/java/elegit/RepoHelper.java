@@ -926,6 +926,49 @@ public class RepoHelper {
         git.close();
     }
 
+    //******************** STASH SECTION ********************
+    /* NOTE: jgit says stashcreate, but 'git stash create' only
+     * makes a stash, it doesn't store it in refs/stash */
+
+    /**
+     * Stashes the current working directory changes with the
+     * default message (the branch name)
+     *
+     * @param includeUntracked: whether or not to include untracked files
+     */
+    void stashSave(boolean includeUntracked) throws GitAPIException {
+        logger.info("Attempting stash create");
+        Git git = new Git(this.repo);
+        git.stashCreate().setIncludeUntracked(includeUntracked).call();
+    }
+
+    /**
+     * Stashes the current working directory changes with the
+     * given message
+     *
+     * @param includeUntracked: whether or not to include untracked files
+     * @param wdMessage: the message used when committing working directory changes
+     * @param indexMessage: the messaged used when committing the index changes
+     */
+    void stashSave(boolean includeUntracked, String wdMessage, String indexMessage) throws GitAPIException {
+        logger.info("Attempting stash create");
+        Git git = new Git(this.repo);
+        git.stashCreate().setIncludeUntracked(includeUntracked).setWorkingDirectoryMessage(wdMessage)
+                .setIndexMessage(indexMessage).call();
+    }
+
+    /**
+     * Returns a list of the stashed revcommits
+     *
+     * @return a Collection of RevCommits that make up the stash
+     */
+    Collection<RevCommit> stashList() throws GitAPIException {
+        logger.info("Attempting stash list");
+        Git git = new Git(this.repo);
+        return git.stashList().call();
+    }
+
+
     /**
      * Checks if the remote tracking head refers to the same commit
      * as the local head for the current branch
