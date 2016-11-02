@@ -951,7 +951,7 @@ public class RepoHelper {
      * @param indexMessage: the messaged used when committing the index changes
      */
     void stashSave(boolean includeUntracked, String wdMessage, String indexMessage) throws GitAPIException {
-        logger.info("Attempting stash create");
+        logger.info("Attempting stash create with message");
         Git git = new Git(this.repo);
         git.stashCreate().setIncludeUntracked(includeUntracked).setWorkingDirectoryMessage(wdMessage)
                 .setIndexMessage(indexMessage).call();
@@ -966,6 +966,60 @@ public class RepoHelper {
         logger.info("Attempting stash list");
         Git git = new Git(this.repo);
         return git.stashList().call();
+    }
+
+    /**
+     * Applies the given stash to the repository, by default restores the index and
+     * untracked files.
+     *
+     * @param stashRef the string that corresponds to the stash to apply
+     * @param force whether or not to force apply
+     */
+    void stashApply(String stashRef, boolean force) throws GitAPIException {
+        logger.info("Attempting stash apply");
+        Git git = new Git(this.repo);
+        git.stashApply().setStashRef(stashRef).ignoreRepositoryState(force).call();
+    }
+
+    /**
+     * Applies the given stash to the repository, with special instructions for
+     * the index and untracked files
+     *
+     * @param stashRef the string that corresponds to the stash to apply
+     * @param force whether or not to force apply
+     * @param applyIndex true if the command should restore the index state
+     * @param applyUntracked true if the command should restore the untracked files
+     */
+    void stashApply(String stashRef, boolean force, boolean applyIndex, boolean applyUntracked) throws GitAPIException {
+        logger.info("Attempting stash apply with params");
+        Git git = new Git(this.repo);
+        StashApplyCommand stashApply = git.stashApply().setStashRef(stashRef).ignoreRepositoryState(force);
+        stashApply.setApplyIndex(applyIndex);
+        stashApply.setApplyUntracked(applyUntracked);
+        stashApply.call();
+    }
+
+    /**
+     * Deletes all the stashed commits
+     *
+     * @return the value of the stash reference after the drop occurs
+     */
+    ObjectId stashDrop() throws GitAPIException{
+        logger.info("Attempting stash drop all");
+        Git git = new Git(this.repo);
+        return git.stashDrop().setAll(true).call();
+    }
+
+    /**
+     * Deletes a single stashed reference
+     *
+     * @param stashRef the stash reference int to drop (0-based)
+     * @return the value of the value of the stashed reference
+     */
+    ObjectId stashDrop(int stashRef) throws GitAPIException{
+        logger.info("Attempting stash drop");
+        Git git = new Git(this.repo);
+        return git.stashDrop().setStashRef(stashRef).call();
     }
 
 
