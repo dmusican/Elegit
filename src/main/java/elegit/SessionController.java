@@ -1790,7 +1790,7 @@ public class SessionController {
     public void handleStashSaveButton() {
         logger.info("Stash save button clicked");
         try {
-            this.theModel.getCurrentRepoHelper().stashSave(true);
+            this.theModel.getCurrentRepoHelper().stashSave(true, "wdmessage", "indexmessageBLOB");
         } catch (GitAPIException e) {
             showGenericErrorNotification();
         }
@@ -1820,6 +1820,8 @@ public class SessionController {
                 System.out.println(this.theModel.getCurrentRepo().hasObject(id));
             }
         } catch (GitAPIException e) {
+            showGenericErrorNotification();
+        } catch (IOException e) {
             showGenericErrorNotification();
         }
     }
