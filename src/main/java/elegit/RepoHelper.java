@@ -931,7 +931,7 @@ public class RepoHelper {
      * makes a stash, it doesn't store it in refs/stash */
 
     /**
-     * Stashes the current working directory changes with the
+     * Stashes the current working directory and index changes with the
      * default message (the branch name)
      *
      * @param includeUntracked: whether or not to include untracked files

@@ -44,6 +44,7 @@ import org.eclipse.jgit.api.ResetCommand;
 import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.dircache.InvalidPathException;
 import org.eclipse.jgit.errors.NoMergeBaseException;
+import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.jgit.transport.RemoteRefUpdate;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
@@ -1779,6 +1780,60 @@ public class SessionController {
         }catch(NoRepoLoadedException e){
             this.showNoRepoLoadedNotification();
             setButtonsDisabled(true);
+        }
+    }
+
+    /**
+     * Saves the current working directory and index changes
+     * TODO: update this with real action
+     */
+    public void handleStashSaveButton() {
+        logger.info("Stash save button clicked");
+        try {
+            this.theModel.getCurrentRepoHelper().stashSave(true);
+        } catch (GitAPIException e) {
+            showGenericErrorNotification();
+        }
+    }
+
+    /**
+     * Stashes the current changes in a new commit
+     */
+    public void handleStashApplyButton() {
+        logger.info("Stash apply button clicked");
+        try {
+            // TODO: update the stash ref to apply
+            this.theModel.getCurrentRepoHelper().stashApply("",false);
+        } catch (GitAPIException e) {
+            showGenericErrorNotification();
+        }
+    }
+
+    /**
+     * Lists the stashes currently stored
+     */
+    public void handleStashListButton() {
+        logger.info("Stash list button clicked");
+        try {
+            for (ObjectId id : this.theModel.getCurrentRepoHelper().stashList()) {
+                System.out.println(id);
+                System.out.println(this.theModel.getCurrentRepo().hasObject(id));
+            }
+        } catch (GitAPIException e) {
+            showGenericErrorNotification();
+        }
+    }
+
+    /**
+     * Drops the most recent stash
+     */
+    public void handleStashDropButton() {
+        logger.info("Stash drop button clicked");
+        try {
+            // TODO: implement droping something besides 0
+            this.theModel.getCurrentRepoHelper().stashDrop(0);
+        } catch (GitAPIException e) {
+            showGenericErrorNotification();
         }
     }
 

@@ -89,6 +89,16 @@
                             <MenuItem   text="Push Tags"
                                         onAction="#handlePushTagsButton"/>
                         </Menu>
+                        <Menu   text="Stash">
+                            <MenuItem   text="Stash Changes"
+                                        onAction="#handleStashSaveButton"/>
+                            <MenuItem   text="Stash Apply"
+                                        onAction="#handleStashApplyButton"/>
+                            <MenuItem   text="Stash List"
+                                        onAction="#handleStashListButton"/>
+                            <MenuItem   text="Stash Drop"
+                                        onAction="#handleStashDropButton"/>
+                        </Menu>
                     </items>
                 </Menu>
             </menus>
