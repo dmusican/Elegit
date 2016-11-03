@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import java.net.URL?>
+<?import javafx.geometry.*?>
+
+
+    <AnchorPane fx:controller="elegit.StashListController"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:id="anchorRoot"
+            prefWidth="350" prefHeight="200">
+    <GridPane   AnchorPane.bottomAnchor="20"
+                AnchorPane.topAnchor="5"
+                AnchorPane.leftAnchor="5"
+                AnchorPane.rightAnchor="5">
+        <columnConstraints>
+            <ColumnConstraints hgrow="ALWAYS"/>
+            <ColumnConstraints hgrow="NEVER"/>
+            <ColumnConstraints hgrow="NEVER"/>
+        </columnConstraints>
+        <rowConstraints>
+            <RowConstraints vgrow="ALWAYS"/>
+            <RowConstraints vgrow="NEVER"/>
+            <RowConstraints hgrow="NEVER"/>
+        </rowConstraints>
+
+        <ScrollPane GridPane.columnSpan="4">
+            <VBox   fx:id="stashedCommits"/>
+        </ScrollPane>
+
+        <Button fx:id="cancelButton"
+                GridPane.rowIndex="1"
+                GridPane.columnIndex="0"
+                GridPane.halignment="LEFT"
+                text="Cancel"
+                onAction="#closeWindow"/>
+
+        <Button fx:id="applyButton"
+                GridPane.rowIndex="1"
+                GridPane.columnIndex="1"
+                GridPane.halignment="CENTER"
+                text="Apply"
+                onAction="#handleApply"/>
+
+        <Button fx:id="dropButton"
+                GridPane.rowIndex="1"
+                GridPane.columnIndex="2"
+                GridPane.halignment="LEFT"
+                text="Drop"
+                onAction="#handleDrop"/>
+
+        <Button fx:id="clearButton"
+                GridPane.rowIndex="2"
+                GridPane.columnIndex="2"
+                GridPane.halignment="LEFT"
+                text="Clear"
+                onAction="#handleClearStash"/>
+
+        <Button fx:id="popButton"
+                GridPane.rowIndex="1"
+                GridPane.columnIndex="3"
+                GridPane.halignment="LEFT"
+                text="Pop"
+                onAction="#handlePop"/>
+    </GridPane>
+
+    <fx:include source="NotificationPane.fxml" fx:id="notificationPane"/>
+
+    <stylesheets>
+        <URL value="@../css/BaseStyle.css"/>
+    </stylesheets>
+</AnchorPane>
+
