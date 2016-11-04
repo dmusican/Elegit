@@ -95,12 +95,10 @@
                             <MenuItem   text="Stash Apply"
                                         onAction="#handleStashApplyButton"/>
                             <MenuItem   text="Stash List"
+                                        fx:id="stashMenuItem"
                                         onAction="#handleStashListButton"/>
                             <MenuItem   text="Stash Drop"
                                         onAction="#handleStashDropButton"/>
-                            <MenuItem   text="Stash manager"
-                                        fx:id="stashMenuItem"
-                                        onAction="#handleShowStashButton"/>
                         </Menu>
                     </items>
                 </Menu>

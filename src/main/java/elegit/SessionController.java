@@ -625,6 +625,7 @@ public class SessionController {
      *  Shift + CMD-F   Fetch
      *  Shift + CMD-L   Pull
      *  Shift + CMD-P   Push (current branch)
+     *  Shift + CMD-S   Stash (manager)
      */
     private void initMenuBarShortcuts() {
         this.cloneMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.N, KeyCombination.META_DOWN));
@@ -1055,30 +1056,6 @@ public class SessionController {
             this.showGenericErrorNotification();
             e.printStackTrace();
         }catch(NoRepoLoadedException e){
-            this.showNoRepoLoadedNotification();
-            setButtonsDisabled(true);
-        }
-    }
-
-    /**
-     * Shows the stash window
-     */
-    public void handleShowStashButton() {
-        try {
-            logger.info("Show stash button clicked");
-
-            if (this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
-
-            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/StashList.fxml"));
-            fxmlLoader.load();
-            StashListController stashListController = fxmlLoader.getController();
-            stashListController.setSessionController(this);
-            AnchorPane fxmlRoot = fxmlLoader.getRoot();
-            stashListController.showStage(fxmlRoot);
-        } catch (IOException e) {
-            this.showGenericErrorNotification();
-            e.printStackTrace();
-        } catch (NoRepoLoadedException e) {
             this.showNoRepoLoadedNotification();
             setButtonsDisabled(true);
         }
@@ -1810,15 +1787,26 @@ public class SessionController {
     }
 
     /**
-     * Saves the current working directory and index changes
-     * TODO: update this with real action
+     * Brings up a window that allows the user to stash changes with options
      */
     public void handleStashSaveButton() {
-        logger.info("Stash save button clicked");
         try {
-            this.theModel.getCurrentRepoHelper().stashSave(true, "wdmessage", "indexmessageBLOB");
-        } catch (GitAPIException e) {
-            showGenericErrorNotification();
+            logger.info("Stash save button clicked");
+
+            if (this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
+
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/StashSave.fxml"));
+            fxmlLoader.load();
+            StashSaveController stashSaveController = fxmlLoader.getController();
+            stashSaveController.setSessionController(this);
+            AnchorPane fxmlRoot = fxmlLoader.getRoot();
+            stashSaveController.showStage(fxmlRoot);
+        } catch (IOException e) {
+            this.showGenericErrorNotification();
+            e.printStackTrace();
+        } catch (NoRepoLoadedException e) {
+            this.showNoRepoLoadedNotification();
+            setButtonsDisabled(true);
         }
     }
 
@@ -1836,18 +1824,26 @@ public class SessionController {
     }
 
     /**
-     * Lists the stashes currently stored
+     * Shows the stash window
      */
     public void handleStashListButton() {
-        logger.info("Stash list button clicked");
         try {
-            for (CommitHelper commit : this.theModel.getCurrentRepoHelper().stashList()) {
-                System.out.println(commit.fullMessage);
-            }
-        } catch (GitAPIException e) {
-            showGenericErrorNotification();
+            logger.info("Stash list button clicked");
+
+            if (this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
+
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/StashList.fxml"));
+            fxmlLoader.load();
+            StashListController stashListController = fxmlLoader.getController();
+            stashListController.setSessionController(this);
+            AnchorPane fxmlRoot = fxmlLoader.getRoot();
+            stashListController.showStage(fxmlRoot);
         } catch (IOException e) {
-            showGenericErrorNotification();
+            this.showGenericErrorNotification();
+            e.printStackTrace();
+        } catch (NoRepoLoadedException e) {
+            this.showNoRepoLoadedNotification();
+            setButtonsDisabled(true);
         }
     }
 

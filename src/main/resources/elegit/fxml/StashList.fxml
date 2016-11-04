@@ -14,17 +14,18 @@
                 AnchorPane.leftAnchor="5"
                 AnchorPane.rightAnchor="5">
         <columnConstraints>
-            <ColumnConstraints hgrow="ALWAYS"/>
-            <ColumnConstraints hgrow="NEVER"/>
-            <ColumnConstraints hgrow="NEVER"/>
+            <ColumnConstraints hgrow="SOMETIMES"/>
+            <ColumnConstraints hgrow="SOMETIMES"/>
+            <ColumnConstraints hgrow="SOMETIMES"/>
+            <ColumnConstraints hgrow="SOMETIMES"/>
+            <ColumnConstraints hgrow="SOMETIMES"/>
         </columnConstraints>
         <rowConstraints>
-            <RowConstraints vgrow="ALWAYS"/>
-            <RowConstraints vgrow="NEVER"/>
+            <RowConstraints vgrow="SOMETIMES"/>
             <RowConstraints vgrow="NEVER"/>
         </rowConstraints>
 
-        <ListView   GridPane.columnSpan="4"
+        <ListView   GridPane.columnSpan="5"
                     fx:id="stashList">
         </ListView>
 
@@ -45,21 +46,21 @@
         <Button fx:id="dropButton"
                 GridPane.rowIndex="1"
                 GridPane.columnIndex="2"
-                GridPane.halignment="LEFT"
+                GridPane.halignment="CENTER"
                 text="Drop"
                 onAction="#handleDrop"/>
 
         <Button fx:id="clearButton"
-                GridPane.rowIndex="2"
-                GridPane.columnIndex="2"
-                GridPane.halignment="LEFT"
+                GridPane.rowIndex="1"
+                GridPane.columnIndex="3"
+                GridPane.halignment="CENTER"
                 text="Clear"
                 onAction="#handleClearStash"/>
 
         <Button fx:id="popButton"
                 GridPane.rowIndex="1"
-                GridPane.columnIndex="3"
-                GridPane.halignment="LEFT"
+                GridPane.columnIndex="4"
+                GridPane.halignment="RIGHT"
                 text="Pop"
                 onAction="#handlePop"/>
     </GridPane>

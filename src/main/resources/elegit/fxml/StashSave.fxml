@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import java.net.URL?>
+<?import javafx.geometry.*?>
+
+
+    <AnchorPane fx:controller="elegit.StashSaveController"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:id="anchorRoot"
+            prefWidth="350" prefHeight="200">
+    <GridPane   AnchorPane.bottomAnchor="20"
+                AnchorPane.topAnchor="5"
+                AnchorPane.leftAnchor="5"
+                AnchorPane.rightAnchor="5">
+
+        <Button fx:id="cancelButton"
+                GridPane.rowIndex="1"
+                GridPane.columnIndex="0"
+                GridPane.halignment="LEFT"
+                text="Cancel"
+                onAction="#closeWindow"/>
+
+        <Button fx:id="stashButton"
+                id="saveButton"
+                GridPane.rowIndex="1"
+                GridPane.columnIndex="2"
+                GridPane.halignment="RIGHT"
+                text="Save"
+                onAction="#handleSave"/>
+    </GridPane>
+
+    <fx:include source="NotificationPane.fxml" fx:id="notificationPane"/>
+
+    <stylesheets>
+        <URL value="@../css/BaseStyle.css"/>
+    </stylesheets>
+</AnchorPane>
+

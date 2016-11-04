@@ -123,6 +123,9 @@ public class StashListController {
         }
     }
 
+    /**
+     * Drops the selected stash
+     */
     public void handleDrop() {
         int index = this.stashList.getSelectionModel().getSelectedIndex();
         try {
@@ -132,6 +135,11 @@ public class StashListController {
         }
     }
 
+    /**
+     * Clears all the stashes
+     *
+     * Should this have a warning message?
+     */
     public void handleClearStash() {
         try {
             repoHelper.stashClear();
@@ -140,6 +148,9 @@ public class StashListController {
         }
     }
 
+    /**
+     * Pops off the selected stash (applies and drops it)
+     */
     public void handlePop() {
         String stashRef = this.stashList.getSelectionModel().getSelectedItem().getId();
         int index = this.stashList.getSelectionModel().getSelectedIndex();
@@ -147,7 +158,7 @@ public class StashListController {
             repoHelper.stashApply(stashRef, false);
             repoHelper.stashDrop(index);
         } catch (GitAPIException e) {
-            notificationPaneController.addNotification("Something went wrong with the drop. Try committing any uncommitted changes.");
+            notificationPaneController.addNotification("Something went wrong with the pop. Try committing any uncommitted changes.");
         }
     }
 
