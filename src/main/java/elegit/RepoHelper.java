@@ -1009,7 +1009,7 @@ public class RepoHelper {
      *
      * @return the value of the stash reference after the drop occurs
      */
-    ObjectId stashDrop() throws GitAPIException{
+    ObjectId stashClear() throws GitAPIException{
         logger.info("Attempting stash drop all");
         Git git = new Git(this.repo);
         return git.stashDrop().setAll(true).call();

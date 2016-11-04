@@ -114,7 +114,6 @@ public class StashListController {
      */
     public void handleApply() {
         String stashRef = this.stashList.getSelectionModel().getSelectedItem().getId();
-        // apply the selected stash
         try {
             repoHelper.stashApply(stashRef, false);
         } catch (WrongRepositoryStateException e) {
@@ -134,11 +133,22 @@ public class StashListController {
     }
 
     public void handleClearStash() {
-
+        try {
+            repoHelper.stashClear();
+        } catch (GitAPIException e) {
+            notificationPaneController.addNotification("Something went wrong with the clear. Try committing any uncommitted changes.");
+        }
     }
 
     public void handlePop() {
-
+        String stashRef = this.stashList.getSelectionModel().getSelectedItem().getId();
+        int index = this.stashList.getSelectionModel().getSelectedIndex();
+        try {
+            repoHelper.stashApply(stashRef, false);
+            repoHelper.stashDrop(index);
+        } catch (GitAPIException e) {
+            notificationPaneController.addNotification("Something went wrong with the drop. Try committing any uncommitted changes.");
+        }
     }
 
     void setSessionController(SessionController controller) { this.sessionController = controller; }
