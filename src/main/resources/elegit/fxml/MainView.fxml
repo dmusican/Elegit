@@ -98,6 +98,9 @@
                                         onAction="#handleStashListButton"/>
                             <MenuItem   text="Stash Drop"
                                         onAction="#handleStashDropButton"/>
+                            <MenuItem   text="Stash manager"
+                                        fx:id="stashMenuItem"
+                                        onAction="#handleShowStashButton"/>
                         </Menu>
                     </items>
                 </Menu>

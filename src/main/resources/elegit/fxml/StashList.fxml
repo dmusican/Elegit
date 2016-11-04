@@ -21,12 +21,12 @@
         <rowConstraints>
             <RowConstraints vgrow="ALWAYS"/>
             <RowConstraints vgrow="NEVER"/>
-            <RowConstraints hgrow="NEVER"/>
+            <RowConstraints vgrow="NEVER"/>
         </rowConstraints>
 
-        <ScrollPane GridPane.columnSpan="4">
-            <VBox   fx:id="stashedCommits"/>
-        </ScrollPane>
+        <ListView   GridPane.columnSpan="4"
+                    fx:id="stashList">
+        </ListView>
 
         <Button fx:id="cancelButton"
                 GridPane.rowIndex="1"

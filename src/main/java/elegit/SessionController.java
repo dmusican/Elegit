@@ -164,6 +164,7 @@ public class SessionController {
     @FXML private MenuItem normalFetchMenuItem;
     @FXML private MenuItem pullMenuItem;
     @FXML private MenuItem pushMenuItem;
+    @FXML private MenuItem stashMenuItem;
 
     boolean tryCommandAgainWithHTTPAuth;
     private boolean isGitStatusDone;
@@ -632,6 +633,7 @@ public class SessionController {
         this.normalFetchMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.F, KeyCombination.META_DOWN, KeyCombination.SHIFT_DOWN));
         this.pullMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.L, KeyCombination.META_DOWN, KeyCombination.SHIFT_DOWN));
         this.pushMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.P, KeyCombination.META_DOWN, KeyCombination.SHIFT_DOWN));
+        this.stashMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.S, KeyCombination.META_DOWN, KeyCombination.SHIFT_DOWN));
     }
 
     /**
@@ -1053,6 +1055,30 @@ public class SessionController {
             this.showGenericErrorNotification();
             e.printStackTrace();
         }catch(NoRepoLoadedException e){
+            this.showNoRepoLoadedNotification();
+            setButtonsDisabled(true);
+        }
+    }
+
+    /**
+     * Shows the stash window
+     */
+    public void handleShowStashButton() {
+        try {
+            logger.info("Show stash button clicked");
+
+            if (this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
+
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/StashList.fxml"));
+            fxmlLoader.load();
+            StashListController stashListController = fxmlLoader.getController();
+            stashListController.setSessionController(this);
+            AnchorPane fxmlRoot = fxmlLoader.getRoot();
+            stashListController.showStage(fxmlRoot);
+        } catch (IOException e) {
+            this.showGenericErrorNotification();
+            e.printStackTrace();
+        } catch (NoRepoLoadedException e) {
             this.showNoRepoLoadedNotification();
             setButtonsDisabled(true);
         }
@@ -1815,9 +1841,8 @@ public class SessionController {
     public void handleStashListButton() {
         logger.info("Stash list button clicked");
         try {
-            for (ObjectId id : this.theModel.getCurrentRepoHelper().stashList()) {
-                System.out.println(id);
-                System.out.println(this.theModel.getCurrentRepo().hasObject(id));
+            for (CommitHelper commit : this.theModel.getCurrentRepoHelper().stashList()) {
+                System.out.println(commit.fullMessage);
             }
         } catch (GitAPIException e) {
             showGenericErrorNotification();

@@ -1,14 +1,19 @@
 package elegit;
 
+import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.Scene;
+import javafx.scene.control.*;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.text.Font;
 import javafx.stage.Stage;
+import javafx.util.Callback;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.WrongRepositoryStateException;
+
+import java.io.IOException;
 
 public class StashListController {
 
@@ -19,6 +24,11 @@ public class StashListController {
 
     @FXML private NotificationController notificationPaneController;
     @FXML private AnchorPane anchorRoot;
+    @FXML private ListView<CommitHelper> stashList;
+    @FXML private Button applyButton;
+    @FXML private Button dropButton;
+    @FXML private Button clearButton;
+    @FXML private Button popButton;
 
     static final Logger logger = LogManager.getLogger();
 
@@ -32,6 +42,28 @@ public class StashListController {
 
         SessionModel sessionModel = SessionModel.getSessionModel();
         this.repoHelper = sessionModel.getCurrentRepoHelper();
+
+        this.stashList.setCellFactory(new Callback<ListView<CommitHelper>, ListCell<CommitHelper>>() {
+            @Override
+            public ListCell<CommitHelper> call(ListView<CommitHelper> param) {
+                return new ListCell<CommitHelper>() {
+                    @Override protected void updateItem(CommitHelper helper, boolean empty) {
+                        super.updateItem(helper, empty);
+                        Label label = new Label();
+                        if(helper == null || empty) { /* do nothing */ }
+                        else {
+                            label.setText(this.getIndex()+": "+helper.getMessage(true));
+                            label.getStyleClass().clear();
+                            label.setFont(new Font(12));
+                        }
+                        setGraphic(label);
+                    }
+                };
+            }
+        });
+        refreshList();
+        setButtonListeners();
+        this.stashList.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
 
         this.notificationPaneController.bindParentBounds(anchorRoot.heightProperty());
     }
@@ -51,11 +83,37 @@ public class StashListController {
         this.notificationPaneController.setAnchor(stage);
     }
 
+    /**
+     * Makes all the buttons that require a selection only work when there is a selection
+     */
+    private void setButtonListeners() {
+        this.applyButton.disableProperty().bind(this.stashList.getSelectionModel().selectedIndexProperty().lessThan(0));
+        this.dropButton.disableProperty().bind(this.stashList.getSelectionModel().selectedIndexProperty().lessThan(0));
+        this.clearButton.disableProperty().bind(this.stashList.getSelectionModel().selectedIndexProperty().lessThan(0));
+        this.popButton.disableProperty().bind(this.stashList.getSelectionModel().selectedIndexProperty().lessThan(0));
+    }
+
+    /**
+     * Refreshes the list of stashes in the repo
+     */
+    private void refreshList() {
+        try {
+            this.stashList.setItems(FXCollections.observableArrayList(repoHelper.stashList()));
+        } catch (GitAPIException e) {
+            this.notificationPaneController.addNotification("Something went wrong retrieving the stash(es)");
+        } catch (IOException e) {
+            this.notificationPaneController.addNotification("Something went wrong.");
+        }
+    }
+
     /* ********************** BUTTON HANDLERS ********************** */
     public void closeWindow() { this.stage.close(); }
+
+    /**
+     * Handles applying a selected stash to the repository
+     */
     public void handleApply() {
-        // TODO: get selected stash
-        String stashRef = "";
+        String stashRef = this.stashList.getSelectionModel().getSelectedItem().getId();
         // apply the selected stash
         try {
             repoHelper.stashApply(stashRef, false);
@@ -67,7 +125,12 @@ public class StashListController {
     }
 
     public void handleDrop() {
-
+        int index = this.stashList.getSelectionModel().getSelectedIndex();
+        try {
+            repoHelper.stashDrop(index);
+        } catch (GitAPIException e) {
+            notificationPaneController.addNotification("Something went wrong with the drop. Try committing any uncommitted changes.");
+        }
     }
 
     public void handleClearStash() {

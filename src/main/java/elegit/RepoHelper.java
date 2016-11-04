@@ -958,18 +958,19 @@ public class RepoHelper {
     }
 
     /**
-     * Returns a list of the stashed revcommits
+     * Returns a list of the stashed commits
      *
-     * @return a Collection of RevCommits that make up the stash
+     * @return a list of commit helpers that make up the stash
      */
-    Collection<RevCommit> stashList() throws GitAPIException, IOException {
+    List<CommitHelper> stashList() throws GitAPIException, IOException {
         logger.info("Attempting stash list");
         Git git = new Git(this.repo);
+        List<CommitHelper> stashCommitList = new ArrayList<>();
+
         for (RevCommit commit : git.stashList().call()) {
-            CommitHelper curCommitHelper = new CommitHelper(commit);
-            System.out.println(curCommitHelper.fullMessage);
+            stashCommitList.add(new CommitHelper(commit));
         }
-        return git.stashList().call();
+        return stashCommitList;
     }
 
     /**
