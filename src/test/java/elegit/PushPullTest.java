@@ -102,7 +102,8 @@ public class PushPullTest {
         Files.write(readmePath, timestamp.getBytes(), StandardOpenOption.APPEND);
         helperPush.addFilePathTest(readmePath);
         helperPush.commit("added a character");
-        helperPush.prepareToPushAll();
+        PushCommand command = helperPush.prepareToPushAll();
+        helperPush.pushAll(command);
 
         // Now do the pull (well, a fetch)
         helperPull.fetch(false);
@@ -149,7 +150,8 @@ public class PushPullTest {
         Files.write(readmePath, timestamp.getBytes(), StandardOpenOption.APPEND);
         helperPush.addFilePathTest(readmePath);
         helperPush.commit("added a character");
-        helperPush.prepareToPushAll();
+        PushCommand command = helperPush.prepareToPushAll();
+        helperPush.pushAll(command);
 
         // Now do the pull (well, a fetch)
         existingHelperPull.fetch(false);

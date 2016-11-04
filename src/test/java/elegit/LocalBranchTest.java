@@ -3,6 +3,7 @@ package elegit;
 import elegit.exceptions.ConflictingFilesException;
 import elegit.exceptions.MissingRepoException;
 import elegit.exceptions.NoTrackingException;
+import org.eclipse.jgit.api.PushCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.junit.After;
@@ -105,7 +106,8 @@ public class LocalBranchTest {
 
         // Commit changes in master in pusher and push
         helperPush.commit("added line in master");
-        helperPush.prepareToPushAll();
+        PushCommand command = helperPush.prepareToPushAll();
+        helperPush.pushAll(command);
 
 
         // Make a new branch in fetcher and check it out

@@ -122,7 +122,8 @@ public class AuthenticatedCloneTest {
             fw.close();
             helper.addFilePathTest(fileLocation);
             helper.commit("Appended to file");
-            helper.prepareToPushAll();
+            PushCommand command = helper.prepareToPushAll();
+            helper.pushAll(command);
             helper.pushTags();
         } catch (TransportException e) {
             e.printStackTrace();
@@ -175,7 +176,8 @@ public class AuthenticatedCloneTest {
             helper.commit("Appended to file");
             credentials = new UsernamePasswordCredentialsProvider(username, password);
             helper.ownerAuth = credentials;
-            helper.prepareToPushAll();
+            PushCommand command = helper.prepareToPushAll();
+            helper.pushAll(command);
             helper.pushTags();
         } catch (TransportException e) {
             e.printStackTrace();
@@ -280,7 +282,8 @@ public class AuthenticatedCloneTest {
         helper.obtainRepository(remoteURL);
         assertEquals(helper.getCompatibleAuthentication(), AuthMethod.SSH);
         helper.fetch(false);
-        helper.prepareToPushAll();
+        PushCommand command = helper.prepareToPushAll();
+        helper.pushAll(command);
         helper.pushTags();
     }
 
@@ -306,7 +309,8 @@ public class AuthenticatedCloneTest {
         helper.obtainRepository(remoteURL);
         assertEquals(helper.getCompatibleAuthentication(), AuthMethod.SSH);
         helper.fetch(false);
-        helper.prepareToPushAll();
+        PushCommand command = helper.prepareToPushAll();
+        helper.pushAll(command);
         helper.pushTags();
         scanner.close();
     }

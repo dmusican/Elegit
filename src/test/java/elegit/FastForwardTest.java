@@ -1,5 +1,6 @@
 package elegit;
 
+import org.eclipse.jgit.api.PushCommand;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.junit.After;
 import org.junit.Before;
@@ -101,7 +102,8 @@ public class FastForwardTest {
 
         // Commit changes in fast_branch and push
         helperFast.commit("added a character");
-        helperFast.prepareToPushAll();
+        PushCommand command = helperFast.prepareToPushAll();
+        helperFast.pushAll(command);
 
         //Checkout master
         master_helper = (LocalBranchHelper) helperFast.getBranchModel().getBranchByName(BranchModel.BranchType.LOCAL, "master");
@@ -114,7 +116,8 @@ public class FastForwardTest {
         assertEquals(true, helperFast.getAheadCount()>0);
 
         // Push changes
-        helperFast.prepareToPushAll();
+        command = helperFast.prepareToPushAll();
+        helperFast.pushAll(command);
 
     }
 
@@ -161,7 +164,8 @@ public class FastForwardTest {
 
         // Commit changes in can_push and push
         helperFast.commit("added a character");
-        helperFast.prepareToPushAll();
+        PushCommand command = helperFast.prepareToPushAll();
+        helperFast.pushAll(command);
 
         // Find the remote 'can_pushb' and check it out
         remote_helperb = (RemoteBranchHelper) helperFast.getBranchModel().getBranchByName(BranchModel.BranchType.REMOTE, "origin/can_pushb");
@@ -175,7 +179,8 @@ public class FastForwardTest {
         assertEquals(true, helperFast.getAheadCount()>0);
 
         // Push changes
-        helperFast.prepareToPushAll();
+        command = helperFast.prepareToPushAll();
+        helperFast.pushAll(command);
 
     }
 }
