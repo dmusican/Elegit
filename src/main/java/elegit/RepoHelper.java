@@ -936,10 +936,11 @@ public class RepoHelper {
      *
      * @param includeUntracked: whether or not to include untracked files
      */
-    void stashSave(boolean includeUntracked) throws GitAPIException {
-        logger.info("Attempting stash create");
+    void stashSave(boolean includeUntracked) throws GitAPIException, NoFilesToStashException {
+        logger.info("Attempting stash save");
         Git git = new Git(this.repo);
-        git.stashCreate().setIncludeUntracked(includeUntracked).call();
+        RevCommit stash = git.stashCreate().setIncludeUntracked(includeUntracked).call();
+        if (stash == null) throw new NoFilesToStashException();
     }
 
     /**
@@ -950,11 +951,12 @@ public class RepoHelper {
      * @param wdMessage: the message used when committing working directory changes
      * @param indexMessage: the messaged used when committing the index changes
      */
-    void stashSave(boolean includeUntracked, String wdMessage, String indexMessage) throws GitAPIException {
-        logger.info("Attempting stash create with message");
+    void stashSave(boolean includeUntracked, String wdMessage, String indexMessage) throws GitAPIException, NoFilesToStashException {
+        logger.info("Attempting stash save with message");
         Git git = new Git(this.repo);
-        git.stashCreate().setIncludeUntracked(includeUntracked).setWorkingDirectoryMessage(wdMessage)
+        RevCommit stash = git.stashCreate().setIncludeUntracked(includeUntracked).setWorkingDirectoryMessage(wdMessage)
                 .setIndexMessage(indexMessage).call();
+        if (stash == null) throw new NoFilesToStashException();
     }
 
     /**

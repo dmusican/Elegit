@@ -1,5 +1,6 @@
 package elegit;
 
+import elegit.exceptions.NoFilesToStashException;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.Scene;
@@ -25,6 +26,8 @@ public class StashSaveController {
     @FXML private NotificationController notificationPaneController;
     @FXML private AnchorPane anchorRoot;
     @FXML private Button saveButton;
+    @FXML private TextField stashMessage;
+    @FXML private CheckBox includeUntracked;
 
     static final Logger logger = LogManager.getLogger();
 
@@ -38,6 +41,10 @@ public class StashSaveController {
 
         SessionModel sessionModel = SessionModel.getSessionModel();
         this.repoHelper = sessionModel.getCurrentRepoHelper();
+
+        stashMessage.setOnAction((event -> {
+            stashSave(stashMessage.getText());
+        }));
 
         this.notificationPaneController.bindParentBounds(anchorRoot.heightProperty());
     }
@@ -61,10 +68,33 @@ public class StashSaveController {
     public void closeWindow() { this.stage.close(); }
 
     public void handleSave() {
+        if (stashMessage.getText() != null)
+            stashSave(stashMessage.getText());
+        else
+            stashSave();
+    }
+
+    public void stashSave() {
         try {
-            repoHelper.stashSave(true);
+            repoHelper.stashSave(includeUntracked.isSelected());
+            sessionController.gitStatus();
+            closeWindow();
         } catch (GitAPIException e) {
             notificationPaneController.addNotification("Something went wrong with the save.");
+        } catch (NoFilesToStashException e) {
+            notificationPaneController.addNotification("No files to stash.");
+        }
+    }
+
+    public void stashSave(String message) {
+        try {
+            repoHelper.stashSave(includeUntracked.isSelected(), message,"");
+            sessionController.gitStatus();
+            closeWindow();
+        } catch (GitAPIException e) {
+            notificationPaneController.addNotification("Something went wrong with the save.");
+        } catch (NoFilesToStashException e) {
+            notificationPaneController.addNotification("No files to stash");
         }
     }
 

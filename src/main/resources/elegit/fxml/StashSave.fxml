@@ -8,14 +8,44 @@
     <AnchorPane fx:controller="elegit.StashSaveController"
             xmlns:fx="http://javafx.com/fxml"
             fx:id="anchorRoot"
-            prefWidth="350" prefHeight="200">
+            prefWidth="350">
     <GridPane   AnchorPane.bottomAnchor="20"
                 AnchorPane.topAnchor="5"
                 AnchorPane.leftAnchor="5"
-                AnchorPane.rightAnchor="5">
+                AnchorPane.rightAnchor="5"
+                hgap="10"
+                vgap="10">
+
+        <columnConstraints>
+            <ColumnConstraints hgrow="SOMETIMES"/>
+            <ColumnConstraints hgrow="ALWAYS"/>
+        </columnConstraints>
+
+        <rowConstraints>
+            <RowConstraints vgrow="SOMETIMES"/>
+            <RowConstraints vgrow="SOMETIMES"/>
+            <RowConstraints vgrow="ALWAYS"/>
+            <RowConstraints vgrow="NEVER"/>
+        </rowConstraints>
+
+        <Label  GridPane.valignment="BOTTOM"
+                text="Message"/>
+
+        <TextField  GridPane.rowIndex="1"
+                    GridPane.columnSpan="2"
+                    GridPane.valignment="TOP"
+                    prefHeight="30"
+                    fx:id="stashMessage"
+                    promptText="message..."/>
+
+        <CheckBox   GridPane.rowIndex="2"
+                    GridPane.halignment="LEFT"
+                    GridPane.valignment="TOP"
+                    fx:id="includeUntracked"
+                    text="Include Untracked Files"/>
 
         <Button fx:id="cancelButton"
-                GridPane.rowIndex="1"
+                GridPane.rowIndex="3"
                 GridPane.columnIndex="0"
                 GridPane.halignment="LEFT"
                 text="Cancel"
@@ -23,8 +53,8 @@
 
         <Button fx:id="stashButton"
                 id="saveButton"
-                GridPane.rowIndex="1"
-                GridPane.columnIndex="2"
+                GridPane.rowIndex="3"
+                GridPane.columnIndex="1"
                 GridPane.halignment="RIGHT"
                 text="Save"
                 onAction="#handleSave"/>
