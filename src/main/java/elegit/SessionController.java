@@ -9,6 +9,8 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.concurrent.Task;
+import javafx.event.*;
+import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Side;
@@ -2675,6 +2677,13 @@ public class SessionController {
         Platform.runLater(() -> {
             logger.warn("No commits fetched warning");
             this.notificationPaneController.addNotification("No new commits were fetched");
+            /*EventHandler handler = new EventHandler() {
+                @Override
+                public void handle(Event event) {
+                    System.out.println("Test");
+                }
+            };
+            this.notificationPaneController.addNotification("No new commits were fetched", "Button", handler);*/
         });
     }
 

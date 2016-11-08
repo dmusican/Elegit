@@ -3,6 +3,8 @@ package elegit;
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import javafx.beans.property.ReadOnlyDoubleProperty;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.scene.control.Button;
@@ -17,6 +19,7 @@ import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.controlsfx.control.PopOver;
+import org.controlsfx.control.action.Action;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -164,6 +167,43 @@ public class NotificationController {
      * @param notification the notification string to add
      */
     void addNotification(String notification) {
+        Label line = makeNotificationLabel(notification);
+        setLatestNotificationText(notification);
+        showBubble(notification);
+
+        VBox vBox = (VBox) this.notificationList.getContent();
+        vBox.getChildren().add(0,line);
+
+        setNotificationNum();
+    }
+
+    /**
+     * Adds a notification with an action
+     * @param notification the message to show on the notification
+     * @param actionText the text to show on the action button
+     * @param handler the handler for clicking the button
+     */
+    void addNotification(String notification, String actionText, EventHandler handler) {
+        // HBox to hold the label of the notification and the action button
+        HBox box = new HBox();
+
+        Label line = makeNotificationLabel(notification);
+        setLatestNotificationText(notification);
+        showBubble(notification);
+
+        Button actionButton = new Button(actionText);
+        actionButton.setOnMouseClicked(handler);
+
+        box.getChildren().add(line);
+        box.getChildren().add(actionButton);
+
+        VBox vBox = (VBox) this.notificationList.getContent();
+        vBox.getChildren().add(0,box);
+
+        setNotificationNum();
+    }
+
+    private Label makeNotificationLabel(String notification) {
         Label line = new Label(notification);
         line.setWrapText(true);
         line.setId("notification");
@@ -172,14 +212,7 @@ public class NotificationController {
             if (event.getTarget().equals(line.getGraphic()))
                 removeNotification(line);
         });
-
-        setLatestNotificationText(notification);
-        showBubble(notification);
-
-        VBox vBox = (VBox) this.notificationList.getContent();
-        vBox.getChildren().add(0,line);
-
-        setNotificationNum();
+        return line;
     }
 
     /**
