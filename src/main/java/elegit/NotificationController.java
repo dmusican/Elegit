@@ -43,7 +43,7 @@ public class NotificationController {
     @FXML Line separatorLine;
     @FXML Button minimizeButton;
     @FXML Label notificationNum;
-    @FXML Label latestNotificationLabel;
+    @FXML HBox latestNotificationBox;
 
     private PopOver notificationAlert;
     private TimerTask hideBubbleTask;
@@ -168,7 +168,7 @@ public class NotificationController {
      */
     void addNotification(String notification) {
         Label line = makeNotificationLabel(notification);
-        setLatestNotificationText(notification);
+        setLatestNotification(line);
         showBubble(notification);
 
         VBox vBox = (VBox) this.notificationList.getContent();
@@ -188,12 +188,21 @@ public class NotificationController {
         HBox box = new HBox();
 
         Label line = makeNotificationLabel(notification);
-        setLatestNotificationText(notification);
         showBubble(notification);
 
         Button actionButton = new Button(actionText);
+        actionButton.setId("notification");
         actionButton.setOnMouseClicked(handler);
 
+        setLatestNotification(line, actionButton);
+
+        // Make the x remove the whole hbox
+        line.setOnMouseClicked(event -> {
+            if (event.getTarget().equals(line.getGraphic()))
+                removeNotification(box);
+        });
+
+        box.setSpacing(5);
         box.getChildren().add(line);
         box.getChildren().add(actionButton);
 
@@ -231,24 +240,29 @@ public class NotificationController {
         VBox vBox = (VBox) this.notificationList.getContent();
 
         vBox.getChildren().clear();
-        setLatestNotificationText("");
+        setLatestNotification(null);
 
         setNotificationNum();
     }
 
     /**
      * Removes a given notification
-     * @param notification the notification label to remove
+     * @param notification the notification label (with or without an action) to remove
      */
-    private void removeNotification(Label notification) {
+    private void removeNotification(Region notification) {
         VBox vBox = (VBox) this.notificationList.getContent();
 
         // Reset the latest notification text if needed
         if (vBox.getChildren().indexOf(notification)==0) {
-            if (vBox.getChildren().size() > 1)
-                setLatestNotificationText(((Label) vBox.getChildren().get(1)).getText());
+            if (vBox.getChildren().size() > 1) {
+                if (vBox.getChildren().get(1) instanceof HBox) {
+                    HBox box = (HBox) vBox.getChildren().get(1);
+                    setLatestNotification((Label) box.getChildren().get(0), (Button) box.getChildren().get(1));
+                } else
+                    setLatestNotification(((Label) vBox.getChildren().get(1)));
+            }
             else
-                setLatestNotificationText("");
+                setLatestNotification(null);
         }
 
         vBox.getChildren().remove(notification);
@@ -256,12 +270,15 @@ public class NotificationController {
         setNotificationNum();
     }
 
-    /**
-     * Helper method to set the latest notification text
-     * @param notificationText the string to set the latest notification text to
-     */
-    private void setLatestNotificationText(String notificationText) {
-        latestNotificationLabel.setText(notificationText);
+    private void setLatestNotification(Label notificationLabel) {
+        latestNotificationBox.getChildren().clear();
+        latestNotificationBox.getChildren().add(notificationLabel);
+    }
+
+    private void setLatestNotification(Label notificationLabel, Button notificationButton) {
+        setLatestNotification(notificationLabel);
+        latestNotificationBox.getChildren().add(notificationButton);
+        latestNotificationBox.setVisible(true);
     }
 
     /**

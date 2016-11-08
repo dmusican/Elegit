@@ -7,6 +7,7 @@
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.control.Button?>
 
 <StackPane xmlns:fx="http://javafx.com/fxml"
@@ -19,10 +20,11 @@
                 StackPane.alignment="BOTTOM_LEFT"
                 maxHeight="15">
         <Line AnchorPane.topAnchor="2" AnchorPane.rightAnchor="0" AnchorPane.leftAnchor="0" id="notificationLine" fx:id="separatorLine" />
-        <Label AnchorPane.leftAnchor="3"
-               AnchorPane.bottomAnchor="0"
-               fx:id="latestNotificationLabel"
-               id="notification"/>
+        <HBox   fx:id="latestNotificationBox"
+                AnchorPane.leftAnchor="3"
+                AnchorPane.bottomAnchor="0"
+                spacing="5">
+        </HBox>
         <ImageView AnchorPane.rightAnchor="8"
                    AnchorPane.bottomAnchor="2"
                    fitHeight="11"

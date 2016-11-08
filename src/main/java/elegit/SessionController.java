@@ -1509,12 +1509,12 @@ public class SessionController {
             }
         } catch (NotMergedException e) {
             logger.warn("Can't delete branch because not merged warning");
-            Platform.runLater(() -> {
+            /*Platform.runLater(() -> {
                 if(PopUpWindows.showForceDeleteBranchAlert() && selectedBranch instanceof LocalBranchHelper) {
                     // If we need to force delete, then it must be a local branch
                     forceDeleteBranch((LocalBranchHelper) selectedBranch);
                 }
-            });
+            });*/
             this.showNotMergedNotification(selectedBranch);
         } catch (CannotDeleteCurrentBranchException e) {
             logger.warn("Can't delete current branch warning");
@@ -1809,6 +1809,23 @@ public class SessionController {
         } catch (NoRepoLoadedException e) {
             this.showNoRepoLoadedNotification();
             setButtonsDisabled(true);
+        }
+    }
+
+    public void quickStashSave() {
+        try {
+            logger.info("Quick stash save button clicked");
+
+            if (this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
+
+            this.theModel.getCurrentRepoHelper().stashSave(false);
+        } catch (GitAPIException e) {
+            this.showGenericErrorNotification();
+            e.printStackTrace();
+        } catch (NoFilesToStashException e) {
+            this.showNoFilesToStashNotification();
+        } catch (NoRepoLoadedException e) {
+            this.setButtonsDisabled(true);
         }
     }
 
@@ -2677,13 +2694,6 @@ public class SessionController {
         Platform.runLater(() -> {
             logger.warn("No commits fetched warning");
             this.notificationPaneController.addNotification("No new commits were fetched");
-            /*EventHandler handler = new EventHandler() {
-                @Override
-                public void handle(Event event) {
-                    System.out.println("Test");
-                }
-            };
-            this.notificationPaneController.addNotification("No new commits were fetched", "Button", handler);*/
         });
     }
 
@@ -2731,13 +2741,10 @@ public class SessionController {
     private void showCheckoutConflictsNotification(List<String> conflictingPaths) {
         Platform.runLater(() -> {
             logger.warn("Checkout conflicts warning");
-            notificationPaneController.addNotification("You can't switch to that branch because there would be a merge conflict. Stash your changes or resolve conflicts first.");
 
-            /*
-            Action seeConflictsAction = new Action("See conflicts", e -> {
-                anchorRoot.hide();
-                PopUpWindows.showCheckoutConflictsAlert(conflictingPaths);
-            });*/
+            EventHandler handler = event -> quickStashSave();
+            this.notificationPaneController.addNotification("You can't switch to that branch because there would be a merge conflict. " +
+                    "Stash your changes or resolve conflicts first.", "stash", handler);
         });
     }
 
@@ -2778,6 +2785,13 @@ public class SessionController {
         Platform.runLater(() -> {
             logger.warn("No commits to merge warning");
             nc.addNotification("There aren't any commits to merge. Try fetching first");
+        });
+    }
+
+    private void showNoFilesToStashNotification() {
+        Platform.runLater(() -> {
+            logger.warn("No files to stash warning");
+            notificationPaneController.addNotification("There are no files to stash.");
         });
     }
 

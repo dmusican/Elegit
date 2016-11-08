@@ -20,6 +20,10 @@
     -fx-font-weight: normal;
 }
 
+.button#notification {
+    -fx-padding: 0 3 0 3;
+}
+
 .label#notificationNum {
     -fx-font-size: 10;
     -fx-font-weight: bold;
