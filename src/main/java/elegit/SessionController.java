@@ -9,6 +9,8 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.concurrent.Task;
+import javafx.event.*;
+import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Side;
@@ -44,6 +46,7 @@ import org.eclipse.jgit.api.ResetCommand;
 import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.dircache.InvalidPathException;
 import org.eclipse.jgit.errors.NoMergeBaseException;
+import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.jgit.transport.RemoteRefUpdate;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
@@ -163,6 +166,7 @@ public class SessionController {
     @FXML private MenuItem normalFetchMenuItem;
     @FXML private MenuItem pullMenuItem;
     @FXML private MenuItem pushMenuItem;
+    @FXML private MenuItem stashMenuItem;
 
     boolean tryCommandAgainWithHTTPAuth;
     private boolean isGitStatusDone;
@@ -623,6 +627,7 @@ public class SessionController {
      *  Shift + CMD-F   Fetch
      *  Shift + CMD-L   Pull
      *  Shift + CMD-P   Push (current branch)
+     *  Shift + CMD-S   Stash (manager)
      */
     private void initMenuBarShortcuts() {
         this.cloneMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.N, KeyCombination.META_DOWN));
@@ -631,6 +636,7 @@ public class SessionController {
         this.normalFetchMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.F, KeyCombination.META_DOWN, KeyCombination.SHIFT_DOWN));
         this.pullMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.L, KeyCombination.META_DOWN, KeyCombination.SHIFT_DOWN));
         this.pushMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.P, KeyCombination.META_DOWN, KeyCombination.SHIFT_DOWN));
+        this.stashMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.S, KeyCombination.META_DOWN, KeyCombination.SHIFT_DOWN));
     }
 
     /**
@@ -1503,12 +1509,12 @@ public class SessionController {
             }
         } catch (NotMergedException e) {
             logger.warn("Can't delete branch because not merged warning");
-            Platform.runLater(() -> {
+            /*Platform.runLater(() -> {
                 if(PopUpWindows.showForceDeleteBranchAlert() && selectedBranch instanceof LocalBranchHelper) {
                     // If we need to force delete, then it must be a local branch
                     forceDeleteBranch((LocalBranchHelper) selectedBranch);
                 }
-            });
+            });*/
             this.showNotMergedNotification(selectedBranch);
         } catch (CannotDeleteCurrentBranchException e) {
             logger.warn("Can't delete current branch warning");
@@ -1779,6 +1785,97 @@ public class SessionController {
         }catch(NoRepoLoadedException e){
             this.showNoRepoLoadedNotification();
             setButtonsDisabled(true);
+        }
+    }
+
+    /**
+     * Brings up a window that allows the user to stash changes with options
+     */
+    public void handleStashSaveButton() {
+        try {
+            logger.info("Stash save button clicked");
+
+            if (this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
+
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/StashSave.fxml"));
+            fxmlLoader.load();
+            StashSaveController stashSaveController = fxmlLoader.getController();
+            stashSaveController.setSessionController(this);
+            AnchorPane fxmlRoot = fxmlLoader.getRoot();
+            stashSaveController.showStage(fxmlRoot);
+        } catch (IOException e) {
+            this.showGenericErrorNotification();
+            e.printStackTrace();
+        } catch (NoRepoLoadedException e) {
+            this.showNoRepoLoadedNotification();
+            setButtonsDisabled(true);
+        }
+    }
+
+    public void quickStashSave() {
+        try {
+            logger.info("Quick stash save button clicked");
+
+            if (this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
+
+            this.theModel.getCurrentRepoHelper().stashSave(false);
+        } catch (GitAPIException e) {
+            this.showGenericErrorNotification();
+            e.printStackTrace();
+        } catch (NoFilesToStashException e) {
+            this.showNoFilesToStashNotification();
+        } catch (NoRepoLoadedException e) {
+            this.setButtonsDisabled(true);
+        }
+    }
+
+    /**
+     * Stashes the current changes in a new commit
+     */
+    public void handleStashApplyButton() {
+        logger.info("Stash apply button clicked");
+        try {
+            // TODO: update the stash ref to apply
+            this.theModel.getCurrentRepoHelper().stashApply("",false);
+        } catch (GitAPIException e) {
+            showGenericErrorNotification();
+        }
+    }
+
+    /**
+     * Shows the stash window
+     */
+    public void handleStashListButton() {
+        try {
+            logger.info("Stash list button clicked");
+
+            if (this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
+
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/StashList.fxml"));
+            fxmlLoader.load();
+            StashListController stashListController = fxmlLoader.getController();
+            stashListController.setSessionController(this);
+            AnchorPane fxmlRoot = fxmlLoader.getRoot();
+            stashListController.showStage(fxmlRoot);
+        } catch (IOException e) {
+            this.showGenericErrorNotification();
+            e.printStackTrace();
+        } catch (NoRepoLoadedException e) {
+            this.showNoRepoLoadedNotification();
+            setButtonsDisabled(true);
+        }
+    }
+
+    /**
+     * Drops the most recent stash
+     */
+    public void handleStashDropButton() {
+        logger.info("Stash drop button clicked");
+        try {
+            // TODO: implement droping something besides 0
+            this.theModel.getCurrentRepoHelper().stashDrop(0);
+        } catch (GitAPIException e) {
+            showGenericErrorNotification();
         }
     }
 
@@ -2644,13 +2741,10 @@ public class SessionController {
     private void showCheckoutConflictsNotification(List<String> conflictingPaths) {
         Platform.runLater(() -> {
             logger.warn("Checkout conflicts warning");
-            notificationPaneController.addNotification("You can't switch to that branch because there would be a merge conflict. Stash your changes or resolve conflicts first.");
 
-            /*
-            Action seeConflictsAction = new Action("See conflicts", e -> {
-                anchorRoot.hide();
-                PopUpWindows.showCheckoutConflictsAlert(conflictingPaths);
-            });*/
+            EventHandler handler = event -> quickStashSave();
+            this.notificationPaneController.addNotification("You can't switch to that branch because there would be a merge conflict. " +
+                    "Stash your changes or resolve conflicts first.", "stash", handler);
         });
     }
 
@@ -2691,6 +2785,13 @@ public class SessionController {
         Platform.runLater(() -> {
             logger.warn("No commits to merge warning");
             nc.addNotification("There aren't any commits to merge. Try fetching first");
+        });
+    }
+
+    private void showNoFilesToStashNotification() {
+        Platform.runLater(() -> {
+            logger.warn("No files to stash warning");
+            notificationPaneController.addNotification("There are no files to stash.");
         });
     }
 

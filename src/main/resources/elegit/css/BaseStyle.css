@@ -20,6 +20,10 @@
     -fx-font-weight: normal;
 }
 
+.button#notification {
+    -fx-padding: 0 3 0 3;
+}
+
 .label#notificationNum {
     -fx-font-size: 10;
     -fx-font-weight: bold;
@@ -263,6 +267,21 @@
     -fx-stroke-dash-array: 3px, 5px;
 }
 
+.button#saveButton {
+    -fx-background-color:
+        linear-gradient(from 0% 0% to 100% 100%,#5c6d88 0%,#8b8b8b 100%),
+        -fx-saveButton-fill;
+    -fx-background-insets: 0,0.5;
+    -fx-background-radius: 3;
+    -fx-text-fill: white;
+}
+
+.button#saveButton:hover {
+    -fx-background-color:
+        linear-gradient(from 0% 0% to 100% 100%,#5c6d88 0%,#8b8b8b 100%),
+        -fx-saveButton-fill-hover;
+}
+
 #helpButton {
     -fx-fill: -fx-button-fill;
 }
@@ -298,6 +317,9 @@
     }
 
 * {
+    -fx-saveButton-fill: #1E40FF;
+    -fx-saveButton-fill-hover: #3E70FF;
+
     -fx-button-fill: #52B3D9;
     -fx-button-hover-fill: #81CFE0;
     -fx-button-select-fill: #3498DB;

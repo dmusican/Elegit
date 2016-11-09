@@ -926,6 +926,110 @@ public class RepoHelper {
         git.close();
     }
 
+    //******************** STASH SECTION ********************
+    /* NOTE: jgit says stashcreate, but 'git stash create' only
+     * makes a stash, it doesn't store it in refs/stash */
+
+    /**
+     * Stashes the current working directory and index changes with the
+     * default message (the branch name)
+     *
+     * @param includeUntracked: whether or not to include untracked files
+     */
+    void stashSave(boolean includeUntracked) throws GitAPIException, NoFilesToStashException {
+        logger.info("Attempting stash save");
+        Git git = new Git(this.repo);
+        RevCommit stash = git.stashCreate().setIncludeUntracked(includeUntracked).call();
+        if (stash == null) throw new NoFilesToStashException();
+    }
+
+    /**
+     * Stashes the current working directory changes with the
+     * given message
+     *
+     * @param includeUntracked: whether or not to include untracked files
+     * @param wdMessage: the message used when committing working directory changes
+     * @param indexMessage: the messaged used when committing the index changes
+     */
+    void stashSave(boolean includeUntracked, String wdMessage, String indexMessage) throws GitAPIException, NoFilesToStashException {
+        logger.info("Attempting stash save with message");
+        Git git = new Git(this.repo);
+        RevCommit stash = git.stashCreate().setIncludeUntracked(includeUntracked).setWorkingDirectoryMessage(wdMessage)
+                .setIndexMessage(indexMessage).call();
+        if (stash == null) throw new NoFilesToStashException();
+    }
+
+    /**
+     * Returns a list of the stashed commits
+     *
+     * @return a list of commit helpers that make up the stash
+     */
+    List<CommitHelper> stashList() throws GitAPIException, IOException {
+        logger.info("Attempting stash list");
+        Git git = new Git(this.repo);
+        List<CommitHelper> stashCommitList = new ArrayList<>();
+
+        for (RevCommit commit : git.stashList().call()) {
+            stashCommitList.add(new CommitHelper(commit));
+        }
+        return stashCommitList;
+    }
+
+    /**
+     * Applies the given stash to the repository, by default restores the index and
+     * untracked files.
+     *
+     * @param stashRef the string that corresponds to the stash to apply
+     * @param force whether or not to force apply
+     */
+    void stashApply(String stashRef, boolean force) throws GitAPIException {
+        logger.info("Attempting stash apply");
+        Git git = new Git(this.repo);
+        git.stashApply().setStashRef(stashRef).ignoreRepositoryState(force).call();
+    }
+
+    /**
+     * Applies the given stash to the repository, with special instructions for
+     * the index and untracked files
+     *
+     * @param stashRef the string that corresponds to the stash to apply
+     * @param force whether or not to force apply
+     * @param applyIndex true if the command should restore the index state
+     * @param applyUntracked true if the command should restore the untracked files
+     */
+    void stashApply(String stashRef, boolean force, boolean applyIndex, boolean applyUntracked) throws GitAPIException {
+        logger.info("Attempting stash apply with params");
+        Git git = new Git(this.repo);
+        StashApplyCommand stashApply = git.stashApply().setStashRef(stashRef).ignoreRepositoryState(force);
+        stashApply.setApplyIndex(applyIndex);
+        stashApply.setApplyUntracked(applyUntracked);
+        stashApply.call();
+    }
+
+    /**
+     * Deletes all the stashed commits
+     *
+     * @return the value of the stash reference after the drop occurs
+     */
+    ObjectId stashClear() throws GitAPIException{
+        logger.info("Attempting stash drop all");
+        Git git = new Git(this.repo);
+        return git.stashDrop().setAll(true).call();
+    }
+
+    /**
+     * Deletes a single stashed reference
+     *
+     * @param stashRef the stash reference int to drop (0-based)
+     * @return the value of the value of the stashed reference
+     */
+    ObjectId stashDrop(int stashRef) throws GitAPIException{
+        logger.info("Attempting stash drop");
+        Git git = new Git(this.repo);
+        return git.stashDrop().setStashRef(stashRef).call();
+    }
+
+
     /**
      * Checks if the remote tracking head refers to the same commit
      * as the local head for the current branch

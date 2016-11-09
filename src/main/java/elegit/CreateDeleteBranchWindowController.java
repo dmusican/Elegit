@@ -3,6 +3,7 @@ package elegit;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.concurrent.Task;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -526,13 +527,10 @@ public class CreateDeleteBranchWindowController {
     private void showCheckoutConflictsNotification(List<String> conflictingPaths) {
         Platform.runLater(() -> {
             logger.warn("Checkout conflicts warning");
-            notificationPaneController.addNotification("You can't switch to that branch because there would be a merge conflict. Stash your changes or resolve conflicts first.");
 
-            /*
-            Action seeConflictsAction = new Action("See conflicts", e -> {
-                anchorRoot.hide();
-                PopUpWindows.showCheckoutConflictsAlert(conflictingPaths);
-            });*/
+            EventHandler handler = event -> sessionController.quickStashSave();
+            this.notificationPaneController.addNotification("You can't switch to that branch because there would be a merge conflict. " +
+                    "Stash your changes or resolve conflicts first.", "stash", handler);
         });
     }
 

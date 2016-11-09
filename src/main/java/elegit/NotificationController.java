@@ -3,6 +3,8 @@ package elegit;
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import javafx.beans.property.ReadOnlyDoubleProperty;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.scene.control.Button;
@@ -17,6 +19,7 @@ import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.controlsfx.control.PopOver;
+import org.controlsfx.control.action.Action;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -40,7 +43,7 @@ public class NotificationController {
     @FXML Line separatorLine;
     @FXML Button minimizeButton;
     @FXML Label notificationNum;
-    @FXML Label latestNotificationLabel;
+    @FXML HBox latestNotificationBox;
 
     private PopOver notificationAlert;
     private TimerTask hideBubbleTask;
@@ -164,6 +167,52 @@ public class NotificationController {
      * @param notification the notification string to add
      */
     void addNotification(String notification) {
+        Label line = makeNotificationLabel(notification);
+        setLatestNotification(makeLatestNotificationLabel(line));
+        showBubble(notification);
+
+        VBox vBox = (VBox) this.notificationList.getContent();
+        vBox.getChildren().add(0,line);
+
+        setNotificationNum();
+    }
+
+    /**
+     * Adds a notification with an action
+     * @param notification the message to show on the notification
+     * @param actionText the text to show on the action button
+     * @param handler the handler for clicking the button
+     */
+    void addNotification(String notification, String actionText, EventHandler handler) {
+        // HBox to hold the label of the notification and the action button
+        HBox box = new HBox();
+
+        Label line = makeNotificationLabel(notification);
+        showBubble(notification);
+
+        Button actionButton = new Button(actionText);
+        actionButton.setId("notification");
+        actionButton.setOnMouseClicked(handler);
+
+        setLatestNotification(makeLatestNotificationLabel(line), makeLatestNotificationButton(actionButton));
+
+        // Make the x remove the whole hbox
+        line.setOnMouseClicked(event -> {
+            if (event.getTarget().equals(line.getGraphic()))
+                removeNotification(box);
+        });
+
+        box.setSpacing(5);
+        box.getChildren().add(line);
+        box.getChildren().add(actionButton);
+
+        VBox vBox = (VBox) this.notificationList.getContent();
+        vBox.getChildren().add(0,box);
+
+        setNotificationNum();
+    }
+
+    private Label makeNotificationLabel(String notification) {
         Label line = new Label(notification);
         line.setWrapText(true);
         line.setId("notification");
@@ -172,14 +221,21 @@ public class NotificationController {
             if (event.getTarget().equals(line.getGraphic()))
                 removeNotification(line);
         });
+        return line;
+    }
 
-        setLatestNotificationText(notification);
-        showBubble(notification);
+    private Label makeLatestNotificationLabel(Label notification) {
+        Label line = new Label(notification.getText());
+        line.setWrapText(true);
+        line.setId("notification");
+        return line;
+    }
 
-        VBox vBox = (VBox) this.notificationList.getContent();
-        vBox.getChildren().add(0,line);
-
-        setNotificationNum();
+    private Button makeLatestNotificationButton(Button action) {
+        Button latestActionButton = new Button(action.getText());
+        latestActionButton.setId("notification");
+        latestActionButton.setOnMouseClicked(action.getOnMouseClicked());
+        return latestActionButton;
     }
 
     /**
@@ -198,24 +254,30 @@ public class NotificationController {
         VBox vBox = (VBox) this.notificationList.getContent();
 
         vBox.getChildren().clear();
-        setLatestNotificationText("");
+        setLatestNotification(null);
 
         setNotificationNum();
     }
 
     /**
      * Removes a given notification
-     * @param notification the notification label to remove
+     * @param notification the notification label (with or without an action) to remove
      */
-    private void removeNotification(Label notification) {
+    private void removeNotification(Region notification) {
         VBox vBox = (VBox) this.notificationList.getContent();
 
         // Reset the latest notification text if needed
         if (vBox.getChildren().indexOf(notification)==0) {
-            if (vBox.getChildren().size() > 1)
-                setLatestNotificationText(((Label) vBox.getChildren().get(1)).getText());
+            if (vBox.getChildren().size() > 1) {
+                if (vBox.getChildren().get(1) instanceof HBox) {
+                    HBox box = (HBox) vBox.getChildren().get(1);
+                    setLatestNotification(makeLatestNotificationLabel(((Label) box.getChildren().get(0))),
+                            makeLatestNotificationButton((Button) box.getChildren().get(1)));
+                } else
+                    setLatestNotification(makeLatestNotificationLabel((Label) vBox.getChildren().get(1)));
+            }
             else
-                setLatestNotificationText("");
+                setLatestNotification(null);
         }
 
         vBox.getChildren().remove(notification);
@@ -224,11 +286,25 @@ public class NotificationController {
     }
 
     /**
-     * Helper method to set the latest notification text
-     * @param notificationText the string to set the latest notification text to
+     * Sets the latest notification
+     * @param notificationLabel the label to add
      */
-    private void setLatestNotificationText(String notificationText) {
-        latestNotificationLabel.setText(notificationText);
+    private void setLatestNotification(Label notificationLabel) {
+        latestNotificationBox.getChildren().setAll(notificationLabel);
+    }
+
+    /**
+     * Sets the latest notification with an action
+     * @param notificationLabel the label for the notification
+     * @param notificationButton the button with an action
+     */
+    private void setLatestNotification(Label notificationLabel, Button notificationButton) {
+        try {
+            latestNotificationBox.getChildren().setAll(notificationLabel, notificationButton);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        //latestNotificationBox.getChildren().setAll(notificationLabel, notificationButton);
     }
 
     /**
