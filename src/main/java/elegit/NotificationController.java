@@ -168,7 +168,7 @@ public class NotificationController {
      */
     void addNotification(String notification) {
         Label line = makeNotificationLabel(notification);
-        setLatestNotification(line);
+        setLatestNotification(makeLatestNotificationLabel(line));
         showBubble(notification);
 
         VBox vBox = (VBox) this.notificationList.getContent();
@@ -194,7 +194,7 @@ public class NotificationController {
         actionButton.setId("notification");
         actionButton.setOnMouseClicked(handler);
 
-        setLatestNotification(line, actionButton);
+        setLatestNotification(makeLatestNotificationLabel(line), makeLatestNotificationButton(actionButton));
 
         // Make the x remove the whole hbox
         line.setOnMouseClicked(event -> {
@@ -222,6 +222,20 @@ public class NotificationController {
                 removeNotification(line);
         });
         return line;
+    }
+
+    private Label makeLatestNotificationLabel(Label notification) {
+        Label line = new Label(notification.getText());
+        line.setWrapText(true);
+        line.setId("notification");
+        return line;
+    }
+
+    private Button makeLatestNotificationButton(Button action) {
+        Button latestActionButton = new Button(action.getText());
+        latestActionButton.setId("notification");
+        latestActionButton.setOnMouseClicked(action.getOnMouseClicked());
+        return latestActionButton;
     }
 
     /**
@@ -257,9 +271,10 @@ public class NotificationController {
             if (vBox.getChildren().size() > 1) {
                 if (vBox.getChildren().get(1) instanceof HBox) {
                     HBox box = (HBox) vBox.getChildren().get(1);
-                    setLatestNotification((Label) box.getChildren().get(0), (Button) box.getChildren().get(1));
+                    setLatestNotification(makeLatestNotificationLabel(((Label) box.getChildren().get(0))),
+                            makeLatestNotificationButton((Button) box.getChildren().get(1)));
                 } else
-                    setLatestNotification(((Label) vBox.getChildren().get(1)));
+                    setLatestNotification(makeLatestNotificationLabel((Label) vBox.getChildren().get(1)));
             }
             else
                 setLatestNotification(null);
@@ -270,15 +285,26 @@ public class NotificationController {
         setNotificationNum();
     }
 
+    /**
+     * Sets the latest notification
+     * @param notificationLabel the label to add
+     */
     private void setLatestNotification(Label notificationLabel) {
-        latestNotificationBox.getChildren().clear();
-        latestNotificationBox.getChildren().add(notificationLabel);
+        latestNotificationBox.getChildren().setAll(notificationLabel);
     }
 
+    /**
+     * Sets the latest notification with an action
+     * @param notificationLabel the label for the notification
+     * @param notificationButton the button with an action
+     */
     private void setLatestNotification(Label notificationLabel, Button notificationButton) {
-        setLatestNotification(notificationLabel);
-        latestNotificationBox.getChildren().add(notificationButton);
-        latestNotificationBox.setVisible(true);
+        try {
+            latestNotificationBox.getChildren().setAll(notificationLabel, notificationButton);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        //latestNotificationBox.getChildren().setAll(notificationLabel, notificationButton);
     }
 
     /**
