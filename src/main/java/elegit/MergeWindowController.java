@@ -128,7 +128,7 @@ public class MergeWindowController {
         BranchTrackingStatus b = BranchTrackingStatus.of(repoHelper.getRepo(), curBranch);
         if(b == null) {
             disable = true;
-            mergeRemoteTrackingText.setText("This branch does not have an\n" +
+            mergeRemoteTrackingText.setText("\nThis branch does not have an\n" +
                     "upstream remote branch.\n\n" +
                     "Push to create a remote branch.");
             hideRemoteMerge();
@@ -184,7 +184,9 @@ public class MergeWindowController {
      * closes the window
      */
     public void closeWindow() {
-        if (Platform.isFxApplicationThread()) stage.close();
+        if (Platform.isFxApplicationThread()) {
+            stage.close();
+        }
         else {
             Platform.runLater(() -> stage.close());
         }
@@ -247,10 +249,9 @@ public class MergeWindowController {
             }
         } else if (mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.MERGED)
                 || mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.MERGED_NOT_COMMITTED)) {
-            this.showMergeSuccessNotification();
-            // Why does this cause an infinite error loop?
-//            sessionController.gitStatus();
-//            closeWindow();
+            sessionController.gitStatus();
+            closeWindow();
+            return;
 
         } else if (mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.FAST_FORWARD)) {
             this.showFastForwardMergeNotification();
@@ -308,7 +309,7 @@ public class MergeWindowController {
 
     private void showChangedFilesNotification() {
         logger.warn("Merge failed because of changed files notification");
-        notificationPaneController.addNotification("Merge failed. Commit or stash any changed files.");
+        notificationPaneController.addNotification("Merge failed. Commit or reset any changed files.");
     }
 
     private void showUpToDateNotification() {

@@ -53,7 +53,6 @@ public class CommitController {
 
         this.sessionModel = SessionModel.getSessionModel();
         this.repoHelper = this.sessionModel.getCurrentRepoHelper();
-        this.commitMessageField.requestFocus();
 
         this.stagedFilesPanelView.setSessionModel(this.sessionModel);
         this.allFilesPanelView.setSessionModel(this.sessionModel);
@@ -93,6 +92,10 @@ public class CommitController {
             refresher.interrupt();
         });
         stage.show();
+
+        // Controls cannot have focus until the scene has been initialized
+        this.commitMessageField.requestFocus();
+
 
         // Update the panels even when git status is updated
         refresher = new Thread(new Task<Void>() {
