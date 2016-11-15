@@ -11,7 +11,12 @@
 }
 
 #merge-text {
+    -fx-font-size: 12px;
+}
+
+#merge-header-text {
     -fx-font-size: 14px;
+    -fx-font-weight: bold;
 }
 
 

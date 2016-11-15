@@ -173,6 +173,7 @@ public class MergeWindowController {
         stage = new Stage();
         stage.setTitle("Merge");
         stage.setScene(new Scene(anchorRoot));
+        stage.setResizable(false);
         stage.initModality(Modality.APPLICATION_MODAL);
         stage.setOnCloseRequest(event -> logger.info("Closed merge window"));
         stage.show();
