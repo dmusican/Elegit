@@ -1,7 +1,6 @@
 package elegit;
 
 import elegit.treefx.CellLabel;
-import elegit.treefx.CellLabelContainer;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
@@ -19,54 +18,35 @@ import java.util.Optional;
  * certain aspects that are expensive to look up with JGit's standard RevTag, e.g. author,
  * tagMessage, etc.
  */
-public class TagHelper{
+public class TagHelper extends RefHelper{
 
     // The tag this helper wraps
-    RevTag tag;
+    private RevTag tag;
     // The author of this commit
-    PersonIdent author;
+    private PersonIdent author;
 
-    // The commit that this tag points to
-    CommitHelper commit;
-
-    // The name of this tag
-    String tagName;
     // The short message of the tag
-    String shortMessage;
+    private String shortMessage;
     // The full message of the tag
-    String fullMessage;
+    private String fullMessage;
 
     // Whether the tag for this helper is lightweight or annotated
-    boolean isAnnotated;
+    private boolean isAnnotated;
 
-    public TagHelper(RevTag t, CommitHelper c) {
+    TagHelper(RevTag t, CommitHelper c) {
         this.tag = t;
         this.author = t.getTaggerIdent();
-        this.tagName = t.getTagName();
+        this.refName = t.getTagName();
         this.shortMessage = t.getShortMessage();
         this.fullMessage = t.getFullMessage();
         this.isAnnotated = true;
         this.commit = c;
     }
 
-    public TagHelper (String name, CommitHelper c) {
-        this.tagName = name;
+    TagHelper (String name, CommitHelper c) {
+        this.refName = name;
         this.commit = c;
         this.isAnnotated = false;
-    }
-
-    /**
-     * @return the name of the tag
-     */
-    public String getName() { return this.tagName; }
-
-    /**
-     * @return the name of the tag, or an abbreviated version if it's too long
-     */
-    public String getAbbrevName() {
-        if (this.tagName.length()> CellLabel.MAX_CHAR_PER_LABEL)
-            return this.tagName.substring(0, 24) + "...";
-        return this.tagName;
     }
 
     /**
@@ -126,19 +106,17 @@ public class TagHelper{
         this.commit = c;
     }
 
-    public String getCommitId() {
+    String getCommitId() {
         return this.commit.getObjectId().getName();
     }
 
-    public CommitHelper getCommit() {return this.commit; }
-
     public boolean isAnnotated() { return this.isAnnotated; }
 
-    public boolean presentDeleteDialog() {
+    boolean presentDeleteDialog() {
         //Create the dialog
         Dialog<Boolean> dialog = new Dialog<>();
         dialog.setTitle("Delete Tag");
-        dialog.setHeaderText("Are you sure you want to delete tag "+tagName+"?");
+        dialog.setHeaderText("Are you sure you want to delete tag "+ refName +"?");
 
         ButtonType confirm = new ButtonType("Yes", ButtonBar.ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().addAll(confirm, ButtonType.CANCEL);

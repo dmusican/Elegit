@@ -2,6 +2,8 @@ package elegit.treefx;
 
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
+import elegit.CommitTreeModel;
+import elegit.RefHelper;
 import javafx.geometry.Insets;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
@@ -18,6 +20,7 @@ import javafx.scene.text.Text;
  */
 public class CellLabel extends HBox {
     private String name;
+    private RefHelper refHelper;
     boolean isCurrent, isTag, isRemote;
     Text pointer;
     ImageView image;
@@ -25,8 +28,13 @@ public class CellLabel extends HBox {
     ContextMenu contextMenu;
     public static final int MAX_CHAR_PER_LABEL=25;
 
-    CellLabel(String name, boolean isCurrent, boolean isTag) {
-        this.name = name;
+    CellLabel(RefHelper refHelper, boolean isCurrent) {
+        this(refHelper, isCurrent, false);
+    }
+
+    CellLabel(RefHelper refHelper, boolean isCurrent, boolean isTag) {
+        this.refHelper = refHelper;
+        this.name = refHelper.getAbbrevName();
         this.isCurrent = isCurrent;
         this.isTag = isTag;
         this.isRemote = false;
@@ -171,5 +179,9 @@ public class CellLabel extends HBox {
             image += "branch.png";
         }
         ((ImageView) this.getChildren().get(2)).setImage(new Image(image));
+    }
+
+    RefHelper getRefHelper() {
+        return this.refHelper;
     }
 }

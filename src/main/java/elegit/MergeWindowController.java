@@ -1,10 +1,8 @@
 package elegit;
 
-import elegit.exceptions.*;
 import elegit.treefx.CellLabel;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
-import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -19,12 +17,10 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.api.errors.*;
-import org.eclipse.jgit.errors.NoMergeBaseException;
 import org.eclipse.jgit.lib.BranchTrackingStatus;
 import org.eclipse.jgit.lib.Repository;
 
 import java.io.IOException;
-import java.util.List;
 
 /**
  * Controller for the merge window
@@ -96,8 +92,8 @@ public class MergeWindowController {
 
                         if (helper == null || empty) { setGraphic(null); }
                         else {
-                            if(helper.getBranchName().length() > CellLabel.MAX_CHAR_PER_LABEL){
-                                branchName.setTooltip(new Tooltip(helper.getBranchName()));
+                            if(helper.getRefName().length() > CellLabel.MAX_CHAR_PER_LABEL){
+                                branchName.setTooltip(new Tooltip(helper.getRefName()));
                             }
                             branchName.setText(helper.getAbbrevName());
                             setGraphic(branchName);
@@ -122,7 +118,7 @@ public class MergeWindowController {
      * @throws IOException if there is an error getting branch names
      */
     private void initText() throws IOException {
-        String curBranch = repoHelper.getBranchModel().getCurrentBranch().getBranchName();
+        String curBranch = repoHelper.getBranchModel().getCurrentBranch().getRefName();
         BranchTrackingStatus b = BranchTrackingStatus.of(repoHelper.getRepo(), curBranch);
         if(b == null) {
             disable = true;

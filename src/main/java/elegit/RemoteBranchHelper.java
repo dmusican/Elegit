@@ -17,13 +17,13 @@ public class RemoteBranchHelper extends BranchHelper {
     }
 
     @Override
-    public String getBranchName(){
-        return repoHelper.repo.getRemoteName(this.refPathString)+"/"+super.getBranchName();
+    public String getRefName(){
+        return repoHelper.repo.getRemoteName(this.refPathString)+"/"+super.getRefName();
     }
 
     @Override
     public String getAbbrevName(){
-        String name = getBranchName();
+        String name = getRefName();
         if (name.length() > CellLabel.MAX_CHAR_PER_LABEL) {
             name = name.substring(0,24)+"...";
         }

@@ -1,6 +1,7 @@
 package elegit.treefx;
 
 import elegit.CommitTreeController;
+import elegit.RefHelper;
 import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
@@ -226,7 +227,7 @@ public class Cell extends Pane{
         tooltip.setText(label);
     }
 
-    private void setRefLabel(List<String> refs){
+    private void setRefLabel(List<RefHelper> refs){
         this.refLabel.setLabels(refs, this);
     }
 
@@ -234,7 +235,7 @@ public class Cell extends Pane{
         this.refLabel.setCurrentLabels(refs);
     }
 
-    void setLabels(String displayLabel, List<String> refLabels){
+    void setLabels(String displayLabel, List<RefHelper> refLabels){
         setDisplayLabel(displayLabel);
         setRefLabel(refLabels);
     }
@@ -243,12 +244,8 @@ public class Cell extends Pane{
         setCurrentRefLabels(refLabels);
     }
 
-    void setTagLabels(Map<String, ContextMenu> tagLabels) {
-        this.refLabel.setTagLabels(tagLabels);
-    }
-
-    void setBranchLabels(Map<String, ContextMenu> branchLabels) {
-        this.refLabel.setBranchLabels(branchLabels);
+    void setLabelMenus(Map<RefHelper, ContextMenu> menuMap) {
+        this.refLabel.setLabelMenus(menuMap);
     }
 
     void setRemoteLabels(List<String> branchLabels) {

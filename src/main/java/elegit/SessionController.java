@@ -10,7 +10,6 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.concurrent.Task;
 import javafx.event.*;
-import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Side;
@@ -20,7 +19,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.*;
 import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
-import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
@@ -46,7 +44,6 @@ import org.eclipse.jgit.api.ResetCommand;
 import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.dircache.InvalidPathException;
 import org.eclipse.jgit.errors.NoMergeBaseException;
-import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.jgit.transport.RemoteRefUpdate;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
@@ -306,8 +303,8 @@ public class SessionController {
         if (update) {
             Platform.runLater(() -> {
                 currentLocalBranchLabel.setText(localBranch.getAbbrevName());
-                currentLocalBranchLabel.setOnMouseClicked((event -> CommitTreeController.focusCommitInGraph(localBranch.getHead())));
-                addToolTip(currentLocalBranchHbox, localBranch.getBranchName());
+                currentLocalBranchLabel.setOnMouseClicked((event -> CommitTreeController.focusCommitInGraph(localBranch.getCommit())));
+                addToolTip(currentLocalBranchHbox, localBranch.getRefName());
             });
         }
 
@@ -1501,7 +1498,7 @@ public class SessionController {
 
                 if (selectedBranch instanceof LocalBranchHelper) {
                     branchModel.deleteLocalBranch((LocalBranchHelper) selectedBranch);
-                    updateUser(selectedBranch.getBranchName() + " deleted.");
+                    updateUser(selectedBranch.getRefName() + " deleted.");
                 }else {
                     deleteRemoteBranch(selectedBranch, branchModel,
                                        (String message) -> updateUser(message));
@@ -1582,7 +1579,7 @@ public class SessionController {
                         new UsernamePasswordCredentialsProvider(response.username, response.password);
             }
             RemoteRefUpdate.Status deleteStatus = branchModel.deleteRemoteBranch((RemoteBranchHelper) selectedBranch);
-            String updateMessage = selectedBranch.getBranchName();
+            String updateMessage = selectedBranch.getRefName();
             // There are a number of possible cases, see JGit's documentation on RemoteRefUpdate.Status
             // for the full list.
             switch (deleteStatus) {
@@ -2729,7 +2726,7 @@ public class SessionController {
         Platform.runLater(() -> {
             logger.warn("Cannot delete current branch notification");
             notificationPaneController.addNotification(String.format("Sorry, %s can't be deleted right now. " +
-                    "Try checking out a different branch first.", branch.getBranchName()));
+                    "Try checking out a different branch first.", branch.getRefName()));
         });
     }
 

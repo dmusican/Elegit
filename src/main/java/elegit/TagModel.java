@@ -5,11 +5,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import elegit.exceptions.MissingRepoException;
 import elegit.exceptions.TagNameExistsException;
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.SimpleBooleanProperty;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jgit.api.Git;
@@ -182,7 +182,7 @@ public class TagModel {
         // should this Git instance be class-level?
         Git git = new Git(this.repoHelper.getRepo());
         // git tag -d
-        git.tagDelete().setTags(tagToRemove.getName()).call();
+        git.tagDelete().setTags(tagToRemove.getRefName()).call();
         git.close();
 
         tagToRemove.getCommit().removeTag(tagName);
@@ -215,5 +215,25 @@ public class TagModel {
 
     public List<TagHelper> getAllTags() {
         return new ArrayList<>(tagIdMap.values());
+    }
+
+    /**
+     * Returns a map of commits and associated tags
+     * @return a map with commits as they key and a list of tag helpers associated with it
+     */
+    public Map<CommitHelper, List<TagHelper>> getTagCommitMap(){
+        Map<CommitHelper, List<TagHelper>> commitTagMap = new HashMap<>();
+
+        List<TagHelper> tags = this.getAllTags();
+
+        for(TagHelper tag : tags){
+            CommitHelper head = tag.getCommit();
+            if(commitTagMap.containsKey(head)){
+                commitTagMap.get(head).add(tag);
+            }else{
+                commitTagMap.put(head, Stream.of(tag).collect(Collectors.toList()));
+            }
+        }
+        return commitTagMap;
     }
 }

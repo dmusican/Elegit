@@ -222,7 +222,7 @@ public class CommitHelper{
      */
     public void removeTag(String s) {
         for (TagHelper tag: this.tags) {
-            if (tag.getName().equals(s)) {
+            if (tag.getRefName().equals(s)) {
                 this.tags.remove(tag);
                 return;
             }
@@ -243,7 +243,7 @@ public class CommitHelper{
             this.tags = new ArrayList<>();
         ArrayList<String> tagNames = new ArrayList<>();
         for (TagHelper tag: this.tags) {
-            tagNames.add(tag.getName());
+            tagNames.add(tag.getRefName());
         }
         return tagNames;
     }

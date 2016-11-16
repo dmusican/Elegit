@@ -1,5 +1,6 @@
 package elegit.treefx;
 
+import elegit.RefHelper;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.scene.control.ContextMenu;
@@ -137,7 +138,7 @@ public class TreeGraphModel{
      * @param type the type of the cell, local, remote, or both
      */
     public void addCell(String newId, long time, String displayLabel,
-                        List<String> refs, ContextMenu contextMenu,
+                        List<RefHelper> refs, ContextMenu contextMenu,
                         List<String> parentIds, Cell.CellType type){
         // Create a list of parents
         List<Cell> parents = new ArrayList<>();
@@ -253,7 +254,7 @@ public class TreeGraphModel{
      * @param label the new label
      * @param refs the branch names to include on the label
      */
-    public void setCellLabels(String cellId, String label, List<String> refs){
+    public void setCellLabels(String cellId, String label, List<RefHelper> refs){
         setCellLabels(cellMap.get(cellId), label, refs);
     }
 
@@ -263,7 +264,7 @@ public class TreeGraphModel{
      * @param label the labels to put on the cell
      * @param refs the list of refs to add
      */
-    private void setCellLabels(Cell cell, String label, List<String> refs){
+    private void setCellLabels(Cell cell, String label, List<RefHelper> refs){
         cell.setLabels(label, refs);
         if(refs.size() > 0) cellsWithNonDefaultShapesOrLabels.add(cell);
     }
@@ -276,12 +277,8 @@ public class TreeGraphModel{
         cell.setCurrentLabels(refs);
     }
 
-    public void setTagCellLabels(String cellId, Map<String, ContextMenu> tags) {
-        cellMap.get(cellId).setTagLabels(tags);
-    }
-
-    public void setBranchCellLabels(String cellId, Map<String, ContextMenu> branches) {
-        cellMap.get(cellId).setBranchLabels(branches);
+    public void setLabelMenus(String cellId, Map<RefHelper, ContextMenu> menuMap) {
+        cellMap.get(cellId).setLabelMenus(menuMap);
     }
 
     public void setRemoteBranchCells(String cellId, List<String> remoteBranches) {

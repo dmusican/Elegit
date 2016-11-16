@@ -533,7 +533,7 @@ public class RepoHelper {
         push.setProgressMonitor(progress);
 
         if(this.getBranchModel().getCurrentRemoteBranch() == null) {
-            if(isTest || PopUpWindows.trackCurrentBranchRemotely(branchToPush.getBranchName())){
+            if(isTest || PopUpWindows.trackCurrentBranchRemotely(branchToPush.getRefName())){
                 setUpstreamBranch(branchToPush, remote);
             }else {
                 throw new NoCommitsToPushException();
@@ -569,7 +569,7 @@ public class RepoHelper {
     private void setUpstreamBranch(BranchHelper branch, String remote) throws IOException {
         Git git = new Git(this.repo);
         StoredConfig config = git.getRepository().getConfig();
-        String branchName = branch.getBranchName();
+        String branchName = branch.getRefName();
         config.setString(ConfigConstants.CONFIG_BRANCH_SECTION, branchName,  ConfigConstants.CONFIG_KEY_REMOTE, remote);
         config.setString(ConfigConstants.CONFIG_BRANCH_SECTION, branchName, ConfigConstants.CONFIG_KEY_MERGE, Constants.R_HEADS + branchName);
         config.save();
@@ -614,7 +614,7 @@ public class RepoHelper {
 
         // Gets all local branches with remote branches and adds them to the push call
         for(LocalBranchHelper branch : this.branchModel.getLocalBranchesTyped()) {
-            if(BranchTrackingStatus.of(this.repo, branch.getBranchName()) != null) {
+            if(BranchTrackingStatus.of(this.repo, branch.getRefName()) != null) {
                 push.add(branch.getRefPathString());
             }else {
                 untrackedLocalBranches.add(branch);
@@ -1037,8 +1037,8 @@ public class RepoHelper {
      */
     public boolean checkUnmergedCommits() {
         Config config = this.repo.getConfig();
-        String remoteBranch = config.getString("branch", this.branchModel.getCurrentBranch().getBranchName(), "merge");
-        String remote = config.getString("branch", this.branchModel.getCurrentBranch().getBranchName(), "remote");
+        String remoteBranch = config.getString("branch", this.branchModel.getCurrentBranch().getRefName(), "merge");
+        String remote = config.getString("branch", this.branchModel.getCurrentBranch().getRefName(), "remote");
         if (remoteBranch == null || remote == null) return false;
         remoteBranch = remote + "/" + Repository.shortenRefName(remoteBranch);
         try {
@@ -1228,9 +1228,9 @@ public class RepoHelper {
         List<ObjectId> stopPoints = new ArrayList<>();
 
         for (BranchHelper newBranch : newBranches) {
-            if (oldBranches.containsKey(newBranch.getBranchName())) {
+            if (oldBranches.containsKey(newBranch.getRefName())) {
                 ObjectId newBranchHeadID = newBranch.getHeadId();
-                ObjectId oldBranchHeadID = oldBranches.get(newBranch.getBranchName()).getHeadId();
+                ObjectId oldBranchHeadID = oldBranches.get(newBranch.getRefName()).getHeadId();
                 if (!newBranchHeadID.equals(oldBranchHeadID)) {
                     startPoints.add(newBranchHeadID);
                 }
@@ -1595,6 +1595,16 @@ public class RepoHelper {
 
         if (includeTags) return new Git(repo).lsRemote().setHeads(true).setTags(includeTags).call();
         else return new Git(repo).lsRemote().setHeads(true).call();
+    }
+
+    public List<RefHelper> getRefsForCommit(CommitHelper helper) {
+        List<RefHelper> helpers = new ArrayList<>();
+        if (this.branchModel.getBranchesWithHead(helper).size() > 0)
+            helpers.addAll(this.branchModel.getAllBranchHeads().get(helper));
+        Map<CommitHelper, List<TagHelper>> tagMap = this.tagModel.getTagCommitMap();
+        if (tagMap.containsKey(helper))
+            helpers.addAll(tagMap.get(helper));
+        return helpers;
     }
 
     public BranchModel getBranchModel() {

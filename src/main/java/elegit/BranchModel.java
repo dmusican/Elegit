@@ -132,7 +132,7 @@ public class BranchModel {
     public void refreshHeadIdsType(BranchType type) {
         List<? extends BranchHelper> listToRefresh = (type == BranchType.LOCAL) ? this.localBranchesTyped : this.remoteBranchesTyped;
         for (BranchHelper branch : listToRefresh)
-            if (branch.getHead() == null) {
+            if (branch.getCommit() == null) {
                 try {
                     branch.getHeadId();
                 } catch (IOException e) {
@@ -289,24 +289,24 @@ public class BranchModel {
     public CommitHelper getCurrentRemoteBranchHead() throws IOException {
         String remoteBranch = getCurrentRemoteBranch();
         if (remoteBranch != null) {
-            return getBranchByName(BranchType.REMOTE, remoteBranch).getHead();
+            return getBranchByName(BranchType.REMOTE, remoteBranch).getCommit();
         }
         return null;
     }
 
     public String getCurrentRemoteBranch() throws IOException {
-        if (BranchTrackingStatus.of(this.repoHelper.repo, this.currentBranch.getBranchName())!=null) {
+        if (BranchTrackingStatus.of(this.repoHelper.repo, this.currentBranch.getRefName())!=null) {
             return Repository.shortenRefName(
-                    BranchTrackingStatus.of(this.repoHelper.repo, this.currentBranch.getBranchName())
+                    BranchTrackingStatus.of(this.repoHelper.repo, this.currentBranch.getRefName())
                             .getRemoteTrackingBranch());
         }
         return null;
     }
 
     public String getCurrentRemoteAbbrevBranch() throws IOException {
-        if (BranchTrackingStatus.of(this.repoHelper.repo, this.currentBranch.getBranchName())!=null) {
+        if (BranchTrackingStatus.of(this.repoHelper.repo, this.currentBranch.getRefName())!=null) {
             String name =  Repository.shortenRefName(
-                    BranchTrackingStatus.of(this.repoHelper.repo, this.currentBranch.getBranchName())
+                    BranchTrackingStatus.of(this.repoHelper.repo, this.currentBranch.getRefName())
                             .getRemoteTrackingBranch());
             if (name.length() > CellLabel.MAX_CHAR_PER_LABEL) {
                 name = name.substring(0,24)+"...";
@@ -321,7 +321,7 @@ public class BranchModel {
      *
      * @return the commit helper for the head of the current branch
      */
-    public CommitHelper getCurrentBranchHead() { return (this.currentBranch == null) ? null : this.currentBranch.getHead();}
+    public CommitHelper getCurrentBranchHead() { return (this.currentBranch == null) ? null : this.currentBranch.getCommit();}
 
     /**
      * Getter for list of branches
@@ -386,7 +386,7 @@ public class BranchModel {
     public BranchHelper getBranchByName(BranchType type, String branchName) {
         List<? extends BranchHelper> branchList = type==BranchType.LOCAL ? this.localBranchesTyped : this.remoteBranchesTyped;
         for (BranchHelper branch: branchList) {
-            if (branch.getBranchName().equals(branchName))
+            if (branch.getRefName().equals(branchName))
                 return branch;
         }
         return null;
@@ -402,7 +402,7 @@ public class BranchModel {
      * @return true if branch is being tracked, else false
      */
     public boolean isBranchTracked(BranchHelper branch) {
-        String branchName = branch.getBranchName();
+        String branchName = branch.getRefName();
         if (branch instanceof LocalBranchHelper) {
             // We can check this easily by looking at the config file, but have to first
             // check if there is an entry in the config file for LocalBranchHelper
@@ -416,10 +416,10 @@ public class BranchModel {
         } else {
             for (BranchHelper local : this.localBranchesTyped) {
                 // Skip local branches that aren't tracked remotely, as they won't have a config entry
-                if (this.repoHelper.getRepo().getConfig().getString("branch", local.getBranchName(), "merge")==null) continue;
+                if (this.repoHelper.getRepo().getConfig().getString("branch", local.getRefName(), "merge")==null) continue;
 
                 // Otherwise, we have to check all local branches to see if they're tracking the particular remote branch
-                if (this.repoHelper.getRepo().shortenRefName(this.repoHelper.getRepo().getConfig().getString("branch", local.getBranchName(), "merge"))
+                if (this.repoHelper.getRepo().shortenRefName(this.repoHelper.getRepo().getConfig().getString("branch", local.getRefName(), "merge"))
                         .equals(this.repoHelper.getRepo().shortenRemoteBranchName(branch.getRefPathString()))) {
                     return true;
                 }
@@ -440,9 +440,9 @@ public class BranchModel {
             return false;
         try {
             // If the branch is the local's remote tracking branch, it is current
-            BranchTrackingStatus status = BranchTrackingStatus.of(this.repoHelper.repo, this.currentBranch.getBranchName());
+            BranchTrackingStatus status = BranchTrackingStatus.of(this.repoHelper.repo, this.currentBranch.getRefName());
             if (branch instanceof RemoteBranchHelper && status != null && this.repoHelper.repo.shortenRefName(
-                    status.getRemoteTrackingBranch()).equals(branch.getBranchName())) {
+                    status.getRemoteTrackingBranch()).equals(branch.getRefName())) {
                 return true;
             }
         } catch (IOException e) {
@@ -464,7 +464,7 @@ public class BranchModel {
         List<BranchHelper> branches = this.getAllBranches();
 
         for(BranchHelper branch : branches){
-            CommitHelper head = branch.getHead();
+            CommitHelper head = branch.getCommit();
             if(heads.containsKey(head)){
                 heads.get(head).add(branch);
             }else{
@@ -493,7 +493,7 @@ public class BranchModel {
         List<String> branchLabels = new LinkedList<>();
         if(branches != null) {
             branchLabels = branches.stream()
-                    .map(BranchHelper::getBranchName)
+                    .map(BranchHelper::getRefName)
                     .collect(Collectors.toList());
         }
         return branchLabels;
@@ -506,7 +506,7 @@ public class BranchModel {
         List<String> branches = new ArrayList<>();
         for (BranchHelper branch : getAllBranches()) {
             if (isBranchCurrent(branch))
-                branches.add(branch.getBranchName());
+                branches.add(branch.getRefName());
         }
         return branches;
     }

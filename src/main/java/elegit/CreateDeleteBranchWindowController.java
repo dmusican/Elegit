@@ -114,7 +114,7 @@ public class CreateDeleteBranchWindowController {
                         if (helper == null || empty) { setGraphic(null); }
                         else {
                             branchName.setText(helper.getAbbrevName());
-                            if (repoHelper.getBranchModel().getCurrentBranch().getBranchName().equals(branchName.getText()))
+                            if (repoHelper.getBranchModel().getCurrentBranch().getRefName().equals(branchName.getText()))
                                 branchName.setId("branch-current");
                             else
                                 branchName.setId("branch-not-current");
@@ -253,7 +253,7 @@ public class CreateDeleteBranchWindowController {
         if(selectedBranch == null) return false;
         try {
             selectedBranch.checkoutBranch();
-            CommitTreeController.focusCommitInGraph(selectedBranch.getHead());
+            CommitTreeController.focusCommitInGraph(selectedBranch.getCommit());
             CommitTreeController.setBranchHeads(CommitTreeController.getCommitTreeModel(), theSessionModel.getCurrentRepoHelper());
             return true;
         } catch (JGitInternalException e){
@@ -301,7 +301,7 @@ public class CreateDeleteBranchWindowController {
 
                 if (selectedBranch instanceof LocalBranchHelper) {
                     this.branchModel.deleteLocalBranch((LocalBranchHelper) selectedBranch);
-                    updateUser(selectedBranch.getBranchName() + " deleted.", BranchModel.BranchType.LOCAL);
+                    updateUser(selectedBranch.getRefName() + " deleted.", BranchModel.BranchType.LOCAL);
                 }else {
                     sessionController.deleteRemoteBranch(selectedBranch, branchModel,
                                        (String message) -> updateUser(message, BranchModel.BranchType.REMOTE));
@@ -313,7 +313,7 @@ public class CreateDeleteBranchWindowController {
 //                    }
 //
 //                    deleteStatus = this.branchModel.deleteRemoteBranch((RemoteBranchHelper) selectedBranch);
-//                    String updateMessage = selectedBranch.getBranchName();
+//                    String updateMessage = selectedBranch.getRefName();
 //                    // There are a number of possible cases, see JGit's documentation on RemoteRefUpdate.Status
 //                    // for the full list.
 //                    switch (deleteStatus) {
@@ -483,14 +483,14 @@ public class CreateDeleteBranchWindowController {
         Platform.runLater(() -> {
             logger.warn("Cannot delete current branch notification");
             notificationPaneController.addNotification(String.format("Sorry, %s can't be deleted right now. " +
-                    "Try checking out a different branch first.", branch.getBranchName()));
+                    "Try checking out a different branch first.", branch.getRefName()));
         });
     }
 
     private void showGenericGitErrorNotificationWithBranch(BranchHelper branch) {
         Platform.runLater(() -> {
             logger.warn("Git error on branch notification");
-            notificationPaneController.addNotification(String.format("Sorry, there was a git error on branch %s.", branch.getBranchName()));
+            notificationPaneController.addNotification(String.format("Sorry, there was a git error on branch %s.", branch.getRefName()));
         });
     }
 

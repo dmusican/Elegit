@@ -14,16 +14,12 @@ import java.io.IOException;
  * It is implemented by LocalBranchHelper and RemoteBranchHelper.
  *
  */
-public abstract class BranchHelper {
+public abstract class BranchHelper extends RefHelper {
 
     // Full string representation of this branch, e.g. 'remotes/origin/master'
-    protected String refPathString;
-    // The commit that is the current head of this branch
-    protected CommitHelper branchHead;
+    String refPathString;
     // The repository this branch is a part of
-    protected RepoHelper repoHelper;
-    // The name of this branch, e.g. 'master'
-    protected String branchName;
+    RepoHelper repoHelper;
 
     /**
      * Creates a new BranchHelper for the given reference and repository.
@@ -35,20 +31,7 @@ public abstract class BranchHelper {
         this.refPathString = refPathString;
         this.repoHelper = repoHelper;
         this.setHead(this.repoHelper.getCommit(refPathString));
-        this.branchName = this.parseBranchName();
-    }
-
-    public String getBranchName(){
-        return this.branchName;
-    }
-
-    /**
-     * @return the name of the branch, or an abbreviated version if it's too long
-     */
-    public String getAbbrevName() {
-        if (this.branchName.length()> CellLabel.MAX_CHAR_PER_LABEL)
-            return this.branchName.substring(0, 24) + "...";
-        return this.branchName;
+        this.refName = this.parseBranchName();
     }
 
     /**
@@ -58,30 +41,23 @@ public abstract class BranchHelper {
 
     /**
      * Checks out this branch in the stored repository. Equivalent to
-     * 'git checkout [branchName]
+     * 'git checkout [refName]
      * @throws GitAPIException
      * @throws IOException
      */
     public abstract void checkoutBranch() throws GitAPIException, IOException;
 
     /**
-     * @return the commit that is the head of this branch, or null if it hasn't been set
-     */
-    public CommitHelper getHead(){
-        return branchHead;
-    }
-
-    /**
      * Sets the head of this branch.
      * @param head the new head
      */
     private void setHead(CommitHelper head){
-        branchHead = head;
+        commit = head;
     }
 
     @Override
     public String toString() {
-        return this.branchName;
+        return this.refName;
     }
 
     /**
@@ -92,15 +68,15 @@ public abstract class BranchHelper {
     }
 
     /**
-     * Gets the ID of this branch. If the head is non-null, uses branchHead's
+     * Gets the ID of this branch. If the head is non-null, uses commit's
      * ID. Otherwise, attempts to resolve its own reference string in the
      * stored repository and return the resolved ID
      * @return the id of this branch's head
      * @throws IOException
      */
     public ObjectId getHeadId() throws IOException{
-        if(branchHead != null){
-            return branchHead.getObjectId();
+        if(commit != null){
+            return commit.getObjectId();
         }else{
             ObjectId headId = repoHelper.getRepo().resolve(refPathString);
             setHead(repoHelper.getCommit(headId));
@@ -109,6 +85,6 @@ public abstract class BranchHelper {
     }
 
     public BranchTrackingStatus getStatus() throws IOException {
-        return BranchTrackingStatus.of(this.repoHelper.repo, this.branchName);
+        return BranchTrackingStatus.of(this.repoHelper.repo, this.refName);
     }
 }

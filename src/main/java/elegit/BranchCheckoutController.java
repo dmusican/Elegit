@@ -19,11 +19,6 @@ import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.lib.Repository;
 
 import java.io.IOException;
-import java.nio.file.DirectoryStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -211,7 +206,7 @@ public class BranchCheckoutController {
         if(selectedBranch == null) return false;
         try {
             selectedBranch.checkoutBranch();
-            CommitTreeController.focusCommitInGraph(selectedBranch.getHead());
+            CommitTreeController.focusCommitInGraph(selectedBranch.getCommit());
             CommitTreeController.setBranchHeads(CommitTreeController.getCommitTreeModel(), theSessionModel.getCurrentRepoHelper());
             return true;
         } catch (JGitInternalException e){
@@ -233,7 +228,7 @@ public class BranchCheckoutController {
 
     private void showGenericGitErrorNotificationWithBranch(LocalBranchHelper branch) {
         logger.warn("Git error on branch notification");
-        notificationPaneController.addNotification(String.format("Sorry, there was a git error on branch %s.", branch.getBranchName()));
+        notificationPaneController.addNotification(String.format("Sorry, there was a git error on branch %s.", branch.getRefName()));
     }
 
     private void showGenericErrorNotification() {
@@ -244,7 +239,7 @@ public class BranchCheckoutController {
     private void showCannotDeleteBranchNotification(LocalBranchHelper branch) {
         logger.warn("Cannot delete current branch notification");
         notificationPaneController.addNotification(String.format("Sorry, %s can't be deleted right now. " +
-                "Try checking out a different branch first.", branch.getBranchName()));
+                "Try checking out a different branch first.", branch.getRefName()));
     }
 
     private void showJGitInternalError(JGitInternalException e) {

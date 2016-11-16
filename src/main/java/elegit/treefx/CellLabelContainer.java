@@ -2,6 +2,8 @@ package elegit.treefx;
 
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
+import elegit.RefHelper;
+import elegit.TagHelper;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
@@ -58,13 +60,13 @@ public class CellLabelContainer extends GridPane {
     /**
      * Creates cell labels and structures them accordingly
      *
-     * @param labels the labels to create and place in this container
+     * @param refHelpers the labels to create and place in this container
      * @param cell the cell these labels are associated with
      */
-    void setLabels(List<String> labels, Cell cell) {
+    void setLabels(List<RefHelper> refHelpers, Cell cell) {
         Platform.runLater(() -> {
             getChildren().clear();
-            if (labels.size() < 1) {
+            if (refHelpers.size() < 1) {
                 return;
             }
 
@@ -77,7 +79,7 @@ public class CellLabelContainer extends GridPane {
 
             GridPane.setMargin(basicLabels, new Insets(0,0,5,5));
             basicLabels.setPickOnBounds(false);
-            for (String name : labels) {
+            for (RefHelper helper : refHelpers) {
                 if (col>MAX_COL_PER_ROW) {
                     row++;
                     col=0;
@@ -88,7 +90,12 @@ public class CellLabelContainer extends GridPane {
                     newLine.setPickOnBounds(false);
                     extendedLabels.add(newLine);
                 }
-                CellLabel label = new CellLabel(name, false, false);
+                CellLabel label;
+                if (helper instanceof TagHelper) {
+                    label = new TagCellLabel(helper, false);
+                }
+                else
+                    label = new BranchCellLabel(helper, false);
 
                 if (row>0) {
                     extendedLabels.get(row-1).getChildren().add(label);
@@ -151,35 +158,16 @@ public class CellLabelContainer extends GridPane {
     }
 
     /**
-     * Helper method to set the tag cell labels
-     * @param labels the labels that refer to tags and their menus
+     * Helper method to set the context menus on the ref labels
+     * @param menuMap a map between ref helpers and context menus
      */
-    void setTagLabels(Map<String, ContextMenu> labels) {
+    void setLabelMenus(Map<RefHelper, ContextMenu> menuMap) {
         Platform.runLater(() -> {
             for (Node m : getChildren()) {
                 if (m instanceof HBox) {
                     for (Node n : ((HBox) m).getChildren()) {
-                        if (n instanceof CellLabel && labels.keySet().contains(((CellLabel) n).getLabel().getText())) {
-                            ((CellLabel) n).setTag(true);
-                            ((CellLabel) n).setContextMenu(labels.get(((CellLabel) n).getName()));
-                        }
-                    }
-                }
-            }
-        });
-    }
-
-    /**
-     * Helper method to set the branch cell labels
-     * @param labels the labels that refer to branches and their menus
-     */
-    void setBranchLabels(Map<String, ContextMenu> labels) {
-        Platform.runLater(() -> {
-            for (Node m : getChildren()) {
-                if (m instanceof HBox) {
-                    for (Node n : ((HBox) m).getChildren()) {
-                        if (n instanceof CellLabel && labels.keySet().contains(((CellLabel) n).getLabel().getText())) {
-                            ((CellLabel) n).setContextMenu(labels.get(((CellLabel) n).getName()));
+                        if (n instanceof CellLabel && menuMap.keySet().contains(((CellLabel) n).getRefHelper())) {
+                            ((CellLabel) n).setContextMenu(menuMap.get(((CellLabel) n).getRefHelper()));
                         }
                     }
                 }

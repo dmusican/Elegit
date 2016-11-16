@@ -90,7 +90,7 @@ public class RemoteBranchTest {
         /* ********************* BRANCH AND PUSH SECTION ********************* */
         // Check that a previous test wasn't interrupted, if so make sure our branch is not there
         for (RemoteBranchHelper helper : helperPush.getBranchModel().getRemoteBranchesTyped()) {
-            if (helper.getBranchName().contains("new_branch")) {
+            if (helper.getRefName().contains("new_branch")) {
                 helperPush.getBranchModel().deleteRemoteBranch(helper);
             }
         }

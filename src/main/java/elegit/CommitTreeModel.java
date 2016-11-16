@@ -6,13 +6,10 @@ import elegit.treefx.Cell;
 import javafx.scene.control.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.message.LocalizedMessage;
 import org.eclipse.jgit.api.ResetCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.lib.ObjectId;
 
 import java.io.IOException;
-import java.rmi.Remote;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -168,15 +165,15 @@ public abstract class CommitTreeModel{
         Map<String, BranchHelper> updateBranchMap = new HashMap<>();
 
         for (BranchHelper branch : this.branchesInModel) {
-            currentBranchMap.put(branch.getBranchName(), branch);
+            currentBranchMap.put(branch.getRefName(), branch);
         }
         for (BranchHelper branch : branchesToUpdate)
-            updateBranchMap.put(branch.getBranchName(), branch);
+            updateBranchMap.put(branch.getRefName(), branch);
 
         // Check for added and changed branches
         for (BranchHelper branch : branchesToUpdate) {
-            if (currentBranchMap.containsKey(branch.getBranchName())){
-                if(currentBranchMap.get(branch.getBranchName()).getHead().getId().equals(branch.getHeadId().getName())){
+            if (currentBranchMap.containsKey(branch.getRefName())){
+                if(currentBranchMap.get(branch.getRefName()).getCommit().getId().equals(branch.getHeadId().getName())){
                     continue;
                 }
             }
@@ -184,7 +181,7 @@ public abstract class CommitTreeModel{
         }
         // Check if there are removed branches
         for (BranchHelper branch : this.branchesInModel) {
-            if (!updateBranchMap.containsKey(branch.getBranchName()))
+            if (!updateBranchMap.containsKey(branch.getRefName()))
                 updateModel.addBranch(branch);
         }
 
@@ -276,6 +273,7 @@ public abstract class CommitTreeModel{
         RepoHelper repo = sessionModel.getCurrentRepoHelper();
         String displayLabel = repo.getCommitDescriptorString(commitHelper, false);
         List<String> branchLabels = repo.getBranchModel().getBranchesWithHead(commitHelper);
+        List<RefHelper> refLabels = repo.getRefsForCommit(commitHelper);
         Cell.CellType computedType = repo.getCommitType(commitHelper);
 
         this.commitsInModel.add(commitHelper);
@@ -297,7 +295,7 @@ public abstract class CommitTreeModel{
             return;
         }
 
-        graphModel.addCell(commitID, commitHelper.getWhen().getTime(), displayLabel, branchLabels, getContextMenu(commitHelper), parentIds, computedType);
+        graphModel.addCell(commitID, commitHelper.getWhen().getTime(), displayLabel, refLabels, getContextMenu(commitHelper), parentIds, computedType);
     }
 
 
@@ -345,7 +343,7 @@ public abstract class CommitTreeModel{
      * @param tagHelper the tag that this context menu will refer to
      * @return the context menu with a delete option
      */
-    private ContextMenu getTagLabelMenu(TagHelper tagHelper) {
+    public ContextMenu getTagLabelMenu(TagHelper tagHelper) {
         ContextMenu contextMenu = new ContextMenu();
 
         MenuItem deleteitem = new MenuItem("Delete");
@@ -353,7 +351,7 @@ public abstract class CommitTreeModel{
             logger.info("Delete tag dialog started.");
             if (tagHelper.presentDeleteDialog()) {
                 try {
-                    sessionModel.getCurrentRepoHelper().getTagModel().deleteTag(tagHelper.getName());
+                    sessionModel.getCurrentRepoHelper().getTagModel().deleteTag(tagHelper.getRefName());
                     update();
                 } catch (GitAPIException | MissingRepoException | IOException e) {
                     e.printStackTrace();
@@ -547,46 +545,25 @@ public abstract class CommitTreeModel{
      * Looks for all ref labels, then adds them to the commit tree graph
      */
     public void updateAllRefLabels() {
-        String commitId;
         RepoHelper repo = sessionModel.getCurrentRepoHelper();
-        List<BranchHelper> branchLabels = repo.getBranchModel().getAllBranches();
-        List<TagHelper> tagLabels = repo.getTagModel().getAllTags();
+
+        List<RefHelper> refHelpers = new ArrayList<>();
+        refHelpers.addAll(repo.getBranchModel().getAllBranches());
+        refHelpers.addAll(repo.getTagModel().getAllTags());
+
         List<RemoteBranchHelper> remotes = repo.getBranchModel().getRemoteBranchesTyped();
 
-        Map<String, ContextMenu> branchMap = new HashMap<>();
-        Map<String, ContextMenu> tagMap = new HashMap<>();
+        Map<RefHelper, ContextMenu> menuMap = new HashMap<>();
         List<String> remoteBranches = new ArrayList<>();
 
         this.tagsInModel = repo.getTagModel().getAllTags();
 
-        Map<String, List<String>> commitLabelMap = new HashMap<>();
+        Map<String, List<RefHelper>> commitLabelMap = new HashMap<>();
 
-        for (BranchHelper helper : branchLabels) {
-            commitId = helper.getHead().getId();
-            branchMap.put(helper.getAbbrevName(), getBranchLabelMenu(helper));
-            if (commitLabelMap.containsKey(commitId))
-                commitLabelMap.get(commitId).add(helper.getBranchName());
-            else {
-                List<String> newList = new ArrayList<>();
-                newList.add(helper.getBranchName());
-                commitLabelMap.put(commitId, newList);
-            }
-        }
-
-        for (TagHelper helper : tagLabels) {
-            commitId = helper.getCommitId();
-            tagMap.put(helper.getAbbrevName(), getTagLabelMenu(helper));
-            if (commitLabelMap.containsKey(commitId))
-                commitLabelMap.get(commitId).add(helper.getName());
-            else {
-                List<String> newList = new ArrayList<>();
-                newList.add(helper.getName());
-                commitLabelMap.put(commitId, newList);
-            }
-        }
+        addCommitRefMaps(refHelpers, commitLabelMap, menuMap);
 
         for (RemoteBranchHelper helper : remotes) {
-            remoteBranches.add(helper.getBranchName());
+            remoteBranches.add(helper.getRefName());
         }
 
         // Set the labels
@@ -596,9 +573,29 @@ public abstract class CommitTreeModel{
                 treeGraph.treeGraphModel.setCellLabels(commit, displayLabel, commitLabelMap.get(commit));
                 treeGraph.treeGraphModel.setCurrentCellLabels(commit, this.sessionModel.getCurrentRepoHelper().getBranchModel().getCurrentAbbrevBranches());
 
-                treeGraph.treeGraphModel.setTagCellLabels(commit, tagMap);
-                treeGraph.treeGraphModel.setBranchCellLabels(commit, branchMap);
+                treeGraph.treeGraphModel.setLabelMenus(commit, menuMap);
                 treeGraph.treeGraphModel.setRemoteBranchCells(commit, remoteBranches);
+            }
+        }
+    }
+
+    private void addCommitRefMaps(List<RefHelper> helpers, Map<String, List<RefHelper>> commitLabelMap,
+                                                          Map<RefHelper, ContextMenu> menuMap) {
+        String commitId;
+        for (RefHelper helper : helpers) {
+            commitId = helper.getCommit().getId();
+
+            if (helper instanceof TagHelper)
+                menuMap.put(helper, getTagLabelMenu((TagHelper)helper));
+            else
+                menuMap.put(helper, getBranchLabelMenu((BranchHelper)helper));
+
+            if (commitLabelMap.containsKey(commitId))
+                commitLabelMap.get(commitId).add(helper);
+            else {
+                List<RefHelper> newList = new ArrayList<>();
+                newList.add(helper);
+                commitLabelMap.put(commitId, newList);
             }
         }
     }
@@ -607,16 +604,17 @@ public abstract class CommitTreeModel{
      * Forgets information about tracked/untracked branch heads in the tree and updates the model
      */
     public void resetBranchHeads(){
-        List<String> resetIDs = treeGraph.treeGraphModel.resetCellShapes();
+        //List<String> resetIDs = treeGraph.treeGraphModel.resetCellShapes();
         RepoHelper repo = sessionModel.getCurrentRepoHelper();
         this.branchesInModel = repo.getBranchModel().getAllBranches();
-        for(String id : resetIDs){
+        /*for(String id : resetIDs){
             if(this.sessionModel.getCurrentRepoHelper().getCommit(id) != null) {
                 String displayLabel = repo.getCommitDescriptorString(id, false);
                 List<String> branchLabels = repo.getBranchModel().getBranchesWithHead(id);
                 treeGraph.treeGraphModel.setCellLabels(id, displayLabel, branchLabels);
             }
-        }
+        }*/
+        updateAllRefLabels();
     }
 
     public List<TagHelper> getTagsToBePushed() {
