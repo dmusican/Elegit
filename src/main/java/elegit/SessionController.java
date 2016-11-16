@@ -81,8 +81,6 @@ public class SessionController {
     public Button removeButton;
     public Button checkoutFileButton;
     public Button mergeButton;
-    public Button commitInfoNameCopyButton;
-    public Button commitInfoGoToButton;
     public Button commitInfoButton;
     public Button addDeleteBranchButton;
     public Button checkoutButton;
@@ -138,9 +136,12 @@ public class SessionController {
     public ContextMenu pushContextMenu;
     public ContextMenu commitContextMenu;
     public ContextMenu fetchContextMenu;
+    public ContextMenu commitInfoContextMenu;
 
     public MenuItem cloneOption;
     public MenuItem existingOption;
+    public MenuItem commitInfoNameCopyButton;
+    public MenuItem commitInfoGoToButton;
 
     public Hyperlink legendLink;
 
@@ -405,8 +406,6 @@ public class SessionController {
         pushButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         pushTagsButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         fetchButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
-        commitInfoNameCopyButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
-        commitInfoGoToButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         commitInfoButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
 
         // Set minimum sizes for other fields and views
@@ -491,14 +490,6 @@ public class SessionController {
 
         Text folderOpenIcon = GlyphsDude.createIcon(FontAwesomeIcon.FOLDER_OPEN);
         existingOption.setGraphic(folderOpenIcon);
-
-        this.commitInfoGoToButton.setTooltip(new Tooltip(
-                "Go to selected commit"
-        ));
-
-        this.commitInfoNameCopyButton.setTooltip(new Tooltip(
-                "Copy commit ID"
-        ));
 
         this.commitButton.setTooltip(new Tooltip(
                 "Check in selected files to local repository"
@@ -1998,6 +1989,11 @@ public class SessionController {
             setButtonsDisabled(true);
         }
     }
+
+    /**
+     * Called when the commitInfoButton gets pushed, shows a menu of options
+     */
+    public void handleCommitInfoButton(){ commitInfoContextMenu.show(this.commitInfoButton, Side.BOTTOM, -150, 0); }
 
     /**
      * Copies the commit hash onto the clipboard

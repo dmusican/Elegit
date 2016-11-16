@@ -473,7 +473,21 @@
                         <Text   text="Commit Info:"
                                 style="-fx-font-weight: bold;"/>
                         <Button fx:id="commitInfoButton"
-                                onAction="#handleGoToCommitButton"/>
+                                onAction="#handleCommitInfoButton">
+                            <contextMenu>
+                                <ContextMenu fx:id="commitInfoContextMenu">
+                                    <items>
+                                        <MenuItem fx:id="commitInfoGoToButton"
+                                                  onAction="#handleGoToCommitButton"
+                                                  text="Go to selected commit"/>
+                                        <MenuItem fx:id="commitInfoNameCopyButton"
+                                                  onAction="#handleCommitNameCopyButton"
+                                                  text="Copy commit ID"/>
+                                    </items>
+                                </ContextMenu>
+                            </contextMenu>
+                        </Button>
+
                     </HBox>
                     <StackPane>
                         <Text   text="No commit selected"
@@ -485,13 +499,13 @@
                                   fx:id="commitInfoMessageText"/>
                     </StackPane>
                     <!-- Go to commit and copy commit hash buttons -->
-                    <HBox   spacing="15"
-                            alignment="CENTER">
-                        <Button fx:id="commitInfoGoToButton"
-                                onAction="#handleGoToCommitButton"/>
-                        <Button fx:id="commitInfoNameCopyButton"
-                                onAction="#handleCommitNameCopyButton"/>
-                    </HBox>
+                    <!--<HBox   spacing="15"-->
+                            <!--alignment="CENTER">-->
+                        <!--<Button fx:id="commitInfoGoToButton"-->
+                                <!--onAction="#handleGoToCommitButton"/>-->
+                        <!--<Button fx:id="commitInfoNameCopyButton"-->
+                                <!--onAction="#handleCommitNameCopyButton"/>-->
+                    <!--</HBox>-->
                 </VBox>
 
                 <!-- Tagging UI -->
