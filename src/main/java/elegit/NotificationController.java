@@ -290,7 +290,11 @@ public class NotificationController {
      * @param notificationLabel the label to add
      */
     private void setLatestNotification(Label notificationLabel) {
-        latestNotificationBox.getChildren().setAll(notificationLabel);
+        if (notificationLabel != null) {
+            latestNotificationBox.getChildren().setAll(notificationLabel);
+        } else {
+            latestNotificationBox.getChildren().clear();
+        }
     }
 
     /**
