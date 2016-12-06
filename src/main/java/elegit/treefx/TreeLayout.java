@@ -79,6 +79,7 @@ public class TreeLayout{
         }
     }
 
+
     /**
      * Returns a task that will take care of laying out the given
      * graph into a tree. Uses a combination of recursion and
@@ -178,24 +179,6 @@ public class TreeLayout{
             }
 
             /**
-             * Helper method to sort the list of cells
-             */
-            private void sortListOfCells(List<Cell> cellsToSort) {
-                cellsToSort.sort((c1, c2) -> {
-                    int i = Long.compare(c2.getTime(), c1.getTime());
-                    if(i == 0){
-                        if(c2.getCellChildren().contains(c1)){
-                            return -1;
-                        }else if(c1.getCellChildren().contains(c2)){
-                            return 1;
-                        }
-                    }
-                    return i;
-                });
-            }
-
-
-            /**
              * Helper method that computes the cell position for a given cell and its parents (oldest to newest), recursively
              * @param cellPosition position of cell to compute position for
              */
@@ -254,6 +237,25 @@ public class TreeLayout{
             }
         };
     }
+
+    /**
+     * Helper method to sort the list of cells
+     */
+    public static void sortListOfCells(List<Cell> cellsToSort) {
+        cellsToSort.sort((c1, c2) -> {
+            int i = Long.compare(c2.getTime(), c1.getTime());
+            if(i == 0){
+                if(c2.getCellChildren().contains(c1)){
+                    return -1;
+                }else if(c1.getCellChildren().contains(c2)){
+                    return 1;
+                }
+            }
+            return i;
+        });
+    }
+
+
 
     /**
      * Calculates the column closest to the left of the screen to place the
