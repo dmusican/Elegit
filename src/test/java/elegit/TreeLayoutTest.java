@@ -46,38 +46,41 @@ public class TreeLayoutTest {
     @Before
     public void setUp() {
         allCells.clear();
-        Cell cell0 = new Cell("cell0", 10, new ArrayList<Cell>(), Cell.CellType.LOCAL);
-        allCells.add(cell0);
-        Cell cell5 = new Cell("cell5", 20, new ArrayList<Cell>(), Cell.CellType.LOCAL);
-        allCells.add(cell5);
+
+        Cell cell4 = new Cell("cell4", 10, new ArrayList<Cell>(), Cell.CellType.LOCAL);
+        allCells.add(cell4);
+
+        ArrayList<Cell> cell3Parents = new ArrayList<>();
+        cell3Parents.add(cell4);
+        Cell cell3 = new Cell("cell3", 20, cell3Parents, Cell.CellType.LOCAL);
+        allCells.add(cell3);
 
         ArrayList<Cell> cell1Parents = new ArrayList<>();
-        cell1Parents.add(cell0);
+        cell1Parents.add(cell3);
         Cell cell1 = new Cell("cell1", 30, cell1Parents, Cell.CellType.LOCAL);
         allCells.add(cell1);
 
         ArrayList<Cell> cell2Parents = new ArrayList<>();
-        cell2Parents.add(cell0);
-        cell2Parents.add(cell5);
+        cell2Parents.add(cell3);
         Cell cell2 = new Cell("cell2", 40, cell2Parents, Cell.CellType.LOCAL);
         allCells.add(cell2);
 
         ArrayList<Cell> cell6Parents = new ArrayList<>();
-        cell6Parents.add(cell5);
+        cell6Parents.add(cell4);
         Cell cell6 = new Cell("cell6", 50, cell6Parents, Cell.CellType.LOCAL);
         allCells.add(cell6);
 
-        ArrayList<Cell> cell3Parents = new ArrayList<>();
-        cell3Parents.add(cell1);
-        cell3Parents.add(cell2);
-        Cell cell3 = new Cell("cell3", 60, cell3Parents, Cell.CellType.LOCAL);
-        allCells.add(cell3);
+        ArrayList<Cell> cell0Parents = new ArrayList<>();
+        cell0Parents.add(cell1);
+        cell0Parents.add(cell2);
+        Cell cell0 = new Cell("cell0", 60, cell0Parents, Cell.CellType.LOCAL);
+        allCells.add(cell0);
 
-        ArrayList<Cell> cell4Parents = new ArrayList<>();
-        cell4Parents.add(cell3);
-        cell4Parents.add(cell6);
-        Cell cell4 = new Cell("cell4", 70, cell4Parents, Cell.CellType.LOCAL);
-        allCells.add(cell4);
+        ArrayList<Cell> cell5Parents = new ArrayList<>();
+        cell5Parents.add(cell2);
+        cell5Parents.add(cell6);
+        Cell cell5 = new Cell("cell5", 70, cell5Parents, Cell.CellType.LOCAL);
+        allCells.add(cell5);
     }
 
     @Test
@@ -87,18 +90,18 @@ public class TreeLayoutTest {
             System.out.print(cell.getCellId() + " ");
         }
         System.out.println();
-        assertEquals(allCells.get(0).getCellId(),"cell4");
-        assertEquals(allCells.get(1).getCellId(),"cell3");
+        assertEquals(allCells.get(0).getCellId(),"cell5");
+        assertEquals(allCells.get(1).getCellId(),"cell0");
         assertEquals(allCells.get(2).getCellId(),"cell6");
         assertEquals(allCells.get(3).getCellId(),"cell2");
         assertEquals(allCells.get(4).getCellId(),"cell1");
-        assertEquals(allCells.get(5).getCellId(),"cell5");
-        assertEquals(allCells.get(6).getCellId(),"cell0");
+        assertEquals(allCells.get(5).getCellId(),"cell3");
+        assertEquals(allCells.get(6).getCellId(),"cell4");
     }
 
     @Test
     public void testTopographicalSorting() throws Exception {
-        TreeLayout.sortListOfCells(allCells);
+        TreeLayout.topologicalSortListOfCells(allCells);
         for (Cell cell : allCells) {
             System.out.print(cell.getCellId() + " ");
         }

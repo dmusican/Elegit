@@ -16,8 +16,7 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.scene.transform.Rotate;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * Handles the layout of cells in a TreeGraph in an appropriate tree structure
@@ -255,6 +254,53 @@ public class TreeLayout{
         });
     }
 
+
+    /**
+     * Helper method to sort the list of cells. Does a topological sort, so that cells which depend on others appear
+     * first. Parents should appear later. Ties are broken by time, so that later commits appear more towards
+     * the beginning (top) of the list.
+     *
+     * Uses Kahn's algorithm.
+     */
+    public static void topologicalSortListOfCells(List<Cell> cellsToSort) {
+
+        Map<String,Integer> visitCount = new HashMap<>();
+
+        // Queue to maintain which nodes are available next for exploring. Done as a priority queue so that the one
+        // with the most recent is done first.
+        Comparator<Cell> comparator =  (cell1, cell2) -> {
+            return ((Long)(cell2.getTime())).compareTo(cell1.getTime());
+        };
+
+        PriorityQueue<Cell> pq = new PriorityQueue<>(10, comparator);
+
+
+        // Initialize priority queue to be those nodes with no children
+        for (Cell cell: cellsToSort) {
+            if (cell.getCellChildren().size() == 0)
+                pq.add(cell);
+        }
+
+        int originalSize = cellsToSort.size();
+        cellsToSort.clear();
+
+        // Inspired by https://en.wikipedia.org/wiki/Topological_sorting
+        while (!pq.isEmpty()) {
+            Cell current = pq.poll();
+            cellsToSort.add(current);
+            for (Cell parent : current.getCellParents()) {
+                String parentId = parent.getCellId();
+                visitCount.put(parentId, 1 + visitCount.getOrDefault(parentId, 0));
+                int maxPossibleVisits = parent.getCellChildren().size();
+                if (visitCount.get(parentId) == maxPossibleVisits) {
+                    pq.add(parent);
+                }
+            }
+        }
+
+        System.out.println(originalSize);
+        System.out.println(cellsToSort.size());
+    }
 
 
     /**
