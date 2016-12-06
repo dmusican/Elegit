@@ -34,7 +34,6 @@ public class TreeLayoutTest {
         Thread.sleep(500);
     }
 
-    @Before
     /*
              0     5
             / \  /  \
@@ -44,7 +43,9 @@ public class TreeLayoutTest {
              \  /
               4
      */
+    @Before
     public void setUp() {
+        allCells.clear();
         Cell cell0 = new Cell("cell0", 10, new ArrayList<Cell>(), Cell.CellType.LOCAL);
         allCells.add(cell0);
         Cell cell5 = new Cell("cell5", 20, new ArrayList<Cell>(), Cell.CellType.LOCAL);
@@ -82,6 +83,10 @@ public class TreeLayoutTest {
     @Test
     public void testCellSorting() throws Exception {
         TreeLayout.sortListOfCells(allCells);
+        for (Cell cell : allCells) {
+            System.out.print(cell.getCellId() + " ");
+        }
+        System.out.println();
         assertEquals(allCells.get(0).getCellId(),"cell4");
         assertEquals(allCells.get(1).getCellId(),"cell3");
         assertEquals(allCells.get(2).getCellId(),"cell6");
@@ -90,4 +95,22 @@ public class TreeLayoutTest {
         assertEquals(allCells.get(5).getCellId(),"cell5");
         assertEquals(allCells.get(6).getCellId(),"cell0");
     }
+
+    @Test
+    public void testTopographicalSorting() throws Exception {
+        TreeLayout.sortListOfCells(allCells);
+        for (Cell cell : allCells) {
+            System.out.print(cell.getCellId() + " ");
+        }
+        System.out.println();
+        assertEquals(allCells.get(0).getCellId(),"cell5");
+        assertEquals(allCells.get(1).getCellId(),"cell0");
+        assertEquals(allCells.get(2).getCellId(),"cell6");
+        assertEquals(allCells.get(3).getCellId(),"cell2");
+        assertEquals(allCells.get(4).getCellId(),"cell1");
+        assertEquals(allCells.get(5).getCellId(),"cell3");
+        assertEquals(allCells.get(6).getCellId(),"cell4");
+    }
+
+
 }
