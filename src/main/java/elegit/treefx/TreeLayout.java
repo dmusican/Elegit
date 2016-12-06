@@ -28,6 +28,7 @@ public class TreeLayout{
     public static int H_PAD = 10;
     public static int V_PAD = 25;
     public static boolean movingCells;
+    public static boolean commitSortTopological = true;
 
 
     /**
@@ -108,7 +109,10 @@ public class TreeLayout{
                     isInitialSetupFinished = treeGraphModel.isInitialSetupFinished;
 
                     allCells = treeGraphModel.allCells;
-                    sortListOfCells(allCells);
+                    if (commitSortTopological)
+                        topologicalSortListOfCells(allCells);
+                    else
+                        sortListOfCells(allCells);
 
                     // Initialize variables
                     minRowUsedInCol = new ArrayList<>();
@@ -298,8 +302,7 @@ public class TreeLayout{
             }
         }
 
-        System.out.println(originalSize);
-        System.out.println(cellsToSort.size());
+        assert(originalSize==cellsToSort.size());
     }
 
 

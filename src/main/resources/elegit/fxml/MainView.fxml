@@ -25,6 +25,12 @@
                         <MenuItem   text="Turn Logging On"
                                     fx:id="loggingToggle"
                                     onAction="#handleLoggingOnMenuItem"/>
+                        <MenuItem   text="Sort commits topologically"
+                                    fx:id="commitSortingToggle"
+                                    onAction="#handleCommitSortTopological"/>
+                        <MenuItem   text="Sort commits by date"
+                                    fx:id="commitSortingToggle"
+                                    onAction="#handleCommitSortDate"/>
                     </items>
                 </Menu>
                 <Menu   text="Edit">

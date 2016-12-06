@@ -502,7 +502,7 @@ public abstract class CommitTreeModel{
     /**
      * Updates the corresponding view if possible
      */
-    private void updateView() throws IOException{
+    public void updateView() throws IOException{
         if(this.sessionModel != null && this.sessionModel.getCurrentRepoHelper() != null){
             CommitTreeController.update(this);
         }else{

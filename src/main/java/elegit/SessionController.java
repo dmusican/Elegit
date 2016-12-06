@@ -676,6 +676,26 @@ public class SessionController {
         popOver.setAutoHide(true);
     }
 
+    public void handleCommitSortTopological() {
+        TreeLayout.commitSortTopological = true;
+        try {
+            commitTreeModel.updateView();
+        } catch (Exception e) {
+            e.printStackTrace();
+            this.showGenericErrorNotification();
+        }
+    }
+
+    public void handleCommitSortDate() {
+        TreeLayout.commitSortTopological = false;
+        try {
+            commitTreeModel.updateView();
+        } catch (Exception e) {
+            e.printStackTrace();
+            this.showGenericErrorNotification();
+        }
+    }
+
     /**
      * Opens an editor for the .gitignore
      */
