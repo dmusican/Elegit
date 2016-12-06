@@ -604,16 +604,16 @@ public abstract class CommitTreeModel{
      * Forgets information about tracked/untracked branch heads in the tree and updates the model
      */
     public void resetBranchHeads(){
-        //List<String> resetIDs = treeGraph.treeGraphModel.resetCellShapes();
+        List<String> resetIDs = treeGraph.treeGraphModel.resetCellShapes();
         RepoHelper repo = sessionModel.getCurrentRepoHelper();
         this.branchesInModel = repo.getBranchModel().getAllBranches();
-        /*for(String id : resetIDs){
+        for(String id : resetIDs){
             if(this.sessionModel.getCurrentRepoHelper().getCommit(id) != null) {
                 String displayLabel = repo.getCommitDescriptorString(id, false);
-                List<String> branchLabels = repo.getBranchModel().getBranchesWithHead(id);
+                List<RefHelper> branchLabels = new ArrayList<>();
                 treeGraph.treeGraphModel.setCellLabels(id, displayLabel, branchLabels);
             }
-        }*/
+        }
         updateAllRefLabels();
     }
 

@@ -30,7 +30,7 @@ public class CommitLabelTest {
     // This is the ID of the initial commit in the testing repository
     private static final String INITIAL_COMMIT_ID = "5b5be4419d6efa935a6af1b9bfc5602f9d925e12";
 
-    private CommitTreeModel localCommitTreeModel;
+    private CommitTreeModel commitTreeModel;
 
     private Path directoryPath;
     private Path repoPath;
@@ -66,14 +66,14 @@ public class CommitLabelTest {
         helper.obtainRepository(remoteURL);
 
         // Get the commit tree
-        this.localCommitTreeModel = Main.sessionController.commitTreeModel;
+        this.commitTreeModel = Main.sessionController.commitTreeModel;
 
         // Load this repo in Elegit, and initialize
         SessionModel.getSessionModel().openRepoFromHelper(helper);
-        localCommitTreeModel.init();
+        commitTreeModel.init();
 
         // Sleep to ensure completion of all worker threads
-        Thread.sleep(5000);
+        Thread.sleep(1000);
     }
 
     @After
@@ -93,7 +93,7 @@ public class CommitLabelTest {
     @Test
     public void testAddFileAndCommit() throws Exception {
         // Make sure both "master" and "origin/master" labels are on the inital commit
-        testCellLabelContainsMaster(localCommitTreeModel, INITIAL_COMMIT_ID, true, true);
+        testCellLabelContainsMaster(commitTreeModel, INITIAL_COMMIT_ID, true, true);
 
         // Get the tracked file in the testing repo, add a line and commit
         File file = Paths.get(this.repoPath.toString(), "file.txt").toFile();
@@ -120,9 +120,9 @@ public class CommitLabelTest {
         assertNotEquals(INITIAL_COMMIT_ID, newHeadID);
 
         // Check the labels are appropriate again
-        this.testCellLabelContainsMaster(localCommitTreeModel, newHeadID, true, false);
+        this.testCellLabelContainsMaster(commitTreeModel, newHeadID, true, false);
 
-        this.testCellLabelContainsMaster(localCommitTreeModel, INITIAL_COMMIT_ID, false, true);
+        this.testCellLabelContainsMaster(commitTreeModel, INITIAL_COMMIT_ID, false, true);
 
         // Make another commit
         try(PrintWriter fileTextWriter = new PrintWriter( file )){
@@ -131,9 +131,6 @@ public class CommitLabelTest {
 
         this.helper.addFilePathTest(file.toPath());
         this.helper.commit("Modified file.txt in a unit test again!");
-
-        Main.sessionController.gitStatus();
-        localCommitTreeModel.update();
 
         // Sleep to ensure worker threads finish
         Thread.sleep(5000);
@@ -146,11 +143,11 @@ public class CommitLabelTest {
         assertNotEquals(oldHeadID, newHeadID);
 
         // Check the labels on every commit again
-        this.testCellLabelContainsMaster(localCommitTreeModel, newHeadID, true, false);
+        this.testCellLabelContainsMaster(commitTreeModel, newHeadID, true, false);
 
-        this.testCellLabelContainsMaster(localCommitTreeModel, oldHeadID, false, false);
+        this.testCellLabelContainsMaster(commitTreeModel, oldHeadID, false, false);
 
-        this.testCellLabelContainsMaster(localCommitTreeModel, INITIAL_COMMIT_ID, false, true);
+        this.testCellLabelContainsMaster(commitTreeModel, INITIAL_COMMIT_ID, false, true);
     }
 
     /**
