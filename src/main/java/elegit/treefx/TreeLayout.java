@@ -91,7 +91,7 @@ public class TreeLayout{
 
         return new Task<Void>(){
 
-            private List<Cell> allCellsSortedByTime;
+            private List<Cell> allCells;
             private List<Integer> minRowUsedInCol;
             private List<Integer> movedCells;
             private boolean isInitialSetupFinished;
@@ -107,19 +107,19 @@ public class TreeLayout{
                     TreeGraphModel treeGraphModel = g.treeGraphModel;
                     isInitialSetupFinished = treeGraphModel.isInitialSetupFinished;
 
-                    allCellsSortedByTime = treeGraphModel.allCells;
-                    sortListOfCells();
+                    allCells = treeGraphModel.allCells;
+                    sortListOfCells(allCells);
 
                     // Initialize variables
                     minRowUsedInCol = new ArrayList<>();
                     movedCells = new ArrayList<>();
 
                     // Compute the positions of cells recursively
-                    for (int i = allCellsSortedByTime.size() - 1; i >= 0; i--) {
+                    for (int i = allCells.size() - 1; i >= 0; i--) {
                         computeCellPosition(i);
                     }
                     // Once all cell's positions have been set, move them in a service
-                    MoveCellService mover = new MoveCellService(allCellsSortedByTime);
+                    MoveCellService mover = new MoveCellService(allCells);
 
                     //********************* Loading Bar Start *********************
                     Pane cellLayer = g.getCellLayerPane();
@@ -158,7 +158,7 @@ public class TreeLayout{
                     //********************** Loading Bar End **********************
 
                     mover.setOnSucceeded(event1 -> {
-                        if (!Main.isAppClosed && movingCells && mover.currentCell < allCellsSortedByTime.size() - 1) {
+                        if (!Main.isAppClosed && movingCells && mover.currentCell < allCells.size() - 1) {
                             mover.setCurrentCell(mover.currentCell + 10);
                             progressBar.setProgress(mover.percent.get() / 100.0);
                             mover.restart();
@@ -180,8 +180,8 @@ public class TreeLayout{
             /**
              * Helper method to sort the list of cells
              */
-            private void sortListOfCells() {
-                allCellsSortedByTime.sort((c1, c2) -> {
+            private void sortListOfCells(List<Cell> cellsToSort) {
+                cellsToSort.sort((c1, c2) -> {
                     int i = Long.compare(c2.getTime(), c1.getTime());
                     if(i == 0){
                         if(c2.getCellChildren().contains(c1)){
@@ -205,7 +205,7 @@ public class TreeLayout{
                     return;
 
                 // Get cell at the inputted position
-                Cell c = allCellsSortedByTime.get(allCellsSortedByTime.size()-1-cellPosition);
+                Cell c = allCells.get(allCells.size()-1-cellPosition);
 
                 setCellPosition(c, getColumnOfCellInRow(minRowUsedInCol, cellPosition), cellPosition);
 
@@ -215,8 +215,8 @@ public class TreeLayout{
 
                 // For each parent, oldest to newest, place it in the highest row possible recursively
                 for(Cell parent : list){
-                    if (parent.getTime()>c.getTime() || allCellsSortedByTime.indexOf(parent)<0) break;
-                    computeCellPosition(allCellsSortedByTime.size()-1-allCellsSortedByTime.indexOf(parent));
+                    if (parent.getTime()>c.getTime() || allCells.indexOf(parent)<0) break;
+                    computeCellPosition(allCells.size()-1- allCells.indexOf(parent));
                     break;
                 }
             }
