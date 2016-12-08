@@ -3,6 +3,9 @@ A graphics-based Git client for teaching people both how to work Git and how Git
 
 ### Running the source code in IntelliJ:
 1. Open [IntelliJ](https://www.jetbrains.com/idea/).
+2. Visit the File, Other Settings, Default Settings menu. In the dialog that pops up, go to Build, Execution, and Deployment,
+then Build Tools, Maven, Importing. Check the box about 2/3 of the way down the screen by "Automatically Download",
+next to Documentation.
 2. Check out the repository using the "Check out from Version Control option" and paste the GitHub repository URL in.
 3. It will ask you to open `pom.xml`. Choose yes.
 4. Let it load.
