@@ -5,6 +5,7 @@ import javafx.application.Platform;
 import javafx.scene.control.*;
 import javafx.scene.control.Button;
 import javafx.scene.control.Dialog;
+import javafx.scene.control.MenuItem;
 import javafx.scene.image.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -37,6 +38,8 @@ public class ConflictingRepoFile extends RepoFile {
         diffButton.setText("CONFLICTING");
         diffButton.setId("conflictingDiffButton");
         diffButton.setTooltip(getToolTip("This file caused a merge conflict.\nEdit the file to fix the conflict."));
+        MenuItem resolveMerge = new MenuItem("Resolve conflict...");
+        contextMenu.getItems().add(resolveMerge);
     }
 
     public ConflictingRepoFile(String filePathString, RepoHelper repo) {

@@ -55,7 +55,7 @@ public class RepoFile implements Comparable<RepoFile> {
 
         if(filePath.isAbsolute()){
             this.filePath = repo.getLocalPath().relativize(filePath);
-        }else {
+        } else {
             this.filePath = filePath;
         }
 
