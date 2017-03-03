@@ -202,8 +202,12 @@ public class CreateDeleteBranchWindowController {
                 try {
                     logger.info("New branch button clicked");
                     newBranch = branchModel.createNewLocalBranch(branchName);
+                    if(checkout) {
+                        if(newBranch != null) {
+                            checkoutBranch(newBranch, sessionModel);
+                        }
+                    }
                     sessionController.gitStatus();
-                    updateUser(" created ");
 
                 } catch (RefAlreadyExistsException e){
                     logger.warn("Branch already exists warning");
@@ -229,11 +233,6 @@ public class CreateDeleteBranchWindowController {
                     e1.printStackTrace();
                 }finally {
                     refreshBranchesDropDown();
-                }
-                if(checkout) {
-                    if(newBranch != null) {
-                        checkoutBranch(newBranch, sessionModel);
-                    }
                 }
                 return null;
             }

@@ -110,6 +110,7 @@ public abstract class CommitTreeModel{
             this.removeCommitsFromTree(updates.getCommitsToRemove());
             this.addCommitsToTree(updates.getCommitsToAdd());
             this.updateCommitFills(updates.getCommitsToUpdate());
+            this.sessionModel.getCurrentRepoHelper().getBranchModel().updateAllBranches();
             this.resetBranchHeads();
             this.updateAllRefLabels();
 
@@ -614,7 +615,6 @@ public abstract class CommitTreeModel{
                 treeGraph.treeGraphModel.setCellLabels(id, displayLabel, branchLabels);
             }
         }
-        updateAllRefLabels();
     }
 
     public List<TagHelper> getTagsToBePushed() {
