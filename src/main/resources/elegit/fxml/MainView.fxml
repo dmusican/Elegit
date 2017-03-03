@@ -126,11 +126,15 @@
                 <columnConstraints>
                     <ColumnConstraints hgrow="NEVER"/>
                     <ColumnConstraints hgrow="NEVER"/>
+                    <ColumnConstraints hgrow="NEVER"/>
+                    <ColumnConstraints hgrow="NEVER"/>
                     <ColumnConstraints hgrow="ALWAYS"/>
                     <ColumnConstraints hgrow="NEVER"/>
                     <ColumnConstraints hgrow="NEVER"/>
                 </columnConstraints>
                 <rowConstraints>
+                    <RowConstraints vgrow="NEVER"/>
+                    <RowConstraints vgrow="NEVER"/>
                     <RowConstraints vgrow="NEVER"/>
                     <RowConstraints vgrow="NEVER"/>
                     <RowConstraints vgrow="NEVER"/>
@@ -213,6 +217,7 @@
                     </VBox>
                 </StackPane>
 
+
                 <!-- Separator between headings and content -->
                 <!--<HBox GridPane.rowIndex="2"-->
                       <!--GridPane.columnSpan="3"-->
@@ -223,17 +228,6 @@
                     <!--</GridPane.margin>-->
                     <!--<Rectangle height="4"/>-->
                 <!--</HBox>-->
-
-                <!-- Separator between remote and commit info -->
-                <HBox GridPane.rowIndex="2"
-                      GridPane.columnIndex="4"
-                      id="separator"
-                      minHeight="4">
-                    <GridPane.margin>
-                        <Insets top="10" bottom="10" left="-19" right="-15"/>
-                    </GridPane.margin>
-                    <Rectangle height="4"/>
-                </HBox>
 
                 <!-- File tree panel view -->
                 <TabPane GridPane.rowIndex="3"
@@ -255,10 +249,6 @@
                         GridPane.halignment="CENTER"
                         GridPane.rowIndex="4"
                         alignment="CENTER">
-                    <Button id="codeButton"
-                            fx:id="addButton"
-                            text="Add"
-                            onAction="#handleAddButton"/>
                     <Button id="codeButton"
                             fx:id="checkoutFileButton"
                             text="Checkout Files"
@@ -284,7 +274,7 @@
                         GridPane.rowIndex="6"
                         GridPane.halignment="CENTER"/>
 
-                <!-- Working directory and local repo separator -->
+                <!-- Working directory and index separator -->
                 <VBox GridPane.rowSpan="7"
                       GridPane.columnIndex="1"
                       minWidth="4"
@@ -294,9 +284,39 @@
                     </GridPane.margin>
                 </VBox>
 
-                <!-- Local Repository block -->
+                <!-- Index block -->
                 <StackPane  GridPane.rowIndex="1"
                             GridPane.columnIndex="2"
+                            GridPane.valignment="TOP"
+                            alignment="TOP_CENTER">
+                    <ImageView
+                            fitHeight="120"
+                            fitWidth="150"
+                            opacity="0.2">
+                        <Image url="@../images/folder.png"/>
+                    </ImageView>
+                    <VBox   alignment="CENTER">
+                        <Text   text="Index">
+                            <font>
+                                <Font   size="25"/>
+                            </font>
+                        </Text>
+                    </VBox>
+                </StackPane>
+
+                <!-- Index and local repo separator -->
+                <VBox GridPane.rowSpan="7"
+                      GridPane.columnIndex="3"
+                      minWidth="4"
+                      id="separator">
+                    <GridPane.margin>
+                        <Insets top="-5" left="15" right="15" bottom="-2"/>
+                    </GridPane.margin>
+                </VBox>
+
+                <!-- Local Repository block -->
+                <StackPane  GridPane.rowIndex="1"
+                            GridPane.columnIndex="4"
                             GridPane.halignment="CENTER">
                     <ImageView
                             fitHeight="137.5"
@@ -309,7 +329,7 @@
                             spacing="5"
                             alignment="CENTER"
                             GridPane.rowIndex="1"
-                            GridPane.columnIndex="2">
+                            GridPane.columnIndex="4">
                         <Text   text="Local Repository">
                             <font>
                                 <Font   size="25"/>
@@ -331,6 +351,33 @@
                     </VBox>
                 </StackPane>
 
+                <!-- Merge and Add buttons -->
+                <Button text="Merge"
+                        fx:id="mergeButton"
+                        id = "codeButton"
+                        onAction="#handleMergeFromFetchButton"
+                        GridPane.rowIndex="1"
+                        GridPane.columnIndex="1"
+                        GridPane.valignment="BOTTOM"
+                        GridPane.halignment="LEFT">
+                    <GridPane.margin>
+                        <Insets left="-10" right="-40" bottom="20"/>
+                    </GridPane.margin>
+                </Button>
+                <ArrowButton id="codeButton"
+                             fx:id="addButton"
+                             text="Add"
+                             arrowRight="true"
+                             onAction="#handleAddButton"
+                             GridPane.rowIndex="1"
+                             GridPane.columnIndex="1"
+                             GridPane.valignment="TOP"
+                             GridPane.halignment="LEFT">
+                    <GridPane.margin>
+                        <Insets left="-10" right="-40" top="20"/>
+                    </GridPane.margin>
+                </ArrowButton>
+
                 <!-- Commit and merge buttons -->
                 <ArrowButton id="codeButton"
                              fx:id="commitButton"
@@ -338,7 +385,7 @@
                              arrowRight="true"
                              onAction="#handleCommitNormal"
                              GridPane.rowIndex="1"
-                             GridPane.columnIndex="1"
+                             GridPane.columnIndex="3"
                              GridPane.valignment="TOP"
                              GridPane.halignment="LEFT">
                     <contextMenu>
@@ -353,33 +400,26 @@
                         <Insets left="-10" right="-40" top="20"/>
                     </GridPane.margin>
                 </ArrowButton>
-                <Button text="Merge"
-                        fx:id="mergeButton"
-                        id = "codeButton"
-                        onAction="#handleMergeFromFetchButton"
-                        GridPane.rowIndex="1"
-                        GridPane.columnIndex="1"
-                        GridPane.valignment="BOTTOM"
-                        GridPane.halignment="LEFT">
-                    <GridPane.margin>
-                        <Insets left="-10" right="-40" bottom="20"/>
-                    </GridPane.margin>
-                </Button>
 
                 <!-- Commit tree panel view and legend-->
                 <CommitTreePanelView fx:id="commitTreePanelView"
                                         GridPane.rowIndex="3"
-                                        GridPane.rowSpan="3"
-                                        GridPane.columnIndex="2"/>
+                                        GridPane.rowSpan="5"
+                                        GridPane.columnIndex="4"
+                                        GridPane.columnSpan="3">
+                    <GridPane.margin>
+                        <Insets right="15"/>
+                    </GridPane.margin>
+                </CommitTreePanelView>
                 <Hyperlink  fx:id="legendLink"
                             text="What do all these symbols mean?"
                             onAction="#showLegend"
                             GridPane.rowIndex="6"
-                            GridPane.columnIndex="2"/>
+                            GridPane.columnIndex="4"/>
 
                 <!-- Local repository and remote repository separator -->
                 <VBox   GridPane.rowSpan="2"
-                        GridPane.columnIndex="3"
+                        GridPane.columnIndex="5"
                         id="separator"
                         minWidth="4">
                     <GridPane.margin>
@@ -387,16 +427,28 @@
                     </GridPane.margin>
                 </VBox>
 
+
+                <!-- Separator between remote and commit info -->
+                <HBox GridPane.rowIndex="2"
+                      GridPane.columnIndex="6"
+                      id="separator"
+                      minHeight="4">
+                    <GridPane.margin>
+                        <Insets top="10" bottom="10" left="-19" right="-15"/>
+                    </GridPane.margin>
+                    <Rectangle height="4"/>
+                </HBox>
+
                 <!-- Fetch and push buttons -->
                 <ArrowButton id="codeButton"
                              fx:id="fetchButton"
                              text="Fetch"
                              arrowLeft="true"
                              onAction="#handleNormalFetchButton"
-                             GridPane.columnIndex="3"
+                             GridPane.columnIndex="5"
                              GridPane.rowIndex="1"
                              GridPane.halignment="RIGHT"
-                             GridPane.valignment="TOP">
+                             GridPane.valignment="BOTTOM">
                     <GridPane.margin>
                         <Insets top="20" left="-40" right="-10"/>
                     </GridPane.margin>
@@ -414,12 +466,12 @@
                              text="Push"
                              arrowRight="true"
                              onAction="#handlePushButton"
-                             GridPane.columnIndex="3"
+                             GridPane.columnIndex="5"
                              GridPane.rowIndex="1"
-                             GridPane.halignment="RIGHT"
-                             GridPane.valignment="BOTTOM">
+                             GridPane.halignment="LEFT"
+                             GridPane.valignment="TOP">
                     <GridPane.margin>
-                        <Insets bottom="28" left="-40" right="-10"/>
+                        <Insets top="20" left="-25" right="-10"/>
                     </GridPane.margin>
                     <contextMenu>
                         <ContextMenu    fx:id="pushContextMenu">
@@ -437,17 +489,17 @@
                              text="Push Tags"
                              arrowRight="true"
                              onAction="#handlePushTagsButton"
-                             GridPane.columnIndex="3"
+                             GridPane.columnIndex="5"
                              GridPane.rowIndex="1"
                              GridPane.halignment="RIGHT"
-                             GridPane.valignment="BOTTOM">
+                             GridPane.valignment="TOP">
                     <GridPane.margin>
-                        <Insets left="-50" right="-20"/>
+                        <Insets top="50" left="-55" right="-30"/>
                     </GridPane.margin>
                 </ArrowButton>
 
                 <!-- Remote repository block -->
-                <StackPane  GridPane.columnIndex="4"
+                <StackPane  GridPane.columnIndex="6"
                             GridPane.rowIndex="1"
                             GridPane.valignment="TOP"
                             alignment="TOP_CENTER">
@@ -479,17 +531,17 @@
 
                 <!-- Commit info window -->
                 <VBox GridPane.rowIndex="3"
-                        GridPane.columnIndex="4"
+                        GridPane.columnIndex="6"
                         alignment="TOP_CENTER"
                         spacing="5">
                     <GridPane.margin>
                         <Insets bottom="5"/>
                     </GridPane.margin>
-                    <Text   text="Commit Info:"
-                            style="-fx-font-weight: bold;"/>
+                    <!--<Text   text="Commit Info:"-->
+                            <!--style="-fx-font-weight: bold;"/>-->
                     <StackPane>
-                        <Text   text="No commit selected"
-                                StackPane.alignment="TOP_CENTER"/>
+                        <!--<Text   text="No commit selected"-->
+                                <!--StackPane.alignment="TOP_CENTER"/>-->
                         <TextArea wrapText="true"
                                   editable="false"
                                   prefWidth="230"
@@ -510,7 +562,7 @@
                 <HBox   alignment="CENTER"
                         spacing="5"
                         GridPane.rowIndex="4"
-                        GridPane.columnIndex="4"
+                        GridPane.columnIndex="6"
                         GridPane.halignment="CENTER">
                     <ArrowButton id="codeButton"
                                  fx:id="tagButton"
