@@ -89,7 +89,6 @@ public class StashListController {
     private void setButtonListeners() {
         this.applyButton.disableProperty().bind(this.stashList.getSelectionModel().selectedIndexProperty().lessThan(0));
         this.dropButton.disableProperty().bind(this.stashList.getSelectionModel().selectedIndexProperty().lessThan(0));
-        this.clearButton.disableProperty().bind(this.stashList.getSelectionModel().selectedIndexProperty().lessThan(0));
         this.popButton.disableProperty().bind(this.stashList.getSelectionModel().selectedIndexProperty().lessThan(0));
     }
 
@@ -116,6 +115,7 @@ public class StashListController {
         String stashRef = this.stashList.getSelectionModel().getSelectedItem().getId();
         try {
             repoHelper.stashApply(stashRef, false);
+            sessionController.gitStatus();
         } catch (WrongRepositoryStateException e) {
             notificationPaneController.addNotification("Conflicts occured while trying to apply stash. Commit/stash changes or force apply (right click).");
         } catch (GitAPIException e) {
@@ -130,6 +130,7 @@ public class StashListController {
         int index = this.stashList.getSelectionModel().getSelectedIndex();
         try {
             repoHelper.stashDrop(index);
+            refreshList();
         } catch (GitAPIException e) {
             notificationPaneController.addNotification("Something went wrong with the drop. Try committing any uncommitted changes.");
         }
@@ -143,6 +144,7 @@ public class StashListController {
     public void handleClearStash() {
         try {
             repoHelper.stashClear();
+            refreshList();
         } catch (GitAPIException e) {
             notificationPaneController.addNotification("Something went wrong with the clear. Try committing any uncommitted changes.");
         }
@@ -157,6 +159,8 @@ public class StashListController {
         try {
             repoHelper.stashApply(stashRef, false);
             repoHelper.stashDrop(index);
+            refreshList();
+            sessionController.gitStatus();
         } catch (GitAPIException e) {
             notificationPaneController.addNotification("Something went wrong with the pop. Try committing any uncommitted changes.");
         }
