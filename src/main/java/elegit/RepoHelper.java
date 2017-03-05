@@ -678,7 +678,7 @@ public class RepoHelper {
         if (!exists()) throw new MissingRepoException();
         if (!hasRemote()) throw new InvalidRemoteException("No remote repository");
         Git git = new Git(this.repo);
-        PushCommand push = git.push().setPushAll();
+        PushCommand push = git.push();
         myWrapAuthentication(push);
         ProgressMonitor progress = new SimpleProgressMonitor();
         push.setProgressMonitor(progress);
@@ -693,6 +693,7 @@ public class RepoHelper {
                     allPushesWereRejected = false;
                 } else {
                     anyPushWasRejected = true;
+                    System.out.println(remoteRefUpdate);
                 }
             }
         }
