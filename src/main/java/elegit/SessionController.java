@@ -163,7 +163,8 @@ public class SessionController {
     @FXML private MenuItem normalFetchMenuItem;
     @FXML private MenuItem pullMenuItem;
     @FXML private MenuItem pushMenuItem;
-    @FXML private MenuItem stashMenuItem;
+    @FXML private MenuItem stashMenuItem1;
+    @FXML private MenuItem stashMenuItem2;
 
     boolean tryCommandAgainWithHTTPAuth;
     private boolean isGitStatusDone;
@@ -633,7 +634,8 @@ public class SessionController {
         this.normalFetchMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.F, KeyCombination.META_DOWN, KeyCombination.SHIFT_DOWN));
         this.pullMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.L, KeyCombination.META_DOWN, KeyCombination.SHIFT_DOWN));
         this.pushMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.P, KeyCombination.META_DOWN, KeyCombination.SHIFT_DOWN));
-        this.stashMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.S, KeyCombination.CONTROL_DOWN, KeyCombination.SHIFT_DOWN));
+        this.stashMenuItem1.setAccelerator(new KeyCodeCombination(KeyCode.S, KeyCombination.CONTROL_DOWN, KeyCombination.SHIFT_DOWN));
+        this.stashMenuItem2.setAccelerator(new KeyCodeCombination(KeyCode.L, KeyCombination.CONTROL_DOWN, KeyCombination.SHIFT_DOWN));
     }
 
     /**
@@ -1836,6 +1838,7 @@ public class SessionController {
             if (this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
 
             this.theModel.getCurrentRepoHelper().stashSave(false);
+            gitStatus();
         } catch (GitAPIException e) {
             this.showGenericErrorNotification();
             e.printStackTrace();
@@ -1847,14 +1850,19 @@ public class SessionController {
     }
 
     /**
-     * Stashes the current changes in a new commit
+     * Applies the most recent stash
      */
     public void handleStashApplyButton() {
         logger.info("Stash apply button clicked");
         try {
-            // TODO: update the stash ref to apply
-            this.theModel.getCurrentRepoHelper().stashApply("",false);
+            CommitHelper topStash = theModel.getCurrentRepoHelper().stashList().get(0);
+            this.theModel.getCurrentRepoHelper().stashApply(topStash.getId(), false);
+            gitStatus();
+        } catch (StashApplyFailureException e) {
+            showStashConflictsNotification();
         } catch (GitAPIException e) {
+            showGenericErrorNotification();
+        } catch (IOException e) {
             showGenericErrorNotification();
         }
     }
@@ -2753,6 +2761,16 @@ public class SessionController {
     private void showNotMergedNotification(BranchHelper nonmergedBranch) {
         logger.warn("Not merged notification");
         notificationPaneController.addNotification("That branch has to be merged before you can do that.");
+    }
+
+    private void showStashConflictsNotification() {
+        Platform.runLater(() -> {
+            logger.warn("Stash apply conflicts warning");
+
+            EventHandler handler = event -> quickStashSave();
+            this.notificationPaneController.addNotification("You can't apply that stash because there would be conflicts. " +
+                    "Stash your changes or resolve conflicts first.", "stash", handler);
+        });
     }
 
     private void showCheckoutConflictsNotification(List<String> conflictingPaths) {
