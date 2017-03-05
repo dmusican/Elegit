@@ -570,6 +570,11 @@ public abstract class CommitTreeModel{
         // Set the labels
         for (String commit : commitLabelMap.keySet()) {
             if(this.sessionModel.getCurrentRepoHelper().getCommit(commit) != null) {
+                if (!treeGraph.treeGraphModel.containsID(commit)) {
+                    // TODO make this not a banaid fix...
+                    //System.out.println("Does not yet contain "+commit);
+                    continue;
+                }
                 String displayLabel = repo.getCommitDescriptorString(commit, false);
                 treeGraph.treeGraphModel.setCellLabels(commit, displayLabel, commitLabelMap.get(commit));
                 treeGraph.treeGraphModel.setCurrentCellLabels(commit, this.sessionModel.getCurrentRepoHelper().getBranchModel().getCurrentAbbrevBranches());

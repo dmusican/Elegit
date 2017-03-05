@@ -1853,6 +1853,7 @@ public class SessionController {
      * Applies the most recent stash
      */
     public void handleStashApplyButton() {
+        // TODO: make it clearer which stash this applies
         logger.info("Stash apply button clicked");
         try {
             CommitHelper topStash = theModel.getCurrentRepoHelper().stashList().get(0);
@@ -1964,8 +1965,8 @@ public class SessionController {
                         }
                         if(!helper.fetch(prune)){
                             showNoCommitsFetchedNotification();
-                        }else {
-                            if(pull) mergeFromFetch();
+                        } if (pull) {
+                            mergeFromFetch();
                         }
                         gitStatus();
                     } catch(InvalidRemoteException e){
