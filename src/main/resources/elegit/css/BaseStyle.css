@@ -139,6 +139,10 @@
 
 }
 
+#ribbon {
+    -fx-background-color: #D1D1D1;
+}
+
 #separator {
     -fx-background-color: #777777;
 }

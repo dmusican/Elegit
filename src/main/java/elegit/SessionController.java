@@ -232,7 +232,6 @@ public class SessionController {
         this.preferences = Preferences.userNodeForPackage(this.getClass());
 
         GridPane gp = (GridPane) root;
-        //GridPane gp = (GridPane) this.anchorRoot.lookup("#root");
 //        gp.setGridLinesVisible(true);
     }
 
