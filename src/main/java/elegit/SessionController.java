@@ -73,7 +73,6 @@ public class SessionController {
     public Button loadNewRepoButton;
     public Button removeRecentReposButton;
     public Button openRepoDirButton;
-    public Button gitStatusButton;
     public Button commitButton;
     public Button pushButton;
     public Button fetchButton;
@@ -120,7 +119,6 @@ public class SessionController {
     public Text browserText;
     public Text needToFetch;
     public Text branchStatusText;
-    public Text updatingText;
 
     public URL remoteURL;
 
@@ -143,7 +141,7 @@ public class SessionController {
 
     public Hyperlink legendLink;
 
-    public StackPane statusTextPane;
+    public HBox statusTextPane;
 
     private Stage mainStage;
 
@@ -248,9 +246,6 @@ public class SessionController {
      * Helper method that creates the labels for the branch names
      */
     private void initStatusText() {
-        updatingText.setVisible(false);
-        branchStatusText.visibleProperty().bind(updatingText.visibleProperty().not());
-
         currentRemoteTrackingLabel = new Label("N/A");
         currentLocalBranchLabel = new Label("N/A");
         initCellLabel(currentLocalBranchLabel, currentLocalBranchHbox);
@@ -397,7 +392,6 @@ public class SessionController {
     private void initializeLayoutParameters(){
         // Set minimum/maximum sizes for buttons
         openRepoDirButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
-        gitStatusButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         commitButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         addButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         checkoutFileButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
@@ -589,7 +583,6 @@ public class SessionController {
     void setButtonsDisabled(boolean disable) {
         Platform.runLater(() -> {
             openRepoDirButton.setDisable(disable);
-            gitStatusButton.setDisable(disable);
             tagButton.setDisable(disable);
             commitButton.setDisable(disable);
             pushButton.setDisable(disable);
@@ -2161,45 +2154,6 @@ public class SessionController {
         }catch(NoRepoLoadedException e){
             this.showNoRepoLoadedNotification();
             setButtonsDisabled(true);
-        }
-    }
-
-    /**
-     * Updates the panel views when the "git status" button is clicked.
-     * Highlights the current HEAD.
-     */
-    public void onRefreshButton(){
-        logger.info("Git status button clicked");
-        showUpdatingText(true);
-        this.gitStatus();
-        showUpdatingText(false);
-        CommitTreeController.focusCommitInGraph(theModel.getCurrentRepoHelper().getBranchModel().getCurrentBranchHead());
-    }
-
-    /**
-     * Replaces branch status text with "updating" for 0.75 seconds OR the duration of gitStatus()
-     */
-    private void showUpdatingText(boolean setVisible) {
-        if(setVisible){
-            isGitStatusDone = false;
-            isTimerDone = false;
-            updatingText.setVisible(true);
-
-            Timer timer = new Timer(true);
-            timer.schedule(new TimerTask() {
-                @Override
-                public void run() {
-                    if(isGitStatusDone){
-                        updatingText.setVisible(false);
-                    }
-                    isTimerDone = true;
-                }
-            }, 750);
-        }else {
-            isGitStatusDone = true;
-            if(isTimerDone) {
-                updatingText.setVisible(false);
-            }
         }
     }
 

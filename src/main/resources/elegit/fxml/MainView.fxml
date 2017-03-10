@@ -328,7 +328,7 @@
                             fitHeight="120"
                             fitWidth="150"
                             opacity="0.2">
-                        <Image url="@../images/folder.png"/>
+                        <Image url="@../images/index.png"/>
                     </ImageView>
                     <VBox   alignment="CENTER">
                         <Text   text="Index">
@@ -371,18 +371,11 @@
                                 <Font   size="25"/>
                             </font>
                         </Text>
-                        <Button fx:id="gitStatusButton"
-                                text="Refresh"
-                                id="codeButton"
-                                onAction="#onRefreshButton"/>
                         <HBox   alignment="CENTER">
                             <Text   text="Status: "/>
-                            <StackPane  fx:id="statusTextPane">
+                            <HBox  fx:id="statusTextPane">
                                 <Text   fx:id="branchStatusText"/>
-                                <Text   text="Updating..."
-                                        fx:id="updatingText"
-                                        fill="orangered"/>
-                            </StackPane>
+                            </HBox>
                         </HBox>
                     </VBox>
                 </StackPane>
