@@ -92,12 +92,15 @@ public class SessionController {
     public Node root;
 
     public Tab workingTreePanelTab;
+    public Tab indexPanelTab;
     public Tab allFilesPanelTab;
 
     public TabPane filesTabPane;
+    public TabPane indexTabPane;
 
     public WorkingTreePanelView workingTreePanelView;
     public AllFilesPanelView allFilesPanelView;
+    public WorkingTreePanelView indexPanelView;
 
 	public CommitTreePanelView commitTreePanelView;
 
@@ -193,6 +196,7 @@ public class SessionController {
         // Passes theModel to panel views
         this.workingTreePanelView.setSessionModel(this.theModel);
         this.allFilesPanelView.setSessionModel(this.theModel);
+        this.indexPanelView.setSessionModel(this.theModel);
 
         this.initializeLayoutParameters();
 
@@ -407,8 +411,10 @@ public class SessionController {
 
         // Set minimum sizes for other fields and views
         filesTabPane.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
+        indexTabPane.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         workingTreePanelView.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         allFilesPanelView.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
+        indexPanelView.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         final int REPO_DROPDOWN_MAX_WIDTH = 147;
         repoDropdownSelector.setMaxWidth(REPO_DROPDOWN_MAX_WIDTH);
         tagNameField.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
@@ -527,6 +533,7 @@ public class SessionController {
         try {
             workingTreePanelView.drawDirectoryView();
             allFilesPanelView.drawDirectoryView();
+            indexPanelView.drawDirectoryView();
             commitTreeModel.init();
             this.setBrowserURL();
         } catch (GitAPIException | IOException e) {
@@ -590,6 +597,7 @@ public class SessionController {
             remoteImage.setVisible(!disable);
             browserText.setVisible(!disable);
             workingTreePanelTab.setDisable(disable);
+            indexPanelTab.setDisable(disable);
             allFilesPanelTab.setDisable(disable);
             removeRecentReposButton.setDisable(disable);
             repoDropdownSelector.setDisable(disable);

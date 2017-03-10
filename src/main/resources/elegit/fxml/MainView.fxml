@@ -251,18 +251,6 @@
                     </VBox>
                 </StackPane>
 
-
-                <!-- Separator between headings and content -->
-                <!--<HBox GridPane.rowIndex="2"-->
-                      <!--GridPane.columnSpan="3"-->
-                      <!--id="separator-dashed"-->
-                      <!--minHeight="4">-->
-                    <!--<GridPane.margin>-->
-                        <!--<Insets top="10" bottom="10" left="-3" right="-15"/>-->
-                    <!--</GridPane.margin>-->
-                    <!--<Rectangle height="4"/>-->
-                <!--</HBox>-->
-
                 <!-- File tree panel view -->
                 <TabPane GridPane.rowIndex="4"
                          fx:id="filesTabPane">
@@ -339,6 +327,17 @@
                     </VBox>
                 </StackPane>
 
+                <!-- Index file view -->
+                <TabPane GridPane.rowIndex="4"
+                         GridPane.columnIndex="2"
+                         fx:id="indexTabPane">
+                    <Tab text="Changed Files"
+                         closable="false"
+                         fx:id="indexPanelTab">
+                        <WorkingTreePanelView fx:id="indexPanelView"/>
+                    </Tab>
+                </TabPane>
+
                 <!-- Index and local repo separator -->
                 <VBox GridPane.rowSpan="7"
                       GridPane.rowIndex="1"
@@ -371,14 +370,18 @@
                                 <Font   size="25"/>
                             </font>
                         </Text>
-                        <HBox   alignment="CENTER">
-                            <Text   text="Status: "/>
-                            <HBox  fx:id="statusTextPane">
-                                <Text   fx:id="branchStatusText"/>
-                            </HBox>
-                        </HBox>
                     </VBox>
                 </StackPane>
+
+                <HBox   alignment="CENTER"
+                        GridPane.rowIndex="3"
+                        GridPane.columnIndex="4">
+                    <Text   text="Status: "/>
+                    <HBox  fx:id="statusTextPane"
+                           alignment="CENTER">
+                        <Text   fx:id="branchStatusText"/>
+                    </HBox>
+                </HBox>
 
                 <!-- Merge and Add buttons -->
                 <Button text="Merge"
