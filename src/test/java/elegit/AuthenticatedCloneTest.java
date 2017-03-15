@@ -11,6 +11,8 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 import java.util.Scanner;
 
@@ -124,7 +126,6 @@ public class AuthenticatedCloneTest {
             helper.commit("Appended to file");
             PushCommand command = helper.prepareToPushAll();
             helper.pushAll(command);
-            helper.pushTags();
         } catch (TransportException e) {
             e.printStackTrace();
             fail("Test failed; it is likely that you have not name/password correctly in the file " +
@@ -284,7 +285,6 @@ public class AuthenticatedCloneTest {
         helper.fetch(false);
         PushCommand command = helper.prepareToPushAll();
         helper.pushAll(command);
-        helper.pushTags();
     }
 
     @Test
@@ -311,7 +311,6 @@ public class AuthenticatedCloneTest {
         helper.fetch(false);
         PushCommand command = helper.prepareToPushAll();
         helper.pushAll(command);
-        helper.pushTags();
         scanner.close();
     }
 
