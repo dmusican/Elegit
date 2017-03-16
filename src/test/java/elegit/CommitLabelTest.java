@@ -111,7 +111,7 @@ public class CommitLabelTest {
         //commitTreeModel.update();
 
         // Sleep to ensure worker threads finish
-        Thread.sleep(5000);
+        Thread.sleep(6000);
 
         // Get the information about the new commit
         CommitHelper newHead = this.helper.getCommit("master");
@@ -133,7 +133,7 @@ public class CommitLabelTest {
         this.helper.commit("Modified file.txt in a unit test again!");
 
         // Sleep to ensure worker threads finish
-        Thread.sleep(5000);
+        Thread.sleep(6000);
 
         // Get the information about this new commit
         String oldHeadID = newHeadID;
