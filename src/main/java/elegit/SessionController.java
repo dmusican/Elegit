@@ -49,7 +49,6 @@ import org.eclipse.jgit.transport.RemoteRefUpdate;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
 import java.awt.*;
-import java.awt.Image;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -57,6 +56,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.List;
 import java.util.function.Consumer;
@@ -947,11 +947,16 @@ public class SessionController {
                     try{
                         ArrayList<Path> filePathsToAdd = new ArrayList<>();
                         // Try to add all files, throw exception if there are ones that can't be added
-                        for(RepoFile checkedFile : workingTreePanelView.getCheckedFilesInDirectory()) {
-                            if (checkedFile.canAdd())
-                                filePathsToAdd.add(checkedFile.getFilePath());
-                            else
-                                throw new UnableToAddException(checkedFile.filePath.toString());
+                        if (workingTreePanelView.isSelectAllChecked()) {
+                            filePathsToAdd.add(Paths.get("."));
+                        }
+                        else {
+                            for (RepoFile checkedFile : workingTreePanelView.getCheckedFilesInDirectory()) {
+                                if (checkedFile.canAdd())
+                                    filePathsToAdd.add(checkedFile.getFilePath());
+                                else
+                                    throw new UnableToAddException(checkedFile.filePath.toString());
+                            }
                         }
 
                         theModel.getCurrentRepoHelper().addFilePaths(filePathsToAdd);

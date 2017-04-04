@@ -231,4 +231,12 @@ public class WorkingTreePanelView extends FileStructurePanelView{
         }
         return false;
     }
+
+    /**
+     *
+     * @return true if the select all box is checked
+     */
+    public boolean isSelectAllChecked() {
+        return checkBox.isSelected();
+    }
 }
