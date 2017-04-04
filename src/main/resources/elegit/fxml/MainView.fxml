@@ -331,10 +331,10 @@
                 <TabPane GridPane.rowIndex="4"
                          GridPane.columnIndex="2"
                          fx:id="indexTabPane">
-                    <Tab text="Changed Files"
+                    <Tab text="Staged Files"
                          closable="false"
                          fx:id="indexPanelTab">
-                        <WorkingTreePanelView fx:id="indexPanelView"/>
+                        <StagedTreePanelView fx:id="indexPanelView"/>
                     </Tab>
                 </TabPane>
 

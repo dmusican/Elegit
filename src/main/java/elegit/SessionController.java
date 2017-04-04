@@ -100,7 +100,7 @@ public class SessionController {
 
     public WorkingTreePanelView workingTreePanelView;
     public AllFilesPanelView allFilesPanelView;
-    public WorkingTreePanelView indexPanelView;
+    public StagedTreePanelView indexPanelView;
 
 	public CommitTreePanelView commitTreePanelView;
 
@@ -1000,7 +1000,8 @@ public class SessionController {
         }
     }
 
-    /**Basic handler for the checkout button. Just checks out the given file
+    /**
+     * Basic handler for the checkout button. Just checks out the given file
      * from the index of HEAD
      *
      * @param filePath the path of the file to checkout from the index
@@ -2183,6 +2184,7 @@ public class SessionController {
                 commitTreeModel.update();
                 workingTreePanelView.drawDirectoryView();
                 allFilesPanelView.drawDirectoryView();
+                indexPanelView.drawDirectoryView();
                 this.theModel.getCurrentRepoHelper().getTagModel().updateTags();
                 updateStatusText();
             } catch(Exception e) {

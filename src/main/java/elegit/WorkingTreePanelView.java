@@ -118,7 +118,7 @@ public class WorkingTreePanelView extends FileStructurePanelView{
             isSelectedPropertyHelper = new SimpleBooleanProperty();
 
             // Check if the file is already being displayed
-            // starts at index 1 because the select all checbox is at index 0
+            // starts at index 1 because the select all checkbox is at index 0
             boolean foundMatchingItem = false;
             for(int i = 1; i < root.getChildren().size(); i++){
                 CheckBoxTreeItem<RepoFile> oldItem = (CheckBoxTreeItem<RepoFile>) root.getChildren().get(i);
