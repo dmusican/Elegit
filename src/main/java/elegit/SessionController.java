@@ -22,6 +22,7 @@ import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.control.CheckMenuItem;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.*;
 import javafx.scene.layout.*;
@@ -102,6 +103,7 @@ public class SessionController {
 
 	public CommitTreePanelView commitTreePanelView;
 
+	//why is there no public/private
     CommitTreeModel commitTreeModel;
 
     public ImageView remoteImage;
@@ -154,7 +156,8 @@ public class SessionController {
     @FXML private NotificationController notificationPaneController;
 
     // Menu Bar
-    @FXML private MenuItem loggingToggle;
+    @FXML private CheckMenuItem loggingToggle;
+    @FXML private CheckMenuItem sortCommitsToggle;
     @FXML private MenuItem gitIgnoreMenuItem;
     @FXML private Menu repoMenu;
     @FXML private MenuItem cloneMenuItem;
@@ -660,7 +663,15 @@ public class SessionController {
         }
     }
 
-    public void handleLoggingOnMenuItem() {
+    public void handleLoggingMenuItem(){
+        if (loggingToggle.isSelected()){
+            handleLoggingOnMenuItem();
+        } else {
+            handleLoggingOffMenuItem();
+        }
+    }
+
+    private void handleLoggingOnMenuItem() {
         changeLogging(Level.INFO);
         PopOver popOver = new PopOver(new Text("Toggled logging on"));
         popOver.show(commitTreePanelView);
@@ -669,7 +680,7 @@ public class SessionController {
         logger.log(Level.INFO, "Toggled logging on");
     }
 
-    public void handleLoggingOffMenuItem() {
+    private void handleLoggingOffMenuItem() {
         changeLogging(Level.OFF);
         PopOver popOver = new PopOver(new Text("Toggled logging off"));
         popOver.setTitle("");
@@ -678,7 +689,15 @@ public class SessionController {
         popOver.setAutoHide(true);
     }
 
-    public void handleCommitSortTopological() {
+    // file new issue to make a prefs window
+    public void handleCommitSortMenuItem(){
+        if (sortCommitsToggle.isSelected()){
+            handleCommitSortTopological();
+        } else {
+            handleCommitSortDate();
+        }
+    }
+    private void handleCommitSortTopological() {
         TreeLayout.commitSortTopological = true;
         try {
             commitTreeModel.updateView();
@@ -688,7 +707,7 @@ public class SessionController {
         }
     }
 
-    public void handleCommitSortDate() {
+    private void handleCommitSortDate() {
         TreeLayout.commitSortTopological = false;
         try {
             commitTreeModel.updateView();

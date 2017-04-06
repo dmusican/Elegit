@@ -19,18 +19,12 @@
             <menus>
                 <Menu   text="Preferences">
                     <items>
-                        <MenuItem   text="Turn Logging Off"
-                                    fx:id="loggingToggle"
-                                    onAction="#handleLoggingOffMenuItem"/>
-                        <MenuItem   text="Turn Logging On"
-                                    fx:id="loggingToggle"
-                                    onAction="#handleLoggingOnMenuItem"/>
-                        <MenuItem   text="Sort commits topologically"
-                                    fx:id="commitSortingToggle"
-                                    onAction="#handleCommitSortTopological"/>
-                        <MenuItem   text="Sort commits by date"
-                                    fx:id="commitSortingToggle"
-                                    onAction="#handleCommitSortDate"/>
+                        <CheckMenuItem text="Enable Logging"
+                                       fx:id="loggingToggle"
+                                       onAction="#handleLoggingMenuItem"/>
+                        <CheckMenuItem text = "Sort Commits Topologically"
+                                       fx:id ="sortCommitsToggle"
+                                       onAction="#handleCommitSortMenuItem"/>
                     </items>
                 </Menu>
                 <Menu   text="Edit">
@@ -61,7 +55,8 @@
                                         fx:id="cloneMenuItem"
                                         onAction="#handleCloneNewRepoOption"/>
                         </Menu>
-                        <Menu   text="Commmit">
+                        <!-- TODO Commit used to have 3 m's -->
+                        <Menu   text="Commit">
                             <MenuItem   text="Commit"
                                         fx:id="commitNormalMenuItem"
                                         onAction="#handleCommitNormal"/>
