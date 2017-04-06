@@ -1,5 +1,6 @@
-package elegit;
+package elegit.controllers;
 
+import elegit.*;
 import elegit.treefx.CellLabel;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;

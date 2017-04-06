@@ -1,5 +1,6 @@
-package elegit;
+package elegit.controllers;
 
+import elegit.*;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.concurrent.Task;

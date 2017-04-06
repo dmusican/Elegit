@@ -5,7 +5,7 @@
 <?import javafx.scene.image.*?>
 <?import java.net.URL?>
 
-<AnchorPane fx:controller="elegit.CreateDeleteBranchWindowController"
+<AnchorPane fx:controller="elegit.controllers.CreateDeleteBranchWindowController"
             fx:id="anchorRoot"
             xmlns:fx="http://javafx.com/fxml">
     <StackPane AnchorPane.rightAnchor="5"

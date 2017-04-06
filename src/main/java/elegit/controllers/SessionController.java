@@ -1,7 +1,8 @@
-package elegit;
+package elegit.controllers;
 
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
+import elegit.*;
 import elegit.exceptions.*;
 import elegit.treefx.TreeLayout;
 import javafx.application.Platform;
@@ -102,7 +103,7 @@ public class SessionController {
 
 	public CommitTreePanelView commitTreePanelView;
 
-    CommitTreeModel commitTreeModel;
+    public CommitTreeModel commitTreeModel;
 
     public ImageView remoteImage;
 
@@ -127,7 +128,7 @@ public class SessionController {
     private DataSubmitter d;
 
     private BooleanProperty isWorkingTreeTabSelected;
-    static SimpleBooleanProperty anythingChecked;
+    public static SimpleBooleanProperty anythingChecked;
 
     private volatile boolean isRecentRepoEventListenerBlocked = false;
 
@@ -1003,7 +1004,7 @@ public class SessionController {
      *
      * @param filePath the path of the file to checkout from the index
      */
-    void handleCheckoutButton(Path filePath) {
+    public void handleCheckoutButton(Path filePath) {
         try {
             logger.info("Checkout file button clicked");
             if (! PopUpWindows.showCheckoutAlert()) throw new CancelledDialogueException();
@@ -1653,7 +1654,7 @@ public class SessionController {
      * Adds a commit reverting the selected commits
      * @param commits the commits to revert
      */
-    void handleRevertMultipleButton(List<CommitHelper> commits) {
+    public void handleRevertMultipleButton(List<CommitHelper> commits) {
         try {
             logger.info("Revert button clicked");
 
@@ -1706,7 +1707,7 @@ public class SessionController {
      * Reverts the tree to remove the changes in the most recent commit
      * @param commit: the commit to revert
      */
-    void handleRevertButton(CommitHelper commit) {
+    public void handleRevertButton(CommitHelper commit) {
         try {
             logger.info("Revert button clicked");
 
@@ -1758,7 +1759,7 @@ public class SessionController {
      *
      * @param commit the commit to reset to
      */
-    void handleResetButton(CommitHelper commit) {
+    public void handleResetButton(CommitHelper commit) {
         handleAdvancedResetButton(commit, ResetCommand.ResetType.MIXED);
     }
 
@@ -1767,7 +1768,7 @@ public class SessionController {
      * @param commit CommitHelper
      * @param type the type of reset to perform
      */
-    void handleAdvancedResetButton(CommitHelper commit, ResetCommand.ResetType type) {
+    public void handleAdvancedResetButton(CommitHelper commit, ResetCommand.ResetType type) {
         try {
             logger.info("Reset button clicked");
 
@@ -2213,7 +2214,7 @@ public class SessionController {
      * Updates the trees, changed files, and branch information. Equivalent
      * to 'git status'
      */
-    void gitStatus(){
+    public void gitStatus(){
         RepositoryMonitor.pause();
 
         Platform.runLater(() -> {
@@ -2439,7 +2440,7 @@ public class SessionController {
      * Displays information about the commit with the given id
      * @param id the selected commit
      */
-    void selectCommit(String id){
+    public void selectCommit(String id){
         Platform.runLater(() -> {
             CommitHelper commit = this.theModel.getCurrentRepoHelper().getCommit(id);
 
@@ -2457,7 +2458,7 @@ public class SessionController {
     /**
      * Stops displaying commit information
      */
-    void clearSelectedCommit(){
+    public void clearSelectedCommit(){
         Platform.runLater(() -> {
             commitInfoMessageText.setText("");
             commitInfoMessageText.setVisible(false);
@@ -2853,7 +2854,7 @@ public class SessionController {
      * @throws IOException
      * @throws ClassNotFoundException
      */
-    void loadLogging() {
+    public void loadLogging() {
         Platform.runLater(() -> {
             Level storedLevel = getLoggingLevel();
             if (storedLevel == null) {

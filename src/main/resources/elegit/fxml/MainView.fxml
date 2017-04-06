@@ -9,7 +9,7 @@
 <?import javafx.scene.shape.*?>
 
 <BorderPane xmlns:fx="http://javafx.com/fxml"
-            fx:controller="elegit.SessionController">
+            fx:controller="elegit.controllers.SessionController">
 
     <!-- the top section of the border pane -->
     <top>

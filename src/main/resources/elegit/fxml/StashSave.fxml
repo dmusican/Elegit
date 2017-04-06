@@ -5,7 +5,7 @@
 <?import javafx.geometry.*?>
 
 
-    <AnchorPane fx:controller="elegit.StashSaveController"
+    <AnchorPane fx:controller="elegit.controllers.StashSaveController"
             xmlns:fx="http://javafx.com/fxml"
             fx:id="anchorRoot"
             prefWidth="350">

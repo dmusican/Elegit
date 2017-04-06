@@ -1,6 +1,6 @@
 package elegit;
 
-import elegit.exceptions.MissingRepoException;
+import elegit.controllers.SessionController;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ContextMenu;
@@ -10,7 +10,6 @@ import javafx.scene.text.Font;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.controlsfx.control.PopOver;
-import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 
 import java.io.IOException;
@@ -38,7 +37,7 @@ import java.util.ArrayList;
  */
 public class RepoFile implements Comparable<RepoFile> {
 
-    Path filePath;
+    public Path filePath;
     RepoHelper repo;
     static final Logger logger = LogManager.getLogger();
     protected ArrayList<RepoFile> children; // Only directories will use this!
