@@ -83,6 +83,31 @@ public class MenuController {
     }
 
 
+    /**
+     * Opens up the current repo helper's Branch Manager window after
+     * passing in this SessionController object, so that the
+     * BranchCheckoutController can update the main window's views.
+     */
+    public void showBranchCheckout() {
+        try{
+            sessionController.logger.info("Branch checkout clicked");
+            if(sessionController.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
+
+            sessionController.logger.info("Opened branch checkout window");
+            // Create and display the Stage:
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/BranchCheckout.fxml"));
+            fxmlLoader.load();
+            BranchCheckoutController branchCheckoutController = fxmlLoader.getController();
+            AnchorPane fxmlRoot = fxmlLoader.getRoot();
+            branchCheckoutController.showStage(fxmlRoot);
+        }catch(IOException e){
+            sessionController.showGenericErrorNotification();
+            e.printStackTrace();
+        }catch(NoRepoLoadedException e){
+            sessionController.showNoRepoLoadedNotification();
+            sessionController.setButtonsDisabled(true);
+        }
+    }
 
 
 }
