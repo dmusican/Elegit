@@ -37,6 +37,24 @@ public class MenuController {
     @FXML private MenuItem stashMenuItem2;
 
     public void initialize() {
+        initMenuBarShortcuts();
+    }
+
+
+
+    /**
+     * Sets up keyboard shortcuts for menu items
+     *
+     *  Combinations:
+     *  CMD-N   Clone
+     *  Shift + CMD-B   Branch
+     *  Shift + CMD-C   Commit
+     *  Shift + CMD-F   Fetch
+     *  Shift + CMD-L   Pull
+     *  Shift + CMD-P   Push (current branch)
+     *  Shift + CMD-S   Stash (manager)
+     */
+    private void initMenuBarShortcuts() {
         this.cloneMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.N, KeyCombination.META_DOWN));
         this.createBranchMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.B, KeyCombination.META_DOWN, KeyCombination.SHIFT_DOWN));
         this.commitNormalMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.C, KeyCombination.META_DOWN, KeyCombination.SHIFT_DOWN));
@@ -45,8 +63,10 @@ public class MenuController {
         this.pushMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.P, KeyCombination.META_DOWN, KeyCombination.SHIFT_DOWN));
         this.stashMenuItem1.setAccelerator(new KeyCodeCombination(KeyCode.S, KeyCombination.CONTROL_DOWN, KeyCombination.SHIFT_DOWN));
         this.stashMenuItem2.setAccelerator(new KeyCodeCombination(KeyCode.L, KeyCombination.CONTROL_DOWN, KeyCombination.SHIFT_DOWN));
-
     }
+
+
+
     public void setSessionController(SessionController sessionController) {
         this.sessionController = sessionController;
     }
