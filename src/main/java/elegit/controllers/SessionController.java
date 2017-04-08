@@ -89,7 +89,7 @@ public class SessionController {
     public Button tagButton;
     public Button pushTagsButton;
 
-    SessionModel theModel;
+    private SessionModel theModel;
 
     public Node root;
 
@@ -2034,6 +2034,67 @@ public class SessionController {
         }
     }
 
+    public void handleLoggingOffMenuItem() {
+        changeLogging(Level.OFF);
+        PopOver popOver = new PopOver(new Text("Toggled logging off"));
+        popOver.setTitle("");
+        popOver.show(commitTreePanelView);
+        popOver.detach();
+        popOver.setAutoHide(true);
+    }
+
+    public void handleLoggingOnMenuItem() {
+        changeLogging(Level.INFO);
+        PopOver popOver = new PopOver(new Text("Toggled logging on"));
+        popOver.show(commitTreePanelView);
+        popOver.detach();
+        popOver.setAutoHide(true);
+        logger.log(Level.INFO, "Toggled logging on");
+    }
+
+    public void handleCommitSortTopological() {
+        TreeLayout.commitSortTopological = true;
+        try {
+            commitTreeModel.updateView();
+        } catch (Exception e) {
+            e.printStackTrace();
+            showGenericErrorNotification();
+        }
+    }
+
+    public void handleCommitSortDate() {
+        TreeLayout.commitSortTopological = false;
+        try {
+            commitTreeModel.updateView();
+        } catch (Exception e) {
+            e.printStackTrace();
+            showGenericErrorNotification();
+        }
+    }
+
+
+
+    /**
+     * Opens an editor for the .gitignore
+     */
+    public void handleGitIgnoreMenuItem() {
+        GitIgnoreEditor.show(SessionModel.getSessionModel().getCurrentRepoHelper(), null);
+    }
+
+
+    public void handleNewBranchButton() {
+        handleCreateOrDeleteBranchButton("create");
+    }
+
+    public void handleDeleteLocalBranchButton() {
+        handleCreateOrDeleteBranchButton("local");
+    }
+
+    public void handleDeleteRemoteBranchButton() {
+        handleCreateOrDeleteBranchButton("remote");
+    }
+
+
     public void handleCreateOrDeleteBranchButton() {
         handleCreateOrDeleteBranchButton("create");
     }
@@ -2335,6 +2396,31 @@ public class SessionController {
         this.refreshRecentReposInDropdown();
     }
 
+    /**
+     * Opens up the current repo helper's Branch Manager window after
+     * passing in this SessionController object, so that the
+     * BranchCheckoutController can update the main window's views.
+     */
+    public void showBranchCheckout() {
+        try{
+            logger.info("Branch checkout clicked");
+            if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
+
+            logger.info("Opened branch checkout window");
+            // Create and display the Stage:
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/BranchCheckout.fxml"));
+            fxmlLoader.load();
+            BranchCheckoutController branchCheckoutController = fxmlLoader.getController();
+            AnchorPane fxmlRoot = fxmlLoader.getRoot();
+            branchCheckoutController.showStage(fxmlRoot);
+        }catch(IOException e){
+            this.showGenericErrorNotification();
+            e.printStackTrace();
+        }catch(NoRepoLoadedException e){
+            this.showNoRepoLoadedNotification();
+            setButtonsDisabled(true);
+        }
+    }
 
     /**
      * Opens up the help page to inform users about what symbols mean
@@ -2429,7 +2515,7 @@ public class SessionController {
         });
     }
 
-    void showNoRepoLoadedNotification() {
+    private void showNoRepoLoadedNotification() {
         Platform.runLater(() -> {
             logger.warn("No repo loaded warning.");
             notificationPaneController.addNotification("You need to load a repository before you can perform operations on it. Click on the plus sign in the upper left corner!");
