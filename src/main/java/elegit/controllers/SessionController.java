@@ -155,6 +155,7 @@ public class SessionController {
     @FXML private NotificationController notificationPaneController;
 
     // Menu Bar
+    @FXML private MenuController menuController;
     @FXML private MenuItem loggingToggle;
     @FXML private MenuItem gitIgnoreMenuItem;
     @FXML private Menu repoMenu;
@@ -190,6 +191,7 @@ public class SessionController {
         // Gives other controllers acccess to this one
         CommitTreeController.sessionController = this;
         CommitController.sessionController = this;
+        menuController.setSessionController(this);
 
         // Creates the commit tree model
         this.commitTreeModel = new LocalCommitTreeModel(this.theModel, this.commitTreePanelView);
@@ -661,53 +663,8 @@ public class SessionController {
         }
     }
 
-    public void handleLoggingOnMenuItem() {
-        changeLogging(Level.INFO);
-        PopOver popOver = new PopOver(new Text("Toggled logging on"));
-        popOver.show(commitTreePanelView);
-        popOver.detach();
-        popOver.setAutoHide(true);
-        logger.log(Level.INFO, "Toggled logging on");
-    }
-
-    public void handleLoggingOffMenuItem() {
-        changeLogging(Level.OFF);
-        PopOver popOver = new PopOver(new Text("Toggled logging off"));
-        popOver.setTitle("");
-        popOver.show(commitTreePanelView);
-        popOver.detach();
-        popOver.setAutoHide(true);
-    }
-
-    public void handleCommitSortTopological() {
-        TreeLayout.commitSortTopological = true;
-        try {
-            commitTreeModel.updateView();
-        } catch (Exception e) {
-            e.printStackTrace();
-            this.showGenericErrorNotification();
-        }
-    }
-
-    public void handleCommitSortDate() {
-        TreeLayout.commitSortTopological = false;
-        try {
-            commitTreeModel.updateView();
-        } catch (Exception e) {
-            e.printStackTrace();
-            this.showGenericErrorNotification();
-        }
-    }
-
-    /**
-     * Opens an editor for the .gitignore
-     */
-    public void handleGitIgnoreMenuItem() {
-        GitIgnoreEditor.show(SessionModel.getSessionModel().getCurrentRepoHelper(), null);
-    }
-
-    /**
-     * Called when the loadNewRepoButton gets pushed, shows a menu of options
+     /**
+      * Called when the loadNewRepoButton gets pushed, shows a menu of options
      */
     public void handleLoadNewRepoButton() {
         newRepoOptionsMenu.show(this.loadNewRepoButton, Side.BOTTOM ,0, 0);
@@ -2077,21 +2034,10 @@ public class SessionController {
         }
     }
 
-    public void handleNewBranchButton() {
-        handleCreateOrDeleteBranchButton("create");
-    }
-
-    public void handleDeleteLocalBranchButton() {
-        handleCreateOrDeleteBranchButton("local");
-    }
-
-    public void handleDeleteRemoteBranchButton() {
-        handleCreateOrDeleteBranchButton("remote");
-    }
-
     public void handleCreateOrDeleteBranchButton() {
         handleCreateOrDeleteBranchButton("create");
     }
+
 
     /**
      * Pops up a window where the user can create a new branch
@@ -2482,7 +2428,7 @@ public class SessionController {
         });
     }
 
-    private void showGenericErrorNotification() {
+    void showGenericErrorNotification() {
         Platform.runLater(()-> {
             logger.warn("Generic error warning.");
             notificationPaneController.addNotification("Sorry, there was an error.");
