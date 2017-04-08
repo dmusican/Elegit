@@ -1,5 +1,6 @@
 package elegit.controllers;
 
+import elegit.ClonedRepoHelperBuilder;
 import elegit.GitIgnoreEditor;
 import elegit.SessionModel;
 import elegit.exceptions.NoRepoLoadedException;
@@ -109,5 +110,9 @@ public class MenuController {
         }
     }
 
+
+    public void handleCloneNewRepoOption() {
+        sessionController.handleCloneNewRepoOption();
+    }
 
 }
