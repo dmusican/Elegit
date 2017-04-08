@@ -69,11 +69,6 @@ import java.util.prefs.Preferences;
  */
 public class SessionController {
 
-    public ComboBox<RepoHelper> repoDropdownSelector;
-
-    public Button loadNewRepoButton;
-    public Button removeRecentReposButton;
-    public Button openRepoDirButton;
     public Button gitStatusButton;
     public Button commitButton;
     public Button pushButton;
@@ -134,13 +129,9 @@ public class SessionController {
 
     static final Logger logger = LogManager.getLogger(SessionController.class);
 
-    public ContextMenu newRepoOptionsMenu;
     public ContextMenu pushContextMenu;
     public ContextMenu commitContextMenu;
     public ContextMenu fetchContextMenu;
-
-    public MenuItem cloneOption;
-    public MenuItem existingOption;
 
     public Hyperlink legendLink;
 
@@ -156,6 +147,7 @@ public class SessionController {
 
     // Menu Bar
     @FXML private MenuController menuController;
+    @FXML private DropdownController dropdownController;
 //    @FXML private MenuItem loggingToggle;
 //    @FXML private MenuItem gitIgnoreMenuItem;
 //    @FXML private Menu repoMenu;
@@ -192,6 +184,7 @@ public class SessionController {
         CommitTreeController.sessionController = this;
         CommitController.sessionController = this;
         menuController.setSessionController(this);
+        dropdownController.setSessionController(this);
 
         // Creates the commit tree model
         this.commitTreeModel = new LocalCommitTreeModel(this.theModel, this.commitTreePanelView);
@@ -397,7 +390,7 @@ public class SessionController {
      */
     private void initializeLayoutParameters(){
         // Set minimum/maximum sizes for buttons
-        openRepoDirButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
+        //openRepoDirButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         gitStatusButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         commitButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         addButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
@@ -416,8 +409,6 @@ public class SessionController {
         filesTabPane.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         workingTreePanelView.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         allFilesPanelView.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
-        final int REPO_DROPDOWN_MAX_WIDTH = 147;
-        repoDropdownSelector.setMaxWidth(REPO_DROPDOWN_MAX_WIDTH);
         tagNameField.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         commitInfoMessageText.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
     }
@@ -469,28 +460,11 @@ public class SessionController {
      * Adds graphics and tooltips to the buttons
      */
     private void setButtonIconsAndTooltips() {
-        Text openExternallyIcon = GlyphsDude.createIcon(FontAwesomeIcon.EXTERNAL_LINK);
-        this.openRepoDirButton.setGraphic(openExternallyIcon);
-        this.openRepoDirButton.setTooltip(new Tooltip("Open repository directory"));
-
-        Text plusIcon = GlyphsDude.createIcon(FontAwesomeIcon.PLUS);
-        this.loadNewRepoButton.setGraphic(plusIcon);
-
-        Text minusIcon = GlyphsDude.createIcon(FontAwesomeIcon.MINUS);
-        this.removeRecentReposButton.setGraphic(minusIcon);
-        this.removeRecentReposButton.setTooltip(new Tooltip("Clear shortcuts to recently opened repos"));
-
         Text clipboardIcon = GlyphsDude.createIcon(FontAwesomeIcon.CLIPBOARD);
         this.commitInfoNameCopyButton.setGraphic(clipboardIcon);
 
         Text goToIcon = GlyphsDude.createIcon(FontAwesomeIcon.ARROW_CIRCLE_LEFT);
         this.commitInfoGoToButton.setGraphic(goToIcon);
-
-        Text downloadIcon = GlyphsDude.createIcon(FontAwesomeIcon.CLOUD_DOWNLOAD);
-        cloneOption.setGraphic(downloadIcon);
-
-        Text folderOpenIcon = GlyphsDude.createIcon(FontAwesomeIcon.FOLDER_OPEN);
-        existingOption.setGraphic(folderOpenIcon);
 
         this.commitInfoGoToButton.setTooltip(new Tooltip(
                 "Go to selected commit"
@@ -519,7 +493,7 @@ public class SessionController {
                 "Update remote repository with local changes,\nright click for advanced options"
         ));
 
-        this.loadNewRepoButton.setTooltip(new Tooltip(
+        dropdownController.loadNewRepoButton.setTooltip(new Tooltip(
                 "Load a new repository"
         ));
         this.mergeButton.setTooltip(new Tooltip(
@@ -589,7 +563,7 @@ public class SessionController {
      */
     void setButtonsDisabled(boolean disable) {
         Platform.runLater(() -> {
-            openRepoDirButton.setDisable(disable);
+            dropdownController.openRepoDirButton.setDisable(disable);
             gitStatusButton.setDisable(disable);
             tagButton.setDisable(disable);
             commitButton.setDisable(disable);
@@ -599,8 +573,8 @@ public class SessionController {
             browserText.setVisible(!disable);
             workingTreePanelTab.setDisable(disable);
             allFilesPanelTab.setDisable(disable);
-            removeRecentReposButton.setDisable(disable);
-            repoDropdownSelector.setDisable(disable);
+            dropdownController.removeRecentReposButton.setDisable(disable);
+            dropdownController.repoDropdownSelector.setDisable(disable);
             addDeleteBranchButton.setDisable(disable);
             checkoutButton.setDisable(disable);
             mergeButton.setDisable(disable);
@@ -645,7 +619,7 @@ public class SessionController {
       * Called when the loadNewRepoButton gets pushed, shows a menu of options
      */
     public void handleLoadNewRepoButton() {
-        newRepoOptionsMenu.show(this.loadNewRepoButton, Side.BOTTOM ,0, 0);
+        dropdownController.newRepoOptionsMenu.show(dropdownController.loadNewRepoButton, Side.BOTTOM ,0, 0);
     }
 
     /**
@@ -746,7 +720,7 @@ public class SessionController {
             synchronized (this) {
                 isRecentRepoEventListenerBlocked = true;
                 RepoHelper currentRepo = this.theModel.getCurrentRepoHelper();
-                this.repoDropdownSelector.setValue(currentRepo);
+                dropdownController.repoDropdownSelector.setValue(currentRepo);
                 isRecentRepoEventListenerBlocked = false;
             }
         });
@@ -761,7 +735,7 @@ public class SessionController {
             synchronized (this) {
                 isRecentRepoEventListenerBlocked = true;
                 List<RepoHelper> repoHelpers = this.theModel.getAllRepoHelpers();
-                this.repoDropdownSelector.setItems(FXCollections.observableArrayList(repoHelpers));
+                dropdownController.repoDropdownSelector.setItems(FXCollections.observableArrayList(repoHelpers));
                 isRecentRepoEventListenerBlocked = false;
             }
         });
@@ -821,7 +795,7 @@ public class SessionController {
      */
     public void loadSelectedRepo() {
         if (theModel.getAllRepoHelpers().size() == 0) return;
-        RepoHelper selectedRepoHelper = this.repoDropdownSelector.getValue();
+        RepoHelper selectedRepoHelper = dropdownController.repoDropdownSelector.getValue();
         this.handleRecentRepoMenuItem(selectedRepoHelper);
     }
 
@@ -2327,7 +2301,7 @@ public class SessionController {
         popover.setTitle("Manage Recent Repositories");
 
         // shows the popover
-        popover.show(this.removeRecentReposButton);
+        popover.show(dropdownController.removeRecentReposButton);
 
         removeSelectedButton.setOnAction(e -> {
             this.handleRemoveReposButton(repoCheckListView.getCheckModel().getCheckedItems());
@@ -2350,7 +2324,7 @@ public class SessionController {
                     .get(newIndex);
 
             handleRecentRepoMenuItem(newCurrentRepo);
-            repoDropdownSelector.setValue(newCurrentRepo);
+            dropdownController.repoDropdownSelector.setValue(newCurrentRepo);
 
             this.refreshRecentReposInDropdown();
 

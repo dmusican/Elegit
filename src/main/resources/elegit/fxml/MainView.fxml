@@ -44,34 +44,7 @@
                     <RowConstraints vgrow="NEVER"/>
                 </rowConstraints>
 
-                <!-- Dropdown, open in file manager, plus and minus buttons -->
-                <HBox spacing="5">
-                    <ComboBox id="repoDropdown"
-                              fx:id="repoDropdownSelector"
-                              onAction="#loadSelectedRepo"/>
-
-                    <Button fx:id="openRepoDirButton"
-                            onAction="#openRepoDirectory"/>
-
-                    <Button fx:id="loadNewRepoButton"
-                            onAction="#handleLoadNewRepoButton">
-                        <contextMenu>
-                            <ContextMenu fx:id="newRepoOptionsMenu">
-                                <items>
-                                    <MenuItem fx:id="cloneOption"
-                                              onAction="#handleCloneNewRepoOption"
-                                              text="Clone repository"/>
-                                    <MenuItem fx:id="existingOption"
-                                              onAction="#handleLoadExistingRepoOption"
-                                              text="Load existing repository"/>
-                                </items>
-                            </ContextMenu>
-                        </contextMenu>
-                    </Button>
-                    <Button id="warningButton"
-                            onAction="#chooseRecentReposToDelete"
-                            fx:id="removeRecentReposButton"/>
-                </HBox>
+                <fx:include fx:id="dropdown" source="MainViewDropdown.fxml"/>
 
                 <!-- Working Directory block -->
                 <StackPane  GridPane.rowIndex="1"
