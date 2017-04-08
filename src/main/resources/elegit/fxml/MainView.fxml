@@ -117,17 +117,6 @@
                     </VBox>
                 </StackPane>
 
-                <!-- Separator between headings and content -->
-                <!--<HBox GridPane.rowIndex="2"-->
-                      <!--GridPane.columnSpan="3"-->
-                      <!--id="separator-dashed"-->
-                      <!--minHeight="4">-->
-                    <!--<GridPane.margin>-->
-                        <!--<Insets top="10" bottom="10" left="-3" right="-15"/>-->
-                    <!--</GridPane.margin>-->
-                    <!--<Rectangle height="4"/>-->
-                <!--</HBox>-->
-
                 <!-- Separator between remote and commit info -->
                 <HBox GridPane.rowIndex="2"
                       GridPane.columnIndex="4"
