@@ -14,6 +14,7 @@ import org.junit.Test;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Scanner;
 
@@ -93,15 +94,24 @@ public class AddDirTest {
 
 
         /* ********************* EDIT AND PUSH SECTION ********************* */
-        // Make some changes in master in pusher
-        Path filePath = repoPathAdd.resolve("foo/bar.txt");
+        // Make some changes
+        Path filePath = repoPathAdd.resolve("foo"+File.separator+"bar.txt");
+        Path filePathNew = repoPathAdd.resolve("foo"+File.separator+"new.txt");
         String timestamp = "testInDirAdd " + (new Date()).toString() + "\n";
         Files.write(filePath, timestamp.getBytes(), StandardOpenOption.APPEND);
-        helperAdd.addFilePathTest(filePath);
+        Files.write(filePathNew, timestamp.getBytes());
+        ArrayList paths = new ArrayList();
+        paths.add(filePath);
+        paths.add(filePathNew);
+        helperAdd.addFilePathsTest(paths);
 
         Git git = new Git(helperAdd.repo);
 
         // Check that the file was added.
+        System.out.println(git.status().call().getAdded());
+        System.out.println(git.status().call().getChanged());
+        System.out.println(git.status().call().getModified());
+        assertEquals(git.status().call().getAdded().size(), 1);
         assertEquals(git.status().call().getChanged().size(), 1);
     }
 }
