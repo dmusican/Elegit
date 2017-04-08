@@ -3,9 +3,11 @@ package elegit;
 import elegit.controllers.SessionController;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.scene.layout.BorderPane;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.logging.log4j.LogManager;
@@ -85,7 +87,10 @@ public class Main extends Application {
         }
 
         // creates the scene
-        Scene scene = new Scene(root);//, 1200, 750);
+        Rectangle2D primScreenBounds = Screen.getPrimary().getVisualBounds();
+        int screenWidth = (int)primScreenBounds.getWidth();
+        int screenHeight = (int)primScreenBounds.getHeight();
+        Scene scene = new Scene(root, screenWidth*2/3, screenHeight*2/3); //, 1200, 750);
 
         // setup and show the stage
         primaryStage.setOnCloseRequest(event -> {
@@ -98,6 +103,8 @@ public class Main extends Application {
         primaryStage.setScene(scene);
         sessionController.setStage(primaryStage);
         startLatch.countDown();
+
+
         primaryStage.show();
 
         // Handles some concurrency issues with gitStatus()

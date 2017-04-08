@@ -409,11 +409,9 @@ public class SessionController {
         commitInfoGoToButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
 
         // Set minimum sizes for other fields and views
-        //filesTabPane.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         workingTreePanelView.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         allFilesPanelView.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         tagNameField.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
-        //commitInfoMessageText.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
     }
 
     /**

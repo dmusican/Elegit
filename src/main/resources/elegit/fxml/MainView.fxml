@@ -20,10 +20,8 @@
     <center>
         <AnchorPane
                 fx:id="anchorRoot"
-                prefWidth="1200"
-                prefHeight="650">
+                >
             <GridPane fx:id="root"
-                      gridLinesVisible="true"
                   AnchorPane.rightAnchor="5"
                   AnchorPane.leftAnchor="5"
                   AnchorPane.topAnchor="5"
