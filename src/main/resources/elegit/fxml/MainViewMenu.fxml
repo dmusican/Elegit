@@ -48,7 +48,7 @@
                     <MenuItem   text="Delete Remote Branch"
                                 onAction="#handleDeleteRemoteBranchButton"/>
                 </Menu>
-               <!-- <Menu   text="Checkout">
+               <Menu   text="Checkout">
                     <MenuItem   text="Checkout Branch"
                                 onAction="#showBranchCheckout"/>
                 </Menu>
@@ -102,7 +102,7 @@
                                 onAction="#handleStashListButton"/>
                     <MenuItem   text="Stash Drop"
                                 onAction="#handleStashDropButton"/>
-                </Menu>-->
+                </Menu>
             </items>
         </Menu>
     </menus>

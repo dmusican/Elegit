@@ -156,17 +156,17 @@ public class SessionController {
 
     // Menu Bar
     @FXML private MenuController menuController;
-    @FXML private MenuItem loggingToggle;
-    @FXML private MenuItem gitIgnoreMenuItem;
-    @FXML private Menu repoMenu;
-    @FXML private MenuItem cloneMenuItem;
-    @FXML private MenuItem createBranchMenuItem;
-    @FXML private MenuItem commitNormalMenuItem;
-    @FXML private MenuItem normalFetchMenuItem;
-    @FXML private MenuItem pullMenuItem;
-    @FXML private MenuItem pushMenuItem;
-    @FXML private MenuItem stashMenuItem1;
-    @FXML private MenuItem stashMenuItem2;
+//    @FXML private MenuItem loggingToggle;
+//    @FXML private MenuItem gitIgnoreMenuItem;
+//    @FXML private Menu repoMenu;
+//    @FXML private MenuItem cloneMenuItem;
+//    @FXML private MenuItem createBranchMenuItem;
+//    @FXML private MenuItem commitNormalMenuItem;
+//    @FXML private MenuItem normalFetchMenuItem;
+//    @FXML private MenuItem pullMenuItem;
+//    @FXML private MenuItem pushMenuItem;
+//    @FXML private MenuItem stashMenuItem1;
+//    @FXML private MenuItem stashMenuItem2;
 
     boolean tryCommandAgainWithHTTPAuth;
     private boolean isGitStatusDone;
@@ -220,7 +220,7 @@ public class SessionController {
 
         this.initStatusText();
 
-        this.initMenuBarShortcuts();
+        //this.initMenuBarShortcuts();
 
         this.notificationPaneController.bindParentBounds(anchorRoot.heightProperty());
 
@@ -630,23 +630,23 @@ public class SessionController {
      *  Shift + CMD-P   Push (current branch)
      *  Shift + CMD-S   Stash (manager)
      */
-    private void initMenuBarShortcuts() {
-        this.cloneMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.N, KeyCombination.META_DOWN));
-        this.createBranchMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.B, KeyCombination.META_DOWN, KeyCombination.SHIFT_DOWN));
-        this.commitNormalMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.C, KeyCombination.META_DOWN, KeyCombination.SHIFT_DOWN));
-        this.normalFetchMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.F, KeyCombination.META_DOWN, KeyCombination.SHIFT_DOWN));
-        this.pullMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.L, KeyCombination.META_DOWN, KeyCombination.SHIFT_DOWN));
-        this.pushMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.P, KeyCombination.META_DOWN, KeyCombination.SHIFT_DOWN));
-        this.stashMenuItem1.setAccelerator(new KeyCodeCombination(KeyCode.S, KeyCombination.CONTROL_DOWN, KeyCombination.SHIFT_DOWN));
-        this.stashMenuItem2.setAccelerator(new KeyCodeCombination(KeyCode.L, KeyCombination.CONTROL_DOWN, KeyCombination.SHIFT_DOWN));
-    }
+//    private void initMenuBarShortcuts() {
+//        this.cloneMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.N, KeyCombination.META_DOWN));
+//        this.createBranchMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.B, KeyCombination.META_DOWN, KeyCombination.SHIFT_DOWN));
+//        this.commitNormalMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.C, KeyCombination.META_DOWN, KeyCombination.SHIFT_DOWN));
+//        this.normalFetchMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.F, KeyCombination.META_DOWN, KeyCombination.SHIFT_DOWN));
+//        this.pullMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.L, KeyCombination.META_DOWN, KeyCombination.SHIFT_DOWN));
+//        this.pushMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.P, KeyCombination.META_DOWN, KeyCombination.SHIFT_DOWN));
+//        this.stashMenuItem1.setAccelerator(new KeyCodeCombination(KeyCode.S, KeyCombination.CONTROL_DOWN, KeyCombination.SHIFT_DOWN));
+//        this.stashMenuItem2.setAccelerator(new KeyCodeCombination(KeyCode.L, KeyCombination.CONTROL_DOWN, KeyCombination.SHIFT_DOWN));
+//    }
 
     /**
      * Helper method for disabling the menu bar
      */
     private void updateMenuBarEnabledStatus(boolean disable) {
-        repoMenu.setDisable(disable);
-        gitIgnoreMenuItem.setDisable(disable);
+        menuController.repoMenu.setDisable(disable);
+        menuController.gitIgnoreMenuItem.setDisable(disable);
     }
 
     /**
