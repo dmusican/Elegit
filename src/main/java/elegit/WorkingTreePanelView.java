@@ -160,7 +160,7 @@ public class WorkingTreePanelView extends FileStructurePanelView{
             }
         }
 
-        //hides the checkbox if there are no files shown
+        // Hides the checkbox if there are no files shown
         if(root.getChildren().size() < 2) {
             root.getChildren().remove(checkBox);
         }
