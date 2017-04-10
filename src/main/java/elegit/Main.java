@@ -90,7 +90,7 @@ public class Main extends Application {
         Rectangle2D primScreenBounds = Screen.getPrimary().getVisualBounds();
         int screenWidth = (int)primScreenBounds.getWidth();
         int screenHeight = (int)primScreenBounds.getHeight();
-        Scene scene = new Scene(root, screenWidth*2/3, screenHeight*2/3); //, 1200, 750);
+        Scene scene = new Scene(root, screenWidth*4/5, screenHeight*4/5);
 
         // setup and show the stage
         primaryStage.setOnCloseRequest(event -> {
