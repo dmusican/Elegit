@@ -27,6 +27,9 @@
                 <MenuItem   text="Sort commits by date"
                             fx:id="commitSortingToggle"
                             onAction="#handleCommitSortDate"/>
+                <MenuItem   text="About"
+                            fx:id="about"
+                            onAction="#handleAbout"/>
             </items>
         </Menu>
         <Menu   text="Edit">

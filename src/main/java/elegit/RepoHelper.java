@@ -278,8 +278,15 @@ public class RepoHelper {
         Git git = new Git(this.repo);
         // git add:
         Path relativizedFilePath = this.localPath.relativize(filePath);
+        String pathToAdd = relativizedFilePath.toString();
+        if (!File.separator.equals("/")) {
+            if (File.separator.equals("\\"))
+                pathToAdd = pathToAdd.replaceAll("\\\\", "/");
+            else
+                pathToAdd = pathToAdd.replaceAll(File.separator, "/");
+        }
         git.add()
-                .addFilepattern(relativizedFilePath.toString())
+                .addFilepattern(pathToAdd)
                 .call();
         git.close();
     }
@@ -296,25 +303,16 @@ public class RepoHelper {
         AddCommand adder = git.add();
         for (Path filePath : filePaths) {
             Path localizedFilePath = this.localPath.relativize(filePath);
-            adder.addFilepattern(localizedFilePath.toString());
+            String pathToAdd = localizedFilePath.toString();
+            if (!File.separator.equals("/")) {
+                if (File.separator.equals("\\"))
+                    pathToAdd = pathToAdd.replaceAll("\\\\", "/");
+                else
+                    pathToAdd = pathToAdd.replaceAll(File.separator, "/");
+            }
+            adder.addFilepattern(pathToAdd);
         }
         adder.call();
-        git.close();
-    }
-
-    /**
-     * Adds a file to the repository
-     *
-     * @param filePath the path of the file to add.
-     * @throws GitAPIException if the `git add` call fails.
-     */
-    public void addFilePath(Path filePath) throws GitAPIException {
-        Git git = new Git(this.repo);
-        // git add:
-        Path relativizedFilePath = this.localPath.relativize(filePath);
-        git.add()
-                .addFilepattern(relativizedFilePath.toString())
-                .call();
         git.close();
     }
 
@@ -329,7 +327,14 @@ public class RepoHelper {
         // git add:
         AddCommand adder = git.add();
         for (Path filePath : filePaths) {
-            adder.addFilepattern(filePath.toString());
+            String pathToAdd = filePath.toString();
+            if (!File.separator.equals("/")) {
+                if (File.separator.equals("\\"))
+                    pathToAdd = pathToAdd.replaceAll("\\\\", "/");
+                else
+                    pathToAdd = pathToAdd.replaceAll(File.separator, "/");
+            }
+            adder.addFilepattern(pathToAdd);
         }
         adder.call();
         git.close();

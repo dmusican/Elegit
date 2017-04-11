@@ -51,15 +51,15 @@ import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
 import java.awt.*;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Path;
-import java.util.ArrayList;
+import java.nio.file.Paths;
+import java.util.*;
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.function.Consumer;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
@@ -820,11 +820,16 @@ public class SessionController {
                     try{
                         ArrayList<Path> filePathsToAdd = new ArrayList<>();
                         // Try to add all files, throw exception if there are ones that can't be added
-                        for(RepoFile checkedFile : workingTreePanelView.getCheckedFilesInDirectory()) {
-                            if (checkedFile.canAdd())
-                                filePathsToAdd.add(checkedFile.getFilePath());
-                            else
-                                throw new UnableToAddException(checkedFile.filePath.toString());
+                        if (workingTreePanelView.isSelectAllChecked()) {
+                            filePathsToAdd.add(Paths.get("."));
+                        }
+                        else {
+                            for (RepoFile checkedFile : workingTreePanelView.getCheckedFilesInDirectory()) {
+                                if (checkedFile.canAdd())
+                                    filePathsToAdd.add(checkedFile.getFilePath());
+                                else
+                                    throw new UnableToAddException(checkedFile.filePath.toString());
+                            }
                         }
 
                         theModel.getCurrentRepoHelper().addFilePaths(filePathsToAdd);
@@ -2025,6 +2030,43 @@ public class SessionController {
         }
     }
 
+    public void handleAbout() {
+        try{
+            logger.info("About clicked");
+            // Create and display the Stage:
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/About.fxml"));
+            GridPane fxmlRoot = fxmlLoader.load();
+            AboutController aboutController = fxmlLoader.getController();
+            aboutController.setVersion(getVersion());
+
+            Stage stage = new Stage();
+            javafx.scene.image.Image img = new javafx.scene.image.Image(getClass().getResourceAsStream("/elegit/images/elegit_icon.png"));
+            stage.getIcons().add(img);
+            stage.setTitle("About");
+            stage.setScene(new Scene(fxmlRoot));
+            stage.initModality(Modality.APPLICATION_MODAL);
+            stage.setOnCloseRequest(event -> logger.info("Closed about"));
+            stage.show();
+        }catch(IOException e) {
+            this.showGenericErrorNotification();
+            e.printStackTrace();
+        }
+    }
+
+    String getVersion() {
+        String path = "/version.prop";
+        InputStream stream = getClass().getResourceAsStream(path);
+        if (stream == null)
+            return "UNKNOWN";
+        Properties props = new Properties();
+        try {
+            props.load(stream);
+            stream.close();
+            return (String) props.get("version");
+        } catch (IOException e) {
+            return "UNKNOWN";
+        }
+    }
 
 
     /**

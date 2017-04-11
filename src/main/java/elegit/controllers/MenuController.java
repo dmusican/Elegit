@@ -167,19 +167,8 @@ public class MenuController {
         sessionController.handleStashDropButton();
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    public void handleAbout() {
+        sessionController.handleAbout();
+    }
 
     }
