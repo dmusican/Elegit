@@ -112,6 +112,7 @@ public class WorkingTreePanelView extends FileStructurePanelView{
 
         // Loop over every file to be shown
         for(RepoFile repoFile : repoFiles) {
+
             CheckBoxTreeItem<RepoFile> newItem = new CheckBoxTreeItem<>(repoFile, repoFile.diffButton);
 
             BooleanProperty oldHelper = isSelectedPropertyHelper;
@@ -148,7 +149,6 @@ public class WorkingTreePanelView extends FileStructurePanelView{
                 isSelectedPropertyHelper.bind(oldHelper.or(newItem.selectedProperty()));
 
                 displayedFiles.add(newItem);
-
                 shouldKeepChild.put(newItem, true);
             }
         }
@@ -160,12 +160,20 @@ public class WorkingTreePanelView extends FileStructurePanelView{
             }
         }
 
-        // Hides the checkbox if there are no files shown
+        // Hides the 'select/deselect all' checkbox if there are no files shown
         if(root.getChildren().size() < 2) {
             root.getChildren().remove(checkBox);
         }
 
         isAnyFileSelectedProperty.bind(isSelectedPropertyHelper);
+
+        RepoFile repoFile = new RepoFile("/src/java/elegit/CALEB", this.sessionModel.getCurrentRepoHelper());
+        if (repoFile.diffButton.getText().equals("UNCHANGED")) {
+            TreeItem<RepoFile> pathLabel = new TreeItem<>(repoFile);
+            root.getChildren().add(pathLabel);
+            displayedFiles.add(pathLabel);
+            shouldKeepChild.put(pathLabel, true);
+        }
     }
 
     /**
