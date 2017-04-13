@@ -1,0 +1,23 @@
+<?import javafx.scene.layout.*?>
+<?import java.net.URL?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.text.Text?>
+<?import javafx.scene.control.Hyperlink?>
+<GridPane hgap="10"
+          vgap="30"
+          alignment="TOP_CENTER"
+          prefWidth="200"
+          xmlns:fx="http://javafx.com/fxml"
+          fx:controller="elegit.AboutController">
+
+    <padding>
+        <Insets top="10" bottom="10" right="10" left="10"/>
+    </padding>
+
+    <Text fx:id="version" GridPane.rowIndex="0">Version:</Text>
+    <Hyperlink GridPane.rowIndex="1">http://elegit.org</Hyperlink>
+
+    <stylesheets>
+        <URL value="@../css/BaseStyle.css"/>
+    </stylesheets>
+</GridPane>

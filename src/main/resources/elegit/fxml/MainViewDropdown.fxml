@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+
+    <!-- Dropdown, open in file manager, plus and minus buttons -->
+    <HBox spacing="5"
+          xmlns="http://javafx.com/javafx"
+          xmlns:fx="http://javafx.com/fxml"
+          fx:controller="elegit.controllers.DropdownController">
+        <ComboBox id="repoDropdown"
+                  fx:id="repoDropdownSelector"
+                  onAction="#loadSelectedRepo"/>
+
+        <Button fx:id="openRepoDirButton"
+                onAction="#openRepoDirectory"/>
+
+        <Button fx:id="loadNewRepoButton"
+                onAction="#handleLoadNewRepoButton">
+            <contextMenu>
+                <ContextMenu fx:id="newRepoOptionsMenu">
+                    <items>
+                        <MenuItem fx:id="cloneOption"
+                                  onAction="#handleCloneNewRepoOption"
+                                  text="Clone repository"/>
+                        <MenuItem fx:id="existingOption"
+                                  onAction="#handleLoadExistingRepoOption"
+                                  text="Load existing repository"/>
+                    </items>
+                </ContextMenu>
+            </contextMenu>
+        </Button>
+        <Button id="warningButton"
+                onAction="#chooseRecentReposToDelete"
+                fx:id="removeRecentReposButton"/>
+    </HBox>
+

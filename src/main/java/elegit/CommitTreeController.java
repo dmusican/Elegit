@@ -1,5 +1,6 @@
 package elegit;
 
+import elegit.controllers.SessionController;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -27,7 +28,7 @@ public class CommitTreeController{
     private static List<String> selectedCellIds = new ArrayList<>();
 
     // The session controller if this controller needs to access other models/views
-    static SessionController sessionController;
+    public static SessionController sessionController;
 
     private static ObjectProperty<String> selectedIDProperty = new SimpleObjectProperty<>();
     static Property<Boolean> multipleNotSelectedProperty = new SimpleBooleanProperty(true);

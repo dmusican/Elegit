@@ -1,6 +1,7 @@
 package elegit;
 
 import org.eclipse.jgit.api.PushCommand;
+import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.junit.After;
 import org.junit.Before;
@@ -11,6 +12,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.Scanner;
 
@@ -103,6 +106,18 @@ public class PushPullTest {
         helperPush.addFilePathTest(readmePath);
         helperPush.commit("added a character");
         PushCommand command = helperPush.prepareToPushAll();
+        helperPush.pushAll(command);
+
+        // Add a tag named for the current timestamp
+        ObjectId headId = helperPush.getBranchModel().getCurrentBranch().getHeadId();
+        String tagName = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmSSS"));
+        helperPush.getTagModel().tag(tagName,headId.name());
+        helperPush.pushTags();
+
+        // Remove the tag we just added
+        helperPush.getTagModel().deleteTag(tagName);
+        command = helperPush.prepareToPushAll();
+        command.setRemote("origin").add(":refs/tags/" + tagName);
         helperPush.pushAll(command);
 
         // Now do the pull (well, a fetch)

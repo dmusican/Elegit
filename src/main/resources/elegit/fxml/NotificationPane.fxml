@@ -11,7 +11,7 @@
 <?import javafx.scene.control.Button?>
 
 <StackPane xmlns:fx="http://javafx.com/fxml"
-           fx:controller="elegit.NotificationController"
+           fx:controller="elegit.controllers.NotificationController"
            fx:id="notificationPane"
            AnchorPane.bottomAnchor="0.0"
            AnchorPane.rightAnchor="0.0"

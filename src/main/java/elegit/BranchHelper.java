@@ -19,7 +19,7 @@ public abstract class BranchHelper extends RefHelper {
     // Full string representation of this branch, e.g. 'remotes/origin/master'
     String refPathString;
     // The repository this branch is a part of
-    RepoHelper repoHelper;
+    public RepoHelper repoHelper;
 
     /**
      * Creates a new BranchHelper for the given reference and repository.

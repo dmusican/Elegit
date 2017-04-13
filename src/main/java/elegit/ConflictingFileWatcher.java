@@ -23,6 +23,7 @@ public class ConflictingFileWatcher {
     // list of files that were modified after the user was informed they were conflicting
     private static ArrayList<String> conflictingThenModifiedFiles = new ArrayList<>();
     private static ArrayList<String> conflictingFiles = new ArrayList<>();
+    private static final long CONFLICT_CHECK_INTERVAL = 1000;
 
     /**
      * returns a list of the files that were conflicting and then recently modified
@@ -111,12 +112,20 @@ public class ConflictingFileWatcher {
                             if(!valid) {
                                 break;
                             }
+
+                            try{
+                                Thread.sleep(CONFLICT_CHECK_INTERVAL);
+                            }catch(InterruptedException e){
+                                // TODO: SOMETHING REASONABLE
+                            }
+
                         }
                         return null;
                     }
                 });
                 watch.setDaemon(true);
                 watch.setName("watching a directory");
+                watch.setPriority(2);
                 watch.start();
             }
         });

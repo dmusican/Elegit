@@ -6,7 +6,7 @@
 <?import javafx.geometry.*?>
 <?import javafx.scene.text.*?>
 
-<AnchorPane fx:controller="elegit.MergeWindowController"
+<AnchorPane fx:controller="elegit.controllers.MergeWindowController"
                   xmlns:fx="http://javafx.com/fxml"
                   fx:id="anchorRoot"
                   prefHeight="200">

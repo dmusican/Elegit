@@ -54,7 +54,7 @@ public class TagModel {
      * @throws IOException
      * @throws GitAPIException
      */
-    boolean updateTags() throws IOException, GitAPIException {
+    public boolean updateTags() throws IOException, GitAPIException {
         List<String> oldTagNames = getAllTagNames();
         Map<String, Ref> tagMap = this.repoHelper.getRepo().getTags();
         int oldSize = oldTagNames.size();

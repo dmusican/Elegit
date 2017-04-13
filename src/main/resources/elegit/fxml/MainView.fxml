@@ -9,115 +9,18 @@
 <?import javafx.scene.shape.*?>
 
 <BorderPane xmlns:fx="http://javafx.com/fxml"
-            fx:controller="elegit.SessionController">
+            fx:controller="elegit.controllers.SessionController">
 
     <!-- the top section of the border pane -->
     <top>
-        <!-- Menu bar -->
-        <MenuBar    GridPane.rowIndex="0"
-                    useSystemMenuBar="true">
-            <menus>
-                <Menu   text="Preferences">
-                    <items>
-                        <MenuItem   text="Turn Logging Off"
-                                    fx:id="loggingToggle"
-                                    onAction="#handleLoggingOffMenuItem"/>
-                        <MenuItem   text="Turn Logging On"
-                                    fx:id="loggingToggle"
-                                    onAction="#handleLoggingOnMenuItem"/>
-                        <MenuItem   text="Sort commits topologically"
-                                    fx:id="commitSortingToggle"
-                                    onAction="#handleCommitSortTopological"/>
-                        <MenuItem   text="Sort commits by date"
-                                    fx:id="commitSortingToggle"
-                                    onAction="#handleCommitSortDate"/>
-                    </items>
-                </Menu>
-                <Menu   text="Edit">
-                    <items>
-                        <MenuItem   text=".gitignore"
-                                    fx:id="gitIgnoreMenuItem"
-                                    onAction="#handleGitIgnoreMenuItem"/>
-                    </items>
-                </Menu>
-                <Menu   text="Repository"
-                        fx:id="repoMenu">
-                    <items>
-                        <Menu   text="Branch">
-                            <MenuItem   text="Create Branch"
-                                        fx:id="createBranchMenuItem"
-                                        onAction="#handleNewBranchButton"/>
-                            <MenuItem   text="Delete Local Branch"
-                                        onAction="#handleDeleteLocalBranchButton"/>
-                            <MenuItem   text="Delete Remote Branch"
-                                        onAction="#handleDeleteRemoteBranchButton"/>
-                        </Menu>
-                        <Menu   text="Checkout">
-                            <MenuItem   text="Checkout Branch"
-                                        onAction="#showBranchCheckout"/>
-                        </Menu>
-                        <Menu   text="Clone">
-                            <MenuItem   text="Clone"
-                                        fx:id="cloneMenuItem"
-                                        onAction="#handleCloneNewRepoOption"/>
-                        </Menu>
-                        <Menu   text="Commmit">
-                            <MenuItem   text="Commit"
-                                        fx:id="commitNormalMenuItem"
-                                        onAction="#handleCommitNormal"/>
-                            <MenuItem   text="Commit -a"
-                                        onAction="#handleCommitAll"/>
-                        </Menu>
-                        <Menu   text="Fetch">
-                            <MenuItem   text="Fetch"
-                                        fx:id="normalFetchMenuItem"
-                                        onAction="#handleNormalFetchButton"/>
-                            <MenuItem   text="Fetch -p"
-                                        onAction="#handlePruneFetchButton"/>
-                        </Menu>
-                        <Menu   text="Merge">
-                            <MenuItem   text="Merge From Fetch"
-                                        onAction="#mergeFromFetch"/>
-                            <MenuItem   text="Merge Local Branches"
-                                        onAction="#handleBranchMergeButton"/>
-                        </Menu>
-                        <Menu   text="Pull">
-                            <MenuItem   text="Pull"
-                                        fx:id="pullMenuItem"
-                                        onAction="#handlePullButton"/>
-                        </Menu>
-                        <Menu   text="Push">
-                            <MenuItem   text="Push Current Branch"
-                                        fx:id="pushMenuItem"
-                                        onAction="#handlePushButton"/>
-                            <MenuItem   text="Push All Branches"
-                                        onAction="#handlePushAllButton"/>
-                            <MenuItem   text="Push Tags"
-                                        onAction="#handlePushTagsButton"/>
-                        </Menu>
-                        <Menu   text="Stash">
-                            <MenuItem   text="Stash Changes"
-                                        onAction="#handleStashSaveButton"/>
-                            <MenuItem   text="Stash Apply"
-                                        onAction="#handleStashApplyButton"/>
-                            <MenuItem   text="Stash List"
-                                        fx:id="stashMenuItem"
-                                        onAction="#handleStashListButton"/>
-                            <MenuItem   text="Stash Drop"
-                                        onAction="#handleStashDropButton"/>
-                        </Menu>
-                    </items>
-                </Menu>
-            </menus>
-        </MenuBar>
+        <fx:include fx:id="menu" source="MainViewMenu.fxml"/>
     </top>
 
     <!-- the center part of the border pane -->
     <center>
         <AnchorPane
                 fx:id="anchorRoot"
-                prefWidth="1200"
-                prefHeight="650">
+                >
             <GridPane fx:id="root"
                   AnchorPane.rightAnchor="5"
                   AnchorPane.leftAnchor="5"
@@ -140,34 +43,7 @@
                     <RowConstraints vgrow="NEVER"/>
                 </rowConstraints>
 
-                <!-- Dropdown, open in file manager, plus and minus buttons -->
-                <HBox spacing="5">
-                    <ComboBox id="repoDropdown"
-                              fx:id="repoDropdownSelector"
-                              onAction="#loadSelectedRepo"/>
-
-                    <Button fx:id="openRepoDirButton"
-                            onAction="#openRepoDirectory"/>
-
-                    <Button fx:id="loadNewRepoButton"
-                            onAction="#handleLoadNewRepoButton">
-                        <contextMenu>
-                            <ContextMenu fx:id="newRepoOptionsMenu">
-                                <items>
-                                    <MenuItem fx:id="cloneOption"
-                                              onAction="#handleCloneNewRepoOption"
-                                              text="Clone repository"/>
-                                    <MenuItem fx:id="existingOption"
-                                              onAction="#handleLoadExistingRepoOption"
-                                              text="Load existing repository"/>
-                                </items>
-                            </ContextMenu>
-                        </contextMenu>
-                    </Button>
-                    <Button id="warningButton"
-                            onAction="#chooseRecentReposToDelete"
-                            fx:id="removeRecentReposButton"/>
-                </HBox>
+                <fx:include fx:id="dropdown" source="MainViewDropdown.fxml"/>
 
                 <!-- Working Directory block -->
                 <StackPane  GridPane.rowIndex="1"
@@ -212,17 +88,6 @@
                         </GridPane>
                     </VBox>
                 </StackPane>
-
-                <!-- Separator between headings and content -->
-                <!--<HBox GridPane.rowIndex="2"-->
-                      <!--GridPane.columnSpan="3"-->
-                      <!--id="separator-dashed"-->
-                      <!--minHeight="4">-->
-                    <!--<GridPane.margin>-->
-                        <!--<Insets top="10" bottom="10" left="-3" right="-15"/>-->
-                    <!--</GridPane.margin>-->
-                    <!--<Rectangle height="4"/>-->
-                <!--</HBox>-->
 
                 <!-- Separator between remote and commit info -->
                 <HBox GridPane.rowIndex="2"

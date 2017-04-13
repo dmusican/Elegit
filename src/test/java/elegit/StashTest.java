@@ -74,15 +74,8 @@ public class StashTest {
     void initializeRepo() throws Exception {
         authData = new File(testFileLocation + "httpUsernamePassword.txt");
 
-        // If a developer does not have this file present, test should just pass.
-        if (!authData.exists() && looseTesting)
-            return;
-
-        Scanner scanner = new Scanner(authData);
-        String ignoreURL = scanner.next();
-        String username = scanner.next();
-        String password = scanner.next();
-        UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider(username, password);
+        // This repo doesn't check username/password for read-only
+        UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider("", "");
 
         String remoteURL = "https://github.com/TheElegitTeam/ResetTesting.git";
 
