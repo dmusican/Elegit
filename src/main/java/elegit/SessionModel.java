@@ -72,6 +72,7 @@ public class SessionModel {
      *
      * Uses the Java Preferences API (wrapped in IBM's PrefObj class) to load the repo.
      */
+    // TODO: seems like this should be catching the error but aparently its not
     public void loadMostRecentRepoHelper() {
         try{
             String lastOpenedRepoPathString = (String) PrefObj.getObject(
@@ -245,11 +246,10 @@ public class SessionModel {
         return status.getUntracked();
     }
 
-    // TODO: Probably should be ignored? Comment copy pasted?
     /**
-     * Calls `git status` and returns the set of untracked files that Git reports.
+     * Calls `git status` and returns the set of ignored files that Git reports.
      *
-     * @return a set of untracked filenames in the working directory.
+     * @return a set of ignored filenames in the working directory.
      * @throws GitAPIException if the `git status` call fails.
      */
     public Set<String> getIgnoredFiles(Status status) throws GitAPIException {

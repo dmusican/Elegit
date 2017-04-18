@@ -78,7 +78,6 @@ public class RepoHelper {
         this.username = null;
         this.localPath = directoryPath;
         setupSshSessionFactory();
-
     }
 
     public RepoHelper(Path directoryPath, UsernamePasswordCredentialsProvider ownerAuth)
@@ -1062,6 +1061,8 @@ public class RepoHelper {
         this.repo.close();
     }
 
+    //TODO: Should probably check to make sure repo exists unless its being done elewhere
+    // this.exists()
     /**
      * @return the JGit repository of this RepoHelper
      */
