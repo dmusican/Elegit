@@ -60,7 +60,7 @@
                                 fx:id="cloneMenuItem"
                                 onAction="#handleCloneNewRepoOption"/>
                 </Menu>
-                <Menu   text="Commmit">
+                <Menu   text="Commit">
                     <MenuItem   text="Commit"
                                 fx:id="commitNormalMenuItem"
                                 onAction="#handleCommitNormal"/>
