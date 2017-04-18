@@ -245,6 +245,7 @@ public class SessionModel {
         return status.getUntracked();
     }
 
+    // TODO: Probably should be ignored? Comment copy pasted?
     /**
      * Calls `git status` and returns the set of untracked files that Git reports.
      *
@@ -408,7 +409,8 @@ public class SessionModel {
         return superDirectory;
     }
 
-    /**
+    // TODO: Fix bug where an interior for loop infinite loops if the default repo no longer exists
+     /**
      * Assembles all the changed files (modified, missing, untracked) into RepoFiles
      * and returns a list of them.
      *
