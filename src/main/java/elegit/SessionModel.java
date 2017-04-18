@@ -72,7 +72,16 @@ public class SessionModel {
      *
      * Uses the Java Preferences API (wrapped in IBM's PrefObj class) to load the repo.
      */
-    // TODO: seems like this should be catching the error but aparently its not
+
+    /* TODO: seems like this should be catching the error on windows as well but aparently its not
+    On Mac: When last opened repo has been deleted, it handles the exception and simply moves along to the
+        next previously opened one because of the for loop in loadRecentRepoHelpersFromStoredPathStrings()
+
+    Still: Is it better to be using exceptions to handle this than to actually use RepoHelper.exists() as intended?
+
+    04-18-2017 13:00:49.203;JavaFX Application Thread;WARN ;SessionModel.loadRecentRepoHelpersFromStoredPathStrings;Repository has been moved, we move along
+    04-18-2017 13:00:49.204;JavaFX Application Thread;WARN ;SessionModel.loadMostRecentRepoHelper;Recent repo not found in directory it used to be in
+    */
     public void loadMostRecentRepoHelper() {
         try{
             String lastOpenedRepoPathString = (String) PrefObj.getObject(
