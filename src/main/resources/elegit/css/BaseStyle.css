@@ -253,6 +253,11 @@
     -fx-stroke-width: 2px;
 }
 
+#fileLabel {
+    -fx-font-size: 10px;
+    -fx-font-weight: bolder;
+}
+
 .cell#tree-cell {
     -fx-effect: -fx-dropshadow-up;
 }
