@@ -21,6 +21,7 @@ import javafx.scene.control.*;
 import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.CheckMenuItem;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
@@ -148,7 +149,8 @@ public class SessionController {
     // Menu Bar
     @FXML private MenuController menuController;
     @FXML private DropdownController dropdownController;
-//    @FXML private MenuItem loggingToggle;
+    @FXML private CheckMenuItem loggingToggle;
+    @FXML private CheckMenuItem commitSortToggle;
 //    @FXML private MenuItem gitIgnoreMenuItem;
 //    @FXML private Menu repoMenu;
 //    @FXML private MenuItem cloneMenuItem;
@@ -597,6 +599,7 @@ public class SessionController {
     /**
      * Helper method for disabling the menu bar
      */
+    // TODO: not sure what disabling does but why is it not happening to the toggles
     private void updateMenuBarEnabledStatus(boolean disable) {
         menuController.repoMenu.setDisable(disable);
         menuController.gitIgnoreMenuItem.setDisable(disable);
@@ -1992,7 +1995,19 @@ public class SessionController {
         }
     }
 
-    public void handleLoggingOffMenuItem() {
+    //TODO logging and commit sort toggles
+    // why does the commitSort not have anything to save prefs?
+
+    public void handleLoggingToggle(){
+        if (loggingToggle.isSelected()){
+            handleLoggingOff();
+        } else {
+            handleLoggingOn();
+        }
+        loggingToggle.setSelected(!loggingToggle.isSelected());
+    }
+
+    private void handleLoggingOff() {
         changeLogging(Level.OFF);
         PopOver popOver = new PopOver(new Text("Toggled logging off"));
         popOver.setTitle("");
@@ -2001,7 +2016,7 @@ public class SessionController {
         popOver.setAutoHide(true);
     }
 
-    public void handleLoggingOnMenuItem() {
+    private void handleLoggingOn() {
         changeLogging(Level.INFO);
         PopOver popOver = new PopOver(new Text("Toggled logging on"));
         popOver.show(commitTreePanelView);
@@ -2010,7 +2025,11 @@ public class SessionController {
         logger.log(Level.INFO, "Toggled logging on");
     }
 
-    public void handleCommitSortTopological() {
+    public void handleCommitSortToggle(){
+
+    }
+
+    private void handleCommitSortTopological() {
         TreeLayout.commitSortTopological = true;
         try {
             commitTreeModel.updateView();
@@ -2020,7 +2039,7 @@ public class SessionController {
         }
     }
 
-    public void handleCommitSortDate() {
+    private void handleCommitSortDate() {
         TreeLayout.commitSortTopological = false;
         try {
             commitTreeModel.updateView();
@@ -2872,6 +2891,7 @@ public class SessionController {
      * stores this in preferences
      * @param level the level to set the logging to
      */
+    //TODO use these
     void changeLogging(Level level) {
         LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
         Configuration config = ctx.getConfiguration();

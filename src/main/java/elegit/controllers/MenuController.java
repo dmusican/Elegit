@@ -8,6 +8,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.CheckMenuItem;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
@@ -24,8 +25,9 @@ import java.io.IOException;
 public class MenuController {
 
     private SessionController sessionController;
-    @FXML private MenuItem loggingToggle;
-    @FXML MenuItem gitIgnoreMenuItem;
+    @FXML private CheckMenuItem loggingToggle;
+    @FXML private CheckMenuItem commitSortToggle;
+    @FXML MenuItem gitIgnoreMenuItem; // has to be public because of SessionController.updateMenuBarEnabledStatus()
     @FXML Menu repoMenu;
     @FXML private MenuItem cloneMenuItem;
     @FXML private MenuItem createBranchMenuItem;
@@ -39,7 +41,6 @@ public class MenuController {
     public void initialize() {
         initMenuBarShortcuts();
     }
-
 
 
     /**
@@ -71,25 +72,23 @@ public class MenuController {
         this.sessionController = sessionController;
     }
 
-    public void handleLoggingOffMenuItem() {
-        sessionController.handleLoggingOffMenuItem();
+    // Preferences Dropdown Menu Items:
+
+    public void handleLoggingToggle() { sessionController.handleLoggingToggle(); }
+
+    public void handleCommitSortToggle() { sessionController.handleCommitSortToggle(); }
+
+    public void handleAbout() {
+        sessionController.handleAbout();
     }
 
-    public void handleLoggingOnMenuItem() {
-        sessionController.handleLoggingOnMenuItem();
-    }
-
-    public void handleCommitSortTopological() {
-        sessionController.handleCommitSortTopological();
-    }
-
-    public void handleCommitSortDate() {
-        sessionController.handleCommitSortDate();
-    }
+    // Edit Dropdown Menu Item:
 
     public void handleGitIgnoreMenuItem() {
         sessionController.handleGitIgnoreMenuItem();
     }
+
+    // Repository Dropdown Menu Items (2 layers):
 
     public void handleNewBranchButton() {
         sessionController.handleNewBranchButton();
@@ -165,10 +164,6 @@ public class MenuController {
 
     public void handleStashDropButton() {
         sessionController.handleStashDropButton();
-    }
-
-    public void handleAbout() {
-        sessionController.handleAbout();
     }
 
     }
