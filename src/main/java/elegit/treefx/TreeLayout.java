@@ -50,6 +50,26 @@ public class TreeLayout{
 
         public void setCurrentCell(int currentCell) { this.currentCell = currentCell; }
 
+        public void updateGraph() {
+            try {
+                for (int i = currentCell; i < currentCell + 10; i++) {
+                    if (i > allCellsSortedByTime.size() - 1) {
+                        percent.set(100);
+                        return;
+                    }
+                    moveCell(allCellsSortedByTime.get(i));
+
+                    // Update progress if need be
+                    if (i * 100.0 / max > percent.get() && percent.get() < 100) {
+                        percent.set(i * 100 / max);
+                    }
+                }
+                this.succeeded();
+            }catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
         protected synchronized Task createTask() {
             return new Task() {
                 @Override
@@ -161,20 +181,23 @@ public class TreeLayout{
                     }));
                     //********************** Loading Bar End **********************
 
-                    mover.setOnSucceeded(event1 -> {
-                        if (!Main.isAppClosed && movingCells && mover.currentCell < allCells.size() - 1) {
+                    //mover.setOnSucceeded(event1 -> {
+                        while (!Main.isAppClosed && movingCells && mover.currentCell < allCells.size() - 1) {
+                            System.out.println(mover.currentCell);
+                            mover.updateGraph();
                             mover.setCurrentCell(mover.currentCell + 10);
                             progressBar.setProgress(mover.percent.get() / 100.0);
-                            mover.restart();
-                        } else {
-                            treeGraphModel.isInitialSetupFinished = true;
-                            loadingCommits.setVisible(false);
-                            progressBar.setVisible(false);
+                            //mover.restart();
                         }
-                    });
 
-                    mover.reset();
-                    mover.start();
+                        treeGraphModel.isInitialSetupFinished = true;
+                        loadingCommits.setVisible(false);
+                        progressBar.setVisible(false);
+
+                    //});
+
+                    //mover.reset();
+                    //mover.start();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
