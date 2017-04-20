@@ -149,8 +149,8 @@ public class SessionController {
     // Menu Bar
     @FXML private MenuController menuController;
     @FXML private DropdownController dropdownController;
-    @FXML private CheckMenuItem loggingToggle;
-    @FXML private CheckMenuItem commitSortToggle;
+    @FXML public CheckMenuItem loggingToggle;
+    @FXML public CheckMenuItem commitSortToggle;
 //    @FXML private MenuItem gitIgnoreMenuItem;
 //    @FXML private Menu repoMenu;
 //    @FXML private MenuItem cloneMenuItem;
@@ -1997,6 +1997,7 @@ public class SessionController {
 
     //TODO logging and commit sort toggles
     // why does the commitSort not have anything to save prefs?
+    // getting nullPointerExceptions when using toggles
 
     public void handleLoggingToggle(){
         if (loggingToggle.isSelected()){
