@@ -74,9 +74,9 @@ public class MenuController {
 
     // Preferences Dropdown Menu Items:
 
-    public void handleLoggingToggle() { sessionController.handleLoggingToggle(); }
+    public void handleLoggingToggle() { sessionController.handleLoggingToggle(loggingToggle); }
 
-    public void handleCommitSortToggle() { sessionController.handleCommitSortToggle(); }
+    public void handleCommitSortToggle() { sessionController.handleCommitSortToggle(commitSortToggle); }
 
     public void handleAbout() {
         sessionController.handleAbout();

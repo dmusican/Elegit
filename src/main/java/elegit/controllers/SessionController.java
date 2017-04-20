@@ -149,8 +149,8 @@ public class SessionController {
     // Menu Bar
     @FXML private MenuController menuController;
     @FXML private DropdownController dropdownController;
-    @FXML public CheckMenuItem loggingToggle;
-    @FXML public CheckMenuItem commitSortToggle;
+//    @FXML public CheckMenuItem loggingToggle;
+//    @FXML public CheckMenuItem commitSortToggle;
 //    @FXML private MenuItem gitIgnoreMenuItem;
 //    @FXML private Menu repoMenu;
 //    @FXML private MenuItem cloneMenuItem;
@@ -1997,10 +1997,12 @@ public class SessionController {
 
     //TODO logging and commit sort toggles
     // why does the commitSort not have anything to save prefs?
-    // getting nullPointerExceptions when using toggles
+    // not getting nullPointer but now now the item doesn't get checked
 
-    public void handleLoggingToggle(){
-        if (loggingToggle.isSelected()){
+    // also still need to make sure reflects actual state from prefs on app launch
+
+    public void handleLoggingToggle(CheckMenuItem loggingToggle){
+        if (!loggingToggle.isSelected()){
             handleLoggingOff();
         } else {
             handleLoggingOn();
@@ -2008,6 +2010,7 @@ public class SessionController {
         loggingToggle.setSelected(!loggingToggle.isSelected());
     }
 
+    // why don't this and the handleCommitSort 's get logged?
     private void handleLoggingOff() {
         changeLogging(Level.OFF);
         PopOver popOver = new PopOver(new Text("Toggled logging off"));
@@ -2026,8 +2029,8 @@ public class SessionController {
         logger.log(Level.INFO, "Toggled logging on");
     }
 
-    public void handleCommitSortToggle(){
-        if (commitSortToggle.isSelected()){
+    public void handleCommitSortToggle(CheckMenuItem commitSortToggle){
+        if (!commitSortToggle.isSelected()){
             handleCommitSortTopological();
         } else {
             handleCommitSortDate();
