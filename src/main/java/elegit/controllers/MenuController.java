@@ -42,7 +42,6 @@ public class MenuController {
         initMenuBarShortcuts();
     }
 
-
     /**
      * Sets up keyboard shortcuts for menu items
      *
@@ -67,16 +66,29 @@ public class MenuController {
     }
 
 
-
     public void setSessionController(SessionController sessionController) {
         this.sessionController = sessionController;
     }
 
     // Preferences Dropdown Menu Items:
 
-    public void handleLoggingToggle() { sessionController.handleLoggingToggle(loggingToggle); }
+    public void handleLoggingToggle() {
+        Level level = SessionModel.logger.getLevel();
+        if (level.equals(org.apache.logging.log4j.Level.toLevel("OFF"))) {
+            sessionController.handleLoggingOn();
+        } else {
+            sessionController.handleLoggingOff();
+        }
+    }
 
-    public void handleCommitSortToggle() { sessionController.handleCommitSortToggle(commitSortToggle); }
+    public void handleCommitSortToggle() {
+        if (!commitSortToggle.isSelected()){
+            sessionController.handleCommitSortTopological();
+        } else {
+            sessionController.handleCommitSortDate();
+        }
+    }
+
 
     public void handleAbout() {
         sessionController.handleAbout();

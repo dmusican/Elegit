@@ -1997,21 +1997,9 @@ public class SessionController {
 
     //TODO logging and commit sort toggles
     // why does the commitSort not have anything to save prefs?
-    // not getting nullPointer but now now the item doesn't get checked
-
     // also still need to make sure reflects actual state from prefs on app launch
 
-    public void handleLoggingToggle(CheckMenuItem loggingToggle){
-        if (!loggingToggle.isSelected()){
-            handleLoggingOff();
-        } else {
-            handleLoggingOn();
-        }
-        loggingToggle.setSelected(!loggingToggle.isSelected());
-    }
-
-    // why don't this and the handleCommitSort 's get logged?
-    private void handleLoggingOff() {
+    public void handleLoggingOff() {
         changeLogging(Level.OFF);
         PopOver popOver = new PopOver(new Text("Toggled logging off"));
         popOver.setTitle("");
@@ -2020,7 +2008,7 @@ public class SessionController {
         popOver.setAutoHide(true);
     }
 
-    private void handleLoggingOn() {
+    public void handleLoggingOn() {
         changeLogging(Level.INFO);
         PopOver popOver = new PopOver(new Text("Toggled logging on"));
         popOver.show(commitTreePanelView);
@@ -2029,16 +2017,9 @@ public class SessionController {
         logger.log(Level.INFO, "Toggled logging on");
     }
 
-    public void handleCommitSortToggle(CheckMenuItem commitSortToggle){
-        if (!commitSortToggle.isSelected()){
-            handleCommitSortTopological();
-        } else {
-            handleCommitSortDate();
-        }
-        commitSortToggle.setSelected(!commitSortToggle.isSelected());
-    }
+    // want to put a popOver up to let them know the commitSort changed?
 
-    private void handleCommitSortTopological() {
+    public void handleCommitSortTopological() {
         TreeLayout.commitSortTopological = true;
         try {
             commitTreeModel.updateView();
@@ -2048,7 +2029,7 @@ public class SessionController {
         }
     }
 
-    private void handleCommitSortDate() {
+    public void handleCommitSortDate() {
         TreeLayout.commitSortTopological = false;
         try {
             commitTreeModel.updateView();
@@ -2620,6 +2601,7 @@ public class SessionController {
         });
 
     }
+
     private void showTransportExceptionNotification(NotificationController nc, TransportException e) {
         Platform.runLater(() -> {
 
@@ -2642,8 +2624,6 @@ public class SessionController {
 
         });
     }
-
-
 
     private void showRepoWasNotLoadedNotification() {
         Platform.runLater(() -> {
@@ -2877,6 +2857,8 @@ public class SessionController {
         }
     }
 
+    //TODO use these
+
     /**
      * Initialization method that loads the level of logging from preferences
      * This will show a popup window if there is no preference
@@ -2900,7 +2882,6 @@ public class SessionController {
      * stores this in preferences
      * @param level the level to set the logging to
      */
-    //TODO use these
     void changeLogging(Level level) {
         LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
         Configuration config = ctx.getConfiguration();
