@@ -2,6 +2,7 @@ package elegit;
 
 import elegit.treefx.Cell;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
@@ -70,7 +71,7 @@ public class CommitLabelTest {
 
         // Load this repo in Elegit, and initialize
         SessionModel.getSessionModel().openRepoFromHelper(helper);
-        commitTreeModel.init();
+        Platform.runLater(() -> commitTreeModel.init());
 
         // Sleep to ensure completion of all worker threads
         Thread.sleep(1000);
