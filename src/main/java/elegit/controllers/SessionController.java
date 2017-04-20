@@ -2026,7 +2026,12 @@ public class SessionController {
     }
 
     public void handleCommitSortToggle(){
-
+        if (commitSortToggle.isSelected()){
+            handleCommitSortTopological();
+        } else {
+            handleCommitSortDate();
+        }
+        commitSortToggle.setSelected(!commitSortToggle.isSelected());
     }
 
     private void handleCommitSortTopological() {
