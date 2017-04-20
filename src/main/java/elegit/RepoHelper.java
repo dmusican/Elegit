@@ -44,7 +44,7 @@ public class RepoHelper {
 
     protected Repository repo;
 
-    protected Path localPath;
+    public Path localPath;
     protected File credentialsFile;
     protected List<String> credentialsList;
     protected UserInfo userInfo;
@@ -62,7 +62,7 @@ public class RepoHelper {
     public BooleanProperty hasRemoteProperty;
 
     static final Logger logger = LogManager.getLogger();
-    protected UsernamePasswordCredentialsProvider ownerAuth;
+    public UsernamePasswordCredentialsProvider ownerAuth;
 
 
     /**
@@ -278,8 +278,15 @@ public class RepoHelper {
         Git git = new Git(this.repo);
         // git add:
         Path relativizedFilePath = this.localPath.relativize(filePath);
+        String pathToAdd = relativizedFilePath.toString();
+        if (!File.separator.equals("/")) {
+            if (File.separator.equals("\\"))
+                pathToAdd = pathToAdd.replaceAll("\\\\", "/");
+            else
+                pathToAdd = pathToAdd.replaceAll(File.separator, "/");
+        }
         git.add()
-                .addFilepattern(relativizedFilePath.toString())
+                .addFilepattern(pathToAdd)
                 .call();
         git.close();
     }
@@ -296,25 +303,16 @@ public class RepoHelper {
         AddCommand adder = git.add();
         for (Path filePath : filePaths) {
             Path localizedFilePath = this.localPath.relativize(filePath);
-            adder.addFilepattern(localizedFilePath.toString());
+            String pathToAdd = localizedFilePath.toString();
+            if (!File.separator.equals("/")) {
+                if (File.separator.equals("\\"))
+                    pathToAdd = pathToAdd.replaceAll("\\\\", "/");
+                else
+                    pathToAdd = pathToAdd.replaceAll(File.separator, "/");
+            }
+            adder.addFilepattern(pathToAdd);
         }
         adder.call();
-        git.close();
-    }
-
-    /**
-     * Adds a file to the repository
-     *
-     * @param filePath the path of the file to add.
-     * @throws GitAPIException if the `git add` call fails.
-     */
-    public void addFilePath(Path filePath) throws GitAPIException {
-        Git git = new Git(this.repo);
-        // git add:
-        Path relativizedFilePath = this.localPath.relativize(filePath);
-        git.add()
-                .addFilepattern(relativizedFilePath.toString())
-                .call();
         git.close();
     }
 
@@ -329,7 +327,14 @@ public class RepoHelper {
         // git add:
         AddCommand adder = git.add();
         for (Path filePath : filePaths) {
-            adder.addFilepattern(filePath.toString());
+            String pathToAdd = filePath.toString();
+            if (!File.separator.equals("/")) {
+                if (File.separator.equals("\\"))
+                    pathToAdd = pathToAdd.replaceAll("\\\\", "/");
+                else
+                    pathToAdd = pathToAdd.replaceAll(File.separator, "/");
+            }
+            adder.addFilepattern(pathToAdd);
         }
         adder.call();
         git.close();
@@ -339,7 +344,7 @@ public class RepoHelper {
      * Checks out a file from the index
      * @param filePath the file to check out
      */
-    void checkoutFile(Path filePath) throws GitAPIException {
+    public void checkoutFile(Path filePath) throws GitAPIException {
         Git git = new Git(this.repo);
         git.checkout().addPath(filePath.toString()).call();
         git.close();
@@ -349,7 +354,7 @@ public class RepoHelper {
      * Checks out files from the index
      * @param filePaths the files to check out
      */
-    void checkoutFiles(List<Path> filePaths) throws GitAPIException {
+    public void checkoutFiles(List<Path> filePaths) throws GitAPIException {
         Git git = new Git(this.repo);
         CheckoutCommand checkout = git.checkout().setStartPoint("HEAD");
         for (Path filePath : filePaths)
@@ -363,7 +368,7 @@ public class RepoHelper {
      * @param filePath the file to check out
      * @param startPoint the tree-ish point to checkout the file from
      */
-    void checkoutFile(String filePath, String startPoint) throws GitAPIException {
+    public void checkoutFile(String filePath, String startPoint) throws GitAPIException {
         Git git = new Git(this.repo);
         git.checkout().setStartPoint(startPoint).addPath(filePath).call();
         git.close();
@@ -376,7 +381,7 @@ public class RepoHelper {
      *
      * @return the result of the checkout
      */
-    CheckoutResult checkoutFiles(List<String> filePaths, String startPoint) throws GitAPIException {
+    public CheckoutResult checkoutFiles(List<String> filePaths, String startPoint) throws GitAPIException {
         Git git = new Git(this.repo);
         CheckoutCommand checkout = git.checkout().setStartPoint(startPoint);
         for (String filePath : filePaths)
@@ -673,7 +678,7 @@ public class RepoHelper {
      *
      * @throws GitAPIException if the `git push --tags` call fails.
      */
-    Iterable<PushResult> pushTags() throws GitAPIException, MissingRepoException, PushToAheadRemoteError, IOException {
+    public Iterable<PushResult> pushTags() throws GitAPIException, MissingRepoException, PushToAheadRemoteError, IOException {
         logger.info("Attempting push tags");
         if (!exists()) throw new MissingRepoException();
         if (!hasRemote()) throw new InvalidRemoteException("No remote repository");
@@ -807,7 +812,7 @@ public class RepoHelper {
      * @throws MissingRepoException
      * @throws GitAPIException
      */
-    void revertHelpers(List<CommitHelper> commits) throws MissingRepoException, GitAPIException {
+    public void revertHelpers(List<CommitHelper> commits) throws MissingRepoException, GitAPIException {
         List<AnyObjectId> commitIds = new ArrayList<>();
         for (CommitHelper helper : commits)
             commitIds.add(helper.getCommit());
@@ -846,7 +851,7 @@ public class RepoHelper {
      * @throws MissingRepoException
      * @throws GitAPIException
      */
-    void revert(CommitHelper helper) throws MissingRepoException, GitAPIException {
+    public void revert(CommitHelper helper) throws MissingRepoException, GitAPIException {
         logger.info("Attempting revert");
         if (!exists()) throw new MissingRepoException();
         Git git = new Git(this.repo);
@@ -919,7 +924,7 @@ public class RepoHelper {
      * @throws MissingRepoException
      * @throws GitAPIException
      */
-    void reset(String ref, ResetCommand.ResetType mode) throws MissingRepoException, GitAPIException {
+    public void reset(String ref, ResetCommand.ResetType mode) throws MissingRepoException, GitAPIException {
         logger.info("Attempting reset");
         if (!exists()) throw new MissingRepoException();
         Git git = new Git(this.repo);
@@ -937,7 +942,7 @@ public class RepoHelper {
      *
      * @param includeUntracked: whether or not to include untracked files
      */
-    void stashSave(boolean includeUntracked) throws GitAPIException, NoFilesToStashException {
+    public void stashSave(boolean includeUntracked) throws GitAPIException, NoFilesToStashException {
         logger.info("Attempting stash save");
         Git git = new Git(this.repo);
         RevCommit stash = git.stashCreate().setIncludeUntracked(includeUntracked).call();
@@ -952,7 +957,7 @@ public class RepoHelper {
      * @param wdMessage: the message used when committing working directory changes
      * @param indexMessage: the messaged used when committing the index changes
      */
-    void stashSave(boolean includeUntracked, String wdMessage, String indexMessage) throws GitAPIException, NoFilesToStashException {
+    public void stashSave(boolean includeUntracked, String wdMessage, String indexMessage) throws GitAPIException, NoFilesToStashException {
         logger.info("Attempting stash save with message");
         Git git = new Git(this.repo);
         RevCommit stash = git.stashCreate().setIncludeUntracked(includeUntracked).setWorkingDirectoryMessage(wdMessage)
@@ -965,7 +970,7 @@ public class RepoHelper {
      *
      * @return a list of commit helpers that make up the stash
      */
-    List<CommitHelper> stashList() throws GitAPIException, IOException {
+    public List<CommitHelper> stashList() throws GitAPIException, IOException {
         logger.info("Attempting stash list");
         Git git = new Git(this.repo);
         List<CommitHelper> stashCommitList = new ArrayList<>();
@@ -983,7 +988,7 @@ public class RepoHelper {
      * @param stashRef the string that corresponds to the stash to apply
      * @param force whether or not to force apply
      */
-    void stashApply(String stashRef, boolean force) throws GitAPIException {
+    public void stashApply(String stashRef, boolean force) throws GitAPIException {
         logger.info("Attempting stash apply");
         Git git = new Git(this.repo);
         git.stashApply().setStashRef(stashRef).ignoreRepositoryState(force).call();
@@ -1012,7 +1017,7 @@ public class RepoHelper {
      *
      * @return the value of the stash reference after the drop occurs
      */
-    ObjectId stashClear() throws GitAPIException{
+    public ObjectId stashClear() throws GitAPIException{
         logger.info("Attempting stash drop all");
         Git git = new Git(this.repo);
         return git.stashDrop().setAll(true).call();
@@ -1024,7 +1029,7 @@ public class RepoHelper {
      * @param stashRef the stash reference int to drop (0-based)
      * @return the value of the value of the stashed reference
      */
-    ObjectId stashDrop(int stashRef) throws GitAPIException{
+    public ObjectId stashDrop(int stashRef) throws GitAPIException{
         logger.info("Attempting stash drop");
         Git git = new Git(this.repo);
         return git.stashDrop().setStashRef(stashRef).call();

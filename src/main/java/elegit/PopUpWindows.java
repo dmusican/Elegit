@@ -84,7 +84,7 @@ public class PopUpWindows {
      * Asks the user for permission to log anonymous usage data
      * @return true if the user selected yes to
      */
-    static boolean getLoggingPermissions() {
+    public static boolean getLoggingPermissions() {
         Alert window = new Alert(Alert.AlertType.INFORMATION);
 
         ButtonType okButton = new ButtonType("Share");

@@ -203,7 +203,7 @@ public class BranchModel {
      * @throws CannotDeleteCurrentBranchException
      * @throws GitAPIException
      */
-    void deleteLocalBranch(LocalBranchHelper localBranchToDelete)
+    public void deleteLocalBranch(LocalBranchHelper localBranchToDelete)
             throws NotMergedException, CannotDeleteCurrentBranchException, GitAPIException {
         Git git = new Git(this.repoHelper.getRepo());
         git.branchDelete().setBranchNames(localBranchToDelete.getRefPathString()).call();
@@ -217,7 +217,7 @@ public class BranchModel {
      *
      * @param branchToDelete the branch helper of the branch to delete
      */
-    void forceDeleteLocalBranch(LocalBranchHelper branchToDelete) throws CannotDeleteCurrentBranchException, GitAPIException {
+    public void forceDeleteLocalBranch(LocalBranchHelper branchToDelete) throws CannotDeleteCurrentBranchException, GitAPIException {
         Git git = new Git(this.repoHelper.getRepo());
         git.branchDelete().setForce(true).setBranchNames(branchToDelete.getRefPathString()).call();
         this.localBranchesTyped.remove(branchToDelete);
@@ -231,7 +231,7 @@ public class BranchModel {
      * @return the status of the push to remote to delete
      * @throws GitAPIException
      */
-    RemoteRefUpdate.Status deleteRemoteBranch(RemoteBranchHelper branchHelper) throws GitAPIException, IOException {
+    public RemoteRefUpdate.Status deleteRemoteBranch(RemoteBranchHelper branchHelper) throws GitAPIException, IOException {
         PushCommand pushCommand = new Git(this.repoHelper.repo).push();
         // We're deleting the branch on a remote, so there it shows up as refs/heads/<branchname>
         // instead of what it shows up on local: refs/<remote>/<branchname>, so we manually enter
@@ -259,7 +259,7 @@ public class BranchModel {
      * @throws GitAPIException
      * @throws IOException
      */
-    MergeResult mergeWithBranch(BranchHelper branchToMergeFrom) throws GitAPIException, IOException {
+    public MergeResult mergeWithBranch(BranchHelper branchToMergeFrom) throws GitAPIException, IOException {
         Git git = new Git(this.repoHelper.getRepo());
 
         MergeCommand merge = git.merge();

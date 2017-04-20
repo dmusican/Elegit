@@ -1,5 +1,6 @@
-package elegit;
+package elegit.controllers;
 
+import elegit.*;
 import elegit.exceptions.MissingRepoException;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -15,7 +16,6 @@ import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.lib.Repository;
 
 /**
  * Controller class for the commit window
