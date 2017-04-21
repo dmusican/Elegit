@@ -1,6 +1,7 @@
 package elegit.treefx;
 
 import elegit.RefHelper;
+import javafx.application.Platform;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.scene.control.ContextMenu;
@@ -140,6 +141,7 @@ public class TreeGraphModel{
     public void addCell(String newId, long time, String displayLabel,
                         List<RefHelper> refs, ContextMenu contextMenu,
                         List<String> parentIds, Cell.CellType type){
+        assert Platform.isFxApplicationThread();
         // Create a list of parents
         List<Cell> parents = new ArrayList<>();
         for (String parentId : parentIds) {
@@ -265,6 +267,7 @@ public class TreeGraphModel{
      * @param refs the list of refs to add
      */
     private void setCellLabels(Cell cell, String label, List<RefHelper> refs){
+        assert Platform.isFxApplicationThread();
         cell.setLabels(label, refs);
         if(refs.size() > 0) cellsWithNonDefaultShapesOrLabels.add(cell);
     }

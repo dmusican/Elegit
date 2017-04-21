@@ -3,6 +3,7 @@ package elegit;
 import elegit.exceptions.MissingRepoException;
 import elegit.treefx.*;
 import elegit.treefx.Cell;
+import javafx.application.Platform;
 import javafx.scene.control.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -269,6 +270,7 @@ public abstract class CommitTreeModel{
      * @param graphModel the treeGraphModel to add the commit to
      */
     private void addCommitToTree(CommitHelper commitHelper, List<CommitHelper> parents, TreeGraphModel graphModel){
+        assert Platform.isFxApplicationThread();
         List<String> parentIds = new ArrayList<>(parents.size());
 
         RepoHelper repo = sessionModel.getCurrentRepoHelper();

@@ -236,6 +236,7 @@ public class Cell extends Pane{
     }
 
     void setLabels(String displayLabel, List<RefHelper> refLabels){
+        assert Platform.isFxApplicationThread();
         setDisplayLabel(displayLabel);
         setRefLabel(refLabels);
     }
