@@ -207,29 +207,28 @@ public class Highlighter{
      * @param c the cell to emphasize
      */
     public static void emphasizeCell(Cell c){
+        assert Platform.isFxApplicationThread();
         if(!blockedCellIDs.contains(c.getCellId())){
             blockedCellIDs.add(c.getCellId());
         }
 
-        Platform.runLater(() -> {
-            CommitTreeScrollPane.scrollTo(c.rowLocationProperty.doubleValue());
-            c.setCellState(CellState.EMPHASIZED);
+        CommitTreeScrollPane.scrollTo(c.rowLocationProperty.doubleValue());
+        c.setCellState(CellState.EMPHASIZED);
 
-            Shape s = (Shape) c.view;
+        Shape s = (Shape) c.view;
 
-            ScaleTransition sct = new ScaleTransition(Duration.millis(425), s);
-            sct.setByX(0.3f);
-            sct.setByY(0.3f);
-            sct.setCycleCount(6);
-            sct.setAutoReverse(true);
+        ScaleTransition sct = new ScaleTransition(Duration.millis(425), s);
+        sct.setByX(0.3f);
+        sct.setByY(0.3f);
+        sct.setCycleCount(6);
+        sct.setAutoReverse(true);
 
-            c.view.setScaleX(1.0);
-            c.view.setScaleY(1.0);
+        c.view.setScaleX(1.0);
+        c.view.setScaleY(1.0);
 
-            sct.play();
+        sct.play();
 
-            sct.setOnFinished(event -> endEmphasisOnCell(c));
-        });
+        sct.setOnFinished(event -> endEmphasisOnCell(c));
     }
 
     /**
