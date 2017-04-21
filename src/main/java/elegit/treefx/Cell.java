@@ -192,7 +192,9 @@ public class Cell extends Pane{
      * Sets the look of this cell
      * @param newView the new view
      */
+    // THREAD
     public synchronized void setView(Node newView) {
+        assert Platform.isFxApplicationThread();
         if(this.view == null){
             this.view = getBaseView();
         }
@@ -202,11 +204,9 @@ public class Cell extends Pane{
         newView.setId(this.view.getId());
 
         this.view = newView;
-        Platform.runLater(() -> {
-            getChildren().clear();
-            getChildren().add(this.view);
-            setFillType((Shape) this.view, CellState.STANDARD);
-        });
+        getChildren().clear();
+        getChildren().add(this.view);
+        setFillType((Shape) this.view, CellState.STANDARD);
     }
 
     /**
@@ -328,17 +328,21 @@ public class Cell extends Pane{
      * Sets the state of this cell and adjusts the style accordingly
      * @param state the new state of the cell
      */
+    // THREAD
     void setCellState(CellState state){
-        Platform.runLater(() -> setFillType((Shape) view, state));
+        assert Platform.isFxApplicationThread();
+        setFillType((Shape) view, state);
     }
 
     /**
      * Sets the cell type to local, both or remote and resets edges accordingly
      * @param type the type of the cell
      */
+    // THREAD
     void setCellType(CellType type) {
+        assert Platform.isFxApplicationThread();
         this.type = type;
-        Platform.runLater(() -> setFillType((Shape) view, CellState.STANDARD));
+        setFillType((Shape) view, CellState.STANDARD);
         for (Edge e : edges) {
             e.resetDashed();
         }
