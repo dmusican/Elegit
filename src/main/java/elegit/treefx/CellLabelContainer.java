@@ -144,25 +144,26 @@ public class CellLabelContainer extends GridPane {
      * Helper method to set the current cell labels
      * @param labels the labels that refer to the current refs
      */
+    // THREAD
     void setCurrentLabels(List<String> labels) {
-        Platform.runLater(() -> {
-            for (Node m : getChildren()) {
-                if (m instanceof HBox) {
-                    for (Node n : ((HBox) m).getChildren()) {
-                        if (n instanceof CellLabel && labels.contains(((CellLabel) n).getLabel().getText()))
-                            ((CellLabel) n).setCurrent(true);
-                    }
+        assert Platform.isFxApplicationThread();
+        for (Node m : getChildren()) {
+            if (m instanceof HBox) {
+                for (Node n : ((HBox) m).getChildren()) {
+                    if (n instanceof CellLabel && labels.contains(((CellLabel) n).getLabel().getText()))
+                        ((CellLabel) n).setCurrent(true);
                 }
             }
-        });
+        }
     }
 
     /**
      * Helper method to set the context menus on the ref labels
      * @param menuMap a map between ref helpers and context menus
      */
+    // THREAD
     void setLabelMenus(Map<RefHelper, ContextMenu> menuMap) {
-        Platform.runLater(() -> {
+        assert Platform.isFxApplicationThread();
             for (Node m : getChildren()) {
                 if (m instanceof HBox) {
                     for (Node n : ((HBox) m).getChildren()) {
@@ -172,7 +173,6 @@ public class CellLabelContainer extends GridPane {
                     }
                 }
             }
-        });
     }
 
     /**

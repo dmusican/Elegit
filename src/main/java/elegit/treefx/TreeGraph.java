@@ -66,7 +66,9 @@ public class TreeGraph{
      * remove the appropriate cells and edges and keep the view up to
      * date
      */
+    // THREAD
     public synchronized void update() {
+        assert Platform.isFxApplicationThread();
         queuedToRemove.addAll(treeGraphModel.getRemovedCells());
         queuedToRemove.addAll(treeGraphModel.getRemovedEdges());
 
@@ -76,28 +78,26 @@ public class TreeGraph{
         // merge added & removed cells with all cells
         treeGraphModel.merge();
 
-        Platform.runLater(() -> {
-            // add components to treeGraph pane
-            LinkedList<Node> moreToAdd = new LinkedList<>();
-            LinkedList<Node> moreToRemove = new LinkedList<>();
-            for (Node n: queuedToAdd) {
-                if (n instanceof Cell)
-                    moreToAdd.add(((Cell)n).getLabel());
-            }
-            cellLayer.getChildren().addAll(queuedToAdd);
-            cellLayer.getChildren().addAll(moreToAdd);
+        // add components to treeGraph pane
+        LinkedList<Node> moreToAdd = new LinkedList<>();
+        LinkedList<Node> moreToRemove = new LinkedList<>();
+        for (Node n: queuedToAdd) {
+            if (n instanceof Cell)
+                moreToAdd.add(((Cell)n).getLabel());
+        }
+        cellLayer.getChildren().addAll(queuedToAdd);
+        cellLayer.getChildren().addAll(moreToAdd);
 
-            // remove components from treeGraph pane
-            for (Node n:queuedToRemove) {
-                if (n instanceof Cell)
-                    moreToRemove.add(((Cell)n).getLabel());
-            }
-            cellLayer.getChildren().removeAll(moreToRemove);
-            cellLayer.getChildren().removeAll(queuedToRemove);
+        // remove components from treeGraph pane
+        for (Node n:queuedToRemove) {
+            if (n instanceof Cell)
+                moreToRemove.add(((Cell)n).getLabel());
+        }
+        cellLayer.getChildren().removeAll(moreToRemove);
+        cellLayer.getChildren().removeAll(queuedToRemove);
 
-            queuedToAdd = new LinkedList<>();
-            queuedToRemove = new LinkedList<>();
-        });
+        queuedToAdd = new LinkedList<>();
+        queuedToRemove = new LinkedList<>();
     }
 
     Pane getCellLayerPane() {
