@@ -63,12 +63,12 @@ public class CommitTreePanelView extends Region{
     /**
      * Displays an empty scroll pane
      */
+    // THREAD
     public void displayEmptyView(){
-        Platform.runLater(() -> {
-            ScrollPane sp = new ScrollPane();
-            this.getChildren().clear();
-            this.getChildren().add(anchorScrollPane(sp));
-        });
+        assert Platform.isFxApplicationThread();
+        ScrollPane sp = new ScrollPane();
+        this.getChildren().clear();
+        this.getChildren().add(anchorScrollPane(sp));
     }
 
     /**
