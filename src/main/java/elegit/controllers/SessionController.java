@@ -643,6 +643,7 @@ public class SessionController {
      * @param builder the builder to use to create a new repository
      */
     private synchronized void handleLoadRepoMenuItem(RepoHelperBuilder builder){
+        System.out.println("This has not been unthreaded yet (handleLoadRepoMenuItem)");
         try{
             RepoHelper repoHelper = builder.getRepoHelperFromDialogs();
             if(theModel.getCurrentRepoHelper() != null && repoHelper.localPath.equals(theModel.getCurrentRepoHelper().localPath)) {
@@ -747,6 +748,7 @@ public class SessionController {
      * @param repoHelper the repository to open
      */
     private synchronized void handleRecentRepoMenuItem(RepoHelper repoHelper){
+        // THREAD
         if(isRecentRepoEventListenerBlocked || repoHelper == null) return;
 
         this.notificationPaneController.clearAllNotifications();
@@ -754,40 +756,28 @@ public class SessionController {
         RepositoryMonitor.pause();
         BusyWindow.show();
         BusyWindow.setLoadingText("Opening the repository...");
-        Thread th = new Thread(new Task<Void>(){
-            @Override
-            protected Void call() throws Exception{
-                try {
-                    theModel.openRepoFromHelper(repoHelper);
-
-                    Platform.runLater(() -> {
-                        initPanelViews();
-                        updateUIEnabledStatus();
-                    });
-                } catch (IOException e) {
-                    // Somehow, the repository failed to get properly loaded
-                    // TODO: better error message?
-                    showRepoWasNotLoadedNotification();
-                } catch(MissingRepoException e){
-                    showMissingRepoNotification();
-                    refreshRecentReposInDropdown();
-                } catch (BackingStoreException | ClassNotFoundException e) {
-                    // These should only occur when the recent repo information
-                    // fails to be loaded or stored, respectively
-                    // Should be ok to silently fail
-                } catch(Exception e) {
-                    showGenericErrorNotification();
-                    e.printStackTrace();
-                } finally{
-                    RepositoryMonitor.unpause();
-                    BusyWindow.hide();
-                }
-                return null;
-            }
-        });
-        th.setDaemon(true);
-        th.setName("Open repository from recent list");
-        th.start();
+        try {
+            theModel.openRepoFromHelper(repoHelper);
+            initPanelViews();
+            updateUIEnabledStatus();
+        } catch (IOException e) {
+            // Somehow, the repository failed to get properly loaded
+            // TODO: better error message?
+            showRepoWasNotLoadedNotification();
+        } catch(MissingRepoException e){
+            showMissingRepoNotification();
+            refreshRecentReposInDropdown();
+        } catch (BackingStoreException | ClassNotFoundException e) {
+            // These should only occur when the recent repo information
+            // fails to be loaded or stored, respectively
+            // Should be ok to silently fail
+        } catch(Exception e) {
+            showGenericErrorNotification();
+            e.printStackTrace();
+        } finally{
+            RepositoryMonitor.unpause();
+            BusyWindow.hide();
+        }
     }
 
     /**
