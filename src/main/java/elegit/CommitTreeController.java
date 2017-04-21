@@ -1,6 +1,7 @@
 package elegit;
 
 import elegit.controllers.SessionController;
+import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -231,6 +232,7 @@ public class CommitTreeController{
      * @param commit the commit to focus
      */
     public static void focusCommitInGraph(CommitHelper commit){
+        assert(Platform.isFxApplicationThread());
         if(commit == null) return;
 
         for(CommitTreeModel model : allCommitTreeModels){

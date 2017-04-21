@@ -95,6 +95,7 @@ public class TreeLayout{
      */
     // THREAD
     public static void doTreeLayoutTask(TreeGraph g) {
+        assert Platform.isFxApplicationThread();
         try {
             TreeGraphModel treeGraphModel = g.treeGraphModel;
             isInitialSetupFinished = treeGraphModel.isInitialSetupFinished;
@@ -176,6 +177,7 @@ public class TreeLayout{
      * @param cellPosition position of cell to compute position for
      */
     private static void computeCellPosition(int cellPosition) {
+        assert Platform.isFxApplicationThread();
         // Don't try to compute a new position if the cell has already been moved
         if (movedCells.contains(cellPosition))
             return;
@@ -206,6 +208,7 @@ public class TreeLayout{
      * @param y the new row of the cell
      */
     private static void setCellPosition(Cell c, int x, int y) {
+        assert Platform.isFxApplicationThread();
         // See whether or not this cell will move
         int oldColumnLocation = c.columnLocationProperty.get();
         int oldRowLocation = c.rowLocationProperty.get();
@@ -233,6 +236,7 @@ public class TreeLayout{
      * Helper method to sort the list of cells
      */
     public static void sortListOfCells(List<Cell> cellsToSort) {
+        assert Platform.isFxApplicationThread();
         cellsToSort.sort((c1, c2) -> {
             int i = Long.compare(c2.getTime(), c1.getTime());
             if(i == 0){
@@ -255,7 +259,7 @@ public class TreeLayout{
      * Uses Kahn's algorithm.
      */
     public static void topologicalSortListOfCells(List<Cell> cellsToSort) {
-
+        assert Platform.isFxApplicationThread();
         Map<String,Integer> visitCount = new HashMap<>();
 
         // Queue to maintain which nodes are available next for exploring. Done as a priority queue so that the one
