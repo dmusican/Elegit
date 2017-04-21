@@ -1,5 +1,6 @@
 package elegit;
 
+import elegit.treefx.Cell;
 import elegit.treefx.TreeGraph;
 import elegit.treefx.TreeLayout;
 import javafx.application.Platform;
@@ -17,7 +18,7 @@ public class CommitTreePanelView extends Region{
     // Thread information
     public boolean isLayoutThreadRunning = false;
     private Task task;
-    private Thread treeLayoutThread;
+    private Thread th;
     private String name;
 
     /**
@@ -26,14 +27,6 @@ public class CommitTreePanelView extends Region{
     public CommitTreePanelView(){
         super();
         this.setMinHeight(0);
-
-        // Various other portions of the project test to see if treeLayoutThread is alive. If it is alive, that
-        // means that a layout is being worked on, and other portions of the code decide to hold off and not do
-        // things. By initializing treeLayoutThread to a thread which does nothing, and running it right away,
-        // it advances quickly to the terminated / dead state, which will free up other things to run.
-        treeLayoutThread = new Thread();
-        treeLayoutThread.setDaemon(true);
-        treeLayoutThread.start();
     }
 
     /**
@@ -57,16 +50,10 @@ public class CommitTreePanelView extends Region{
     public synchronized void displayTreeGraph(TreeGraph treeGraph, CommitHelper commitToFocusOnLoad){
         initCommitTreeScrollPanes(treeGraph);
 
-        // Note to me.
-        // task.cancel doesn't work because the task doesn't check to see if it's cancelled.
-        // (see documentation, it's a collaborative effort).
-        // I just swapped treeLayoutThread to isAlive, but because we spin off a zillion threads to do the layout,
-        // we need to check if it's the last thread that's done.
-        // This is bad and needs to be redesigned.
-        if(treeLayoutThread.isAlive()){
+        if(isLayoutThreadRunning){
             task.cancel();
             try{
-                treeLayoutThread.join();
+                th.join();
             }catch(InterruptedException e){
                 e.printStackTrace();
             }
@@ -74,25 +61,25 @@ public class CommitTreePanelView extends Region{
 
         task = TreeLayout.getTreeLayoutTask(treeGraph);
 
-        treeLayoutThread = new Thread(task);
-        treeLayoutThread.setName("Tree Layout: "+this.name);
-        treeLayoutThread.setDaemon(true);
-        treeLayoutThread.start();
+        th = new Thread(task);
+        th.setName("Graph Layout: "+this.name);
+        th.setDaemon(true);
+        th.start();
         isLayoutThreadRunning = true;
 
         Task<Void> endTask = new Task<Void>(){
             @Override
             protected Void call(){
                 try {
-                    treeLayoutThread.join();
+                    th.join();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 } finally {
                     isLayoutThreadRunning = false;
                 }
-//                Platform.runLater(() -> {
-//                    CommitTreeController.focusCommitInGraph(commitToFocusOnLoad);
-//                });
+                Platform.runLater(() -> {
+                    CommitTreeController.focusCommitInGraph(commitToFocusOnLoad);
+                });
                 return null;
             }
         };
