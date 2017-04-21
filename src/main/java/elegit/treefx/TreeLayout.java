@@ -52,6 +52,7 @@ public class TreeLayout{
         public void setCurrentCell(int currentCell) { this.currentCell = currentCell; }
 
         public void moveSomeCells() {
+            assert Platform.isFxApplicationThread();
             // Try/catch is just in for debugging purposes, left because any
             // errors here are very hard to find without it
             try {
@@ -305,26 +306,22 @@ public class TreeLayout{
      * to its stored row and column locations
      * @param c the cell to move
      */
+    // THREAD
     public static void moveCell(Cell c){
-        Platform.runLater(new Task<Void>(){
-            @Override
-            protected Void call(){
-                boolean animate = c.getAnimate();
-                boolean useParentPosAsSource = c.getUseParentAsSource();
-                if(animate && useParentPosAsSource && c.getCellParents().size()>0){
-                    double px = c.getCellParents().get(0).columnLocationProperty.get() * H_SPACING + H_PAD;
-                    double py = c.getCellParents().get(0).rowLocationProperty.get() * V_SPACING + V_PAD;
-                    c.moveTo(px, py, false, false);
-                }
+        assert Platform.isFxApplicationThread();
+        boolean animate = c.getAnimate();
+        boolean useParentPosAsSource = c.getUseParentAsSource();
+        if(animate && useParentPosAsSource && c.getCellParents().size()>0){
+            double px = c.getCellParents().get(0).columnLocationProperty.get() * H_SPACING + H_PAD;
+            double py = c.getCellParents().get(0).rowLocationProperty.get() * V_SPACING + V_PAD;
+            c.moveTo(px, py, false, false);
+        }
 
-                    double x = c.columnLocationProperty.get() * H_SPACING + H_PAD;
-                    double y = c.rowLocationProperty.get() * V_SPACING + V_PAD;
+        double x = c.columnLocationProperty.get() * H_SPACING + H_PAD;
+        double y = c.rowLocationProperty.get() * V_SPACING + V_PAD;
 
-                c.moveTo(x, y, animate, animate && useParentPosAsSource);
+        c.moveTo(x, y, animate, animate && useParentPosAsSource);
 
-                return null;
-            }
-        });
     }
 
     public static synchronized void stopMovingCells(){
