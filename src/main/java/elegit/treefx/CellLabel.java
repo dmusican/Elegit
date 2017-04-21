@@ -4,6 +4,7 @@ import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import elegit.CommitTreeModel;
 import elegit.RefHelper;
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
@@ -33,6 +34,7 @@ public class CellLabel extends HBox {
     }
 
     CellLabel(RefHelper refHelper, boolean isCurrent, boolean isTag) {
+        assert Platform.isFxApplicationThread();
         this.refHelper = refHelper;
         this.name = refHelper.getAbbrevName();
         this.isCurrent = isCurrent;
@@ -63,12 +65,14 @@ public class CellLabel extends HBox {
      * @return the pointer with the right color based on the
      */
     private Text getPointer() {
+        assert Platform.isFxApplicationThread();
         pointer = GlyphsDude.createIcon(FontAwesomeIcon.CHEVRON_LEFT);
         pointer.setFill(Color.web(isCurrent ? "#FFFFFF" : "333333"));
         return pointer;
     }
 
     protected Label getLabel() {
+        assert Platform.isFxApplicationThread();
         label = new Label();
         label.getStyleClass().clear();
         if (name.length() > MAX_CHAR_PER_LABEL) {
@@ -87,6 +91,7 @@ public class CellLabel extends HBox {
      * @return the imageView with the correct image
      */
     protected ImageView getImage() {
+        assert Platform.isFxApplicationThread();
         image = new ImageView(new Image(isTag ? "elegit/images/tag.png" : isCurrent ? "elegit/images/branch_white.png" : "elegit/images/branch.png"));
         image.setFitHeight(15);
         image.setPreserveRatio(true);
@@ -98,6 +103,7 @@ public class CellLabel extends HBox {
      * @param menu the menu for this label
      */
     public void setContextMenu(ContextMenu menu) {
+        assert Platform.isFxApplicationThread();
         this.contextMenu = menu;
         this.setPickOnBounds(true);
 
@@ -119,6 +125,7 @@ public class CellLabel extends HBox {
      * @param isRemote whether or not the ref label is remote
      */
     void setRemote(boolean isRemote) {
+        assert Platform.isFxApplicationThread();
         this.isRemote = true;
         refreshIcon();
     }
@@ -129,6 +136,7 @@ public class CellLabel extends HBox {
      * @param text the text of the tooltip
      */
     private void addToolTip(Label l, String text) {
+        assert Platform.isFxApplicationThread();
         Tooltip tooltip = new Tooltip(text);
         tooltip.setWrapText(true);
         tooltip.setMaxWidth(350);
@@ -140,6 +148,7 @@ public class CellLabel extends HBox {
      * @param current whether or not this label is current
      */
     void setCurrent(boolean current) {
+        assert Platform.isFxApplicationThread();
         this.isCurrent = current;
 
         this.getChildren().get(1).setId(isCurrent ? "current" : "regular");
@@ -153,6 +162,7 @@ public class CellLabel extends HBox {
      * @param tag whether or not this label is a tag
      */
     void setTag(boolean tag) {
+        assert Platform.isFxApplicationThread();
         this.isTag = tag;
 
         ((ImageView) this.getChildren().get(2)).setImage(new Image(isTag ? "elegit/images/tag.png" : "elegit/images/branch.png"));
@@ -167,6 +177,7 @@ public class CellLabel extends HBox {
      * Refreshes the icon based on various boolean values
      */
     void refreshIcon() {
+        assert Platform.isFxApplicationThread();
         String image = "elegit/images/";
         if (isTag) {
             image += "tag.png";

@@ -40,6 +40,7 @@ public class CommitTreeController{
      * @param clickedCellId the id of the cell that was clicked
      */
     public static void handleMouseClicked(String clickedCellId){
+        assert Platform.isFxApplicationThread();
         if(selectedCellIds.size()==1 && clickedCellId.equals(selectedCellIds.get(0))){
             resetSelection();
         } else if (selectedCellIds.size()==0) {
@@ -57,6 +58,7 @@ public class CommitTreeController{
      * @param cell the cell that was clicked with shift down
      */
     public static void handleMouseClickedShift(Cell cell) {
+        assert Platform.isFxApplicationThread();
         if (selectedCellIds.contains(cell.getCellId())) {
             if (isSelected(cell.getCellId())) {
                 selectedIDProperty.set(null);
@@ -93,6 +95,7 @@ public class CommitTreeController{
      * @param isOverCell whether the mouse is entering or exiting the cell
      */
     public static void handleMouseover(Cell cell, boolean isOverCell){
+        assert Platform.isFxApplicationThread();
         highlightCommitInGraph(cell.getCellId(), isOverCell);
     }
 
@@ -105,6 +108,7 @@ public class CommitTreeController{
      * @param allGenerations whether to highlight further generations than just parents/children (i.e. grandparents, grandchildren etc)
      */
     private static void selectCommitInGraph(String commitID, boolean ancestors, boolean descendants, boolean allGenerations){
+        assert Platform.isFxApplicationThread();
         for(CommitTreeModel model : allCommitTreeModels){
             if(model.treeGraph == null) continue;
             TreeGraphModel m = model.treeGraph.treeGraphModel;
@@ -126,6 +130,7 @@ public class CommitTreeController{
      * @param isOverCell whether to highlight or un-highlight the corresponding cells
      */
     private static void highlightCommitInGraph(String commitID, boolean isOverCell){
+        assert Platform.isFxApplicationThread();
         for(CommitTreeModel model : allCommitTreeModels){
             if(model.treeGraph == null) continue;
             TreeGraphModel m = model.treeGraph.treeGraphModel;
@@ -148,6 +153,7 @@ public class CommitTreeController{
      * @param allGenerations whether to highlight further generations than just parents/children (i.e. grandparents, grandchildren etc)
      */
     private static void selectCommitInGraph(String commitID, TreeGraphModel model, boolean enable, boolean ancestors, boolean descendants, boolean allGenerations){
+        assert Platform.isFxApplicationThread();
         Highlighter.highlightSelectedCell(commitID, model, enable, ancestors, descendants, allGenerations);
         if(enable){
             Highlighter.updateCellEdges(commitID, commitID, model, true);
@@ -165,6 +171,7 @@ public class CommitTreeController{
      * @param allGenerations whether to highlight further generations than just parents/children (i.e. grandparents, grandchildren etc)
      */
     public static void selectCommit(String id, boolean ancestors, boolean descendants, boolean allGenerations){
+        assert Platform.isFxApplicationThread();
         resetSelection();
         selectCommitInGraph(id, ancestors, descendants, allGenerations);
         sessionController.selectCommit(id);
@@ -174,6 +181,7 @@ public class CommitTreeController{
      * Deselects the currently selected commit, if there is one
      */
     public static void resetSelection(){
+        assert Platform.isFxApplicationThread();
         if(selectedCellIds.size() > 0){
             Highlighter.resetAll();
             selectedCellIds.clear();
@@ -189,6 +197,7 @@ public class CommitTreeController{
      * @return true if it is selected, false otherwise
      */
     private static boolean isSelected(String cellID){
+        assert Platform.isFxApplicationThread();
         return selectedCellIds.size()==1 && selectedCellIds.get(0).equals(cellID);
     }
 
@@ -199,6 +208,7 @@ public class CommitTreeController{
      * @param commitTreeModel the model whose view should be updated
      */
     public static void init(CommitTreeModel commitTreeModel){
+        assert Platform.isFxApplicationThread();
         RepoHelper repo = commitTreeModel.sessionModel.getCurrentRepoHelper();
 
         commitTreeModel.treeGraph.update();
@@ -216,6 +226,7 @@ public class CommitTreeController{
      * @param commitTreeModel the model whose view should be updated
      */
     public static void update(CommitTreeModel commitTreeModel){
+        assert Platform.isFxApplicationThread();
         RepoHelper repo = commitTreeModel.sessionModel.getCurrentRepoHelper();
 
         commitTreeModel.treeGraph.update();
@@ -249,6 +260,7 @@ public class CommitTreeController{
      * @param commitID the ID of the commit to focus
      */
     public static void focusCommitInGraph(String commitID){
+        assert Platform.isFxApplicationThread();
         if(commitID == null) return;
         for(CommitTreeModel model : allCommitTreeModels){
             if(model.treeGraph != null && model.treeGraph.treeGraphModel.containsID(commitID)){
@@ -265,6 +277,7 @@ public class CommitTreeController{
      * @return true if the model has branches, false if not
      */
     public static boolean setBranchHeads(CommitTreeModel model, RepoHelper repo) {
+        assert Platform.isFxApplicationThread();
         try {
             repo.getBranchModel().updateAllBranches();
         } catch (IOException | GitAPIException e) {

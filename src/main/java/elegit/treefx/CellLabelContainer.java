@@ -41,6 +41,7 @@ public class CellLabelContainer extends GridPane {
      * @param y the y coordinate of the new location
      */
     public void translate(double x, double y) {
+        assert Platform.isFxApplicationThread();
         setTranslateX(x+BOX_SIZE+10);
         setTranslateY(y+BOX_SIZE-5-(this.getHeight()-25));
     }
@@ -51,6 +52,7 @@ public class CellLabelContainer extends GridPane {
      * @param text the text of the tooltip
      */
     void addToolTip(Label l, String text) {
+        assert Platform.isFxApplicationThread();
         Tooltip tooltip = new Tooltip(text);
         tooltip.setWrapText(true);
         tooltip.setMaxWidth(350);
@@ -164,15 +166,15 @@ public class CellLabelContainer extends GridPane {
     // THREAD
     void setLabelMenus(Map<RefHelper, ContextMenu> menuMap) {
         assert Platform.isFxApplicationThread();
-            for (Node m : getChildren()) {
-                if (m instanceof HBox) {
-                    for (Node n : ((HBox) m).getChildren()) {
-                        if (n instanceof CellLabel && menuMap.keySet().contains(((CellLabel) n).getRefHelper())) {
-                            ((CellLabel) n).setContextMenu(menuMap.get(((CellLabel) n).getRefHelper()));
-                        }
+        for (Node m : getChildren()) {
+            if (m instanceof HBox) {
+                for (Node n : ((HBox) m).getChildren()) {
+                    if (n instanceof CellLabel && menuMap.keySet().contains(((CellLabel) n).getRefHelper())) {
+                        ((CellLabel) n).setContextMenu(menuMap.get(((CellLabel) n).getRefHelper()));
                     }
                 }
             }
+        }
     }
 
     /**
@@ -180,16 +182,15 @@ public class CellLabelContainer extends GridPane {
      * @param labels the labels to set as remote
      */
     void setRemoteLabels(List<String>  labels) {
-        Platform.runLater(() -> {
-            for (Node m : getChildren()) {
-                if (m instanceof HBox) {
-                    for (Node n : ((HBox) m).getChildren()) {
-                        if (n instanceof CellLabel && labels.contains(((CellLabel) n).getLabel().getText())) {
-                            ((CellLabel) n).setRemote(true);
-                        }
+        assert Platform.isFxApplicationThread();
+        for (Node m : getChildren()) {
+            if (m instanceof HBox) {
+                for (Node n : ((HBox) m).getChildren()) {
+                    if (n instanceof CellLabel && labels.contains(((CellLabel) n).getLabel().getText())) {
+                        ((CellLabel) n).setRemote(true);
                     }
                 }
             }
-        });
+        }
     }
 }

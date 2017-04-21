@@ -51,6 +51,7 @@ public abstract class CommitTreeModel{
      * @param view the view that will be updated with the new graph
      */
     public CommitTreeModel(SessionModel model, CommitTreePanelView view){
+        assert Platform.isFxApplicationThread();
         this.sessionModel = model;
         this.view = view;
         this.view.setName("Generic commit tree");
@@ -78,6 +79,7 @@ public abstract class CommitTreeModel{
      * @return true if the given id corresponds to a commit in the tree, false otherwise
      */
     public boolean containsID(String id){
+        assert Platform.isFxApplicationThread();
         return treeGraph != null && treeGraph.treeGraphModel.containsID(id);
     }
 
@@ -86,6 +88,7 @@ public abstract class CommitTreeModel{
      * and then adds all commits tracked by this model to the tree
      */
     public synchronized void init(){
+        assert Platform.isFxApplicationThread();
         treeGraph = this.createNewTreeGraph();
 
         CommitTreeController.resetSelection();
@@ -100,6 +103,7 @@ public abstract class CommitTreeModel{
     }
 
     public synchronized void update() throws GitAPIException, IOException {
+        assert Platform.isFxApplicationThread();
         // Handles rare edge case with the RepositoryMonitor and removing repos
         if(this.sessionModel.getCurrentRepoHelper() != null){
             // Get the changes between this model and the repo after updating the repo
@@ -127,6 +131,7 @@ public abstract class CommitTreeModel{
      * @return an update model that has all the differences between these
      */
     public UpdateModel getChanges() throws IOException {
+        assert Platform.isFxApplicationThread();
         UpdateModel updateModel = new UpdateModel();
         RepoHelper repo = this.sessionModel.getCurrentRepoHelper();
 
@@ -209,6 +214,7 @@ public abstract class CommitTreeModel{
      * @return true if the tree was updated, otherwise false
      */
     private boolean addAllCommitsToTree() {
+        assert Platform.isFxApplicationThread();
         return this.addCommitsToTree(this.getAllCommits(this.sessionModel.getCurrentRepoHelper()));
     }
 
@@ -218,6 +224,7 @@ public abstract class CommitTreeModel{
      * @return the newly created graph
      */
     private TreeGraph createNewTreeGraph(){
+        assert Platform.isFxApplicationThread();
         TreeGraphModel graphModel = new TreeGraphModel();
         treeGraph = new TreeGraph(graphModel);
         return treeGraph;
@@ -229,6 +236,7 @@ public abstract class CommitTreeModel{
      * @return true if commits where added, else false
      */
     private boolean addCommitsToTree(List<CommitHelper> commits){
+        assert Platform.isFxApplicationThread();
         if(commits.size() == 0) return false;
 
         for(CommitHelper curCommitHelper : commits){
@@ -245,6 +253,7 @@ public abstract class CommitTreeModel{
      * @return true if commits were removed, else false
      */
     private boolean removeCommitsFromTree(List<CommitHelper> commits){
+        assert Platform.isFxApplicationThread();
         if(commits.size() == 0) return false;
 
         for(CommitHelper curCommitHelper : commits)
@@ -254,6 +263,7 @@ public abstract class CommitTreeModel{
     }
 
     private boolean updateCommitFills(List<CommitHelper> commits) {
+        assert Platform.isFxApplicationThread();
         if(commits.size() == 0) return false;
 
         for(CommitHelper curCommitHelper : commits)
@@ -309,6 +319,7 @@ public abstract class CommitTreeModel{
      * @param graphModel the graph model to remove the commit from
      */
     private void removeCommitFromTree(CommitHelper commitHelper, TreeGraphModel graphModel){
+        assert Platform.isFxApplicationThread();
         String commitID = RepoHelper.getCommitId(commitHelper);
 
         this.commitsInModel.remove(commitHelper);
@@ -319,6 +330,7 @@ public abstract class CommitTreeModel{
     }
 
     private void updateCommitFill(CommitHelper helper, TreeGraphModel graphModel, RepoHelper repo) {
+        assert Platform.isFxApplicationThread();
         Cell.CellType type = (repo.getLocalCommits().contains(helper)) ?
                 (repo.getRemoteCommits().contains(helper)) ? Cell.CellType.BOTH : Cell.CellType.LOCAL : Cell.CellType.REMOTE;
         this.localCommitsInModel.remove(helper);
@@ -347,6 +359,7 @@ public abstract class CommitTreeModel{
      * @return the context menu with a delete option
      */
     public ContextMenu getTagLabelMenu(TagHelper tagHelper) {
+        assert Platform.isFxApplicationThread();
         ContextMenu contextMenu = new ContextMenu();
 
         MenuItem deleteitem = new MenuItem("Delete");
@@ -373,6 +386,7 @@ public abstract class CommitTreeModel{
      * @return the context menu with various options related to branches
      */
     private ContextMenu getBranchLabelMenu(BranchHelper branch) {
+        assert Platform.isFxApplicationThread();
         ContextMenu contextMenu = new ContextMenu();
 
         MenuItem checkoutItem = new MenuItem("Checkout");
@@ -394,6 +408,7 @@ public abstract class CommitTreeModel{
      * @return the context menu for the commit
      */
     private ContextMenu getContextMenu(CommitHelper commit){
+        assert Platform.isFxApplicationThread();
         ContextMenu contextMenu = new ContextMenu();
 
         MenuItem checkoutItem = new MenuItem("Checkout files...");
@@ -416,6 +431,7 @@ public abstract class CommitTreeModel{
      * @return relativesMenu
      */
     private Menu getRelativesMenu(CommitHelper commit) {
+        assert Platform.isFxApplicationThread();
         Menu relativesMenu = new Menu("Show Relatives");
 
         MenuItem parentsItem = new MenuItem("Parents");
@@ -447,6 +463,7 @@ public abstract class CommitTreeModel{
      * @return revertMenu
      */
     private Menu getRevertMenu(CommitHelper commit) {
+        assert Platform.isFxApplicationThread();
         Menu revertMenu = new Menu("Revert...");
         MenuItem revertItem = new MenuItem("Revert this commit");
         MenuItem revertMultipleItem = new MenuItem("Revert multiple commits...");
@@ -470,6 +487,7 @@ public abstract class CommitTreeModel{
     }
 
     private Menu getResetMenu(CommitHelper commit) {
+        assert Platform.isFxApplicationThread();
         Menu resetMenu = new Menu("Reset...");
         MenuItem resetItem = new MenuItem("Reset to this commit");
         MenuItem helpItem = new MenuItem("Help");
@@ -485,6 +503,7 @@ public abstract class CommitTreeModel{
     }
 
     private Menu getAdvancedResetMenu(CommitHelper commit) {
+        assert Platform.isFxApplicationThread();
         Menu resetMenu = new Menu("Advanced");
         MenuItem hardItem = new MenuItem("reset --hard");
         MenuItem mixedItem = new MenuItem("reset --mixed");
@@ -506,6 +525,7 @@ public abstract class CommitTreeModel{
      * Updates the corresponding view if possible
      */
     public void updateView() throws IOException{
+        assert Platform.isFxApplicationThread();
         if(this.sessionModel != null && this.sessionModel.getCurrentRepoHelper() != null){
             CommitTreeController.update(this);
         }else{
@@ -517,6 +537,7 @@ public abstract class CommitTreeModel{
      * Initializes the corresponding view if possible
      */
     private void initView(){
+        assert Platform.isFxApplicationThread();
         if(this.sessionModel != null && this.sessionModel.getCurrentRepoHelper() != null){
             CommitTreeController.init(this);
         }else{
@@ -531,6 +552,7 @@ public abstract class CommitTreeModel{
      * @param tracked whether or not the commit is the head of a tracked branch
      */
     public void setCommitAsBranchHead(CommitHelper helper, boolean tracked) {
+        assert Platform.isFxApplicationThread();
         String commitId="";
         commitId = helper.getId();
         CellShape shape = (tracked) ? Cell.TRACKED_BRANCH_HEAD_SHAPE : Cell.UNTRACKED_BRANCH_HEAD_SHAPE;
@@ -548,6 +570,7 @@ public abstract class CommitTreeModel{
      * Looks for all ref labels, then adds them to the commit tree graph
      */
     public void updateAllRefLabels() {
+        assert Platform.isFxApplicationThread();
         RepoHelper repo = sessionModel.getCurrentRepoHelper();
 
         List<RefHelper> refHelpers = new ArrayList<>();
@@ -589,6 +612,7 @@ public abstract class CommitTreeModel{
 
     private void addCommitRefMaps(List<RefHelper> helpers, Map<String, List<RefHelper>> commitLabelMap,
                                                           Map<RefHelper, ContextMenu> menuMap) {
+        assert Platform.isFxApplicationThread();
         String commitId;
         for (RefHelper helper : helpers) {
             commitId = helper.getCommit().getId();
@@ -612,6 +636,7 @@ public abstract class CommitTreeModel{
      * Forgets information about tracked/untracked branch heads in the tree and updates the model
      */
     public void resetBranchHeads(){
+        assert Platform.isFxApplicationThread();
         List<String> resetIDs = treeGraph.treeGraphModel.resetCellShapes();
         RepoHelper repo = sessionModel.getCurrentRepoHelper();
         this.branchesInModel = repo.getBranchModel().getAllBranches();
