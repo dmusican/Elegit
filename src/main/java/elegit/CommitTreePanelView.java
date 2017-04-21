@@ -50,43 +50,13 @@ public class CommitTreePanelView extends Region{
     public synchronized void displayTreeGraph(TreeGraph treeGraph, CommitHelper commitToFocusOnLoad){
         initCommitTreeScrollPanes(treeGraph);
 
-        if(isLayoutThreadRunning){
-            task.cancel();
-            try{
-                th.join();
-            }catch(InterruptedException e){
-                e.printStackTrace();
-            }
-        }
+        // THREAD: took out code that used to try to cancel a thread already running that was displaying a
+        // tree graph, before proceeding to create another one here.
 
-        task = TreeLayout.getTreeLayoutTask(treeGraph);
-
-        th = new Thread(task);
-        th.setName("Graph Layout: "+this.name);
-        th.setDaemon(true);
-        th.start();
         isLayoutThreadRunning = true;
-
-        Task<Void> endTask = new Task<Void>(){
-            @Override
-            protected Void call(){
-                try {
-                    th.join();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                } finally {
-                    isLayoutThreadRunning = false;
-                }
-                Platform.runLater(() -> {
-                    CommitTreeController.focusCommitInGraph(commitToFocusOnLoad);
-                });
-                return null;
-            }
-        };
-        Thread endThread = new Thread(endTask);
-        endThread.setName("Layout finalization");
-        endThread.setDaemon(true);
-        endThread.start();
+        TreeLayout.doTreeLayoutTask(treeGraph);
+        isLayoutThreadRunning = false;
+        CommitTreeController.focusCommitInGraph(commitToFocusOnLoad);
     }
 
     /**

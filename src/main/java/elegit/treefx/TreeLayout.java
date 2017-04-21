@@ -80,165 +80,153 @@ public class TreeLayout{
     }
 
 
+    private static List<Cell> allCells;
+    private static List<Integer> minRowUsedInCol;
+    private static List<Integer> movedCells;
+    private static boolean isInitialSetupFinished;
+
+
+    // THREAD
+
     /**
-     * Returns a task that will take care of laying out the given
-     * graph into a tree. Uses a combination of recursion and
-     * iteration to pack cells as far up as possible with each
-     * cell being arranged horizontally based on time
-     * @param g the graph to layout
-     * @return a task that, when executed, does the layout of g
+     * Extracts the TreeGraphModel, sorts its cells by time, then relocates
+     * every cell. When complete, updates the model if necessary to show
+     * it has been through the layout process at least once already
      */
-    public static Task getTreeLayoutTask(TreeGraph g){
+    // THREAD
+    public static void doTreeLayoutTask(TreeGraph g) {
+        try {
+            TreeGraphModel treeGraphModel = g.treeGraphModel;
+            isInitialSetupFinished = treeGraphModel.isInitialSetupFinished;
 
-        return new Task<Void>(){
+            allCells = treeGraphModel.allCells;
+            if (commitSortTopological)
+                topologicalSortListOfCells(allCells);
+            else
+                sortListOfCells(allCells);
 
-            private List<Cell> allCells;
-            private List<Integer> minRowUsedInCol;
-            private List<Integer> movedCells;
-            private boolean isInitialSetupFinished;
+            // Initialize variables
+            minRowUsedInCol = new ArrayList<>();
+            movedCells = new ArrayList<>();
 
-            /**
-             * Extracts the TreeGraphModel, sorts its cells by time, then relocates
-             * every cell. When complete, updates the model if necessary to show
-             * it has been through the layout process at least once already
-             */
-            @Override
-            protected Void call() throws Exception{
-                try {
-                    TreeGraphModel treeGraphModel = g.treeGraphModel;
-                    isInitialSetupFinished = treeGraphModel.isInitialSetupFinished;
+            // Compute the positions of cells recursively
+            for (int i = allCells.size() - 1; i >= 0; i--) {
+                computeCellPosition(i);
+            }
+            // Once all cell's positions have been set, move them in a service
+            MoveCellService mover = new MoveCellService(allCells);
 
-                    allCells = treeGraphModel.allCells;
-                    if (commitSortTopological)
-                        topologicalSortListOfCells(allCells);
-                    else
-                        sortListOfCells(allCells);
+            //********************* Loading Bar Start *********************
+            Pane cellLayer = g.getCellLayerPane();
+            ScrollPane sp = g.getScrollPane();
+            SimpleDoubleProperty viewportY = new SimpleDoubleProperty(0);
+            SimpleDoubleProperty viewportX = new SimpleDoubleProperty(0);
+            ProgressBar progressBar = new ProgressBar();
 
-                    // Initialize variables
-                    minRowUsedInCol = new ArrayList<>();
-                    movedCells = new ArrayList<>();
+            Text loadingCommits = new Text("Loading commits ");
+            loadingCommits.setFont(new Font(14));
+            VBox loading = new VBox(loadingCommits, progressBar);
+            loading.setPickOnBounds(false);
+            loading.setAlignment(Pos.CENTER);
+            loading.setSpacing(5);
+            loading.layoutYProperty().bind(viewportY);
+            loading.layoutXProperty().bind(viewportX);
+            loading.setRotationAxis(Rotate.X_AXIS);
+            loading.setRotate(180);
+            if (Platform.isFxApplicationThread()) {
+                cellLayer.getChildren().add(loading);
+            } else {
+                Platform.runLater(() -> cellLayer.getChildren().add(loading));
+            }
 
-                    // Compute the positions of cells recursively
-                    for (int i = allCells.size() - 1; i >= 0; i--) {
-                        computeCellPosition(i);
-                    }
-                    // Once all cell's positions have been set, move them in a service
-                    MoveCellService mover = new MoveCellService(allCells);
+            sp.vvalueProperty().addListener(((observable, oldValue, newValue) -> {
+                viewportY.set(cellLayer.getLayoutBounds().getHeight()-((double) newValue * cellLayer.getLayoutBounds().getHeight() +
+                        (0.5 - (double) newValue) * sp.getViewportBounds().getHeight()));
+            }));
 
-                    //********************* Loading Bar Start *********************
-                    Pane cellLayer = g.getCellLayerPane();
-                    ScrollPane sp = g.getScrollPane();
-                    SimpleDoubleProperty viewportY = new SimpleDoubleProperty(0);
-                    SimpleDoubleProperty viewportX = new SimpleDoubleProperty(0);
-                    ProgressBar progressBar = new ProgressBar();
+            sp.viewportBoundsProperty().addListener(((observable, oldValue, newValue) -> {
+                viewportX.set(sp.getViewportBounds().getWidth() - loading.getWidth() - 35);
+                viewportY.set(cellLayer.getLayoutBounds().getHeight()
+                        - (sp.getVvalue() * cellLayer.getLayoutBounds().getHeight()
+                        + (0.5 - sp.getVvalue()) * sp.getViewportBounds().getHeight()));
+            }));
+            //********************** Loading Bar End **********************
 
-                    Text loadingCommits = new Text("Loading commits ");
-                    loadingCommits.setFont(new Font(14));
-                    VBox loading = new VBox(loadingCommits, progressBar);
-                    loading.setPickOnBounds(false);
-                    loading.setAlignment(Pos.CENTER);
-                    loading.setSpacing(5);
-                    loading.layoutYProperty().bind(viewportY);
-                    loading.layoutXProperty().bind(viewportX);
-                    loading.setRotationAxis(Rotate.X_AXIS);
-                    loading.setRotate(180);
-                    if (Platform.isFxApplicationThread()) {
-                        cellLayer.getChildren().add(loading);
-                    } else {
-                        Platform.runLater(() -> cellLayer.getChildren().add(loading));
-                    }
-
-                    sp.vvalueProperty().addListener(((observable, oldValue, newValue) -> {
-                        viewportY.set(cellLayer.getLayoutBounds().getHeight()-((double) newValue * cellLayer.getLayoutBounds().getHeight() +
-                                (0.5 - (double) newValue) * sp.getViewportBounds().getHeight()));
-                    }));
-
-                    sp.viewportBoundsProperty().addListener(((observable, oldValue, newValue) -> {
-                        viewportX.set(sp.getViewportBounds().getWidth() - loading.getWidth() - 35);
-                        viewportY.set(cellLayer.getLayoutBounds().getHeight()
-                                - (sp.getVvalue() * cellLayer.getLayoutBounds().getHeight()
-                                + (0.5 - sp.getVvalue()) * sp.getViewportBounds().getHeight()));
-                    }));
-                    //********************** Loading Bar End **********************
-
-                    mover.setOnSucceeded(event1 -> {
-                        if (!Main.isAppClosed && movingCells && mover.currentCell < allCells.size() - 1) {
-                            mover.setCurrentCell(mover.currentCell + 10);
-                            progressBar.setProgress(mover.percent.get() / 100.0);
-                            mover.restart();
-                        } else {
-                            treeGraphModel.isInitialSetupFinished = true;
-                            loadingCommits.setVisible(false);
-                            progressBar.setVisible(false);
-                        }
-                    });
-
-                    mover.reset();
-                    mover.start();
-                } catch (Exception e) {
-                    e.printStackTrace();
+            mover.setOnSucceeded(event1 -> {
+                if (!Main.isAppClosed && movingCells && mover.currentCell < allCells.size() - 1) {
+                    mover.setCurrentCell(mover.currentCell + 10);
+                    progressBar.setProgress(mover.percent.get() / 100.0);
+                    mover.restart();
+                } else {
+                    treeGraphModel.isInitialSetupFinished = true;
+                    loadingCommits.setVisible(false);
+                    progressBar.setVisible(false);
                 }
-                return null;
-            }
+            });
 
-            /**
-             * Helper method that computes the cell position for a given cell and its parents (oldest to newest), recursively
-             * @param cellPosition position of cell to compute position for
-             */
-            private void computeCellPosition(int cellPosition) {
-                // Don't try to compute a new position if the cell has already been moved
-                if (movedCells.contains(cellPosition))
-                    return;
+            mover.reset();
+            mover.start();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
-                // Get cell at the inputted position
-                Cell c = allCells.get(allCells.size()-1-cellPosition);
+    /**
+     * Helper method that computes the cell position for a given cell and its parents (oldest to newest), recursively
+     * @param cellPosition position of cell to compute position for
+     */
+    private static void computeCellPosition(int cellPosition) {
+        // Don't try to compute a new position if the cell has already been moved
+        if (movedCells.contains(cellPosition))
+            return;
 
-                setCellPosition(c, getColumnOfCellInRow(minRowUsedInCol, cellPosition), cellPosition);
+        // Get cell at the inputted position
+        Cell c = allCells.get(allCells.size()-1-cellPosition);
 
-                // Update the reserved columns in rows with the cells parents, oldest to newest
-                List<Cell> list = c.getCellParents();
-                list.sort((c1, c2) -> Long.compare(c1.getTime(), c2.getTime()));
+        setCellPosition(c, getColumnOfCellInRow(minRowUsedInCol, cellPosition), cellPosition);
 
-                // For each parent, oldest to newest, place it in the highest row possible recursively
-                for(Cell parent : list){
-                    if (parent.getTime()>c.getTime() || allCells.indexOf(parent)<0) break;
-                    computeCellPosition(allCells.size()-1- allCells.indexOf(parent));
-                    break;
-                }
-            }
+        // Update the reserved columns in rows with the cells parents, oldest to newest
+        List<Cell> list = c.getCellParents();
+        list.sort((c1, c2) -> Long.compare(c1.getTime(), c2.getTime()));
 
-            /**
-             * Helper method to set the position of a cell and update various
-             * parameters for the cell
-             *
-             * @param c the cell to set the position of
-             * @param x the new column of the cell
-             * @param y the new row of the cell
-             */
-            private void setCellPosition(Cell c, int x, int y) {
-                // See whether or not this cell will move
-                int oldColumnLocation = c.columnLocationProperty.get();
-                int oldRowLocation = c.rowLocationProperty.get();
+        // For each parent, oldest to newest, place it in the highest row possible recursively
+        for(Cell parent : list){
+            if (parent.getTime()>c.getTime() || allCells.indexOf(parent)<0) break;
+            computeCellPosition(allCells.size()-1- allCells.indexOf(parent));
+            break;
+        }
+    }
 
-                c.columnLocationProperty.set(x);
-                c.rowLocationProperty.set(y);
+    /**
+     * Helper method to set the position of a cell and update various
+     * parameters for the cell
+     *
+     * @param c the cell to set the position of
+     * @param x the new column of the cell
+     * @param y the new row of the cell
+     */
+    private static void setCellPosition(Cell c, int x, int y) {
+        // See whether or not this cell will move
+        int oldColumnLocation = c.columnLocationProperty.get();
+        int oldRowLocation = c.rowLocationProperty.get();
 
-                boolean hasCellMoved = oldColumnLocation >= 0 && oldRowLocation >= 0;
-                boolean willCellMove = oldColumnLocation != x || oldRowLocation != y;
+        c.columnLocationProperty.set(x);
+        c.rowLocationProperty.set(y);
 
-                // Update where the cell has been placed
-                if (x >= minRowUsedInCol.size())
-                    minRowUsedInCol.add(y);
-                else
-                    minRowUsedInCol.set(x, y);
+        boolean hasCellMoved = oldColumnLocation >= 0 && oldRowLocation >= 0;
+        boolean willCellMove = oldColumnLocation != x || oldRowLocation != y;
 
-                // Set the animation and use parent properties of the cell
-                c.setAnimate(isInitialSetupFinished && willCellMove);
-                c.setUseParentAsSource(!hasCellMoved);
+        // Update where the cell has been placed
+        if (x >= minRowUsedInCol.size())
+            minRowUsedInCol.add(y);
+        else
+            minRowUsedInCol.set(x, y);
 
-                this.movedCells.add(y);
-            }
-        };
+        // Set the animation and use parent properties of the cell
+        c.setAnimate(isInitialSetupFinished && willCellMove);
+        c.setUseParentAsSource(!hasCellMoved);
+
+        movedCells.add(y);
     }
 
     /**
