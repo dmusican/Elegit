@@ -35,7 +35,8 @@ public class TreeLayout{
      * Mover service to go through moving the cells. Services are scheduled really well, so we
      * like using them for big repetitive things like this.
      */
-    public static class MoveCellService extends Service {
+    // THREAD
+    public static class MoveCellService {
         private int currentCell, max;
         private List<Cell> allCellsSortedByTime;
         private IntegerProperty percent;
@@ -50,32 +51,25 @@ public class TreeLayout{
 
         public void setCurrentCell(int currentCell) { this.currentCell = currentCell; }
 
-        protected synchronized Task createTask() {
-            return new Task() {
-                @Override
-                protected Object call() throws Exception {
-                    // Try/catch is just in for debugging purposes, left because any
-                    // errors here are very hard to find without it
-                    try {
-                        for (int i = currentCell; i < currentCell + 10; i++) {
-                            if (i > allCellsSortedByTime.size() - 1) {
-                                percent.set(100);
-                                return null;
-                            }
-                            moveCell(allCellsSortedByTime.get(i));
-
-                            // Update progress if need be
-                            if (i * 100.0 / max > percent.get() && percent.get() < 100) {
-                                percent.set(i * 100 / max);
-                            }
-                        }
-                        this.succeeded();
-                    }catch (Exception e) {
-                        e.printStackTrace();
+        public void moveSomeCells() {
+            // Try/catch is just in for debugging purposes, left because any
+            // errors here are very hard to find without it
+            try {
+                for (int i = currentCell; i < currentCell + 10; i++) {
+                    if (i > allCellsSortedByTime.size() - 1) {
+                        percent.set(100);
+                        return;
                     }
-                    return null;
+                    moveCell(allCellsSortedByTime.get(i));
+
+                    // Update progress if need be
+                    if (i * 100.0 / max > percent.get() && percent.get() < 100) {
+                        percent.set(i * 100 / max);
+                    }
                 }
-            };
+            }catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -134,11 +128,7 @@ public class TreeLayout{
             loading.layoutXProperty().bind(viewportX);
             loading.setRotationAxis(Rotate.X_AXIS);
             loading.setRotate(180);
-            if (Platform.isFxApplicationThread()) {
-                cellLayer.getChildren().add(loading);
-            } else {
-                Platform.runLater(() -> cellLayer.getChildren().add(loading));
-            }
+            cellLayer.getChildren().add(loading);
 
             sp.vvalueProperty().addListener(((observable, oldValue, newValue) -> {
                 viewportY.set(cellLayer.getLayoutBounds().getHeight()-((double) newValue * cellLayer.getLayoutBounds().getHeight() +
@@ -153,20 +143,17 @@ public class TreeLayout{
             }));
             //********************** Loading Bar End **********************
 
-            mover.setOnSucceeded(event1 -> {
-                if (!Main.isAppClosed && movingCells && mover.currentCell < allCells.size() - 1) {
-                    mover.setCurrentCell(mover.currentCell + 10);
-                    progressBar.setProgress(mover.percent.get() / 100.0);
-                    mover.restart();
-                } else {
-                    treeGraphModel.isInitialSetupFinished = true;
-                    loadingCommits.setVisible(false);
-                    progressBar.setVisible(false);
-                }
-            });
+            mover.moveSomeCells();
+            while (!Main.isAppClosed && movingCells && mover.currentCell < allCells.size() - 1) {
+                mover.setCurrentCell(mover.currentCell + 10);
+                progressBar.setProgress(mover.percent.get() / 100.0);
+                mover.moveSomeCells();
+            }
 
-            mover.reset();
-            mover.start();
+            treeGraphModel.isInitialSetupFinished = true;
+            loadingCommits.setVisible(false);
+            progressBar.setVisible(false);
+
         } catch (Exception e) {
             e.printStackTrace();
         }
