@@ -30,6 +30,11 @@ public class DirectoryRepoFile extends RepoFile {
         return children;
     }
 
+    @Override
+    public String toString() {
+        return this.filePath.toString();
+    }
+
     @Override public boolean canAdd() {
         return true;
     }

@@ -1,5 +1,6 @@
 package elegit;
 
+import apple.laf.JRSUIUtils;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.Node;
@@ -47,36 +48,36 @@ public class WorkingTreePanelView extends FileStructurePanelView{
      * @return the cell from CheckBoxTreeCell's implementation of a TreeView factory, with
      * an added context menu for the given RepoFile
      */
-//    @Override
-//    protected Callback<TreeView<RepoFile>, TreeCell<RepoFile>> getTreeCellFactory() {
-//        return arg -> {
-//            TreeCell<RepoFile> cell = CheckBoxTreeCell.<RepoFile>forTreeView().call(arg);
-//            cell.setOnContextMenuRequested(event -> {
-//                if(cell.getTreeItem()!= null) cell.getTreeItem().getValue().showContextMenu(cell, event.getScreenX(), event.getScreenY());
-//            });
-//            return cell;
-//        };
-//    }
-
     @Override
     protected Callback<TreeView<RepoFile>, TreeCell<RepoFile>> getTreeCellFactory() {
-        return new Callback<TreeView<RepoFile>, TreeCell<RepoFile>>() {
-            @Override
-            public TreeCell<RepoFile> call(TreeView<RepoFile> param) {
-                return new CheckBoxTreeCell<RepoFile>() {
-                    @Override
-                    public void updateItem(RepoFile repoFile, boolean empty) {
-                        super.updateItem(repoFile, empty);
-
-                        if (repoFile != null && repoFile instanceof LabelRepoFile) {
-                            setId("fileLabel");
-                            setGraphic(null);
-                        }
-                    }
-                };
-            }
+        return arg -> {
+            TreeCell<RepoFile> cell = CheckBoxTreeCell.<RepoFile>forTreeView().call(arg);
+            cell.setOnContextMenuRequested(event -> {
+                if(cell.getTreeItem()!= null) cell.getTreeItem().getValue().showContextMenu(cell, event.getScreenX(), event.getScreenY());
+            });
+            return cell;
         };
     }
+
+//    @Override
+//    protected Callback<TreeView<RepoFile>, TreeCell<RepoFile>> getTreeCellFactory() {
+//        return new Callback<TreeView<RepoFile>, TreeCell<RepoFile>>() {
+//            @Override
+//            public TreeCell<RepoFile> call(TreeView<RepoFile> param) {
+//                return new CheckBoxTreeCell<RepoFile>() {
+//                    @Override
+//                    public void updateItem(RepoFile repoFile, boolean empty) {
+//                        super.updateItem(repoFile, empty);
+//
+//                        if (repoFile != null && repoFile instanceof LabelRepoFile) {
+//                            setId("fileLabel");
+//                            setGraphic(null);
+//                        }
+//                    }
+//                };
+//            }
+//        };
+//    }
 
     @Override
     protected TreeItem<RepoFile> getRootTreeItem(DirectoryRepoFile rootDirectory) {
@@ -101,6 +102,8 @@ public class WorkingTreePanelView extends FileStructurePanelView{
         }));
     }
 
+//    private List<CheckBoxTreeItem<RepoFile>> getCurrent
+
 
     /**
      * Adds all tracked files in the repository with an updated status and displays them
@@ -110,9 +113,9 @@ public class WorkingTreePanelView extends FileStructurePanelView{
      */
     @Override
     protected void addTreeItemsToRoot(List<RepoFile> repoFiles, TreeItem<RepoFile> root) {
-        displayedFiles = new LinkedList<>();
+//        displayedFiles = new LinkedList<>();
 
-        //re-adds the checkbox if it had been removed
+        // Re-adds the checkbox if it had been removed
         if(root.getChildren().size() == 0) {
             root.getChildren().add(checkBox);
         }
@@ -120,16 +123,15 @@ public class WorkingTreePanelView extends FileStructurePanelView{
         // Helper to construct 'isAnyFileSelectedProperty'
         BooleanProperty isSelectedPropertyHelper = new SimpleBooleanProperty(false);
 
-        // Track all current children of root to make sure they should still be displayed
-        // starts at index 1 because the select all checkbox is at index 0
+        // Track all current children and grandchildren of root to make sure they should still
+        // be displayed – starts at index 1 because the select all checkbox is at index 0
         Map<TreeItem<RepoFile>, Boolean> shouldKeepChild = new HashMap<>();
-        for(int i = 1; i < root.getChildren().size(); i++){
-            shouldKeepChild.put(root.getChildren().get(i), false);
+        for(TreeItem<RepoFile> treeItem : displayedFiles){
+            shouldKeepChild.put(treeItem, false);
         }
 
         // Loop over every file to be shown
         for(RepoFile repoFile : repoFiles) {
-
             CheckBoxTreeItem<RepoFile> newItem = new CheckBoxTreeItem<>(repoFile, repoFile.diffButton);
 
             BooleanProperty oldHelper = isSelectedPropertyHelper;
@@ -138,30 +140,26 @@ public class WorkingTreePanelView extends FileStructurePanelView{
             // Check if the file is already being displayed
             // starts at index 1 because the select all checkbox is at index 0
             boolean foundMatchingItem = false;
-            for(int i = 1; i < root.getChildren().size(); i++) {
-                CheckBoxTreeItem<RepoFile> oldItem = (CheckBoxTreeItem<RepoFile>) root.getChildren().get(i);
+            for(int i = 0; i < displayedFiles.size(); i++) {
+                CheckBoxTreeItem<RepoFile> oldItem = (CheckBoxTreeItem<RepoFile>) displayedFiles.get(i);
 
-                if (oldItem.getValue() == null) {
-                    System.out.println("here1");
-                    break;
-                }else if(oldItem.getValue() instanceof LabelRepoFile) {
-                    System.out.println("here2");
-                    foundMatchingItem = true;
-                    shouldKeepChild.put(oldItem, true);
-                    break;
-                }else if(oldItem.getValue().equals(repoFile)){
-                    System.out.println("here3");
+//                System.out.print("Checking if ");
+//                System.out.print(repoFile.toString());
+//                System.out.print(" equals ");
+//                System.out.println(oldItem.getValue().getClass().toString());
+
+                if(oldItem.getValue().equals(repoFile)){
                     // The given file is already present, no additional processing necessary
                     isSelectedPropertyHelper.bind(oldHelper.or(oldItem.selectedProperty()));
-                    displayedFiles.add(oldItem);
+//                    displayedFiles.add(oldItem);
                     foundMatchingItem = true;
                     shouldKeepChild.put(oldItem, true);
                     break;
                 }else if(oldItem.getValue().getFilePath().equals(repoFile.getFilePath())){
-                    System.out.println("here4");
+                    System.out.println("changed status!");
                     // The file was being displayed, but its status has changed. Replace the old with the new
                     newItem.setSelected(oldItem.isSelected());
-                    root.getChildren().set(i, newItem);
+                    root.getChildren().set(i, newItem); // FIX THIS
                     isSelectedPropertyHelper.bind(oldHelper.or(newItem.selectedProperty()));
                     displayedFiles.add(newItem);
                     foundMatchingItem = true;
@@ -172,14 +170,29 @@ public class WorkingTreePanelView extends FileStructurePanelView{
 
             // The file wasn't being displayed, so add it
             if(!foundMatchingItem){
-                RepoFile repoFileLabel = new LabelRepoFile(repoFile.getFilePath(), this.sessionModel.getCurrentRepoHelper());
-                CheckBoxTreeItem<RepoFile> pathLabel = new CheckBoxTreeItem<>(repoFileLabel);
-                root.getChildren().add(pathLabel);
-                shouldKeepChild.put(pathLabel, true);
+                Path pathToParent = repoFile.getFilePath().getParent();
 
-                root.getChildren().add(newItem);
+                if (pathToParent != null) {
+                    CheckBoxTreeItem<RepoFile> parentDirectory = null;
+
+                    for (TreeItem<RepoFile> directory : root.getChildren()) {
+                        if (directory.getValue() != null && directory.getValue().toString().equals(pathToParent.toString())) {
+                            parentDirectory = (CheckBoxTreeItem<RepoFile>) directory;
+                            break;
+                        }
+                    }
+                    if (parentDirectory == null) {
+                        DirectoryRepoFile parent = new DirectoryRepoFile(pathToParent, this.sessionModel.getCurrentRepoHelper());
+                        parentDirectory = new CheckBoxTreeItem<>(parent);
+                        parentDirectory.setExpanded(true);
+                        root.getChildren().add(parentDirectory);
+                    }
+                    parentDirectory.getChildren().add(newItem);
+                } else {
+                    root.getChildren().add(newItem);
+                }
+
                 isSelectedPropertyHelper.bind(oldHelper.or(newItem.selectedProperty()));
-
                 displayedFiles.add(newItem);
                 shouldKeepChild.put(newItem, true);
             }
@@ -188,7 +201,16 @@ public class WorkingTreePanelView extends FileStructurePanelView{
         // Remove all elements that shouldn't be displayed
         for(TreeItem item : shouldKeepChild.keySet()){
             if(!shouldKeepChild.get(item)){
-                root.getChildren().remove(item);
+                if(!root.getChildren().remove(item)) {
+                    TreeItem<RepoFile> repoFile = root.getChildren().get(1);
+                    while (!repoFile.getChildren().remove(item)) {
+                        repoFile = repoFile.nextSibling();
+                    }
+                    if(repoFile.getParent().getChildren().size() == 0) {
+                        root.getChildren().remove(repoFile.getParent());
+                    }
+                }
+                displayedFiles.remove(item);
             }
         }
 

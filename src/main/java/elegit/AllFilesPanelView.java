@@ -1,9 +1,11 @@
 package elegit;
 
 import javafx.application.Platform;
+import javafx.scene.control.CheckBoxTreeItem;
 import javafx.scene.control.TreeCell;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
+import javafx.scene.control.cell.CheckBoxTreeCell;
 import javafx.util.Callback;
 import org.eclipse.jgit.api.errors.GitAPIException;
 
@@ -91,7 +93,7 @@ public class AllFilesPanelView extends FileStructurePanelView{
                             itemsToRemove.remove(oldItem);
                         } else {
                             // The file is displayed, but needs its status updated. Replace the old with the new
-                            TreeItem<RepoFile> newItem = new TreeItem<>(repoFile, repoFile.diffButton);
+                            CheckBoxTreeItem<RepoFile> newItem = new CheckBoxTreeItem<>(repoFile, repoFile.diffButton);
 
                             TreeItem<RepoFile> parent = oldItem.getParent();
 
@@ -106,7 +108,7 @@ public class AllFilesPanelView extends FileStructurePanelView{
                         }
                     } else {
                         // The given file wasn't present, so need to add it
-                        TreeItem<RepoFile> newItem = new TreeItem<>(repoFile, repoFile.diffButton);
+                        CheckBoxTreeItem<RepoFile> newItem = new CheckBoxTreeItem<>(repoFile, repoFile.diffButton);
 
                         Path pathToParent = pathToFile.getParent();
                         boolean foundParent = false;
@@ -148,19 +150,20 @@ public class AllFilesPanelView extends FileStructurePanelView{
     @Override
     public List<RepoFile> getFilesToDisplay() throws GitAPIException, IOException {
         return sessionModel.getAllRepoFiles();
+//        return sessionModel.getAllChangedRepoFiles();
     }
 
     /**
      * An overwritten version of TreeCell that adds a context menu to our
      * tree structure
      */
-    private class RepoFileTreeCell extends TreeCell<RepoFile>{
+    private class RepoFileTreeCell extends CheckBoxTreeCell<RepoFile> {
         @Override
-        protected void updateItem(RepoFile item, boolean empty){
+        public void updateItem(RepoFile item, boolean empty){
             super.updateItem(item, empty);
 
             setText(getItem() == null ? "" : getItem().toString());
-            setGraphic(getTreeItem() == null ? null : getTreeItem().getGraphic());
+//            setGraphic(getTreeItem() == null ? null : getTreeItem().getGraphic());
 
             setOnContextMenuRequested(event -> {
                 if(getTreeItem() != null) getTreeItem().getValue().showContextMenu(this, event.getScreenX(), event.getScreenY());
