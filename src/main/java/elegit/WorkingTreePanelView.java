@@ -183,6 +183,7 @@ public class WorkingTreePanelView extends FileStructurePanelView{
                     }
                     if (parentDirectory == null) {
                         DirectoryRepoFile parent = new DirectoryRepoFile(pathToParent, this.sessionModel.getCurrentRepoHelper());
+                        parent.setShowFullPath(true);
                         parentDirectory = new CheckBoxTreeItem<>(parent);
                         parentDirectory.setExpanded(true);
                         root.getChildren().add(parentDirectory);

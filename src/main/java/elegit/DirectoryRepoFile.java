@@ -10,10 +10,13 @@ import java.util.ArrayList;
  */
 public class DirectoryRepoFile extends RepoFile {
 
+    private Boolean showFullPath;
+
     public DirectoryRepoFile(Path filePath, RepoHelper repo) {
         super(filePath, repo);
         this.diffButton = null;
         this.children = new ArrayList<>();
+        this.showFullPath = false;
     }
 
     public DirectoryRepoFile(String filePathString, RepoHelper repo) {
@@ -32,7 +35,7 @@ public class DirectoryRepoFile extends RepoFile {
 
     @Override
     public String toString() {
-        return this.filePath.toString();
+        return this.showFullPath ? this.filePath.toString() : this.filePath.getFileName().toString();
     }
 
     @Override public boolean canAdd() {
@@ -42,4 +45,6 @@ public class DirectoryRepoFile extends RepoFile {
     @Override public boolean canRemove() {
         return true;
     }
+
+    public void setShowFullPath(Boolean b) { this.showFullPath = b; }
 }
