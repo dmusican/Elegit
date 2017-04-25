@@ -143,11 +143,6 @@ public class WorkingTreePanelView extends FileStructurePanelView{
             for(int i = 0; i < displayedFiles.size(); i++) {
                 CheckBoxTreeItem<RepoFile> oldItem = (CheckBoxTreeItem<RepoFile>) displayedFiles.get(i);
 
-//                System.out.print("Checking if ");
-//                System.out.print(repoFile.toString());
-//                System.out.print(" equals ");
-//                System.out.println(oldItem.getValue().getClass().toString());
-
                 if(oldItem.getValue().equals(repoFile)){
                     // The given file is already present, no additional processing necessary
                     isSelectedPropertyHelper.bind(oldHelper.or(oldItem.selectedProperty()));
@@ -156,12 +151,13 @@ public class WorkingTreePanelView extends FileStructurePanelView{
                     shouldKeepChild.put(oldItem, true);
                     break;
                 }else if(oldItem.getValue().getFilePath().equals(repoFile.getFilePath())){
-                    System.out.println("changed status!");
+//                    System.out.println("changed status!");
                     // The file was being displayed, but its status has changed. Replace the old with the new
                     newItem.setSelected(oldItem.isSelected());
-                    root.getChildren().set(i, newItem); // FIX THIS
+                    int oldItemIndex = oldItem.getParent().getChildren().indexOf(oldItem);
+                    oldItem.getParent().getChildren().set(oldItemIndex, newItem);
                     isSelectedPropertyHelper.bind(oldHelper.or(newItem.selectedProperty()));
-                    displayedFiles.add(newItem);
+                    displayedFiles.set(i, newItem);
                     foundMatchingItem = true;
                     shouldKeepChild.put(newItem, true);
                     break;
@@ -200,20 +196,24 @@ public class WorkingTreePanelView extends FileStructurePanelView{
         }
 
         // Remove all elements that shouldn't be displayed
-        for(TreeItem item : shouldKeepChild.keySet()){
-            if(!shouldKeepChild.get(item)){
-                if(!root.getChildren().remove(item)) {
-                    TreeItem<RepoFile> repoFile = root.getChildren().get(1);
-                    while (!repoFile.getChildren().remove(item)) {
-                        repoFile = repoFile.nextSibling();
-                    }
-                    if(repoFile.getParent().getChildren().size() == 0) {
-                        root.getChildren().remove(repoFile.getParent());
-                    }
-                }
-                displayedFiles.remove(item);
-            }
-        }
+//        for(TreeItem item : shouldKeepChild.keySet()){
+//            if(!shouldKeepChild.get(item)){
+//                if(!root.getChildren().remove(item)) {
+//                    TreeItem<RepoFile> repoFile = root.getChildren().get(1);
+//                    while (!repoFile.getChildren().remove(item)) {
+//                        System.out.print("Failed to remove ");
+//                        System.out.print(item);
+//                        System.out.print(" from ");
+//                        System.out.println(repoFile.getChildren());
+//                        repoFile = repoFile.nextSibling();
+//                    }
+//                    if(repoFile.getParent().getChildren().size() == 0) {
+//                        root.getChildren().remove(repoFile.getParent());
+//                    }
+//                }
+//                displayedFiles.remove(item);
+//            }
+//        }
 
         // Hides the 'select/deselect all' checkbox if there are no files shown
         if(root.getChildren().size() < 2) {
