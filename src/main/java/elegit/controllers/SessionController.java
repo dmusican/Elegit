@@ -507,6 +507,7 @@ public class SessionController {
      * Initializes each panel of the view
      */
     private synchronized void initPanelViews() {
+        assert Platform.isFxApplicationThread();
         try {
             workingTreePanelView.drawDirectoryView();
             allFilesPanelView.drawDirectoryView();
