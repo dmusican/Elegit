@@ -61,6 +61,10 @@ public class TreeLayout{
                         percent.set(100);
                         return;
                     }
+                    // IN MASTER, THE HEIGHT OF ALL OF THESE IS 20. This is a real difference between the two,
+                    // and likely the source of the bug.
+                    System.out.println("1: " + allCellsSortedByTime.size() + " " +
+                            currentCell + " " + allCellsSortedByTime.get(i).getHeight());
                     moveCell(allCellsSortedByTime.get(i));
 
                     // Update progress if need be
