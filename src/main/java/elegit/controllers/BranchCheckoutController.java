@@ -59,9 +59,7 @@ public class BranchCheckoutController {
         this.repoHelper = this.sessionModel.getCurrentRepoHelper();
         this.repo = this.repoHelper.getRepo();
         this.branchModel = repoHelper.getBranchModel();
-        for (CommitTreeModel commitTreeModel : CommitTreeController.allCommitTreeModels) {
-            this.localCommitTreeModel = commitTreeModel;
-        }
+        this.localCommitTreeModel = CommitTreeController.commitTreeModel;
         this.remoteListView.setItems(FXCollections.observableArrayList(branchModel.getRemoteBranchesTyped()));
         this.localListView.setItems(FXCollections.observableArrayList(branchModel.getLocalBranchesTyped()));
 

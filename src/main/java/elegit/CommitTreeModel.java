@@ -53,7 +53,7 @@ public class CommitTreeModel{
         this.sessionModel = model;
         this.view = view;
         this.view.setName("Local commit tree");
-        CommitTreeController.allCommitTreeModels.add(this);
+        CommitTreeController.commitTreeModel = this;
         this.commitsInModel = new ArrayList<>();
         this.localCommitsInModel = new ArrayList<>();
         this.remoteCommitsInModel = new ArrayList<>();
