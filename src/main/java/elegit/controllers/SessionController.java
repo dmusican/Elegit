@@ -1996,6 +1996,7 @@ public class SessionController {
 
     //TODO: Want to have title be "" , default (info), or something else
     // Want to have the popover for commitSort changes?
+    // Want to clear previous message if a new one comes? looks messy otherwise
 
     public void handleLoggingOff() {
         changeLogging(Level.OFF);
