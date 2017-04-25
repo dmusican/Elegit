@@ -15,6 +15,7 @@ import javafx.scene.input.KeyCombination;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.text.Text;
 import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
 import org.controlsfx.control.PopOver;
 
 import java.io.IOException;
@@ -40,6 +41,7 @@ public class MenuController {
 
     public void initialize() {
         initMenuBarShortcuts();
+        loggingToggle.setSelected(LogManager.getLogger().getLevel().isMoreSpecificThan(org.apache.logging.log4j.Level.INFO));
     }
 
     /**
@@ -70,7 +72,7 @@ public class MenuController {
         this.sessionController = sessionController;
     }
 
-    // Preferences Dropdown Menu Items:
+    // "Preferences" Dropdown Menu Items:
 
     public void handleLoggingToggle() {
         Level level = SessionModel.logger.getLevel();
@@ -94,13 +96,13 @@ public class MenuController {
         sessionController.handleAbout();
     }
 
-    // Edit Dropdown Menu Item:
+    // "Edit" Dropdown Menu Item:
 
     public void handleGitIgnoreMenuItem() {
         sessionController.handleGitIgnoreMenuItem();
     }
 
-    // Repository Dropdown Menu Items (2 layers):
+    // "Repository" Dropdown Menu Items (2 layers):
 
     public void handleNewBranchButton() {
         sessionController.handleNewBranchButton();
