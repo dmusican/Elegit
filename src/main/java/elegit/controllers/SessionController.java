@@ -2880,7 +2880,7 @@ public class SessionController {
                 storedLevel = PopUpWindows.getLoggingPermissions() ? Level.INFO : Level.OFF;
             }
             changeLogging(storedLevel);
-            menuController.loggingToggle.setSelected(storedLevel.isLessSpecificThan(org.apache.logging.log4j.Level.INFO)); // isLessSpecific means <=
+            menuController.loggingToggle.setSelected(storedLevel.equals(org.apache.logging.log4j.Level.INFO));
             logger.info("Starting up.");
         });
     }

@@ -74,8 +74,7 @@ public class MenuController {
     // "Preferences" Dropdown Menu Items:
 
     public void handleLoggingToggle() {
-        Level level = SessionModel.logger.getLevel();
-        if (level.equals(org.apache.logging.log4j.Level.toLevel("OFF"))) {
+        if (sessionController.getLoggingLevel().equals(org.apache.logging.log4j.Level.toLevel("OFF"))) {
             sessionController.handleLoggingOn();
         } else {
             sessionController.handleLoggingOff();

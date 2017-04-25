@@ -45,7 +45,7 @@ public class SessionModel {
 
     Preferences preferences;
 
-    public static final Logger logger = LogManager.getLogger();
+    static final Logger logger = LogManager.getLogger();
 
     /**
      * @return the SessionModel object
