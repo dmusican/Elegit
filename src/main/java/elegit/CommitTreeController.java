@@ -148,7 +148,7 @@ public class CommitTreeController{
      */
     private static void selectCommitInGraph(String commitID, TreeGraphModel model, boolean enable, boolean ancestors, boolean descendants, boolean allGenerations){
         assert Platform.isFxApplicationThread();
-        Highlighter.highlightSelectedCell(commitID, model, enable, ancestors, descendants, allGenerations);
+        Highlighter.highlightCellAndRelatives(commitID, model, enable, ancestors, descendants, allGenerations);
         if(enable){
             Highlighter.updateCellEdges(commitID, commitID, model, true);
         }else{

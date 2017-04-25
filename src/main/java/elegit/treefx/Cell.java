@@ -381,6 +381,7 @@ public class Cell extends Pane{
      * @param state the state of the cell, determines coloring
      */
     private void setFillType(Shape n, CellState state) {
+        assert Platform.isFxApplicationThread();
         Color baseColor = Color.web(state.getBackgroundColor());
         switch(this.type) {
             case LOCAL:

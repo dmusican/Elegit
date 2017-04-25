@@ -31,7 +31,8 @@ public class Highlighter{
      * @param descendants whether to highlight the cell's children
      * @param allGenerations whether to highlight further generations than just parents/children (i.e. grandparents, grandchildren etc)
      */
-    public static void highlightSelectedCell(String cellID, TreeGraphModel model, boolean enable, boolean ancestors, boolean descendants, boolean allGenerations){
+    public static void highlightCellAndRelatives(String cellID, TreeGraphModel model, boolean enable,
+                                                 boolean ancestors, boolean descendants, boolean allGenerations){
         Cell cell = model.cellMap.get(cellID);
         if(cell == null) return;
         if(enable){
