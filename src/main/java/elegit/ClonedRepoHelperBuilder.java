@@ -142,10 +142,7 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
         repoNameField = new TextField();
         repoNameField.setPromptText("Repository name...");
         remoteURLField.textProperty().addListener((obs, oldText, newText) -> {
-            if (newText.endsWith(".git")) {
-                String[] urlComponents = newText.substring(0, newText.length() - 4).split("/");
-                repoNameField.setText(urlComponents[urlComponents.length - 1]);
-            }
+            repoNameField.setText(guessRepoName(newText));
         });
         if(prevRepoName != null) repoNameField.setText(prevRepoName);
 
@@ -172,6 +169,14 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
         Platform.runLater(remoteURLField::requestFocus);
 
 
+    }
+
+    private String guessRepoName(String url) {
+        if (url.endsWith(".git")) {
+            url = url.substring(0, url.length() - 4);
+        }
+        String[] urlComponents = url.split("/");
+        return urlComponents[urlComponents.length - 1];
     }
 
 
