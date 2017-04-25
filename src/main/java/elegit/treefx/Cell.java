@@ -24,7 +24,7 @@ import java.util.Map;
 /**
  * A class that represents a node in a TreeGraph
  */
-public class Cell extends Pane{
+public class Cell extends Pane {
 
     // Base shapes for different types of cells
     static final CellShape DEFAULT_SHAPE = CellShape.SQUARE;
