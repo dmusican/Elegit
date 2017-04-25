@@ -15,7 +15,6 @@ import javafx.scene.input.KeyCombination;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.text.Text;
 import org.apache.logging.log4j.Level;
-import org.apache.logging.log4j.LogManager;
 import org.controlsfx.control.PopOver;
 
 import java.io.IOException;
@@ -26,7 +25,7 @@ import java.io.IOException;
 public class MenuController {
 
     private SessionController sessionController;
-    @FXML private CheckMenuItem loggingToggle;
+    @FXML public CheckMenuItem loggingToggle; // public so can be selected when prefs loaded in SessionController
     @FXML private CheckMenuItem commitSortToggle;
     @FXML MenuItem gitIgnoreMenuItem; // has to be public because of SessionController.updateMenuBarEnabledStatus()
     @FXML Menu repoMenu;
@@ -41,7 +40,7 @@ public class MenuController {
 
     public void initialize() {
         initMenuBarShortcuts();
-        loggingToggle.setSelected(LogManager.getLogger().getLevel().isMoreSpecificThan(org.apache.logging.log4j.Level.INFO));
+        commitSortToggle.setSelected(true); //default
     }
 
     /**
@@ -84,7 +83,7 @@ public class MenuController {
     }
 
     public void handleCommitSortToggle() {
-        if (!commitSortToggle.isSelected()){
+        if (commitSortToggle.isSelected()){
             sessionController.handleCommitSortTopological();
         } else {
             sessionController.handleCommitSortDate();
