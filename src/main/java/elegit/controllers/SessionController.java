@@ -187,7 +187,8 @@ public class SessionController {
         dropdownController.setSessionController(this);
 
         // Creates the commit tree model
-        this.commitTreeModel = new LocalCommitTreeModel(this.theModel, this.commitTreePanelView);
+        this.commitTreeModel = new CommitTreeModel(this.theModel, this.commitTreePanelView);
+        CommitTreeController.commitTreeModel = this.commitTreeModel;
 
         // Passes theModel to panel views
         this.workingTreePanelView.setSessionModel(this.theModel);

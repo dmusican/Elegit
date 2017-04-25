@@ -23,7 +23,7 @@ import java.util.Map;
 public class CommitTreeController{
 
     // The list of all models controlled by this controller
-    public static List<CommitTreeModel> allCommitTreeModels = new ArrayList<>();
+    public static CommitTreeModel commitTreeModel;
 
     // The list of selected cells
     private static List<String> selectedCellIds = new ArrayList<>();
@@ -100,8 +100,7 @@ public class CommitTreeController{
     }
 
     /**
-     * Selects the commit with the given id. Loops through all tracked CommitTreeModels and updates
-     * their corresponding views.
+     * Selects the commit with the given id. Updates corresponding view.
      * @param commitID the id of the commit to select
      * @param ancestors whether to highlight the commit's parents
      * @param descendants whether to highlight the commit's children
@@ -109,31 +108,26 @@ public class CommitTreeController{
      */
     private static void selectCommitInGraph(String commitID, boolean ancestors, boolean descendants, boolean allGenerations){
         assert Platform.isFxApplicationThread();
-        for(CommitTreeModel model : allCommitTreeModels){
-            if(model.treeGraph == null) continue;
-            TreeGraphModel m = model.treeGraph.treeGraphModel;
-
+        if (commitTreeModel.treeGraph != null) {
+            TreeGraphModel m = commitTreeModel.treeGraph.treeGraphModel;
             selectCommitInGraph(commitID, m, true, ancestors, descendants, allGenerations);
         }
 
         selectedCellIds.add(commitID);
         selectedIDProperty.set(commitID);
         multipleNotSelectedProperty.setValue(selectedCellIds.size()<2);
-
-//        Edge.allVisible.set(selectedCellID == null);
     }
 
     /**
-     * Highlight the commit with the given id in every tracked CommitTreeModel and corresponding
+     * Highlight the commit with the given id in the CommitTreeModel and corresponding
      * view. If the given id is selected, do nothing.
      * @param commitID the id of the commit to select
      * @param isOverCell whether to highlight or un-highlight the corresponding cells
      */
     private static void highlightCommitInGraph(String commitID, boolean isOverCell){
         assert Platform.isFxApplicationThread();
-        for(CommitTreeModel model : allCommitTreeModels){
-            if(model.treeGraph == null) continue;
-            TreeGraphModel m = model.treeGraph.treeGraphModel;
+        if (commitTreeModel.treeGraph != null) {
+            TreeGraphModel m = commitTreeModel.treeGraph.treeGraphModel;
 
             if(selectedCellIds.size()>0 && !isSelected(commitID)){
                 Highlighter.highlightCell(commitID, selectedCellIds.get(0), m, isOverCell);
@@ -243,14 +237,13 @@ public class CommitTreeController{
      * @param commit the commit to focus
      */
     public static void focusCommitInGraph(CommitHelper commit){
-        assert(Platform.isFxApplicationThread());
-        if(commit == null) return;
+        assert Platform.isFxApplicationThread();
+        if(commit == null)
+            return;
 
-        for(CommitTreeModel model : allCommitTreeModels){
-            if(model.treeGraph != null && model.treeGraph.treeGraphModel.containsID(commit.getId())){
-                Cell c = model.treeGraph.treeGraphModel.cellMap.get(commit.getId());
-                Highlighter.emphasizeCell(c);
-            }
+        if(commitTreeModel.treeGraph != null && commitTreeModel.treeGraph.treeGraphModel.containsID(commit.getId())){
+            Cell c = commitTreeModel.treeGraph.treeGraphModel.cellMap.get(commit.getId());
+            Highlighter.emphasizeCell(c);
         }
     }
 
@@ -261,12 +254,12 @@ public class CommitTreeController{
      */
     public static void focusCommitInGraph(String commitID){
         assert Platform.isFxApplicationThread();
-        if(commitID == null) return;
-        for(CommitTreeModel model : allCommitTreeModels){
-            if(model.treeGraph != null && model.treeGraph.treeGraphModel.containsID(commitID)){
-                Cell c = model.treeGraph.treeGraphModel.cellMap.get(commitID);
-                Highlighter.emphasizeCell(c);
-            }
+        if(commitID == null)
+            return;
+
+        if(commitTreeModel.treeGraph != null && commitTreeModel.treeGraph.treeGraphModel.containsID(commitID)){
+            Cell c = commitTreeModel.treeGraph.treeGraphModel.cellMap.get(commitID);
+            Highlighter.emphasizeCell(c);
         }
     }
 
@@ -307,6 +300,6 @@ public class CommitTreeController{
      * @return the commit tree model for the current session
      */
     public static CommitTreeModel getCommitTreeModel() {
-        return CommitTreeController.allCommitTreeModels.get(0);
+        return commitTreeModel;
     }
 }
