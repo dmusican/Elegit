@@ -1,9 +1,7 @@
 package elegit;
 
-import apple.laf.JRSUIUtils;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.CheckBoxTreeCell;
 import javafx.scene.text.Font;
@@ -39,7 +37,7 @@ public class WorkingTreePanelView extends FileStructurePanelView{
         this.displayedFiles = new LinkedList<>();
         isAnyFileSelectedProperty = new SimpleBooleanProperty(false);
 
-        // used to disable/enable add and remove buttons
+        // Used to disable/enable add and remove buttons
         isAnyFileSelectedProperty.addListener(((observable, oldValue, newValue) -> SessionController.anythingChecked.set(newValue)));
         super.init();
     }
@@ -102,43 +100,38 @@ public class WorkingTreePanelView extends FileStructurePanelView{
         }));
     }
 
-//    private List<CheckBoxTreeItem<RepoFile>> getCurrent
-
 
     /**
      * Adds all tracked files in the repository with an updated status and displays them
      * all as top-level items.
-     * @param repoFiles the files to add to the tree
+     * @param updatedRepoFiles the files to add to the tree
      * @param root the root of the tree
      */
     @Override
-    protected void addTreeItemsToRoot(List<RepoFile> repoFiles, TreeItem<RepoFile> root) {
-//        displayedFiles = new LinkedList<>();
+    protected void addTreeItemsToRoot(List<RepoFile> updatedRepoFiles, TreeItem<RepoFile> root) {
 
         // Re-adds the checkbox if it had been removed
-        if(root.getChildren().size() == 0) {
+        if(root.getChildren().isEmpty()) {
             root.getChildren().add(checkBox);
         }
 
         // Helper to construct 'isAnyFileSelectedProperty'
         BooleanProperty isSelectedPropertyHelper = new SimpleBooleanProperty(false);
 
-        // Track all current children and grandchildren of root to make sure they should still
-        // be displayed – starts at index 1 because the select all checkbox is at index 0
+        // Track all current files to make sure they should still be displayed
         Map<TreeItem<RepoFile>, Boolean> shouldKeepChild = new HashMap<>();
         for(TreeItem<RepoFile> treeItem : displayedFiles){
             shouldKeepChild.put(treeItem, false);
         }
 
         // Loop over every file to be shown
-        for(RepoFile repoFile : repoFiles) {
+        for(RepoFile repoFile : updatedRepoFiles) {
             CheckBoxTreeItem<RepoFile> newItem = new CheckBoxTreeItem<>(repoFile, repoFile.diffButton);
 
             BooleanProperty oldHelper = isSelectedPropertyHelper;
             isSelectedPropertyHelper = new SimpleBooleanProperty();
 
             // Check if the file is already being displayed
-            // starts at index 1 because the select all checkbox is at index 0
             boolean foundMatchingItem = false;
             for(int i = 0; i < displayedFiles.size(); i++) {
                 CheckBoxTreeItem<RepoFile> oldItem = (CheckBoxTreeItem<RepoFile>) displayedFiles.get(i);
@@ -146,20 +139,18 @@ public class WorkingTreePanelView extends FileStructurePanelView{
                 if(oldItem.getValue().equals(repoFile)){
                     // The given file is already present, no additional processing necessary
                     isSelectedPropertyHelper.bind(oldHelper.or(oldItem.selectedProperty()));
-//                    displayedFiles.add(oldItem);
                     foundMatchingItem = true;
                     shouldKeepChild.put(oldItem, true);
                     break;
-                }else if(oldItem.getValue().getFilePath().equals(repoFile.getFilePath())){
-//                    System.out.println("changed status!");
+                } else if(oldItem.getValue().getFilePath().equals(repoFile.getFilePath())){
                     // The file was being displayed, but its status has changed. Replace the old with the new
                     newItem.setSelected(oldItem.isSelected());
-                    int oldItemIndex = oldItem.getParent().getChildren().indexOf(oldItem);
-                    oldItem.getParent().getChildren().set(oldItemIndex, newItem);
                     isSelectedPropertyHelper.bind(oldHelper.or(newItem.selectedProperty()));
+                    List<TreeItem<RepoFile>> directoryFiles = oldItem.getParent().getChildren();
+                    directoryFiles.set(directoryFiles.indexOf(oldItem), newItem);
                     displayedFiles.set(i, newItem);
                     foundMatchingItem = true;
-                    shouldKeepChild.put(newItem, true);
+                    shouldKeepChild.put(oldItem, true); // Don't try and remove the updaated file
                     break;
                 }
             }
@@ -196,24 +187,26 @@ public class WorkingTreePanelView extends FileStructurePanelView{
         }
 
         // Remove all elements that shouldn't be displayed
-//        for(TreeItem item : shouldKeepChild.keySet()){
-//            if(!shouldKeepChild.get(item)){
-//                if(!root.getChildren().remove(item)) {
-//                    TreeItem<RepoFile> repoFile = root.getChildren().get(1);
-//                    while (!repoFile.getChildren().remove(item)) {
-//                        System.out.print("Failed to remove ");
-//                        System.out.print(item);
-//                        System.out.print(" from ");
-//                        System.out.println(repoFile.getChildren());
-//                        repoFile = repoFile.nextSibling();
-//                    }
-//                    if(repoFile.getParent().getChildren().size() == 0) {
-//                        root.getChildren().remove(repoFile.getParent());
-//                    }
-//                }
-//                displayedFiles.remove(item);
-//            }
-//        }
+        for(TreeItem item : shouldKeepChild.keySet()){
+            if(!shouldKeepChild.get(item)){
+                // Test if it is a file in the root level
+                if(!root.getChildren().remove(item)) {
+                    // The file to remove must be a grandchild of the root
+                    // Loop through all the directory parents until we have removed the item
+                    TreeItem<RepoFile> directoryRepoFile = root.getChildren().get(1);
+                    while (!directoryRepoFile.getChildren().remove(item)) {
+                        directoryRepoFile = directoryRepoFile.nextSibling();
+                    }
+
+                    // If we have removed all files in a directory, remove the directory
+                    if(directoryRepoFile.getChildren().isEmpty()) {
+                        System.out.println(item);
+                        root.getChildren().remove(directoryRepoFile);
+                    }
+                }
+                displayedFiles.remove(item);
+            }
+        }
 
         // Hides the 'select/deselect all' checkbox if there are no files shown
         if(root.getChildren().size() < 2) {
