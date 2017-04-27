@@ -73,11 +73,12 @@ public class MenuController {
     // "Preferences" Dropdown Menu Items:
 
     public void handleLoggingToggle() {
-        if (sessionController.getLoggingLevel().equals(org.apache.logging.log4j.Level.toLevel("OFF"))) {
+        if (loggingToggle.isSelected()) {
             sessionController.handleLoggingOn();
         } else {
             sessionController.handleLoggingOff();
         }
+        assert !loggingToggle.isSelected() == sessionController.getLoggingLevel().equals(org.apache.logging.log4j.Level.toLevel("OFF"));
     }
 
     public void handleCommitSortToggle() {
@@ -86,6 +87,7 @@ public class MenuController {
         } else {
             sessionController.handleCommitSortDate();
         }
+        assert commitSortToggle.isSelected() == TreeLayout.commitSortTopological ;
     }
 
     public void handleAbout() {
