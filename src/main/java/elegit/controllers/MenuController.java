@@ -66,7 +66,6 @@ public class MenuController {
         this.stashMenuItem2.setAccelerator(new KeyCodeCombination(KeyCode.L, KeyCombination.CONTROL_DOWN, KeyCombination.SHIFT_DOWN));
     }
 
-
     public void setSessionController(SessionController sessionController) {
         this.sessionController = sessionController;
     }
@@ -88,7 +87,6 @@ public class MenuController {
             sessionController.handleCommitSortDate();
         }
     }
-
 
     public void handleAbout() {
         sessionController.handleAbout();

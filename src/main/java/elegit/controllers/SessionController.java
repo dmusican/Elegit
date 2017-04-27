@@ -1994,37 +1994,19 @@ public class SessionController {
         }
     }
 
-    //TODO: Want to have title be "" , default (info), or something else
-    // Want to have the popover for commitSort changes?
-    // Want to clear previous message if a new one comes? looks messy otherwise
 
     public void handleLoggingOff() {
         changeLogging(Level.OFF);
-        PopOver popOver = new PopOver(new Text("Toggled logging off"));
-        popOver.setTitle("");
-        popOver.show(commitTreePanelView);
-        popOver.detach();
-        popOver.setAutoHide(true);
     }
 
     public void handleLoggingOn() {
         changeLogging(Level.INFO);
-        PopOver popOver = new PopOver(new Text("Toggled logging on"));
-        popOver.setTitle("");
-        popOver.show(commitTreePanelView);
-        popOver.detach();
-        popOver.setAutoHide(true);
         logger.log(Level.INFO, "Toggled logging on");
     }
 
     // why are these methods so slow? Takes a long time even just to show the PopOver.
     public void handleCommitSortTopological() {
         TreeLayout.commitSortTopological = true;
-        PopOver popOver = new PopOver(new Text("Sorting Commits Topologically"));
-        popOver.setTitle("");
-        popOver.show(commitTreePanelView);
-        popOver.detach();
-        popOver.setAutoHide(true);
         try {
             commitTreeModel.updateView();
         } catch (Exception e) {
@@ -2035,11 +2017,6 @@ public class SessionController {
 
     public void handleCommitSortDate() {
         TreeLayout.commitSortTopological = false;
-        PopOver popOver = new PopOver(new Text("Sorting Commits By Date"));
-        popOver.setTitle("");
-        popOver.show(commitTreePanelView);
-        popOver.detach();
-        popOver.setAutoHide(true);
         try {
             commitTreeModel.updateView();
         } catch (Exception e) {
