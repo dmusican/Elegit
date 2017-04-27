@@ -57,26 +57,6 @@ public class WorkingTreePanelView extends FileStructurePanelView{
         };
     }
 
-//    @Override
-//    protected Callback<TreeView<RepoFile>, TreeCell<RepoFile>> getTreeCellFactory() {
-//        return new Callback<TreeView<RepoFile>, TreeCell<RepoFile>>() {
-//            @Override
-//            public TreeCell<RepoFile> call(TreeView<RepoFile> param) {
-//                return new CheckBoxTreeCell<RepoFile>() {
-//                    @Override
-//                    public void updateItem(RepoFile repoFile, boolean empty) {
-//                        super.updateItem(repoFile, empty);
-//
-//                        if (repoFile != null && repoFile instanceof LabelRepoFile) {
-//                            setId("fileLabel");
-//                            setGraphic(null);
-//                        }
-//                    }
-//                };
-//            }
-//        };
-//    }
-
     @Override
     protected TreeItem<RepoFile> getRootTreeItem(DirectoryRepoFile rootDirectory) {
         TreeItem<RepoFile> item = new CheckBoxTreeItem<>(rootDirectory);
@@ -93,13 +73,46 @@ public class WorkingTreePanelView extends FileStructurePanelView{
             if(newValue) {
                 setAllFilesSelected(true);
                 txt.setText("deselect all");
-            }else {
+            } else {
                 setAllFilesSelected(false);
                 txt.setText("select all");
             }
         }));
     }
 
+    // Replaces the old file with the updated file in both the tree structure and displayedFiles list
+    private void updateRepoFile(CheckBoxTreeItem<RepoFile> oldItem, CheckBoxTreeItem<RepoFile> newItem, int index) {
+        newItem.setSelected(oldItem.isSelected());
+        List<TreeItem<RepoFile>> directoryFiles = oldItem.getParent().getChildren();
+        directoryFiles.set(directoryFiles.indexOf(oldItem), newItem);
+        displayedFiles.set(index, newItem);
+    }
+
+    // Adds a new repo file to its proper place in the tree
+    private void addNewRepoFile(RepoFile repoFile, CheckBoxTreeItem<RepoFile> newItem, TreeItem<RepoFile> root) {
+        Path pathToParent = repoFile.getFilePath().getParent();
+        if (pathToParent != null) {
+            // Check if the file should be added to an existing directory
+            CheckBoxTreeItem<RepoFile> parentDirectory = null;
+            for (TreeItem<RepoFile> directory : root.getChildren()) {
+                if (!directory.equals(checkBox) && directory.getValue().toString().equals(pathToParent.toString())) {
+                    parentDirectory = (CheckBoxTreeItem<RepoFile>) directory;
+                    break;
+                }
+            }
+            if (parentDirectory == null) {
+                // Create a new directory and add it to the root
+                DirectoryRepoFile parent = new DirectoryRepoFile(pathToParent, this.sessionModel.getCurrentRepoHelper());
+                parent.setShowFullPath(true);
+                parentDirectory = new CheckBoxTreeItem<>(parent);
+                parentDirectory.setExpanded(true);
+                root.getChildren().add(parentDirectory);
+            }
+            parentDirectory.getChildren().add(newItem);
+        } else {
+            root.getChildren().add(newItem);
+        }
+    }
 
     /**
      * Adds all tracked files in the repository with an updated status and displays them
@@ -136,50 +149,24 @@ public class WorkingTreePanelView extends FileStructurePanelView{
             for(int i = 0; i < displayedFiles.size(); i++) {
                 CheckBoxTreeItem<RepoFile> oldItem = (CheckBoxTreeItem<RepoFile>) displayedFiles.get(i);
 
-                if(oldItem.getValue().equals(repoFile)){
-                    // The given file is already present, no additional processing necessary
-                    isSelectedPropertyHelper.bind(oldHelper.or(oldItem.selectedProperty()));
+                boolean fileChangedStatus = oldItem.getValue().getFilePath().equals(repoFile.getFilePath());
+                if(oldItem.getValue().equals(repoFile) || fileChangedStatus) {
+                    // The given file is already present
+                    if (fileChangedStatus) {
+                        updateRepoFile(oldItem, newItem, i);
+                        isSelectedPropertyHelper.bind(oldHelper.or(newItem.selectedProperty()));
+                    } else {
+                        isSelectedPropertyHelper.bind(oldHelper.or(oldItem.selectedProperty()));
+                    }
                     foundMatchingItem = true;
                     shouldKeepChild.put(oldItem, true);
-                    break;
-                } else if(oldItem.getValue().getFilePath().equals(repoFile.getFilePath())){
-                    // The file was being displayed, but its status has changed. Replace the old with the new
-                    newItem.setSelected(oldItem.isSelected());
-                    isSelectedPropertyHelper.bind(oldHelper.or(newItem.selectedProperty()));
-                    List<TreeItem<RepoFile>> directoryFiles = oldItem.getParent().getChildren();
-                    directoryFiles.set(directoryFiles.indexOf(oldItem), newItem);
-                    displayedFiles.set(i, newItem);
-                    foundMatchingItem = true;
-                    shouldKeepChild.put(oldItem, true); // Don't try and remove the updaated file
                     break;
                 }
             }
 
             // The file wasn't being displayed, so add it
             if(!foundMatchingItem){
-                Path pathToParent = repoFile.getFilePath().getParent();
-
-                if (pathToParent != null) {
-                    CheckBoxTreeItem<RepoFile> parentDirectory = null;
-
-                    for (TreeItem<RepoFile> directory : root.getChildren()) {
-                        if (directory.getValue() != null && directory.getValue().toString().equals(pathToParent.toString())) {
-                            parentDirectory = (CheckBoxTreeItem<RepoFile>) directory;
-                            break;
-                        }
-                    }
-                    if (parentDirectory == null) {
-                        DirectoryRepoFile parent = new DirectoryRepoFile(pathToParent, this.sessionModel.getCurrentRepoHelper());
-                        parent.setShowFullPath(true);
-                        parentDirectory = new CheckBoxTreeItem<>(parent);
-                        parentDirectory.setExpanded(true);
-                        root.getChildren().add(parentDirectory);
-                    }
-                    parentDirectory.getChildren().add(newItem);
-                } else {
-                    root.getChildren().add(newItem);
-                }
-
+                addNewRepoFile(repoFile, newItem, root);
                 isSelectedPropertyHelper.bind(oldHelper.or(newItem.selectedProperty()));
                 displayedFiles.add(newItem);
                 shouldKeepChild.put(newItem, true);
