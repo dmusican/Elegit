@@ -2004,7 +2004,7 @@ public class SessionController {
         logger.log(Level.INFO, "Toggled logging on");
     }
 
-    // why are these methods so slow? Takes a long time even just to show the PopOver.
+    // why are the commitSort methods so slow?
     public void handleCommitSortTopological() {
         TreeLayout.commitSortTopological = true;
         try {
