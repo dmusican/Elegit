@@ -3,14 +3,11 @@ package elegit;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.stage.DirectoryChooser;
-import javafx.stage.Window;
 import elegit.exceptions.CancelledAuthorizationException;
 import elegit.exceptions.NoRepoSelectedException;
 import org.apache.logging.log4j.LogManager;
@@ -63,11 +60,9 @@ public abstract class RepoHelperBuilder {
      * Presents a file chooser and returns the chosen file.
      *
      * @param title the title of the file chooser window.
-     * @param parent the parent Window for the file chooser. Can be null (then
-     *               the chooser won't be anchored to any window).
      * @return the chosen file from the file chooser.
      */
-    File getDirectoryPathFromChooser(String title, Window parent) {
+    File getDirectoryPathFromChooser(String title) {
         File path = new File(this.defaultFilePickerStartFolder); // start the file browser in the user's home folder
 
         File returnFile;
@@ -75,7 +70,9 @@ public abstract class RepoHelperBuilder {
         chooser.setTitle(title);
         chooser.setInitialDirectory(path);
 
-        returnFile = chooser.showDialog(parent);
+        // Could change parent window to non-null, but we want to be able
+        // to move the file chooser around.
+        returnFile = chooser.showDialog(null);
         return returnFile;
     }
 

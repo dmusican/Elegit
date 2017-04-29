@@ -61,13 +61,13 @@ public class PopUpWindows {
 
         Optional<ButtonType> result = alert.showAndWait();
 
-        if (result.get() == resolveButton) {
+        if (result.orElse(null) == resolveButton) {
             logger.info("Chose to resolve conflicts");
             resultType = "resolve";
-        } else if (result.get() == addButton) {
+        } else if (result.orElse(null) == addButton) {
             logger.info("Chose to add file");
             resultType = "add";
-        } else if (result.get() == helpButton) {
+        } else if (result.orElse(null) == helpButton) {
             logger.info("Chose to get help");
             resultType = "help";
         } else {
@@ -99,7 +99,7 @@ public class PopUpWindows {
                 "preferences menu.");
         Optional<ButtonType> result = window.showAndWait();
 
-        return result.get() == okButton;
+        return result.orElse(null) == okButton;
     }
 
     /**
@@ -211,7 +211,7 @@ public class PopUpWindows {
 
         Optional<ButtonType> result = alert.showAndWait();
 
-        if (result.get() == commitButton) {
+        if (result.orElse(null) == commitButton) {
             logger.info("Chose to add");
             resultType = "add";
         } else {
@@ -306,7 +306,7 @@ public class PopUpWindows {
 
         Optional<?> result = dialog.showAndWait();
 
-        if (result.get() == trackButton) {
+        if (result.orElse(null) == trackButton) {
             dialog.close();
             return dropdown.getSelectionModel().getSelectedItem();
         }
@@ -330,7 +330,7 @@ public class PopUpWindows {
 
         Optional<?> result = alert.showAndWait();
 
-        return result.get() == deleteButton;
+        return result.orElse(null) == deleteButton;
     }
 
     static String pickRemoteToPushTo(Set<String> remotes) {

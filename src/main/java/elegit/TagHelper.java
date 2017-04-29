@@ -120,9 +120,7 @@ public class TagHelper extends RefHelper{
         ButtonType confirm = new ButtonType("Yes", ButtonBar.ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().addAll(confirm, ButtonType.CANCEL);
 
-        dialog.setResultConverter(dialogButton -> {
-            return dialogButton == confirm;
-        });
+        dialog.setResultConverter(dialogButton -> dialogButton == confirm);
 
         Optional<Boolean> result = dialog.showAndWait();
 

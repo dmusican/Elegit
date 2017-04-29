@@ -27,12 +27,12 @@ public class ElegitUserInfoGUI implements UserInfo {
 
     @Override
     public String getPassphrase() {
-        return passphrase.get();
+        return passphrase.orElse("");
     }
 
     @Override
     public String getPassword() {
-        return password.get();
+        return password.orElse("");
     }
 
     @Override
@@ -83,8 +83,7 @@ public class ElegitUserInfoGUI implements UserInfo {
                 }
             });
 
-            Optional<String> result = dialog.showAndWait();
-            return result;
+            return dialog.showAndWait();
 
         });
         Platform.runLater(futureTask);
@@ -108,9 +107,9 @@ public class ElegitUserInfoGUI implements UserInfo {
 
         alert.getButtonTypes().setAll(ButtonType.YES, ButtonType.NO);
         Optional<ButtonType> result = alert.showAndWait();
-        if (result.get() == ButtonType.YES)
+        if (result.orElse(null) == ButtonType.YES)
             return true;
-        else if (result.get() == ButtonType.NO)
+        else if (result.orElse(null) == ButtonType.NO)
             return false;
         else {
             SessionModel.logger.error("Internal error with SSH yes/no prompt.");

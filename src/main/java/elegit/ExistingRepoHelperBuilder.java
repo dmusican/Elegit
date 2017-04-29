@@ -28,7 +28,7 @@ public class ExistingRepoHelperBuilder extends RepoHelperBuilder {
      */
     @Override
     public RepoHelper getRepoHelperFromDialogs() throws GitAPIException, IOException, NoRepoSelectedException, CancelledAuthorizationException{
-        File existingRepoDirectoryFile = this.getDirectoryPathFromChooser("Choose existing repository directory", null);
+        File existingRepoDirectoryFile = this.getDirectoryPathFromChooser("Choose existing repository directory");
 
         if (existingRepoDirectoryFile == null) {
             // If the user pressed cancel
@@ -37,8 +37,6 @@ public class ExistingRepoHelperBuilder extends RepoHelperBuilder {
 
         Path directoryPath = existingRepoDirectoryFile.toPath();
 
-        RepoHelper existingRepoHelper = new ExistingRepoHelper(directoryPath, new ElegitUserInfoGUI());
-
-        return existingRepoHelper;
+        return new ExistingRepoHelper(directoryPath, new ElegitUserInfoGUI());
     }
 }

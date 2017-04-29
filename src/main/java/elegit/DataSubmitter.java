@@ -43,6 +43,8 @@ public class DataSubmitter {
             logger.info("Making a new uuid.");
         }
 
+        if (logsToUpload==null)
+            logsToUpload = new File[0];
         for (File logFile: logsToUpload) {
             if (!logFile.isFile() || logFile.getName().equals(LOG_FILE_NAME)) {
                 if (logsToUpload.length == 1) {
@@ -100,7 +102,10 @@ public class DataSubmitter {
 
         }
         // Clean up the directory
-        for (File file: logDirectory.listFiles()) {
+        File[] logsToDelete = logDirectory.listFiles();
+        if (logsToDelete == null)
+            logsToDelete = new File[0];
+        for (File file: logsToDelete) {
             if (!file.getName().equals(LOG_FILE_NAME))
                 if (!file.delete()) {
                     logger.error("Failed to delete a file in the log directory.");
