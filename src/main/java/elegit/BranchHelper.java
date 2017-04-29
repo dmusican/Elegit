@@ -62,7 +62,7 @@ public abstract class BranchHelper extends RefHelper {
     /**
      * @return Full string representation of this branch, e.g. 'remotes/origin/master'
      */
-    public String getRefPathString() {
+    String getRefPathString() {
         return refPathString;
     }
 
@@ -73,7 +73,7 @@ public abstract class BranchHelper extends RefHelper {
      * @return the id of this branch's head
      * @throws IOException
      */
-    public ObjectId getHeadId() throws IOException{
+    ObjectId getHeadId() throws IOException{
         if(commit != null){
             return commit.getObjectId();
         }else{

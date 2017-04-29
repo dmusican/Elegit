@@ -94,13 +94,17 @@ public class DataSubmitter {
                 return null;
             }
             // Delete the log file as we might be uploading more!
-            logFile.delete();
+            if (!logFile.delete()) {
+                logger.error("Failed to delete log file.");
+            }
 
         }
         // Clean up the directory
         for (File file: logDirectory.listFiles()) {
             if (!file.getName().equals(LOG_FILE_NAME))
-                file.delete();
+                if (!file.delete()) {
+                    logger.error("Failed to delete a file in the log directory.");
+                }
         }
 
         return lastUUID;

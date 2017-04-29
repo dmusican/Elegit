@@ -8,14 +8,14 @@ import java.nio.file.Paths;
  */
 public class UntrackedRepoFile extends RepoFile {
 
-    public UntrackedRepoFile(Path filePath, RepoHelper repo) {
+    UntrackedRepoFile(Path filePath, RepoHelper repo) {
         super(filePath, repo);
         diffButton.setText("UNTRACKED");
         diffButton.setId("untrackedDiffButton");
         diffButton.setTooltip(getToolTip("This file has not been added to git. Commit to add it."));
     }
 
-    public UntrackedRepoFile(String filePathString, RepoHelper repo) {
+    UntrackedRepoFile(String filePathString, RepoHelper repo) {
         this(Paths.get(filePathString), repo);
     }
 

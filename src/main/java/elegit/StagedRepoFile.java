@@ -8,14 +8,14 @@ import java.nio.file.Paths;
  */
 public class StagedRepoFile extends RepoFile {
 
-    public StagedRepoFile(Path filePath, RepoHelper repo) {
+    StagedRepoFile(Path filePath, RepoHelper repo) {
         super(filePath, repo);
         diffButton.setText("STAGED");
         diffButton.setId("stagedDiffButton");
         diffButton.setTooltip(getToolTip("This file has a version stored in your git index\nand is ready to commit."));
     }
 
-    public StagedRepoFile(String filePathString, RepoHelper repo) {
+    StagedRepoFile(String filePathString, RepoHelper repo) {
         this(Paths.get(filePathString), repo);
     }
 

@@ -121,19 +121,11 @@ public class TagHelper extends RefHelper{
         dialog.getDialogPane().getButtonTypes().addAll(confirm, ButtonType.CANCEL);
 
         dialog.setResultConverter(dialogButton -> {
-            if (dialogButton == confirm) {
-                return true;
-            }
-            return false;
+            return dialogButton == confirm;
         });
 
         Optional<Boolean> result = dialog.showAndWait();
 
-        if (result.isPresent()) {
-            return result.get();
-        }
-        else {
-            return false;
-        }
+        return result.orElse(false);
     }
 }

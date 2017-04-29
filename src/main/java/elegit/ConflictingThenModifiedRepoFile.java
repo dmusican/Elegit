@@ -17,14 +17,14 @@ public class ConflictingThenModifiedRepoFile extends RepoFile {
 
     private String resultType;
 
-    public ConflictingThenModifiedRepoFile(Path filePath, RepoHelper repo) {
+    private ConflictingThenModifiedRepoFile(Path filePath, RepoHelper repo) {
         super(filePath, repo);
         diffButton.setText("CONFLICTING\nMODIFIED");
         diffButton.setId("conflictingThenModifiedDiffButton");
         diffButton.setTooltip(getToolTip("This file was conflicting, but was recently modified.\nCommit if the changes are finalized."));
     }
 
-    public ConflictingThenModifiedRepoFile(String filePathString, RepoHelper repo) {
+    ConflictingThenModifiedRepoFile(String filePathString, RepoHelper repo) {
         this(Paths.get(filePathString), repo);
     }
 

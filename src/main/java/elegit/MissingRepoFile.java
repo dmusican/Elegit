@@ -8,14 +8,14 @@ import java.nio.file.Paths;
  */
 public class MissingRepoFile extends RepoFile {
 
-    public MissingRepoFile(Path filePath, RepoHelper repo) {
+    MissingRepoFile(Path filePath, RepoHelper repo) {
         super(filePath, repo);
         diffButton.setText("MISSING");
         diffButton.setId("missingDiffButton");
         diffButton.setTooltip(getToolTip("This file is missing."));
     }
 
-    public MissingRepoFile(String filePathString, RepoHelper repo) {
+    MissingRepoFile(String filePathString, RepoHelper repo) {
         this(Paths.get(filePathString), repo);
     }
 

@@ -19,7 +19,7 @@ public class ExistingRepoHelper extends RepoHelper {
         setup();
     }
 
-    public ExistingRepoHelper(Path directoryPath, UserInfo userInfo) throws IOException, GitAPIException,
+    ExistingRepoHelper(Path directoryPath, UserInfo userInfo) throws IOException, GitAPIException,
             CancelledAuthorizationException{
         super(directoryPath, userInfo);
         repo = obtainRepository();
