@@ -1,22 +1,11 @@
 package elegit.controllers;
 
-import elegit.GitIgnoreEditor;
-import elegit.SessionModel;
-import elegit.exceptions.NoRepoLoadedException;
-import elegit.treefx.TreeLayout;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
-import javafx.scene.layout.AnchorPane;
-import javafx.scene.text.Text;
-import org.apache.logging.log4j.Level;
-import org.controlsfx.control.PopOver;
-
-import java.io.IOException;
 
 /**
  * Created by dmusicant on 4/8/17.
