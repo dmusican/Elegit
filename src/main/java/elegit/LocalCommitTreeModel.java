@@ -1,10 +1,6 @@
 package elegit;
 
-import org.eclipse.jgit.api.errors.GitAPIException;
-
-import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Subclass of CommitTreeModel that examines local commits

@@ -20,7 +20,6 @@ import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Optional;
 
 /**

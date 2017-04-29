@@ -8,7 +8,6 @@ import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.NoSuchElementException;
 
 /**
  * A RepoHelper implementation for pre-existing repositories.

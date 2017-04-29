@@ -1,6 +1,5 @@
 package elegit;
 
-import elegit.treefx.Cell;
 import elegit.treefx.TreeGraph;
 import elegit.treefx.TreeLayout;
 import javafx.application.Platform;

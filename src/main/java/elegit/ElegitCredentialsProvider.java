@@ -5,8 +5,6 @@ import org.eclipse.jgit.transport.CredentialItem;
 import org.eclipse.jgit.transport.CredentialsProvider;
 import org.eclipse.jgit.transport.URIish;
 
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.util.Iterator;
 import java.util.List;
 

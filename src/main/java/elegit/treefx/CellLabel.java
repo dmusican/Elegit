@@ -2,7 +2,6 @@ package elegit.treefx;
 
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
-import elegit.CommitTreeModel;
 import elegit.RefHelper;
 import javafx.geometry.Insets;
 import javafx.scene.control.ContextMenu;

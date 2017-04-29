@@ -1,11 +1,5 @@
 package elegit;
 
-import elegit.exceptions.MissingRepoException;
-import javafx.scene.control.Tooltip;
-import org.eclipse.jgit.api.AddCommand;
-import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.errors.GitAPIException;
-
 import java.nio.file.Path;
 import java.nio.file.Paths;
 

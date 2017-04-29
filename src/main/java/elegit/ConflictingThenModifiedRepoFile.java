@@ -1,8 +1,6 @@
 package elegit;
 
 import javafx.application.Platform;
-import javafx.scene.control.Tooltip;
-import javafx.scene.text.Font;
 import org.eclipse.jgit.api.errors.GitAPIException;
 
 import java.nio.file.Path;

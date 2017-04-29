@@ -1,7 +1,5 @@
 package elegit;
 
-import javafx.scene.control.Tooltip;
-
 import java.nio.file.Path;
 import java.nio.file.Paths;
 

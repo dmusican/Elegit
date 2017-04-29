@@ -1,6 +1,5 @@
 package elegit;
 
-import elegit.treefx.CellLabel;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;

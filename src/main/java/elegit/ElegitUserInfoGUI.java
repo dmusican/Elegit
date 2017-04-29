@@ -1,14 +1,10 @@
 package elegit;
 
-import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.UserInfo;
-import elegit.exceptions.CancelledAuthorizationException;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.util.Optional;
 import java.util.concurrent.Callable;

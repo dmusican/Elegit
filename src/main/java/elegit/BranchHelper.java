@@ -1,6 +1,5 @@
 package elegit;
 
-import elegit.treefx.CellLabel;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.BranchTrackingStatus;
 import org.eclipse.jgit.lib.ObjectId;
