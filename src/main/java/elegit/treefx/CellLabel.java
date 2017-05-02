@@ -38,16 +38,17 @@ public class CellLabel extends HBox {
         this.isTag = isTag;
         this.isRemote = false;
 
+        // Set up the actual contents of the label
         setCommitIndicator();
         setLabelName();
         setImage();
 
-        // Add children to this label
+        // Add label contents to JavaFX model for this label
         this.getChildren().add(commitIndicator);
         this.getChildren().add(label);
         this.getChildren().add(image);
 
-        // Add margins to the children
+        // Add margins to the label contents
         HBox.setMargin(commitIndicator, new Insets(5, 2, 0, 5));
         HBox.setMargin(image, new Insets(2, 2, 0, 0));
         HBox.setMargin(label, new Insets(0, 5, 0, 0));
@@ -67,7 +68,7 @@ public class CellLabel extends HBox {
         commitIndicator.setFill(Color.web(isCurrent ? "#FFFFFF" : "333333"));
     }
 
-    protected Label setLabelName() {
+    protected void setLabelName() {
         assert Platform.isFxApplicationThread();
         label = new Label();
         label.getStyleClass().clear();
@@ -79,8 +80,6 @@ public class CellLabel extends HBox {
         label.getStyleClass().clear();
         label.getStyleClass().add("cell-label");
         label.setId(isCurrent ? "current" : "regular");
-
-        return label;
     }
 
     protected Label getLabelName() {
