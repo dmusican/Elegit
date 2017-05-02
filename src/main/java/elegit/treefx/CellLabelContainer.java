@@ -152,9 +152,11 @@ public class CellLabelContainer extends GridPane {
         for (Node m : getChildren()) {
             if (m instanceof HBox) {
                 for (Node n : ((HBox) m).getChildren()) {
-                    if (n instanceof CellLabel)
-                        if (labels.contains(((CellLabel) n).setLabelName().getText()))
+                    if (n instanceof CellLabel) {
+                        ((CellLabel) n).setLabelName();
+                        if (labels.contains(((CellLabel) n).getLabelName().getText()))
                             ((CellLabel) n).setCurrent(true);
+                    }
                 }
             }
         }
