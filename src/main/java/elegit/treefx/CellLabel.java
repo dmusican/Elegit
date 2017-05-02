@@ -37,7 +37,7 @@ public class CellLabel extends HBox {
         this.isRemote = false;
 
         setCommitIndicator();
-        Label label = getLabel();
+        getLabel();
         ImageView img = getImage();
 
         // Add children to this label
