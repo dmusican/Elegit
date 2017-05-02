@@ -2450,6 +2450,7 @@ public class SessionController {
             commitInfoGoToButton.setVisible(true);
             tagNameField.setVisible(true);
             tagButton.setVisible(true);
+            pushTagsButton.setVisible(true);
 
             commitInfoMessageText.setText(theModel.getCurrentRepoHelper().getCommitDescriptorString(commit, true));
         });
@@ -2468,6 +2469,7 @@ public class SessionController {
             tagNameField.setText("");
             tagNameField.setVisible(false);
             tagButton.setVisible(false);
+            pushTagsButton.setVisible(false);
         });
     }
 

@@ -47,7 +47,6 @@
                     <RowConstraints vgrow="NEVER"/>
                 </rowConstraints>
 
-                <fx:include fx:id="dropdown" source="MainViewDropdown.fxml"/>
                 <!-- Background for ribbon -->
                 <Pane GridPane.columnSpan="7"
                       id="ribbon">
@@ -68,34 +67,7 @@
                 </HBox>
 
                 <!-- Ribbon content-->
-                <!-- Dropdown, open in file manager, plus and minus buttons -->
-                <HBox spacing="5">
-                    <ComboBox id="repoDropdown"
-                              fx:id="repoDropdownSelector"
-                              onAction="#loadSelectedRepo"/>
-
-                    <Button fx:id="openRepoDirButton"
-                            onAction="#openRepoDirectory"/>
-
-                    <Button fx:id="loadNewRepoButton"
-                            onAction="#handleLoadNewRepoButton">
-                        <contextMenu>
-                            <ContextMenu fx:id="newRepoOptionsMenu">
-                                <items>
-                                    <MenuItem fx:id="cloneOption"
-                                              onAction="#handleCloneNewRepoOption"
-                                              text="Clone repository"/>
-                                    <MenuItem fx:id="existingOption"
-                                              onAction="#handleLoadExistingRepoOption"
-                                              text="Load existing repository"/>
-                                </items>
-                            </ContextMenu>
-                        </contextMenu>
-                    </Button>
-                    <Button id="warningButton"
-                            onAction="#chooseRecentReposToDelete"
-                            fx:id="removeRecentReposButton"/>
-                </HBox>
+                <fx:include fx:id="dropdown" source="MainViewDropdown.fxml"/>
 
                 <!-- Local and remote branches-->
                 <HBox   spacing="5"
@@ -143,23 +115,6 @@
                                 <Font   size="25"/>
                             </font>
                         </Text>
-
-                        <!--<GridPane   alignment="CENTER">-->
-                            <!--<Text   GridPane.columnIndex="0"-->
-                                    <!--GridPane.rowIndex="0"-->
-                                    <!--GridPane.halignment="CENTER"-->
-                                    <!--text="remote-tracking branch: "/>-->
-                            <!--<HBox   GridPane.columnIndex="0"-->
-                                    <!--GridPane.rowIndex="1"-->
-                                    <!--GridPane.hgrow="NEVER"-->
-                                    <!--GridPane.halignment="CENTER"-->
-                                    <!--fx:id="currentRemoteTrackingBranchHbox"-->
-                                    <!--alignment="CENTER">-->
-                                <!--<padding>-->
-                                    <!--<Insets right="5" left="5"/>-->
-                                <!--</padding>-->
-                            <!--</HBox>-->
-                        <!--</GridPane>-->
                     </VBox>
                 </StackPane>
 
@@ -209,7 +164,7 @@
                         GridPane.halignment="CENTER"/>
 
                 <!-- Working directory and index separator -->
-                <VBox GridPane.rowSpan="7"
+                <VBox GridPane.rowSpan="8"
                       GridPane.rowIndex="1"
                       GridPane.columnIndex="1"
                       minWidth="4"
@@ -251,7 +206,7 @@
                 </TabPane>
 
                 <!-- Index and local repo separator -->
-                <VBox GridPane.rowSpan="7"
+                <VBox GridPane.rowSpan="8"
                       GridPane.rowIndex="1"
                       GridPane.columnIndex="3"
                       minWidth="4"
@@ -348,7 +303,7 @@
                 <!-- Commit tree panel view and legend-->
                 <CommitTreePanelView fx:id="commitTreePanelView"
                                         GridPane.rowIndex="4"
-                                        GridPane.rowSpan="5"
+                                        GridPane.rowSpan="4"
                                         GridPane.columnIndex="4"
                                         GridPane.columnSpan="3">
                     <GridPane.margin>
@@ -358,7 +313,7 @@
                 <Hyperlink  fx:id="legendLink"
                             text="What do all these symbols mean?"
                             onAction="#showLegend"
-                            GridPane.rowIndex="7"
+                            GridPane.rowIndex="8"
                             GridPane.columnIndex="4"/>
 
                 <!-- Local repository and remote repository separator -->
@@ -390,12 +345,12 @@
                              text="Fetch"
                              arrowLeft="true"
                              onAction="#handleNormalFetchButton"
-                             GridPane.columnIndex="5"
                              GridPane.rowIndex="2"
-                             GridPane.halignment="RIGHT"
+                             GridPane.columnIndex="5"
+                             GridPane.halignment="LEFT"
                              GridPane.valignment="BOTTOM">
                     <GridPane.margin>
-                        <Insets top="20" left="-40" right="-10"/>
+                        <Insets left="-20" right="-30" bottom="20"/>
                     </GridPane.margin>
                     <contextMenu>
                         <ContextMenu    fx:id="fetchContextMenu">
@@ -416,7 +371,7 @@
                              GridPane.halignment="LEFT"
                              GridPane.valignment="TOP">
                     <GridPane.margin>
-                        <Insets top="20" left="-25" right="-10"/>
+                        <Insets top="20" left="-10" right="-20"/>
                     </GridPane.margin>
                     <contextMenu>
                         <ContextMenu    fx:id="pushContextMenu">
@@ -428,19 +383,6 @@
                             </items>
                         </ContextMenu>
                     </contextMenu>
-                </ArrowButton>
-                <ArrowButton id="codeButton"
-                             fx:id="pushTagsButton"
-                             text="Push Tags"
-                             arrowRight="true"
-                             onAction="#handlePushTagsButton"
-                             GridPane.columnIndex="5"
-                             GridPane.rowIndex="2"
-                             GridPane.halignment="RIGHT"
-                             GridPane.valignment="TOP">
-                    <GridPane.margin>
-                        <Insets top="50" left="-55" right="-30"/>
-                    </GridPane.margin>
                 </ArrowButton>
 
                 <!-- Remote repository block -->
@@ -501,24 +443,36 @@
                         <Button fx:id="commitInfoNameCopyButton"
                                 onAction="#handleCommitNameCopyButton"/>
                     </HBox>
+                    <GridPane.margin>
+                        <Insets right="15"/>
+                    </GridPane.margin>
                 </VBox>
 
                 <!-- Tagging UI -->
-                <HBox   alignment="CENTER"
+                <VBox   alignment="CENTER"
                         spacing="5"
                         GridPane.rowIndex="5"
                         GridPane.columnIndex="6"
                         GridPane.halignment="CENTER">
+                    <HBox>
+                        <ArrowButton id="codeButton"
+                                     fx:id="tagButton"
+                                     text="Tag"
+                                     arrowLeft="true"
+                                     onAction="#handleTagButton"/>
+                        <TextField   prefHeight="30"
+                                    prefWidth="170"
+                                    fx:id="tagNameField"
+                                    promptText="tag..." />
+
+                    </HBox>
                     <ArrowButton id="codeButton"
-                                 fx:id="tagButton"
-                                 text="Tag"
-                                 arrowLeft="true"
-                                 onAction="#handleTagButton"/>
-                    <TextField   prefHeight="30"
-                                prefWidth="170"
-                                fx:id="tagNameField"
-                                promptText="tag..." />
-                </HBox>
+                                 fx:id="pushTagsButton"
+                                 text="Push Tags"
+                                 arrowRight="true"
+                                 onAction="#handlePushTagsButton">
+                    </ArrowButton>
+                </VBox>
             </GridPane>
 
             <fx:include source="NotificationPane.fxml" fx:id="notificationPane"/>
