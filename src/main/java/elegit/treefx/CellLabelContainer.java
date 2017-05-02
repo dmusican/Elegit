@@ -24,8 +24,6 @@ import java.util.Map;
 public class CellLabelContainer extends GridPane {
     private final int MAX_COL_PER_ROW=4;
 
-    HBox basicLabels;
-    List<HBox> extendedLabels;
 
     /**
      * Default constructor. Doesn't do anything, but it's nice to have
@@ -60,16 +58,33 @@ public class CellLabelContainer extends GridPane {
             return;
         }
 
-        basicLabels = new HBox(5);
-        extendedLabels = new ArrayList<>();
+        HBox firstRowLabels = new HBox(5);
+        List<HBox> extendedLabels = new ArrayList<>();
 
+        int rowCount = addLabelsToContainerInRows(refHelpers, firstRowLabels, extendedLabels);
+        Label extendedDropArrow = setupExtendedDropArrow(extendedLabels, rowCount);
+
+        // We rotate the labels because it's more efficient than having our tree
+        // upside down and moving everything around often.
+        this.setMaxHeight(20);
+        this.setRotationAxis(Rotate.X_AXIS);
+        this.setRotate(180);
+        this.visibleProperty().bind(cell.visibleProperty());
+
+        getChildren().addAll(firstRowLabels);
+        getChildren().addAll(extendedLabels);
+        getChildren().add(extendedDropArrow);
+        this.setPickOnBounds(false);
+    }
+
+    private int addLabelsToContainerInRows(List<RefHelper> refHelpers, HBox basicLabels, List<HBox> extendedLabels) {
         int col=0;
         int row=0;
 
         GridPane.setMargin(basicLabels, new Insets(0,0,5,5));
         basicLabels.setPickOnBounds(false);
         for (RefHelper helper : refHelpers) {
-            if (col>MAX_COL_PER_ROW) {
+            if (col>=MAX_COL_PER_ROW) {
                 row++;
                 col=0;
                 HBox newLine = new HBox(5);
@@ -93,40 +108,32 @@ public class CellLabelContainer extends GridPane {
             }
             col++;
         }
+        int rowCount = row + 1;
+        return rowCount;
+    }
 
-        Label showExtended = new Label();
-        showExtended.setVisible(false);
-        if (row>0) {
-            showExtended.setVisible(true);
-            showExtended.setTranslateX(-6);
-            showExtended.setTranslateY(-3);
+    private Label setupExtendedDropArrow(List<HBox> extendedLabels, int rowCount) {
+        Label extendedDropArrow = new Label();
+        extendedDropArrow.setVisible(false);
+        if (rowCount>1) {
+            extendedDropArrow.setVisible(true);
+            extendedDropArrow.setTranslateX(-6);
+            extendedDropArrow.setTranslateY(-3);
             Node down = GlyphsDude.createIcon(FontAwesomeIcon.CARET_DOWN);
             Node up = GlyphsDude.createIcon(FontAwesomeIcon.CARET_UP);
-            showExtended.setGraphic(down);
-            showExtended.setOnMouseClicked(event -> {
-                if(showExtended.getGraphic().equals(down)) {
-                    showExtended.setGraphic(up);
+            extendedDropArrow.setGraphic(down);
+            extendedDropArrow.setOnMouseClicked(event -> {
+                if(extendedDropArrow.getGraphic().equals(down)) {
+                    extendedDropArrow.setGraphic(up);
                 }else {
-                    showExtended.setGraphic(down);
+                    extendedDropArrow.setGraphic(down);
                 }
                 for (Node n : extendedLabels) {
                     n.setVisible(!n.isVisible());
                 }
             });
         }
-
-        // We rotate the labels because it's more efficient than having our tree
-        // upside down and moving everything around often.
-        this.setMaxHeight(20);
-        this.setRotationAxis(Rotate.X_AXIS);
-        this.setRotate(180);
-        this.visibleProperty().bind(cell.visibleProperty());
-
-        getChildren().clear();
-        getChildren().addAll(basicLabels);
-        getChildren().addAll(extendedLabels);
-        getChildren().add(showExtended);
-        this.setPickOnBounds(false);
+        return extendedDropArrow;
     }
 
     /**
