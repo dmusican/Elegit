@@ -22,9 +22,11 @@ public class CellLabel extends HBox {
     private String name;
     private RefHelper refHelper;
     boolean isCurrent, isTag, isRemote;
+
     Text commitIndicator;
-    ImageView image;
     Label label;
+    ImageView image;
+
     ContextMenu contextMenu;
     public static final int MAX_CHAR_PER_LABEL=25;
 
@@ -38,16 +40,16 @@ public class CellLabel extends HBox {
 
         setCommitIndicator();
         setLabelName();
-        ImageView img = getImage();
+        setImage();
 
         // Add children to this label
         this.getChildren().add(commitIndicator);
         this.getChildren().add(label);
-        this.getChildren().add(img);
+        this.getChildren().add(image);
 
         // Add margins to the children
         HBox.setMargin(commitIndicator, new Insets(5, 2, 0, 5));
-        HBox.setMargin(img, new Insets(2, 2, 0, 0));
+        HBox.setMargin(image, new Insets(2, 2, 0, 0));
         HBox.setMargin(label, new Insets(0, 5, 0, 0));
 
         // Set the style class
@@ -85,15 +87,11 @@ public class CellLabel extends HBox {
         return label;
     }
 
-    /**
-     * @return the imageView with the correct image
-     */
-    protected ImageView getImage() {
+    private void setImage() {
         assert Platform.isFxApplicationThread();
         image = new ImageView(new Image(isTag ? "elegit/images/tag.png" : isCurrent ? "elegit/images/branch_white.png" : "elegit/images/branch.png"));
         image.setFitHeight(15);
         image.setPreserveRatio(true);
-        return image;
     }
 
     /**
