@@ -21,11 +21,11 @@ import javafx.scene.text.Text;
 public class CellLabel extends HBox {
     private String name;
     private RefHelper refHelper;
-    boolean isCurrent, isTag, isRemote;
+    private boolean isCurrent, isTag, isRemote;
 
-    Text commitIndicator;
-    Label label;
-    ImageView image;
+    private Text commitIndicator;
+    private Label label;
+    private ImageView image;
 
     ContextMenu contextMenu;
     public static final int MAX_CHAR_PER_LABEL=25;
