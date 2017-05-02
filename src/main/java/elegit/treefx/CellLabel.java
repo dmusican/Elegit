@@ -27,7 +27,7 @@ public class CellLabel extends HBox {
     private Label label;
     private ImageView image;
 
-    ContextMenu contextMenu;
+    private ContextMenu contextMenu;
     public static final int MAX_CHAR_PER_LABEL=25;
 
     CellLabel(RefHelper refHelper, boolean isCurrent, boolean isTag) {
