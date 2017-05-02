@@ -302,29 +302,6 @@ public class Cell extends Pane {
     }
 
     /**
-     * Checks to see if the given cell has this cell as an ancestor,
-     * up to the given number of generations.
-     *
-     * Entering zero or a negative number will search all descendants
-     *
-     * @param cell the commit to check
-     * @param depth how many generations down to check
-     * @return true if cell is a descendant of this cell, otherwise false
-     */
-    private boolean isChild(Cell cell, int depth){
-        depth--;
-        if(children.contains(cell)) return true;
-        else if(depth != 0){
-            for(Cell child : children){
-                if(child.isChild(cell, depth)){
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    /**
      * Sets the state of this cell and adjusts the style accordingly
      * @param state the new state of the cell
      */
