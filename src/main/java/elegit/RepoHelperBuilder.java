@@ -34,7 +34,7 @@ public abstract class RepoHelperBuilder {
         public String password;
     }
 
-    static class AuthDialogResponse {
+    public static class AuthDialogResponse {
         public AuthMethod protocol;
         public String username;
         public String password;

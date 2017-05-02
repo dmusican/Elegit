@@ -1,6 +1,13 @@
-package elegit;
+package elegit.controllers;
 
+import elegit.CommitHelper;
+import elegit.RepoHelper;
+import elegit.SessionModel;
+import elegit.controllers.NotificationController;
+import elegit.controllers.SessionController;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -11,6 +18,7 @@ import javafx.util.Callback;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.api.errors.StashApplyFailureException;
 import org.eclipse.jgit.api.errors.WrongRepositoryStateException;
 
 import java.io.IOException;
@@ -89,7 +97,6 @@ public class StashListController {
     private void setButtonListeners() {
         this.applyButton.disableProperty().bind(this.stashList.getSelectionModel().selectedIndexProperty().lessThan(0));
         this.dropButton.disableProperty().bind(this.stashList.getSelectionModel().selectedIndexProperty().lessThan(0));
-        this.clearButton.disableProperty().bind(this.stashList.getSelectionModel().selectedIndexProperty().lessThan(0));
         this.popButton.disableProperty().bind(this.stashList.getSelectionModel().selectedIndexProperty().lessThan(0));
     }
 
@@ -116,8 +123,11 @@ public class StashListController {
         String stashRef = this.stashList.getSelectionModel().getSelectedItem().getId();
         try {
             repoHelper.stashApply(stashRef, false);
+            sessionController.gitStatus();
         } catch (WrongRepositoryStateException e) {
             notificationPaneController.addNotification("Conflicts occured while trying to apply stash. Commit/stash changes or force apply (right click).");
+        } catch (StashApplyFailureException e) {
+            showStashConflictsNotification();
         } catch (GitAPIException e) {
             notificationPaneController.addNotification("Something went wrong with the apply. Try committing any uncommitted changes.");
         }
@@ -130,6 +140,7 @@ public class StashListController {
         int index = this.stashList.getSelectionModel().getSelectedIndex();
         try {
             repoHelper.stashDrop(index);
+            refreshList();
         } catch (GitAPIException e) {
             notificationPaneController.addNotification("Something went wrong with the drop. Try committing any uncommitted changes.");
         }
@@ -143,6 +154,7 @@ public class StashListController {
     public void handleClearStash() {
         try {
             repoHelper.stashClear();
+            refreshList();
         } catch (GitAPIException e) {
             notificationPaneController.addNotification("Something went wrong with the clear. Try committing any uncommitted changes.");
         }
@@ -157,11 +169,27 @@ public class StashListController {
         try {
             repoHelper.stashApply(stashRef, false);
             repoHelper.stashDrop(index);
+            refreshList();
+            sessionController.gitStatus();
+        }  catch (StashApplyFailureException e) {
+            showStashConflictsNotification();
         } catch (GitAPIException e) {
             notificationPaneController.addNotification("Something went wrong with the pop. Try committing any uncommitted changes.");
         }
     }
 
     void setSessionController(SessionController controller) { this.sessionController = controller; }
+
+
+    private void showStashConflictsNotification() {
+        Platform.runLater(() -> {
+            logger.warn("Stash apply conflicts warning");
+
+            EventHandler handler = event -> sessionController.quickStashSave();
+            this.notificationPaneController.addNotification("You can't apply that stash because there would be conflicts. " +
+                    "Stash your changes or resolve conflicts first.", "stash", handler);
+        });
+    }
+
 
 }

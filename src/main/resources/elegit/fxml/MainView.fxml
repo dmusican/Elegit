@@ -9,115 +9,18 @@
 <?import javafx.scene.shape.*?>
 
 <BorderPane xmlns:fx="http://javafx.com/fxml"
-            fx:controller="elegit.SessionController">
+            fx:controller="elegit.controllers.SessionController">
 
     <!-- the top section of the border pane -->
     <top>
-        <!-- Menu bar -->
-        <MenuBar    GridPane.rowIndex="0"
-                    useSystemMenuBar="true">
-            <menus>
-                <Menu   text="Preferences">
-                    <items>
-                        <MenuItem   text="Turn Logging Off"
-                                    fx:id="loggingToggle"
-                                    onAction="#handleLoggingOffMenuItem"/>
-                        <MenuItem   text="Turn Logging On"
-                                    fx:id="loggingToggle"
-                                    onAction="#handleLoggingOnMenuItem"/>
-                        <MenuItem   text="Sort commits topologically"
-                                    fx:id="commitSortingToggle"
-                                    onAction="#handleCommitSortTopological"/>
-                        <MenuItem   text="Sort commits by date"
-                                    fx:id="commitSortingToggle"
-                                    onAction="#handleCommitSortDate"/>
-                    </items>
-                </Menu>
-                <Menu   text="Edit">
-                    <items>
-                        <MenuItem   text=".gitignore"
-                                    fx:id="gitIgnoreMenuItem"
-                                    onAction="#handleGitIgnoreMenuItem"/>
-                    </items>
-                </Menu>
-                <Menu   text="Repository"
-                        fx:id="repoMenu">
-                    <items>
-                        <Menu   text="Branch">
-                            <MenuItem   text="Create Branch"
-                                        fx:id="createBranchMenuItem"
-                                        onAction="#handleNewBranchButton"/>
-                            <MenuItem   text="Delete Local Branch"
-                                        onAction="#handleDeleteLocalBranchButton"/>
-                            <MenuItem   text="Delete Remote Branch"
-                                        onAction="#handleDeleteRemoteBranchButton"/>
-                        </Menu>
-                        <Menu   text="Checkout">
-                            <MenuItem   text="Checkout Branch"
-                                        onAction="#showBranchCheckout"/>
-                        </Menu>
-                        <Menu   text="Clone">
-                            <MenuItem   text="Clone"
-                                        fx:id="cloneMenuItem"
-                                        onAction="#handleCloneNewRepoOption"/>
-                        </Menu>
-                        <Menu   text="Commmit">
-                            <MenuItem   text="Commit"
-                                        fx:id="commitNormalMenuItem"
-                                        onAction="#handleCommitNormal"/>
-                            <MenuItem   text="Commit -a"
-                                        onAction="#handleCommitAll"/>
-                        </Menu>
-                        <Menu   text="Fetch">
-                            <MenuItem   text="Fetch"
-                                        fx:id="normalFetchMenuItem"
-                                        onAction="#handleNormalFetchButton"/>
-                            <MenuItem   text="Fetch -p"
-                                        onAction="#handlePruneFetchButton"/>
-                        </Menu>
-                        <Menu   text="Merge">
-                            <MenuItem   text="Merge From Fetch"
-                                        onAction="#mergeFromFetch"/>
-                            <MenuItem   text="Merge Local Branches"
-                                        onAction="#handleBranchMergeButton"/>
-                        </Menu>
-                        <Menu   text="Pull">
-                            <MenuItem   text="Pull"
-                                        fx:id="pullMenuItem"
-                                        onAction="#handlePullButton"/>
-                        </Menu>
-                        <Menu   text="Push">
-                            <MenuItem   text="Push Current Branch"
-                                        fx:id="pushMenuItem"
-                                        onAction="#handlePushButton"/>
-                            <MenuItem   text="Push All Branches"
-                                        onAction="#handlePushAllButton"/>
-                            <MenuItem   text="Push Tags"
-                                        onAction="#handlePushTagsButton"/>
-                        </Menu>
-                        <Menu   text="Stash">
-                            <MenuItem   text="Stash Changes"
-                                        onAction="#handleStashSaveButton"/>
-                            <MenuItem   text="Stash Apply"
-                                        onAction="#handleStashApplyButton"/>
-                            <MenuItem   text="Stash List"
-                                        fx:id="stashMenuItem"
-                                        onAction="#handleStashListButton"/>
-                            <MenuItem   text="Stash Drop"
-                                        onAction="#handleStashDropButton"/>
-                        </Menu>
-                    </items>
-                </Menu>
-            </menus>
-        </MenuBar>
+        <fx:include fx:id="menu" source="MainViewMenu.fxml"/>
     </top>
 
     <!-- the center part of the border pane -->
     <center>
         <AnchorPane
                 fx:id="anchorRoot"
-                prefWidth="1200"
-                prefHeight="650">
+                >
             <GridPane fx:id="root"
                   AnchorPane.rightAnchor="5"
                   AnchorPane.leftAnchor="5"
@@ -144,6 +47,7 @@
                     <RowConstraints vgrow="NEVER"/>
                 </rowConstraints>
 
+                <fx:include fx:id="dropdown" source="MainViewDropdown.fxml"/>
                 <!-- Background for ribbon -->
                 <Pane GridPane.columnSpan="7"
                       id="ribbon">
@@ -239,15 +143,23 @@
                                 <Font   size="25"/>
                             </font>
                         </Text>
-                        <!--<HBox   alignment="CENTER">-->
-                            <!--<Text   text="local branch: "/>-->
-                            <!--<HBox   fx:id="currentLocalBranchHbox"-->
+
+                        <!--<GridPane   alignment="CENTER">-->
+                            <!--<Text   GridPane.columnIndex="0"-->
+                                    <!--GridPane.rowIndex="0"-->
+                                    <!--GridPane.halignment="CENTER"-->
+                                    <!--text="remote-tracking branch: "/>-->
+                            <!--<HBox   GridPane.columnIndex="0"-->
+                                    <!--GridPane.rowIndex="1"-->
+                                    <!--GridPane.hgrow="NEVER"-->
+                                    <!--GridPane.halignment="CENTER"-->
+                                    <!--fx:id="currentRemoteTrackingBranchHbox"-->
                                     <!--alignment="CENTER">-->
                                 <!--<padding>-->
                                     <!--<Insets right="5" left="5"/>-->
                                 <!--</padding>-->
                             <!--</HBox>-->
-                        <!--</HBox>-->
+                        <!--</GridPane>-->
                     </VBox>
                 </StackPane>
 
@@ -363,8 +275,8 @@
                     <VBox   GridPane.halignment="CENTER"
                             spacing="5"
                             alignment="CENTER"
-                            GridPane.rowIndex="2"
-                            GridPane.columnIndex="4">
+                            GridPane.rowIndex="1"
+                            GridPane.columnIndex="2">
                         <Text   text="Local Repository">
                             <font>
                                 <Font   size="25"/>
@@ -377,10 +289,10 @@
                         GridPane.rowIndex="3"
                         GridPane.columnIndex="4">
                     <Text   text="Status: "/>
-                    <HBox  fx:id="statusTextPane"
+                    <StackPane  fx:id="statusTextPane"
                            alignment="CENTER">
                         <Text   fx:id="branchStatusText"/>
-                    </HBox>
+                    </StackPane>
                 </HBox>
 
                 <!-- Merge and Add buttons -->

@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
  * tree structure. It also takes care of updating the view its given to
  * display the new tree whenever the graph is updated.
  */
-public abstract class CommitTreeModel{
+public class CommitTreeModel{
 
     // The view corresponding to this model
     CommitTreePanelView view;
@@ -52,8 +52,7 @@ public abstract class CommitTreeModel{
     public CommitTreeModel(SessionModel model, CommitTreePanelView view){
         this.sessionModel = model;
         this.view = view;
-        this.view.setName("Generic commit tree");
-        CommitTreeController.allCommitTreeModels.add(this);
+        this.view.setName("Local commit tree");
         this.commitsInModel = new ArrayList<>();
         this.localCommitsInModel = new ArrayList<>();
         this.remoteCommitsInModel = new ArrayList<>();
@@ -64,13 +63,17 @@ public abstract class CommitTreeModel{
      * @param repoHelper the repository to get the branches from
      * @return a list of all branches tracked by this model
      */
-    protected abstract List<BranchHelper> getAllBranches(RepoHelper repoHelper);
+    protected List<BranchHelper> getAllBranches(RepoHelper repoHelper) {
+        return repoHelper.getBranchModel().getBranchListUntyped(BranchModel.BranchType.LOCAL);
+    }
 
     /**
      * @param repoHelper the repository to get the commits from
      * @return a list of all commits tracked by this model
      */
-    protected abstract List<CommitHelper> getAllCommits(RepoHelper repoHelper);
+    protected List<CommitHelper> getAllCommits(RepoHelper repoHelper) {
+        return repoHelper.getAllCommits();
+    }
 
     /**
      * @param id the id to check
@@ -110,6 +113,7 @@ public abstract class CommitTreeModel{
             this.removeCommitsFromTree(updates.getCommitsToRemove());
             this.addCommitsToTree(updates.getCommitsToAdd());
             this.updateCommitFills(updates.getCommitsToUpdate());
+            this.sessionModel.getCurrentRepoHelper().getBranchModel().updateAllBranches();
             this.resetBranchHeads();
             this.updateAllRefLabels();
 
@@ -569,6 +573,11 @@ public abstract class CommitTreeModel{
         // Set the labels
         for (String commit : commitLabelMap.keySet()) {
             if(this.sessionModel.getCurrentRepoHelper().getCommit(commit) != null) {
+                if (!treeGraph.treeGraphModel.containsID(commit)) {
+                    // TODO make this not a banaid fix...
+                    //System.out.println("Does not yet contain "+commit);
+                    continue;
+                }
                 String displayLabel = repo.getCommitDescriptorString(commit, false);
                 treeGraph.treeGraphModel.setCellLabels(commit, displayLabel, commitLabelMap.get(commit));
                 treeGraph.treeGraphModel.setCurrentCellLabels(commit, this.sessionModel.getCurrentRepoHelper().getBranchModel().getCurrentAbbrevBranches());
@@ -614,7 +623,6 @@ public abstract class CommitTreeModel{
                 treeGraph.treeGraphModel.setCellLabels(id, displayLabel, branchLabels);
             }
         }
-        updateAllRefLabels();
     }
 
     public List<TagHelper> getTagsToBePushed() {

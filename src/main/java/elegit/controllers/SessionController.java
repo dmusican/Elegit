@@ -1,7 +1,8 @@
-package elegit;
+package elegit.controllers;
 
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
+import elegit.*;
 import elegit.exceptions.*;
 import elegit.treefx.TreeLayout;
 import javafx.application.Platform;
@@ -50,15 +51,15 @@ import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
 import java.awt.*;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Path;
-import java.util.ArrayList;
+import java.nio.file.Paths;
+import java.util.*;
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.function.Consumer;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
@@ -68,11 +69,6 @@ import java.util.prefs.Preferences;
  */
 public class SessionController {
 
-    public ComboBox<RepoHelper> repoDropdownSelector;
-
-    public Button loadNewRepoButton;
-    public Button removeRecentReposButton;
-    public Button openRepoDirButton;
     public Button commitButton;
     public Button pushButton;
     public Button fetchButton;
@@ -92,19 +88,16 @@ public class SessionController {
     public Node root;
 
     public Tab workingTreePanelTab;
-    public Tab indexPanelTab;
     public Tab allFilesPanelTab;
 
     public TabPane filesTabPane;
-    public TabPane indexTabPane;
 
     public WorkingTreePanelView workingTreePanelView;
     public AllFilesPanelView allFilesPanelView;
-    public StagedTreePanelView indexPanelView;
 
 	public CommitTreePanelView commitTreePanelView;
 
-    CommitTreeModel commitTreeModel;
+    public CommitTreeModel commitTreeModel;
 
     public ImageView remoteImage;
 
@@ -122,29 +115,26 @@ public class SessionController {
     public Text browserText;
     public Text needToFetch;
     public Text branchStatusText;
+//    public Text updatingText;
 
     public URL remoteURL;
 
     private DataSubmitter d;
 
     private BooleanProperty isWorkingTreeTabSelected;
-    static SimpleBooleanProperty anythingChecked;
+    public static SimpleBooleanProperty anythingChecked;
 
     private volatile boolean isRecentRepoEventListenerBlocked = false;
 
     static final Logger logger = LogManager.getLogger(SessionController.class);
 
-    public ContextMenu newRepoOptionsMenu;
     public ContextMenu pushContextMenu;
     public ContextMenu commitContextMenu;
     public ContextMenu fetchContextMenu;
 
-    public MenuItem cloneOption;
-    public MenuItem existingOption;
-
     public Hyperlink legendLink;
 
-    public HBox statusTextPane;
+    public StackPane statusTextPane;
 
     private Stage mainStage;
 
@@ -155,16 +145,19 @@ public class SessionController {
     @FXML private NotificationController notificationPaneController;
 
     // Menu Bar
-    @FXML private MenuItem loggingToggle;
-    @FXML private MenuItem gitIgnoreMenuItem;
-    @FXML private Menu repoMenu;
-    @FXML private MenuItem cloneMenuItem;
-    @FXML private MenuItem createBranchMenuItem;
-    @FXML private MenuItem commitNormalMenuItem;
-    @FXML private MenuItem normalFetchMenuItem;
-    @FXML private MenuItem pullMenuItem;
-    @FXML private MenuItem pushMenuItem;
-    @FXML private MenuItem stashMenuItem;
+    @FXML private MenuController menuController;
+    @FXML private DropdownController dropdownController;
+//    @FXML private MenuItem loggingToggle;
+//    @FXML private MenuItem gitIgnoreMenuItem;
+//    @FXML private Menu repoMenu;
+//    @FXML private MenuItem cloneMenuItem;
+//    @FXML private MenuItem createBranchMenuItem;
+//    @FXML private MenuItem commitNormalMenuItem;
+//    @FXML private MenuItem normalFetchMenuItem;
+//    @FXML private MenuItem pullMenuItem;
+//    @FXML private MenuItem pushMenuItem;
+//    @FXML private MenuItem stashMenuItem1;
+//    @FXML private MenuItem stashMenuItem2;
 
     boolean tryCommandAgainWithHTTPAuth;
     private boolean isGitStatusDone;
@@ -189,14 +182,16 @@ public class SessionController {
         // Gives other controllers acccess to this one
         CommitTreeController.sessionController = this;
         CommitController.sessionController = this;
+        menuController.setSessionController(this);
+        dropdownController.setSessionController(this);
 
         // Creates the commit tree model
-        this.commitTreeModel = new LocalCommitTreeModel(this.theModel, this.commitTreePanelView);
+        this.commitTreeModel = new CommitTreeModel(this.theModel, this.commitTreePanelView);
+        CommitTreeController.commitTreeModel = this.commitTreeModel;
 
         // Passes theModel to panel views
         this.workingTreePanelView.setSessionModel(this.theModel);
         this.allFilesPanelView.setSessionModel(this.theModel);
-        this.indexPanelView.setSessionModel(this.theModel);
 
         this.initializeLayoutParameters();
 
@@ -218,9 +213,12 @@ public class SessionController {
 
         this.initStatusText();
 
-        this.initMenuBarShortcuts();
+        //this.initMenuBarShortcuts();
 
         this.notificationPaneController.bindParentBounds(anchorRoot.heightProperty());
+
+        VBox.setVgrow(commitInfoMessageText, Priority.ALWAYS);
+        VBox.setVgrow(filesTabPane, Priority.ALWAYS);
 
         // if there are conflicting files on startup, watches them for changes
         try {
@@ -232,9 +230,6 @@ public class SessionController {
         tryCommandAgainWithHTTPAuth = false;
 
         this.preferences = Preferences.userNodeForPackage(this.getClass());
-
-        GridPane gp = (GridPane) root;
-//        gp.setGridLinesVisible(true);
     }
 
     /**
@@ -250,6 +245,9 @@ public class SessionController {
      * Helper method that creates the labels for the branch names
      */
     private void initStatusText() {
+//        updatingText.setVisible(false);
+//        branchStatusText.visibleProperty().bind(updatingText.visibleProperty().not());
+
         currentRemoteTrackingLabel = new Label("N/A");
         currentLocalBranchLabel = new Label("N/A");
         initCellLabel(currentLocalBranchLabel, currentLocalBranchHbox);
@@ -395,7 +393,7 @@ public class SessionController {
      */
     private void initializeLayoutParameters(){
         // Set minimum/maximum sizes for buttons
-        openRepoDirButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
+        //openRepoDirButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         commitButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         addButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         checkoutFileButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
@@ -410,15 +408,9 @@ public class SessionController {
         commitInfoGoToButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
 
         // Set minimum sizes for other fields and views
-        filesTabPane.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
-        indexTabPane.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         workingTreePanelView.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         allFilesPanelView.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
-        indexPanelView.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
-        final int REPO_DROPDOWN_MAX_WIDTH = 147;
-        repoDropdownSelector.setMaxWidth(REPO_DROPDOWN_MAX_WIDTH);
         tagNameField.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
-        commitInfoMessageText.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
     }
 
     /**
@@ -468,28 +460,11 @@ public class SessionController {
      * Adds graphics and tooltips to the buttons
      */
     private void setButtonIconsAndTooltips() {
-        Text openExternallyIcon = GlyphsDude.createIcon(FontAwesomeIcon.EXTERNAL_LINK);
-        this.openRepoDirButton.setGraphic(openExternallyIcon);
-        this.openRepoDirButton.setTooltip(new Tooltip("Open repository directory"));
-
-        Text plusIcon = GlyphsDude.createIcon(FontAwesomeIcon.PLUS);
-        this.loadNewRepoButton.setGraphic(plusIcon);
-
-        Text minusIcon = GlyphsDude.createIcon(FontAwesomeIcon.MINUS);
-        this.removeRecentReposButton.setGraphic(minusIcon);
-        this.removeRecentReposButton.setTooltip(new Tooltip("Clear shortcuts to recently opened repos"));
-
         Text clipboardIcon = GlyphsDude.createIcon(FontAwesomeIcon.CLIPBOARD);
         this.commitInfoNameCopyButton.setGraphic(clipboardIcon);
 
         Text goToIcon = GlyphsDude.createIcon(FontAwesomeIcon.ARROW_CIRCLE_LEFT);
         this.commitInfoGoToButton.setGraphic(goToIcon);
-
-        Text downloadIcon = GlyphsDude.createIcon(FontAwesomeIcon.CLOUD_DOWNLOAD);
-        cloneOption.setGraphic(downloadIcon);
-
-        Text folderOpenIcon = GlyphsDude.createIcon(FontAwesomeIcon.FOLDER_OPEN);
-        existingOption.setGraphic(folderOpenIcon);
 
         this.commitInfoGoToButton.setTooltip(new Tooltip(
                 "Go to selected commit"
@@ -518,7 +493,7 @@ public class SessionController {
                 "Update remote repository with local changes,\nright click for advanced options"
         ));
 
-        this.loadNewRepoButton.setTooltip(new Tooltip(
+        dropdownController.loadNewRepoButton.setTooltip(new Tooltip(
                 "Load a new repository"
         ));
         this.mergeButton.setTooltip(new Tooltip(
@@ -533,7 +508,6 @@ public class SessionController {
         try {
             workingTreePanelView.drawDirectoryView();
             allFilesPanelView.drawDirectoryView();
-            indexPanelView.drawDirectoryView();
             commitTreeModel.init();
             this.setBrowserURL();
         } catch (GitAPIException | IOException e) {
@@ -589,7 +563,7 @@ public class SessionController {
      */
     void setButtonsDisabled(boolean disable) {
         Platform.runLater(() -> {
-            openRepoDirButton.setDisable(disable);
+            dropdownController.openRepoDirButton.setDisable(disable);
             tagButton.setDisable(disable);
             commitButton.setDisable(disable);
             pushButton.setDisable(disable);
@@ -597,10 +571,9 @@ public class SessionController {
             remoteImage.setVisible(!disable);
             browserText.setVisible(!disable);
             workingTreePanelTab.setDisable(disable);
-            indexPanelTab.setDisable(disable);
             allFilesPanelTab.setDisable(disable);
-            removeRecentReposButton.setDisable(disable);
-            repoDropdownSelector.setDisable(disable);
+            dropdownController.removeRecentReposButton.setDisable(disable);
+            dropdownController.repoDropdownSelector.setDisable(disable);
             addDeleteBranchButton.setDisable(disable);
             checkoutButton.setDisable(disable);
             mergeButton.setDisable(disable);
@@ -618,34 +591,13 @@ public class SessionController {
         });
     }
 
-    /**
-     * Sets up keyboard shortcuts for menu items
-     *
-     *  Combinations:
-     *  CMD-N   Clone
-     *  Shift + CMD-B   Branch
-     *  Shift + CMD-C   Commit
-     *  Shift + CMD-F   Fetch
-     *  Shift + CMD-L   Pull
-     *  Shift + CMD-P   Push (current branch)
-     *  Shift + CMD-S   Stash (manager)
-     */
-    private void initMenuBarShortcuts() {
-        this.cloneMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.N, KeyCombination.META_DOWN));
-        this.createBranchMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.B, KeyCombination.META_DOWN, KeyCombination.SHIFT_DOWN));
-        this.commitNormalMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.C, KeyCombination.META_DOWN, KeyCombination.SHIFT_DOWN));
-        this.normalFetchMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.F, KeyCombination.META_DOWN, KeyCombination.SHIFT_DOWN));
-        this.pullMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.L, KeyCombination.META_DOWN, KeyCombination.SHIFT_DOWN));
-        this.pushMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.P, KeyCombination.META_DOWN, KeyCombination.SHIFT_DOWN));
-        this.stashMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.S, KeyCombination.META_DOWN, KeyCombination.SHIFT_DOWN));
-    }
 
     /**
      * Helper method for disabling the menu bar
      */
     private void updateMenuBarEnabledStatus(boolean disable) {
-        repoMenu.setDisable(disable);
-        gitIgnoreMenuItem.setDisable(disable);
+        menuController.repoMenu.setDisable(disable);
+        menuController.gitIgnoreMenuItem.setDisable(disable);
     }
 
     /**
@@ -662,56 +614,11 @@ public class SessionController {
         }
     }
 
-    public void handleLoggingOnMenuItem() {
-        changeLogging(Level.INFO);
-        PopOver popOver = new PopOver(new Text("Toggled logging on"));
-        popOver.show(commitTreePanelView);
-        popOver.detach();
-        popOver.setAutoHide(true);
-        logger.log(Level.INFO, "Toggled logging on");
-    }
-
-    public void handleLoggingOffMenuItem() {
-        changeLogging(Level.OFF);
-        PopOver popOver = new PopOver(new Text("Toggled logging off"));
-        popOver.setTitle("");
-        popOver.show(commitTreePanelView);
-        popOver.detach();
-        popOver.setAutoHide(true);
-    }
-
-    public void handleCommitSortTopological() {
-        TreeLayout.commitSortTopological = true;
-        try {
-            commitTreeModel.updateView();
-        } catch (Exception e) {
-            e.printStackTrace();
-            this.showGenericErrorNotification();
-        }
-    }
-
-    public void handleCommitSortDate() {
-        TreeLayout.commitSortTopological = false;
-        try {
-            commitTreeModel.updateView();
-        } catch (Exception e) {
-            e.printStackTrace();
-            this.showGenericErrorNotification();
-        }
-    }
-
-    /**
-     * Opens an editor for the .gitignore
-     */
-    public void handleGitIgnoreMenuItem() {
-        GitIgnoreEditor.show(SessionModel.getSessionModel().getCurrentRepoHelper(), null);
-    }
-
-    /**
-     * Called when the loadNewRepoButton gets pushed, shows a menu of options
+     /**
+      * Called when the loadNewRepoButton gets pushed, shows a menu of options
      */
     public void handleLoadNewRepoButton() {
-        newRepoOptionsMenu.show(this.loadNewRepoButton, Side.BOTTOM ,0, 0);
+        dropdownController.newRepoOptionsMenu.show(dropdownController.loadNewRepoButton, Side.BOTTOM ,0, 0);
     }
 
     /**
@@ -812,7 +719,7 @@ public class SessionController {
             synchronized (this) {
                 isRecentRepoEventListenerBlocked = true;
                 RepoHelper currentRepo = this.theModel.getCurrentRepoHelper();
-                this.repoDropdownSelector.setValue(currentRepo);
+                dropdownController.repoDropdownSelector.setValue(currentRepo);
                 isRecentRepoEventListenerBlocked = false;
             }
         });
@@ -827,7 +734,7 @@ public class SessionController {
             synchronized (this) {
                 isRecentRepoEventListenerBlocked = true;
                 List<RepoHelper> repoHelpers = this.theModel.getAllRepoHelpers();
-                this.repoDropdownSelector.setItems(FXCollections.observableArrayList(repoHelpers));
+                dropdownController.repoDropdownSelector.setItems(FXCollections.observableArrayList(repoHelpers));
                 isRecentRepoEventListenerBlocked = false;
             }
         });
@@ -887,7 +794,7 @@ public class SessionController {
      */
     public void loadSelectedRepo() {
         if (theModel.getAllRepoHelpers().size() == 0) return;
-        RepoHelper selectedRepoHelper = this.repoDropdownSelector.getValue();
+        RepoHelper selectedRepoHelper = dropdownController.repoDropdownSelector.getValue();
         this.handleRecentRepoMenuItem(selectedRepoHelper);
     }
 
@@ -911,11 +818,16 @@ public class SessionController {
                     try{
                         ArrayList<Path> filePathsToAdd = new ArrayList<>();
                         // Try to add all files, throw exception if there are ones that can't be added
-                        for(RepoFile checkedFile : workingTreePanelView.getCheckedFilesInDirectory()) {
-                            if (checkedFile.canAdd())
-                                filePathsToAdd.add(checkedFile.getFilePath());
-                            else
-                                throw new UnableToAddException(checkedFile.filePath.toString());
+                        if (workingTreePanelView.isSelectAllChecked()) {
+                            filePathsToAdd.add(Paths.get("."));
+                        }
+                        else {
+                            for (RepoFile checkedFile : workingTreePanelView.getCheckedFilesInDirectory()) {
+                                if (checkedFile.canAdd())
+                                    filePathsToAdd.add(checkedFile.getFilePath());
+                                else
+                                    throw new UnableToAddException(checkedFile.filePath.toString());
+                            }
                         }
 
                         theModel.getCurrentRepoHelper().addFilePaths(filePathsToAdd);
@@ -1000,13 +912,12 @@ public class SessionController {
         }
     }
 
-    /**
-     * Basic handler for the checkout button. Just checks out the given file
+    /**Basic handler for the checkout button. Just checks out the given file
      * from the index of HEAD
      *
      * @param filePath the path of the file to checkout from the index
      */
-    void handleCheckoutButton(Path filePath) {
+    public void handleCheckoutButton(Path filePath) {
         try {
             logger.info("Checkout file button clicked");
             if (! PopUpWindows.showCheckoutAlert()) throw new CancelledDialogueException();
@@ -1656,7 +1567,7 @@ public class SessionController {
      * Adds a commit reverting the selected commits
      * @param commits the commits to revert
      */
-    void handleRevertMultipleButton(List<CommitHelper> commits) {
+    public void handleRevertMultipleButton(List<CommitHelper> commits) {
         try {
             logger.info("Revert button clicked");
 
@@ -1709,7 +1620,7 @@ public class SessionController {
      * Reverts the tree to remove the changes in the most recent commit
      * @param commit: the commit to revert
      */
-    void handleRevertButton(CommitHelper commit) {
+    public void handleRevertButton(CommitHelper commit) {
         try {
             logger.info("Revert button clicked");
 
@@ -1761,7 +1672,7 @@ public class SessionController {
      *
      * @param commit the commit to reset to
      */
-    void handleResetButton(CommitHelper commit) {
+    public void handleResetButton(CommitHelper commit) {
         handleAdvancedResetButton(commit, ResetCommand.ResetType.MIXED);
     }
 
@@ -1770,7 +1681,7 @@ public class SessionController {
      * @param commit CommitHelper
      * @param type the type of reset to perform
      */
-    void handleAdvancedResetButton(CommitHelper commit, ResetCommand.ResetType type) {
+    public void handleAdvancedResetButton(CommitHelper commit, ResetCommand.ResetType type) {
         try {
             logger.info("Reset button clicked");
 
@@ -1841,6 +1752,7 @@ public class SessionController {
             if (this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
 
             this.theModel.getCurrentRepoHelper().stashSave(false);
+            gitStatus();
         } catch (GitAPIException e) {
             this.showGenericErrorNotification();
             e.printStackTrace();
@@ -1852,14 +1764,20 @@ public class SessionController {
     }
 
     /**
-     * Stashes the current changes in a new commit
+     * Applies the most recent stash
      */
     public void handleStashApplyButton() {
+        // TODO: make it clearer which stash this applies
         logger.info("Stash apply button clicked");
         try {
-            // TODO: update the stash ref to apply
-            this.theModel.getCurrentRepoHelper().stashApply("",false);
+            CommitHelper topStash = theModel.getCurrentRepoHelper().stashList().get(0);
+            this.theModel.getCurrentRepoHelper().stashApply(topStash.getId(), false);
+            gitStatus();
+        } catch (StashApplyFailureException e) {
+            showStashConflictsNotification();
         } catch (GitAPIException e) {
+            showGenericErrorNotification();
+        } catch (IOException e) {
             showGenericErrorNotification();
         }
     }
@@ -1961,8 +1879,8 @@ public class SessionController {
                         }
                         if(!helper.fetch(prune)){
                             showNoCommitsFetchedNotification();
-                        }else {
-                            if(pull) mergeFromFetch();
+                        } if (pull) {
+                            mergeFromFetch();
                         }
                         gitStatus();
                     } catch(InvalidRemoteException e){
@@ -2072,6 +1990,91 @@ public class SessionController {
         }
     }
 
+    public void handleLoggingOffMenuItem() {
+        changeLogging(Level.OFF);
+        PopOver popOver = new PopOver(new Text("Toggled logging off"));
+        popOver.setTitle("");
+        popOver.show(commitTreePanelView);
+        popOver.detach();
+        popOver.setAutoHide(true);
+    }
+
+    public void handleLoggingOnMenuItem() {
+        changeLogging(Level.INFO);
+        PopOver popOver = new PopOver(new Text("Toggled logging on"));
+        popOver.show(commitTreePanelView);
+        popOver.detach();
+        popOver.setAutoHide(true);
+        logger.log(Level.INFO, "Toggled logging on");
+    }
+
+    public void handleCommitSortTopological() {
+        TreeLayout.commitSortTopological = true;
+        try {
+            commitTreeModel.updateView();
+        } catch (Exception e) {
+            e.printStackTrace();
+            showGenericErrorNotification();
+        }
+    }
+
+    public void handleCommitSortDate() {
+        TreeLayout.commitSortTopological = false;
+        try {
+            commitTreeModel.updateView();
+        } catch (Exception e) {
+            e.printStackTrace();
+            showGenericErrorNotification();
+        }
+    }
+
+    public void handleAbout() {
+        try{
+            logger.info("About clicked");
+            // Create and display the Stage:
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/About.fxml"));
+            GridPane fxmlRoot = fxmlLoader.load();
+            AboutController aboutController = fxmlLoader.getController();
+            aboutController.setVersion(getVersion());
+
+            Stage stage = new Stage();
+            javafx.scene.image.Image img = new javafx.scene.image.Image(getClass().getResourceAsStream("/elegit/images/elegit_icon.png"));
+            stage.getIcons().add(img);
+            stage.setTitle("About");
+            stage.setScene(new Scene(fxmlRoot));
+            stage.initModality(Modality.APPLICATION_MODAL);
+            stage.setOnCloseRequest(event -> logger.info("Closed about"));
+            stage.show();
+        }catch(IOException e) {
+            this.showGenericErrorNotification();
+            e.printStackTrace();
+        }
+    }
+
+    String getVersion() {
+        String path = "/version.prop";
+        InputStream stream = getClass().getResourceAsStream(path);
+        if (stream == null)
+            return "UNKNOWN";
+        Properties props = new Properties();
+        try {
+            props.load(stream);
+            stream.close();
+            return (String) props.get("version");
+        } catch (IOException e) {
+            return "UNKNOWN";
+        }
+    }
+
+
+    /**
+     * Opens an editor for the .gitignore
+     */
+    public void handleGitIgnoreMenuItem() {
+        GitIgnoreEditor.show(SessionModel.getSessionModel().getCurrentRepoHelper(), null);
+    }
+
+
     public void handleNewBranchButton() {
         handleCreateOrDeleteBranchButton("create");
     }
@@ -2084,9 +2087,11 @@ public class SessionController {
         handleCreateOrDeleteBranchButton("remote");
     }
 
+
     public void handleCreateOrDeleteBranchButton() {
         handleCreateOrDeleteBranchButton("create");
     }
+
 
     /**
      * Pops up a window where the user can create a new branch
@@ -2167,10 +2172,49 @@ public class SessionController {
     }
 
     /**
+     * Updates the panel views when the "git status" button is clicked.
+     * Highlights the current HEAD.
+     */
+//    public void onRefreshButton(){
+//        logger.info("Git status button clicked");
+//        showUpdatingText(true);
+//        this.gitStatus();
+//        showUpdatingText(false);
+//        CommitTreeController.focusCommitInGraph(theModel.getCurrentRepoHelper().getBranchModel().getCurrentBranchHead());
+//    }
+
+    /**
+     * Replaces branch status text with "updating" for 0.75 seconds OR the duration of gitStatus()
+     */
+//    private void showUpdatingText(boolean setVisible) {
+//        if(setVisible){
+//            isGitStatusDone = false;
+//            isTimerDone = false;
+//            updatingText.setVisible(true);
+//
+//            Timer timer = new Timer(true);
+//            timer.schedule(new TimerTask() {
+//                @Override
+//                public void run() {
+//                    if(isGitStatusDone){
+//                        updatingText.setVisible(false);
+//                    }
+//                    isTimerDone = true;
+//                }
+//            }, 750);
+//        }else {
+//            isGitStatusDone = true;
+//            if(isTimerDone) {
+//                updatingText.setVisible(false);
+//            }
+//        }
+//    }
+
+    /**
      * Updates the trees, changed files, and branch information. Equivalent
      * to 'git status'
      */
-    void gitStatus(){
+    public void gitStatus(){
         RepositoryMonitor.pause();
 
         Platform.runLater(() -> {
@@ -2184,7 +2228,6 @@ public class SessionController {
                 commitTreeModel.update();
                 workingTreePanelView.drawDirectoryView();
                 allFilesPanelView.drawDirectoryView();
-                indexPanelView.drawDirectoryView();
                 this.theModel.getCurrentRepoHelper().getTagModel().updateTags();
                 updateStatusText();
             } catch(Exception e) {
@@ -2299,7 +2342,7 @@ public class SessionController {
         popover.setTitle("Manage Recent Repositories");
 
         // shows the popover
-        popover.show(this.removeRecentReposButton);
+        popover.show(dropdownController.removeRecentReposButton);
 
         removeSelectedButton.setOnAction(e -> {
             this.handleRemoveReposButton(repoCheckListView.getCheckModel().getCheckedItems());
@@ -2322,7 +2365,7 @@ public class SessionController {
                     .get(newIndex);
 
             handleRecentRepoMenuItem(newCurrentRepo);
-            repoDropdownSelector.setValue(newCurrentRepo);
+            dropdownController.repoDropdownSelector.setValue(newCurrentRepo);
 
             this.refreshRecentReposInDropdown();
 
@@ -2397,7 +2440,7 @@ public class SessionController {
      * Displays information about the commit with the given id
      * @param id the selected commit
      */
-    void selectCommit(String id){
+    public void selectCommit(String id){
         Platform.runLater(() -> {
             CommitHelper commit = this.theModel.getCurrentRepoHelper().getCommit(id);
 
@@ -2415,7 +2458,7 @@ public class SessionController {
     /**
      * Stops displaying commit information
      */
-    void clearSelectedCommit(){
+    public void clearSelectedCommit(){
         Platform.runLater(() -> {
             commitInfoMessageText.setText("");
             commitInfoMessageText.setVisible(false);
@@ -2439,7 +2482,7 @@ public class SessionController {
         });
     }
 
-    private void showGenericErrorNotification() {
+    void showGenericErrorNotification() {
         Platform.runLater(()-> {
             logger.warn("Generic error warning.");
             notificationPaneController.addNotification("Sorry, there was an error.");
@@ -2722,6 +2765,16 @@ public class SessionController {
         notificationPaneController.addNotification("That branch has to be merged before you can do that.");
     }
 
+    private void showStashConflictsNotification() {
+        Platform.runLater(() -> {
+            logger.warn("Stash apply conflicts warning");
+
+            EventHandler handler = event -> quickStashSave();
+            this.notificationPaneController.addNotification("You can't apply that stash because there would be conflicts. " +
+                    "Stash your changes or resolve conflicts first.", "stash", handler);
+        });
+    }
+
     private void showCheckoutConflictsNotification(List<String> conflictingPaths) {
         Platform.runLater(() -> {
             logger.warn("Checkout conflicts warning");
@@ -2801,7 +2854,7 @@ public class SessionController {
      * @throws IOException
      * @throws ClassNotFoundException
      */
-    void loadLogging() {
+    public void loadLogging() {
         Platform.runLater(() -> {
             Level storedLevel = getLoggingLevel();
             if (storedLevel == null) {

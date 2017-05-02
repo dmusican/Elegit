@@ -106,7 +106,7 @@ public class TagHelper extends RefHelper{
         this.commit = c;
     }
 
-    String getCommitId() {
+    public String getCommitId() {
         return this.commit.getObjectId().getName();
     }
 

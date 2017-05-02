@@ -4,7 +4,7 @@
 <?import javafx.scene.text.Text?>
 <?import java.net.URL?>
 
-<AnchorPane fx:controller="elegit.BranchCheckoutController"
+<AnchorPane fx:controller="elegit.controllers.BranchCheckoutController"
                   xmlns:fx="http://javafx.com/fxml"
                   fx:id="anchorRoot">
 
