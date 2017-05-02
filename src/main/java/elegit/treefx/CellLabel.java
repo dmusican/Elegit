@@ -37,7 +37,7 @@ public class CellLabel extends HBox {
         this.isRemote = false;
 
         setCommitIndicator();
-        getLabel();
+        setLabelName();
         ImageView img = getImage();
 
         // Add children to this label
@@ -65,7 +65,7 @@ public class CellLabel extends HBox {
         commitIndicator.setFill(Color.web(isCurrent ? "#FFFFFF" : "333333"));
     }
 
-    protected Label getLabel() {
+    protected Label setLabelName() {
         assert Platform.isFxApplicationThread();
         label = new Label();
         label.getStyleClass().clear();
@@ -78,6 +78,10 @@ public class CellLabel extends HBox {
         label.getStyleClass().add("cell-label");
         label.setId(isCurrent ? "current" : "regular");
 
+        return label;
+    }
+
+    protected Label getLabelName() {
         return label;
     }
 

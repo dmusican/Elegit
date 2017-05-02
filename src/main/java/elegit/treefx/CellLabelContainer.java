@@ -152,8 +152,9 @@ public class CellLabelContainer extends GridPane {
         for (Node m : getChildren()) {
             if (m instanceof HBox) {
                 for (Node n : ((HBox) m).getChildren()) {
-                    if (n instanceof CellLabel && labels.contains(((CellLabel) n).getLabel().getText()))
-                        ((CellLabel) n).setCurrent(true);
+                    if (n instanceof CellLabel)
+                        if (labels.contains(((CellLabel) n).setLabelName().getText()))
+                            ((CellLabel) n).setCurrent(true);
                 }
             }
         }
@@ -186,9 +187,10 @@ public class CellLabelContainer extends GridPane {
         for (Node m : getChildren()) {
             if (m instanceof HBox) {
                 for (Node n : ((HBox) m).getChildren()) {
-                    if (n instanceof CellLabel && labels.contains(((CellLabel) n).getLabel().getText())) {
-                        ((CellLabel) n).setRemote(true);
-                    }
+                    if (n instanceof CellLabel)
+                        if (labels.contains(((CellLabel) n).setLabelName().getText())) {
+                            ((CellLabel) n).setRemote(true);
+                        }
                 }
             }
         }
