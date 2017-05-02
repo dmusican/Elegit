@@ -2,7 +2,6 @@ package elegit.treefx;
 
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
-import elegit.CommitTreeModel;
 import elegit.RefHelper;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
@@ -23,15 +22,11 @@ public class CellLabel extends HBox {
     private String name;
     private RefHelper refHelper;
     boolean isCurrent, isTag, isRemote;
-    Text pointer;
+    Text commitIndicator;
     ImageView image;
     Label label;
     ContextMenu contextMenu;
     public static final int MAX_CHAR_PER_LABEL=25;
-
-    CellLabel(RefHelper refHelper, boolean isCurrent) {
-        this(refHelper, isCurrent, false);
-    }
 
     CellLabel(RefHelper refHelper, boolean isCurrent, boolean isTag) {
         assert Platform.isFxApplicationThread();
@@ -41,17 +36,17 @@ public class CellLabel extends HBox {
         this.isTag = isTag;
         this.isRemote = false;
 
-        Text pointer = getPointer();
+        setCommitIndicator();
         Label label = getLabel();
         ImageView img = getImage();
 
         // Add children to this label
-        this.getChildren().add(pointer);
+        this.getChildren().add(commitIndicator);
         this.getChildren().add(label);
         this.getChildren().add(img);
 
         // Add margins to the children
-        HBox.setMargin(pointer, new Insets(5, 2, 0, 5));
+        HBox.setMargin(commitIndicator, new Insets(5, 2, 0, 5));
         HBox.setMargin(img, new Insets(2, 2, 0, 0));
         HBox.setMargin(label, new Insets(0, 5, 0, 0));
 
@@ -62,13 +57,12 @@ public class CellLabel extends HBox {
     }
 
     /**
-     * @return the pointer with the right color based on the
+     * assign commitIndicator with right color
      */
-    private Text getPointer() {
+    private void setCommitIndicator() {
         assert Platform.isFxApplicationThread();
-        pointer = GlyphsDude.createIcon(FontAwesomeIcon.CHEVRON_LEFT);
-        pointer.setFill(Color.web(isCurrent ? "#FFFFFF" : "333333"));
-        return pointer;
+        commitIndicator = GlyphsDude.createIcon(FontAwesomeIcon.CHEVRON_LEFT);
+        commitIndicator.setFill(Color.web(isCurrent ? "#FFFFFF" : "333333"));
     }
 
     protected Label getLabel() {
@@ -153,7 +147,7 @@ public class CellLabel extends HBox {
 
         this.getChildren().get(1).setId(isCurrent ? "current" : "regular");
         ((ImageView) this.getChildren().get(2)).setImage(new Image(isCurrent ? "elegit/images/branch_white.png" : "elegit/images/branch.png"));
-        pointer.setFill(Color.web(isCurrent ? "#FFFFFF" : "333333"));
+        commitIndicator.setFill(Color.web(isCurrent ? "#FFFFFF" : "333333"));
         this.setId(isCurrent ? "current" : isTag ? "tag" : "regular");
     }
 
