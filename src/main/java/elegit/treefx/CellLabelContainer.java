@@ -18,8 +18,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static elegit.treefx.Cell.BOX_SIZE;
-
 /**
  * Class for the container that shows all the labels for a given cell
  */
@@ -42,21 +40,10 @@ public class CellLabelContainer extends GridPane {
      */
     public void translate(double x, double y) {
         assert Platform.isFxApplicationThread();
-        setTranslateX(x+BOX_SIZE+10);
-        setTranslateY(y+BOX_SIZE-5-(this.getHeight()-25));
-    }
-
-    /**
-     * Helper method to add tooltips to labels that are too long
-     * @param l the label to add a tooltip for
-     * @param text the text of the tooltip
-     */
-    void addToolTip(Label l, String text) {
-        assert Platform.isFxApplicationThread();
-        Tooltip tooltip = new Tooltip(text);
-        tooltip.setWrapText(true);
-        tooltip.setMaxWidth(350);
-        Tooltip.install(l, tooltip);
+        //setTranslateX(x+Cell.BOX_SIZE+10);
+        //setTranslateY(y+Cell.BOX_SIZE-5-(this.getHeight()-25));
+        setTranslateX(x);
+        setTranslateY(y);
     }
 
     /**
@@ -73,7 +60,6 @@ public class CellLabelContainer extends GridPane {
             return;
         }
 
-        Label showExtended = new Label();
         basicLabels = new HBox(5);
         extendedLabels = new ArrayList<>();
 
@@ -108,6 +94,7 @@ public class CellLabelContainer extends GridPane {
             col++;
         }
 
+        Label showExtended = new Label();
         showExtended.setVisible(false);
         if (row>0) {
             showExtended.setVisible(true);
