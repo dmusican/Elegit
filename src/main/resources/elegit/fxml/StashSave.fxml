@@ -2,7 +2,6 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import java.net.URL?>
-<?import javafx.geometry.*?>
 
 
     <AnchorPane fx:controller="elegit.controllers.StashSaveController"

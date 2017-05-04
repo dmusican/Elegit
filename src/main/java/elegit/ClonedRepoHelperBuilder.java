@@ -73,10 +73,8 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
             String remoteURL = result.get().getValue();
 
             RepoHelperBuilder.AuthDialogResponse response = RepoHelperBuilder.getAuthCredentialFromDialog();
-            RepoHelper repoHelper = cloneRepositoryWithChecks(remoteURL, destinationPath, response,
+            return cloneRepositoryWithChecks(remoteURL, destinationPath, response,
                                                               new ElegitUserInfoGUI());
-
-            return repoHelper;
         } else {
             logger.info("Cloned repo helper dialog canceled");
             // This happens when the user pressed cancel.
@@ -100,12 +98,7 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
         dialog.getDialogPane().getButtonTypes().addAll(cloneButtonType, ButtonType.CANCEL);
         Node cloneButton = dialog.getDialogPane().lookupButton(cloneButtonType);
         cloneButton.setDisable(true);   // starts off as disabled
-        dialog.setOnCloseRequest(new EventHandler<DialogEvent>() {
-            @Override
-            public void handle(DialogEvent event) {
-                logger.info("Closed clone from remote dialog");
-            }
-        });
+        dialog.setOnCloseRequest(event -> logger.info("Closed clone from remote dialog"));
     }
 
     private void arrangeDialogFields(Dialog<Pair<String, String>> dialog) {
@@ -132,7 +125,7 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
         Text folderIcon = GlyphsDude.createIcon(FontAwesomeIcon.FOLDER_OPEN);
         chooseDirectoryButton.setGraphic(folderIcon);
         chooseDirectoryButton.setOnAction(t -> {
-            File cloneRepoDirectory = this.getDirectoryPathFromChooser("Choose clone destination folder", null);
+            File cloneRepoDirectory = this.getDirectoryPathFromChooser("Choose clone destination folder");
             if (cloneRepoDirectory != null) {
                 enclosingFolderField.setText(cloneRepoDirectory.toString());
                 enclosingDirectoryPathText.setText(cloneRepoDirectory.toString() + File.separator);
@@ -185,9 +178,7 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
                 .or(remoteURLField.textProperty().isEmpty())
                 .or(invalidRepoNameProperty));
 
-        repoNameField.textProperty().addListener((observable, oldValue, newValue) -> {
-            invalidRepoNameProperty.set(newValue.trim().contains("/") || newValue.trim().contains("."));
-        });
+        repoNameField.textProperty().addListener((observable, oldValue, newValue) -> invalidRepoNameProperty.set(newValue.trim().contains("/") || newValue.trim().contains(".")));
 
 
         // Convert the result to a destination-remote pair when the clone button is clicked.

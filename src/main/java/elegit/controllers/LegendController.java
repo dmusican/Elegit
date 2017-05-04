@@ -1,6 +1,5 @@
 package elegit.controllers;
 
-import elegit.LegendModel;
 import elegit.SessionModel;
 import javafx.fxml.FXML;
 import javafx.scene.layout.GridPane;
@@ -16,7 +15,6 @@ public class LegendController {
     private GridPane gridPane;
 
     private SessionModel sessionModel;
-    private LegendModel legendModel;
 
     public void initialize() throws Exception {
         this.sessionModel = SessionModel.getSessionModel();

@@ -3,8 +3,6 @@ package elegit.controllers;
 import elegit.CommitHelper;
 import elegit.RepoHelper;
 import elegit.SessionModel;
-import elegit.controllers.NotificationController;
-import elegit.controllers.SessionController;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.event.EventHandler;
