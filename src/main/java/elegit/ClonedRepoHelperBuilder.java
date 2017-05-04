@@ -134,6 +134,12 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
 
         repoNameField = new TextField();
         repoNameField.setPromptText("Repository name...");
+        remoteURLField.textProperty().addListener((obs, oldText, newText) -> {
+            if (newText.endsWith(".git")) {
+                String[] urlComponents = newText.substring(0, newText.length() - 4).split("/");
+                repoNameField.setText(urlComponents[urlComponents.length - 1]);
+            }
+        });
         if(prevRepoName != null) repoNameField.setText(prevRepoName);
 
         int instructionsRow = 0;
