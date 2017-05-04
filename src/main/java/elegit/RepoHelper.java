@@ -345,6 +345,7 @@ public class RepoHelper {
      * @param filePath the file to check out
      */
     public void checkoutFile(Path filePath) throws GitAPIException {
+        System.out.println("checking out file");
         Git git = new Git(this.repo);
         git.checkout().addPath(filePath.toString()).call();
         git.close();
@@ -356,7 +357,7 @@ public class RepoHelper {
      */
     public void checkoutFiles(List<Path> filePaths) throws GitAPIException {
         Git git = new Git(this.repo);
-        CheckoutCommand checkout = git.checkout().setStartPoint("HEAD");
+        CheckoutCommand checkout = git.checkout();
         for (Path filePath : filePaths)
             checkout.addPath(filePath.toString());
         checkout.call();

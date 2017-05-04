@@ -919,7 +919,8 @@ public class SessionController {
         }
     }
 
-    /**Basic handler for the checkout button. Just checks out the given file
+    /**
+     * Basic handler for the checkout button. Just checks out the given file
      * from the index of HEAD
      *
      * @param filePath the path of the file to checkout from the index
@@ -952,7 +953,6 @@ public class SessionController {
             if(!this.theModel.getCurrentRepoHelper().exists()) throw new MissingRepoException();
 
             if(!workingTreePanelView.isAnyFileSelected()) throw new NoFilesSelectedToAddException();
-
             if (! PopUpWindows.showCheckoutAlert()) throw new CancelledDialogueException();
             ArrayList<Path> filePathsToCheckout = new ArrayList<>();
             // Try to add all files, throw exception if there are ones that can't be added
@@ -982,6 +982,7 @@ public class SessionController {
      */
     public void handleCheckoutFilesButton(CommitHelper commitHelper) {
         try{
+            System.out.println("Loading checkoutfiles pane");
             logger.info("Checkout files from commit button clicked");
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
 

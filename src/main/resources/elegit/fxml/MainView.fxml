@@ -133,15 +133,11 @@
                     </Tab>
                 </TabPane>
 
-                <!-- Add and remove buttons block -->
+                <!-- Remove button block -->
                 <HBox   spacing="10"
                         GridPane.halignment="CENTER"
                         GridPane.rowIndex="5"
                         alignment="CENTER">
-                    <Button id="codeButton"
-                            fx:id="checkoutFileButton"
-                            text="Checkout Files"
-                            onAction="#handleCheckoutButton"/>
                     <Button id="codeButton"
                             fx:id="removeButton"
                             text="Remove"
@@ -250,6 +246,21 @@
                     </StackPane>
                 </HBox>
 
+                <!-- Checkout Files button -->
+                <ArrowButton id="codeButton"
+                             fx:id="checkoutFileButton"
+                             text="Checkout Files"
+                             arrowLeft="true"
+                             onAction="#handleCheckoutButton"
+                             GridPane.rowIndex="5"
+                             GridPane.columnIndex="1"
+                             GridPane.valignment="TOP"
+                             GridPane.halignment="LEFT">
+                    <GridPane.margin>
+                        <Insets left="-60" right="-60" top="20"/>
+                    </GridPane.margin>
+                </ArrowButton>
+
                 <!-- Merge and Add buttons -->
                 <Button text="Merge"
                         fx:id="mergeButton"
@@ -277,7 +288,7 @@
                     </GridPane.margin>
                 </ArrowButton>
 
-                <!-- Commit and merge buttons -->
+                <!-- Commit button -->
                 <ArrowButton id="codeButton"
                              fx:id="commitButton"
                              text="Commit"
