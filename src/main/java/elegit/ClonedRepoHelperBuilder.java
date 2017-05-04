@@ -171,7 +171,7 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
 
     }
 
-    private String guessRepoName(String url) {
+    public static String guessRepoName(String url) {
         if (url.endsWith(".git")) {
             url = url.substring(0, url.length() - 4);
         }
