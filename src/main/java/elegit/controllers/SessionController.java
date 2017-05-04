@@ -21,6 +21,7 @@ import javafx.scene.control.*;
 import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.CheckMenuItem;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
@@ -148,7 +149,8 @@ public class SessionController {
     // Menu Bar
     @FXML private MenuController menuController;
     @FXML private DropdownController dropdownController;
-//    @FXML private MenuItem loggingToggle;
+//    @FXML public CheckMenuItem loggingToggle;
+//    @FXML public CheckMenuItem commitSortToggle;
 //    @FXML private MenuItem gitIgnoreMenuItem;
 //    @FXML private Menu repoMenu;
 //    @FXML private MenuItem cloneMenuItem;
@@ -1993,24 +1995,17 @@ public class SessionController {
         }
     }
 
-    public void handleLoggingOffMenuItem() {
+
+    public void handleLoggingOff() {
         changeLogging(Level.OFF);
-        PopOver popOver = new PopOver(new Text("Toggled logging off"));
-        popOver.setTitle("");
-        popOver.show(commitTreePanelView);
-        popOver.detach();
-        popOver.setAutoHide(true);
     }
 
-    public void handleLoggingOnMenuItem() {
+    public void handleLoggingOn() {
         changeLogging(Level.INFO);
-        PopOver popOver = new PopOver(new Text("Toggled logging on"));
-        popOver.show(commitTreePanelView);
-        popOver.detach();
-        popOver.setAutoHide(true);
         logger.log(Level.INFO, "Toggled logging on");
     }
 
+    // why are the commitSort methods so slow?
     public void handleCommitSortTopological() {
         TreeLayout.commitSortTopological = true;
         try {
@@ -2593,6 +2588,7 @@ public class SessionController {
         });
 
     }
+
     private void showTransportExceptionNotification(NotificationController nc, TransportException e) {
         Platform.runLater(() -> {
 
@@ -2615,8 +2611,6 @@ public class SessionController {
 
         });
     }
-
-
 
     private void showRepoWasNotLoadedNotification() {
         Platform.runLater(() -> {
@@ -2864,6 +2858,7 @@ public class SessionController {
                 storedLevel = PopUpWindows.getLoggingPermissions() ? Level.INFO : Level.OFF;
             }
             changeLogging(storedLevel);
+            menuController.loggingToggle.setSelected(storedLevel.equals(org.apache.logging.log4j.Level.INFO));
             logger.info("Starting up.");
         });
     }
