@@ -6,7 +6,7 @@
 
     <groupId>elegit</groupId>
     <artifactId>Elegit</artifactId>
-    <version>1.1</version>
+    <version>1.1.1</version>
 
     <packaging>jar</packaging>
 
@@ -26,10 +26,26 @@
                     <vendor>The Elegit Team</vendor>
                     <appName>Elegit</appName>
                     <mainClass>elegit.Main</mainClass>
-                    <nativeReleaseVersion>1.1</nativeReleaseVersion>
+                    <nativeReleaseVersion>${project.version}</nativeReleaseVersion>
                 </configuration>
             </plugin>
         </plugins>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+                <includes>
+                    <include>**/version.prop</include>
+                </includes>
+            </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>false</filtering>
+                <excludes>
+                    <exclude>**/version.prop</exclude>
+                </excludes>
+            </resource>
+        </resources>
     </build>
 
     <dependencies>

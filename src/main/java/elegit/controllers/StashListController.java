@@ -1,5 +1,8 @@
-package elegit;
+package elegit.controllers;
 
+import elegit.CommitHelper;
+import elegit.RepoHelper;
+import elegit.SessionModel;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.event.EventHandler;

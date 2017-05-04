@@ -1,7 +1,8 @@
-package elegit;
+package elegit.controllers;
 
+import elegit.SessionModel;
 import javafx.fxml.FXML;
-import javafx.scene.layout.GridPane;
+import javafx.scene.text.Text;
 
 /**
  *
@@ -9,14 +10,17 @@ import javafx.scene.layout.GridPane;
  * what all of the
  *
  */
-public class LegendController {
+public class AboutController {
     @FXML
-    private GridPane gridPane;
+    private Text version;
 
     private SessionModel sessionModel;
-    private LegendModel legendModel;
 
     public void initialize() throws Exception {
         this.sessionModel = SessionModel.getSessionModel();
+    }
+
+    public void setVersion(String version) {
+        this.version.setText(this.version.getText()+" "+version);
     }
 }

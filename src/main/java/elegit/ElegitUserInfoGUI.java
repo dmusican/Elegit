@@ -1,14 +1,10 @@
 package elegit;
 
-import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.UserInfo;
-import elegit.exceptions.CancelledAuthorizationException;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.util.Optional;
 import java.util.concurrent.Callable;
@@ -24,19 +20,19 @@ public class ElegitUserInfoGUI implements UserInfo {
     private Optional<String> password;
     private Optional<String> passphrase;
 
-    public ElegitUserInfoGUI() {
+    ElegitUserInfoGUI() {
         password = Optional.empty();
         passphrase = Optional.empty();
     }
 
     @Override
     public String getPassphrase() {
-        return passphrase.get();
+        return passphrase.orElse("");
     }
 
     @Override
     public String getPassword() {
-        return password.get();
+        return password.orElse("");
     }
 
     @Override
@@ -58,50 +54,43 @@ public class ElegitUserInfoGUI implements UserInfo {
     }
 
     private Optional<String> prompt(String s, String title, String headerText, String contentText) {
-        FutureTask<Optional<String>> futureTask = new FutureTask<>(new Callable<Optional<String>>() {
-            @Override
-            public Optional<String> call() throws Exception {
-                System.out.println(s);
+        FutureTask<Optional<String>> futureTask = new FutureTask<>(() -> {
+            System.out.println(s);
 
-                Dialog<String> dialog = new Dialog<>();
+            Dialog<String> dialog = new Dialog<>();
 
-                GridPane grid = new GridPane();
-                grid.setHgap(10);
-                grid.setVgap(10);
-                grid.setPadding(new Insets(10, 10, 10, 10));
+            GridPane grid = new GridPane();
+            grid.setHgap(10);
+            grid.setVgap(10);
+            grid.setPadding(new Insets(10, 10, 10, 10));
 
-                PasswordField passwordField = new PasswordField();
-                grid.add(passwordField,2,0);
+            PasswordField passwordField = new PasswordField();
+            grid.add(passwordField,2,0);
 
-                dialog.getDialogPane().setContent(grid);
+            dialog.getDialogPane().setContent(grid);
 
-                dialog.setTitle(title);
-                dialog.setHeaderText(s);
-                dialog.setContentText(s);
+            dialog.setTitle(title);
+            dialog.setHeaderText(s);
+            dialog.setContentText(s);
 
-                dialog.getDialogPane().getButtonTypes().setAll(ButtonType.OK, ButtonType.CANCEL);
+            dialog.getDialogPane().getButtonTypes().setAll(ButtonType.OK, ButtonType.CANCEL);
 
-                dialog.setResultConverter(dialogButton -> {
-                    if (dialogButton == ButtonType.OK)
-                        return passwordField.getText();
-                    else {
-                        return null;
-                    }
-                });
+            dialog.setResultConverter(dialogButton -> {
+                if (dialogButton == ButtonType.OK)
+                    return passwordField.getText();
+                else {
+                    return null;
+                }
+            });
 
-                Optional<String> result = dialog.showAndWait();
-                return result;
-
-            }
+            return dialog.showAndWait();
 
         });
         Platform.runLater(futureTask);
         Optional<String> result = Optional.of("");
         try {
             return futureTask.get();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
+        } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
         }
         return result;
@@ -118,9 +107,9 @@ public class ElegitUserInfoGUI implements UserInfo {
 
         alert.getButtonTypes().setAll(ButtonType.YES, ButtonType.NO);
         Optional<ButtonType> result = alert.showAndWait();
-        if (result.get() == ButtonType.YES)
+        if (result.orElse(null) == ButtonType.YES)
             return true;
-        else if (result.get() == ButtonType.NO)
+        else if (result.orElse(null) == ButtonType.NO)
             return false;
         else {
             SessionModel.logger.error("Internal error with SSH yes/no prompt.");
@@ -138,6 +127,5 @@ public class ElegitUserInfoGUI implements UserInfo {
 
         alert.getButtonTypes().setAll(ButtonType.OK);
         alert.showAndWait();
-        return;
     }
 }

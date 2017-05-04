@@ -1,7 +1,5 @@
 package elegit;
 
-import javafx.scene.control.Tooltip;
-
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -10,14 +8,14 @@ import java.nio.file.Paths;
  */
 public class IgnoredRepoFile extends RepoFile {
 
-    public IgnoredRepoFile(Path filePath, RepoHelper repo) {
+    private IgnoredRepoFile(Path filePath, RepoHelper repo) {
         super(filePath, repo);
         diffButton.setText("IGNORED");
         diffButton.setId("ignoredDiffButton");
         diffButton.setTooltip(getToolTip("This file is being ignored because it's in your .gitignore.\nRemove it from your .gitignore if you ant to add it to git"));
     }
 
-    public IgnoredRepoFile(String filePathString, RepoHelper repo) {
+    IgnoredRepoFile(String filePathString, RepoHelper repo) {
         this(Paths.get(filePathString), repo);
     }
 

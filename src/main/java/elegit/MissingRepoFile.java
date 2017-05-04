@@ -1,11 +1,5 @@
 package elegit;
 
-import elegit.exceptions.MissingRepoException;
-import javafx.scene.control.Tooltip;
-import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.RmCommand;
-import org.eclipse.jgit.api.errors.GitAPIException;
-
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -14,14 +8,14 @@ import java.nio.file.Paths;
  */
 public class MissingRepoFile extends RepoFile {
 
-    public MissingRepoFile(Path filePath, RepoHelper repo) {
+    MissingRepoFile(Path filePath, RepoHelper repo) {
         super(filePath, repo);
         diffButton.setText("MISSING");
         diffButton.setId("missingDiffButton");
         diffButton.setTooltip(getToolTip("This file is missing."));
     }
 
-    public MissingRepoFile(String filePathString, RepoHelper repo) {
+    MissingRepoFile(String filePathString, RepoHelper repo) {
         this(Paths.get(filePathString), repo);
     }
 

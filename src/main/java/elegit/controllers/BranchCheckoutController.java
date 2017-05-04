@@ -1,7 +1,8 @@
-package elegit;
+package elegit.controllers;
 
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
+import elegit.*;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
@@ -45,7 +46,7 @@ public class BranchCheckoutController {
     @FXML private NotificationController notificationPaneController;
 
     private SessionModel sessionModel;
-    private LocalCommitTreeModel localCommitTreeModel;
+    private CommitTreeModel localCommitTreeModel;
     private Stage stage;
 
     static final Logger logger = LogManager.getLogger();
@@ -58,12 +59,7 @@ public class BranchCheckoutController {
         this.repoHelper = this.sessionModel.getCurrentRepoHelper();
         this.repo = this.repoHelper.getRepo();
         this.branchModel = repoHelper.getBranchModel();
-        for (CommitTreeModel commitTreeModel : CommitTreeController.allCommitTreeModels) {
-            if (commitTreeModel.getViewName().equals(LocalCommitTreeModel
-                    .LOCAL_TREE_VIEW_NAME)) {
-                this.localCommitTreeModel = (LocalCommitTreeModel)commitTreeModel;
-            }
-        }
+        this.localCommitTreeModel = CommitTreeController.commitTreeModel;
         this.remoteListView.setItems(FXCollections.observableArrayList(branchModel.getRemoteBranchesTyped()));
         this.localListView.setItems(FXCollections.observableArrayList(branchModel.getLocalBranchesTyped()));
 

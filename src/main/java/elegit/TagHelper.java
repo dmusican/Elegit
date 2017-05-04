@@ -1,6 +1,5 @@
 package elegit;
 
-import elegit.treefx.CellLabel;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
@@ -106,7 +105,7 @@ public class TagHelper extends RefHelper{
         this.commit = c;
     }
 
-    String getCommitId() {
+    public String getCommitId() {
         return this.commit.getObjectId().getName();
     }
 
@@ -121,20 +120,10 @@ public class TagHelper extends RefHelper{
         ButtonType confirm = new ButtonType("Yes", ButtonBar.ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().addAll(confirm, ButtonType.CANCEL);
 
-        dialog.setResultConverter(dialogButton -> {
-            if (dialogButton == confirm) {
-                return true;
-            }
-            return false;
-        });
+        dialog.setResultConverter(dialogButton -> dialogButton == confirm);
 
         Optional<Boolean> result = dialog.showAndWait();
 
-        if (result.isPresent()) {
-            return result.get();
-        }
-        else {
-            return false;
-        }
+        return result.orElse(false);
     }
 }

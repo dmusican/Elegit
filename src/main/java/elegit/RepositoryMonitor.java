@@ -1,6 +1,6 @@
 package elegit;
 
-import javafx.application.Platform;
+import elegit.controllers.SessionController;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import org.eclipse.jgit.api.errors.GitAPIException;
