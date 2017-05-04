@@ -88,14 +88,17 @@ public class SessionController {
     public Node root;
 
     public Tab workingTreePanelTab;
+    public Tab indexPanelTab;
     public Tab allFilesPanelTab;
 
     public TabPane filesTabPane;
+    public TabPane indexTabPane;
 
     public WorkingTreePanelView workingTreePanelView;
     public AllFilesPanelView allFilesPanelView;
+    public StagedTreePanelView indexPanelView;
 
-	public CommitTreePanelView commitTreePanelView;
+    public CommitTreePanelView commitTreePanelView;
 
     public CommitTreeModel commitTreeModel;
 
@@ -192,6 +195,7 @@ public class SessionController {
         // Passes theModel to panel views
         this.workingTreePanelView.setSessionModel(this.theModel);
         this.allFilesPanelView.setSessionModel(this.theModel);
+        this.indexPanelView.setSessionModel(this.theModel);
 
         this.initializeLayoutParameters();
 
@@ -410,6 +414,7 @@ public class SessionController {
         // Set minimum sizes for other fields and views
         workingTreePanelView.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         allFilesPanelView.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
+        indexPanelView.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         tagNameField.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
     }
 
@@ -508,6 +513,7 @@ public class SessionController {
         try {
             workingTreePanelView.drawDirectoryView();
             allFilesPanelView.drawDirectoryView();
+            indexPanelView.drawDirectoryView();
             commitTreeModel.init();
             this.setBrowserURL();
         } catch (GitAPIException | IOException e) {
@@ -572,6 +578,7 @@ public class SessionController {
             browserText.setVisible(!disable);
             workingTreePanelTab.setDisable(disable);
             allFilesPanelTab.setDisable(disable);
+            indexPanelTab.setDisable(disable);
             dropdownController.removeRecentReposButton.setDisable(disable);
             dropdownController.repoDropdownSelector.setDisable(disable);
             addDeleteBranchButton.setDisable(disable);
@@ -2228,6 +2235,7 @@ public class SessionController {
                 commitTreeModel.update();
                 workingTreePanelView.drawDirectoryView();
                 allFilesPanelView.drawDirectoryView();
+                indexPanelView.drawDirectoryView();
                 this.theModel.getCurrentRepoHelper().getTagModel().updateTags();
                 updateStatusText();
             } catch(Exception e) {

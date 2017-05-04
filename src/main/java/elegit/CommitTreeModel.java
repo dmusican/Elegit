@@ -532,7 +532,7 @@ public class CommitTreeModel{
      * @param tracked whether or not the commit is the head of a tracked branch
      */
     public void setCommitAsBranchHead(CommitHelper helper, boolean tracked) {
-        String commitId="";
+        String commitId;
         commitId = helper.getId();
         CellShape shape = (tracked) ? Cell.TRACKED_BRANCH_HEAD_SHAPE : Cell.UNTRACKED_BRANCH_HEAD_SHAPE;
 

@@ -90,7 +90,7 @@ public class StagedTreePanelView extends FileStructurePanelView{
                             itemsToRemove.remove(oldItem);
                         } else {
                             // The file is displayed, but needs its status updated. Replace the old with the new
-                            TreeItem<RepoFile> newItem = new TreeItem<>(repoFile, repoFile.diffButton);
+                            TreeItem<RepoFile> newItem = new TreeItem<>(repoFile, null);
 
                             TreeItem<RepoFile> parent = oldItem.getParent();
 
@@ -105,7 +105,7 @@ public class StagedTreePanelView extends FileStructurePanelView{
                         }
                     } else {
                         // The given file wasn't present, so need to add it
-                        TreeItem<RepoFile> newItem = new TreeItem<>(repoFile, repoFile.diffButton);
+                        TreeItem<RepoFile> newItem = new TreeItem<>(repoFile, null);
 
                         Path pathToParent = pathToFile.getParent();
                         boolean foundParent = false;
