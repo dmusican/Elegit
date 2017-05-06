@@ -561,12 +561,6 @@ public class CommitTreeModel{
         CellShape shape = (tracked) ? Cell.TRACKED_BRANCH_HEAD_SHAPE : Cell.UNTRACKED_BRANCH_HEAD_SHAPE;
 
         treeGraph.treeGraphModel.setCellShape(commitId, shape);
-        /*
-        RepoHelper repo = sessionModel.getCurrentRepoHelper();
-        String displayLabel = repo.getCommitDescriptorString(commitId, false);
-        List<String> branchLabels = repo.getBranchModel().getBranchesWithHead(commitId);
-        treeGraph.treeGraphModel.setCellLabels(commitId, displayLabel, branchLabels);
-        treeGraph.treeGraphModel.setCurrentCellLabels(commitId,this.sessionModel.getCurrentRepoHelper().getBranchModel().getCurrentBranches());*/
     }
 
     /**
