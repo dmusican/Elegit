@@ -324,7 +324,7 @@ public class TreeGraphModel{
     public List<String> resetCellShapes(){
         List<String> resetIDs = new ArrayList<>();
         for(Cell cell : cellsWithNonDefaultShapesOrLabels){
-            cell.setShape(Cell.DEFAULT_SHAPE);
+            cell.setShapeToDefault();
             String id = cell.getCellId();
             if(!resetIDs.contains(id) && allCells.contains(cell)) resetIDs.add(id);
         }

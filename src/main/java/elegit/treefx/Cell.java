@@ -27,7 +27,7 @@ import java.util.Map;
 public class Cell extends Pane {
 
     // Base shapes for different types of cells
-    static final CellShape DEFAULT_SHAPE = CellShape.SQUARE;
+    private static final CellShape DEFAULT_SHAPE = CellShape.SQUARE;
     public static final CellShape UNTRACKED_BRANCH_HEAD_SHAPE = CellShape.CIRCLE;
     public static final CellShape TRACKED_BRANCH_HEAD_SHAPE = CellShape.TRIANGLE_UP;
 
@@ -217,6 +217,10 @@ public class Cell extends Pane {
         if(this.shape == newShape) return;
         setView(newShape.getType(this.type));
         this.shape = newShape;
+    }
+
+    public void setShapeToDefault() {
+        setShape(Cell.DEFAULT_SHAPE);
     }
 
     /**
