@@ -223,6 +223,12 @@ public class Cell extends Pane {
         setShape(Cell.DEFAULT_SHAPE);
     }
 
+    public void setShapeAsTrackedOrNot(boolean tracked) {
+        CellShape shape = (tracked) ? Cell.TRACKED_BRANCH_HEAD_SHAPE : Cell.UNTRACKED_BRANCH_HEAD_SHAPE;
+        setShape(shape);
+
+    }
+
     /**
      * Sets the tooltip to display the given text
      * @param label the text to display

@@ -558,9 +558,7 @@ public class CommitTreeModel{
         assert Platform.isFxApplicationThread();
         String commitId="";
         commitId = helper.getId();
-        CellShape shape = (tracked) ? Cell.TRACKED_BRANCH_HEAD_SHAPE : Cell.UNTRACKED_BRANCH_HEAD_SHAPE;
-
-        treeGraph.treeGraphModel.setCellShape(commitId, shape);
+        treeGraph.treeGraphModel.setCellShape(commitId, tracked);
     }
 
     /**
