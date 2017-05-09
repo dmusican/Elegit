@@ -1,6 +1,5 @@
 package elegit;
 
-import elegit.treefx.Cell;
 import elegit.treefx.TreeGraph;
 import elegit.treefx.TreeLayout;
 import javafx.application.Platform;
@@ -47,7 +46,7 @@ public class CommitTreePanelView extends Region{
      * for the layout to finish and then updates the view
      * @param treeGraph the graph to be displayed
      */
-    public synchronized void displayTreeGraph(TreeGraph treeGraph, CommitHelper commitToFocusOnLoad){
+    synchronized void displayTreeGraph(TreeGraph treeGraph, CommitHelper commitToFocusOnLoad){
         if (Platform.isFxApplicationThread()) {
             initCommitTreeScrollPanes(treeGraph);
         }else {
@@ -81,9 +80,7 @@ public class CommitTreePanelView extends Region{
                 } finally {
                     isLayoutThreadRunning = false;
                 }
-                Platform.runLater(() -> {
-                    CommitTreeController.focusCommitInGraph(commitToFocusOnLoad);
-                });
+                Platform.runLater(() -> CommitTreeController.focusCommitInGraph(commitToFocusOnLoad));
                 return null;
             }
         };
@@ -96,7 +93,7 @@ public class CommitTreePanelView extends Region{
     /**
      * Displays an empty scroll pane
      */
-    public void displayEmptyView(){
+    void displayEmptyView(){
         Platform.runLater(() -> {
             ScrollPane sp = new ScrollPane();
             this.getChildren().clear();

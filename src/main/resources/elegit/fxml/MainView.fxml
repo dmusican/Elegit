@@ -342,34 +342,7 @@
                     </VBox>
                 </StackPane>
 
-                <!-- Commit info window -->
-                <VBox GridPane.rowIndex="3"
-                        GridPane.columnIndex="4"
-                        alignment="TOP_CENTER"
-                        spacing="5">
-                    <GridPane.margin>
-                        <Insets bottom="5"/>
-                    </GridPane.margin>
-                    <Text   text="Commit Info:"
-                            style="-fx-font-weight: bold;"/>
-                    <StackPane>
-                        <Text   text="No commit selected"
-                                StackPane.alignment="TOP_CENTER"/>
-                        <TextArea wrapText="true"
-                                  editable="false"
-                                  prefWidth="230"
-                                  prefHeight="300"
-                                  fx:id="commitInfoMessageText"/>
-                    </StackPane>
-                    <!-- Go to commit and copy commit hash buttons -->
-                    <HBox   spacing="15"
-                            alignment="CENTER">
-                        <Button fx:id="commitInfoGoToButton"
-                                onAction="#handleGoToCommitButton"/>
-                        <Button fx:id="commitInfoNameCopyButton"
-                                onAction="#handleCommitNameCopyButton"/>
-                    </HBox>
-                </VBox>
+                <fx:include source="CommitInfoView.fxml" fx:id="commitInfo"/>
 
                 <!-- Tagging UI -->
                 <HBox   alignment="CENTER"

@@ -56,6 +56,14 @@ public class ClonedRepoHelperBuilderTest {
     }
 
     @Test
+    public void testGuessRepoName() throws Exception {
+        assertEquals(ClonedRepoHelperBuilder.guessRepoName("https://github.com/dmusican/Elegit"), "Elegit");
+        assertEquals(ClonedRepoHelperBuilder.guessRepoName("https://github.com/dmusican/Elegit.git"), "Elegit");
+        assertEquals(ClonedRepoHelperBuilder.guessRepoName("git@github.com:dmusican/Elegit.git"), "Elegit");
+        assertEquals(ClonedRepoHelperBuilder.guessRepoName("git@github.com:dmusican/Elegit"), "Elegit");
+    }
+
+    @Test
     public void testLsRemoteOnHTTP() throws Exception {
         LsRemoteCommand command = Git.lsRemoteRepository();
         command.setRemote("https://github.com/TheElegitTeam/TestRepository.git");

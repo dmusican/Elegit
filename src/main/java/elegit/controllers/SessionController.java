@@ -21,6 +21,7 @@ import javafx.scene.control.*;
 import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.CheckMenuItem;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
@@ -77,8 +78,6 @@ public class SessionController {
     public Button removeButton;
     public Button checkoutFileButton;
     public Button mergeButton;
-    public Button commitInfoNameCopyButton;
-    public Button commitInfoGoToButton;
     public Button addDeleteBranchButton;
     public Button checkoutButton;
     public Button tagButton;
@@ -104,7 +103,6 @@ public class SessionController {
 
     private String commitInfoNameText = "";
 
-    public TextArea commitInfoMessageText;
     public TextField tagNameField;
 
     public HBox currentLocalBranchHbox;
@@ -148,7 +146,8 @@ public class SessionController {
     // Menu Bar
     @FXML private MenuController menuController;
     @FXML private DropdownController dropdownController;
-//    @FXML private MenuItem loggingToggle;
+//    @FXML public CheckMenuItem loggingToggle;
+//    @FXML public CheckMenuItem commitSortToggle;
 //    @FXML private MenuItem gitIgnoreMenuItem;
 //    @FXML private Menu repoMenu;
 //    @FXML private MenuItem cloneMenuItem;
@@ -159,6 +158,10 @@ public class SessionController {
 //    @FXML private MenuItem pushMenuItem;
 //    @FXML private MenuItem stashMenuItem1;
 //    @FXML private MenuItem stashMenuItem2;
+
+    // Commit Info Box
+    @FXML public CommitInfoController commitInfoController;
+
 
     boolean tryCommandAgainWithHTTPAuth;
     private boolean isGitStatusDone;
@@ -185,9 +188,12 @@ public class SessionController {
         CommitController.sessionController = this;
         menuController.setSessionController(this);
         dropdownController.setSessionController(this);
+        commitInfoController.setSessionController(this);
+
 
         // Creates the commit tree model
-        this.commitTreeModel = new LocalCommitTreeModel(this.theModel, this.commitTreePanelView);
+        this.commitTreeModel = new CommitTreeModel(this.theModel, this.commitTreePanelView);
+        CommitTreeController.commitTreeModel = this.commitTreeModel;
 
         // Passes theModel to panel views
         this.workingTreePanelView.setSessionModel(this.theModel);
@@ -217,7 +223,6 @@ public class SessionController {
 
         this.notificationPaneController.bindParentBounds(anchorRoot.heightProperty());
 
-        VBox.setVgrow(commitInfoMessageText, Priority.ALWAYS);
         VBox.setVgrow(filesTabPane, Priority.ALWAYS);
 
         // if there are conflicting files on startup, watches them for changes
@@ -405,8 +410,6 @@ public class SessionController {
         pushButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         pushTagsButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         fetchButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
-        commitInfoNameCopyButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
-        commitInfoGoToButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
 
         // Set minimum sizes for other fields and views
         workingTreePanelView.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
@@ -461,20 +464,6 @@ public class SessionController {
      * Adds graphics and tooltips to the buttons
      */
     private void setButtonIconsAndTooltips() {
-        Text clipboardIcon = GlyphsDude.createIcon(FontAwesomeIcon.CLIPBOARD);
-        this.commitInfoNameCopyButton.setGraphic(clipboardIcon);
-
-        Text goToIcon = GlyphsDude.createIcon(FontAwesomeIcon.ARROW_CIRCLE_LEFT);
-        this.commitInfoGoToButton.setGraphic(goToIcon);
-
-        this.commitInfoGoToButton.setTooltip(new Tooltip(
-                "Go to selected commit"
-        ));
-
-        this.commitInfoNameCopyButton.setTooltip(new Tooltip(
-                "Copy commit ID"
-        ));
-
         this.commitButton.setTooltip(new Tooltip(
                 "Check in selected files to local repository"
         ));
@@ -1992,24 +1981,17 @@ public class SessionController {
         }
     }
 
-    public void handleLoggingOffMenuItem() {
+
+    public void handleLoggingOff() {
         changeLogging(Level.OFF);
-        PopOver popOver = new PopOver(new Text("Toggled logging off"));
-        popOver.setTitle("");
-        popOver.show(commitTreePanelView);
-        popOver.detach();
-        popOver.setAutoHide(true);
     }
 
-    public void handleLoggingOnMenuItem() {
+    public void handleLoggingOn() {
         changeLogging(Level.INFO);
-        PopOver popOver = new PopOver(new Text("Toggled logging on"));
-        popOver.show(commitTreePanelView);
-        popOver.detach();
-        popOver.setAutoHide(true);
         logger.log(Level.INFO, "Toggled logging on");
     }
 
+    // why are the commitSort methods so slow?
     public void handleCommitSortTopological() {
         TreeLayout.commitSortTopological = true;
         try {
@@ -2445,15 +2427,12 @@ public class SessionController {
     public void selectCommit(String id){
         Platform.runLater(() -> {
             CommitHelper commit = this.theModel.getCurrentRepoHelper().getCommit(id);
-
             commitInfoNameText = commit.getName();
-            commitInfoMessageText.setVisible(true);
-            commitInfoNameCopyButton.setVisible(true);
-            commitInfoGoToButton.setVisible(true);
+
+            commitInfoController.setCommitInfoMessageText(theModel.getCurrentRepoHelper().getCommitDescriptorString(commit, true));
+
             tagNameField.setVisible(true);
             tagButton.setVisible(true);
-
-            commitInfoMessageText.setText(theModel.getCurrentRepoHelper().getCommitDescriptorString(commit, true));
         });
     }
 
@@ -2462,10 +2441,7 @@ public class SessionController {
      */
     public void clearSelectedCommit(){
         Platform.runLater(() -> {
-            commitInfoMessageText.setText("");
-            commitInfoMessageText.setVisible(false);
-            commitInfoNameCopyButton.setVisible(false);
-            commitInfoGoToButton.setVisible(false);
+            commitInfoController.clearCommit();
 
             tagNameField.setText("");
             tagNameField.setVisible(false);
@@ -2592,6 +2568,7 @@ public class SessionController {
         });
 
     }
+
     private void showTransportExceptionNotification(NotificationController nc, TransportException e) {
         Platform.runLater(() -> {
 
@@ -2614,8 +2591,6 @@ public class SessionController {
 
         });
     }
-
-
 
     private void showRepoWasNotLoadedNotification() {
         Platform.runLater(() -> {
@@ -2863,6 +2838,7 @@ public class SessionController {
                 storedLevel = PopUpWindows.getLoggingPermissions() ? Level.INFO : Level.OFF;
             }
             changeLogging(storedLevel);
+            menuController.loggingToggle.setSelected(storedLevel.equals(org.apache.logging.log4j.Level.INFO));
             logger.info("Starting up.");
         });
     }

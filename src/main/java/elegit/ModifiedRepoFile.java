@@ -1,11 +1,5 @@
 package elegit;
 
-import elegit.exceptions.MissingRepoException;
-import javafx.scene.control.Tooltip;
-import org.eclipse.jgit.api.AddCommand;
-import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.errors.GitAPIException;
-
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -14,7 +8,7 @@ import java.nio.file.Paths;
  */
 public class ModifiedRepoFile extends RepoFile {
 
-    public ModifiedRepoFile(Path filePath, RepoHelper repo) {
+    ModifiedRepoFile(Path filePath, RepoHelper repo) {
         super(filePath, repo);
         diffButton.setText("MODIFIED");
         diffButton.setId("modifiedDiffButton");
@@ -22,7 +16,7 @@ public class ModifiedRepoFile extends RepoFile {
         showPopover = true;
     }
 
-    public ModifiedRepoFile(String filePathString, RepoHelper repo) {
+    ModifiedRepoFile(String filePathString, RepoHelper repo) {
         this(Paths.get(filePathString), repo);
     }
 

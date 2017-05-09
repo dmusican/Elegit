@@ -2,8 +2,6 @@ package elegit.controllers;
 
 import elegit.RepoHelper;
 import elegit.SessionModel;
-import elegit.controllers.NotificationController;
-import elegit.controllers.SessionController;
 import elegit.exceptions.NoFilesToStashException;
 import javafx.fxml.FXML;
 import javafx.scene.Scene;

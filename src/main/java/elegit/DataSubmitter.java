@@ -1,6 +1,6 @@
 package elegit;
 
-/**
+/*
  * Class for uploading logged data
  */
 
@@ -19,9 +19,7 @@ import org.apache.logging.log4j.Logger;
 import java.io.File;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.UUID;
 
@@ -45,6 +43,8 @@ public class DataSubmitter {
             logger.info("Making a new uuid.");
         }
 
+        if (logsToUpload==null)
+            logsToUpload = new File[0];
         for (File logFile: logsToUpload) {
             if (!logFile.isFile() || logFile.getName().equals(LOG_FILE_NAME)) {
                 if (logsToUpload.length == 1) {
@@ -96,13 +96,20 @@ public class DataSubmitter {
                 return null;
             }
             // Delete the log file as we might be uploading more!
-            logFile.delete();
+            if (!logFile.delete()) {
+                logger.error("Failed to delete log file.");
+            }
 
         }
         // Clean up the directory
-        for (File file: logDirectory.listFiles()) {
+        File[] logsToDelete = logDirectory.listFiles();
+        if (logsToDelete == null)
+            logsToDelete = new File[0];
+        for (File file: logsToDelete) {
             if (!file.getName().equals(LOG_FILE_NAME))
-                file.delete();
+                if (!file.delete()) {
+                    logger.error("Failed to delete a file in the log directory.");
+                }
         }
 
         return lastUUID;

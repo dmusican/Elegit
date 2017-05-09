@@ -1,7 +1,5 @@
 package elegit;
 
-import javafx.scene.control.Tooltip;
-
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -10,14 +8,14 @@ import java.nio.file.Paths;
  */
 public class StagedAndModifiedRepoFile extends RepoFile {
 
-    public StagedAndModifiedRepoFile(Path filePath, RepoHelper repo) {
+    private StagedAndModifiedRepoFile(Path filePath, RepoHelper repo) {
         super(filePath, repo);
         diffButton.setText("STAGED\nMODIFIED");
         diffButton.setId("stagedModifiedDiffButton");
         diffButton.setTooltip(getToolTip("This file has a version stored in your git index\nand other changes in the working directory."));
     }
 
-    public StagedAndModifiedRepoFile(String filePathString, RepoHelper repo) {
+    StagedAndModifiedRepoFile(String filePathString, RepoHelper repo) {
         this(Paths.get(filePathString), repo);
     }
 

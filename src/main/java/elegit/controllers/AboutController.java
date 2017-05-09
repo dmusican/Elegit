@@ -1,5 +1,6 @@
-package elegit;
+package elegit.controllers;
 
+import elegit.SessionModel;
 import javafx.fxml.FXML;
 import javafx.scene.text.Text;
 
