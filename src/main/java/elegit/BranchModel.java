@@ -452,6 +452,7 @@ public class BranchModel {
         return false;
     }
 
+    //todo
     /**
      * Updates the heads of all local and remote branches, then returns a map of them
      * @return

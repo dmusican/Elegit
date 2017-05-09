@@ -306,7 +306,12 @@ public class SessionController {
         needToFetch.setFont(new Font(15));
         needToFetch.setFill(fetchColor);
 
+        // todo: bug with update here. should be name different or commit different
+        // but is this the best place to decide?
         BranchHelper localBranch = this.theModel.getCurrentRepoHelper().getBranchModel().getCurrentBranch();
+
+        //CommitHelper commit = localBranch.getCommit();
+
         update = !localBranch.getAbbrevName().equals(currentLocalBranchLabel.getText());
         if (update) {
             Platform.runLater(() -> {

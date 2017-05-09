@@ -249,6 +249,7 @@ public class CommitTreeController{
         }
     }
 
+    // todo use this
     /**
      * Loops through the branches and sets the cells that are branch heads to have the
      * correct shape (untracked=circle, tracked=traingle)
