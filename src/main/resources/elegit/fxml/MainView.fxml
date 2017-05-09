@@ -325,7 +325,8 @@
                             text="What do all these symbols mean?"
                             onAction="#showLegend"
                             GridPane.rowIndex="8"
-                            GridPane.columnIndex="4"/>
+                            GridPane.columnIndex="4"
+                            GridPane.columnSpan="2"/>
 
                 <!-- Local repository and remote repository separator -->
                 <VBox   GridPane.rowIndex="1"

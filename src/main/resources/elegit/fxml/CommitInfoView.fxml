@@ -8,19 +8,15 @@
 
 
 <VBox xmlns:fx="http://javafx.com/fxml"
-      GridPane.rowIndex="3"
-      GridPane.columnIndex="4"
+      GridPane.rowIndex="4"
+      GridPane.columnIndex="6"
       alignment="TOP_CENTER"
       spacing="5"
       fx:controller="elegit.controllers.CommitInfoController">
     <GridPane.margin>
         <Insets bottom="5"/>
     </GridPane.margin>
-    <Text text="Commit Info:"
-          style="-fx-font-weight: bold;"/>
     <StackPane>
-        <Text   text="No commit selected"
-                StackPane.alignment="TOP_CENTER"/>
         <TextArea wrapText="true"
                   editable="false"
                   prefWidth="230"
