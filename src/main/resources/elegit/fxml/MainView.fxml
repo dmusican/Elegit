@@ -137,7 +137,7 @@
                 <HBox   spacing="10"
                         GridPane.halignment="CENTER"
                         GridPane.rowIndex="5"
-                        alignment="CENTER">
+                        alignment="CENTER_LEFT">
                     <Button id="codeButton"
                             fx:id="removeButton"
                             text="Remove"
