@@ -72,13 +72,11 @@ public class CheckoutFilesController {
      * then closes the window and notifies SessionController its done
      */
     public void handleCheckoutButton() {
-        System.out.println("here0");
         try {
             if(fileNames.size() == 0) {
                 notificationPaneController.addNotification("You need to add some files first");
                 return;
             }
-            System.out.println("here1");
             CheckoutResult result = this.repoHelper.checkoutFiles(fileNames, commitHelper.getId());
             switch (result.getStatus()) {
                 case CONFLICTS:

@@ -921,7 +921,7 @@ public class SessionController {
 
     /**
      * Basic handler for the checkout button. Just checks out the given file
-     * from the index of HEAD
+     * from the index
      *
      * @param filePath the path of the file to checkout from the index
      */
