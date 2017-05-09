@@ -1,22 +1,13 @@
 package elegit.controllers;
 
-import elegit.GitIgnoreEditor;
-import elegit.SessionModel;
-import elegit.exceptions.NoRepoLoadedException;
 import elegit.treefx.TreeLayout;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.CheckMenuItem;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
-import javafx.scene.layout.AnchorPane;
-import javafx.scene.text.Text;
-import org.apache.logging.log4j.Level;
-import org.controlsfx.control.PopOver;
-
-import java.io.IOException;
 
 /**
  * Created by dmusicant on 4/8/17.
@@ -24,8 +15,9 @@ import java.io.IOException;
 public class MenuController {
 
     private SessionController sessionController;
-    @FXML private MenuItem loggingToggle;
-    @FXML MenuItem gitIgnoreMenuItem;
+    @FXML public CheckMenuItem loggingToggle; // public so can be selected when prefs loaded in SessionController
+    @FXML private CheckMenuItem commitSortToggle;
+    @FXML MenuItem gitIgnoreMenuItem; // has to be public because of SessionController.updateMenuBarEnabledStatus()
     @FXML Menu repoMenu;
     @FXML private MenuItem cloneMenuItem;
     @FXML private MenuItem createBranchMenuItem;
@@ -38,9 +30,8 @@ public class MenuController {
 
     public void initialize() {
         initMenuBarShortcuts();
+        commitSortToggle.setSelected(true); //default
     }
-
-
 
     /**
      * Sets up keyboard shortcuts for menu items
@@ -65,31 +56,41 @@ public class MenuController {
         this.stashMenuItem2.setAccelerator(new KeyCodeCombination(KeyCode.L, KeyCombination.CONTROL_DOWN, KeyCombination.SHIFT_DOWN));
     }
 
-
-
     public void setSessionController(SessionController sessionController) {
         this.sessionController = sessionController;
     }
 
-    public void handleLoggingOffMenuItem() {
-        sessionController.handleLoggingOffMenuItem();
+    // "Preferences" Dropdown Menu Items:
+
+    public void handleLoggingToggle() {
+        if (loggingToggle.isSelected()) {
+            sessionController.handleLoggingOn();
+        } else {
+            sessionController.handleLoggingOff();
+        }
+        assert !loggingToggle.isSelected() == sessionController.getLoggingLevel().equals(org.apache.logging.log4j.Level.toLevel("OFF"));
     }
 
-    public void handleLoggingOnMenuItem() {
-        sessionController.handleLoggingOnMenuItem();
+    public void handleCommitSortToggle() {
+        if (commitSortToggle.isSelected()){
+            sessionController.handleCommitSortTopological();
+        } else {
+            sessionController.handleCommitSortDate();
+        }
+        assert commitSortToggle.isSelected() == TreeLayout.commitSortTopological ;
     }
 
-    public void handleCommitSortTopological() {
-        sessionController.handleCommitSortTopological();
+    public void handleAbout() {
+        sessionController.handleAbout();
     }
 
-    public void handleCommitSortDate() {
-        sessionController.handleCommitSortDate();
-    }
+    // "Edit" Dropdown Menu Item:
 
     public void handleGitIgnoreMenuItem() {
         sessionController.handleGitIgnoreMenuItem();
     }
+
+    // "Repository" Dropdown Menu Items (2 layers):
 
     public void handleNewBranchButton() {
         sessionController.handleNewBranchButton();
@@ -165,10 +166,6 @@ public class MenuController {
 
     public void handleStashDropButton() {
         sessionController.handleStashDropButton();
-    }
-
-    public void handleAbout() {
-        sessionController.handleAbout();
     }
 
     }

@@ -1,8 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.*?>
-<?import java.util.*?>
-<?import javafx.scene.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
@@ -15,18 +12,12 @@
     <menus>
         <Menu   text="Preferences">
             <items>
-                <MenuItem   text="Turn Logging Off"
+                <CheckMenuItem   text="Enable Logging"
                             fx:id="loggingToggle"
-                            onAction="#handleLoggingOffMenuItem"/>
-                <MenuItem   text="Turn Logging On"
-                            fx:id="loggingToggle"
-                            onAction="#handleLoggingOnMenuItem"/>
-                <MenuItem   text="Sort commits topologically"
-                            fx:id="commitSortingToggle"
-                            onAction="#handleCommitSortTopological"/>
-                <MenuItem   text="Sort commits by date"
-                            fx:id="commitSortingToggle"
-                            onAction="#handleCommitSortDate"/>
+                            onAction="#handleLoggingToggle"/>
+                <CheckMenuItem   text="Sort Commits Topologically"
+                            fx:id="commitSortToggle"
+                            onAction="#handleCommitSortToggle"/>
                 <MenuItem   text="About"
                             fx:id="about"
                             onAction="#handleAbout"/>

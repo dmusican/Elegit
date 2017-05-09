@@ -3,14 +3,11 @@ package elegit;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.stage.DirectoryChooser;
-import javafx.stage.Window;
 import elegit.exceptions.CancelledAuthorizationException;
 import elegit.exceptions.NoRepoSelectedException;
 import org.apache.logging.log4j.LogManager;
@@ -20,7 +17,6 @@ import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Optional;
 
 /**
@@ -35,11 +31,11 @@ public abstract class RepoHelperBuilder {
     }
 
     public static class AuthDialogResponse {
-        public AuthMethod protocol;
+        AuthMethod protocol;
         public String username;
         public String password;
-        public boolean isSelected;
-        public AuthDialogResponse(AuthMethod protocol, String username, String password, boolean isSelected) {
+        boolean isSelected;
+        AuthDialogResponse(AuthMethod protocol, String username, String password, boolean isSelected) {
             this.protocol = protocol;
             this.username = username;
             this.password = password;
@@ -64,11 +60,9 @@ public abstract class RepoHelperBuilder {
      * Presents a file chooser and returns the chosen file.
      *
      * @param title the title of the file chooser window.
-     * @param parent the parent Window for the file chooser. Can be null (then
-     *               the chooser won't be anchored to any window).
      * @return the chosen file from the file chooser.
      */
-    public File getDirectoryPathFromChooser(String title, Window parent) {
+    File getDirectoryPathFromChooser(String title) {
         File path = new File(this.defaultFilePickerStartFolder); // start the file browser in the user's home folder
 
         File returnFile;
@@ -76,7 +70,9 @@ public abstract class RepoHelperBuilder {
         chooser.setTitle(title);
         chooser.setInitialDirectory(path);
 
-        returnFile = chooser.showDialog(parent);
+        // Could change parent window to non-null, but we want to be able
+        // to move the file chooser around.
+        returnFile = chooser.showDialog(null);
         return returnFile;
     }
 
@@ -98,12 +94,7 @@ public abstract class RepoHelperBuilder {
         ButtonType loginButtonType = new ButtonType("Authorize", ButtonBar.ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().addAll(loginButtonType, ButtonType.CANCEL);
 
-        dialog.setOnCloseRequest(new EventHandler<DialogEvent>() {
-            @Override
-            public void handle(DialogEvent event) {
-                logger.info("Closing authorization dialog");
-            }
-        });
+        dialog.setOnCloseRequest(event -> logger.info("Closing authorization dialog"));
 
         // Create the username and password labels and fields.
         GridPane grid = new GridPane();
@@ -117,7 +108,7 @@ public abstract class RepoHelperBuilder {
                 FXCollections.observableArrayList(
                         AuthMethod.getStrings()
                 );
-        ComboBox<String> protocol = new ComboBox<String>(protocols);
+        ComboBox<String> protocol = new ComboBox<>(protocols);
         protocol.setValue("HTTPS");
         grid.add(protocol,1,0);
 
@@ -144,27 +135,28 @@ public abstract class RepoHelperBuilder {
         PasswordField password = new PasswordField();
         CheckBox remember = new CheckBox("Remember Password");
 
+        //TODO: remember the password somehow
+        /*
         if (hashedPassword != null) {
             password.setText(hashedPassword);
             remember.setSelected(true);
-        }
+        }*/
         password.setPromptText("Password");
         grid.add(password, 1, 2);
 
         //Edit username button
         Button editUsername = new Button();
         editUsername.setText("Edit");
-        editUsername.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                username.setEditable(true);
-                password.setText("");
-                remember.setSelected(false);
-            }
+        editUsername.setOnAction(event -> {
+            username.setEditable(true);
+            password.setText("");
+            remember.setSelected(false);
         });
+        //TODO remember username or pull it from git config
+        /*
         if (hashedUsername == null) {
             editUsername.setVisible(false);
-        }
+        }*/
         grid.add(editUsername,2,1);
 
         remember.setIndeterminate(false);
@@ -172,25 +164,23 @@ public abstract class RepoHelperBuilder {
 
         // Enable/Disable login button depending on whether a password was entered.
         Node loginButton = dialog.getDialogPane().lookupButton(loginButtonType);
+        //TODO: see above about password and username
+        /*
         if (hashedPassword == null || hashedUsername == null) {
             loginButton.setDisable(true);
-        }
+        }*/
 
         // Do some validation (using the Java 8 lambda syntax).
-        password.textProperty().addListener((observable, oldValue, newValue) -> {
-            loginButton.setDisable(newValue.trim().isEmpty());
-        });
-        username.textProperty().addListener((observable, oldValue, newValue) -> {
-            loginButton.setDisable(newValue.trim().isEmpty());
-        });
+        password.textProperty().addListener((observable, oldValue, newValue) -> loginButton.setDisable(newValue.trim().isEmpty()));
+        username.textProperty().addListener((observable, oldValue, newValue) -> loginButton.setDisable(newValue.trim().isEmpty()));
 
         dialog.getDialogPane().setContent(grid);
 
         // Request focus for the first text field by default.
         if (username.getText() != null) {
-            Platform.runLater(() -> username.requestFocus());
+            Platform.runLater(username::requestFocus);
         } else {
-            Platform.runLater(() -> password.requestFocus());
+            Platform.runLater(password::requestFocus);
         }
 
         // Return the password when the authorize button is clicked.

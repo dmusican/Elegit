@@ -8,7 +8,7 @@
           alignment="TOP_CENTER"
           prefWidth="200"
           xmlns:fx="http://javafx.com/fxml"
-          fx:controller="elegit.AboutController">
+          fx:controller="elegit.controllers.AboutController">
 
     <padding>
         <Insets top="10" bottom="10" right="10" left="10"/>

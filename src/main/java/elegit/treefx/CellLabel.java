@@ -2,7 +2,6 @@ package elegit.treefx;
 
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
-import elegit.CommitTreeModel;
 import elegit.RefHelper;
 import javafx.geometry.Insets;
 import javafx.scene.control.ContextMenu;
@@ -21,11 +20,11 @@ import javafx.scene.text.Text;
 public class CellLabel extends HBox {
     private String name;
     private RefHelper refHelper;
-    boolean isCurrent, isTag, isRemote;
-    Text pointer;
-    ImageView image;
-    Label label;
-    ContextMenu contextMenu;
+    private boolean isCurrent, isTag, isRemote;
+    private Text pointer;
+    private ImageView image;
+    private Label label;
+    private ContextMenu contextMenu;
     public static final int MAX_CHAR_PER_LABEL=25;
 
     CellLabel(RefHelper refHelper, boolean isCurrent) {
@@ -97,7 +96,7 @@ public class CellLabel extends HBox {
      * Sets the context menu and clicking
      * @param menu the menu for this label
      */
-    public void setContextMenu(ContextMenu menu) {
+    void setContextMenu(ContextMenu menu) {
         this.contextMenu = menu;
         this.setPickOnBounds(true);
 
@@ -166,7 +165,7 @@ public class CellLabel extends HBox {
     /**
      * Refreshes the icon based on various boolean values
      */
-    void refreshIcon() {
+    private void refreshIcon() {
         String image = "elegit/images/";
         if (isTag) {
             image += "tag.png";

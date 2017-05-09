@@ -5,14 +5,9 @@ import org.eclipse.jgit.transport.CredentialItem;
 import org.eclipse.jgit.transport.CredentialsProvider;
 import org.eclipse.jgit.transport.URIish;
 
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.util.Iterator;
 import java.util.List;
 
-/**
- * Created by dmusican on 5/25/16.
- */
 public class ElegitCredentialsProvider extends CredentialsProvider {
 
     // Used for unit testing
@@ -23,7 +18,7 @@ public class ElegitCredentialsProvider extends CredentialsProvider {
         this.userCredentials = null;
     }
 
-    public ElegitCredentialsProvider(List<String> userCredentials) {
+    ElegitCredentialsProvider(List<String> userCredentials) {
         super();
         this.userCredentials = userCredentials;
     }

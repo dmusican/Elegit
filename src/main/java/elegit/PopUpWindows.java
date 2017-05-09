@@ -3,7 +3,6 @@ package elegit;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.control.Dialog;
@@ -35,7 +34,7 @@ public class PopUpWindows {
      *
      * @return String user's response to the dialog
      */
-    public static String showCommittingConflictingFileAlert() {
+    static String showCommittingConflictingFileAlert() {
         String resultType;
 
         Alert alert = new Alert(Alert.AlertType.WARNING);
@@ -62,13 +61,13 @@ public class PopUpWindows {
 
         Optional<ButtonType> result = alert.showAndWait();
 
-        if (result.get() == resolveButton) {
+        if (result.orElse(null) == resolveButton) {
             logger.info("Chose to resolve conflicts");
             resultType = "resolve";
-        } else if (result.get() == addButton) {
+        } else if (result.orElse(null) == addButton) {
             logger.info("Chose to add file");
             resultType = "add";
-        } else if (result.get() == helpButton) {
+        } else if (result.orElse(null) == helpButton) {
             logger.info("Chose to get help");
             resultType = "help";
         } else {
@@ -100,16 +99,13 @@ public class PopUpWindows {
                 "preferences menu.");
         Optional<ButtonType> result = window.showAndWait();
 
-        if (result.get() == okButton) {
-            return true;
-        }
-        return false;
+        return result.orElse(null) == okButton;
     }
 
     /**
      * Shows a window with instructions on how to fix a conflict
      */
-    public static void showConflictingHelpAlert() {
+    static void showConflictingHelpAlert() {
         Platform.runLater(() -> {
             Alert window = new Alert(Alert.AlertType.INFORMATION);
             window.setResizable(true);
@@ -134,7 +130,7 @@ public class PopUpWindows {
     /**
      * Shows a window with some info about git reset
      */
-    public static void showResetHelpAlert() {
+    static void showResetHelpAlert() {
         Platform.runLater(() -> {
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
             alert.getDialogPane().setPrefSize(300, 300);
@@ -155,7 +151,7 @@ public class PopUpWindows {
     /**
      * Show a window with info about git revert
      */
-    public static void showRevertHelpAlert() {
+    static void showRevertHelpAlert() {
         Platform.runLater(() -> {
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
             alert.getDialogPane().setPrefWidth(500);
@@ -186,12 +182,9 @@ public class PopUpWindows {
 
         alert.setTitle("Checkout Warning");
         alert.setContentText("Are you sure you want to checkout the selected files?\n" +
-                             "This will discard all changes that have not been added (staged).");
+                "This will discard all changes that have not been added (staged).");
         Optional<ButtonType> result = alert.showAndWait();
-        if (result.isPresent())
-            return result.get() == checkout;
-        else
-            return false;
+        return result.isPresent() && result.get() == checkout;
     }
 
     /**
@@ -199,7 +192,7 @@ public class PopUpWindows {
      *
      * @return String result from user input
      */
-    public static String showAddingingConflictingThenModifiedFileAlert() {
+    static String showAddingingConflictingThenModifiedFileAlert() {
         String resultType;
 
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
@@ -218,7 +211,7 @@ public class PopUpWindows {
 
         Optional<ButtonType> result = alert.showAndWait();
 
-        if (result.get() == commitButton) {
+        if (result.orElse(null) == commitButton) {
             logger.info("Chose to add");
             resultType = "add";
         } else {
@@ -235,7 +228,7 @@ public class PopUpWindows {
      *
      * @param trackedIgnoredFiles collections of files being ignored
      */
-    public static void showTrackingIgnoredFilesWarning(Collection<String> trackedIgnoredFiles) {
+    static void showTrackingIgnoredFilesWarning(Collection<String> trackedIgnoredFiles) {
         Platform.runLater(() -> {
             if (trackedIgnoredFiles.size() > 0) {
                 String fileStrings = "";
@@ -313,7 +306,7 @@ public class PopUpWindows {
 
         Optional<?> result = dialog.showAndWait();
 
-        if (result.get() == trackButton) {
+        if (result.orElse(null) == trackButton) {
             dialog.close();
             return dropdown.getSelectionModel().getSelectedItem();
         }
@@ -337,10 +330,10 @@ public class PopUpWindows {
 
         Optional<?> result = alert.showAndWait();
 
-        return result.get() == deleteButton;
+        return result.orElse(null) == deleteButton;
     }
 
-    public static String pickRemoteToPushTo(Set<String> remotes) {
+    static String pickRemoteToPushTo(Set<String> remotes) {
         ReentrantLock lock = new ReentrantLock();
         Condition finishedAlert = lock.newCondition();
 
@@ -426,7 +419,7 @@ public class PopUpWindows {
         return "cancel";
     }
 
-    public static ArrayList<LocalBranchHelper> getUntrackedBranchesToPush(ArrayList<LocalBranchHelper> branches) {
+    static ArrayList<LocalBranchHelper> getUntrackedBranchesToPush(ArrayList<LocalBranchHelper> branches) {
 
         final ArrayList<LocalBranchHelper> result = new ArrayList<>(branches.size());
 
@@ -456,7 +449,7 @@ public class PopUpWindows {
             return null;
     }
 
-    public static boolean trackCurrentBranchRemotely(String branchName) {
+    static boolean trackCurrentBranchRemotely(String branchName) {
 
         final boolean[] result = new boolean[1];
         result[0] = false;

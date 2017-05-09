@@ -23,7 +23,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -38,12 +37,12 @@ public class SessionModel {
     private static final String LAST_UUID_KEY="LAST_UUID";
 
     private RepoHelper currentRepoHelper;
-    public ObjectProperty<RepoHelper> currentRepoHelperProperty;
+    ObjectProperty<RepoHelper> currentRepoHelperProperty;
 
-    List<RepoHelper> allRepoHelpers;
+    private List<RepoHelper> allRepoHelpers;
     private static SessionModel sessionModel;
 
-    Preferences preferences;
+    private Preferences preferences;
 
     static final Logger logger = LogManager.getLogger();
 
@@ -212,7 +211,7 @@ public class SessionModel {
     /**
      * @return the current JGit repository associated with the current RepoHelper
      */
-    public Repository getCurrentRepo() {
+    private Repository getCurrentRepo() {
         return this.currentRepoHelper.getRepo();
     }
 
@@ -237,7 +236,7 @@ public class SessionModel {
      * @return a set of untracked filenames in the working directory.
      * @throws GitAPIException if the `git status` call fails.
      */
-    public Set<String> getUntrackedFiles(Status status) throws GitAPIException {
+    private Set<String> getUntrackedFiles(Status status) throws GitAPIException {
         if(status == null) {
             status = new Git(this.getCurrentRepo()).status().call();
         }
@@ -251,7 +250,7 @@ public class SessionModel {
      * @return a set of untracked filenames in the working directory.
      * @throws GitAPIException if the `git status` call fails.
      */
-    public Set<String> getIgnoredFiles(Status status) throws GitAPIException {
+    private Set<String> getIgnoredFiles(Status status) throws GitAPIException {
         if(status == null) {
             status = new Git(this.getCurrentRepo()).status().call();
         }
@@ -265,7 +264,7 @@ public class SessionModel {
      * @return a set of conflicting filenames in the working directory.
      * @throws GitAPIException
      */
-    public Set<String> getConflictingFiles(Status status) throws GitAPIException {
+    private Set<String> getConflictingFiles(Status status) throws GitAPIException {
         if (status == null) {
             status = new Git(this.getCurrentRepo()).status().call();
         }
@@ -279,7 +278,7 @@ public class SessionModel {
      * @return a set of missing filenames in the working directory.
      * @throws GitAPIException if the `git status` call fails.
      */
-    public Set<String> getMissingFiles(Status status) throws GitAPIException {
+    private Set<String> getMissingFiles(Status status) throws GitAPIException {
         if(status == null) {
             status = new Git(this.getCurrentRepo()).status().call();
         }
@@ -295,7 +294,7 @@ public class SessionModel {
      * @return a set of modified filenames in the working directory.
      * @throws GitAPIException if the `git status` call fails.
      */
-    public Set<String> getModifiedFiles(Status status) throws GitAPIException {
+    private Set<String> getModifiedFiles(Status status) throws GitAPIException {
         if(status == null) {
             status = new Git(this.getCurrentRepo()).status().call();
         }
@@ -310,7 +309,7 @@ public class SessionModel {
      * @return a set of modified filenames in the working directory.
      * @throws GitAPIException if the `git status` call fails.
      */
-    public Set<String> getStagedFiles(Status status) throws GitAPIException {
+    private Set<String> getStagedFiles(Status status) throws GitAPIException {
         if(status == null) {
             status = new Git(this.getCurrentRepo()).status().call();
         }
@@ -351,9 +350,7 @@ public class SessionModel {
             DirectoryStream<Path> directoryStream = Files.newDirectoryStream(superDirectory.getFilePath());
             for (Path path : directoryStream) {
                 if (path.equals(this.getCurrentRepo().getDirectory().toPath())) {
-
                     // If the path is the Repository's .git folder, don't populate it.
-
                 } else if (Files.isDirectory(path)) {
                     // Recurse! Populate the directory.
                     DirectoryRepoFile subdirectory = new DirectoryRepoFile(path, superDirectory.getRepo());
@@ -415,7 +412,7 @@ public class SessionModel {
      * @return a list of changed files, contained in RepoFile objects.
      * @throws GitAPIException if the `git status` calls fail.
      */
-    public List<RepoFile> getAllChangedRepoFiles() throws GitAPIException {
+    List<RepoFile> getAllChangedRepoFiles() throws GitAPIException {
         Status status = new Git(this.getCurrentRepo()).status().call();
         Set<String> modifiedFiles = getModifiedFiles(status);
         Set<String> missingFiles = getMissingFiles(status);
@@ -498,7 +495,7 @@ public class SessionModel {
      * @return a list of changed files, contained in RepoFile objects.
      * @throws GitAPIException if the `git status` calls fail.
      */
-    public List<RepoFile> getAllRepoFiles() throws GitAPIException, IOException {
+    List<RepoFile> getAllRepoFiles() throws GitAPIException, IOException {
         List<RepoFile> allFiles = getAllChangedRepoFiles();
 
         Status status = new Git(this.getCurrentRepo()).status().call();
@@ -584,18 +581,18 @@ public class SessionModel {
      * @throws IOException
      * @throws ClassNotFoundException
      */
-    public void clearStoredPreferences() throws BackingStoreException, IOException, ClassNotFoundException {
+    private void clearStoredPreferences() throws BackingStoreException, IOException, ClassNotFoundException {
         PrefObj.putObject(this.preferences, RECENT_REPOS_LIST_KEY, null);
         PrefObj.putObject(this.preferences, LAST_OPENED_REPO_PATH_KEY, null);
         PrefObj.putObject(this.preferences, LAST_UUID_KEY, null);
     }
 
-    public void setAuthPref(String pathname, AuthMethod authTechnique) {
+    void setAuthPref(String pathname, AuthMethod authTechnique) {
         Preferences authPrefs = preferences.node("authentication");
         authPrefs.putInt(hashPathname(pathname), authTechnique.getEnumValue());
     }
 
-    public AuthMethod getAuthPref(String pathname)  {
+    AuthMethod getAuthPref(String pathname)  {
         Preferences authPrefs = preferences.node("authentication");
         int enumValue = authPrefs.getInt(hashPathname(pathname), -1);
         if (enumValue == -1)
@@ -604,12 +601,12 @@ public class SessionModel {
         return AuthMethod.getEnumFromValue(enumValue);
     }
 
-    public void removeAuthPref(String pathname) {
+    void removeAuthPref(String pathname) {
         Preferences authPrefs = preferences.node("authentication");
         authPrefs.remove(hashPathname(pathname));
     }
 
-    public String[] listAuthPaths() {
+    String[] listAuthPaths() {
         Preferences authPrefs = preferences.node("authentication");
         try {
             return authPrefs.keys();
@@ -621,14 +618,14 @@ public class SessionModel {
     // Preferences API has a limit of 80 characters max, and some pathnames
     // may be longer than that. Hashing it will solve that problem.
     String hashPathname(String pathname) {
-        MessageDigest md = null;
+        MessageDigest md;
         try {
             md = MessageDigest.getInstance("SHA");
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
         md.update(pathname.getBytes());
-        String prefKey = null;
+        String prefKey;
         //try {
             //prefKey = new String(md.digest(), "US-ASCII");
             prefKey = DatatypeConverter.printHexBinary(md.digest());
