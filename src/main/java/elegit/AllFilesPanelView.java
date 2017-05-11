@@ -94,15 +94,10 @@ public class AllFilesPanelView extends FileStructurePanelView{
                         } else {
                             // The file is displayed, but needs its status updated. Replace the old with the new
                             CheckBoxTreeItem<RepoFile> newItem = new CheckBoxTreeItem<>(repoFile, repoFile.diffButton);
-
                             TreeItem<RepoFile> parent = oldItem.getParent();
-
-                            Platform.runLater(() -> {
-                                newItem.setExpanded(oldItem.isExpanded());
-                                newItem.getChildren().setAll(oldItem.getChildren());
-                                parent.getChildren().set(parent.getChildren().indexOf(oldItem), newItem);
-                            });
-
+                            newItem.setExpanded(oldItem.isExpanded());
+                            newItem.getChildren().setAll(oldItem.getChildren());
+                            parent.getChildren().set(parent.getChildren().indexOf(oldItem), newItem);
                             itemsToRemove.remove(oldItem);
                             itemMap.put(pathToFile, newItem);
                         }
@@ -124,7 +119,7 @@ public class AllFilesPanelView extends FileStructurePanelView{
                         }
                         // If no parent is found, we can assume it belongs to the root
                         if (!foundParent) {
-                            Platform.runLater(() -> root.getChildren().add(newItem));
+                            root.getChildren().add(newItem);
                         }
                         itemMap.put(pathToFile, newItem);
                         itemsToRemove.remove(newItem);
@@ -150,7 +145,6 @@ public class AllFilesPanelView extends FileStructurePanelView{
     @Override
     public List<RepoFile> getFilesToDisplay() throws GitAPIException, IOException {
         return sessionModel.getAllRepoFiles();
-//        return sessionModel.getAllChangedRepoFiles();
     }
 
     /**
@@ -163,7 +157,6 @@ public class AllFilesPanelView extends FileStructurePanelView{
             super.updateItem(item, empty);
 
             setText(getItem() == null ? "" : getItem().toString());
-//            setGraphic(getTreeItem() == null ? null : getTreeItem().getGraphic());
 
             setOnContextMenuRequested(event -> {
                 if(getTreeItem() != null) getTreeItem().getValue().showContextMenu(this, event.getScreenX(), event.getScreenY());

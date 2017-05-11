@@ -812,23 +812,33 @@ public class SessionController {
                 protected Void call() {
                     try{
                         ArrayList<Path> filePathsToAdd = new ArrayList<>();
+                        ArrayList<Path> filePathsToRemove = new ArrayList<>();
+
                         // Try to add all files, throw exception if there are ones that can't be added
                         if (workingTreePanelView.isSelectAllChecked()) {
                             filePathsToAdd.add(Paths.get("."));
                         }
                         else {
                             for (RepoFile checkedFile : workingTreePanelView.getCheckedFilesInDirectory()) {
-                                if (checkedFile.canAdd())
+                                if (checkedFile.canAdd()) {
                                     filePathsToAdd.add(checkedFile.getFilePath());
-                                else
+                                } else if (checkedFile instanceof MissingRepoFile) {
+                                    // JGit does not support adding missing files, instead remove them
+                                    filePathsToRemove.add(checkedFile.getFilePath());
+                                }
+                                else {
                                     throw new UnableToAddException(checkedFile.filePath.toString());
+                                }
                             }
                         }
 
-                        theModel.getCurrentRepoHelper().addFilePaths(filePathsToAdd);
+                        if (filePathsToAdd.size() > 0)
+                            theModel.getCurrentRepoHelper().addFilePaths(filePathsToAdd);
+                        if (filePathsToRemove.size() > 0)
+                            theModel.getCurrentRepoHelper().removeFilePaths(filePathsToRemove);
                         gitStatus();
 
-                    }catch (JGitInternalException e){
+                    } catch (JGitInternalException e){
                         showJGitInternalError(e);
                     } catch (UnableToAddException e) {
                         showCannotAddFileNotification(e.filename);
@@ -970,7 +980,6 @@ public class SessionController {
      */
     public void handleCheckoutFilesButton(CommitHelper commitHelper) {
         try{
-            System.out.println("Loading checkoutfiles pane");
             logger.info("Checkout files from commit button clicked");
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
 
