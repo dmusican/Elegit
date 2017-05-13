@@ -240,8 +240,7 @@
                         GridPane.rowIndex="3"
                         GridPane.columnIndex="4">
                     <Text   text="Status: "/>
-                    <StackPane  fx:id="statusTextPane"
-                           alignment="CENTER">
+                    <StackPane  fx:id="statusTextPane">
                         <Text   fx:id="branchStatusText"/>
                     </StackPane>
                 </HBox>
