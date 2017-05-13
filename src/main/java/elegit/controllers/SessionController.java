@@ -163,6 +163,7 @@ public class SessionController {
 
     // Commit Info Box
     @FXML public CommitInfoController commitInfoController;
+    @FXML public VBox infoTagBox;
 
 
     boolean tryCommandAgainWithHTTPAuth;
@@ -2448,6 +2449,7 @@ public class SessionController {
 
             tagNameField.setVisible(true);
             tagButton.setVisible(true);
+            infoTagBox.toFront();
         });
     }
 
@@ -2457,11 +2459,13 @@ public class SessionController {
     public void clearSelectedCommit(){
         Platform.runLater(() -> {
             commitInfoController.clearCommit();
+            commitTreePanelView.toFront();
 
             tagNameField.setText("");
             tagNameField.setVisible(false);
             tagButton.setVisible(false);
             pushTagsButton.setVisible(false);
+            infoTagBox.toBack();
         });
     }
 

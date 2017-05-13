@@ -8,8 +8,6 @@
 
 
 <VBox xmlns:fx="http://javafx.com/fxml"
-      GridPane.rowIndex="4"
-      GridPane.columnIndex="6"
       alignment="TOP_CENTER"
       spacing="5"
       fx:controller="elegit.controllers.CommitInfoController">

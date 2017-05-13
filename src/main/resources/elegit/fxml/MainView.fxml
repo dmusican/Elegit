@@ -428,14 +428,15 @@
                     </VBox>
                 </StackPane>
 
-                <fx:include source="CommitInfoView.fxml" fx:id="commitInfo"/>
-
-                <!-- Tagging UI -->
+                <!-- Tagging and Commit Info -->
                 <VBox   alignment="CENTER"
                         spacing="5"
-                        GridPane.rowIndex="5"
+                        GridPane.rowIndex="4"
                         GridPane.columnIndex="6"
-                        GridPane.halignment="CENTER">
+                        GridPane.rowSpan="2"
+                        GridPane.halignment="CENTER"
+                        fx:id="infoTagBox">
+                    <fx:include source="CommitInfoView.fxml" fx:id="commitInfo"/>
                     <HBox>
                         <ArrowButton id="codeButton"
                                      fx:id="tagButton"
