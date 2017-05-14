@@ -584,7 +584,7 @@ public class RepoHelper {
      * Helper method that returns either the only remote, or the remote chosen by the user
      * @return String remote
      */
-    private String getRemote() {
+    public String getRemote() {
         Git git = new Git(this.repo);
         StoredConfig config = git.getRepository().getConfig();
         Set<String> remotes = config.getSubsections("remote");

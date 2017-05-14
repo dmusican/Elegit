@@ -73,7 +73,7 @@ public abstract class BranchHelper extends RefHelper {
      * @return the id of this branch's head
      * @throws IOException
      */
-    ObjectId getHeadId() throws IOException{
+    public ObjectId getHeadId() throws IOException{
         if(commit != null){
             return commit.getObjectId();
         }else{

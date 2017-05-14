@@ -1,7 +1,5 @@
 package elegit.controllers;
 
-import de.jensd.fx.glyphs.GlyphsDude;
-import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import elegit.*;
 import elegit.exceptions.*;
 import elegit.treefx.TreeLayout;
@@ -19,10 +17,6 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.*;
 import javafx.scene.control.Label;
-import javafx.scene.control.Menu;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.CheckMenuItem;
-import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.*;
@@ -220,7 +214,7 @@ public class SessionController {
 
         this.initRepositoryMonitor();
 
-        this.initStatusText();
+        this.initBranchLabels();
 
         //this.initMenuBarShortcuts();
 
@@ -252,16 +246,22 @@ public class SessionController {
     /**
      * Helper method that creates the labels for the branch names
      */
-    private void initStatusText() {
+    private void initBranchLabels() {
 //        updatingText.setVisible(false);
 //        branchStatusText.visibleProperty().bind(updatingText.visibleProperty().not());
 
-        currentRemoteTrackingLabel = new Label("N/A");
         currentLocalBranchLabel = new Label("N/A");
+        currentLocalBranchLabel.setOnMouseClicked(event -> focusCommitLocalBranch());
+        currentRemoteTrackingLabel = new Label("N/A");
+        currentRemoteTrackingLabel.setOnMouseClicked(event -> focusCommitRemoteBranch());
+
         initCellLabel(currentLocalBranchLabel, currentLocalBranchHbox);
         initCellLabel(currentRemoteTrackingLabel, currentRemoteTrackingBranchHbox);
 
-        updateStatusText();
+        // updateStatusText(); needed?
+        // updateNewChangesToFetch(); needed?
+        updateBranchLabels();
+
     }
 
     /**
@@ -292,11 +292,10 @@ public class SessionController {
     }
 
     /**
-     * Helper method to update the current local branch, remote tracking branch and
-     * whether or not there are remote changes to fetch
+     * Helper method to update whether or not there are remote changes to fetch
      */
-    private void updateStatusText(){
-        if (this.theModel.getCurrentRepoHelper()==null) return;
+    private void updateNewChangesToFetch() {
+        if (this.theModel.getCurrentRepoHelper() == null) return;
         boolean update;
 
         update = RepositoryMonitor.hasFoundNewRemoteChanges.get();
@@ -305,18 +304,19 @@ public class SessionController {
         needToFetch.setText(fetchText);
         needToFetch.setFont(new Font(15));
         needToFetch.setFill(fetchColor);
+    }
 
-        // todo: bug with update here. should be name different or commit different
-        // but is this the best place to decide?
-        BranchHelper localBranch = this.theModel.getCurrentRepoHelper().getBranchModel().getCurrentBranch();
+    /**
+     * Helper method to update the text of local and remote branch labels
+     */
+    private void updateBranchLabels() {
 
-        //CommitHelper commit = localBranch.getCommit();
+        BranchHelper localBranch = theModel.getCurrentBranch();
+        boolean update = !localBranch.getAbbrevName().equals(currentLocalBranchLabel.getText());
 
-        update = !localBranch.getAbbrevName().equals(currentLocalBranchLabel.getText());
         if (update) {
             Platform.runLater(() -> {
                 currentLocalBranchLabel.setText(localBranch.getAbbrevName());
-                currentLocalBranchLabel.setOnMouseClicked((event -> CommitTreeController.focusCommitInGraph(localBranch.getCommit())));
                 addToolTip(currentLocalBranchHbox, localBranch.getRefName());
             });
         }
@@ -331,24 +331,27 @@ public class SessionController {
         } catch (IOException e) {
             this.showGenericErrorNotification();
         }
-        if (remoteBranch==null) {
+        if (remoteBranch == null) {
             remoteBranch = "N/A";
             remoteBranchFull = "N/A";
         }
 
         String remoteBranchFinal = remoteBranch;
         String remoteBranchFullFinal = remoteBranchFull;
+
         update = !remoteBranch.equals(currentRemoteTrackingLabel.getText());
         if (update) {
-            CommitHelper finalRemoteHead = remoteHead;
             Platform.runLater(() -> {
                 currentRemoteTrackingLabel.setText(remoteBranchFinal);
-                if (finalRemoteHead != null)
-                    currentRemoteTrackingLabel.setOnMouseClicked((event -> CommitTreeController.focusCommitInGraph(finalRemoteHead)));
                 addToolTip(currentRemoteTrackingBranchHbox, remoteBranchFullFinal);
             });
         }
+    }
 
+    /**
+     * Helper method to update the ahead/behind status text below the local repository icon
+     */
+    private void updateStatusText(){
         // Ahead/behind count
         int ahead=0, behind=0;
         try {
@@ -374,11 +377,26 @@ public class SessionController {
                 statusText+="s";
             statusText+=".";
         }
-        update = !statusText.equals(branchStatusText.getText());
+        boolean update = !statusText.equals(branchStatusText.getText());
         Color statusColor = statusText.equals("Up to date.") ? Color.FORESTGREEN : Color.FIREBRICK;
         if (update) {
             branchStatusText.setText(statusText);
             branchStatusText.setFill(statusColor);
+        }
+    }
+
+    private void focusCommitLocalBranch() {
+        CommitHelper HEAD = theModel.getCurrentRepoHelper().getBranchModel().getCurrentBranchHead();
+        CommitTreeController.focusCommitInGraph(HEAD);
+    }
+
+    private void focusCommitRemoteBranch() {
+        try {
+            CommitHelper commit = theModel.getCurrentRepoHelper().getBranchModel().getCurrentRemoteBranchHead();
+            if (commit == null) return;
+            CommitTreeController.focusCommitInGraph(commit);
+        } catch (IOException e){
+            this.showGenericErrorNotification();
         }
     }
 
@@ -397,7 +415,7 @@ public class SessionController {
     private void initRepositoryMonitor() {
         RepositoryMonitor.startWatching(theModel, this);
         RepositoryMonitor.hasFoundNewRemoteChanges.addListener((observable, oldValue, newValue) -> {
-            if(newValue) updateStatusText();
+            if(newValue) updateNewChangesToFetch();
         });
     }
 
@@ -2225,6 +2243,8 @@ public class SessionController {
                 indexPanelView.drawDirectoryView();
                 this.theModel.getCurrentRepoHelper().getTagModel().updateTags();
                 updateStatusText();
+                updateBranchLabels();
+                updateNewChangesToFetch();
             } catch(Exception e) {
                 showGenericErrorNotification();
                 e.printStackTrace();

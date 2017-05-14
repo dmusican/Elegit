@@ -36,7 +36,7 @@ public class SessionModel {
     private static final String LAST_OPENED_REPO_PATH_KEY = "LAST_OPENED_REPO_PATH";
     private static final String LAST_UUID_KEY="LAST_UUID";
 
-    private RepoHelper currentRepoHelper;
+    public RepoHelper currentRepoHelper;
     ObjectProperty<RepoHelper> currentRepoHelperProperty;
 
     private List<RepoHelper> allRepoHelpers;
@@ -669,4 +669,10 @@ public class SessionModel {
     public String getLastUUID() throws BackingStoreException, ClassNotFoundException, IOException {
         return (String) PrefObj.getObject(this.preferences, LAST_UUID_KEY);
     }
+
+    public BranchHelper getCurrentBranch(){
+        return this.getCurrentRepoHelper().getBranchModel().getCurrentBranch();
+    }
+
+
 }
