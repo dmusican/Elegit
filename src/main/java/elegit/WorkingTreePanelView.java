@@ -10,6 +10,7 @@ import javafx.scene.control.TreeView;
 import javafx.scene.control.cell.CheckBoxTreeCell;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
+import javafx.stage.Stage;
 import javafx.util.Callback;
 import org.eclipse.jgit.api.errors.GitAPIException;
 
@@ -31,6 +32,8 @@ public class WorkingTreePanelView extends FileStructurePanelView{
     public List<TreeItem<RepoFile>> displayedFiles;
 
     private CheckBoxTreeItem<RepoFile> checkBox;
+
+    private StagedTreePanelView indexPanel;
 
     public WorkingTreePanelView() {
         this.init();
@@ -54,8 +57,16 @@ public class WorkingTreePanelView extends FileStructurePanelView{
     protected Callback<TreeView<RepoFile>, TreeCell<RepoFile>> getTreeCellFactory() {
         return arg -> {
             TreeCell<RepoFile> cell = CheckBoxTreeCell.<RepoFile>forTreeView().call(arg);
+
             cell.setOnContextMenuRequested(event -> {
-                if(cell.getTreeItem()!= null) cell.getTreeItem().getValue().showContextMenu(cell, event.getScreenX(), event.getScreenY());
+                if(cell.getTreeItem()!= null)
+                    cell.getTreeItem().getValue().showContextMenu(cell, event.getScreenX(), event.getScreenY());
+            });
+            cell.setOnMouseClicked(event -> {
+                if(cell.getTreeItem()!= null) {
+                    CheckBoxTreeItem checkBoxFile = (CheckBoxTreeItem) cell.getTreeItem();
+                    checkBoxFile.setSelected(!checkBoxFile.isSelected());
+                }
             });
             return cell;
         };
@@ -142,25 +153,29 @@ public class WorkingTreePanelView extends FileStructurePanelView{
         }
 
         // Loop over every file to be shown
-        for(RepoFile repoFile : updatedRepoFiles) {
+        for (RepoFile repoFile : updatedRepoFiles) {
             CheckBoxTreeItem<RepoFile> newItem = new CheckBoxTreeItem<>(repoFile, repoFile.diffButton);
+            newItem.addEventHandler(CheckBoxTreeItem.checkBoxSelectionChangedEvent(), (CheckBoxTreeItem.TreeModificationEvent<RepoFile> e) -> {
+                if (e.getTreeItem().isSelected()) {
+                    indexPanel.setAllFilesSelected(false);
+                }
+            });
 
             BooleanProperty oldHelper = isSelectedPropertyHelper;
             isSelectedPropertyHelper = new SimpleBooleanProperty();
 
             // Check if the file is already being displayed
             boolean foundMatchingItem = false;
-            for(int i = 0; i < displayedFiles.size(); i++) {
+            for (int i = 0; i < displayedFiles.size(); i++) {
                 CheckBoxTreeItem<RepoFile> oldItem = (CheckBoxTreeItem<RepoFile>) displayedFiles.get(i);
 
-                boolean fileChangedStatus = oldItem.getValue().getFilePath().equals(repoFile.getFilePath());
-                if(oldItem.getValue().equals(repoFile) || fileChangedStatus) {
-                    // The given file is already present
-                    if (fileChangedStatus) {
+                if (oldItem.getValue().getFilePath().equals(repoFile.getFilePath())) {
+                    if (oldItem.getValue().equals(repoFile)) {
+                        isSelectedPropertyHelper.bind(oldHelper.or(oldItem.selectedProperty()));
+                    } else {
+                        // File has changed status
                         updateRepoFile(oldItem, newItem, i);
                         isSelectedPropertyHelper.bind(oldHelper.or(newItem.selectedProperty()));
-                    } else {
-                        isSelectedPropertyHelper.bind(oldHelper.or(oldItem.selectedProperty()));
                     }
                     foundMatchingItem = true;
                     shouldKeepChild.put(oldItem, true);
@@ -278,5 +293,13 @@ public class WorkingTreePanelView extends FileStructurePanelView{
      */
     public boolean isSelectAllChecked() {
         return checkBox.isSelected();
+    }
+
+    public StagedTreePanelView getIndexPanel() {
+        return this.indexPanel;
+    }
+
+    public void setIndexPanel(StagedTreePanelView indexPanel) {
+        this.indexPanel = indexPanel;
     }
 }

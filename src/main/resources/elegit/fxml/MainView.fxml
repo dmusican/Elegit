@@ -249,7 +249,7 @@
                 <!-- Checkout Files button -->
                 <ArrowButton id="codeButton"
                              fx:id="checkoutFileButton"
-                             text="Checkout Files"
+                             text="Checkout"
                              arrowLeft="true"
                              onAction="#handleCheckoutButton"
                              GridPane.rowIndex="5"
@@ -257,7 +257,7 @@
                              GridPane.valignment="TOP"
                              GridPane.halignment="LEFT">
                     <GridPane.margin>
-                        <Insets left="-60" right="-60" top="20"/>
+                        <Insets left="-30" right="-30" top="20"/>
                     </GridPane.margin>
                 </ArrowButton>
 

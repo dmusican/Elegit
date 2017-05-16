@@ -124,6 +124,7 @@ public class SessionController {
 
     private BooleanProperty isWorkingTreeTabSelected;
     public static SimpleBooleanProperty anythingChecked;
+    public static SimpleBooleanProperty anyIndexFileChecked;
 
     private volatile boolean isRecentRepoEventListenerBlocked = false;
 
@@ -201,6 +202,9 @@ public class SessionController {
         this.workingTreePanelView.setSessionModel(this.theModel);
         this.allFilesPanelView.setSessionModel(this.theModel);
         this.indexPanelView.setSessionModel(this.theModel);
+
+        this.workingTreePanelView.setIndexPanel(this.indexPanelView);
+        this.indexPanelView.setWorkingTreePanel(this.workingTreePanelView);
 
         this.initializeLayoutParameters();
 
@@ -425,7 +429,9 @@ public class SessionController {
      */
     private void initButtons() {
         anythingChecked = new SimpleBooleanProperty(false);
-        checkoutFileButton.disableProperty().bind(anythingChecked.not());
+        anyIndexFileChecked = new SimpleBooleanProperty(false);
+
+        checkoutFileButton.disableProperty().bind(anyIndexFileChecked.not());
         addButton.disableProperty().bind(anythingChecked.not());
         removeButton.disableProperty().bind(anythingChecked.not());
 
