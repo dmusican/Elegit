@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * Model class that keeps track of all BranchModels for a RepoHelper
+ * Model class that keeps track of all BranchHelpers for a RepoHelper
  *
  * Also implements git stuff that concerns multiple branches
  *      -adding, removing

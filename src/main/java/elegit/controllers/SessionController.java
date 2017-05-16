@@ -310,10 +310,6 @@ public class SessionController {
      * Helper method to update the text of local and remote branch labels
      */
     private void updateBranchLabels() {
-        // todo: Still need to fix errors with which branch labels are blue
-        // Also just found a bug, probably unrelated but
-        // it seems like git lets you checkout branches even if you get the capitalization wrong
-        // and Elegit doesn't support that and gets confused if you do so
 
         BranchHelper localBranch = theModel.getCurrentBranch();
         boolean update = !localBranch.getAbbrevName().equals(currentLocalBranchLabel.getText());
@@ -323,15 +319,15 @@ public class SessionController {
                 currentLocalBranchLabel.setText(localBranch.getAbbrevName());
                 currentLocalBranchLabel.setOnMouseClicked(event -> focusCommitLocalBranch());
                 addToolTip(currentLocalBranchHbox, localBranch.getRefName());
+                // makes sure correct label is highlighted in blue
+                CommitTreeController.setBranchHeads(commitTreeModel, theModel.getCurrentRepoHelper());
             });
         }
 
         String remoteBranch = "N/A";
         String remoteBranchFull = "N/A";
-        //CommitHelper remoteHead = null;
         try {
             remoteBranch = this.theModel.getCurrentRepoHelper().getBranchModel().getCurrentRemoteAbbrevBranch();
-            //remoteHead = this.theModel.getCurrentRepoHelper().getBranchModel().getCurrentRemoteBranchHead();
             remoteBranchFull = this.theModel.getCurrentRepoHelper().getBranchModel().getCurrentRemoteBranch();
         } catch (IOException e) {
             this.showGenericErrorNotification();
@@ -350,6 +346,8 @@ public class SessionController {
                 currentRemoteTrackingLabel.setText(remoteBranchFinal);
                 currentRemoteTrackingLabel.setOnMouseClicked(event -> focusCommitRemoteBranch());
                 addToolTip(currentRemoteTrackingBranchHbox, remoteBranchFullFinal);
+                // makes sure correct label is highlighted in blue
+                CommitTreeController.setBranchHeads(commitTreeModel, theModel.getCurrentRepoHelper());
             });
         }
     }

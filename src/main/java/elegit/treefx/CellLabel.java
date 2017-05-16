@@ -134,6 +134,7 @@ public class CellLabel extends HBox {
         Tooltip.install(l, tooltip);
     }
 
+    // todo: use this to change fill based on if current or not
     /**
      * Sets the various items to have the current style
      * @param current whether or not this label is current

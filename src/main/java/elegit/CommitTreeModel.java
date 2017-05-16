@@ -633,8 +633,6 @@ public class CommitTreeModel{
         return this.view.getName();
     }
 
-
-
     public List<CommitHelper> getCommitsInModel() { return this.commitsInModel; }
 
     public List<BranchHelper> getBranchesInModel() { return this.branchesInModel; }
