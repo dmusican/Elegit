@@ -28,18 +28,14 @@ public class Cell extends Pane {
 
     // Base shapes for different types of cells
     private static final CellShape DEFAULT_SHAPE = CellShape.SQUARE;
-    public static final CellShape UNTRACKED_BRANCH_HEAD_SHAPE = CellShape.CIRCLE;
-    public static final CellShape TRACKED_BRANCH_HEAD_SHAPE = CellShape.TRIANGLE_UP;
+    private static final CellShape UNTRACKED_BRANCH_HEAD_SHAPE = CellShape.CIRCLE;
+    private static final CellShape TRACKED_BRANCH_HEAD_SHAPE = CellShape.TRIANGLE_UP;
 
     // The size of the rectangle being drawn
     public static final int BOX_SIZE = 20;
 
     //The height of the shift for the cells;
     private static final int BOX_SHIFT = 20;
-
-    // The inset for the background;
-    static final int BOX_INSET = 1;
-    static final int BOX_INSIDE = 2;
 
     private static final String BACKGROUND_COLOR = "#F4F4F4";
 
@@ -82,11 +78,6 @@ public class Cell extends Pane {
     // Whether this cell has been moved to its appropriate location
     private BooleanProperty hasUpdatedPosition;
 
-    public Cell(String s) {
-        this.cellId = s;
-        this.time = 0;
-    }
-
     /**
      * Constructs a node with the given ID and the given parents
      * @param cellId the ID of this node
@@ -105,19 +96,29 @@ public class Cell extends Pane {
         this.columnLocationProperty = new SimpleIntegerProperty(-1);
         this.rowLocationProperty = new SimpleIntegerProperty(-1);
 
-        this.hasUpdatedPosition = new SimpleBooleanProperty(false);
-        visibleProperty().bind(this.hasUpdatedPosition);
+//        this.hasUpdatedPosition = new SimpleBooleanProperty(false);
+//        visibleProperty().bind(this.hasUpdatedPosition);
+//
+//        columnLocationProperty.addListener((observable, oldValue, newValue) -> {
+//                        System.out.println("listening + " + oldValue.intValue() + " " + newValue.intValue());
+//                hasUpdatedPosition.set(oldValue.intValue()==newValue.intValue() ||
+//                                      (newValue.intValue()>-1)&&oldValue.intValue()>-1);});
+//        rowLocationProperty.addListener((observable, oldValue, newValue) ->
+//                hasUpdatedPosition.set(oldValue.intValue()==newValue.intValue() || (newValue.intValue()>-1)&&oldValue.intValue()>-1));
 
-        columnLocationProperty.addListener((observable, oldValue, newValue) ->
-                hasUpdatedPosition.set(oldValue.intValue()==newValue.intValue() || (newValue.intValue()>-1)&&oldValue.intValue()>-1));
-        rowLocationProperty.addListener((observable, oldValue, newValue) ->
-                hasUpdatedPosition.set(oldValue.intValue()==newValue.intValue() || (newValue.intValue()>-1)&&oldValue.intValue()>-1));
+        addTooltip();
+        addMouseClicks();
+        this.view=getBaseView();
+    }
 
+    private void addTooltip() {
         tooltip = new Tooltip(cellId);
         tooltip.setWrapText(true);
         tooltip.setMaxWidth(300);
         Tooltip.install(this, tooltip);
+    }
 
+    private void addMouseClicks() {
         this.setOnMouseClicked(event -> {
             if(event.getButton() == MouseButton.PRIMARY){
                 if (event.isShiftDown())
@@ -133,8 +134,6 @@ public class Cell extends Pane {
         });
         this.setOnMouseEntered(event -> CommitTreeController.handleMouseover(this, true));
         this.setOnMouseExited(event -> CommitTreeController.handleMouseover(this, false));
-
-        this.view=getBaseView();
     }
 
     /**
@@ -145,14 +144,9 @@ public class Cell extends Pane {
      * @param emphasize whether to have the Highlighter class emphasize this cell while it moves
      */
     void moveTo(double x, double y, boolean animate, boolean emphasize){
+        assert Platform.isFxApplicationThread();
         if(animate && numCellsBeingAnimated < MAX_NUM_CELLS_TO_ANIMATE){
             numCellsBeingAnimated++;
-
-            Shape placeHolder = (Shape) getBaseView();
-            placeHolder.setTranslateX(x+TreeLayout.H_PAD);
-            placeHolder.setTranslateY(y+BOX_SHIFT);
-            placeHolder.setOpacity(0.0);
-            ((Pane)(this.getParent())).getChildren().add(placeHolder);
 
             TranslateTransition t = new TranslateTransition(Duration.millis(3000), this);
             t.setToX(x);
@@ -160,7 +154,6 @@ public class Cell extends Pane {
             t.setCycleCount(1);
             t.setOnFinished(event -> {
                 numCellsBeingAnimated--;
-                ((Pane)(this.getParent())).getChildren().remove(placeHolder);
             });
             t.play();
 
@@ -172,7 +165,7 @@ public class Cell extends Pane {
             setTranslateY(y+BOX_SHIFT);
         }
         this.refLabel.translate(x,y);
-        this.hasUpdatedPosition.set(true);
+        //this.hasUpdatedPosition.set(true);
         if (!this.refLabel.isVisible())
             this.refLabel.setVisible(true);
     }

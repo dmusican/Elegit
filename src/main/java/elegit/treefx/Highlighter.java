@@ -143,18 +143,6 @@ public class Highlighter{
     }
 
     /**
-     * Helper method that sets the state of all cells in the given list to be
-     * the given state
-     * @param cells the cells to color
-     * @param state the new state for the cell
-     */
-    private static void highlightAllCells(List<Cell> cells, CellState state){
-        for(Cell cell : cells){
-            highlightCell(cell, state, true);
-        }
-    }
-
-    /**
      * Helper method to set the state of a cell. Note that if a cell had its state
      * changed TO a non-persistent state, FROM a persistent non-standard state, attempting
      * to put the cell back into the standard state will instead place it back into its

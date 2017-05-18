@@ -1,3 +1,4 @@
+// REFACTORED BY DAVE: RETHREADING
 package elegit.treefx;
 
 import javafx.scene.shape.Circle;
@@ -16,6 +17,11 @@ public enum CellShape{
     TRIANGLE_RIGHT,
     TRIANGLE_LEFT;
 
+    // The inset for the background;
+    static final int BOX_INSET = 1;
+    static final int BOX_INSIDE = 2;
+
+
     /**
      * Gets a shape based on the type of a cell
      * @param type the type of the cell (local, remote, or both)
@@ -31,7 +37,7 @@ public enum CellShape{
                 toReturn = get();
                 break;
             case BOTH:
-                toReturn = Shape.union(getInside(Cell.BOX_INSIDE), Shape.subtract(get(), getInside(Cell.BOX_INSET)));
+                toReturn = Shape.union(getInside(BOX_INSIDE), Shape.subtract(get(), getInside(BOX_INSET)));
                 break;
             default:
                 toReturn = null;
@@ -43,7 +49,7 @@ public enum CellShape{
     /**
      * @return the JavaFX object corresponding to the shape
      */
-    public Shape get(){
+    private Shape get(){
         switch(this){
             case CIRCLE:
                 return new Circle(Cell.BOX_SIZE / 2., Cell.BOX_SIZE / 2., Cell.BOX_SIZE / 2.);
@@ -66,9 +72,9 @@ public enum CellShape{
      * @param inset the inset of the inner shape to get
      * @return the JavaFX object corresponding to the interior to the shape
      */
-    public Shape getInside(int inset) {
+    private Shape getInside(int inset) {
         int extraInset = inset;
-        if (inset==Cell.BOX_INSIDE)
+        if (inset==BOX_INSIDE)
             extraInset += 1;
         switch(this){
             case CIRCLE:
