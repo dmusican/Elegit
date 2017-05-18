@@ -96,16 +96,6 @@ public class Cell extends Pane {
         this.columnLocationProperty = new SimpleIntegerProperty(-1);
         this.rowLocationProperty = new SimpleIntegerProperty(-1);
 
-//        this.hasUpdatedPosition = new SimpleBooleanProperty(false);
-//        visibleProperty().bind(this.hasUpdatedPosition);
-//
-//        columnLocationProperty.addListener((observable, oldValue, newValue) -> {
-//                        System.out.println("listening + " + oldValue.intValue() + " " + newValue.intValue());
-//                hasUpdatedPosition.set(oldValue.intValue()==newValue.intValue() ||
-//                                      (newValue.intValue()>-1)&&oldValue.intValue()>-1);});
-//        rowLocationProperty.addListener((observable, oldValue, newValue) ->
-//                hasUpdatedPosition.set(oldValue.intValue()==newValue.intValue() || (newValue.intValue()>-1)&&oldValue.intValue()>-1));
-
         addTooltip();
         addMouseClicks();
         this.view=getBaseView();
