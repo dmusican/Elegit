@@ -29,12 +29,6 @@ public abstract class FileStructurePanelView extends Region{
      */
     public FileStructurePanelView() {
         this.init();
-
-        // This line isn't necessary for displaying the tree, but it does prevent the tabs from getting
-        // cut off and displaying a drop down arrow to flip between them.
-        // TODO: Figure out why and fix it
-        this.getChildren().clear();
-        this.getChildren().add(this.directoryTreeView);
     }
 
     /**
