@@ -1,15 +1,11 @@
 package elegit;
 
-import com.sun.tools.javac.comp.Check;
 import elegit.controllers.SessionController;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.control.CheckBoxTreeItem;
-import javafx.scene.control.TreeCell;
-import javafx.scene.control.cell.CheckBoxTreeCell;
 import javafx.scene.control.TreeItem;
-import javafx.scene.control.TreeView;
-import javafx.util.Callback;
+import javafx.scene.control.cell.CheckBoxTreeCell;
 import org.eclipse.jgit.api.errors.GitAPIException;
 
 import java.io.IOException;
@@ -39,30 +35,6 @@ public class StagedTreePanelView extends FileStructurePanelView{
         // Used to disable/enable add and remove buttons
         isAnyFileSelectedProperty.addListener(((observable, oldValue, newValue) -> SessionController.anyIndexFileChecked.set(newValue)));
         super.init();
-    }
-
-    /**
-     * @return a factory that generates a custom tree cell that includes a context menu for each
-     * item
-     */
-    @Override
-    protected Callback<TreeView<RepoFile>, TreeCell<RepoFile>> getTreeCellFactory() {
-        return arg -> {
-            TreeCell<RepoFile> cell = CheckBoxTreeCell.<RepoFile>forTreeView().call(arg);
-
-            cell.setOnContextMenuRequested(event -> {
-                if(cell.getTreeItem()!= null)
-                    cell.getTreeItem().getValue().showContextMenu(cell, event.getScreenX(), event.getScreenY());
-            });
-            cell.setOnMouseClicked(event -> {
-                if(cell.getTreeItem()!= null) {
-                    CheckBoxTreeItem checkBoxFile = (CheckBoxTreeItem) cell.getTreeItem();
-                    checkBoxFile.setSelected(!checkBoxFile.isSelected());
-                }
-            });
-            return cell;
-        };
-//        return arg -> new RepoFileTreeCell();
     }
 
     @Override

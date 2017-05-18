@@ -1,9 +1,11 @@
 package elegit;
 
 import javafx.application.Platform;
+import javafx.scene.control.CheckBoxTreeItem;
 import javafx.scene.control.TreeCell;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
+import javafx.scene.control.cell.CheckBoxTreeCell;
 import javafx.scene.layout.Region;
 import javafx.util.Callback;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -17,7 +19,7 @@ import java.util.List;
  */
 public abstract class FileStructurePanelView extends Region{
 
-    protected TreeView<RepoFile> directoryTreeView;
+    private TreeView<RepoFile> directoryTreeView;
     private TreeItem<RepoFile> treeRoot;
 
     public SessionModel sessionModel;
@@ -85,11 +87,25 @@ public abstract class FileStructurePanelView extends Region{
     }
 
     /**
-     * @return the cell factory for this tree view. Defaults to null, which means the default
-     * factory will be used
+     * @return the cell from CheckBoxTreeCell's implementation of a TreeView factory, with
+     * an added context menu for the given RepoFile
      */
-    protected Callback<TreeView<RepoFile>,TreeCell<RepoFile>> getTreeCellFactory(){
-        return null;
+    protected Callback<TreeView<RepoFile>, TreeCell<RepoFile>> getTreeCellFactory() {
+        return arg -> {
+            TreeCell<RepoFile> cell = CheckBoxTreeCell.<RepoFile>forTreeView().call(arg);
+
+            cell.setOnContextMenuRequested(event -> {
+                if(cell.getTreeItem()!= null)
+                    cell.getTreeItem().getValue().showContextMenu(cell, event.getScreenX(), event.getScreenY());
+            });
+            cell.setOnMouseClicked(event -> {
+                if(cell.getTreeItem()!= null) {
+                    CheckBoxTreeItem checkBoxFile = (CheckBoxTreeItem) cell.getTreeItem();
+                    checkBoxFile.setSelected(!checkBoxFile.isSelected());
+                }
+            });
+            return cell;
+        };
     }
 
     /**

@@ -2,11 +2,8 @@ package elegit;
 
 import javafx.application.Platform;
 import javafx.scene.control.CheckBoxTreeItem;
-import javafx.scene.control.TreeCell;
 import javafx.scene.control.TreeItem;
-import javafx.scene.control.TreeView;
 import javafx.scene.control.cell.CheckBoxTreeCell;
-import javafx.util.Callback;
 import org.eclipse.jgit.api.errors.GitAPIException;
 
 import java.io.IOException;
@@ -32,14 +29,6 @@ public class AllFilesPanelView extends FileStructurePanelView{
         super.init();
     }
 
-    /**
-     * @return a factory that generates a custom tree cell that includes a context menu for each
-     * item
-     */
-    @Override
-    protected Callback<TreeView<RepoFile>, TreeCell<RepoFile>> getTreeCellFactory() {
-        return arg -> new RepoFileTreeCell();
-    }
 
     @Override
     protected TreeItem<RepoFile> getRootTreeItem(DirectoryRepoFile rootDirectory) {
