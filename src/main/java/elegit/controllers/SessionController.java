@@ -542,7 +542,7 @@ public class SessionController {
             browserText.setUnderline(true);
         }
         catch(MissingRepoException e) {
-            this.showMissingRepoNotification();
+            this.showThreadedNotification("That repository no longer exists.");
             this.setButtonsDisabled(true);
             this.refreshRecentReposInDropdown();
         }catch(NoRepoLoadedException e) {
@@ -665,7 +665,7 @@ public class SessionController {
                         // fails to be loaded or stored, respectively
                         // Should be ok to silently fail
                     } catch (MissingRepoException e) {
-                        showMissingRepoNotification();
+                        showThreadedNotification("That repository no longer exists.");
                         refreshRecentReposInDropdown();
                     } catch (IOException e) {
                         // Somehow, the repository failed to get properly loaded
@@ -762,7 +762,7 @@ public class SessionController {
                     // TODO: better error message?
                     showRepoWasNotLoadedNotification();
                 } catch(MissingRepoException e){
-                    showMissingRepoNotification();
+                    showThreadedNotification("That repository no longer exists.");
                     refreshRecentReposInDropdown();
                 } catch (BackingStoreException | ClassNotFoundException e) {
                     // These should only occur when the recent repo information
@@ -848,7 +848,7 @@ public class SessionController {
         } catch (NoRepoLoadedException e) {
             this.showThreadedNotification("You need to load a repository before you can perform operations on it. Click on the plus sign in the upper left corner!");
         } catch (MissingRepoException e) {
-            this.showMissingRepoNotification();
+            this.showThreadedNotification("That repository no longer exists.");
         } catch (StagedFileCheckedException e) {
             this.showStagedFilesSelectedNotification();
         }
@@ -903,7 +903,7 @@ public class SessionController {
         } catch (NoRepoLoadedException e) {
             this.showThreadedNotification("You need to load a repository before you can perform operations on it. Click on the plus sign in the upper left corner!");
         } catch (MissingRepoException e) {
-            this.showMissingRepoNotification();
+            this.showThreadedNotification("That repository no longer exists.");
         }
     }
 
@@ -923,7 +923,7 @@ public class SessionController {
         } catch (NoRepoLoadedException e) {
             showThreadedNotification("You need to load a repository before you can perform operations on it. Click on the plus sign in the upper left corner!");
         } catch (MissingRepoException e) {
-            showMissingRepoNotification();
+            showThreadedNotification("That repository no longer exists.");
         } catch (GitAPIException e) {
             showGenericErrorNotification();
         } catch (CancelledDialogueException e) {
@@ -954,7 +954,7 @@ public class SessionController {
         } catch (NoRepoLoadedException e) {
             this.showThreadedNotification("You need to load a repository before you can perform operations on it. Click on the plus sign in the upper left corner!");
         } catch (MissingRepoException e) {
-            this.showMissingRepoNotification();
+            this.showThreadedNotification("That repository no longer exists.");
         } catch (GitAPIException e) {
             this.showGenericErrorNotification();
         } catch (CancelledDialogueException e) {
@@ -1022,7 +1022,7 @@ public class SessionController {
             this.showThreadedNotification("You need to load a repository before you can perform operations on it. Click on the plus sign in the upper left corner!");
             setButtonsDisabled(true);
         } catch(MissingRepoException e){
-            this.showMissingRepoNotification();
+            this.showThreadedNotification("That repository no longer exists.");
             setButtonsDisabled(true);
             refreshRecentReposInDropdown();
         } catch(NoFilesStagedForCommitException e){
@@ -1105,7 +1105,7 @@ public class SessionController {
                     } catch (JGitInternalException e) {
                         showJGitInternalError(e);
                     } catch (MissingRepoException e) {
-                        showMissingRepoNotification();
+                        showThreadedNotification("That repository no longer exists.");
                         setButtonsDisabled(true);
                         refreshRecentReposInDropdown();
                     } catch (InvalidTagNameException e) {
@@ -1137,7 +1137,7 @@ public class SessionController {
             this.showThreadedNotification("You need to load a repository before you can perform operations on it. Click on the plus sign in the upper left corner!");
             setButtonsDisabled(true);
         } catch(MissingRepoException e){
-            this.showMissingRepoNotification();
+            this.showThreadedNotification("That repository no longer exists.");
             setButtonsDisabled(true);
             refreshRecentReposInDropdown();
         } catch(NoTagNameException e){
@@ -1192,7 +1192,7 @@ public class SessionController {
         } catch (PushToAheadRemoteError pushToAheadRemoteError) {
             pushToAheadRemoteError.printStackTrace();
         } catch (MissingRepoException e) {
-            showMissingRepoNotification();
+            showThreadedNotification("That repository no longer exists.");
             setButtonsDisabled(true);
             refreshRecentReposInDropdown();
         } catch (GitAPIException e) {
@@ -1368,7 +1368,7 @@ public class SessionController {
         } catch(PushToAheadRemoteError e) {
             showPushToAheadRemoteNotification(e.isAllRefsRejected());
         } catch(MissingRepoException e) {
-            showMissingRepoNotification();
+            showThreadedNotification("That repository no longer exists.");
             setButtonsDisabled(true);
             refreshRecentReposInDropdown();
         } catch (TransportException e) {
@@ -1591,7 +1591,7 @@ public class SessionController {
                     } catch (TransportException e) {
                         showTransportExceptionNotification(e);
                     } catch(MissingRepoException e){
-                        showMissingRepoNotification();
+                        showThreadedNotification("That repository no longer exists.");
                         setButtonsDisabled(true);
                         refreshRecentReposInDropdown();
                     } catch(Exception e) {
@@ -1642,7 +1642,7 @@ public class SessionController {
                     } catch (TransportException e) {
                         showTransportExceptionNotification(e);
                     } catch(MissingRepoException e){
-                        showMissingRepoNotification();
+                        showThreadedNotification("That repository no longer exists.");
                         setButtonsDisabled(true);
                         refreshRecentReposInDropdown();
                     } catch(Exception e) {
@@ -1696,7 +1696,7 @@ public class SessionController {
                     } catch (TransportException e) {
                         showTransportExceptionNotification(e);
                     } catch(MissingRepoException e){
-                        showMissingRepoNotification();
+                        showThreadedNotification("That repository no longer exists.");
                         setButtonsDisabled(true);
                         refreshRecentReposInDropdown();
                     } catch(Exception e) {
@@ -1884,7 +1884,7 @@ public class SessionController {
                     } catch (TransportException e) {
                         determineIfTryAgain(e);
                     } catch(MissingRepoException e){
-                        showMissingRepoNotification();
+                        showThreadedNotification("That repository no longer exists.");
                         setButtonsDisabled(true);
                         refreshRecentReposInDropdown();
                     } catch(Exception e) {
@@ -2264,7 +2264,7 @@ public class SessionController {
         }catch(URISyntaxException | IOException e){
             this.showGenericErrorNotification();
         }catch(MissingRepoException e){
-            this.showMissingRepoNotification();
+            this.showThreadedNotification("That repository no longer exists.");
             this.setButtonsDisabled(true);
             this.refreshRecentReposInDropdown();
         }catch(NoRepoLoadedException e){
@@ -2509,13 +2509,6 @@ public class SessionController {
         Platform.runLater(()-> {
             logger.warn("Missing repo warning");
             nc.addNotification("That repository no longer exists.");
-        });
-    }
-
-    private void showMissingRepoNotification(){
-        Platform.runLater(()-> {
-            logger.warn("Missing repo warning");
-            notificationPaneController.addNotification("That repository no longer exists.");
         });
     }
 
