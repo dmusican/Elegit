@@ -688,7 +688,7 @@ public class SessionController {
             showRepoWasNotLoadedNotification();
             e.printStackTrace();
         } catch (IllegalArgumentException e) {
-            showInvalidRepoNotification();
+            showThreadedNotification("Make sure the directory you selected contains an existing (non-bare) Git repository.");
         } catch(JGitInternalException e){
             showNonEmptyFolderNotification(() -> handleLoadRepoMenuItem(builder));
         } catch(InvalidRemoteException e){
