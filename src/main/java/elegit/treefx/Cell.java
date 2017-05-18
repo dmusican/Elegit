@@ -155,7 +155,6 @@ public class Cell extends Pane {
             setTranslateY(y+BOX_SHIFT);
         }
         this.refLabel.translate(x,y);
-        //this.hasUpdatedPosition.set(true);
         if (!this.refLabel.isVisible())
             this.refLabel.setVisible(true);
     }
