@@ -581,7 +581,7 @@ public class SessionController {
         });
 
         root.setOnMouseClicked(event -> {
-            if (disable) showNoRepoLoadedNotification();
+            if (disable) showThreadedNotification("You need to load a repository before you can perform operations on it. Click on the plus sign in the upper left corner!");
             if (this.notificationPaneController.isListPaneVisible()) this.notificationPaneController.toggleNotificationList();
         });
     }
@@ -846,7 +846,7 @@ public class SessionController {
         } catch (NoFilesSelectedToAddException e) {
             this.showNoFilesSelectedForAddNotification();
         } catch (NoRepoLoadedException e) {
-            this.showNoRepoLoadedNotification();
+            this.showThreadedNotification("You need to load a repository before you can perform operations on it. Click on the plus sign in the upper left corner!");
         } catch (MissingRepoException e) {
             this.showMissingRepoNotification();
         } catch (StagedFileCheckedException e) {
@@ -901,7 +901,7 @@ public class SessionController {
         } catch (NoFilesSelectedToRemoveException e) {
             this.showNoFilesSelectedForRemoveNotification();
         } catch (NoRepoLoadedException e) {
-            this.showNoRepoLoadedNotification();
+            this.showThreadedNotification("You need to load a repository before you can perform operations on it. Click on the plus sign in the upper left corner!");
         } catch (MissingRepoException e) {
             this.showMissingRepoNotification();
         }
@@ -921,7 +921,7 @@ public class SessionController {
             if(!this.theModel.getCurrentRepoHelper().exists()) throw new MissingRepoException();
             theModel.getCurrentRepoHelper().checkoutFile(filePath);
         } catch (NoRepoLoadedException e) {
-            showNoRepoLoadedNotification();
+            showThreadedNotification("You need to load a repository before you can perform operations on it. Click on the plus sign in the upper left corner!");
         } catch (MissingRepoException e) {
             showMissingRepoNotification();
         } catch (GitAPIException e) {
@@ -952,7 +952,7 @@ public class SessionController {
         } catch (NoFilesSelectedToAddException e) {
             this.showNoFilesSelectedForAddNotification();
         } catch (NoRepoLoadedException e) {
-            this.showNoRepoLoadedNotification();
+            this.showThreadedNotification("You need to load a repository before you can perform operations on it. Click on the plus sign in the upper left corner!");
         } catch (MissingRepoException e) {
             this.showMissingRepoNotification();
         } catch (GitAPIException e) {
@@ -987,7 +987,7 @@ public class SessionController {
             this.showGenericErrorNotification();
             e.printStackTrace();
         }catch(NoRepoLoadedException e){
-            this.showNoRepoLoadedNotification();
+            this.showThreadedNotification("You need to load a repository before you can perform operations on it. Click on the plus sign in the upper left corner!");
             setButtonsDisabled(true);
         }
     }
@@ -1019,7 +1019,7 @@ public class SessionController {
                 commitAll();
             }
         } catch(NoRepoLoadedException e){
-            this.showNoRepoLoadedNotification();
+            this.showThreadedNotification("You need to load a repository before you can perform operations on it. Click on the plus sign in the upper left corner!");
             setButtonsDisabled(true);
         } catch(MissingRepoException e){
             this.showMissingRepoNotification();
@@ -1134,7 +1134,7 @@ public class SessionController {
             th.setName("Git tag");
             th.start();
         } catch(NoRepoLoadedException e){
-            this.showNoRepoLoadedNotification();
+            this.showThreadedNotification("You need to load a repository before you can perform operations on it. Click on the plus sign in the upper left corner!");
             setButtonsDisabled(true);
         } catch(MissingRepoException e){
             this.showMissingRepoNotification();
@@ -1183,7 +1183,7 @@ public class SessionController {
             pushBranchOrAll(pushType, push);
 
         } catch (NoRepoLoadedException e) {
-            this.showNoRepoLoadedNotification();
+            this.showThreadedNotification("You need to load a repository before you can perform operations on it. Click on the plus sign in the upper left corner!");
             setButtonsDisabled(true);
         } catch (NoCommitsToPushException e) {
             this.showNoCommitsToPushNotification();
@@ -1328,7 +1328,7 @@ public class SessionController {
             th.setName("Git push --tags");
             th.start();
         }catch(NoRepoLoadedException e){
-            this.showNoRepoLoadedNotification();
+            this.showThreadedNotification("You need to load a repository before you can perform operations on it. Click on the plus sign in the upper left corner!");
             setButtonsDisabled(true);
         } catch (CancelledAuthorizationException e) {
             this.showCommandCancelledNotification();
@@ -1607,7 +1607,7 @@ public class SessionController {
             th.setName("Git revert");
             th.start();
         }catch(NoRepoLoadedException e){
-            this.showNoRepoLoadedNotification();
+            this.showThreadedNotification("You need to load a repository before you can perform operations on it. Click on the plus sign in the upper left corner!");
             setButtonsDisabled(true);
         }
     }
@@ -1658,7 +1658,7 @@ public class SessionController {
             th.setName("Git revert");
             th.start();
         }catch(NoRepoLoadedException e){
-            this.showNoRepoLoadedNotification();
+            this.showThreadedNotification("You need to load a repository before you can perform operations on it. Click on the plus sign in the upper left corner!");
             setButtonsDisabled(true);
         }
     }
@@ -1712,7 +1712,7 @@ public class SessionController {
             th.setName("Git reset");
             th.start();
         }catch(NoRepoLoadedException e){
-            this.showNoRepoLoadedNotification();
+            this.showThreadedNotification("You need to load a repository before you can perform operations on it. Click on the plus sign in the upper left corner!");
             setButtonsDisabled(true);
         }
     }
@@ -1736,7 +1736,7 @@ public class SessionController {
             this.showGenericErrorNotification();
             e.printStackTrace();
         } catch (NoRepoLoadedException e) {
-            this.showNoRepoLoadedNotification();
+            this.showThreadedNotification("You need to load a repository before you can perform operations on it. Click on the plus sign in the upper left corner!");
             setButtonsDisabled(true);
         }
     }
@@ -1797,7 +1797,7 @@ public class SessionController {
             this.showGenericErrorNotification();
             e.printStackTrace();
         } catch (NoRepoLoadedException e) {
-            this.showNoRepoLoadedNotification();
+            this.showThreadedNotification("You need to load a repository before you can perform operations on it. Click on the plus sign in the upper left corner!");
             setButtonsDisabled(true);
         }
     }
@@ -1905,7 +1905,7 @@ public class SessionController {
             th.setName("Git fetch");
             th.start();
         }catch(NoRepoLoadedException e) {
-            this.showNoRepoLoadedNotification();
+            this.showThreadedNotification("You need to load a repository before you can perform operations on it. Click on the plus sign in the upper left corner!");
             setButtonsDisabled(true);
         } catch (CancelledAuthorizationException e) {
             this.showCommandCancelledNotification();
@@ -2102,7 +2102,7 @@ public class SessionController {
             this.showGenericErrorNotification();
             e.printStackTrace();
         }catch(NoRepoLoadedException e){
-            this.showNoRepoLoadedNotification();
+            this.showThreadedNotification("You need to load a repository before you can perform operations on it. Click on the plus sign in the upper left corner!");
             setButtonsDisabled(true);
         }
     }
@@ -2155,7 +2155,7 @@ public class SessionController {
             this.showGenericErrorNotification();
             e.printStackTrace();
         }catch(NoRepoLoadedException e){
-            this.showNoRepoLoadedNotification();
+            this.showThreadedNotification("You need to load a repository before you can perform operations on it. Click on the plus sign in the upper left corner!");
             setButtonsDisabled(true);
         }
     }
@@ -2268,7 +2268,7 @@ public class SessionController {
             this.setButtonsDisabled(true);
             this.refreshRecentReposInDropdown();
         }catch(NoRepoLoadedException e){
-            this.showNoRepoLoadedNotification();
+            this.showThreadedNotification("You need to load a repository before you can perform operations on it. Click on the plus sign in the upper left corner!");
             this.setButtonsDisabled(true);
         }
     }
@@ -2310,7 +2310,7 @@ public class SessionController {
                 this.showFailedToOpenLocalNotification();
                 e.printStackTrace();
             }catch(NoRepoLoadedException e){
-                this.showNoRepoLoadedNotification();
+                this.showThreadedNotification("You need to load a repository before you can perform operations on it. Click on the plus sign in the upper left corner!");
                 setButtonsDisabled(true);
             }
         }
@@ -2400,7 +2400,7 @@ public class SessionController {
             this.showGenericErrorNotification();
             e.printStackTrace();
         }catch(NoRepoLoadedException e){
-            this.showNoRepoLoadedNotification();
+            this.showThreadedNotification("You need to load a repository before you can perform operations on it. Click on the plus sign in the upper left corner!");
             setButtonsDisabled(true);
         }
     }
@@ -2459,6 +2459,18 @@ public class SessionController {
     /// ******************************************************************************
     /// ********                 BEGIN: ERROR NOTIFICATIONS:                  ********
     /// ******************************************************************************
+    
+    private void showThreadedNotification(String message) {
+        Platform.runLater(()-> {
+            logger.warn(message);
+            notificationPaneController.addNotification(message);
+        });
+    }
+    
+    public void showCurrentThreadNotification(String message) {
+        logger.warn(message);
+        notificationPaneController.addNotification(message);
+    }
 
     private void showGenericErrorNotification(NotificationController nc) {
         Platform.runLater(()-> {
@@ -2490,13 +2502,6 @@ public class SessionController {
         Platform.runLater(() -> {
             logger.warn("No repo loaded warning.");
             nc.addNotification("You need to load a repository before you can perform operations on it. Click on the plus sign in the upper left corner!");
-        });
-    }
-
-    private void showNoRepoLoadedNotification() {
-        Platform.runLater(() -> {
-            logger.warn("No repo loaded warning.");
-            notificationPaneController.addNotification("You need to load a repository before you can perform operations on it. Click on the plus sign in the upper left corner!");
         });
     }
 
