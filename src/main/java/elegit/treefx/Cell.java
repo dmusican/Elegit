@@ -163,8 +163,8 @@ public class Cell extends Pane {
      * @return the basic view for this cell
      */
     private Node getBaseView(){
-        Node node = DEFAULT_SHAPE.getType(this.type);
-        setFillType((Shape)node, CellState.STANDARD);
+        Shape node = DEFAULT_SHAPE.getType(this.type);
+        setFillType(node, CellState.STANDARD);
         node.getStyleClass().setAll("cell");
         node.setId("tree-cell");
         return node;
