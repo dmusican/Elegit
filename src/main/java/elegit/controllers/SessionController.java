@@ -2505,13 +2505,6 @@ public class SessionController {
         });
     }
 
-    private void showInvalidRepoNotification() {
-        Platform.runLater(() -> {
-            logger.warn("Invalid repo warning.");
-            this.notificationPaneController.addNotification("Make sure the directory you selected contains an existing (non-bare) Git repository.");
-        });
-    }
-
     private void showMissingRepoNotification(NotificationController nc){
         Platform.runLater(()-> {
             logger.warn("Missing repo warning");
