@@ -317,9 +317,7 @@ public class SessionController {
         if (update) {
             Platform.runLater(() -> {
                 currentLocalBranchLabel.setText(localBranch.getAbbrevName());
-                currentLocalBranchLabel.setOnMouseClicked(event -> focusCommitLocalBranch());
                 addToolTip(currentLocalBranchHbox, localBranch.getRefName());
-                // makes sure correct label is highlighted in blue
                 CommitTreeController.setBranchHeads(commitTreeModel, theModel.getCurrentRepoHelper());
             });
         }
@@ -344,9 +342,7 @@ public class SessionController {
         if (update) {
             Platform.runLater(() -> {
                 currentRemoteTrackingLabel.setText(remoteBranchFinal);
-                currentRemoteTrackingLabel.setOnMouseClicked(event -> focusCommitRemoteBranch());
                 addToolTip(currentRemoteTrackingBranchHbox, remoteBranchFullFinal);
-                // makes sure correct label is highlighted in blue
                 CommitTreeController.setBranchHeads(commitTreeModel, theModel.getCurrentRepoHelper());
             });
         }
