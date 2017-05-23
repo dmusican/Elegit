@@ -1,6 +1,7 @@
 package elegit;
 
 import javafx.application.Platform;
+import javafx.beans.property.BooleanProperty;
 import javafx.scene.control.CheckBoxTreeItem;
 import javafx.scene.control.TreeCell;
 import javafx.scene.control.TreeItem;
@@ -21,6 +22,9 @@ public abstract class FileStructurePanelView extends Region{
 
     private TreeView<RepoFile> directoryTreeView;
     private TreeItem<RepoFile> treeRoot;
+
+    protected BooleanProperty isAnyFileSelectedProperty;
+    protected List<TreeItem<RepoFile>> displayedFiles;
 
     public SessionModel sessionModel;
 
@@ -101,6 +105,11 @@ public abstract class FileStructurePanelView extends Region{
             return cell;
         };
     }
+
+    /**
+     * @return true if any file is checked, else false
+     */
+    public boolean isAnyFileSelected(){ return isAnyFileSelectedProperty.get(); }
 
     /**
      * Puts the given RepoFiles under the given root of the tree

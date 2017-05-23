@@ -5,7 +5,6 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.control.CheckBoxTreeItem;
 import javafx.scene.control.TreeItem;
-import javafx.scene.control.cell.CheckBoxTreeCell;
 import org.eclipse.jgit.api.errors.GitAPIException;
 
 import java.io.IOException;
@@ -16,10 +15,6 @@ import java.util.*;
  * and their status
  */
 public class StagedTreePanelView extends FileStructurePanelView{
-
-    public BooleanProperty isAnyFileSelectedProperty;
-
-    private List<TreeItem<RepoFile>> displayedFiles;
 
     private WorkingTreePanelView workingTreePanel;
 
@@ -128,25 +123,6 @@ public class StagedTreePanelView extends FileStructurePanelView{
     }
 
     /**
-     * An overwritten version of TreeCell that adds a context menu to our
-     * tree structure
-     */
-    private class RepoFileTreeCell extends CheckBoxTreeCell<RepoFile>{
-        @Override
-        public void updateItem(RepoFile item, boolean empty){
-            super.updateItem(item, empty);
-
-            setText(getItem() == null ? "" : getItem().toString());
-            setGraphic(getTreeItem() == null ? null : getTreeItem().getGraphic());
-
-            setOnContextMenuRequested(event -> {
-                if(getTreeItem() != null) getTreeItem().getValue().showContextMenu(this, event.getScreenX(), event.getScreenY());
-            });
-        }
-    }
-
-
-    /**
      * Sets all displayed items to have the given selected status
      * @param selected true to check every box, false to uncheck every box
      */
@@ -155,6 +131,21 @@ public class StagedTreePanelView extends FileStructurePanelView{
             CheckBoxTreeItem checkBoxFile = (CheckBoxTreeItem) fileLeaf;
             checkBoxFile.setSelected(selected);
         }
+    }
+
+    /**
+     * Checks through all the files and finds all whose checkbox is checked.
+     *
+     * @return an array of RepoFiles whose CheckBoxTreeItem cells are checked.
+     */
+    public ArrayList<RepoFile> getCheckedFilesInDirectory() {
+        ArrayList<RepoFile> checkedFiles = new ArrayList<>();
+        for (TreeItem fileLeaf : this.displayedFiles) {
+            CheckBoxTreeItem checkBoxFile = (CheckBoxTreeItem) fileLeaf;
+            if (checkBoxFile.isSelected())
+                checkedFiles.add((RepoFile)fileLeaf.getValue());
+        }
+        return checkedFiles;
     }
 
     public void setWorkingTreePanel(WorkingTreePanelView workingTreePanel) {

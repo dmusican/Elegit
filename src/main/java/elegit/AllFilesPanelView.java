@@ -1,9 +1,10 @@
 package elegit;
 
+import elegit.controllers.SessionController;
 import javafx.application.Platform;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.control.CheckBoxTreeItem;
 import javafx.scene.control.TreeItem;
-import javafx.scene.control.cell.CheckBoxTreeCell;
 import org.eclipse.jgit.api.errors.GitAPIException;
 
 import java.io.IOException;
@@ -26,9 +27,12 @@ public class AllFilesPanelView extends FileStructurePanelView{
     @Override
     public void init(){
         this.itemMap = new HashMap<>();
+        isAnyFileSelectedProperty = new SimpleBooleanProperty(false);
+
+        // Used to disable/enable add and remove buttons
+        isAnyFileSelectedProperty.addListener(((observable, oldValue, newValue) -> SessionController.anythingChecked.set(newValue)));
         super.init();
     }
-
 
     @Override
     protected TreeItem<RepoFile> getRootTreeItem(DirectoryRepoFile rootDirectory) {
@@ -136,20 +140,4 @@ public class AllFilesPanelView extends FileStructurePanelView{
         return sessionModel.getAllRepoFiles();
     }
 
-    /**
-     * An overwritten version of TreeCell that adds a context menu to our
-     * tree structure
-     */
-    private class RepoFileTreeCell extends CheckBoxTreeCell<RepoFile> {
-        @Override
-        public void updateItem(RepoFile item, boolean empty){
-            super.updateItem(item, empty);
-
-            setText(getItem() == null ? "" : getItem().toString());
-
-            setOnContextMenuRequested(event -> {
-                if(getTreeItem() != null) getTreeItem().getValue().showContextMenu(this, event.getScreenX(), event.getScreenY());
-            });
-        }
-    }
 }

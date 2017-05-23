@@ -932,9 +932,9 @@ public class SessionController {
     public void handleCheckoutButton(Path filePath) {
         try {
             logger.info("Checkout file button clicked");
-            if (! PopUpWindows.showCheckoutAlert()) throw new CancelledDialogueException();
-            if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
-            if(!this.theModel.getCurrentRepoHelper().exists()) throw new MissingRepoException();
+            if (!PopUpWindows.showCheckoutAlert()) throw new CancelledDialogueException();
+            if (this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
+            if (!this.theModel.getCurrentRepoHelper().exists()) throw new MissingRepoException();
             theModel.getCurrentRepoHelper().checkoutFile(filePath);
         } catch (NoRepoLoadedException e) {
             showNoRepoLoadedNotification();
@@ -956,11 +956,11 @@ public class SessionController {
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
             if(!this.theModel.getCurrentRepoHelper().exists()) throw new MissingRepoException();
 
-            if(!workingTreePanelView.isAnyFileSelected()) throw new NoFilesSelectedToAddException();
-            if (! PopUpWindows.showCheckoutAlert()) throw new CancelledDialogueException();
+            if(!indexPanelView.isAnyFileSelected()) throw new NoFilesSelectedToAddException();
+            if (!PopUpWindows.showCheckoutAlert()) throw new CancelledDialogueException();
             ArrayList<Path> filePathsToCheckout = new ArrayList<>();
             // Try to add all files, throw exception if there are ones that can't be added
-            for(RepoFile checkedFile : workingTreePanelView.getCheckedFilesInDirectory()) {
+            for(RepoFile checkedFile : indexPanelView.getCheckedFilesInDirectory()) {
                 filePathsToCheckout.add(checkedFile.getFilePath());
             }
             theModel.getCurrentRepoHelper().checkoutFiles(filePathsToCheckout);
@@ -974,7 +974,7 @@ public class SessionController {
         } catch (GitAPIException e) {
             this.showGenericErrorNotification();
         } catch (CancelledDialogueException e) {
-            // Do nothing
+            // Do nothing if the dialogue was cancelled.
         }
     }
 

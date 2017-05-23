@@ -22,12 +22,7 @@ import java.util.*;
  */
 public class WorkingTreePanelView extends FileStructurePanelView{
 
-    public BooleanProperty isAnyFileSelectedProperty;
-
-    public List<TreeItem<RepoFile>> displayedFiles;
-
     private CheckBoxTreeItem<RepoFile> checkBox;
-
     private StagedTreePanelView indexPanel;
 
     public WorkingTreePanelView() {
@@ -178,7 +173,6 @@ public class WorkingTreePanelView extends FileStructurePanelView{
 
                     // If we have removed all files in a directory, remove the directory
                     if(directoryRepoFile.getChildren().isEmpty()) {
-                        System.out.println(item);
                         root.getChildren().remove(directoryRepoFile);
                     }
                 }
@@ -231,13 +225,6 @@ public class WorkingTreePanelView extends FileStructurePanelView{
     }
 
     /**
-     * @return true if any file is checked, else false
-     */
-    public boolean isAnyFileSelected(){
-        return isAnyFileSelectedProperty.get();
-    }
-
-    /**
      * @return true if any file has been staged, else false
      */
     public boolean isAnyFileStaged() {
@@ -260,15 +247,10 @@ public class WorkingTreePanelView extends FileStructurePanelView{
     }
 
     /**
-     *
      * @return true if the select all box is checked
      */
     public boolean isSelectAllChecked() {
         return checkBox.isSelected();
-    }
-
-    public StagedTreePanelView getIndexPanel() {
-        return this.indexPanel;
     }
 
     public void setIndexPanel(StagedTreePanelView indexPanel) {
