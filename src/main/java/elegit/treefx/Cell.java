@@ -181,7 +181,6 @@ public class Cell extends Pane {
             this.view = getBaseView();
         }
 
-        //newView.setStyle(this.view.getStyle());
         newView.getStyleClass().setAll(this.view.getStyleClass());
         newView.setId(this.view.getId());
 
@@ -223,7 +222,7 @@ public class Cell extends Pane {
         this.refLabel.setLabels(refs, this);
     }
 
-    private void setCurrentRefLabels(List<String> refs) {
+    void setCurrentLabels(List<String> refs) {
         this.refLabel.setCurrentLabels(refs);
     }
 
@@ -231,10 +230,6 @@ public class Cell extends Pane {
         assert Platform.isFxApplicationThread();
         setDisplayLabel(displayLabel);
         setRefLabel(refLabels);
-    }
-
-    void setCurrentLabels(List<String> refLabels) {
-        setCurrentRefLabels(refLabels);
     }
 
     void setLabelMenus(Map<RefHelper, ContextMenu> menuMap) {
