@@ -222,14 +222,14 @@ public class Cell extends Pane {
         this.refLabel.setLabels(refs, this);
     }
 
-    void setCurrentLabels(List<String> refs) {
-        this.refLabel.setCurrentLabels(refs);
-    }
-
     void setLabels(String displayLabel, List<RefHelper> refLabels){
         assert Platform.isFxApplicationThread();
         setDisplayLabel(displayLabel);
         setRefLabel(refLabels);
+    }
+
+    void setCurrentRefLabels(List<String> refs) {
+        this.refLabel.setCurrentLabels(refs);
     }
 
     void setLabelMenus(Map<RefHelper, ContextMenu> menuMap) {

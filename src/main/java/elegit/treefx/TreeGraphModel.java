@@ -277,7 +277,7 @@ public class TreeGraphModel{
     }
 
     public void setCurrentCellLabels(Cell cell, List<String> refs) {
-        cell.setCurrentLabels(refs);
+        cell.setCurrentRefLabels(refs);
     }
 
     public void setLabelMenus(String cellId, Map<RefHelper, ContextMenu> menuMap) {
