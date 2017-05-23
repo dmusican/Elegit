@@ -25,6 +25,7 @@ public class CommitTreeScrollPane extends ScrollPane{
         super(node);
 
         vPos.addListener((observable, oldValue, newValue) -> {
+            System.out.println("triggered " + oldValue + " " + newValue);
             if (newValue.doubleValue() != -1) {
                 // For some reason setVvalue doesn't take hold unless you
                 // bash it with repetition.
@@ -53,8 +54,10 @@ public class CommitTreeScrollPane extends ScrollPane{
         }else{
             double ratio = pos/numItems;
             double offset = ratio >= 0.5 ? 1.0/numItems : -1.0/numItems;
+            System.out.println("Setting " + (1-(ratio+offset)));
             vPos.set(1-(ratio+offset));
         }
+        System.out.println("Setting again");
         vPos.setValue(-1.0);
     }
 }
