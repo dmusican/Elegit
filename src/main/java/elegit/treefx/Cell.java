@@ -1,3 +1,4 @@
+// REFACTORED BY DAVE: RETHREADING
 package elegit.treefx;
 
 import elegit.CommitTreeController;
@@ -6,7 +7,6 @@ import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.scene.Node;
 import javafx.scene.control.ContextMenu;
@@ -389,13 +389,6 @@ public class Cell extends Pane {
         }
 
         /**
-         * @return the number of parent commits associated with this object
-         */
-        public int count(){
-            return parents.size();
-        }
-
-        /**
          * @return the stored parent commits in list form
          */
         ArrayList<Cell> toList(){
@@ -403,7 +396,7 @@ public class Cell extends Pane {
         }
 
         /**
-         * Sets the given sell to be the child of each non-null parent
+         * Sets the given cell to be the child of each non-null parent
          * @param cell the child to add
          */
         private void setChild(Cell cell){
