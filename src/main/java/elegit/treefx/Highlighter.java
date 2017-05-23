@@ -204,7 +204,7 @@ public class Highlighter{
         CommitTreeScrollPane.scrollTo(c.rowLocationProperty.doubleValue());
         c.setCellState(CellState.EMPHASIZED);
 
-        Shape s = (Shape) c.view;
+        Shape s = c.view;
 
         ScaleTransition sct = new ScaleTransition(Duration.millis(425), s);
         sct.setByX(0.3f);

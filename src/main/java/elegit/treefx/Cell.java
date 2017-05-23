@@ -44,7 +44,7 @@ public class Cell extends Pane {
     private static int numCellsBeingAnimated = 0;
 
     // The displayed view
-    Node view;
+    Shape view;
     private CellShape shape;
     private CellType type;
     // The tooltip shown on hover
@@ -162,7 +162,7 @@ public class Cell extends Pane {
     /**
      * @return the basic view for this cell
      */
-    private Node getBaseView(){
+    private Shape getBaseView(){
         Shape node = DEFAULT_SHAPE.getType(this.type);
         setFillType(node, CellState.STANDARD);
         node.getStyleClass().setAll("cell");
@@ -175,7 +175,7 @@ public class Cell extends Pane {
      * @param newView the new view
      */
     // THREAD
-    public synchronized void setView(Node newView) {
+    public synchronized void setView(Shape newView) {
         assert Platform.isFxApplicationThread();
         if(this.view == null){
             this.view = getBaseView();
@@ -188,7 +188,7 @@ public class Cell extends Pane {
         this.view = newView;
         getChildren().clear();
         getChildren().add(this.view);
-        setFillType((Shape) this.view, CellState.STANDARD);
+        setFillType(this.view, CellState.STANDARD);
     }
 
     /**
@@ -300,7 +300,7 @@ public class Cell extends Pane {
     // THREAD
     void setCellState(CellState state){
         assert Platform.isFxApplicationThread();
-        setFillType((Shape) view, state);
+        setFillType(view, state);
     }
 
     /**
@@ -311,7 +311,7 @@ public class Cell extends Pane {
     void setCellType(CellType type) {
         assert Platform.isFxApplicationThread();
         this.type = type;
-        setFillType((Shape) view, CellState.STANDARD);
+        setFillType(view, CellState.STANDARD);
         for (Edge e : edges) {
             e.resetDashed();
         }
