@@ -14,7 +14,7 @@ public class CommitTreeScrollPane extends ScrollPane{
     private final static double DEFAULT_SCROLL_POS = 1.0;
 
     // A property used to update the number of items in the scroll pane
-    public final IntegerProperty NumItemsProperty = new SimpleIntegerProperty(1);
+    public final IntegerProperty numItemsProperty = new SimpleIntegerProperty(1);
 
     // The number of horizontally arranged items present in the scroll panes
     private static int numItems = 1;
@@ -34,7 +34,7 @@ public class CommitTreeScrollPane extends ScrollPane{
             }
         });
 
-        NumItemsProperty.addListener((observable, oldValue, newValue) -> numItems = newValue.intValue());
+        numItemsProperty.addListener((observable, oldValue, newValue) -> numItems = newValue.intValue());
     }
 
     /**

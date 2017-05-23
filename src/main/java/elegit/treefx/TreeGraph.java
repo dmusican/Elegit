@@ -48,7 +48,7 @@ public class TreeGraph{
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
         scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
 
-        scrollPane.NumItemsProperty.bind(m.numCellsProperty);
+        scrollPane.numItemsProperty.bind(m.numCellsProperty);
 
         queuedToAdd = new LinkedList<>();
         queuedToRemove = new LinkedList<>();
