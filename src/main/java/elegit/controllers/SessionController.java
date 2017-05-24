@@ -2890,4 +2890,8 @@ public class SessionController {
             e.printStackTrace();
         }
     }
+
+    public CommitHelper getCommit(String commitID) {
+        return theModel.getCurrentRepoHelper().getCommit(commitID);
+    }
 }

@@ -8,6 +8,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import elegit.treefx.Cell;
 import elegit.treefx.Highlighter;
 import elegit.treefx.TreeGraphModel;
+import org.controlsfx.control.PopOver;
 import org.eclipse.jgit.api.errors.GitAPIException;
 
 import java.io.IOException;
@@ -147,7 +148,20 @@ public class CommitTreeController{
         }else{
             Highlighter.updateCellEdges(commitID, null, model, false);
         }
+        showCommitDetails(commitID, model);
     }
+
+    private static void showCommitDetails(String commitID, TreeGraphModel model) {
+        Cell cell = model.cellMap.get(commitID);
+        PopOver commitPopover = new PopOver();
+        CommitHelper commit = sessionController.getCommit(commitID);
+        commitPopover.setTitle("Commit " + commit.getAuthorName());
+
+        //commitPopover.detach();
+        //commitPopover.setContentNode(new ScrollPane());
+        commitPopover.show(cell);
+    }
+
 
     /**
      * Selects the cell with the given id. If there is already a commit selected,

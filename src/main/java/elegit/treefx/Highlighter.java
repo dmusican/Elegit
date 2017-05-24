@@ -2,8 +2,10 @@ package elegit.treefx;
 
 import javafx.animation.ScaleTransition;
 import javafx.application.Platform;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.shape.Shape;
 import javafx.util.Duration;
+import org.controlsfx.control.PopOver;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -32,6 +34,7 @@ public class Highlighter{
      * @param allGenerations whether to highlight further generations than just parents/children (i.e. grandparents, grandchildren etc)
      */
     public static void highlightSelectedCell(String cellID, TreeGraphModel model, boolean enable, boolean ancestors, boolean descendants, boolean allGenerations){
+        System.out.println("Here's to Showing commit info.");
         Cell cell = model.cellMap.get(cellID);
         if(cell == null) return;
         if(enable){
