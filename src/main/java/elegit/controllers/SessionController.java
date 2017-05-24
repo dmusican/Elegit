@@ -2891,7 +2891,4 @@ public class SessionController {
         }
     }
 
-    public CommitHelper getCommit(String commitID) {
-        return theModel.getCurrentRepoHelper().getCommit(commitID);
-    }
 }

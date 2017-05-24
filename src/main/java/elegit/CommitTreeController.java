@@ -8,6 +8,8 @@ import javafx.beans.property.SimpleObjectProperty;
 import elegit.treefx.Cell;
 import elegit.treefx.Highlighter;
 import elegit.treefx.TreeGraphModel;
+import javafx.scene.control.TextArea;
+import javafx.scene.layout.Border;
 import org.controlsfx.control.PopOver;
 import org.eclipse.jgit.api.errors.GitAPIException;
 
@@ -152,13 +154,20 @@ public class CommitTreeController{
     }
 
     private static void showCommitDetails(String commitID, TreeGraphModel model) {
-        Cell cell = model.cellMap.get(commitID);
-        PopOver commitPopover = new PopOver();
-        CommitHelper commit = sessionController.getCommit(commitID);
-        commitPopover.setTitle("Commit " + commit.getAuthorName());
+        RepoHelper repo = commitTreeModel.sessionModel.getCurrentRepoHelper();
+        CommitHelper commit = repo.getCommit(commitID);
 
-        //commitPopover.detach();
-        //commitPopover.setContentNode(new ScrollPane());
+        TextArea commitDetails = new TextArea();
+        commitDetails.setEditable(false);
+        commitDetails.setWrapText(true);
+        commitDetails.setText(repo.getCommitDescriptorString(commitID,false));
+
+        PopOver commitPopover = new PopOver();
+        commitPopover.setContentNode(commitDetails);
+        commitPopover.setDetachable(false);
+
+        // Attach commit details popover to the cell associated with this particular commit
+        Cell cell = model.cellMap.get(commitID);
         commitPopover.show(cell);
     }
 
