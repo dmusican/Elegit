@@ -525,6 +525,7 @@ public class CommitTreeModel{
         }
     }
 
+    //todo
     /**
      * Sets the shape and ref labels for a cell based on the current repo status
      *
@@ -551,21 +552,24 @@ public class CommitTreeModel{
     public void updateAllRefLabels() {
         RepoHelper repo = sessionModel.getCurrentRepoHelper();
 
+        BranchHelper currentBranch = sessionModel.getCurrentBranch();
+
+        // instantiate and populate list of all refs (superclass of labels and tags) in repo
         List<RefHelper> refHelpers = new ArrayList<>();
         refHelpers.addAll(repo.getBranchModel().getAllBranches());
         refHelpers.addAll(repo.getTagModel().getAllTags());
 
         List<RemoteBranchHelper> remotes = repo.getBranchModel().getRemoteBranchesTyped();
 
-        Map<RefHelper, ContextMenu> menuMap = new HashMap<>();
-        List<String> remoteBranches = new ArrayList<>();
-
-        this.tagsInModel = repo.getTagModel().getAllTags();
-
+        // maps commit IDs to a list of refs for the commit
         Map<String, List<RefHelper>> commitLabelMap = new HashMap<>();
+        //  maps each ref to its context menu
+        Map<RefHelper, ContextMenu> menuMap = new HashMap<>();
+        this.tagsInModel = repo.getTagModel().getAllTags();
+        addCommitRefMaps(refHelpers, commitLabelMap, menuMap); //populate maps
 
-        addCommitRefMaps(refHelpers, commitLabelMap, menuMap);
-
+        // create list of all remote branch names for labels
+        List<String> remoteBranches = new ArrayList<>();
         for (RemoteBranchHelper helper : remotes) {
             remoteBranches.add(helper.getRefName());
         }
@@ -581,7 +585,6 @@ public class CommitTreeModel{
                 String displayLabel = repo.getCommitDescriptorString(commit, false);
                 treeGraph.treeGraphModel.setCellLabels(commit, displayLabel, commitLabelMap.get(commit));
                 treeGraph.treeGraphModel.setCurrentCellLabels(commit, this.sessionModel.getCurrentRepoHelper().getBranchModel().getCurrentAbbrevBranches());
-
                 treeGraph.treeGraphModel.setLabelMenus(commit, menuMap);
                 treeGraph.treeGraphModel.setRemoteBranchCells(commit, remoteBranches);
             }
