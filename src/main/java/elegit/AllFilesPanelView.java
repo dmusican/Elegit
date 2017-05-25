@@ -2,6 +2,7 @@ package elegit;
 
 import elegit.controllers.SessionController;
 import javafx.application.Platform;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.control.CheckBoxTreeItem;
 import javafx.scene.control.TreeItem;
@@ -48,20 +49,24 @@ public class AllFilesPanelView extends FileStructurePanelView{
      */
     @Override
     protected void addTreeItemsToRoot(List<RepoFile> repoFiles, TreeItem<RepoFile> root){
+
+        // Helper to construct 'isAnyFileSelectedProperty'
+        BooleanProperty isSelectedPropertyHelper = new SimpleBooleanProperty(false);
+
         // To ensure files are added after their parents, sort the given files into lists
         // based on their respective depths in the file structure
         Map<Integer, List<RepoFile>> filesAtDepthMap = new HashMap<>();
         int maxDepth = 0;
-        for(RepoFile repoFile : repoFiles){
+        for (RepoFile repoFile : repoFiles) {
             int depthInRepo = repoFile.getLevelInRepository();
 
-            if(depthInRepo > maxDepth) maxDepth=depthInRepo;
+            if (depthInRepo > maxDepth) maxDepth = depthInRepo;
 
-            if(!filesAtDepthMap.containsKey(depthInRepo)){
+            if (!filesAtDepthMap.containsKey(depthInRepo)){
                 List<RepoFile> list = new LinkedList<>();
                 list.add(repoFile);
                 filesAtDepthMap.put(depthInRepo, list);
-            }else{
+            } else {
                 filesAtDepthMap.get(depthInRepo).add(repoFile);
             }
         }
@@ -77,16 +82,21 @@ public class AllFilesPanelView extends FileStructurePanelView{
                 for (RepoFile repoFile : filesAtDepth) {
                     Path pathToFile = repoFile.getFilePath();
 
+                    BooleanProperty oldHelper = isSelectedPropertyHelper;
+                    isSelectedPropertyHelper = new SimpleBooleanProperty();
+
                     // Check if there is already a record of this file
                     if (itemMap.containsKey(pathToFile)) {
-                        TreeItem<RepoFile> oldItem = itemMap.get(pathToFile);
+                        CheckBoxTreeItem<RepoFile> oldItem = (CheckBoxTreeItem<RepoFile>) itemMap.get(pathToFile);
 
                         if (oldItem.getValue().equals(repoFile)) {
                             // The given file is already present, no additional processing needed
+                            isSelectedPropertyHelper.bind(oldHelper.or(oldItem.selectedProperty()));
                             itemsToRemove.remove(oldItem);
                         } else {
                             // The file is displayed, but needs its status updated. Replace the old with the new
                             CheckBoxTreeItem<RepoFile> newItem = new CheckBoxTreeItem<>(repoFile, repoFile.diffButton);
+                            isSelectedPropertyHelper.bind(oldHelper.or(newItem.selectedProperty()));
                             TreeItem<RepoFile> parent = oldItem.getParent();
                             newItem.setExpanded(oldItem.isExpanded());
                             newItem.getChildren().setAll(oldItem.getChildren());
@@ -97,6 +107,8 @@ public class AllFilesPanelView extends FileStructurePanelView{
                     } else {
                         // The given file wasn't present, so need to add it
                         CheckBoxTreeItem<RepoFile> newItem = new CheckBoxTreeItem<>(repoFile, repoFile.diffButton);
+
+                        isSelectedPropertyHelper.bind(oldHelper.or(newItem.selectedProperty()));
 
                         Path pathToParent = pathToFile.getParent();
                         boolean foundParent = false;
@@ -128,6 +140,9 @@ public class AllFilesPanelView extends FileStructurePanelView{
             });
             itemMap.remove(item.getValue().getFilePath());
         }
+
+        isAnyFileSelectedProperty.bind(isSelectedPropertyHelper);
+//        displayedFiles = (LinkedList<TreeItem<RepoFile>>) itemMap.values();
     }
 
     /**
