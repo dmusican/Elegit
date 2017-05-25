@@ -437,37 +437,31 @@ public class SessionController {
 
         legendLink.setFont(new Font(12));
 
-        pushButton.setOnMouseClicked(event -> {
-            if(event.getButton() == MouseButton.SECONDARY){
-                if(pushContextMenu != null){
-                    pushContextMenu.show(pushButton, event.getScreenX(), event.getScreenY());
-                }
-            }
-            event.consume();
-        });
-
-        commitButton.setOnMouseClicked(event -> {
-            if(event.getButton() == MouseButton.SECONDARY){
-                if(commitContextMenu != null){
-                    commitContextMenu.show(commitButton, event.getScreenX(), event.getScreenY());
-                }
-            }
-            event.consume();
-        });
-
-        fetchButton.setOnMouseClicked(event -> {
-            if(event.getButton() == MouseButton.SECONDARY){
-                if(fetchContextMenu != null){
-                    fetchContextMenu.show(fetchButton, event.getScreenX(), event.getScreenY());
-                }
-            }
-            event.consume();
-        });
+        initButtonContextMenu(pushButton, pushContextMenu);
+        initButtonContextMenu(commitButton, commitContextMenu);
+        initButtonContextMenu(fetchButton, fetchContextMenu);
 
         tagNameField.setOnKeyTyped(event -> {
             if (event.getCharacter().equals("\r")) handleTagButton();
         });
     }
+
+    /**
+     * Adds context menu to the given to buttons
+     * @param button the button to add the menu to
+     * @param contextMenu the context menu getting added
+     */
+    private void initButtonContextMenu(Button button, ContextMenu contextMenu) {
+        button.setOnMouseClicked(event -> {
+            if(event.getButton() == MouseButton.SECONDARY){
+                if(contextMenu != null){
+                    contextMenu.show(button, event.getScreenX(), event.getScreenY());
+                }
+            }
+            event.consume();
+        });
+    }
+
 
     /**
      * Adds graphics and tooltips to the buttons
@@ -953,11 +947,11 @@ public class SessionController {
     public void handleCheckoutButton() {
         try {
             logger.info("Checkout button clicked");
+            if (!PopUpWindows.showCheckoutAlert()) throw new CancelledDialogueException();
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
             if(!this.theModel.getCurrentRepoHelper().exists()) throw new MissingRepoException();
 
             if(!indexPanelView.isAnyFileSelected()) throw new NoFilesSelectedToAddException();
-            if (!PopUpWindows.showCheckoutAlert()) throw new CancelledDialogueException();
             ArrayList<Path> filePathsToCheckout = new ArrayList<>();
             // Try to add all files, throw exception if there are ones that can't be added
             for(RepoFile checkedFile : indexPanelView.getCheckedFilesInDirectory()) {
