@@ -8,8 +8,10 @@ import javafx.beans.property.SimpleObjectProperty;
 import elegit.treefx.Cell;
 import elegit.treefx.Highlighter;
 import elegit.treefx.TreeGraphModel;
+import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.Border;
+import javafx.scene.layout.VBox;
 import org.controlsfx.control.PopOver;
 import org.eclipse.jgit.api.errors.GitAPIException;
 
@@ -162,8 +164,11 @@ public class CommitTreeController{
         commitDetails.setWrapText(true);
         commitDetails.setText(repo.getCommitDescriptorString(commitID,false));
 
+        VBox commitContext = new VBox();
+        commitContext.getChildren().addAll(commitDetails, new Button());
+
         PopOver commitPopover = new PopOver();
-        commitPopover.setContentNode(commitDetails);
+        commitPopover.setContentNode(commitContext);
         commitPopover.setDetachable(false);
 
         // Attach commit details popover to the cell associated with this particular commit
