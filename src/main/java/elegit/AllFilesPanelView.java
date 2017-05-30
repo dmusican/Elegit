@@ -82,18 +82,18 @@ public class AllFilesPanelView extends FileStructurePanelView{
                 for (RepoFile repoFile : filesAtDepth) {
                     CheckBoxTreeItem<RepoFile> newItem = new CheckBoxTreeItem<>(repoFile, repoFile.diffButton);
                     newItem.addEventHandler(CheckBoxTreeItem.checkBoxSelectionChangedEvent(), (CheckBoxTreeItem.TreeModificationEvent<RepoFile> e) -> {
-                        if (e.getTreeItem().isSelected()) {
-                            indexPanel.setAllFilesSelected(false);
+                        if (e.getTreeItem().isSelected() && workingTreePanel != null) {
                             workingTreePanel.setAllFilesSelected(false);
+                            indexPanel.setAllFilesSelected(false);
                         }
                     });
-
-                    Path pathToFile = repoFile.getFilePath();
 
                     BooleanProperty oldHelper = isSelectedPropertyHelper;
                     isSelectedPropertyHelper = new SimpleBooleanProperty();
 
-                    // Check if there is already a record of this file
+                    Path pathToFile = repoFile.getFilePath();
+
+                    // Check if the file is already being displayed
                     if (itemMap.containsKey(pathToFile)) {
                         CheckBoxTreeItem<RepoFile> oldItem = (CheckBoxTreeItem<RepoFile>) itemMap.get(pathToFile);
 
