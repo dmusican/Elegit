@@ -24,6 +24,7 @@ public class CellLabel extends HBox {
     private Text pointer;
     private ImageView image;
     private Label label;
+    private Text headText;
     private ContextMenu contextMenu;
     public static final int MAX_CHAR_PER_LABEL=25;
 
@@ -41,16 +42,22 @@ public class CellLabel extends HBox {
         Text pointer = getPointer();
         Label label = getLabel();
         ImageView img = getImage();
+        //System.out.println("B " + headText);
+        Text headText = getHeadText();
 
+        if (isCurrent && !isRemote) System.out.println("A " + headText);
         // Add children to this label
         this.getChildren().add(pointer);
         this.getChildren().add(label);
         this.getChildren().add(img);
+        this.getChildren().add(headText);
+        if (!headText.getText().equals("")) System.out.println("constructor " + headText);
 
         // Add margins to the children
         HBox.setMargin(pointer, new Insets(5, 2, 0, 5));
         HBox.setMargin(img, new Insets(2, 2, 0, 0));
         HBox.setMargin(label, new Insets(0, 5, 0, 0));
+        //HBox.setMargin(headText, new Insets(0,0,0,0));
 
         // Set the style class
         this.getStyleClass().clear();
@@ -59,7 +66,7 @@ public class CellLabel extends HBox {
     }
 
     /**
-     * @return the pointer with the right color based on the
+     * @return the pointer with the right color based if branch is current
      */
     private Text getPointer() {
         pointer = GlyphsDude.createIcon(FontAwesomeIcon.CHEVRON_LEFT);
@@ -114,9 +121,26 @@ public class CellLabel extends HBox {
     }
 
     /**
+     * @return the appropriate headText
+     */
+    private Text getHeadText(){
+        Text text;
+        if (isCurrent && !isRemote){
+            text = new Text("<HEAD");
+            //headText.setFill(Color.web("#FF0000"));
+            System.out.println(" asdf" + name + "  " + text);
+        } else {
+            text = new Text("");
+        }
+        if (!text.getText().equals("")) System.out.println(text.getText());
+        return text;
+    }
+
+    /**
      * Sets the cell label to be a remote branch type
      * @param isRemote whether or not the ref label is remote
      */
+    // todo: find out why this method doesn't use the param
     void setRemote(boolean isRemote) {
         this.isRemote = true;
         refreshIcon();
@@ -146,6 +170,7 @@ public class CellLabel extends HBox {
         ((ImageView) this.getChildren().get(2)).setImage(new Image(isCurrent ? "elegit/images/branch_white.png" : "elegit/images/branch.png"));
         pointer.setFill(Color.web(isCurrent ? "#FFFFFF" : "333333"));
         this.setId(isCurrent ? "current" : isTag ? "tag" : "regular");
+        headText = getHeadText();
     }
 
     /**

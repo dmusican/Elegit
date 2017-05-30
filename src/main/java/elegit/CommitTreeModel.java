@@ -552,8 +552,6 @@ public class CommitTreeModel{
     public void updateAllRefLabels() {
         RepoHelper repo = sessionModel.getCurrentRepoHelper();
 
-        BranchHelper currentBranch = sessionModel.getCurrentBranch();
-
         // instantiate and populate list of all refs (superclass of labels and tags) in repo
         List<RefHelper> refHelpers = new ArrayList<>();
         refHelpers.addAll(repo.getBranchModel().getAllBranches());
