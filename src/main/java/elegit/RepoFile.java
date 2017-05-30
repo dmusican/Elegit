@@ -11,6 +11,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.controlsfx.control.PopOver;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.dircache.DirCache;
+import org.eclipse.jgit.dircache.DirCacheEntry;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -182,6 +184,22 @@ public class RepoFile implements Comparable<RepoFile> {
             return this.filePath.equals(other.filePath) && other.getRepo().getLocalPath().equals(getRepo().getLocalPath());
         }
         return false;
+    }
+
+    public String getFileID() {
+        try {
+            DirCache index = DirCache.read(repo.getRepo());
+            DirCacheEntry file = index.getEntry(filePath.toString());
+            if (file != null) {
+                return file.getObjectId().toString().substring(12, 20);
+            }
+        }
+        catch (IOException e) {
+            logger.error("IOException in getting file id");
+            logger.debug(e.getStackTrace());
+            e.printStackTrace();
+        }
+        return null;
     }
 
     @Override

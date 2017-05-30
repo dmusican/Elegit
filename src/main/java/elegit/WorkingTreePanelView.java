@@ -123,6 +123,7 @@ public class WorkingTreePanelView extends FileStructurePanelView{
                 if (e.getTreeItem().isSelected()) {
                     indexPanel.setAllFilesSelected(false);
                     allFilesPanel.setAllFilesSelected(false);
+                    repoFile.getFileID();
                 }
             });
 

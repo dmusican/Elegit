@@ -2,10 +2,7 @@ package elegit;
 
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
-import javafx.scene.control.CheckBoxTreeItem;
-import javafx.scene.control.TreeCell;
-import javafx.scene.control.TreeItem;
-import javafx.scene.control.TreeView;
+import javafx.scene.control.*;
 import javafx.scene.control.cell.CheckBoxTreeCell;
 import javafx.scene.layout.Region;
 import javafx.util.Callback;
@@ -110,6 +107,17 @@ public abstract class FileStructurePanelView extends Region{
                     checkBoxFile.setSelected(!checkBoxFile.isSelected());
                 }
             });
+            cell.setOnMouseEntered(event -> {
+                if (cell.getTreeItem() != null && cell.getTreeItem().getValue() != null) {
+                    String fileHash = cell.getTreeItem().getValue().getFileID();
+                    if (fileHash != null) {
+                        String tt = "File hash: " + fileHash;
+                        Tooltip tooltip = new Tooltip(tt);
+                        cell.setTooltip(tooltip);
+                    }
+                }
+            });
+
             return cell;
         };
     }

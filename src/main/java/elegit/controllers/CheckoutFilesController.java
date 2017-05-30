@@ -125,7 +125,7 @@ public class CheckoutFilesController {
             });
             fileNames.add(fileName);
             filesToCheckout.getChildren().add(0,line);
-        }else {
+        } else {
             notificationPaneController.addNotification("You need to type a file name first");
             return;
         }

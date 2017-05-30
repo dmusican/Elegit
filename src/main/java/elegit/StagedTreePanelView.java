@@ -16,8 +16,6 @@ import java.util.*;
  */
 public class StagedTreePanelView extends FileStructurePanelView{
 
-    private WorkingTreePanelView workingTreePanel;
-
     public StagedTreePanelView() {
         this.init();
     }
