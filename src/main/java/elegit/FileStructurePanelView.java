@@ -12,6 +12,8 @@ import javafx.util.Callback;
 import org.eclipse.jgit.api.errors.GitAPIException;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -42,6 +44,8 @@ public abstract class FileStructurePanelView extends Region{
     public void init(){
         this.directoryTreeView = new TreeView<>();
         this.directoryTreeView.setCellFactory(this.getTreeCellFactory());
+
+        this.displayedFiles = new LinkedList<>();
 
         if(this.sessionModel != null) {
             DirectoryRepoFile rootDirectory = new DirectoryRepoFile("", this.sessionModel.getCurrentRepoHelper());
@@ -90,6 +94,7 @@ public abstract class FileStructurePanelView extends Region{
      */
     protected Callback<TreeView<RepoFile>, TreeCell<RepoFile>> getTreeCellFactory() {
         return arg -> {
+            System.out.println("hin callback");
             TreeCell<RepoFile> cell = CheckBoxTreeCell.<RepoFile>forTreeView().call(arg);
 
             cell.setOnContextMenuRequested(event -> {
@@ -104,6 +109,21 @@ public abstract class FileStructurePanelView extends Region{
             });
             return cell;
         };
+    }
+
+    /**
+     * Checks through all the files and finds all whose checkbox is checked.
+     *
+     * @return an array of RepoFiles whose CheckBoxTreeItem cells are checked.
+     */
+    public ArrayList<RepoFile> getCheckedFilesInDirectory() {
+        ArrayList<RepoFile> checkedFiles = new ArrayList<>();
+        for (TreeItem fileLeaf : this.displayedFiles) {
+            CheckBoxTreeItem checkBoxFile = (CheckBoxTreeItem) fileLeaf;
+            if (checkBoxFile.isSelected())
+                checkedFiles.add((RepoFile)fileLeaf.getValue());
+        }
+        return checkedFiles;
     }
 
     /**

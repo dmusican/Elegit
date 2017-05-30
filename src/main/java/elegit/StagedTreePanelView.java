@@ -24,7 +24,6 @@ public class StagedTreePanelView extends FileStructurePanelView{
 
     @Override
     public void init(){
-        this.displayedFiles = new LinkedList<>();
         isAnyFileSelectedProperty = new SimpleBooleanProperty(false);
 
         // Used to disable/enable add and remove buttons
@@ -62,7 +61,7 @@ public class StagedTreePanelView extends FileStructurePanelView{
         for (RepoFile repoFile : updatedRepoFiles) {
             CheckBoxTreeItem<RepoFile> newItem = new CheckBoxTreeItem<>(repoFile, null);
             newItem.addEventHandler(CheckBoxTreeItem.checkBoxSelectionChangedEvent(), (CheckBoxTreeItem.TreeModificationEvent<RepoFile> e) -> {
-                if (e.getTreeItem().isSelected()) {
+                if (e.getTreeItem().isSelected() && workingTreePanel != null) {
                     workingTreePanel.setAllFilesSelected(false);
                 }
             });
@@ -131,21 +130,6 @@ public class StagedTreePanelView extends FileStructurePanelView{
             CheckBoxTreeItem checkBoxFile = (CheckBoxTreeItem) fileLeaf;
             checkBoxFile.setSelected(selected);
         }
-    }
-
-    /**
-     * Checks through all the files and finds all whose checkbox is checked.
-     *
-     * @return an array of RepoFiles whose CheckBoxTreeItem cells are checked.
-     */
-    public ArrayList<RepoFile> getCheckedFilesInDirectory() {
-        ArrayList<RepoFile> checkedFiles = new ArrayList<>();
-        for (TreeItem fileLeaf : this.displayedFiles) {
-            CheckBoxTreeItem checkBoxFile = (CheckBoxTreeItem) fileLeaf;
-            if (checkBoxFile.isSelected())
-                checkedFiles.add((RepoFile)fileLeaf.getValue());
-        }
-        return checkedFiles;
     }
 
     public void setWorkingTreePanel(WorkingTreePanelView workingTreePanel) {

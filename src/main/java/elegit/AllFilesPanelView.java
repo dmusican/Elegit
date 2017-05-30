@@ -142,7 +142,11 @@ public class AllFilesPanelView extends FileStructurePanelView{
         }
 
         isAnyFileSelectedProperty.bind(isSelectedPropertyHelper);
-//        displayedFiles = (LinkedList<TreeItem<RepoFile>>) itemMap.values();
+        displayedFiles.clear();
+        for (TreeItem<RepoFile> file : itemMap.values()) {
+            displayedFiles.add(file);
+        }
+
     }
 
     /**

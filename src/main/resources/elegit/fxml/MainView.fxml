@@ -29,7 +29,7 @@
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
 
-<BorderPane xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/8.0.112" fx:controller="elegit.controllers.SessionController">
+<BorderPane xmlns="http://javafx.com/javafx/8.0.112" xmlns:fx="http://javafx.com/fxml/1" fx:controller="elegit.controllers.SessionController">
 
     <!-- the top section of the border pane -->
     <top>
@@ -102,11 +102,8 @@
 
                 <!-- Working Directory block -->
                 <StackPane alignment="TOP_CENTER" GridPane.rowIndex="2" GridPane.valignment="TOP">
-                    <ImageView
-                            fitHeight="120"
-                            fitWidth="150"
-                            opacity="0.2">
-                        <Image url="@../images/folder.png"/>
+                    <ImageView fitHeight="120" fitWidth="150" opacity="0.2">
+                        <Image url="@../images/folder.png" />
                     </ImageView>
                     <VBox alignment="TOP_CENTER">
                         <padding>
@@ -123,20 +120,15 @@
                 <!-- File tree panel view -->
                 <TabPane fx:id="filesTabPane" GridPane.rowIndex="4">
                     <Tab fx:id="workingTreePanelTab" closable="false" text="Changed Files">
-                        <WorkingTreePanelView fx:id="workingTreePanelView" />
+                            <WorkingTreePanelView fx:id="workingTreePanelView" />
                     </Tab>
                     <Tab fx:id="allFilesPanelTab" closable="false" text="All Files">
-                        <AllFilesPanelView fx:id="allFilesPanelView" />
+                            <AllFilesPanelView fx:id="allFilesPanelView" maxHeight="1.7976931348623157E308" />
                     </Tab>
                 </TabPane>
 
                 <!-- Remove button block -->
-                <Button id="codeButton"
-                        GridPane.halignment="CENTER"
-                        GridPane.rowIndex="5"
-                        fx:id="removeButton"
-                        onAction="#handleRemoveButton"
-                        text="Remove" />
+                <Button id="codeButton" fx:id="removeButton" onAction="#handleRemoveButton" text="Remove" GridPane.halignment="CENTER" GridPane.rowIndex="5" />
 
                 <!-- Checkout branch button and create/delete branch button -->
                 <Button id="codeButton" fx:id="checkoutButton" onAction="#showBranchCheckout" text="Checkout different branch" GridPane.halignment="CENTER" GridPane.rowIndex="6" GridPane.valignment="BOTTOM" />
@@ -151,11 +143,8 @@
 
                 <!-- Index block -->
                 <StackPane alignment="TOP_CENTER" GridPane.columnIndex="2" GridPane.rowIndex="2" GridPane.valignment="TOP">
-                    <ImageView
-                            fitHeight="120"
-                            fitWidth="150"
-                            opacity="0.2">
-                        <Image url="@../images/index.png"/>
+                    <ImageView fitHeight="120" fitWidth="150" opacity="0.2">
+                        <Image url="@../images/index.png" />
                     </ImageView>
                     <VBox alignment="TOP_CENTER">
                         <Text text="Index">
@@ -185,12 +174,8 @@
 
                     <!-- Local Repository block -->
                 <StackPane GridPane.columnIndex="4" GridPane.halignment="CENTER" GridPane.rowIndex="2">
-                    <ImageView
-                            fitHeight="137.5"
-                            fitWidth="137.5"
-                            opacity="0.25"
-                            preserveRatio="true">
-                        <Image url="@../images/repository.png"/>
+                    <ImageView fitHeight="137.5" fitWidth="137.5" opacity="0.25" preserveRatio="true">
+                        <Image url="@../images/repository.png" />
                     </ImageView>
                     <VBox alignment="TOP_CENTER" spacing="5" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.rowIndex="1">
                         <Text text="Local Repository">
@@ -205,7 +190,7 @@
                 </StackPane>
 
                 <HBox alignment="CENTER" GridPane.columnIndex="4" GridPane.rowIndex="3">
-                    <Text text="Status: "/>
+                    <Text text="Status: " />
                     <StackPane fx:id="statusTextPane" alignment="TOP_CENTER">
                         <Text fx:id="branchStatusText" />
                     </StackPane>

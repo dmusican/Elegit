@@ -462,7 +462,6 @@ public class SessionController {
         });
     }
 
-
     /**
      * Adds graphics and tooltips to the buttons
      */
@@ -802,6 +801,9 @@ public class SessionController {
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
             if(!this.theModel.getCurrentRepoHelper().exists()) throw new MissingRepoException();
 
+            FileStructurePanelView panelView = workingTreePanelTab.isSelected() ? workingTreePanelView : allFilesPanelView;
+            if (!panelView.isAnyFileSelected()) throw new NoFilesSelectedToAddException();
+
             if(!workingTreePanelView.isAnyFileSelected()) throw new NoFilesSelectedToAddException();
             if(workingTreePanelView.isAnyFileStagedSelected()) throw new StagedFileCheckedException();
 
@@ -873,7 +875,8 @@ public class SessionController {
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
             if(!this.theModel.getCurrentRepoHelper().exists()) throw new MissingRepoException();
 
-            if(!workingTreePanelView.isAnyFileSelected()) throw new NoFilesSelectedToRemoveException();
+            FileStructurePanelView panelView = workingTreePanelTab.isSelected() ? workingTreePanelView : allFilesPanelView;
+            if (!panelView.isAnyFileSelected()) throw new NoFilesSelectedToRemoveException();
 
             BusyWindow.show();
             BusyWindow.setLoadingText("Removing...");
@@ -883,7 +886,7 @@ public class SessionController {
                     try{
                         ArrayList<Path> filePathsToRemove = new ArrayList<>();
                         // Try to remove all files, throw exception if there are ones that can't be added
-                        for(RepoFile checkedFile : workingTreePanelView.getCheckedFilesInDirectory()) {
+                        for(RepoFile checkedFile : panelView.getCheckedFilesInDirectory()) {
                             if (checkedFile.canRemove())
                                 filePathsToRemove.add(checkedFile.getFilePath());
                             else

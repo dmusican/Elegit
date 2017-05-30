@@ -416,6 +416,7 @@ public class RepoHelper {
         // git rm:
         RmCommand remover = git.rm();
         for (Path filePath : filePaths) {
+            System.out.println("removing " + filePath);
             remover.addFilepattern(filePath.toString());
         }
         remover.call();

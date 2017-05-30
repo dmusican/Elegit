@@ -31,7 +31,6 @@ public class WorkingTreePanelView extends FileStructurePanelView{
 
     @Override
     public void init(){
-        this.displayedFiles = new LinkedList<>();
         isAnyFileSelectedProperty = new SimpleBooleanProperty(false);
 
         // Used to disable/enable add and remove buttons
@@ -104,7 +103,6 @@ public class WorkingTreePanelView extends FileStructurePanelView{
      */
     @Override
     protected void addTreeItemsToRoot(List<RepoFile> updatedRepoFiles, TreeItem<RepoFile> root) {
-
         // Re-adds the checkbox if it had been removed
         if(root.getChildren().isEmpty()) {
             root.getChildren().add(checkBox);
@@ -196,21 +194,6 @@ public class WorkingTreePanelView extends FileStructurePanelView{
     @Override
     public List<RepoFile> getFilesToDisplay() throws GitAPIException{
         return sessionModel.getAllChangedRepoFiles();
-    }
-
-    /**
-     * Checks through all the files and finds all whose checkbox is checked.
-     *
-     * @return an array of RepoFiles whose CheckBoxTreeItem cells are checked.
-     */
-    public ArrayList<RepoFile> getCheckedFilesInDirectory() {
-        ArrayList<RepoFile> checkedFiles = new ArrayList<>();
-        for (TreeItem fileLeaf : this.displayedFiles) {
-            CheckBoxTreeItem checkBoxFile = (CheckBoxTreeItem) fileLeaf;
-            if (checkBoxFile.isSelected())
-                checkedFiles.add((RepoFile)fileLeaf.getValue());
-        }
-        return checkedFiles;
     }
 
     /**
