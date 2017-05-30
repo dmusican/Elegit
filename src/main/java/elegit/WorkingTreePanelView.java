@@ -197,17 +197,6 @@ public class WorkingTreePanelView extends FileStructurePanelView{
     }
 
     /**
-     * Sets all displayed items to have the given selected status
-     * @param selected true to check every box, false to uncheck every box
-     */
-    public void setAllFilesSelected(boolean selected) {
-        for (TreeItem fileLeaf : displayedFiles) {
-            CheckBoxTreeItem checkBoxFile = (CheckBoxTreeItem) fileLeaf;
-            checkBoxFile.setSelected(selected);
-        }
-    }
-
-    /**
      * @return true if any file has been staged, else false
      */
     public boolean isAnyFileStaged() {
@@ -227,13 +216,6 @@ public class WorkingTreePanelView extends FileStructurePanelView{
                 return true;
         }
         return false;
-    }
-
-    /**
-     * @return true if the select all box is checked
-     */
-    public boolean isSelectAllChecked() {
-        return checkBox.isSelected();
     }
 
     public void setIndexPanel(StagedTreePanelView indexPanel) {

@@ -94,7 +94,6 @@ public abstract class FileStructurePanelView extends Region{
      */
     protected Callback<TreeView<RepoFile>, TreeCell<RepoFile>> getTreeCellFactory() {
         return arg -> {
-            System.out.println("hin callback");
             TreeCell<RepoFile> cell = CheckBoxTreeCell.<RepoFile>forTreeView().call(arg);
 
             cell.setOnContextMenuRequested(event -> {
@@ -124,6 +123,17 @@ public abstract class FileStructurePanelView extends Region{
                 checkedFiles.add((RepoFile)fileLeaf.getValue());
         }
         return checkedFiles;
+    }
+
+    /**
+     * Sets all displayed items to have the given selected status
+     * @param selected true to check every box, false to uncheck every box
+     */
+    public void setAllFilesSelected(boolean selected) {
+        for (TreeItem fileLeaf : displayedFiles) {
+            CheckBoxTreeItem checkBoxFile = (CheckBoxTreeItem) fileLeaf;
+            checkBoxFile.setSelected(selected);
+        }
     }
 
     /**

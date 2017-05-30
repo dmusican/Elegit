@@ -804,33 +804,27 @@ public class SessionController {
             FileStructurePanelView panelView = workingTreePanelTab.isSelected() ? workingTreePanelView : allFilesPanelView;
             if (!panelView.isAnyFileSelected()) throw new NoFilesSelectedToAddException();
 
-            if(!workingTreePanelView.isAnyFileSelected()) throw new NoFilesSelectedToAddException();
-            if(workingTreePanelView.isAnyFileStagedSelected()) throw new StagedFileCheckedException();
+            if(!panelView.isAnyFileSelected()) throw new NoFilesSelectedToAddException();
+//            if(workingTreePanelView.isAnyFileStagedSelected()) throw new StagedFileCheckedException();
 
             BusyWindow.show();
             BusyWindow.setLoadingText("Adding...");
             Thread th = new Thread(new Task<Void>(){
                 @Override
                 protected Void call() {
-                    try{
+                    try {
                         ArrayList<Path> filePathsToAdd = new ArrayList<>();
                         ArrayList<Path> filePathsToRemove = new ArrayList<>();
 
-                        // Try to add all files, throw exception if there are ones that can't be added
-                        if (workingTreePanelView.isSelectAllChecked()) {
-                            filePathsToAdd.add(Paths.get("."));
-                        }
-                        else {
-                            for (RepoFile checkedFile : workingTreePanelView.getCheckedFilesInDirectory()) {
-                                if (checkedFile.canAdd()) {
-                                    filePathsToAdd.add(checkedFile.getFilePath());
-                                } else if (checkedFile instanceof MissingRepoFile) {
-                                    // JGit does not support adding missing files, instead remove them
-                                    filePathsToRemove.add(checkedFile.getFilePath());
-                                }
-                                else {
-                                    throw new UnableToAddException(checkedFile.filePath.toString());
-                                }
+                        // Try to add selected all files, throw exception if there are ones that can't be added
+                        for (RepoFile checkedFile : panelView.getCheckedFilesInDirectory()) {
+                            if (checkedFile.canAdd()) {
+                                filePathsToAdd.add(checkedFile.getFilePath());
+                            } else if (checkedFile instanceof MissingRepoFile) {
+                                // JGit does not support adding missing files, instead remove them
+                                filePathsToRemove.add(checkedFile.getFilePath());
+                            } else {
+                                throw new UnableToAddException(checkedFile.filePath.toString());
                             }
                         }
 
@@ -861,8 +855,8 @@ public class SessionController {
             this.showNoRepoLoadedNotification();
         } catch (MissingRepoException e) {
             this.showMissingRepoNotification();
-        } catch (StagedFileCheckedException e) {
-            this.showStagedFilesSelectedNotification();
+//        } catch (StagedFileCheckedException e) {
+//            this.showStagedFilesSelectedNotification();
         }
     }
 
@@ -883,7 +877,7 @@ public class SessionController {
             Thread th = new Thread(new Task<Void>(){
                 @Override
                 protected Void call() {
-                    try{
+                    try {
                         ArrayList<Path> filePathsToRemove = new ArrayList<>();
                         // Try to remove all files, throw exception if there are ones that can't be added
                         for(RepoFile checkedFile : panelView.getCheckedFilesInDirectory()) {
@@ -2674,7 +2668,7 @@ public class SessionController {
     private void showCannotAddFileNotification(String filename) {
         Platform.runLater(() -> {
             logger.warn("Cannot add file notification");
-            this.notificationPaneController.addNotification("Cannot add "+filename+". It might already be added (staged).");
+            this.notificationPaneController.addNotification("Unable to add "+filename+". You can only add untracked or modified files.");
         });
     }
 

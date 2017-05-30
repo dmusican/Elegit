@@ -21,5 +21,5 @@ public class IgnoredRepoFile extends RepoFile {
 
     @Override public boolean canAdd() { return false; }
 
-    @Override public boolean canRemove() { return true; }
+    @Override public boolean canRemove() { return false; }
 }
