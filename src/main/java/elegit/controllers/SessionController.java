@@ -204,7 +204,11 @@ public class SessionController {
         this.indexPanelView.setSessionModel(this.theModel);
 
         this.workingTreePanelView.setIndexPanel(this.indexPanelView);
+        this.workingTreePanelView.setAllFilesPanel(this.allFilesPanelView);
+        this.allFilesPanelView.setIndexPanel(this.indexPanelView);
+        this.allFilesPanelView.setWorkingTreePanel(this.workingTreePanelView);
         this.indexPanelView.setWorkingTreePanel(this.workingTreePanelView);
+        this.indexPanelView.setAllFilesPanel(this.allFilesPanelView);
 
         this.initializeLayoutParameters();
 

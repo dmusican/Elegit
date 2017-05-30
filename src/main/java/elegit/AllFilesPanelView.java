@@ -80,6 +80,14 @@ public class AllFilesPanelView extends FileStructurePanelView{
             List<RepoFile> filesAtDepth = filesAtDepthMap.get(i);
             if(filesAtDepth != null) {
                 for (RepoFile repoFile : filesAtDepth) {
+                    CheckBoxTreeItem<RepoFile> newItem = new CheckBoxTreeItem<>(repoFile, repoFile.diffButton);
+                    newItem.addEventHandler(CheckBoxTreeItem.checkBoxSelectionChangedEvent(), (CheckBoxTreeItem.TreeModificationEvent<RepoFile> e) -> {
+                        if (e.getTreeItem().isSelected()) {
+                            indexPanel.setAllFilesSelected(false);
+                            workingTreePanel.setAllFilesSelected(false);
+                        }
+                    });
+
                     Path pathToFile = repoFile.getFilePath();
 
                     BooleanProperty oldHelper = isSelectedPropertyHelper;
@@ -95,7 +103,6 @@ public class AllFilesPanelView extends FileStructurePanelView{
                             itemsToRemove.remove(oldItem);
                         } else {
                             // The file is displayed, but needs its status updated. Replace the old with the new
-                            CheckBoxTreeItem<RepoFile> newItem = new CheckBoxTreeItem<>(repoFile, repoFile.diffButton);
                             isSelectedPropertyHelper.bind(oldHelper.or(newItem.selectedProperty()));
                             TreeItem<RepoFile> parent = oldItem.getParent();
                             newItem.setExpanded(oldItem.isExpanded());
@@ -106,8 +113,6 @@ public class AllFilesPanelView extends FileStructurePanelView{
                         }
                     } else {
                         // The given file wasn't present, so need to add it
-                        CheckBoxTreeItem<RepoFile> newItem = new CheckBoxTreeItem<>(repoFile, repoFile.diffButton);
-
                         isSelectedPropertyHelper.bind(oldHelper.or(newItem.selectedProperty()));
 
                         Path pathToParent = pathToFile.getParent();

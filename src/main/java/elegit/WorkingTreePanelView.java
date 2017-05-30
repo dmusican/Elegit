@@ -23,7 +23,6 @@ import java.util.*;
 public class WorkingTreePanelView extends FileStructurePanelView{
 
     private CheckBoxTreeItem<RepoFile> checkBox;
-    private StagedTreePanelView indexPanel;
 
     public WorkingTreePanelView() {
         this.init();
@@ -123,6 +122,7 @@ public class WorkingTreePanelView extends FileStructurePanelView{
             newItem.addEventHandler(CheckBoxTreeItem.checkBoxSelectionChangedEvent(), (CheckBoxTreeItem.TreeModificationEvent<RepoFile> e) -> {
                 if (e.getTreeItem().isSelected()) {
                     indexPanel.setAllFilesSelected(false);
+                    allFilesPanel.setAllFilesSelected(false);
                 }
             });
 
@@ -216,9 +216,5 @@ public class WorkingTreePanelView extends FileStructurePanelView{
                 return true;
         }
         return false;
-    }
-
-    public void setIndexPanel(StagedTreePanelView indexPanel) {
-        this.indexPanel = indexPanel;
     }
 }

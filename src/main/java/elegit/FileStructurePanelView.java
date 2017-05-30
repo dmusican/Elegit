@@ -28,6 +28,10 @@ public abstract class FileStructurePanelView extends Region{
     protected BooleanProperty isAnyFileSelectedProperty;
     protected List<TreeItem<RepoFile>> displayedFiles;
 
+    protected WorkingTreePanelView workingTreePanel;
+    protected AllFilesPanelView allFilesPanel;
+    protected StagedTreePanelView indexPanel;
+
     public SessionModel sessionModel;
 
     /**
@@ -168,4 +172,16 @@ public abstract class FileStructurePanelView extends Region{
     public void setSessionModel(SessionModel sessionModel) {
         this.sessionModel = sessionModel;
     }
+
+    public void setIndexPanel(StagedTreePanelView indexPanel) {
+        this.indexPanel = indexPanel;
+    }
+    public void setWorkingTreePanel(WorkingTreePanelView workingTreePanel) {
+        this.workingTreePanel = workingTreePanel;
+    }
+    public void setAllFilesPanel(AllFilesPanelView allFilesPanel) {
+        this.allFilesPanel = allFilesPanel;
+    }
+
+
 }

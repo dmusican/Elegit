@@ -63,6 +63,7 @@ public class StagedTreePanelView extends FileStructurePanelView{
             newItem.addEventHandler(CheckBoxTreeItem.checkBoxSelectionChangedEvent(), (CheckBoxTreeItem.TreeModificationEvent<RepoFile> e) -> {
                 if (e.getTreeItem().isSelected() && workingTreePanel != null) {
                     workingTreePanel.setAllFilesSelected(false);
+                    allFilesPanel.setAllFilesSelected(false);
                 }
             });
 
@@ -120,9 +121,4 @@ public class StagedTreePanelView extends FileStructurePanelView{
         }
         return repoFiles;
     }
-
-    public void setWorkingTreePanel(WorkingTreePanelView workingTreePanel) {
-        this.workingTreePanel = workingTreePanel;
-    }
-
 }
