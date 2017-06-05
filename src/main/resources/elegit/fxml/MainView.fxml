@@ -304,12 +304,21 @@
                     </VBox>
                 </StackPane>
 
-                <fx:include fx:id="commitInfo" source="CommitInfoView.fxml" />
-
-                <!-- Tagging UI -->
-                <VBox alignment="CENTER" spacing="5" GridPane.columnIndex="6" GridPane.halignment="CENTER" GridPane.rowIndex="5">
-                    <HBox>
-                        <ArrowButton id="codeButton" fx:id="tagButton" arrowLeft="true" onAction="#handleTagButton" text="Tag" />
+                <!-- Tagging and Commit Info -->
+                <VBox   alignment="CENTER"
+                        spacing="5"
+                        GridPane.rowIndex="4"
+                        GridPane.columnIndex="6"
+                        GridPane.rowSpan="2"
+                        GridPane.halignment="CENTER"
+                        fx:id="infoTagBox">
+                <fx:include source="CommitInfoView.fxml" fx:id="commitInfo"/>
+                <HBox>
+                    <ArrowButton id="codeButton"
+                                 fx:id="tagButton"
+                                     arrowLeft="true"
+                                     onAction="#handleTagButton"
+                                     text="Tag" />
                         <TextField fx:id="tagNameField" prefHeight="30" prefWidth="170" promptText="tag..." />
 
                     </HBox>
