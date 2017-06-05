@@ -107,7 +107,7 @@
                     </ImageView>
                     <VBox alignment="TOP_CENTER">
                         <padding>
-                            <Insets top="10" />
+                            <Insets top="15" />
                         </padding>
                         <Text text="Working Tree">
                             <font>
@@ -153,7 +153,7 @@
                             </font>
                         </Text>
                         <padding>
-                            <Insets top="10" />
+                            <Insets top="15" />
                         </padding>
                     </VBox>
                 </StackPane>
@@ -184,7 +184,7 @@
                             </font>
                         </Text>
                         <padding>
-                            <Insets top="10" />
+                            <Insets top="15" />
                         </padding>
                     </VBox>
                 </StackPane>
@@ -299,7 +299,7 @@
                             <Text fx:id="browserText" />
                         </HBox>
                         <padding>
-                            <Insets top="10" />
+                            <Insets top="15" />
                         </padding>
                     </VBox>
                 </StackPane>
