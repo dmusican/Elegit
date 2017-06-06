@@ -1,5 +1,6 @@
 package elegit;
 
+import com.sun.javafx.scene.control.skin.TextFieldSkin;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -23,7 +24,26 @@ import java.util.Optional;
  * An abstract class for building RepoHelpers by presenting dialogs to
  * get the required parameters.
  */
+class PasswordSkin extends TextFieldSkin {
+    public PasswordSkin(TextField textField) {
+        super(textField);
+    }
+
+    protected String maskText(String txt) {
+        if (getSkinnable() instanceof PasswordField) {
+            int n = txt.length();
+            StringBuilder passwordBuilder = new StringBuilder(n);
+            for (int i = 0; i < n; i++)
+                passwordBuilder.append("\u26ab");
+
+            return passwordBuilder.toString();
+        } else {
+            return txt;
+        }
+    }
+}
 public abstract class RepoHelperBuilder {
+
 
     private static class UsernamePassword {
         public String username;
@@ -134,6 +154,7 @@ public abstract class RepoHelperBuilder {
 
         PasswordField password = new PasswordField();
         CheckBox remember = new CheckBox("Remember Password");
+        password.setSkin(new PasswordSkin(password));
 
         //TODO: remember the password somehow
         /*
