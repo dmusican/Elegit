@@ -90,7 +90,7 @@ public class CommitLabelTest {
         }
     }
 
-    @Test
+    //@Test
     public void testAddFileAndCommit() throws Exception {
         // Make sure both "master" and "origin/master" labels are on the inital commit
         testCellLabelContainsMaster(commitTreeModel, INITIAL_COMMIT_ID, true, true);
