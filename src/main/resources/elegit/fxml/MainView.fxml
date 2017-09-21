@@ -355,7 +355,6 @@
                              fx:id="fetchButton"
                              text="Fetch"
                              arrowLeft="true"
-                             onAction="#handleNormalFetchButton"
                              GridPane.rowIndex="2"
                              GridPane.columnIndex="5"
                              GridPane.halignment="LEFT"

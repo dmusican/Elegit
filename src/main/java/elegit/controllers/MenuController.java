@@ -1,6 +1,8 @@
 package elegit.controllers;
 
 import elegit.treefx.TreeLayout;
+import io.reactivex.rxjavafx.observables.JavaFxObservable;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
@@ -31,6 +33,10 @@ public class MenuController {
     public void initialize() {
         initMenuBarShortcuts();
         commitSortToggle.setSelected(true); //default
+
+        JavaFxObservable.actionEventsOf(normalFetchMenuItem)
+                .subscribe(actionEvent -> sessionController.handleFetchButton(false, false));
+
     }
 
     /**
@@ -118,10 +124,6 @@ public class MenuController {
 
     public void handleCommitNormal() {
         sessionController.handleCommitNormal();
-    }
-
-    public void handleNormalFetchButton() {
-        sessionController.handleNormalFetchButton();
     }
 
     public void handlePruneFetchButton() {

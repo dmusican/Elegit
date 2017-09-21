@@ -3,6 +3,7 @@ package elegit.controllers;
 import elegit.*;
 import elegit.exceptions.*;
 import elegit.treefx.TreeLayout;
+import io.reactivex.rxjavafx.observables.JavaFxObservable;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -233,6 +234,17 @@ public class SessionController {
         tryCommandAgainWithHTTPAuth = false;
 
         this.preferences = Preferences.userNodeForPackage(this.getClass());
+
+        JavaFxObservable.actionEventsOf(fetchButton)
+                .subscribe(actionEvent -> handleFetchButton(false, false));
+
+//        /**
+//         * Handles a click on the "Fetch" button. Calls gitFetch()
+//         */
+//        public void handleNormalFetchButton(ActionEvent actionEvent){
+//            handleFetchButton(false, false);
+//        }
+
     }
 
     /**
@@ -1838,12 +1850,6 @@ public class SessionController {
         handleFetchButton(true, false);
     }
 
-    /**
-     * Handles a click on the "Fetch" button. Calls gitFetch()
-     */
-    public void handleNormalFetchButton(){
-        handleFetchButton(false, false);
-    }
 
     /**
      * Peforms a git pull
