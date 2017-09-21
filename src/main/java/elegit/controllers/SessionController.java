@@ -3,7 +3,6 @@ package elegit.controllers;
 import elegit.*;
 import elegit.exceptions.*;
 import elegit.treefx.TreeLayout;
-import io.reactivex.Observable;
 import io.reactivex.rxjavafx.observables.JavaFxObservable;
 import io.reactivex.subjects.PublishSubject;
 import io.reactivex.subjects.Subject;
@@ -48,7 +47,6 @@ import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.jgit.transport.RemoteRefUpdate;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
-import javax.swing.*;
 import java.awt.*;
 import java.io.IOException;
 import java.io.InputStream;
@@ -246,7 +244,7 @@ public class SessionController {
                 .subscribe(actionEvent -> handleFetchButton(false, false));
 
         normalFetchRequests.map(ae -> handleFetchButton(false, false))
-                .subscribe(System.out::println);
+                .subscribe();
 
 //        /**
 //         * Handles a click on the "Fetch" button. Calls gitFetch()
@@ -1323,12 +1321,7 @@ public class SessionController {
         try {
             logger.info("Push tags button clicked");
 
-            if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
-
-            final RepoHelperBuilder.AuthDialogResponse credentialResponse = askUserForCredentials();
-
-            BusyWindow.show();
-            BusyWindow.setLoadingText("Pushing tags...");
+            final RepoHelperBuilder.AuthDialogResponse credentialResponse = authenticateAndShowBusy("Pushing tags...");
             Thread th = new Thread(new Task<Void>(){
                 @Override
                 protected Void call() {
@@ -1877,12 +1870,7 @@ public class SessionController {
     private synchronized void gitFetch(boolean prune, boolean pull){
         try{
 
-            if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
-
-            final RepoHelperBuilder.AuthDialogResponse response = askUserForCredentials();
-
-            BusyWindow.show();
-            BusyWindow.setLoadingText("Fetching...");
+            final RepoHelperBuilder.AuthDialogResponse response = authenticateAndShowBusy("Fetching...");
             Thread th = new Thread(new Task<Void>(){
                 @Override
                 protected Void call() {
@@ -1931,6 +1919,17 @@ public class SessionController {
         } catch (CancelledAuthorizationException e) {
             this.showCommandCancelledNotification();
         }
+    }
+
+    private RepoHelperBuilder.AuthDialogResponse authenticateAndShowBusy(String message)
+            throws NoRepoLoadedException, CancelledAuthorizationException {
+        if (this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
+
+        final RepoHelperBuilder.AuthDialogResponse response = askUserForCredentials();
+
+        BusyWindow.show();
+        BusyWindow.setLoadingText(message);
+        return response;
     }
 
     /**

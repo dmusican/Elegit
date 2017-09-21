@@ -35,7 +35,6 @@ public class MenuController {
         commitSortToggle.setSelected(true); //default
 
         JavaFxObservable.actionEventsOf(normalFetchMenuItem)
-//                .map(ae -> sessionController.handleFetchButton(false, false))
                 .subscribe(SessionController.getNormalFetchRequests());
 
     }
