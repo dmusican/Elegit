@@ -1835,12 +1835,13 @@ public class SessionController {
      * Calls git fetch
      * @param prune boolean should prune
      */
-    public void handleFetchButton(boolean prune, boolean pull) {
+    public boolean handleFetchButton(boolean prune, boolean pull) {
         logger.info("Fetch button clicked");
         RepositoryMonitor.pause();
         gitFetch(prune, pull);
         RepositoryMonitor.unpause();
         submitLog();
+        return true;
     }
 
     /**
