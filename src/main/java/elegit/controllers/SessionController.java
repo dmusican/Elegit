@@ -3,7 +3,10 @@ package elegit.controllers;
 import elegit.*;
 import elegit.exceptions.*;
 import elegit.treefx.TreeLayout;
+import io.reactivex.Scheduler;
 import io.reactivex.rxjavafx.observables.JavaFxObservable;
+import io.reactivex.rxjavafx.schedulers.JavaFxScheduler;
+import io.reactivex.schedulers.Schedulers;
 import io.reactivex.subjects.PublishSubject;
 import io.reactivex.subjects.Subject;
 import javafx.application.Platform;
@@ -58,6 +61,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.function.Consumer;
 import java.util.prefs.BackingStoreException;
@@ -244,7 +248,10 @@ public class SessionController {
                 .subscribe(actionEvent -> handleFetchButton(false, false));
 
         normalFetchRequests.doOnNext(ae -> prepareToDoGitOperation("Fetch button clicked"))
-                .map(ae -> gitFetch(false, false))
+                .map(ae -> authenticateAndShowBusyReactive("Fetching!!.."))
+                .observeOn(Schedulers.io())
+                .map(response -> gitFetchReactive(response, false, false))
+                .observeOn(JavaFxScheduler.platform())
                 .doOnNext(ae -> followUpOnGitOperation())
                 .subscribe();
 
@@ -1845,6 +1852,7 @@ public class SessionController {
     }
 
     private void followUpOnGitOperation() {
+        BusyWindow.hide();
         RepositoryMonitor.unpause();
         submitLog();
     }
@@ -1929,6 +1937,46 @@ public class SessionController {
         return true;
     }
 
+    private synchronized boolean gitFetchReactive(Optional<RepoHelperBuilder.AuthDialogResponse> responseOptional, boolean prune, boolean pull){
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        tryCommandAgainWithHTTPAuth = false;
+        try{
+            RepositoryMonitor.resetFoundNewChanges(false);
+            RepoHelper helper = theModel.getCurrentRepoHelper();
+            responseOptional.ifPresent(response ->
+                    helper.ownerAuth =
+                            new UsernamePasswordCredentialsProvider(response.username, response.password)
+            );
+            if(!helper.fetch(prune)){
+                showNoCommitsFetchedNotification();
+            } if (pull) {
+                mergeFromFetch();
+            }
+            gitStatus();
+        } catch(InvalidRemoteException e){
+            showNoRemoteNotification();
+        } catch (TransportException e) {
+            determineIfTryAgain(e);
+        } catch(MissingRepoException e){
+            showMissingRepoNotification();
+            setButtonsDisabled(true);
+            refreshRecentReposInDropdown();
+        } catch(Exception e) {
+            showGenericErrorNotification();
+            e.printStackTrace();
+        }
+
+        if (tryCommandAgainWithHTTPAuth)
+            Platform.runLater(() -> {
+                gitFetch(prune, pull);
+            });
+        return true;
+    }
+
     private RepoHelperBuilder.AuthDialogResponse authenticateAndShowBusy(String message)
             throws NoRepoLoadedException, CancelledAuthorizationException {
         if (this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
@@ -1938,6 +1986,21 @@ public class SessionController {
         BusyWindow.show();
         BusyWindow.setLoadingText(message);
         return response;
+    }
+
+    private Optional<RepoHelperBuilder.AuthDialogResponse> authenticateAndShowBusyReactive(String message)
+            throws NoRepoLoadedException, CancelledAuthorizationException {
+        if (this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
+
+        final RepoHelperBuilder.AuthDialogResponse response = askUserForCredentials();
+
+        BusyWindow.show();
+        BusyWindow.setLoadingText(message);
+
+        if (response != null) {
+            return Optional.of(response);
+        } else
+            return Optional.empty();
     }
 
     /**
