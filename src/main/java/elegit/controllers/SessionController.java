@@ -3,7 +3,6 @@ package elegit.controllers;
 import elegit.*;
 import elegit.exceptions.*;
 import elegit.treefx.TreeLayout;
-import io.reactivex.Scheduler;
 import io.reactivex.rxjavafx.observables.JavaFxObservable;
 import io.reactivex.rxjavafx.schedulers.JavaFxScheduler;
 import io.reactivex.schedulers.Schedulers;
@@ -247,12 +246,16 @@ public class SessionController {
         JavaFxObservable.actionEventsOf(fetchButton)
                 .subscribe(actionEvent -> handleFetchButton(false, false));
 
-        normalFetchRequests.doOnNext(ae -> prepareToDoGitOperation("Fetch button clicked"))
+        normalFetchRequests
+                .doOnNext(ae -> pauseRepoMonitor("Fetch button clicked"))
                 .map(ae -> authenticateAndShowBusyReactive("Fetching!!.."))
                 .observeOn(Schedulers.io())
                 .map(response -> gitFetchReactive(response, false, false))
                 .observeOn(JavaFxScheduler.platform())
-                .doOnNext(ae -> followUpOnGitOperation())
+
+
+
+                .doOnNext(ae -> hideBusyWindowAndResumeRepoMonitor())
                 .subscribe();
 
 //        /**
@@ -668,8 +671,7 @@ public class SessionController {
             }
 
             RepositoryMonitor.pause();
-            BusyWindow.show();
-            BusyWindow.setLoadingText("Loading the repository...");
+            showBusyWindow("Loading the repository...");
             Thread th = new Thread(new Task<Void>(){
                 @Override
                 protected Void call() {
@@ -767,9 +769,8 @@ public class SessionController {
         if(isRecentRepoEventListenerBlocked || repoHelper == null) return;
 
         this.notificationPaneController.clearAllNotifications();
-        prepareToDoGitOperation("Switching repos");
-        BusyWindow.show();
-        BusyWindow.setLoadingText("Opening the repository...");
+        pauseRepoMonitor("Switching repos");
+        showBusyWindow("Opening the repository...");
         Thread th = new Thread(new Task<Void>(){
             @Override
             protected Void call() throws Exception{
@@ -828,8 +829,7 @@ public class SessionController {
             if(!workingTreePanelView.isAnyFileSelected()) throw new NoFilesSelectedToAddException();
             if(workingTreePanelView.isAnyFileStagedSelected()) throw new StagedFileCheckedException();
 
-            BusyWindow.show();
-            BusyWindow.setLoadingText("Adding...");
+            showBusyWindow("Adding...");
             Thread th = new Thread(new Task<Void>(){
                 @Override
                 protected Void call() {
@@ -898,8 +898,7 @@ public class SessionController {
 
             if(!workingTreePanelView.isAnyFileSelected()) throw new NoFilesSelectedToRemoveException();
 
-            BusyWindow.show();
-            BusyWindow.setLoadingText("Removing...");
+            showBusyWindow("Removing...");
             Thread th = new Thread(new Task<Void>(){
                 @Override
                 protected Void call() {
@@ -1071,8 +1070,7 @@ public class SessionController {
         String message = PopUpWindows.getCommitMessage();
         if(message.equals("cancel")) return;
 
-        BusyWindow.show();
-        BusyWindow.setLoadingText("Committing all...");
+        showBusyWindow("Committing all...");
 
         Thread th = new Thread(new Task<Void>() {
             @Override
@@ -1242,8 +1240,7 @@ public class SessionController {
         try {
             final RepoHelperBuilder.AuthDialogResponse credentialResponse = askUserForCredentials();
 
-            BusyWindow.show();
-            BusyWindow.setLoadingText("Pushing...");
+            showBusyWindow("Pushing...");
             Thread th = new Thread(new Task<Void>(){
                 @Override
                 protected Void call() {
@@ -1496,8 +1493,7 @@ public class SessionController {
         try {
             final RepoHelperBuilder.AuthDialogResponse credentialResponse = askUserForCredentials();
 
-            BusyWindow.show();
-            BusyWindow.setLoadingText("Deleting remote branch...");
+            showBusyWindow("Deleting remote branch...");
 
             Thread th = new Thread(new Task<Void>() {
                 @Override
@@ -1596,8 +1592,7 @@ public class SessionController {
 
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
 
-            BusyWindow.show();
-            BusyWindow.setLoadingText("Reverting...");
+            showBusyWindow("Reverting...");
             Thread th = new Thread(new Task<Void>(){
                 @Override
                 protected Void call() {
@@ -1649,8 +1644,7 @@ public class SessionController {
 
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
 
-            BusyWindow.show();
-            BusyWindow.setLoadingText("Reverting...");
+            showBusyWindow("Reverting...");
             Thread th = new Thread(new Task<Void>(){
                 @Override
                 protected Void call() {
@@ -1710,8 +1704,7 @@ public class SessionController {
 
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
 
-            BusyWindow.show();
-            BusyWindow.setLoadingText("Resetting...");
+            showBusyWindow("Resetting...");
             Thread th = new Thread(new Task<Void>(){
                 @Override
                 protected Void call() {
@@ -1851,13 +1844,13 @@ public class SessionController {
         return true;
     }
 
-    private void followUpOnGitOperation() {
+    private void hideBusyWindowAndResumeRepoMonitor() {
         BusyWindow.hide();
         RepositoryMonitor.unpause();
         submitLog();
     }
 
-    private void prepareToDoGitOperation(String fetch_button_clicked) {
+    private void pauseRepoMonitor(String fetch_button_clicked) {
         logger.info(fetch_button_clicked);
         RepositoryMonitor.pause();
     }
@@ -1938,11 +1931,6 @@ public class SessionController {
     }
 
     private synchronized boolean gitFetchReactive(Optional<RepoHelperBuilder.AuthDialogResponse> responseOptional, boolean prune, boolean pull){
-        try {
-            Thread.sleep(2000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
         tryCommandAgainWithHTTPAuth = false;
         try{
             RepositoryMonitor.resetFoundNewChanges(false);
@@ -1983,8 +1971,7 @@ public class SessionController {
 
         final RepoHelperBuilder.AuthDialogResponse response = askUserForCredentials();
 
-        BusyWindow.show();
-        BusyWindow.setLoadingText(message);
+        showBusyWindow(message);
         return response;
     }
 
@@ -1994,13 +1981,17 @@ public class SessionController {
 
         final RepoHelperBuilder.AuthDialogResponse response = askUserForCredentials();
 
-        BusyWindow.show();
-        BusyWindow.setLoadingText(message);
+        showBusyWindow(message);
 
         if (response != null) {
             return Optional.of(response);
         } else
             return Optional.empty();
+    }
+
+    private void showBusyWindow(String message) {
+        BusyWindow.show();
+        BusyWindow.setLoadingText(message);
     }
 
     /**
@@ -2019,8 +2010,7 @@ public class SessionController {
             if(theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
             if(theModel.getCurrentRepoHelper().getBehindCount()<1) throw new NoCommitsToMergeException();
 
-            BusyWindow.show();
-            BusyWindow.setLoadingText("Merging...");
+            showBusyWindow("Merging...");
             Thread th = new Thread(new Task<Void>(){
                 @Override
                 protected Void call() throws GitAPIException, IOException {
