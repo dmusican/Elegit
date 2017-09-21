@@ -3,7 +3,10 @@ package elegit.controllers;
 import elegit.*;
 import elegit.exceptions.*;
 import elegit.treefx.TreeLayout;
+import io.reactivex.Observable;
 import io.reactivex.rxjavafx.observables.JavaFxObservable;
+import io.reactivex.subjects.PublishSubject;
+import io.reactivex.subjects.Subject;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -45,6 +48,7 @@ import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.jgit.transport.RemoteRefUpdate;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
+import javax.swing.*;
 import java.awt.*;
 import java.io.IOException;
 import java.io.InputStream;
@@ -54,8 +58,9 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 import java.util.function.Consumer;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
@@ -168,6 +173,8 @@ public class SessionController {
     Preferences preferences;
     private static final String LOGGING_LEVEL_KEY="LOGGING_LEVEL";
 
+    public static final Subject<ActionEvent> normalFetchRequests = PublishSubject.create();
+
     /**
      * Initializes the environment by obtaining the model
      * and putting the views on display.
@@ -237,6 +244,9 @@ public class SessionController {
 
         JavaFxObservable.actionEventsOf(fetchButton)
                 .subscribe(actionEvent -> handleFetchButton(false, false));
+
+        normalFetchRequests.map(ae -> handleFetchButton(false, false))
+                .subscribe(System.out::println);
 
 //        /**
 //         * Handles a click on the "Fetch" button. Calls gitFetch()
@@ -2468,6 +2478,10 @@ public class SessionController {
             pushTagsButton.setVisible(false);
             infoTagBox.toBack();
         });
+    }
+
+    public static Subject<ActionEvent> getNormalFetchRequests() {
+        return normalFetchRequests;
     }
 
     /// ******************************************************************************
