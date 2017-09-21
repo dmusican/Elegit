@@ -243,7 +243,9 @@ public class SessionController {
         JavaFxObservable.actionEventsOf(fetchButton)
                 .subscribe(actionEvent -> handleFetchButton(false, false));
 
-        normalFetchRequests.map(ae -> handleFetchButton(false, false))
+        normalFetchRequests.doOnNext(ae -> prepareToDoGitOperation("Fetch button clicked"))
+                .map(ae -> gitFetch(false, false))
+                .doOnNext(ae -> followUpOnGitOperation())
                 .subscribe();
 
 //        /**
@@ -758,8 +760,7 @@ public class SessionController {
         if(isRecentRepoEventListenerBlocked || repoHelper == null) return;
 
         this.notificationPaneController.clearAllNotifications();
-        logger.info("Switching repos");
-        RepositoryMonitor.pause();
+        prepareToDoGitOperation("Switching repos");
         BusyWindow.show();
         BusyWindow.setLoadingText("Opening the repository...");
         Thread th = new Thread(new Task<Void>(){
@@ -1839,12 +1840,18 @@ public class SessionController {
      * @param prune boolean should prune
      */
     public boolean handleFetchButton(boolean prune, boolean pull) {
-        logger.info("Fetch button clicked");
-        RepositoryMonitor.pause();
         gitFetch(prune, pull);
+        return true;
+    }
+
+    private void followUpOnGitOperation() {
         RepositoryMonitor.unpause();
         submitLog();
-        return true;
+    }
+
+    private void prepareToDoGitOperation(String fetch_button_clicked) {
+        logger.info(fetch_button_clicked);
+        RepositoryMonitor.pause();
     }
 
     /**
@@ -1867,7 +1874,7 @@ public class SessionController {
      * remote as necessary.
      * Equivalent to `git fetch`
      */
-    private synchronized void gitFetch(boolean prune, boolean pull){
+    private synchronized boolean gitFetch(boolean prune, boolean pull){
         try{
 
             final RepoHelperBuilder.AuthDialogResponse response = authenticateAndShowBusy("Fetching...");
@@ -1919,6 +1926,7 @@ public class SessionController {
         } catch (CancelledAuthorizationException e) {
             this.showCommandCancelledNotification();
         }
+        return true;
     }
 
     private RepoHelperBuilder.AuthDialogResponse authenticateAndShowBusy(String message)
