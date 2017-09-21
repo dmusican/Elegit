@@ -248,7 +248,8 @@ public class SessionController {
 
         normalFetchRequests
                 .doOnNext(ae -> pauseRepoMonitor("Fetch button clicked"))
-                .map(ae -> authenticateAndShowBusyReactive("Fetching!!.."))
+                .map(ae -> authenticateReactive())
+                .doOnNext(ae -> showBusyWindow("Fetching!!.."))
                 .observeOn(Schedulers.io())
                 .map(response -> gitFetchReactive(response, false, false))
                 .observeOn(JavaFxScheduler.platform())
@@ -1975,13 +1976,12 @@ public class SessionController {
         return response;
     }
 
-    private Optional<RepoHelperBuilder.AuthDialogResponse> authenticateAndShowBusyReactive(String message)
+    private Optional<RepoHelperBuilder.AuthDialogResponse> authenticateReactive()
             throws NoRepoLoadedException, CancelledAuthorizationException {
         if (this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
 
         final RepoHelperBuilder.AuthDialogResponse response = askUserForCredentials();
 
-        showBusyWindow(message);
 
         if (response != null) {
             return Optional.of(response);
