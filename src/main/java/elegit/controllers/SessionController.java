@@ -269,17 +269,29 @@ public class SessionController {
 
     }
 
-    public void handleFetchButton() {
+    void handleFetchButton() {
+        tryCommandAgainWithHTTPAuth = false;
         Observable.just(1)
                 .doOnNext(ae -> pauseRepoMonitor("Fetch button clicked"))
-                .map(ae -> authenticateReactive())
+//                .map(ae -> authenticateReactive())
                 .doOnNext(ae -> showBusyWindow("Fetching!!.."))
-                .observeOn(Schedulers.io())
-                .map(response -> gitFetchReactive(response, false, false))
+//                .observeOn(Schedulers.io())
+                .flatMap(ae -> {
+                    return Observable.just(1)
+                            .observeOn(JavaFxScheduler.platform())
+                            .map(integer -> authenticateReactive())
+                            .observeOn(Schedulers.io())
+                            .flatMap(response -> gitFetchReactive(response, false, false))
+                            .doOnError(e -> System.out.println("error exception = " + e) )
+                            .doOnError(e -> {tryCommandAgainWithHTTPAuth = true;})
+                            .retry();
+
+//                    return gitFetchReactive(response, false, false)
+//                            .doOnError(result -> System.out.println("result is" + result))
+//                            .retry();
+                })
+                .doOnNext(e -> System.out.println("gives back" + e))
                 .observeOn(JavaFxScheduler.platform())
-
-
-
                 .doOnNext(ae -> hideBusyWindowAndResumeRepoMonitor())
                 .subscribe();
 
@@ -1296,6 +1308,13 @@ public class SessionController {
             tryCommandAgainWithHTTPAuth = true;
     }
 
+    private boolean determineIfTryAgainReactive(TransportException e) {
+        showTransportExceptionNotification(e);
+
+        // Don't try again with HTTP authentication if SSH prompt for authentication is canceled
+        return (!e.getMessage().endsWith("Auth cancel"));
+    }
+
     private void pushBranchOrAllDetails(RepoHelperBuilder.AuthDialogResponse response, PushType pushType,
                                         PushCommand push) throws
             TransportException {
@@ -1948,39 +1967,49 @@ public class SessionController {
         return true;
     }
 
-    private synchronized boolean gitFetchReactive(Optional<RepoHelperBuilder.AuthDialogResponse> responseOptional, boolean prune, boolean pull){
-        tryCommandAgainWithHTTPAuth = false;
-        try{
-            RepositoryMonitor.resetFoundNewChanges(false);
-            RepoHelper helper = theModel.getCurrentRepoHelper();
-            responseOptional.ifPresent(response ->
-                    helper.ownerAuth =
-                            new UsernamePasswordCredentialsProvider(response.username, response.password)
-            );
-            if(!helper.fetch(prune)){
-                showNoCommitsFetchedNotification();
-            } if (pull) {
-                mergeFromFetch();
+    private synchronized Observable gitFetchReactive(Optional<RepoHelperBuilder.AuthDialogResponse> responseOptional, boolean prune, boolean pull) {
+        System.out.println("starting it off");
+        return Observable.defer(() ->
+        {
+            System.out.println("Internal code being run");
+            tryCommandAgainWithHTTPAuth = false;
+            try {
+                RepositoryMonitor.resetFoundNewChanges(false);
+                RepoHelper helper = theModel.getCurrentRepoHelper();
+                responseOptional.ifPresent(response ->
+                        helper.ownerAuth =
+                                new UsernamePasswordCredentialsProvider(response.username, response.password)
+                );
+                if (!helper.fetch(prune)) {
+                    showNoCommitsFetchedNotification();
+                }
+                if (pull) {
+                    mergeFromFetch();
+                }
+                gitStatus();
+            } catch (InvalidRemoteException e) {
+                showNoRemoteNotification();
+            } catch (TransportException e) {
+                if (determineIfTryAgainReactive(e)) {
+                    System.out.println("Error on its way");
+                    return(Observable.error(e));
+                }
+            } catch (MissingRepoException e) {
+                showMissingRepoNotification();
+                setButtonsDisabled(true);
+                refreshRecentReposInDropdown();
+            } catch (Exception e) {
+                showGenericErrorNotification();
+                e.printStackTrace();
             }
-            gitStatus();
-        } catch(InvalidRemoteException e){
-            showNoRemoteNotification();
-        } catch (TransportException e) {
-            determineIfTryAgain(e);
-        } catch(MissingRepoException e){
-            showMissingRepoNotification();
-            setButtonsDisabled(true);
-            refreshRecentReposInDropdown();
-        } catch(Exception e) {
-            showGenericErrorNotification();
-            e.printStackTrace();
-        }
 
-        if (tryCommandAgainWithHTTPAuth)
-            Platform.runLater(() -> {
-                gitFetch(prune, pull);
-            });
-        return true;
+//        if (tryCommandAgainWithHTTPAuth)
+//            Platform.runLater(() -> {
+//                gitFetch(prune, pull);
+//            });
+            System.out.println("done, returning");
+            return Observable.just("ok");
+        });
     }
 
     private RepoHelperBuilder.AuthDialogResponse authenticateAndShowBusy(String message)
