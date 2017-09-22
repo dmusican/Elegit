@@ -257,26 +257,26 @@ public class SessionController {
 
                 .doOnNext(one -> showBusyWindowAndPauseRepoMonitor("Fetching!!.."))
 
-                .flatMap(one -> {
-                    return Observable.just(1)
-                            .observeOn(JavaFxScheduler.platform())
-                            .map(integer -> authenticateReactive(httpAuth))
-                            .observeOn(Schedulers.io())
+                .flatMap(one -> Observable.just(1)
 
-                            .flatMap(response -> Observable.defer(
-                                    () -> gitFetchReactive(response, false, false))
-                            )
+                        .observeOn(JavaFxScheduler.platform())
+                        .map(integer -> authenticateReactive(httpAuth))
 
-                            .retryWhen(errors -> errors.flatMap(error -> {
-                                        httpAuth = true;
-                                        if (!(error instanceof CancelledAuthorizationException)) {
-                                            return Observable.just(1);    // try again
-                                        }
+                        .observeOn(Schedulers.io())
+                        .flatMap(response -> Observable.defer(
+                                () -> gitFetchReactive(response, false, false))
+                        )
 
-                                        return Observable.error(error);
-                                    })
-                            );
-                })
+                        .retryWhen(errors -> errors.flatMap(error -> {
+                                    httpAuth = true;
+                                    if (!(error instanceof CancelledAuthorizationException)) {
+                                        return Observable.just(1);    // try again
+                                    }
+
+                                    return Observable.error(error);
+                                })
+                        ))
+
                 .onErrorResumeNext(Observable.just("cancelled"))
                 .observeOn(JavaFxScheduler.platform())
                 .doOnNext(status -> hideBusyWindowAndResumeRepoMonitor())
@@ -1970,38 +1970,36 @@ public class SessionController {
     }
 
     private synchronized Observable<String> gitFetchReactive(Optional<RepoHelperBuilder.AuthDialogResponse> responseOptional, boolean prune, boolean pull) {
-            tryCommandAgainWithHTTPAuth = false;
-            try {
-                RepositoryMonitor.resetFoundNewChanges(false);
-                RepoHelper helper = theModel.getCurrentRepoHelper();
-                responseOptional.ifPresent(response ->
-                        helper.ownerAuth =
-                                new UsernamePasswordCredentialsProvider(response.username, response.password)
-                );
-                if (!helper.fetch(prune)) {
-                    showNoCommitsFetchedNotification();
-                }
-                if (pull) {
-                    mergeFromFetch();
-                }
-                gitStatus();
-            } catch (InvalidRemoteException e) {
-                showNoRemoteNotification();
-            } catch (TransportException e) {
-                if (determineIfTryAgainReactive(e)) {
-                    return(Observable.error(e));
-                }
-            } catch (MissingRepoException e) {
-                showMissingRepoNotification();
-                setButtonsDisabled(true);
-                refreshRecentReposInDropdown();
-            } catch (Exception e) {
-                showGenericErrorNotification();
-                e.printStackTrace();
+        try {
+            RepositoryMonitor.resetFoundNewChanges(false);
+            RepoHelper helper = theModel.getCurrentRepoHelper();
+            responseOptional.ifPresent(response ->
+                    helper.ownerAuth =
+                            new UsernamePasswordCredentialsProvider(response.username, response.password)
+            );
+            if (!helper.fetch(prune)) {
+                showNoCommitsFetchedNotification();
             }
+            if (pull) {
+                mergeFromFetch();
+            }
+            gitStatus();
+        } catch (InvalidRemoteException e) {
+            showNoRemoteNotification();
+        } catch (TransportException e) {
+            if (determineIfTryAgainReactive(e)) {
+                return(Observable.error(e));
+            }
+        } catch (MissingRepoException e) {
+            showMissingRepoNotification();
+            setButtonsDisabled(true);
+            refreshRecentReposInDropdown();
+        } catch (Exception e) {
+            showGenericErrorNotification();
+            e.printStackTrace();
+        }
 
-            return Observable.just("ok");
-
+        return Observable.just("ok");
     }
 
     private RepoHelperBuilder.AuthDialogResponse authenticateAndShowBusy(String message)
