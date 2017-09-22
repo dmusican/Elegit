@@ -284,12 +284,25 @@ public class SessionController {
                             .flatMap(response -> gitFetchReactive(response, false, false))
                             .doOnError(e -> System.out.println("error exception = " + e) )
                             .doOnError(e -> {tryCommandAgainWithHTTPAuth = true;})
-                            .retry();
+                            .retryWhen(errors -> errors.flatMap(error -> {
+                                        // For anything other than a cancel, we retry
+                                        if (!(error instanceof CancelledAuthorizationException)) {
+                                            System.out.println("It is 1");
+                                            return Observable.just(1);
+                                        }
+                                        // For anything else, don't retry
+                                        System.out.println("It is 2");
+                                        return Observable.error(error);
+                                    })
+                            );
+
+
 
 //                    return gitFetchReactive(response, false, false)
 //                            .doOnError(result -> System.out.println("result is" + result))
 //                            .retry();
                 })
+                .onErrorResumeNext(Observable.just("hey"))
                 .doOnNext(e -> System.out.println("gives back" + e))
                 .observeOn(JavaFxScheduler.platform())
                 .doOnNext(ae -> hideBusyWindowAndResumeRepoMonitor())
@@ -1967,7 +1980,7 @@ public class SessionController {
         return true;
     }
 
-    private synchronized Observable gitFetchReactive(Optional<RepoHelperBuilder.AuthDialogResponse> responseOptional, boolean prune, boolean pull) {
+    private synchronized Observable<String> gitFetchReactive(Optional<RepoHelperBuilder.AuthDialogResponse> responseOptional, boolean prune, boolean pull) {
         System.out.println("starting it off");
         return Observable.defer(() ->
         {
