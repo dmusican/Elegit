@@ -3,6 +3,7 @@ package elegit.controllers;
 import elegit.*;
 import elegit.exceptions.*;
 import elegit.treefx.TreeLayout;
+import io.reactivex.Observable;
 import io.reactivex.rxjavafx.observables.JavaFxObservable;
 import io.reactivex.rxjavafx.schedulers.JavaFxScheduler;
 import io.reactivex.schedulers.Schedulers;
@@ -246,7 +247,30 @@ public class SessionController {
         JavaFxObservable.actionEventsOf(fetchButton)
                 .subscribe(actionEvent -> handleFetchButton(false, false));
 
-        normalFetchRequests
+//        normalFetchRequests
+//                .doOnNext(ae -> pauseRepoMonitor("Fetch button clicked"))
+//                .map(ae -> authenticateReactive())
+//                .doOnNext(ae -> showBusyWindow("Fetching!!.."))
+//                .observeOn(Schedulers.io())
+//                .map(response -> gitFetchReactive(response, false, false))
+//                .observeOn(JavaFxScheduler.platform())
+//
+//
+//
+//                .doOnNext(ae -> hideBusyWindowAndResumeRepoMonitor())
+//                .subscribe();
+
+//        /**
+//         * Handles a click on the "Fetch" button. Calls gitFetch()
+//         */
+//        public void handleNormalFetchButton(ActionEvent actionEvent){
+//            handleFetchButton(false, false);
+//        }
+
+    }
+
+    public void handleFetchButton() {
+        Observable.just(1)
                 .doOnNext(ae -> pauseRepoMonitor("Fetch button clicked"))
                 .map(ae -> authenticateReactive())
                 .doOnNext(ae -> showBusyWindow("Fetching!!.."))
@@ -259,15 +283,8 @@ public class SessionController {
                 .doOnNext(ae -> hideBusyWindowAndResumeRepoMonitor())
                 .subscribe();
 
-//        /**
-//         * Handles a click on the "Fetch" button. Calls gitFetch()
-//         */
-//        public void handleNormalFetchButton(ActionEvent actionEvent){
-//            handleFetchButton(false, false);
-//        }
 
     }
-
     /**
      * Helper method that passes the main stage to session controller
      * @param stage Stage

@@ -60,7 +60,8 @@
                 </Menu>
                 <Menu   text="Fetch">
                     <MenuItem   text="Fetch"
-                                fx:id="normalFetchMenuItem"/>
+                                fx:id="normalFetchMenuItem"
+                                onAction="#handleFetchButton"/>
                     <MenuItem   text="Fetch -p"
                                 onAction="#handlePruneFetchButton"/>
                 </Menu>

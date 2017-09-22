@@ -34,9 +34,6 @@ public class MenuController {
         initMenuBarShortcuts();
         commitSortToggle.setSelected(true); //default
 
-        JavaFxObservable.actionEventsOf(normalFetchMenuItem)
-                .subscribe(SessionController.getNormalFetchRequests());
-
     }
 
     /**
@@ -124,6 +121,10 @@ public class MenuController {
 
     public void handleCommitNormal() {
         sessionController.handleCommitNormal();
+    }
+
+    public void handleFetchButton() {
+        sessionController.handleFetchButton();
     }
 
     public void handlePruneFetchButton() {
