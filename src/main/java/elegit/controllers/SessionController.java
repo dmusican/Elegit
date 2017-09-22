@@ -273,37 +273,26 @@ public class SessionController {
         tryCommandAgainWithHTTPAuth = false;
         Observable.just(1)
                 .doOnNext(ae -> pauseRepoMonitor("Fetch button clicked"))
-//                .map(ae -> authenticateReactive())
                 .doOnNext(ae -> showBusyWindow("Fetching!!.."))
-//                .observeOn(Schedulers.io())
                 .flatMap(ae -> {
                     return Observable.just(1)
                             .observeOn(JavaFxScheduler.platform())
                             .map(integer -> authenticateReactive())
                             .observeOn(Schedulers.io())
                             .flatMap(response -> gitFetchReactive(response, false, false))
-                            .doOnError(e -> System.out.println("error exception = " + e) )
                             .doOnError(e -> {tryCommandAgainWithHTTPAuth = true;})
                             .retryWhen(errors -> errors.flatMap(error -> {
                                         // For anything other than a cancel, we retry
                                         if (!(error instanceof CancelledAuthorizationException)) {
-                                            System.out.println("It is 1");
                                             return Observable.just(1);
                                         }
                                         // For anything else, don't retry
-                                        System.out.println("It is 2");
                                         return Observable.error(error);
                                     })
                             );
 
-
-
-//                    return gitFetchReactive(response, false, false)
-//                            .doOnError(result -> System.out.println("result is" + result))
-//                            .retry();
                 })
-                .onErrorResumeNext(Observable.just("hey"))
-                .doOnNext(e -> System.out.println("gives back" + e))
+                .onErrorResumeNext(Observable.just("cancelled"))
                 .observeOn(JavaFxScheduler.platform())
                 .doOnNext(ae -> hideBusyWindowAndResumeRepoMonitor())
                 .subscribe();
@@ -1981,10 +1970,8 @@ public class SessionController {
     }
 
     private synchronized Observable<String> gitFetchReactive(Optional<RepoHelperBuilder.AuthDialogResponse> responseOptional, boolean prune, boolean pull) {
-        System.out.println("starting it off");
         return Observable.defer(() ->
         {
-            System.out.println("Internal code being run");
             tryCommandAgainWithHTTPAuth = false;
             try {
                 RepositoryMonitor.resetFoundNewChanges(false);
@@ -2004,7 +1991,6 @@ public class SessionController {
                 showNoRemoteNotification();
             } catch (TransportException e) {
                 if (determineIfTryAgainReactive(e)) {
-                    System.out.println("Error on its way");
                     return(Observable.error(e));
                 }
             } catch (MissingRepoException e) {
@@ -2016,11 +2002,6 @@ public class SessionController {
                 e.printStackTrace();
             }
 
-//        if (tryCommandAgainWithHTTPAuth)
-//            Platform.runLater(() -> {
-//                gitFetch(prune, pull);
-//            });
-            System.out.println("done, returning");
             return Observable.just("ok");
         });
     }
