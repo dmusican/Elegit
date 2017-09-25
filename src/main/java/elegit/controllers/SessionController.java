@@ -4,6 +4,7 @@ import elegit.*;
 import elegit.exceptions.*;
 import elegit.treefx.TreeLayout;
 import io.reactivex.Observable;
+import io.reactivex.functions.Action;
 import io.reactivex.functions.BiPredicate;
 import io.reactivex.rxjavafx.observables.JavaFxObservable;
 import io.reactivex.rxjavafx.schedulers.JavaFxScheduler;
@@ -263,15 +264,17 @@ public class SessionController {
                         .map(integer -> authenticateReactive(httpAuth))
                         .observeOn(Schedulers.io())
                         .flatMap(response -> gitFetchReactive(response, false, false))
-                        .retry( (count, throwable) -> {
+                        .retry((count, throwable) -> {
                             httpAuth = true;
                             return !(throwable instanceof CancelledAuthorizationException);
                         })
                 )
                 .onErrorResumeNext(Observable.just("cancelled"))
                 .observeOn(JavaFxScheduler.platform())
-                .doOnNext(status -> hideBusyWindowAndResumeRepoMonitor())
-                .subscribe();
+                .subscribe(one -> {},
+                        Throwable::printStackTrace,
+                        this::hideBusyWindowAndResumeRepoMonitor
+                );
     }
 
     /**
