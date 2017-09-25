@@ -4,6 +4,7 @@ import elegit.*;
 import elegit.exceptions.*;
 import elegit.treefx.TreeLayout;
 import io.reactivex.Observable;
+import io.reactivex.functions.BiPredicate;
 import io.reactivex.rxjavafx.observables.JavaFxObservable;
 import io.reactivex.rxjavafx.schedulers.JavaFxScheduler;
 import io.reactivex.schedulers.Schedulers;
@@ -253,36 +254,26 @@ public class SessionController {
 
     void handleFetchButton() {
         httpAuth = false;
-        Observable.just(1)
-
+        Observable
+                .just(1)
                 .doOnNext(one -> showBusyWindowAndPauseRepoMonitor("Fetching!!.."))
-
-                .flatMap(one -> Observable.just(1)
-
+                .flatMap(one -> Observable
+                        .just(1)
                         .observeOn(JavaFxScheduler.platform())
                         .map(integer -> authenticateReactive(httpAuth))
-
                         .observeOn(Schedulers.io())
                         .flatMap(response -> gitFetchReactive(response, false, false))
-
-                        .retryWhen(errors -> errors.flatMap(error -> {
-                                    httpAuth = true;
-                                    if (!(error instanceof CancelledAuthorizationException)) {
-                                        return Observable.just(1);    // try again
-                                    }
-
-                                    return Observable.error(error);
-                                })
-                        )
+                        .retry( (count, throwable) -> {
+                            httpAuth = true;
+                            return !(throwable instanceof CancelledAuthorizationException);
+                        })
                 )
-
                 .onErrorResumeNext(Observable.just("cancelled"))
                 .observeOn(JavaFxScheduler.platform())
                 .doOnNext(status -> hideBusyWindowAndResumeRepoMonitor())
                 .subscribe();
-
-
     }
+
     /**
      * Helper method that passes the main stage to session controller
      * @param stage Stage
@@ -1879,7 +1870,7 @@ public class SessionController {
 
     private void showBusyWindowAndPauseRepoMonitor(String displayMessage) {
       pauseRepoMonitor("Fetch button clicked");
-      showBusyWindow("displayMessage");
+      showBusyWindow(displayMessage);
     }
 
     private void hideBusyWindowAndResumeRepoMonitor() {
