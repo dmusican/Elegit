@@ -263,9 +263,7 @@ public class SessionController {
                         .map(integer -> authenticateReactive(httpAuth))
 
                         .observeOn(Schedulers.io())
-                        .flatMap(response -> Observable.defer(
-                                () -> gitFetchReactive(response, false, false))
-                        )
+                        .flatMap(response -> gitFetchReactive(response, false, false))
 
                         .retryWhen(errors -> errors.flatMap(error -> {
                                     httpAuth = true;
@@ -275,7 +273,8 @@ public class SessionController {
 
                                     return Observable.error(error);
                                 })
-                        ))
+                        )
+                )
 
                 .onErrorResumeNext(Observable.just("cancelled"))
                 .observeOn(JavaFxScheduler.platform())
@@ -1970,6 +1969,7 @@ public class SessionController {
     }
 
     private synchronized Observable<String> gitFetchReactive(Optional<RepoHelperBuilder.AuthDialogResponse> responseOptional, boolean prune, boolean pull) {
+        System.out.println("Fetching");
         try {
             RepositoryMonitor.resetFoundNewChanges(false);
             RepoHelper helper = theModel.getCurrentRepoHelper();
