@@ -525,13 +525,13 @@ public class CommitTreeModel{
         }
     }
 
-    //todo
     /**
      * Sets the shape and ref labels for a cell based on the current repo status
      *
      * @param helper the commit helper that we want to set as a branch head
      * @param tracked whether or not the commit is the head of a tracked branch
      */
+    // todo: check if this should just be set commit as branch
     public void setCommitAsBranchHead(CommitHelper helper, boolean tracked) {
         String commitId;
         commitId = helper.getId();

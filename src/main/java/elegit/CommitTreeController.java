@@ -250,6 +250,19 @@ public class CommitTreeController{
     }
 
     /**
+     * Uses Highlighter class to scroll to and emphasize a branch label in the commit tree
+     * Meant to be used to emphasize the current local branch and remote tracking branch
+     * @param branch the branchHelper for the branch label to focus
+     */
+    // todo: write the method
+    public static void focusBranchLableInGraph(BranchHelper branch){
+        if (branch == null) return;
+        if (commitTreeModel.getBranchesInModel().contains(branch)){
+
+        }
+    }
+
+    /**
      * Loops through the branches and sets the cells that are branch heads to have the
      * correct shape (untracked=circle, tracked=traingle)
      * @param model: the commit tree model to set the branch heads for

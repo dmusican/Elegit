@@ -385,11 +385,31 @@ public class SessionController {
         }
     }
 
+    /**
+     * Private method to emphasize the commit in the commit tree
+     * that corresponds to the current local branch
+     */
+    //todo: transition away from using this except in detatched head state, probably requires
+    //todo: combining each into 1 method and revamping code elsewhere
     private void focusCommitLocalBranch() {
         CommitHelper HEAD = theModel.getCurrentRepoHelper().getBranchModel().getCurrentBranchHead();
         CommitTreeController.focusCommitInGraph(HEAD);
     }
 
+    private void focusLocalBranchLabelInGraph() {
+        BranchHelper HEAD = theModel.getCurrentRepoHelper().getBranchModel().getCurrentBranch();
+        CommitTreeController.focusBranchLableInGraph(HEAD);
+    }
+
+    private void focusRemoteBranchLabelInGraph() {
+        BranchHelper remoteBranch;
+    }
+
+    /**
+     * Private method to emphasize the commit in the commit tree
+     * that corresponds to the current remote-tracking branch
+     */
+    //todo: transition away from using this at all - no remote tracking branch in detatched head state
     private void focusCommitRemoteBranch() {
         try {
             CommitHelper commit = theModel.getCurrentRepoHelper().getBranchModel().getCurrentRemoteBranchHead();

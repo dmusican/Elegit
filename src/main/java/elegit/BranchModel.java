@@ -281,6 +281,7 @@ public class BranchModel {
      */
     public BranchHelper getCurrentBranch() { return this.currentBranch; }
 
+    // todo: determine if this method name is misleading: HEAD isn't a commit
     /**
      * Getter for the current remote branch head
      * @return the head of the current remote branch (if one exists)

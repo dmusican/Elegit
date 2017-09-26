@@ -19,8 +19,8 @@ import javafx.scene.text.Text;
  */
 public class CellLabel extends HBox {
     private String name;
-    private RefHelper refHelper;
     private boolean isCurrent, isTag, isRemote;
+    private RefHelper refHelper;
     private Text pointer;
     private ImageView image;
     private Label label;
@@ -42,6 +42,7 @@ public class CellLabel extends HBox {
         Text pointer = getPointer();
         Label label = getLabel();
         ImageView img = getImage();
+        // todo: get rid of this when not needed
         //System.out.println("B " + headText);
         Text headText = getHeadText();
 
@@ -140,9 +141,9 @@ public class CellLabel extends HBox {
      * Sets the cell label to be a remote branch type
      * @param isRemote whether or not the ref label is remote
      */
-    // todo: find out why this method doesn't use the param
+    // todo: find out why this method doesn't use the param and always sets remote to true??
     void setRemote(boolean isRemote) {
-        this.isRemote = true;
+        this.isRemote = isRemote;
         refreshIcon();
     }
 
