@@ -257,8 +257,8 @@ public class SessionController {
         httpAuth = false;
         Observable
                 .just(1)
-                .doOnNext(one -> showBusyWindowAndPauseRepoMonitor("Fetching!!.."))
-                .flatMap(one -> Observable
+                .doOnNext(unused -> showBusyWindowAndPauseRepoMonitor("Fetching!!.."))
+                .flatMap(unused -> Observable
                         .just(1)
                         .observeOn(JavaFxScheduler.platform())
                         .map(integer -> authenticateReactive(httpAuth))
@@ -271,10 +271,9 @@ public class SessionController {
                 )
                 .onErrorResumeNext(Observable.just("cancelled"))
                 .observeOn(JavaFxScheduler.platform())
-                .subscribe(one -> {},
-                        Throwable::printStackTrace,
-                        this::hideBusyWindowAndResumeRepoMonitor
-                );
+                .doOnNext(unused -> hideBusyWindowAndResumeRepoMonitor())
+
+                .subscribe(unused -> {}, Throwable::printStackTrace);
     }
 
     /**
