@@ -2272,45 +2272,6 @@ public class SessionController {
     }
 
     /**
-     * Updates the panel views when the "git status" button is clicked.
-     * Highlights the current HEAD.
-     */
-//    public void onRefreshButton(){
-//        logger.info("Git status button clicked");
-//        showUpdatingText(true);
-//        this.gitStatus();
-//        showUpdatingText(false);
-//        CommitTreeController.focusCommitInGraph(theModel.getCurrentRepoHelper().getBranchModel().getCurrentBranchHead());
-//    }
-
-    /**
-     * Replaces branch status text with "updating" for 0.75 seconds OR the duration of gitStatus()
-     */
-//    private void showUpdatingText(boolean setVisible) {
-//        if(setVisible){
-//            isGitStatusDone = false;
-//            isTimerDone = false;
-//            updatingText.setVisible(true);
-//
-//            Timer timer = new Timer(true);
-//            timer.schedule(new TimerTask() {
-//                @Override
-//                public void run() {
-//                    if(isGitStatusDone){
-//                        updatingText.setVisible(false);
-//                    }
-//                    isTimerDone = true;
-//                }
-//            }, 750);
-//        }else {
-//            isGitStatusDone = true;
-//            if(isTimerDone) {
-//                updatingText.setVisible(false);
-//            }
-//        }
-//    }
-
-    /**
      * Updates the trees, changed files, and branch information. Equivalent
      * to 'git status'
      */
