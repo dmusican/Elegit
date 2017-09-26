@@ -253,6 +253,7 @@ public class SessionController {
 
     }
 
+    @FXML
     void handleFetchButton() {
         httpAuth = false;
         Observable

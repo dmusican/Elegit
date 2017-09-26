@@ -42,6 +42,9 @@ public class ArrowButtonSkin extends Group implements Skin<Button>{
 
         this.setOnMouseClicked(event -> {
             if(event.getButton() == MouseButton.PRIMARY){
+                System.out.println(button);
+                System.out.println(button.getOnAction());
+                System.out.println(event.getTarget());
                 button.getOnAction().handle(new ActionEvent(button, event.getTarget()));
             }
         });
