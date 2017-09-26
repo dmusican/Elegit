@@ -260,17 +260,18 @@ public class SessionController {
                 .doOnNext(unused -> showBusyWindowAndPauseRepoMonitor("Fetching!!.."))
                 .flatMap(unused -> Observable
                         .just(1)
-                        .observeOn(JavaFxScheduler.platform())
                         .map(integer -> authenticateReactive(httpAuth))
+
                         .observeOn(Schedulers.io())
                         .flatMap(response -> gitFetchReactive(response, false, false))
+                        .observeOn(JavaFxScheduler.platform())
+
                         .retry((count, throwable) -> {
                             httpAuth = true;
                             return !(throwable instanceof CancelledAuthorizationException);
                         })
                 )
                 .onErrorResumeNext(Observable.just("cancelled"))
-                .observeOn(JavaFxScheduler.platform())
                 .doOnNext(unused -> hideBusyWindowAndResumeRepoMonitor())
 
                 .subscribe(unused -> {}, Throwable::printStackTrace);
