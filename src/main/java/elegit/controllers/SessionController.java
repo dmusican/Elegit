@@ -1964,7 +1964,6 @@ public class SessionController {
     }
 
     private synchronized Observable<String> gitFetchReactive(Optional<RepoHelperBuilder.AuthDialogResponse> responseOptional, boolean prune, boolean pull) {
-        System.out.println("Fetching");
         try {
             RepositoryMonitor.resetFoundNewChanges(false);
             RepoHelper helper = theModel.getCurrentRepoHelper();
