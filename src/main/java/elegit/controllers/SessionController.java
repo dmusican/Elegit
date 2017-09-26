@@ -2314,14 +2314,15 @@ public class SessionController {
      * Updates the trees, changed files, and branch information. Equivalent
      * to 'git status'
      */
-    public void gitStatus(){
-        RepositoryMonitor.pause();
+    public void gitStatus() {
+        Observable.fromCallable(() -> {
 
-        Platform.runLater(() -> {
+            RepositoryMonitor.pause();
+
             // If the layout is still going, don't run
             if (commitTreePanelView.isLayoutThreadRunning) {
                 RepositoryMonitor.unpause();
-                return;
+                return Observable.just("Git status not run");
             }
             try{
                 theModel.getCurrentRepoHelper().getBranchModel().updateAllBranches();
@@ -2337,7 +2338,11 @@ public class SessionController {
             } finally{
                 RepositoryMonitor.unpause();
             }
-        });
+
+            return Observable.just("Git status run");
+        })
+                .subscribeOn(JavaFxScheduler.platform())
+                .subscribe(unused -> {}, Throwable::printStackTrace);
     }
 
     /**
