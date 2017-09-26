@@ -1,5 +1,7 @@
 package elegit;
 
+import elegit.controllers.SessionController;
+import javafx.application.Application;
 import org.eclipse.jgit.api.PushCommand;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
@@ -17,6 +19,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.Scanner;
 
+import static elegit.RepositoryMonitor.REMOTE_CHECK_INTERVAL;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -98,6 +101,12 @@ public class PushPullTest {
         assertNotNull(helperPull);
         helperPull.obtainRepository(remoteURL);
 
+        // Create a session model for helperPull so can later verify if changes have been seen
+        SessionModel model = SessionModel.getSessionModel();
+        model.openRepoFromHelper(helperPull);
+        RepositoryMonitor.startWatchingRemoteOnly(model);
+        assertFalse(RepositoryMonitor.hasFoundNewRemoteChanges.get());
+
         // Update the file, then commit and push
         Path readmePath = repoPathPush.resolve("README.md");
         System.out.println(readmePath);
@@ -107,6 +116,10 @@ public class PushPullTest {
         helperPush.commit("added a character");
         PushCommand command = helperPush.prepareToPushAll();
         helperPush.pushAll(command);
+
+        // Verify that RepositoryMonitor can see the changes relative to the original
+        Thread.sleep(REMOTE_CHECK_INTERVAL);
+        assertTrue(RepositoryMonitor.hasFoundNewRemoteChanges.get());
 
         // Add a tag named for the current timestamp
         ObjectId headId = helperPush.getBranchModel().getCurrentBranch().getHeadId();

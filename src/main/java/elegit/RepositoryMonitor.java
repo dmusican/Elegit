@@ -38,7 +38,7 @@ public class RepositoryMonitor{
 
     private static boolean alreadyWatching = false;
 
-    public static void setSessionModel(SessionModel model) {
+    private static void setSessionModel(SessionModel model) {
         currentModel = model;
     }
 
@@ -50,6 +50,16 @@ public class RepositoryMonitor{
             alreadyWatching = true;
         }
     }
+
+    // For unit testing purposes only
+    public static void startWatchingRemoteOnly(SessionModel model) {
+        setSessionModel(model);
+        if(!alreadyWatching){
+            beginWatchingRemote();
+            alreadyWatching = true;
+        }
+    }
+
 
     /**
      * Associates the given model with this monitor. Updating the current
