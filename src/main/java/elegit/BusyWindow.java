@@ -62,7 +62,6 @@ public class BusyWindow{
 
     public static void show(){
         if(numProcessesActive == 0) {
-            Platform.runLater(() -> {
                 Window parent = window.getOwner();
                 double windowWidth, windowHeight;
                 // If window hasn't been shown before, getWidth() will be NaN
@@ -77,7 +76,6 @@ public class BusyWindow{
                 window.setX(parent.getX()+parent.getWidth()/2-windowWidth/2);
                 window.setY(parent.getY()+parent.getHeight()/2-windowHeight/2);
                 window.show();
-            });
         }
         numProcessesActive++;
     }
@@ -85,10 +83,8 @@ public class BusyWindow{
     public static void hide(){
         numProcessesActive--;
         if(numProcessesActive == 0) {
-            Platform.runLater(() -> {
                 window.hide();
                 loadingMessage.setText("Loading...");
-            });
         }
     }
 

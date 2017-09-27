@@ -65,6 +65,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
@@ -171,7 +172,6 @@ public class SessionController {
 
 
     boolean tryCommandAgainWithHTTPAuth;
-    boolean httpAuth;
     private boolean isGitStatusDone;
     private boolean isTimerDone;
 
@@ -255,20 +255,20 @@ public class SessionController {
 
     @FXML
     void handleFetchButton() {
-        httpAuth = false;
+        AtomicBoolean httpAuth = new AtomicBoolean(false);
         Observable
                 .just(1)
                 .doOnNext(unused -> showBusyWindowAndPauseRepoMonitor("Fetching!!.."))
                 .flatMap(unused -> Observable
                         .just(1)
-                        .map(integer -> authenticateReactive(httpAuth))
+                        .map(integer -> authenticateReactive(httpAuth.get()))
 
                         .observeOn(Schedulers.io())
                         .flatMap(response -> gitFetchReactive(response, false, false))
                         .observeOn(JavaFxScheduler.platform())
 
                         .retry((count, throwable) -> {
-                            httpAuth = true;
+                            httpAuth.set(true);
                             return !(throwable instanceof CancelledAuthorizationException);
                         })
                 )
