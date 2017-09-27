@@ -99,34 +99,8 @@ public class RepositoryMonitor{
         th = new Thread(() -> {
 
             while(!interrupted){
-                try{
-                    List<BranchHelper> localOriginHeads = repo.getBranchModel().getBranchListUntyped(BranchModel.BranchType.REMOTE);
-                    Collection<Ref> remoteHeads = repo.getRefsFromRemote(false);
-
-                    if(localOriginHeads.size() >= remoteHeads.size()){
-                        for(Ref ref : remoteHeads){
-                            boolean hasFoundMatchingBranch = false;
-                            boolean hasFoundNewChanges = false;
-
-                            for(BranchHelper branch : localOriginHeads){
-                                if(ref.getName().equals("refs/heads/"+repo.getRepo().shortenRemoteBranchName(branch.getRefPathString()))){
-                                    hasFoundMatchingBranch = true;
-                                    if(!branch.getHeadId().equals(ref.getObjectId())){
-                                        hasFoundNewChanges = true;
-                                    }
-                                    break;
-                                }
-                            }
-
-                            if(hasFoundNewChanges || !hasFoundMatchingBranch){
-                                setFoundNewChanges();
-                                break;
-                            }
-                        }
-                    }else{
-                        setFoundNewChanges();
-                    }
-                }catch(GitAPIException | IOException ignored){}
+                if (remoteHasNewChanges(repo))
+                    setFoundNewChanges();
 
                 try{
                     Thread.sleep(REMOTE_CHECK_INTERVAL);
@@ -142,6 +116,40 @@ public class RepositoryMonitor{
         th.start();
 
         unpause();
+    }
+
+    private static boolean remoteHasNewChanges(RepoHelper repo) {
+        try{
+            List<BranchHelper> localOriginHeads = repo.getBranchModel().getBranchListUntyped(BranchModel.BranchType.REMOTE);
+            Collection<Ref> remoteHeads = repo.getRefsFromRemote(false);
+
+            if(localOriginHeads.size() >= remoteHeads.size()){
+                for(Ref ref : remoteHeads){
+                    boolean hasFoundMatchingBranch = false;
+                    boolean hasFoundNewChanges = false;
+
+                    for(BranchHelper branch : localOriginHeads){
+                        if(ref.getName().equals("refs/heads/"+repo.getRepo().shortenRemoteBranchName(branch.getRefPathString()))){
+                            hasFoundMatchingBranch = true;
+                            if(!branch.getHeadId().equals(ref.getObjectId())){
+                                hasFoundNewChanges = true;
+                            }
+                            break;
+                        }
+                    }
+
+                    if(hasFoundNewChanges || !hasFoundMatchingBranch){
+                        return true;
+                    }
+                }
+            }else{
+                return true;
+            }
+        }catch(GitAPIException | IOException e)
+        {
+            e.printStackTrace();
+        }
+        return false;
     }
 
     /**
