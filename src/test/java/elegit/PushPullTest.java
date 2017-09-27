@@ -51,6 +51,7 @@ public class PushPullTest {
     @After
     public void tearDown() throws Exception {
         removeAllFilesFromDirectory(this.logPath.toFile());
+        Main.allSubscriptions.clear();
     }
 
     // Helper method to avoid annoying traces from logger
@@ -139,7 +140,6 @@ public class PushPullTest {
 
         // Update lists of branches
         helperPull.getBranchModel().updateAllBranches();
-
     }
 
     @Test
@@ -184,7 +184,6 @@ public class PushPullTest {
         // Now do the pull (well, a fetch)
         existingHelperPull.fetch(false);
         existingHelperPull.mergeFromFetch();
-
     }
 
     @Test

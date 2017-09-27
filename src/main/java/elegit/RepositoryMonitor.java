@@ -1,6 +1,8 @@
 package elegit;
 
 import elegit.controllers.SessionController;
+import io.reactivex.Observable;
+import io.reactivex.schedulers.Schedulers;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -9,6 +11,8 @@ import org.eclipse.jgit.lib.Ref;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * A class that creates a thread to watch the current remote repository for new changes
@@ -18,6 +22,7 @@ public class RepositoryMonitor{
     // How long to pause between checks
     public static final long REMOTE_CHECK_INTERVAL = 6000;
     public static final long LOCAL_CHECK_INTERVAL = 5000;
+    public static final int CHECK_INTERVAL = 1;
 
     // Whether there are new remote changes
     public static BooleanProperty hasFoundNewRemoteChanges = new SimpleBooleanProperty(false);
@@ -27,6 +32,7 @@ public class RepositoryMonitor{
     private static boolean pauseLocalMonitor = false;
 
     private static int pauseCounter = 0;
+    private static AtomicInteger pauseCount = new AtomicInteger(0);
 
     // Thread information
     private static Thread th;
@@ -40,10 +46,22 @@ public class RepositoryMonitor{
         currentModel = model;
     }
 
+    private static Observable interval;
+
     public static void startWatching(SessionModel model, SessionController controller) {
+        startWatchingRemoteAndMaybeLocal(model, controller, true);
+    }
+
+    public static void startWatchingRemoteAndMaybeLocal(SessionModel model, SessionController controller,
+        boolean watchingLocal) {
         setSessionModel(model);
         if(!alreadyWatching){
-            beginWatchingLocal(controller);
+            Main.allSubscriptions.add(
+                    Observable.interval(CHECK_INTERVAL, TimeUnit.SECONDS, Schedulers.io())
+                            .subscribe()
+            );
+            if (watchingLocal)
+                beginWatchingLocal(controller);
             beginWatchingRemote();
             alreadyWatching = true;
         }
@@ -51,11 +69,7 @@ public class RepositoryMonitor{
 
     // For unit testing purposes only
     public static void startWatchingRemoteOnly(SessionModel model) {
-        setSessionModel(model);
-        if(!alreadyWatching){
-            beginWatchingRemote();
-            alreadyWatching = true;
-        }
+        startWatchingRemoteAndMaybeLocal(model, null, false);
     }
 
 
@@ -156,7 +170,9 @@ public class RepositoryMonitor{
      * Sets hasFoundNewRemoteChanges to true if not ignoring new changes
      */
     private static void setFoundNewChanges(){
-        if(!ignoreNewRemoteChanges) hasFoundNewRemoteChanges.set(true);
+        // Not threadsafe. Needs to be fixed.
+        if(!ignoreNewRemoteChanges)
+            hasFoundNewRemoteChanges.set(true);
     }
 
     /**

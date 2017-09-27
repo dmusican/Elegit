@@ -1,6 +1,7 @@
 package elegit;
 
 import elegit.controllers.SessionController;
+import io.reactivex.disposables.CompositeDisposable;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Rectangle2D;
@@ -46,6 +47,8 @@ public class Main extends Application {
             System.out.println("Invalid option.");
         }
     }
+
+    public static CompositeDisposable allSubscriptions = new CompositeDisposable();
 
     @Override
     public void start(Stage primaryStage) throws Exception{
@@ -98,6 +101,7 @@ public class Main extends Application {
             logger.info("Closed");
             // used to stop the service that moves cells in TreeLayout
             isAppClosed = true;
+            allSubscriptions.clear();
         });
         primaryStage.setTitle("Elegit");
         primaryStage.setScene(scene);
