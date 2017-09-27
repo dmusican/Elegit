@@ -47,11 +47,9 @@ public class CommitTreePanelView extends Region{
      * @param treeGraph the graph to be displayed
      */
     synchronized void displayTreeGraph(TreeGraph treeGraph, CommitHelper commitToFocusOnLoad){
-        if (Platform.isFxApplicationThread()) {
-            initCommitTreeScrollPanes(treeGraph);
-        }else {
-            Platform.runLater(() -> initCommitTreeScrollPanes(treeGraph));
-        }
+        assert(Platform.isFxApplicationThread());
+
+        initCommitTreeScrollPanes(treeGraph);
 
         if(isLayoutThreadRunning){
             task.cancel();

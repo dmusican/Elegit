@@ -2,6 +2,7 @@ package elegit;
 
 import elegit.treefx.Cell;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
@@ -36,7 +37,7 @@ public class CommitLabelTest {
     private Path repoPath;
     private ClonedRepoHelper helper;
 
-    @BeforeClass
+    //@BeforeClass
     public static void setUpJFX() throws Exception{
         // Launch the Elegit application in a thread so we get control back
         Thread t = new Thread("JavaFX Init Thread"){
@@ -52,7 +53,7 @@ public class CommitLabelTest {
         //Thread.sleep(1000);
     }
 
-    @Before
+    //@Before
     public void setUp() throws Exception {
         // Clone the testing repo into a temporary location
         this.directoryPath = Files.createTempDirectory("commitLabelTestRepos");
@@ -76,7 +77,7 @@ public class CommitLabelTest {
         Thread.sleep(1000);
     }
 
-    @After
+    //@After
     public void tearDown() throws Exception {
         // Delete the cloned files.
         removeAllFilesFromDirectory(this.directoryPath.toFile());
@@ -92,6 +93,8 @@ public class CommitLabelTest {
 
     @Test
     public void testAddFileAndCommit() throws Exception {
+        // Note that @BeforeClass, @Before, and @After are all commented out above
+        fail("This test fails because it uses way too much JavaFX stuff, and makes lots of other code complicated. Need to fix the test.");
         // Make sure both "master" and "origin/master" labels are on the inital commit
         testCellLabelContainsMaster(commitTreeModel, INITIAL_COMMIT_ID, true, true);
 
@@ -158,6 +161,7 @@ public class CommitLabelTest {
      * @param matchRemote whether the label should contain "origin/master"
      */
     private void testCellLabelContainsMaster(CommitTreeModel commitTreeModel, String cellID, boolean matchLocal, boolean matchRemote) {
+        fail("This test fails because it uses way too much JavaFX stuff, and makes lots of other code complicated. Need to fix the test.");
         // Get the cell from the tree
         assertTrue(commitTreeModel.containsID(cellID));
         Cell cell = commitTreeModel.treeGraph.treeGraphModel.cellMap.get(cellID);
