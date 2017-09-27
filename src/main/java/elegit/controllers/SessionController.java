@@ -2274,16 +2274,17 @@ public class SessionController {
      * to 'git status'
      */
     public void gitStatus() {
-        Observable.fromCallable(() -> {
-
             RepositoryMonitor.pause();
 
+            System.out.println("Check 1: " + Thread.currentThread());
             // If the layout is still going, don't run
             if (commitTreePanelView.isLayoutThreadRunning) {
+                System.out.println("Check 2: " + Thread.currentThread());
                 RepositoryMonitor.unpause();
-                return Observable.just("Git status not run");
+                return;
             }
             try{
+                System.out.println("Check 3: " + Thread.currentThread());
                 theModel.getCurrentRepoHelper().getBranchModel().updateAllBranches();
                 commitTreeModel.update();
                 workingTreePanelView.drawDirectoryView();
@@ -2297,11 +2298,6 @@ public class SessionController {
             } finally{
                 RepositoryMonitor.unpause();
             }
-
-            return Observable.just("Git status run");
-        })
-                .subscribeOn(JavaFxScheduler.platform())
-                .subscribe(unused -> {}, Throwable::printStackTrace);
     }
 
     /**
