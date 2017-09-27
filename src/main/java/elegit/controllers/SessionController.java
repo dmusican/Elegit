@@ -4,8 +4,6 @@ import elegit.*;
 import elegit.exceptions.*;
 import elegit.treefx.TreeLayout;
 import io.reactivex.Observable;
-import io.reactivex.functions.Action;
-import io.reactivex.functions.BiPredicate;
 import io.reactivex.rxjavafx.observables.JavaFxObservable;
 import io.reactivex.rxjavafx.schedulers.JavaFxScheduler;
 import io.reactivex.schedulers.Schedulers;
@@ -1300,7 +1298,7 @@ public class SessionController {
                                         PushCommand push) throws
             TransportException {
         try{
-            RepositoryMonitor.resetFoundNewChanges(false);
+            RepositoryMonitor.resetFoundNewChanges();
             RepoHelper helper = theModel.getCurrentRepoHelper();
             if (response != null) {
                 helper.ownerAuth =
@@ -1391,7 +1389,7 @@ public class SessionController {
     private void handlePushTagsButtonDetails(RepoHelperBuilder.AuthDialogResponse response) throws TransportException {
         Iterable<PushResult> results;
         try{
-            RepositoryMonitor.resetFoundNewChanges(false);
+            RepositoryMonitor.resetFoundNewChanges();
             RepoHelper helper = theModel.getCurrentRepoHelper();
             if (response != null) {
                 helper.ownerAuth =
@@ -1917,7 +1915,7 @@ public class SessionController {
                 protected Void call() {
                     tryCommandAgainWithHTTPAuth = false;
                     try{
-                        RepositoryMonitor.resetFoundNewChanges(false);
+                        RepositoryMonitor.resetFoundNewChanges();
                         RepoHelper helper = theModel.getCurrentRepoHelper();
                         if (response != null) {
                             helper.ownerAuth =
@@ -1965,7 +1963,7 @@ public class SessionController {
 
     private synchronized Observable<String> gitFetchReactive(Optional<RepoHelperBuilder.AuthDialogResponse> responseOptional, boolean prune, boolean pull) {
         try {
-            RepositoryMonitor.resetFoundNewChanges(false);
+            RepositoryMonitor.resetFoundNewChanges();
             RepoHelper helper = theModel.getCurrentRepoHelper();
             responseOptional.ifPresent(response ->
                     helper.ownerAuth =

@@ -52,6 +52,7 @@ public class RepositoryMonitor{
         startWatchingRemoteAndMaybeLocal(model, controller, true);
     }
 
+
     public static void startWatchingRemoteAndMaybeLocal(SessionModel model, SessionController controller,
         boolean watchingLocal) {
         setSessionModel(model);
@@ -69,7 +70,15 @@ public class RepositoryMonitor{
 
     // For unit testing purposes only
     public static void startWatchingRemoteOnly(SessionModel model) {
-        startWatchingRemoteAndMaybeLocal(model, null, false);
+        setSessionModel(model);
+        if(!alreadyWatching){
+            Main.allSubscriptions.add(
+                    Observable.interval(CHECK_INTERVAL, TimeUnit.SECONDS, Schedulers.io())
+                            .subscribe()
+            );
+            beginWatchingRemote();
+            alreadyWatching = true;
+        }
     }
 
 
@@ -179,14 +188,9 @@ public class RepositoryMonitor{
      * Sets hasFoundNewRemoteChanges to false. If ignore is true, ignores
      * new changes indefinitely, else ignores them for a short grace
      * period (2 check cycles) and then begins monitoring again
-     * @param ignore whether to ignore new changes indefinitely
      */
-    public static synchronized void resetFoundNewChanges(boolean ignore){
-        if(ignore){
-            resetFoundNewChanges(-1);
-        }else{
-            resetFoundNewChanges(REMOTE_CHECK_INTERVAL * 2);
-        }
+    public static synchronized void resetFoundNewChanges(){
+        resetFoundNewChanges(REMOTE_CHECK_INTERVAL * 2);
     }
 
     /**
