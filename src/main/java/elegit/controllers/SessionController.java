@@ -243,6 +243,9 @@ public class SessionController {
         Observable
                 .just(1)
                 .doOnNext(unused -> showBusyWindowAndPauseRepoMonitor("Fetching!!.."))
+
+                // Repeat trying to fetch. First time: no authentication window. On repeated attempts,
+                // authentication window is shown. Effort ends when authentication window is cancelled.
                 .flatMap(unused -> Observable
                         .just(1)
                         .map(integer -> authenticateReactive(httpAuth.get()))
@@ -1275,8 +1278,6 @@ public class SessionController {
     }
 
     private boolean determineIfTryAgainReactive(TransportException e) {
-        showTransportExceptionNotification(e);
-
         // Don't try again with HTTP authentication if SSH prompt for authentication is canceled
         return (!e.getMessage().endsWith("Auth cancel"));
     }
@@ -1904,6 +1905,7 @@ public class SessionController {
         } catch (InvalidRemoteException e) {
             showNoRemoteNotification();
         } catch (TransportException e) {
+            showTransportExceptionNotification(e);
             if (determineIfTryAgainReactive(e)) {
                 return(Observable.error(e));
             }
