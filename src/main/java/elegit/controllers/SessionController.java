@@ -1876,6 +1876,8 @@ public class SessionController {
     }
 
     private void hideBusyWindowAndResumeRepoMonitor() {
+        Main.assertFxThread();
+        gitStatus();
         BusyWindow.hide();
         RepositoryMonitor.unpause();
         submitLog();
@@ -1962,6 +1964,7 @@ public class SessionController {
     }
 
     private synchronized Observable<String> gitFetchReactive(Optional<RepoHelperBuilder.AuthDialogResponse> responseOptional, boolean prune, boolean pull) {
+        assert(!Platform.isFxApplicationThread());
         try {
             RepositoryMonitor.resetFoundNewChanges();
             RepoHelper helper = theModel.getCurrentRepoHelper();
@@ -1975,7 +1978,6 @@ public class SessionController {
             if (pull) {
                 mergeFromFetch();
             }
-            gitStatus();
         } catch (InvalidRemoteException e) {
             showNoRemoteNotification();
         } catch (TransportException e) {
@@ -2274,30 +2276,29 @@ public class SessionController {
      * to 'git status'
      */
     public void gitStatus() {
-            RepositoryMonitor.pause();
+        Main.assertFxThread();
 
-            System.out.println("Check 1: " + Thread.currentThread());
-            // If the layout is still going, don't run
-            if (commitTreePanelView.isLayoutThreadRunning) {
-                System.out.println("Check 2: " + Thread.currentThread());
-                RepositoryMonitor.unpause();
-                return;
-            }
-            try{
-                System.out.println("Check 3: " + Thread.currentThread());
-                theModel.getCurrentRepoHelper().getBranchModel().updateAllBranches();
-                commitTreeModel.update();
-                workingTreePanelView.drawDirectoryView();
-                allFilesPanelView.drawDirectoryView();
-                indexPanelView.drawDirectoryView();
-                this.theModel.getCurrentRepoHelper().getTagModel().updateTags();
-                updateStatusText();
-            } catch(Exception e) {
-                showGenericErrorNotification();
-                e.printStackTrace();
-            } finally{
-                RepositoryMonitor.unpause();
-            }
+        RepositoryMonitor.pause();
+
+        // If the layout is still going, don't run
+        if (commitTreePanelView.isLayoutThreadRunning) {
+            RepositoryMonitor.unpause();
+            return;
+        }
+        try{
+            theModel.getCurrentRepoHelper().getBranchModel().updateAllBranches();
+            commitTreeModel.update();
+            workingTreePanelView.drawDirectoryView();
+            allFilesPanelView.drawDirectoryView();
+            indexPanelView.drawDirectoryView();
+            this.theModel.getCurrentRepoHelper().getTagModel().updateTags();
+            updateStatusText();
+        } catch(Exception e) {
+            showGenericErrorNotification();
+            e.printStackTrace();
+        } finally{
+            RepositoryMonitor.unpause();
+        }
     }
 
     /**

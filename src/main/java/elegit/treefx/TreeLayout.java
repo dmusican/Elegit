@@ -5,7 +5,6 @@ import javafx.application.Platform;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
-import javafx.concurrent.Service;
 import javafx.concurrent.Task;
 import javafx.geometry.Pos;
 import javafx.scene.control.ProgressBar;
@@ -32,21 +31,19 @@ public class TreeLayout{
 
 
     /**
-     * Mover service to go through moving the cells. Services are scheduled really well, so we
-     * like using them for big repetitive things like this.
-     *
      * The task within is specifically designed to pick out 10 cells, and move them one-by-one.
      * A percentage tracker is also updated.
      * Everything in here should be super fast, with the exception of moving a cell, which calls
      * a separate method anyway, which in turn calls Platform.runLater; so it seems there's no reason
      * to do this as a separate thread. Let's try pulling that out.
      */
-    public static class MoveCellService {
+    public static class CellMover {
         private int currentCell, max;
         private List<Cell> allCellsSortedByTime;
         private IntegerProperty percent;
 
-        public MoveCellService (List<Cell> allCellsSortedByTime) {
+        public CellMover(List<Cell> allCellsSortedByTime) {
+            Main.assertFxThread();
             this.allCellsSortedByTime = allCellsSortedByTime;
             this.max = allCellsSortedByTime.size()-1;
             this.percent = new SimpleIntegerProperty(0);
@@ -57,6 +54,7 @@ public class TreeLayout{
         public void setCurrentCell(int currentCell) { this.currentCell = currentCell; }
 
         public void moveSomeCells() {
+            Main.assertFxThread();
             // Try/catch is just in for debugging purposes, left because any
             // errors here are very hard to find without it
             try {
@@ -92,10 +90,7 @@ public class TreeLayout{
              * it has been through the layout process at least once already
              */
     public static void doTreeLayout(TreeGraph g) {
-        if (!Platform.isFxApplicationThread()) {
-            System.out.println("Not in FX thread");
-            System.out.println(Arrays.toString(Thread.currentThread().getStackTrace()));
-        }
+        Main.assertFxThread();
         try {
             TreeGraphModel treeGraphModel = g.treeGraphModel;
 
@@ -115,7 +110,7 @@ public class TreeLayout{
                         treeGraphModel.isInitialSetupFinished, i);
             }
             // Once all cell's positions have been set, move them in a service
-            MoveCellService mover = new MoveCellService(allCells);
+            CellMover mover = new CellMover(allCells);
 
             //********************* Loading Bar Start *********************
             Pane cellLayer = g.getCellLayerPane();
@@ -150,7 +145,6 @@ public class TreeLayout{
             //********************** Loading Bar End **********************
 
             while (!Main.isAppClosed && movingCells && mover.currentCell < allCells.size() - 1) {
-                System.out.println("working..." + mover.percent.get());
                 mover.moveSomeCells();
                 mover.setCurrentCell(mover.currentCell + 10);
                 progressBar.setProgress(mover.percent.get() / 100.0);
@@ -172,6 +166,7 @@ public class TreeLayout{
     private static void computeCellPosition(List<Cell> allCells, List<Integer> minRowUsedInCol,
                                             List<Integer> movedCells, boolean isInitialSetupFinished,
                                             int cellPosition) {
+        Main.assertFxThread();
         // Don't try to compute a new position if the cell has already been moved
         if (movedCells.contains(cellPosition))
             return;
@@ -205,6 +200,7 @@ public class TreeLayout{
      */
     private static void setCellPosition(Cell c, List<Integer> minRowUsedInCol, List<Integer> movedCells,
                                         boolean isInitialSetupFinished, int x, int y) {
+        Main.assertFxThread();
         // See whether or not this cell will move
         int oldColumnLocation = c.columnLocationProperty.get();
         int oldRowLocation = c.rowLocationProperty.get();
@@ -232,6 +228,7 @@ public class TreeLayout{
      * Helper method to sort the list of cells
      */
     public static void sortListOfCells(List<Cell> cellsToSort) {
+        Main.assertFxThread();
         cellsToSort.sort((c1, c2) -> {
             int i = Long.compare(c2.getTime(), c1.getTime());
             if(i == 0){
@@ -254,6 +251,7 @@ public class TreeLayout{
      * Uses Kahn's algorithm.
      */
     public static void topologicalSortListOfCells(List<Cell> cellsToSort) {
+        Main.assertFxThread();
 
         Map<String,Integer> visitCount = new HashMap<>();
 
@@ -301,6 +299,7 @@ public class TreeLayout{
      * @return the lowest indexed row in which to place c
      */
     private static int getColumnOfCellInRow(List<Integer> minRowUsedInCol, int cellRow){
+        Main.assertFxThread();
         int col = 0;
         while(minRowUsedInCol.size() > col && (cellRow > minRowUsedInCol.get(col))){
             col++;
@@ -314,6 +313,7 @@ public class TreeLayout{
      * @param c the cell to move
      */
     public static void moveCell(Cell c){
+        Main.assertFxThread();
         Platform.runLater(new Task<Void>(){
             @Override
             protected Void call(){
@@ -336,6 +336,7 @@ public class TreeLayout{
     }
 
     public static synchronized void stopMovingCells(){
+        Main.assertFxThread();
         movingCells = false;
     }
 

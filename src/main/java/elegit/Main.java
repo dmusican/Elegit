@@ -3,6 +3,7 @@ package elegit;
 import elegit.controllers.SessionController;
 import io.reactivex.disposables.CompositeDisposable;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
@@ -17,6 +18,7 @@ import org.apache.logging.log4j.Logger;
 import javax.imageio.ImageIO;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.Scanner;
 import java.util.concurrent.CountDownLatch;
 import java.util.prefs.BackingStoreException;
@@ -128,5 +130,15 @@ public class Main extends Application {
         } catch (BackingStoreException e) {
             System.out.println("Error: can't access preferences.");
         }
+    }
+
+    // This can't be easily done with a standard assert, because standard asserts are exceptions, which end
+    // up getting ignored in other threads
+    public static void assertFxThread() {
+        if (!Platform.isFxApplicationThread()) {
+            System.out.println("Not in FX thread");
+            System.out.println(Arrays.toString(Thread.currentThread().getStackTrace()));
+        }
+
     }
 }

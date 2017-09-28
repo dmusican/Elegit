@@ -18,8 +18,6 @@ public class CommitTreePanelView extends Region{
 
     // Thread information
     public boolean isLayoutThreadRunning = false;
-    private Task task;
-    private Thread th;
     private String name;
 
     /**
@@ -56,20 +54,11 @@ public class CommitTreePanelView extends Region{
 
         initCommitTreeScrollPanes(treeGraph);
 
-        if(isLayoutThreadRunning){
-            task.cancel();
-            try{
-                th.join();
-            }catch(InterruptedException e){
-                e.printStackTrace();
-            }
-        }
-
+        // TODO: isLayoutThreadRunning may be unnecessary, but gitStatus uses it, at least for now
         isLayoutThreadRunning = true;
-
         TreeLayout.doTreeLayout(treeGraph);
-
         isLayoutThreadRunning = false;
+
         CommitTreeController.focusCommitInGraph(commitToFocusOnLoad);
     }
 
