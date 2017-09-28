@@ -245,14 +245,12 @@ public class SessionController {
 
         this.preferences = Preferences.userNodeForPackage(this.getClass());
 
-        JavaFxObservable.actionEventsOf(fetchButton)
-                .subscribe(actionEvent -> handleFetchButton(false, false));
-
 
     }
 
     @FXML
     void handleFetchButton() {
+        System.out.println("yep");
         AtomicBoolean httpAuth = new AtomicBoolean(false);
         Observable
                 .just(1)
