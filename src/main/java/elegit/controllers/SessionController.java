@@ -250,7 +250,10 @@ public class SessionController {
 
     @FXML
     void handleFetchButton() {
-        System.out.println("yep");
+        handleFetchButton(false, false);
+    }
+
+    private boolean handleFetchButton(boolean prune, boolean pull) {
         AtomicBoolean httpAuth = new AtomicBoolean(false);
         Observable
                 .just(1)
@@ -260,7 +263,7 @@ public class SessionController {
                         .map(integer -> authenticateReactive(httpAuth.get()))
 
                         .observeOn(Schedulers.io())
-                        .flatMap(response -> gitFetchReactive(response, false, false))
+                        .flatMap(response -> gitFetchReactive(response, prune, pull))
                         .observeOn(JavaFxScheduler.platform())
 
                         .retry((count, throwable) -> {
@@ -272,6 +275,7 @@ public class SessionController {
                 .doOnNext(unused -> hideBusyWindowAndResumeRepoMonitor())
 
                 .subscribe(unused -> {}, Throwable::printStackTrace);
+        return true;
     }
 
     /**
@@ -1859,15 +1863,6 @@ public class SessionController {
         }
     }
 
-    /**
-     * Calls git fetch
-     * @param prune boolean should prune
-     */
-    public boolean handleFetchButton(boolean prune, boolean pull) {
-        gitFetch(prune, pull);
-        return true;
-    }
-
     private void showBusyWindowAndPauseRepoMonitor(String displayMessage) {
       pauseRepoMonitor("Fetch button clicked");
       showBusyWindow(displayMessage);
@@ -1906,61 +1901,6 @@ public class SessionController {
      * remote as necessary.
      * Equivalent to `git fetch`
      */
-    private synchronized boolean gitFetch(boolean prune, boolean pull){
-        try{
-
-            final RepoHelperBuilder.AuthDialogResponse response = authenticateAndShowBusy("Fetching...");
-            Thread th = new Thread(new Task<Void>(){
-                @Override
-                protected Void call() {
-                    tryCommandAgainWithHTTPAuth = false;
-                    try{
-                        RepositoryMonitor.resetFoundNewChanges();
-                        RepoHelper helper = theModel.getCurrentRepoHelper();
-                        if (response != null) {
-                            helper.ownerAuth =
-                                    new UsernamePasswordCredentialsProvider(response.username, response.password);
-                        }
-                        if(!helper.fetch(prune)){
-                            showNoCommitsFetchedNotification();
-                        } if (pull) {
-                            mergeFromFetch();
-                        }
-                        gitStatus();
-                    } catch(InvalidRemoteException e){
-                        showNoRemoteNotification();
-                    } catch (TransportException e) {
-                        determineIfTryAgain(e);
-                    } catch(MissingRepoException e){
-                        showMissingRepoNotification();
-                        setButtonsDisabled(true);
-                        refreshRecentReposInDropdown();
-                    } catch(Exception e) {
-                        showGenericErrorNotification();
-                        e.printStackTrace();
-                    }finally {
-                        BusyWindow.hide();
-                    }
-
-                    if (tryCommandAgainWithHTTPAuth)
-                        Platform.runLater(() -> {
-                            gitFetch(prune, pull);
-                        });
-                    return null;
-                }
-            });
-            th.setDaemon(true);
-            th.setName("Git fetch");
-            th.start();
-        }catch(NoRepoLoadedException e) {
-            this.showNoRepoLoadedNotification();
-            setButtonsDisabled(true);
-        } catch (CancelledAuthorizationException e) {
-            this.showCommandCancelledNotification();
-        }
-        return true;
-    }
-
     private synchronized Observable<String> gitFetchReactive(Optional<RepoHelperBuilder.AuthDialogResponse> responseOptional, boolean prune, boolean pull) {
         assert(!Platform.isFxApplicationThread());
         try {
