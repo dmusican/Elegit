@@ -7,6 +7,8 @@ import javafx.concurrent.Task;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.Region;
 
+import java.util.Arrays;
+
 /**
  * Class for the local and remote panel views that handles the drawing of a tree structure
  * from a given treeGraph.
@@ -47,7 +49,10 @@ public class CommitTreePanelView extends Region{
      * @param treeGraph the graph to be displayed
      */
     synchronized void displayTreeGraph(TreeGraph treeGraph, CommitHelper commitToFocusOnLoad){
-        assert(Platform.isFxApplicationThread());
+        if (!Platform.isFxApplicationThread()) {
+            System.out.println("Not in FX thread");
+            System.out.println(Arrays.toString(Thread.currentThread().getStackTrace()));
+        }
 
         initCommitTreeScrollPanes(treeGraph);
 
@@ -60,32 +65,12 @@ public class CommitTreePanelView extends Region{
             }
         }
 
-        task = TreeLayout.getTreeLayoutTask(treeGraph);
-
-        th = new Thread(task);
-        th.setName("Graph Layout: "+this.name);
-        th.setDaemon(true);
-        th.start();
         isLayoutThreadRunning = true;
 
-        Task<Void> endTask = new Task<Void>(){
-            @Override
-            protected Void call(){
-                try {
-                    th.join();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                } finally {
-                    isLayoutThreadRunning = false;
-                }
-                Platform.runLater(() -> CommitTreeController.focusCommitInGraph(commitToFocusOnLoad));
-                return null;
-            }
-        };
-        Thread endThread = new Thread(endTask);
-        endThread.setName("Layout finalization");
-        endThread.setDaemon(true);
-        endThread.start();
+        TreeLayout.doTreeLayout(treeGraph);
+
+        isLayoutThreadRunning = false;
+        CommitTreeController.focusCommitInGraph(commitToFocusOnLoad);
     }
 
     /**
