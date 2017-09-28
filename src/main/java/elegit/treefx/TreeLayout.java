@@ -92,11 +92,6 @@ public class TreeLayout{
 
         return new Task<Void>(){
 
-            private List<Cell> allCells;
-            private List<Integer> minRowUsedInCol;
-            private List<Integer> movedCells;
-            private boolean isInitialSetupFinished;
-
             /**
              * Extracts the TreeGraphModel, sorts its cells by time, then relocates
              * every cell. When complete, updates the model if necessary to show
@@ -110,21 +105,21 @@ public class TreeLayout{
                 }
                 try {
                     TreeGraphModel treeGraphModel = g.treeGraphModel;
-                    isInitialSetupFinished = treeGraphModel.isInitialSetupFinished;
 
-                    allCells = treeGraphModel.allCells;
+                    List<Cell> allCells = treeGraphModel.allCells;
                     if (commitSortTopological)
                         topologicalSortListOfCells(allCells);
                     else
                         sortListOfCells(allCells);
 
                     // Initialize variables
-                    minRowUsedInCol = new ArrayList<>();
-                    movedCells = new ArrayList<>();
+                    List<Integer> minRowUsedInCol = new ArrayList<>();
+                    List<Integer> movedCells = new ArrayList<>();
 
                     // Compute the positions of cells recursively
                     for (int i = allCells.size() - 1; i >= 0; i--) {
-                        computeCellPosition(i);
+                        computeCellPosition(allCells, minRowUsedInCol, movedCells,
+                                            treeGraphModel.isInitialSetupFinished, i);
                     }
                     // Once all cell's positions have been set, move them in a service
                     MoveCellService mover = new MoveCellService(allCells);
@@ -196,7 +191,9 @@ public class TreeLayout{
              * Helper method that computes the cell position for a given cell and its parents (oldest to newest), recursively
              * @param cellPosition position of cell to compute position for
              */
-            private void computeCellPosition(int cellPosition) {
+            private void computeCellPosition(List<Cell> allCells, List<Integer> minRowUsedInCol,
+                                             List<Integer> movedCells, boolean isInitialSetupFinished,
+                                             int cellPosition) {
                 // Don't try to compute a new position if the cell has already been moved
                 if (movedCells.contains(cellPosition))
                     return;
@@ -204,7 +201,8 @@ public class TreeLayout{
                 // Get cell at the inputted position
                 Cell c = allCells.get(allCells.size()-1-cellPosition);
 
-                setCellPosition(c, getColumnOfCellInRow(minRowUsedInCol, cellPosition), cellPosition);
+                setCellPosition(c, minRowUsedInCol, movedCells, isInitialSetupFinished,
+                                getColumnOfCellInRow(minRowUsedInCol, cellPosition), cellPosition);
 
                 // Update the reserved columns in rows with the cells parents, oldest to newest
                 List<Cell> list = c.getCellParents();
@@ -213,7 +211,8 @@ public class TreeLayout{
                 // For each parent, oldest to newest, place it in the highest row possible recursively
                 for(Cell parent : list){
                     if (parent.getTime()>c.getTime() || allCells.indexOf(parent)<0) break;
-                    computeCellPosition(allCells.size()-1- allCells.indexOf(parent));
+                    computeCellPosition(allCells, minRowUsedInCol, movedCells, isInitialSetupFinished,
+                            allCells.size()-1- allCells.indexOf(parent));
                     break;
                 }
             }
@@ -226,7 +225,8 @@ public class TreeLayout{
              * @param x the new column of the cell
              * @param y the new row of the cell
              */
-            private void setCellPosition(Cell c, int x, int y) {
+            private void setCellPosition(Cell c, List<Integer> minRowUsedInCol, List<Integer> movedCells,
+                                         boolean isInitialSetupFinished, int x, int y) {
                 // See whether or not this cell will move
                 int oldColumnLocation = c.columnLocationProperty.get();
                 int oldRowLocation = c.rowLocationProperty.get();
@@ -247,7 +247,7 @@ public class TreeLayout{
                 c.setAnimate(isInitialSetupFinished && willCellMove);
                 c.setUseParentAsSource(!hasCellMoved);
 
-                this.movedCells.add(y);
+                movedCells.add(y);
             }
         };
     }
