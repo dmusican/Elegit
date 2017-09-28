@@ -162,6 +162,8 @@ public class TreeLayout{
                     //********************** Loading Bar End **********************
 
                     while (!Main.isAppClosed && movingCells && mover.currentCell < allCells.size() - 1) {
+                        Thread.sleep(1000);
+                        System.out.println("working...");
                         mover.moveSomeCells();
                         mover.setCurrentCell(mover.currentCell + 10);
                         progressBar.setProgress(mover.percent.get() / 100.0);
