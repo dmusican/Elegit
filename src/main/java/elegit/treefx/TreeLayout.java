@@ -34,6 +34,12 @@ public class TreeLayout{
     /**
      * Mover service to go through moving the cells. Services are scheduled really well, so we
      * like using them for big repetitive things like this.
+     *
+     * The task within is specifically designed to pick out 10 cells, and move them one-by-one.
+     * A percentage tracker is also updated.
+     * Everything in here should be super fast, with the exception of moving a cell, which calls
+     * a separate method anyway, which in turn calls Platform.runLater; so it seems there's no reason
+     * to do this as a separate thread. Let's try pulling that out.
      */
     public static class MoveCellService extends Service {
         private int currentCell, max;
@@ -104,6 +110,10 @@ public class TreeLayout{
              */
             @Override
             protected Void call() throws Exception{
+                if (!Platform.isFxApplicationThread()) {
+                    System.out.println("Not in FX thread");
+                    System.out.println(Arrays.toString(Thread.currentThread().getStackTrace()));
+                }
                 try {
                     TreeGraphModel treeGraphModel = g.treeGraphModel;
                     isInitialSetupFinished = treeGraphModel.isInitialSetupFinished;
