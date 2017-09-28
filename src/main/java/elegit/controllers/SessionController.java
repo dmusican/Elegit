@@ -58,10 +58,8 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.List;
-import java.util.Optional;
-import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.prefs.BackingStoreException;
@@ -253,6 +251,8 @@ public class SessionController {
                         .observeOn(Schedulers.io())
                         .flatMap(response -> gitFetch(response, prune, pull))
                         .observeOn(JavaFxScheduler.platform())
+
+                        .doOnNext(this::gitFetchShowResults)
 
                         .retry((count, throwable) -> {
                             httpAuth.set(true);
@@ -581,30 +581,28 @@ public class SessionController {
      *
      * @param disable a boolean for whether or not to disable the buttons.
      */
-    void setButtonsDisabled(boolean disable) {
-        Platform.runLater(() -> {
-            dropdownController.openRepoDirButton.setDisable(disable);
-            tagButton.setDisable(disable);
-            commitButton.setDisable(disable);
-            pushButton.setDisable(disable);
-            fetchButton.setDisable(disable);
-            remoteImage.setVisible(!disable);
-            browserText.setVisible(!disable);
-            workingTreePanelTab.setDisable(disable);
-            allFilesPanelTab.setDisable(disable);
-            indexPanelTab.setDisable(disable);
-            dropdownController.removeRecentReposButton.setDisable(disable);
-            dropdownController.repoDropdownSelector.setDisable(disable);
-            addDeleteBranchButton.setDisable(disable);
-            checkoutButton.setDisable(disable);
-            mergeButton.setDisable(disable);
-            pushTagsButton.setDisable(disable);
-            needToFetch.setVisible(!disable);
-            currentLocalBranchHbox.setVisible(!disable);
-            currentRemoteTrackingBranchHbox.setVisible(!disable);
-            statusTextPane.setVisible(!disable);
-            updateMenuBarEnabledStatus(disable);
-        });
+    private void setButtonsDisabled(boolean disable) {
+        dropdownController.openRepoDirButton.setDisable(disable);
+        tagButton.setDisable(disable);
+        commitButton.setDisable(disable);
+        pushButton.setDisable(disable);
+        fetchButton.setDisable(disable);
+        remoteImage.setVisible(!disable);
+        browserText.setVisible(!disable);
+        workingTreePanelTab.setDisable(disable);
+        allFilesPanelTab.setDisable(disable);
+        indexPanelTab.setDisable(disable);
+        dropdownController.removeRecentReposButton.setDisable(disable);
+        dropdownController.repoDropdownSelector.setDisable(disable);
+        addDeleteBranchButton.setDisable(disable);
+        checkoutButton.setDisable(disable);
+        mergeButton.setDisable(disable);
+        pushTagsButton.setDisable(disable);
+        needToFetch.setVisible(!disable);
+        currentLocalBranchHbox.setVisible(!disable);
+        currentRemoteTrackingBranchHbox.setVisible(!disable);
+        statusTextPane.setVisible(!disable);
+        updateMenuBarEnabledStatus(disable);
 
         root.setOnMouseClicked(event -> {
             if (disable) showNoRepoLoadedNotification();
@@ -750,14 +748,13 @@ public class SessionController {
      */
     @FXML
     private void refreshRecentReposInDropdown() {
-        Platform.runLater(() -> {
+        Main.assertFxThread();
             synchronized (this) {
                 isRecentRepoEventListenerBlocked = true;
                 List<RepoHelper> repoHelpers = this.theModel.getAllRepoHelpers();
                 dropdownController.repoDropdownSelector.setItems(FXCollections.observableArrayList(repoHelpers));
                 isRecentRepoEventListenerBlocked = false;
             }
-        });
     }
 
     /**
@@ -1902,24 +1899,49 @@ public class SessionController {
             if (pull) {
                 mergeFromFetch();
             }
-        } catch (InvalidRemoteException e) {
-            showNoRemoteNotification();
         } catch (TransportException e) {
             showTransportExceptionNotification(e);
             if (determineIfTryAgainReactive(e)) {
                 return(Observable.error(e));
             }
+        } catch (InvalidRemoteException e) {
+            return Observable.just("invalid remote");
         } catch (MissingRepoException e) {
-            showMissingRepoNotification();
-            setButtonsDisabled(true);
-            refreshRecentReposInDropdown();
+            return Observable.just("missing repo");
         } catch (Exception e) {
-            showGenericErrorNotification();
-            e.printStackTrace();
+            return Observable.just(Arrays.toString(e.getStackTrace()));
         }
 
         return Observable.just("ok");
     }
+
+    private void gitFetchShowResults(String result) {
+        Main.assertFxThread();
+
+        if (result.equals("invalid remote")) {
+            String name = this.theModel.getCurrentRepoHelper() != null ?
+                    this.theModel.getCurrentRepoHelper().toString() :
+                    "the current repository";
+            showNotification("No remote repo warning",
+                             "There is no remote repository associated with " + name);
+
+        } else if (result.equals("missing repo")) {
+            showNotification("Missing repo warning", "That repository no longer exists.");
+            setButtonsDisabled(true);
+            refreshRecentReposInDropdown();
+
+        } else if (!result.equals("ok")) {
+            showNotification("Unhandled error warning: " + result,
+                    "An error occurred when fetching: " + result);
+        }
+    }
+
+    private void showNotification(String loggerText, String userText) {
+        Main.assertFxThread();
+        logger.warn(loggerText);
+        this.notificationPaneController.addNotification(userText);
+    }
+
 
     private RepoHelperBuilder.AuthDialogResponse authenticateAndShowBusy(String message)
             throws NoRepoLoadedException, CancelledAuthorizationException {
