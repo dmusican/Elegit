@@ -142,11 +142,7 @@ public class TreeLayout{
                     loading.layoutXProperty().bind(viewportX);
                     loading.setRotationAxis(Rotate.X_AXIS);
                     loading.setRotate(180);
-                    if (Platform.isFxApplicationThread()) {
-                        cellLayer.getChildren().add(loading);
-                    } else {
-                        Platform.runLater(() -> cellLayer.getChildren().add(loading));
-                    }
+                    cellLayer.getChildren().add(loading);
 
                     sp.vvalueProperty().addListener(((observable, oldValue, newValue) -> {
                         viewportY.set(cellLayer.getLayoutBounds().getHeight()-((double) newValue * cellLayer.getLayoutBounds().getHeight() +

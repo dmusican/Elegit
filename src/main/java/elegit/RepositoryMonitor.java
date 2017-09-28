@@ -3,6 +3,7 @@ package elegit;
 import elegit.controllers.SessionController;
 import io.reactivex.Observable;
 import io.reactivex.schedulers.Schedulers;
+import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -211,7 +212,7 @@ public class RepositoryMonitor{
         Thread thread = new Thread(() -> {
             while(true){
                 if(!pauseLocalMonitor && currentModel.getCurrentRepoHelper() != null && currentModel.getCurrentRepoHelper().exists()){
-                    controller.gitStatus();
+                    Platform.runLater(controller::gitStatus);
                 }
 
                 try{
