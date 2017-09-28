@@ -4,7 +4,6 @@ import elegit.*;
 import elegit.exceptions.*;
 import elegit.treefx.TreeLayout;
 import io.reactivex.Observable;
-import io.reactivex.rxjavafx.observables.JavaFxObservable;
 import io.reactivex.rxjavafx.schedulers.JavaFxScheduler;
 import io.reactivex.schedulers.Schedulers;
 import io.reactivex.subjects.PublishSubject;
@@ -151,18 +150,6 @@ public class SessionController {
     // Menu Bar
     @FXML private MenuController menuController;
     @FXML private DropdownController dropdownController;
-//    @FXML public CheckMenuItem loggingToggle;
-//    @FXML public CheckMenuItem commitSortToggle;
-//    @FXML private MenuItem gitIgnoreMenuItem;
-//    @FXML private Menu repoMenu;
-//    @FXML private MenuItem cloneMenuItem;
-//    @FXML private MenuItem createBranchMenuItem;
-//    @FXML private MenuItem commitNormalMenuItem;
-//    @FXML private MenuItem normalFetchMenuItem;
-//    @FXML private MenuItem pullMenuItem;
-//    @FXML private MenuItem pushMenuItem;
-//    @FXML private MenuItem stashMenuItem1;
-//    @FXML private MenuItem stashMenuItem2;
 
     // Commit Info Box
     @FXML public CommitInfoController commitInfoController;
@@ -228,8 +215,6 @@ public class SessionController {
 
         this.initStatusText();
 
-        //this.initMenuBarShortcuts();
-
         this.notificationPaneController.bindParentBounds(anchorRoot.heightProperty());
 
         VBox.setVgrow(filesTabPane, Priority.ALWAYS);
@@ -263,7 +248,7 @@ public class SessionController {
                         .map(integer -> authenticateReactive(httpAuth.get()))
 
                         .observeOn(Schedulers.io())
-                        .flatMap(response -> gitFetchReactive(response, prune, pull))
+                        .flatMap(response -> gitFetch(response, prune, pull))
                         .observeOn(JavaFxScheduler.platform())
 
                         .retry((count, throwable) -> {
@@ -1901,7 +1886,7 @@ public class SessionController {
      * remote as necessary.
      * Equivalent to `git fetch`
      */
-    private synchronized Observable<String> gitFetchReactive(Optional<RepoHelperBuilder.AuthDialogResponse> responseOptional, boolean prune, boolean pull) {
+    private synchronized Observable<String> gitFetch(Optional<RepoHelperBuilder.AuthDialogResponse> responseOptional, boolean prune, boolean pull) {
         assert(!Platform.isFxApplicationThread());
         try {
             RepositoryMonitor.resetFoundNewChanges();

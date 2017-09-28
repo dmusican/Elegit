@@ -6,6 +6,7 @@ import com.jcraft.jsch.Session;
 import com.jcraft.jsch.UserInfo;
 import elegit.exceptions.*;
 import elegit.treefx.Cell;
+import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import org.apache.logging.log4j.LogManager;
@@ -722,6 +723,7 @@ public class RepoHelper {
      */
     public boolean fetch(boolean prune) throws
             GitAPIException, MissingRepoException, IOException {
+        assert(!Platform.isFxApplicationThread());
         logger.info("Attempting fetch");
         if (!exists()) throw new MissingRepoException();
         Git git = new Git(this.repo);
