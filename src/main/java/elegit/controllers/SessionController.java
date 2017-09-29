@@ -239,21 +239,21 @@ public class SessionController {
     private class TryAgainException extends RuntimeException {};
 
     private void handleFetchButton(boolean prune, boolean pull) {
-        AtomicBoolean httpAuth = new AtomicBoolean(false);
         Observable
                 .just(1)
-                .doOnNext(unused -> showBusyWindowAndPauseRepoMonitor("Fetching!!.."))
+                .doOnNext(unused -> showBusyWindowAndPauseRepoMonitor("Fetching..."))
 
-                .flatMap(unused -> doAndRepeatGitOperation(prune, pull, httpAuth))
-
+                // Note that the below is a threaded operation, and so we want to make sure that the following
+                // operations (hiding the window, etc) depend on it.
+                .flatMap(unused -> doAndRepeatGitOperation(prune, pull))
                 .doOnNext(unused -> hideBusyWindowAndResumeRepoMonitor())
-
                 .subscribe(unused -> {}, Throwable::printStackTrace);
     }
 
     // Repeat trying to fetch. First time: no authentication window. On repeated attempts,
     // authentication window is shown. Effort ends when authentication window is cancelled.
-    private Observable<String> doAndRepeatGitOperation(boolean prune, boolean pull, AtomicBoolean httpAuth) {
+    private Observable<String> doAndRepeatGitOperation(boolean prune, boolean pull) {
+        AtomicBoolean httpAuth = new AtomicBoolean(false);
         return Observable
                 .just(1)
                 .map(integer -> authenticateReactive(httpAuth.get()))
