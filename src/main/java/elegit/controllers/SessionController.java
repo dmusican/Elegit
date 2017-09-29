@@ -236,7 +236,9 @@ public class SessionController {
         handleFetchButton(false, false);
     }
 
-    private boolean handleFetchButton(boolean prune, boolean pull) {
+    private class TryAgainException extends RuntimeException {};
+
+    private void handleFetchButton(boolean prune, boolean pull) {
         AtomicBoolean httpAuth = new AtomicBoolean(false);
         Observable
                 .just(1)
@@ -249,23 +251,36 @@ public class SessionController {
                         .map(integer -> authenticateReactive(httpAuth.get()))
 
                         .observeOn(Schedulers.io())
-                        .flatMap(response -> gitFetch(response, prune, pull))
+                        .map(response -> gitFetch(response, prune, pull))
+
                         .observeOn(JavaFxScheduler.platform())
-
-                        .doOnNext(this::gitFetchShowResults)
-
-                        .retry((count, throwable) -> {
-                            httpAuth.set(true);
-                            return !(throwable instanceof CancelledAuthorizationException);
+                        .doOnNext(result -> {
+                            gitFetchShowResults(result);
+                            if (fetchAgain(result)) {
+                                httpAuth.set(true);
+                                throw new TryAgainException();
+                            }
                         })
+                        .retry(throwable -> throwable instanceof TryAgainException)
                 )
-                .onErrorResumeNext(Observable.just("cancelled"))
+                .onErrorResumeNext(Observable.just(new Result(ResultStatus.OK)))
                 .doOnNext(unused -> hideBusyWindowAndResumeRepoMonitor())
 
                 .subscribe(unused -> {}, Throwable::printStackTrace);
-        return true;
     }
 
+    private boolean fetchAgain(Result result) {
+        if (result.status == ResultStatus.EXCEPTION
+                && !(result.exception instanceof TransportException))
+            return true;
+
+        if (result.status == ResultStatus.EXCEPTION
+                && result.exception instanceof TransportException
+                && determineIfTryAgainReactive((TransportException)result.exception))
+            return true;
+
+        return false;
+    }
     /**
      * Helper method that passes the main stage to session controller
      * @param stage Stage
@@ -1879,12 +1894,26 @@ public class SessionController {
         handleFetchButton(false, true);
     }
 
+    private enum ResultStatus {OK, EXCEPTION};
+
+    private static class Result {
+        public ResultStatus status;
+        public Exception exception;
+        public Result(ResultStatus status) {
+            this.status = status;
+            this.exception = new RuntimeException();
+        }
+        public Result(ResultStatus status, Exception throwable) {
+            this.status = status;
+            this.exception = throwable;
+        }
+    }
     /**
      * Queries the remote for new commits, and updates the local
      * remote as necessary.
      * Equivalent to `git fetch`
      */
-    private synchronized Observable<String> gitFetch(Optional<RepoHelperBuilder.AuthDialogResponse> responseOptional, boolean prune, boolean pull) {
+    private synchronized Result gitFetch(Optional<RepoHelperBuilder.AuthDialogResponse> responseOptional, boolean prune, boolean pull) {
         assert(!Platform.isFxApplicationThread());
         try {
             RepositoryMonitor.resetFoundNewChanges();
@@ -1899,40 +1928,40 @@ public class SessionController {
             if (pull) {
                 mergeFromFetch();
             }
-        } catch (TransportException e) {
-            showTransportExceptionNotification(e);
-            if (determineIfTryAgainReactive(e)) {
-                return(Observable.error(e));
-            }
-        } catch (InvalidRemoteException e) {
-            return Observable.just("invalid remote");
-        } catch (MissingRepoException e) {
-            return Observable.just("missing repo");
         } catch (Exception e) {
-            return Observable.just(Arrays.toString(e.getStackTrace()));
+            return new Result(ResultStatus.EXCEPTION, e);
         }
 
-        return Observable.just("ok");
+        return new Result(ResultStatus.OK);
     }
 
-    private void gitFetchShowResults(String result) {
+    private void gitFetchShowResults(Result result) {
         Main.assertFxThread();
 
-        if (result.equals("invalid remote")) {
-            String name = this.theModel.getCurrentRepoHelper() != null ?
-                    this.theModel.getCurrentRepoHelper().toString() :
-                    "the current repository";
-            showNotification("No remote repo warning",
-                             "There is no remote repository associated with " + name);
+        if (result.status == ResultStatus.EXCEPTION) {
 
-        } else if (result.equals("missing repo")) {
-            showNotification("Missing repo warning", "That repository no longer exists.");
-            setButtonsDisabled(true);
-            refreshRecentReposInDropdown();
+            if (result.exception instanceof InvalidRemoteException) {
+                String name = this.theModel.getCurrentRepoHelper() != null ?
+                        this.theModel.getCurrentRepoHelper().toString() :
+                        "the current repository";
+                showNotification("No remote repo warning",
+                        "There is no remote repository associated with " + name);
 
-        } else if (!result.equals("ok")) {
-            showNotification("Unhandled error warning: " + result,
-                    "An error occurred when fetching: " + result);
+            } else if (result.exception instanceof MissingRepoException) {
+                showNotification("Missing repo warning", "That repository no longer exists.");
+                setButtonsDisabled(true);
+                refreshRecentReposInDropdown();
+
+            } else if (result.exception instanceof TransportException) {
+                // TODO: need to enhance with text from  showTransportExceptionNotification(e);
+                showNotification("Transport Exception", "Transport Exception.");
+
+            } else {
+
+                String stackTrace = Arrays.toString(result.exception.getStackTrace());
+                showNotification("Unhandled error warning: " + stackTrace,
+                        "An error occurred when fetching: " + stackTrace);
+            }
         }
     }
 
