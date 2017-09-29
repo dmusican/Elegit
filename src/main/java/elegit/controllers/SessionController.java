@@ -2083,8 +2083,6 @@ public class SessionController {
     public Observable<List<Result>> mergeFromFetchCreateChain(NotificationController nc) {
         Main.assertFxThread();
         logger.info("Merge from fetch button clicked");
-        //if (theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
-        //if (theModel.getCurrentRepoHelper().getBehindCount() < 1) throw new NoCommitsToMergeException();
 
         return Observable.just(1)
                 .doOnNext(unused -> showBusyWindowAndPauseRepoMonitor("Merging..."))
@@ -2104,6 +2102,9 @@ public class SessionController {
 
         ArrayList<Result> results = new ArrayList<>();
         try {
+            if (theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
+            if (theModel.getCurrentRepoHelper().getBehindCount() < 1) throw new NoCommitsToMergeException();
+
             if (!theModel.getCurrentRepoHelper().mergeFromFetch().isSuccessful()) {
                 results.add(new Result(ResultStatus.MERGE_FAILED));
             }
