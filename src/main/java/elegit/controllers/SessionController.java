@@ -1979,6 +1979,8 @@ public class SessionController {
                 }
             }
         }
+
+        gitStatus();
     }
 
     private void showNotification(String loggerText, String userText) {
