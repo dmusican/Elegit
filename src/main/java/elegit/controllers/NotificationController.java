@@ -328,8 +328,7 @@ public class NotificationController {
             notificationAlert = updateNotificationBubble(notification);
             notificationAlert.show(this.anchor, anchor.getX() + anchor.getWidth() - 15, anchor.getY() + anchor.getHeight() - 15);
             notificationAlert.detach();
-            notificationAlert.setAutoHide(true);
-
+            //notificationAlert.setAutoHide(true);
             hideBubbleTask();
         }
     }

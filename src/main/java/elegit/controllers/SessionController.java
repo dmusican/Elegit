@@ -4,6 +4,8 @@ import elegit.*;
 import elegit.exceptions.*;
 import elegit.treefx.TreeLayout;
 import io.reactivex.Observable;
+import io.reactivex.ObservableSource;
+import io.reactivex.functions.Function;
 import io.reactivex.rxjavafx.schedulers.JavaFxScheduler;
 import io.reactivex.schedulers.Schedulers;
 import io.reactivex.subjects.PublishSubject;
@@ -1908,17 +1910,17 @@ public class SessionController {
 
     static class Result {
         public ResultStatus status;
-        public Exception exception;
+        public Throwable exception;
         public Result(ResultStatus status) {
             this.status = status;
             this.exception = new RuntimeException();
         }
-        public Result(ResultStatus status, Exception exception) {
+        public Result(ResultStatus status, Throwable exception) {
             this.status = status;
             this.exception = exception;
         }
 
-        public Result(Exception exception) {
+        public Result(Throwable exception) {
             this.status = ResultStatus.EXCEPTION;
             this.exception = exception;
         }
@@ -1945,7 +1947,7 @@ public class SessionController {
                 results.add(new Result(ResultStatus.NOCOMMITS));
             }
             if (pull) {
-                mergeOperation();
+                mergeOperation(helper);
             }
         } catch (Exception e) {
             results.add(new Result(ResultStatus.EXCEPTION, e));
@@ -2084,28 +2086,40 @@ public class SessionController {
         Main.assertFxThread();
         logger.info("Merge from fetch button clicked");
 
-        return Observable.just(1)
+        return Observable.just(theModel.getCurrentRepoHelper())
+                .doOnNext(this::mergePreChecks) // skips to onErrorResumeNext when these fail
                 .doOnNext(unused -> showBusyWindowAndPauseRepoMonitor("Merging..."))
+
                 .observeOn(Schedulers.io())
-                .map(unused -> mergeOperation())
+                .map(this::mergeOperation)
 
                 .observeOn(JavaFxScheduler.platform())
+
+                .onErrorResumeNext(e -> {
+                    ArrayList<Result> results = new ArrayList<>();
+                    results.add(new Result(e));
+                    return Observable.just(results);
+                })
+
                 .doOnNext(results -> gitOperationShowResults(nc, results))
                 .doOnNext(unused -> hideBusyWindowAndResumeRepoMonitor());
 
         //  notice there is no subscribe here; the caller to this method should use it
     }
 
+    private void mergePreChecks(RepoHelper repoHelper) throws NoRepoLoadedException, IOException, NoCommitsToMergeException {
+        Main.assertFxThread();
+        if (repoHelper == null) throw new NoRepoLoadedException();
+        if (repoHelper.getBehindCount() < 1) throw new NoCommitsToMergeException();
+    }
+
     // TODO: needs to be synchronized in the same way that gitFetch is
-    private List<Result> mergeOperation() {
+    private List<Result> mergeOperation(RepoHelper repoHelper) {
         Main.assertNotFxThread();
 
         ArrayList<Result> results = new ArrayList<>();
         try {
-            if (theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
-            if (theModel.getCurrentRepoHelper().getBehindCount() < 1) throw new NoCommitsToMergeException();
-
-            if (!theModel.getCurrentRepoHelper().mergeFromFetch().isSuccessful()) {
+            if (!repoHelper.mergeFromFetch().isSuccessful()) {
                 results.add(new Result(ResultStatus.MERGE_FAILED));
             }
         } catch (Exception e) {
