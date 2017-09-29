@@ -244,30 +244,34 @@ public class SessionController {
                 .just(1)
                 .doOnNext(unused -> showBusyWindowAndPauseRepoMonitor("Fetching!!.."))
 
-                // Repeat trying to fetch. First time: no authentication window. On repeated attempts,
-                // authentication window is shown. Effort ends when authentication window is cancelled.
-                .flatMap(unused -> Observable
-                        .just(1)
-                        .map(integer -> authenticateReactive(httpAuth.get()))
+                .flatMap(unused -> doAndRepeatGitOperation(prune, pull, httpAuth))
 
-                        .observeOn(Schedulers.io())
-                        .map(response -> gitFetch(response, prune, pull))
-
-                        .observeOn(JavaFxScheduler.platform())
-                        .map(results -> {
-                            gitFetchShowResults(results);
-                            if (fetchAgain(results)) {
-                                httpAuth.set(true);
-                                throw new TryAgainException();
-                            }
-                            return "success";
-                        })
-                        .retry(throwable -> throwable instanceof TryAgainException)
-                )
-                .onErrorResumeNext(Observable.just("cancelled"))
                 .doOnNext(unused -> hideBusyWindowAndResumeRepoMonitor())
 
                 .subscribe(unused -> {}, Throwable::printStackTrace);
+    }
+
+    // Repeat trying to fetch. First time: no authentication window. On repeated attempts,
+    // authentication window is shown. Effort ends when authentication window is cancelled.
+    private Observable<String> doAndRepeatGitOperation(boolean prune, boolean pull, AtomicBoolean httpAuth) {
+        return Observable
+                .just(1)
+                .map(integer -> authenticateReactive(httpAuth.get()))
+
+                .observeOn(Schedulers.io())
+                .map(response -> gitFetch(response, prune, pull))
+
+                .observeOn(JavaFxScheduler.platform())
+                .map(results -> {
+                    gitFetchShowResults(results);
+                    if (fetchAgain(results)) {
+                        httpAuth.set(true);
+                        throw new TryAgainException();
+                    }
+                    return "success";
+                })
+                .retry(throwable -> throwable instanceof TryAgainException)
+                .onErrorResumeNext(Observable.just("cancelled"));
     }
 
     private boolean fetchAgain(List<Result> results) {
