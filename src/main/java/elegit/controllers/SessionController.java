@@ -1897,7 +1897,7 @@ public class SessionController {
         handleFetchButton(false, true);
     }
 
-    private enum ResultStatus {OK, EXCEPTION};
+    private enum ResultStatus {OK, NOCOMMITS, EXCEPTION};
 
     private static class Result {
         public ResultStatus status;
@@ -1927,7 +1927,7 @@ public class SessionController {
                             new UsernamePasswordCredentialsProvider(response.username, response.password)
             );
             if (!helper.fetch(prune)) {
-                showNoCommitsFetchedNotification();
+                result.add(new Result(ResultStatus.NOCOMMITS));
             }
             if (pull) {
                 mergeFromFetch();
@@ -1944,7 +1944,11 @@ public class SessionController {
 
         for (Result result : results) {
 
-            if (result.status == ResultStatus.EXCEPTION) {
+            if (result.status == ResultStatus.NOCOMMITS) {
+                showNotification("No commits fetched warning", "No new commits were fetched.");
+            }
+
+            else if (result.status == ResultStatus.EXCEPTION) {
 
                 if (result.exception instanceof InvalidRemoteException) {
                     String name = this.theModel.getCurrentRepoHelper() != null ?
@@ -2760,13 +2764,6 @@ public class SessionController {
         Platform.runLater(() -> {
             logger.warn("Tags updated notification");
             this.notificationPaneController.addNotification("Tags were updated");
-        });
-    }
-
-    private void showNoCommitsFetchedNotification(){
-        Platform.runLater(() -> {
-            logger.warn("No commits fetched warning");
-            this.notificationPaneController.addNotification("No new commits were fetched");
         });
     }
 
