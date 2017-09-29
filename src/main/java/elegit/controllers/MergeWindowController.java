@@ -22,6 +22,7 @@ import org.eclipse.jgit.lib.BranchTrackingStatus;
 import org.eclipse.jgit.lib.Repository;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * Controller for the merge window
@@ -209,7 +210,22 @@ public class MergeWindowController {
      * merges the remote-tracking branch associated with the current branch into the current local branch
      */
     private void mergeFromFetch() {
-        sessionController.mergeFromFetch(notificationPaneController, stage);
+        Main.assertFxThread();
+
+        // Do the merge, and close the window if successful
+        sessionController.mergeFromFetchCreateChain(notificationPaneController)
+                .subscribe(results -> {
+                    boolean success = true;
+                    for (SessionController.Result result : results) {
+                        if (result.status == SessionController.ResultStatus.MERGE_FAILED ||
+                                result.status == SessionController.ResultStatus.EXCEPTION)
+                            success = false;
+                    }
+                    if (success) {
+                        stage.close();
+                    }
+                }, Throwable::printStackTrace);
+
     }
 
     /**

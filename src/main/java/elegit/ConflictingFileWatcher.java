@@ -48,7 +48,7 @@ public class ConflictingFileWatcher {
      * @throws GitAPIException
      * @throws IOException
      */
-    public static void watchConflictingFiles(RepoHelper currentRepo) throws GitAPIException, IOException {
+    public static void watchConflictingFiles(RepoHelper currentRepo) {
 
         if(currentRepo == null) return;
 

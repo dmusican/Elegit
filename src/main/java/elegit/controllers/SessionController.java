@@ -218,11 +218,7 @@ public class SessionController {
         VBox.setVgrow(filesTabPane, Priority.ALWAYS);
 
         // if there are conflicting files on startup, watches them for changes
-        try {
-            ConflictingFileWatcher.watchConflictingFiles(theModel.getCurrentRepoHelper());
-        } catch (GitAPIException | IOException e) {
-            e.printStackTrace();
-        }
+        ConflictingFileWatcher.watchConflictingFiles(theModel.getCurrentRepoHelper());
 
         tryCommandAgainWithHTTPAuth = false;
 
@@ -253,6 +249,7 @@ public class SessionController {
     // Repeat trying to fetch. First time: no authentication window. On repeated attempts,
     // authentication window is shown. Effort ends when authentication window is cancelled.
     private Observable<String> doAndRepeatGitOperation(boolean prune, boolean pull) {
+        Main.assertFxThread();
         AtomicBoolean httpAuth = new AtomicBoolean(false);
         return Observable
                 .just(1)
@@ -263,7 +260,7 @@ public class SessionController {
 
                 .observeOn(JavaFxScheduler.platform())
                 .map(results -> {
-                    gitFetchShowResults(results);
+                    gitOperationShowResults(notificationPaneController, results);
                     if (fetchAgain(results)) {
                         httpAuth.set(true);
                         throw new TryAgainException();
@@ -1901,18 +1898,23 @@ public class SessionController {
         handleFetchButton(false, true);
     }
 
-    private enum ResultStatus {OK, NOCOMMITS, EXCEPTION};
+    enum ResultStatus {OK, NOCOMMITS, EXCEPTION, MERGE_FAILED};
 
-    private static class Result {
+    static class Result {
         public ResultStatus status;
         public Exception exception;
         public Result(ResultStatus status) {
             this.status = status;
             this.exception = new RuntimeException();
         }
-        public Result(ResultStatus status, Exception throwable) {
+        public Result(ResultStatus status, Exception exception) {
             this.status = status;
-            this.exception = throwable;
+            this.exception = exception;
+        }
+
+        public Result(Exception exception) {
+            this.status = ResultStatus.EXCEPTION;
+            this.exception = exception;
         }
     }
     /**
@@ -1921,9 +1923,11 @@ public class SessionController {
      * when it all comes back.
      * Equivalent to `git fetch`
      */
+    // TODO: This method has various side effects below, important to have it synchronized properly across all classes
     private synchronized List<Result> gitFetch(Optional<RepoHelperBuilder.AuthDialogResponse> responseOptional, boolean prune, boolean pull) {
-        List<Result> results = new ArrayList<>();
         assert(!Platform.isFxApplicationThread());
+
+        List<Result> results = new ArrayList<>();
         try {
             RepositoryMonitor.resetFoundNewChanges();
             RepoHelper helper = theModel.getCurrentRepoHelper();
@@ -1944,14 +1948,16 @@ public class SessionController {
         return results;
     }
 
-    private void gitFetchShowResults(List<Result> results) {
+    private void gitOperationShowResults(NotificationController nc, List<Result> results) {
         Main.assertFxThread();
 
         for (Result result : results) {
 
-            if (result.status == ResultStatus.NOCOMMITS) {
-                showNotification("No commits fetched warning", "No new commits were fetched.");
-            }
+            if (result.status == ResultStatus.NOCOMMITS)
+                showNotification(nc, "No commits fetched warning", "No new commits were fetched.");
+
+            else if (result.status == ResultStatus.MERGE_FAILED)
+                showNotification(nc, "Failed merged warning", "Merging failed.");
 
             else if (result.status == ResultStatus.EXCEPTION) {
 
@@ -1959,22 +1965,59 @@ public class SessionController {
                     String name = this.theModel.getCurrentRepoHelper() != null ?
                             this.theModel.getCurrentRepoHelper().toString() :
                             "the current repository";
-                    showNotification("No remote repo warning",
+                    showNotification(nc, "No remote repo warning",
                             "There is no remote repository associated with " + name);
 
                 } else if (result.exception instanceof MissingRepoException) {
-                    showNotification("Missing repo warning", "That repository no longer exists.");
+                    showNotification(nc, "Missing repo warning", "That repository no longer exists.");
                     setButtonsDisabled(true);
                     refreshRecentReposInDropdown();
 
                 } else if (result.exception instanceof TransportException) {
                     // TODO: need to enhance with text from  showTransportExceptionNotification(e);
-                    showNotification("Transport Exception", "Transport Exception.");
+                    showNotification(nc, "Transport Exception", "Transport Exception.");
+
+                } else if (result.exception instanceof CheckoutConflictException) {
+                    showNotification(nc, "Can't merge with modified files warning",
+                            "Can't merge with modified files present, please add/commit before merging.");
+
+                } else if (result.exception instanceof NoTrackingException) {
+                    showNotification(nc, "No remote tracking for current branch notification.",
+                            "There is no remote tracking information for the current branch.");
+
+                } else if (result.exception instanceof NoRepoLoadedException) {
+                    showNotification(nc, "No repo loaded warning.",
+                            "You need to load a repository before you can perform operations on it. " +
+                                    "Click on the plus sign in the upper left corner!");
+                    setButtonsDisabled(true);
+                    refreshRecentReposInDropdown();
+
+                } else if (result.exception instanceof NoCommitsToMergeException) {
+                    showNotification(nc, "No commits to merge warning",
+                            "There aren't any commits to merge. Try fetching first");
+
+                } else if (result.exception instanceof ConflictingFilesException) {
+                    showNotification(nc, "Merge conflict warning",
+                            "Can't complete merge due to conflicts. " +
+                                    "Resolve the conflicts and commit all files to complete merging");
+                    PopUpWindows.showMergeConflictsAlert(
+                            ((ConflictingFilesException)result.exception).getConflictingFiles());
+                    ConflictingFileWatcher.watchConflictingFiles(theModel.getCurrentRepoHelper());
+
+
+                } else if (result.exception instanceof NoMergeBaseException ||
+                        result.exception instanceof JGitInternalException) {
+
+                    // Rare exception, not understood yet. Figure this out. "Has something to do with pushing
+                    // conflicts. At this point in the stack, it's caught as a JGitInternalException." (jconnelly)
+                    String stackTrace = Arrays.toString(result.exception.getStackTrace());
+                    showNotification(nc, "Rare merge exception: " + stackTrace,
+                            "Rare merge error: " + stackTrace);
 
                 } else {
 
                     String stackTrace = Arrays.toString(result.exception.getStackTrace());
-                    showNotification("Unhandled error warning: " + stackTrace,
+                    showNotification(nc, "Unhandled error warning: " + stackTrace,
                             "An error occurred when fetching: " + stackTrace);
                 }
             }
@@ -1983,10 +2026,10 @@ public class SessionController {
         gitStatus();
     }
 
-    private void showNotification(String loggerText, String userText) {
+    private void showNotification(NotificationController nc, String loggerText, String userText) {
         Main.assertFxThread();
         logger.warn(loggerText);
-        this.notificationPaneController.addNotification(userText);
+        nc.addNotification(userText);
     }
 
 
@@ -2022,74 +2065,48 @@ public class SessionController {
      * Does a merge from fetch
      */
     public void mergeFromFetch() {
-        mergeFromFetch(notificationPaneController, null);
+        mergeFromFetchCreateChain(notificationPaneController)
+            .subscribe(unused -> {}, Throwable::printStackTrace);
+
     }
+
 
     /**
      * merges the remote-tracking branch associated with the current branch into the current local branch
      */
-    public void mergeFromFetch(NotificationController notificationController, Stage stageToClose) {
-        try{
-            logger.info("Merge from fetch button clicked");
-            if(theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
-            if(theModel.getCurrentRepoHelper().getBehindCount()<1) throw new NoCommitsToMergeException();
+    public Observable<List<Result>> mergeFromFetchCreateChain(NotificationController nc) {
+        Main.assertFxThread();
+        logger.info("Merge from fetch button clicked");
+        //if (theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
+        //if (theModel.getCurrentRepoHelper().getBehindCount() < 1) throw new NoCommitsToMergeException();
 
-            showBusyWindow("Merging...");
-            Thread th = new Thread(new Task<Void>(){
-                @Override
-                protected Void call() throws GitAPIException, IOException {
-                    try{
-                        if(!theModel.getCurrentRepoHelper().mergeFromFetch().isSuccessful()){
-                            showUnsuccessfulMergeNotification(notificationController);
-                        } else {
-                            if(stageToClose != null) Platform.runLater(stageToClose::close);
-                        }
-                        gitStatus();
-                    } catch(InvalidRemoteException e){
-                        showNoRemoteNotification(notificationController);
-                    } catch(TransportException e){
-                        showTransportExceptionNotification(notificationController, e);
-                    } catch (NoMergeBaseException | JGitInternalException e) {
-                        // Merge conflict
-                        e.printStackTrace();
-                        // todo: figure out rare NoMergeBaseException.
-                        //  Has something to do with pushing conflicts.
-                        //  At this point in the stack, it's caught as a JGitInternalException.
-                    } catch(CheckoutConflictException e){
-                        showMergingWithChangedFilesNotification(notificationController);
-                    } catch(ConflictingFilesException e){
-                        showMergeConflictsNotification(notificationController);
-                        Platform.runLater(() -> PopUpWindows.showMergeConflictsAlert(e.getConflictingFiles()));
-                        ConflictingFileWatcher.watchConflictingFiles(theModel.getCurrentRepoHelper());
-                    } catch(MissingRepoException e){
-                        showMissingRepoNotification(notificationController);
-                        setButtonsDisabled(true);
-                    } catch(GitAPIException | IOException e){
-                        showGenericErrorNotification(notificationController);
-                        e.printStackTrace();
-                    } catch(NoTrackingException e) {
-                        showNoRemoteTrackingNotification(notificationController);
-                    }catch (Exception e) {
-                        showGenericErrorNotification(notificationController);
-                        e.printStackTrace();
-                    }finally {
-                        BusyWindow.hide();
-                    }
-                    return null;
-                }
-            });
-            th.setDaemon(true);
-            th.setName("Git merge FETCH_HEAD");
-            th.start();
-        }catch(NoRepoLoadedException e){
-            this.showNoRepoLoadedNotification(notificationController);
-            this.setButtonsDisabled(true);
-        }catch(NoCommitsToMergeException e){
-            this.showNoCommitsToMergeNotification(notificationController);
-        }catch(IOException e) {
-            this.showGenericErrorNotification(notificationController);
-        }
+        return Observable.just(1)
+                .doOnNext(unused -> showBusyWindowAndPauseRepoMonitor("Merging..."))
+                .observeOn(Schedulers.io())
+                .map(unused -> mergeOperation())
+
+                .observeOn(JavaFxScheduler.platform())
+                .doOnNext(results -> gitOperationShowResults(nc, results))
+                .doOnNext(unused -> hideBusyWindowAndResumeRepoMonitor());
+
+        //  notice there is no subscribe here; the caller to this method should use it
     }
+
+    // TODO: needs to be synchronized in the same way that gitFetch is
+    private List<Result> mergeOperation() {
+        Main.assertNotFxThread();
+
+        ArrayList<Result> results = new ArrayList<>();
+        try {
+            if (!theModel.getCurrentRepoHelper().mergeFromFetch().isSuccessful()) {
+                results.add(new Result(ResultStatus.MERGE_FAILED));
+            }
+        } catch (Exception e) {
+            results.add(new Result(e));
+        }
+        return results;
+    }
+
 
 
     public void handleLoggingOff() {

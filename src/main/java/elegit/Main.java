@@ -141,4 +141,12 @@ public class Main extends Application {
         }
 
     }
+
+    public static void assertNotFxThread() {
+        if (Platform.isFxApplicationThread()) {
+            System.out.println("In FX thread");
+            System.out.println(Arrays.toString(Thread.currentThread().getStackTrace()));
+        }
+
+    }
 }
