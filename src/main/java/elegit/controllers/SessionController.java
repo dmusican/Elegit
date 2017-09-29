@@ -254,31 +254,34 @@ public class SessionController {
                         .map(response -> gitFetch(response, prune, pull))
 
                         .observeOn(JavaFxScheduler.platform())
-                        .doOnNext(result -> {
-                            gitFetchShowResults(result);
-                            if (fetchAgain(result)) {
+                        .map(results -> {
+                            gitFetchShowResults(results);
+                            if (fetchAgain(results)) {
                                 httpAuth.set(true);
                                 throw new TryAgainException();
                             }
+                            return "success";
                         })
                         .retry(throwable -> throwable instanceof TryAgainException)
                 )
-                .onErrorResumeNext(Observable.just(new Result(ResultStatus.OK)))
+                .onErrorResumeNext(Observable.just("cancelled"))
                 .doOnNext(unused -> hideBusyWindowAndResumeRepoMonitor())
 
                 .subscribe(unused -> {}, Throwable::printStackTrace);
     }
 
-    private boolean fetchAgain(Result result) {
-        if (result.status == ResultStatus.EXCEPTION
-                && !(result.exception instanceof TransportException))
-            return true;
+    private boolean fetchAgain(List<Result> results) {
+        for (Result result : results) {
+            // Exception where it wasn't a transport exception: try again
+            if (result.status == ResultStatus.EXCEPTION
+                    && !(result.exception instanceof TransportException))
+                return true;
 
-        if (result.status == ResultStatus.EXCEPTION
-                && result.exception instanceof TransportException
-                && determineIfTryAgainReactive((TransportException)result.exception))
-            return true;
-
+            // Exception where it was a transport exception, and we should try again
+            if (result.status == ResultStatus.EXCEPTION
+                    && determineIfTryAgainReactive((TransportException) result.exception))
+                return true;
+        }
         return false;
     }
     /**
@@ -1913,7 +1916,8 @@ public class SessionController {
      * remote as necessary.
      * Equivalent to `git fetch`
      */
-    private synchronized Result gitFetch(Optional<RepoHelperBuilder.AuthDialogResponse> responseOptional, boolean prune, boolean pull) {
+    private synchronized List<Result> gitFetch(Optional<RepoHelperBuilder.AuthDialogResponse> responseOptional, boolean prune, boolean pull) {
+        List<Result> result = new ArrayList<>();
         assert(!Platform.isFxApplicationThread());
         try {
             RepositoryMonitor.resetFoundNewChanges();
@@ -1929,38 +1933,41 @@ public class SessionController {
                 mergeFromFetch();
             }
         } catch (Exception e) {
-            return new Result(ResultStatus.EXCEPTION, e);
+            result.add(new Result(ResultStatus.EXCEPTION, e));
         }
 
-        return new Result(ResultStatus.OK);
+        return result;
     }
 
-    private void gitFetchShowResults(Result result) {
+    private void gitFetchShowResults(List<Result> results) {
         Main.assertFxThread();
 
-        if (result.status == ResultStatus.EXCEPTION) {
+        for (Result result : results) {
 
-            if (result.exception instanceof InvalidRemoteException) {
-                String name = this.theModel.getCurrentRepoHelper() != null ?
-                        this.theModel.getCurrentRepoHelper().toString() :
-                        "the current repository";
-                showNotification("No remote repo warning",
-                        "There is no remote repository associated with " + name);
+            if (result.status == ResultStatus.EXCEPTION) {
 
-            } else if (result.exception instanceof MissingRepoException) {
-                showNotification("Missing repo warning", "That repository no longer exists.");
-                setButtonsDisabled(true);
-                refreshRecentReposInDropdown();
+                if (result.exception instanceof InvalidRemoteException) {
+                    String name = this.theModel.getCurrentRepoHelper() != null ?
+                            this.theModel.getCurrentRepoHelper().toString() :
+                            "the current repository";
+                    showNotification("No remote repo warning",
+                            "There is no remote repository associated with " + name);
 
-            } else if (result.exception instanceof TransportException) {
-                // TODO: need to enhance with text from  showTransportExceptionNotification(e);
-                showNotification("Transport Exception", "Transport Exception.");
+                } else if (result.exception instanceof MissingRepoException) {
+                    showNotification("Missing repo warning", "That repository no longer exists.");
+                    setButtonsDisabled(true);
+                    refreshRecentReposInDropdown();
 
-            } else {
+                } else if (result.exception instanceof TransportException) {
+                    // TODO: need to enhance with text from  showTransportExceptionNotification(e);
+                    showNotification("Transport Exception", "Transport Exception.");
 
-                String stackTrace = Arrays.toString(result.exception.getStackTrace());
-                showNotification("Unhandled error warning: " + stackTrace,
-                        "An error occurred when fetching: " + stackTrace);
+                } else {
+
+                    String stackTrace = Arrays.toString(result.exception.getStackTrace());
+                    showNotification("Unhandled error warning: " + stackTrace,
+                            "An error occurred when fetching: " + stackTrace);
+                }
             }
         }
     }
