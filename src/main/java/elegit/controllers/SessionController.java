@@ -1913,11 +1913,12 @@ public class SessionController {
     }
     /**
      * Queries the remote for new commits, and updates the local
-     * remote as necessary.
+     * remote as necessary. Result objects that it returns indicates what should be done back on the GUI thread
+     * when it all comes back.
      * Equivalent to `git fetch`
      */
     private synchronized List<Result> gitFetch(Optional<RepoHelperBuilder.AuthDialogResponse> responseOptional, boolean prune, boolean pull) {
-        List<Result> result = new ArrayList<>();
+        List<Result> results = new ArrayList<>();
         assert(!Platform.isFxApplicationThread());
         try {
             RepositoryMonitor.resetFoundNewChanges();
@@ -1927,16 +1928,16 @@ public class SessionController {
                             new UsernamePasswordCredentialsProvider(response.username, response.password)
             );
             if (!helper.fetch(prune)) {
-                result.add(new Result(ResultStatus.NOCOMMITS));
+                results.add(new Result(ResultStatus.NOCOMMITS));
             }
             if (pull) {
                 mergeFromFetch();
             }
         } catch (Exception e) {
-            result.add(new Result(ResultStatus.EXCEPTION, e));
+            results.add(new Result(ResultStatus.EXCEPTION, e));
         }
 
-        return result;
+        return results;
     }
 
     private void gitFetchShowResults(List<Result> results) {
