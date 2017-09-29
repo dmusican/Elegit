@@ -235,9 +235,15 @@ public class SessionController {
     private class TryAgainException extends RuntimeException {};
 
     private void handleFetchButton(boolean prune, boolean pull) {
+        String displayString;
+        if (!pull)
+            displayString = "Fetching...";
+        else
+            displayString = "Pulling...";
+
         Observable
                 .just(1)
-                .doOnNext(unused -> showBusyWindowAndPauseRepoMonitor("Fetching..."))
+                .doOnNext(unused -> showBusyWindowAndPauseRepoMonitor(displayString))
 
                 // Note that the below is a threaded operation, and so we want to make sure that the following
                 // operations (hiding the window, etc) depend on it.
@@ -1939,7 +1945,8 @@ public class SessionController {
                 results.add(new Result(ResultStatus.NOCOMMITS));
             }
             if (pull) {
-                mergeFromFetch();
+                mergeOperation();
+                //mergeFromFetch();
             }
         } catch (Exception e) {
             results.add(new Result(ResultStatus.EXCEPTION, e));
