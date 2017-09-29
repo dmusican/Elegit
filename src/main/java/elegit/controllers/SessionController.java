@@ -1946,7 +1946,6 @@ public class SessionController {
             }
             if (pull) {
                 mergeOperation();
-                //mergeFromFetch();
             }
         } catch (Exception e) {
             results.add(new Result(ResultStatus.EXCEPTION, e));
