@@ -4,6 +4,7 @@ import elegit.RefHelper;
 
 public class TagCellLabel extends CellLabel{
     TagCellLabel(RefHelper refHelper, boolean isCurrent) {
-        super(refHelper, isCurrent, true);
+        // shouldn't matter if tags are remote or not, will have the same image
+        super(refHelper, isCurrent, true, false);
     }
 }

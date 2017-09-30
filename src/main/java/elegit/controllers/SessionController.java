@@ -397,8 +397,9 @@ public class SessionController {
     }
 
     private void focusLocalBranchLabelInGraph() {
-        BranchHelper HEAD = theModel.getCurrentRepoHelper().getBranchModel().getCurrentBranch();
-        CommitTreeController.focusBranchLableInGraph(HEAD);
+        BranchHelper branch = theModel.getCurrentRepoHelper().getBranchModel().getCurrentBranch();
+        CommitHelper commit = theModel.getCurrentRepoHelper().getBranchModel().getCurrentBranchHead();
+        CommitTreeController.focusBranchLabelInGraph(commit, branch);
     }
 
     private void focusRemoteBranchLabelInGraph() {

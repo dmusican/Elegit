@@ -255,16 +255,18 @@ public class CommitTreeController{
      * @param branch the branchHelper for the branch label to focus
      */
     // todo: write the method
-    public static void focusBranchLableInGraph(BranchHelper branch){
-        if (branch == null) return;
-        if (commitTreeModel.getBranchesInModel().contains(branch)){
+    public static void focusBranchLabelInGraph(CommitHelper commit, BranchHelper branch){
+        if (commit == null || branch == null || commitTreeModel.treeGraph == null)
+            return;
+
+        if (commitTreeModel.getBranchesInModel().contains(branch) && commitTreeModel.treeGraph.treeGraphModel.containsID(commit.getId())){
 
         }
     }
 
     /**
      * Loops through the branches and sets the cells that are branch heads to have the
-     * correct shape (untracked=circle, tracked=traingle)
+     * correct shape (untracked=circle, tracked=triangle)
      * @param model: the commit tree model to set the branch heads for
      * @return true if the model has branches, false if not
      */

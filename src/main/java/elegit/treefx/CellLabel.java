@@ -29,10 +29,10 @@ public class CellLabel extends HBox {
     public static final int MAX_CHAR_PER_LABEL=25;
 
     CellLabel(RefHelper refHelper, boolean isCurrent) {
-        this(refHelper, isCurrent, false);
+        this(refHelper, isCurrent, false, false);
     }
 
-    CellLabel(RefHelper refHelper, boolean isCurrent, boolean isTag) {
+    CellLabel(RefHelper refHelper, boolean isCurrent, boolean isTag, boolean isRemote) {
         this.refHelper = refHelper;
         this.name = refHelper.getAbbrevName();
         this.isCurrent = isCurrent;
@@ -42,17 +42,13 @@ public class CellLabel extends HBox {
         Text pointer = getPointer();
         Label label = getLabel();
         ImageView img = getImage();
-        // todo: get rid of this when not needed
-        //System.out.println("B " + headText);
         Text headText = getHeadText();
 
-        if (isCurrent && !isRemote) System.out.println("A " + headText);
         // Add children to this label
         this.getChildren().add(pointer);
         this.getChildren().add(label);
         this.getChildren().add(img);
         this.getChildren().add(headText);
-        if (!headText.getText().equals("")) System.out.println("constructor " + headText);
 
         // Add margins to the children
         HBox.setMargin(pointer, new Insets(5, 2, 0, 5));
@@ -128,12 +124,9 @@ public class CellLabel extends HBox {
         Text text;
         if (isCurrent && !isRemote){
             text = new Text("<HEAD");
-            //headText.setFill(Color.web("#FF0000"));
-            System.out.println(" asdf" + name + "  " + text);
         } else {
             text = new Text("");
         }
-        if (!text.getText().equals("")) System.out.println(text.getText());
         return text;
     }
 
@@ -141,7 +134,7 @@ public class CellLabel extends HBox {
      * Sets the cell label to be a remote branch type
      * @param isRemote whether or not the ref label is remote
      */
-    // todo: find out why this method doesn't use the param and always sets remote to true??
+    // todo: find out why this method wasn't using the param, instead always setting remote to true??
     void setRemote(boolean isRemote) {
         this.isRemote = isRemote;
         refreshIcon();
@@ -200,7 +193,9 @@ public class CellLabel extends HBox {
             if (isRemote)
                 image += "remote_white.png";
             else
-                image += "remote.png";
+                image += "branch_white.png";
+        } else if (isRemote){
+            image += "remote.png";
         } else {
             image += "branch.png";
         }

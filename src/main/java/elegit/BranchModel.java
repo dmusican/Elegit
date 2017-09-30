@@ -275,16 +275,22 @@ public class BranchModel {
     // ************************* GETTERS AND SETTERS **************************
 
     /**
-     * Getter for the current branch in the model
+     * Getter for the current branch in the model (the branch HEAD is on)
      *
      * @return the branch helper for the current branch
      */
     public BranchHelper getCurrentBranch() { return this.currentBranch; }
 
-    // todo: determine if this method name is misleading: HEAD isn't a commit
     /**
-     * Getter for the current remote branch head
-     * @return the head of the current remote branch (if one exists)
+     * Getter for the commit the current branch in the model is on
+     *
+     * @return the CommitHelper the current branch is on
+     */
+    public CommitHelper getCurrentBranchHead() { return (this.currentBranch == null) ? null : this.currentBranch.getCommit();}
+
+    /**
+     * Getter for the current remote branch commit
+     * @return the CommitHelper the current remote branch is on (if one exists)
      * @throws IOException
      */
     public CommitHelper getCurrentRemoteBranchHead() throws IOException {
@@ -316,13 +322,6 @@ public class BranchModel {
         }
         return null;
     }
-
-    /**
-     * Getter for the current branch head in the model
-     *
-     * @return the commit helper for the head of the current branch
-     */
-    public CommitHelper getCurrentBranchHead() { return (this.currentBranch == null) ? null : this.currentBranch.getCommit();}
 
     /**
      * Getter for list of branches
