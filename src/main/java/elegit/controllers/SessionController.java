@@ -1960,78 +1960,83 @@ public class SessionController {
         Main.assertFxThread();
 
         for (Result result : results) {
-
-            if (result.status == ResultStatus.NOCOMMITS)
-                showNotification(nc, "No commits fetched warning", "No new commits were fetched.");
-
-            else if (result.status == ResultStatus.MERGE_FAILED)
-                showNotification(nc, "Failed merged warning", "Merging failed.");
-
-            else if (result.status == ResultStatus.EXCEPTION) {
-
-                if (result.exception instanceof InvalidRemoteException) {
-                    String name = this.theModel.getCurrentRepoHelper() != null ?
-                            this.theModel.getCurrentRepoHelper().toString() :
-                            "the current repository";
-                    showNotification(nc, "No remote repo warning",
-                            "There is no remote repository associated with " + name);
-
-                } else if (result.exception instanceof MissingRepoException) {
-                    showNotification(nc, "Missing repo warning", "That repository no longer exists.");
-                    setButtonsDisabled(true);
-                    refreshRecentReposInDropdown();
-
-                } else if (result.exception instanceof TransportException) {
-                    // TODO: need to enhance with text from  showTransportExceptionNotification(e);
-                    showNotification(nc, "Transport Exception", "Transport Exception.");
-
-                } else if (result.exception instanceof CheckoutConflictException) {
-                    showNotification(nc, "Can't merge with modified files warning",
-                            "Can't merge with modified files present, please add/commit before merging.");
-
-                } else if (result.exception instanceof NoTrackingException) {
-                    showNotification(nc, "No remote tracking for current branch notification.",
-                            "There is no remote tracking information for the current branch.");
-
-                } else if (result.exception instanceof NoRepoLoadedException) {
-                    showNotification(nc, "No repo loaded warning.",
-                            "You need to load a repository before you can perform operations on it. " +
-                                    "Click on the plus sign in the upper left corner!");
-                    setButtonsDisabled(true);
-                    refreshRecentReposInDropdown();
-
-                } else if (result.exception instanceof NoCommitsToMergeException) {
-                    showNotification(nc, "No commits to merge warning",
-                            "There aren't any commits to merge. Try fetching first");
-
-                } else if (result.exception instanceof ConflictingFilesException) {
-                    showNotification(nc, "Merge conflict warning",
-                            "Can't complete merge due to conflicts. " +
-                                    "Resolve the conflicts and commit all files to complete merging");
-                    PopUpWindows.showMergeConflictsAlert(
-                            ((ConflictingFilesException)result.exception).getConflictingFiles());
-                    ConflictingFileWatcher.watchConflictingFiles(theModel.getCurrentRepoHelper());
-
-
-                } else if (result.exception instanceof NoMergeBaseException ||
-                        result.exception instanceof JGitInternalException) {
-
-                    // Rare exception, not understood yet. Figure this out. "Has something to do with pushing
-                    // conflicts. At this point in the stack, it's caught as a JGitInternalException." (jconnelly)
-                    String stackTrace = Arrays.toString(result.exception.getStackTrace());
-                    showNotification(nc, "Rare merge exception: " + stackTrace,
-                            "Rare merge error: " + stackTrace);
-
-                } else {
-
-                    String stackTrace = Arrays.toString(result.exception.getStackTrace());
-                    showNotification(nc, "Unhandled error warning: " + stackTrace,
-                            "An error occurred when fetching: " + stackTrace);
-                }
-            }
+            showSingleResult(nc, result);
         }
 
+        // Possibly overkill in some cases, but this ensures that after updating the interface based on some results,
+        // that everything is as up to date as possible.
         gitStatus();
+    }
+
+    private void showSingleResult(NotificationController nc, Result result) {
+        if (result.status == ResultStatus.NOCOMMITS)
+            showNotification(nc, "No commits fetched warning", "No new commits were fetched.");
+
+        else if (result.status == ResultStatus.MERGE_FAILED)
+            showNotification(nc, "Failed merged warning", "Merging failed.");
+
+        else if (result.status == ResultStatus.EXCEPTION) {
+
+            if (result.exception instanceof InvalidRemoteException) {
+                String name = this.theModel.getCurrentRepoHelper() != null ?
+                        this.theModel.getCurrentRepoHelper().toString() :
+                        "the current repository";
+                showNotification(nc, "No remote repo warning",
+                        "There is no remote repository associated with " + name);
+
+            } else if (result.exception instanceof MissingRepoException) {
+                showNotification(nc, "Missing repo warning", "That repository no longer exists.");
+                setButtonsDisabled(true);
+                refreshRecentReposInDropdown();
+
+            } else if (result.exception instanceof TransportException) {
+                // TODO: need to enhance with text from  showTransportExceptionNotification(e);
+                showNotification(nc, "Transport Exception", "Transport Exception.");
+
+            } else if (result.exception instanceof CheckoutConflictException) {
+                showNotification(nc, "Can't merge with modified files warning",
+                        "Can't merge with modified files present, please add/commit before merging.");
+
+            } else if (result.exception instanceof NoTrackingException) {
+                showNotification(nc, "No remote tracking for current branch notification.",
+                        "There is no remote tracking information for the current branch.");
+
+            } else if (result.exception instanceof NoRepoLoadedException) {
+                showNotification(nc, "No repo loaded warning.",
+                        "You need to load a repository before you can perform operations on it. " +
+                                "Click on the plus sign in the upper left corner!");
+                setButtonsDisabled(true);
+                refreshRecentReposInDropdown();
+
+            } else if (result.exception instanceof NoCommitsToMergeException) {
+                showNotification(nc, "No commits to merge warning",
+                        "There aren't any commits to merge. Try fetching first");
+
+            } else if (result.exception instanceof ConflictingFilesException) {
+                showNotification(nc, "Merge conflict warning",
+                        "Can't complete merge due to conflicts. " +
+                                "Resolve the conflicts and commit all files to complete merging");
+                PopUpWindows.showMergeConflictsAlert(
+                        ((ConflictingFilesException)result.exception).getConflictingFiles());
+                ConflictingFileWatcher.watchConflictingFiles(theModel.getCurrentRepoHelper());
+
+
+            } else if (result.exception instanceof NoMergeBaseException ||
+                    result.exception instanceof JGitInternalException) {
+
+                // Rare exception, not understood yet. Figure this out. "Has something to do with pushing
+                // conflicts. At this point in the stack, it's caught as a JGitInternalException." (jconnelly)
+                String stackTrace = Arrays.toString(result.exception.getStackTrace());
+                showNotification(nc, "Rare merge exception: " + stackTrace,
+                        "Rare merge error: " + stackTrace);
+
+            } else {
+
+                String stackTrace = Arrays.toString(result.exception.getStackTrace());
+                showNotification(nc, "Unhandled error warning: " + stackTrace,
+                        "An error occurred when fetching: " + stackTrace);
+            }
+        }
     }
 
     private void showNotification(NotificationController nc, String loggerText, String userText) {
