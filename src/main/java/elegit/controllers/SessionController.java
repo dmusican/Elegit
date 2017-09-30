@@ -840,76 +840,70 @@ public class SessionController {
         this.handleRecentRepoMenuItem(selectedRepoHelper);
     }
 
-    /**
-     * Adds all files that are selected if they can be added
-     */
     public void handleAddButton() {
-        try {
-            logger.info("Add button clicked");
-            if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
-            if(!this.theModel.getCurrentRepoHelper().exists()) throw new MissingRepoException();
+        Main.assertFxThread();
 
-            if(!workingTreePanelView.isAnyFileSelected()) throw new NoFilesSelectedToAddException();
-            if(workingTreePanelView.isAnyFileStagedSelected()) throw new StagedFileCheckedException();
+        logger.info("Add button clicked");
+        Observable.just(1)
+                .doOnNext(unused -> addPreChecks())
+                .doOnNext(unused -> showBusyWindowAndPauseRepoMonitor("Adding..."))
 
-            showBusyWindow("Adding...");
-            Thread th = new Thread(new Task<Void>(){
-                @Override
-                protected Void call() {
-                    try{
-                        ArrayList<Path> filePathsToAdd = new ArrayList<>();
-                        ArrayList<Path> filePathsToRemove = new ArrayList<>();
+                .observeOn(Schedulers.io())
+                .map(unused -> addOperation())
 
-                        // Try to add all files, throw exception if there are ones that can't be added
-                        if (workingTreePanelView.isSelectAllChecked()) {
-                            filePathsToAdd.add(Paths.get("."));
-                        }
-                        else {
-                            for (RepoFile checkedFile : workingTreePanelView.getCheckedFilesInDirectory()) {
-                                if (checkedFile.canAdd()) {
-                                    filePathsToAdd.add(checkedFile.getFilePath());
-                                } else if (checkedFile instanceof MissingRepoFile) {
-                                    // JGit does not support adding missing files, instead remove them
-                                    filePathsToRemove.add(checkedFile.getFilePath());
-                                }
-                                else {
-                                    throw new UnableToAddException(checkedFile.filePath.toString());
-                                }
-                            }
-                        }
+                .observeOn(JavaFxScheduler.platform())
 
-                        if (filePathsToAdd.size() > 0)
-                            theModel.getCurrentRepoHelper().addFilePaths(filePathsToAdd);
-                        if (filePathsToRemove.size() > 0)
-                            theModel.getCurrentRepoHelper().removeFilePaths(filePathsToRemove);
-                        gitStatus();
-
-                    } catch (JGitInternalException e){
-                        showJGitInternalError(e);
-                    } catch (UnableToAddException e) {
-                        showCannotAddFileNotification(e.filename);
-                    } catch (GitAPIException | IOException e) {
-                        showGenericErrorNotification();
-                    } finally {
-                        BusyWindow.hide();
-                    }
-                    return null;
-                }
-            });
-            th.setDaemon(true);
-            th.setName("Git add");
-            th.start();
-        } catch (NoFilesSelectedToAddException e) {
-            this.showNoFilesSelectedForAddNotification();
-        } catch (NoRepoLoadedException e) {
-            this.showNoRepoLoadedNotification();
-        } catch (MissingRepoException e) {
-            this.showMissingRepoNotification();
-        } catch (StagedFileCheckedException e) {
-            this.showStagedFilesSelectedNotification();
-        }
+                .onErrorResumeNext(this::wrapExceptionInResult)
+                .doOnNext(results -> gitOperationShowResults(notificationPaneController, results))
+                .doOnNext(unused -> hideBusyWindowAndResumeRepoMonitor())
+                .subscribe(unused -> {}, Throwable::printStackTrace);
     }
 
+    private void addPreChecks() throws NoRepoLoadedException, MissingRepoException, NoFilesSelectedToAddException, StagedFileCheckedException {
+        if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
+        if(!this.theModel.getCurrentRepoHelper().exists()) throw new MissingRepoException();
+
+        if(!workingTreePanelView.isAnyFileSelected()) throw new NoFilesSelectedToAddException();
+        if(workingTreePanelView.isAnyFileStagedSelected()) throw new StagedFileCheckedException();
+    }
+
+    /**
+     * Adds all files that are selected if they can be added
+     * TODO: Make sure this gets appropriately synchronized
+     */
+    private List<Result> addOperation() {
+        Main.assertNotFxThread();
+
+        ArrayList<Result> results = new ArrayList<>();
+        try {
+            ArrayList<Path> filePathsToAdd = new ArrayList<>();
+            ArrayList<Path> filePathsToRemove = new ArrayList<>();
+
+            // Try to add all files, throw exception if there are ones that can't be added
+            if (workingTreePanelView.isSelectAllChecked()) {
+                filePathsToAdd.add(Paths.get("."));
+            } else {
+                for (RepoFile checkedFile : workingTreePanelView.getCheckedFilesInDirectory()) {
+                    if (checkedFile.canAdd()) {
+                        filePathsToAdd.add(checkedFile.getFilePath());
+                    } else if (checkedFile instanceof MissingRepoFile) {
+                        // JGit does not support adding missing files, instead remove them
+                        filePathsToRemove.add(checkedFile.getFilePath());
+                    } else {
+                        throw new UnableToAddException(checkedFile.filePath.toString());
+                    }
+                }
+            }
+
+            if (filePathsToAdd.size() > 0)
+                theModel.getCurrentRepoHelper().addFilePaths(filePathsToAdd);
+            if (filePathsToRemove.size() > 0)
+                theModel.getCurrentRepoHelper().removeFilePaths(filePathsToRemove);
+        } catch (Exception e) {
+            results.add(new Result(e));
+        }
+        return results;
+    }
     /**
      * Removes all files from staging area that are selected if they can be removed
      */
@@ -2021,14 +2015,38 @@ public class SessionController {
                 ConflictingFileWatcher.watchConflictingFiles(theModel.getCurrentRepoHelper());
 
 
-            } else if (result.exception instanceof NoMergeBaseException ||
-                    result.exception instanceof JGitInternalException) {
+            } else if (result.exception instanceof NoMergeBaseException) {
 
                 // Rare exception, not understood yet. Figure this out. "Has something to do with pushing
                 // conflicts. At this point in the stack, it's caught as a JGitInternalException." (jconnelly)
                 String stackTrace = Arrays.toString(result.exception.getStackTrace());
                 showNotification(nc, "Rare merge exception: " + stackTrace,
                         "Rare merge error: " + stackTrace);
+
+            } else if (result.exception instanceof JGitInternalException) {
+                if (result.exception.getCause().toString().contains("LockFailedException")) {
+                    showNotification(nc, "Lock failed warning.",
+                            result.exception.getCause().getMessage() +
+                                    ". If no other git processes are running, manually remove all .lock files.");
+                } else {
+                    String stackTrace = Arrays.toString(result.exception.getStackTrace());
+                    showNotification(nc, "Generic jgit internal warning.",
+                            "Git internal error: " + stackTrace);
+                }
+
+            } else if (result.exception instanceof UnableToAddException) {
+                showNotification(nc, "Cannot add file notification",
+                        "Cannot add " + ((UnableToAddException) result.exception).filename +
+                                ". It might already be added (staged).");
+
+            } else if (result.exception instanceof NoFilesSelectedToAddException) {
+                showNotification(nc, "No files selected for add warning",
+                        "You need to select files to add");
+
+            } else if (result.exception instanceof StagedFileCheckedException) {
+                showNotification(nc, "Staged files selected for commit warning",
+                        "You can't add staged files!");
+
 
             } else {
 
@@ -2100,16 +2118,17 @@ public class SessionController {
 
                 .observeOn(JavaFxScheduler.platform())
 
-                .onErrorResumeNext(e -> {
-                    ArrayList<Result> results = new ArrayList<>();
-                    results.add(new Result(e));
-                    return Observable.just(results);
-                })
-
+                .onErrorResumeNext(this::wrapExceptionInResult)
                 .doOnNext(results -> gitOperationShowResults(nc, results))
                 .doOnNext(unused -> hideBusyWindowAndResumeRepoMonitor());
 
         //  notice there is no subscribe here; the caller to this method should use it
+    }
+
+    private ObservableSource<? extends List<Result>> wrapExceptionInResult(Throwable e) {
+        ArrayList<Result> results = new ArrayList<>();
+        results.add(new Result(e));
+        return Observable.just(results);
     }
 
     private void mergePreChecks(RepoHelper repoHelper) throws NoRepoLoadedException, IOException, NoCommitsToMergeException {
