@@ -169,6 +169,8 @@ public class SessionModel {
      * @param repoHelperToLoad the RepoHelper to be loaded.
      */
     public void openRepoFromHelper(RepoHelper repoHelperToLoad) throws BackingStoreException, IOException, ClassNotFoundException, MissingRepoException {
+        Main.assertNotFxThread();
+
         RepoHelper matchedRepoHelper = this.matchRepoWithAlreadyLoadedRepo(repoHelperToLoad);
         if (matchedRepoHelper == null) {
             // So, this repo isn't loaded into the model yet

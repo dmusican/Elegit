@@ -5,7 +5,6 @@ import elegit.exceptions.*;
 import elegit.treefx.TreeLayout;
 import io.reactivex.Observable;
 import io.reactivex.ObservableSource;
-import io.reactivex.functions.Function;
 import io.reactivex.rxjavafx.schedulers.JavaFxScheduler;
 import io.reactivex.schedulers.Schedulers;
 import io.reactivex.subjects.PublishSubject;
@@ -45,7 +44,6 @@ import org.controlsfx.control.PopOver;
 import org.eclipse.jgit.api.PushCommand;
 import org.eclipse.jgit.api.ResetCommand;
 import org.eclipse.jgit.api.errors.*;
-import org.eclipse.jgit.dircache.InvalidPathException;
 import org.eclipse.jgit.errors.NoMergeBaseException;
 import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.jgit.transport.RemoteRefUpdate;
@@ -58,6 +56,7 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
@@ -275,7 +274,7 @@ public class SessionController {
                 .observeOn(JavaFxScheduler.platform())
                 .map(results -> {
                     gitOperationShowResults(notificationPaneController, results);
-                    if (fetchAgain(results)) {
+                    if (tryOpAgain(results)) {
                         httpAuth.set(true);
                         throw new TryAgainException();
                     }
@@ -285,7 +284,7 @@ public class SessionController {
                 .onErrorResumeNext(Observable.just("cancelled"));
     }
 
-    private boolean fetchAgain(List<Result> results) {
+    private boolean tryOpAgain(List<Result> results) {
         for (Result result : results) {
             // Exception where it wasn't a transport exception: try again
             if (result.status == ResultStatus.EXCEPTION
@@ -695,72 +694,58 @@ public class SessionController {
      * using the given builder and updates the UI
      * @param builder the builder to use to create a new repository
      */
-    private synchronized void handleLoadRepoMenuItem(RepoHelperBuilder builder){
-        try{
+    private synchronized void handleLoadRepoMenuItem(RepoHelperBuilder builder) {
+        Main.assertFxThread();
+        try {
             RepoHelper repoHelper = builder.getRepoHelperFromDialogs();
-            if(theModel.getCurrentRepoHelper() != null && repoHelper.localPath.equals(theModel.getCurrentRepoHelper().localPath)) {
+            GitOperation gitOp = authResponse -> loadRepo(authResponse, repoHelper);
+
+            if (theModel.getCurrentRepoHelper() != null && repoHelper.localPath.equals(theModel.getCurrentRepoHelper().localPath)) {
                 showSameRepoLoadedNotification();
                 return;
             }
+            TreeLayout.stopMovingCells();
+            refreshRecentReposInDropdown();
 
-            RepositoryMonitor.pause();
-            showBusyWindow("Loading the repository...");
-            Thread th = new Thread(new Task<Void>(){
-                @Override
-                protected Void call() {
-                    try {
-                        TreeLayout.stopMovingCells();
+            Observable
+                    .just(1)
+                    .doOnNext(unused -> showBusyWindowAndPauseRepoMonitor("Loading repository..."))
 
-                        refreshRecentReposInDropdown();
-                        theModel.openRepoFromHelper(repoHelper);
-                        setRecentReposDropdownToCurrentRepo();
-
-                        initPanelViews();
-                        updateUIEnabledStatus();
-                    } catch(BackingStoreException | ClassNotFoundException e) {
-                        // These should only occur when the recent repo information
-                        // fails to be loaded or stored, respectively
-                        // Should be ok to silently fail
-                    } catch (MissingRepoException e) {
-                        showMissingRepoNotification();
-                        refreshRecentReposInDropdown();
-                    } catch (IOException e) {
-                        // Somehow, the repository failed to get properly loaded
-                        // TODO: better error message?
-                        showRepoWasNotLoadedNotification();
-                    } catch(Exception e) {
-                        showGenericErrorNotification();
-                        e.printStackTrace();
-                    } finally{
-                        RepositoryMonitor.unpause();
-                        BusyWindow.hide();
-                    }
-                    return null;
-                }
-            });
-            th.setDaemon(true);
-            th.setName("Loading existing/cloning repository");
-            th.start();
-        } catch(InvalidPathException e) {
-            showRepoWasNotLoadedNotification();
-            e.printStackTrace();
-        } catch (IllegalArgumentException e) {
-            showInvalidRepoNotification();
-        } catch(JGitInternalException e){
-            showNonEmptyFolderNotification(() -> handleLoadRepoMenuItem(builder));
-        } catch(InvalidRemoteException e){
-            showInvalidRemoteNotification(() -> handleLoadRepoMenuItem(builder));
-        } catch(TransportException e){
-            showTransportExceptionNotification(e);
-        } catch (NoRepoSelectedException | CancelledAuthorizationException e) {
-            // The user pressed cancel on the dialog box, or
-            // the user pressed cancel on the authorize dialog box. Do nothing!
-        } catch(IOException | GitAPIException e) {
-            // Somehow, the repository failed to get properly loaded
-            // TODO: better error message?
-            showRepoWasNotLoadedNotification();
+                    // Note that the below is a threaded operation, and so we want to make sure that the following
+                    // operations (hiding the window, etc) depend on it.
+                    .flatMap(unused -> doAndRepeatGitOperation(gitOp))
+                    .doOnNext((result) -> {
+                        if (result.equals("success")) {
+                            setRecentReposDropdownToCurrentRepo();
+                            initPanelViews();
+                            updateUIEnabledStatus();
+                        }
+                    })
+                    .doOnNext(unused -> hideBusyWindowAndResumeRepoMonitor())
+                    .subscribe(unused -> {
+                    }, Throwable::printStackTrace);
+        } catch (Exception e) {
+            showSingleResult(notificationPaneController, new Result(ResultOperation.LOAD, e));
         }
     }
+
+    // TODO: side effects, make sure to synchronize properly
+    private synchronized List<Result> loadRepo (Optional<RepoHelperBuilder.AuthDialogResponse> responseOptional,
+                                                RepoHelper repoHelper) {
+        Main.assertNotFxThread();
+        List<Result> results = new ArrayList<>();
+        try {
+            responseOptional.ifPresent(response ->
+                    repoHelper.ownerAuth =
+                            new UsernamePasswordCredentialsProvider(response.username, response.password)
+            );
+            theModel.openRepoFromHelper(repoHelper);
+        } catch (Exception e) {
+            results.add(new Result(ResultStatus.EXCEPTION, ResultOperation.LOAD, e));
+        }
+        return results;
+    }
+
 
     /**
      * Gets the current RepoHelper and sets it as the selected value of the dropdown.
@@ -859,7 +844,7 @@ public class SessionController {
 
                 .observeOn(JavaFxScheduler.platform())
 
-                .onErrorResumeNext(this::wrapExceptionInResult)
+                .onErrorResumeNext(this::wrapMergeException)
                 .doOnNext(results -> gitOperationShowResults(notificationPaneController, results))
                 .doOnNext(unused -> hideBusyWindowAndResumeRepoMonitor())
                 .subscribe(unused -> {}, Throwable::printStackTrace);
@@ -906,7 +891,7 @@ public class SessionController {
             if (filePathsToRemove.size() > 0)
                 theModel.getCurrentRepoHelper().removeFilePaths(filePathsToRemove);
         } catch (Exception e) {
-            results.add(new Result(e));
+            results.add(new Result(ResultOperation.ADD, e));
         }
         return results;
     }
@@ -1907,21 +1892,28 @@ public class SessionController {
     }
 
     enum ResultStatus {OK, NOCOMMITS, EXCEPTION, MERGE_FAILED};
+    enum ResultOperation {FETCH, MERGE, ADD, LOAD};
 
     static class Result {
         public ResultStatus status;
+        public ResultOperation operation;
         public Throwable exception;
-        public Result(ResultStatus status) {
+
+        public Result(ResultStatus status, ResultOperation operation) {
             this.status = status;
+            this.operation = operation;
             this.exception = new RuntimeException();
         }
-        public Result(ResultStatus status, Throwable exception) {
+
+        public Result(ResultStatus status, ResultOperation operation, Throwable exception) {
             this.status = status;
+            this.operation = operation;
             this.exception = exception;
         }
 
-        public Result(Throwable exception) {
+        public Result(ResultOperation operation, Throwable exception) {
             this.status = ResultStatus.EXCEPTION;
+            this.operation = operation;
             this.exception = exception;
         }
     }
@@ -1944,13 +1936,13 @@ public class SessionController {
                             new UsernamePasswordCredentialsProvider(response.username, response.password)
             );
             if (!helper.fetch(prune)) {
-                results.add(new Result(ResultStatus.NOCOMMITS));
+                results.add(new Result(ResultStatus.NOCOMMITS, ResultOperation.FETCH));
             }
             if (pull) {
                 mergeOperation(helper);
             }
         } catch (Exception e) {
-            results.add(new Result(ResultStatus.EXCEPTION, e));
+            results.add(new Result(ResultStatus.EXCEPTION, ResultOperation.FETCH, e));
         }
 
         return results;
@@ -1986,7 +1978,9 @@ public class SessionController {
 
             } else if (result.exception instanceof MissingRepoException) {
                 showNotification(nc, "Missing repo warning", "That repository no longer exists.");
-                setButtonsDisabled(true);
+                if (result.operation != ResultOperation.LOAD) {
+                    setButtonsDisabled(true);
+                }
                 refreshRecentReposInDropdown();
 
             } else if (result.exception instanceof TransportException) {
@@ -2053,6 +2047,31 @@ public class SessionController {
                 showNotification(nc, "Staged files selected for commit warning",
                         "You can't add staged files!");
 
+            } else if (result.exception instanceof BackingStoreException |
+                    result.exception instanceof ClassNotFoundException) {
+                // These should only occur when the recent repo information
+                // fails to be loaded or stored, respectively
+                // Should be ok to silently fail
+                logger.warn("Shouldn't matter (BSE or CNFE): " + result.exception.getStackTrace());
+
+            } else if (result.exception instanceof NoRepoSelectedException |
+                    result.exception instanceof CancelledAuthorizationException) {
+                // The user pressed cancel on the dialog box, or
+                // the user pressed cancel on the authorize dialog box. Do nothing!
+                logger.warn("Shouldn't matter (NRLE or CAE): " + result.exception.getStackTrace());
+
+            } else if (result.exception instanceof IOException && result.operation == ResultOperation.LOAD) {
+                showNotification(nc, "Repo not loaded warning",
+                        "Something went wrong, so no repository was loaded.");
+
+            } else if (result.exception instanceof InvalidPathException &&
+                    result.operation == ResultOperation.LOAD) {
+                showNotification(nc, "Repo not loaded warning",
+                        "Something went wrong, so no repository was loaded.");
+
+            } else if (result.exception instanceof IllegalArgumentException) {
+                showNotification(nc,"Invalid repo warning.",
+                        "Make sure the directory you selected contains an existing (non-bare) Git repository.");
 
             } else {
 
@@ -2062,6 +2081,8 @@ public class SessionController {
             }
         }
     }
+
+
 
     private void showNotification(NotificationController nc, String loggerText, String userText) {
         Main.assertFxThread();
@@ -2124,16 +2145,16 @@ public class SessionController {
 
                 .observeOn(JavaFxScheduler.platform())
 
-                .onErrorResumeNext(this::wrapExceptionInResult)
+                .onErrorResumeNext(this::wrapMergeException)
                 .doOnNext(results -> gitOperationShowResults(nc, results))
                 .doOnNext(unused -> hideBusyWindowAndResumeRepoMonitor());
 
         //  notice there is no subscribe here; the caller to this method should use it
     }
 
-    private ObservableSource<? extends List<Result>> wrapExceptionInResult(Throwable e) {
+    private ObservableSource<? extends List<Result>> wrapMergeException(Throwable e) {
         ArrayList<Result> results = new ArrayList<>();
-        results.add(new Result(e));
+        results.add(new Result(ResultOperation.MERGE, e));
         return Observable.just(results);
     }
 
@@ -2150,10 +2171,10 @@ public class SessionController {
         ArrayList<Result> results = new ArrayList<>();
         try {
             if (!repoHelper.mergeFromFetch().isSuccessful()) {
-                results.add(new Result(ResultStatus.MERGE_FAILED));
+                results.add(new Result(ResultStatus.MERGE_FAILED, ResultOperation.MERGE));
             }
         } catch (Exception e) {
-            results.add(new Result(e));
+            results.add(new Result(ResultOperation.MERGE,e));
         }
         return results;
     }
