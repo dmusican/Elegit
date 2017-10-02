@@ -136,16 +136,18 @@ public class Main extends Application {
     // up getting ignored in other threads
     public static void assertFxThread() {
         if (!Platform.isFxApplicationThread()) {
-            System.out.println("Not in FX thread");
-            System.out.println(Arrays.toString(Thread.currentThread().getStackTrace()));
+            System.err.println("Not in FX thread");
+            System.err.println(Thread.currentThread());
+            new Throwable().printStackTrace();
         }
 
     }
 
     public static void assertNotFxThread() {
         if (Platform.isFxApplicationThread()) {
-            System.out.println("In FX thread");
-            System.out.println(Arrays.toString(Thread.currentThread().getStackTrace()));
+            System.err.println(Thread.currentThread());
+            new Throwable().printStackTrace();
+
         }
 
     }
