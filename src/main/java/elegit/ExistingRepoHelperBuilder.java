@@ -28,6 +28,7 @@ public class ExistingRepoHelperBuilder extends RepoHelperBuilder {
      */
     @Override
     public RepoHelper getRepoHelperFromDialogs() throws GitAPIException, IOException, NoRepoSelectedException, CancelledAuthorizationException{
+        Main.assertFxThread();
         File existingRepoDirectoryFile = this.getDirectoryPathFromChooser("Choose existing repository directory");
 
         if (existingRepoDirectoryFile == null) {

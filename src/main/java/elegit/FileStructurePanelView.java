@@ -67,6 +67,7 @@ public abstract class FileStructurePanelView extends Region{
      * @throws GitAPIException if the SessionModel can't get the ParentDirectoryRepoFile.
      */
     public void drawDirectoryView() throws GitAPIException, IOException {
+        Main.assertFxThread();
         if(this.sessionModel.getCurrentRepoHelper() == null) return;
 
         if(this.treeRoot == null || !this.treeRoot.getValue().getRepo().equals(this.sessionModel.getCurrentRepoHelper())) {

@@ -88,6 +88,7 @@ public class CommitTreeModel{
      * and then adds all commits tracked by this model to the tree
      */
     public synchronized void init(){
+        Main.assertFxThread();
         treeGraph = this.createNewTreeGraph();
 
         CommitTreeController.resetSelection();

@@ -236,7 +236,13 @@ public class SessionController {
 
     private class TryAgainException extends RuntimeException {};
 
+    private interface GitOperation {
+        List<Result> doGitOperation(Optional<RepoHelperBuilder.AuthDialogResponse> authResponse);
+    }
+
     private void handleFetchButton(boolean prune, boolean pull) {
+        GitOperation gitOp = authResponse -> gitFetch(authResponse, prune, pull);
+
         String displayString;
         if (!pull)
             displayString = "Fetching...";
@@ -249,14 +255,14 @@ public class SessionController {
 
                 // Note that the below is a threaded operation, and so we want to make sure that the following
                 // operations (hiding the window, etc) depend on it.
-                .flatMap(unused -> doAndRepeatGitOperation(prune, pull))
+                .flatMap(unused -> doAndRepeatGitOperation(gitOp))
                 .doOnNext(unused -> hideBusyWindowAndResumeRepoMonitor())
                 .subscribe(unused -> {}, Throwable::printStackTrace);
     }
 
     // Repeat trying to fetch. First time: no authentication window. On repeated attempts,
     // authentication window is shown. Effort ends when authentication window is cancelled.
-    private Observable<String> doAndRepeatGitOperation(boolean prune, boolean pull) {
+    private Observable<String> doAndRepeatGitOperation(GitOperation gitOp) {
         Main.assertFxThread();
         AtomicBoolean httpAuth = new AtomicBoolean(false);
         return Observable
@@ -264,7 +270,7 @@ public class SessionController {
                 .map(integer -> authenticateReactive(httpAuth.get()))
 
                 .observeOn(Schedulers.io())
-                .map(response -> gitFetch(response, prune, pull))
+                .map(gitOp::doGitOperation)
 
                 .observeOn(JavaFxScheduler.platform())
                 .map(results -> {
@@ -551,6 +557,7 @@ public class SessionController {
      * Initializes each panel of the view
      */
     private synchronized void initPanelViews() {
+        Main.assertFxThread();
         try {
             workingTreePanelView.drawDirectoryView();
             allFilesPanelView.drawDirectoryView();
@@ -566,6 +573,7 @@ public class SessionController {
      * Populates the browser image with the remote URL
      */
     private void setBrowserURL() {
+        Main.assertFxThread();
         try {
             RepoHelper currentRepoHelper = this.theModel.getCurrentRepoHelper();
             if (currentRepoHelper == null) throw new NoRepoLoadedException();
@@ -652,6 +660,7 @@ public class SessionController {
      * interact with.
      */
     private void updateUIEnabledStatus() {
+        Main.assertFxThread();
         if (this.theModel.getCurrentRepoHelper() == null && this.theModel.getAllRepoHelpers().size() >= 0) {
             // (There's no repo for buttons to interact with, but there are repos in the menu bar)
             setButtonsDisabled(true);
@@ -706,10 +715,8 @@ public class SessionController {
                         theModel.openRepoFromHelper(repoHelper);
                         setRecentReposDropdownToCurrentRepo();
 
-                        Platform.runLater(() -> {
-                            initPanelViews();
-                            updateUIEnabledStatus();
-                        });
+                        initPanelViews();
+                        updateUIEnabledStatus();
                     } catch(BackingStoreException | ClassNotFoundException e) {
                         // These should only occur when the recent repo information
                         // fails to be loaded or stored, respectively
@@ -760,14 +767,13 @@ public class SessionController {
      */
     @FXML
     private void setRecentReposDropdownToCurrentRepo() {
-        Platform.runLater(() -> {
-            synchronized (this) {
-                isRecentRepoEventListenerBlocked = true;
-                RepoHelper currentRepo = this.theModel.getCurrentRepoHelper();
-                dropdownController.repoDropdownSelector.setValue(currentRepo);
-                isRecentRepoEventListenerBlocked = false;
-            }
-        });
+        Main.assertFxThread();
+        synchronized (this) {
+            isRecentRepoEventListenerBlocked = true;
+            RepoHelper currentRepo = this.theModel.getCurrentRepoHelper();
+            dropdownController.repoDropdownSelector.setValue(currentRepo);
+            isRecentRepoEventListenerBlocked = false;
+        }
     }
 
     /**
@@ -1927,7 +1933,7 @@ public class SessionController {
      */
     // TODO: This method has various side effects below, important to have it synchronized properly across all classes
     private synchronized List<Result> gitFetch(Optional<RepoHelperBuilder.AuthDialogResponse> responseOptional, boolean prune, boolean pull) {
-        assert(!Platform.isFxApplicationThread());
+        Main.assertNotFxThread();
 
         List<Result> results = new ArrayList<>();
         try {
