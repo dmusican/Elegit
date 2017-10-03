@@ -20,7 +20,7 @@ public class ElegitUserInfoGUI implements UserInfo {
     private Optional<String> password;
     private Optional<String> passphrase;
 
-    ElegitUserInfoGUI() {
+    public ElegitUserInfoGUI() {
         password = Optional.empty();
         passphrase = Optional.empty();
     }

@@ -33,16 +33,16 @@ public class SessionModel {
 
     // Keys for preferences recall
     private static final String RECENT_REPOS_LIST_KEY = "RECENT_REPOS_LIST";
-    private static final String LAST_OPENED_REPO_PATH_KEY = "LAST_OPENED_REPO_PATH";
+    public static final String LAST_OPENED_REPO_PATH_KEY = "LAST_OPENED_REPO_PATH";
     private static final String LAST_UUID_KEY="LAST_UUID";
 
     private RepoHelper currentRepoHelper;
     ObjectProperty<RepoHelper> currentRepoHelperProperty;
 
-    private List<RepoHelper> allRepoHelpers;
+    public List<RepoHelper> allRepoHelpers;
     private static SessionModel sessionModel;
 
-    private Preferences preferences;
+    public Preferences preferences;
 
     static final Logger logger = LogManager.getLogger();
 
@@ -65,51 +65,7 @@ public class SessionModel {
         currentRepoHelperProperty = new SimpleObjectProperty<>(currentRepoHelper);
     }
 
-    /**
-     * Loads the repository (from its RepoHelper) that was open when the app was
-     * last closed. If this repo has been moved or deleted, it doesn't load anything.
-     *
-     * Uses the Java Preferences API (wrapped in IBM's PrefObj class) to load the repo.
-     */
-    public void loadMostRecentRepoHelper() {
-        try{
-            String lastOpenedRepoPathString = (String) PrefObj.getObject(
-                    this.preferences, LAST_OPENED_REPO_PATH_KEY
-            );
-            if (lastOpenedRepoPathString != null) {
-                Path path = Paths.get(lastOpenedRepoPathString);
-                try {
-                    ExistingRepoHelper existingRepoHelper =
-                            new ExistingRepoHelper(path, new ElegitUserInfoGUI());
-                    this.openRepoFromHelper(existingRepoHelper);
-                    return;
-                } catch (IllegalArgumentException e) {
-                    logger.warn("Recent repo not found in directory it used to be in");
-                    // The most recent repo is no longer in the directory it used to be in,
-                    // so just don't load it.
-                }catch(GitAPIException | MissingRepoException e) {
-                    logger.error("Git error or missing repo exception");
-                    logger.debug(e.getStackTrace());
-                    e.printStackTrace();
-                } catch (CancelledAuthorizationException e) {
-                // Should never be used, as no authorization is needed for loading local files.
-                }
-            }
-            if (this.allRepoHelpers!=null && this.allRepoHelpers.size()>0) {
-                RepoHelper helper = this.allRepoHelpers.get(0);
-                try {
-                    this.openRepoFromHelper(helper);
-                } catch (MissingRepoException e) {
-                    logger.error("Missing repo exception");
-                    e.printStackTrace();
-                }
-            }
-        }catch(IOException | BackingStoreException | ClassNotFoundException e){
-            logger.error("Some sort of error loading most recent repo helper");
-            logger.debug(e.getStackTrace());
-            e.printStackTrace();
-        }
-    }
+
 
     /**
      * Loads all recently loaded repositories (stored with the Java Preferences API)
