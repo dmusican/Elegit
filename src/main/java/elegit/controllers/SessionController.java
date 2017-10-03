@@ -246,6 +246,7 @@ public class SessionController {
      * Uses the Java Preferences API (wrapped in IBM's PrefObj class) to load the repo.
      */
     public void loadMostRecentRepoHelper() {
+        Main.assertFxThread();
         try{
             String lastOpenedRepoPathString = (String) PrefObj.getObject(
                     theModel.preferences, theModel.LAST_OPENED_REPO_PATH_KEY

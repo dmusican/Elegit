@@ -102,11 +102,12 @@ public class SessionModel {
 
     /**
      * Opens the given repository
+     * Note that this runs directly in the FX thread when being done at startup, but within a separate thread
+     * when a different repo is being opened.
      *
      * @param repoHelper the repository to open
      */
     private void openRepo(RepoHelper repoHelper) throws BackingStoreException, IOException, ClassNotFoundException {
-        Main.assertNotFxThread();
         if(!this.allRepoHelpers.contains(repoHelper)) {
             this.allRepoHelpers.add(repoHelper);
         }
@@ -120,13 +121,13 @@ public class SessionModel {
      * Loads a RepoHelper by checking to see if that RepoHelper's directory is already
      * loaded into the Model. If it is already loaded, this method will load that RepoHelper.
      * If not, this method will add the new RepoHelper and then load it.
+     * Note that this runs directly in the FX thread when being done at startup, but within a separate thread
+     * when a different repo is being opened.
      * TODO: Make sure this is appropriately synchronized
      *
      * @param repoHelperToLoad the RepoHelper to be loaded.
      */
     public void openRepoFromHelper(RepoHelper repoHelperToLoad) throws BackingStoreException, IOException, ClassNotFoundException, MissingRepoException {
-        Main.assertNotFxThread();
-
         RepoHelper matchedRepoHelper = this.matchRepoWithAlreadyLoadedRepo(repoHelperToLoad);
         if (matchedRepoHelper == null) {
             // So, this repo isn't loaded into the model yet
@@ -145,13 +146,14 @@ public class SessionModel {
 
     /**
      * Checks if a repoHelper is already loaded in the model by comparing repository directories.
-     *
+     * Note that this runs directly in the FX thread when being done at startup, but within a separate thread
+     * when a different repo is being opened.
+
      * @param repoHelperCandidate the repoHelper being checked
      * @return the repo helper that points to the same repository as the candidate
      *          (by directory), or null if there is no such RepoHelper already in the model.
      */
     private RepoHelper matchRepoWithAlreadyLoadedRepo(RepoHelper repoHelperCandidate) {
-        Main.assertNotFxThread();
         if(repoHelperCandidate != null) {
             for (RepoHelper repoHelper : this.allRepoHelpers) {
                 if (repoHelper.getLocalPath().equals(repoHelperCandidate.getLocalPath())) {
