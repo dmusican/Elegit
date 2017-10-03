@@ -157,8 +157,6 @@ public class SessionController {
 
 
     boolean tryCommandAgainWithHTTPAuth;
-    private boolean isGitStatusDone;
-    private boolean isTimerDone;
 
     Preferences preferences;
     private static final String LOGGING_LEVEL_KEY="LOGGING_LEVEL";
@@ -1503,8 +1501,6 @@ public class SessionController {
         boolean authorizationSucceeded = true;
         try {
             if (selectedBranch != null) {
-                RemoteRefUpdate.Status deleteStatus;
-
                 if (selectedBranch instanceof LocalBranchHelper) {
                     branchModel.deleteLocalBranch((LocalBranchHelper) selectedBranch);
                     updateUser(selectedBranch.getRefName() + " deleted.");
@@ -1608,32 +1604,6 @@ public class SessionController {
         }
     }
 
-    /**
-     * force deletes a branch
-     * @param branchToDelete LocalBranchHelper
-     */
-    private void forceDeleteBranch(LocalBranchHelper branchToDelete) {
-        BranchModel branchModel = theModel.getCurrentRepoHelper().getBranchModel();
-        logger.info("Deleting local branch");
-
-        try {
-            if (branchToDelete != null) {
-                // Local delete:
-                branchModel.forceDeleteLocalBranch(branchToDelete);
-
-                // Reset the branch heads
-                CommitTreeController.setBranchHeads(commitTreeModel, theModel.getCurrentRepoHelper());
-
-                updateUser(" deleted.");
-            }
-        } catch (CannotDeleteCurrentBranchException e) {
-            this.showCannotDeleteBranchNotification(branchToDelete);
-        } catch (GitAPIException e) {
-            this.showGenericErrorNotification();
-        }finally {
-            gitStatus();
-        }
-    }
 
     /**
      * Adds a commit reverting the selected commits
@@ -2644,20 +2614,10 @@ public class SessionController {
         });
     }
 
-    public static Subject<ActionEvent> getNormalFetchRequests() {
-        return normalFetchRequests;
-    }
 
     /// ******************************************************************************
     /// ********                 BEGIN: ERROR NOTIFICATIONS:                  ********
     /// ******************************************************************************
-
-    private void showGenericErrorNotification(NotificationController nc) {
-        Platform.runLater(()-> {
-            logger.warn("Generic error warning.");
-            nc.addNotification("Sorry, there was an error.");
-        });
-    }
 
     void showGenericErrorNotification() {
         Platform.runLater(()-> {
@@ -2678,13 +2638,6 @@ public class SessionController {
         });
     }
 
-    private void showNoRepoLoadedNotification(NotificationController nc) {
-        Platform.runLater(() -> {
-            logger.warn("No repo loaded warning.");
-            nc.addNotification("You need to load a repository before you can perform operations on it. Click on the plus sign in the upper left corner!");
-        });
-    }
-
     private void showNoRepoLoadedNotification() {
         Platform.runLater(() -> {
             logger.warn("No repo loaded warning.");
@@ -2692,33 +2645,10 @@ public class SessionController {
         });
     }
 
-    private void showInvalidRepoNotification() {
-        Platform.runLater(() -> {
-            logger.warn("Invalid repo warning.");
-            this.notificationPaneController.addNotification("Make sure the directory you selected contains an existing (non-bare) Git repository.");
-        });
-    }
-
-    private void showMissingRepoNotification(NotificationController nc){
-        Platform.runLater(()-> {
-            logger.warn("Missing repo warning");
-            nc.addNotification("That repository no longer exists.");
-        });
-    }
-
     private void showMissingRepoNotification(){
         Platform.runLater(()-> {
             logger.warn("Missing repo warning");
             notificationPaneController.addNotification("That repository no longer exists.");
-        });
-    }
-
-    private void showNoRemoteNotification(NotificationController nc){
-        Platform.runLater(()-> {
-            logger.warn("No remote repo warning");
-            String name = this.theModel.getCurrentRepoHelper() != null ? this.theModel.getCurrentRepoHelper().toString() : "the current repository";
-
-            nc.addNotification("There is no remote repository associated with " + name);
         });
     }
 
@@ -2737,20 +2667,6 @@ public class SessionController {
             String path = this.theModel.getCurrentRepoHelper() != null ? this.theModel.getCurrentRepoHelper().getLocalPath().toString() : "the location of the local repository";
 
             this.notificationPaneController.addNotification("Could not open directory at " + path);
-        });
-    }
-
-    private void showNonEmptyFolderNotification(Runnable callback) {
-        Platform.runLater(()-> {
-            logger.warn("Folder alread exists warning");
-            this.notificationPaneController.addNotification("Make sure a folder with that name doesn't already exist in that location");
-        });
-    }
-
-    private void showInvalidRemoteNotification(Runnable callback) {
-        Platform.runLater(() -> {
-            logger.warn("Invalid remote warning");
-            this.notificationPaneController.addNotification("Make sure you entered the correct remote URL.");
         });
     }
 
@@ -2791,25 +2707,11 @@ public class SessionController {
         });
     }
 
-    private void showRepoWasNotLoadedNotification() {
-        Platform.runLater(() -> {
-            logger.warn("Repo not loaded warning");
-            this.notificationPaneController.addNotification("Something went wrong, so no repository was loaded.");
-        });
-    }
-
     private void showPushToAheadRemoteNotification(boolean allRefsRejected){
         Platform.runLater(() -> {
             logger.warn("Remote ahead of local warning");
             if(allRefsRejected) this.notificationPaneController.addNotification("The remote repository is ahead of the local. You need to fetch and then merge (pull) before pushing.");
             else this.notificationPaneController.addNotification("You need to fetch/merge in order to push all of your changes.");
-        });
-    }
-
-    private void showLostRemoteNotification() {
-        Platform.runLater(() -> {
-            logger.warn("Remote repo couldn't be found warning");
-            this.notificationPaneController.addNotification("The push failed because the remote repository couldn't be found.");
         });
     }
 
@@ -2835,14 +2737,6 @@ public class SessionController {
         });
     }
 
-    private void showStagedFilesSelectedNotification(){
-        Platform.runLater(() -> {
-            logger.warn("Staged files selected for commit warning");
-            this.notificationPaneController.addNotification("You can't add staged files!");
-        });
-    }
-
-
     private void showNoFilesSelectedForRemoveNotification(){
         Platform.runLater(() -> {
             logger.warn("No files staged for remove warning");
@@ -2850,13 +2744,6 @@ public class SessionController {
         });
     }
 
-
-    private void showCannotAddFileNotification(String filename) {
-        Platform.runLater(() -> {
-            logger.warn("Cannot add file notification");
-            this.notificationPaneController.addNotification("Cannot add "+filename+". It might already be added (staged).");
-        });
-    }
 
     private void showCannotRemoveFileNotification(String filename) {
         Platform.runLater(() -> {
@@ -2957,41 +2844,6 @@ public class SessionController {
     private void showRefAlreadyExistsNotification() {
         logger.info("Branch already exists notification");
         notificationPaneController.addNotification("Looks like that branch already exists locally!");
-    }
-
-    private void showUnsuccessfulMergeNotification(NotificationController nc){
-        Platform.runLater(() -> {
-            logger.warn("Failed merged warning");
-            nc.addNotification("Merging failed");
-        });
-    }
-
-    private void showMergingWithChangedFilesNotification(NotificationController nc){
-        Platform.runLater(() -> {
-            logger.warn("Can't merge with modified files warning");
-            nc.addNotification("Can't merge with modified files present, please add/commit before merging.");
-        });
-    }
-
-    private void showMergeConflictsNotification(NotificationController nc){
-        Platform.runLater(() -> {
-            logger.warn("Merge conflict warning");
-            nc.addNotification("Can't complete merge due to conflicts. Resolve the conflicts and commit all files to complete merging");
-        });
-    }
-
-    private void showNoRemoteTrackingNotification(NotificationController nc) {
-        Platform.runLater(() -> {
-            logger.warn("No remote tracking for current branch notification.");
-            nc.addNotification("There is no remote tracking information for the current branch.");
-        });
-    }
-
-    private void showNoCommitsToMergeNotification(NotificationController nc){
-        Platform.runLater(() -> {
-            logger.warn("No commits to merge warning");
-            nc.addNotification("There aren't any commits to merge. Try fetching first");
-        });
     }
 
     private void showNoFilesToStashNotification() {
