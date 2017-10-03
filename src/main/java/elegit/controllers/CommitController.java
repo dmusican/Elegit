@@ -2,6 +2,9 @@ package elegit.controllers;
 
 import elegit.*;
 import elegit.exceptions.MissingRepoException;
+import io.reactivex.Observable;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.rxjavafx.schedulers.JavaFxScheduler;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.concurrent.Task;
@@ -16,6 +19,8 @@ import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jgit.api.errors.GitAPIException;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * Controller class for the commit window
@@ -36,6 +41,7 @@ public class CommitController {
 
     public BooleanProperty isClosed;
     private Thread refresher;
+    private Disposable refreshTimer;
 
     static final Logger logger = LogManager.getLogger();
 
@@ -90,26 +96,14 @@ public class CommitController {
         stage.initModality(Modality.APPLICATION_MODAL);
         stage.setOnCloseRequest(event -> {
             logger.info("Closed commit window");
-            refresher.interrupt();
+            //refresher.interrupt();
+            refreshTimer.dispose();
         });
         stage.show();
 
-        // Update the panels even when git status is updated
-        refresher = new Thread(new Task<Void>() {
-            @Override
-            protected Void call() throws Exception {
-                while(stage.isShowing()) {
-                    if (isCancelled())
-                        break;
-                    updatePanelViews();
-                    Thread.sleep(5000);
-                }
-                return null;
-            }
-        });
-        refresher.setDaemon(true);
-        refresher.setName("Commit tree refresher");
-        refresher.start();
+        refreshTimer = Observable.interval(3, TimeUnit.SECONDS)
+                .observeOn(JavaFxScheduler.platform())
+                .subscribe(unused -> updatePanelViews());
     }
 
     public void updatePanelViews() {
