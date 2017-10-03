@@ -745,35 +745,40 @@ public class SessionController {
         Main.assertFxThread();
         try {
             RepoHelper repoHelper = builder.getRepoHelperFromDialogs();
-            GitOperation gitOp = authResponse -> loadRepo(authResponse, repoHelper);
-
-            if (theModel.getCurrentRepoHelper() != null && repoHelper.localPath.equals(theModel.getCurrentRepoHelper().localPath)) {
-                showSameRepoLoadedNotification();
-                return;
-            }
-            TreeLayout.stopMovingCells();
-            refreshRecentReposInDropdown();
-
-            Observable
-                    .just(1)
-                    .doOnNext(unused -> showBusyWindowAndPauseRepoMonitor("Loading repository..."))
-
-                    // Note that the below is a threaded operation, and so we want to make sure that the following
-                    // operations (hiding the window, etc) depend on it.
-                    .flatMap(unused -> doAndRepeatGitOperation(gitOp))
-                    .doOnNext((result) -> {
-                        if (result.equals("success")) {
-                            setRecentReposDropdownToCurrentRepo();
-                            initPanelViews();
-                            updateUIEnabledStatus();
-                        }
-                    })
-                    .doOnNext(unused -> hideBusyWindowAndResumeRepoMonitor())
-                    .subscribe(unused -> {
-                    }, Throwable::printStackTrace);
+            loadDesignatedRepo(repoHelper);
         } catch (Exception e) {
             showSingleResult(notificationPaneController, new Result(ResultOperation.LOAD, e));
         }
+    }
+
+    private boolean loadDesignatedRepo(RepoHelper repoHelper) {
+        GitOperation gitOp = authResponse -> loadRepo(authResponse, repoHelper);
+
+        if (theModel.getCurrentRepoHelper() != null && repoHelper.localPath.equals(theModel.getCurrentRepoHelper().localPath)) {
+            showSameRepoLoadedNotification();
+            return true;
+        }
+        TreeLayout.stopMovingCells();
+        refreshRecentReposInDropdown();
+
+        Observable
+                .just(1)
+                .doOnNext(unused -> showBusyWindowAndPauseRepoMonitor("Loading repository..."))
+
+                // Note that the below is a threaded operation, and so we want to make sure that the following
+                // operations (hiding the window, etc) depend on it.
+                .flatMap(unused -> doAndRepeatGitOperation(gitOp))
+                .doOnNext((result) -> {
+                    if (result.equals("success")) {
+                        setRecentReposDropdownToCurrentRepo();
+                        initPanelViews();
+                        updateUIEnabledStatus();
+                    }
+                })
+                .doOnNext(unused -> hideBusyWindowAndResumeRepoMonitor())
+                .subscribe(unused -> {
+                }, Throwable::printStackTrace);
+        return false;
     }
 
     // TODO: side effects, make sure to synchronize properly
@@ -827,45 +832,8 @@ public class SessionController {
      * @param repoHelper the repository to open
      */
     private synchronized void handleRecentRepoMenuItem(RepoHelper repoHelper){
-        if(isRecentRepoEventListenerBlocked || repoHelper == null) return;
-
-        this.notificationPaneController.clearAllNotifications();
-        pauseRepoMonitor("Switching repos");
-        showBusyWindow("Opening the repository...");
-        Thread th = new Thread(new Task<Void>(){
-            @Override
-            protected Void call() throws Exception{
-                try {
-                    theModel.openRepoFromHelper(repoHelper);
-
-                    Platform.runLater(() -> {
-                        initPanelViews();
-                        updateUIEnabledStatus();
-                    });
-                } catch (IOException e) {
-                    // Somehow, the repository failed to get properly loaded
-                    // TODO: better error message?
-                    showRepoWasNotLoadedNotification();
-                } catch(MissingRepoException e){
-                    showMissingRepoNotification();
-                    refreshRecentReposInDropdown();
-                } catch (BackingStoreException | ClassNotFoundException e) {
-                    // These should only occur when the recent repo information
-                    // fails to be loaded or stored, respectively
-                    // Should be ok to silently fail
-                } catch(Exception e) {
-                    showGenericErrorNotification();
-                    e.printStackTrace();
-                } finally{
-                    RepositoryMonitor.unpause();
-                    BusyWindow.hide();
-                }
-                return null;
-            }
-        });
-        th.setDaemon(true);
-        th.setName("Open repository from recent list");
-        th.start();
+        Main.assertFxThread();
+        loadDesignatedRepo(repoHelper);
     }
 
     /**
