@@ -1,5 +1,6 @@
 package elegit.controllers;
 
+import com.sun.org.apache.bcel.internal.generic.GOTO;
 import elegit.*;
 import elegit.exceptions.*;
 import elegit.treefx.TreeLayout;
@@ -1260,38 +1261,57 @@ public class SessionController {
      * This is recursively re-called if authentication fails.
      */
     public void pushBranchOrAll(PushType pushType, PushCommand push) {
-        try {
-            final RepoHelperBuilder.AuthDialogResponse credentialResponse = askUserForCredentials();
+        GitOperation gitOp = authResponse -> pushBranchOrAllDetails(authResponse, pushType, push);
 
-            showBusyWindow("Pushing...");
-            Thread th = new Thread(new Task<Void>(){
-                @Override
-                protected Void call() {
-                    tryCommandAgainWithHTTPAuth = false;
-                    try {
-                        pushBranchOrAllDetails(credentialResponse, pushType, push);
-                    } catch (TransportException e) {
-                        determineIfTryAgain(e);
-                    } finally {
-                        BusyWindow.hide();
-                    }
+        Observable
+                .just(1)
+                .doOnNext(unused -> showBusyWindowAndPauseRepoMonitor("Pushing..."))
 
-                    if (tryCommandAgainWithHTTPAuth) {
-                        Platform.runLater(() -> {
-                            pushBranchOrAll(pushType, push);
-                        });
-                    }
-
-                    return null;
-                }
-            });
-            th.setDaemon(true);
-            th.setName("Git push");
-            th.start();
-        } catch (CancelledAuthorizationException e) {
-            this.showCommandCancelledNotification();
-        }
+                // Note that the below is a threaded operation, and so we want to make sure that the following
+                // operations (hiding the window, etc) depend on it.
+                .flatMap(unused -> doAndRepeatGitOperation(gitOp))
+                .doOnNext(unused -> hideBusyWindowAndResumeRepoMonitor())
+                .subscribe(unused -> {}, Throwable::printStackTrace);
     }
+
+
+//        /**
+//         * Performs a `git push` on either current branch or all branches, depending on enum parameter.
+//         * This is recursively re-called if authentication fails.
+//         */
+//    public void pushBranchOrAll(PushType pushType, PushCommand push) {
+//        try {
+//            final RepoHelperBuilder.AuthDialogResponse credentialResponse = askUserForCredentials();
+//
+//            showBusyWindow("Pushing...");
+//            Thread th = new Thread(new Task<Void>(){
+//                @Override
+//                protected Void call() {
+//                    tryCommandAgainWithHTTPAuth = false;
+//                    try {
+//                        pushBranchOrAllDetails(credentialResponse, pushType, push);
+//                    } catch (TransportException e) {
+//                        determineIfTryAgain(e);
+//                    } finally {
+//                        BusyWindow.hide();
+//                    }
+//
+//                    if (tryCommandAgainWithHTTPAuth) {
+//                        Platform.runLater(() -> {
+//                            pushBranchOrAll(pushType, push);
+//                        });
+//                    }
+//
+//                    return null;
+//                }
+//            });
+//            th.setDaemon(true);
+//            th.setName("Git push");
+//            th.start();
+//        } catch (CancelledAuthorizationException e) {
+//            this.showCommandCancelledNotification();
+//        }
+//    }
 
     private void determineIfTryAgain(TransportException e) {
         showTransportExceptionNotification(e);
@@ -1306,16 +1326,18 @@ public class SessionController {
         return (!e.getMessage().endsWith("Auth cancel"));
     }
 
-    private void pushBranchOrAllDetails(RepoHelperBuilder.AuthDialogResponse response, PushType pushType,
-                                        PushCommand push) throws
-            TransportException {
+    private List<Result> pushBranchOrAllDetails(Optional<RepoHelperBuilder.AuthDialogResponse> responseOptional, PushType pushType,
+                                        PushCommand push) {
+        Main.assertNotFxThread();
+
+        List<Result> results = new ArrayList<>();
         try{
             RepositoryMonitor.resetFoundNewChanges();
             RepoHelper helper = theModel.getCurrentRepoHelper();
-            if (response != null) {
-                helper.ownerAuth =
-                        new UsernamePasswordCredentialsProvider(response.username, response.password);
-            }
+            responseOptional.ifPresent(response ->
+                    helper.ownerAuth =
+                            new UsernamePasswordCredentialsProvider(response.username, response.password)
+            );
             if (pushType == PushType.BRANCH) {
                 helper.pushCurrentBranch(push);
             } else if (pushType == PushType.ALL) {
@@ -1323,17 +1345,10 @@ public class SessionController {
             } else {
                 assert false : "PushType enum case not handled";
             }
-            gitStatus();
-        } catch (InvalidRemoteException e) {
-            showNoRemoteNotification();
-        } catch (PushToAheadRemoteError e) {
-            showPushToAheadRemoteNotification(e.isAllRefsRejected());
-        } catch (TransportException e) {
-            throw e;
         } catch(Exception e) {
-            showGenericErrorNotification();
-            e.printStackTrace();
+            results.add(new Result(ResultStatus.EXCEPTION, ResultOperation.PUSH, e));
         }
+        return results;
     }
 
     private RepoHelperBuilder.AuthDialogResponse askUserForCredentials() throws CancelledAuthorizationException {
@@ -1907,7 +1922,7 @@ public class SessionController {
     }
 
     enum ResultStatus {OK, NOCOMMITS, EXCEPTION, MERGE_FAILED};
-    enum ResultOperation {FETCH, MERGE, ADD, LOAD};
+    enum ResultOperation {FETCH, MERGE, ADD, LOAD, PUSH};
 
     static class Result {
         public ResultStatus status;
