@@ -2103,7 +2103,6 @@ public class SessionController {
 
     private Optional<RepoHelperBuilder.AuthDialogResponse> authenticateReactive(boolean httpAuthenticate)
             throws NoRepoLoadedException, CancelledAuthorizationException {
-        if (this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
 
         final RepoHelperBuilder.AuthDialogResponse response = askUserForCredentialsReactive(httpAuthenticate);
 
