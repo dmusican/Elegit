@@ -103,6 +103,7 @@ public class CommitTreeModel{
     }
 
     public synchronized void update() throws GitAPIException, IOException {
+        Main.assertFxThread();
         // Handles rare edge case with the RepositoryMonitor and removing repos
         if(this.sessionModel.getCurrentRepoHelper() != null){
             // Get the changes between this model and the repo after updating the repo
@@ -111,15 +112,20 @@ public class CommitTreeModel{
 
             if (!updates.hasChanges()) return;
 
+
             this.removeCommitsFromTree(updates.getCommitsToRemove());
             this.addCommitsToTree(updates.getCommitsToAdd());
-            this.updateCommitFills(updates.getCommitsToUpdate());
+            this.updateCommitFills(updates.getCommitsToUpdate());  // SLOW
             this.sessionModel.getCurrentRepoHelper().getBranchModel().updateAllBranches();
             this.resetBranchHeads();
-            this.updateAllRefLabels();
+            this.updateAllRefLabels(); // SLOW
 
             TreeLayout.stopMovingCells();
-            this.updateView();
+            /////////////////////
+            long timeStart = System.currentTimeMillis();
+            this.updateView();  // SLOW
+            long timeStop = System.currentTimeMillis(); Main.timeSpent += (timeStop - timeStart);
+            System.out.println(Main.timeSpent);
         }
     }
 
@@ -236,13 +242,10 @@ public class CommitTreeModel{
 
         Main.timeSpent = 0;
 
-        long timeStart = System.currentTimeMillis();
         for(CommitHelper curCommitHelper : commits){
             List<CommitHelper> parents = curCommitHelper.getParents();
             this.addCommitToTree(curCommitHelper, parents, treeGraph.treeGraphModel);
         }
-        long timeStop = System.currentTimeMillis(); Main.timeSpent += (timeStop - timeStart);
-        System.out.println(Main.timeSpent);
         return true;
     }
 
@@ -513,6 +516,7 @@ public class CommitTreeModel{
      * Updates the corresponding view if possible
      */
     public void updateView() throws IOException{
+        Main.assertFxThread();
         if(this.sessionModel != null && this.sessionModel.getCurrentRepoHelper() != null){
             CommitTreeController.update(this);
         }else{

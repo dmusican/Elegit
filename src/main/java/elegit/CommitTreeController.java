@@ -209,6 +209,7 @@ public class CommitTreeController{
      * @param commitTreeModel the model whose view should be updated
      */
     public static void update(CommitTreeModel commitTreeModel){
+        Main.assertFxThread();
         RepoHelper repo = commitTreeModel.sessionModel.getCurrentRepoHelper();
 
         commitTreeModel.treeGraph.update();
