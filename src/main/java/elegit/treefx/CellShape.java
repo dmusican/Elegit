@@ -33,9 +33,7 @@ public enum CellShape{
                 toReturn = get();
                 break;
             case BOTH:
-                long timeStart = System.currentTimeMillis();
                 toReturn = get();
-                long timeStop = System.currentTimeMillis(); Main.timeSpent += (timeStop - timeStart);
                 break;
             default:
                 toReturn = null;

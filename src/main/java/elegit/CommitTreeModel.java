@@ -236,10 +236,12 @@ public class CommitTreeModel{
 
         Main.timeSpent = 0;
 
+        long timeStart = System.currentTimeMillis();
         for(CommitHelper curCommitHelper : commits){
             List<CommitHelper> parents = curCommitHelper.getParents();
             this.addCommitToTree(curCommitHelper, parents, treeGraph.treeGraphModel);
         }
+        long timeStop = System.currentTimeMillis(); Main.timeSpent += (timeStop - timeStart);
         System.out.println(Main.timeSpent);
         return true;
     }
@@ -398,6 +400,7 @@ public class CommitTreeModel{
      * @return the context menu for the commit
      */
     private ContextMenu getContextMenu(CommitHelper commit){
+        // This line appears to be somewhat slow.
         ContextMenu contextMenu = new ContextMenu();
 
         MenuItem checkoutItem = new MenuItem("Checkout files...");

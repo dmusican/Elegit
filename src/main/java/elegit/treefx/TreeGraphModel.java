@@ -200,6 +200,7 @@ public class TreeGraphModel{
         Cell targetCell = cellMap.get(targetId);
 
         addEdge(sourceCell, targetCell);
+
     }
 
     /**

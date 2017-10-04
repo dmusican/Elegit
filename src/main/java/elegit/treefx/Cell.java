@@ -101,7 +101,7 @@ public class Cell extends Pane{
         this.refLabel = new CellLabelContainer();
         this.type = type;
 
-        setShape(DEFAULT_SHAPE);    ///// SLOW
+        setShape(DEFAULT_SHAPE);
 
         this.columnLocationProperty = new SimpleIntegerProperty(-1);
         this.rowLocationProperty = new SimpleIntegerProperty(-1);
@@ -114,7 +114,9 @@ public class Cell extends Pane{
         rowLocationProperty.addListener((observable, oldValue, newValue) ->
                 hasUpdatedPosition.set(oldValue.intValue()==newValue.intValue() || (newValue.intValue()>-1)&&oldValue.intValue()>-1));
 
-        tooltip = new Tooltip(cellId); /// SLOW
+        // This next line is slow for me (Java 1.8.0_101), but is supposedly fixed in Java 9:
+        // https://bugs.openjdk.java.net/browse/JDK-8143033
+        tooltip = new Tooltip(cellId);
         tooltip.setWrapText(true);
         tooltip.setMaxWidth(300);
         Tooltip.install(this, tooltip);
@@ -135,7 +137,7 @@ public class Cell extends Pane{
         this.setOnMouseEntered(event -> CommitTreeController.handleMouseover(this, true));
         this.setOnMouseExited(event -> CommitTreeController.handleMouseover(this, false));
 
-        this.view=getBaseView(); // SLOW
+        this.view=getBaseView();
     }
 
     /**

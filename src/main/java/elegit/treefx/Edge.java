@@ -1,5 +1,6 @@
 package elegit.treefx;
 
+import elegit.Main;
 import javafx.beans.binding.DoubleBinding;
 import javafx.beans.binding.When;
 import javafx.beans.property.BooleanProperty;
@@ -39,7 +40,6 @@ public class Edge extends Group {
      * @param target the target (child) cell
      */
     public Edge(Cell source, Cell target) {
-
         this.source = source;
         this.target = target;
         this.addedMidPoints = false;
@@ -51,7 +51,7 @@ public class Edge extends Group {
         DoubleBinding startX = target.translateXProperty().add(target.widthProperty().divide(2.0));
         DoubleBinding startY = target.translateYProperty().add(0);
 
-        path = new DirectedPath(startX, startY, endX, endY);
+        path = new DirectedPath(startX, startY, endX, endY); // SLOW-ISH
         checkAndAddMidPoints(startY, endY);
         path.addPoint(endX, endY.add(TreeLayout.V_SPACING / 4.));
 
@@ -95,7 +95,6 @@ public class Edge extends Group {
 
         source.edges.add(this);
         target.edges.add(this);
-
     }
 
     /**
