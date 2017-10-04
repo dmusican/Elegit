@@ -313,6 +313,15 @@
             -fx-fill: -fx-button-hover-fill;
         }
 
+#helpButton-both {
+    -fx-stroke-type: inside;
+    -fx-stroke-line-cap: butt;
+    -fx-stroke-width: 2px;
+    -fx-stroke: #808080;
+    //-fx-stroke: -fx-button-fill;
+    -fx-fill: -fx-button-fill;
+}
+
 #helpButton-remote {
     -fx-stroke-type: inside;
     -fx-stroke-line-cap: butt;

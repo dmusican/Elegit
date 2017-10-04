@@ -64,33 +64,17 @@
           alignment="CENTER_LEFT"
           spacing="10">
         <StackPane>
-            <Rectangle id="helpButton"
+            <Rectangle id="helpButton-both"
                    height="30"
                    width="30"/>
-            <Rectangle id="helpButton-null"
-                       height="28"
-                       width="28"/>
-            <Rectangle id="helpButton-inside"
-                       height="26"
-                       width="26"/>
         </StackPane>
         <StackPane>
-            <Circle id="helpButton"
+            <Circle id="helpButton-both"
                     radius="15"/>
-            <Circle id="helpButton-null"
-                    radius="14"/>
-            <Circle id="helpButton-inside"
-                    radius="13"/>
         </StackPane>
         <StackPane>
-            <Polygon id="helpButton-remote"
-                     points="0,0,30,0,15,30"
-                     style="-fx-stroke-width: 1px"/>
-            <Polygon id="helpButton"
-                     points="4,0,26,0,15,23">
-                <StackPane.margin>
-                    <Insets bottom="2.0" top="-1.0"/>
-                </StackPane.margin>
+            <Polygon id="helpButton-both"
+                     points="0,0,30,0,15,30">
             </Polygon>
         </StackPane>
         <Text text="A commit tracked locally and remotely"/>
