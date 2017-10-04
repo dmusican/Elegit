@@ -1,5 +1,7 @@
 package elegit.treefx;
 
+import elegit.Main;
+import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Polygon;
 import javafx.scene.shape.Rectangle;
@@ -31,7 +33,9 @@ public enum CellShape{
                 toReturn = get();
                 break;
             case BOTH:
-                toReturn = Shape.union(getInside(Cell.BOX_INSIDE), Shape.subtract(get(), getInside(Cell.BOX_INSET)));
+                long timeStart = System.currentTimeMillis();
+                toReturn = get();
+                long timeStop = System.currentTimeMillis(); Main.timeSpent += (timeStop - timeStart);
                 break;
             default:
                 toReturn = null;

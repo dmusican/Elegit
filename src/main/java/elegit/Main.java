@@ -38,6 +38,8 @@ public class Main extends Application {
 
     public static SessionController sessionController;
 
+    public static long timeSpent = 0;
+
     public static void main(String[] args) {
         // If this gets fancier, we should write a more robust command-line parser or use a library.
         // At the moment, there's only one possible option.

@@ -234,11 +234,13 @@ public class CommitTreeModel{
     private boolean addCommitsToTree(List<CommitHelper> commits){
         if(commits.size() == 0) return false;
 
+        Main.timeSpent = 0;
+
         for(CommitHelper curCommitHelper : commits){
             List<CommitHelper> parents = curCommitHelper.getParents();
             this.addCommitToTree(curCommitHelper, parents, treeGraph.treeGraphModel);
         }
-
+        System.out.println(Main.timeSpent);
         return true;
     }
 
@@ -294,12 +296,12 @@ public class CommitTreeModel{
             parentIds.add(RepoHelper.getCommitId(parent));
         }
 
+        //////
         String commitID = RepoHelper.getCommitId(commitHelper);
         if(graphModel.containsID(commitID)){
             graphModel.setCellType(commitID, computedType);
             return;
         }
-
         graphModel.addCell(commitID, commitHelper.getWhen().getTime(), displayLabel, refLabels, getContextMenu(commitHelper), parentIds, computedType);
     }
 

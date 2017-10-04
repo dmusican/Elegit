@@ -1,6 +1,7 @@
 package elegit.treefx;
 
 import elegit.CommitTreeController;
+import elegit.Main;
 import elegit.RefHelper;
 import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
@@ -100,7 +101,7 @@ public class Cell extends Pane{
         this.refLabel = new CellLabelContainer();
         this.type = type;
 
-        setShape(DEFAULT_SHAPE);
+        setShape(DEFAULT_SHAPE);    ///// SLOW
 
         this.columnLocationProperty = new SimpleIntegerProperty(-1);
         this.rowLocationProperty = new SimpleIntegerProperty(-1);
@@ -113,7 +114,7 @@ public class Cell extends Pane{
         rowLocationProperty.addListener((observable, oldValue, newValue) ->
                 hasUpdatedPosition.set(oldValue.intValue()==newValue.intValue() || (newValue.intValue()>-1)&&oldValue.intValue()>-1));
 
-        tooltip = new Tooltip(cellId);
+        tooltip = new Tooltip(cellId); /// SLOW
         tooltip.setWrapText(true);
         tooltip.setMaxWidth(300);
         Tooltip.install(this, tooltip);
@@ -134,7 +135,7 @@ public class Cell extends Pane{
         this.setOnMouseEntered(event -> CommitTreeController.handleMouseover(this, true));
         this.setOnMouseExited(event -> CommitTreeController.handleMouseover(this, false));
 
-        this.view=getBaseView();
+        this.view=getBaseView(); // SLOW
     }
 
     /**
@@ -387,7 +388,7 @@ public class Cell extends Pane{
                 break;
             case BOTH:
                 n.setFill(baseColor);
-                n.setStroke(baseColor);
+                n.setStroke(Color.GRAY);
                 break;
             default:
                 break;
