@@ -142,8 +142,8 @@ public class Main extends Application {
             System.err.println(Thread.currentThread());
             new Throwable().printStackTrace();
         }
-
     }
+
 
     public static void assertNotFxThread() {
         if (Platform.isFxApplicationThread()) {
@@ -151,6 +151,6 @@ public class Main extends Application {
             new Throwable().printStackTrace();
 
         }
-
     }
+
 }

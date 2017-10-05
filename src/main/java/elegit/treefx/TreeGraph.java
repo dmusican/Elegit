@@ -8,6 +8,7 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.transform.Rotate;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -27,9 +28,6 @@ public class TreeGraph{
 
     // The layer within which the cells will be added
     private Pane cellLayer;
-
-    private volatile List<Node> queuedToAdd;
-    private volatile List<Node> queuedToRemove;
 
     /**
      * Constructs a new graph using the given model
@@ -51,8 +49,6 @@ public class TreeGraph{
 
         scrollPane.NumItemsProperty.bind(m.numCellsProperty);
 
-        queuedToAdd = new LinkedList<>();
-        queuedToRemove = new LinkedList<>();
     }
 
     /**
@@ -68,7 +64,11 @@ public class TreeGraph{
      * date
      */
     public synchronized void update() {
-        Main.assertFxThread();
+        Main.assertNotFxThread();
+
+        final List<Node> queuedToAdd = new ArrayList<>();
+        final List<Node> queuedToRemove = new ArrayList<>();
+
         queuedToRemove.addAll(treeGraphModel.getRemovedCells());
         queuedToRemove.addAll(treeGraphModel.getRemovedEdges());
 
@@ -85,19 +85,19 @@ public class TreeGraph{
             if (n instanceof Cell)
                 moreToAdd.add(((Cell)n).getLabel());
         }
-        cellLayer.getChildren().addAll(queuedToAdd);
-        cellLayer.getChildren().addAll(moreToAdd);
+
+        Platform.runLater(() -> cellLayer.getChildren().addAll(queuedToAdd));
+        Platform.runLater(() -> cellLayer.getChildren().addAll(moreToAdd));
 
         // remove components from treeGraph pane
         for (Node n:queuedToRemove) {
             if (n instanceof Cell)
                 moreToRemove.add(((Cell)n).getLabel());
         }
-        cellLayer.getChildren().removeAll(moreToRemove);
-        cellLayer.getChildren().removeAll(queuedToRemove);
-
-        queuedToAdd = new LinkedList<>();
-        queuedToRemove = new LinkedList<>();
+        Platform.runLater(() -> cellLayer.getChildren().removeAll(moreToRemove));
+        Platform.runLater(() -> cellLayer.getChildren().removeAll(queuedToRemove));
+        //cellLayer.getChildren().removeAll(moreToRemove);
+        //cellLayer.getChildren().removeAll(queuedToRemove);
     }
 
     Pane getCellLayerPane() {

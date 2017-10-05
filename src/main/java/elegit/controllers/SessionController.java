@@ -6,6 +6,7 @@ import elegit.exceptions.*;
 import elegit.treefx.TreeLayout;
 import io.reactivex.Observable;
 import io.reactivex.ObservableSource;
+import io.reactivex.Scheduler;
 import io.reactivex.rxjavafx.schedulers.JavaFxScheduler;
 import io.reactivex.schedulers.Schedulers;
 import io.reactivex.subjects.PublishSubject;
@@ -207,7 +208,15 @@ public class SessionController {
         this.loadMostRecentRepoHelper();
 
         // SLOW
-        this.initPanelViews();
+        Observable.just(1)
+                .observeOn(Schedulers.io())
+                .doOnNext(u -> {
+                    synchronized(globalLock) {
+                        initPanelViews();
+                    }
+                })
+                .subscribe(u -> {}, Throwable::printStackTrace);
+        //this.initPanelViews();
         this.updateUIEnabledStatus();
         this.setRecentReposDropdownToCurrentRepo();
         this.refreshRecentReposInDropdown();
@@ -605,7 +614,7 @@ public class SessionController {
      * Initializes each panel of the view
      */
     private synchronized void initPanelViews() {
-        Main.assertFxThread();
+        Main.assertNotFxThread();
         try {
             workingTreePanelView.drawDirectoryView();
             allFilesPanelView.drawDirectoryView();
@@ -621,7 +630,7 @@ public class SessionController {
      * Populates the browser image with the remote URL
      */
     private void setBrowserURL() {
-        Main.assertFxThread();
+        Main.assertNotFxThread();
         try {
             RepoHelper currentRepoHelper = this.theModel.getCurrentRepoHelper();
             if (currentRepoHelper == null) throw new NoRepoLoadedException();
@@ -770,10 +779,20 @@ public class SessionController {
                 // Note that the below is a threaded operation, and so we want to make sure that the following
                 // operations (hiding the window, etc) depend on it.
                 .flatMap(unused -> doAndRepeatGitOperation(gitOp))
+
+                .observeOn(Schedulers.io())
+                .doOnNext((result) -> {
+                    if (result.equals("success")) {
+                        synchronized (globalLock) {
+                            initPanelViews();
+                        }
+                    }
+                })
+
+                .observeOn(JavaFxScheduler.platform())
                 .doOnNext((result) -> {
                     if (result.equals("success")) {
                         setRecentReposDropdownToCurrentRepo();
-                        initPanelViews();
                         updateUIEnabledStatus();
                     }
                 })
@@ -2368,32 +2387,44 @@ public class SessionController {
      * to 'git status'
      */
     public void gitStatus() {
-        synchronized (globalLock) {
             Main.assertFxThread();
 
-            RepositoryMonitor.pause();
+            Observable.just(1)
+                    .doOnNext(u -> BusyWindow.show())
+                    .doOnNext(u -> BusyWindow.setLoadingText("Git status..."))
 
-            // If the layout is still going, don't run
-            if (commitTreePanelView.isLayoutThreadRunning) {
-                RepositoryMonitor.unpause();
-                return;
-            }
-            try {
-                theModel.getCurrentRepoHelper().getBranchModel().updateAllBranches();
-                commitTreeModel.update();
-                workingTreePanelView.drawDirectoryView();
-                allFilesPanelView.drawDirectoryView();
-                indexPanelView.drawDirectoryView();
-                this.theModel.getCurrentRepoHelper().getTagModel().updateTags();
-                updateStatusText();
-            } catch (Exception e) {
-                showGenericErrorNotification();
-                e.printStackTrace();
-            } finally {
-                RepositoryMonitor.unpause();
 
-            }
-        }
+                    .observeOn(Schedulers.io())
+                    .doOnNext(u -> { synchronized (globalLock) {
+                        RepositoryMonitor.pause();
+
+                        // If the layout is still going, don't run
+                        if (commitTreePanelView.isLayoutThreadRunning) {
+                            RepositoryMonitor.unpause();
+                            return;
+                        }
+                        try {
+                            theModel.getCurrentRepoHelper().getBranchModel().updateAllBranches();
+                            commitTreeModel.update();
+                            workingTreePanelView.drawDirectoryView();
+                            allFilesPanelView.drawDirectoryView();
+                            indexPanelView.drawDirectoryView();
+                            this.theModel.getCurrentRepoHelper().getTagModel().updateTags();
+                            updateStatusText();
+
+                        } catch (Exception e) {
+                            showGenericErrorNotification();
+                            e.printStackTrace();
+                        } finally {
+                            RepositoryMonitor.unpause();
+
+                        }
+
+                    }})
+
+                    .observeOn(JavaFxScheduler.platform())
+                    .doOnNext(u -> BusyWindow.hide())
+                    .subscribe(u -> {}, Throwable::printStackTrace);
     }
 
     /**

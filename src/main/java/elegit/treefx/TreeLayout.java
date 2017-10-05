@@ -43,7 +43,7 @@ public class TreeLayout{
         private IntegerProperty percent;
 
         public CellMover(List<Cell> allCellsSortedByTime) {
-            Main.assertFxThread();
+            Main.assertNotFxThread();
             this.allCellsSortedByTime = allCellsSortedByTime;
             this.max = allCellsSortedByTime.size()-1;
             this.percent = new SimpleIntegerProperty(0);
@@ -54,7 +54,7 @@ public class TreeLayout{
         public void setCurrentCell(int currentCell) { this.currentCell = currentCell; }
 
         public void moveSomeCells() {
-            Main.assertFxThread();
+            Main.assertNotFxThread();
             // Try/catch is just in for debugging purposes, left because any
             // errors here are very hard to find without it
             try {
@@ -90,7 +90,7 @@ public class TreeLayout{
              * it has been through the layout process at least once already
              */
     public static void doTreeLayout(TreeGraph g) {
-        Main.assertFxThread();
+        Main.assertNotFxThread();
         try {
             TreeGraphModel treeGraphModel = g.treeGraphModel;
 
@@ -129,7 +129,7 @@ public class TreeLayout{
             loading.layoutXProperty().bind(viewportX);
             loading.setRotationAxis(Rotate.X_AXIS);
             loading.setRotate(180);
-            cellLayer.getChildren().add(loading);
+            Platform.runLater(() -> cellLayer.getChildren().add(loading));
 
             sp.vvalueProperty().addListener(((observable, oldValue, newValue) -> {
                 viewportY.set(cellLayer.getLayoutBounds().getHeight()-((double) newValue * cellLayer.getLayoutBounds().getHeight() +
@@ -166,7 +166,7 @@ public class TreeLayout{
     private static void computeCellPosition(List<Cell> allCells, List<Integer> minRowUsedInCol,
                                             List<Integer> movedCells, boolean isInitialSetupFinished,
                                             int cellPosition) {
-        Main.assertFxThread();
+        Main.assertNotFxThread();
         // Don't try to compute a new position if the cell has already been moved
         if (movedCells.contains(cellPosition))
             return;
@@ -200,7 +200,7 @@ public class TreeLayout{
      */
     private static void setCellPosition(Cell c, List<Integer> minRowUsedInCol, List<Integer> movedCells,
                                         boolean isInitialSetupFinished, int x, int y) {
-        Main.assertFxThread();
+        Main.assertNotFxThread();
         // See whether or not this cell will move
         int oldColumnLocation = c.columnLocationProperty.get();
         int oldRowLocation = c.rowLocationProperty.get();
@@ -228,7 +228,7 @@ public class TreeLayout{
      * Helper method to sort the list of cells
      */
     public static void sortListOfCells(List<Cell> cellsToSort) {
-        Main.assertFxThread();
+        Main.assertNotFxThread();
         cellsToSort.sort((c1, c2) -> {
             int i = Long.compare(c2.getTime(), c1.getTime());
             if(i == 0){
@@ -251,7 +251,7 @@ public class TreeLayout{
      * Uses Kahn's algorithm.
      */
     public static void topologicalSortListOfCells(List<Cell> cellsToSort) {
-        Main.assertFxThread();
+        Main.assertNotFxThread();
 
         Map<String,Integer> visitCount = new HashMap<>();
 
@@ -299,7 +299,7 @@ public class TreeLayout{
      * @return the lowest indexed row in which to place c
      */
     private static int getColumnOfCellInRow(List<Integer> minRowUsedInCol, int cellRow){
-        Main.assertFxThread();
+        Main.assertNotFxThread();
         int col = 0;
         while(minRowUsedInCol.size() > col && (cellRow > minRowUsedInCol.get(col))){
             col++;
@@ -313,7 +313,7 @@ public class TreeLayout{
      * @param c the cell to move
      */
     public static void moveCell(Cell c){
-        Main.assertFxThread();
+        Main.assertNotFxThread();
         Platform.runLater(new Task<Void>(){
             @Override
             protected Void call(){
@@ -335,8 +335,10 @@ public class TreeLayout{
         });
     }
 
+    // This can get called from either a worker thread or from the FX thread. It's simply a trigger to tell it
+    // to stop moving cells around if there's a thread running that's doing this. Critical that the method is
+    // synchronized, as it ensures that the variable is not hit by more than one thread at a time.
     public static synchronized void stopMovingCells(){
-        Main.assertFxThread();
         movingCells = false;
     }
 

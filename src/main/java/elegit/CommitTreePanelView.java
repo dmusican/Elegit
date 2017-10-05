@@ -33,10 +33,11 @@ public class CommitTreePanelView extends Region{
      * @param treeGraph TreeGraph
      */
     private void initCommitTreeScrollPanes(TreeGraph treeGraph) {
+        Main.assertNotFxThread();
         ScrollPane sp = treeGraph.getScrollPane();
         sp.setOnMouseClicked(event -> CommitTreeController.handleMouseClicked());
-        getChildren().clear();
-        getChildren().add(anchorScrollPane(sp));
+        Platform.runLater(() -> getChildren().clear());
+        Platform.runLater(() -> getChildren().add(anchorScrollPane(sp)));
         isLayoutThreadRunning = false;
     }
 
@@ -47,11 +48,6 @@ public class CommitTreePanelView extends Region{
      * @param treeGraph the graph to be displayed
      */
     synchronized void displayTreeGraph(TreeGraph treeGraph, CommitHelper commitToFocusOnLoad){
-        if (!Platform.isFxApplicationThread()) {
-            System.out.println("Not in FX thread");
-            System.out.println(Arrays.toString(Thread.currentThread().getStackTrace()));
-        }
-
         initCommitTreeScrollPanes(treeGraph);
 
         // TODO: isLayoutThreadRunning may be unnecessary, but gitStatus uses it, at least for now

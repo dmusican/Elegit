@@ -88,7 +88,7 @@ public class CommitTreeModel{
      * and then adds all commits tracked by this model to the tree
      */
     public synchronized void init(){
-        Main.assertFxThread();
+        Main.assertNotFxThread();
         treeGraph = this.createNewTreeGraph();
 
         CommitTreeController.resetSelection();
@@ -103,7 +103,7 @@ public class CommitTreeModel{
     }
 
     public synchronized void update() throws GitAPIException, IOException {
-        Main.assertFxThread();
+        Main.assertNotFxThread();
         // Handles rare edge case with the RepositoryMonitor and removing repos
         if(this.sessionModel.getCurrentRepoHelper() != null){
             // Get the changes between this model and the repo after updating the repo
@@ -516,7 +516,7 @@ public class CommitTreeModel{
      * Updates the corresponding view if possible
      */
     public void updateView() throws IOException{
-        Main.assertFxThread();
+        Main.assertNotFxThread();
         if(this.sessionModel != null && this.sessionModel.getCurrentRepoHelper() != null){
             CommitTreeController.update(this);
         }else{
