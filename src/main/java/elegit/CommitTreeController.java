@@ -1,6 +1,7 @@
 package elegit;
 
 import elegit.controllers.SessionController;
+import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -216,12 +217,15 @@ public class CommitTreeController{
         BusyWindow.setLoadingText("B2");
         commitTreeModel.treeGraph.update();
 
+        Platform.runLater(() -> System.out.println("event 1"));
         BusyWindow.setLoadingText("B3");
         commitTreeModel.view.displayTreeGraph(commitTreeModel.treeGraph, commitTreeModel.sessionModel
                 .getCurrentRepoHelper().getBranchModel().getCurrentBranchHead());
+        Platform.runLater(() -> System.out.println("event 2"));
 
         BusyWindow.setLoadingText("B4");
         setBranchHeads(commitTreeModel, repo);
+        Platform.runLater(() -> System.out.println("event 3"));
         BusyWindow.setLoadingText("B5");
     }
 

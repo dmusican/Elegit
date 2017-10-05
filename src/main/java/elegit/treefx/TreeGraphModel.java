@@ -6,10 +6,7 @@ import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.scene.control.ContextMenu;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Thanks to RolandC for providing the base graph code structure:
@@ -271,11 +268,11 @@ public class TreeGraphModel{
         if(refs.size() > 0) cellsWithNonDefaultShapesOrLabels.add(cell);
     }
 
-    public void setCurrentCellLabels(String cellId, List<String> refs) {
+    public void setCurrentCellLabels(String cellId, HashSet<String> refs) {
         setCurrentCellLabels(cellMap.get(cellId), refs);
     }
 
-    public void setCurrentCellLabels(Cell cell, List<String> refs) {
+    public void setCurrentCellLabels(Cell cell, HashSet<String> refs) {
         cell.setCurrentLabels(refs);
     }
 

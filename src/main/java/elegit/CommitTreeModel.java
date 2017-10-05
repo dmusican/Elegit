@@ -3,6 +3,7 @@ package elegit;
 import elegit.exceptions.MissingRepoException;
 import elegit.treefx.*;
 import elegit.treefx.Cell;
+import javafx.application.Platform;
 import javafx.scene.control.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -561,6 +562,7 @@ public class CommitTreeModel{
      * Looks for all ref labels, then adds them to the commit tree graph
      */
     public void updateAllRefLabels() {
+        Main.assertNotFxThread();
         RepoHelper repo = sessionModel.getCurrentRepoHelper();
 
         List<RefHelper> refHelpers = new ArrayList<>();

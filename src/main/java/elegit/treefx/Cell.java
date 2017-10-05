@@ -1,6 +1,7 @@
 package elegit.treefx;
 
 import elegit.CommitTreeController;
+import elegit.Main;
 import elegit.RefHelper;
 import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
@@ -18,6 +19,7 @@ import javafx.scene.shape.Shape;
 import javafx.util.Duration;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -147,6 +149,7 @@ public class Cell extends Pane{
      * @param emphasize whether to have the Highlighter class emphasize this cell while it moves
      */
     void moveTo(double x, double y, boolean animate, boolean emphasize){
+        Main.assertFxThread();
         if(animate && numCellsBeingAnimated < MAX_NUM_CELLS_TO_ANIMATE){
             numCellsBeingAnimated++;
 
@@ -233,7 +236,7 @@ public class Cell extends Pane{
         this.refLabels.setLabels(refs, this);
     }
 
-    private void setCurrentRefLabels(List<String> refs) {
+    private void setCurrentRefLabels(HashSet<String> refs) {
         this.refLabels.setCurrentLabels(refs);
     }
 
@@ -242,7 +245,7 @@ public class Cell extends Pane{
         setRefLabels(refLabels);
     }
 
-    void setCurrentLabels(List<String> refLabels) {
+    void setCurrentLabels(HashSet<String> refLabels) {
         setCurrentRefLabels(refLabels);
     }
 

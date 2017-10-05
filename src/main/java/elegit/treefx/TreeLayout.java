@@ -16,6 +16,7 @@ import javafx.scene.text.Text;
 import javafx.scene.transform.Rotate;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Handles the layout of cells in a TreeGraph in an appropriate tree structure
@@ -40,13 +41,13 @@ public class TreeLayout{
     public static class CellMover {
         private int currentCell, max;
         private List<Cell> allCellsSortedByTime;
-        private IntegerProperty percent;
+        private AtomicInteger percent;
 
         public CellMover(List<Cell> allCellsSortedByTime) {
             Main.assertNotFxThread();
-            this.allCellsSortedByTime = allCellsSortedByTime;
+            this.allCellsSortedByTime = Collections.unmodifiableList(allCellsSortedByTime);
             this.max = allCellsSortedByTime.size()-1;
-            this.percent = new SimpleIntegerProperty(0);
+            this.percent = new AtomicInteger(0);
             this.currentCell = 0;
             movingCells = true;
         }
@@ -57,23 +58,26 @@ public class TreeLayout{
             Main.assertNotFxThread();
             // Try/catch is just in for debugging purposes, left because any
             // errors here are very hard to find without it
-            try {
-                for (int i = currentCell; i < currentCell + 10; i++) {
-                    if (i > allCellsSortedByTime.size() - 1) {
-                        percent.set(100);
-                        return;
-                    }
-                    moveCell(allCellsSortedByTime.get(i));
+            final int startCell = currentCell;
+            Platform.runLater( () -> {
+                try {
+                    for (int i = startCell; i < startCell + 10; i++) {
+                        if (i > allCellsSortedByTime.size() - 1) {
+                            percent.set(100);
+                            return;
+                        }
+                        ;
+                        moveCell(allCellsSortedByTime.get(i));
 
-                    // Update progress if need be
-                    if (i * 100.0 / max > percent.get() && percent.get() < 100) {
-                        percent.set(i * 100 / max);
+                        // Update progress if need be
+                        if (i * 100.0 / max > percent.get() && percent.get() < 100) {
+                            percent.set(i * 100 / max);
+                        }
                     }
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
-            }catch (Exception e) {
-                e.printStackTrace();
-            }
-
+            });
         }
     }
 
@@ -313,10 +317,7 @@ public class TreeLayout{
      * @param c the cell to move
      */
     public static void moveCell(Cell c){
-        Main.assertNotFxThread();
-        Platform.runLater(new Task<Void>(){
-            @Override
-            protected Void call(){
+        Main.assertFxThread();
                 boolean animate = c.getAnimate();
                 boolean useParentPosAsSource = c.getUseParentAsSource();
                 if(animate && useParentPosAsSource && c.getCellParents().size()>0){
@@ -330,9 +331,6 @@ public class TreeLayout{
 
                 c.moveTo(x, y, animate, animate && useParentPosAsSource);
 
-                return null;
-            }
-        });
     }
 
     // This can get called from either a worker thread or from the FX thread. It's simply a trigger to tell it

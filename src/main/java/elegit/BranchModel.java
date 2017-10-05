@@ -514,8 +514,8 @@ public class BranchModel {
     /**
      * @return a list of the current branches, useful for the ref labels
      */
-    public List<String> getCurrentAbbrevBranches() {
-        List<String> branches = new ArrayList<>();
+    public HashSet<String> getCurrentAbbrevBranches() {
+        HashSet<String> branches = new HashSet<>();
         for (BranchHelper branch : getAllBranches()) {
             if (isBranchCurrent(branch))
                 branches.add(branch.getAbbrevName());

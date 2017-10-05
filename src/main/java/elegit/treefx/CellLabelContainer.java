@@ -4,6 +4,8 @@ import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import elegit.RefHelper;
 import elegit.TagHelper;
+import io.reactivex.Observable;
+import io.reactivex.rxjavafx.schedulers.JavaFxScheduler;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
@@ -15,6 +17,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.transform.Rotate;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -144,14 +147,22 @@ public class CellLabelContainer extends GridPane {
      * Helper method to set the current cell labels
      * @param labels the labels that refer to the current refs
      */
-    void setCurrentLabels(List<String> labels) {
+    void setCurrentLabels(HashSet<String> labels) {
         Platform.runLater(() -> {
             for (Node m : getChildren()) {
                 if (m instanceof HBox) {
-                    for (Node n : ((HBox) m).getChildren()) {
-                        if (n instanceof CellLabel && labels.contains(((CellLabel) n).getLabel().getText()))
-                            ((CellLabel) n).setCurrent(true);
-                    }
+
+                    // Buffer them 10 at a time so as not to flood FX queue
+                    Observable.fromIterable(((HBox) m).getChildren())
+                            .buffer(10)
+                            .subscribe(nodes -> {
+                                Platform.runLater( () -> {
+                                    for (Node n : nodes) {
+                                        if (n instanceof CellLabel && labels.contains(((CellLabel) n).getLabel().getText()))
+                                            ((CellLabel) n).setCurrent(true);
+                                    }
+                                });
+                            }, Throwable::printStackTrace);
                 }
             }
         });
