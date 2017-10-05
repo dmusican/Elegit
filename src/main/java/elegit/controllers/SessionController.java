@@ -63,6 +63,7 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
@@ -162,6 +163,8 @@ public class SessionController {
     private static final String LOGGING_LEVEL_KEY="LOGGING_LEVEL";
 
     public static final Subject<ActionEvent> normalFetchRequests = PublishSubject.create();
+
+    public static final Object globalLock = new Object();
 
     /**
      * Initializes the environment by obtaining the model
@@ -780,21 +783,22 @@ public class SessionController {
         return false;
     }
 
-    // TODO: side effects, make sure to synchronize properly
-    private synchronized List<Result> loadRepo (Optional<RepoHelperBuilder.AuthDialogResponse> responseOptional,
+    private List<Result> loadRepo (Optional<RepoHelperBuilder.AuthDialogResponse> responseOptional,
                                                 RepoHelper repoHelper) {
-        Main.assertNotFxThread();
-        List<Result> results = new ArrayList<>();
-        try {
-            responseOptional.ifPresent(response ->
-                    repoHelper.ownerAuth =
-                            new UsernamePasswordCredentialsProvider(response.username, response.password)
-            );
-            theModel.openRepoFromHelper(repoHelper);
-        } catch (Exception e) {
-            results.add(new Result(ResultStatus.EXCEPTION, ResultOperation.LOAD, e));
+        synchronized (globalLock) {
+            Main.assertNotFxThread();
+            List<Result> results = new ArrayList<>();
+            try {
+                responseOptional.ifPresent(response ->
+                        repoHelper.ownerAuth =
+                                new UsernamePasswordCredentialsProvider(response.username, response.password)
+                );
+                theModel.openRepoFromHelper(repoHelper);
+            } catch (Exception e) {
+                results.add(new Result(ResultStatus.EXCEPTION, ResultOperation.LOAD, e));
+            }
+            return results;
         }
-        return results;
     }
 
 
@@ -877,37 +881,39 @@ public class SessionController {
      * TODO: Make sure this gets appropriately synchronized
      */
     private List<Result> addOperation() {
-        Main.assertNotFxThread();
+        synchronized (globalLock) {
+            Main.assertNotFxThread();
 
-        ArrayList<Result> results = new ArrayList<>();
-        try {
-            ArrayList<Path> filePathsToAdd = new ArrayList<>();
-            ArrayList<Path> filePathsToRemove = new ArrayList<>();
+            ArrayList<Result> results = new ArrayList<>();
+            try {
+                ArrayList<Path> filePathsToAdd = new ArrayList<>();
+                ArrayList<Path> filePathsToRemove = new ArrayList<>();
 
-            // Try to add all files, throw exception if there are ones that can't be added
-            if (workingTreePanelView.isSelectAllChecked()) {
-                filePathsToAdd.add(Paths.get("."));
-            } else {
-                for (RepoFile checkedFile : workingTreePanelView.getCheckedFilesInDirectory()) {
-                    if (checkedFile.canAdd()) {
-                        filePathsToAdd.add(checkedFile.getFilePath());
-                    } else if (checkedFile instanceof MissingRepoFile) {
-                        // JGit does not support adding missing files, instead remove them
-                        filePathsToRemove.add(checkedFile.getFilePath());
-                    } else {
-                        throw new UnableToAddException(checkedFile.filePath.toString());
+                // Try to add all files, throw exception if there are ones that can't be added
+                if (workingTreePanelView.isSelectAllChecked()) {
+                    filePathsToAdd.add(Paths.get("."));
+                } else {
+                    for (RepoFile checkedFile : workingTreePanelView.getCheckedFilesInDirectory()) {
+                        if (checkedFile.canAdd()) {
+                            filePathsToAdd.add(checkedFile.getFilePath());
+                        } else if (checkedFile instanceof MissingRepoFile) {
+                            // JGit does not support adding missing files, instead remove them
+                            filePathsToRemove.add(checkedFile.getFilePath());
+                        } else {
+                            throw new UnableToAddException(checkedFile.filePath.toString());
+                        }
                     }
                 }
-            }
 
-            if (filePathsToAdd.size() > 0)
-                theModel.getCurrentRepoHelper().addFilePaths(filePathsToAdd);
-            if (filePathsToRemove.size() > 0)
-                theModel.getCurrentRepoHelper().removeFilePaths(filePathsToRemove);
-        } catch (Exception e) {
-            results.add(new Result(ResultOperation.ADD, e));
+                if (filePathsToAdd.size() > 0)
+                    theModel.getCurrentRepoHelper().addFilePaths(filePathsToAdd);
+                if (filePathsToRemove.size() > 0)
+                    theModel.getCurrentRepoHelper().removeFilePaths(filePathsToRemove);
+            } catch (Exception e) {
+                results.add(new Result(ResultOperation.ADD, e));
+            }
+            return results;
         }
-        return results;
     }
     /**
      * Removes all files from staging area that are selected if they can be removed
@@ -1326,27 +1332,29 @@ public class SessionController {
 
     private List<Result> pushBranchOrAllDetails(Optional<RepoHelperBuilder.AuthDialogResponse> responseOptional, PushType pushType,
                                         PushCommand push) {
-        Main.assertNotFxThread();
+        synchronized (globalLock) {
+            Main.assertNotFxThread();
 
-        List<Result> results = new ArrayList<>();
-        try{
-            RepositoryMonitor.resetFoundNewChanges();
-            RepoHelper helper = theModel.getCurrentRepoHelper();
-            responseOptional.ifPresent(response ->
-                    helper.ownerAuth =
-                            new UsernamePasswordCredentialsProvider(response.username, response.password)
-            );
-            if (pushType == PushType.BRANCH) {
-                helper.pushCurrentBranch(push);
-            } else if (pushType == PushType.ALL) {
-                helper.pushAll(push);
-            } else {
-                assert false : "PushType enum case not handled";
+            List<Result> results = new ArrayList<>();
+            try {
+                RepositoryMonitor.resetFoundNewChanges();
+                RepoHelper helper = theModel.getCurrentRepoHelper();
+                responseOptional.ifPresent(response ->
+                        helper.ownerAuth =
+                                new UsernamePasswordCredentialsProvider(response.username, response.password)
+                );
+                if (pushType == PushType.BRANCH) {
+                    helper.pushCurrentBranch(push);
+                } else if (pushType == PushType.ALL) {
+                    helper.pushAll(push);
+                } else {
+                    assert false : "PushType enum case not handled";
+                }
+            } catch (Exception e) {
+                results.add(new Result(ResultStatus.EXCEPTION, ResultOperation.PUSH, e));
             }
-        } catch(Exception e) {
-            results.add(new Result(ResultStatus.EXCEPTION, ResultOperation.PUSH, e));
+            return results;
         }
-        return results;
     }
 
     private RepoHelperBuilder.AuthDialogResponse askUserForCredentials() throws CancelledAuthorizationException {
@@ -1923,29 +1931,30 @@ public class SessionController {
      * when it all comes back.
      * Equivalent to `git fetch`
      */
-    // TODO: This method has various side effects below, important to have it synchronized properly across all classes
-    private synchronized List<Result> gitFetch(Optional<RepoHelperBuilder.AuthDialogResponse> responseOptional, boolean prune, boolean pull) {
-        Main.assertNotFxThread();
+    private List<Result> gitFetch(Optional<RepoHelperBuilder.AuthDialogResponse> responseOptional, boolean prune, boolean pull) {
+        synchronized(globalLock) {
+            Main.assertNotFxThread();
 
-        List<Result> results = new ArrayList<>();
-        try {
-            RepositoryMonitor.resetFoundNewChanges();
-            RepoHelper helper = theModel.getCurrentRepoHelper();
-            responseOptional.ifPresent(response ->
-                    helper.ownerAuth =
-                            new UsernamePasswordCredentialsProvider(response.username, response.password)
-            );
-            if (!helper.fetch(prune)) {
-                results.add(new Result(ResultStatus.NOCOMMITS, ResultOperation.FETCH));
+            List<Result> results = new ArrayList<>();
+            try {
+                RepositoryMonitor.resetFoundNewChanges();
+                RepoHelper helper = theModel.getCurrentRepoHelper();
+                responseOptional.ifPresent(response ->
+                        helper.ownerAuth =
+                                new UsernamePasswordCredentialsProvider(response.username, response.password)
+                );
+                if (!helper.fetch(prune)) {
+                    results.add(new Result(ResultStatus.NOCOMMITS, ResultOperation.FETCH));
+                }
+                if (pull) {
+                    mergeOperation(helper);
+                }
+            } catch (Exception e) {
+                results.add(new Result(ResultStatus.EXCEPTION, ResultOperation.FETCH, e));
             }
-            if (pull) {
-                mergeOperation(helper);
-            }
-        } catch (Exception e) {
-            results.add(new Result(ResultStatus.EXCEPTION, ResultOperation.FETCH, e));
+
+            return results;
         }
-
-        return results;
     }
 
     private void gitOperationShowResults(NotificationController nc, List<Result> results) {
@@ -2163,19 +2172,20 @@ public class SessionController {
         if (repoHelper.getBehindCount() < 1) throw new NoCommitsToMergeException();
     }
 
-    // TODO: needs to be synchronized in the same way that gitFetch is
     private List<Result> mergeOperation(RepoHelper repoHelper) {
-        Main.assertNotFxThread();
+        synchronized (globalLock) {
+            Main.assertNotFxThread();
 
-        ArrayList<Result> results = new ArrayList<>();
-        try {
-            if (!repoHelper.mergeFromFetch().isSuccessful()) {
-                results.add(new Result(ResultStatus.MERGE_FAILED, ResultOperation.MERGE));
+            ArrayList<Result> results = new ArrayList<>();
+            try {
+                if (!repoHelper.mergeFromFetch().isSuccessful()) {
+                    results.add(new Result(ResultStatus.MERGE_FAILED, ResultOperation.MERGE));
+                }
+            } catch (Exception e) {
+                results.add(new Result(ResultOperation.MERGE, e));
             }
-        } catch (Exception e) {
-            results.add(new Result(ResultOperation.MERGE,e));
+            return results;
         }
-        return results;
     }
 
 
@@ -2358,28 +2368,31 @@ public class SessionController {
      * to 'git status'
      */
     public void gitStatus() {
-        Main.assertFxThread();
+        synchronized (globalLock) {
+            Main.assertFxThread();
 
-        RepositoryMonitor.pause();
+            RepositoryMonitor.pause();
 
-        // If the layout is still going, don't run
-        if (commitTreePanelView.isLayoutThreadRunning) {
-            RepositoryMonitor.unpause();
-            return;
-        }
-        try{
-            theModel.getCurrentRepoHelper().getBranchModel().updateAllBranches();
-            commitTreeModel.update();
-            workingTreePanelView.drawDirectoryView();
-            allFilesPanelView.drawDirectoryView();
-            indexPanelView.drawDirectoryView();
-            this.theModel.getCurrentRepoHelper().getTagModel().updateTags();
-            updateStatusText();
-        } catch(Exception e) {
-            showGenericErrorNotification();
-            e.printStackTrace();
-        } finally{
-            RepositoryMonitor.unpause();
+            // If the layout is still going, don't run
+            if (commitTreePanelView.isLayoutThreadRunning) {
+                RepositoryMonitor.unpause();
+                return;
+            }
+            try {
+                theModel.getCurrentRepoHelper().getBranchModel().updateAllBranches();
+                commitTreeModel.update();
+                workingTreePanelView.drawDirectoryView();
+                allFilesPanelView.drawDirectoryView();
+                indexPanelView.drawDirectoryView();
+                this.theModel.getCurrentRepoHelper().getTagModel().updateTags();
+                updateStatusText();
+            } catch (Exception e) {
+                showGenericErrorNotification();
+                e.printStackTrace();
+            } finally {
+                RepositoryMonitor.unpause();
+
+            }
         }
     }
 
