@@ -1,7 +1,6 @@
 package elegit.treefx;
 
 import elegit.CommitTreeController;
-import elegit.Main;
 import elegit.RefHelper;
 import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
@@ -62,7 +61,7 @@ public class Cell extends Pane{
 
     private ContextMenu contextMenu;
 
-    private CellLabelContainer refLabel;
+    private CellLabelContainer refLabels;
 
     private boolean animate;
 
@@ -98,7 +97,7 @@ public class Cell extends Pane{
         this.cellId = cellId;
         this.time = time;
         this.parents = new ParentCell(this, parents);
-        this.refLabel = new CellLabelContainer();
+        this.refLabels = new CellLabelContainer();
         this.type = type;
 
         setShape(DEFAULT_SHAPE);
@@ -174,10 +173,10 @@ public class Cell extends Pane{
             setTranslateX(x);
             setTranslateY(y+BOX_SHIFT);
         }
-        this.refLabel.translate(x,y);
+        this.refLabels.translate(x,y);
         this.hasUpdatedPosition.set(true);
-        if (!this.refLabel.isVisible())
-            this.refLabel.setVisible(true);
+        if (!this.refLabels.isVisible())
+            this.refLabels.setVisible(true);
     }
 
     /**
@@ -226,21 +225,21 @@ public class Cell extends Pane{
      * Sets the tooltip to display the given text
      * @param label the text to display
      */
-    private void setDisplayLabel(String label){
+    private void setCommitDescriptor(String label){
         tooltip.setText(label);
     }
 
-    private void setRefLabel(List<RefHelper> refs){
-        this.refLabel.setLabels(refs, this);
+    private void setRefLabels(List<RefHelper> refs){
+        this.refLabels.setLabels(refs, this);
     }
 
     private void setCurrentRefLabels(List<String> refs) {
-        this.refLabel.setCurrentLabels(refs);
+        this.refLabels.setCurrentLabels(refs);
     }
 
-    void setLabels(String displayLabel, List<RefHelper> refLabels){
-        setDisplayLabel(displayLabel);
-        setRefLabel(refLabels);
+    void setLabels(String commitDescriptor, List<RefHelper> refLabels){
+        setCommitDescriptor(commitDescriptor);
+        setRefLabels(refLabels);
     }
 
     void setCurrentLabels(List<String> refLabels) {
@@ -248,11 +247,11 @@ public class Cell extends Pane{
     }
 
     void setLabelMenus(Map<RefHelper, ContextMenu> menuMap) {
-        this.refLabel.setLabelMenus(menuMap);
+        this.refLabels.setLabelMenus(menuMap);
     }
 
     void setRemoteLabels(List<String> branchLabels) {
-        this.refLabel.setRemoteLabels(branchLabels);
+        this.refLabels.setRemoteLabels(branchLabels);
     }
 
     void setAnimate(boolean animate) {this.animate = animate;}
@@ -364,7 +363,7 @@ public class Cell extends Pane{
         return time;
     }
 
-    public Node getLabel() { return this.refLabel; }
+    public Node getLabel() { return this.refLabels; }
 
     @Override
     public String toString(){

@@ -253,21 +253,21 @@ public class TreeGraphModel{
     /**
      * Sets the label for the cell with the given ID to be the given string
      * @param cellId the id of the cell to label
-     * @param label the new label
+     * @param commitDescriptor the new commit descriptor
      * @param refs the branch names to include on the label
      */
-    public void setCellLabels(String cellId, String label, List<RefHelper> refs){
-        setCellLabels(cellMap.get(cellId), label, refs);
+    public void setCellLabels(String cellId, String commitDescriptor, List<RefHelper> refs){
+        setCellLabels(cellMap.get(cellId), commitDescriptor, refs);
     }
 
     /**
      * Sets the labels for a given cell
      * @param cell the cell to set labels for
-     * @param label the labels to put on the cell
+     * @param commitDescriptor the labels to put on the cell
      * @param refs the list of refs to add
      */
-    private void setCellLabels(Cell cell, String label, List<RefHelper> refs){
-        cell.setLabels(label, refs);
+    private void setCellLabels(Cell cell, String commitDescriptor, List<RefHelper> refs){
+        cell.setLabels(commitDescriptor, refs);
         if(refs.size() > 0) cellsWithNonDefaultShapesOrLabels.add(cell);
     }
 

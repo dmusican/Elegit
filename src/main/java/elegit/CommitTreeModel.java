@@ -581,6 +581,7 @@ public class CommitTreeModel{
         for (RemoteBranchHelper helper : remotes) {
             remoteBranches.add(helper.getRefName());
         }
+        BusyWindow.setLoadingText("D1");
 
         // Set the labels
         for (String commit : commitLabelMap.keySet()) {
@@ -590,14 +591,15 @@ public class CommitTreeModel{
                     //System.out.println("Does not yet contain "+commit);
                     continue;
                 }
-                String displayLabel = repo.getCommitDescriptorString(commit, false);
-                treeGraph.treeGraphModel.setCellLabels(commit, displayLabel, commitLabelMap.get(commit));
+                String commitDescriptor = repo.getCommitDescriptorString(commit, false);
+                treeGraph.treeGraphModel.setCellLabels(commit, commitDescriptor, commitLabelMap.get(commit));
                 treeGraph.treeGraphModel.setCurrentCellLabels(commit, this.sessionModel.getCurrentRepoHelper().getBranchModel().getCurrentAbbrevBranches());
 
                 treeGraph.treeGraphModel.setLabelMenus(commit, menuMap);
                 treeGraph.treeGraphModel.setRemoteBranchCells(commit, remoteBranches);
             }
         }
+        BusyWindow.setLoadingText("D2");
     }
 
     private void addCommitRefMaps(List<RefHelper> helpers, Map<String, List<RefHelper>> commitLabelMap,
