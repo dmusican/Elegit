@@ -1,6 +1,9 @@
 package elegit.treefx;
 
+import elegit.BusyWindow;
 import elegit.Main;
+import io.reactivex.Observable;
+import io.reactivex.rxjavafx.schedulers.JavaFxScheduler;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
@@ -86,18 +89,30 @@ public class TreeGraph{
                 moreToAdd.add(((Cell)n).getLabel());
         }
 
-        Platform.runLater(() -> cellLayer.getChildren().addAll(queuedToAdd));
-        Platform.runLater(() -> cellLayer.getChildren().addAll(moreToAdd));
-
         // remove components from treeGraph pane
         for (Node n:queuedToRemove) {
             if (n instanceof Cell)
                 moreToRemove.add(((Cell)n).getLabel());
         }
-        Platform.runLater(() -> cellLayer.getChildren().removeAll(moreToRemove));
-        Platform.runLater(() -> cellLayer.getChildren().removeAll(queuedToRemove));
-        //cellLayer.getChildren().removeAll(moreToRemove);
-        //cellLayer.getChildren().removeAll(queuedToRemove);
+
+        // Emit 10 at a time, so as to leave space in the FX thread for other events, but not individually
+        // so as not to over do it
+        Observable.concat(Observable.fromIterable(queuedToAdd),
+                Observable.fromIterable(moreToAdd))
+                .buffer(10)
+                .observeOn(JavaFxScheduler.platform())
+                .subscribe(cellsToAdd -> {
+                    cellLayer.getChildren().addAll(cellsToAdd);
+                });
+
+        Observable.concat(Observable.fromIterable(moreToRemove),
+                Observable.fromIterable(queuedToRemove))
+                .buffer(10)
+                .observeOn(JavaFxScheduler.platform())
+                .subscribe(cellsToAdd -> {
+                    cellLayer.getChildren().removeAll(cellsToAdd);
+                });
+
     }
 
     Pane getCellLayerPane() {

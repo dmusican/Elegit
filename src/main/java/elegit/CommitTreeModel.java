@@ -112,19 +112,21 @@ public class CommitTreeModel{
 
             if (!updates.hasChanges()) return;
 
-
+            BusyWindow.setLoadingText("A1");
             this.removeCommitsFromTree(updates.getCommitsToRemove());
             this.addCommitsToTree(updates.getCommitsToAdd());
             this.updateCommitFills(updates.getCommitsToUpdate());  // SLOW
+            BusyWindow.setLoadingText("A2");
             this.sessionModel.getCurrentRepoHelper().getBranchModel().updateAllBranches();
+            BusyWindow.setLoadingText("A3");
             this.resetBranchHeads();
+            BusyWindow.setLoadingText("A4");
             this.updateAllRefLabels(); // SLOW
-
+            BusyWindow.setLoadingText("A5");
             TreeLayout.stopMovingCells();
-            /////////////////////
-            long timeStart = System.currentTimeMillis();
+            BusyWindow.setLoadingText("A6");
             this.updateView();  // SLOW
-            long timeStop = System.currentTimeMillis(); Main.timeSpent += (timeStop - timeStart);
+            BusyWindow.setLoadingText("A7");
             System.out.println(Main.timeSpent);
         }
     }

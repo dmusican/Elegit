@@ -2405,12 +2405,19 @@ public class SessionController {
                         }
                         try {
                             theModel.getCurrentRepoHelper().getBranchModel().updateAllBranches();
+                            BusyWindow.setLoadingText("2");
                             commitTreeModel.update();
+                            BusyWindow.setLoadingText("3");
                             workingTreePanelView.drawDirectoryView();
+                            BusyWindow.setLoadingText("4");
                             allFilesPanelView.drawDirectoryView();
+                            BusyWindow.setLoadingText("5");
                             indexPanelView.drawDirectoryView();
+                            BusyWindow.setLoadingText("6");
                             this.theModel.getCurrentRepoHelper().getTagModel().updateTags();
+                            BusyWindow.setLoadingText("7");
                             updateStatusText();
+                            BusyWindow.setLoadingText("8");  /////
 
                         } catch (Exception e) {
                             showGenericErrorNotification();

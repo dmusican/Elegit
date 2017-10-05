@@ -210,14 +210,19 @@ public class CommitTreeController{
      */
     public static void update(CommitTreeModel commitTreeModel){
         Main.assertNotFxThread();
+        BusyWindow.setLoadingText("B1");
         RepoHelper repo = commitTreeModel.sessionModel.getCurrentRepoHelper();
 
+        BusyWindow.setLoadingText("B2");
         commitTreeModel.treeGraph.update();
 
+        BusyWindow.setLoadingText("B3");
         commitTreeModel.view.displayTreeGraph(commitTreeModel.treeGraph, commitTreeModel.sessionModel
                 .getCurrentRepoHelper().getBranchModel().getCurrentBranchHead());
 
+        BusyWindow.setLoadingText("B4");
         setBranchHeads(commitTreeModel, repo);
+        BusyWindow.setLoadingText("B5");
     }
 
     /**
