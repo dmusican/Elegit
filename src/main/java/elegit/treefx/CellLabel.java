@@ -27,6 +27,12 @@ public class CellLabel extends HBox {
     private ContextMenu contextMenu;
     public static final int MAX_CHAR_PER_LABEL=25;
 
+    private static Image tagImage = new Image("elegit/images/tag.png");
+    private static Image currentImage = new Image("elegit/images/branch_white.png");
+    private static Image remoteImage = new Image("elegit/images/remote.png");
+    private static Image remoteWhiteImage = new Image("elegit/images/remote_white.png");
+    private static Image otherImage = new Image("elegit/images/branch.png");
+
     CellLabel(RefHelper refHelper, boolean isCurrent) {
         this(refHelper, isCurrent, false);
     }
@@ -86,7 +92,8 @@ public class CellLabel extends HBox {
      * @return the imageView with the correct image
      */
     protected ImageView getImage() {
-        image = new ImageView(new Image(isTag ? "elegit/images/tag.png" : isCurrent ? "elegit/images/branch_white.png" : "elegit/images/branch.png"));
+        //image = new ImageView(new Image(isTag ? "elegit/images/tag.png" : isCurrent ? "elegit/images/branch_white.png" : "elegit/images/branch.png"));
+        image = new ImageView(isTag ? tagImage : isCurrent ? currentImage : otherImage);
         image.setFitHeight(15);
         image.setPreserveRatio(true);
         return image;
@@ -142,7 +149,8 @@ public class CellLabel extends HBox {
         this.isCurrent = current;
 
         this.getChildren().get(1).setId(isCurrent ? "current" : "regular");
-        ((ImageView) this.getChildren().get(2)).setImage(new Image(isCurrent ? "elegit/images/branch_white.png" : "elegit/images/branch.png"));
+//        ((ImageView) this.getChildren().get(2)).setImage(new Image(isCurrent ? "elegit/images/branch_white.png" : "elegit/images/branch.png"));
+        ((ImageView) this.getChildren().get(2)).setImage(isCurrent ? currentImage : otherImage);
         pointer.setFill(Color.web(isCurrent ? "#FFFFFF" : "333333"));
         this.setId(isCurrent ? "current" : isTag ? "tag" : "regular");
     }
@@ -154,7 +162,8 @@ public class CellLabel extends HBox {
     void setTag(boolean tag) {
         this.isTag = tag;
 
-        ((ImageView) this.getChildren().get(2)).setImage(new Image(isTag ? "elegit/images/tag.png" : "elegit/images/branch.png"));
+        //((ImageView) this.getChildren().get(2)).setImage(new Image(isTag ? "elegit/images/tag.png" : "elegit/images/branch.png"));
+        ((ImageView) this.getChildren().get(2)).setImage(isTag ? tagImage : otherImage);
         this.setId(isCurrent ? "current" : isTag ? "tag" : "regular");
     }
 
@@ -165,19 +174,33 @@ public class CellLabel extends HBox {
     /**
      * Refreshes the icon based on various boolean values
      */
+//    private void refreshIcon() {
+//        String image = "elegit/images/";
+//        if (isTag) {
+//            image += "tag.png";
+//        } else if (isCurrent) {
+//            if (isRemote)
+//                image += "remote_white.png";
+//            else
+//                image += "remote.png";
+//        } else {
+//            image += "branch.png";
+//        }
+//        ((ImageView) this.getChildren().get(2)).setImage(new Image(image));
+//    }
     private void refreshIcon() {
-        String image = "elegit/images/";
+        Image image;
         if (isTag) {
-            image += "tag.png";
+            image = tagImage;
         } else if (isCurrent) {
             if (isRemote)
-                image += "remote_white.png";
+                image = remoteWhiteImage;
             else
-                image += "remote.png";
+                image = remoteImage;
         } else {
-            image += "branch.png";
+            image = otherImage;
         }
-        ((ImageView) this.getChildren().get(2)).setImage(new Image(image));
+        ((ImageView) this.getChildren().get(2)).setImage(image);
     }
 
     RefHelper getRefHelper() {
