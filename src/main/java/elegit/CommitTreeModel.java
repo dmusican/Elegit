@@ -615,6 +615,7 @@ public class CommitTreeModel{
         BusyWindow.setLoadingText("D1");
 
         // Set the labels
+        HashSet<String> currentAbbrevBranches = this.sessionModel.getCurrentRepoHelper().getBranchModel().getCurrentAbbrevBranches();
         for (String commit : commitLabelMap.keySet()) {
             if(this.sessionModel.getCurrentRepoHelper().getCommit(commit) != null) {
                 if (!treeGraph.treeGraphModel.containsID(commit)) {
@@ -624,7 +625,7 @@ public class CommitTreeModel{
                 }
                 String commitDescriptor = repo.getCommitDescriptorString(commit, false);
                 treeGraph.treeGraphModel.setCellLabels(commit, commitDescriptor, commitLabelMap.get(commit));
-                treeGraph.treeGraphModel.setCurrentCellLabels(commit, this.sessionModel.getCurrentRepoHelper().getBranchModel().getCurrentAbbrevBranches());
+                treeGraph.treeGraphModel.setCurrentCellLabels(commit, currentAbbrevBranches);
 
                 treeGraph.treeGraphModel.setLabelMenus(commit, menuMap);
                 treeGraph.treeGraphModel.setRemoteBranchCells(commit, remoteBranches);

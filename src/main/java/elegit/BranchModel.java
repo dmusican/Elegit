@@ -468,19 +468,12 @@ public class BranchModel {
             if(heads.containsKey(head)){
                 heads.get(head).add(branch);
             }else{
-                heads.put(head, Stream.of(branch).collect(Collectors.toList()));
+                List<BranchHelper> helpers = new ArrayList<>();
+                helpers.add(branch);
+                heads.put(head, helpers);
             }
         }
         return heads;
-    }
-
-    /**
-     * Gets a list of names of branches that have the given commit id as their head
-     * @param commitId the commit id to look at
-     * @return a list of names of branches that have the given commit id as their head
-     */
-    public List<String> getBranchesWithHead(String commitId) {
-        return getBranchesWithHead(this.repoHelper.getCommit(commitId));
     }
 
     /**
@@ -497,18 +490,6 @@ public class BranchModel {
                     .collect(Collectors.toList());
         }
         return branchLabels;
-    }
-
-    /**
-     * @return a list of the current branches, useful for the ref labels
-     */
-    public List<String> getCurrentBranches() {
-        List<String> branches = new ArrayList<>();
-        for (BranchHelper branch : getAllBranches()) {
-            if (isBranchCurrent(branch))
-                branches.add(branch.getRefName());
-        }
-        return branches;
     }
 
     /**

@@ -16,10 +16,12 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
 import org.eclipse.jgit.ignore.IgnoreNode;
 import org.eclipse.jgit.lib.*;
+import org.eclipse.jgit.revplot.PlotCommit;
 import org.eclipse.jgit.revplot.PlotCommitList;
 import org.eclipse.jgit.revplot.PlotLane;
 import org.eclipse.jgit.revplot.PlotWalk;
 import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.revwalk.RevCommitList;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.transport.*;
 import org.eclipse.jgit.treewalk.TreeWalk;
@@ -1343,22 +1345,41 @@ public class RepoHelper {
      * @throws IOException
      */
     private PlotCommitList<PlotLane> parseAllRawLocalCommits() throws IOException, GitAPIException {
-        ObjectId headId = repo.resolve("HEAD");
-        if (headId == null) return new PlotCommitList<>();
-        List<ObjectId> examinedCommitIDs = new ArrayList<>();
-        PlotCommitList<PlotLane> rawLocalCommits = parseRawCommits(headId, examinedCommitIDs);
-        examinedCommitIDs.add(headId);
-
+        Set<ObjectId> allStarts = new HashSet<ObjectId>();
+        allStarts.add(repo.resolve("HEAD"));
         List<LocalBranchHelper> branches = this.branchModel.getLocalBranchesTyped();
         for (BranchHelper branch : branches) {
             ObjectId branchId = branch.getHeadId();
-            PlotCommitList<PlotLane> toAdd = parseRawCommits(branchId, examinedCommitIDs);
-            if (toAdd.size() > 0) {
-                rawLocalCommits.addAll(toAdd);
-                examinedCommitIDs.add(toAdd.get(0).getId());
-            }
+            allStarts.add(branchId);
         }
+        PlotCommitList<PlotLane> rawLocalCommits = parseRawCommitsMultipleStarts(allStarts);
+
         return rawLocalCommits;
+//
+//
+//        ObjectId headId = repo.resolve("HEAD");
+//        if (headId == null) return new PlotCommitList<>();
+//        List<ObjectId> examinedCommitIDs = new ArrayList<>();
+//        PlotCommitList<PlotLane> rawLocalCommits = parseRawCommits(headId, examinedCommitIDs);
+//        for (PlotCommit<PlotLane> commit : rawLocalCommits) {
+//            examinedCommitIDs.add(commit.getId());
+//        }
+//        //examinedCommitIDs.add(headId);
+//
+//        List<LocalBranchHelper> branches = this.branchModel.getLocalBranchesTyped();
+//        for (BranchHelper branch : branches) {
+//            ObjectId branchId = branch.getHeadId();
+//            PlotCommitList<PlotLane> toAdd = parseRawCommits(branchId, examinedCommitIDs);
+//            for (PlotCommit<PlotLane> commit : toAdd) {
+//                examinedCommitIDs.add(commit.getId());
+//            }
+//            if (toAdd.size() > 0) {
+//                rawLocalCommits.addAll(toAdd);
+////                examinedCommitIDs.add(toAdd.get(0).getId());
+//            }
+//        }
+//
+//        return rawLocalCommits;
     }
 
     /**
@@ -1370,19 +1391,54 @@ public class RepoHelper {
      * @throws IOException
      */
     private PlotCommitList<PlotLane> parseAllRawRemoteCommits() throws IOException, GitAPIException {
-        List<ObjectId> examinedCommitIDs = new ArrayList<>();
-        PlotCommitList<PlotLane> rawRemoteCommits = new PlotCommitList<>();
+//        List<ObjectId> examinedCommitIDs = new ArrayList<>();
+//        PlotCommitList<PlotLane> rawRemoteCommits = new PlotCommitList<>();
+//
+//        for (BranchHelper branch : this.branchModel.getRemoteBranchesTyped()) {
+//            ObjectId branchId = branch.getHeadId();
+//            PlotCommitList<PlotLane> toAdd = parseRawCommits(branchId, examinedCommitIDs);
+//            if (toAdd.size() > 0) {
+//                rawRemoteCommits.addAll(toAdd);
+//                examinedCommitIDs.add(toAdd.get(0).getId());
+//            }
+//        }
+//        return rawRemoteCommits;
 
-        for (BranchHelper branch : this.branchModel.getRemoteBranchesTyped()) {
+        Set<ObjectId> allStarts = new HashSet<ObjectId>();
+        List<RemoteBranchHelper> branches = this.branchModel.getRemoteBranchesTyped();
+        for (BranchHelper branch : branches) {
             ObjectId branchId = branch.getHeadId();
-            PlotCommitList<PlotLane> toAdd = parseRawCommits(branchId, examinedCommitIDs);
-            if (toAdd.size() > 0) {
-                rawRemoteCommits.addAll(toAdd);
-                examinedCommitIDs.add(toAdd.get(0).getId());
-            }
+            allStarts.add(branchId);
         }
-        return rawRemoteCommits;
+        return parseRawCommitsMultipleStarts(allStarts);
     }
+
+    /**
+     * Utilizes JGit to walk through the repo and create raw commit objects - more
+     * specifically, JGit objects of (super)type RevCommit. This is an expensive
+     * operation and should only be called when necessary
+     *
+     * @param startPoints the starting ids to parse from
+     * @param stopPoints  the ids at which parsing should stop
+     * @return a list of raw commits starting from each id in startPoints, excluding those beyond each id in stopPoints
+     * @throws IOException
+     */
+    private PlotCommitList<PlotLane> parseRawCommitsMultipleStarts(Set<ObjectId> allStarts) throws IOException {
+        PlotWalk w = new PlotWalk(repo);
+        Set<RevCommit> allStartCommits = new HashSet<>();
+        for (ObjectId start : allStarts) {
+            allStartCommits.add(w.parseCommit(start));
+        }
+        w.markStart(allStartCommits);
+
+        PlotCommitList<PlotLane> commitsFound = new PlotCommitList<>();
+        commitsFound.source(w);
+        commitsFound.fillTo(Integer.MAX_VALUE);
+        w.dispose();
+
+        return commitsFound;
+    }
+
 
     /**
      * Utilizes JGit to walk through the repo and create raw commit objects - more
@@ -1411,7 +1467,6 @@ public class RepoHelper {
 
             plotCommitList.addAll(temp);
         }
-
         w.dispose();
 
         return plotCommitList;
