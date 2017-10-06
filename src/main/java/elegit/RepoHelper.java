@@ -1110,10 +1110,11 @@ public class RepoHelper {
      * @return the label for the commit
      */
     public String getCommitDescriptorString(CommitHelper commitHelper, boolean fullCommitMessage){
-        return "Commit ID: " + commitHelper.getId().substring(0, 8) + "\n\n"
-                + "Author: " +  commitHelper.getAuthorName() + "\n\n"
-                + "Time: " + commitHelper.getFormattedWhen() + "\n\n"
-                + "Message: " + commitHelper.getMessage(fullCommitMessage);
+        return String.format("Commit ID: %s\n\nAuthor: %s\n\nTime: %s\n\nMessage: %s",
+                commitHelper.getId().substring(0,8),
+                commitHelper.getAuthorName(),
+                commitHelper.getFormattedWhen(),
+                commitHelper.getMessage(fullCommitMessage));
     }
 
     /**
