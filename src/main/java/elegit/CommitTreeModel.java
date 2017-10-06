@@ -11,10 +11,7 @@ import org.eclipse.jgit.api.ResetCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -246,8 +243,7 @@ public class CommitTreeModel{
         Main.timeSpent = 0;
 
         for(CommitHelper curCommitHelper : commits){
-            List<CommitHelper> parents = curCommitHelper.getParents();
-            this.addCommitToTree(curCommitHelper, parents, treeGraph.treeGraphModel);
+            this.addCommitToTree(curCommitHelper, treeGraph.treeGraphModel);
         }
         return true;
     }
@@ -279,38 +275,72 @@ public class CommitTreeModel{
      * Adds a single commit to the tree with the given parents. Ensures the given parents are
      * already added to the tree, and if they aren't, adds them
      * @param commitHelper the commit to be added
-     * @param parents a list of this commit's parents
      * @param graphModel the treeGraphModel to add the commit to
      */
-    private void addCommitToTree(CommitHelper commitHelper, List<CommitHelper> parents, TreeGraphModel graphModel){
-        List<String> parentIds = new ArrayList<>(parents.size());
+    private void addCommitToTree(CommitHelper commitHelper, TreeGraphModel graphModel) {
 
-        RepoHelper repo = sessionModel.getCurrentRepoHelper();
-        String displayLabel = repo.getCommitDescriptorString(commitHelper, false);
-        List<String> branchLabels = repo.getBranchModel().getBranchesWithHead(commitHelper);
-        List<RefHelper> refLabels = repo.getRefsForCommit(commitHelper);
-        Cell.CellType computedType = repo.getCommitType(commitHelper);
-
-        this.commitsInModel.add(commitHelper);
-        if (computedType == Cell.CellType.BOTH || computedType == Cell.CellType.LOCAL)
-            this.localCommitsInModel.add(commitHelper);
-        if (computedType == Cell.CellType.BOTH || computedType == Cell.CellType.REMOTE)
-            this.remoteCommitsInModel.add(commitHelper);
-
-        for(CommitHelper parent : parents){
-            if(!graphModel.containsID(RepoHelper.getCommitId(parent))){
-                addCommitToTree(parent, parent.getParents(), graphModel);
-            }
-            parentIds.add(RepoHelper.getCommitId(parent));
-        }
-
-        //////
-        String commitID = RepoHelper.getCommitId(commitHelper);
-        if(graphModel.containsID(commitID)){
-            graphModel.setCellType(commitID, computedType);
+        if (graphModel.containsID(RepoHelper.getCommitId(commitHelper))) {
             return;
         }
-        graphModel.addCell(commitID, commitHelper.getWhen().getTime(), displayLabel, refLabels, getContextMenu(commitHelper), parentIds, computedType);
+
+        ArrayDeque<CommitHelper> traversalStack = new ArrayDeque<>();
+
+        ArrayDeque<CommitHelper> queue = new ArrayDeque<>();
+        HashSet<String> idsAlreadySeen = new HashSet<>();
+
+        traversalStack.push(commitHelper);
+        idsAlreadySeen.add(commitHelper.getId());
+
+        // Parents need to be entered in first, so do a breadth-first traversal of all aneso
+        while (!traversalStack.isEmpty()) {
+
+            CommitHelper nextOneUp = traversalStack.peek();
+            List<CommitHelper> parents = nextOneUp.getParents();
+
+            boolean addedParents = false;
+            for (CommitHelper parent : parents) {
+                if (!idsAlreadySeen.contains(parent.getId())) {
+                    traversalStack.push(parent);
+                    addedParents = true;
+                }
+
+            }
+            if (!addedParents) {
+                CommitHelper toAdd = traversalStack.pop();
+                queue.offer(toAdd);
+                idsAlreadySeen.add(toAdd.getId());
+            }
+        }
+
+        while (!queue.isEmpty()) {
+
+            CommitHelper commitToAdd = queue.poll();
+            List<CommitHelper> parents = commitToAdd.getParents();
+
+            List<String> parentIds = new ArrayList<>(parents.size());
+
+            RepoHelper repo = sessionModel.getCurrentRepoHelper();
+            String displayLabel = repo.getCommitDescriptorString(commitToAdd, false);
+            List<RefHelper> refLabels = repo.getRefsForCommit(commitToAdd);
+            Cell.CellType computedType = repo.getCommitType(commitToAdd);
+
+            this.commitsInModel.add(commitToAdd);
+            if (computedType == Cell.CellType.BOTH || computedType == Cell.CellType.LOCAL)
+                this.localCommitsInModel.add(commitToAdd);
+            if (computedType == Cell.CellType.BOTH || computedType == Cell.CellType.REMOTE)
+                this.remoteCommitsInModel.add(commitToAdd);
+
+            for (CommitHelper parent : parents) {
+                parentIds.add(RepoHelper.getCommitId(parent));
+            }
+
+            String commitID = RepoHelper.getCommitId(commitToAdd);
+            if (graphModel.containsID(commitID)) {
+                graphModel.setCellType(commitID, computedType);
+            } else {
+                graphModel.addCell(commitID, commitToAdd.getWhen().getTime(), displayLabel, refLabels, getContextMenu(commitToAdd), parentIds, computedType);
+            }
+        }
     }
 
 
