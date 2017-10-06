@@ -279,9 +279,6 @@ public class CommitTreeModel{
      */
     private void addCommitToTree(CommitHelper commitHelper, TreeGraphModel graphModel) {
 
-        if (graphModel.containsID(RepoHelper.getCommitId(commitHelper))) {
-            return;
-        }
 
         ArrayDeque<CommitHelper> traversalStack = new ArrayDeque<>();
 
@@ -295,11 +292,13 @@ public class CommitTreeModel{
         while (!traversalStack.isEmpty()) {
 
             CommitHelper nextOneUp = traversalStack.peek();
+
             List<CommitHelper> parents = nextOneUp.getParents();
 
             boolean addedParents = false;
             for (CommitHelper parent : parents) {
-                if (!idsAlreadySeen.contains(parent.getId())) {
+                if (!idsAlreadySeen.contains(parent.getId()) && !graphModel.containsID(parent.getId()))
+                {
                     traversalStack.push(parent);
                     addedParents = true;
                 }
