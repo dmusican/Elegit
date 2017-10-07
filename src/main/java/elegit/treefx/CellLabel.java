@@ -24,7 +24,7 @@ public class CellLabel extends HBox {
     private Text pointer;
     private ImageView image;
     private Label label;
-    private Text headText;
+    //private Text headText; todo
     private ContextMenu contextMenu;
     public static final int MAX_CHAR_PER_LABEL=25;
 
@@ -37,18 +37,19 @@ public class CellLabel extends HBox {
         this.name = refHelper.getAbbrevName();
         this.isCurrent = isCurrent;
         this.isTag = isTag;
-        this.isRemote = false;
+        this.isRemote = isRemote;
 
+        //Text pointer = getPointer();
         Text pointer = getPointer();
         Label label = getLabel();
         ImageView img = getImage();
-        Text headText = getHeadText();
+        //Text headText = getHeadText(); todo
 
         // Add children to this label
         this.getChildren().add(pointer);
         this.getChildren().add(label);
         this.getChildren().add(img);
-        this.getChildren().add(headText);
+        //this.getChildren().add(headText);
 
         // Add margins to the children
         HBox.setMargin(pointer, new Insets(5, 2, 0, 5));
@@ -63,7 +64,7 @@ public class CellLabel extends HBox {
     }
 
     /**
-     * @return the pointer with the right color based if branch is current
+     * @return the pointer with the right color based on if branch is current
      */
     private Text getPointer() {
         pointer = GlyphsDude.createIcon(FontAwesomeIcon.CHEVRON_LEFT);
@@ -90,7 +91,25 @@ public class CellLabel extends HBox {
      * @return the imageView with the correct image
      */
     protected ImageView getImage() {
-        image = new ImageView(new Image(isTag ? "elegit/images/tag.png" : isCurrent ? "elegit/images/branch_white.png" : "elegit/images/branch.png"));
+        System.out.println("getImage:");
+        if (isTag) {
+            image = new ImageView(new Image("elegit/images/tag.png"));
+        } else if (isCurrent){
+            System.out.println("\tisCurrent");
+            if (isRemote){
+                image = new ImageView(new Image("elegit/images/cloud_white.png"));
+                System.out.println("\t\tcloud_white");
+            } else {
+                image = new ImageView(new Image("elegit/images/hat_white.png"));
+                System.out.println("\t\that_white");
+            }
+        } else if (isRemote){
+            image = new ImageView(new Image("elegit/images/cloud.png"));
+            System.out.println("\t\tcloud");
+        } else {
+            image = new ImageView(new Image("elegit/images/branch.png"));
+            System.out.println("\t\tbranch");
+        }
         image.setFitHeight(15);
         image.setPreserveRatio(true);
         return image;
@@ -117,9 +136,11 @@ public class CellLabel extends HBox {
         });
     }
 
+
     /**
      * @return the appropriate headText
      */
+    /* todo
     private Text getHeadText(){
         Text text;
         if (isCurrent && !isRemote){
@@ -128,7 +149,7 @@ public class CellLabel extends HBox {
             text = new Text("");
         }
         return text;
-    }
+    } */
 
     /**
      * Sets the cell label to be a remote branch type
@@ -137,7 +158,7 @@ public class CellLabel extends HBox {
     // todo: find out why this method wasn't using the param, instead always setting remote to true??
     void setRemote(boolean isRemote) {
         this.isRemote = isRemote;
-        refreshIcon();
+        refreshImage();
     }
 
     /**
@@ -164,7 +185,7 @@ public class CellLabel extends HBox {
         ((ImageView) this.getChildren().get(2)).setImage(new Image(isCurrent ? "elegit/images/branch_white.png" : "elegit/images/branch.png"));
         pointer.setFill(Color.web(isCurrent ? "#FFFFFF" : "333333"));
         this.setId(isCurrent ? "current" : isTag ? "tag" : "regular");
-        headText = getHeadText();
+        // headText = getHeadText(); todo
     }
 
     /**
@@ -183,17 +204,20 @@ public class CellLabel extends HBox {
     }
 
     /**
-     * Refreshes the icon based on various boolean values
+     * Refreshes the image based on various boolean values
      */
-    private void refreshIcon() {
+    private void refreshImage() {
         String image = "elegit/images/";
+        System.out.println("refresh image");
         if (isTag) {
             image += "tag.png";
+            System.out.println("\ttag");
         } else if (isCurrent) {
             if (isRemote)
                 image += "remote_white.png";
-            else
-                image += "branch_white.png";
+            else {
+                image += "hat_white.png";
+            }
         } else if (isRemote){
             image += "remote.png";
         } else {
