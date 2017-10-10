@@ -1,6 +1,4 @@
 language: java
-before_install:
-- sudo apt-get install openssh-server
 after_install:
-- sudo /etc/init.d/ssh restart
+- whoami
 script: mvn clean test -B -DskipDisplay=true
