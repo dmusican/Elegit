@@ -143,6 +143,7 @@ public class TreeGraphModel{
         for (String parentId : parentIds) {
             parents.add(cellMap.get(parentId));
         }
+        parents = Collections.unmodifiableList(parents);
 
         Cell cell;
         switch(type) {

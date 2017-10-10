@@ -3,6 +3,8 @@ package elegit.controllers;
 import elegit.SessionModel;
 import javafx.fxml.FXML;
 import javafx.scene.text.Text;
+import org.apache.http.annotation.GuardedBy;
+import org.apache.http.annotation.ThreadSafe;
 
 /**
  *
@@ -10,17 +12,13 @@ import javafx.scene.text.Text;
  * what all of the
  *
  */
+@ThreadSafe
 public class AboutController {
     @FXML
+    @GuardedBy("this")
     private Text version;
 
-    private SessionModel sessionModel;
-
-    public void initialize() throws Exception {
-        this.sessionModel = SessionModel.getSessionModel();
-    }
-
-    public void setVersion(String version) {
+    public synchronized void setVersion(String version) {
         this.version.setText(this.version.getText()+" "+version);
     }
 }

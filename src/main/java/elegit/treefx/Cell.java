@@ -18,10 +18,8 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Shape;
 import javafx.util.Duration;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * A class that represents a node in a TreeGraph
@@ -65,15 +63,14 @@ public class Cell extends Pane{
 
     private CellLabelContainer refLabels;
 
-    private boolean animate;
-
-    private boolean useParentAsSource;
+    private final AtomicBoolean animate = new AtomicBoolean();
+    private final AtomicBoolean useParentAsSource = new AtomicBoolean();
 
     // The list of children of this cell
-    private List<Cell> children = new ArrayList<>();
+    private final List<Cell> children = new ArrayList<>();
 
     // The parent object that holds the parents of this cell
-    private ParentCell parents;
+    private final ParentCell parents;
 
     // All edges that have this cell as an endpoint
     List<Edge> edges = new ArrayList<>();
@@ -83,11 +80,6 @@ public class Cell extends Pane{
 
     // Whether this cell has been moved to its appropriate location
     private BooleanProperty hasUpdatedPosition;
-
-    public Cell(String s) {
-        this.cellId = s;
-        this.time = 0;
-    }
 
     /**
      * Constructs a node with the given ID and the given parents
@@ -257,9 +249,9 @@ public class Cell extends Pane{
         this.refLabels.setRemoteLabels(branchLabels);
     }
 
-    void setAnimate(boolean animate) {this.animate = animate;}
+    void setAnimate(boolean animate) {this.animate.set(animate);}
 
-    void setUseParentAsSource(boolean useParentAsSource) {this.useParentAsSource = useParentAsSource;}
+    void setUseParentAsSource(boolean useParentAsSource) {this.useParentAsSource.set(useParentAsSource);}
 
     void setContextMenu(ContextMenu contextMenu){
         this.contextMenu = contextMenu;
@@ -290,12 +282,12 @@ public class Cell extends Pane{
     /**
      * @return whether or not this cell wants to be animated in the next transition
      */
-    boolean getAnimate() { return this.animate; }
+    boolean getAnimate() { return this.animate.get(); }
 
     /**
      * @return whether or not to use the parent to base the animation off of
      */
-    boolean getUseParentAsSource() { return this.useParentAsSource; }
+    boolean getUseParentAsSource() { return this.useParentAsSource.get(); }
 
     /**
      * Removes the given cell from the children of this cell
@@ -410,7 +402,7 @@ public class Cell extends Pane{
      */
     private class ParentCell{
 
-        private ArrayList<Cell> parents;
+        private final List<Cell> parents;
 
         /**
          * Sets the given child to have the given parents
@@ -418,8 +410,10 @@ public class Cell extends Pane{
          * @param parents the list of parents
          */
         ParentCell(Cell child, List<Cell> parents) {
-            this.parents = new ArrayList<>();
-            for (Cell parent : parents) this.parents.add(parent);
+            ArrayList<Cell> buildingParents = new ArrayList<>();
+            for (Cell parent : parents)
+                buildingParents.add(parent);
+            this.parents = Collections.unmodifiableList(buildingParents);
             this.setChild(child);
         }
 
@@ -433,7 +427,7 @@ public class Cell extends Pane{
         /**
          * @return the stored parent commits in list form
          */
-        ArrayList<Cell> toList(){
+        List<Cell> toList(){
             return parents;
         }
 

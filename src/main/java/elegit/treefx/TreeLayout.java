@@ -39,14 +39,13 @@ public class TreeLayout{
      * to do this as a separate thread. Let's try pulling that out.
      */
     public static class CellMover {
-        private int currentCell, max;
-        private List<Cell> allCellsSortedByTime;
+        private int currentCell;
+        private final List<Cell> allCellsSortedByTime;
         private AtomicInteger percent;
 
         public CellMover(List<Cell> allCellsSortedByTime) {
             Main.assertNotFxThread();
             this.allCellsSortedByTime = Collections.unmodifiableList(allCellsSortedByTime);
-            this.max = allCellsSortedByTime.size()-1;
             this.percent = new AtomicInteger(0);
             this.currentCell = 0;
             movingCells = true;
@@ -70,6 +69,7 @@ public class TreeLayout{
                         moveCell(allCellsSortedByTime.get(i));
 
                         // Update progress if need be
+                        int max = allCellsSortedByTime.size()-1;
                         if (i * 100.0 / max > percent.get() && percent.get() < 100) {
                             percent.set(i * 100 / max);
                         }
@@ -182,7 +182,7 @@ public class TreeLayout{
                 getColumnOfCellInRow(minRowUsedInCol, cellPosition), cellPosition);
 
         // Update the reserved columns in rows with the cells parents, oldest to newest
-        List<Cell> list = c.getCellParents();
+        List<Cell> list = new ArrayList<>(c.getCellParents());
         list.sort((c1, c2) -> Long.compare(c1.getTime(), c2.getTime()));
 
         // For each parent, oldest to newest, place it in the highest row possible recursively
@@ -318,18 +318,18 @@ public class TreeLayout{
      */
     public static void moveCell(Cell c){
         Main.assertFxThread();
-                boolean animate = c.getAnimate();
-                boolean useParentPosAsSource = c.getUseParentAsSource();
-                if(animate && useParentPosAsSource && c.getCellParents().size()>0){
-                    double px = c.getCellParents().get(0).columnLocationProperty.get() * H_SPACING + H_PAD;
-                    double py = c.getCellParents().get(0).rowLocationProperty.get() * V_SPACING + V_PAD;
-                    c.moveTo(px, py, false, false);
-                }
+        boolean animate = c.getAnimate();
+        boolean useParentPosAsSource = c.getUseParentAsSource();
+        if(animate && useParentPosAsSource && c.getCellParents().size()>0){
+            double px = c.getCellParents().get(0).columnLocationProperty.get() * H_SPACING + H_PAD;
+            double py = c.getCellParents().get(0).rowLocationProperty.get() * V_SPACING + V_PAD;
+            c.moveTo(px, py, false, false);
+        }
 
-                double x = c.columnLocationProperty.get() * H_SPACING + H_PAD;
-                double y = c.rowLocationProperty.get() * V_SPACING + V_PAD;
+        double x = c.columnLocationProperty.get() * H_SPACING + H_PAD;
+        double y = c.rowLocationProperty.get() * V_SPACING + V_PAD;
 
-                c.moveTo(x, y, animate, animate && useParentPosAsSource);
+        c.moveTo(x, y, animate, animate && useParentPosAsSource);
 
     }
 
