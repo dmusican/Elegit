@@ -23,6 +23,7 @@ import java.util.List;
 public class CheckoutFilesController {
 
     private Stage stage;
+
     private SessionController sessionController;
     private RepoHelper repoHelper;
     private CommitHelper commitHelper;

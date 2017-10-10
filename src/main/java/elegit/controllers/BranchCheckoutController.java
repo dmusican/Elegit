@@ -43,7 +43,7 @@ public class BranchCheckoutController {
     @FXML private StackPane notificationPane;
     @FXML private NotificationController notificationPaneController;
 
-    // This is not threadsafe either, since it escapes to other portions of the JavaFX view. Only access from FX thread.
+    // This is not threadsafe, since it escapes to other portions of the JavaFX view. Only access from FX thread.
     private Stage stage;
 
     private final SessionModel sessionModel;
@@ -59,7 +59,7 @@ public class BranchCheckoutController {
         sessionModel = SessionModel.getSessionModel();
         repoHelper = sessionModel.getCurrentRepoHelper();
         branchModel = repoHelper.getBranchModel();
-        this.localCommitTreeModel = CommitTreeController.commitTreeModel;
+        localCommitTreeModel = CommitTreeController.commitTreeModel;
     }
 
     public void initialize() throws Exception {
