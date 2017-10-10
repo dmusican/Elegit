@@ -10,6 +10,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import org.apache.http.annotation.GuardedBy;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jgit.api.CheckoutResult;
@@ -22,34 +23,39 @@ import java.util.List;
  */
 public class CheckoutFilesController {
 
-    private Stage stage;
-
-    private SessionController sessionController;
-    private RepoHelper repoHelper;
-    private CommitHelper commitHelper;
-
     @FXML private TextField fileField;
     @FXML private VBox filesToCheckout;
     @FXML private NotificationController notificationPaneController;
     @FXML private Label header;
     @FXML private AnchorPane anchorRoot;
 
-    private List<String> fileNames;
+    // This is not threadsafe, since it escapes to other portions of the JavaFX view. Only access from FX thread.
+    private Stage stage;
 
-    static final Logger logger = LogManager.getLogger();
+    private final RepoHelper repoHelper;
+
+    @GuardedBy("this") private final List<String> fileNames;
+    // TODO: Make sure CommitHelper is threadsafe
+    @GuardedBy("this") private CommitHelper commitHelper;
+
+    private static final Logger logger = LogManager.getLogger();
+
+
+
+
+    // TODO: Make sure SessionModel is threadsafe, and also RepoHelper, especially methods used here
+    public CheckoutFilesController() {
+        repoHelper = SessionModel.getSessionModel().getCurrentRepoHelper();
+        this.fileNames = new ArrayList<>();
+    }
 
     /**
      * Initialize method automatically called by JavaFX
      *
      * Sets up views and buttons
      */
-    public void initialize(){
+    public synchronized void initialize(){
         logger.info("Started up checkout files from commit window");
-
-        SessionModel sessionModel = SessionModel.getSessionModel();
-        this.repoHelper = sessionModel.getCurrentRepoHelper();
-        this.fileNames = new ArrayList<>();
-
         this.notificationPaneController.bindParentBounds(anchorRoot.heightProperty());
     }
 
@@ -72,13 +78,14 @@ public class CheckoutFilesController {
      * Handler for the commit button. Attempts a commit of the added files,
      * then closes the window and notifies SessionController its done
      */
-    public void handleCheckoutButton() {
+    public synchronized void handleCheckoutButton() {
         try {
             if(fileNames.size() == 0) {
                 notificationPaneController.addNotification("You need to add some files first");
                 return;
             }
-            CheckoutResult result = this.repoHelper.checkoutFiles(fileNames, commitHelper.getId());
+            // New ArrayList used below so that checkoutFiles cannot modify this list, nor worry about sync errors
+            CheckoutResult result = this.repoHelper.checkoutFiles(new ArrayList<>(fileNames), commitHelper.getId());
             switch (result.getStatus()) {
                 case CONFLICTS:
                     notificationPaneController.addNotification("Checkout has not completed because of checkout conflicts");
@@ -96,7 +103,8 @@ public class CheckoutFilesController {
                 // was entered, for now just call git status and close
                 // TODO: figure out if anything actually changed
                 case OK:
-                    sessionController.gitStatus();
+                    // TODO: find a better way to register gitStatus needs to be done, once that has been reworked
+                    //sessionController.gitStatus();
                     closeWindow();
                     break;
             }
@@ -105,7 +113,8 @@ public class CheckoutFilesController {
         }
     }
 
-    public void handleAddButton() {
+    public synchronized void handleAddButton() {
+        Main.assertFxThread();
         String fileName = fileField.getText();
 
         // Don't allow adding the same file more than once
@@ -134,9 +143,7 @@ public class CheckoutFilesController {
 
     public void closeWindow() { this.stage.close(); }
 
-    void setSessionController(SessionController controller) { this.sessionController = controller; }
-
-    void setCommitHelper(CommitHelper commitHelper) {
+    synchronized void setCommitHelper(CommitHelper commitHelper) {
         this.commitHelper = commitHelper;
         header.setText(header.getText()+commitHelper.getId().substring(0,8));
     }

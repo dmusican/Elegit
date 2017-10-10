@@ -1057,7 +1057,6 @@ public class SessionController {
             FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/CheckoutFiles.fxml"));
             fxmlLoader.load();
             CheckoutFilesController checkoutFilesController = fxmlLoader.getController();
-            checkoutFilesController.setSessionController(this);
             checkoutFilesController.setCommitHelper(commitHelper);
             AnchorPane fxmlRoot = fxmlLoader.getRoot();
             checkoutFilesController.showStage(fxmlRoot);
