@@ -182,7 +182,6 @@ public class SessionController {
 
         // Gives other controllers acccess to this one
         CommitTreeController.sessionController = this;
-        CommitController.sessionController = this;
         menuController.setSessionController(this);
         dropdownController.setSessionController(this);
         commitInfoController.setSessionController(this);
@@ -193,9 +192,9 @@ public class SessionController {
         CommitTreeController.commitTreeModel = this.commitTreeModel;
 
         // Passes theModel to panel views
-        this.workingTreePanelView.setSessionModel(this.theModel);
-        this.allFilesPanelView.setSessionModel(this.theModel);
-        this.indexPanelView.setSessionModel(this.theModel);
+        this.workingTreePanelView.setSessionModel();
+        this.allFilesPanelView.setSessionModel();
+        this.indexPanelView.setSessionModel();
 
         this.initializeLayoutParameters();
 
@@ -1143,10 +1142,6 @@ public class SessionController {
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/CommitView.fxml"));
         fxmlLoader.load();
         CommitController commitController = fxmlLoader.getController();
-        commitController.isClosed.addListener((observable, oldValue, newValue) -> {
-            if (!oldValue && newValue)
-                gitStatus();
-        });
         GridPane fxmlRoot = fxmlLoader.getRoot();
         commitController.showStage(fxmlRoot);
     }
@@ -2389,8 +2384,8 @@ public class SessionController {
             Main.assertFxThread();
 
             Observable.just(1)
-                    .doOnNext(u -> BusyWindow.show())
-                    .doOnNext(u -> BusyWindow.setLoadingText("Git status..."))
+                    //.doOnNext(u -> BusyWindow.show())
+                    //.doOnNext(u -> BusyWindow.setLoadingText("Git status..."))
 
 
                     .observeOn(Schedulers.io())
@@ -2429,7 +2424,7 @@ public class SessionController {
                     }})
 
                     .observeOn(JavaFxScheduler.platform())
-                    .doOnNext(u -> BusyWindow.hide())
+                    //.doOnNext(u -> BusyWindow.hide())
                     .subscribe(u -> {}, Throwable::printStackTrace);
     }
 

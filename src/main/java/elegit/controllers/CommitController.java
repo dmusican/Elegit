@@ -27,25 +27,24 @@ import java.util.concurrent.TimeUnit;
  */
 public class CommitController {
 
+    @FXML private Button commitButton;
+    @FXML private TextArea commitMessageField;
+    // TODO: Make sure FileStructurePanelView, and two subclasses below are threadsafe
+    @FXML private StagedTreePanelView stagedFilesPanelView;
+    @FXML private AllFilesPanelView allFilesPanelView;
+
+    // This is not threadsafe, since it escapes to other portions of the JavaFX view. Only access from FX thread.
     private Stage stage;
-    private SessionModel sessionModel;
-    private RepoHelper repoHelper;
-    @FXML
-    public Button commitButton;
-    @FXML
-    public TextArea commitMessageField;
-    @FXML
-    public StagedTreePanelView stagedFilesPanelView;
-    @FXML
-    public AllFilesPanelView allFilesPanelView;
 
-    public BooleanProperty isClosed;
-    private Thread refresher;
-    private Disposable refreshTimer;
+    // TODO: Make sure repoHelper is threadsafe
+    private final RepoHelper repoHelper;
 
-    static final Logger logger = LogManager.getLogger();
+    private static final Logger logger = LogManager.getLogger();
 
-    static SessionController sessionController;
+
+    public CommitController() {
+        repoHelper = SessionModel.getSessionModel().getCurrentRepoHelper();
+    }
 
     /**
      * Initialize method automatically called by JavaFX
@@ -55,14 +54,10 @@ public class CommitController {
     public void initialize(){
         logger.info("Started up branch manager");
 
-        isClosed = new SimpleBooleanProperty(false);
-
-        this.sessionModel = SessionModel.getSessionModel();
-        this.repoHelper = this.sessionModel.getCurrentRepoHelper();
         this.commitMessageField.requestFocus();
 
-        this.stagedFilesPanelView.setSessionModel(this.sessionModel);
-        this.allFilesPanelView.setSessionModel(this.sessionModel);
+        this.stagedFilesPanelView.setSessionModel();
+        this.allFilesPanelView.setSessionModel();
 
         updatePanelViews();
 
@@ -94,16 +89,17 @@ public class CommitController {
         stage.setTitle("Commit");
         stage.setScene(new Scene(pane, 550, 450));
         stage.initModality(Modality.APPLICATION_MODAL);
+
+        Disposable refreshTimer = Observable.interval(3, TimeUnit.SECONDS)
+                .observeOn(JavaFxScheduler.platform())
+                .subscribe(unused -> updatePanelViews());
+
         stage.setOnCloseRequest(event -> {
             logger.info("Closed commit window");
-            //refresher.interrupt();
             refreshTimer.dispose();
         });
         stage.show();
 
-        refreshTimer = Observable.interval(3, TimeUnit.SECONDS)
-                .observeOn(JavaFxScheduler.platform())
-                .subscribe(unused -> updatePanelViews());
     }
 
     public void updatePanelViews() {
@@ -132,7 +128,7 @@ public class CommitController {
             e.printStackTrace();
         } finally {
             BusyWindow.hide();
-            isClosed.setValue(true);
+            // TODO: Need to appropriately register a gitStatus should happen right now
         }
     }
 
