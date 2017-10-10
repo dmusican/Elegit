@@ -7,9 +7,7 @@
 <?import javafx.geometry.Insets?>
 <GridPane hgap="10"
           vgap="30"
-          alignment="TOP_CENTER"
-          xmlns:fx="http://javafx.com/fxml"
-          fx:controller="elegit.controllers.LegendController">
+          alignment="TOP_CENTER">
 
     <padding>
         <Insets top="10" bottom="10" right="10" left="10"/>
