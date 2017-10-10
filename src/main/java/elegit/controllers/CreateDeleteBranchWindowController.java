@@ -14,6 +14,7 @@ import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Callback;
+import org.apache.http.annotation.GuardedBy;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.controlsfx.control.PopOver;
@@ -27,6 +28,7 @@ import java.util.List;
 /**
  * Controller for the create/delete branch window
  */
+// TODO: Fails with current FX threads when try to track a remote branch. Straighten out.
 public class CreateDeleteBranchWindowController {
 
     @FXML private AnchorPane anchorRoot;
@@ -44,22 +46,29 @@ public class CreateDeleteBranchWindowController {
     @FXML private Tab deleteRemoteTab;
     @FXML private Tab createTab;
 
+    // This is not threadsafe, since it escapes to other portions of the JavaFX view. Only access from FX thread.
     private Stage stage;
-    SessionModel sessionModel;
-    RepoHelper repoHelper;
-    private BranchModel branchModel;
-    private CommitTreeModel localCommitTreeModel;
+
+    // TODO: Make sure repoHelper, branchModel are threadsafe
+    private final RepoHelper repoHelper;
+    private final BranchModel branchModel;
+    private final CommitTreeModel localCommitTreeModel;
+
+    @GuardedBy("this")
     private SessionController sessionController;
 
-    static final Logger logger = LogManager.getLogger();
+    private static final Logger logger = LogManager.getLogger();
+
+    public CreateDeleteBranchWindowController() {
+        repoHelper = SessionModel.getSessionModel().getCurrentRepoHelper();
+        branchModel = repoHelper.getBranchModel();
+        localCommitTreeModel = CommitTreeController.getCommitTreeModel();
+    }
 
     /**
      * Initialize method called automatically by JavaFX
      */
     public void initialize() {
-        sessionModel = SessionModel.getSessionModel();
-        repoHelper = sessionModel.getCurrentRepoHelper();
-        branchModel = repoHelper.getBranchModel();
         refreshBranchesDropDown();
         localBranchesDropdown.setPromptText("Select a local branch...");
         remoteBranchesDropdown.setPromptText("Select a remote branch...");
@@ -86,9 +95,6 @@ public class CreateDeleteBranchWindowController {
         }));
         deleteButton2.disableProperty().bind(remoteBranchesDropdown.getSelectionModel().selectedIndexProperty().lessThan(0));
 
-        // Get the current commit tree models
-        localCommitTreeModel = CommitTreeController.getCommitTreeModel();
-
         this.notificationPaneController.bindParentBounds(anchorRoot.heightProperty());
     }
 
@@ -96,6 +102,7 @@ public class CreateDeleteBranchWindowController {
      * Helper method to update branch dropdown
      */
     private void refreshBranchesDropDown() {
+        // TODO: Make sure that LocalBranchHelper is threadsafe, also RemoteBranchHelper, also BranchModel
         localBranchesDropdown.setItems(FXCollections.observableArrayList(branchModel.getLocalBranchesTyped()));
         remoteBranchesDropdown.setItems(FXCollections.observableArrayList(branchModel.getRemoteBranchesTyped()));
 
@@ -105,9 +112,7 @@ public class CreateDeleteBranchWindowController {
             public ListCell<LocalBranchHelper> call(ListView<LocalBranchHelper> param) {
                 return new ListCell<LocalBranchHelper>() {
 
-                    private final Label branchName; {
-                        branchName = new Label();
-                    }
+                    private final Label branchName = new Label();
 
                     @Override protected void updateItem(LocalBranchHelper helper, boolean empty) {
                         super.updateItem(helper, empty);
@@ -131,9 +136,7 @@ public class CreateDeleteBranchWindowController {
             public ListCell<RemoteBranchHelper> call(ListView<RemoteBranchHelper> param) {
                 return new ListCell<RemoteBranchHelper>() {
 
-                    private final Label branchName; {
-                        branchName = new Label();
-                    }
+                    private final Label branchName = new Label();
 
                     @Override protected void updateItem(RemoteBranchHelper helper, boolean empty) {
                         super.updateItem(helper, empty);
@@ -205,10 +208,11 @@ public class CreateDeleteBranchWindowController {
                     newBranch = branchModel.createNewLocalBranch(branchName);
                     if(checkout) {
                         if(newBranch != null) {
-                            checkoutBranch(newBranch, sessionModel);
+                            checkoutBranch(newBranch);
                         }
                     }
-                    sessionController.gitStatus();
+                    // TODO: Put gitStatus back in here once have a better way of registering ig
+                    //sessionController.gitStatus();
 
                 } catch (RefAlreadyExistsException e){
                     logger.warn("Branch already exists warning");
@@ -246,15 +250,15 @@ public class CreateDeleteBranchWindowController {
     /**
      * Checks out the selected local branch
      * @param selectedBranch the local branch to check out
-     * @param theSessionModel the session model for resetting branch heads
      * @return true if the checkout successfully happens, false if there is an error
      */
-    private boolean checkoutBranch(LocalBranchHelper selectedBranch, SessionModel theSessionModel) {
+    private boolean checkoutBranch(LocalBranchHelper selectedBranch) {
         if(selectedBranch == null) return false;
         try {
             selectedBranch.checkoutBranch();
             CommitTreeController.focusCommitInGraph(selectedBranch.getCommit());
-            CommitTreeController.setBranchHeads(CommitTreeController.getCommitTreeModel(), theSessionModel.getCurrentRepoHelper());
+            CommitTreeController.setBranchHeads(CommitTreeController.getCommitTreeModel(),
+                    SessionModel.getSessionModel().getCurrentRepoHelper());
             return true;
         } catch (JGitInternalException e){
             showJGitInternalError(e);
@@ -293,7 +297,7 @@ public class CreateDeleteBranchWindowController {
      *
      * @param selectedBranch the branch selected to delete
      */
-    public void deleteBranch(BranchHelper selectedBranch) {
+    public synchronized void deleteBranch(BranchHelper selectedBranch) {
         boolean authorizationSucceeded = true;
         try {
             if (selectedBranch != null) {
@@ -305,27 +309,6 @@ public class CreateDeleteBranchWindowController {
                 }else {
                     sessionController.deleteRemoteBranch(selectedBranch, branchModel,
                                        (String message) -> updateUser(message, BranchModel.BranchType.REMOTE));
-//                    final RepoHelperBuilder.AuthDialogResponse response;
-//                    if (sessionController.tryCommandAgainWithHTTPAuth) {
-//                        response = RepoHelperBuilder.getAuthCredentialFromDialog();
-//                        repoHelper.ownerAuth =
-//                                new UsernamePasswordCredentialsProvider(response.username, response.password);
-//                    }
-//
-//                    deleteStatus = this.branchModel.deleteRemoteBranch((RemoteBranchHelper) selectedBranch);
-//                    String updateMessage = selectedBranch.getRefName();
-//                    // There are a number of possible cases, see JGit's documentation on RemoteRefUpdate.Status
-//                    // for the full list.
-//                    switch (deleteStatus) {
-//                        case OK:
-//                            updateMessage += " deleted.";
-//                            break;
-//                        case NON_EXISTING:
-//                            updateMessage += " no longer\nexists on the server.";
-//                        default:
-//                            updateMessage += " deletion\nfailed.";
-//                    }
-//                    updateUser(updateMessage, BranchModel.BranchType.REMOTE);
                 }
             }
         } catch (NotMergedException e) {
@@ -440,7 +423,7 @@ public class CreateDeleteBranchWindowController {
         });
     }
 
-    void setSessionController(SessionController sessionController) {
+    synchronized void setSessionController(SessionController sessionController) {
         this.sessionController = sessionController;
     }
 
@@ -524,7 +507,7 @@ public class CreateDeleteBranchWindowController {
         });
     }
 
-    private void showCheckoutConflictsNotification(List<String> conflictingPaths) {
+    private synchronized void showCheckoutConflictsNotification(List<String> conflictingPaths) {
         Platform.runLater(() -> {
             logger.warn("Checkout conflicts warning");
 

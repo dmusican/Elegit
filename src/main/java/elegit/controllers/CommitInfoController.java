@@ -8,16 +8,19 @@ import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.Tooltip;
 import javafx.scene.text.Text;
+import org.apache.http.annotation.GuardedBy;
 
 /**
  * Commit info subview of the main view controller
  */
 public class CommitInfoController {
 
-    @FXML private SessionController sessionController;
     @FXML private TextArea commitInfoMessageText;
     @FXML private Button commitInfoNameCopyButton;
     @FXML private Button commitInfoGoToButton;
+
+    @GuardedBy("this")
+    private SessionController sessionController;
 
     public void initialize() {
         commitInfoNameCopyButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
@@ -45,15 +48,15 @@ public class CommitInfoController {
         commitInfoMessageText.setText(text);
     }
 
-    public void setSessionController(SessionController sessionController) {
+    public synchronized void setSessionController(SessionController sessionController) {
         this.sessionController = sessionController;
     }
 
-    public void handleGoToCommitButton() {
+    public synchronized void handleGoToCommitButton() {
         sessionController.handleGoToCommitButton();
     }
 
-    public void handleCommitNameCopyButton() {
+    public synchronized void handleCommitNameCopyButton() {
         sessionController.handleCommitNameCopyButton();
     }
 
