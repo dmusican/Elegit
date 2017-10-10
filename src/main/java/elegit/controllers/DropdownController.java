@@ -35,11 +35,7 @@ public class DropdownController {
     @FXML private ContextMenu newRepoOptionsMenu;
     @FXML private ComboBox<RepoHelper> repoDropdownSelector;
 
-
     private static final Logger logger = LogManager.getLogger();
-
-
-
 
     public synchronized void setSessionController(SessionController sessionController) {
         this.sessionController = sessionController;
