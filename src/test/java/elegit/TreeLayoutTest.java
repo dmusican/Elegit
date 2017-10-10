@@ -20,6 +20,9 @@ public class TreeLayoutTest {
 
     @BeforeClass
     public static void setUpJFX() throws Exception{
+        String skipDisplay = System.getProperty("skipDisplay");
+        if(skipDisplay.length() > 0) { return; }
+
         // Launch the Elegit application in a thread so we get control back
         Thread t = new Thread("JavaFX Init Thread"){
             public void run(){
@@ -45,6 +48,9 @@ public class TreeLayoutTest {
      */
     @Before
     public void setUp() {
+        String skipDisplay = System.getProperty("skipDisplay");
+        if(skipDisplay.length() > 0) { return; }
+
         allCells.clear();
 
         Cell cell4 = new Cell("cell4", 10, new ArrayList<Cell>(), Cell.CellType.LOCAL);
@@ -85,6 +91,12 @@ public class TreeLayoutTest {
 
     @Test
     public void testCellSorting() throws Exception {
+        String skipDisplay = System.getProperty("skipDisplay");
+        if(skipDisplay.length() > 0) {
+            System.out.println("testCellSorting relies on the display - skipping.");
+            return;
+        }
+
         TreeLayout.sortListOfCells(allCells);
         for (Cell cell : allCells) {
             System.out.print(cell.getCellId() + " ");
@@ -101,6 +113,12 @@ public class TreeLayoutTest {
 
     @Test
     public void testTopographicalSorting() throws Exception {
+        String skipDisplay = System.getProperty("skipDisplay");
+        if(skipDisplay.length() > 0) {
+            System.out.println("testTopographicalSorting relies on the display - skipping.");
+            return;
+        }
+
         TreeLayout.topologicalSortListOfCells(allCells);
         for (Cell cell : allCells) {
             System.out.print(cell.getCellId() + " ");

@@ -1,1 +1,2 @@
 language: java
+build: mvn clean test -B -DskipDisplay=true
