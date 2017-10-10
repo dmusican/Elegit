@@ -13,11 +13,11 @@ import javafx.scene.text.Text;
  * Commit info subview of the main view controller
  */
 public class CommitInfoController {
-    private SessionController sessionController;
 
-    @FXML public TextArea commitInfoMessageText;
-    @FXML public Button commitInfoNameCopyButton;
-    @FXML public Button commitInfoGoToButton;
+    @FXML private SessionController sessionController;
+    @FXML private TextArea commitInfoMessageText;
+    @FXML private Button commitInfoNameCopyButton;
+    @FXML private Button commitInfoGoToButton;
 
     public void initialize() {
         commitInfoNameCopyButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
