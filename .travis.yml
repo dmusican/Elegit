@@ -1,4 +1,4 @@
 language: java
-after_install:
+before_script:
 - whoami
 script: mvn clean test -B -DskipDisplay=true
