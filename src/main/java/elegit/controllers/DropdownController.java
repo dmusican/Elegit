@@ -3,27 +3,45 @@ package elegit.controllers;
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import elegit.RepoHelper;
+import elegit.SessionModel;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.geometry.Side;
 import javafx.scene.control.*;
+import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
+import org.apache.http.annotation.GuardedBy;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.controlsfx.control.CheckListView;
+import org.controlsfx.control.PopOver;
+
+import java.util.List;
 
 /**
  * Created by dmusicant on 4/8/17.
  */
 public class DropdownController {
 
+    @GuardedBy("this")
     private SessionController sessionController;
-    public ComboBox<RepoHelper> repoDropdownSelector;
 
-    @FXML public Button openRepoDirButton;
-    @FXML public Button loadNewRepoButton;
-    @FXML public Button removeRecentReposButton;
-    @FXML public MenuItem cloneOption;
-    @FXML public MenuItem existingOption;
-    @FXML public ContextMenu newRepoOptionsMenu;
+    @FXML private Button openRepoDirButton;
+    @FXML private Button loadNewRepoButton;
+    @FXML private Button removeRecentReposButton;
+    @FXML private MenuItem cloneOption;
+    @FXML private MenuItem existingOption;
+    @FXML private ContextMenu newRepoOptionsMenu;
+    @FXML private ComboBox<RepoHelper> repoDropdownSelector;
 
 
-    public void setSessionController(SessionController sessionController) {
+    private static final Logger logger = LogManager.getLogger();
+
+
+
+
+    public synchronized void setSessionController(SessionController sessionController) {
         this.sessionController = sessionController;
     }
 
@@ -37,12 +55,16 @@ public class DropdownController {
         repoDropdownSelector.setMaxWidth(REPO_DROPDOWN_MAX_WIDTH);
 
         Text plusIcon = GlyphsDude.createIcon(FontAwesomeIcon.PLUS);
-        this.loadNewRepoButton.setGraphic(plusIcon);
+        loadNewRepoButton.setGraphic(plusIcon);
+
+        loadNewRepoButton.setTooltip(new Tooltip(
+                "Load a new repository"
+        ));
 
         Text minusIcon = GlyphsDude.createIcon(FontAwesomeIcon.MINUS);
-        this.removeRecentReposButton.setGraphic(minusIcon);
+        removeRecentReposButton.setGraphic(minusIcon);
 
-        this.removeRecentReposButton.setTooltip(new Tooltip("Clear shortcuts to recently opened repos"));
+        removeRecentReposButton.setTooltip(new Tooltip("Clear shortcuts to recently opened repos"));
         Text downloadIcon = GlyphsDude.createIcon(FontAwesomeIcon.CLOUD_DOWNLOAD);
         cloneOption.setGraphic(downloadIcon);
 
@@ -50,29 +72,70 @@ public class DropdownController {
         existingOption.setGraphic(folderOpenIcon);
 
 
+
     }
 
-    public void loadSelectedRepo() {
+    public void setButtonsDisabled(boolean value) {
+        openRepoDirButton.setDisable(value);
+        removeRecentReposButton.setDisable(value);
+        repoDropdownSelector.setDisable(value);
+    }
+
+    public synchronized void loadSelectedRepo() {
         sessionController.loadSelectedRepo();
     }
 
-    public void openRepoDirectory() {
+    public synchronized void openRepoDirectory() {
         sessionController.openRepoDirectory();
     }
 
-    public void handleLoadNewRepoButton() {
-        sessionController.handleLoadNewRepoButton();
+    /**
+     * Called when the loadNewRepoButton gets pushed, shows a menu of options
+     */
+    public synchronized void handleLoadNewRepoButton() {
+        newRepoOptionsMenu.show(loadNewRepoButton, Side.BOTTOM ,0, 0);
     }
 
-    public void handleCloneNewRepoOption() {
+    public synchronized void handleCloneNewRepoOption() {
         sessionController.handleCloneNewRepoOption();
     }
 
-    public void handleLoadExistingRepoOption() {
+    public synchronized void handleLoadExistingRepoOption() {
         sessionController.handleLoadExistingRepoOption();
     }
 
-    public void chooseRecentReposToDelete() {
-        sessionController.chooseRecentReposToDelete();
+    // TODO: Make sure that RepoHelper is threadsafe
+    public synchronized void chooseRecentReposToDelete() {
+        logger.info("Remove repos button clicked");
+        System.out.println("yep");
+
+        // creates a CheckListView with all the repos in it
+        List<RepoHelper> repoHelpers = SessionModel.getSessionModel().getAllRepoHelpers();
+        CheckListView<RepoHelper> repoCheckListView = new CheckListView<>(FXCollections.observableArrayList(repoHelpers));
+
+        // creates a popover with the list and a button used to remove repo shortcuts
+        Button removeSelectedButton = new Button("Remove repository shortcuts from Elegit");
+        PopOver popover = new PopOver(new VBox(repoCheckListView, removeSelectedButton));
+        popover.setTitle("Manage Recent Repositories");
+
+        // shows the popover
+        popover.show(removeRecentReposButton);
+
+        removeSelectedButton.setOnAction(e -> {
+            sessionController.handleRemoveReposButton(repoCheckListView.getCheckModel().getCheckedItems());
+            popover.hide();
+        });
+    }
+
+    public void setCurrentRepo(RepoHelper repoHelper) {
+        repoDropdownSelector.setValue(repoHelper);
+    }
+
+    public RepoHelper getCurrentRepo() {
+        return repoDropdownSelector.getValue();
+    }
+
+    public void setAllRepos(ObservableList<RepoHelper> repoHelpers) {
+        repoDropdownSelector.setItems(repoHelpers);
     }
 }

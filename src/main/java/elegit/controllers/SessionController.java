@@ -1,12 +1,10 @@
 package elegit.controllers;
 
-import com.sun.org.apache.bcel.internal.generic.GOTO;
 import elegit.*;
 import elegit.exceptions.*;
 import elegit.treefx.TreeLayout;
 import io.reactivex.Observable;
 import io.reactivex.ObservableSource;
-import io.reactivex.Scheduler;
 import io.reactivex.rxjavafx.schedulers.JavaFxScheduler;
 import io.reactivex.schedulers.Schedulers;
 import io.reactivex.subjects.PublishSubject;
@@ -19,7 +17,6 @@ import javafx.concurrent.Task;
 import javafx.event.*;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.geometry.Side;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -41,7 +38,6 @@ import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.LoggerContext;
 import org.apache.logging.log4j.core.config.Configuration;
 import org.apache.logging.log4j.core.config.LoggerConfig;
-import org.controlsfx.control.CheckListView;
 import org.controlsfx.control.PopOver;
 import org.eclipse.jgit.api.PushCommand;
 import org.eclipse.jgit.api.ResetCommand;
@@ -64,7 +60,6 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
@@ -128,8 +123,6 @@ public class SessionController {
 
     private BooleanProperty isWorkingTreeTabSelected;
     public static SimpleBooleanProperty anythingChecked;
-
-    private volatile boolean isRecentRepoEventListenerBlocked = false;
 
     static final Logger logger = LogManager.getLogger(SessionController.class);
 
@@ -601,9 +594,6 @@ public class SessionController {
                 "Update remote repository with local changes,\nright click for advanced options"
         ));
 
-        dropdownController.loadNewRepoButton.setTooltip(new Tooltip(
-                "Load a new repository"
-        ));
         this.mergeButton.setTooltip(new Tooltip(
                 "Merge two commits together"
         ));
@@ -673,7 +663,7 @@ public class SessionController {
      * @param disable a boolean for whether or not to disable the buttons.
      */
     private void setButtonsDisabled(boolean disable) {
-        dropdownController.openRepoDirButton.setDisable(disable);
+        dropdownController.setButtonsDisabled(disable);
         tagButton.setDisable(disable);
         commitButton.setDisable(disable);
         pushButton.setDisable(disable);
@@ -683,8 +673,6 @@ public class SessionController {
         workingTreePanelTab.setDisable(disable);
         allFilesPanelTab.setDisable(disable);
         indexPanelTab.setDisable(disable);
-        dropdownController.removeRecentReposButton.setDisable(disable);
-        dropdownController.repoDropdownSelector.setDisable(disable);
         addDeleteBranchButton.setDisable(disable);
         checkoutButton.setDisable(disable);
         mergeButton.setDisable(disable);
@@ -723,13 +711,6 @@ public class SessionController {
         } else {
             setButtonsDisabled(false);
         }
-    }
-
-     /**
-      * Called when the loadNewRepoButton gets pushed, shows a menu of options
-     */
-    public void handleLoadNewRepoButton() {
-        dropdownController.newRepoOptionsMenu.show(dropdownController.loadNewRepoButton, Side.BOTTOM ,0, 0);
     }
 
     /**
@@ -827,10 +808,8 @@ public class SessionController {
     private void setRecentReposDropdownToCurrentRepo() {
         Main.assertFxThread();
         synchronized (this) {
-            isRecentRepoEventListenerBlocked = true;
             RepoHelper currentRepo = this.theModel.getCurrentRepoHelper();
-            dropdownController.repoDropdownSelector.setValue(currentRepo);
-            isRecentRepoEventListenerBlocked = false;
+            dropdownController.setCurrentRepo(currentRepo);
         }
     }
 
@@ -841,10 +820,8 @@ public class SessionController {
     private void refreshRecentReposInDropdown() {
         Main.assertFxThread();
             synchronized (this) {
-                isRecentRepoEventListenerBlocked = true;
                 List<RepoHelper> repoHelpers = this.theModel.getAllRepoHelpers();
-                dropdownController.repoDropdownSelector.setItems(FXCollections.observableArrayList(repoHelpers));
-                isRecentRepoEventListenerBlocked = false;
+                dropdownController.setAllRepos(FXCollections.observableArrayList(repoHelpers));
             }
     }
 
@@ -863,7 +840,7 @@ public class SessionController {
      */
     public void loadSelectedRepo() {
         if (theModel.getAllRepoHelpers().size() == 0) return;
-        RepoHelper selectedRepoHelper = dropdownController.repoDropdownSelector.getValue();
+        RepoHelper selectedRepoHelper = dropdownController.getCurrentRepo();
         this.handleRecentRepoMenuItem(selectedRepoHelper);
     }
 
@@ -2515,35 +2492,12 @@ public class SessionController {
         }
     }
 
-    /**
-     * Shows a popover with all repos in a checklist
-     */
-    public void chooseRecentReposToDelete() {
-        logger.info("Remove repos button clicked");
-
-        // creates a CheckListView with all the repos in it
-        List<RepoHelper> repoHelpers = this.theModel.getAllRepoHelpers();
-        CheckListView<RepoHelper> repoCheckListView = new CheckListView<>(FXCollections.observableArrayList(repoHelpers));
-
-        // creates a popover with the list and a button used to remove repo shortcuts
-        Button removeSelectedButton = new Button("Remove repository shortcuts from Elegit");
-        PopOver popover = new PopOver(new VBox(repoCheckListView, removeSelectedButton));
-        popover.setTitle("Manage Recent Repositories");
-
-        // shows the popover
-        popover.show(dropdownController.removeRecentReposButton);
-
-        removeSelectedButton.setOnAction(e -> {
-            this.handleRemoveReposButton(repoCheckListView.getCheckModel().getCheckedItems());
-            popover.hide();
-        });
-    }
 
     /**
      * removes selected repo shortcuts
      * @param checkedItems list of selected repos
      */
-    private void handleRemoveReposButton(List<RepoHelper> checkedItems) {
+    void handleRemoveReposButton(List<RepoHelper> checkedItems) {
         logger.info("Removed repos");
         this.theModel.removeRepoHelpers(checkedItems);
 
@@ -2554,7 +2508,7 @@ public class SessionController {
                     .get(newIndex);
 
             handleRecentRepoMenuItem(newCurrentRepo);
-            dropdownController.repoDropdownSelector.setValue(newCurrentRepo);
+            dropdownController.setCurrentRepo(newCurrentRepo);
 
             this.refreshRecentReposInDropdown();
 
