@@ -2210,45 +2210,6 @@ public class SessionController {
         }
     }
 
-    public void handleAbout() {
-        try{
-            logger.info("About clicked");
-            // Create and display the Stage:
-            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/About.fxml"));
-            GridPane fxmlRoot = fxmlLoader.load();
-            AboutController aboutController = fxmlLoader.getController();
-            aboutController.setVersion(getVersion());
-
-            Stage stage = new Stage();
-            javafx.scene.image.Image img = new javafx.scene.image.Image(getClass().getResourceAsStream("/elegit/images/elegit_icon.png"));
-            stage.getIcons().add(img);
-            stage.setTitle("About");
-            stage.setScene(new Scene(fxmlRoot));
-            stage.initModality(Modality.APPLICATION_MODAL);
-            stage.setOnCloseRequest(event -> logger.info("Closed about"));
-            stage.show();
-        }catch(IOException e) {
-            this.showGenericErrorNotification();
-            e.printStackTrace();
-        }
-    }
-
-    String getVersion() {
-        String path = "/version.prop";
-        InputStream stream = getClass().getResourceAsStream(path);
-        if (stream == null)
-            return "UNKNOWN";
-        Properties props = new Properties();
-        try {
-            props.load(stream);
-            stream.close();
-            return (String) props.get("version");
-        } catch (IOException e) {
-            return "UNKNOWN";
-        }
-    }
-
-
     /**
      * Opens an editor for the .gitignore
      */

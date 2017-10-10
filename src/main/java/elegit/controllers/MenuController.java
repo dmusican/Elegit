@@ -4,19 +4,32 @@ import elegit.treefx.TreeLayout;
 import io.reactivex.rxjavafx.observables.JavaFxObservable;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Scene;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.CheckMenuItem;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
+import javafx.scene.layout.GridPane;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
+import org.apache.http.annotation.GuardedBy;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
 
 /**
  * Created by dmusicant on 4/8/17.
  */
 public class MenuController {
 
-    private SessionController sessionController;
+    @GuardedBy("this") private SessionController sessionController;
+
     @FXML public CheckMenuItem loggingToggle; // public so can be selected when prefs loaded in SessionController
     @FXML private CheckMenuItem commitSortToggle;
     @FXML MenuItem gitIgnoreMenuItem; // has to be public because of SessionController.updateMenuBarEnabledStatus()
@@ -29,6 +42,8 @@ public class MenuController {
     @FXML private MenuItem pushMenuItem;
     @FXML private MenuItem stashMenuItem1;
     @FXML private MenuItem stashMenuItem2;
+
+    private static final Logger logger = LogManager.getLogger();
 
     public void initialize() {
         initMenuBarShortcuts();
@@ -83,8 +98,43 @@ public class MenuController {
         assert commitSortToggle.isSelected() == TreeLayout.commitSortTopological ;
     }
 
-    public void handleAbout() {
-        sessionController.handleAbout();
+
+    private String getVersion() {
+        String path = "/version.prop";
+        InputStream stream = getClass().getResourceAsStream(path);
+        if (stream == null)
+            return "UNKNOWN";
+        Properties props = new Properties();
+        try {
+            props.load(stream);
+            stream.close();
+            return (String) props.get("version");
+        } catch (IOException e) {
+            return "UNKNOWN";
+        }
+    }
+
+    public synchronized void handleAbout() {
+        try{
+            logger.info("About clicked");
+            // Create and display the Stage:
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/About.fxml"));
+            GridPane fxmlRoot = fxmlLoader.load();
+            AboutController aboutController = fxmlLoader.getController();
+            aboutController.setVersion(getVersion());
+
+            Stage stage = new Stage();
+            javafx.scene.image.Image img = new javafx.scene.image.Image(getClass().getResourceAsStream("/elegit/images/elegit_icon.png"));
+            stage.getIcons().add(img);
+            stage.setTitle("About");
+            stage.setScene(new Scene(fxmlRoot));
+            stage.initModality(Modality.APPLICATION_MODAL);
+            stage.setOnCloseRequest(event -> logger.info("Closed about"));
+            stage.show();
+        }catch(IOException e) {
+            sessionController.showGenericErrorNotification();
+            e.printStackTrace();
+        }
     }
 
     // "Edit" Dropdown Menu Item:
