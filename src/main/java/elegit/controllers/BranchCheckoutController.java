@@ -14,6 +14,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import org.apache.http.annotation.GuardedBy;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jgit.api.errors.*;
@@ -31,35 +32,40 @@ import java.util.List;
  */
 public class BranchCheckoutController {
 
-    public ListView<RemoteBranchHelper> remoteListView;
-    public ListView<LocalBranchHelper> localListView;
-    Repository repo;
-    private RepoHelper repoHelper;
-    private BranchModel branchModel;
-    @FXML
-    private AnchorPane anchorRoot;
-    @FXML
-    private Button trackRemoteBranchButton;
-    @FXML
-    private Button checkoutLocalBranchButton;
+    // All FXML variables are not threadsafe. Only access them from within the FX thread.
+    // TODO: Make sure that RemoteBranchHelper is threadsafe
+    // TODO: Make sure that LocalBranchHelper is threadsafe
+    @FXML private ListView<RemoteBranchHelper> remoteListView;
+    @FXML private ListView<LocalBranchHelper> localListView;
+    @FXML private AnchorPane anchorRoot;
+    @FXML private Button trackRemoteBranchButton;
+    @FXML private Button checkoutLocalBranchButton;
     @FXML private StackPane notificationPane;
     @FXML private NotificationController notificationPaneController;
 
-    private SessionModel sessionModel;
-    private CommitTreeModel localCommitTreeModel;
+    // This is not threadsafe either, since it escapes to other portions of the JavaFX view. Only access from FX thread.
     private Stage stage;
 
-    static final Logger logger = LogManager.getLogger();
+    private final SessionModel sessionModel;
+    private final RepoHelper repoHelper;
+    private final BranchModel branchModel;
+    // TODO: Make sure that CommitTreeController is threadsafe
+    private final CommitTreeModel localCommitTreeModel;
+
+
+    private static final Logger logger = LogManager.getLogger();
+
+    public BranchCheckoutController() {
+        sessionModel = SessionModel.getSessionModel();
+        repoHelper = sessionModel.getCurrentRepoHelper();
+        branchModel = repoHelper.getBranchModel();
+        this.localCommitTreeModel = CommitTreeController.commitTreeModel;
+    }
 
     public void initialize() throws Exception {
 
         logger.info("Started up branch manager");
 
-        this.sessionModel = SessionModel.getSessionModel();
-        this.repoHelper = this.sessionModel.getCurrentRepoHelper();
-        this.repo = this.repoHelper.getRepo();
-        this.branchModel = repoHelper.getBranchModel();
-        this.localCommitTreeModel = CommitTreeController.commitTreeModel;
         this.remoteListView.setItems(FXCollections.observableArrayList(branchModel.getRemoteBranchesTyped()));
         this.localListView.setItems(FXCollections.observableArrayList(branchModel.getLocalBranchesTyped()));
 
@@ -87,6 +93,7 @@ public class BranchCheckoutController {
      * @param pane AnchorPane root
      */
     void showStage(AnchorPane pane) {
+        Main.assertFxThread();
         anchorRoot = pane;
         stage = new Stage();
         stage.setTitle("Branch Checkout");
@@ -100,7 +107,8 @@ public class BranchCheckoutController {
     /**
      * Closes the branch manager
      */
-    public void closeWindow() {
+    public synchronized void closeWindow() {
+        Main.assertFxThread();
         stage.close();
     }
 
@@ -167,32 +175,6 @@ public class BranchCheckoutController {
     }
 
     /**
-     * Deletes a given local branch through git, forcefully.
-     */
-    private void forceDeleteLocalBranch(LocalBranchHelper branchToDelete) {
-        logger.info("Deleting local branch");
-
-        try {
-            if (branchToDelete != null) {
-                // Local delete:
-                this.branchModel.forceDeleteLocalBranch(branchToDelete);
-                // Update local list view
-                this.localListView.getItems().remove(branchToDelete);
-
-                // Reset the branch heads
-                CommitTreeController.setBranchHeads(this.localCommitTreeModel, this.repoHelper);
-            }
-        } catch (CannotDeleteCurrentBranchException e) {
-            logger.warn("Can't delete current branch warning");
-            this.showCannotDeleteBranchNotification(branchToDelete);
-        } catch (GitAPIException e) {
-            logger.warn("Git error");
-            this.showGenericGitErrorNotificationWithBranch(branchToDelete);
-            e.printStackTrace();
-        }
-    }
-
-    /**
      * Checks out the selected local branch
      * @param selectedBranch the local branch to check out
      * @param theSessionModel the session model for resetting branch heads
@@ -221,11 +203,6 @@ public class BranchCheckoutController {
     }
 
     /// BEGIN: ERROR NOTIFICATIONS:
-
-    private void showGenericGitErrorNotificationWithBranch(LocalBranchHelper branch) {
-        logger.warn("Git error on branch notification");
-        notificationPaneController.addNotification(String.format("Sorry, there was a git error on branch %s.", branch.getRefName()));
-    }
 
     private void showGenericErrorNotification() {
         logger.warn("Generic error notification");
