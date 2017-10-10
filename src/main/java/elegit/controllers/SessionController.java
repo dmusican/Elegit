@@ -681,7 +681,7 @@ public class SessionController {
         currentLocalBranchHbox.setVisible(!disable);
         currentRemoteTrackingBranchHbox.setVisible(!disable);
         statusTextPane.setVisible(!disable);
-        updateMenuBarEnabledStatus(disable);
+        menuController.updateMenuBarEnabledStatus(disable);
 
         root.setOnMouseClicked(event -> {
             if (disable) showNoRepoLoadedNotification();
@@ -689,14 +689,6 @@ public class SessionController {
         });
     }
 
-
-    /**
-     * Helper method for disabling the menu bar
-     */
-    private void updateMenuBarEnabledStatus(boolean disable) {
-        menuController.repoMenu.setDisable(disable);
-        menuController.gitIgnoreMenuItem.setDisable(disable);
-    }
 
     /**
      * A helper helper method to enable or disable buttons/UI elements
@@ -2834,7 +2826,7 @@ public class SessionController {
                 storedLevel = PopUpWindows.getLoggingPermissions() ? Level.INFO : Level.OFF;
             }
             changeLogging(storedLevel);
-            menuController.loggingToggle.setSelected(storedLevel.equals(org.apache.logging.log4j.Level.INFO));
+            menuController.setLoggingToggle(storedLevel.equals(org.apache.logging.log4j.Level.INFO));
             logger.info("Starting up.");
         });
     }

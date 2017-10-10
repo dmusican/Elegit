@@ -32,10 +32,10 @@ public class MenuController {
 
     @GuardedBy("this") private SessionController sessionController;
 
-    @FXML public CheckMenuItem loggingToggle; // public so can be selected when prefs loaded in SessionController
-    @FXML private CheckMenuItem commitSortToggle;
-    @FXML MenuItem gitIgnoreMenuItem; // has to be public because of SessionController.updateMenuBarEnabledStatus()
-    @FXML Menu repoMenu;
+    @FXML private MenuItem gitIgnoreMenuItem;
+    @FXML private Menu repoMenu;
+
+
     @FXML private MenuItem cloneMenuItem;
     @FXML private MenuItem createBranchMenuItem;
     @FXML private MenuItem commitNormalMenuItem;
@@ -47,10 +47,18 @@ public class MenuController {
 
     private static final Logger logger = LogManager.getLogger();
 
+    // Hard: I think I want a separate class just for logging to constrain the locking
+    @FXML @GuardedBy("this") private CheckMenuItem loggingToggle;
+    @FXML private CheckMenuItem commitSortToggle;
+
     public void initialize() {
         initMenuBarShortcuts();
         commitSortToggle.setSelected(true); //default
 
+    }
+
+    public synchronized void setLoggingToggle(boolean toggle) {
+        loggingToggle.setSelected(toggle);
     }
 
     /**
@@ -138,6 +146,16 @@ public class MenuController {
             e.printStackTrace();
         }
     }
+
+
+    /**
+     * Helper method for disabling the menu bar
+     */
+    public void updateMenuBarEnabledStatus(boolean disable) {
+        repoMenu.setDisable(disable);
+        gitIgnoreMenuItem.setDisable(disable);
+    }
+
 
     // "Edit" Dropdown Menu Item:
 
