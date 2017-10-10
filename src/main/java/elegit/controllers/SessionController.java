@@ -662,7 +662,7 @@ public class SessionController {
      *
      * @param disable a boolean for whether or not to disable the buttons.
      */
-    private void setButtonsDisabled(boolean disable) {
+    public void setButtonsDisabled(boolean disable) {
         dropdownController.setButtonsDisabled(disable);
         tagButton.setDisable(disable);
         commitButton.setDisable(disable);
@@ -2210,13 +2210,6 @@ public class SessionController {
         }
     }
 
-    /**
-     * Opens an editor for the .gitignore
-     */
-    public void handleGitIgnoreMenuItem() {
-        GitIgnoreEditor.show(SessionModel.getSessionModel().getCurrentRepoHelper(), null);
-    }
-
 
     public void handleNewBranchButton() {
         handleCreateOrDeleteBranchButton("create");
@@ -2597,7 +2590,7 @@ public class SessionController {
         });
     }
 
-    private void showNoRepoLoadedNotification() {
+    public void showNoRepoLoadedNotification() {
         Platform.runLater(() -> {
             logger.warn("No repo loaded warning.");
             notificationPaneController.addNotification("You need to load a repository before you can perform operations on it. Click on the plus sign in the upper left corner!");

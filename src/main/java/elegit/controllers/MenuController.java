@@ -1,5 +1,7 @@
 package elegit.controllers;
 
+import elegit.GitIgnoreEditor;
+import elegit.SessionModel;
 import elegit.treefx.TreeLayout;
 import io.reactivex.rxjavafx.observables.JavaFxObservable;
 import javafx.event.ActionEvent;
@@ -74,13 +76,13 @@ public class MenuController {
         this.stashMenuItem2.setAccelerator(new KeyCodeCombination(KeyCode.L, KeyCombination.CONTROL_DOWN, KeyCombination.SHIFT_DOWN));
     }
 
-    public void setSessionController(SessionController sessionController) {
+    public synchronized void setSessionController(SessionController sessionController) {
         this.sessionController = sessionController;
     }
 
     // "Preferences" Dropdown Menu Items:
 
-    public void handleLoggingToggle() {
+    public synchronized void handleLoggingToggle() {
         if (loggingToggle.isSelected()) {
             sessionController.handleLoggingOn();
         } else {
@@ -89,7 +91,7 @@ public class MenuController {
         assert !loggingToggle.isSelected() == sessionController.getLoggingLevel().equals(org.apache.logging.log4j.Level.toLevel("OFF"));
     }
 
-    public void handleCommitSortToggle() {
+    public synchronized void handleCommitSortToggle() {
         if (commitSortToggle.isSelected()){
             sessionController.handleCommitSortTopological();
         } else {
@@ -139,86 +141,88 @@ public class MenuController {
 
     // "Edit" Dropdown Menu Item:
 
-    public void handleGitIgnoreMenuItem() {
-        sessionController.handleGitIgnoreMenuItem();
+    // TODO: Make sure GitIgnoreEditor is threadsafe
+    public void handleGitIgnoreMenuItem()
+    {
+        GitIgnoreEditor.show(SessionModel.getSessionModel().getCurrentRepoHelper(), null);
     }
 
     // "Repository" Dropdown Menu Items (2 layers):
 
-    public void handleNewBranchButton() {
+    public synchronized void handleNewBranchButton() {
         sessionController.handleNewBranchButton();
     }
 
-    public void handleDeleteLocalBranchButton() {
+    public synchronized void handleDeleteLocalBranchButton() {
         sessionController.handleDeleteLocalBranchButton();
     }
 
-    public void handleDeleteRemoteBranchButton() {
+    public synchronized void handleDeleteRemoteBranchButton() {
         sessionController.handleDeleteRemoteBranchButton();
     }
 
-    public void showBranchCheckout() {
+    public synchronized void showBranchCheckout() {
         sessionController.showBranchCheckout();
     }
 
-    public void handleCloneNewRepoOption() {
+    public synchronized void handleCloneNewRepoOption() {
         sessionController.handleCloneNewRepoOption();
     }
 
-    public void handleCommitAll() {
+    public synchronized void handleCommitAll() {
         sessionController.handleCommitAll();
     }
 
-    public void handleCommitNormal() {
+    public synchronized void handleCommitNormal() {
         sessionController.handleCommitNormal();
     }
 
-    public void handleFetchButton() {
+    public synchronized void handleFetchButton() {
         sessionController.handleFetchButton();
     }
 
-    public void handlePruneFetchButton() {
+    public synchronized void handlePruneFetchButton() {
         sessionController.handlePruneFetchButton();
     }
 
-    public void mergeFromFetch() {
+    public synchronized void mergeFromFetch() {
         sessionController.mergeFromFetch();
     }
 
-    public void handleBranchMergeButton() {
+    public synchronized void handleBranchMergeButton() {
         sessionController.handleBranchMergeButton();
     }
 
-    public void handlePullButton() {
+    public synchronized void handlePullButton() {
         sessionController.handlePullButton();
     }
 
-    public void handlePushButton() {
+    public synchronized void handlePushButton() {
         sessionController.handlePushButton();
     }
 
-    public void handlePushAllButton() {
+    public synchronized void handlePushAllButton() {
         sessionController.handlePushAllButton();
     }
 
-    public void handlePushTagsButton() {
+    public synchronized void handlePushTagsButton() {
         sessionController.handlePushTagsButton();
     }
 
-    public void handleStashSaveButton() {
+    public synchronized void handleStashSaveButton() {
         sessionController.handleStashSaveButton();
     }
 
-    public void handleStashApplyButton() {
+    public synchronized void handleStashApplyButton() {
         sessionController.handleStashApplyButton();
     }
 
-    public void handleStashListButton() {
+    public synchronized void handleStashListButton() {
         sessionController.handleStashListButton();
     }
 
-    public void handleStashDropButton() {
+    public synchronized void handleStashDropButton() {
         sessionController.handleStashDropButton();
     }
 
-    }
+}
