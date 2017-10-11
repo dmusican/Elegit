@@ -1858,7 +1858,7 @@ public class SessionController {
         gitStatus();
         BusyWindow.hide();
         RepositoryMonitor.unpause();
-        submitLog();
+        LoggingModel.submitLog();
     }
 
     private void pauseRepoMonitor(String fetch_button_clicked) {
@@ -2171,15 +2171,6 @@ public class SessionController {
     }
 
 
-
-    public void handleLoggingOff() {
-        changeLogging(Level.OFF);
-    }
-
-    public void handleLoggingOn() {
-        changeLogging(Level.INFO);
-        logger.log(Level.INFO, "Toggled logging on");
-    }
 
     // why are the commitSort methods so slow?
     public void handleCommitSortTopological() {
@@ -2799,19 +2790,6 @@ public class SessionController {
 
     // END: ERROR NOTIFICATIONS ^^^
 
-    private void submitLog() {
-        try {
-            String lastUUID = theModel.getLastUUID();
-            theModel.setLastUUID(d.submitData(lastUUID));
-        } catch (BackingStoreException | ClassNotFoundException | IOException e) {
-            e.printStackTrace();
-        } catch (Exception e) {
-            try { theModel.setLastUUID(""); }
-            catch (Exception f) { // This shouldn't happen
-            }
-        }
-    }
-
     /**
      * Initialization method that loads the level of logging from preferences
      * This will show a popup window if there is no preference
@@ -2821,45 +2799,14 @@ public class SessionController {
      */
     public void loadLogging() {
         Platform.runLater(() -> {
-            Level storedLevel = getLoggingLevel();
+            Level storedLevel = LoggingModel.getLoggingLevel();
             if (storedLevel == null) {
                 storedLevel = PopUpWindows.getLoggingPermissions() ? Level.INFO : Level.OFF;
             }
-            changeLogging(storedLevel);
-            menuController.setLoggingToggle(storedLevel.equals(org.apache.logging.log4j.Level.INFO));
+            LoggingModel.changeLogging(storedLevel);
+            menuController.initializeLoggingToggle();
             logger.info("Starting up.");
         });
     }
 
-    /**
-     * Helper method to change whether or not this session is logging, also
-     * stores this in preferences
-     * @param level the level to set the logging to
-     */
-    void changeLogging(Level level) {
-        LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
-        Configuration config = ctx.getConfiguration();
-        LoggerConfig loggerConfig = config.getLoggerConfig(LogManager.ROOT_LOGGER_NAME);
-        loggerConfig.setLevel(level);
-        ctx.updateLoggers();
-
-        setLoggingLevelPref(level);
-    }
-
-    Level getLoggingLevel() {
-        try {
-            return (Level) PrefObj.getObject(this.preferences, LOGGING_LEVEL_KEY);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    void setLoggingLevelPref(Level level) {
-        try {
-            PrefObj.putObject(this.preferences, LOGGING_LEVEL_KEY, level);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
 }

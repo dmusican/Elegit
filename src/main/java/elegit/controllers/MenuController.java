@@ -1,9 +1,12 @@
 package elegit.controllers;
 
 import elegit.GitIgnoreEditor;
+import elegit.LoggingModel;
 import elegit.SessionModel;
 import elegit.treefx.TreeLayout;
 import io.reactivex.rxjavafx.observables.JavaFxObservable;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -43,20 +46,26 @@ public class MenuController {
     @FXML private MenuItem stashMenuItem1;
     @FXML private MenuItem stashMenuItem2;
 
+    // Normally, our MVC-like setup should put the logging toggle status in the model. However, the FX
+    // CheckMenuItem can't be bound to that; it is set here and automatically toggled when the menu is selected.
+    // So, this is the primary space the status is being stored; and the model status is bound to this one.
+    @FXML private CheckMenuItem loggingToggle;
+
     private static final Logger logger = LogManager.getLogger();
 
     // Hard: I think I want a separate class just for logging to constrain the locking
-    @FXML @GuardedBy("this") private CheckMenuItem loggingToggle;
     @FXML private CheckMenuItem commitSortToggle;
 
     public void initialize() {
         initMenuBarShortcuts();
-        commitSortToggle.setSelected(true); //default
+        initializeLoggingToggle();
+        LoggingModel.bindLogging(loggingToggle.selectedProperty());
 
+        commitSortToggle.setSelected(true); //default
     }
 
-    public synchronized void setLoggingToggle(boolean toggle) {
-        loggingToggle.setSelected(toggle);
+    public void initializeLoggingToggle() {
+        loggingToggle.setSelected(LoggingModel.loggingOn());
     }
 
     /**
@@ -89,12 +98,7 @@ public class MenuController {
     // "Preferences" Dropdown Menu Items:
 
     public synchronized void handleLoggingToggle() {
-        if (loggingToggle.isSelected()) {
-            sessionController.handleLoggingOn();
-        } else {
-            sessionController.handleLoggingOff();
-        }
-        assert !loggingToggle.isSelected() == sessionController.getLoggingLevel().equals(org.apache.logging.log4j.Level.toLevel("OFF"));
+        LoggingModel.toggleLogging();
     }
 
     public synchronized void handleCommitSortToggle() {
