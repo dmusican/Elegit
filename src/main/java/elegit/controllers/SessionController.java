@@ -32,6 +32,7 @@ import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import org.apache.commons.lang3.SystemUtils;
+import org.apache.http.annotation.GuardedBy;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -69,25 +70,26 @@ import java.util.prefs.Preferences;
  */
 public class SessionController {
 
-    public Button commitButton;
-    public Button pushButton;
-    public Button fetchButton;
-    public Button addButton;
-    public Button removeButton;
-    public Button checkoutFileButton;
-    public Button mergeButton;
-    public Button addDeleteBranchButton;
-    public Button checkoutButton;
-    public Button tagButton;
-    public Button pushTagsButton;
+    @FXML private Button commitButton;
+    @FXML private Button pushButton;
+    @FXML private Button fetchButton;
+    @FXML private Button addButton;
+    @FXML private Button removeButton;
+    @FXML private Button checkoutFileButton;
+    @FXML private Button mergeButton;
+    @FXML private Button addDeleteBranchButton;
+    @FXML private Button checkoutButton;
+    @FXML private Button tagButton;
+    @FXML private Button pushTagsButton;
+    @FXML private Node root;
+    @FXML private Tab workingTreePanelTab;
+    @FXML private Tab indexPanelTab;
+    @FXML private Tab allFilesPanelTab;
 
-    private SessionModel theModel;
 
-    public Node root;
+    // TODO: Make sure SessionModel is threadsafe
+    private final SessionModel theModel;
 
-    public Tab workingTreePanelTab;
-    public Tab indexPanelTab;
-    public Tab allFilesPanelTab;
 
     public TabPane filesTabPane;
     public TabPane indexTabPane;
@@ -160,6 +162,11 @@ public class SessionController {
 
     public static final Object globalLock = new Object();
 
+    public SessionController() {
+        // Creates the SessionModel
+        theModel = SessionModel.getSessionModel();
+    }
+
     /**
      * Initializes the environment by obtaining the model
      * and putting the views on display.
@@ -167,9 +174,6 @@ public class SessionController {
      * This method is automatically called by JavaFX.
      */
     public void initialize() {
-        // Creates the SessionModel
-        this.theModel = SessionModel.getSessionModel();
-
         // Creates a DataSubmitter for logging
         d = new DataSubmitter();
 
