@@ -14,6 +14,7 @@ import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Callback;
+import org.apache.http.annotation.GuardedBy;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jgit.api.MergeResult;
@@ -33,12 +34,8 @@ public class MergeWindowController {
     @FXML private Label localBranchName1;
     @FXML private Label localBranchName2;
     @FXML private AnchorPane anchorRoot;
-    @FXML private ComboBox<LocalBranchHelper> branchDropdownSelector;
     @FXML private Button mergeButton;
     @FXML private Text mergeRemoteTrackingText;
-    @FXML private StackPane notificationPane;
-    @FXML private NotificationController notificationPaneController;
-
     @FXML private HBox remoteBranchBox;
     @FXML private Text intoText1;
     @FXML private AnchorPane arrowPane;
@@ -50,25 +47,26 @@ public class MergeWindowController {
     private static final int LOCAL_PANE=1;
 
     private Stage stage;
-    SessionModel sessionModel;
-    RepoHelper repoHelper;
-    private BranchModel branchModel;
-    private boolean disable;
-    private CommitTreeModel localCommitTreeModel;
 
-    private SessionController sessionController;
+    @GuardedBy("this") private boolean disable;
+    @GuardedBy("this") private SessionController sessionController;
 
-    static final Logger logger = LogManager.getLogger();
+
+    // hard
+    @FXML private ComboBox<LocalBranchHelper> branchDropdownSelector;
+    @FXML private NotificationController notificationPaneController;
+
+    private static final Logger logger = LogManager.getLogger();
 
     /**
      * initializes the window
      * called when the fxml is loaded
      */
+    // TODO: Make sure RepoHelper and BranchModel are threadsafe
     public void initialize() throws IOException {
         //get session model and repo helper and branch model
-        sessionModel = SessionModel.getSessionModel();
-        repoHelper = sessionModel.getCurrentRepoHelper();
-        branchModel = repoHelper.getBranchModel();
+        RepoHelper repoHelper = SessionModel.getSessionModel().getCurrentRepoHelper();
+        BranchModel branchModel = repoHelper.getBranchModel();
 
         //init branch dropdown selector
         branchDropdownSelector.setItems(FXCollections.observableArrayList(branchModel.getLocalBranchesTyped()));
@@ -108,9 +106,6 @@ public class MergeWindowController {
 
         this.notificationPaneController.bindParentBounds(anchorRoot.heightProperty());
 
-        //init commit tree models
-        localCommitTreeModel = CommitTreeController.getCommitTreeModel();
-
         initText();
         initMergeButton();
     }
@@ -119,7 +114,8 @@ public class MergeWindowController {
      * helper method to initialize some text
      * @throws IOException if there is an error getting branch names
      */
-    private void initText() throws IOException {
+    private synchronized void initText() throws IOException {
+        RepoHelper repoHelper = SessionModel.getSessionModel().getCurrentRepoHelper();
         String curBranch = repoHelper.getBranchModel().getCurrentBranch().getRefName();
         BranchTrackingStatus b = BranchTrackingStatus.of(repoHelper.getRepo(), curBranch);
         if(b == null) {
@@ -144,7 +140,7 @@ public class MergeWindowController {
      * If there is a remote tracking branch, always and if not, then only
      * when on the merge local branches tab.
      */
-    private void initMergeButton() {
+    private synchronized void initMergeButton() {
         if (disable)
             mergeButton.disableProperty().bind(mergeTypePane.getSelectionModel().selectedIndexProperty().lessThan(1));
     }
@@ -180,10 +176,7 @@ public class MergeWindowController {
      * closes the window
      */
     public void closeWindow() {
-        if (Platform.isFxApplicationThread()) stage.close();
-        else {
-            Platform.runLater(() -> stage.close());
-        }
+        stage.close();
     }
 
     /**
@@ -209,7 +202,7 @@ public class MergeWindowController {
     /**
      * merges the remote-tracking branch associated with the current branch into the current local branch
      */
-    private void mergeFromFetch() {
+    private synchronized void mergeFromFetch() {
         Main.assertFxThread();
 
         // Do the merge, and close the window if successful
@@ -239,12 +232,14 @@ public class MergeWindowController {
         LocalBranchHelper selectedBranch = this.branchDropdownSelector.getSelectionModel().getSelectedItem();
 
         // Get the merge result from the branch merge
-        MergeResult mergeResult= this.branchModel.mergeWithBranch(selectedBranch);
+        MergeResult mergeResult =
+                SessionModel.getSessionModel().getCurrentRepoHelper().getBranchModel().mergeWithBranch(selectedBranch);
 
         if (mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.CONFLICTING)){
             this.showConflictsNotification();
-            this.sessionController.gitStatus();
-            ConflictingFileWatcher.watchConflictingFiles(sessionModel.getCurrentRepoHelper());
+            // TODO: Call gitStatus once I've got it better threaded
+            //this.sessionController.gitStatus();
+            ConflictingFileWatcher.watchConflictingFiles(SessionModel.getSessionModel().getCurrentRepoHelper());
 
         } else if (mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.ALREADY_UP_TO_DATE)) {
             this.showUpToDateNotification();
@@ -264,32 +259,15 @@ public class MergeWindowController {
             // todo: handle all cases (maybe combine some)
         }
         // Tell the rest of the UI to update
-        sessionController.gitStatus();
-    }
-
-    public void handleTrackDifBranch() {
-        RemoteBranchHelper toTrack = PopUpWindows.showTrackDifRemoteBranchDialog(FXCollections.observableArrayList(branchModel.getRemoteBranchesTyped()));
-        logger.info("Track remote branch locally (in merge window) button clicked");
-        try {
-            if (toTrack != null) {
-                LocalBranchHelper tracker = this.branchModel.trackRemoteBranch(toTrack);
-                this.branchDropdownSelector.getItems().add(tracker);
-                CommitTreeController.setBranchHeads(localCommitTreeModel, repoHelper);
-            }
-        } catch (RefAlreadyExistsException e) {
-            logger.warn("Branch already exists locally warning");
-            this.showRefAlreadyExistsNotification();
-        } catch (GitAPIException | IOException e) {
-            showGenericErrorNotification();
-            e.printStackTrace();
-        }
+        // TODO: Put gitStatus back in once I've threaded it better
+        //sessionController.gitStatus();
     }
 
     /**
      * Setter method for sessionController, needed for merge operations
      * @param sessionController the sessionController that made this window
      */
-    void setSessionController(SessionController sessionController) {
+    synchronized void setSessionController(SessionController sessionController) {
         this.sessionController = sessionController;
     }
 
