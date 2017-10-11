@@ -18,6 +18,7 @@ import java.util.*;
  * whether tracked or otherwise, as well as their status. It does so
  * in a hierarchical manner
  */
+// TODO: Make sure this is threadsafe
 public class AllFilesPanelView extends FileStructurePanelView{
 
     private Map<Path, TreeItem<RepoFile>> itemMap;

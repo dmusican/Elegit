@@ -14,6 +14,7 @@ import java.util.Arrays;
  * from a given treeGraph.
  *
  */
+// TODO: Make sure this is threadsafe
 public class CommitTreePanelView extends Region{
 
     // Thread information

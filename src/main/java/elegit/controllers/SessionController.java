@@ -90,40 +90,34 @@ public class SessionController {
 
     @FXML private TabPane filesTabPane;
 
+    @FXML private WorkingTreePanelView workingTreePanelView;
+    @FXML private AllFilesPanelView allFilesPanelView;
+    @FXML private StagedTreePanelView indexPanelView;
+    @FXML private CommitTreePanelView commitTreePanelView;
 
-    // TODO: Make sure SessionModel is threadsafe
+    @FXML private ImageView remoteImage;
+    @FXML private TextField tagNameField;
+
+    @FXML private HBox currentLocalBranchHbox;
+    @FXML private HBox currentRemoteTrackingBranchHbox;
+
+    @FXML private Text browserText;
+    @FXML private Text needToFetch;
+    @FXML private Text branchStatusText;
+
     private final SessionModel theModel;
 
 
 
-    public WorkingTreePanelView workingTreePanelView;
-    public AllFilesPanelView allFilesPanelView;
-    public StagedTreePanelView indexPanelView;
-
-    public CommitTreePanelView commitTreePanelView;
-
+    // harder
     public CommitTreeModel commitTreeModel;
-
-    public ImageView remoteImage;
-
     private String commitInfoNameText = "";
-
-    public TextField tagNameField;
-
-    public HBox currentLocalBranchHbox;
-    public HBox currentRemoteTrackingBranchHbox;
-
     private Label currentLocalBranchLabel;
     private Label currentRemoteTrackingLabel;
-
-    public Text browserText;
-    public Text needToFetch;
-    public Text branchStatusText;
-//    public Text updatingText;
-
     public URL remoteURL;
 
-    private DataSubmitter d;
+    // I'M HERE
+
 
     private BooleanProperty isWorkingTreeTabSelected;
     public static SimpleBooleanProperty anythingChecked;
@@ -176,9 +170,6 @@ public class SessionController {
      * This method is automatically called by JavaFX.
      */
     public void initialize() {
-        // Creates a DataSubmitter for logging
-        d = new DataSubmitter();
-
         // Gives other controllers acccess to this one
         CommitTreeController.sessionController = this;
         menuController.setSessionController(this);

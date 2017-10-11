@@ -29,6 +29,7 @@ import java.util.stream.Stream;
  * The singleton SessionModel stores all the Repos (contained in RepoHelper objects)
  * in the session and lets the user switch between repos.
  */
+// TODO: Make sure threadsafe
 public class SessionModel {
 
     // Keys for preferences recall

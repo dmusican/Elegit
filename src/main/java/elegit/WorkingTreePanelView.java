@@ -24,6 +24,7 @@ import java.util.*;
  * untracked/new, modified, or deleted.
  *
  */
+// TODO: Make sure this is threadsafe
 public class WorkingTreePanelView extends FileStructurePanelView{
 
     public BooleanProperty isAnyFileSelectedProperty;

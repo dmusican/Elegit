@@ -14,6 +14,8 @@ import java.util.*;
  * StagedTreePanelView displays all staged files in the current repository
  * and their status
  */
+
+// TODO: Make sure this is threadsafe
 public class StagedTreePanelView extends FileStructurePanelView{
 
     public StagedTreePanelView() {

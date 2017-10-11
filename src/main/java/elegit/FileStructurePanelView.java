@@ -15,6 +15,7 @@ import java.util.List;
  * Super class for the panels that display different files in the repository
  * in a tree structure
  */
+// TODO: Make sure this is threadsafe
 public abstract class FileStructurePanelView extends Region{
 
     protected TreeView<RepoFile> directoryTreeView;
