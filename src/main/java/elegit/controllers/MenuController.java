@@ -42,7 +42,7 @@ public class MenuController {
     @FXML private MenuItem stashMenuItem1;
     @FXML private MenuItem stashMenuItem2;
 
-    // Normally, our MVC-like setup should put the logging toggle status in the model. However, the FX
+    // Normally, our MVC-like setup should put the toggle status in the model. However, the FX
     // CheckMenuItem can't be bound to that; it is set here and automatically toggled when the menu is selected.
     // So, this is the primary space the status is being stored; and the model status is bound to this one.
     @FXML private CheckMenuItem loggingToggle;

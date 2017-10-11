@@ -24,7 +24,7 @@ public class LoggingModel {
     private static final Logger logger = LogManager.getLogger();
     @GuardedBy("this") private static final BooleanProperty loggingStatus = new SimpleBooleanProperty(false);
 
-    public synchronized static void bindLogging(BooleanProperty status) {
+    public synchronized static void bindLogging(ReadOnlyBooleanProperty status) {
         loggingStatus.bind(status);
     }
 

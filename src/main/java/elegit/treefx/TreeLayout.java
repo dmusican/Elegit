@@ -80,7 +80,7 @@ public class TreeLayout{
     }
 
 
-    public synchronized static void bindSorting(BooleanProperty status) {
+    public synchronized static void bindSorting(ReadOnlyBooleanProperty status) {
         commitSortTopological.bind(status);
     }
 
