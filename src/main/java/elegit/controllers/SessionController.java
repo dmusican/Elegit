@@ -81,18 +81,20 @@ public class SessionController {
     @FXML private Button checkoutButton;
     @FXML private Button tagButton;
     @FXML private Button pushTagsButton;
+
     @FXML private Node root;
+
     @FXML private Tab workingTreePanelTab;
     @FXML private Tab indexPanelTab;
     @FXML private Tab allFilesPanelTab;
+
+    @FXML private TabPane filesTabPane;
 
 
     // TODO: Make sure SessionModel is threadsafe
     private final SessionModel theModel;
 
 
-    public TabPane filesTabPane;
-    public TabPane indexTabPane;
 
     public WorkingTreePanelView workingTreePanelView;
     public AllFilesPanelView allFilesPanelView;
