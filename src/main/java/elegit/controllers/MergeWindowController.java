@@ -28,6 +28,7 @@ import java.util.List;
 /**
  * Controller for the merge window
  */
+// TODO: Make sure that every git operation happens sequentially, i.e., no two happen in different threads at the same time.
 public class MergeWindowController {
 
     @FXML private Label remoteTrackingBranchName;
@@ -42,6 +43,8 @@ public class MergeWindowController {
     @FXML private HBox localBranchBox1;
     @FXML private TabPane mergeTypePane;
     @FXML private Tab localBranchTab;
+    @FXML private ComboBox<LocalBranchHelper> branchDropdownSelector;
+    @FXML private NotificationController notificationPaneController;
 
     private static final int REMOTE_PANE=0;
     private static final int LOCAL_PANE=1;
@@ -51,10 +54,6 @@ public class MergeWindowController {
     @GuardedBy("this") private boolean disable;
     @GuardedBy("this") private SessionController sessionController;
 
-
-    // hard
-    @FXML private ComboBox<LocalBranchHelper> branchDropdownSelector;
-    @FXML private NotificationController notificationPaneController;
 
     private static final Logger logger = LogManager.getLogger();
 
@@ -69,6 +68,7 @@ public class MergeWindowController {
         BranchModel branchModel = repoHelper.getBranchModel();
 
         //init branch dropdown selector
+        // TODO: Make sure objects for branches are immutable
         branchDropdownSelector.setItems(FXCollections.observableArrayList(branchModel.getLocalBranchesTyped()));
         branchDropdownSelector.setPromptText("...");
 
@@ -80,11 +80,11 @@ public class MergeWindowController {
                     private final Label branchName; {
                         branchName = new Label();
                         branchName.setStyle("-fx-text-fill: #333333;"+
-                        "-fx-font-size: 14px;"+
-                        "-fx-font-weight: bold;"+
-                        "-fx-background-color: #CCCCCC;"+
-                        "-fx-background-radius: 5;"+
-                        "-fx-padding: 0 3 0 3");
+                                "-fx-font-size: 14px;"+
+                                "-fx-font-weight: bold;"+
+                                "-fx-background-color: #CCCCCC;"+
+                                "-fx-background-radius: 5;"+
+                                "-fx-padding: 0 3 0 3");
                     }
 
                     @Override protected void updateItem(LocalBranchHelper helper, boolean empty) {
