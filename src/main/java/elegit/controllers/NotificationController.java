@@ -2,6 +2,7 @@ package elegit.controllers;
 
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
+import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyDoubleProperty;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -15,6 +16,7 @@ import javafx.scene.shape.Line;
 import javafx.scene.text.Text;
 import javafx.stage.PopupWindow;
 import javafx.stage.Stage;
+import org.apache.http.annotation.GuardedBy;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.controlsfx.control.PopOver;
@@ -43,17 +45,17 @@ public class NotificationController {
     @FXML Label notificationNum;
     @FXML HBox latestNotificationBox;
 
-    private PopOver notificationAlert;
+    @GuardedBy("this") private PopOver notificationAlert;
     private TimerTask hideBubbleTask;
     private Stage anchor;
 
-    static final Logger logger = LogManager.getLogger(SessionController.class);
+    private static final Logger logger = LogManager.getLogger(SessionController.class);
 
     /**
      * Initializes the environment and sets up event handlers. Called
      * automatically by JavaFX
      */
-    public void initialize() {
+    public synchronized void initialize() {
         this.notificationListPane.setVisible(false);
         this.notificationListPane.setMouseTransparent(true);
 
@@ -71,7 +73,7 @@ public class NotificationController {
         this.notificationNum.setPickOnBounds(false);
     }
 
-    public void setAnchor(Stage stage) {
+    public synchronized void setAnchor(Stage stage) {
         this.anchor = stage;
     }
 
@@ -80,7 +82,7 @@ public class NotificationController {
      * @param notification new alert
      * @return new PopOver
      */
-    private PopOver updateNotificationBubble(String notification) {
+    private synchronized PopOver updateNotificationBubble(String notification) {
         Text notifcationText = new Text(notification);
         notifcationText.setWrappingWidth(230);
         notifcationText.setStyle("-fx-font-weight: bold");
@@ -101,7 +103,7 @@ public class NotificationController {
      * Handler method for the notification pane
      * @param e the mouse event to handle
      */
-    private void handleNotificationPane(MouseEvent e) {
+    private synchronized void handleNotificationPane(MouseEvent e) {
         if (e.getTarget().toString().contains("ImageView")) {
             toggleNotificationList();
         } else if (e.getClickCount()>1) {
@@ -113,7 +115,7 @@ public class NotificationController {
      * Handler method for resizing the extended notification window
      * @param e mouse event for dragging
      */
-    private void handleLineDragged(MouseEvent e) {
+    private synchronized void handleLineDragged(MouseEvent e) {
         if (notificationList.getHeight()<MIN_SCROLLPANE_HEIGHT || e.getSceneY()>(notificationList.getScene().getHeight()-MIN_SCROLLPANE_HEIGHT)) {
             notificationList.setPrefHeight(MIN_SCROLLPANE_HEIGHT);
             hideNotificationList();
@@ -127,7 +129,7 @@ public class NotificationController {
     /**
      * Toggles between the basic view of one notification to the extended list view
      */
-    void toggleNotificationList() {
+    synchronized void toggleNotificationList() {
         this.notificationListPane.setVisible(!this.notificationListPane.isVisible());
         this.notificationListPane.setMouseTransparent(!this.notificationListPane.isMouseTransparent());
         this.latestNotification.setVisible(!this.latestNotification.isVisible());
@@ -139,14 +141,14 @@ public class NotificationController {
     /**
      * Helper method to hide the extended notification list if it is showing
      */
-    private void hideNotificationList() {
+    private synchronized void hideNotificationList() {
         if (isListPaneVisible()) toggleNotificationList();
     }
 
     /**
      * Helper method to show the extended notification list if isn't showing
      */
-    private void showNotificationList() {
+    private synchronized void showNotificationList() {
         if (!isListPaneVisible()) {
             toggleNotificationList();
             hideBubble();
@@ -156,7 +158,7 @@ public class NotificationController {
     /**
      * @return true if the extended notification list is showing
      */
-    boolean isListPaneVisible() {
+    synchronized boolean isListPaneVisible() {
         return this.notificationListPane.isVisible();
     }
 
@@ -164,7 +166,7 @@ public class NotificationController {
      * Adds a notification to the list of notifications
      * @param notification the notification string to add
      */
-    void addNotification(String notification) {
+    synchronized void addNotification(String notification) {
         Label line = makeNotificationLabel(notification);
         setLatestNotification(makeLatestNotificationLabel(line));
         showBubble(notification);
@@ -181,7 +183,7 @@ public class NotificationController {
      * @param actionText the text to show on the action button
      * @param handler the handler for clicking the button
      */
-    void addNotification(String notification, String actionText, EventHandler handler) {
+    synchronized void addNotification(String notification, String actionText, EventHandler<MouseEvent> handler) {
         // HBox to hold the label of the notification and the action button
         HBox box = new HBox();
 
@@ -210,7 +212,7 @@ public class NotificationController {
         setNotificationNum();
     }
 
-    private Label makeNotificationLabel(String notification) {
+    private synchronized Label makeNotificationLabel(String notification) {
         Label line = new Label(notification);
         line.setWrapText(true);
         line.setId("notification");
@@ -222,14 +224,14 @@ public class NotificationController {
         return line;
     }
 
-    private Label makeLatestNotificationLabel(Label notification) {
+    private synchronized Label makeLatestNotificationLabel(Label notification) {
         Label line = new Label(notification.getText());
         line.setWrapText(true);
         line.setId("notification");
         return line;
     }
 
-    private Button makeLatestNotificationButton(Button action) {
+    private synchronized Button makeLatestNotificationButton(Button action) {
         Button latestActionButton = new Button(action.getText());
         latestActionButton.setId("notification");
         latestActionButton.setOnMouseClicked(action.getOnMouseClicked());
@@ -240,7 +242,7 @@ public class NotificationController {
      * Binds the max height of the notification pane to a little below the height of the parent anchor pane
      * @param parentHeight the height property of the parent pane
      */
-    void bindParentBounds(ReadOnlyDoubleProperty parentHeight) {
+    synchronized void bindParentBounds(ReadOnlyDoubleProperty parentHeight) {
         this.notificationPane.maxHeightProperty().bind(parentHeight.divide(1.1));
     }
 
@@ -248,7 +250,7 @@ public class NotificationController {
      * Helper method that clears all notifications
      */
     @FXML
-    void clearAllNotifications() {
+    synchronized void clearAllNotifications() {
         VBox vBox = (VBox) this.notificationList.getContent();
 
         vBox.getChildren().clear();
@@ -261,7 +263,7 @@ public class NotificationController {
      * Removes a given notification
      * @param notification the notification label (with or without an action) to remove
      */
-    private void removeNotification(Region notification) {
+    private synchronized void removeNotification(Region notification) {
         VBox vBox = (VBox) this.notificationList.getContent();
 
         // Reset the latest notification text if needed
@@ -287,7 +289,7 @@ public class NotificationController {
      * Sets the latest notification
      * @param notificationLabel the label to add
      */
-    private void setLatestNotification(Label notificationLabel) {
+    private synchronized void setLatestNotification(Label notificationLabel) {
         if (notificationLabel != null) {
             latestNotificationBox.getChildren().setAll(notificationLabel);
         } else {
@@ -300,7 +302,7 @@ public class NotificationController {
      * @param notificationLabel the label for the notification
      * @param notificationButton the button with an action
      */
-    private void setLatestNotification(Label notificationLabel, Button notificationButton) {
+    private synchronized void setLatestNotification(Label notificationLabel, Button notificationButton) {
         try {
             latestNotificationBox.getChildren().setAll(notificationLabel, notificationButton);
         } catch (Exception e) {
@@ -312,7 +314,7 @@ public class NotificationController {
     /**
      * Helper method to set the number on the notifications
      */
-    private void setNotificationNum() {
+    private synchronized void setNotificationNum() {
         int num = ((VBox)this.notificationList.getContent()).getChildren().size();
         if (num>0) this.notificationNum.setText(num+"");
         else this.notificationNum.setText("");
@@ -323,7 +325,7 @@ public class NotificationController {
      *
      * @param notification to put in window
      */
-    private void showBubble(String notification) {
+    private synchronized void showBubble(String notification) {
         if(!isListPaneVisible()) {
             notificationAlert = updateNotificationBubble(notification);
             notificationAlert.show(this.anchor, anchor.getX() + anchor.getWidth() - 15, anchor.getY() + anchor.getHeight() - 15);
@@ -336,13 +338,15 @@ public class NotificationController {
     /**
      * Hides the notification alert 4 seconds after the most recent alert
      */
-    private void hideBubbleTask(){
+    private synchronized void hideBubbleTask(){
         if(hideBubbleTask != null) hideBubbleTask.cancel();
         Timer timer = new Timer(true);
         hideBubbleTask = new TimerTask() {
             @Override
             public void run() {
-                hideBubble();
+                // Hiding the bubble from the timer thread might be possible, but do it from the FX thread to avoid
+                // race conditions
+                Platform.runLater(() -> hideBubble());
             }
         };
         timer.schedule(hideBubbleTask, 4000);
@@ -351,7 +355,7 @@ public class NotificationController {
     /**
      * Helper method that hides the notification Alert
      */
-    private void hideBubble() {
+    private synchronized void hideBubble() {
         if(notificationAlert != null) notificationAlert.hide();
     }
 }

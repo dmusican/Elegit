@@ -9,6 +9,7 @@ import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
@@ -183,7 +184,7 @@ public class StashListController {
         Platform.runLater(() -> {
             logger.warn("Stash apply conflicts warning");
 
-            EventHandler handler = event -> sessionController.quickStashSave();
+            EventHandler<MouseEvent> handler = event -> sessionController.quickStashSave();
             this.notificationPaneController.addNotification("You can't apply that stash because there would be conflicts. " +
                     "Stash your changes or resolve conflicts first.", "stash", handler);
         });

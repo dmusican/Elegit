@@ -8,6 +8,7 @@ import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.text.Text;
@@ -511,7 +512,7 @@ public class CreateDeleteBranchWindowController {
         Platform.runLater(() -> {
             logger.warn("Checkout conflicts warning");
 
-            EventHandler handler = event -> sessionController.quickStashSave();
+            EventHandler<MouseEvent> handler = event -> sessionController.quickStashSave();
             this.notificationPaneController.addNotification("You can't switch to that branch because there would be a merge conflict. " +
                     "Stash your changes or resolve conflicts first.", "stash", handler);
         });

@@ -2750,7 +2750,7 @@ public class SessionController {
         Platform.runLater(() -> {
             logger.warn("Stash apply conflicts warning");
 
-            EventHandler handler = event -> quickStashSave();
+            EventHandler<MouseEvent> handler = event -> quickStashSave();
             this.notificationPaneController.addNotification("You can't apply that stash because there would be conflicts. " +
                     "Stash your changes or resolve conflicts first.", "stash", handler);
         });
@@ -2760,7 +2760,7 @@ public class SessionController {
         Platform.runLater(() -> {
             logger.warn("Checkout conflicts warning");
 
-            EventHandler handler = event -> quickStashSave();
+            EventHandler<MouseEvent> handler = event -> quickStashSave();
             this.notificationPaneController.addNotification("You can't switch to that branch because there would be a merge conflict. " +
                     "Stash your changes or resolve conflicts first.", "stash", handler);
         });

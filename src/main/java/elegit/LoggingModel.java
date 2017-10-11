@@ -29,7 +29,6 @@ public class LoggingModel {
     }
 
     public static void submitLog() {
-        System.out.println(logger.getLevel());
         try {
             String lastUUID = getLastUUID();
             setLastUUID(d.submitData(lastUUID));
