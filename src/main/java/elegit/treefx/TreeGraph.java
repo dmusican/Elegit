@@ -67,7 +67,7 @@ public class TreeGraph{
      * date
      */
     public synchronized void update() {
-        Main.assertNotFxThread();
+        //Main.assertNotFxThread();
 
         final List<Node> queuedToAdd = new ArrayList<>();
         final List<Node> queuedToRemove = new ArrayList<>();

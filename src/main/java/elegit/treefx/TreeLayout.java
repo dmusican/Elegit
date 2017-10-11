@@ -2,9 +2,7 @@ package elegit.treefx;
 
 import elegit.Main;
 import javafx.application.Platform;
-import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.SimpleDoubleProperty;
-import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.*;
 import javafx.concurrent.Task;
 import javafx.geometry.Pos;
 import javafx.scene.control.ProgressBar;
@@ -28,7 +26,7 @@ public class TreeLayout{
     public static int H_PAD = 10;
     public static int V_PAD = 25;
     public static boolean movingCells;
-    public static boolean commitSortTopological = true;
+    private final static BooleanProperty commitSortTopological = new SimpleBooleanProperty(true);
 
 
     /**
@@ -44,7 +42,7 @@ public class TreeLayout{
         private AtomicInteger percent;
 
         public CellMover(List<Cell> allCellsSortedByTime) {
-            Main.assertNotFxThread();
+            //Main.assertNotFxThread();
             this.allCellsSortedByTime = Collections.unmodifiableList(allCellsSortedByTime);
             this.percent = new AtomicInteger(0);
             this.currentCell = 0;
@@ -54,7 +52,7 @@ public class TreeLayout{
         public void setCurrentCell(int currentCell) { this.currentCell = currentCell; }
 
         public void moveSomeCells() {
-            Main.assertNotFxThread();
+            //Main.assertNotFxThread();
             // Try/catch is just in for debugging purposes, left because any
             // errors here are very hard to find without it
             final int startCell = currentCell;
@@ -82,6 +80,10 @@ public class TreeLayout{
     }
 
 
+    public synchronized static void bindSorting(BooleanProperty status) {
+        commitSortTopological.bind(status);
+    }
+
     /*
      * Takes care of laying out the given
      * graph into a tree. Uses a combination of recursion and
@@ -94,12 +96,12 @@ public class TreeLayout{
              * it has been through the layout process at least once already
              */
     public static void doTreeLayout(TreeGraph g) {
-        Main.assertNotFxThread();
+        //Main.assertNotFxThread();
         try {
             TreeGraphModel treeGraphModel = g.treeGraphModel;
 
             List<Cell> allCells = treeGraphModel.allCells;
-            if (commitSortTopological)
+            if (commitSortTopological.get())
                 topologicalSortListOfCells(allCells);
             else
                 sortListOfCells(allCells);
@@ -170,7 +172,7 @@ public class TreeLayout{
     private static void computeCellPosition(List<Cell> allCells, List<Integer> minRowUsedInCol,
                                             List<Integer> movedCells, boolean isInitialSetupFinished,
                                             int cellPosition) {
-        Main.assertNotFxThread();
+        //Main.assertNotFxThread();
         // Don't try to compute a new position if the cell has already been moved
         if (movedCells.contains(cellPosition))
             return;
@@ -204,7 +206,7 @@ public class TreeLayout{
      */
     private static void setCellPosition(Cell c, List<Integer> minRowUsedInCol, List<Integer> movedCells,
                                         boolean isInitialSetupFinished, int x, int y) {
-        Main.assertNotFxThread();
+        //Main.assertNotFxThread();
         // See whether or not this cell will move
         int oldColumnLocation = c.columnLocationProperty.get();
         int oldRowLocation = c.rowLocationProperty.get();
@@ -232,7 +234,7 @@ public class TreeLayout{
      * Helper method to sort the list of cells
      */
     public static void sortListOfCells(List<Cell> cellsToSort) {
-        Main.assertNotFxThread();
+        //Main.assertNotFxThread();
         cellsToSort.sort((c1, c2) -> {
             int i = Long.compare(c2.getTime(), c1.getTime());
             if(i == 0){
@@ -255,7 +257,7 @@ public class TreeLayout{
      * Uses Kahn's algorithm.
      */
     public static void topologicalSortListOfCells(List<Cell> cellsToSort) {
-        Main.assertNotFxThread();
+        //Main.assertNotFxThread();
 
         Map<String,Integer> visitCount = new HashMap<>();
 
@@ -303,7 +305,7 @@ public class TreeLayout{
      * @return the lowest indexed row in which to place c
      */
     private static int getColumnOfCellInRow(List<Integer> minRowUsedInCol, int cellRow){
-        Main.assertNotFxThread();
+        //Main.assertNotFxThread();
         int col = 0;
         while(minRowUsedInCol.size() > col && (cellRow > minRowUsedInCol.get(col))){
             col++;

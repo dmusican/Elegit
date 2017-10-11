@@ -33,7 +33,7 @@ public class CommitTreePanelView extends Region{
      * @param treeGraph TreeGraph
      */
     private void initCommitTreeScrollPanes(TreeGraph treeGraph) {
-        Main.assertNotFxThread();
+        //Main.assertNotFxThread();
         ScrollPane sp = treeGraph.getScrollPane();
         sp.setOnMouseClicked(event -> CommitTreeController.handleMouseClicked());
         Platform.runLater(() -> getChildren().clear());

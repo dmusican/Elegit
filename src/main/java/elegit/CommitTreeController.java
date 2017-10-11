@@ -210,7 +210,7 @@ public class CommitTreeController{
      * @param commitTreeModel the model whose view should be updated
      */
     public static void update(CommitTreeModel commitTreeModel){
-        Main.assertNotFxThread();
+        //Main.assertNotFxThread();
         BusyWindow.setLoadingText("B1");
         RepoHelper repo = commitTreeModel.sessionModel.getCurrentRepoHelper();
 

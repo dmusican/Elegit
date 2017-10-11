@@ -4,10 +4,6 @@ import elegit.GitIgnoreEditor;
 import elegit.LoggingModel;
 import elegit.SessionModel;
 import elegit.treefx.TreeLayout;
-import io.reactivex.rxjavafx.observables.JavaFxObservable;
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.ReadOnlyBooleanWrapper;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -50,16 +46,15 @@ public class MenuController {
     // CheckMenuItem can't be bound to that; it is set here and automatically toggled when the menu is selected.
     // So, this is the primary space the status is being stored; and the model status is bound to this one.
     @FXML private CheckMenuItem loggingToggle;
+    @FXML private CheckMenuItem commitSortToggle;
 
     private static final Logger logger = LogManager.getLogger();
-
-    // Hard: I think I want a separate class just for logging to constrain the locking
-    @FXML private CheckMenuItem commitSortToggle;
 
     public void initialize() {
         initMenuBarShortcuts();
         initializeLoggingToggle();
         LoggingModel.bindLogging(loggingToggle.selectedProperty());
+        TreeLayout.bindSorting(commitSortToggle.selectedProperty());
 
         commitSortToggle.setSelected(true); //default
     }
@@ -102,12 +97,7 @@ public class MenuController {
     }
 
     public synchronized void handleCommitSortToggle() {
-        if (commitSortToggle.isSelected()){
-            sessionController.handleCommitSortTopological();
-        } else {
-            sessionController.handleCommitSortDate();
-        }
-        assert commitSortToggle.isSelected() == TreeLayout.commitSortTopological ;
+        sessionController.handleCommitSortToggle();
     }
 
 

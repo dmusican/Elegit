@@ -2173,8 +2173,7 @@ public class SessionController {
 
 
     // why are the commitSort methods so slow?
-    public void handleCommitSortTopological() {
-        TreeLayout.commitSortTopological = true;
+    public void handleCommitSortToggle() {
         try {
             commitTreeModel.updateView();
         } catch (Exception e) {
@@ -2183,15 +2182,6 @@ public class SessionController {
         }
     }
 
-    public void handleCommitSortDate() {
-        TreeLayout.commitSortTopological = false;
-        try {
-            commitTreeModel.updateView();
-        } catch (Exception e) {
-            e.printStackTrace();
-            showGenericErrorNotification();
-        }
-    }
 
 
     public void handleNewBranchButton() {

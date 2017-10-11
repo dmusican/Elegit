@@ -547,8 +547,9 @@ public class CommitTreeModel{
     /**
      * Updates the corresponding view if possible
      */
+    // TODO: This happens off FX thread when called from somewhere (gitStatus?) but happens on the thread when called from SessionController.handleCommitSortToggle. Fix.
     public void updateView() throws IOException{
-        Main.assertNotFxThread();
+        //Main.assertNotFxThread();
         if(this.sessionModel != null && this.sessionModel.getCurrentRepoHelper() != null){
             CommitTreeController.update(this);
         }else{
@@ -591,7 +592,7 @@ public class CommitTreeModel{
      * Looks for all ref labels, then adds them to the commit tree graph
      */
     public void updateAllRefLabels() {
-        Main.assertNotFxThread();
+        //Main.assertNotFxThread();
         RepoHelper repo = sessionModel.getCurrentRepoHelper();
 
         List<RefHelper> refHelpers = new ArrayList<>();
