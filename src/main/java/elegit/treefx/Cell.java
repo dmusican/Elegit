@@ -20,6 +20,7 @@ import javafx.util.Duration;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * A class that represents a node in a TreeGraph
@@ -27,7 +28,31 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class Cell extends Pane{
 
     // Base shapes for different types of cells
-    static final CellShape DEFAULT_SHAPE = CellShape.SQUARE;
+    private static final CellShape DEFAULT_SHAPE = CellShape.SQUARE;
+    private static final String BACKGROUND_COLOR = "#F4F4F4";
+
+    // Limits on animation so the app doesn't begin to stutter
+    private static final int MAX_NUM_CELLS_TO_ANIMATE = 5;
+    private static AtomicInteger numCellsBeingAnimated = new AtomicInteger(0);
+
+    // The tooltip shown on hover
+    private final Tooltip tooltip;
+
+    // The unique ID of this cell
+    private final String cellId;
+
+    // The assigned time of this commit
+    private final long time;
+
+
+    private final AtomicBoolean animate = new AtomicBoolean();
+    private final AtomicBoolean useParentAsSource = new AtomicBoolean();
+
+
+    // hard
+    // There's a lot in here that's hard. This is because it's unclear what's happening on the FX thread
+    // and what's not. Said differently, it's unclear what's view, and what's model. Get that disentangled, and
+    // everything else should hopefully fall into place.
     public static final CellShape UNTRACKED_BRANCH_HEAD_SHAPE = CellShape.CIRCLE;
     public static final CellShape TRACKED_BRANCH_HEAD_SHAPE = CellShape.TRIANGLE_UP;
 
@@ -37,37 +62,16 @@ public class Cell extends Pane{
     //The height of the shift for the cells;
     private static final int BOX_SHIFT = 20;
 
-    // The inset for the background;
-    static final int BOX_INSET = 1;
-    static final int BOX_INSIDE = 2;
-
-    private static final String BACKGROUND_COLOR = "#F4F4F4";
-
-    // Limits on animation so the app doesn't begin to stutter
-    private static final int MAX_NUM_CELLS_TO_ANIMATE = 5;
-    private static int numCellsBeingAnimated = 0;
-
     // The displayed view
     Node view;
     private CellShape shape;
     private CellType type;
-    // The tooltip shown on hover
-    private Tooltip tooltip;
-
-    // The unique ID of this cell
-    private final String cellId;
-    // The assigned time of this commit
-    private final long time;
 
     private ContextMenu contextMenu;
-
     private CellLabelContainer refLabels;
 
-    private final AtomicBoolean animate = new AtomicBoolean();
-    private final AtomicBoolean useParentAsSource = new AtomicBoolean();
-
     // The list of children of this cell
-    private final List<Cell> children = new ArrayList<>();
+    private final List<Cell> childrenList = new ArrayList<>();
 
     // The parent object that holds the parents of this cell
     private final ParentCell parents;
@@ -80,6 +84,15 @@ public class Cell extends Pane{
 
     // Whether this cell has been moved to its appropriate location
     private BooleanProperty hasUpdatedPosition;
+
+
+    // HERE
+
+
+
+
+
+
 
     /**
      * Constructs a node with the given ID and the given parents
@@ -141,9 +154,12 @@ public class Cell extends Pane{
      * @param emphasize whether to have the Highlighter class emphasize this cell while it moves
      */
     void moveTo(double x, double y, boolean animate, boolean emphasize){
+        // In principle, there's a compare-and-set bug below, in getting numCellsBeingAnimated, testing its value,
+        // and then conditionally incrementing, but this is all running the FX thread anyway. Leave that assert
+        // below in there, it's critical.
         Main.assertFxThread();
-        if(animate && numCellsBeingAnimated < MAX_NUM_CELLS_TO_ANIMATE){
-            numCellsBeingAnimated++;
+        if(animate && numCellsBeingAnimated.get() < MAX_NUM_CELLS_TO_ANIMATE){
+            numCellsBeingAnimated.getAndIncrement();
 
             Shape placeHolder = (Shape) getBaseView();
             placeHolder.setTranslateX(x+TreeLayout.H_PAD);
@@ -156,7 +172,7 @@ public class Cell extends Pane{
             t.setToY(y+BOX_SHIFT);
             t.setCycleCount(1);
             t.setOnFinished(event -> {
-                numCellsBeingAnimated--;
+                numCellsBeingAnimated.getAndDecrement();
                 ((Pane)(this.getParent())).getChildren().remove(placeHolder);
             });
             t.play();
@@ -216,6 +232,10 @@ public class Cell extends Pane{
         this.shape = newShape;
     }
 
+    public void setShapeDefault() {
+        setShape(DEFAULT_SHAPE);
+    }
+
     /**
      * Sets the tooltip to display the given text
      * @param label the text to display
@@ -262,14 +282,14 @@ public class Cell extends Pane{
      * @param cell the new child
      */
     private void addCellChild(Cell cell) {
-        children.add(cell);
+        childrenList.add(cell);
     }
 
     /**
-     * @return the list of the children of this cell
+     * @return the list of the childrenList of this cell
      */
     List<Cell> getCellChildren() {
-        return children;
+        return Collections.unmodifiableList(childrenList);
     }
 
     /**
@@ -290,11 +310,11 @@ public class Cell extends Pane{
     boolean getUseParentAsSource() { return this.useParentAsSource.get(); }
 
     /**
-     * Removes the given cell from the children of this cell
+     * Removes the given cell from the childrenList of this cell
      * @param cell the cell to remove
      */
     void removeCellChild(Cell cell) {
-        children.remove(cell);
+        childrenList.remove(cell);
     }
 
     /**
@@ -309,9 +329,9 @@ public class Cell extends Pane{
      */
     private boolean isChild(Cell cell, int depth){
         depth--;
-        if(children.contains(cell)) return true;
+        if(childrenList.contains(cell)) return true;
         else if(depth != 0){
-            for(Cell child : children){
+            for(Cell child : childrenList){
                 if(child.isChild(cell, depth)){
                     return true;
                 }
@@ -415,13 +435,6 @@ public class Cell extends Pane{
                 buildingParents.add(parent);
             this.parents = Collections.unmodifiableList(buildingParents);
             this.setChild(child);
-        }
-
-        /**
-         * @return the number of parent commits associated with this object
-         */
-        public int count(){
-            return parents.size();
         }
 
         /**

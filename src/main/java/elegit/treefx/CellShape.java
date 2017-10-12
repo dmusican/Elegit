@@ -64,33 +64,4 @@ public enum CellShape{
         }
     }
 
-    /**
-     * @param inset the inset of the inner shape to get
-     * @return the JavaFX object corresponding to the interior to the shape
-     */
-    public Shape getInside(int inset) {
-        int extraInset = inset;
-        if (inset==Cell.BOX_INSIDE)
-            extraInset += 1;
-        switch(this){
-            case CIRCLE:
-                return new Circle(Cell.BOX_SIZE / 2., Cell.BOX_SIZE / 2., Cell.BOX_SIZE / 2. - inset);
-            case TRIANGLE_UP:
-                return new Polygon(extraInset, Cell.BOX_SIZE-inset, Cell.BOX_SIZE-extraInset, Cell.BOX_SIZE-inset,
-                        Cell.BOX_SIZE / 2., extraInset+1);
-            case TRIANGLE_DOWN:
-                return new Polygon(extraInset, inset, Cell.BOX_SIZE-extraInset, inset,
-                        Cell.BOX_SIZE / 2., Cell.BOX_SIZE-extraInset);
-            case TRIANGLE_RIGHT:
-                return new Polygon(inset, extraInset, Cell.BOX_SIZE-extraInset, Cell.BOX_SIZE / 2.,
-                        inset, Cell.BOX_SIZE-extraInset);
-            case TRIANGLE_LEFT:
-                return new Polygon(extraInset, Cell.BOX_SIZE / 2., Cell.BOX_SIZE-inset, extraInset,
-                        Cell.BOX_SIZE-inset, Cell.BOX_SIZE-extraInset);
-            case SQUARE:
-            default:
-                return new Rectangle(inset, inset, Cell.BOX_SIZE-(2*inset), Cell.BOX_SIZE-(2*inset));
-
-        }
-    }
 }
