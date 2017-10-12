@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
  * tree structure. It also takes care of updating the view its given to
  * display the new tree whenever the graph is updated.
  */
+// TODO: Make sure threadsafe
 public class CommitTreeModel{
 
     // The view corresponding to this model
@@ -44,11 +45,10 @@ public class CommitTreeModel{
     /**
      * Constructs a new commit tree model that supplies the data for the given
      * view
-     * @param model the model with which this class accesses the commits
      * @param view the view that will be updated with the new graph
      */
-    public CommitTreeModel(SessionModel model, CommitTreePanelView view){
-        this.sessionModel = model;
+    public CommitTreeModel(CommitTreePanelView view){
+        this.sessionModel = SessionModel.getSessionModel();
         this.view = view;
         this.view.setName("Local commit tree");
         this.commitsInModel = new ArrayList<>();

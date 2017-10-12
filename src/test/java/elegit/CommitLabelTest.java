@@ -67,7 +67,7 @@ public class CommitLabelTest {
         helper.obtainRepository(remoteURL);
 
         // Get the commit tree
-        this.commitTreeModel = Main.sessionController.commitTreeModel;
+        this.commitTreeModel = Main.sessionController.getCommitTreeModel();
 
         // Load this repo in Elegit, and initialize
         SessionModel.getSessionModel().openRepoFromHelper(helper);

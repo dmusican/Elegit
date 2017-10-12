@@ -130,12 +130,12 @@ public class SessionController {
     private static final BooleanProperty anythingChecked = new SimpleBooleanProperty(false);
 
     @GuardedBy("this") private boolean tryCommandAgainWithHTTPAuth;
+    @GuardedBy("this") public CommitTreeModel commitTreeModel;
 
     public static final Object globalLock = new Object();
 
     // I'M HERE
     // harder
-    public CommitTreeModel commitTreeModel;
     private String commitInfoNameText = "";
     private Label currentLocalBranchLabel;
     private Label currentRemoteTrackingLabel;
@@ -153,7 +153,7 @@ public class SessionController {
      *
      * This method is automatically called by JavaFX.
      */
-    public void initialize() {
+    public synchronized void initialize() {
         // Gives other controllers acccess to this one
         CommitTreeController.sessionController = this;
         menuController.setSessionController(this);
@@ -162,7 +162,7 @@ public class SessionController {
 
 
         // Creates the commit tree model
-        this.commitTreeModel = new CommitTreeModel(this.theModel, this.commitTreePanelView);
+        commitTreeModel = new CommitTreeModel(commitTreePanelView);
         CommitTreeController.commitTreeModel = this.commitTreeModel;
 
         // Passes theModel to panel views
@@ -2147,7 +2147,7 @@ public class SessionController {
 
 
     // why are the commitSort methods so slow?
-    public void handleCommitSortToggle() {
+    public synchronized void handleCommitSortToggle() {
         try {
             commitTreeModel.updateView();
         } catch (Exception e) {
@@ -2258,7 +2258,7 @@ public class SessionController {
      * Updates the trees, changed files, and branch information. Equivalent
      * to 'git status'
      */
-    public void gitStatus() {
+    public synchronized void gitStatus() {
             Main.assertFxThread();
 
             Observable.just(1)
@@ -2779,5 +2779,9 @@ public class SessionController {
 
     public synchronized void setTryCommandAgainWithHTTPAuth(boolean value) {
         tryCommandAgainWithHTTPAuth = value;
+    }
+
+    public synchronized CommitTreeModel getCommitTreeModel() {
+        return commitTreeModel;
     }
 }
