@@ -1323,7 +1323,7 @@ public class RepoHelper {
                 CommitHelper parentCommitHelper = getCommit(p.getId());
                 if (parentCommitHelper == null) {
                     commitsWithMissingParents.add(curCommitHelper);
-                } else if (!curCommitHelper.getParents().contains(parentCommitHelper)) {
+                } else if (!curCommitHelper.parentsContains(parentCommitHelper)) {
                     curCommitHelper.addParent(parentCommitHelper);
                 }
             }

@@ -150,27 +150,8 @@ public class CommitHelper{
         return parents;
     }
 
-    /**
-     * Checks to see if the given commit has this commit as an ancestor,
-     * up to the given number of generations.
-     *
-     * Entering zero or a negative number will search all descendants
-     *
-     * @param commit the commit to check
-     * @param depth how many generations down to check
-     * @return true if commit is a child of this commit, otherwise false
-     */
-    private boolean isChild(CommitHelper commit, int depth){
-        depth--;
-        if(children.contains(commit)) return true;
-        else if(depth != 0){
-            for(CommitHelper child : children){
-                if(child.isChild(commit, depth)){
-                    return true;
-                }
-            }
-        }
-        return false;
+    public boolean parentsContains(CommitHelper parentCommitHelper) {
+        return parents.contains(parentCommitHelper);
     }
 
     @Override
