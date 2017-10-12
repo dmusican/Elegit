@@ -184,6 +184,7 @@ public class SessionModel {
      * that no longer exist are removed (and not returned)
      * @return a list of all existing repositories held in the session
      */
+    // TODO: Make sure this is immutable
     public List<RepoHelper> getAllRepoHelpers() {
         List<RepoHelper> tempList = new ArrayList<>(allRepoHelpers);
         for(RepoHelper r : tempList){

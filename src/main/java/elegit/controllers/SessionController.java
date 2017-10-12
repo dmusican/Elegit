@@ -1,5 +1,6 @@
 package elegit.controllers;
 
+import com.sun.org.apache.regexp.internal.RE;
 import elegit.*;
 import elegit.exceptions.*;
 import elegit.treefx.TreeLayout;
@@ -13,6 +14,7 @@ import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.event.*;
 import javafx.fxml.FXML;
@@ -105,6 +107,19 @@ public class SessionController {
     @FXML private Text needToFetch;
     @FXML private Text branchStatusText;
 
+    @FXML private ContextMenu pushContextMenu;
+    @FXML private ContextMenu commitContextMenu;
+    @FXML private ContextMenu fetchContextMenu;
+
+    @FXML private Hyperlink legendLink;
+    @FXML private StackPane statusTextPane;
+    @FXML private AnchorPane anchorRoot;
+    @FXML private NotificationController notificationPaneController;
+
+    @FXML private MenuController menuController;
+    @FXML private DropdownController dropdownController;
+
+
     private final SessionModel theModel;
 
     private static final Logger logger = LogManager.getLogger();
@@ -120,26 +135,6 @@ public class SessionController {
     // I'M HERE
 
 
-
-    public ContextMenu pushContextMenu;
-    public ContextMenu commitContextMenu;
-    public ContextMenu fetchContextMenu;
-
-    public Hyperlink legendLink;
-
-    public StackPane statusTextPane;
-
-    private Stage mainStage;
-
-    @FXML private AnchorPane anchorRoot;
-
-    // Notification pane
-    @FXML private StackPane notificationPane;
-    @FXML private NotificationController notificationPaneController;
-
-    // Menu Bar
-    @FXML private MenuController menuController;
-    @FXML private DropdownController dropdownController;
 
     // Commit Info Box
     @FXML public CommitInfoController commitInfoController;
@@ -347,8 +342,7 @@ public class SessionController {
      * @param stage Stage
      */
     public void setStage(Stage stage) {
-        this.mainStage = stage;
-        notificationPaneController.setAnchor(mainStage);
+        notificationPaneController.setAnchor(stage);
     }
 
     /**
@@ -802,10 +796,12 @@ public class SessionController {
     @FXML
     private void refreshRecentReposInDropdown() {
         Main.assertFxThread();
-            synchronized (this) {
-                List<RepoHelper> repoHelpers = this.theModel.getAllRepoHelpers();
-                dropdownController.setAllRepos(FXCollections.observableArrayList(repoHelpers));
-            }
+        synchronized (this) {
+            List<RepoHelper> repoHelpers = this.theModel.getAllRepoHelpers();
+            ObservableList<RepoHelper> obsRepoHelpers = FXCollections.observableArrayList(repoHelpers);
+            ObservableList<RepoHelper> immutableRepoHelpers = FXCollections.unmodifiableObservableList(obsRepoHelpers);
+            dropdownController.setAllRepos(FXCollections.observableArrayList(immutableRepoHelpers));
+        }
     }
 
     /**
