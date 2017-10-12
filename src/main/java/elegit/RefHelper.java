@@ -5,6 +5,7 @@ import elegit.treefx.CellLabel;
 /**
  * Parent class for branch and tag helpers
  */
+// TODO: Make sure threadsafe
 public class RefHelper {
     // THe name of this ref, e.g. 'master' or 'tag1'
     String refName;

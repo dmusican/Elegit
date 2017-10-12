@@ -2215,7 +2215,7 @@ public class SessionController {
      * to 'git status'
      */
     public synchronized void gitStatus() {
-            Main.assertFxThread();
+            //Main.assertFxThread();
 
             Observable.just(1)
                     //.doOnNext(u -> BusyWindow.show())
