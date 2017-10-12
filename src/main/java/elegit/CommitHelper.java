@@ -19,13 +19,11 @@ import java.util.List;
 // TODO: Make sure threadsafe
 public class CommitHelper{
 
-    // The commit this helper wraps
-    RevCommit commit;
-    // The author of this commit
-    PersonIdent author;
+    // The commit this helper wraps. It appears that RevCommit is immutable.
+    private final RevCommit commit;
 
     // The parents and children of this commit
-    ParentCommitHelper parents;
+    private ParentCommitHelper parents;
     List<CommitHelper> children;
 
     // The short and full message of this commit
@@ -43,9 +41,8 @@ public class CommitHelper{
      */
     public CommitHelper(RevCommit c) throws IOException{
         this.commit = c;
-        this.author = c.getAuthorIdent();
         this.children = new ArrayList<>();
-        this.parents = new ParentCommitHelper(this);
+        this.parents = new ParentCommitHelper();
         this.fullMessage = c.getFullMessage();
         this.shortMessage = c.getShortMessage();
     }
@@ -102,14 +99,14 @@ public class CommitHelper{
      * @return the name of the author of this commit
      */
     public String getAuthorName(){
-        return author.getName();
+        return commit.getAuthorIdent().getName();
     }
 
     /**
      * @return the date object corresponding to the time of this commit
      */
     public Date getWhen(){
-        return author.getWhen();
+        return new Date(commit.getAuthorIdent().getWhen().getTime());
     }
 
     /**
@@ -125,9 +122,11 @@ public class CommitHelper{
      * does effectively nothing
      * @param parent the commit to add
      */
+    // TODO: Make this class immutable by making the method below return a new CommitHelper, with an updated list of parents.
+    // Can speed this up by allowing a version of addParent that takes a list of parents, and does it at once.
     public void addParent(CommitHelper parent){
         if(parents == null){
-            this.parents = new ParentCommitHelper(this, parent);
+            this.parents = new ParentCommitHelper(parent);
         }else {
             this.parents.addParent(parent);
         }
@@ -136,6 +135,7 @@ public class CommitHelper{
     /**
      * @return the parents of this commit in an ArrayList
      */
+    // TODO: Make class immutable by returning an unmodifiable copy of parents; also make sure parents can't get changed after construction
     public List<CommitHelper> getParents(){
         return parents.toList();
     }
@@ -150,7 +150,7 @@ public class CommitHelper{
      * @param depth how many generations down to check
      * @return true if commit is a child of this commit, otherwise false
      */
-    public boolean isChild(CommitHelper commit, int depth){
+    private boolean isChild(CommitHelper commit, int depth){
         depth--;
         if(children.contains(commit)) return true;
         else if(depth != 0){
@@ -166,17 +166,11 @@ public class CommitHelper{
     /**
      * @param child the new child of this commit
      */
-    public void addChild(CommitHelper child){
+    // TODO: Make immutable. See addParent above.
+    private void addChild(CommitHelper child){
         if(!isChild(child, 1)){
             children.add(child);
         }
-    }
-
-    /**
-     * @return the list of this commits children
-     */
-    public List<CommitHelper> getChildren(){
-        return children;
     }
 
     @Override
@@ -191,7 +185,7 @@ public class CommitHelper{
     /**
      * @param t a TagHelper for a tag that references this commit
      */
-    public void addTag(TagHelper t) {
+    void addTag(TagHelper t) {
         if (this.tags == null)
             this.tags = new ArrayList<>();
         this.tags.add(t);
@@ -200,7 +194,7 @@ public class CommitHelper{
     /**
      * @param s a TagHelper that will be deleted
      */
-    public void removeTag(String s) {
+    void removeTag(String s) {
         for (TagHelper tag: this.tags) {
             if (tag.getRefName().equals(s)) {
                 this.tags.remove(tag);
@@ -209,16 +203,7 @@ public class CommitHelper{
         }
     }
 
-    /**
-     * @return the list of tags that reference this commit
-     */
-    public List<TagHelper> getTags() {
-        if (this.tags == null)
-            this.tags = new ArrayList<>();
-        return this.tags;
-    }
-
-    public List<String> getTagNames() {
+    List<String> getTagNames() {
         if (this.tags == null)
             this.tags = new ArrayList<>();
         ArrayList<String> tagNames = new ArrayList<>();
@@ -228,11 +213,7 @@ public class CommitHelper{
         return tagNames;
     }
 
-    public boolean hasTags() {
-        return this.tags.size()!=0;
-    }
-
-    public boolean hasTag(String tagName) { return this.getTagNames().contains(tagName); }
+    boolean hasTag(String tagName) { return this.getTagNames().contains(tagName); }
 
     /**
      * @return the commit object for this helper
@@ -257,34 +238,22 @@ public class CommitHelper{
      */
     private class ParentCommitHelper{
 
-        private CommitHelper child;
         private ArrayList<CommitHelper> parents;
 
         /**
          * Sets parent to be the parent of child
-         * @param child the child commit
          * @param parent the first parent commit
          */
-        public ParentCommitHelper(CommitHelper child, CommitHelper parent){
+        public ParentCommitHelper(CommitHelper parent){
             parents = new ArrayList<>();
             parents.add(parent);
-            this.setChild(child);
         }
 
         /**
          * Sets the child as the child, no parents yet
-         * @param child CommitHelper
          */
-        public ParentCommitHelper(CommitHelper child){
+        public ParentCommitHelper(){
             parents = new ArrayList<>();
-            this.setChild(child);
-        }
-
-        /**
-         * @return the number of parent commits associated with this object
-         */
-        public int count(){
-            return parents.size();
         }
 
         /**
@@ -295,25 +264,11 @@ public class CommitHelper{
         }
 
         /**
-         * Adds the given child to the children of each parent commit
-         * @param child the child associated with this object
-         */
-        private void setChild(CommitHelper child){
-            this.child = child;
-            for(CommitHelper parent : parents) {
-                if(parent != null) {
-                    parent.addChild(child);
-                }
-            }
-        }
-
-        /**
          * Adds the given parent to this object and child to its children
          * @param parent the parent to add
          */
         public void addParent(CommitHelper parent){
             if(!parents.contains(parent)) {
-                parent.addChild(this.child);
                 parents.add(parent);
             }
         }

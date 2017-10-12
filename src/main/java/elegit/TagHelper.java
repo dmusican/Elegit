@@ -106,7 +106,7 @@ public class TagHelper extends RefHelper{
     }
 
     public String getCommitId() {
-        return this.commit.getObjectId().getName();
+        return this.commit.getName();
     }
 
     public boolean isAnnotated() { return this.isAnnotated; }

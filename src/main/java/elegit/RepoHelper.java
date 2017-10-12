@@ -1296,6 +1296,7 @@ public class RepoHelper {
             String curCommitHelperID = curCommitHelper.getName();
 
             if (!commitIdMap.containsKey(curCommitHelperID)) {
+                // TODO: can't possibly need both of these maps
                 commitIdMap.put(curCommitHelper.getName(), curCommitHelper);
                 idMap.put(curCommitID, curCommitHelper.getName());
             } else {
@@ -1317,7 +1318,7 @@ public class RepoHelper {
         }
         while (!commitsWithMissingParents.isEmpty()) {
             CommitHelper curCommitHelper = commitsWithMissingParents.remove(0);
-            RevCommit[] parents = curCommitHelper.commit.getParents();
+            RevCommit[] parents = curCommitHelper.getCommit().getParents();
             for (RevCommit p : parents) {
                 CommitHelper parentCommitHelper = getCommit(p.getId());
                 if (parentCommitHelper == null) {
