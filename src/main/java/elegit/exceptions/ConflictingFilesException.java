@@ -1,8 +1,6 @@
 package elegit.exceptions;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Exception thrown when merging results in conflicting files
@@ -15,11 +13,7 @@ public class ConflictingFilesException extends Exception{
         this.conflicts = conflicts;
     }
 
-    public Map<String, int[][]> getConflicts(){
-        return conflicts;
-    }
-
-    public List<String> getConflictingFiles(){
-        return new ArrayList<>(conflicts.keySet());
+    public Set<String> getConflictingFiles(){
+        return Collections.unmodifiableSet(conflicts.keySet());
     }
 }

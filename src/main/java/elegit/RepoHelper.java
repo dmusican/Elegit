@@ -804,7 +804,8 @@ public class RepoHelper {
         }
 
         MergeResult.MergeStatus status = result.getMergeStatus();
-        if (status == MergeResult.MergeStatus.CONFLICTING) throw new ConflictingFilesException(result.getConflicts());
+        if (status == MergeResult.MergeStatus.CONFLICTING)
+            throw new ConflictingFilesException(Collections.unmodifiableMap(result.getConflicts()));
         //return result.getMergeStatus().isSuccessful();
         return status;
     }
@@ -1420,8 +1421,6 @@ public class RepoHelper {
      * specifically, JGit objects of (super)type RevCommit. This is an expensive
      * operation and should only be called when necessary
      *
-     * @param startPoints the starting ids to parse from
-     * @param stopPoints  the ids at which parsing should stop
      * @return a list of raw commits starting from each id in startPoints, excluding those beyond each id in stopPoints
      * @throws IOException
      */
