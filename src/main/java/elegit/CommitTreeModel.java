@@ -314,9 +314,6 @@ public class CommitTreeModel{
         while (!queue.isEmpty()) {
 
             CommitHelper commitToAdd = queue.poll();
-            List<CommitHelper> parents = commitToAdd.getParents();
-
-            List<String> parentIds = new ArrayList<>(parents.size());
 
             RepoHelper repo = sessionModel.getCurrentRepoHelper();
             String displayLabel = repo.getCommitDescriptorString(commitToAdd, false);
@@ -329,10 +326,7 @@ public class CommitTreeModel{
             if (computedType == Cell.CellType.BOTH || computedType == Cell.CellType.REMOTE)
                 this.remoteCommitsInModel.add(commitToAdd);
 
-            for (CommitHelper parent : parents) {
-                parentIds.add(parent.getName());
-            }
-
+            List<String> parentIds = commitToAdd.getParentNames();
             String commitID = commitToAdd.getName();
             if (graphModel.containsID(commitID)) {
                 graphModel.setCellType(commitID, computedType);

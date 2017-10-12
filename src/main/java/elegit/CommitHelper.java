@@ -1,5 +1,6 @@
 package elegit;
 
+import elegit.controllers.CommitController;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.jgit.revwalk.RevCommit;
@@ -8,6 +9,7 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -24,6 +26,9 @@ public class CommitHelper{
 
     // The parents and children of this commit
     private final ArrayList<CommitHelper> parents;
+
+
+
     List<CommitHelper> children;
 
     // The short and full message of this commit
@@ -130,6 +135,13 @@ public class CommitHelper{
         }
     }
 
+    public List<String> getParentNames() {
+        ArrayList<String> parentNames = new ArrayList<>();
+        for (CommitHelper commit : parents) {
+            parentNames.add(commit.getName());
+        }
+        return Collections.unmodifiableList(parentNames);
+    }
     /**
      * @return the parents of this commit in an ArrayList
      */
@@ -159,16 +171,6 @@ public class CommitHelper{
             }
         }
         return false;
-    }
-
-    /**
-     * @param child the new child of this commit
-     */
-    // TODO: Make immutable. See addParent above.
-    private void addChild(CommitHelper child){
-        if(!isChild(child, 1)){
-            children.add(child);
-        }
     }
 
     @Override
