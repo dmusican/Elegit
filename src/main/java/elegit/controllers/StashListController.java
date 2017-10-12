@@ -21,23 +21,28 @@ import org.eclipse.jgit.api.errors.StashApplyFailureException;
 import org.eclipse.jgit.api.errors.WrongRepositoryStateException;
 
 import java.io.IOException;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class StashListController {
-
-    private Stage stage;
-
-    private SessionController sessionController;
-    private RepoHelper repoHelper;
 
     @FXML private NotificationController notificationPaneController;
     @FXML private AnchorPane anchorRoot;
     @FXML private ListView<CommitHelper> stashList;
     @FXML private Button applyButton;
     @FXML private Button dropButton;
-    @FXML private Button clearButton;
     @FXML private Button popButton;
 
-    static final Logger logger = LogManager.getLogger();
+    private Stage stage;
+
+    private final AtomicReference<SessionController> sessionController = new AtomicReference<>();
+    private final RepoHelper repoHelper;
+
+    private static final Logger logger = LogManager.getLogger();
+
+    public StashListController() {
+        SessionModel sessionModel = SessionModel.getSessionModel();
+        repoHelper = sessionModel.getCurrentRepoHelper();
+    }
 
     /**
      * Initialize method automatically called by JavaFX
@@ -46,9 +51,6 @@ public class StashListController {
      */
     public void initialize() {
         logger.info("Started up stash list window");
-
-        SessionModel sessionModel = SessionModel.getSessionModel();
-        this.repoHelper = sessionModel.getCurrentRepoHelper();
 
         this.stashList.setCellFactory(new Callback<ListView<CommitHelper>, ListCell<CommitHelper>>() {
             @Override
@@ -79,7 +81,7 @@ public class StashListController {
      * Shows the stash list manager
      * @param pane the anchor of the stage
      */
-    public void showStage(AnchorPane pane) {
+    void showStage(AnchorPane pane) {
         stage = new Stage();
         stage.setTitle("Stash List");
         stage.setScene(new Scene(pane));
@@ -122,7 +124,8 @@ public class StashListController {
         String stashRef = this.stashList.getSelectionModel().getSelectedItem().getId();
         try {
             repoHelper.stashApply(stashRef, false);
-            sessionController.gitStatus();
+            // TODO: Fix when have better approach for gitStatus
+            //sessionController.gitStatus();
         } catch (WrongRepositoryStateException e) {
             notificationPaneController.addNotification("Conflicts occured while trying to apply stash. Commit/stash changes or force apply (right click).");
         } catch (StashApplyFailureException e) {
@@ -169,7 +172,8 @@ public class StashListController {
             repoHelper.stashApply(stashRef, false);
             repoHelper.stashDrop(index);
             refreshList();
-            sessionController.gitStatus();
+            // TODO: Fix when have better approach for gitStatus
+            //sessionController.gitStatus();
         }  catch (StashApplyFailureException e) {
             showStashConflictsNotification();
         } catch (GitAPIException e) {
@@ -177,14 +181,14 @@ public class StashListController {
         }
     }
 
-    void setSessionController(SessionController controller) { this.sessionController = controller; }
+    void setSessionController(SessionController controller) { this.sessionController.set(controller); }
 
 
     private void showStashConflictsNotification() {
         Platform.runLater(() -> {
             logger.warn("Stash apply conflicts warning");
 
-            EventHandler<MouseEvent> handler = event -> sessionController.quickStashSave();
+            EventHandler<MouseEvent> handler = event -> this.sessionController.get().quickStashSave();
             this.notificationPaneController.addNotification("You can't apply that stash because there would be conflicts. " +
                     "Stash your changes or resolve conflicts first.", "stash", handler);
         });

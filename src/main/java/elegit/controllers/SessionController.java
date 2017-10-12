@@ -203,7 +203,6 @@ public class SessionController {
 
         // if there are conflicting files on startup, watches them for changes
         ConflictingFileWatcher.watchConflictingFiles(theModel.getCurrentRepoHelper());
-
     }
 
     @FXML void handleFetchButton() {

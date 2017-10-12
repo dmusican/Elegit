@@ -983,7 +983,7 @@ public class RepoHelper {
         for (RevCommit commit : git.stashList().call()) {
             stashCommitList.add(new CommitHelper(commit));
         }
-        return stashCommitList;
+        return Collections.unmodifiableList(stashCommitList);
     }
 
     /**
