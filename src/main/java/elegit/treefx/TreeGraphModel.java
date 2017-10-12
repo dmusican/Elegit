@@ -65,13 +65,6 @@ public class TreeGraphModel{
     }
 
     /**
-     * @return a list of all ids in this graph
-     */
-    public List<String> getCellIDs(){
-        return new ArrayList<>(cellMap.keySet());
-    }
-
-    /**
      * @param id the id to check
      * @return whether this graph contains the given id or not
      */
@@ -327,36 +320,6 @@ public class TreeGraphModel{
         }
         cellsWithNonDefaultShapesOrLabels = new ArrayList<>();
         return resetIDs;
-    }
-
-    /**
-     * Checks to see if the two cells referenced by the given IDs are direct
-     * neighbors
-     * @param cellID the id of the first cell
-     * @param neighborID the id of the second cell
-     * @return true if direct neighbors, else false
-     */
-    public boolean isNeighbor(String cellID, String neighborID){
-        List<Cell> relatives = getRelatives(cellID);
-        for(Cell c : relatives){
-            if(c.getCellId().equals(neighborID)){
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Gets a list of a cell's parents and children
-     * @param cellID the ID of the cell
-     * @return all direct neighbors of the cell
-     */
-    public List<Cell> getRelatives(String cellID){
-        Cell cell = cellMap.get(cellID);
-        if(cell == null) return new ArrayList<>();
-        List<Cell> relatives = cell.getCellParents();
-        relatives.addAll(cell.getCellChildren());
-        return relatives;
     }
 
     /**

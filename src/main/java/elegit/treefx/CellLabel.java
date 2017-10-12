@@ -33,10 +33,6 @@ public class CellLabel extends HBox {
     private static Image remoteWhiteImage = new Image("elegit/images/remote_white.png");
     private static Image otherImage = new Image("elegit/images/branch.png");
 
-    CellLabel(RefHelper refHelper, boolean isCurrent) {
-        this(refHelper, isCurrent, false);
-    }
-
     CellLabel(RefHelper refHelper, boolean isCurrent, boolean isTag) {
         this.refHelper = refHelper;
         this.name = refHelper.getAbbrevName();
@@ -171,23 +167,6 @@ public class CellLabel extends HBox {
         return this.name;
     }
 
-    /**
-     * Refreshes the icon based on various boolean values
-     */
-//    private void refreshIcon() {
-//        String image = "elegit/images/";
-//        if (isTag) {
-//            image += "tag.png";
-//        } else if (isCurrent) {
-//            if (isRemote)
-//                image += "remote_white.png";
-//            else
-//                image += "remote.png";
-//        } else {
-//            image += "branch.png";
-//        }
-//        ((ImageView) this.getChildren().get(2)).setImage(new Image(image));
-//    }
     private void refreshIcon() {
         Image image;
         if (isTag) {
