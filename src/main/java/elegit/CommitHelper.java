@@ -1,8 +1,8 @@
 package elegit;
 
-import elegit.controllers.CommitController;
+import org.apache.http.annotation.GuardedBy;
+import org.apache.http.annotation.ThreadSafe;
 import org.eclipse.jgit.lib.ObjectId;
-import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.jgit.revwalk.RevCommit;
 
 import java.io.IOException;
@@ -18,24 +18,15 @@ import java.util.List;
  * aspects that are expensive to look up with JGit's standard RevCommit, e.g. parents,
  * children, and author.
  */
-// TODO: Make sure threadsafe
+@ThreadSafe
 public class CommitHelper{
 
     // The commit this helper wraps. It appears that RevCommit is immutable.
     private final RevCommit commit;
 
     // The parents and children of this commit
-    private final ArrayList<CommitHelper> parents;
-
-
-
-    List<CommitHelper> children;
-
-    // The short and full message of this commit
-    String shortMessage;
-    String fullMessage;
-
-    List<TagHelper> tags;
+    @GuardedBy("this") private final ArrayList<CommitHelper> parents;
+    @GuardedBy("this") private final List<TagHelper> tags;
 
     /**
      * Constructs a helper for the given commit. Note that if c is not a fully parsed commit
@@ -46,32 +37,8 @@ public class CommitHelper{
      */
     public CommitHelper(RevCommit c) throws IOException{
         this.commit = c;
-        this.children = new ArrayList<>();
         this.parents = new ArrayList<>();
-        this.fullMessage = c.getFullMessage();
-        this.shortMessage = c.getShortMessage();
-    }
-
-    /**
-     * Constructs a helper after parsing the commit corresponding to the given ObjectId
-     * @param id the id of the commit to parse and wrap
-     * @param repoHelper the repoHelper with the repository necessary to parse the commit
-     * @throws IOException
-     */
-    public CommitHelper(ObjectId id, RepoHelper repoHelper) throws IOException{
-        this(repoHelper.parseRawCommit(id));
-    }
-
-    /**
-     * Constructs a helper from a reference string by getting its corresponding id
-     * and then parsing the corresponding commit
-     * @param refString the string corresponding to some commit
-     * @param repoHelper the repoHelper with the repository necessary to parse the reference
-     *                   and commit
-     * @throws IOException
-     */
-    public CommitHelper(String refString, RepoHelper repoHelper) throws IOException{
-        this(repoHelper.getRepo().resolve(refString), repoHelper);
+        this.tags = new ArrayList<>();
     }
 
     /**
@@ -94,9 +61,9 @@ public class CommitHelper{
      */
     public String getMessage(boolean fullMessage){
         if(fullMessage){
-            return this.fullMessage;
+            return commit.getFullMessage();
         }else{
-            return this.shortMessage;
+            return commit.getShortMessage();
         }
     }
 
@@ -127,15 +94,13 @@ public class CommitHelper{
      * does effectively nothing
      * @param parent the commit to add
      */
-    // TODO: Make this class immutable by making the method below return a new CommitHelper, with an updated list of parents.
-    // Can speed this up by allowing a version of addParent that takes a list of parents, and does it at once.
-    public void addParent(CommitHelper parent){
+    public synchronized void addParent(CommitHelper parent){
         if(!parents.contains(parent)) {
             parents.add(parent);
         }
     }
 
-    public List<String> getParentNames() {
+    public synchronized List<String> getParentNames() {
         ArrayList<String> parentNames = new ArrayList<>();
         for (CommitHelper commit : parents) {
             parentNames.add(commit.getName());
@@ -145,13 +110,16 @@ public class CommitHelper{
     /**
      * @return the parents of this commit in an ArrayList
      */
-    // TODO: Make class immutable by returning an unmodifiable copy of parents; also make sure parents can't get changed after construction
-    public List<CommitHelper> getParents(){
-        return parents;
+    public synchronized List<CommitHelper> getParents(){
+        return Collections.unmodifiableList(parents);
     }
 
-    public boolean parentsContains(CommitHelper parentCommitHelper) {
+    public synchronized boolean parentsContains(CommitHelper parentCommitHelper) {
         return parents.contains(parentCommitHelper);
+    }
+
+    public synchronized int numParents() {
+        return parents.size();
     }
 
     @Override
@@ -166,16 +134,14 @@ public class CommitHelper{
     /**
      * @param t a TagHelper for a tag that references this commit
      */
-    void addTag(TagHelper t) {
-        if (this.tags == null)
-            this.tags = new ArrayList<>();
+    public synchronized void addTag(TagHelper t) {
         this.tags.add(t);
     }
 
     /**
      * @param s a TagHelper that will be deleted
      */
-    void removeTag(String s) {
+    public synchronized void removeTag(String s) {
         for (TagHelper tag: this.tags) {
             if (tag.getRefName().equals(s)) {
                 this.tags.remove(tag);
@@ -184,17 +150,13 @@ public class CommitHelper{
         }
     }
 
-    List<String> getTagNames() {
-        if (this.tags == null)
-            this.tags = new ArrayList<>();
-        ArrayList<String> tagNames = new ArrayList<>();
+    public synchronized boolean hasTag(String tagName) {
         for (TagHelper tag: this.tags) {
-            tagNames.add(tag.getRefName());
+            if (tag.getRefName().equals(tagName))
+                return true;
         }
-        return tagNames;
+        return false;
     }
-
-    boolean hasTag(String tagName) { return this.getTagNames().contains(tagName); }
 
     /**
      * @return the commit object for this helper

@@ -125,11 +125,14 @@ public class PushPullTest {
         // Add a tag named for the current timestamp
         ObjectId headId = helperPush.getBranchModel().getCurrentBranch().getHeadId();
         String tagName = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmSSS"));
+        assertFalse(helperPush.getCommit(headId).hasTag(tagName));
         helperPush.getTagModel().tag(tagName,headId.name());
+        assertTrue(helperPush.getCommit(headId).hasTag(tagName));
         helperPush.pushTags();
 
         // Remove the tag we just added
         helperPush.getTagModel().deleteTag(tagName);
+        assertFalse(helperPush.getCommit(headId).hasTag(tagName));
         command = helperPush.prepareToPushAll();
         command.setRemote("origin").add(":refs/tags/" + tagName);
         helperPush.pushAll(command);

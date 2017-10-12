@@ -107,7 +107,7 @@ public class TagModel {
         // This creates a lightweight tag
         // TODO: add support for annotated tags?
         CommitHelper c = repoHelper.getCommit(commitName);
-        if (c.getTagNames().contains(tagName))
+        if (c.hasTag(tagName))
             throw new TagNameExistsException();
         Ref r = git.tag().setName(tagName).setObjectId(c.getCommit()).setAnnotated(false).call();
         git.close();

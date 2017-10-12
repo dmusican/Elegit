@@ -1544,10 +1544,10 @@ public class SessionController {
                         gitStatus();
                     } catch(MultipleParentsNotAllowedException e) {
                         for (CommitHelper commit : commits) {
-                            if (commit.getParents().size() > 1) {
+                            if (commit.numParents() > 1) {
                                 showCantRevertMultipleParentsNotification();
                             }
-                            if (commit.getParents().size() == 0) {
+                            if (commit.numParents() == 0) {
                                 showCantRevertZeroParentsNotification();
                             }
                         }
@@ -1595,10 +1595,10 @@ public class SessionController {
                         theModel.getCurrentRepoHelper().revert(commit);
                         gitStatus();
                     } catch(MultipleParentsNotAllowedException e) {
-                        if(commit.getParents().size() > 1) {
+                        if(commit.numParents() > 1) {
                             showCantRevertMultipleParentsNotification();
                         }
-                        if (commit.getParents().size() == 0) {
+                        if (commit.numParents() == 0) {
                             showCantRevertZeroParentsNotification();
                         }
                     } catch(InvalidRemoteException e){
