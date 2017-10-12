@@ -124,6 +124,9 @@ public class SessionController {
     @FXML public CommitInfoController commitInfoController;
     @FXML public VBox infoTagBox;
 
+    // JavaFX items, intended only to be used on the FX thread
+    private Label currentLocalBranchLabel;
+    private Label currentRemoteTrackingLabel;
 
     private final SessionModel theModel;
 
@@ -136,12 +139,6 @@ public class SessionController {
 
 
     public static final Object globalLock = new Object();
-
-    // I'M HERE
-    // harder
-    private Label currentLocalBranchLabel;
-    private Label currentRemoteTrackingLabel;
-    public URL remoteURL;
 
 
     public SessionController() {
@@ -338,9 +335,6 @@ public class SessionController {
      * Helper method that creates the labels for the branch names
      */
     private void initStatusText() {
-//        updatingText.setVisible(false);
-//        branchStatusText.visibleProperty().bind(updatingText.visibleProperty().not());
-
         currentRemoteTrackingLabel = new Label("N/A");
         currentLocalBranchLabel = new Label("N/A");
         initCellLabel(currentLocalBranchLabel, currentLocalBranchHbox);
@@ -610,7 +604,7 @@ public class SessionController {
                     URLString = "https://"+URLString.replace(":","/").split("@")[1];
                 }
                 try {
-                    remoteURL = new URL(URLString);
+                    URL remoteURL = new URL(URLString);
                     browserText.setText(remoteURL.getHost());
                 } catch (MalformedURLException e) {
                     browserText.setText(URLString);

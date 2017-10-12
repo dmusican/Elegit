@@ -16,6 +16,7 @@ import java.util.List;
  * aspects that are expensive to look up with JGit's standard RevCommit, e.g. parents,
  * children, and author.
  */
+// TODO: Make sure threadsafe
 public class CommitHelper{
 
     // The commit this helper wraps
