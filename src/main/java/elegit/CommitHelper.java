@@ -23,7 +23,7 @@ public class CommitHelper{
     private final RevCommit commit;
 
     // The parents and children of this commit
-    private ParentCommitHelper parents;
+    private final ArrayList<CommitHelper> parents;
     List<CommitHelper> children;
 
     // The short and full message of this commit
@@ -42,7 +42,7 @@ public class CommitHelper{
     public CommitHelper(RevCommit c) throws IOException{
         this.commit = c;
         this.children = new ArrayList<>();
-        this.parents = new ParentCommitHelper();
+        this.parents = new ArrayList<>();
         this.fullMessage = c.getFullMessage();
         this.shortMessage = c.getShortMessage();
     }
@@ -125,10 +125,8 @@ public class CommitHelper{
     // TODO: Make this class immutable by making the method below return a new CommitHelper, with an updated list of parents.
     // Can speed this up by allowing a version of addParent that takes a list of parents, and does it at once.
     public void addParent(CommitHelper parent){
-        if(parents == null){
-            this.parents = new ParentCommitHelper(parent);
-        }else {
-            this.parents.addParent(parent);
+        if(!parents.contains(parent)) {
+            parents.add(parent);
         }
     }
 
@@ -137,7 +135,7 @@ public class CommitHelper{
      */
     // TODO: Make class immutable by returning an unmodifiable copy of parents; also make sure parents can't get changed after construction
     public List<CommitHelper> getParents(){
-        return parents.toList();
+        return parents;
     }
 
     /**
@@ -230,47 +228,5 @@ public class CommitHelper{
     @Override
     public boolean equals(Object other){
         return (other instanceof CommitHelper) && this.commit.equals(((CommitHelper) other).getCommit());
-    }
-
-    /**
-     * A helper class for the parents of a commit. Any number of commits that
-     * can be parents of the same commit
-     */
-    private class ParentCommitHelper{
-
-        private ArrayList<CommitHelper> parents;
-
-        /**
-         * Sets parent to be the parent of child
-         * @param parent the first parent commit
-         */
-        public ParentCommitHelper(CommitHelper parent){
-            parents = new ArrayList<>();
-            parents.add(parent);
-        }
-
-        /**
-         * Sets the child as the child, no parents yet
-         */
-        public ParentCommitHelper(){
-            parents = new ArrayList<>();
-        }
-
-        /**
-         * @return the stored parent commits in list form
-         */
-        public List<CommitHelper> toList(){
-            return parents;
-        }
-
-        /**
-         * Adds the given parent to this object and child to its children
-         * @param parent the parent to add
-         */
-        public void addParent(CommitHelper parent){
-            if(!parents.contains(parent)) {
-                parents.add(parent);
-            }
-        }
     }
 }
