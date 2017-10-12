@@ -119,12 +119,21 @@ public class SessionController {
     @FXML private MenuController menuController;
     @FXML private DropdownController dropdownController;
 
+    // Commit Info Box
+    @FXML public CommitInfoController commitInfoController;
+    @FXML public VBox infoTagBox;
+
 
     private final SessionModel theModel;
 
     private static final Logger logger = LogManager.getLogger();
     private static final BooleanProperty anythingChecked = new SimpleBooleanProperty(false);
 
+    @GuardedBy("this") private boolean tryCommandAgainWithHTTPAuth;
+
+    public static final Object globalLock = new Object();
+
+    // I'M HERE
     // harder
     public CommitTreeModel commitTreeModel;
     private String commitInfoNameText = "";
@@ -132,27 +141,10 @@ public class SessionController {
     private Label currentRemoteTrackingLabel;
     public URL remoteURL;
 
-    // I'M HERE
-
-
-
-    // Commit Info Box
-    @FXML public CommitInfoController commitInfoController;
-    @FXML public VBox infoTagBox;
-
-
-    boolean tryCommandAgainWithHTTPAuth;
-
-    Preferences preferences;
-    private static final String LOGGING_LEVEL_KEY="LOGGING_LEVEL";
-
-    public static final Subject<ActionEvent> normalFetchRequests = PublishSubject.create();
-
-    public static final Object globalLock = new Object();
 
     public SessionController() {
-        // Creates the SessionModel
         theModel = SessionModel.getSessionModel();
+        tryCommandAgainWithHTTPAuth = false;
     }
 
     /**
@@ -212,11 +204,6 @@ public class SessionController {
 
         // if there are conflicting files on startup, watches them for changes
         ConflictingFileWatcher.watchConflictingFiles(theModel.getCurrentRepoHelper());
-
-        tryCommandAgainWithHTTPAuth = false;
-
-        this.preferences = Preferences.userNodeForPackage(this.getClass());
-
 
     }
 
@@ -1286,7 +1273,7 @@ public class SessionController {
 //        }
 //    }
 
-    private void determineIfTryAgain(TransportException e) {
+    private synchronized void determineIfTryAgain(TransportException e) {
         showTransportExceptionNotification(e);
 
         // Don't try again with HTTP authentication if SSH prompt for authentication is canceled
@@ -1326,7 +1313,7 @@ public class SessionController {
         }
     }
 
-    private RepoHelperBuilder.AuthDialogResponse askUserForCredentials() throws CancelledAuthorizationException {
+    private synchronized RepoHelperBuilder.AuthDialogResponse askUserForCredentials() throws CancelledAuthorizationException {
         final RepoHelperBuilder.AuthDialogResponse response;
         if (tryCommandAgainWithHTTPAuth) {
             response = RepoHelperBuilder.getAuthCredentialFromDialog();
@@ -1350,7 +1337,7 @@ public class SessionController {
     /**
      * Performs a `git push --tags`
      */
-    public void handlePushTagsButton() {
+    public synchronized void handlePushTagsButton() {
         try {
             logger.info("Push tags button clicked");
 
@@ -1473,7 +1460,7 @@ public class SessionController {
      *
      * @param selectedBranch the branch selected to delete
      */
-    public void deleteBranch(BranchHelper selectedBranch) {
+    public synchronized void deleteBranch(BranchHelper selectedBranch) {
         BranchModel branchModel = theModel.getCurrentRepoHelper().getBranchModel();
         boolean authorizationSucceeded = true;
         try {
@@ -1515,7 +1502,7 @@ public class SessionController {
         }
     }
 
-    void deleteRemoteBranch(BranchHelper selectedBranch, BranchModel branchModel, Consumer<String> updateFn) {
+    synchronized void deleteRemoteBranch(BranchHelper selectedBranch, BranchModel branchModel, Consumer<String> updateFn) {
         try {
             final RepoHelperBuilder.AuthDialogResponse credentialResponse = askUserForCredentials();
 
@@ -2788,5 +2775,9 @@ public class SessionController {
 
     public static BooleanProperty anythingCheckedProperty() {
         return anythingChecked;
+    }
+
+    public synchronized void setTryCommandAgainWithHTTPAuth(boolean value) {
+        tryCommandAgainWithHTTPAuth = value;
     }
 }

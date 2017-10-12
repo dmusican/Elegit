@@ -343,9 +343,9 @@ public class CreateDeleteBranchWindowController {
             // Reset the branch heads
             CommitTreeController.setBranchHeads(localCommitTreeModel, repoHelper);
             if (authorizationSucceeded) {
-                sessionController.tryCommandAgainWithHTTPAuth = false;
+                sessionController.setTryCommandAgainWithHTTPAuth(false);
             } else {
-                sessionController.tryCommandAgainWithHTTPAuth = true;
+                sessionController.setTryCommandAgainWithHTTPAuth(true);
                 deleteBranch(selectedBranch);
             }
         }
