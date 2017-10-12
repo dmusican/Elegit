@@ -118,13 +118,13 @@ public class ResetTest {
 
         /* ********************* COMMIT RESET SECTION ********************* */
         helper.getBranchModel().updateAllBranches();
-        String oldHead = helper.getBranchModel().getCurrentBranch().getCommit().getId();
+        String oldHead = helper.getBranchModel().getCurrentBranch().getCommit().getName();
 
         modifyAddFile(helper, filePath);
         helper.commit("Modified a file");
 
         helper.getBranchModel().updateAllBranches();
-        assertEquals(false, oldHead.equals(helper.getBranchModel().getCurrentBranch().getCommit().getId()));
+        assertEquals(false, oldHead.equals(helper.getBranchModel().getCurrentBranch().getCommit().getName()));
 
         // hard reset (to previous commit)
         helper.reset("HEAD~1", ResetCommand.ResetType.HARD);
@@ -132,7 +132,7 @@ public class ResetTest {
         // Check that the files in the index and working directory got reset
         assertEquals(0, git.status().call().getModified().size()
                         + git.status().call().getChanged().size());
-        assertEquals(oldHead, helper.getBranchModel().getCurrentBranch().getCommit().getId());
+        assertEquals(oldHead, helper.getBranchModel().getCurrentBranch().getCommit().getName());
 
         // mixed reset (to HEAD)
         // modify and add file, then reset to head
@@ -153,7 +153,7 @@ public class ResetTest {
         helper.reset("HEAD~1", ResetCommand.ResetType.SOFT);
         helper.getBranchModel().updateAllBranches();
 
-        assertEquals(oldHead, helper.getBranchModel().getCurrentBranch().getCommit().getId());
+        assertEquals(oldHead, helper.getBranchModel().getCurrentBranch().getCommit().getName());
         assertEquals(1, git.status().call().getChanged().size());
         assertEquals(1, git.status().call().getModified().size());
     }

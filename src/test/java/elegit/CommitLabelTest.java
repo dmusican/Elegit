@@ -119,7 +119,7 @@ public class CommitLabelTest {
         // Get the information about the new commit
         CommitHelper newHead = this.helper.getCommit("master");
         assertNotNull(newHead);
-        String newHeadID = newHead.getId();
+        String newHeadID = newHead.getName();
         assertNotEquals(INITIAL_COMMIT_ID, newHeadID);
 
         // Check the labels are appropriate again
@@ -142,7 +142,7 @@ public class CommitLabelTest {
         String oldHeadID = newHeadID;
         newHead = this.helper.getCommit("master");
         assertNotNull(newHead);
-        newHeadID = newHead.getId();
+        newHeadID = newHead.getName();
         assertNotEquals(oldHeadID, newHeadID);
 
         // Check the labels on every commit again

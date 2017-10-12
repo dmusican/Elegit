@@ -121,7 +121,7 @@ public class StashListController {
      * Handles applying a selected stash to the repository
      */
     public void handleApply() {
-        String stashRef = this.stashList.getSelectionModel().getSelectedItem().getId();
+        String stashRef = this.stashList.getSelectionModel().getSelectedItem().getName();
         try {
             repoHelper.stashApply(stashRef, false);
             // TODO: Fix when have better approach for gitStatus
@@ -166,7 +166,7 @@ public class StashListController {
      * Pops off the selected stash (applies and drops it)
      */
     public void handlePop() {
-        String stashRef = this.stashList.getSelectionModel().getSelectedItem().getId();
+        String stashRef = this.stashList.getSelectionModel().getSelectedItem().getName();
         int index = this.stashList.getSelectionModel().getSelectedIndex();
         try {
             repoHelper.stashApply(stashRef, false);

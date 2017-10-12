@@ -87,13 +87,6 @@ public class CommitHelper{
     }
 
     /**
-     * @return the unique identifying string for this commit
-     */
-    public String getId(){
-        return RepoHelper.getCommitId(this);
-    }
-
-    /**
      * @param fullMessage whether to return the full or abbreviated commit message
      * @return the commit message
      */
@@ -110,13 +103,6 @@ public class CommitHelper{
      */
     public String getAuthorName(){
         return author.getName();
-    }
-
-    /**
-     * @return the email of the author of this commit
-     */
-    public String getAuthorEmail(){
-        return author.getEmailAddress();
     }
 
     /**
@@ -145,13 +131,6 @@ public class CommitHelper{
         }else {
             this.parents.addParent(parent);
         }
-    }
-
-    /**
-     * @return the number of parents this commit has
-     */
-    public int getParentCount(){
-        return parents.count();
     }
 
     /**

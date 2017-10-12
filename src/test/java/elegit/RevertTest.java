@@ -98,13 +98,13 @@ public class RevertTest {
         // make a commit, then revert it, check that changes occurred
 
         helper.getBranchModel().refreshHeadIds();
-        String oldHead = helper.getBranchModel().getCurrentBranchHead().getId();
+        String oldHead = helper.getBranchModel().getCurrentBranchHead().getName();
 
         modifyAddFile(helper, filePath);
         helper.commit("Modified file #1");
         helper.updateModel();
         helper.getBranchModel().refreshHeadIds();
-        assertEquals(false, helper.getBranchModel().getCurrentBranchHead().getId().equals(oldHead));
+        assertEquals(false, helper.getBranchModel().getCurrentBranchHead().getName().equals(oldHead));
         helper.revert(helper.getBranchModel().getCurrentBranchHead());
         helper.updateModel();
         helper.getBranchModel().refreshHeadIds();
@@ -112,7 +112,7 @@ public class RevertTest {
         // The EDIT_TEXT should have been reverted
         assertEquals(1, Files.readAllLines(filePath).size());
         // And a new HEAD should be there
-        assertEquals(false, helper.getBranchModel().getCurrentBranchHead().getId().equals(oldHead));
+        assertEquals(false, helper.getBranchModel().getCurrentBranchHead().getName().equals(oldHead));
 
         /* ********************* MULTIPLE REVERT SECTION ********************* */
         // make 2 more commits revert first revert and third commit, check content

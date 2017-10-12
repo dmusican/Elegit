@@ -85,7 +85,7 @@ public class CheckoutFilesController {
                 return;
             }
             // New ArrayList used below so that checkoutFiles cannot modify this list, nor worry about sync errors
-            CheckoutResult result = this.repoHelper.checkoutFiles(new ArrayList<>(fileNames), commitHelper.getId());
+            CheckoutResult result = this.repoHelper.checkoutFiles(new ArrayList<>(fileNames), commitHelper.getName());
             switch (result.getStatus()) {
                 case CONFLICTS:
                     notificationPaneController.addNotification("Checkout has not completed because of checkout conflicts");
@@ -145,6 +145,6 @@ public class CheckoutFilesController {
 
     synchronized void setCommitHelper(CommitHelper commitHelper) {
         this.commitHelper = commitHelper;
-        header.setText(header.getText()+commitHelper.getId().substring(0,8));
+        header.setText(header.getText()+commitHelper.getName().substring(0,8));
     }
 }

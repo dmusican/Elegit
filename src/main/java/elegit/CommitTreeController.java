@@ -238,8 +238,8 @@ public class CommitTreeController{
         if(commit == null)
             return;
 
-        if(commitTreeModel.treeGraph != null && commitTreeModel.treeGraph.treeGraphModel.containsID(commit.getId())){
-            Cell c = commitTreeModel.treeGraph.treeGraphModel.cellMap.get(commit.getId());
+        if(commitTreeModel.treeGraph != null && commitTreeModel.treeGraph.treeGraphModel.containsID(commit.getName())){
+            Cell c = commitTreeModel.treeGraph.treeGraphModel.cellMap.get(commit.getName());
             Highlighter.emphasizeCell(c);
         }
     }

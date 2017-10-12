@@ -1652,7 +1652,7 @@ public class SessionController {
                 @Override
                 protected Void call() {
                     try{
-                        theModel.getCurrentRepoHelper().reset(commit.getId(), type);
+                        theModel.getCurrentRepoHelper().reset(commit.getName(), type);
                         gitStatus();
                     }catch(InvalidRemoteException e){
                         showNoRemoteNotification();
@@ -1730,7 +1730,7 @@ public class SessionController {
         logger.info("Stash apply button clicked");
         try {
             CommitHelper topStash = theModel.getCurrentRepoHelper().stashList().get(0);
-            this.theModel.getCurrentRepoHelper().stashApply(topStash.getId(), false);
+            this.theModel.getCurrentRepoHelper().stashApply(topStash.getName(), false);
             gitStatus();
         } catch (StashApplyFailureException e) {
             showStashConflictsNotification();

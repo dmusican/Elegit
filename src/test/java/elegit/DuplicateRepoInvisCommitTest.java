@@ -107,7 +107,7 @@ public class DuplicateRepoInvisCommitTest {
 
         CommitHelper repo2OldHead = repo2.getCommit("master");
         assertNotNull(repo2OldHead);
-        assertEquals(repo1OldHead.getId(), repo2OldHead.getId());
+        assertEquals(repo1OldHead.getName(), repo2OldHead.getName());
 
         // Push the previous commit
         PushCommand push = repo1.prepareToPushAll();
@@ -119,7 +119,7 @@ public class DuplicateRepoInvisCommitTest {
 
         CommitHelper repo2NewHead = repo2.getCommit("master");
         assertNotNull(repo2NewHead);
-        assertEquals(repo1NewHead.getId(), repo2NewHead.getId());
+        assertEquals(repo1NewHead.getName(), repo2NewHead.getName());
 
         repo1.updateModel();
         List<CommitHelper> repo1LocalCommits = repo1.getLocalCommits();

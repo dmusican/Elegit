@@ -920,7 +920,7 @@ public class RepoHelper {
      * @throws GitAPIException
      */
     void reset(CommitHelper commit) throws MissingRepoException, GitAPIException {
-        reset(commit.getId(), ResetCommand.ResetType.MIXED);
+        reset(commit.getName(), ResetCommand.ResetType.MIXED);
     }
 
     /**
@@ -1113,7 +1113,7 @@ public class RepoHelper {
      */
     public String getCommitDescriptorString(CommitHelper commitHelper, boolean fullCommitMessage){
         return String.format("Commit ID: %s\n\nAuthor: %s\n\nTime: %s\n\nMessage: %s",
-                commitHelper.getId().substring(0,8),
+                commitHelper.getName().substring(0,8),
                 commitHelper.getAuthorName(),
                 commitHelper.getFormattedWhen(),
                 commitHelper.getMessage(fullCommitMessage));
@@ -1126,15 +1126,6 @@ public class RepoHelper {
      */
     public String getCommitDescriptorString(String commitId, boolean fullCommitMessage){
         return getCommitDescriptorString(getCommit(commitId), fullCommitMessage);
-    }
-
-    /**
-     * Returns a unique identifier that will never be shown
-     * @param commitHelper the commit to get an ID for
-     * @return a unique identifying string to be used as a key in the tree's map
-     */
-    public static String getCommitId(CommitHelper commitHelper){
-        return commitHelper.getName();
     }
 
     /**
@@ -1302,11 +1293,11 @@ public class RepoHelper {
             }
 
             CommitHelper curCommitHelper = new CommitHelper(curCommit);
-            String curCommitHelperID = curCommitHelper.getId();
+            String curCommitHelperID = curCommitHelper.getName();
 
             if (!commitIdMap.containsKey(curCommitHelperID)) {
-                commitIdMap.put(curCommitHelper.getId(), curCommitHelper);
-                idMap.put(curCommitID, curCommitHelper.getId());
+                commitIdMap.put(curCommitHelper.getName(), curCommitHelper);
+                idMap.put(curCommitID, curCommitHelper.getName());
             } else {
                 curCommitHelper = commitIdMap.get(curCommitHelperID);
             }

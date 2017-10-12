@@ -118,7 +118,7 @@ public class StashTest {
         assertEquals(2, stashList.size());
 
         // Apply a given stash
-        helper.stashApply(stashList.get(0).getId(), false);
+        helper.stashApply(stashList.get(0).getName(), false);
 
         status = git.status().call();
         assertEquals(0, status.getModified().size());

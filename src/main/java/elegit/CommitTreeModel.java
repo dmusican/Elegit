@@ -184,7 +184,7 @@ public class CommitTreeModel{
         // Check for added and changed branches
         for (BranchHelper branch : branchesToUpdate) {
             if (currentBranchMap.containsKey(branch.getRefName())){
-                if(currentBranchMap.get(branch.getRefName()).getCommit().getId().equals(branch.getHeadId().getName())){
+                if(currentBranchMap.get(branch.getRefName()).getCommit().getName().equals(branch.getHeadId().getName())){
                     continue;
                 }
             }
@@ -286,7 +286,7 @@ public class CommitTreeModel{
         HashSet<String> idsAlreadySeen = new HashSet<>();
 
         traversalStack.push(commitHelper);
-        idsAlreadySeen.add(commitHelper.getId());
+        idsAlreadySeen.add(commitHelper.getName());
 
         // Parents need to be entered in first, so do a breadth-first traversal of all aneso
         while (!traversalStack.isEmpty()) {
@@ -297,7 +297,7 @@ public class CommitTreeModel{
 
             boolean addedParents = false;
             for (CommitHelper parent : parents) {
-                if (!idsAlreadySeen.contains(parent.getId()) && !graphModel.containsID(parent.getId()))
+                if (!idsAlreadySeen.contains(parent.getName()) && !graphModel.containsID(parent.getName()))
                 {
                     traversalStack.push(parent);
                     addedParents = true;
@@ -307,7 +307,7 @@ public class CommitTreeModel{
             if (!addedParents) {
                 CommitHelper toAdd = traversalStack.pop();
                 queue.offer(toAdd);
-                idsAlreadySeen.add(toAdd.getId());
+                idsAlreadySeen.add(toAdd.getName());
             }
         }
 
@@ -330,10 +330,10 @@ public class CommitTreeModel{
                 this.remoteCommitsInModel.add(commitToAdd);
 
             for (CommitHelper parent : parents) {
-                parentIds.add(RepoHelper.getCommitId(parent));
+                parentIds.add(parent.getName());
             }
 
-            String commitID = RepoHelper.getCommitId(commitToAdd);
+            String commitID = commitToAdd.getName();
             if (graphModel.containsID(commitID)) {
                 graphModel.setCellType(commitID, computedType);
             } else {
@@ -350,7 +350,7 @@ public class CommitTreeModel{
      * @param graphModel the graph model to remove the commit from
      */
     private void removeCommitFromTree(CommitHelper commitHelper, TreeGraphModel graphModel){
-        String commitID = RepoHelper.getCommitId(commitHelper);
+        String commitID = commitHelper.getName();
 
         this.commitsInModel.remove(commitHelper);
         this.localCommitsInModel.remove(commitHelper);
@@ -378,7 +378,7 @@ public class CommitTreeModel{
             default:
                 break;
         }
-        graphModel.setCellType(helper.getId(), type);
+        graphModel.setCellType(helper.getName(), type);
     }
 
     /**
@@ -463,19 +463,19 @@ public class CommitTreeModel{
         MenuItem parentsItem = new MenuItem("Parents");
         parentsItem.setOnAction(event -> {
             logger.info("Selected see parents");
-            CommitTreeController.selectCommit(commit.getId(), true, false, false);
+            CommitTreeController.selectCommit(commit.getName(), true, false, false);
         });
 
         MenuItem childrenItem = new MenuItem("Children");
         childrenItem.setOnAction(event -> {
             logger.info("Selected see children");
-            CommitTreeController.selectCommit(commit.getId(), false, true, false);
+            CommitTreeController.selectCommit(commit.getName(), false, true, false);
         });
 
         MenuItem parentsAndChildrenItem = new MenuItem("Both");
         parentsAndChildrenItem.setOnAction(event -> {
             logger.info("Selected see children and parents");
-            CommitTreeController.selectCommit(commit.getId(), true, true, false);
+            CommitTreeController.selectCommit(commit.getName(), true, true, false);
         });
 
         relativesMenu.getItems().setAll(parentsItem, childrenItem, parentsAndChildrenItem);
@@ -576,7 +576,7 @@ public class CommitTreeModel{
      */
     public void setCommitAsBranchHead(CommitHelper helper, boolean tracked) {
         String commitId;
-        commitId = helper.getId();
+        commitId = helper.getName();
         CellShape shape = (tracked) ? Cell.TRACKED_BRANCH_HEAD_SHAPE : Cell.UNTRACKED_BRANCH_HEAD_SHAPE;
 
         treeGraph.treeGraphModel.setCellShape(commitId, shape);
@@ -639,7 +639,7 @@ public class CommitTreeModel{
                                                           Map<RefHelper, ContextMenu> menuMap) {
         String commitId;
         for (RefHelper helper : helpers) {
-            commitId = helper.getCommit().getId();
+            commitId = helper.getCommit().getName();
 
             if (helper instanceof TagHelper)
                 menuMap.put(helper, getTagLabelMenu((TagHelper)helper));
