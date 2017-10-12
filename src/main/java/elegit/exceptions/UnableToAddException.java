@@ -5,8 +5,13 @@ package elegit.exceptions;
  * to be added
  */
 public class UnableToAddException extends Exception {
-    public String filename;
+    private final String filename;
+
     public UnableToAddException(String filename) {
         this.filename = filename;
+    }
+
+    public String getFilename() {
+        return filename;
     }
 }

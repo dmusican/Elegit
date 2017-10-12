@@ -5,8 +5,13 @@ package elegit.exceptions;
  * to be added
  */
 public class UnableToRemoveException extends Exception {
-    public String filename;
+    private final String filename;
+
     public UnableToRemoveException(String filename) {
         this.filename = filename;
+    }
+
+    public String getFilename() {
+        return filename;
     }
 }

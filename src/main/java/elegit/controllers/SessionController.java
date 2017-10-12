@@ -900,7 +900,7 @@ public class SessionController {
                     } catch(JGitInternalException e){
                         showJGitInternalError(e);
                     } catch (UnableToRemoveException e) {
-                        showCannotRemoveFileNotification(e.filename);
+                        showCannotRemoveFileNotification(e.getFilename());
                     } catch (GitAPIException e) {
                         showGenericErrorNotification();
                     } finally {
@@ -1957,7 +1957,7 @@ public class SessionController {
 
             } else if (result.exception instanceof UnableToAddException) {
                 showNotification(nc, "Cannot add file notification",
-                        "Cannot add " + ((UnableToAddException) result.exception).filename +
+                        "Cannot add " + ((UnableToAddException) result.exception).getFilename() +
                                 ". It might already be added (staged).");
 
             } else if (result.exception instanceof NoFilesSelectedToAddException) {
