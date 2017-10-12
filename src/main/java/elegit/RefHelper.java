@@ -1,5 +1,6 @@
 package elegit;
 
+import elegit.models.CommitHelper;
 import elegit.treefx.CellLabel;
 
 /**

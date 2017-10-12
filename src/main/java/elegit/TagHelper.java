@@ -1,5 +1,6 @@
 package elegit;
 
+import elegit.models.CommitHelper;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;

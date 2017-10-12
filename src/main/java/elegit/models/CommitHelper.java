@@ -1,5 +1,6 @@
-package elegit;
+package elegit.models;
 
+import elegit.TagHelper;
 import org.apache.http.annotation.GuardedBy;
 import org.apache.http.annotation.ThreadSafe;
 import org.eclipse.jgit.lib.ObjectId;

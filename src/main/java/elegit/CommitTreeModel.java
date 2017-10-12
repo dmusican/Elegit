@@ -1,9 +1,9 @@
 package elegit;
 
 import elegit.exceptions.MissingRepoException;
+import elegit.models.CommitHelper;
 import elegit.treefx.*;
 import elegit.treefx.Cell;
-import javafx.application.Platform;
 import javafx.scene.control.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

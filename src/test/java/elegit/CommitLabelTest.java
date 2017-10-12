@@ -1,16 +1,13 @@
 package elegit;
 
+import elegit.models.CommitHelper;
 import elegit.treefx.Cell;
 import javafx.application.Application;
-import javafx.application.Platform;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.File;

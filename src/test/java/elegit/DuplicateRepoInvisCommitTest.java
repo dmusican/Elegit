@@ -1,5 +1,6 @@
 package elegit;
 
+import elegit.models.CommitHelper;
 import org.eclipse.jgit.api.PushCommand;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.junit.After;

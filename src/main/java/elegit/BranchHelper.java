@@ -1,5 +1,6 @@
 package elegit;
 
+import elegit.models.CommitHelper;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.BranchTrackingStatus;
 import org.eclipse.jgit.lib.ObjectId;

@@ -1,5 +1,7 @@
 package elegit;
 
+import elegit.models.CommitHelper;
+
 import java.util.ArrayList;
 import java.util.List;
 

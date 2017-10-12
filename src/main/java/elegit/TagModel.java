@@ -10,6 +10,7 @@ import java.util.stream.Stream;
 
 import elegit.exceptions.MissingRepoException;
 import elegit.exceptions.TagNameExistsException;
+import elegit.models.CommitHelper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jgit.api.Git;

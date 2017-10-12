@@ -1,5 +1,6 @@
 package elegit;
 
+import elegit.models.CommitHelper;
 import elegit.treefx.CellLabel;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -14,7 +15,6 @@ import org.eclipse.jgit.transport.RemoteRefUpdate;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Model class that keeps track of all BranchModels for a RepoHelper

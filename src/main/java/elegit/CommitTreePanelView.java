@@ -1,13 +1,11 @@
 package elegit;
 
+import elegit.models.CommitHelper;
 import elegit.treefx.TreeGraph;
 import elegit.treefx.TreeLayout;
 import javafx.application.Platform;
-import javafx.concurrent.Task;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.Region;
-
-import java.util.Arrays;
 
 /**
  * Class for the local and remote panel views that handles the drawing of a tree structure

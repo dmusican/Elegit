@@ -1,6 +1,6 @@
 package elegit.controllers;
 
-import elegit.CommitHelper;
+import elegit.models.CommitHelper;
 import elegit.RepoHelper;
 import elegit.SessionModel;
 import javafx.application.Platform;

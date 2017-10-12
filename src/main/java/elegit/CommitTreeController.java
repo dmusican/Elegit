@@ -1,6 +1,7 @@
 package elegit;
 
 import elegit.controllers.SessionController;
+import elegit.models.CommitHelper;
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
