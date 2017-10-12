@@ -63,6 +63,7 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
@@ -131,12 +132,13 @@ public class SessionController {
 
     @GuardedBy("this") private boolean tryCommandAgainWithHTTPAuth;
     @GuardedBy("this") public CommitTreeModel commitTreeModel;
+    private final AtomicReference<String> commitInfoNameText = new AtomicReference<>();
+
 
     public static final Object globalLock = new Object();
 
     // I'M HERE
     // harder
-    private String commitInfoNameText = "";
     private Label currentLocalBranchLabel;
     private Label currentRemoteTrackingLabel;
     public URL remoteURL;
@@ -1111,7 +1113,7 @@ public class SessionController {
                 @Override
                 protected Void call() {
                     try {
-                        theModel.getCurrentRepoHelper().getTagModel().tag(tagName, commitInfoNameText);
+                        theModel.getCurrentRepoHelper().getTagModel().tag(tagName, commitInfoNameText.get());
 
                         // Now clear the tag text and a view reload ( or `git status`) to show that something happened
                         tagNameField.clear();
@@ -2208,7 +2210,7 @@ public class SessionController {
         logger.info("Commit name copied");
         Clipboard clipboard = Clipboard.getSystemClipboard();
         ClipboardContent content = new ClipboardContent();
-        content.putString(commitInfoNameText);
+        content.putString(commitInfoNameText.get());
         clipboard.setContent(content);
     }
 
@@ -2217,7 +2219,7 @@ public class SessionController {
      */
     public void handleGoToCommitButton(){
         logger.info("Go to commit button clicked");
-        String id = commitInfoNameText;
+        String id = commitInfoNameText.get();
         CommitTreeController.focusCommitInGraph(id);
     }
 
@@ -2487,7 +2489,7 @@ public class SessionController {
     public void selectCommit(String id){
         Platform.runLater(() -> {
             CommitHelper commit = this.theModel.getCurrentRepoHelper().getCommit(id);
-            commitInfoNameText = commit.getName();
+            commitInfoNameText.set(commit.getName());
 
             commitInfoController.setCommitInfoMessageText(theModel.getCurrentRepoHelper().getCommitDescriptorString(commit, true));
 
