@@ -1693,7 +1693,7 @@ public class SessionController {
             FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/StashSave.fxml"));
             fxmlLoader.load();
             StashSaveController stashSaveController = fxmlLoader.getController();
-            stashSaveController.setSessionController(this);
+            //stashSaveController.setSessionController(this);
             AnchorPane fxmlRoot = fxmlLoader.getRoot();
             stashSaveController.showStage(fxmlRoot);
         } catch (IOException e) {

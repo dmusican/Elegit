@@ -14,19 +14,19 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 
 public class StashSaveController {
 
-    private Stage stage;
-
-    private SessionController sessionController;
-    private RepoHelper repoHelper;
-
     @FXML private NotificationController notificationPaneController;
     @FXML private AnchorPane anchorRoot;
-    @FXML private Button saveButton;
     @FXML private TextField stashMessage;
     @FXML private CheckBox includeUntracked;
 
-    static final Logger logger = LogManager.getLogger();
+    private Stage stage;
+    private final RepoHelper repoHelper;
+    private static final Logger logger = LogManager.getLogger();
 
+    public StashSaveController() {
+        SessionModel sessionModel = SessionModel.getSessionModel();
+        this.repoHelper = sessionModel.getCurrentRepoHelper();
+    }
     /**
      * Initialize method automatically called by JavaFX
      *
@@ -34,9 +34,6 @@ public class StashSaveController {
      */
     public void initialize() {
         logger.info("Started up stash save window");
-
-        SessionModel sessionModel = SessionModel.getSessionModel();
-        this.repoHelper = sessionModel.getCurrentRepoHelper();
 
         stashMessage.setOnAction((event -> {
             stashSave(stashMessage.getText());
@@ -73,7 +70,8 @@ public class StashSaveController {
     public void stashSave() {
         try {
             repoHelper.stashSave(includeUntracked.isSelected());
-            sessionController.gitStatus();
+            // TODO: Fix this when a better version of gitStatus is done
+            //sessionController.gitStatus();
             closeWindow();
         } catch (GitAPIException e) {
             notificationPaneController.addNotification("Something went wrong with the save.");
@@ -85,7 +83,8 @@ public class StashSaveController {
     public void stashSave(String message) {
         try {
             repoHelper.stashSave(includeUntracked.isSelected(), message,"");
-            sessionController.gitStatus();
+            // TODO: Fix this when a better version of gitStatus is done
+            //sessionController.gitStatus();
             closeWindow();
         } catch (GitAPIException e) {
             notificationPaneController.addNotification("Something went wrong with the save.");
@@ -94,6 +93,5 @@ public class StashSaveController {
         }
     }
 
-    void setSessionController(SessionController controller) { this.sessionController = controller; }
 
 }
