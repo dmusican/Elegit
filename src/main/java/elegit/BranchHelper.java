@@ -13,6 +13,7 @@ import java.io.IOException;
  * It is implemented by LocalBranchHelper and RemoteBranchHelper.
  *
  */
+// TODO: Make sure threadsafe
 public abstract class BranchHelper extends RefHelper {
 
     // Full string representation of this branch, e.g. 'remotes/origin/master'

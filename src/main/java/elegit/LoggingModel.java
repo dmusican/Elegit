@@ -15,6 +15,7 @@ import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
 // TODO: Make sure that PrefObj is threadsafe, also DataSubmitter
+// TODO: Make sure that this class if threadsafe
 public class LoggingModel {
 
     private static final Preferences preferences = Preferences.userNodeForPackage(LoggingModel.class);

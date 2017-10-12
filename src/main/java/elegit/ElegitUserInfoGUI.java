@@ -15,6 +15,7 @@ import java.util.concurrent.FutureTask;
  * Class for purposes for JSch authentication (which JGit uses). This is the text-based version used
  * for unit tests.
  */
+// TODO: Make sure threadsafe
 public class ElegitUserInfoGUI implements UserInfo {
 
     private Optional<String> password;

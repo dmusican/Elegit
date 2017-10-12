@@ -23,6 +23,7 @@ import java.util.Optional;
  * An abstract class for building RepoHelpers by presenting dialogs to
  * get the required parameters.
  */
+// TODO: Make sure threadsafe
 public abstract class RepoHelperBuilder {
 
     private static class UsernamePassword {

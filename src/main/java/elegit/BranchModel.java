@@ -25,7 +25,7 @@ import java.util.stream.Stream;
  *      -merging
  *      -checkouts
  */
-
+// TODO: Make sure threadsafe
 public class BranchModel {
 
     private RepoHelper repoHelper;

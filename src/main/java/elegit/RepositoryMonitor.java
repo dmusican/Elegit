@@ -18,6 +18,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * A class that creates a thread to watch the current remote repository for new changes
  */
+// TODO: Make sure threadsafe
 public class RepositoryMonitor{
 
     // How long to pause between checks

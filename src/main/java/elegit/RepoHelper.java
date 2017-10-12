@@ -38,6 +38,7 @@ import java.util.*;
 /**
  * The RepoHelper class, used for interacting with a repository.
  */
+// TODO: Make sure threadsafe
 public class RepoHelper {
 
     //protected UsernamePasswordCredentialsProvider ownerAuth;

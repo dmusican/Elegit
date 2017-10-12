@@ -206,8 +206,7 @@ public class SessionController {
 
     }
 
-    @FXML
-    void handleFetchButton() {
+    @FXML void handleFetchButton() {
         handleFetchButton(false, false);
     }
 
@@ -683,7 +682,7 @@ public class SessionController {
     /**
      * Called when the "Clone repository" option is clicked
      */
-    public void handleCloneNewRepoOption() {
+    void handleCloneNewRepoOption() {
         handleLoadRepoMenuItem(new ClonedRepoHelperBuilder(this.theModel));
     }
 
@@ -702,12 +701,12 @@ public class SessionController {
         }
     }
 
-    private boolean loadDesignatedRepo(RepoHelper repoHelper) {
+    private void loadDesignatedRepo(RepoHelper repoHelper) {
         GitOperation gitOp = authResponse -> loadRepo(authResponse, repoHelper);
 
         if (theModel.getCurrentRepoHelper() != null && repoHelper.localPath.equals(theModel.getCurrentRepoHelper().localPath)) {
             showSameRepoLoadedNotification();
-            return true;
+            return;
         }
         TreeLayout.stopMovingCells();
         refreshRecentReposInDropdown();
@@ -739,7 +738,6 @@ public class SessionController {
                 .doOnNext(unused -> hideBusyWindowAndResumeRepoMonitor())
                 .subscribe(unused -> {
                 }, Throwable::printStackTrace);
-        return false;
     }
 
     private List<Result> loadRepo (Optional<RepoHelperBuilder.AuthDialogResponse> responseOptional,
@@ -756,7 +754,7 @@ public class SessionController {
             } catch (Exception e) {
                 results.add(new Result(ResultStatus.EXCEPTION, ResultOperation.LOAD, e));
             }
-            return results;
+            return Collections.unmodifiableList(results);
         }
     }
 
@@ -869,7 +867,7 @@ public class SessionController {
             } catch (Exception e) {
                 results.add(new Result(ResultOperation.ADD, e));
             }
-            return results;
+            return Collections.unmodifiableList(results);
         }
     }
     /**
@@ -1106,6 +1104,7 @@ public class SessionController {
             Thread th = new Thread(new Task<Void>(){
                 @Override
                 protected Void call() {
+                    // TODO: Tagname field shouldn't be on separate thread. Check this EVERYWHERE (no FX updates on worker threads.)
                     try {
                         theModel.getCurrentRepoHelper().getTagModel().tag(tagName, commitInfoNameText.get());
 
@@ -1231,44 +1230,6 @@ public class SessionController {
     }
 
 
-//        /**
-//         * Performs a `git push` on either current branch or all branches, depending on enum parameter.
-//         * This is recursively re-called if authentication fails.
-//         */
-//    public void pushBranchOrAll(PushType pushType, PushCommand push) {
-//        try {
-//            final RepoHelperBuilder.AuthDialogResponse credentialResponse = askUserForCredentials();
-//
-//            showBusyWindow("Pushing...");
-//            Thread th = new Thread(new Task<Void>(){
-//                @Override
-//                protected Void call() {
-//                    tryCommandAgainWithHTTPAuth = false;
-//                    try {
-//                        pushBranchOrAllDetails(credentialResponse, pushType, push);
-//                    } catch (TransportException e) {
-//                        determineIfTryAgain(e);
-//                    } finally {
-//                        BusyWindow.hide();
-//                    }
-//
-//                    if (tryCommandAgainWithHTTPAuth) {
-//                        Platform.runLater(() -> {
-//                            pushBranchOrAll(pushType, push);
-//                        });
-//                    }
-//
-//                    return null;
-//                }
-//            });
-//            th.setDaemon(true);
-//            th.setName("Git push");
-//            th.start();
-//        } catch (CancelledAuthorizationException e) {
-//            this.showCommandCancelledNotification();
-//        }
-//    }
-
     private synchronized void determineIfTryAgain(TransportException e) {
         showTransportExceptionNotification(e);
 
@@ -1305,7 +1266,7 @@ public class SessionController {
             } catch (Exception e) {
                 results.add(new Result(ResultStatus.EXCEPTION, ResultOperation.PUSH, e));
             }
-            return results;
+            return Collections.unmodifiableList(results);
         }
     }
 
@@ -1765,7 +1726,7 @@ public class SessionController {
     /**
      * Applies the most recent stash
      */
-    public void handleStashApplyButton() {
+    void handleStashApplyButton() {
         // TODO: make it clearer which stash this applies
         logger.info("Stash apply button clicked");
         try {
@@ -1784,7 +1745,7 @@ public class SessionController {
     /**
      * Shows the stash window
      */
-    public void handleStashListButton() {
+    void handleStashListButton() {
         try {
             logger.info("Stash list button clicked");
 
@@ -1854,10 +1815,10 @@ public class SessionController {
     enum ResultStatus {OK, NOCOMMITS, EXCEPTION, MERGE_FAILED};
     enum ResultOperation {FETCH, MERGE, ADD, LOAD, PUSH};
 
-    static class Result {
-        public ResultStatus status;
-        public ResultOperation operation;
-        public Throwable exception;
+    private static class Result {
+        public final ResultStatus status;
+        public final ResultOperation operation;
+        public final Throwable exception;
 
         public Result(ResultStatus status, ResultOperation operation) {
             this.status = status;
@@ -1905,7 +1866,7 @@ public class SessionController {
                 results.add(new Result(ResultStatus.EXCEPTION, ResultOperation.FETCH, e));
             }
 
-            return results;
+            return Collections.unmodifiableList(results);
         }
     }
 
@@ -2154,20 +2115,20 @@ public class SessionController {
 
 
 
-    public void handleNewBranchButton() {
+    void handleNewBranchButton() {
         handleCreateOrDeleteBranchButton("create");
     }
 
-    public void handleDeleteLocalBranchButton() {
+    void handleDeleteLocalBranchButton() {
         handleCreateOrDeleteBranchButton("local");
     }
 
-    public void handleDeleteRemoteBranchButton() {
+    void handleDeleteRemoteBranchButton() {
         handleCreateOrDeleteBranchButton("remote");
     }
 
 
-    public void handleCreateOrDeleteBranchButton() {
+    @FXML private void handleCreateOrDeleteBranchButton() {
         handleCreateOrDeleteBranchButton("create");
     }
 
@@ -2175,7 +2136,7 @@ public class SessionController {
     /**
      * Pops up a window where the user can create a new branch
      */
-    public void handleCreateOrDeleteBranchButton(String tab) {
+    private void handleCreateOrDeleteBranchButton(String tab) {
         try{
             logger.info("Create/delete branch button clicked");
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
@@ -2200,7 +2161,7 @@ public class SessionController {
     /**
      * Copies the commit hash onto the clipboard
      */
-    public void handleCommitNameCopyButton(){
+    void handleCommitNameCopyButton(){
         logger.info("Commit name copied");
         Clipboard clipboard = Clipboard.getSystemClipboard();
         ClipboardContent content = new ClipboardContent();
@@ -2211,7 +2172,7 @@ public class SessionController {
     /**
      * Jumps to the selected commit in the tree display
      */
-    public void handleGoToCommitButton(){
+    void handleGoToCommitButton(){
         logger.info("Go to commit button clicked");
         String id = commitInfoNameText.get();
         CommitTreeController.focusCommitInGraph(id);
@@ -2221,14 +2182,14 @@ public class SessionController {
         handleGeneralMergeButton(false);
     }
 
-    public void handleBranchMergeButton() {
+    void handleBranchMergeButton() {
         handleGeneralMergeButton(true);
     }
 
     /**
      * shows the merge window
      */
-    public void handleGeneralMergeButton(boolean localTabOpen) {
+    private void handleGeneralMergeButton(boolean localTabOpen) {
         try{
             logger.info("Merge button clicked");
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
@@ -2365,7 +2326,7 @@ public class SessionController {
     /**
      * Opens the current repo directory (e.g. in Finder or Windows Explorer).
      */
-    public void openRepoDirectory(){
+    void openRepoDirectory(){
         if (Desktop.isDesktopSupported()) {
             try{
                 logger.info("Opening Repo Directory");
