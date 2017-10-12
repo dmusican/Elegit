@@ -107,7 +107,8 @@ public class SessionController {
 
     private final SessionModel theModel;
 
-
+    private static final Logger logger = LogManager.getLogger();
+    private static final BooleanProperty anythingChecked = new SimpleBooleanProperty(false);
 
     // harder
     public CommitTreeModel commitTreeModel;
@@ -119,10 +120,6 @@ public class SessionController {
     // I'M HERE
 
 
-    private BooleanProperty isWorkingTreeTabSelected;
-    public static SimpleBooleanProperty anythingChecked;
-
-    static final Logger logger = LogManager.getLogger(SessionController.class);
 
     public ContextMenu pushContextMenu;
     public ContextMenu commitContextMenu;
@@ -486,8 +483,6 @@ public class SessionController {
      * Initializes the workingTreePanelTab
      */
     private void initWorkingTreePanelTab() {
-        isWorkingTreeTabSelected = new SimpleBooleanProperty(true);
-        isWorkingTreeTabSelected.bind(workingTreePanelTab.selectedProperty());
         workingTreePanelTab.getTabPane().getSelectionModel().select(workingTreePanelTab);
     }
 
@@ -529,7 +524,6 @@ public class SessionController {
      * Adds context menus and properties to buttons
      */
     private void initButtons() {
-        anythingChecked = new SimpleBooleanProperty(false);
         checkoutFileButton.disableProperty().bind(anythingChecked.not());
         addButton.disableProperty().bind(anythingChecked.not());
         removeButton.disableProperty().bind(anythingChecked.not());
@@ -2796,4 +2790,7 @@ public class SessionController {
         });
     }
 
+    public static BooleanProperty anythingCheckedProperty() {
+        return anythingChecked;
+    }
 }
