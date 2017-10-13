@@ -34,19 +34,19 @@ import java.util.ArrayList;
  * The plain RepoFile class represents an untouched file in the repository that is thus
  * unaffected by commits.
  *
+ * This class is a view; it does lots of work involving buttons, etc. It should only be run from the Java FX thread.
+ *
  */
 public class RepoFile implements Comparable<RepoFile> {
 
     private final Path filePath;
     private final RepoHelper repo;
+    protected final Button diffButton;
+    private final boolean showPopover;
+    private final PopOver diffPopover;
+    protected final ContextMenu contextMenu;
 
     protected static final Logger logger = LogManager.getLogger();
-    protected final Button diffButton;
-
-    private final boolean showPopover;
-    PopOver diffPopover;
-
-    ContextMenu contextMenu;
 
     public RepoFile(Path filePath, RepoHelper repo) {
         this.repo = repo;
