@@ -41,10 +41,9 @@ public class RepoFile implements Comparable<RepoFile> {
     private final RepoHelper repo;
 
     protected static final Logger logger = LogManager.getLogger();
+    protected final Button diffButton;
 
-    Button diffButton;
-
-    boolean showPopover;
+    private final boolean showPopover;
     PopOver diffPopover;
 
     ContextMenu contextMenu;
@@ -58,26 +57,27 @@ public class RepoFile implements Comparable<RepoFile> {
             this.filePath = filePath;
         }
 
-        showPopover = false;
-
-        this.diffButton = new Button("UNCHANGED");
-        this.diffButton.getStyleClass().add("diffButton");
-
+        showPopover = initialShowPopoverSetting();
         this.diffPopover = new PopOver();
 
-        this.diffButton.setOnAction(e -> {
-            try {
-                this.showDiffPopover(this.diffButton);
-            } catch (IOException e1) {
-                logger.error("IOException in creating repo file");
-                logger.debug(e1.getStackTrace());
-                e1.printStackTrace();
-            } catch (GitAPIException e1) {
-                logger.error("GitAPIException in creating repo file");
-                logger.debug(e1.getStackTrace());
-                e1.printStackTrace();
-            }
-        });
+        this.diffButton = initialDiffButton();
+
+        if (this.diffButton != null) {
+            this.diffButton.getStyleClass().add("diffButton");
+            this.diffButton.setOnAction(e -> {
+                try {
+                    this.showDiffPopover(this.diffButton);
+                } catch (IOException e1) {
+                    logger.error("IOException in creating repo file");
+                    logger.debug(e1.getStackTrace());
+                    e1.printStackTrace();
+                } catch (GitAPIException e1) {
+                    logger.error("GitAPIException in creating repo file");
+                    logger.debug(e1.getStackTrace());
+                    e1.printStackTrace();
+                }
+            });
+        }
 
         this.contextMenu = new ContextMenu();
 
@@ -95,6 +95,14 @@ public class RepoFile implements Comparable<RepoFile> {
 
     public RepoFile(String filePathString, RepoHelper repo) {
         this(Paths.get(filePathString), repo);
+    }
+
+    protected Button initialDiffButton() {
+        return new Button("UNCHANGED");
+    }
+
+    protected boolean initialShowPopoverSetting() {
+        return false;
     }
 
     /**

@@ -1,5 +1,7 @@
 package elegit;
 
+import javafx.scene.control.Button;
+
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -14,12 +16,16 @@ public class DirectoryRepoFile extends RepoFile {
 
     public DirectoryRepoFile(Path filePath, RepoHelper repo) {
         super(filePath, repo);
-        this.diffButton = null;
         this.showFullPath = false;
     }
 
     public DirectoryRepoFile(String filePathString, RepoHelper repo) {
         this(Paths.get(filePathString), repo);
+    }
+
+    @Override
+    protected Button initialDiffButton() {
+        return null;
     }
 
     @Override
