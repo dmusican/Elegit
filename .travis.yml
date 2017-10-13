@@ -1,6 +1,4 @@
 language: java
 before_script:
-- cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
-- ssh -vvv -T travis@localhost exit
-- echo $?
+- sh travis_ssh.sh
 script: mvn clean test -B -DskipDisplay=true
