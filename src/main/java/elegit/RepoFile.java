@@ -67,20 +67,9 @@ public class RepoFile implements Comparable<RepoFile> {
 
         if (this.diffButton != null) {
             this.diffButton.getStyleClass().add("diffButton");
-            this.diffButton.setOnAction(e -> {
-                try {
-                    this.showDiffPopover(this.diffButton);
-                } catch (IOException e1) {
-                    logger.error("IOException in creating repo file");
-                    logger.debug(e1.getStackTrace());
-                    e1.printStackTrace();
-                } catch (GitAPIException e1) {
-                    logger.error("GitAPIException in creating repo file");
-                    logger.debug(e1.getStackTrace());
-                    e1.printStackTrace();
-                }
-            });
         }
+
+        addDiffPopover();
 
         this.contextMenu = new ContextMenu();
 
@@ -100,6 +89,24 @@ public class RepoFile implements Comparable<RepoFile> {
         // Creates a button, that will get clicked someday on the FX thread, but isn't actually getting clicked here
         ///////////Main.assertFxThread();
         return new Button("UNCHANGED");
+    }
+
+    protected void addDiffPopover() {
+        if (this.diffButton != null) {
+            this.diffButton.setOnAction(e -> {
+                try {
+                    this.showDiffPopover(this.diffButton);
+                } catch (IOException e1) {
+                    logger.error("IOException in creating repo file");
+                    logger.debug(e1.getStackTrace());
+                    e1.printStackTrace();
+                } catch (GitAPIException e1) {
+                    logger.error("GitAPIException in creating repo file");
+                    logger.debug(e1.getStackTrace());
+                    e1.printStackTrace();
+                }
+            });
+        }
     }
 
     protected boolean initialShowPopoverSetting() {
