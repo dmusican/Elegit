@@ -1,6 +1,7 @@
 package elegit;
 
 import elegit.treefx.CellLabel;
+import org.apache.http.annotation.ThreadSafe;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Ref;
 
@@ -11,6 +12,7 @@ import java.util.Arrays;
  * An implementation of the abstract BranchHelper class that holds
  * and interacts with remote branches.
  */
+@ThreadSafe
 public class RemoteBranchHelper extends BranchHelper {
     public RemoteBranchHelper(Ref ref, RepoHelper repo) {
         super(ref.getName(), repo);
@@ -18,7 +20,7 @@ public class RemoteBranchHelper extends BranchHelper {
 
     @Override
     public String getRefName(){
-        return repoHelper.repo.getRemoteName(this.refPathString)+"/"+super.getRefName();
+        return repoHelper.repo.getRemoteName(getRefPathString())+"/"+super.getRefName();
     }
 
     @Override
@@ -26,7 +28,7 @@ public class RemoteBranchHelper extends BranchHelper {
      * Parses the branch's refPath in order to get its name.
      */
     protected String parseBranchName() {
-        String[] slashSplit = this.refPathString.split("/");
+        String[] slashSplit = this.getRefPathString().split("/");
 
         /*
         Branches in the remote are stored in the .git directory like this:
@@ -50,6 +52,7 @@ public class RemoteBranchHelper extends BranchHelper {
     }
 
     @Override
+    // TODO: This code is in a strange location, should be near other git operations
     public void checkoutBranch() throws GitAPIException, IOException {
          // Don't check out remote branches!
     }

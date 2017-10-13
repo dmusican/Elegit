@@ -23,22 +23,17 @@ public class TagHelper extends RefHelper{
     // THe name of this ref, e.g. 'master' or 'tag1'
     private final String refName;
 
-
-    // The tag this helper wraps
-    private RevTag tag;
-    // The author of this commit
-    private PersonIdent author;
-
     TagHelper(RevTag t, CommitHelper c) {
-        this.tag = t;
-        this.author = t.getTaggerIdent();
-        this.refName = t.getTagName();
-        this.commit = c;
+        // Synchronized here operations on the tag object might not be threadsafe
+        synchronized(t) {
+            this.refName = t.getTagName();
+            this.commit.set(c);
+        }
     }
 
     TagHelper (String name, CommitHelper c) {
         this.refName = name;
-        this.commit = c;
+        this.commit.set(c);
     }
 
     /**
@@ -50,40 +45,15 @@ public class TagHelper extends RefHelper{
     }
 
 
-
-    public int getType() { return this.tag.getType(); }
-
-    /**
-     * @return the date object corresponding to the time of this tag
-     */
-    public Date getWhen(){
-        return author.getWhen();
-    }
-
     /**
      * @param c the commit helper this tag is associated with
      */
     public void setCommit(CommitHelper c) {
-        this.commit = c;
+        this.commit.set(c);
     }
 
     public String getCommitId() {
-        return this.commit.getName();
+        return this.commit.get().getName();
     }
 
-    boolean presentDeleteDialog() {
-        //Create the dialog
-        Dialog<Boolean> dialog = new Dialog<>();
-        dialog.setTitle("Delete Tag");
-        dialog.setHeaderText("Are you sure you want to delete tag "+ refName +"?");
-
-        ButtonType confirm = new ButtonType("Yes", ButtonBar.ButtonData.OK_DONE);
-        dialog.getDialogPane().getButtonTypes().addAll(confirm, ButtonType.CANCEL);
-
-        dialog.setResultConverter(dialogButton -> dialogButton == confirm);
-
-        Optional<Boolean> result = dialog.showAndWait();
-
-        return result.orElse(false);
-    }
 }

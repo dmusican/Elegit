@@ -1,5 +1,6 @@
 package elegit;
 
+import org.apache.http.annotation.ThreadSafe;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Ref;
@@ -11,6 +12,7 @@ import java.util.Arrays;
  * An implementation of the abstract BranchHelper that holds
  * and interacts with local branches.
  */
+@ThreadSafe
 public class LocalBranchHelper extends BranchHelper {
     public LocalBranchHelper(String refPathString, RepoHelper repo) throws IOException {
         super(refPathString, repo);
@@ -25,7 +27,7 @@ public class LocalBranchHelper extends BranchHelper {
      * Parses the branch's refPath in order to get its name.
      */
     protected String parseBranchName() {
-        String[] slashSplit = this.refPathString.split("/");
+        String[] slashSplit = this.getRefPathString().split("/");
         if (slashSplit.length >= 2) {
 
             /*
@@ -54,7 +56,7 @@ public class LocalBranchHelper extends BranchHelper {
             we just want to return the original string.
              */
 
-            return this.refPathString;
+            return this.getRefPathString();
 
         }
     }
@@ -63,6 +65,8 @@ public class LocalBranchHelper extends BranchHelper {
     /**
      * Checks out the branch in git.
      */
+    // TODO: Make sure all Git operations are threadsafe
+    // TODO: This code is in a strange location, should be near other git operations
     public void checkoutBranch() throws GitAPIException, IOException {
         new Git(this.repoHelper.getRepo()).checkout().setName(getRefName()).call();
         this.repoHelper.getBranchModel().refreshCurrentBranch();

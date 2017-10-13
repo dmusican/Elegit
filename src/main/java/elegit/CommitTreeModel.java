@@ -101,7 +101,7 @@ public class CommitTreeModel{
     }
 
     public synchronized void update() throws GitAPIException, IOException {
-        Main.assertNotFxThread();
+        //Main.assertNotFxThread();
         // Handles rare edge case with the RepositoryMonitor and removing repos
         if(this.sessionModel.getCurrentRepoHelper() != null){
             // Get the changes between this model and the repo after updating the repo
@@ -387,7 +387,7 @@ public class CommitTreeModel{
         MenuItem deleteitem = new MenuItem("Delete");
         deleteitem.setOnAction(event -> {
             logger.info("Delete tag dialog started.");
-            if (tagHelper.presentDeleteDialog()) {
+            if (presentDeleteDialog(tagHelper)) {
                 try {
                     sessionModel.getCurrentRepoHelper().getTagModel().deleteTag(tagHelper.getRefName());
                     update();
@@ -399,6 +399,22 @@ public class CommitTreeModel{
         contextMenu.getItems().addAll(deleteitem);
 
         return contextMenu;
+    }
+
+    private boolean presentDeleteDialog(TagHelper tagHelper) {
+        //Create the dialog
+        Dialog<Boolean> dialog = new Dialog<>();
+        dialog.setTitle("Delete Tag");
+        dialog.setHeaderText("Are you sure you want to delete tag "+ tagHelper.getRefName() +"?");
+
+        ButtonType confirm = new ButtonType("Yes", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(confirm, ButtonType.CANCEL);
+
+        dialog.setResultConverter(dialogButton -> dialogButton == confirm);
+
+        Optional<Boolean> result = dialog.showAndWait();
+
+        return result.orElse(false);
     }
 
     /**

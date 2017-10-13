@@ -1492,7 +1492,7 @@ public class SessionController {
 
         try {
             if (response != null) {
-                selectedBranch.repoHelper.ownerAuth =
+                theModel.getCurrentRepoHelper().ownerAuth =
                         new UsernamePasswordCredentialsProvider(response.username, response.password);
             }
             RemoteRefUpdate.Status deleteStatus = branchModel.deleteRemoteBranch((RemoteBranchHelper) selectedBranch);

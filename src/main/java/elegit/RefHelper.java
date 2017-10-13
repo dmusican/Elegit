@@ -2,20 +2,28 @@ package elegit;
 
 import elegit.models.CommitHelper;
 import elegit.treefx.CellLabel;
+import org.apache.http.annotation.ThreadSafe;
+
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Parent class for branch and tag helpers
  */
-// TODO: Make sure threadsafe
+@ThreadSafe
 public abstract class RefHelper {
+
     // The commit that this ref points to
-    CommitHelper commit;
+    protected final AtomicReference<CommitHelper> commit;
+
+    public RefHelper() {
+        commit = new AtomicReference<>();
+    }
 
     /**
      * @return the commit that this ref points to, or null if it hasn't been set
      */
     public CommitHelper getCommit(){
-        return commit;
+        return commit.get();
     }
 
     /**
