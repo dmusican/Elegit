@@ -2,10 +2,7 @@ package elegit.controllers;
 
 import elegit.*;
 import elegit.exceptions.*;
-import elegit.models.BranchHelper;
-import elegit.models.CommitHelper;
-import elegit.models.LocalBranchHelper;
-import elegit.models.RemoteBranchHelper;
+import elegit.models.*;
 import elegit.treefx.TreeLayout;
 import io.reactivex.Observable;
 import io.reactivex.ObservableSource;

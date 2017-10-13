@@ -1,5 +1,6 @@
 package elegit;
 
+import elegit.models.PrefObj;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import elegit.exceptions.CancelledAuthorizationException;
@@ -74,6 +75,7 @@ public class SessionModel {
      */
     public void loadRecentRepoHelpersFromStoredPathStrings() {
         try{
+            @SuppressWarnings("unchecked")
             ArrayList<String> storedRepoPathStrings = (ArrayList<String>) PrefObj.getObject(this.preferences, RECENT_REPOS_LIST_KEY);
             if (storedRepoPathStrings != null) {
                 for (String pathString : storedRepoPathStrings) {

@@ -1,6 +1,6 @@
 package elegit;
 
-import elegit.PrefObj;
+import elegit.models.PrefObj;
 import javafx.beans.property.*;
 import org.apache.http.annotation.GuardedBy;
 import org.apache.logging.log4j.Level;

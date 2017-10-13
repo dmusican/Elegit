@@ -1,4 +1,6 @@
-package elegit;
+package elegit.models;
+
+import org.apache.http.annotation.ThreadSafe;
 
 import java.io.*;
 import java.util.prefs.BackingStoreException;
@@ -13,10 +15,11 @@ import java.util.prefs.Preferences;
  *
  * Thanks!
  */
+@ThreadSafe
 public class PrefObj {
     // Max byte count is 3/4 max string length (see Preferences
     // documentation).
-    static private final int pieceLength =
+    private static final int pieceLength =
             ((3*Preferences.MAX_VALUE_LENGTH)/4);
 
     static private byte[] object2Bytes( Object o ) throws IOException {
