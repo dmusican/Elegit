@@ -1,4 +1,5 @@
 language: java
+sudo: required
 before_script:
 - sh travis_ssh.sh
 script: mvn clean test -B -DskipDisplay=true
