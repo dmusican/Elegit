@@ -1,5 +1,5 @@
 language: java
 before_script:
-- ssh -T travis@localhost exit
+- ssh -vvv -T travis@localhost exit
 - echo $?
 script: mvn clean test -B -DskipDisplay=true
