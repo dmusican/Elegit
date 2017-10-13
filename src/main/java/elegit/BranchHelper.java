@@ -34,7 +34,7 @@ public abstract class BranchHelper extends RefHelper {
     public BranchHelper(String refPathString, RepoHelper repoHelper) {
         this.refPathString = refPathString;
         this.repoHelper = repoHelper;
-        this.setHead(this.repoHelper.getCommit(refPathString));
+        commit = this.repoHelper.getCommit(refPathString);
         this.refName = this.parseBranchName();
     }
 
@@ -60,14 +60,6 @@ public abstract class BranchHelper extends RefHelper {
      */
     public abstract void checkoutBranch() throws GitAPIException, IOException;
 
-    /**
-     * Sets the head of this branch.
-     * @param head the new head
-     */
-    private void setHead(CommitHelper head){
-        commit = head;
-    }
-
     @Override
     public String toString() {
         return this.refName;
@@ -92,7 +84,7 @@ public abstract class BranchHelper extends RefHelper {
             return commit.getObjectId();
         }else{
             ObjectId headId = repoHelper.getRepo().resolve(refPathString);
-            setHead(repoHelper.getCommit(headId));
+            commit = repoHelper.getCommit(headId);
             return headId;
         }
     }
