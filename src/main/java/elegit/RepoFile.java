@@ -44,7 +44,7 @@ public class RepoFile implements Comparable<RepoFile> {
     protected final Button diffButton;
     private final boolean showPopover;
     private final PopOver diffPopover;
-    protected final ContextMenu contextMenu;
+    private final ContextMenu contextMenu;
 
     protected static final Logger logger = LogManager.getLogger();
 
@@ -113,6 +113,10 @@ public class RepoFile implements Comparable<RepoFile> {
         Tooltip tooltip = new Tooltip(tooltipText);
         tooltip.setFont(new Font(10));
         diffButton.setTooltip(tooltip);
+    }
+
+    public void addToContextMenu(MenuItem menuItem) {
+        contextMenu.getItems().add(menuItem);
     }
 
     /**
