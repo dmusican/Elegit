@@ -1,3 +1,3 @@
 ssh-keygen -R localhost
-ssh -T localhost exit
+ssh -o StrictHostKeyChecking=no -T localhost exit
 echo $?
