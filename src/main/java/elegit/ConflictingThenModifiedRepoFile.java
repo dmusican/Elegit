@@ -19,9 +19,8 @@ public class ConflictingThenModifiedRepoFile extends RepoFile {
 
     private ConflictingThenModifiedRepoFile(Path filePath, RepoHelper repo) {
         super(filePath, repo);
-        diffButton.setText("CONFLICTING\nMODIFIED");
-        diffButton.setId("conflictingThenModifiedDiffButton");
-        diffButton.setTooltip(getToolTip("This file was conflicting, but was recently modified.\nCommit if the changes are finalized."));
+        setTextIdTooltip("CONFLICTING\nMODIFIED","conflictingThenModifiedDiffButton",
+        "This file was conflicting, but was recently modified.\nCommit if the changes are finalized.");
     }
 
     ConflictingThenModifiedRepoFile(String filePathString, RepoHelper repo) {

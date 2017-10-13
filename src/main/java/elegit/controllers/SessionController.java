@@ -2215,7 +2215,7 @@ public class SessionController {
                     //.doOnNext(u -> BusyWindow.setLoadingText("Git status..."))
 
 
-                    .observeOn(Schedulers.io())
+                    //.observeOn(Schedulers.io())
                     .doOnNext(u -> { synchronized (globalLock) {
                         RepositoryMonitor.pause();
 

@@ -10,9 +10,8 @@ public class ModifiedRepoFile extends RepoFile {
 
     ModifiedRepoFile(Path filePath, RepoHelper repo) {
         super(filePath, repo);
-        diffButton.setText("MODIFIED");
-        diffButton.setId("modifiedDiffButton");
-        diffButton.setTooltip(getToolTip("This file was modified after your most recent commit."));
+        setTextIdTooltip("MODIFIED","modifiedDiffButton",
+                "This file was modified after your most recent commit.");
     }
 
     ModifiedRepoFile(String filePathString, RepoHelper repo) {

@@ -49,6 +49,9 @@ public class RepoFile implements Comparable<RepoFile> {
     protected static final Logger logger = LogManager.getLogger();
 
     public RepoFile(Path filePath, RepoHelper repo) {
+        // This completely wires up a diffButton that eventually gets passed off to someone who will run it on
+        // the FX thread, but none of its code actually gets run here
+        //////////////Main.assertFxThread();
         this.repo = repo;
 
         if(filePath.isAbsolute()){
@@ -93,16 +96,23 @@ public class RepoFile implements Comparable<RepoFile> {
         this.contextMenu.getItems().addAll(addToIgnoreItem, checkoutItem);
     }
 
-    public RepoFile(String filePathString, RepoHelper repo) {
-        this(Paths.get(filePathString), repo);
-    }
-
     protected Button initialDiffButton() {
+        // Creates a button, that will get clicked someday on the FX thread, but isn't actually getting clicked here
+        ///////////Main.assertFxThread();
         return new Button("UNCHANGED");
     }
 
     protected boolean initialShowPopoverSetting() {
+        //////Main.assertFxThread();
         return false;
+    }
+
+    public void setTextIdTooltip(String buttonText, String id, String tooltipText) {
+        diffButton.setText(buttonText);
+        diffButton.setId(id);
+        Tooltip tooltip = new Tooltip(tooltipText);
+        tooltip.setFont(new Font(10));
+        diffButton.setTooltip(tooltip);
     }
 
     /**
@@ -110,10 +120,15 @@ public class RepoFile implements Comparable<RepoFile> {
      * @return whether or not this file can be added (staged)
      */
     public boolean canAdd() throws GitAPIException, IOException {
+        // Model
+        ///////Main.assertFxThread();
         return false;
     }
 
     public boolean canRemove() {
+        // Model
+        ///////Main.assertFxThread();
+        Main.assertFxThread();
         return true;
     }
 
@@ -131,18 +146,24 @@ public class RepoFile implements Comparable<RepoFile> {
      */
     @Override
     public String toString() {
+        ///////Main.assertFxThread();
         return this.filePath.getFileName().toString();
     }
 
     public Path getFilePath() {
+        //////////////////Main.assertFxThread();
         return this.filePath;
     }
 
     public RepoHelper getRepo() {
+        // Doesn't explicitly need to run on FX thread
+        ////Main.assertFxThread();
         return this.repo;
     }
 
     public int getLevelInRepository(){
+        ////// THere are no graphics at all in this method, and it can easily run wherever it wants
+        ///Main.assertFxThread();
         int depth = 0;
         Path p = this.filePath.getParent();
         while(p!=null){
@@ -153,6 +174,7 @@ public class RepoFile implements Comparable<RepoFile> {
     }
 
     public void showDiffPopover(Node owner) throws IOException, GitAPIException {
+        Main.assertFxThread();
         if(showPopover) {
             contextMenu.hide();
 
@@ -164,17 +186,14 @@ public class RepoFile implements Comparable<RepoFile> {
     }
 
     public void showContextMenu(Node owner, double x, double y){
+        Main.assertFxThread();
         this.diffPopover.hide();
         this.contextMenu.show(owner, x, y);
     }
 
-    protected Tooltip getToolTip(String message) {
-        Tooltip tooltip = new Tooltip(message);
-        tooltip.setFont(new Font(10));
-        return tooltip;
-    }
-
     public boolean equals(Object o){
+        /// This is all model-style work; it's merely checking paths for equality
+        //Main.assertFxThread();
         if(o != null && o.getClass().equals(this.getClass())){
             RepoFile other = (RepoFile) o;
             return this.filePath.equals(other.filePath) && other.getRepo().getLocalPath().equals(getRepo().getLocalPath());
@@ -184,6 +203,7 @@ public class RepoFile implements Comparable<RepoFile> {
 
     @Override
     public int compareTo(RepoFile other) {
+        ///////////////Main.assertFxThread();
         return this.toString().compareToIgnoreCase(other.toString());
     }
 }
