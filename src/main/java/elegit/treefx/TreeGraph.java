@@ -1,10 +1,7 @@
 package elegit.treefx;
 
-import elegit.BusyWindow;
-import elegit.Main;
 import io.reactivex.Observable;
 import io.reactivex.rxjavafx.schedulers.JavaFxScheduler;
-import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.ScrollPane;

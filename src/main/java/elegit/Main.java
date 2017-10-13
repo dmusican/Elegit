@@ -1,5 +1,6 @@
 package elegit;
 
+import elegit.controllers.BusyWindow;
 import elegit.controllers.SessionController;
 import io.reactivex.disposables.CompositeDisposable;
 import javafx.application.Application;
@@ -18,7 +19,6 @@ import org.apache.logging.log4j.Logger;
 import javax.imageio.ImageIO;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.Scanner;
 import java.util.concurrent.CountDownLatch;
 import java.util.prefs.BackingStoreException;

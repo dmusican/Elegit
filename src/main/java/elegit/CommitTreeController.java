@@ -1,5 +1,6 @@
 package elegit;
 
+import elegit.controllers.BusyWindow;
 import elegit.controllers.SessionController;
 import elegit.models.BranchHelper;
 import elegit.models.CommitHelper;

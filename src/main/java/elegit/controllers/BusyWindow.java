@@ -1,5 +1,6 @@
-package elegit;
+package elegit.controllers;
 
+import elegit.Main;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
