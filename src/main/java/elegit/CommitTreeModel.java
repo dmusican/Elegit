@@ -4,6 +4,7 @@ import elegit.exceptions.MissingRepoException;
 import elegit.models.*;
 import elegit.treefx.*;
 import elegit.treefx.Cell;
+import javafx.application.Platform;
 import javafx.scene.control.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -110,21 +111,14 @@ public class CommitTreeModel{
 
             if (!updates.hasChanges()) return;
 
-            BusyWindow.setLoadingText("A1");
             this.removeCommitsFromTree(updates.getCommitsToRemove());
             this.addCommitsToTree(updates.getCommitsToAdd());
             this.updateCommitFills(updates.getCommitsToUpdate());  // SLOW
-            BusyWindow.setLoadingText("A2");
             this.sessionModel.getCurrentRepoHelper().getBranchModel().updateAllBranches();
-            BusyWindow.setLoadingText("A3");
             this.resetBranchHeads();
-            BusyWindow.setLoadingText("A4");
             this.updateAllRefLabels(); // SLOW
-            BusyWindow.setLoadingText("A5");
             TreeLayout.stopMovingCells();
-            BusyWindow.setLoadingText("A6");
             this.updateView();  // SLOW
-            BusyWindow.setLoadingText("A7");
             System.out.println(Main.timeSpent);
         }
     }
@@ -623,7 +617,6 @@ public class CommitTreeModel{
         for (RemoteBranchHelper helper : remotes) {
             remoteBranches.add(helper.getRefName());
         }
-        BusyWindow.setLoadingText("D1");
 
         // Set the labels
         HashSet<String> currentAbbrevBranches = this.sessionModel.getCurrentRepoHelper().getBranchModel().getCurrentAbbrevBranches();
@@ -642,7 +635,6 @@ public class CommitTreeModel{
                 treeGraph.treeGraphModel.setRemoteBranchCells(commit, remoteBranches);
             }
         }
-        BusyWindow.setLoadingText("D2");
     }
 
     private void addCommitRefMaps(List<RefHelper> helpers, Map<String, List<RefHelper>> commitLabelMap,
