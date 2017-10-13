@@ -22,15 +22,6 @@ public class RemoteBranchHelper extends BranchHelper {
     }
 
     @Override
-    public String getAbbrevName(){
-        String name = getRefName();
-        if (name.length() > CellLabel.MAX_CHAR_PER_LABEL) {
-            name = name.substring(0,24)+"...";
-        }
-        return name;
-    }
-
-    @Override
     /**
      * Parses the branch's refPath in order to get its name.
      */

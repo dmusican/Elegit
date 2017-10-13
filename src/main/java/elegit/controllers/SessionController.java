@@ -1807,7 +1807,7 @@ public class SessionController {
     enum ResultStatus {OK, NOCOMMITS, EXCEPTION, MERGE_FAILED};
     enum ResultOperation {FETCH, MERGE, ADD, LOAD, PUSH};
 
-    private static class Result {
+    public static class Result {
         public final ResultStatus status;
         public final ResultOperation operation;
         public final Throwable exception;

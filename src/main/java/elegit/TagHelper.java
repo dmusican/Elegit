@@ -20,83 +20,44 @@ import java.util.Optional;
  */
 public class TagHelper extends RefHelper{
 
+    // THe name of this ref, e.g. 'master' or 'tag1'
+    private final String refName;
+
+
     // The tag this helper wraps
     private RevTag tag;
     // The author of this commit
     private PersonIdent author;
 
-    // The short message of the tag
-    private String shortMessage;
-    // The full message of the tag
-    private String fullMessage;
-
-    // Whether the tag for this helper is lightweight or annotated
-    private boolean isAnnotated;
-
     TagHelper(RevTag t, CommitHelper c) {
         this.tag = t;
         this.author = t.getTaggerIdent();
         this.refName = t.getTagName();
-        this.shortMessage = t.getShortMessage();
-        this.fullMessage = t.getFullMessage();
-        this.isAnnotated = true;
         this.commit = c;
     }
 
     TagHelper (String name, CommitHelper c) {
         this.refName = name;
         this.commit = c;
-        this.isAnnotated = false;
     }
 
     /**
-     * @return the unique ObjectId of the tag
+     * @return the name of the ref
      */
-    public ObjectId getObjectId(){
-        return this.tag.getId();
+    @Override
+    public String getRefName() {
+        return this.refName;
     }
+
+
 
     public int getType() { return this.tag.getType(); }
-
-    /**
-     * @param fullMessage whether to return the full or abbreviated tag message
-     * @return the tag message
-     */
-    public String getMessage(boolean fullMessage){
-        if(fullMessage){
-            return this.fullMessage;
-        }else{
-            return this.shortMessage;
-        }
-    }
-
-    /**
-     * @return the name of the author of this tag
-     */
-    public String getAuthorName(){
-        return author.getName();
-    }
-
-    /**
-     * @return the email of the author of this tag
-     */
-    public String getAuthorEmail(){
-        return author.getEmailAddress();
-    }
 
     /**
      * @return the date object corresponding to the time of this tag
      */
     public Date getWhen(){
         return author.getWhen();
-    }
-
-    /**
-     * @return the formatted date string corresponding to the time of this tag
-     */
-    public String getFormattedWhen(){
-        DateFormat formatter = new SimpleDateFormat("MMM dd yyyy, h:mm a");
-        return formatter.format(this.getWhen());
     }
 
     /**
@@ -109,8 +70,6 @@ public class TagHelper extends RefHelper{
     public String getCommitId() {
         return this.commit.getName();
     }
-
-    public boolean isAnnotated() { return this.isAnnotated; }
 
     boolean presentDeleteDialog() {
         //Create the dialog

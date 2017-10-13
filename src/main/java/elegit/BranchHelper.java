@@ -16,6 +16,9 @@ import java.io.IOException;
  */
 // TODO: Make sure threadsafe
 public abstract class BranchHelper extends RefHelper {
+    // THe name of this ref, e.g. 'master' or 'tag1'
+    private final String refName;
+
 
     // Full string representation of this branch, e.g. 'remotes/origin/master'
     String refPathString;
@@ -34,6 +37,15 @@ public abstract class BranchHelper extends RefHelper {
         this.setHead(this.repoHelper.getCommit(refPathString));
         this.refName = this.parseBranchName();
     }
+
+    /**
+     * @return the name of the ref
+     */
+    @Override
+    public String getRefName() {
+        return this.refName;
+    }
+
 
     /**
      * @return the name of this branch, e.g. 'master'
