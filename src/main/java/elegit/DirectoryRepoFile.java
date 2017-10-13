@@ -15,7 +15,6 @@ public class DirectoryRepoFile extends RepoFile {
     public DirectoryRepoFile(Path filePath, RepoHelper repo) {
         super(filePath, repo);
         this.diffButton = null;
-        this.children = new ArrayList<>();
         this.showFullPath = false;
     }
 
@@ -24,18 +23,8 @@ public class DirectoryRepoFile extends RepoFile {
     }
 
     @Override
-    public void addChild(RepoFile repoFile) {
-        this.children.add(repoFile);
-    }
-
-    @Override
-    public ArrayList<RepoFile> getChildren() {
-        return children;
-    }
-
-    @Override
     public String toString() {
-        return this.showFullPath ? this.filePath.toString() : this.filePath.getFileName().toString();
+        return this.showFullPath ? this.getFilePath().toString() : this.getFilePath().getFileName().toString();
     }
 
     @Override public boolean canAdd() {

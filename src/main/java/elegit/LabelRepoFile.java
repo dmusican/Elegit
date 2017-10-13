@@ -24,6 +24,6 @@ public class LabelRepoFile extends RepoFile {
 
     @Override
     public String toString() {
-        return this.filePath.toString();
+        return this.getFilePath().toString();
     }
 }

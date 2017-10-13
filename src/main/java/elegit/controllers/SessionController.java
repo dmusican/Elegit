@@ -847,7 +847,7 @@ public class SessionController {
                             // JGit does not support adding missing files, instead remove them
                             filePathsToRemove.add(checkedFile.getFilePath());
                         } else {
-                            throw new UnableToAddException(checkedFile.filePath.toString());
+                            throw new UnableToAddException(checkedFile.getFilePath().toString());
                         }
                     }
                 }
@@ -884,7 +884,7 @@ public class SessionController {
                             if (checkedFile.canRemove())
                                 filePathsToRemove.add(checkedFile.getFilePath());
                             else
-                                throw new UnableToRemoveException(checkedFile.filePath.toString());
+                                throw new UnableToRemoveException(checkedFile.getFilePath().toString());
                         }
 
                         theModel.getCurrentRepoHelper().removeFilePaths(filePathsToRemove);

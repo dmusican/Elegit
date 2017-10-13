@@ -37,10 +37,10 @@ import java.util.ArrayList;
  */
 public class RepoFile implements Comparable<RepoFile> {
 
-    public Path filePath;
-    RepoHelper repo;
-    static final Logger logger = LogManager.getLogger();
-    protected ArrayList<RepoFile> children; // Only directories will use this!
+    private final Path filePath;
+    private final RepoHelper repo;
+
+    protected static final Logger logger = LogManager.getLogger();
 
     Button diffButton;
 
@@ -142,16 +142,6 @@ public class RepoFile implements Comparable<RepoFile> {
             p = p.getParent();
         }
         return depth;
-    }
-
-    public ArrayList<RepoFile> getChildren() {
-        // Files with no children will return null, since this ArrayList was never instantiated.
-        return this.children;
-    }
-
-    public void addChild(RepoFile repoFile) {
-        // Files with no children can't have children added to them!
-        System.err.println("Can't add children to this type of RepoFile.");
     }
 
     public void showDiffPopover(Node owner) throws IOException, GitAPIException {

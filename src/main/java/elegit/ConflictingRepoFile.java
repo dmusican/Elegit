@@ -69,8 +69,8 @@ public class ConflictingRepoFile extends RepoFile {
                 case "resolve":
                     Desktop desktop = Desktop.getDesktop();
 
-                    File workingDirectory = this.repo.getRepo().getWorkTree();
-                    File unrelativized = new File(workingDirectory, this.filePath.toString());
+                    File workingDirectory = this.getRepo().getRepo().getWorkTree();
+                    File unrelativized = new File(workingDirectory, this.getFilePath().toString());
 
                     desktop.open(unrelativized);
                     break;

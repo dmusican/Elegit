@@ -96,7 +96,7 @@ public class AddDirTest {
         String timestamp = "testInDirAdd " + (new Date()).toString() + "\n";
         Files.write(filePath, timestamp.getBytes(), StandardOpenOption.APPEND);
         Files.write(filePathNew, timestamp.getBytes());
-        ArrayList paths = new ArrayList();
+        ArrayList<Path> paths = new ArrayList<>();
         paths.add(filePath);
         paths.add(filePathNew);
         helperAdd.addFilePathsTest(paths);
