@@ -94,7 +94,7 @@ public class AllFilesPanelView extends FileStructurePanelView{
                             itemsToRemove.remove(oldItem);
                         } else {
                             // The file is displayed, but needs its status updated. Replace the old with the new
-                            CheckBoxTreeItem<RepoFile> newItem = new CheckBoxTreeItem<>(repoFile, repoFile.diffButton);
+                            CheckBoxTreeItem<RepoFile> newItem = new CheckBoxTreeItem<>(repoFile, repoFile.getDiffButton());
                             TreeItem<RepoFile> parent = oldItem.getParent();
                             newItem.setExpanded(oldItem.isExpanded());
                             newItem.getChildren().setAll(oldItem.getChildren());
@@ -104,7 +104,7 @@ public class AllFilesPanelView extends FileStructurePanelView{
                         }
                     } else {
                         // The given file wasn't present, so need to add it
-                        CheckBoxTreeItem<RepoFile> newItem = new CheckBoxTreeItem<>(repoFile, repoFile.diffButton);
+                        CheckBoxTreeItem<RepoFile> newItem = new CheckBoxTreeItem<>(repoFile, repoFile.getDiffButton());
 
                         Path pathToParent = pathToFile.getParent();
                         boolean foundParent = false;

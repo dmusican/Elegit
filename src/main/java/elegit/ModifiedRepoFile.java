@@ -12,15 +12,11 @@ public class ModifiedRepoFile extends RepoFile {
         super(filePath, repo);
         setTextIdTooltip("MODIFIED","modifiedDiffButton",
                 "This file was modified after your most recent commit.");
+        addDiffPopover();
     }
 
     ModifiedRepoFile(String filePathString, RepoHelper repo) {
         this(Paths.get(filePathString), repo);
-    }
-
-    @Override
-    protected boolean initialShowPopoverSetting() {
-        return true;
     }
 
     @Override public boolean canAdd() { return true; }

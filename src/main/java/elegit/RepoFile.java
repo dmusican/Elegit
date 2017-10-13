@@ -41,8 +41,7 @@ public class RepoFile implements Comparable<RepoFile> {
 
     private final Path filePath;
     private final RepoHelper repo;
-    protected final Button diffButton;
-    private final boolean showPopover;
+    private final Button diffButton;
     private final PopOver diffPopover;
     private final ContextMenu contextMenu;
 
@@ -60,16 +59,12 @@ public class RepoFile implements Comparable<RepoFile> {
             this.filePath = filePath;
         }
 
-        showPopover = initialShowPopoverSetting();
         this.diffPopover = new PopOver();
-
         this.diffButton = initialDiffButton();
 
         if (this.diffButton != null) {
             this.diffButton.getStyleClass().add("diffButton");
         }
-
-        addDiffPopover();
 
         this.contextMenu = new ContextMenu();
 
@@ -109,9 +104,9 @@ public class RepoFile implements Comparable<RepoFile> {
         }
     }
 
-    protected boolean initialShowPopoverSetting() {
-        //////Main.assertFxThread();
-        return false;
+    public Button getDiffButton() {
+        return diffButton;
+
     }
 
     public void setTextIdTooltip(String buttonText, String id, String tooltipText) {
@@ -186,14 +181,12 @@ public class RepoFile implements Comparable<RepoFile> {
 
     public void showDiffPopover(Node owner) throws IOException, GitAPIException {
         Main.assertFxThread();
-        if(showPopover) {
             contextMenu.hide();
 
             DiffHelper diffHelper = new DiffHelper(this.filePath, this.repo);
             this.diffPopover.setContentNode(diffHelper.getDiffScrollPane());
             this.diffPopover.setTitle("File Diffs");
             this.diffPopover.show(owner);
-        }
     }
 
     public void showContextMenu(Node owner, double x, double y){

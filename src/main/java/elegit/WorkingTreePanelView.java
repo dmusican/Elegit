@@ -144,7 +144,7 @@ public class WorkingTreePanelView extends FileStructurePanelView{
 
         // Loop over every file to be shown
         for(RepoFile repoFile : updatedRepoFiles) {
-            CheckBoxTreeItem<RepoFile> newItem = new CheckBoxTreeItem<>(repoFile, repoFile.diffButton);
+            CheckBoxTreeItem<RepoFile> newItem = new CheckBoxTreeItem<>(repoFile, repoFile.getDiffButton());
 
             BooleanProperty oldHelper = isSelectedPropertyHelper;
             isSelectedPropertyHelper = new SimpleBooleanProperty();
