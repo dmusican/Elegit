@@ -1,4 +1,4 @@
-package elegit;
+package elegit.models;
 
 import elegit.models.CommitHelper;
 import elegit.treefx.CellLabel;

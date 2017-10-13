@@ -2,7 +2,7 @@ package elegit.treefx;
 
 import elegit.CommitTreeController;
 import elegit.Main;
-import elegit.RefHelper;
+import elegit.models.RefHelper;
 import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;

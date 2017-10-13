@@ -1,5 +1,6 @@
-package elegit;
+package elegit.models;
 
+import elegit.RepoHelper;
 import org.apache.http.annotation.ThreadSafe;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -26,7 +27,7 @@ public class LocalBranchHelper extends BranchHelper {
     /**
      * Parses the branch's refPath in order to get its name.
      */
-    protected String parseBranchName() {
+    public String parseBranchName() {
         String[] slashSplit = this.getRefPathString().split("/");
         if (slashSplit.length >= 2) {
 

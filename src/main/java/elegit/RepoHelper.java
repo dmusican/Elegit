@@ -5,7 +5,7 @@ import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 import com.jcraft.jsch.UserInfo;
 import elegit.exceptions.*;
-import elegit.models.CommitHelper;
+import elegit.models.*;
 import elegit.treefx.Cell;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
@@ -45,7 +45,7 @@ public class RepoHelper {
     public String username;
     protected String password;
 
-    protected Repository repo;
+    public Repository repo;
 
     public Path localPath;
     protected File credentialsFile;

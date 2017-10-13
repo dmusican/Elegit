@@ -1,7 +1,7 @@
 package elegit;
 
 import elegit.exceptions.MissingRepoException;
-import elegit.models.CommitHelper;
+import elegit.models.*;
 import elegit.treefx.*;
 import elegit.treefx.Cell;
 import javafx.scene.control.*;
@@ -646,7 +646,7 @@ public class CommitTreeModel{
     }
 
     private void addCommitRefMaps(List<RefHelper> helpers, Map<String, List<RefHelper>> commitLabelMap,
-                                                          Map<RefHelper, ContextMenu> menuMap) {
+                                  Map<RefHelper, ContextMenu> menuMap) {
         String commitId;
         for (RefHelper helper : helpers) {
             commitId = helper.getCommit().getName();

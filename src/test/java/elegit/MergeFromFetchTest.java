@@ -2,6 +2,8 @@ package elegit;
 
 import elegit.exceptions.ConflictingFilesException;
 import elegit.exceptions.MissingRepoException;
+import elegit.models.LocalBranchHelper;
+import elegit.models.RemoteBranchHelper;
 import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.api.PushCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;

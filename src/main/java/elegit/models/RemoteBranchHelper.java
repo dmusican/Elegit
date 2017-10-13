@@ -1,6 +1,6 @@
-package elegit;
+package elegit.models;
 
-import elegit.treefx.CellLabel;
+import elegit.RepoHelper;
 import org.apache.http.annotation.ThreadSafe;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Ref;
@@ -27,7 +27,7 @@ public class RemoteBranchHelper extends BranchHelper {
     /**
      * Parses the branch's refPath in order to get its name.
      */
-    protected String parseBranchName() {
+    public String parseBranchName() {
         String[] slashSplit = this.getRefPathString().split("/");
 
         /*

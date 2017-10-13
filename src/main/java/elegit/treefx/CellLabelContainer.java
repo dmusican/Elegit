@@ -2,10 +2,9 @@ package elegit.treefx;
 
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
-import elegit.RefHelper;
-import elegit.TagHelper;
+import elegit.models.RefHelper;
+import elegit.models.TagHelper;
 import io.reactivex.Observable;
-import io.reactivex.rxjavafx.schedulers.JavaFxScheduler;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.Node;

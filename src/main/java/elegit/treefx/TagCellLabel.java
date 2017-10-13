@@ -1,6 +1,6 @@
 package elegit.treefx;
 
-import elegit.RefHelper;
+import elegit.models.RefHelper;
 
 public class TagCellLabel extends CellLabel{
     TagCellLabel(RefHelper refHelper, boolean isCurrent) {

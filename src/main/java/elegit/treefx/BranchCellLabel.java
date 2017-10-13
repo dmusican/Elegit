@@ -1,6 +1,6 @@
 package elegit.treefx;
 
-import elegit.RefHelper;
+import elegit.models.RefHelper;
 
 public class BranchCellLabel extends CellLabel {
     BranchCellLabel(RefHelper refHelper, boolean isCurrent) {

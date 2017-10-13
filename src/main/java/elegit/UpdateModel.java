@@ -1,6 +1,8 @@
 package elegit;
 
+import elegit.models.BranchHelper;
 import elegit.models.CommitHelper;
+import elegit.models.TagHelper;
 
 import java.util.ArrayList;
 import java.util.List;

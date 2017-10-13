@@ -1,5 +1,7 @@
 package elegit;
 
+import elegit.models.LocalBranchHelper;
+import elegit.models.RemoteBranchHelper;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;

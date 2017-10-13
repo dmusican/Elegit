@@ -1,6 +1,7 @@
 package elegit.controllers;
 
 import elegit.*;
+import elegit.models.LocalBranchHelper;
 import elegit.treefx.CellLabel;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -9,7 +10,6 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.StackPane;
 import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -23,7 +23,6 @@ import org.eclipse.jgit.lib.BranchTrackingStatus;
 import org.eclipse.jgit.lib.Repository;
 
 import java.io.IOException;
-import java.util.List;
 
 /**
  * Controller for the merge window
