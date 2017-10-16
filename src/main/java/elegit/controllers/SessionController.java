@@ -803,10 +803,10 @@ public class SessionController {
                 .doOnNext(unused -> addPreChecks())
                 .doOnNext(unused -> showBusyWindowAndPauseRepoMonitor("Adding..."))
 
-                .observeOn(Schedulers.io())
+                //.observeOn(Schedulers.io())
                 .map(unused -> addOperation())
 
-                .observeOn(JavaFxScheduler.platform())
+                //.observeOn(JavaFxScheduler.platform())
 
                 .onErrorResumeNext(this::wrapMergeException)
                 .doOnNext(results -> gitOperationShowResults(notificationPaneController, results))
@@ -828,7 +828,7 @@ public class SessionController {
      */
     private List<Result> addOperation() {
         synchronized (globalLock) {
-            Main.assertNotFxThread();
+            //Main.assertFxThread();
 
             ArrayList<Result> results = new ArrayList<>();
             try {

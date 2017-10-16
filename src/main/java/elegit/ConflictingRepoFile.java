@@ -46,42 +46,25 @@ public class ConflictingRepoFile extends RepoFile {
     }
 
     @Override public boolean canAdd() throws GitAPIException, IOException{
-        ReentrantLock lock = new ReentrantLock();
-        Condition finishedAlert = lock.newCondition();
+        Main.assertFxThread();
+        logger.warn("Notification about conflicting file");
+        resultType = PopUpWindows.showCommittingConflictingFileAlert();
+        switch (resultType) {
+            case "resolve":
+                Desktop desktop = Desktop.getDesktop();
 
-        Platform.runLater(() -> {
-            logger.warn("Notification about conflicting file");
-            lock.lock();
-            try{
-                resultType = PopUpWindows.showCommittingConflictingFileAlert();
-                finishedAlert.signal();
-            }finally{
-                lock.unlock();
-            }
-        });
+                File workingDirectory = this.getRepo().getRepo().getWorkTree();
+                File unrelativized = new File(workingDirectory, this.getFilePath().toString());
 
-        lock.lock();
-        try{
-            finishedAlert.await();
-            //System.out.println(resultType);
-            switch (resultType) {
-                case "resolve":
-                    Desktop desktop = Desktop.getDesktop();
-
-                    File workingDirectory = this.getRepo().getRepo().getWorkTree();
-                    File unrelativized = new File(workingDirectory, this.getFilePath().toString());
-
-                    desktop.open(unrelativized);
-                    break;
-                case "add":
-                    return true;
-                case "help":
-                    PopUpWindows.showConflictingHelpAlert();
-                    break;
-            }
-        }catch(InterruptedException ignored){
-        }finally{
-            lock.unlock();
+                System.out.println("before");
+                desktop.open(unrelativized);
+                System.out.println("after");
+                break;
+            case "add":
+                return true;
+            case "help":
+                PopUpWindows.showConflictingHelpAlert();
+                break;
         }
         return false;
     }
