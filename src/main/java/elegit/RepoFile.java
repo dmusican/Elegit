@@ -7,6 +7,7 @@ import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.Tooltip;
 import javafx.scene.text.Font;
+import org.apache.http.annotation.ThreadSafe;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.controlsfx.control.PopOver;
@@ -34,9 +35,15 @@ import java.util.ArrayList;
  * The plain RepoFile class represents an untouched file in the repository that is thus
  * unaffected by commits.
  *
- * This class is a view; it does lots of work involving buttons, etc. It should only be run from the Java FX thread.
+ * This class is a view, controller, and model all mixed in one. That said. the model aspects are minimal, and the
+ * view is mostly just a button and a context menu. Most notably, because most of the code is view oriented, ALL OF IT
+ * should only be run from the JavaFX thread. In principle, a handful of method could be run elsewhere, but they're
+ * fast anyway and not much would be gained; and most of this is FX work that should be done on the thread.
  *
  */
+@ThreadSafe
+// but only threadsafe because of the asserts on the FX thread nearly everywhere. No guarantees if any of those go;
+// this needs to be thought through
 public class RepoFile implements Comparable<RepoFile> {
 
     private final Path filePath;
@@ -48,9 +55,7 @@ public class RepoFile implements Comparable<RepoFile> {
     protected static final Logger logger = LogManager.getLogger();
 
     public RepoFile(Path filePath, RepoHelper repo) {
-        // This completely wires up a diffButton that eventually gets passed off to someone who will run it on
-        // the FX thread, but none of its code actually gets run here
-        //////////////Main.assertFxThread();
+        Main.assertFxThread();
         this.repo = repo;
 
         if(filePath.isAbsolute()){
@@ -81,12 +86,11 @@ public class RepoFile implements Comparable<RepoFile> {
     }
 
     protected Button initialDiffButton() {
-        // Creates a button, that will get clicked someday on the FX thread, but isn't actually getting clicked here
-        ///////////Main.assertFxThread();
+        Main.assertFxThread();
         return new Button("UNCHANGED");
     }
 
-    protected void addDiffPopover() {
+    void addDiffPopover() {
         if (this.diffButton != null) {
             this.diffButton.setOnAction(e -> {
                 try {
@@ -105,11 +109,13 @@ public class RepoFile implements Comparable<RepoFile> {
     }
 
     public Button getDiffButton() {
+        Main.assertFxThread();
         return diffButton;
 
     }
 
     public void setTextIdTooltip(String buttonText, String id, String tooltipText) {
+        Main.assertFxThread();
         diffButton.setText(buttonText);
         diffButton.setId(id);
         Tooltip tooltip = new Tooltip(tooltipText);
@@ -118,6 +124,7 @@ public class RepoFile implements Comparable<RepoFile> {
     }
 
     public void addToContextMenu(MenuItem menuItem) {
+        Main.assertFxThread();
         contextMenu.getItems().add(menuItem);
     }
 
@@ -126,15 +133,10 @@ public class RepoFile implements Comparable<RepoFile> {
      * @return whether or not this file can be added (staged)
      */
     public boolean canAdd() throws GitAPIException, IOException {
-        // Model
-        ///////Main.assertFxThread();
         return false;
     }
 
     public boolean canRemove() {
-        // Model
-        ///////Main.assertFxThread();
-        Main.assertFxThread();
         return true;
     }
 
@@ -152,24 +154,30 @@ public class RepoFile implements Comparable<RepoFile> {
      */
     @Override
     public String toString() {
-        ///////Main.assertFxThread();
+        // filePath is potentially share memory; could work hard to isolate it, but it's so fast; just insist
+        // it runs on the FX thread
+        Main.assertFxThread();
         return this.filePath.getFileName().toString();
     }
 
     public Path getFilePath() {
-        //////////////////Main.assertFxThread();
+        // filePath is potentially share memory; could work hard to isolate it, but it's so fast; just insist
+        // it runs on the FX thread
+        Main.assertFxThread();
         return this.filePath;
     }
 
     public RepoHelper getRepo() {
-        // Doesn't explicitly need to run on FX thread
-        ////Main.assertFxThread();
+        // repo is potentially share memory; could work hard to isolate it, but it's so fast; just insist
+        // it runs on the FX thread
+        Main.assertFxThread();
         return this.repo;
     }
 
     public int getLevelInRepository(){
-        ////// THere are no graphics at all in this method, and it can easily run wherever it wants
-        ///Main.assertFxThread();
+        // filePath is potentially share memory; could work hard to isolate it, but it's so fast; just insist
+        // it runs on the FX thread
+        Main.assertFxThread();
         int depth = 0;
         Path p = this.filePath.getParent();
         while(p!=null){
@@ -196,8 +204,9 @@ public class RepoFile implements Comparable<RepoFile> {
     }
 
     public boolean equals(Object o){
-        /// This is all model-style work; it's merely checking paths for equality
-        //Main.assertFxThread();
+        // filePath is potentially share memory; could work hard to isolate it, but it's so fast; just insist
+        // it runs on the FX thread
+        Main.assertFxThread();
         if(o != null && o.getClass().equals(this.getClass())){
             RepoFile other = (RepoFile) o;
             return this.filePath.equals(other.filePath) && other.getRepo().getLocalPath().equals(getRepo().getLocalPath());
@@ -207,7 +216,9 @@ public class RepoFile implements Comparable<RepoFile> {
 
     @Override
     public int compareTo(RepoFile other) {
-        ///////////////Main.assertFxThread();
+        // does toString require shared memory? Not sure. For now, simply require must run on FX thread
+        // to be safe. If need otherwise, what the heck is default toString doing, and why are we using it?
+        Main.assertFxThread();
         return this.toString().compareToIgnoreCase(other.toString());
     }
 }

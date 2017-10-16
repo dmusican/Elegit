@@ -173,15 +173,15 @@ public class SessionController {
         this.loadMostRecentRepoHelper();
 
         // SLOW
-        Observable.just(1)
-                .observeOn(Schedulers.io())
-                .doOnNext(u -> {
-                    synchronized(globalLock) {
-                        initPanelViews();
-                    }
-                })
-                .subscribe(u -> {}, Throwable::printStackTrace);
-        //this.initPanelViews();
+//        Observable.just(1)
+//                .observeOn(Schedulers.io())
+//                .doOnNext(u -> {
+//                    synchronized(globalLock) {
+//                        initPanelViews();
+//                    }
+//                })
+//                .subscribe(u -> {}, Throwable::printStackTrace);
+        this.initPanelViews();
         this.updateUIEnabledStatus();
         this.setRecentReposDropdownToCurrentRepo();
         this.refreshRecentReposInDropdown();
@@ -562,7 +562,6 @@ public class SessionController {
      * Initializes each panel of the view
      */
     private synchronized void initPanelViews() {
-        Main.assertNotFxThread();
         try {
             workingTreePanelView.drawDirectoryView();
             allFilesPanelView.drawDirectoryView();
@@ -578,7 +577,7 @@ public class SessionController {
      * Populates the browser image with the remote URL
      */
     private void setBrowserURL() {
-        Main.assertNotFxThread();
+        Main.assertFxThread();
         try {
             RepoHelper currentRepoHelper = this.theModel.getCurrentRepoHelper();
             if (currentRepoHelper == null) throw new NoRepoLoadedException();
@@ -711,7 +710,7 @@ public class SessionController {
                 // operations (hiding the window, etc) depend on it.
                 .flatMap(unused -> doAndRepeatGitOperation(gitOp))
 
-                .observeOn(Schedulers.io())
+                //.observeOn(Schedulers.io())
                 .doOnNext((result) -> {
                     if (result.equals("success")) {
                         synchronized (globalLock) {
@@ -720,7 +719,7 @@ public class SessionController {
                     }
                 })
 
-                .observeOn(JavaFxScheduler.platform())
+                //.observeOn(JavaFxScheduler.platform())
                 .doOnNext((result) -> {
                     if (result.equals("success")) {
                         setRecentReposDropdownToCurrentRepo();

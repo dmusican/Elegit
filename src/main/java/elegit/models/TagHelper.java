@@ -2,6 +2,7 @@ package elegit.models;
 
 import elegit.models.CommitHelper;
 import elegit.models.RefHelper;
+import org.apache.http.annotation.ThreadSafe;
 import org.eclipse.jgit.revwalk.RevTag;
 
 /**
@@ -9,6 +10,7 @@ import org.eclipse.jgit.revwalk.RevTag;
  * certain aspects that are expensive to look up with JGit's standard RevTag, e.g. author,
  * tagMessage, etc.
  */
+@ThreadSafe
 public class TagHelper extends RefHelper {
 
     // THe name of this ref, e.g. 'master' or 'tag1'
