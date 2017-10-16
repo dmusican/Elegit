@@ -1,12 +1,16 @@
 package elegit;
 
 import elegit.exceptions.MissingRepoException;
+import io.reactivex.Observable;
+import io.reactivex.Scheduler;
+import io.reactivex.schedulers.Schedulers;
 import javafx.application.Platform;
 import javafx.scene.control.*;
 import javafx.scene.control.Button;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.MenuItem;
 import javafx.scene.image.*;
+import org.apache.http.annotation.ThreadSafe;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jgit.api.AddCommand;
@@ -26,7 +30,15 @@ import java.util.concurrent.locks.ReentrantLock;
  * A subclass of the RepoFile class that holds a reference to
  * and interacts with a file in the repository that has conflicts
  * in git.
+ * This class is a view, controller, and model all mixed in one. That said. the model aspects are minimal, and the
+ * view is mostly just a button and a context menu. Most notably, because most of the code is view oriented, ALL OF IT
+ * should only be run from the JavaFX thread. In principle, a handful of method could be run elsewhere, but they're
+ * fast anyway and not much would be gained; and most of this is FX work that should be done on the thread.
+ *
  */
+@ThreadSafe
+// but only threadsafe because of the asserts on the FX thread nearly everywhere. No guarantees if any of those go;
+// this needs to be thought through
 public class ConflictingRepoFile extends RepoFile {
 
     private String resultType;
@@ -56,9 +68,11 @@ public class ConflictingRepoFile extends RepoFile {
                 File workingDirectory = this.getRepo().getRepo().getWorkTree();
                 File unrelativized = new File(workingDirectory, this.getFilePath().toString());
 
-                System.out.println("before");
-                desktop.open(unrelativized);
-                System.out.println("after");
+                // Desktop.open can't be run on the FX thread, apparently. I tried it and it hung;
+                // I found some SO postings that confirmed that
+                Observable.just(unrelativized)
+                        .subscribeOn(Schedulers.io())
+                        .subscribe(desktop::open, Throwable::printStackTrace);
                 break;
             case "add":
                 return true;
