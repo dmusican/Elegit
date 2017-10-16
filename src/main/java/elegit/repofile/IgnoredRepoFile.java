@@ -1,5 +1,7 @@
-package elegit;
+package elegit.repofile;
 
+import elegit.Main;
+import elegit.RepoHelper;
 import org.apache.http.annotation.ThreadSafe;
 
 import java.nio.file.Path;
@@ -16,25 +18,24 @@ import java.nio.file.Paths;
 @ThreadSafe
 // but only threadsafe because of the asserts on the FX thread nearly everywhere. No guarantees if any of those go;
 // this needs to be thought through
-public class StagedRepoFile extends RepoFile {
+public class IgnoredRepoFile extends RepoFile {
 
-    StagedRepoFile(Path filePath, RepoHelper repo) {
+    private IgnoredRepoFile(Path filePath, RepoHelper repo) {
         super(filePath, repo);
         Main.assertFxThread();
-        setTextIdTooltip("STAGED","stagedDiffButton",
-        "This file has a version stored in your git index\nand is ready to commit.");
+        setTextIdTooltip(
+                "IGNORED",
+                "ignoredDiffButton",
+                "This file is being ignored because it's in your .gitignore.\n" +
+                        "Remove it from your .gitignore if you want to add it to git");
     }
 
-    StagedRepoFile(String filePathString, RepoHelper repo) {
+    public IgnoredRepoFile(String filePathString, RepoHelper repo) {
         this(Paths.get(filePathString), repo);
         Main.assertFxThread();
     }
 
-    @Override public boolean canAdd() {
-        return false;
-    }
+    @Override public boolean canAdd() { return false; }
 
-    @Override public boolean canRemove() {
-        return true;
-    }
+    @Override public boolean canRemove() { return false; }
 }

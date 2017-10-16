@@ -1,13 +1,14 @@
-package elegit;
+package elegit.repofile;
 
+import elegit.Main;
+import elegit.RepoHelper;
 import org.apache.http.annotation.ThreadSafe;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
 /**
- * A subclass of RepoFile that contains a file that Git reports as missing.
- *
+ * A subclass of RepoFile that contains a file that Git is ignoring.
  * This class is a view, controller, and model all mixed in one. That said. the model aspects are minimal, and the
  * view is mostly just a button and a context menu. Most notably, because most of the code is view oriented, ALL OF IT
  * should only be run from the JavaFX thread. In principle, a handful of method could be run elsewhere, but they're
@@ -17,26 +18,25 @@ import java.nio.file.Paths;
 @ThreadSafe
 // but only threadsafe because of the asserts on the FX thread nearly everywhere. No guarantees if any of those go;
 // this needs to be thought through
-public class MissingRepoFile extends RepoFile {
+public class StagedRepoFile extends RepoFile {
 
-    MissingRepoFile(Path filePath, RepoHelper repo) {
+    StagedRepoFile(Path filePath, RepoHelper repo) {
         super(filePath, repo);
         Main.assertFxThread();
-        setTextIdTooltip("MISSING", "missingDiffButton", "This file is missing.");
+        setTextIdTooltip("STAGED","stagedDiffButton",
+        "This file has a version stored in your git index\nand is ready to commit.");
     }
 
-    MissingRepoFile(String filePathString, RepoHelper repo) {
+    public StagedRepoFile(String filePathString, RepoHelper repo) {
         this(Paths.get(filePathString), repo);
         Main.assertFxThread();
     }
 
     @Override public boolean canAdd() {
-        Main.assertFxThread();
         return false;
     }
 
     @Override public boolean canRemove() {
-        Main.assertFxThread();
         return true;
     }
 }

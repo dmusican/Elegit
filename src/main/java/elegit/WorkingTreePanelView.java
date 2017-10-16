@@ -1,6 +1,10 @@
 package elegit;
 
 import elegit.controllers.SessionController;
+import elegit.repofile.DirectoryRepoFile;
+import elegit.repofile.RepoFile;
+import elegit.repofile.StagedAndModifiedRepoFile;
+import elegit.repofile.StagedRepoFile;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.control.CheckBoxTreeItem;

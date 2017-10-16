@@ -1,5 +1,7 @@
 package elegit;
 
+import elegit.repofile.DirectoryRepoFile;
+import elegit.repofile.RepoFile;
 import javafx.application.Platform;
 import javafx.scene.control.CheckBoxTreeItem;
 import javafx.scene.control.TreeCell;

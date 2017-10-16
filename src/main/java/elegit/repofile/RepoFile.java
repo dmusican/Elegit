@@ -1,5 +1,6 @@
-package elegit;
+package elegit.repofile;
 
+import elegit.*;
 import elegit.controllers.SessionController;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -15,8 +16,6 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
 
 /**
  *

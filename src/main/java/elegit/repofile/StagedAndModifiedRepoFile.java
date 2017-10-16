@@ -1,16 +1,14 @@
-package elegit;
+package elegit.repofile;
 
-import javafx.scene.control.Button;
+import elegit.Main;
+import elegit.RepoHelper;
 import org.apache.http.annotation.ThreadSafe;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * A subclass of RepoFile that contains a directory within the repository.
- * This subclass is different from its parent in that it can hold children.
+ * A subclass of RepoFile that contains a file that Git is ignoring.
  * This class is a view, controller, and model all mixed in one. That said. the model aspects are minimal, and the
  * view is mostly just a button and a context menu. Most notably, because most of the code is view oriented, ALL OF IT
  * should only be run from the JavaFX thread. In principle, a handful of method could be run elsewhere, but they're
@@ -20,30 +18,18 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @ThreadSafe
 // but only threadsafe because of the asserts on the FX thread nearly everywhere. No guarantees if any of those go;
 // this needs to be thought through
-public class DirectoryRepoFile extends RepoFile {
+public class StagedAndModifiedRepoFile extends RepoFile {
 
-    private final AtomicBoolean showFullPath;
-
-    DirectoryRepoFile(Path filePath, RepoHelper repo) {
+    private StagedAndModifiedRepoFile(Path filePath, RepoHelper repo) {
         super(filePath, repo);
         Main.assertFxThread();
-        this.showFullPath = new AtomicBoolean(false);
+        setTextIdTooltip("STAGED\nMODIFIED","stagedModifiedDiffButton",
+        "This file has a version stored in your git index\nand other changes in the working directory.");
     }
 
-    DirectoryRepoFile(String filePathString, RepoHelper repo) {
+    public StagedAndModifiedRepoFile(String filePathString, RepoHelper repo) {
         this(Paths.get(filePathString), repo);
         Main.assertFxThread();
-    }
-
-    @Override
-    protected Button initialDiffButton() {
-        return null;
-    }
-
-    @Override
-    public String toString() {
-        Main.assertFxThread();
-        return this.showFullPath.get() ? this.getFilePath().toString() : this.getFilePath().getFileName().toString();
     }
 
     @Override public boolean canAdd() {
@@ -52,10 +38,5 @@ public class DirectoryRepoFile extends RepoFile {
 
     @Override public boolean canRemove() {
         return true;
-    }
-
-    void setShowFullPath(Boolean b) {
-        Main.assertFxThread();
-        this.showFullPath.set(b);
     }
 }

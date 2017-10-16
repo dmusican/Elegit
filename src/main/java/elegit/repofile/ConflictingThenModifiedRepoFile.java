@@ -1,5 +1,8 @@
-package elegit;
+package elegit.repofile;
 
+import elegit.Main;
+import elegit.PopUpWindows;
+import elegit.RepoHelper;
 import javafx.application.Platform;
 import org.apache.http.annotation.ThreadSafe;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -34,7 +37,7 @@ public class ConflictingThenModifiedRepoFile extends RepoFile {
         "This file was conflicting, but was recently modified.\nCommit if the changes are finalized.");
     }
 
-    ConflictingThenModifiedRepoFile(String filePathString, RepoHelper repo) {
+    public ConflictingThenModifiedRepoFile(String filePathString, RepoHelper repo) {
         this(Paths.get(filePathString), repo);
         Main.assertFxThread();
     }

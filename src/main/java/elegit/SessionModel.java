@@ -1,6 +1,7 @@
 package elegit;
 
 import elegit.models.PrefObj;
+import elegit.repofile.*;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import elegit.exceptions.CancelledAuthorizationException;
@@ -15,7 +16,6 @@ import org.eclipse.jgit.lib.Repository;
 import javax.xml.bind.DatatypeConverter;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;

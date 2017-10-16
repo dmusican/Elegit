@@ -36,7 +36,7 @@ public class PopUpWindows {
      *
      * @return String user's response to the dialog
      */
-    static String showCommittingConflictingFileAlert() {
+    public static String showCommittingConflictingFileAlert() {
         String resultType;
 
         Alert alert = new Alert(Alert.AlertType.WARNING);
@@ -107,7 +107,7 @@ public class PopUpWindows {
     /**
      * Shows a window with instructions on how to fix a conflict
      */
-    static void showConflictingHelpAlert() {
+    public static void showConflictingHelpAlert() {
         Platform.runLater(() -> {
             Alert window = new Alert(Alert.AlertType.INFORMATION);
             window.setResizable(true);
@@ -194,7 +194,7 @@ public class PopUpWindows {
      *
      * @return String result from user input
      */
-    static String showAddingingConflictingThenModifiedFileAlert() {
+    public static String showAddingingConflictingThenModifiedFileAlert() {
         String resultType;
 
         Alert alert = new Alert(Alert.AlertType.INFORMATION);

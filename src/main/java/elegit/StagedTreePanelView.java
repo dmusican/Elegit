@@ -1,5 +1,9 @@
 package elegit;
 
+import elegit.repofile.DirectoryRepoFile;
+import elegit.repofile.RepoFile;
+import elegit.repofile.StagedAndModifiedRepoFile;
+import elegit.repofile.StagedRepoFile;
 import javafx.scene.control.TreeCell;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
@@ -7,7 +11,6 @@ import javafx.util.Callback;
 import org.eclipse.jgit.api.errors.GitAPIException;
 
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.*;
 
 /**

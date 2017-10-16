@@ -1,5 +1,7 @@
-package elegit;
+package elegit.repofile;
 
+import elegit.Main;
+import elegit.RepoHelper;
 import org.apache.http.annotation.ThreadSafe;
 
 import java.nio.file.Path;
@@ -26,7 +28,7 @@ public class ModifiedRepoFile extends RepoFile {
         addDiffPopover();
     }
 
-    ModifiedRepoFile(String filePathString, RepoHelper repo) {
+    public ModifiedRepoFile(String filePathString, RepoHelper repo) {
         this(Paths.get(filePathString), repo);
         Main.assertFxThread();
     }

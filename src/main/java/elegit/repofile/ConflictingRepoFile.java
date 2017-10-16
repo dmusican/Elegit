@@ -1,20 +1,14 @@
-package elegit;
+package elegit.repofile;
 
-import elegit.exceptions.MissingRepoException;
+import elegit.Main;
+import elegit.PopUpWindows;
+import elegit.RepoHelper;
 import io.reactivex.Observable;
-import io.reactivex.Scheduler;
 import io.reactivex.schedulers.Schedulers;
-import javafx.application.Platform;
-import javafx.scene.control.*;
-import javafx.scene.control.Button;
-import javafx.scene.control.Dialog;
 import javafx.scene.control.MenuItem;
-import javafx.scene.image.*;
 import org.apache.http.annotation.ThreadSafe;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.eclipse.jgit.api.AddCommand;
-import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 
 import java.awt.*;
@@ -22,9 +16,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Optional;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * A subclass of the RepoFile class that holds a reference to
