@@ -537,18 +537,4 @@ public class SessionModel {
         sessionModel = new SessionModel();
     }
 
-    /**
-     * Once files are uploaded to the server, we have a UUID to remember for the next
-     * upload of files.
-     */
-    public void setLastUUID(String uuid) throws BackingStoreException, ClassNotFoundException, IOException {
-        PrefObj.putObject(this.preferences, LAST_UUID_KEY, uuid);
-    }
-
-    /**
-     * To upload a file to the server, we need to find the last uuid
-     */
-    public String getLastUUID() throws BackingStoreException, ClassNotFoundException, IOException {
-        return (String) PrefObj.getObject(this.preferences, LAST_UUID_KEY);
-    }
 }

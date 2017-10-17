@@ -19,7 +19,11 @@ public class ElegitCredentialsProvider extends CredentialsProvider {
 
     public ElegitCredentialsProvider(List<String> userCredentials) {
         super();
-        this.userCredentials = Collections.unmodifiableList(new ArrayList<>(userCredentials));
+        if (userCredentials != null) {
+            this.userCredentials = Collections.unmodifiableList(new ArrayList<>(userCredentials));
+        } else {
+            this.userCredentials = userCredentials;
+        }
     }
 
     @Override

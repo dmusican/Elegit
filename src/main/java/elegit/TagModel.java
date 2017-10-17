@@ -26,10 +26,7 @@ import org.eclipse.jgit.revwalk.RevTag;
  * Model that holds all the tags for a repoHelper object
  */
 public class TagModel {
-    private RepoHelper repoHelper;
-    private List<TagHelper> upToDateTags;
-    private List<TagHelper> unpushedTags;
-    private List<String> tagsWithUnpushedCommits;
+    private final RepoHelper repoHelper;
     private Map<String, TagHelper> tagIdMap;
 
     static final Logger logger = LogManager.getLogger();
@@ -43,10 +40,7 @@ public class TagModel {
      */
     public TagModel(RepoHelper repoHelper) throws GitAPIException, IOException {
         this.repoHelper = repoHelper;
-        unpushedTags = new ArrayList<>();
-        tagsWithUnpushedCommits = new ArrayList<>();
         tagIdMap = new HashMap<>();
-        upToDateTags = this.getAllLocalTags();
     }
 
     /**
@@ -74,9 +68,6 @@ public class TagModel {
                 }
 
                 oldTagNames.remove(s);
-                if (tagsWithUnpushedCommits.contains(s)) {
-                    tagsWithUnpushedCommits.remove(s);
-                }
             } else {
                 Ref r = tagMap.get(s);
                 makeTagHelper(r, s);
@@ -85,9 +76,6 @@ public class TagModel {
         if (oldTagNames.size() > 0) { //There are tags that were deleted, so we remove them
             for (String s : oldTagNames) {
                 this.repoHelper.getCommit(this.tagIdMap.get(s).getCommitId()).removeTag(s);
-                this.unpushedTags.remove(s);
-                this.upToDateTags.remove(tagIdMap.get(s));
-                tagsWithUnpushedCommits.remove(s);
                 this.tagIdMap.remove(s);
             }
         }
@@ -114,7 +102,6 @@ public class TagModel {
         Ref r = git.tag().setName(tagName).setObjectId(c.getCommit()).setAnnotated(false).call();
         git.close();
         TagHelper t = makeTagHelper(r, tagName);
-        this.unpushedTags.add(t);
     }
 
     /**
@@ -144,10 +131,7 @@ public class TagModel {
         // If the commit that this tag points to isn't in the commitIdMap,
         // then that commit has not yet been pushed, so warn the user
         if (c == null) {
-            this.tagsWithUnpushedCommits.add(tagName);
             return null;
-        } else if (this.tagsWithUnpushedCommits.contains(tagName)) {
-            this.tagsWithUnpushedCommits.remove(tagName);
         }
 
         // If it's not an annotated tag, we make a lightweight tag helper
@@ -188,7 +172,6 @@ public class TagModel {
         git.close();
 
         tagToRemove.getCommit().removeTag(tagName);
-        this.upToDateTags.remove(tagToRemove);
         this.tagIdMap.remove(tagName);
     }
 
