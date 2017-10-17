@@ -1,4 +1,4 @@
-package elegit;
+package elegit.models;
 
 import java.io.IOException;
 import java.util.*;
@@ -6,6 +6,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import elegit.RepoHelper;
 import elegit.exceptions.MissingRepoException;
 import elegit.exceptions.TagNameExistsException;
 import elegit.models.CommitHelper;
