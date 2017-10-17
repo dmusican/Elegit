@@ -1,15 +1,17 @@
-package elegit;
+package elegit.models;
 
 import com.jcraft.jsch.UserInfo;
+import org.apache.http.annotation.ThreadSafe;
 
 /**
  * Class for purposes for JSch authentication (which JGit uses). This is the text-based version used
  * for unit tests.
  */
+@ThreadSafe
 public class ElegitUserInfoTest implements UserInfo {
 
-    private String password;
-    private String passphrase;
+    private final String password;
+    private final String passphrase;
 
     public ElegitUserInfoTest() {
         password = null;

@@ -1,7 +1,6 @@
 package elegit;
 
-import elegit.controllers.SessionController;
-import javafx.application.Application;
+import elegit.models.ElegitUserInfoTest;
 import org.eclipse.jgit.api.PushCommand;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;

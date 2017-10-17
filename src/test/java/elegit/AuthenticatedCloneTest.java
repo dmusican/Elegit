@@ -2,6 +2,7 @@ package elegit;
 
 import com.jcraft.jsch.*;
 import elegit.models.AuthMethod;
+import elegit.models.ElegitUserInfoTest;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.TransportException;
 import org.eclipse.jgit.transport.*;
