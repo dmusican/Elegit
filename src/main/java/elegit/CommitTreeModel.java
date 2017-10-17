@@ -208,6 +208,51 @@ public class CommitTreeModel{
     }
 
     /**
+     * Class to hold updates for a commit tree model
+     */
+    private class UpdateModel {
+        private List<CommitHelper> commitsToAdd, commitsToRemove, commitsToUpdate;
+        private List<BranchHelper> branchesToUpdate;
+        private List<TagHelper> tagsToUpdate;
+
+        /**
+         * Constructor without params, initializes lists
+         */
+        public UpdateModel() {
+            this.commitsToAdd = new ArrayList<>();
+            this.commitsToRemove = new ArrayList<>();
+            this.commitsToUpdate = new ArrayList<>();
+            this.branchesToUpdate = new ArrayList<>();
+            this.tagsToUpdate = new ArrayList<>();
+        }
+
+        /**
+         * Method to see if there are changes in the update model
+         * @return if there are any changes that need to be processed
+         */
+        public boolean hasChanges() {
+            return this.commitsToAdd.size()+this.commitsToRemove.size()+this.commitsToUpdate.size()
+                    +this.branchesToUpdate.size()+this.tagsToUpdate.size()>0;
+        }
+
+        void updateCommits(List<CommitHelper> commits) { this.commitsToUpdate.addAll(commits); }
+        void addBranch(BranchHelper branch) { this.branchesToUpdate.add(branch); }
+        void addTag(TagHelper tag) { this.tagsToUpdate.add(tag); }
+
+
+        // ********************* GETTERS AND SETTERS ************************
+
+        List<CommitHelper> getCommitsToAdd() { return this.commitsToAdd; }
+        List<CommitHelper> getCommitsToRemove() { return this.commitsToRemove; }
+        List<CommitHelper> getCommitsToUpdate() { return this.commitsToUpdate; }
+
+        void setCommitsToAdd(List<CommitHelper> commitsToAdd) { this.commitsToAdd = commitsToAdd; }
+        void setCommitsToRemove(List<CommitHelper> commitsToRemove) { this.commitsToRemove = commitsToRemove; }
+        void setCommitsToUpdate(List<CommitHelper> commitsToUpdate) { this.commitsToUpdate = commitsToUpdate; }
+    }
+
+
+    /**
      * Gets all commits tracked by this model and adds them to the tree
      * @return true if the tree was updated, otherwise false
      */
