@@ -1,10 +1,15 @@
-package elegit;
+package elegit.models;
+
+import org.apache.http.annotation.ThreadSafe;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Created by dmusican on 3/22/16.
  */
+@ThreadSafe
 public enum AuthMethod {
     HTTP(0, "HTTP"),
     HTTPS(1, "HTTPS"),
@@ -31,12 +36,12 @@ public enum AuthMethod {
         throw new RuntimeException("Invalid value used to create AuthMethod.");
     }
 
-    public static ArrayList<String> getStrings() {
+    public static List<String> getStrings() {
         ArrayList<String> strings = new ArrayList<>();
         for (AuthMethod authMethod : AuthMethod.values()) {
             strings.add(authMethod.enumString);
         }
-        return strings;
+        return Collections.unmodifiableList(strings);
     }
 
     public static AuthMethod getEnumFromString(String string) {

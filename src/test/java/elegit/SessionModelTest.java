@@ -1,5 +1,6 @@
 package elegit;
 
+import elegit.models.AuthMethod;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -67,7 +68,7 @@ public class SessionModelTest {
     public void testSetAuthenticationPref() throws Exception {
         SessionModel sessionModel = SessionModel.getSessionModel();
         String pathname =  directoryPath.toString();
-        sessionModel.setAuthPref(pathname,AuthMethod.SSH);
+        sessionModel.setAuthPref(pathname, AuthMethod.SSH);
         assertEquals(AuthMethod.SSH,sessionModel.getAuthPref(pathname));
         boolean foundIt = false;
         for (String s : sessionModel.listAuthPaths())

@@ -1,5 +1,6 @@
 package elegit;
 
+import elegit.models.AuthMethod;
 import elegit.models.PrefObj;
 import elegit.repofile.*;
 import javafx.beans.property.ObjectProperty;

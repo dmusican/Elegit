@@ -1,6 +1,7 @@
 package elegit;
 
 import com.jcraft.jsch.*;
+import elegit.models.AuthMethod;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.TransportException;
 import org.eclipse.jgit.transport.*;
@@ -11,8 +12,6 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.List;
 import java.util.Scanner;
 
