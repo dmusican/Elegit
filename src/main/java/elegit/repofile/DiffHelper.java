@@ -1,5 +1,6 @@
-package elegit;
+package elegit.repofile;
 
+import elegit.RepoHelper;
 import javafx.geometry.Insets;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.VBox;
