@@ -1,10 +1,8 @@
 package elegit;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -12,6 +10,7 @@ import elegit.exceptions.MissingRepoException;
 import elegit.exceptions.TagNameExistsException;
 import elegit.models.CommitHelper;
 import elegit.models.TagHelper;
+import org.apache.http.annotation.ThreadSafe;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jgit.api.Git;
@@ -25,9 +24,10 @@ import org.eclipse.jgit.revwalk.RevTag;
 /**
  * Model that holds all the tags for a repoHelper object
  */
+@ThreadSafe
 public class TagModel {
     private final RepoHelper repoHelper;
-    private Map<String, TagHelper> tagIdMap;
+    private final Map<String, TagHelper> tagIdMap;
 
     static final Logger logger = LogManager.getLogger();
 
@@ -40,7 +40,7 @@ public class TagModel {
      */
     public TagModel(RepoHelper repoHelper) throws GitAPIException, IOException {
         this.repoHelper = repoHelper;
-        tagIdMap = new HashMap<>();
+        tagIdMap = new ConcurrentHashMap<>();
     }
 
     /**
@@ -178,7 +178,7 @@ public class TagModel {
     /* ************************ GETTERS ************************ */
     public TagHelper getTag(String tagName) { return tagIdMap.get(tagName); }
 
-    public List<String> getAllTagNames() { return new ArrayList<>(tagIdMap.keySet()); }
+    private List<String> getAllTagNames() { return new ArrayList<>(tagIdMap.keySet()); }
 
     /**
      * Constructs a list of all local tags found by parsing the tag refs from the repo
@@ -199,7 +199,7 @@ public class TagModel {
     }
 
     public List<TagHelper> getAllTags() {
-        return new ArrayList<>(tagIdMap.values());
+        return Collections.unmodifiableList(new ArrayList<>(tagIdMap.values()));
     }
 
     /**
@@ -207,7 +207,7 @@ public class TagModel {
      * @return a map with commits as they key and a list of tag helpers associated with it
      */
     public Map<CommitHelper, List<TagHelper>> getTagCommitMap(){
-        Map<CommitHelper, List<TagHelper>> commitTagMap = new HashMap<>();
+        Map<CommitHelper, List<TagHelper>> commitTagMap = new ConcurrentHashMap<>();
 
         List<TagHelper> tags = this.getAllTags();
 
@@ -219,6 +219,6 @@ public class TagModel {
                 commitTagMap.put(head, Stream.of(tag).collect(Collectors.toList()));
             }
         }
-        return commitTagMap;
+        return Collections.unmodifiableMap(commitTagMap);
     }
 }
