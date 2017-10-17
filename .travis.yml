@@ -1,5 +1,8 @@
 language: java
 sudo: required
+before_install:
+- sudo apt-get -qq update
+- sudo apt-get install -y sshpass
 before_script:
 - sh travis_ssh.sh
 script: mvn clean test -B -DskipDisplay=true
