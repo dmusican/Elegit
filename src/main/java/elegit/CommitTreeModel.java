@@ -23,6 +23,8 @@ import java.util.stream.Collectors;
 // TODO: Make sure threadsafe
 public class CommitTreeModel{
 
+    // The singleton reference
+    private static CommitTreeModel commitTreeModel;
     // The view corresponding to this model
     CommitTreePanelView view;
 
@@ -45,17 +47,26 @@ public class CommitTreeModel{
 
     /**
      * Constructs a new commit tree model that supplies the data for the given
-     * view
-     * @param view the view that will be updated with the new graph
+     * view. Private to enforce singleton pattern.
      */
-    public CommitTreeModel(CommitTreePanelView view){
+    private CommitTreeModel() {
         this.sessionModel = SessionModel.getSessionModel();
-        this.view = view;
-        this.view.setName("Local commit tree");
         this.commitsInModel = new ArrayList<>();
         this.localCommitsInModel = new ArrayList<>();
         this.remoteCommitsInModel = new ArrayList<>();
         this.branchesInModel = new ArrayList<>();
+    }
+
+    public static CommitTreeModel getCommitTreeModel() {
+        if (commitTreeModel == null) {
+            commitTreeModel = new CommitTreeModel();
+        }
+        return commitTreeModel;
+    }
+
+    public void setView(CommitTreePanelView view) {
+        this.view = view;
+        this.view.setName("Local commit tree");
     }
 
     /**

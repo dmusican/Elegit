@@ -154,9 +154,9 @@ public class SessionController {
         dropdownController.setSessionController(this);
         commitInfoController.setSessionController(this);
 
-
-        // Creates the commit tree model
-        commitTreeModel = new CommitTreeModel(commitTreePanelView);
+        // Creates the commit tree model, and points MVC all looking at each other
+        commitTreeModel = CommitTreeModel.getCommitTreeModel();
+        commitTreeModel.setView(commitTreePanelView);
         CommitTreeController.commitTreeModel = this.commitTreeModel;
 
         // Passes theModel to panel views
