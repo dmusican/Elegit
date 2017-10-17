@@ -1,26 +1,25 @@
-package elegit;
+package elegit.models;
 
+import org.apache.http.annotation.ThreadSafe;
 import org.eclipse.jgit.errors.UnsupportedCredentialItem;
 import org.eclipse.jgit.transport.CredentialItem;
 import org.eclipse.jgit.transport.CredentialsProvider;
 import org.eclipse.jgit.transport.URIish;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
+@ThreadSafe
 public class ElegitCredentialsProvider extends CredentialsProvider {
 
     // Used for unit testing
-    private List<String> userCredentials;
+    private final List<String> userCredentials;
 
-    public ElegitCredentialsProvider() {
+    public ElegitCredentialsProvider(List<String> userCredentials) {
         super();
-        this.userCredentials = null;
-    }
-
-    ElegitCredentialsProvider(List<String> userCredentials) {
-        super();
-        this.userCredentials = userCredentials;
+        this.userCredentials = Collections.unmodifiableList(new ArrayList<>(userCredentials));
     }
 
     @Override
