@@ -119,7 +119,6 @@ public class CommitTreeModel{
             this.updateAllRefLabels(); // SLOW
             TreeLayout.stopMovingCells();
             this.updateView();  // SLOW
-            System.out.println(Main.timeSpent);
         }
     }
 
@@ -278,8 +277,6 @@ public class CommitTreeModel{
      */
     private boolean addCommitsToTree(List<CommitHelper> commits){
         if(commits.size() == 0) return false;
-
-        Main.timeSpent = 0;
 
         for(CommitHelper curCommitHelper : commits){
             this.addCommitToTree(curCommitHelper, treeGraph.treeGraphModel);

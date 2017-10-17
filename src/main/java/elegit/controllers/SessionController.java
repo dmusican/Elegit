@@ -2705,15 +2705,14 @@ public class SessionController {
      * @throws ClassNotFoundException
      */
     public void loadLogging() {
-        Platform.runLater(() -> {
-            Level storedLevel = LoggingModel.getLoggingLevel();
-            if (storedLevel == null) {
-                storedLevel = PopUpWindows.getLoggingPermissions() ? Level.INFO : Level.OFF;
-            }
-            LoggingModel.changeLogging(storedLevel);
-            menuController.initializeLoggingToggle();
-            logger.info("Starting up.");
-        });
+        Main.assertFxThread();
+        Level storedLevel = LoggingModel.getLoggingLevel();
+        if (storedLevel == null) {
+            storedLevel = PopUpWindows.getLoggingPermissions() ? Level.INFO : Level.OFF;
+        }
+        LoggingModel.changeLogging(storedLevel);
+        menuController.initializeLoggingToggle();
+        logger.info("Starting up.");
     }
 
     public static BooleanProperty anythingCheckedProperty() {

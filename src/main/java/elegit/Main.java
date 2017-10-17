@@ -21,6 +21,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Scanner;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
@@ -30,15 +31,21 @@ import java.util.prefs.Preferences;
 public class Main extends Application {
     private Path logPath;
 
-    // boolean used to stop the service that moves cells in TreeLayout
-    public static boolean isAppClosed;
+    // boolean used to stop the service that moves cells in TreeLayout.
+    // TODO: This is likely misplaced, but I can't really do much with it until I fix TreeLayout
+    public final static AtomicBoolean isAppClosed = new AtomicBoolean();
 
     // Latch used to indicate when start is nearly complete; used for unit testing
     public final static CountDownLatch startLatch = new CountDownLatch(1);
 
+    // Marker for sessionController; only used for unit testing
     public static SessionController sessionController;
 
-    public static long timeSpent = 0;
+    // This is used to keep track of a subscription for a RepositoryMonitor timer that seems to never
+    // actually get used.
+    // It's also a threading disaster. Is RepositoryMonitor changing this from a different thread?
+    // TODO: Verify this is useful or get rid of it
+    public static CompositeDisposable allSubscriptions = new CompositeDisposable();
 
     public static void main(String[] args) {
         // If this gets fancier, we should write a more robust command-line parser or use a library.
@@ -52,8 +59,6 @@ public class Main extends Application {
         }
     }
 
-    public static CompositeDisposable allSubscriptions = new CompositeDisposable();
-
     @Override
     public void start(Stage primaryStage) throws Exception{
 
@@ -66,6 +71,7 @@ public class Main extends Application {
 
         // -----------------------Logging Initialization End-----------------------------
         // Handles some concurrency issues with gitStatus()
+        // TODO: This can't be the right way to first interact with the repository monitor
         RepositoryMonitor.pause();
 
         // Initialize the busy window
@@ -104,7 +110,7 @@ public class Main extends Application {
             // On close, upload the logs and delete the log.
             logger.info("Closed");
             // used to stop the service that moves cells in TreeLayout
-            isAppClosed = true;
+            isAppClosed.set(true);
             allSubscriptions.clear();
         });
         primaryStage.setTitle("Elegit");
@@ -116,6 +122,7 @@ public class Main extends Application {
         primaryStage.show();
 
         // Handles some concurrency issues with gitStatus()
+        // TODO: Again, manage RepositoryMonitor
         RepositoryMonitor.unpause();
     }
 
