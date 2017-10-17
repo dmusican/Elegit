@@ -4,6 +4,7 @@ import javafx.geometry.Insets;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
+import org.apache.http.annotation.ThreadSafe;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.diff.DiffFormatter;
 import org.eclipse.jgit.lib.ObjectId;
@@ -21,6 +22,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  *
@@ -38,10 +41,13 @@ import java.util.ArrayList;
  * This is considered a derivative work under the Apache 2.0 license, under which jgit-cookbook is licensed.
  *
  */
+@ThreadSafe
+// ... because JGit is threadsafe so long as you aren't making changes to a working directory, and because
+// the FX elements being instantiated aren't on the FX thread (yet)
 public class DiffHelper {
 
-    Repository repo;
-    String pathFilter;
+    private final Repository repo;
+    private final String pathFilter;
 
     public DiffHelper(Path relativeFilePath, RepoHelper repo) throws IOException {
         this.repo = repo.getRepo();
@@ -69,7 +75,7 @@ public class DiffHelper {
         return diffOutputStream.toString();
     }
 
-    private ArrayList<Text> getColoredDiffList() throws GitAPIException, IOException {
+    private List<Text> getColoredDiffList() throws GitAPIException, IOException {
         String diffText = this.getDiffString();
 
         ArrayList<Text> coloredDiffList = new ArrayList<>();
@@ -92,7 +98,7 @@ public class DiffHelper {
             coloredDiffList.add(text);
         }
 
-        return coloredDiffList;
+        return Collections.unmodifiableList(coloredDiffList);
     }
 
     public ScrollPane getDiffScrollPane() throws GitAPIException, IOException {

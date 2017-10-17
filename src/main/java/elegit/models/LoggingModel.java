@@ -1,6 +1,5 @@
-package elegit;
+package elegit.models;
 
-import elegit.models.PrefObj;
 import javafx.beans.property.*;
 import org.apache.http.HttpEntity;
 import org.apache.http.annotation.GuardedBy;
