@@ -36,10 +36,8 @@ public class TagModel {
      * Initializes internal lists
      *
      * @param repoHelper the repoHelper this tag model holds tags for
-     * @throws GitAPIException
-     * @throws IOException
      */
-    public TagModel(RepoHelper repoHelper) throws GitAPIException, IOException {
+    public TagModel(RepoHelper repoHelper) {
         this.repoHelper = repoHelper;
         tagIdMap = new ConcurrentHashMap<>();
     }

@@ -53,11 +53,11 @@ public class RepoHelper {
 
     private final Map<String, CommitHelper> commitIdMap = new ConcurrentHashMap<>();
     private final Map<ObjectId, String> idMap = new ConcurrentHashMap<>();
+    private final AtomicReference<BranchModel> branchModel = new AtomicReference<>();
+    private final TagModel tagModel = new TagModel(this);
 
 
 
-    private BranchModel branchModel;
-    private TagModel tagModel;
 
     public BooleanProperty hasRemoteProperty;
 
@@ -169,12 +169,13 @@ public class RepoHelper {
 
     // Common setup tasks shared by constructors
     protected void setup() throws GitAPIException, IOException {
-        this.branchModel = new BranchModel(this);
+        boolean nullAsExpected = branchModel.compareAndSet(null, new BranchModel(this));
+        if (!nullAsExpected) {
+            throw new IllegalStateException("branchModel in RepoHelper should not have been set a second time");
+        }
 
         this.localCommits.set(this.parseAllLocalCommits());
         this.remoteCommits.set(this.parseAllRemoteCommits());
-
-        this.tagModel = new TagModel(this);
 
         hasRemoteProperty = new SimpleBooleanProperty(!getLinkedRemoteRepoURLs().isEmpty());
 
@@ -195,7 +196,7 @@ public class RepoHelper {
         this.commitIdMap.clear();
         this.idMap.clear();
 
-        branchModel.updateAllBranches();
+        getBranchModel().updateAllBranches();
         // Reparse commits
         this.localCommits.set(this.parseAllLocalCommits());
         this.remoteCommits.set(this.parseAllRemoteCommits());
@@ -393,8 +394,8 @@ public class RepoHelper {
      * @return the number of commits that local has that haven't been pushed
      */
     public int getAheadCount() throws IOException {
-        if (this.branchModel.getCurrentBranch().getStatus() != null)
-            return this.branchModel.getCurrentBranch().getStatus().getAheadCount();
+        if (this.getBranchModel().getCurrentBranch().getStatus() != null)
+            return this.getBranchModel().getCurrentBranch().getStatus().getAheadCount();
         else return -1;
     }
 
@@ -404,7 +405,7 @@ public class RepoHelper {
      */
     public int getAheadCountAll() throws IOException {
         int aheadCount = 0;
-        for (BranchHelper helper : this.branchModel.getLocalBranchesTyped()) {
+        for (BranchHelper helper : this.getBranchModel().getLocalBranchesTyped()) {
             if (helper.getStatus() != null)
                 aheadCount += helper.getStatus().getAheadCount();
         }
@@ -416,8 +417,8 @@ public class RepoHelper {
      * @throws IOException
      */
     public int getBehindCount() throws IOException {
-        if (this.branchModel.getCurrentBranch().getStatus() != null)
-            return this.branchModel.getCurrentBranch().getStatus().getBehindCount();
+        if (this.getBranchModel().getCurrentBranch().getStatus() != null)
+            return this.getBranchModel().getCurrentBranch().getStatus().getBehindCount();
         else return -1;
     }
 
@@ -562,7 +563,7 @@ public class RepoHelper {
         ArrayList<LocalBranchHelper> branchesToTrack = new ArrayList<>();
 
         // Gets all local branches with remote branches and adds them to the push call
-        for(LocalBranchHelper branch : this.branchModel.getLocalBranchesTyped()) {
+        for(LocalBranchHelper branch : this.getBranchModel().getLocalBranchesTyped()) {
             if(BranchTrackingStatus.of(this.getRepo(), branch.getRefName()) != null) {
                 push.add(branch.getRefPathString());
             }else {
@@ -699,7 +700,7 @@ public class RepoHelper {
             // This shouldn't occur once we have the repo up and running.
         }
 
-        this.branchModel.updateRemoteBranches();
+        this.getBranchModel().updateRemoteBranches();
 
         if(prune){
             config.unsetSection("fetch", null);
@@ -732,7 +733,7 @@ public class RepoHelper {
         if (config.getSubsections("branch").contains(this.getRepo().getBranch())) {
             String remote = config.getString("branch", this.getRepo().getBranch(), "remote")+"/";
             String remote_tracking = config.getString("branch", this.getRepo().getBranch(), "merge");
-            result = branchModel.mergeWithBranch(this.branchModel.getBranchByName(BranchModel.BranchType.REMOTE, remote+this.getRepo().shortenRefName(remote_tracking)));
+            result = getBranchModel().mergeWithBranch(this.getBranchModel().getBranchByName(BranchModel.BranchType.REMOTE, remote+this.getRepo().shortenRefName(remote_tracking)));
         } else {
             throw new NoTrackingException();
         }
@@ -1102,7 +1103,7 @@ public class RepoHelper {
     }
 
     public boolean canPush() throws IOException {
-        return branchModel.getCurrentRemoteBranch() == null || getAheadCount() > 0;
+        return getBranchModel().getCurrentRemoteBranch() == null || getAheadCount() > 0;
     }
 
     /**
@@ -1199,7 +1200,7 @@ public class RepoHelper {
     private PlotCommitList<PlotLane> parseAllRawLocalCommits() throws IOException, GitAPIException {
         Set<ObjectId> allStarts = new HashSet<ObjectId>();
         allStarts.add(getRepo().resolve("HEAD"));
-        List<LocalBranchHelper> branches = this.branchModel.getLocalBranchesTyped();
+        List<LocalBranchHelper> branches = this.getBranchModel().getLocalBranchesTyped();
         for (BranchHelper branch : branches) {
             ObjectId branchId = branch.getHeadId();
             allStarts.add(branchId);
@@ -1257,7 +1258,7 @@ public class RepoHelper {
 //        return rawRemoteCommits;
 
         Set<ObjectId> allStarts = new HashSet<ObjectId>();
-        List<RemoteBranchHelper> branches = this.branchModel.getRemoteBranchesTyped();
+        List<RemoteBranchHelper> branches = this.getBranchModel().getRemoteBranchesTyped();
         for (BranchHelper branch : branches) {
             ObjectId branchId = branch.getHeadId();
             allStarts.add(branchId);
@@ -1512,8 +1513,8 @@ public class RepoHelper {
 
     public List<RefHelper> getRefsForCommit(CommitHelper helper) {
         List<RefHelper> helpers = new ArrayList<>();
-        if (this.branchModel.getBranchesWithHead(helper).size() > 0)
-            helpers.addAll(this.branchModel.getAllBranchHeads().get(helper));
+        if (this.getBranchModel().getBranchesWithHead(helper).size() > 0)
+            helpers.addAll(this.getBranchModel().getAllBranchHeads().get(helper));
         Map<CommitHelper, List<TagHelper>> tagMap = this.tagModel.getTagCommitMap();
         if (tagMap.containsKey(helper))
             helpers.addAll(tagMap.get(helper));
@@ -1521,7 +1522,7 @@ public class RepoHelper {
     }
 
     public BranchModel getBranchModel() {
-        return this.branchModel;
+        return this.branchModel.get();
     }
 
     public TagModel getTagModel() { return this.tagModel; }

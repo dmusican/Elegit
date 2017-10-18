@@ -1,5 +1,6 @@
 package elegit;
 
+import elegit.exceptions.ExceptionAdapter;
 import elegit.models.BranchHelper;
 import elegit.models.CommitHelper;
 import elegit.models.LocalBranchHelper;
@@ -42,21 +43,16 @@ public class BranchModel {
      * Constructor. Sets the repo helper and updates the local and remote branches
      *
      * @param repoHelper the repohelper to get branches for
-     * @throws GitAPIException
-     * @throws IOException
      */
-    public BranchModel(RepoHelper repoHelper) throws GitAPIException, IOException {
+    public BranchModel(RepoHelper repoHelper) {
         this.repoHelper = repoHelper;
         this.updateAllBranches();
     }
 
     /**
      * Updates local and remote branches in the model
-     *
-     * @throws GitAPIException
-     * @throws IOException
      */
-    public void updateAllBranches() throws GitAPIException, IOException {
+    public void updateAllBranches() {
         this.updateLocalBranches();
         this.updateRemoteBranches();
         this.refreshHeadIds();
@@ -66,58 +62,63 @@ public class BranchModel {
     /**
      * Utilizes JGit to get a list of all local branches and refills
      * the model's list of local branches
-     *
-     * @throws GitAPIException
-     * @throws IOException
      */
-    public void updateLocalBranches() throws GitAPIException, IOException {
-        List<Ref> getBranchesCall = new Git(this.repoHelper.getRepo()).branchList().call();
+    public void updateLocalBranches() {
+        try {
+            List<Ref> getBranchesCall = new Git(this.repoHelper.getRepo()).branchList().call();
 
-        this.localBranchesTyped = new ArrayList<>();
-        for (Ref ref : getBranchesCall) {
-            this.localBranchesTyped.add(new LocalBranchHelper(ref, this.repoHelper));
+            this.localBranchesTyped = new ArrayList<>();
+            for (Ref ref : getBranchesCall) {
+                this.localBranchesTyped.add(new LocalBranchHelper(ref, this.repoHelper));
+            }
+        } catch (Exception e) {
+            throw new ExceptionAdapter(e);
         }
     }
 
     /**
      * Utilizes JGit to get a list of all remote branches and refills
      * the model's list of remote branches
-     *
-     * @throws GitAPIException
      */
-    public void updateRemoteBranches() throws GitAPIException, IOException {
-        List<Ref> getBranchesCall = new Git(this.repoHelper.getRepo())
-                .branchList()
-                .setListMode(ListBranchCommand.ListMode.REMOTE)
-                .call();
+    public void updateRemoteBranches() {
+        try {
+            List<Ref> getBranchesCall = new Git(this.repoHelper.getRepo())
+                    .branchList()
+                    .setListMode(ListBranchCommand.ListMode.REMOTE)
+                    .call();
 
-        // Rebuild the remote branches list from scratch.
-        this.remoteBranchesTyped = new ArrayList<>();
-        for (Ref ref : getBranchesCall) {
-            // Listing the remote branches also grabs HEAD, which isn't a branch we want
-            if (!ref.getName().equals("HEAD")) {
-                this.remoteBranchesTyped.add(new RemoteBranchHelper(ref, this.repoHelper));
+            // Rebuild the remote branches list from scratch.
+            this.remoteBranchesTyped = new ArrayList<>();
+            for (Ref ref : getBranchesCall) {
+                // Listing the remote branches also grabs HEAD, which isn't a branch we want
+                if (!ref.getName().equals("HEAD")) {
+                    this.remoteBranchesTyped.add(new RemoteBranchHelper(ref, this.repoHelper));
+                }
             }
+        } catch (Exception e) {
+            throw new ExceptionAdapter(e);
         }
     }
 
     /**
      * Updates the current branch by checking the repository for which
      * branch is currently checked out
-     *
-     * @throws IOException
      */
-    public void refreshCurrentBranch() throws IOException {
-        String currentBranchRefString = this.repoHelper.getRepo().getFullBranch();
+    public void refreshCurrentBranch() {
+        try {
+            String currentBranchRefString = this.repoHelper.getRepo().getFullBranch();
 
-        for (LocalBranchHelper branch : this.localBranchesTyped) {
-            if (branch.getRefPathString().equals(currentBranchRefString)) {
-                this.currentBranch = branch;
-                return;
+            for (LocalBranchHelper branch : this.localBranchesTyped) {
+                if (branch.getRefPathString().equals(currentBranchRefString)) {
+                    this.currentBranch = branch;
+                    return;
+                }
             }
-        }
 
-        this.currentBranch = new LocalBranchHelper(currentBranchRefString, this.repoHelper);
+            this.currentBranch = new LocalBranchHelper(currentBranchRefString, this.repoHelper);
+        } catch (Exception e) {
+            throw new ExceptionAdapter(e);
+        }
     }
 
     /**

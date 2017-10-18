@@ -269,11 +269,7 @@ public class CommitTreeController{
      * @return true if the model has branches, false if not
      */
     public static boolean setBranchHeads(CommitTreeModel model, RepoHelper repo) {
-        try {
-            repo.getBranchModel().updateAllBranches();
-        } catch (IOException | GitAPIException e) {
-            // This shouldn't happen once the repo is loaded and going
-        }
+        repo.getBranchModel().updateAllBranches();
         Map<CommitHelper, List<BranchHelper>> headIds = repo.getBranchModel().getAllBranchHeads();
         if(headIds == null) return false;
         model.resetBranchHeads();
