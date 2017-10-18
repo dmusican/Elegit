@@ -33,6 +33,7 @@ import java.net.URISyntaxException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -48,10 +49,12 @@ public class RepoHelper {
     private final SshSessionFactory sshSessionFactory;
 
     private final AtomicReference<Set<CommitHelper>> localCommits = new AtomicReference<>();
-    private Set<CommitHelper> remoteCommits;
+    private final AtomicReference<Set<CommitHelper>> remoteCommits = new AtomicReference<>();
 
-    private Map<String, CommitHelper> commitIdMap;
-    private Map<ObjectId, String> idMap;
+    private final Map<String, CommitHelper> commitIdMap = new ConcurrentHashMap<>();
+    private final Map<ObjectId, String> idMap = new ConcurrentHashMap<>();
+
+
 
     private BranchModel branchModel;
     private TagModel tagModel;
@@ -166,13 +169,10 @@ public class RepoHelper {
 
     // Common setup tasks shared by constructors
     protected void setup() throws GitAPIException, IOException {
-        this.commitIdMap = new HashMap<>();
-        this.idMap = new HashMap<>();
-
         this.branchModel = new BranchModel(this);
 
         this.localCommits.set(this.parseAllLocalCommits());
-        this.remoteCommits = this.parseAllRemoteCommits();
+        this.remoteCommits.set(this.parseAllRemoteCommits());
 
         this.tagModel = new TagModel(this);
 
@@ -188,15 +188,17 @@ public class RepoHelper {
      * Updates the entire model, including commits, branches and tags
      * Note: this is expensive, but avoids possible errors that faster
      * possible solutions have
+     *
+     * Synchronized because it seems that if multiple threads tried to do this, that the whole thing should be atomic
      */
-    public void updateModel() throws GitAPIException, IOException {
-        this.commitIdMap = new HashMap<>();
-        this.idMap = new HashMap<>();
+    public synchronized void updateModel() throws GitAPIException, IOException {
+        this.commitIdMap.clear();
+        this.idMap.clear();
 
         branchModel.updateAllBranches();
         // Reparse commits
         this.localCommits.set(this.parseAllLocalCommits());
-        this.remoteCommits = this.parseAllRemoteCommits();
+        this.remoteCommits.set(this.parseAllRemoteCommits());
 
         tagModel.updateTags();
     }
@@ -505,7 +507,7 @@ public class RepoHelper {
 
         push.getRepository().close();
 
-        this.remoteCommits = parseAllRemoteCommits();
+        this.remoteCommits.set(parseAllRemoteCommits());
     }
 
     /**
@@ -612,7 +614,7 @@ public class RepoHelper {
 
         push.getRepository().close();
 
-        this.remoteCommits = parseAllRemoteCommits();
+        this.remoteCommits.set(parseAllRemoteCommits());
     }
 
     /**
@@ -692,7 +694,7 @@ public class RepoHelper {
         git.close();
 
         try {
-            this.remoteCommits = parseAllRemoteCommits();
+            this.remoteCommits.set(parseAllRemoteCommits());
         } catch (IOException e) {
             // This shouldn't occur once we have the repo up and running.
         }
@@ -1013,7 +1015,7 @@ public class RepoHelper {
      * @return all remote commits that have already been parsed
      */
     public Set<CommitHelper> getRemoteCommits() {
-        return this.remoteCommits;
+        return Collections.unmodifiableSet(new HashSet<>(this.remoteCommits.get()));
     }
 
     /**
@@ -1022,7 +1024,7 @@ public class RepoHelper {
     public List<CommitHelper> getAllCommits () {
         List<CommitHelper> allCommits = new ArrayList<>();
         allCommits.addAll(getLocalCommits());
-        allCommits.addAll(this.remoteCommits);
+        allCommits.addAll(getRemoteCommits());
         return allCommits;
     }
 
@@ -1092,81 +1094,16 @@ public class RepoHelper {
      */
     public Cell.CellType getCommitType(CommitHelper helper) {
         if (this.getLocalCommits().contains(helper))
-            if (this.remoteCommits.contains(helper))
+            if (this.getRemoteCommits().contains(helper))
                 return Cell.CellType.BOTH;
             else
                 return Cell.CellType.LOCAL;
         return Cell.CellType.REMOTE;
     }
 
-    /**
-     * @return a list of all commit IDs in this repository
-     */
-    public List<String> getAllCommitIDs() {
-        return new ArrayList<>(commitIdMap.keySet());
-    }
-
     public boolean canPush() throws IOException {
         return branchModel.getCurrentRemoteBranch() == null || getAheadCount() > 0;
     }
-
-    /**
-     * Uses JGit to find and parse all local commits between the given branches and
-     * every leaf in the repository
-     *
-     * @param oldLocalBranches the previous branch heads associated with a branch name. Commits
-     *                         older than the heads of these branches will be ignored
-     * @return all local commits newer than the given branch heads
-     * @throws GitAPIException
-     * @throws IOException
-     */
-    public Set<CommitHelper> getNewLocalCommits(Map<String, BranchHelper> oldLocalBranches) throws GitAPIException, IOException {
-        return getNewCommits(oldLocalBranches, this.branchModel.getBranchListTyped(BranchModel.BranchType.LOCAL));
-    }
-
-    /**
-     * Uses JGit to find and parse all remote commits between the given branches and
-     * every leaf in the repository
-     *
-     * @param oldRemoteBranches the previous branch heads associated with a branch name. Commits
-     *                          older than the heads of these branches will be ignored
-     * @return all remote commits newer than the given branch heads
-     * @throws GitAPIException
-     * @throws IOException
-     */
-    public Set<CommitHelper> getNewRemoteCommits(Map<String, BranchHelper> oldRemoteBranches) throws GitAPIException, IOException {
-        return getNewCommits(oldRemoteBranches, this.branchModel.getBranchListTyped(BranchModel.BranchType.REMOTE));
-    }
-
-    /**
-     * Helper method that returns commits between the given old branch heads and new branch heads
-     *
-     * @param oldBranches previous locations of branch heads
-     * @param newBranches current locations of branch heads
-     * @return a list of all commits found between oldBranches and newBranches
-     * @throws GitAPIException
-     * @throws IOException
-     */
-    private Set<CommitHelper> getNewCommits(Map<String, BranchHelper> oldBranches, List<? extends BranchHelper> newBranches) throws GitAPIException, IOException {
-        List<ObjectId> startPoints = new ArrayList<>();
-        List<ObjectId> stopPoints = new ArrayList<>();
-
-        for (BranchHelper newBranch : newBranches) {
-            if (oldBranches.containsKey(newBranch.getRefName())) {
-                ObjectId newBranchHeadID = newBranch.getHeadId();
-                ObjectId oldBranchHeadID = oldBranches.get(newBranch.getRefName()).getHeadId();
-                if (!newBranchHeadID.equals(oldBranchHeadID)) {
-                    startPoints.add(newBranchHeadID);
-                }
-                stopPoints.add(oldBranchHeadID);
-            } else {
-                startPoints.add(newBranch.getHeadId());
-            }
-        }
-        PlotCommitList<PlotLane> newCommits = this.parseRawCommits(startPoints, stopPoints);
-        return wrapRawCommits(newCommits);
-    }
-
 
     /**
      * Constructs a list of all local commits found by parsing the repository for raw RevCommit objects,
