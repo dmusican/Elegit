@@ -749,8 +749,8 @@ public class SessionController {
             List<Result> results = new ArrayList<>();
             try {
                 responseOptional.ifPresent(response ->
-                        repoHelper.ownerAuth =
-                                new UsernamePasswordCredentialsProvider(response.username, response.password)
+                        repoHelper.setOwnerAuth(
+                                new UsernamePasswordCredentialsProvider(response.username, response.password))
                 );
                 theModel.openRepoFromHelper(repoHelper);
             } catch (Exception e) {
@@ -1256,8 +1256,8 @@ public class SessionController {
                 RepositoryMonitor.resetFoundNewChanges();
                 RepoHelper helper = theModel.getCurrentRepoHelper();
                 responseOptional.ifPresent(response ->
-                        helper.ownerAuth =
-                                new UsernamePasswordCredentialsProvider(response.username, response.password)
+                        helper.setOwnerAuth(
+                                new UsernamePasswordCredentialsProvider(response.username, response.password))
                 );
                 if (pushType == PushType.BRANCH) {
                     helper.pushCurrentBranch(push);
@@ -1341,8 +1341,8 @@ public class SessionController {
             RepositoryMonitor.resetFoundNewChanges();
             RepoHelper helper = theModel.getCurrentRepoHelper();
             if (response != null) {
-                helper.ownerAuth =
-                        new UsernamePasswordCredentialsProvider(response.username, response.password);
+                helper.setOwnerAuth(
+                        new UsernamePasswordCredentialsProvider(response.username, response.password));
             }
             results = helper.pushTags();
             gitStatus();
@@ -1503,8 +1503,8 @@ public class SessionController {
 
         try {
             if (response != null) {
-                theModel.getCurrentRepoHelper().ownerAuth =
-                        new UsernamePasswordCredentialsProvider(response.username, response.password);
+                theModel.getCurrentRepoHelper().setOwnerAuth(
+                        new UsernamePasswordCredentialsProvider(response.username, response.password));
             }
             RemoteRefUpdate.Status deleteStatus = branchModel.deleteRemoteBranch((RemoteBranchHelper) selectedBranch);
             String updateMessage = selectedBranch.getRefName();
@@ -1856,8 +1856,8 @@ public class SessionController {
                 RepositoryMonitor.resetFoundNewChanges();
                 RepoHelper helper = theModel.getCurrentRepoHelper();
                 responseOptional.ifPresent(response ->
-                        helper.ownerAuth =
-                                new UsernamePasswordCredentialsProvider(response.username, response.password)
+                        helper.setOwnerAuth(
+                                new UsernamePasswordCredentialsProvider(response.username, response.password))
                 );
                 if (!helper.fetch(prune)) {
                     results.add(new Result(ResultStatus.NOCOMMITS, ResultOperation.FETCH));

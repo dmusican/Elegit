@@ -176,7 +176,7 @@ public class AuthenticatedCloneTest {
             helper.addFilePathTest(fileLocation);
             helper.commit("Appended to file");
             credentials = new UsernamePasswordCredentialsProvider(username, password);
-            helper.ownerAuth = credentials;
+            helper.setOwnerAuth(credentials);
             PushCommand command = helper.prepareToPushAll();
             helper.pushAll(command);
             helper.pushTags();

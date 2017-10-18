@@ -55,11 +55,9 @@ public class RepoHelper {
     private final AtomicReference<BranchModel> branchModel = new AtomicReference<>();
     private final TagModel tagModel = new TagModel(this);
     private final AtomicBoolean hasRemoteRepo = new AtomicBoolean();
+    private final AtomicReference<UsernamePasswordCredentialsProvider> ownerAuth = new AtomicReference<>();
 
     private static final Logger logger = LogManager.getLogger();
-
-    public UsernamePasswordCredentialsProvider ownerAuth;
-
 
     /**
      * Creates a RepoHelper object for holding a Repository and interacting with it
@@ -73,7 +71,7 @@ public class RepoHelper {
     public RepoHelper(Path directoryPath, UsernamePasswordCredentialsProvider ownerAuth)
             throws GitAPIException, IOException, CancelledAuthorizationException {
         this.localPath = directoryPath;
-        this.ownerAuth = ownerAuth;
+        setOwnerAuth(ownerAuth);
         this.password = null;
         this.userInfo = null;
         sshSessionFactory = setupSshSessionFactory();
@@ -82,7 +80,6 @@ public class RepoHelper {
     public RepoHelper(Path directoryPath, UserInfo userInfo)
             throws GitAPIException, IOException, CancelledAuthorizationException {
         this.localPath = directoryPath;
-        this.ownerAuth = null;
         this.password = null;
         this.userInfo = userInfo;
         sshSessionFactory = setupSshSessionFactory();
@@ -91,7 +88,6 @@ public class RepoHelper {
     public RepoHelper(Path directoryPath, String sshPassword, UserInfo userInfo)
             throws GitAPIException, IOException, CancelledAuthorizationException {
         this.localPath = directoryPath;
-        this.ownerAuth = null;
         this.password = sshPassword;
         this.userInfo = userInfo;
         sshSessionFactory = setupSshSessionFactory();
@@ -139,7 +135,7 @@ public class RepoHelper {
     }
 
     void myWrapAuthentication(TransportCommand command) {
-        wrapAuthentication(command, this.ownerAuth);
+        wrapAuthentication(command, this.ownerAuth.get());
     }
 
     void wrapAuthentication(TransportCommand command, UsernamePasswordCredentialsProvider ownerAuth) {
@@ -178,10 +174,6 @@ public class RepoHelper {
             throw new IllegalStateException("hasRemoteRepo in RepoHelper should not have been set a second time");
         }
 
-    }
-
-    public void setUsernamePasswordCredentials(UsernamePasswordCredentialsProvider ownerAuth) {
-        this.ownerAuth = ownerAuth;
     }
 
     /**
@@ -1592,4 +1584,7 @@ public class RepoHelper {
         return AuthMethod.NONE;
     }
 
+    public void setOwnerAuth(UsernamePasswordCredentialsProvider ownerAuth) {
+        this.ownerAuth.set(ownerAuth);
+    }
 }
