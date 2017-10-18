@@ -5,6 +5,7 @@ import elegit.exceptions.*;
 import elegit.models.*;
 import elegit.repofile.MissingRepoFile;
 import elegit.repofile.RepoFile;
+import elegit.sshauthentication.ElegitUserInfoGUI;
 import elegit.treefx.TreeLayout;
 import io.reactivex.Observable;
 import io.reactivex.ObservableSource;
@@ -150,7 +151,7 @@ public class SessionController {
     public synchronized void initialize() {
         Main.assertFxThread();
 
-        // Gives other controllers acccess to this one
+        // Gives other controllers access to this one
         CommitTreeController.sessionController = this;
         menuController.setSessionController(this);
         dropdownController.setSessionController(this);
@@ -172,6 +173,7 @@ public class SessionController {
         this.setButtonIconsAndTooltips();
         this.setButtonsDisabled(true);
         this.initWorkingTreePanelTab();
+
         ////// got this far. Below is where it all changes; it's model work
         // SLOW
         this.theModel.loadRecentRepoHelpersFromStoredPathStrings();

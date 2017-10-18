@@ -1,10 +1,15 @@
-package elegit;
+package elegit.sshauthentication;
 
 import com.jcraft.jsch.UserInfo;
+import elegit.SessionModel;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
+import org.apache.http.annotation.GuardedBy;
+import org.apache.http.annotation.ThreadSafe;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.Optional;
 import java.util.concurrent.Callable;
@@ -15,11 +20,13 @@ import java.util.concurrent.FutureTask;
  * Class for purposes for JSch authentication (which JGit uses). This is the text-based version used
  * for unit tests.
  */
-// TODO: Make sure threadsafe
+@ThreadSafe
 public class ElegitUserInfoGUI implements UserInfo {
 
-    private Optional<String> password;
-    private Optional<String> passphrase;
+    @GuardedBy("this") private Optional<String> password;
+    @GuardedBy("this") private Optional<String> passphrase;
+    private static final Logger logger = LogManager.getLogger();
+
 
     public ElegitUserInfoGUI() {
         password = Optional.empty();
@@ -27,17 +34,17 @@ public class ElegitUserInfoGUI implements UserInfo {
     }
 
     @Override
-    public String getPassphrase() {
+    public synchronized String getPassphrase() {
         return passphrase.orElse("");
     }
 
     @Override
-    public String getPassword() {
+    public synchronized String getPassword() {
         return password.orElse("");
     }
 
     @Override
-    public boolean promptPassword(String s) {
+    public synchronized boolean promptPassword(String s) {
         password = prompt(s,"SSH password authentication",
                                              "SSH password authentication",
                                              "Enter your password:");
@@ -45,7 +52,7 @@ public class ElegitUserInfoGUI implements UserInfo {
     }
 
     @Override
-    public boolean promptPassphrase(String s) {
+    public synchronized boolean promptPassphrase(String s) {
 
         passphrase = prompt(s,"SSH public key authentication",
                                            "SSH public key authentication",
@@ -54,6 +61,8 @@ public class ElegitUserInfoGUI implements UserInfo {
         return passphrase.isPresent();
     }
 
+    // This method doesn't need to be synchronized, as it does not interact with the shared instance variables
+    // at all.
     private Optional<String> prompt(String s, String title, String headerText, String contentText) {
         FutureTask<Optional<String>> futureTask = new FutureTask<>(() -> {
             System.out.println(s);
@@ -97,6 +106,9 @@ public class ElegitUserInfoGUI implements UserInfo {
         return result;
     }
 
+    // This method doesn't need to be synchronized, as it does not interact with the shared instance variables
+    // at all.
+    // TODO: This method will only work on FX thread, but likely gets called off it. Something is missing in testing.
     @Override
     public boolean promptYesNo(String s) {
         System.out.println(s);
@@ -113,11 +125,14 @@ public class ElegitUserInfoGUI implements UserInfo {
         else if (result.orElse(null) == ButtonType.NO)
             return false;
         else {
-            SessionModel.logger.error("Internal error with SSH yes/no prompt.");
+            logger.error("Internal error with SSH yes/no prompt.");
             return false;
         }
     }
 
+    // This method doesn't need to be synchronized, as it does not interact with the shared instance variables
+    // at all.
+    // TODO: This method will only work on FX thread, but likely gets called off it. Something is missing in testing.
     @Override
     public void showMessage(String s) {
         System.out.println(s);

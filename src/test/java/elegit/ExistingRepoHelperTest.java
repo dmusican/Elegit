@@ -1,7 +1,7 @@
 package elegit;
 
 import elegit.models.AuthMethod;
-import elegit.models.ElegitUserInfoTest;
+import elegit.sshauthentication.ElegitUserInfoTest;
 import org.eclipse.jgit.api.Git;
 import org.junit.After;
 import org.junit.Before;

@@ -3,6 +3,7 @@ package elegit;
 import elegit.models.AuthMethod;
 import elegit.models.PrefObj;
 import elegit.repofile.*;
+import elegit.sshauthentication.ElegitUserInfoGUI;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import elegit.exceptions.CancelledAuthorizationException;

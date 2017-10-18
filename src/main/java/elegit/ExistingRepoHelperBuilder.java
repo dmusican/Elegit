@@ -2,6 +2,7 @@ package elegit;
 
 import elegit.exceptions.CancelledAuthorizationException;
 import elegit.exceptions.NoRepoSelectedException;
+import elegit.sshauthentication.ElegitUserInfoGUI;
 import org.eclipse.jgit.api.errors.GitAPIException;
 
 import java.io.File;

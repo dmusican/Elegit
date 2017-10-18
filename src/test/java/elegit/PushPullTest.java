@@ -1,6 +1,6 @@
 package elegit;
 
-import elegit.models.ElegitUserInfoTest;
+import elegit.sshauthentication.ElegitUserInfoTest;
 import org.eclipse.jgit.api.PushCommand;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;

@@ -1,4 +1,4 @@
-package elegit.models;
+package elegit.sshauthentication;
 
 import com.jcraft.jsch.UserInfo;
 import org.apache.http.annotation.ThreadSafe;
