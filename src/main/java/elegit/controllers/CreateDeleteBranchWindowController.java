@@ -2,6 +2,7 @@ package elegit.controllers;
 
 import elegit.*;
 import elegit.models.BranchHelper;
+import elegit.models.BranchModel;
 import elegit.models.LocalBranchHelper;
 import elegit.models.RemoteBranchHelper;
 import javafx.application.Platform;

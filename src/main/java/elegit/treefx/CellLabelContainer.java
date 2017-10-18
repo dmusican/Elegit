@@ -15,10 +15,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.transform.Rotate;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static elegit.treefx.Cell.BOX_SIZE;
 
@@ -146,7 +143,7 @@ public class CellLabelContainer extends GridPane {
      * Helper method to set the current cell labels
      * @param labels the labels that refer to the current refs
      */
-    void setCurrentLabels(HashSet<String> labels) {
+    void setCurrentLabels(Set<String> labels) {
         Platform.runLater(() -> {
             for (Node m : getChildren()) {
                 if (m instanceof HBox) {

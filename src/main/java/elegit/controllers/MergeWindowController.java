@@ -1,6 +1,7 @@
 package elegit.controllers;
 
 import elegit.*;
+import elegit.models.BranchModel;
 import elegit.models.LocalBranchHelper;
 import elegit.treefx.CellLabel;
 import javafx.application.Platform;

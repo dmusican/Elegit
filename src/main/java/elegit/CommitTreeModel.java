@@ -4,7 +4,6 @@ import elegit.exceptions.MissingRepoException;
 import elegit.models.*;
 import elegit.treefx.*;
 import elegit.treefx.Cell;
-import javafx.application.Platform;
 import javafx.scene.control.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -672,7 +671,7 @@ public class CommitTreeModel{
         }
 
         // Set the labels
-        HashSet<String> currentAbbrevBranches = this.sessionModel.getCurrentRepoHelper().getBranchModel().getCurrentAbbrevBranches();
+        Set<String> currentAbbrevBranches = this.sessionModel.getCurrentRepoHelper().getBranchModel().getCurrentAbbrevBranches();
         for (String commit : commitLabelMap.keySet()) {
             if(this.sessionModel.getCurrentRepoHelper().getCommit(commit) != null) {
                 if (!treeGraph.treeGraphModel.containsID(commit)) {

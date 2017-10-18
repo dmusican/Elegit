@@ -248,7 +248,7 @@ public class Cell extends Pane{
         this.refLabels.setLabels(refs, this);
     }
 
-    private void setCurrentRefLabels(HashSet<String> refs) {
+    private void setCurrentRefLabels(Set<String> refs) {
         this.refLabels.setCurrentLabels(refs);
     }
 
@@ -257,7 +257,7 @@ public class Cell extends Pane{
         setRefLabels(refLabels);
     }
 
-    void setCurrentLabels(HashSet<String> refLabels) {
+    void setCurrentLabels(Set<String> refLabels) {
         setCurrentRefLabels(refLabels);
     }
 

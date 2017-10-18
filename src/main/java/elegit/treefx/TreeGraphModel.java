@@ -261,11 +261,11 @@ public class TreeGraphModel{
         if(refs.size() > 0) cellsWithNonDefaultShapesOrLabels.add(cell);
     }
 
-    public void setCurrentCellLabels(String cellId, HashSet<String> refs) {
+    public void setCurrentCellLabels(String cellId, Set<String> refs) {
         setCurrentCellLabels(cellMap.get(cellId), refs);
     }
 
-    public void setCurrentCellLabels(Cell cell, HashSet<String> refs) {
+    public void setCurrentCellLabels(Cell cell, Set<String> refs) {
         cell.setCurrentLabels(refs);
     }
 

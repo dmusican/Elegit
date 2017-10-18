@@ -3,6 +3,7 @@ package elegit.controllers;
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import elegit.*;
+import elegit.models.BranchModel;
 import elegit.models.LocalBranchHelper;
 import elegit.models.RemoteBranchHelper;
 import javafx.application.Platform;

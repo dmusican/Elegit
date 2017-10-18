@@ -134,7 +134,7 @@ public class RepoHelper {
         wrapAuthentication(command, null);
     }
 
-    void myWrapAuthentication(TransportCommand command) {
+    public void myWrapAuthentication(TransportCommand command) {
         wrapAuthentication(command, this.ownerAuth.get());
     }
 

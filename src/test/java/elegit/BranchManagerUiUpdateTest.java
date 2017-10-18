@@ -1,6 +1,6 @@
 package elegit;
 
-import com.sun.org.apache.regexp.internal.RE;
+import elegit.models.BranchModel;
 import org.eclipse.jgit.api.CreateBranchCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.MergeCommand;

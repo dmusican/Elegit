@@ -1,11 +1,13 @@
-package elegit;
+package elegit.models;
 
+import elegit.RepoHelper;
 import elegit.exceptions.ExceptionAdapter;
 import elegit.models.BranchHelper;
 import elegit.models.CommitHelper;
 import elegit.models.LocalBranchHelper;
 import elegit.models.RemoteBranchHelper;
 import elegit.treefx.CellLabel;
+import org.apache.http.annotation.GuardedBy;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jgit.api.*;
@@ -18,6 +20,7 @@ import org.eclipse.jgit.transport.RemoteRefUpdate;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
@@ -30,12 +33,14 @@ import java.util.stream.Collectors;
  *      -checkouts
  */
 // TODO: Make sure threadsafe
+// This class is now threadsafe from a memory perspective. It does some git operations, so thought needs to be done
+// with regards to the working directory, but it's otherwise ok.
 public class BranchModel {
 
-    private RepoHelper repoHelper;
-    private BranchHelper currentBranch;
-    private List<LocalBranchHelper> localBranchesTyped;
-    private List<RemoteBranchHelper> remoteBranchesTyped;
+    private final RepoHelper repoHelper;
+    @GuardedBy("this") private BranchHelper currentBranch;
+    @GuardedBy("this") private final List<LocalBranchHelper> localBranchesTyped = new ArrayList<>();
+    @GuardedBy("this") private final List<RemoteBranchHelper> remoteBranchesTyped = new ArrayList<>();
 
     static final Logger logger = LogManager.getLogger();
 
@@ -63,11 +68,12 @@ public class BranchModel {
      * Utilizes JGit to get a list of all local branches and refills
      * the model's list of local branches
      */
-    public void updateLocalBranches() {
+    // synchronized for localBranchesTyped
+    public synchronized void updateLocalBranches() {
         try {
             List<Ref> getBranchesCall = new Git(this.repoHelper.getRepo()).branchList().call();
 
-            this.localBranchesTyped = new ArrayList<>();
+            this.localBranchesTyped.clear();
             for (Ref ref : getBranchesCall) {
                 this.localBranchesTyped.add(new LocalBranchHelper(ref, this.repoHelper));
             }
@@ -80,7 +86,8 @@ public class BranchModel {
      * Utilizes JGit to get a list of all remote branches and refills
      * the model's list of remote branches
      */
-    public void updateRemoteBranches() {
+    // synchronized for remoteBranchesTyped
+    public synchronized void updateRemoteBranches() {
         try {
             List<Ref> getBranchesCall = new Git(this.repoHelper.getRepo())
                     .branchList()
@@ -88,7 +95,7 @@ public class BranchModel {
                     .call();
 
             // Rebuild the remote branches list from scratch.
-            this.remoteBranchesTyped = new ArrayList<>();
+            this.remoteBranchesTyped.clear();
             for (Ref ref : getBranchesCall) {
                 // Listing the remote branches also grabs HEAD, which isn't a branch we want
                 if (!ref.getName().equals("HEAD")) {
@@ -104,7 +111,8 @@ public class BranchModel {
      * Updates the current branch by checking the repository for which
      * branch is currently checked out
      */
-    public void refreshCurrentBranch() {
+    // synchronized for currentBranch safety and localBranchesTyped
+    public synchronized void refreshCurrentBranch() {
         try {
             String currentBranchRefString = this.repoHelper.getRepo().getFullBranch();
 
@@ -133,7 +141,8 @@ public class BranchModel {
      * Refreshes the head IDs for all the branches of a given type
      * @param type the type of branches to refresh
      */
-    public void refreshHeadIdsType(BranchType type) {
+    // synchronized for localBranchesTyped and remoteBranchesTyped
+    public synchronized void refreshHeadIdsType(BranchType type) {
         List<? extends BranchHelper> listToRefresh = (type == BranchType.LOCAL) ? this.localBranchesTyped : this.remoteBranchesTyped;
         for (BranchHelper branch : listToRefresh)
             if (branch.getCommit() == null) {
@@ -155,7 +164,8 @@ public class BranchModel {
      * @throws GitAPIException
      * @throws IOException
      */
-    public LocalBranchHelper trackRemoteBranch(RemoteBranchHelper remoteBranchHelper) throws GitAPIException, IOException {
+    // Synchronized for localBranchesTyped
+    public synchronized LocalBranchHelper trackRemoteBranch(RemoteBranchHelper remoteBranchHelper) throws GitAPIException, IOException {
         LocalBranchHelper tracker = this.createLocalTrackingBranchForRemote(remoteBranchHelper);
         this.localBranchesTyped.add(tracker);
         return tracker;
@@ -169,7 +179,8 @@ public class BranchModel {
      * @throws GitAPIException
      * @throws IOException
      */
-    private LocalBranchHelper createLocalTrackingBranchForRemote(RemoteBranchHelper remoteBranchHelper) throws GitAPIException, IOException {
+    // Synchronized for localBranchesTyped
+    private synchronized LocalBranchHelper createLocalTrackingBranchForRemote(RemoteBranchHelper remoteBranchHelper) throws GitAPIException, IOException {
         String localBranchName=this.repoHelper.getRepo().shortenRemoteBranchName(remoteBranchHelper.getRefPathString());
         Ref trackingBranchRef = new Git(this.repoHelper.getRepo()).branchCreate().
                 setName(localBranchName).
@@ -189,7 +200,8 @@ public class BranchModel {
      * @throws GitAPIException
      * @throws IOException
      */
-    public LocalBranchHelper createNewLocalBranch(String branchName) throws GitAPIException, IOException {
+    // Synchronized for localBranchesTyped
+    public synchronized LocalBranchHelper createNewLocalBranch(String branchName) throws GitAPIException, IOException {
         Git git = new Git(this.repoHelper.getRepo());
         Ref newBranch = git.branchCreate().setName(branchName).call();
         LocalBranchHelper newLocalBranchHelper = new LocalBranchHelper(newBranch, this.repoHelper);
@@ -207,8 +219,9 @@ public class BranchModel {
      * @throws CannotDeleteCurrentBranchException
      * @throws GitAPIException
      */
-    public void deleteLocalBranch(LocalBranchHelper localBranchToDelete)
-            throws NotMergedException, CannotDeleteCurrentBranchException, GitAPIException {
+    // Synchronized for localBranchesTyped
+    public synchronized void deleteLocalBranch(LocalBranchHelper localBranchToDelete)
+            throws GitAPIException {
         Git git = new Git(this.repoHelper.getRepo());
         git.branchDelete().setBranchNames(localBranchToDelete.getRefPathString()).call();
         this.localBranchesTyped.remove(localBranchToDelete);
@@ -221,7 +234,8 @@ public class BranchModel {
      *
      * @param branchToDelete the branch helper of the branch to delete
      */
-    public void forceDeleteLocalBranch(LocalBranchHelper branchToDelete) throws CannotDeleteCurrentBranchException, GitAPIException {
+    // Synchronized for localBranchesTyped
+    public synchronized void forceDeleteLocalBranch(LocalBranchHelper branchToDelete) throws CannotDeleteCurrentBranchException, GitAPIException {
         Git git = new Git(this.repoHelper.getRepo());
         git.branchDelete().setForce(true).setBranchNames(branchToDelete.getRefPathString()).call();
         this.localBranchesTyped.remove(branchToDelete);
@@ -283,7 +297,8 @@ public class BranchModel {
      *
      * @return the branch helper for the current branch
      */
-    public BranchHelper getCurrentBranch() { return this.currentBranch; }
+    // synchronized for currentBranch safety
+    public synchronized BranchHelper getCurrentBranch() { return this.currentBranch; }
 
     /**
      * Getter for the current remote branch head
@@ -298,7 +313,8 @@ public class BranchModel {
         return null;
     }
 
-    public String getCurrentRemoteBranch() throws IOException {
+    // synchronized for currentBranch safety
+    public synchronized String getCurrentRemoteBranch() throws IOException {
         if (BranchTrackingStatus.of(this.repoHelper.getRepo(), this.currentBranch.getRefName())!=null) {
             return Repository.shortenRefName(
                     BranchTrackingStatus.of(this.repoHelper.getRepo(), this.currentBranch.getRefName())
@@ -307,7 +323,8 @@ public class BranchModel {
         return null;
     }
 
-    public String getCurrentRemoteAbbrevBranch() throws IOException {
+    // synchronized for currentBranch safety
+    public synchronized String getCurrentRemoteAbbrevBranch() throws IOException {
         if (BranchTrackingStatus.of(this.repoHelper.getRepo(), this.currentBranch.getRefName())!=null) {
             String name =  Repository.shortenRefName(
                     BranchTrackingStatus.of(this.repoHelper.getRepo(), this.currentBranch.getRefName())
@@ -325,7 +342,8 @@ public class BranchModel {
      *
      * @return the commit helper for the head of the current branch
      */
-    public CommitHelper getCurrentBranchHead() { return (this.currentBranch == null) ? null : this.currentBranch.getCommit();}
+    // synchronized for currentBranch safety
+    public synchronized CommitHelper getCurrentBranchHead() { return (this.currentBranch == null) ? null : this.currentBranch.getCommit();}
 
     /**
      * Getter for list of branches
@@ -333,24 +351,29 @@ public class BranchModel {
      * @param type the type of list of branches to return
      * @return the list of branches, either all local or remote
      */
+    // Synchronized for localBranchesTyped and remoteBranchesTyped
     public List<? extends BranchHelper> getBranchListTyped(BranchType type) {
-        return (type==BranchType.LOCAL) ? this.localBranchesTyped : this.remoteBranchesTyped;
+        return Collections.unmodifiableList(new ArrayList<>(
+                (type==BranchType.LOCAL) ? this.localBranchesTyped : this.remoteBranchesTyped
+        ));
     }
 
     /**
      * Getter for local branches
      * @return list of local branches with type LocalBranchHelper
      */
+    // Synchronized for localBranchesTyped
     public List<LocalBranchHelper> getLocalBranchesTyped() {
-        return this.localBranchesTyped;
+        return Collections.unmodifiableList(new ArrayList<>(this.localBranchesTyped));
     }
 
     /**
      * Getter for remote branches
      * @return list of remote branches with type RemoteBranchHelper
      */
+    // Synchronized for remoteBranchesTyped
     public List<RemoteBranchHelper> getRemoteBranchesTyped() {
-        return this.remoteBranchesTyped;
+        return Collections.unmodifiableList(new ArrayList<>(this.remoteBranchesTyped));
     }
 
     /**
@@ -358,12 +381,13 @@ public class BranchModel {
      * @param type the type of list to get, either local or remote
      * @return the list of branches in the 'type' list, but with type BranchHelper
      */
+    // Synchronized for localBranchesTyped and remoteBranchesTyped
     public List<BranchHelper> getBranchListUntyped(BranchType type){
         List<? extends BranchHelper> typed = (type==BranchType.LOCAL) ? this.localBranchesTyped : this.remoteBranchesTyped;
         List<BranchHelper> untyped = new ArrayList<>();
         for (BranchHelper branch : typed)
             untyped.add(branch);
-        return untyped;
+        return Collections.unmodifiableList(untyped);
     }
 
     /**
@@ -371,13 +395,12 @@ public class BranchModel {
      *
      * @return a list of all remote branches and local branches
      */
+    // Synchronized for localBranchesTyped
     public List<BranchHelper> getAllBranches() {
         List<BranchHelper> tmp = new ArrayList<>();
-        for (BranchHelper branch : this.remoteBranchesTyped)
-            tmp.add(branch);
-        for (BranchHelper branch : this.localBranchesTyped)
-            tmp.add(branch);
-        return tmp;
+        tmp.addAll(this.remoteBranchesTyped);
+        tmp.addAll(this.localBranchesTyped);
+        return Collections.unmodifiableList(tmp);
     }
 
     /**
@@ -387,6 +410,7 @@ public class BranchModel {
      * @param branchName the name of the branch
      * @return
      */
+    // Synchronized for localBranchesTyped and remoteBranchesTyped
     public BranchHelper getBranchByName(BranchType type, String branchName) {
         List<? extends BranchHelper> branchList = type==BranchType.LOCAL ? this.localBranchesTyped : this.remoteBranchesTyped;
         for (BranchHelper branch: branchList) {
@@ -405,7 +429,8 @@ public class BranchModel {
      * @param branch the branch to check
      * @return true if branch is being tracked, else false
      */
-    public boolean isBranchTracked(BranchHelper branch) {
+    // Synchronized for localBranchesTyped
+    public synchronized boolean isBranchTracked(BranchHelper branch) {
         String branchName = branch.getRefName();
         if (branch instanceof LocalBranchHelper) {
             // We can check this easily by looking at the config file, but have to first
@@ -423,7 +448,7 @@ public class BranchModel {
                 if (this.repoHelper.getRepo().getConfig().getString("branch", local.getRefName(), "merge")==null) continue;
 
                 // Otherwise, we have to check all local branches to see if they're tracking the particular remote branch
-                if (this.repoHelper.getRepo().shortenRefName(this.repoHelper.getRepo().getConfig().getString("branch", local.getRefName(), "merge"))
+                if (Repository.shortenRefName(this.repoHelper.getRepo().getConfig().getString("branch", local.getRefName(), "merge"))
                         .equals(this.repoHelper.getRepo().shortenRemoteBranchName(branch.getRefPathString()))) {
                     return true;
                 }
@@ -437,7 +462,8 @@ public class BranchModel {
      * @param branch the branch to check
      * @return true if the branch is the current branch or its remote tracking branch
      */
-    public boolean isBranchCurrent(BranchHelper branch) {
+    // synchronized for currentBranch safety
+    public synchronized boolean isBranchCurrent(BranchHelper branch) {
         if (this.currentBranch==branch)
             return true;
         if (this.currentBranch==null)
@@ -445,7 +471,7 @@ public class BranchModel {
         try {
             // If the branch is the local's remote tracking branch, it is current
             BranchTrackingStatus status = BranchTrackingStatus.of(this.repoHelper.getRepo(), this.currentBranch.getRefName());
-            if (branch instanceof RemoteBranchHelper && status != null && this.repoHelper.getRepo().shortenRefName(
+            if (branch instanceof RemoteBranchHelper && status != null && Repository.shortenRefName(
                     status.getRemoteTrackingBranch()).equals(branch.getRefName())) {
                 return true;
             }
@@ -461,7 +487,7 @@ public class BranchModel {
      * @return
      */
     public Map<CommitHelper, List<BranchHelper>> getAllBranchHeads(){
-        Map<CommitHelper, List<BranchHelper>> heads = new HashMap<>();
+        Map<CommitHelper, List<BranchHelper>> heads = new ConcurrentHashMap<>();
 
         this.refreshHeadIds();
 
@@ -477,7 +503,10 @@ public class BranchModel {
                 heads.put(head, helpers);
             }
         }
-        return heads;
+        for (CommitHelper head : heads.keySet()) {
+            heads.put(head, Collections.unmodifiableList(heads.get(head)));
+        }
+        return Collections.unmodifiableMap(heads);
     }
 
     /**
@@ -493,19 +522,19 @@ public class BranchModel {
                     .map(BranchHelper::getRefName)
                     .collect(Collectors.toList());
         }
-        return branchLabels;
+        return Collections.unmodifiableList(branchLabels);
     }
 
     /**
      * @return a list of the current branches, useful for the ref labels
      */
-    public HashSet<String> getCurrentAbbrevBranches() {
+    public Set<String> getCurrentAbbrevBranches() {
         HashSet<String> branches = new HashSet<>();
         for (BranchHelper branch : getAllBranches()) {
             if (isBranchCurrent(branch))
                 branches.add(branch.getAbbrevName());
         }
-        return branches;
+        return Collections.unmodifiableSet(branches);
     }
 
 

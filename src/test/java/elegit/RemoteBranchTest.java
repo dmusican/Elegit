@@ -1,6 +1,7 @@
 package elegit;
 
 import elegit.models.BranchHelper;
+import elegit.models.BranchModel;
 import elegit.models.RemoteBranchHelper;
 import org.eclipse.jgit.api.PushCommand;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
