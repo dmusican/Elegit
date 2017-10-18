@@ -300,17 +300,6 @@ public class RepoHelper {
     }
 
     /**
-     * Checks out a file from the specified point
-     * @param filePath the file to check out
-     * @param startPoint the tree-ish point to checkout the file from
-     */
-    public void checkoutFile(String filePath, String startPoint) throws GitAPIException {
-        Git git = new Git(this.getRepo());
-        git.checkout().setStartPoint(startPoint).addPath(filePath).call();
-        git.close();
-    }
-
-    /**
      * Checks out files from the specified point
      * @param filePaths the files to check out
      * @param startPoint the tree-ish point to checkout the file from
@@ -324,21 +313,6 @@ public class RepoHelper {
             checkout.addPath(filePath);
         checkout.call();
         return checkout.getResult();
-    }
-
-    /**
-     * Removes a file from the repository.
-     *
-     * @param filePath the path of the file to remove.
-     * @throws GitAPIException if the `git rm` call fails.
-     */
-    public void removeFilePath(Path filePath) throws GitAPIException {
-        Git git = new Git(this.getRepo());
-        // git rm:
-        git.rm()
-                .addFilepattern(filePath.toString())
-                .call();
-        git.close();
     }
 
     /**
@@ -371,7 +345,7 @@ public class RepoHelper {
         for (String remote : remotes) {
             urls.add(storedConfig.getString("remote", remote, "url"));
         }
-        return urls;
+        return Collections.unmodifiableList(urls);
     }
 
     /**
@@ -1189,7 +1163,7 @@ public class RepoHelper {
      * @throws IOException
      */
     private PlotCommitList<PlotLane> parseAllRawLocalCommits() throws IOException, GitAPIException {
-        Set<ObjectId> allStarts = new HashSet<ObjectId>();
+        Set<ObjectId> allStarts = new HashSet<>();
         allStarts.add(getRepo().resolve("HEAD"));
         List<LocalBranchHelper> branches = this.getBranchModel().getLocalBranchesTyped();
         for (BranchHelper branch : branches) {
@@ -1199,31 +1173,6 @@ public class RepoHelper {
         PlotCommitList<PlotLane> rawLocalCommits = parseRawCommitsMultipleStarts(allStarts);
 
         return rawLocalCommits;
-//
-//
-//        ObjectId headId = repo.resolve("HEAD");
-//        if (headId == null) return new PlotCommitList<>();
-//        List<ObjectId> examinedCommitIDs = new ArrayList<>();
-//        PlotCommitList<PlotLane> rawLocalCommits = parseRawCommits(headId, examinedCommitIDs);
-//        for (PlotCommit<PlotLane> commit : rawLocalCommits) {
-//            examinedCommitIDs.add(commit.getId());
-//        }
-//        //examinedCommitIDs.add(headId);
-//
-//        List<LocalBranchHelper> branches = this.branchModel.getLocalBranchesTyped();
-//        for (BranchHelper branch : branches) {
-//            ObjectId branchId = branch.getHeadId();
-//            PlotCommitList<PlotLane> toAdd = parseRawCommits(branchId, examinedCommitIDs);
-//            for (PlotCommit<PlotLane> commit : toAdd) {
-//                examinedCommitIDs.add(commit.getId());
-//            }
-//            if (toAdd.size() > 0) {
-//                rawLocalCommits.addAll(toAdd);
-////                examinedCommitIDs.add(toAdd.get(0).getId());
-//            }
-//        }
-//
-//        return rawLocalCommits;
     }
 
     /**
@@ -1235,20 +1184,7 @@ public class RepoHelper {
      * @throws IOException
      */
     private PlotCommitList<PlotLane> parseAllRawRemoteCommits() throws IOException, GitAPIException {
-//        List<ObjectId> examinedCommitIDs = new ArrayList<>();
-//        PlotCommitList<PlotLane> rawRemoteCommits = new PlotCommitList<>();
-//
-//        for (BranchHelper branch : this.branchModel.getRemoteBranchesTyped()) {
-//            ObjectId branchId = branch.getHeadId();
-//            PlotCommitList<PlotLane> toAdd = parseRawCommits(branchId, examinedCommitIDs);
-//            if (toAdd.size() > 0) {
-//                rawRemoteCommits.addAll(toAdd);
-//                examinedCommitIDs.add(toAdd.get(0).getId());
-//            }
-//        }
-//        return rawRemoteCommits;
-
-        Set<ObjectId> allStarts = new HashSet<ObjectId>();
+        Set<ObjectId> allStarts = new HashSet<>();
         List<RemoteBranchHelper> branches = this.getBranchModel().getRemoteBranchesTyped();
         for (BranchHelper branch : branches) {
             ObjectId branchId = branch.getHeadId();
