@@ -83,7 +83,7 @@ public class StashTest {
         assertNotNull(helper);
         helper.obtainRepository(remoteURL);
 
-        git = new Git(helper.repo);
+        git = new Git(helper.getRepo());
     }
 
     @Test

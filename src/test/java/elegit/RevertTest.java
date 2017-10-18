@@ -91,7 +91,7 @@ public class RevertTest {
         helper.obtainRepository(remoteURL);
 
 
-        Git git = new Git(helper.repo);
+        Git git = new Git(helper.getRepo());
         Path filePath = repoPath.resolve("modify.txt");
 
 

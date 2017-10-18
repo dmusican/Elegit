@@ -33,6 +33,7 @@ import java.net.URISyntaxException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * The RepoHelper class, used for interacting with a repository.
@@ -42,7 +43,7 @@ public class RepoHelper {
 
     private final String password;
 
-    public Repository repo;
+    private final AtomicReference<Repository> repo = new AtomicReference<>();
 
     public Path localPath;
     protected File credentialsFile;
@@ -113,7 +114,7 @@ public class RepoHelper {
         setupSshSessionFactory();
     }
 
-    public void setupSshSessionFactory() {
+    private void setupSshSessionFactory() {
         sshSessionFactory = new JschConfigSessionFactory() {
             @Override
             protected void configure(OpenSshConfig.Host host, Session session) {
@@ -227,7 +228,7 @@ public class RepoHelper {
      * @throws GitAPIException if the `git add` call fails.
      */
     public void addFilePathTest(Path filePath) throws GitAPIException {
-        Git git = new Git(this.repo);
+        Git git = new Git(this.getRepo());
         // git add:
         Path relativizedFilePath = this.localPath.relativize(filePath);
         String pathToAdd = relativizedFilePath.toString();
@@ -250,7 +251,7 @@ public class RepoHelper {
      * @throws GitAPIException if the `git add` call fails.
      */
     public void addFilePathsTest(ArrayList<Path> filePaths) throws GitAPIException {
-        Git git = new Git(this.repo);
+        Git git = new Git(this.getRepo());
         // git add:
         AddCommand adder = git.add();
         for (Path filePath : filePaths) {
@@ -275,7 +276,7 @@ public class RepoHelper {
      * @throws GitAPIException if the `git add` call fails.
      */
     public void addFilePaths(ArrayList<Path> filePaths) throws GitAPIException {
-        Git git = new Git(this.repo);
+        Git git = new Git(this.getRepo());
         // git add:
         AddCommand adder = git.add();
         for (Path filePath : filePaths) {
@@ -297,7 +298,7 @@ public class RepoHelper {
      * @param filePath the file to check out
      */
     public void checkoutFile(Path filePath) throws GitAPIException {
-        Git git = new Git(this.repo);
+        Git git = new Git(this.getRepo());
         git.checkout().addPath(filePath.toString()).call();
         git.close();
     }
@@ -307,7 +308,7 @@ public class RepoHelper {
      * @param filePaths the files to check out
      */
     public void checkoutFiles(List<Path> filePaths) throws GitAPIException {
-        Git git = new Git(this.repo);
+        Git git = new Git(this.getRepo());
         CheckoutCommand checkout = git.checkout();
         for (Path filePath : filePaths)
             checkout.addPath(filePath.toString());
@@ -321,7 +322,7 @@ public class RepoHelper {
      * @param startPoint the tree-ish point to checkout the file from
      */
     public void checkoutFile(String filePath, String startPoint) throws GitAPIException {
-        Git git = new Git(this.repo);
+        Git git = new Git(this.getRepo());
         git.checkout().setStartPoint(startPoint).addPath(filePath).call();
         git.close();
     }
@@ -334,7 +335,7 @@ public class RepoHelper {
      * @return the result of the checkout
      */
     public CheckoutResult checkoutFiles(List<String> filePaths, String startPoint) throws GitAPIException {
-        Git git = new Git(this.repo);
+        Git git = new Git(this.getRepo());
         CheckoutCommand checkout = git.checkout().setStartPoint(startPoint);
         for (String filePath : filePaths)
             checkout.addPath(filePath);
@@ -349,7 +350,7 @@ public class RepoHelper {
      * @throws GitAPIException if the `git rm` call fails.
      */
     public void removeFilePath(Path filePath) throws GitAPIException {
-        Git git = new Git(this.repo);
+        Git git = new Git(this.getRepo());
         // git rm:
         git.rm()
                 .addFilepattern(filePath.toString())
@@ -364,7 +365,7 @@ public class RepoHelper {
      * @throws GitAPIException if the `git rm` call fails.
      */
     public void removeFilePaths(ArrayList<Path> filePaths) throws GitAPIException {
-        Git git = new Git(this.repo);
+        Git git = new Git(this.getRepo());
         // git rm:
         RmCommand remover = git.rm();
         for (Path filePath : filePaths) {
@@ -381,7 +382,7 @@ public class RepoHelper {
      * @return a list of the remote URLs associated with this repository
      */
     public List<String> getLinkedRemoteRepoURLs() {
-        Config storedConfig = this.repo.getConfig();
+        Config storedConfig = this.getRepo().getConfig();
         Set<String> remotes = storedConfig.getSubsections("remote");
         ArrayList<String> urls = new ArrayList<>(remotes.size());
         for (String remote : remotes) {
@@ -439,7 +440,7 @@ public class RepoHelper {
         logger.info("Attempting commit");
         if (!exists()) throw new MissingRepoException();
 
-        Git git = new Git(this.repo);
+        Git git = new Git(this.getRepo());
         // git commit:
         git.commit()
                 .setMessage(commitMessage)
@@ -458,7 +459,7 @@ public class RepoHelper {
         if (!exists()) throw new MissingRepoException();
 
 
-        Git git = new Git(repo);
+        Git git = new Git(getRepo());
         git.commit().setMessage(message).setAll(true).call();
         git.close();
 
@@ -483,7 +484,7 @@ public class RepoHelper {
         if (remote.equals("cancel"))
             throw new InvalidRemoteException("No remote selected.");
 
-        Git git = new Git(this.repo);
+        Git git = new Git(this.getRepo());
         PushCommand push = git.push().setRemote(remote).add(branchToPush.getRefPathString());
 
         ProgressMonitor progress = new SimpleProgressMonitor();
@@ -524,7 +525,7 @@ public class RepoHelper {
      * @param remote String
      */
     private void setUpstreamBranch(BranchHelper branch, String remote) throws IOException {
-        Git git = new Git(this.repo);
+        Git git = new Git(this.getRepo());
         StoredConfig config = git.getRepository().getConfig();
         String branchName = branch.getRefName();
         config.setString(ConfigConstants.CONFIG_BRANCH_SECTION, branchName,  ConfigConstants.CONFIG_KEY_REMOTE, remote);
@@ -537,7 +538,7 @@ public class RepoHelper {
      * @return String remote
      */
     private String getRemote() {
-        Git git = new Git(this.repo);
+        Git git = new Git(this.getRepo());
         StoredConfig config = git.getRepository().getConfig();
         Set<String> remotes = config.getSubsections("remote");
         if (remotes.size() == 1) {
@@ -563,7 +564,7 @@ public class RepoHelper {
             throw new InvalidRemoteException("No remote selected.");
 
 
-        Git git = new Git(this.repo);
+        Git git = new Git(this.getRepo());
         PushCommand push = git.push().setRemote(remote);
 
         ArrayList<LocalBranchHelper> untrackedLocalBranches = new ArrayList<>();
@@ -571,7 +572,7 @@ public class RepoHelper {
 
         // Gets all local branches with remote branches and adds them to the push call
         for(LocalBranchHelper branch : this.branchModel.getLocalBranchesTyped()) {
-            if(BranchTrackingStatus.of(this.repo, branch.getRefName()) != null) {
+            if(BranchTrackingStatus.of(this.getRepo(), branch.getRefName()) != null) {
                 push.add(branch.getRefPathString());
             }else {
                 untrackedLocalBranches.add(branch);
@@ -634,7 +635,7 @@ public class RepoHelper {
         logger.info("Attempting push tags");
         if (!exists()) throw new MissingRepoException();
         if (!hasRemote()) throw new InvalidRemoteException("No remote repository");
-        Git git = new Git(this.repo);
+        Git git = new Git(this.getRepo());
         PushCommand push = git.push();
         myWrapAuthentication(push);
         ProgressMonitor progress = new SimpleProgressMonitor();
@@ -677,8 +678,8 @@ public class RepoHelper {
         assert(!Platform.isFxApplicationThread());
         logger.info("Attempting fetch");
         if (!exists()) throw new MissingRepoException();
-        Git git = new Git(this.repo);
-        StoredConfig config = this.repo.getConfig();
+        Git git = new Git(this.getRepo());
+        StoredConfig config = this.getRepo().getConfig();
 
         if(prune){
             config.setString("fetch", null, "prune", "true");
@@ -735,12 +736,12 @@ public class RepoHelper {
         // Get the remote branch the current branch is tracking
         // and merge the current branch with the just fetched remote branch
         MergeResult result;
-        Config config = repo.getConfig();
+        Config config = getRepo().getConfig();
         // Check if this branch is being tracked locally
-        if (config.getSubsections("branch").contains(this.repo.getBranch())) {
-            String remote = config.getString("branch", this.repo.getBranch(), "remote")+"/";
-            String remote_tracking = config.getString("branch", this.repo.getBranch(), "merge");
-            result = branchModel.mergeWithBranch(this.branchModel.getBranchByName(BranchModel.BranchType.REMOTE, remote+this.repo.shortenRefName(remote_tracking)));
+        if (config.getSubsections("branch").contains(this.getRepo().getBranch())) {
+            String remote = config.getString("branch", this.getRepo().getBranch(), "remote")+"/";
+            String remote_tracking = config.getString("branch", this.getRepo().getBranch(), "merge");
+            result = branchModel.mergeWithBranch(this.branchModel.getBranchByName(BranchModel.BranchType.REMOTE, remote+this.getRepo().shortenRefName(remote_tracking)));
         } else {
             throw new NoTrackingException();
         }
@@ -782,7 +783,7 @@ public class RepoHelper {
     void revert(List<AnyObjectId> commits) throws MissingRepoException, GitAPIException {
         logger.info("Attempting reverts");
         if (!exists()) throw new MissingRepoException();
-        Git git = new Git(this.repo);
+        Git git = new Git(this.getRepo());
         RevertCommand revertCommand = git.revert();
         for (AnyObjectId commit : commits)
             revertCommand.include(commit);
@@ -808,7 +809,7 @@ public class RepoHelper {
     public void revert(CommitHelper helper) throws MissingRepoException, GitAPIException {
         logger.info("Attempting revert");
         if (!exists()) throw new MissingRepoException();
-        Git git = new Git(this.repo);
+        Git git = new Git(this.getRepo());
         // git revert:
         git.revert().include(helper.getObjectId()).call();
         git.close();
@@ -837,7 +838,7 @@ public class RepoHelper {
     void reset(Path path) throws MissingRepoException, GitAPIException {
         logger.info("Attempting reset file");
         if (!exists()) throw new MissingRepoException();
-        Git git = new Git(this.repo);
+        Git git = new Git(this.getRepo());
         git.reset().addPath(this.localPath.relativize(path).toString()).call();
         git.close();
     }
@@ -852,7 +853,7 @@ public class RepoHelper {
     void reset(List<Path> paths) throws MissingRepoException, GitAPIException {
         logger.info("Attempting reset files");
         if (!exists()) throw new MissingRepoException();
-        Git git = new Git(this.repo);
+        Git git = new Git(this.getRepo());
         ResetCommand resetCommand = git.reset();
         paths.forEach(path -> resetCommand.addPath(this.localPath.relativize(path).toString()));
         resetCommand.call();
@@ -881,7 +882,7 @@ public class RepoHelper {
     public void reset(String ref, ResetCommand.ResetType mode) throws MissingRepoException, GitAPIException {
         logger.info("Attempting reset");
         if (!exists()) throw new MissingRepoException();
-        Git git = new Git(this.repo);
+        Git git = new Git(this.getRepo());
         git.reset().setRef(ref).setMode(mode).call();
         git.close();
     }
@@ -898,7 +899,7 @@ public class RepoHelper {
      */
     public void stashSave(boolean includeUntracked) throws GitAPIException, NoFilesToStashException {
         logger.info("Attempting stash save");
-        Git git = new Git(this.repo);
+        Git git = new Git(this.getRepo());
         RevCommit stash = git.stashCreate().setIncludeUntracked(includeUntracked).call();
         if (stash == null) throw new NoFilesToStashException();
     }
@@ -913,7 +914,7 @@ public class RepoHelper {
      */
     public void stashSave(boolean includeUntracked, String wdMessage, String indexMessage) throws GitAPIException, NoFilesToStashException {
         logger.info("Attempting stash save with message");
-        Git git = new Git(this.repo);
+        Git git = new Git(this.getRepo());
         RevCommit stash = git.stashCreate().setIncludeUntracked(includeUntracked).setWorkingDirectoryMessage(wdMessage)
                 .setIndexMessage(indexMessage).call();
         if (stash == null) throw new NoFilesToStashException();
@@ -926,7 +927,7 @@ public class RepoHelper {
      */
     public List<CommitHelper> stashList() throws GitAPIException, IOException {
         logger.info("Attempting stash list");
-        Git git = new Git(this.repo);
+        Git git = new Git(this.getRepo());
         List<CommitHelper> stashCommitList = new ArrayList<>();
 
         for (RevCommit commit : git.stashList().call()) {
@@ -944,7 +945,7 @@ public class RepoHelper {
      */
     public void stashApply(String stashRef, boolean force) throws GitAPIException {
         logger.info("Attempting stash apply");
-        Git git = new Git(this.repo);
+        Git git = new Git(this.getRepo());
         git.stashApply().setStashRef(stashRef).ignoreRepositoryState(force).call();
     }
 
@@ -959,7 +960,7 @@ public class RepoHelper {
      */
     void stashApply(String stashRef, boolean force, boolean applyIndex, boolean applyUntracked) throws GitAPIException {
         logger.info("Attempting stash apply with params");
-        Git git = new Git(this.repo);
+        Git git = new Git(this.getRepo());
         StashApplyCommand stashApply = git.stashApply().setStashRef(stashRef).ignoreRepositoryState(force);
         stashApply.setApplyIndex(applyIndex);
         stashApply.setApplyUntracked(applyUntracked);
@@ -973,7 +974,7 @@ public class RepoHelper {
      */
     public ObjectId stashClear() throws GitAPIException{
         logger.info("Attempting stash drop all");
-        Git git = new Git(this.repo);
+        Git git = new Git(this.getRepo());
         return git.stashDrop().setAll(true).call();
     }
 
@@ -985,42 +986,24 @@ public class RepoHelper {
      */
     public ObjectId stashDrop(int stashRef) throws GitAPIException{
         logger.info("Attempting stash drop");
-        Git git = new Git(this.repo);
+        Git git = new Git(this.getRepo());
         return git.stashDrop().setStashRef(stashRef).call();
     }
 
 
     /**
-     * Checks if the remote tracking head refers to the same commit
-     * as the local head for the current branch
-     * @return true if there are unmerged commits in the current branch, else false
-     */
-    public boolean checkUnmergedCommits() {
-        Config config = this.repo.getConfig();
-        String remoteBranch = config.getString("branch", this.branchModel.getCurrentBranch().getRefName(), "merge");
-        String remote = config.getString("branch", this.branchModel.getCurrentBranch().getRefName(), "remote");
-        if (remoteBranch == null || remote == null) return false;
-        remoteBranch = remote + "/" + Repository.shortenRefName(remoteBranch);
-        try {
-            if (this.branchModel.getBranchByName(BranchModel.BranchType.REMOTE, remoteBranch) != null
-                    && this.branchModel.getCurrentBranch() != null) {
-                return !this.branchModel.getBranchByName(BranchModel.BranchType.REMOTE, remoteBranch).getHeadId()
-                        .equals(this.branchModel.getCurrentBranch().getHeadId());
-            }else return false;
-        } catch (IOException e) {
-            return false;
-        }
-    }
-
-    public void closeRepo() {
-        this.repo.close();
-    }
-
-    /**
      * @return the JGit repository of this RepoHelper
      */
     public Repository getRepo() {
-        return this.repo;
+        return this.repo.get();
+    }
+
+    // The repository should only be set once, hence the exception
+    protected void setRepo(Repository repo) {
+        boolean nullAsExpected = this.repo.compareAndSet(null, repo);
+        if (!nullAsExpected) {
+            throw new IllegalStateException("repo variable in RepoHelper should not have been set a second time");
+        }
     }
 
     /**
@@ -1091,7 +1074,7 @@ public class RepoHelper {
             return commitIdMap.get(idOrRefString);
         } else {
             try {
-                return getCommit(repo.resolve(idOrRefString));
+                return getCommit(getRepo().resolve(idOrRefString));
             } catch (IOException e) {
                 logger.error("IOException during getCommit");
                 logger.debug(e.getStackTrace());
@@ -1289,7 +1272,7 @@ public class RepoHelper {
      */
     private PlotCommitList<PlotLane> parseAllRawLocalCommits() throws IOException, GitAPIException {
         Set<ObjectId> allStarts = new HashSet<ObjectId>();
-        allStarts.add(repo.resolve("HEAD"));
+        allStarts.add(getRepo().resolve("HEAD"));
         List<LocalBranchHelper> branches = this.branchModel.getLocalBranchesTyped();
         for (BranchHelper branch : branches) {
             ObjectId branchId = branch.getHeadId();
@@ -1365,7 +1348,7 @@ public class RepoHelper {
      * @throws IOException
      */
     private PlotCommitList<PlotLane> parseRawCommitsMultipleStarts(Set<ObjectId> allStarts) throws IOException {
-        PlotWalk w = new PlotWalk(repo);
+        PlotWalk w = new PlotWalk(getRepo());
         Set<RevCommit> allStartCommits = new HashSet<>();
         for (ObjectId start : allStarts) {
             allStartCommits.add(w.parseCommit(start));
@@ -1394,7 +1377,7 @@ public class RepoHelper {
     private PlotCommitList<PlotLane> parseRawCommits(List<ObjectId> startPoints, List<ObjectId> stopPoints) throws IOException {
         PlotCommitList<PlotLane> plotCommitList = new PlotCommitList<>();
 
-        PlotWalk w = new PlotWalk(repo);
+        PlotWalk w = new PlotWalk(getRepo());
         for (ObjectId stopId : stopPoints) {
             w.markUninteresting(w.parseCommit(stopId));
         }
@@ -1438,7 +1421,7 @@ public class RepoHelper {
      * @throws IOException
      */
     public RevCommit parseRawCommit(ObjectId id) throws IOException {
-        RevWalk w = new RevWalk(repo);
+        RevWalk w = new RevWalk(getRepo());
         w.dispose();
         return w.parseCommit(id);
     }
@@ -1458,10 +1441,10 @@ public class RepoHelper {
         }
 
         // Set up the walks
-        RevWalk walk = new RevWalk(this.repo);
-        RevCommit head = walk.parseCommit(this.repo.resolve(Constants.HEAD));
+        RevWalk walk = new RevWalk(this.getRepo());
+        RevCommit head = walk.parseCommit(this.getRepo().resolve(Constants.HEAD));
 
-        TreeWalk treeWalk = new TreeWalk(this.repo);
+        TreeWalk treeWalk = new TreeWalk(this.getRepo());
         treeWalk.addTree(head.getTree());
         treeWalk.setRecursive(false);
 
@@ -1532,8 +1515,8 @@ public class RepoHelper {
      * @return path to the global ignore file
      */
     public Path getGlobalGitIgnorePath() {
-        Config repoConfig = this.repo.getConfig();
-        FS fs = this.repo.getFS();
+        Config repoConfig = this.getRepo().getConfig();
+        FS fs = this.getRepo().getFS();
 
         String globalIgnorePath = repoConfig.get(CoreConfig.KEY).getExcludesFile();
         if (globalIgnorePath != null) {
@@ -1552,9 +1535,9 @@ public class RepoHelper {
      * @return path to this repositories info/exclude file
      */
     public Path getInfoExcludePath() {
-        FS fs = this.repo.getFS();
+        FS fs = this.getRepo().getFS();
 
-        File repoExclude = fs.resolve(this.repo.getDirectory(), Constants.INFO_EXCLUDE);
+        File repoExclude = fs.resolve(this.getRepo().getDirectory(), Constants.INFO_EXCLUDE);
         return repoExclude.exists() ? repoExclude.toPath() : null;
     }
 
@@ -1597,8 +1580,8 @@ public class RepoHelper {
         if(includeTags) return new Git(repo).lsRemote().setHeads(true).setTags(true).setCredentialsProvider(ownerAuth).call();
         else return new Git(repo).lsRemote().setHeads(true).setCredentialsProvider(ownerAuth).call();*/
 
-        if (includeTags) return new Git(repo).lsRemote().setHeads(true).setTags(includeTags).call();
-        else return new Git(repo).lsRemote().setHeads(true).call();
+        if (includeTags) return new Git(getRepo()).lsRemote().setHeads(true).setTags(includeTags).call();
+        else return new Git(getRepo()).lsRemote().setHeads(true).call();
     }
 
     public List<RefHelper> getRefsForCommit(CommitHelper helper) {

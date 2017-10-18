@@ -101,7 +101,7 @@ public class AddDirTest {
         paths.add(filePathNew);
         helperAdd.addFilePathsTest(paths);
 
-        Git git = new Git(helperAdd.repo);
+        Git git = new Git(helperAdd.getRepo());
 
         // Check that the file was added.
         System.out.println(git.status().call().getAdded());

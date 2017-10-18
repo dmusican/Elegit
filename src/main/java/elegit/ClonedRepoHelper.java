@@ -43,7 +43,7 @@ public class ClonedRepoHelper extends RepoHelper {
         Git cloneCall = cloneCommand.call();
 
         cloneCall.close();
-        repo = cloneCall.getRepository();
+        setRepo(cloneCall.getRepository());
         setup();
     }
 

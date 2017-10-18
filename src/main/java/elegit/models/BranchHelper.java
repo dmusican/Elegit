@@ -96,6 +96,6 @@ public abstract class BranchHelper extends RefHelper {
 
     // TODO: Verify jgit thread safety
     public BranchTrackingStatus getStatus() throws IOException {
-        return BranchTrackingStatus.of(this.repoHelper.repo, this.refName);
+        return BranchTrackingStatus.of(this.repoHelper.getRepo(), this.refName);
     }
 }

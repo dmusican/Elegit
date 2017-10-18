@@ -235,7 +235,7 @@ public class BranchModel {
      * @throws GitAPIException
      */
     public RemoteRefUpdate.Status deleteRemoteBranch(RemoteBranchHelper branchHelper) throws GitAPIException, IOException {
-        PushCommand pushCommand = new Git(this.repoHelper.repo).push();
+        PushCommand pushCommand = new Git(this.repoHelper.getRepo()).push();
         // We're deleting the branch on a remote, so there it shows up as refs/heads/<branchname>
         // instead of what it shows up on local: refs/<remote>/<branchname>, so we manually enter
         // this thing in here
@@ -298,18 +298,18 @@ public class BranchModel {
     }
 
     public String getCurrentRemoteBranch() throws IOException {
-        if (BranchTrackingStatus.of(this.repoHelper.repo, this.currentBranch.getRefName())!=null) {
+        if (BranchTrackingStatus.of(this.repoHelper.getRepo(), this.currentBranch.getRefName())!=null) {
             return Repository.shortenRefName(
-                    BranchTrackingStatus.of(this.repoHelper.repo, this.currentBranch.getRefName())
+                    BranchTrackingStatus.of(this.repoHelper.getRepo(), this.currentBranch.getRefName())
                             .getRemoteTrackingBranch());
         }
         return null;
     }
 
     public String getCurrentRemoteAbbrevBranch() throws IOException {
-        if (BranchTrackingStatus.of(this.repoHelper.repo, this.currentBranch.getRefName())!=null) {
+        if (BranchTrackingStatus.of(this.repoHelper.getRepo(), this.currentBranch.getRefName())!=null) {
             String name =  Repository.shortenRefName(
-                    BranchTrackingStatus.of(this.repoHelper.repo, this.currentBranch.getRefName())
+                    BranchTrackingStatus.of(this.repoHelper.getRepo(), this.currentBranch.getRefName())
                             .getRemoteTrackingBranch());
             if (name.length() > CellLabel.MAX_CHAR_PER_LABEL) {
                 name = name.substring(0,24)+"...";
@@ -443,8 +443,8 @@ public class BranchModel {
             return false;
         try {
             // If the branch is the local's remote tracking branch, it is current
-            BranchTrackingStatus status = BranchTrackingStatus.of(this.repoHelper.repo, this.currentBranch.getRefName());
-            if (branch instanceof RemoteBranchHelper && status != null && this.repoHelper.repo.shortenRefName(
+            BranchTrackingStatus status = BranchTrackingStatus.of(this.repoHelper.getRepo(), this.currentBranch.getRefName());
+            if (branch instanceof RemoteBranchHelper && status != null && this.repoHelper.getRepo().shortenRefName(
                     status.getRemoteTrackingBranch()).equals(branch.getRefName())) {
                 return true;
             }

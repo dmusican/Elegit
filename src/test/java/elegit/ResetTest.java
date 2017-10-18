@@ -89,7 +89,7 @@ public class ResetTest {
         helper.obtainRepository(remoteURL);
 
 
-        Git git = new Git(helper.repo);
+        Git git = new Git(helper.getRepo());
 
         /* ********************* FILE RESET SECTION ********************* */
         // Single file reset
