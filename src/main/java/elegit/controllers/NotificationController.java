@@ -2,6 +2,7 @@ package elegit.controllers;
 
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
+import elegit.Main;
 import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyDoubleProperty;
 import javafx.event.EventHandler;
@@ -130,6 +131,7 @@ public class NotificationController {
      * Toggles between the basic view of one notification to the extended list view
      */
     synchronized void toggleNotificationList() {
+        Main.assertFxThread();
         this.notificationListPane.setVisible(!this.notificationListPane.isVisible());
         this.notificationListPane.setMouseTransparent(!this.notificationListPane.isMouseTransparent());
         this.latestNotification.setVisible(!this.latestNotification.isVisible());

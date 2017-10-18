@@ -118,7 +118,6 @@ public abstract class FileStructurePanelView extends Region{
 
     /**
      * Set the SessionModel for this view
-     * @param sessionModel the model
      */
     public void setSessionModel() {
         this.sessionModel = SessionModel.getSessionModel();

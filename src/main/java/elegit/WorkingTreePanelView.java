@@ -43,6 +43,7 @@ public class WorkingTreePanelView extends FileStructurePanelView{
 
     @Override
     public void init(){
+        Main.assertFxThread();
         this.displayedFiles = new LinkedList<>();
         isAnyFileSelectedProperty = new SimpleBooleanProperty(false);
 

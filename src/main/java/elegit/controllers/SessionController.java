@@ -148,6 +148,8 @@ public class SessionController {
      * This method is automatically called by JavaFX.
      */
     public synchronized void initialize() {
+        Main.assertFxThread();
+
         // Gives other controllers acccess to this one
         CommitTreeController.sessionController = this;
         menuController.setSessionController(this);
@@ -170,6 +172,7 @@ public class SessionController {
         this.setButtonIconsAndTooltips();
         this.setButtonsDisabled(true);
         this.initWorkingTreePanelTab();
+        ////// got this far. Below is where it all changes; it's model work
         // SLOW
         this.theModel.loadRecentRepoHelpersFromStoredPathStrings();
         this.loadMostRecentRepoHelper();
@@ -453,6 +456,7 @@ public class SessionController {
      * Initializes the workingTreePanelTab
      */
     private void initWorkingTreePanelTab() {
+        Main.assertFxThread();
         workingTreePanelTab.getTabPane().getSelectionModel().select(workingTreePanelTab);
     }
 
@@ -470,8 +474,9 @@ public class SessionController {
      * Sets up the layout parameters for things that cannot be set in FXML
      */
     private void initializeLayoutParameters(){
+        Main.assertFxThread();
+
         // Set minimum/maximum sizes for buttons
-        //openRepoDirButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         commitButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         addButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         checkoutFileButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
@@ -536,6 +541,7 @@ public class SessionController {
      * Adds graphics and tooltips to the buttons
      */
     private void setButtonIconsAndTooltips() {
+        Main.assertFxThread();
         this.commitButton.setTooltip(new Tooltip(
                 "Check in selected files to local repository"
         ));
@@ -623,6 +629,7 @@ public class SessionController {
      * @param disable a boolean for whether or not to disable the buttons.
      */
     public void setButtonsDisabled(boolean disable) {
+        Main.assertFxThread();
         dropdownController.setButtonsDisabled(disable);
         tagButton.setDisable(disable);
         commitButton.setDisable(disable);
@@ -1082,6 +1089,7 @@ public class SessionController {
      *
      */
     public void handleTagButton() {
+        Main.assertFxThread();
         logger.info("Clicked tag button");
         try {
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
