@@ -444,6 +444,7 @@ public class RepoHelper {
         Git git = new Git(this.getRepo());
         PushCommand push = git.push().setRemote(remote).add(branchToPush.getRefPathString());
 
+        // TODO: Make this a real progress monitor
         ProgressMonitor progress = new SimpleProgressMonitor();
         push.setProgressMonitor(progress);
 
@@ -456,7 +457,6 @@ public class RepoHelper {
         }
 
         return push;
-        //pushCurrentBranch(git, push);
     }
 
     public void pushCurrentBranch(PushCommand push) throws GitAPIException, PushToAheadRemoteError, IOException {
@@ -555,7 +555,6 @@ public class RepoHelper {
         push.setProgressMonitor(progress);
 
         return push;
-        //pushAll(git, push);
     }
 
     public void pushAll(PushCommand push) throws GitAPIException, PushToAheadRemoteError, IOException {
@@ -751,7 +750,7 @@ public class RepoHelper {
         try {
             this.localCommits.set(parseAllLocalCommits());
         } catch (IOException e) {
-            // This shouldn't occur once we have the repo up and running.
+            throw new ExceptionAdapter(e);
         }
     }
 
@@ -775,7 +774,7 @@ public class RepoHelper {
         try {
             this.localCommits.set(parseAllLocalCommits());
         } catch (IOException e) {
-            // This shouldn't occur once we have the repo up and running.
+            throw new ExceptionAdapter(e);
         }
 
 
@@ -907,24 +906,6 @@ public class RepoHelper {
     }
 
     /**
-     * Applies the given stash to the repository, with special instructions for
-     * the index and untracked files
-     *
-     * @param stashRef the string that corresponds to the stash to apply
-     * @param force whether or not to force apply
-     * @param applyIndex true if the command should restore the index state
-     * @param applyUntracked true if the command should restore the untracked files
-     */
-    void stashApply(String stashRef, boolean force, boolean applyIndex, boolean applyUntracked) throws GitAPIException {
-        logger.info("Attempting stash apply with params");
-        Git git = new Git(this.getRepo());
-        StashApplyCommand stashApply = git.stashApply().setStashRef(stashRef).ignoreRepositoryState(force);
-        stashApply.setApplyIndex(applyIndex);
-        stashApply.setApplyUntracked(applyUntracked);
-        stashApply.call();
-    }
-
-    /**
      * Deletes all the stashed commits
      *
      * @return the value of the stash reference after the drop occurs
@@ -991,7 +972,7 @@ public class RepoHelper {
         List<CommitHelper> allCommits = new ArrayList<>();
         allCommits.addAll(getLocalCommits());
         allCommits.addAll(getRemoteCommits());
-        return allCommits;
+        return Collections.unmodifiableList(allCommits);
     }
 
     /**
@@ -1035,7 +1016,7 @@ public class RepoHelper {
             } catch (IOException e) {
                 logger.error("IOException during getCommit");
                 logger.debug(e.getStackTrace());
-                return null;
+                throw new ExceptionAdapter(e);
             }
         }
     }
@@ -1151,7 +1132,7 @@ public class RepoHelper {
                 }
             }
         }
-        return new HashSet<>(commitHelperList);
+        return Collections.unmodifiableSet(new HashSet<>(commitHelperList));
     }
 
     /**
@@ -1251,36 +1232,6 @@ public class RepoHelper {
     }
 
     /**
-     * Utilizes JGit to walk through the repo and create raw commit objects - more
-     * specifically, JGit objects of (super)type RevCommit. This is an expensive
-     * operation and should only be called when necessary
-     *
-     * @param startingID the starting point to parse from
-     * @param stopPoints the ids at which parsing should stop
-     * @return a list of raw commits starting from the given id
-     * @throws IOException
-     */
-    private PlotCommitList<PlotLane> parseRawCommits(ObjectId startingID, List<ObjectId> stopPoints) throws IOException {
-        List<ObjectId> asList = new ArrayList<>(1);
-        asList.add(startingID);
-        return parseRawCommits(asList, stopPoints);
-    }
-
-    /**
-     * Utilizes JGit to parse a commit with the given ID and returns it in
-     * raw format
-     *
-     * @param id the ID of the commit
-     * @return the raw commit corresponding to the given ID
-     * @throws IOException
-     */
-    public RevCommit parseRawCommit(ObjectId id) throws IOException {
-        RevWalk w = new RevWalk(getRepo());
-        w.dispose();
-        return w.parseCommit(id);
-    }
-
-    /**
      * Parses all relevant git ignore files for ignore patterns, and then checks all
      * tracked files and directories for whether they match an ignore pattern.
      *
@@ -1336,7 +1287,7 @@ public class RepoHelper {
             boolean isIgnored = (result == IgnoreNode.MatchResult.IGNORED) || (isParentIgnored && result == IgnoreNode.MatchResult.CHECK_PARENT);
             if (isIgnored) trackedIgnoredFiles.add(pathString);
         }
-        return trackedIgnoredFiles;
+        return Collections.unmodifiableCollection(trackedIgnoredFiles);
     }
 
     /**
@@ -1359,7 +1310,7 @@ public class RepoHelper {
         Files.walkFileTree(this.localPath, finder);
         gitIgnorePaths.addAll(finder.getMatchedPaths());
 
-        return gitIgnorePaths;
+        return Collections.unmodifiableList(gitIgnorePaths);
     }
 
     /**
@@ -1434,8 +1385,10 @@ public class RepoHelper {
         if(includeTags) return new Git(repo).lsRemote().setHeads(true).setTags(true).setCredentialsProvider(ownerAuth).call();
         else return new Git(repo).lsRemote().setHeads(true).setCredentialsProvider(ownerAuth).call();*/
 
-        if (includeTags) return new Git(getRepo()).lsRemote().setHeads(true).setTags(includeTags).call();
-        else return new Git(getRepo()).lsRemote().setHeads(true).call();
+        if (includeTags)
+            return Collections.unmodifiableCollection(new Git(getRepo()).lsRemote().setHeads(true).setTags(includeTags).call());
+        else
+            return Collections.unmodifiableCollection(new Git(getRepo()).lsRemote().setHeads(true).call());
     }
 
     public List<RefHelper> getRefsForCommit(CommitHelper helper) {
@@ -1445,7 +1398,7 @@ public class RepoHelper {
         Map<CommitHelper, List<TagHelper>> tagMap = this.tagModel.getTagCommitMap();
         if (tagMap.containsKey(helper))
             helpers.addAll(tagMap.get(helper));
-        return helpers;
+        return Collections.unmodifiableList(helpers);
     }
 
     public BranchModel getBranchModel() {
