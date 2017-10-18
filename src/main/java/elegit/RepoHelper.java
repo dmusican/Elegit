@@ -45,10 +45,9 @@ public class RepoHelper {
     private final AtomicReference<Repository> repo = new AtomicReference<>();
     private final Path localPath;
     private final UserInfo userInfo;
+    private final SshSessionFactory sshSessionFactory;
 
-    protected SshSessionFactory sshSessionFactory;
-
-    private List<CommitHelper> localCommits;
+    private final AtomicReference<List<CommitHelper>> localCommits = new AtomicReference<>();
     private List<CommitHelper> remoteCommits;
 
     private Map<String, CommitHelper> commitIdMap;
@@ -78,7 +77,7 @@ public class RepoHelper {
         this.ownerAuth = ownerAuth;
         this.password = null;
         this.userInfo = null;
-        setupSshSessionFactory();
+        sshSessionFactory = setupSshSessionFactory();
     }
 
     public RepoHelper(Path directoryPath, UserInfo userInfo)
@@ -87,7 +86,7 @@ public class RepoHelper {
         this.ownerAuth = null;
         this.password = null;
         this.userInfo = userInfo;
-        setupSshSessionFactory();
+        sshSessionFactory = setupSshSessionFactory();
     }
 
     public RepoHelper(Path directoryPath, String sshPassword, UserInfo userInfo)
@@ -96,25 +95,25 @@ public class RepoHelper {
         this.ownerAuth = null;
         this.password = sshPassword;
         this.userInfo = userInfo;
-        setupSshSessionFactory();
+        sshSessionFactory = setupSshSessionFactory();
     }
 
     public RepoHelper(String sshPassword) {
         this.localPath = null;
         this.password = sshPassword;
         this.userInfo = null;
-        setupSshSessionFactory();
+        sshSessionFactory = setupSshSessionFactory();
     }
 
     public RepoHelper(UserInfo userInfo) {
         this.localPath = null;
         this.userInfo = userInfo;
         this.password = null;
-        setupSshSessionFactory();
+        sshSessionFactory = setupSshSessionFactory();
     }
 
-    private void setupSshSessionFactory() {
-        sshSessionFactory = new JschConfigSessionFactory() {
+    private SshSessionFactory setupSshSessionFactory() {
+        return new JschConfigSessionFactory() {
             @Override
             protected void configure(OpenSshConfig.Host host, Session session) {
                 session.setPassword(password);
@@ -172,7 +171,7 @@ public class RepoHelper {
 
         this.branchModel = new BranchModel(this);
 
-        this.localCommits = this.parseAllLocalCommits();
+        this.localCommits.set(this.parseAllLocalCommits());
         this.remoteCommits = this.parseAllRemoteCommits();
 
         this.tagModel = new TagModel(this);
@@ -196,7 +195,7 @@ public class RepoHelper {
 
         branchModel.updateAllBranches();
         // Reparse commits
-        this.localCommits = this.parseAllLocalCommits();
+        this.localCommits.set(this.parseAllLocalCommits());
         this.remoteCommits = this.parseAllRemoteCommits();
 
         tagModel.updateTags();
@@ -439,7 +438,7 @@ public class RepoHelper {
 
         // Update the local commits
         try {
-            this.localCommits = parseAllLocalCommits();
+            this.localCommits.set(parseAllLocalCommits());
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -453,7 +452,7 @@ public class RepoHelper {
         git.commit().setMessage(message).setAll(true).call();
         git.close();
 
-        localCommits = parseAllLocalCommits();
+        localCommits.set(parseAllLocalCommits());
     }
 
     /**
@@ -737,7 +736,7 @@ public class RepoHelper {
         }
 
         try {
-            this.localCommits = parseAllLocalCommits();
+            this.localCommits.set(parseAllLocalCommits());
         } catch (IOException e) {
             // This shouldn't occur once we have the repo up and running.
         }
@@ -782,7 +781,7 @@ public class RepoHelper {
 
         // Update the local commits
         try {
-            this.localCommits = parseAllLocalCommits();
+            this.localCommits.set(parseAllLocalCommits());
         } catch (IOException e) {
             // This shouldn't occur once we have the repo up and running.
         }
@@ -806,7 +805,7 @@ public class RepoHelper {
 
         // Update the local commits
         try {
-            this.localCommits = parseAllLocalCommits();
+            this.localCommits.set(parseAllLocalCommits());
         } catch (IOException e) {
             // This shouldn't occur once we have the repo up and running.
         }
@@ -1007,7 +1006,7 @@ public class RepoHelper {
      * @return all local commits that have already been parsed
      */
     public List<CommitHelper> getLocalCommits() {
-        return this.localCommits;
+        return Collections.unmodifiableList(new ArrayList<>(this.localCommits.get()));
     }
 
     /**
@@ -1022,7 +1021,7 @@ public class RepoHelper {
      */
     public List<CommitHelper> getAllCommits () {
         List<CommitHelper> allCommits = new ArrayList<>();
-        allCommits.addAll(this.localCommits);
+        allCommits.addAll(getLocalCommits());
         allCommits.addAll(this.remoteCommits);
         return allCommits;
     }
@@ -1092,7 +1091,7 @@ public class RepoHelper {
      * @return the cell type, useful for drawing the tree
      */
     public Cell.CellType getCommitType(CommitHelper helper) {
-        if (this.localCommits.contains(helper))
+        if (this.getLocalCommits().contains(helper))
             if (this.remoteCommits.contains(helper))
                 return Cell.CellType.BOTH;
             else
