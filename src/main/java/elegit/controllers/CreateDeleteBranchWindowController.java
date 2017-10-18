@@ -1,10 +1,7 @@
 package elegit.controllers;
 
 import elegit.*;
-import elegit.models.BranchHelper;
-import elegit.models.BranchModel;
-import elegit.models.LocalBranchHelper;
-import elegit.models.RemoteBranchHelper;
+import elegit.models.*;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.concurrent.Task;

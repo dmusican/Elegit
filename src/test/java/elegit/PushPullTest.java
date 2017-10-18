@@ -1,5 +1,7 @@
 package elegit;
 
+import elegit.models.ClonedRepoHelper;
+import elegit.models.ExistingRepoHelper;
 import elegit.sshauthentication.ElegitUserInfoTest;
 import org.eclipse.jgit.api.PushCommand;
 import org.eclipse.jgit.lib.ObjectId;

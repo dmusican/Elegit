@@ -1,7 +1,7 @@
 package elegit.repofile;
 
 import elegit.Main;
-import elegit.RepoHelper;
+import elegit.models.RepoHelper;
 import javafx.scene.control.Button;
 import org.apache.http.annotation.ThreadSafe;
 

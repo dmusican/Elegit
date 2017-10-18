@@ -2,6 +2,7 @@ package elegit.controllers;
 
 import elegit.*;
 import elegit.exceptions.MissingRepoException;
+import elegit.models.RepoHelper;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.rxjavafx.schedulers.JavaFxScheduler;

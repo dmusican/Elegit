@@ -1,7 +1,7 @@
 package elegit.controllers;
 
 import elegit.models.CommitHelper;
-import elegit.RepoHelper;
+import elegit.models.RepoHelper;
 import elegit.SessionModel;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;

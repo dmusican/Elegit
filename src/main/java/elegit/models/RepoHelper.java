@@ -1,13 +1,16 @@
-package elegit;
+package elegit.models;
 
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 import com.jcraft.jsch.UserInfo;
+import elegit.PopUpWindows;
+import elegit.SimpleProgressMonitor;
 import elegit.exceptions.*;
-import elegit.models.*;
 import elegit.treefx.Cell;
 import javafx.application.Platform;
+import org.apache.http.annotation.GuardedBy;
+import org.apache.http.annotation.ThreadSafe;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jgit.api.*;
@@ -38,7 +41,9 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * The RepoHelper class, used for interacting with a repository.
  */
-// TODO: Make sure threadsafe
+@ThreadSafe
+// ... at least regarding shared memory.
+// TODO: The actual Git operations, regarding simultaneous access to a working directory, should be throught through.
 public class RepoHelper {
 
     private final String password;
@@ -130,7 +135,7 @@ public class RepoHelper {
         lsRemoteRepository, for example, that is used before we've actually created a RepoHelper object. Without a
         RepoHelper, there isn't an ownerAuth instance variable, so we don't have it yet.
      */
-    void wrapAuthentication(TransportCommand command) {
+    public void wrapAuthentication(TransportCommand command) {
         wrapAuthentication(command, null);
     }
 
@@ -138,7 +143,7 @@ public class RepoHelper {
         wrapAuthentication(command, this.ownerAuth.get());
     }
 
-    void wrapAuthentication(TransportCommand command, UsernamePasswordCredentialsProvider ownerAuth) {
+    public void wrapAuthentication(TransportCommand command, UsernamePasswordCredentialsProvider ownerAuth) {
 
         if (ownerAuth != null)
             command.setCredentialsProvider(ownerAuth);
@@ -791,7 +796,7 @@ public class RepoHelper {
      * @throws MissingRepoException
      * @throws GitAPIException
      */
-    void reset(Path path) throws MissingRepoException, GitAPIException {
+    public void reset(Path path) throws MissingRepoException, GitAPIException {
         logger.info("Attempting reset file");
         if (!exists()) throw new MissingRepoException();
         Git git = new Git(this.getRepo());
@@ -806,7 +811,7 @@ public class RepoHelper {
      * @throws MissingRepoException
      * @throws GitAPIException
      */
-    void reset(List<Path> paths) throws MissingRepoException, GitAPIException {
+    public void reset(List<Path> paths) throws MissingRepoException, GitAPIException {
         logger.info("Attempting reset files");
         if (!exists()) throw new MissingRepoException();
         Git git = new Git(this.getRepo());
@@ -814,18 +819,6 @@ public class RepoHelper {
         paths.forEach(path -> resetCommand.addPath(this.localPath.relativize(path).toString()));
         resetCommand.call();
         git.close();
-    }
-
-    // Commit resetting
-    /**
-     * Resets to the given commit using the default mode: mixed
-     *
-     * @param commit the commit to reset to
-     * @throws MissingRepoException
-     * @throws GitAPIException
-     */
-    void reset(CommitHelper commit) throws MissingRepoException, GitAPIException {
-        reset(commit.getName(), ResetCommand.ResetType.MIXED);
     }
 
     /**
@@ -1413,7 +1406,7 @@ public class RepoHelper {
      */
     private class GitIgnoreFinder extends SimpleFileVisitor<Path> {
         private final PathMatcher matcher;
-        private List<Path> matchedPaths;
+        @GuardedBy("this") private final List<Path> matchedPaths;
 
         GitIgnoreFinder() {
             matcher = FileSystems.getDefault().getPathMatcher("glob:" + Constants.DOT_GIT_IGNORE);
@@ -1421,7 +1414,7 @@ public class RepoHelper {
         }
 
         @Override
-        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
+        public synchronized FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
             Path name = file.getFileName();
 
             if (name != null && matcher.matches(name)) {
@@ -1438,7 +1431,7 @@ public class RepoHelper {
         }
 
         public Collection<Path> getMatchedPaths() {
-            return matchedPaths;
+            return Collections.unmodifiableCollection(matchedPaths);
         }
     }
 

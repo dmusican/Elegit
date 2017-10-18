@@ -1,5 +1,7 @@
 package elegit;
 
+import elegit.models.ClonedRepoHelper;
+import elegit.models.RepoHelper;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ResetCommand;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;

@@ -2,7 +2,7 @@ package elegit.repofile;
 
 import elegit.Main;
 import elegit.PopUpWindows;
-import elegit.RepoHelper;
+import elegit.models.RepoHelper;
 import javafx.application.Platform;
 import org.apache.http.annotation.ThreadSafe;
 import org.eclipse.jgit.api.errors.GitAPIException;

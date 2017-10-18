@@ -1,6 +1,6 @@
 package elegit;
 
-import elegit.models.CommitHelper;
+import elegit.models.ClonedRepoHelper;
 import elegit.treefx.Cell;
 import javafx.application.Application;
 import javafx.scene.Node;
@@ -11,10 +11,8 @@ import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.junit.Test;
 
 import java.io.File;
-import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;

@@ -3,6 +3,7 @@ package elegit;
 import elegit.controllers.SessionController;
 import elegit.models.BranchHelper;
 import elegit.models.BranchModel;
+import elegit.models.RepoHelper;
 import io.reactivex.Observable;
 import io.reactivex.schedulers.Schedulers;
 import javafx.application.Platform;

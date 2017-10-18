@@ -2,6 +2,8 @@ package elegit;
 
 import elegit.exceptions.CancelledAuthorizationException;
 import elegit.exceptions.NoRepoSelectedException;
+import elegit.models.ExistingRepoHelper;
+import elegit.models.RepoHelper;
 import elegit.sshauthentication.ElegitUserInfoGUI;
 import org.eclipse.jgit.api.errors.GitAPIException;
 

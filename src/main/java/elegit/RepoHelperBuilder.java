@@ -1,6 +1,7 @@
 package elegit;
 
 import elegit.models.AuthMethod;
+import elegit.models.RepoHelper;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;

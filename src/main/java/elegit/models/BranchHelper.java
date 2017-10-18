@@ -1,7 +1,5 @@
 package elegit.models;
 
-import elegit.RepoHelper;
-import elegit.models.RefHelper;
 import org.apache.http.annotation.ThreadSafe;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.BranchTrackingStatus;

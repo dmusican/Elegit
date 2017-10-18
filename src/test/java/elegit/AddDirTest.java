@@ -1,5 +1,6 @@
 package elegit;
 
+import elegit.models.ClonedRepoHelper;
 import elegit.models.LocalBranchHelper;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;

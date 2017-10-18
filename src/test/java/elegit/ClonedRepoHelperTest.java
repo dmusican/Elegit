@@ -1,5 +1,6 @@
 package elegit;
 
+import elegit.models.ClonedRepoHelper;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.junit.After;
 import org.junit.Before;

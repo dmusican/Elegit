@@ -1,4 +1,4 @@
-package elegit;
+package elegit.models;
 
 import com.jcraft.jsch.UserInfo;
 import elegit.exceptions.CancelledAuthorizationException;

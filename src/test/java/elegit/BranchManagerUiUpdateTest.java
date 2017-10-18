@@ -1,6 +1,7 @@
 package elegit;
 
 import elegit.models.BranchModel;
+import elegit.models.ClonedRepoHelper;
 import org.eclipse.jgit.api.CreateBranchCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.MergeCommand;

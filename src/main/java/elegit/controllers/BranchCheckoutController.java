@@ -6,6 +6,7 @@ import elegit.*;
 import elegit.models.BranchModel;
 import elegit.models.LocalBranchHelper;
 import elegit.models.RemoteBranchHelper;
+import elegit.models.RepoHelper;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;

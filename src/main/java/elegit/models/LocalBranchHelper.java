@@ -1,6 +1,5 @@
 package elegit.models;
 
-import elegit.RepoHelper;
 import org.apache.http.annotation.ThreadSafe;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;

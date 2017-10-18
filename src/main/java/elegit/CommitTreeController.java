@@ -4,6 +4,7 @@ import elegit.controllers.BusyWindow;
 import elegit.controllers.SessionController;
 import elegit.models.BranchHelper;
 import elegit.models.CommitHelper;
+import elegit.models.RepoHelper;
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
@@ -12,9 +13,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import elegit.treefx.Cell;
 import elegit.treefx.Highlighter;
 import elegit.treefx.TreeGraphModel;
-import org.eclipse.jgit.api.errors.GitAPIException;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;

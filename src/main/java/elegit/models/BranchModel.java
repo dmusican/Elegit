@@ -1,11 +1,6 @@
 package elegit.models;
 
-import elegit.RepoHelper;
 import elegit.exceptions.ExceptionAdapter;
-import elegit.models.BranchHelper;
-import elegit.models.CommitHelper;
-import elegit.models.LocalBranchHelper;
-import elegit.models.RemoteBranchHelper;
 import elegit.treefx.CellLabel;
 import org.apache.http.annotation.GuardedBy;
 import org.apache.logging.log4j.LogManager;

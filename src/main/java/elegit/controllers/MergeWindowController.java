@@ -3,6 +3,7 @@ package elegit.controllers;
 import elegit.*;
 import elegit.models.BranchModel;
 import elegit.models.LocalBranchHelper;
+import elegit.models.RepoHelper;
 import elegit.treefx.CellLabel;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;

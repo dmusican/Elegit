@@ -1,5 +1,6 @@
 package elegit;
 
+import elegit.models.RepoHelper;
 import javafx.concurrent.Task;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;

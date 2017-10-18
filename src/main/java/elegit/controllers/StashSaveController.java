@@ -1,6 +1,6 @@
 package elegit.controllers;
 
-import elegit.RepoHelper;
+import elegit.models.RepoHelper;
 import elegit.SessionModel;
 import elegit.exceptions.NoFilesToStashException;
 import javafx.fxml.FXML;

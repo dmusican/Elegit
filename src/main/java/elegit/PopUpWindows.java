@@ -335,7 +335,7 @@ public class PopUpWindows {
         return result.orElse(null) == deleteButton;
     }
 
-    static String pickRemoteToPushTo(Set<String> remotes) {
+    public static String pickRemoteToPushTo(Set<String> remotes) {
         ReentrantLock lock = new ReentrantLock();
         Condition finishedAlert = lock.newCondition();
 
@@ -421,7 +421,7 @@ public class PopUpWindows {
         return "cancel";
     }
 
-    static ArrayList<LocalBranchHelper> getUntrackedBranchesToPush(ArrayList<LocalBranchHelper> branches) {
+    public static ArrayList<LocalBranchHelper> getUntrackedBranchesToPush(ArrayList<LocalBranchHelper> branches) {
 
         final ArrayList<LocalBranchHelper> result = new ArrayList<>(branches.size());
 
@@ -451,7 +451,7 @@ public class PopUpWindows {
             return null;
     }
 
-    static boolean trackCurrentBranchRemotely(String branchName) {
+    public static boolean trackCurrentBranchRemotely(String branchName) {
 
         final boolean[] result = new boolean[1];
         result[0] = false;

@@ -6,11 +6,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import elegit.RepoHelper;
 import elegit.exceptions.MissingRepoException;
 import elegit.exceptions.TagNameExistsException;
-import elegit.models.CommitHelper;
-import elegit.models.TagHelper;
 import org.apache.http.annotation.ThreadSafe;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

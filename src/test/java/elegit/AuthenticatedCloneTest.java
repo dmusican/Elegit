@@ -2,6 +2,8 @@ package elegit;
 
 import com.jcraft.jsch.*;
 import elegit.models.AuthMethod;
+import elegit.models.ClonedRepoHelper;
+import elegit.models.RepoHelper;
 import elegit.sshauthentication.ElegitUserInfoTest;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.TransportException;

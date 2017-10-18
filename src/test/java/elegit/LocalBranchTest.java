@@ -3,6 +3,7 @@ package elegit;
 import elegit.exceptions.ConflictingFilesException;
 import elegit.exceptions.MissingRepoException;
 import elegit.exceptions.NoTrackingException;
+import elegit.models.ClonedRepoHelper;
 import elegit.models.LocalBranchHelper;
 import org.eclipse.jgit.api.PushCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;

@@ -1,5 +1,6 @@
 package elegit;
 
+import elegit.models.RepoHelper;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;

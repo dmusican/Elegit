@@ -4,6 +4,8 @@ import com.jcraft.jsch.UserInfo;
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import elegit.models.AuthMethod;
+import elegit.models.ClonedRepoHelper;
+import elegit.models.RepoHelper;
 import elegit.sshauthentication.ElegitUserInfoGUI;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;

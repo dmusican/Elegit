@@ -1,5 +1,6 @@
 package elegit;
 
+import elegit.models.ClonedRepoHelper;
 import elegit.models.CommitHelper;
 import org.eclipse.jgit.api.PushCommand;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
@@ -13,7 +14,6 @@ import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
 import java.util.Scanner;
 import java.util.Set;
 

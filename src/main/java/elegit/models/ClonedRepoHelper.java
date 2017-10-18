@@ -1,4 +1,4 @@
-package elegit;
+package elegit.models;
 
 import com.jcraft.jsch.UserInfo;
 import elegit.exceptions.CancelledAuthorizationException;
@@ -33,7 +33,7 @@ public class ClonedRepoHelper extends RepoHelper {
      *
      * @throws GitAPIException if the `git clone` call fails.
      */
-    protected void obtainRepository(String remoteURL) throws GitAPIException, IOException,
+    public void obtainRepository(String remoteURL) throws GitAPIException, IOException,
             CancelledAuthorizationException {
         CloneCommand cloneCommand = Git.cloneRepository();
         cloneCommand.setURI(remoteURL);
