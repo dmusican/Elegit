@@ -42,13 +42,10 @@ import java.util.concurrent.atomic.AtomicReference;
 public class RepoHelper {
 
     private final String password;
-
     private final AtomicReference<Repository> repo = new AtomicReference<>();
     private final Path localPath;
+    private final UserInfo userInfo;
 
-
-    protected List<String> credentialsList;
-    protected UserInfo userInfo;
     protected SshSessionFactory sshSessionFactory;
 
     private List<CommitHelper> localCommits;
@@ -80,6 +77,7 @@ public class RepoHelper {
         this.localPath = directoryPath;
         this.ownerAuth = ownerAuth;
         this.password = null;
+        this.userInfo = null;
         setupSshSessionFactory();
     }
 
@@ -104,6 +102,7 @@ public class RepoHelper {
     public RepoHelper(String sshPassword) {
         this.localPath = null;
         this.password = sshPassword;
+        this.userInfo = null;
         setupSshSessionFactory();
     }
 
@@ -137,26 +136,20 @@ public class RepoHelper {
         lsRemoteRepository, for example, that is used before we've actually created a RepoHelper object. Without a
         RepoHelper, there isn't an ownerAuth instance variable, so we don't have it yet.
      */
-    void wrapAuthentication(TransportCommand command, UsernamePasswordCredentialsProvider ownerAuth) {
-        wrapAuthentication(command, ownerAuth, null);
-    }
-
-
     void wrapAuthentication(TransportCommand command) {
-        wrapAuthentication(command, null, null);
+        wrapAuthentication(command, null);
     }
 
     void myWrapAuthentication(TransportCommand command) {
-        wrapAuthentication(command, this.ownerAuth, this.credentialsList);
+        wrapAuthentication(command, this.ownerAuth);
     }
 
-    private void wrapAuthentication(TransportCommand command, UsernamePasswordCredentialsProvider ownerAuth,
-                                    List<String> credentialsList) {
+    void wrapAuthentication(TransportCommand command, UsernamePasswordCredentialsProvider ownerAuth) {
 
         if (ownerAuth != null)
             command.setCredentialsProvider(ownerAuth);
         else
-            command.setCredentialsProvider(new ElegitCredentialsProvider(credentialsList));
+            command.setCredentialsProvider(new ElegitCredentialsProvider(null));
 
         command.setTransportConfigCallback(
                 new TransportConfigCallback() {
