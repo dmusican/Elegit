@@ -47,8 +47,8 @@ public class RepoHelper {
     private final UserInfo userInfo;
     private final SshSessionFactory sshSessionFactory;
 
-    private final AtomicReference<List<CommitHelper>> localCommits = new AtomicReference<>();
-    private List<CommitHelper> remoteCommits;
+    private final AtomicReference<Set<CommitHelper>> localCommits = new AtomicReference<>();
+    private Set<CommitHelper> remoteCommits;
 
     private Map<String, CommitHelper> commitIdMap;
     private Map<ObjectId, String> idMap;
@@ -1005,14 +1005,14 @@ public class RepoHelper {
     /**
      * @return all local commits that have already been parsed
      */
-    public List<CommitHelper> getLocalCommits() {
-        return Collections.unmodifiableList(new ArrayList<>(this.localCommits.get()));
+    public Set<CommitHelper> getLocalCommits() {
+        return Collections.unmodifiableSet(new HashSet<>(this.localCommits.get()));
     }
 
     /**
      * @return all remote commits that have already been parsed
      */
-    public List<CommitHelper> getRemoteCommits() {
+    public Set<CommitHelper> getRemoteCommits() {
         return this.remoteCommits;
     }
 
@@ -1120,7 +1120,7 @@ public class RepoHelper {
      * @throws GitAPIException
      * @throws IOException
      */
-    public List<CommitHelper> getNewLocalCommits(Map<String, BranchHelper> oldLocalBranches) throws GitAPIException, IOException {
+    public Set<CommitHelper> getNewLocalCommits(Map<String, BranchHelper> oldLocalBranches) throws GitAPIException, IOException {
         return getNewCommits(oldLocalBranches, this.branchModel.getBranchListTyped(BranchModel.BranchType.LOCAL));
     }
 
@@ -1134,7 +1134,7 @@ public class RepoHelper {
      * @throws GitAPIException
      * @throws IOException
      */
-    public List<CommitHelper> getNewRemoteCommits(Map<String, BranchHelper> oldRemoteBranches) throws GitAPIException, IOException {
+    public Set<CommitHelper> getNewRemoteCommits(Map<String, BranchHelper> oldRemoteBranches) throws GitAPIException, IOException {
         return getNewCommits(oldRemoteBranches, this.branchModel.getBranchListTyped(BranchModel.BranchType.REMOTE));
     }
 
@@ -1147,7 +1147,7 @@ public class RepoHelper {
      * @throws GitAPIException
      * @throws IOException
      */
-    private List<CommitHelper> getNewCommits(Map<String, BranchHelper> oldBranches, List<? extends BranchHelper> newBranches) throws GitAPIException, IOException {
+    private Set<CommitHelper> getNewCommits(Map<String, BranchHelper> oldBranches, List<? extends BranchHelper> newBranches) throws GitAPIException, IOException {
         List<ObjectId> startPoints = new ArrayList<>();
         List<ObjectId> stopPoints = new ArrayList<>();
 
@@ -1175,7 +1175,7 @@ public class RepoHelper {
      * @return a list of CommitHelpers for all local commits
      * @throws IOException
      */
-    private List<CommitHelper> parseAllLocalCommits() throws IOException, GitAPIException {
+    private Set<CommitHelper> parseAllLocalCommits() throws IOException, GitAPIException {
         PlotCommitList<PlotLane> commitList = this.parseAllRawLocalCommits();
         return wrapRawCommits(commitList);
     }
@@ -1187,7 +1187,7 @@ public class RepoHelper {
      * @return a list of CommitHelpers for all remote commits
      * @throws IOException
      */
-    private List<CommitHelper> parseAllRemoteCommits() throws IOException, GitAPIException {
+    private Set<CommitHelper> parseAllRemoteCommits() throws IOException, GitAPIException {
         PlotCommitList<PlotLane> commitList = this.parseAllRawRemoteCommits();
         return wrapRawCommits(commitList);
     }
@@ -1200,7 +1200,7 @@ public class RepoHelper {
      * @return a list of CommitHelpers for the given commits
      * @throws IOException
      */
-    private List<CommitHelper> wrapRawCommits(PlotCommitList<PlotLane> commitList) throws IOException {
+    private Set<CommitHelper> wrapRawCommits(PlotCommitList<PlotLane> commitList) throws IOException {
         List<CommitHelper> commitHelperList = new ArrayList<>();
         List<ObjectId> wrappedIDs = new ArrayList<>();
         List<CommitHelper> commitsWithMissingParents = new ArrayList<>();
@@ -1248,7 +1248,7 @@ public class RepoHelper {
                 }
             }
         }
-        return commitHelperList;
+        return new HashSet<>(commitHelperList);
     }
 
     /**

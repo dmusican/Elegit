@@ -15,6 +15,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Scanner;
+import java.util.Set;
 
 import static org.junit.Assert.*;
 
@@ -123,8 +124,8 @@ public class DuplicateRepoInvisCommitTest {
         assertEquals(repo1NewHead.getName(), repo2NewHead.getName());
 
         repo1.updateModel();
-        List<CommitHelper> repo1LocalCommits = repo1.getLocalCommits();
-        List<CommitHelper> repo1RemoteCommits = repo1.getRemoteCommits();
+        Set<CommitHelper> repo1LocalCommits = repo1.getLocalCommits();
+        Set<CommitHelper> repo1RemoteCommits = repo1.getRemoteCommits();
 
         assertTrue(repo1LocalCommits.contains(repo1OldHead));
         assertTrue(repo1RemoteCommits.contains(repo1OldHead));
@@ -132,8 +133,8 @@ public class DuplicateRepoInvisCommitTest {
         assertTrue(repo1RemoteCommits.contains(repo1NewHead));
 
         repo2.updateModel();
-        List<CommitHelper> repo2LocalCommits = repo2.getLocalCommits();
-        List<CommitHelper> repo2RemoteCommits = repo2.getRemoteCommits();
+        Set<CommitHelper> repo2LocalCommits = repo2.getLocalCommits();
+        Set<CommitHelper> repo2RemoteCommits = repo2.getRemoteCommits();
 
         assertTrue(repo2LocalCommits.contains(repo2OldHead));
         assertTrue(repo2RemoteCommits.contains(repo2OldHead));
