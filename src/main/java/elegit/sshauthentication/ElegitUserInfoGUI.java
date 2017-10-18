@@ -1,6 +1,7 @@
 package elegit.sshauthentication;
 
 import com.jcraft.jsch.UserInfo;
+import elegit.Main;
 import elegit.SessionModel;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
@@ -63,7 +64,12 @@ public class ElegitUserInfoGUI implements UserInfo {
 
     // This method doesn't need to be synchronized, as it does not interact with the shared instance variables
     // at all.
+    // Note that it is critical that this code MUST be run from a worker thread, not from the FX thread.
+    // That's because it has to block on getting the result from a dialog that goes on the FX thread. If
+    // this code gets run on the FX thread, it will deadlock. That's fine anyway, as an ssh connection will
+    // be slow, and should never be attempted from the FX thread at any rate.
     private Optional<String> prompt(String s, String title, String headerText, String contentText) {
+        Main.assertNotFxThread();
         FutureTask<Optional<String>> futureTask = new FutureTask<>(() -> {
             System.out.println(s);
 

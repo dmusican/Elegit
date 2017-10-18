@@ -269,11 +269,4 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
     }
 
 
-    public String getPrevDestinationPath() {
-        return prevDestinationPath;
-    }
-
-    public String getPrevRepoName() {
-        return prevRepoName;
-    }
 }

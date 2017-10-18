@@ -13,12 +13,6 @@ import java.nio.file.Path;
  * A RepoHelper implementation for pre-existing repositories.
  */
 public class ExistingRepoHelper extends RepoHelper {
-    public ExistingRepoHelper(Path directoryPath) throws IOException, GitAPIException, CancelledAuthorizationException{
-        super(directoryPath);
-        repo = obtainRepository();
-        setup();
-    }
-
     public ExistingRepoHelper(Path directoryPath, UserInfo userInfo) throws IOException, GitAPIException,
             CancelledAuthorizationException{
         super(directoryPath, userInfo);

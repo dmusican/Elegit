@@ -40,10 +40,7 @@ import java.util.*;
 // TODO: Make sure threadsafe
 public class RepoHelper {
 
-    //protected UsernamePasswordCredentialsProvider ownerAuth;
-
-    public String username;
-    protected String password;
+    private final String password;
 
     public Repository repo;
 
@@ -77,35 +74,11 @@ public class RepoHelper {
      * @throws IOException                     if the obtainRepository() call throws this exception.
      * @throws CancelledAuthorizationException if the obtainRepository() call throws this exception.
      */
-    public RepoHelper(Path directoryPath) throws GitAPIException, IOException, CancelledAuthorizationException {
-        this.username = null;
-        this.localPath = directoryPath;
-        setupSshSessionFactory();
-
-    }
-
     public RepoHelper(Path directoryPath, UsernamePasswordCredentialsProvider ownerAuth)
             throws GitAPIException, IOException, CancelledAuthorizationException {
         this.localPath = directoryPath;
         this.ownerAuth = ownerAuth;
         this.password = null;
-        setupSshSessionFactory();
-    }
-
-    public RepoHelper(Path directoryPath, String sshPassword)
-            throws GitAPIException, IOException, CancelledAuthorizationException {
-        this.localPath = directoryPath;
-        this.ownerAuth = null;
-        this.password = sshPassword;
-        setupSshSessionFactory();
-    }
-
-    public RepoHelper(Path directoryPath, File credentialsFile)
-            throws GitAPIException, IOException, CancelledAuthorizationException {
-        this.localPath = directoryPath;
-        this.ownerAuth = null;
-        this.password = null;
-        this.credentialsFile = credentialsFile;
         setupSshSessionFactory();
     }
 
@@ -136,6 +109,7 @@ public class RepoHelper {
 
     public RepoHelper(UserInfo userInfo) {
         this.userInfo = userInfo;
+        this.password = null;
         setupSshSessionFactory();
     }
 
@@ -167,28 +141,6 @@ public class RepoHelper {
         wrapAuthentication(command, ownerAuth, null, null, null, null);
     }
 
-
-    void wrapAuthentication(TransportCommand command, String sshPassword) {
-        wrapAuthentication(command, null, sshPassword, null, null, null);
-    }
-
-    void wrapAuthentication(TransportCommand command, UsernamePasswordCredentialsProvider ownerAuth,
-                                   String sshPassword) {
-        wrapAuthentication(command, ownerAuth, sshPassword, null, null, null);
-    }
-
-    void wrapAuthentication(TransportCommand command,
-                                   File credentialsFile) {
-        wrapAuthentication(command, null, null, credentialsFile, null, null);
-    }
-
-    void wrapAuthentication(TransportCommand command, List<String> credentialsList) {
-        wrapAuthentication(command, null, null, null, credentialsList, null);
-    }
-
-    void wrapAuthentication(TransportCommand command, UserInfo userInfo) {
-        wrapAuthentication(command, null, null, null, null, userInfo);
-    }
 
     void wrapAuthentication(TransportCommand command) {
         wrapAuthentication(command, null, null, null, null, null);
@@ -224,9 +176,6 @@ public class RepoHelper {
 
     // Common setup tasks shared by constructors
     protected void setup() throws GitAPIException, IOException {
-        //this.repo = this.obtainRepository();
-        this.username = null;
-
         this.commitIdMap = new HashMap<>();
         this.idMap = new HashMap<>();
 
@@ -1668,29 +1617,6 @@ public class RepoHelper {
 
     public TagModel getTagModel() { return this.tagModel; }
 
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getPassword() {
-        return this.password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public void setAuthCredentials(UsernamePasswordCredentialsProvider authCredentials) {
-        this.ownerAuth = authCredentials;
-    }
-
-    public UsernamePasswordCredentialsProvider getOwnerAuthCredentials() throws CancelledAuthorizationException {
-        return this.ownerAuth;
-    }
 
     /**
      * A FileVisitor that keeps a list of all '.gitignore' files it finds
