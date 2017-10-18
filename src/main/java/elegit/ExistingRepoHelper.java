@@ -29,7 +29,7 @@ public class ExistingRepoHelper extends RepoHelper {
      */
     protected Repository obtainRepository() throws IOException {
         FileRepositoryBuilder builder = new FileRepositoryBuilder();
-        return builder.findGitDir(this.localPath.toFile())
+        return builder.findGitDir(this.getLocalPath().toFile())
                 .readEnvironment()
                 .build();
     }

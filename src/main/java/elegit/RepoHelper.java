@@ -44,9 +44,9 @@ public class RepoHelper {
     private final String password;
 
     private final AtomicReference<Repository> repo = new AtomicReference<>();
+    private final Path localPath;
 
-    public Path localPath;
-    protected File credentialsFile;
+
     protected List<String> credentialsList;
     protected UserInfo userInfo;
     protected SshSessionFactory sshSessionFactory;
@@ -88,7 +88,6 @@ public class RepoHelper {
         this.localPath = directoryPath;
         this.ownerAuth = null;
         this.password = null;
-        this.credentialsFile = null;
         this.userInfo = userInfo;
         setupSshSessionFactory();
     }
@@ -98,17 +97,18 @@ public class RepoHelper {
         this.localPath = directoryPath;
         this.ownerAuth = null;
         this.password = sshPassword;
-        this.credentialsFile = null;
         this.userInfo = userInfo;
         setupSshSessionFactory();
     }
 
     public RepoHelper(String sshPassword) {
+        this.localPath = null;
         this.password = sshPassword;
         setupSshSessionFactory();
     }
 
     public RepoHelper(UserInfo userInfo) {
+        this.localPath = null;
         this.userInfo = userInfo;
         this.password = null;
         setupSshSessionFactory();
@@ -137,19 +137,21 @@ public class RepoHelper {
         lsRemoteRepository, for example, that is used before we've actually created a RepoHelper object. Without a
         RepoHelper, there isn't an ownerAuth instance variable, so we don't have it yet.
      */
-    void wrapAuthentication(TransportCommand command,
-                                   UsernamePasswordCredentialsProvider ownerAuth) {
-        wrapAuthentication(command, ownerAuth, null, null, null, null);
+    void wrapAuthentication(TransportCommand command, UsernamePasswordCredentialsProvider ownerAuth) {
+        wrapAuthentication(command, ownerAuth, null);
     }
 
 
     void wrapAuthentication(TransportCommand command) {
-        wrapAuthentication(command, null, null, null, null, null);
+        wrapAuthentication(command, null, null);
     }
 
-    void wrapAuthentication(TransportCommand command, UsernamePasswordCredentialsProvider ownerAuth,
-                                   String sshPassword, File credentialsFile, List<String> credentialsList,
-                                   UserInfo userInfo) {
+    void myWrapAuthentication(TransportCommand command) {
+        wrapAuthentication(command, this.ownerAuth, this.credentialsList);
+    }
+
+    private void wrapAuthentication(TransportCommand command, UsernamePasswordCredentialsProvider ownerAuth,
+                                    List<String> credentialsList) {
 
         if (ownerAuth != null)
             command.setCredentialsProvider(ownerAuth);
@@ -168,11 +170,6 @@ public class RepoHelper {
 
                     }
                 });
-    }
-
-    protected void myWrapAuthentication(TransportCommand command) {
-        wrapAuthentication(command, this.ownerAuth, this.password, this.credentialsFile, this.credentialsList,
-                           this.userInfo);
     }
 
     // Common setup tasks shared by constructors

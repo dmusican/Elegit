@@ -38,7 +38,7 @@ public class ClonedRepoHelper extends RepoHelper {
         CloneCommand cloneCommand = Git.cloneRepository();
         cloneCommand.setURI(remoteURL);
         myWrapAuthentication(cloneCommand);
-        File destination = this.localPath.toFile();
+        File destination = this.getLocalPath().toFile();
         cloneCommand.setDirectory(destination);
         Git cloneCall = cloneCommand.call();
 

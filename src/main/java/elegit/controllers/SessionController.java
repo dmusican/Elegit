@@ -706,7 +706,7 @@ public class SessionController {
     private void loadDesignatedRepo(RepoHelper repoHelper) {
         GitOperation gitOp = authResponse -> loadRepo(authResponse, repoHelper);
 
-        if (theModel.getCurrentRepoHelper() != null && repoHelper.localPath.equals(theModel.getCurrentRepoHelper().localPath)) {
+        if (theModel.getCurrentRepoHelper() != null && repoHelper.getLocalPath().equals(theModel.getCurrentRepoHelper().getLocalPath())) {
             showSameRepoLoadedNotification();
             return;
         }
@@ -2329,11 +2329,11 @@ public class SessionController {
                 if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
                 // Use Desktop to open the current directory unless it's Linux
                 if (!SystemUtils.IS_OS_LINUX) {
-                    Desktop.getDesktop().open(this.theModel.getCurrentRepoHelper().localPath.toFile());
+                    Desktop.getDesktop().open(this.theModel.getCurrentRepoHelper().getLocalPath().toFile());
                 }
                 else {
                     Runtime runtime = Runtime.getRuntime();
-                    String[] args = {"nautilus",this.theModel.getCurrentRepoHelper().localPath.toFile().toString()};
+                    String[] args = {"nautilus",this.theModel.getCurrentRepoHelper().getLocalPath().toFile().toString()};
                     runtime.exec(args);
                 }
             }catch(IOException | IllegalArgumentException e){
