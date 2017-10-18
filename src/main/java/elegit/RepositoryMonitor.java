@@ -117,7 +117,7 @@ public class RepositoryMonitor{
             }
         }
 
-        if(repo == null || !repo.exists() || !repo.hasRemoteProperty.get()) {
+        if(repo == null || !repo.exists() || !repo.hasRemote()) {
             unpause();
             return;
         }

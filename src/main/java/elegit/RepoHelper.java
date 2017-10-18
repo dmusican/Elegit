@@ -8,8 +8,6 @@ import elegit.exceptions.*;
 import elegit.models.*;
 import elegit.treefx.Cell;
 import javafx.application.Platform;
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.SimpleBooleanProperty;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jgit.api.*;
@@ -34,6 +32,7 @@ import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -55,13 +54,10 @@ public class RepoHelper {
     private final Map<ObjectId, String> idMap = new ConcurrentHashMap<>();
     private final AtomicReference<BranchModel> branchModel = new AtomicReference<>();
     private final TagModel tagModel = new TagModel(this);
+    private final AtomicBoolean hasRemoteRepo = new AtomicBoolean();
 
+    private static final Logger logger = LogManager.getLogger();
 
-
-
-    public BooleanProperty hasRemoteProperty;
-
-    static final Logger logger = LogManager.getLogger();
     public UsernamePasswordCredentialsProvider ownerAuth;
 
 
@@ -177,7 +173,10 @@ public class RepoHelper {
         this.localCommits.set(this.parseAllLocalCommits());
         this.remoteCommits.set(this.parseAllRemoteCommits());
 
-        hasRemoteProperty = new SimpleBooleanProperty(!getLinkedRemoteRepoURLs().isEmpty());
+        nullAsExpected = hasRemoteRepo.compareAndSet(false, !getLinkedRemoteRepoURLs().isEmpty());
+        if (!nullAsExpected) {
+            throw new IllegalStateException("hasRemoteRepo in RepoHelper should not have been set a second time");
+        }
 
     }
 
@@ -387,7 +386,7 @@ public class RepoHelper {
      * @return true if this repository has an associated remote
      */
     public boolean hasRemote() {
-        return hasRemoteProperty.get();
+        return hasRemoteRepo.get();
     }
 
     /**
