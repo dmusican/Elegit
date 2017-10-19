@@ -207,7 +207,10 @@ public class TreeLayout{
      */
     private static void setCellPosition(Cell c, List<Integer> minRowUsedInCol, List<Integer> movedCells,
                                         boolean isInitialSetupFinished, int x, int y) {
-        //Main.assertNotFxThread();
+        // This must run on the FX thread, since it uses properties that FX thread values will automatically be
+        // seeing.
+        Main.assertFxThread();
+
         // See whether or not this cell will move
         int oldColumnLocation = c.columnLocationProperty.get();
         int oldRowLocation = c.rowLocationProperty.get();

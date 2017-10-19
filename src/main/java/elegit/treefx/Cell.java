@@ -90,15 +90,14 @@ public class Cell extends Pane {
     // All edges that have this cell as an endpoint
     private List<Edge> edges = new ArrayList<>();
 
-    // hard
-    // There's a lot in here that's hard. This is because it's unclear what's happening on the FX thread
-    // and what's not. Said differently, it's unclear what's view, and what's model. Get that disentangled, and
-    // everything else should hopefully fall into place.
 
-    // The displayed view
+    // The following are kept public so that other aspects of the view can bind and work with them. It is critical
+    // that they only be accessed from the FX thread.
+
+    // The displayed view. Don't touch this except on FX thread!
     Node view;
 
-    // The row and column location of this cell
+    // The row and column location of this cell. Don't touch these except on FX thread!
     IntegerProperty columnLocationProperty, rowLocationProperty;
 
 
