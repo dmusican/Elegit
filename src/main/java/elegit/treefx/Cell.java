@@ -17,6 +17,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Shape;
 import javafx.util.Duration;
+import org.apache.http.annotation.ThreadSafe;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -34,6 +35,10 @@ import java.util.concurrent.atomic.AtomicInteger;
  * class, it's all on FX thread. Don't take any of the asserts out without a complete rethinking of the philosophy.
  *
  */
+@ThreadSafe
+// but critically only because of all the asserts requiring this be done only in the FX thread. Without that, it
+// isn't threadsafe.
+// TODO: If this sticks, take out the atomic references etc I put in, they aren't necessary; ditto synchronized
 public class Cell extends Pane{
 
     // Base shapes for different types of cells
@@ -217,20 +222,18 @@ public class Cell extends Pane{
      * @param newView the new view
      */
     public synchronized void setView(Node newView) {
+        Main.assertFxThread();
         if(this.view == null){
             this.view = getBaseView();
         }
 
-        //newView.setStyle(this.view.getStyle());
         newView.getStyleClass().setAll(this.view.getStyleClass());
         newView.setId(this.view.getId());
 
         this.view = newView;
-        Platform.runLater(() -> {
-            getChildren().clear();
-            getChildren().add(this.view);
-            setFillType((Shape) this.view, CellState.STANDARD);
-        });
+        getChildren().clear();
+        getChildren().add(this.view);
+        setFillType((Shape) this.view, CellState.STANDARD);
     }
 
     /**
@@ -238,12 +241,14 @@ public class Cell extends Pane{
      * @param newShape the new shape
      */
     public synchronized void setShape(CellShape newShape){
+        Main.assertFxThread();
         if(this.shape == newShape) return;
         setView(newShape.getType(this.type));
         this.shape = newShape;
     }
 
     public void setShapeDefault() {
+        Main.assertFxThread();
         setShape(DEFAULT_SHAPE);
     }
 
@@ -252,39 +257,51 @@ public class Cell extends Pane{
      * @param label the text to display
      */
     private void setCommitDescriptor(String label){
+        Main.assertFxThread();
         tooltip.setText(label);
     }
 
     private void setRefLabels(List<RefHelper> refs){
+        Main.assertFxThread();
         this.refLabels.setLabels(refs, this);
     }
 
     private void setCurrentRefLabels(Set<String> refs) {
+        Main.assertFxThread();
         this.refLabels.setCurrentLabels(refs);
     }
 
     void setLabels(String commitDescriptor, List<RefHelper> refLabels){
+        Main.assertFxThread();
         setCommitDescriptor(commitDescriptor);
         setRefLabels(refLabels);
     }
 
     void setCurrentLabels(Set<String> refLabels) {
+        Main.assertFxThread();
         setCurrentRefLabels(refLabels);
     }
 
     void setLabelMenus(Map<RefHelper, ContextMenu> menuMap) {
+        Main.assertFxThread();
         this.refLabels.setLabelMenus(menuMap);
     }
 
     void setRemoteLabels(List<String> branchLabels) {
+        Main.assertFxThread();
         this.refLabels.setRemoteLabels(branchLabels);
     }
 
-    void setAnimate(boolean animate) {this.animate.set(animate);}
+    void setAnimate(boolean animate) {
+        Main.assertFxThread();
+        this.animate.set(animate);}
 
-    void setUseParentAsSource(boolean useParentAsSource) {this.useParentAsSource.set(useParentAsSource);}
+    void setUseParentAsSource(boolean useParentAsSource) {
+        Main.assertFxThread();
+        this.useParentAsSource.set(useParentAsSource);}
 
-    void setContextMenu(ContextMenu contextMenu){
+    void setContextMenu(ContextMenu contextMenu) {
+        Main.assertFxThread();
         this.contextMenu = contextMenu;
     }
 
@@ -293,6 +310,7 @@ public class Cell extends Pane{
      * @param cell the new child
      */
     private void addCellChild(Cell cell) {
+        Main.assertFxThread();
         childrenList.add(cell);
     }
 
@@ -300,6 +318,7 @@ public class Cell extends Pane{
      * @return the list of the childrenList of this cell
      */
     List<Cell> getCellChildren() {
+        Main.assertFxThread();
         return Collections.unmodifiableList(childrenList);
     }
 
@@ -307,48 +326,31 @@ public class Cell extends Pane{
      * @return the list of the parents of this cell
      */
     List<Cell> getCellParents(){
+        Main.assertFxThread();
         return parents.toList();
     }
 
     /**
      * @return whether or not this cell wants to be animated in the next transition
      */
-    boolean getAnimate() { return this.animate.get(); }
+    boolean getAnimate() {
+        Main.assertFxThread();
+        return this.animate.get(); }
 
     /**
      * @return whether or not to use the parent to base the animation off of
      */
-    boolean getUseParentAsSource() { return this.useParentAsSource.get(); }
+    boolean getUseParentAsSource() {
+        Main.assertFxThread();
+        return this.useParentAsSource.get(); }
 
     /**
      * Removes the given cell from the childrenList of this cell
      * @param cell the cell to remove
      */
     void removeCellChild(Cell cell) {
+        Main.assertFxThread();
         childrenList.remove(cell);
-    }
-
-    /**
-     * Checks to see if the given cell has this cell as an ancestor,
-     * up to the given number of generations.
-     *
-     * Entering zero or a negative number will search all descendants
-     *
-     * @param cell the commit to check
-     * @param depth how many generations down to check
-     * @return true if cell is a descendant of this cell, otherwise false
-     */
-    private boolean isChild(Cell cell, int depth){
-        depth--;
-        if(childrenList.contains(cell)) return true;
-        else if(depth != 0){
-            for(Cell child : childrenList){
-                if(child.isChild(cell, depth)){
-                    return true;
-                }
-            }
-        }
-        return false;
     }
 
     /**
@@ -356,7 +358,8 @@ public class Cell extends Pane{
      * @param state the new state of the cell
      */
     void setCellState(CellState state){
-        Platform.runLater(() -> setFillType((Shape) view, state));
+        Main.assertFxThread();
+        setFillType((Shape) view, state);
     }
 
     /**
@@ -364,14 +367,16 @@ public class Cell extends Pane{
      * @param type the type of the cell
      */
     void setCellType(CellType type) {
+        Main.assertFxThread();
         this.type = type;
-        Platform.runLater(() -> setFillType((Shape) view, CellState.STANDARD));
+        setFillType((Shape) view, CellState.STANDARD);
         for (Edge e : edges) {
             e.resetDashed();
         }
     }
 
     CellType getCellType() {
+        Main.assertFxThread();
         return this.type;
     }
 
@@ -379,6 +384,7 @@ public class Cell extends Pane{
      * @return the unique ID of this cell
      */
     public String getCellId() {
+        Main.assertFxThread();
         return cellId;
     }
 
@@ -386,10 +392,14 @@ public class Cell extends Pane{
      * @return the time of this cell
      */
     long getTime(){
+        Main.assertFxThread();
         return time;
     }
 
-    public Node getLabel() { return this.refLabels; }
+    public Node getLabel() {
+        Main.assertFxThread();
+        return this.refLabels;
+    }
 
     @Override
     public String toString(){
@@ -404,6 +414,7 @@ public class Cell extends Pane{
      * @param state the state of the cell, determines coloring
      */
     private void setFillType(Shape n, CellState state) {
+        Main.assertFxThread();
         Color baseColor = Color.web(state.getBackgroundColor());
         switch(this.type) {
             case LOCAL:
@@ -441,9 +452,9 @@ public class Cell extends Pane{
          * @param parents the list of parents
          */
         ParentCell(Cell child, List<Cell> parents) {
+            Main.assertFxThread();
             ArrayList<Cell> buildingParents = new ArrayList<>();
-            for (Cell parent : parents)
-                buildingParents.add(parent);
+            buildingParents.addAll(parents);
             this.parents = Collections.unmodifiableList(buildingParents);
             this.setChild(child);
         }
@@ -452,6 +463,7 @@ public class Cell extends Pane{
          * @return the stored parent commits in list form
          */
         List<Cell> toList(){
+            Main.assertFxThread();
             return parents;
         }
 
@@ -460,6 +472,7 @@ public class Cell extends Pane{
          * @param cell the child to add
          */
         private void setChild(Cell cell){
+            Main.assertFxThread();
             for(Cell parent : parents) {
                 if(parent != null) {
                     parent.addCellChild(cell);
