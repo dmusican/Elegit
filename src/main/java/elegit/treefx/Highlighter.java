@@ -100,11 +100,10 @@ public class Highlighter{
         if(cell == null) return;
         Cell selectedCell = model.getCell(selectedCellID);
 
-        List<Edge> list = new ArrayList<>(cell.edges);
+        List<Edge> list = new ArrayList<>(cell.getEdges());
         if(!enable && selectedCellID != null){
-            for(Edge e : selectedCell.edges){
-                list.remove(e);
-            }
+            List<Edge> selectedCellEdges = selectedCell.getEdges();
+            list.removeAll(selectedCellEdges);
         }
         for(Edge e : list){
             e.setHighlighted(enable);

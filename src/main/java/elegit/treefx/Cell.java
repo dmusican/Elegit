@@ -40,7 +40,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 // but critically only because of all the asserts requiring this be done only in the FX thread. Without that, it
 // isn't threadsafe.
 // TODO: If this sticks, take out the atomic references etc I put in, they aren't necessary; ditto synchronized
-public class Cell extends Pane{
+public class Cell extends Pane {
 
     // Base shapes for different types of cells
     private static final CellShape DEFAULT_SHAPE = CellShape.SQUARE;
@@ -87,6 +87,8 @@ public class Cell extends Pane{
     // Whether this cell has been moved to its appropriate location
     private BooleanProperty hasUpdatedPosition;
 
+    // All edges that have this cell as an endpoint
+    private List<Edge> edges = new ArrayList<>();
 
     // hard
     // There's a lot in here that's hard. This is because it's unclear what's happening on the FX thread
@@ -95,8 +97,6 @@ public class Cell extends Pane{
 
     // The displayed view
     Node view;
-    // All edges that have this cell as an endpoint
-    List<Edge> edges = new ArrayList<>();
 
     // The row and column location of this cell
     IntegerProperty columnLocationProperty, rowLocationProperty;
@@ -154,6 +154,21 @@ public class Cell extends Pane{
         this.setOnMouseExited(event -> CommitTreeController.handleMouseover(this, false));
 
         this.view=getBaseView();
+    }
+
+    public List<Edge> getEdges() {
+        Main.assertFxThread();
+        return Collections.unmodifiableList(new ArrayList<>(edges));
+    }
+
+    public void addEdge(Edge e) {
+        Main.assertFxThread();
+        edges.add(e);
+    }
+
+    public void removeEdge(Edge e) {
+        Main.assertFxThread();
+        edges.remove(e);
     }
 
     /**

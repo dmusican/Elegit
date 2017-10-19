@@ -202,8 +202,8 @@ public class TreeGraphModel {
      */
     public void addEdge(Cell source, Cell target) {
         Edge edge = new Edge(source, target);
-        source.edges.add(edge);
-        target.edges.add(edge);
+        source.addEdge(edge);
+        target.addEdge(edge);
 
         addedEdges.add(edge);
     }
@@ -231,14 +231,12 @@ public class TreeGraphModel {
      * @param cell the cell whose edges will be removed
      */
     private void removeEdges(Cell cell){
-        List<Edge> oldEdges = new ArrayList<>();
-        for (Edge e : cell.edges) {
-            oldEdges.add(e);
-        }
+        List<Edge> oldEdges = cell.getEdges();
+
         for(Edge e : oldEdges){
             removedEdges.add(e);
-            e.getTarget().edges.remove(e);
-            e.getSource().edges.remove(e);
+            e.getTarget().removeEdge(e);
+            e.getSource().removeEdge(e);
         }
     }
 

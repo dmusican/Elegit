@@ -105,8 +105,8 @@ public class Edge extends Group {
         visibleProperty().bind(source.visibleProperty().and(target.visibleProperty())
                 .and(allVisible.or(visible)));
 
-        source.edges.add(this);
-        target.edges.add(this);
+        source.addEdge(this);
+        target.addEdge(this);
     }
 
     /**
