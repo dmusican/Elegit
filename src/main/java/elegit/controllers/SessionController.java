@@ -174,9 +174,9 @@ public class SessionController {
         this.setButtonsDisabled(true);
         this.initWorkingTreePanelTab();
 
-        ////// got this far. Below is where it all changes; it's model work
         // SLOW
         this.theModel.loadRecentRepoHelpersFromStoredPathStrings();
+        ////// got this far. Below is where it all changes; it's model work
         this.loadMostRecentRepoHelper();
 
         // SLOW
@@ -246,8 +246,9 @@ public class SessionController {
                     // Should never be used, as no authorization is needed for loading local files.
                 }
             }
-            if (theModel.allRepoHelpers!=null && theModel.allRepoHelpers.size()>0) {
-                RepoHelper helper = theModel.allRepoHelpers.get(0);
+            List<RepoHelper> allRepoHelpers = theModel.getAllRepoHelpers();
+            if (allRepoHelpers.size()>0) {
+                RepoHelper helper = allRepoHelpers.get(0);
                 try {
                     theModel.openRepoFromHelper(helper);
                 } catch (MissingRepoException e) {

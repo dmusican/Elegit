@@ -10,6 +10,7 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import elegit.exceptions.CancelledAuthorizationException;
 import elegit.exceptions.MissingRepoException;
+import org.apache.http.annotation.GuardedBy;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jgit.api.Git;
@@ -26,6 +27,7 @@ import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 import java.util.stream.Stream;
@@ -41,16 +43,22 @@ public class SessionModel {
     private static final String RECENT_REPOS_LIST_KEY = "RECENT_REPOS_LIST";
     public static final String LAST_OPENED_REPO_PATH_KEY = "LAST_OPENED_REPO_PATH";
     private static final String LAST_UUID_KEY="LAST_UUID";
+    @GuardedBy("this") private final List<RepoHelper> allRepoHelpers;
+    private static final Logger logger = LogManager.getLogger();
 
-    private RepoHelper currentRepoHelper;
+    /////////
+    // Above have been checked for thread safety
+    /////////
+
+    private final AtomicReference<RepoHelper> currentRepoHelper = new AtomicReference<>();
+
     ObjectProperty<RepoHelper> currentRepoHelperProperty;
 
-    public List<RepoHelper> allRepoHelpers;
+
     private static SessionModel sessionModel;
 
     public Preferences preferences;
 
-    static final Logger logger = LogManager.getLogger();
 
     /**
      * @return the SessionModel object
@@ -68,7 +76,7 @@ public class SessionModel {
     private SessionModel() {
         this.allRepoHelpers = new ArrayList<>();
         this.preferences = Preferences.userNodeForPackage(this.getClass());
-        currentRepoHelperProperty = new SimpleObjectProperty<>(currentRepoHelper);
+        currentRepoHelperProperty = new SimpleObjectProperty<>(currentRepoHelper.get());
     }
 
 
@@ -77,7 +85,8 @@ public class SessionModel {
      * Loads all recently loaded repositories (stored with the Java Preferences API)
      * into the recent repos menubar.
      */
-    public void loadRecentRepoHelpersFromStoredPathStrings() {
+    // synchronized for allRepoHelpers
+    public synchronized void loadRecentRepoHelpersFromStoredPathStrings() {
         try{
             @SuppressWarnings("unchecked")
             ArrayList<String> storedRepoPathStrings = (ArrayList<String>) PrefObj.getObject(this.preferences, RECENT_REPOS_LIST_KEY);
@@ -114,12 +123,13 @@ public class SessionModel {
      *
      * @param repoHelper the repository to open
      */
-    private void openRepo(RepoHelper repoHelper) throws BackingStoreException, IOException, ClassNotFoundException {
+    // synchronized for allRepoHelpers
+    private synchronized void openRepo(RepoHelper repoHelper) throws BackingStoreException, IOException, ClassNotFoundException {
         if(!this.allRepoHelpers.contains(repoHelper)) {
             this.allRepoHelpers.add(repoHelper);
         }
-        this.currentRepoHelper = repoHelper;
-        currentRepoHelperProperty.set(this.currentRepoHelper);
+        this.currentRepoHelper.set(repoHelper);
+        currentRepoHelperProperty.set(this.currentRepoHelper.get());
         this.saveListOfRepoPathStrings();
         this.saveMostRecentRepoPathString();
     }
@@ -134,7 +144,8 @@ public class SessionModel {
      *
      * @param repoHelperToLoad the RepoHelper to be loaded.
      */
-    public void openRepoFromHelper(RepoHelper repoHelperToLoad) throws BackingStoreException, IOException, ClassNotFoundException, MissingRepoException {
+    // synchronized for allRepoHelpers
+    public synchronized void openRepoFromHelper(RepoHelper repoHelperToLoad) throws BackingStoreException, IOException, ClassNotFoundException, MissingRepoException {
         RepoHelper matchedRepoHelper = this.matchRepoWithAlreadyLoadedRepo(repoHelperToLoad);
         if (matchedRepoHelper == null) {
             // So, this repo isn't loaded into the model yet
@@ -160,7 +171,8 @@ public class SessionModel {
      * @return the repo helper that points to the same repository as the candidate
      *          (by directory), or null if there is no such RepoHelper already in the model.
      */
-    private RepoHelper matchRepoWithAlreadyLoadedRepo(RepoHelper repoHelperCandidate) {
+    // synchronized for allRepoHelpers
+    private synchronized RepoHelper matchRepoWithAlreadyLoadedRepo(RepoHelper repoHelperCandidate) {
         if(repoHelperCandidate != null) {
             for (RepoHelper repoHelper : this.allRepoHelpers) {
                 if (repoHelper.getLocalPath().equals(repoHelperCandidate.getLocalPath())) {
@@ -175,14 +187,14 @@ public class SessionModel {
      * @return the current repository
      */
     public RepoHelper getCurrentRepoHelper(){
-        return currentRepoHelper;
+        return currentRepoHelper.get();
     }
 
     /**
      * @return the current JGit repository associated with the current RepoHelper
      */
     private Repository getCurrentRepo() {
-        return this.currentRepoHelper.getRepo();
+        return this.getCurrentRepoHelper().getRepo();
     }
 
     /**
@@ -190,15 +202,15 @@ public class SessionModel {
      * that no longer exist are removed (and not returned)
      * @return a list of all existing repositories held in the session
      */
-    // TODO: Make sure this is immutable
-    public List<RepoHelper> getAllRepoHelpers() {
+    // synchronized for allRepoHelpers
+    public synchronized List<RepoHelper> getAllRepoHelpers() {
         List<RepoHelper> tempList = new ArrayList<>(allRepoHelpers);
         for(RepoHelper r : tempList){
             if(!r.exists()){
                 allRepoHelpers.remove(r);
             }
         }
-        return allRepoHelpers;
+        return Collections.unmodifiableList(allRepoHelpers);
     }
 
     /**
@@ -392,9 +404,9 @@ public class SessionModel {
 
         List<Path> allPaths = new LinkedList<>();
 
-        try (Stream<Path> paths = Files.walk(currentRepoHelper.getLocalPath())
+        try (Stream<Path> paths = Files.walk(getCurrentRepoHelper().getLocalPath())
                 .filter(path -> !path.toString().contains(File.separator + ".git" + File.separator)
-                        && !path.equals(currentRepoHelper.getLocalPath())
+                        && !path.equals(getCurrentRepoHelper().getLocalPath())
                         && !path.endsWith(".git"))) {
             paths.forEach(allPaths::add);
         }
@@ -405,13 +417,13 @@ public class SessionModel {
         }
 
         for(Path path : allPaths){
-            path = currentRepoHelper.getLocalPath().relativize(path);
+            path = getCurrentRepoHelper().getLocalPath().relativize(path);
             if(!addedPaths.contains(path)){
                 RepoFile temp;
                 if(path.toFile().isDirectory()){
-                    temp = new DirectoryRepoFile(path, currentRepoHelper);
+                    temp = new DirectoryRepoFile(path, getCurrentRepoHelper());
                 }else{
-                    temp = new RepoFile(path, currentRepoHelper);
+                    temp = new RepoFile(path, getCurrentRepoHelper());
                 }
                 allFiles.add(temp);
                 addedPaths.add(path);
@@ -433,7 +445,8 @@ public class SessionModel {
      * @throws IOException
      * @throws ClassNotFoundException
      */
-    private void saveListOfRepoPathStrings() throws BackingStoreException, IOException, ClassNotFoundException {
+    // synchronized for allRepoHelpers
+    private synchronized void saveListOfRepoPathStrings() throws BackingStoreException, IOException, ClassNotFoundException {
         ArrayList<String> repoPathStrings = new ArrayList<>();
         for (RepoHelper repoHelper : this.allRepoHelpers) {
             Path path = repoHelper.getLocalPath();
@@ -453,7 +466,7 @@ public class SessionModel {
      * @throws ClassNotFoundException
      */
     private void saveMostRecentRepoPathString() throws BackingStoreException, IOException, ClassNotFoundException {
-        String pathString = this.currentRepoHelper.getLocalPath().toString();
+        String pathString = this.getCurrentRepoHelper().getLocalPath().toString();
 
         PrefObj.putObject(this.preferences, LAST_OPENED_REPO_PATH_KEY, pathString);
     }
@@ -521,10 +534,9 @@ public class SessionModel {
         return prefKey;
     }
 
-    public void removeRepoHelpers(List<RepoHelper> checkedItems) {
-        for (RepoHelper item : checkedItems) {
-            this.allRepoHelpers.remove(item);
-        }
+    // synchronized for allRepoHelpers
+    public synchronized void removeRepoHelpers(List<RepoHelper> checkedItems) {
+        this.allRepoHelpers.removeAll(checkedItems);
     }
 
     /**
