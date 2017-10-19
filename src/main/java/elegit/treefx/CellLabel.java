@@ -2,6 +2,7 @@ package elegit.treefx;
 
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
+import elegit.Main;
 import elegit.models.RefHelper;
 import javafx.geometry.Insets;
 import javafx.scene.control.ContextMenu;
@@ -13,10 +14,14 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
+import org.apache.http.annotation.ThreadSafe;
 
 /**
  * Class for ref labels
  */
+@ThreadSafe
+// but critically only because of all the asserts requiring this be done only in the FX thread. Without that, it
+// isn't threadsafe, not least because of the bindings that are done.
 public class CellLabel extends HBox {
     private String name;
     private RefHelper refHelper;
@@ -34,6 +39,7 @@ public class CellLabel extends HBox {
     private static Image otherImage = new Image("elegit/images/branch.png");
 
     CellLabel(RefHelper refHelper, boolean isCurrent, boolean isTag) {
+        Main.assertFxThread();
         this.refHelper = refHelper;
         this.name = refHelper.getAbbrevName();
         this.isCurrent = isCurrent;
@@ -64,12 +70,14 @@ public class CellLabel extends HBox {
      * @return the pointer with the right color based on the
      */
     private Text getPointer() {
+        Main.assertFxThread();
         pointer = GlyphsDude.createIcon(FontAwesomeIcon.CHEVRON_LEFT);
         pointer.setFill(Color.web(isCurrent ? "#FFFFFF" : "333333"));
         return pointer;
     }
 
     protected Label getLabel() {
+        Main.assertFxThread();
         label = new Label();
         label.getStyleClass().clear();
         if (name.length() > MAX_CHAR_PER_LABEL) {
@@ -88,7 +96,7 @@ public class CellLabel extends HBox {
      * @return the imageView with the correct image
      */
     protected ImageView getImage() {
-        //image = new ImageView(new Image(isTag ? "elegit/images/tag.png" : isCurrent ? "elegit/images/branch_white.png" : "elegit/images/branch.png"));
+        Main.assertFxThread();
         image = new ImageView(isTag ? tagImage : isCurrent ? currentImage : otherImage);
         image.setFitHeight(15);
         image.setPreserveRatio(true);
@@ -100,6 +108,7 @@ public class CellLabel extends HBox {
      * @param menu the menu for this label
      */
     void setContextMenu(ContextMenu menu) {
+        Main.assertFxThread();
         this.contextMenu = menu;
         this.setPickOnBounds(true);
 
@@ -121,6 +130,7 @@ public class CellLabel extends HBox {
      * @param isRemote whether or not the ref label is remote
      */
     void setRemote(boolean isRemote) {
+        Main.assertFxThread();
         this.isRemote = true;
         refreshIcon();
     }
@@ -131,6 +141,7 @@ public class CellLabel extends HBox {
      * @param text the text of the tooltip
      */
     private void addToolTip(Label l, String text) {
+        Main.assertFxThread();
         Tooltip tooltip = new Tooltip(text);
         tooltip.setWrapText(true);
         tooltip.setMaxWidth(350);
@@ -142,6 +153,7 @@ public class CellLabel extends HBox {
      * @param current whether or not this label is current
      */
     void setCurrent(boolean current) {
+        Main.assertFxThread();
         this.isCurrent = current;
 
         this.getChildren().get(1).setId(isCurrent ? "current" : "regular");
@@ -156,6 +168,7 @@ public class CellLabel extends HBox {
      * @param tag whether or not this label is a tag
      */
     void setTag(boolean tag) {
+        Main.assertFxThread();
         this.isTag = tag;
 
         //((ImageView) this.getChildren().get(2)).setImage(new Image(isTag ? "elegit/images/tag.png" : "elegit/images/branch.png"));
@@ -168,6 +181,7 @@ public class CellLabel extends HBox {
     }
 
     private void refreshIcon() {
+        Main.assertFxThread();
         Image image;
         if (isTag) {
             image = tagImage;
@@ -183,6 +197,7 @@ public class CellLabel extends HBox {
     }
 
     RefHelper getRefHelper() {
+        Main.assertFxThread();
         return this.refHelper;
     }
 }
