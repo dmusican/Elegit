@@ -16,13 +16,13 @@ import java.util.*;
  */
 public class TreeGraphModel{
 
-    List<Cell> allCells;
-    List<Cell> addedCells;
-    List<Cell> removedCells;
+    private List<Cell> allCells;
+    private List<Cell> addedCells;
+    private List<Cell> removedCells;
 
-    List<Edge> allEdges;
-    List<Edge> addedEdges;
-    List<Edge> removedEdges;
+    private List<Edge> allEdges;
+    private List<Edge> addedEdges;
+    private List<Edge> removedEdges;
 
     // Map of each cell's id to the cell itself
     public Map<String,Cell> cellMap;
@@ -341,5 +341,9 @@ public class TreeGraphModel{
         removedEdges.clear();
 
         numCellsProperty.set(allCells.size());
+    }
+
+    public List<Cell> getAllCells() {
+        return new ArrayList<>(allCells);
     }
 }

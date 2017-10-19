@@ -100,7 +100,7 @@ public class TreeLayout{
         try {
             TreeGraphModel treeGraphModel = g.treeGraphModel;
 
-            List<Cell> allCells = treeGraphModel.allCells;
+            List<Cell> allCells = treeGraphModel.getAllCells();
             if (commitSortTopological.get())
                 topologicalSortListOfCells(allCells);
             else
