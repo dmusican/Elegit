@@ -12,7 +12,10 @@ import java.util.*;
  * http://stackoverflow.com/questions/30679025/graph-visualisation-like-yfiles-in-javafx/30696075#30696075
  *
  * The underlying model of a tree graph represented with generational cells and directed edges between
- * them
+ * them.
+ *
+ * Note that this isn't really a model in the sense of the rest of the project, but it's sort of a model relative
+ * to the TreeGraph in that is stores data for that TreeGraph. Depends on your perspective.
  */
 public class TreeGraphModel{
 
@@ -24,10 +27,11 @@ public class TreeGraphModel{
     private final List<Edge> removedEdges;
 
     // Map of each cell's id to the cell itself
-    public final Map<String,Cell> cellMap;
+    private final Map<String,Cell> cellMap;
 
     // Updated every time merge is called to hold the number of cells present
-    IntegerProperty numCellsProperty;
+    final IntegerProperty numCellsProperty = new SimpleIntegerProperty();
+
 
     // Whether this graph has been through the layout process already or not
     public boolean isInitialSetupFinished;
@@ -48,7 +52,6 @@ public class TreeGraphModel{
         removedEdges = new ArrayList<>();
 
         cellMap = new HashMap<>(); // <id,cell>
-        numCellsProperty = new SimpleIntegerProperty();
         isInitialSetupFinished = false;
         cellsWithNonDefaultShapesOrLabels = new ArrayList<>();
     }
@@ -59,6 +62,10 @@ public class TreeGraphModel{
      */
     public boolean containsID(String id){
         return cellMap.containsKey(id);
+    }
+
+    public Cell getCell(String id) {
+        return cellMap.get(id);
     }
 
     /**

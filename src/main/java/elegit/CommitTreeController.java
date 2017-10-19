@@ -241,7 +241,7 @@ public class CommitTreeController{
             return;
 
         if(commitTreeModel.treeGraph != null && commitTreeModel.treeGraph.treeGraphModel.containsID(commit.getName())){
-            Cell c = commitTreeModel.treeGraph.treeGraphModel.cellMap.get(commit.getName());
+            Cell c = commitTreeModel.treeGraph.treeGraphModel.getCell(commit.getName());
             Highlighter.emphasizeCell(c);
         }
     }
@@ -256,7 +256,7 @@ public class CommitTreeController{
             return;
 
         if(commitTreeModel.treeGraph != null && commitTreeModel.treeGraph.treeGraphModel.containsID(commitID)){
-            Cell c = commitTreeModel.treeGraph.treeGraphModel.cellMap.get(commitID);
+            Cell c = commitTreeModel.treeGraph.treeGraphModel.getCell(commitID);
             Highlighter.emphasizeCell(c);
         }
     }

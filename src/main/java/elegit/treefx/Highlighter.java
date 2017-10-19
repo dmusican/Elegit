@@ -32,7 +32,7 @@ public class Highlighter{
      * @param allGenerations whether to highlight further generations than just parents/children (i.e. grandparents, grandchildren etc)
      */
     public static void highlightSelectedCell(String cellID, TreeGraphModel model, boolean enable, boolean ancestors, boolean descendants, boolean allGenerations){
-        Cell cell = model.cellMap.get(cellID);
+        Cell cell = model.getCell(cellID);
         if(cell == null) return;
         if(enable){
             highlightCell(cell, CellState.SELECTED, true);
@@ -96,9 +96,9 @@ public class Highlighter{
      * @param enable whether to flag these edges as visible or not
      */
     public static void updateCellEdges(String cellID, String selectedCellID, TreeGraphModel model, boolean enable){
-        Cell cell = model.cellMap.get(cellID);
+        Cell cell = model.getCell(cellID);
         if(cell == null) return;
-        Cell selectedCell = model.cellMap.get(selectedCellID);
+        Cell selectedCell = model.getCell(selectedCellID);
 
         List<Edge> list = new ArrayList<>(cell.edges);
         if(!enable && selectedCellID != null){
@@ -122,7 +122,7 @@ public class Highlighter{
      * @param enable whether to highlight this cell or return it to the standard color
      */
     public static void highlightCell(String cellID, String selectedCellID, TreeGraphModel model, boolean enable){
-        Cell cell = model.cellMap.get(cellID);
+        Cell cell = model.getCell(cellID);
         if(cell == null) return;
 
         CellState state;
