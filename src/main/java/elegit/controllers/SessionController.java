@@ -175,14 +175,7 @@ public class SessionController {
         this.initWorkingTreePanelTab();
 
         // SLOW
-//        Observable.just(1)
-//                .observeOn(Schedulers.io())
-//                .doOnNext(u -> {
-//                    synchronized(globalLock) {
-//                        initPanelViews();
-//                    }
-//                })
-//                .subscribe(u -> {}, Throwable::printStackTrace);
+        // here now looking
         this.initPanelViews();
         this.updateUIEnabledStatus();
         this.setRecentReposDropdownToCurrentRepo();

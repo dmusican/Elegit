@@ -43,6 +43,8 @@ public abstract class FileStructurePanelView extends Region{
      * factory and add items to the tree.
      */
     public void init(){
+        // DRM: May not definitively need to be on FX thread, but putting it there for now to get architecture in shape
+        Main.assertFxThread();
         this.directoryTreeView = new TreeView<>();
         this.directoryTreeView.setCellFactory(this.getTreeCellFactory());
 
@@ -57,10 +59,8 @@ public abstract class FileStructurePanelView extends Region{
         // TreeViews must all have ONE root to hold the leafs. Don't show that root:
         this.directoryTreeView.setShowRoot(false);
 
-        Platform.runLater(() -> {
-            this.getChildren().clear();
-            this.getChildren().add(directoryTreeView);
-        });
+        this.getChildren().clear();
+        this.getChildren().add(directoryTreeView);
     }
 
     /**
@@ -70,7 +70,9 @@ public abstract class FileStructurePanelView extends Region{
      * @throws GitAPIException if the SessionModel can't get the ParentDirectoryRepoFile.
      */
     public void drawDirectoryView() throws GitAPIException, IOException {
-        //Main.assertNotFxThread();
+        // DRM: This is likely slow, and I may want to think about how to push some of this off on threads. For now,
+        // however, I've got to back up and get this straight on the FX thread so I can get the architecture in shape.
+        Main.assertFxThread();
         if(this.sessionModel.getCurrentRepoHelper() == null) return;
 
         if(this.treeRoot == null || !this.treeRoot.getValue().getRepo().equals(this.sessionModel.getCurrentRepoHelper())) {
