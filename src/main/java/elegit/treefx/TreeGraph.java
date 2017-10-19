@@ -1,5 +1,6 @@
 package elegit.treefx;
 
+import elegit.Main;
 import io.reactivex.Observable;
 import io.reactivex.rxjavafx.schedulers.JavaFxScheduler;
 import javafx.geometry.Insets;
@@ -7,6 +8,7 @@ import javafx.scene.Node;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.transform.Rotate;
+import org.apache.http.annotation.ThreadSafe;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -18,22 +20,26 @@ import java.util.List;
  *
  * Constructs a scrollable tree graph represented by parent and children cells with directed edges between them
  */
+@ThreadSafe
+// but critically only because of all the asserts requiring this be done only in the FX thread. Without that, it
+// isn't threadsafe, not least because of the bindings that are done.
 public class TreeGraph{
 
     // The scroll pane that holds all drawn elements
-    private CommitTreeScrollPane scrollPane;
+    private final CommitTreeScrollPane scrollPane;
 
     // The underlying model of the graph
-    public TreeGraphModel treeGraphModel;
+    public final TreeGraphModel treeGraphModel;
 
     // The layer within which the cells will be added
-    private Pane cellLayer;
+    private final Pane cellLayer;
 
     /**
      * Constructs a new graph using the given model
      * @param m the model of the graph
      */
     public TreeGraph(TreeGraphModel m) {
+        Main.assertFxThread();
         this.treeGraphModel = m;
 
         cellLayer = new Pane();
@@ -55,6 +61,7 @@ public class TreeGraph{
      * @return the scroll pane that holds the graph drawing
      */
     public ScrollPane getScrollPane() {
+        Main.assertFxThread();
         return this.scrollPane;
     }
 
@@ -64,7 +71,7 @@ public class TreeGraph{
      * date
      */
     public synchronized void update() {
-        //Main.assertNotFxThread();
+        Main.assertFxThread();
 
         final List<Node> queuedToAdd = new ArrayList<>();
         final List<Node> queuedToRemove = new ArrayList<>();
@@ -97,7 +104,7 @@ public class TreeGraph{
         Observable.concat(Observable.fromIterable(queuedToAdd),
                 Observable.fromIterable(moreToAdd))
                 .buffer(10)
-                .observeOn(JavaFxScheduler.platform())
+                //.observeOn(JavaFxScheduler.platform())
                 .subscribe(cellsToAdd -> {
                     cellLayer.getChildren().addAll(cellsToAdd);
                 });
@@ -105,7 +112,7 @@ public class TreeGraph{
         Observable.concat(Observable.fromIterable(moreToRemove),
                 Observable.fromIterable(queuedToRemove))
                 .buffer(10)
-                .observeOn(JavaFxScheduler.platform())
+                //.observeOn(JavaFxScheduler.platform())
                 .subscribe(cellsToAdd -> {
                     cellLayer.getChildren().removeAll(cellsToAdd);
                 });
@@ -113,6 +120,7 @@ public class TreeGraph{
     }
 
     Pane getCellLayerPane() {
+        Main.assertFxThread();
         return cellLayer;
     }
 }

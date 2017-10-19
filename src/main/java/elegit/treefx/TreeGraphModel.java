@@ -1,9 +1,11 @@
 package elegit.treefx;
 
+import elegit.Main;
 import elegit.models.RefHelper;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.scene.control.ContextMenu;
+import org.apache.http.annotation.ThreadSafe;
 
 import java.util.*;
 
@@ -17,6 +19,11 @@ import java.util.*;
  * Note that this isn't really a model in the sense of the rest of the project, but it's sort of a model relative
  * to the TreeGraph in that is stores data for that TreeGraph. Depends on your perspective.
  */
+@ThreadSafe
+// but critically only because of all the asserts requiring this be done only in the FX thread. Without that, it
+// isn't threadsafe. It seems like this class should be able to live outside of the FX thread, at least for some
+// of its work, but it's too tightly connected to Cell and Edge. Cell in particular maintains data on which cells
+// it connects to. That's not "view"-like at all, but it's in there, and tightly integrated.
 public class TreeGraphModel {
 
     private final List<Cell> allCells;
@@ -29,21 +36,22 @@ public class TreeGraphModel {
     // Map of each cell's id to the cell itself
     private final Map<String,Cell> cellMap;
 
-    // Updated every time merge is called to hold the number of cells present
-    final IntegerProperty numCellsProperty = new SimpleIntegerProperty();
-
-
     // Whether this graph has been through the layout process already or not
     private boolean firstTimeLayoutFlag;
 
     // A list of cells in this graph that do not have the default shape
     private List<Cell> cellsWithNonDefaultShapesOrLabels;
 
+    // Updated every time merge is called to hold the number of cells present
+    // This is not private so other aspects of the view can bind it. Don't touch it unless on FX thread!
+    final IntegerProperty numCellsProperty = new SimpleIntegerProperty();
+
     /**
      * Constructs a new model for a tree graph.
      * Resets and creates the cell and edge lists, as well as the cell map
      */
     public TreeGraphModel() {
+        Main.assertFxThread();
         allCells = new ArrayList<>();
         addedCells = new ArrayList<>();
         removedCells = new ArrayList<>();
@@ -57,6 +65,7 @@ public class TreeGraphModel {
     }
 
     public boolean checkAndFlipTreeLayoutDoneAtLeastOnce() {
+        Main.assertFxThread();
         boolean oldValue = firstTimeLayoutFlag;
         firstTimeLayoutFlag = true;
         return oldValue;
@@ -67,10 +76,12 @@ public class TreeGraphModel {
      * @return whether this graph contains the given id or not
      */
     public boolean containsID(String id){
+        Main.assertFxThread();
         return cellMap.containsKey(id);
     }
 
     public Cell getCell(String id) {
+        Main.assertFxThread();
         return cellMap.get(id);
     }
 
@@ -78,26 +89,30 @@ public class TreeGraphModel {
      * @return the cells added since the last update
      */
     public List<Cell> getAddedCells() {
-        return addedCells;
+        Main.assertFxThread();
+        return Collections.unmodifiableList(new ArrayList<>(addedCells));
     }
 
     /**
      * @return the cells removed since the last update
      */
     public List<Cell> getRemovedCells() {
-        return removedCells;
+        Main.assertFxThread();
+        return Collections.unmodifiableList(new ArrayList<>(removedCells));
     }
 
     /**
      * @return the edges added since the last update
      */
     public List<Edge> getAddedEdges() {
-        return addedEdges;
+        Main.assertFxThread();
+        return Collections.unmodifiableList(new ArrayList<>(addedEdges));
     }
     /**
      * @return the edges removed since the last update
      */
     public List<Edge> getRemovedEdges() {
+        Main.assertFxThread();
         List<String> removedMap = new ArrayList<>();
         for (Cell c : removedCells)
             removedMap.add(c.getCellId());
@@ -116,7 +131,7 @@ public class TreeGraphModel {
 
             }
         }
-        return removedEdges;
+        return Collections.unmodifiableList(new ArrayList<>(removedEdges));
     }
 
     /**
@@ -132,6 +147,7 @@ public class TreeGraphModel {
     public void addCell(String newId, long time, String displayLabel,
                         List<RefHelper> refs, ContextMenu contextMenu,
                         List<String> parentIds, Cell.CellType type){
+        Main.assertFxThread();
         // Create a list of parents
         List<Cell> parents = new ArrayList<>();
         for (String parentId : parentIds) {
@@ -168,6 +184,7 @@ public class TreeGraphModel {
      * @param cell the cell to add
      */
     private void addCell(Cell cell) {
+        Main.assertFxThread();
         if(cellMap.containsKey(cell.getCellId())){
             Cell oldCell = cellMap.remove(cell.getCellId());
             for(Cell p : cell.getCellParents()){
@@ -188,6 +205,7 @@ public class TreeGraphModel {
      * @param targetId the child cell
      */
     public void addEdge(String sourceId, String targetId) {
+        Main.assertFxThread();
         Cell sourceCell = cellMap.get(sourceId);
         Cell targetCell = cellMap.get(targetId);
 
@@ -201,6 +219,7 @@ public class TreeGraphModel {
      * @param target
      */
     public void addEdge(Cell source, Cell target) {
+        Main.assertFxThread();
         Edge edge = new Edge(source, target);
         source.addEdge(edge);
         target.addEdge(edge);
@@ -215,6 +234,7 @@ public class TreeGraphModel {
      * @param id the cell id to remove
      */
     public void removeCell(String id) {
+        Main.assertFxThread();
         Cell cell = cellMap.get(id);
         if(cell != null && cellMap.containsKey(cell.getCellId())){
             Cell oldCell = cellMap.remove(cell.getCellId());
@@ -231,6 +251,7 @@ public class TreeGraphModel {
      * @param cell the cell whose edges will be removed
      */
     private void removeEdges(Cell cell){
+        Main.assertFxThread();
         List<Edge> oldEdges = cell.getEdges();
 
         for(Edge e : oldEdges){
@@ -247,6 +268,7 @@ public class TreeGraphModel {
      * @param refs the branch names to include on the label
      */
     public void setCellLabels(String cellId, String commitDescriptor, List<RefHelper> refs){
+        Main.assertFxThread();
         setCellLabels(cellMap.get(cellId), commitDescriptor, refs);
     }
 
@@ -257,23 +279,28 @@ public class TreeGraphModel {
      * @param refs the list of refs to add
      */
     private void setCellLabels(Cell cell, String commitDescriptor, List<RefHelper> refs){
+        Main.assertFxThread();
         cell.setLabels(commitDescriptor, refs);
         if(refs.size() > 0) cellsWithNonDefaultShapesOrLabels.add(cell);
     }
 
     public void setCurrentCellLabels(String cellId, Set<String> refs) {
+        Main.assertFxThread();
         setCurrentCellLabels(cellMap.get(cellId), refs);
     }
 
     public void setCurrentCellLabels(Cell cell, Set<String> refs) {
+        Main.assertFxThread();
         cell.setCurrentLabels(refs);
     }
 
     public void setLabelMenus(String cellId, Map<RefHelper, ContextMenu> menuMap) {
+        Main.assertFxThread();
         cellMap.get(cellId).setLabelMenus(menuMap);
     }
 
     public void setRemoteBranchCells(String cellId, List<String> remoteBranches) {
+        Main.assertFxThread();
         cellMap.get(cellId).setRemoteLabels(remoteBranches);
     }
 
@@ -285,6 +312,7 @@ public class TreeGraphModel {
      * @param shape the new shape
      */
     public void setCellShape(String cellId, CellShape shape){
+        Main.assertFxThread();
         Cell cell = cellMap.get(cellId);
         cell.setShape(shape);
         cellsWithNonDefaultShapesOrLabels.add(cell);
@@ -298,6 +326,7 @@ public class TreeGraphModel {
      * @param type the new type
      */
     public void setCellType(String cellId, Cell.CellType type) {
+        Main.assertFxThread();
         Cell cell = cellMap.get(cellId);
         if (cell == null)
             return;
@@ -311,6 +340,7 @@ public class TreeGraphModel {
      * @return a list of CellIDs corresponding to the cells that were changed
      */
     public List<String> resetCellShapes(){
+        Main.assertFxThread();
         List<String> resetIDs = new ArrayList<>();
         for(Cell cell : cellsWithNonDefaultShapesOrLabels){
             cell.setShapeDefault();
@@ -318,7 +348,7 @@ public class TreeGraphModel {
             if(!resetIDs.contains(id) && allCells.contains(cell)) resetIDs.add(id);
         }
         cellsWithNonDefaultShapesOrLabels = new ArrayList<>();
-        return resetIDs;
+        return Collections.unmodifiableList(resetIDs);
     }
 
     /**
@@ -326,6 +356,7 @@ public class TreeGraphModel {
      * completely updated
      */
     public void merge() {
+        Main.assertFxThread();
         // cells
         allCells.addAll(addedCells);
         allCells.removeAll(removedCells);
@@ -340,6 +371,7 @@ public class TreeGraphModel {
     }
 
     public List<Cell> getAllCells() {
+        Main.assertFxThread();
         return new ArrayList<>(allCells);
     }
 }
