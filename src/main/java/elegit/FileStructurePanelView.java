@@ -23,8 +23,6 @@ public abstract class FileStructurePanelView extends Region{
     protected TreeView<RepoFile> directoryTreeView;
     private TreeItem<RepoFile> treeRoot;
 
-    public SessionModel sessionModel;
-
     /**
      * Simple constructor that calls init()
      */
@@ -48,13 +46,11 @@ public abstract class FileStructurePanelView extends Region{
         this.directoryTreeView = new TreeView<>();
         this.directoryTreeView.setCellFactory(this.getTreeCellFactory());
 
-        if(this.sessionModel != null) {
-            DirectoryRepoFile rootDirectory = new DirectoryRepoFile("", this.sessionModel.getCurrentRepoHelper());
-            this.treeRoot = this.getRootTreeItem(rootDirectory);
-            this.treeRoot.setExpanded(true);
+        DirectoryRepoFile rootDirectory = new DirectoryRepoFile("", SessionModel.getSessionModel().getCurrentRepoHelper());
+        this.treeRoot = this.getRootTreeItem(rootDirectory);
+        this.treeRoot.setExpanded(true);
 
-            this.directoryTreeView.setRoot(this.treeRoot);
-        }
+        this.directoryTreeView.setRoot(this.treeRoot);
 
         // TreeViews must all have ONE root to hold the leafs. Don't show that root:
         this.directoryTreeView.setShowRoot(false);
@@ -73,9 +69,9 @@ public abstract class FileStructurePanelView extends Region{
         // DRM: This is likely slow, and I may want to think about how to push some of this off on threads. For now,
         // however, I've got to back up and get this straight on the FX thread so I can get the architecture in shape.
         Main.assertFxThread();
-        if(this.sessionModel.getCurrentRepoHelper() == null) return;
+        if(SessionModel.getSessionModel().getCurrentRepoHelper() == null) return;
 
-        if(this.treeRoot == null || !this.treeRoot.getValue().getRepo().equals(this.sessionModel.getCurrentRepoHelper())) {
+        if(this.treeRoot == null || !this.treeRoot.getValue().getRepo().equals(SessionModel.getSessionModel().getCurrentRepoHelper())) {
             this.init();
         }
 
@@ -118,10 +114,4 @@ public abstract class FileStructurePanelView extends Region{
      */
     protected abstract List<RepoFile> getFilesToDisplay() throws GitAPIException, IOException;
 
-    /**
-     * Set the SessionModel for this view
-     */
-    public void setSessionModel() {
-        this.sessionModel = SessionModel.getSessionModel();
-    }
 }

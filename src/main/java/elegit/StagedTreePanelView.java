@@ -96,7 +96,7 @@ public class StagedTreePanelView extends FileStructurePanelView{
     @Override
     public List<RepoFile> getFilesToDisplay() throws GitAPIException, IOException {
         List<RepoFile> repoFiles = new ArrayList<>();
-        for (RepoFile file : sessionModel.getAllChangedRepoFiles()) {
+        for (RepoFile file : SessionModel.getSessionModel().getAllChangedRepoFiles()) {
             if (file instanceof StagedRepoFile || file instanceof StagedAndModifiedRepoFile)
                 repoFiles.add(file);
         }

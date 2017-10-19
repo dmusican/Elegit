@@ -147,7 +147,7 @@ public class AllFilesPanelView extends FileStructurePanelView{
      */
     @Override
     public List<RepoFile> getFilesToDisplay() throws GitAPIException, IOException {
-        return sessionModel.getAllRepoFiles();
+        return SessionModel.getSessionModel().getAllRepoFiles();
     }
 
     /**

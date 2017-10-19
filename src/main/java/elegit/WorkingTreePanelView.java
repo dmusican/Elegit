@@ -112,7 +112,7 @@ public class WorkingTreePanelView extends FileStructurePanelView{
             }
             if (parentDirectory == null) {
                 // Create a new directory and add it to the root
-                DirectoryRepoFile parent = new DirectoryRepoFile(pathToParent, this.sessionModel.getCurrentRepoHelper());
+                DirectoryRepoFile parent = new DirectoryRepoFile(pathToParent, SessionModel.getSessionModel().getCurrentRepoHelper());
                 parent.setShowFullPath(true);
                 parentDirectory = new CheckBoxTreeItem<>(parent);
                 parentDirectory.setExpanded(true);
@@ -220,7 +220,7 @@ public class WorkingTreePanelView extends FileStructurePanelView{
      */
     @Override
     public List<RepoFile> getFilesToDisplay() throws GitAPIException{
-        return sessionModel.getAllChangedRepoFiles();
+        return SessionModel.getSessionModel().getAllChangedRepoFiles();
     }
 
     /**

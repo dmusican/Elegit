@@ -162,11 +162,6 @@ public class SessionController {
         commitTreeModel.setView(commitTreePanelView);
         CommitTreeController.commitTreeModel = this.commitTreeModel;
 
-        // Passes theModel to panel views
-        this.workingTreePanelView.setSessionModel();
-        this.allFilesPanelView.setSessionModel();
-        this.indexPanelView.setSessionModel();
-
         this.initializeLayoutParameters();
 
         this.initButtons();

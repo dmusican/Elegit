@@ -54,9 +54,6 @@ public class CommitController {
 
         this.commitMessageField.requestFocus();
 
-        this.stagedFilesPanelView.setSessionModel();
-        this.allFilesPanelView.setSessionModel();
-
         updatePanelViews();
 
         // Commit button can only be clicked if there is a commit message in the window
