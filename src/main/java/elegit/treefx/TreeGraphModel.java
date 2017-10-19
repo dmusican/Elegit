@@ -16,16 +16,15 @@ import java.util.*;
  */
 public class TreeGraphModel{
 
-    private List<Cell> allCells;
-    private List<Cell> addedCells;
-    private List<Cell> removedCells;
+    private final List<Cell> allCells;
+    private final List<Cell> addedCells;
+    private final List<Cell> removedCells;
 
-    private List<Edge> allEdges;
-    private List<Edge> addedEdges;
-    private List<Edge> removedEdges;
+    private final List<Edge> addedEdges;
+    private final List<Edge> removedEdges;
 
     // Map of each cell's id to the cell itself
-    public Map<String,Cell> cellMap;
+    public final Map<String,Cell> cellMap;
 
     // Updated every time merge is called to hold the number of cells present
     IntegerProperty numCellsProperty;
@@ -37,30 +36,21 @@ public class TreeGraphModel{
     private List<Cell> cellsWithNonDefaultShapesOrLabels;
 
     /**
-     * Constructs a new model for a tree graph
-     */
-    public TreeGraphModel() {
-        clear();
-        numCellsProperty = new SimpleIntegerProperty();
-        isInitialSetupFinished = false;
-        cellsWithNonDefaultShapesOrLabels = new ArrayList<>();
-    }
-
-    /**
+     * Constructs a new model for a tree graph.
      * Resets and creates the cell and edge lists, as well as the cell map
      */
-    public void clear() {
-
+    public TreeGraphModel() {
         allCells = new ArrayList<>();
         addedCells = new ArrayList<>();
         removedCells = new ArrayList<>();
 
-        allEdges = new ArrayList<>();
         addedEdges = new ArrayList<>();
         removedEdges = new ArrayList<>();
 
         cellMap = new HashMap<>(); // <id,cell>
-
+        numCellsProperty = new SimpleIntegerProperty();
+        isInitialSetupFinished = false;
+        cellsWithNonDefaultShapesOrLabels = new ArrayList<>();
     }
 
     /**
@@ -332,10 +322,6 @@ public class TreeGraphModel{
 
         addedCells.clear();
         removedCells.clear();
-
-        // edges
-        allEdges.addAll(addedEdges);
-        allEdges.removeAll(removedEdges);
 
         addedEdges.clear();
         removedEdges.clear();
