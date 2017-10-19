@@ -8,30 +8,43 @@ import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.scene.Group;
+import org.apache.http.annotation.ThreadSafe;
 
 /**
  * Connects two cells in the TreeGraph using a DirectedPath
+ *
+ * A Edge extends Group, so it IS a JavaFX node and should be treated as one.
+ *
+ * This code should have no Platform.runLater code in it whatsoever. The Edge becomes part of the scene graph.
+ * Could aspects of be done off thread? Sure, but that gets really complicated, and it's why the FX thread is single-
+ * threaded to start with. Some code in here is called from off-thread, but it's the job of them to make sure they
+ * call Platform.runLater (or whatever) and deal with the consequences of the timing. From the perspective of this
+ * class, it's all on FX thread. Don't take any of the asserts out without a complete rethinking of the philosophy.
+ *
  */
+@ThreadSafe
+// but critically only because of all the asserts requiring this be done only in the FX thread. Without that, it
+// isn't threadsafe.
 public class Edge extends Group {
 
     // Determines whether all edges are set to be visible or not
-    public static BooleanProperty allVisible = new SimpleBooleanProperty(true);
+    private static final BooleanProperty allVisible = new SimpleBooleanProperty(true);
 
     // Whether or not this edge is visible
-    private BooleanProperty visible;
+    private final BooleanProperty visible = new SimpleBooleanProperty(false);
 
     // The endpoints of this edge
-    private Cell source;
-    private Cell target;
+    private final Cell source;
+    private final Cell target;
 
     // The path that will be drawn to represent this edge
-    private DirectedPath path;
+    private final DirectedPath path;
 
     // Whether extra points between the start and endpoints have been added
     private boolean addedMidPoints;
 
     // The y value to draw the mid points at
-    private DoubleProperty midLineX;
+    private final DoubleProperty midLineX = new SimpleDoubleProperty(0);
 
     /**
      * Constructs a directed line between the source and target cells and binds
@@ -40,10 +53,10 @@ public class Edge extends Group {
      * @param target the target (child) cell
      */
     public Edge(Cell source, Cell target) {
+        Main.assertFxThread();
         this.source = source;
         this.target = target;
         this.addedMidPoints = false;
-        midLineX = new SimpleDoubleProperty(0);
 
         DoubleBinding endX = source.translateXProperty().add(source.widthProperty().divide(2.0));
         DoubleBinding endY = source.translateYProperty().add(source.heightProperty());
@@ -89,7 +102,6 @@ public class Edge extends Group {
         }
         getChildren().add(path);
 
-        visible = new SimpleBooleanProperty(false);
         visibleProperty().bind(source.visibleProperty().and(target.visibleProperty())
                 .and(allVisible.or(visible)));
 
@@ -105,6 +117,7 @@ public class Edge extends Group {
      * @param endY the ending y coordinate of this edge
      */
     private void checkAndAddMidPoints(DoubleBinding startY, DoubleBinding endY){
+        Main.assertFxThread();
         if(target.rowLocationProperty.get() - source.rowLocationProperty.get() > 1
                 || target.rowLocationProperty.get() - source.rowLocationProperty.get() < 0){
             if(!addedMidPoints){
@@ -125,13 +138,22 @@ public class Edge extends Group {
      * @param enable whether to set this edge as visible or not
      */
     public void setHighlighted(boolean enable){
+        Main.assertFxThread();
         this.visible.set(enable);
     }
 
-    public Cell getSource() { return this.source; }
-    public Cell getTarget() { return this.target; }
+    public Cell getSource() {
+        Main.assertFxThread();
+        return this.source;
+    }
+
+    public Cell getTarget() {
+        Main.assertFxThread();
+        return this.target;
+    }
 
     public void resetDashed() {
+        Main.assertFxThread();
         if(source.getCellType() != Cell.CellType.BOTH || target.getCellType() != Cell.CellType.BOTH)
             path.setDashed(true);
         else
