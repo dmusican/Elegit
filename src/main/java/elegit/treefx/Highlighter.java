@@ -1,9 +1,11 @@
 package elegit.treefx;
 
+import elegit.Main;
 import javafx.animation.ScaleTransition;
 import javafx.application.Platform;
 import javafx.scene.shape.Shape;
 import javafx.util.Duration;
+import org.apache.http.annotation.ThreadSafe;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -13,6 +15,9 @@ import java.util.Map;
 /**
  * This class provides static methods for highlighting and animating cells in a tree graph
  */
+@ThreadSafe
+// but critically only because of all the asserts requiring this be done only in the FX thread. Without that, it
+// isn't even going to work in spots because of the tight integration with Cell, etc.
 public class Highlighter{
 
     // Cells that are currently blocked from being highlighted
@@ -32,6 +37,7 @@ public class Highlighter{
      * @param allGenerations whether to highlight further generations than just parents/children (i.e. grandparents, grandchildren etc)
      */
     public static void highlightSelectedCell(String cellID, TreeGraphModel model, boolean enable, boolean ancestors, boolean descendants, boolean allGenerations){
+        Main.assertFxThread();
         Cell cell = model.getCell(cellID);
         if(cell == null) return;
         if(enable){
@@ -62,6 +68,7 @@ public class Highlighter{
      * @param visited a list of all visited cells so far
      */
     private static void highlightCellParents(Cell cell, CellState state, boolean recurse, List<Cell> visited){
+        Main.assertFxThread();
         for(Cell parent : cell.getCellParents()){
             if(visited.contains(parent)) continue;
             visited.add(parent);
@@ -78,6 +85,7 @@ public class Highlighter{
      * @param visited a list of all visited cells so far
      */
     private static void highlightCellChildren(Cell cell, CellState state, boolean recurse, List<Cell> visited){
+        Main.assertFxThread();
         for(Cell child : cell.getCellChildren()){
             if(visited.contains(child)) continue;
             visited.add(child);
@@ -96,6 +104,7 @@ public class Highlighter{
      * @param enable whether to flag these edges as visible or not
      */
     public static void updateCellEdges(String cellID, String selectedCellID, TreeGraphModel model, boolean enable){
+        Main.assertFxThread();
         Cell cell = model.getCell(cellID);
         if(cell == null) return;
         Cell selectedCell = model.getCell(selectedCellID);
@@ -121,6 +130,7 @@ public class Highlighter{
      * @param enable whether to highlight this cell or return it to the standard color
      */
     public static void highlightCell(String cellID, String selectedCellID, TreeGraphModel model, boolean enable){
+        Main.assertFxThread();
         Cell cell = model.getCell(cellID);
         if(cell == null) return;
 
@@ -152,6 +162,7 @@ public class Highlighter{
      *                   state stay in memory)
      */
     private static void highlightCell(Cell cell, CellState state, boolean persistent){
+        Main.assertFxThread();
         if(persistent) cellStates.put(cell, state);
 
         if(blockedCellIDs.contains(cell.getCellId())) return;
@@ -170,6 +181,7 @@ public class Highlighter{
      * map as it is redundant with everything reset.
      */
     public static void resetAll(){
+        Main.assertFxThread();
         for(Cell cell : cellStates.keySet()){
             cell.setCellState(CellState.STANDARD);
         }
@@ -181,6 +193,7 @@ public class Highlighter{
      * @param cell the cell to reset to standard state
      */
     public static void resetCell(Cell cell) {
+        Main.assertFxThread();
         cell.setCellState(CellState.STANDARD);
         cellStates.remove(cell);
     }
@@ -194,29 +207,28 @@ public class Highlighter{
      * @param c the cell to emphasize
      */
     public static void emphasizeCell(Cell c){
+        Main.assertFxThread();
         if(!blockedCellIDs.contains(c.getCellId())){
             blockedCellIDs.add(c.getCellId());
         }
 
-        Platform.runLater(() -> {
-            CommitTreeScrollPane.scrollTo(c.rowLocationProperty.doubleValue());
-            c.setCellState(CellState.EMPHASIZED);
+        CommitTreeScrollPane.scrollTo(c.rowLocationProperty.doubleValue());
+        c.setCellState(CellState.EMPHASIZED);
 
-            Shape s = (Shape) c.view;
+        Shape s = (Shape) c.view;
 
-            ScaleTransition sct = new ScaleTransition(Duration.millis(425), s);
-            sct.setByX(0.3f);
-            sct.setByY(0.3f);
-            sct.setCycleCount(6);
-            sct.setAutoReverse(true);
+        ScaleTransition sct = new ScaleTransition(Duration.millis(425), s);
+        sct.setByX(0.3f);
+        sct.setByY(0.3f);
+        sct.setCycleCount(6);
+        sct.setAutoReverse(true);
 
-            c.view.setScaleX(1.0);
-            c.view.setScaleY(1.0);
+        c.view.setScaleX(1.0);
+        c.view.setScaleY(1.0);
 
-            sct.play();
+        sct.play();
 
-            sct.setOnFinished(event -> endEmphasisOnCell(c));
-        });
+        sct.setOnFinished(event -> endEmphasisOnCell(c));
     }
 
     /**
@@ -224,6 +236,7 @@ public class Highlighter{
      * @param c the cell to end emphasis on
      */
     private static void endEmphasisOnCell(Cell c){
+        Main.assertFxThread();
         blockedCellIDs.remove(c.getCellId());
         highlightCell(c, cellStates.getOrDefault(c, CellState.STANDARD), true);
     }
