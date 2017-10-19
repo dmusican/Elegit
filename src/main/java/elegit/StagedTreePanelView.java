@@ -48,6 +48,7 @@ public class StagedTreePanelView extends FileStructurePanelView{
      */
     @Override
     protected void addTreeItemsToRoot(List<RepoFile> repoFiles, TreeItem<RepoFile> root){
+        Main.assertFxThread();
 
         // Track all current files to make sure they should still be displayed
         Map<TreeItem<RepoFile>, Boolean> shouldKeepChild = new HashMap<>();

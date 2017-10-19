@@ -58,6 +58,10 @@ public class AllFilesPanelView extends FileStructurePanelView{
      */
     @Override
     protected void addTreeItemsToRoot(List<RepoFile> repoFiles, TreeItem<RepoFile> root){
+        // DRM: some of this will undoubtedly need to be threaded, but its safety needs to be carefully thought
+        // given the FX work done. For now, insist in FX thread.
+        Main.assertFxThread();
+
         // To ensure files are added after their parents, sort the given files into lists
         // based on their respective depths in the file structure
         Map<Integer, List<RepoFile>> filesAtDepthMap = new HashMap<>();
@@ -114,7 +118,9 @@ public class AllFilesPanelView extends FileStructurePanelView{
                         while (pathToParent != null && !root.getValue().getFilePath().equals(pathToParent)) {
                             if (itemMap.containsKey(pathToParent)) {
                                 TreeItem<RepoFile> parent = itemMap.get(pathToParent);
-                                Platform.runLater(() -> parent.getChildren().add(newItem));
+                                //Platform.runLater(() ->
+                                        parent.getChildren().add(newItem);
+                                //);
                                 foundParent = true;
                                 break;
                             }
@@ -133,9 +139,9 @@ public class AllFilesPanelView extends FileStructurePanelView{
 
         // Remove all elements that shouldn't be displayed
         for (TreeItem<RepoFile> item : itemsToRemove) {
-            Platform.runLater(() -> {
+            //Platform.runLater(() -> {
                 if(item.getParent() != null) item.getParent().getChildren().remove(item);
-            });
+            //});
             itemMap.remove(item.getValue().getFilePath());
         }
     }

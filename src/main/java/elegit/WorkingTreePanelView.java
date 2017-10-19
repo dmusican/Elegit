@@ -31,9 +31,9 @@ import java.util.*;
 // TODO: Make sure this is threadsafe
 public class WorkingTreePanelView extends FileStructurePanelView{
 
-    public BooleanProperty isAnyFileSelectedProperty;
+    private BooleanProperty isAnyFileSelectedProperty;
 
-    public List<TreeItem<RepoFile>> displayedFiles;
+    private final List<TreeItem<RepoFile>> displayedFiles = new LinkedList<>();
 
     private CheckBoxTreeItem<RepoFile> checkBox;
 
@@ -44,7 +44,6 @@ public class WorkingTreePanelView extends FileStructurePanelView{
     @Override
     public void init(){
         Main.assertFxThread();
-        this.displayedFiles = new LinkedList<>();
         isAnyFileSelectedProperty = new SimpleBooleanProperty(false);
 
         // Used to disable/enable add and remove buttons
@@ -132,6 +131,7 @@ public class WorkingTreePanelView extends FileStructurePanelView{
      */
     @Override
     protected void addTreeItemsToRoot(List<RepoFile> updatedRepoFiles, TreeItem<RepoFile> root) {
+        Main.assertFxThread();
 
         // Re-adds the checkbox if it had been removed
         if(root.getChildren().isEmpty()) {
