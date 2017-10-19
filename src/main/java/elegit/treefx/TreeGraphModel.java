@@ -34,7 +34,7 @@ public class TreeGraphModel{
 
 
     // Whether this graph has been through the layout process already or not
-    public boolean isInitialSetupFinished;
+    private boolean firstTimeLayoutFlag;
 
     // A list of cells in this graph that do not have the default shape
     private List<Cell> cellsWithNonDefaultShapesOrLabels;
@@ -52,8 +52,14 @@ public class TreeGraphModel{
         removedEdges = new ArrayList<>();
 
         cellMap = new HashMap<>(); // <id,cell>
-        isInitialSetupFinished = false;
+        firstTimeLayoutFlag = false;
         cellsWithNonDefaultShapesOrLabels = new ArrayList<>();
+    }
+
+    public boolean checkAndFlipTreeLayoutDoneAtLeastOnce() {
+        boolean oldValue = firstTimeLayoutFlag;
+        firstTimeLayoutFlag = true;
+        return oldValue;
     }
 
     /**

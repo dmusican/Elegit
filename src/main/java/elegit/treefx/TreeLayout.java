@@ -110,10 +110,12 @@ public class TreeLayout{
             List<Integer> minRowUsedInCol = new ArrayList<>();
             List<Integer> movedCells = new ArrayList<>();
 
+            boolean firstTimeTreeLayout = treeGraphModel.checkAndFlipTreeLayoutDoneAtLeastOnce();
+
             // Compute the positions of cells recursively
             for (int i = allCells.size() - 1; i >= 0; i--) {
                 computeCellPosition(allCells, minRowUsedInCol, movedCells,
-                        treeGraphModel.isInitialSetupFinished, i);
+                        firstTimeTreeLayout, i);
             }
             // Once all cell's positions have been set, move them in a service
             CellMover mover = new CellMover(allCells);
@@ -156,7 +158,6 @@ public class TreeLayout{
                 progressBar.setProgress(mover.percent.get() / 100.0);
             }
 
-            treeGraphModel.isInitialSetupFinished = true;
             loadingCommits.setVisible(false);
             progressBar.setVisible(false);
 
