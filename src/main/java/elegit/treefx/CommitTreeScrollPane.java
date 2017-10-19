@@ -1,36 +1,40 @@
 package elegit.treefx;
 
+import elegit.Main;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.scene.Node;
 import javafx.scene.control.ScrollPane;
+import org.apache.http.annotation.ThreadSafe;
 
 /**
  * The commit tree scroll pane
  */
-public class CommitTreeScrollPane extends ScrollPane{
+@ThreadSafe
+// but critically only because of all the asserts requiring this be done only in the FX thread. Without that, it
+// isn't threadsafe, not least because of the bindings / listeners that are done.
+class CommitTreeScrollPane extends ScrollPane {
+
     private final static double DEFAULT_SCROLL_POS = 1.0;
 
     // A property used to update the number of items in the scroll pane
-    public final IntegerProperty NumItemsProperty = new SimpleIntegerProperty(1);
+    final IntegerProperty NumItemsProperty = new SimpleIntegerProperty(1);
 
     // The number of horizontally arranged items present in the scroll panes
     private static int numItems = 1;
 
     private static final DoubleProperty vPos = new SimpleDoubleProperty(-1.0);
 
-    public CommitTreeScrollPane(Node node) {
+    CommitTreeScrollPane(Node node) {
         super(node);
+        Main.assertFxThread();
 
         vPos.addListener((observable, oldValue, newValue) -> {
             if (newValue.doubleValue() != -1) {
-                // For some reason setVvalue doesn't take hold unless you
-                // bash it with repetition.
                 double value = newValue.doubleValue()>1 ? 1 : newValue.doubleValue();
-                for (int i=0; i<3; i++)
-                    this.vvalueProperty().setValue(value);
+                this.vvalueProperty().setValue(value);
             }
         });
 
@@ -47,13 +51,14 @@ public class CommitTreeScrollPane extends ScrollPane{
      * @param pos the horizontal position to scroll to when compared as a ratio
      *            to numItems
      */
-    public static void scrollTo(double pos){
+    static void scrollTo(double pos){
+        Main.assertFxThread();
         if(pos < 0 || pos > numItems){
             vPos.setValue(DEFAULT_SCROLL_POS);
         }else{
             double ratio = pos/numItems;
             double offset = ratio >= 0.5 ? 1.0/numItems : -1.0/numItems;
-            vPos.set(1-(ratio+offset));
+            vPos.setValue(1-(ratio+offset));
         }
         vPos.setValue(-1.0);
     }
