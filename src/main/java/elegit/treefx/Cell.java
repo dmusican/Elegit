@@ -24,6 +24,15 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * A class that represents a node in a TreeGraph
+ *
+ * A Cell extends Pane, so it IS a JavaFX node and should be treated as one.
+ *
+ * This code should have no Platform.runLater code in it whatsoever. The Cell becomes part of the scene graph.
+ * Could aspects of be done off thread? Sure, but that gets really complicated, and it's why the FX thread is single-
+ * threaded to start with. Some code in here is called from off-thread, but it's the job of them to make sure they
+ * call Platform.runLater (or whatever) and deal with the consequences of the timing. From the perspective of this
+ * class, it's all on FX thread. Don't take any of the asserts out without a complete rethinking of the philosophy.
+ *
  */
 public class Cell extends Pane{
 
@@ -101,6 +110,7 @@ public class Cell extends Pane{
      * @param type the type of cell to add
      */
     public Cell(String cellId, long time, List<Cell> parents, CellType type){
+        Main.assertFxThread();
         this.cellId = cellId;
         this.time = time;
         this.parents = new ParentCell(this, parents);
@@ -194,6 +204,7 @@ public class Cell extends Pane{
      * @return the basic view for this cell
      */
     private Node getBaseView(){
+        Main.assertFxThread();
         Node node = DEFAULT_SHAPE.getType(this.type);
         setFillType((Shape)node, CellState.STANDARD);
         node.getStyleClass().setAll("cell");
