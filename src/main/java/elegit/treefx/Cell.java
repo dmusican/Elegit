@@ -35,8 +35,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * class, it's all on FX thread. Don't take any of the asserts out without a complete rethinking of the philosophy.
  *
  */
-// YIKES, NOT THREADSAFE due to non-private non-final variables
-// YIKES, ALSO NOT THREADSAFE due to leaking returns of private data, check that out too
+@ThreadSafe
 // but critically only because of all the asserts requiring this be done only in the FX thread. Without that, it
 // isn't threadsafe.
 // TODO: If this sticks, take out the atomic references etc I put in, they aren't necessary; ditto synchronized
@@ -328,7 +327,7 @@ public class Cell extends Pane {
      */
     List<Cell> getCellChildren() {
         Main.assertFxThread();
-        return Collections.unmodifiableList(childrenList);
+        return Collections.unmodifiableList(new ArrayList<>(childrenList));
     }
 
     /**
@@ -344,14 +343,16 @@ public class Cell extends Pane {
      */
     boolean getAnimate() {
         Main.assertFxThread();
-        return this.animate.get(); }
+        return this.animate.get();
+    }
 
     /**
      * @return whether or not to use the parent to base the animation off of
      */
     boolean getUseParentAsSource() {
         Main.assertFxThread();
-        return this.useParentAsSource.get(); }
+        return this.useParentAsSource.get();
+    }
 
     /**
      * Removes the given cell from the childrenList of this cell
@@ -473,7 +474,7 @@ public class Cell extends Pane {
          */
         List<Cell> toList(){
             Main.assertFxThread();
-            return parents;
+            return Collections.unmodifiableList(new ArrayList<>(parents));
         }
 
         /**
