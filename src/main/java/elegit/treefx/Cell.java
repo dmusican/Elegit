@@ -35,7 +35,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  * class, it's all on FX thread. Don't take any of the asserts out without a complete rethinking of the philosophy.
  *
  */
-@ThreadSafe
+// YIKES, NOT THREADSAFE due to non-private non-final variables
+// YIKES, ALSO NOT THREADSAFE due to leaking returns of private data, check that out too
 // but critically only because of all the asserts requiring this be done only in the FX thread. Without that, it
 // isn't threadsafe.
 // TODO: If this sticks, take out the atomic references etc I put in, they aren't necessary; ditto synchronized
@@ -62,22 +63,6 @@ public class Cell extends Pane{
     private final AtomicBoolean animate = new AtomicBoolean();
     private final AtomicBoolean useParentAsSource = new AtomicBoolean();
 
-
-    // hard
-    // There's a lot in here that's hard. This is because it's unclear what's happening on the FX thread
-    // and what's not. Said differently, it's unclear what's view, and what's model. Get that disentangled, and
-    // everything else should hopefully fall into place.
-    public static final CellShape UNTRACKED_BRANCH_HEAD_SHAPE = CellShape.CIRCLE;
-    public static final CellShape TRACKED_BRANCH_HEAD_SHAPE = CellShape.TRIANGLE_UP;
-
-    // The size of the rectangle being drawn
-    public static final int BOX_SIZE = 20;
-
-    //The height of the shift for the cells;
-    private static final int BOX_SHIFT = 20;
-
-    // The displayed view
-    Node view;
     private CellShape shape;
     private CellType type;
 
@@ -90,21 +75,31 @@ public class Cell extends Pane{
     // The parent object that holds the parents of this cell
     private final ParentCell parents;
 
-    // All edges that have this cell as an endpoint
-    List<Edge> edges = new ArrayList<>();
 
-    // The row and column location of this cell
-    IntegerProperty columnLocationProperty, rowLocationProperty;
+    // Constants
+    public static final CellShape UNTRACKED_BRANCH_HEAD_SHAPE = CellShape.CIRCLE;
+    public static final CellShape TRACKED_BRANCH_HEAD_SHAPE = CellShape.TRIANGLE_UP;
+    // The size of the rectangle being drawn
+    public static final int BOX_SIZE = 20;
+    //The height of the shift for the cells;
+    private static final int BOX_SHIFT = 20;
 
     // Whether this cell has been moved to its appropriate location
     private BooleanProperty hasUpdatedPosition;
 
 
-    // HERE
+    // hard
+    // There's a lot in here that's hard. This is because it's unclear what's happening on the FX thread
+    // and what's not. Said differently, it's unclear what's view, and what's model. Get that disentangled, and
+    // everything else should hopefully fall into place.
 
+    // The displayed view
+    Node view;
+    // All edges that have this cell as an endpoint
+    List<Edge> edges = new ArrayList<>();
 
-
-
+    // The row and column location of this cell
+    IntegerProperty columnLocationProperty, rowLocationProperty;
 
 
 

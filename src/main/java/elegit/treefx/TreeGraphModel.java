@@ -17,7 +17,7 @@ import java.util.*;
  * Note that this isn't really a model in the sense of the rest of the project, but it's sort of a model relative
  * to the TreeGraph in that is stores data for that TreeGraph. Depends on your perspective.
  */
-public class TreeGraphModel{
+public class TreeGraphModel {
 
     private final List<Cell> allCells;
     private final List<Cell> addedCells;
@@ -102,8 +102,7 @@ public class TreeGraphModel{
         for (Cell c : removedCells)
             removedMap.add(c.getCellId());
         List<Edge> oldRemoved = new ArrayList<>();
-        for (Edge e : removedEdges)
-            oldRemoved.add(e);
+        oldRemoved.addAll(removedEdges);
 
         // If there are edges going to a cell being replaced, keep those
         for (Edge e : oldRemoved) {
