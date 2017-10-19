@@ -12,6 +12,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.scene.transform.Rotate;
+import org.apache.http.annotation.ThreadSafe;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -20,6 +21,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * Handles the layout of cells in a TreeGraph in an appropriate tree structure
  */
+@ThreadSafe
+// but critically only because of all the asserts requiring this be done only in the FX thread. Without that, it
+// isn't threadsafe, not least because of the bindings that are done.
 public class TreeLayout{
 
     static final int H_SPACING = Cell.BOX_SIZE + 10;
@@ -60,30 +64,25 @@ public class TreeLayout{
         void setCurrentCell(int currentCell) { this.currentCell = currentCell; }
 
         void moveSomeCells() {
-            //Main.assertNotFxThread();
-            // Try/catch is just in for debugging purposes, left because any
-            // errors here are very hard to find without it
-            final int startCell = currentCell;
-            Platform.runLater( () -> {
-                try {
-                    for (int i = startCell; i < startCell + 10; i++) {
-                        if (i > allCellsSortedByTime.size() - 1) {
-                            percent.set(100);
-                            return;
-                        }
-                        ;
-                        moveCell(allCellsSortedByTime.get(i));
+            // This is calling moveCell, which definitively needs access to FX thread, so for now, leave this there
+            // as well
+            Main.assertFxThread();
 
-                        // Update progress if need be
-                        int max = allCellsSortedByTime.size()-1;
-                        if (i * 100.0 / max > percent.get() && percent.get() < 100) {
-                            percent.set(i * 100 / max);
-                        }
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
+            final int startCell = currentCell;
+            for (int i = startCell; i < startCell + 10; i++) {
+                if (i > allCellsSortedByTime.size() - 1) {
+                    percent.set(100);
+                    return;
                 }
-            });
+                ;
+                moveCell(allCellsSortedByTime.get(i));
+
+                // Update progress if need be
+                int max = allCellsSortedByTime.size()-1;
+                if (i * 100.0 / max > percent.get() && percent.get() < 100) {
+                    percent.set(i * 100 / max);
+                }
+            }
         }
     }
 
@@ -101,7 +100,8 @@ public class TreeLayout{
              */
     public static void doTreeLayout(TreeGraph g) {
         // TreeGraph has to live on FX thread, and this calls methods on it, so this should start there too.
-        // Spin off slow parts as I need to, perhaps.
+        // Spin off slow parts as I need to, perhaps. Be careful, lots of code below involves bindings, etc, that
+        // certainly must stay.
         Main.assertFxThread();
         try {
             TreeGraphModel treeGraphModel = g.treeGraphModel;
@@ -145,7 +145,7 @@ public class TreeLayout{
             loading.layoutXProperty().bind(viewportX);
             loading.setRotationAxis(Rotate.X_AXIS);
             loading.setRotate(180);
-            Platform.runLater(() -> cellLayer.getChildren().add(loading));
+            cellLayer.getChildren().add(loading);
 
             sp.vvalueProperty().addListener(((observable, oldValue, newValue) -> {
                 viewportY.set(cellLayer.getLayoutBounds().getHeight()-((double) newValue * cellLayer.getLayoutBounds().getHeight() +
@@ -334,7 +334,7 @@ public class TreeLayout{
      * to its stored row and column locations
      * @param c the cell to move
      */
-    public static void moveCell(Cell c){
+    static void moveCell(Cell c){
         Main.assertFxThread();
         boolean animate = c.getAnimate();
         boolean useParentPosAsSource = c.getUseParentAsSource();
