@@ -14,6 +14,7 @@ import javafx.scene.text.Text;
 import javafx.scene.transform.Rotate;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -21,12 +22,19 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class TreeLayout{
 
-    public static int H_SPACING = Cell.BOX_SIZE + 10;
-    public static int V_SPACING = Cell.BOX_SIZE * 3 + 5;
-    public static int H_PAD = 10;
-    public static int V_PAD = 25;
-    public static boolean movingCells;
+    static final int H_SPACING = Cell.BOX_SIZE + 10;
+    static final int V_SPACING = Cell.BOX_SIZE * 3 + 5;
+    static final int H_PAD = 10;
+    static final int V_PAD = 25;
+
+    static final AtomicBoolean movingCells = new AtomicBoolean();
+
     private final static BooleanProperty commitSortTopological = new SimpleBooleanProperty(true);
+
+
+    public synchronized static void bindSorting(ReadOnlyBooleanProperty status) {
+        commitSortTopological.bind(status);
+    }
 
 
     /**
@@ -41,17 +49,17 @@ public class TreeLayout{
         private final List<Cell> allCellsSortedByTime;
         private AtomicInteger percent;
 
-        public CellMover(List<Cell> allCellsSortedByTime) {
+        CellMover(List<Cell> allCellsSortedByTime) {
             //Main.assertNotFxThread();
             this.allCellsSortedByTime = Collections.unmodifiableList(allCellsSortedByTime);
             this.percent = new AtomicInteger(0);
             this.currentCell = 0;
-            movingCells = true;
+            movingCells.set(true);
         }
 
-        public void setCurrentCell(int currentCell) { this.currentCell = currentCell; }
+        void setCurrentCell(int currentCell) { this.currentCell = currentCell; }
 
-        public void moveSomeCells() {
+        void moveSomeCells() {
             //Main.assertNotFxThread();
             // Try/catch is just in for debugging purposes, left because any
             // errors here are very hard to find without it
@@ -80,10 +88,6 @@ public class TreeLayout{
     }
 
 
-    public synchronized static void bindSorting(ReadOnlyBooleanProperty status) {
-        commitSortTopological.bind(status);
-    }
-
     /*
      * Takes care of laying out the given
      * graph into a tree. Uses a combination of recursion and
@@ -96,10 +100,14 @@ public class TreeLayout{
              * it has been through the layout process at least once already
              */
     public static void doTreeLayout(TreeGraph g) {
-        //Main.assertNotFxThread();
+        // TreeGraph has to live on FX thread, and this calls methods on it, so this should start there too.
+        // Spin off slow parts as I need to, perhaps.
+        Main.assertFxThread();
         try {
             TreeGraphModel treeGraphModel = g.treeGraphModel;
 
+            // This is a new ArrayList, not a pointer to the one inside the model, so it can be safely changed here
+            // (not the cells within, of course)
             List<Cell> allCells = treeGraphModel.getAllCells();
             if (commitSortTopological.get())
                 topologicalSortListOfCells(allCells);
@@ -152,7 +160,7 @@ public class TreeLayout{
             }));
             //********************** Loading Bar End **********************
 
-            while (!Main.isAppClosed.get() && movingCells && mover.currentCell < allCells.size() - 1) {
+            while (!Main.isAppClosed.get() && movingCells.get() && mover.currentCell < allCells.size() - 1) {
                 mover.moveSomeCells();
                 mover.setCurrentCell(mover.currentCell + 10);
                 progressBar.setProgress(mover.percent.get() / 100.0);
@@ -173,7 +181,10 @@ public class TreeLayout{
     private static void computeCellPosition(List<Cell> allCells, List<Integer> minRowUsedInCol,
                                             List<Integer> movedCells, boolean isInitialSetupFinished,
                                             int cellPosition) {
-        //Main.assertNotFxThread();
+        // This method calls setCellPosition, which critically needs to happen on the FX thread. It also interacts
+        // directly with cells. Perhaps other portions of this could be spun off, but for now, keeping it here.
+        Main.assertFxThread();
+
         // Don't try to compute a new position if the cell has already been moved
         if (movedCells.contains(cellPosition))
             return;
@@ -186,7 +197,7 @@ public class TreeLayout{
 
         // Update the reserved columns in rows with the cells parents, oldest to newest
         List<Cell> list = new ArrayList<>(c.getCellParents());
-        list.sort((c1, c2) -> Long.compare(c1.getTime(), c2.getTime()));
+        list.sort(Comparator.comparingLong(Cell::getTime));
 
         // For each parent, oldest to newest, place it in the highest row possible recursively
         for(Cell parent : list){
@@ -238,7 +249,9 @@ public class TreeLayout{
      * Helper method to sort the list of cells
      */
     public static void sortListOfCells(List<Cell> cellsToSort) {
-        //Main.assertNotFxThread();
+        // For now, leaving this on the FX thread. Could possibly be spun off, but be careful about the Cell
+        // accesses within.
+        Main.assertFxThread();
         cellsToSort.sort((c1, c2) -> {
             int i = Long.compare(c2.getTime(), c1.getTime());
             if(i == 0){
@@ -261,18 +274,17 @@ public class TreeLayout{
      * Uses Kahn's algorithm.
      */
     public static void topologicalSortListOfCells(List<Cell> cellsToSort) {
-        //Main.assertNotFxThread();
+        // For now, leaving this on the FX thread. Could possibly be spun off, but be careful about the Cell
+        // accesses within.
+        Main.assertFxThread();
 
         Map<String,Integer> visitCount = new HashMap<>();
 
         // Queue to maintain which nodes are available next for exploring. Done as a priority queue so that the one
         // with the most recent is done first.
-        Comparator<Cell> comparator =  (cell1, cell2) -> {
-            return ((Long)(cell2.getTime())).compareTo(cell1.getTime());
-        };
+        Comparator<Cell> comparator =  (cell1, cell2) -> Long.compare((cell2.getTime()), cell1.getTime());
 
         PriorityQueue<Cell> pq = new PriorityQueue<>(10, comparator);
-
 
         // Initialize priority queue to be those nodes with no children
         for (Cell cell: cellsToSort) {
@@ -343,7 +355,7 @@ public class TreeLayout{
     // to stop moving cells around if there's a thread running that's doing this. Critical that the method is
     // synchronized, as it ensures that the variable is not hit by more than one thread at a time.
     public static synchronized void stopMovingCells(){
-        movingCells = false;
+        movingCells.set(false);
     }
 
 }
