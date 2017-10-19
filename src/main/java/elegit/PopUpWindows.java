@@ -25,7 +25,7 @@ import java.util.concurrent.locks.ReentrantLock;
 /**
  * Created by connellyj on 7/7/16.
  *
- * Class that initializes a given pop up window
+ * Class that initializes a given pop up window. Essentially both a view and controller for pop up windows.
  */
 public class PopUpWindows {
 
@@ -336,56 +336,28 @@ public class PopUpWindows {
     }
 
     public static String pickRemoteToPushTo(Set<String> remotes) {
-        ReentrantLock lock = new ReentrantLock();
-        Condition finishedAlert = lock.newCondition();
+        Main.assertFxThread();
+        // TODO: Need a unit test for this, i.e., the case of multiple remotes on a repo
+        Alert alert = new Alert(Alert.AlertType.NONE);
+        alert.setTitle("Multiple remotes found");
+        alert.setHeaderText("There are multiple remote repositories associated with this repository.\nPick one to push to.");
 
-        final String[] result = new String[1];
+        ComboBox<String> remoteRepos = new ComboBox<>();
+        remoteRepos.setPromptText("Choose a remote...");
+        remoteRepos.setItems(FXCollections.observableArrayList(remotes));
 
-        Platform.runLater(() -> {
-            try {
-                lock.lock();
+        ButtonType okButton = new ButtonType("OK", ButtonBar.ButtonData.OK_DONE);
+        ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
 
-                Alert alert = new Alert(Alert.AlertType.NONE);
-                alert.setTitle("Multiple remotes found");
-                alert.setHeaderText("There are multiple remote repositories associated with this repository.\nPick one to push to.");
+        alert.getDialogPane().setContent(remoteRepos);
+        alert.getButtonTypes().addAll(cancelButton, okButton);
 
-                ComboBox<String> remoteRepos = new ComboBox<>();
-                remoteRepos.setPromptText("Choose a remote...");
-                remoteRepos.setItems(FXCollections.observableArrayList(remotes));
+        Optional<?> alertResult = alert.showAndWait();
 
-                ButtonType okButton = new ButtonType("OK", ButtonBar.ButtonData.OK_DONE);
-                ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
-
-                alert.getDialogPane().setContent(remoteRepos);
-                alert.getButtonTypes().addAll(cancelButton, okButton);
-
-                Optional<?> alertResult = alert.showAndWait();
-
-                if (alertResult.isPresent()) {
-                    if (alertResult.get() == okButton) {
-                        result[0] = remoteRepos.getSelectionModel().getSelectedItem();
-                    }
-                }
-
-                finishedAlert.signal();
-            } finally {
-                lock.unlock();
+        if (alertResult.isPresent()) {
+            if (alertResult.get() == okButton) {
+                return remoteRepos.getSelectionModel().getSelectedItem();
             }
-        });
-
-        lock.lock();
-
-        try {
-            finishedAlert.await();
-
-            if (result[0] != null) {
-                return result[0];
-            }
-
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } finally {
-            lock.unlock();
         }
 
         return "cancel";
@@ -422,7 +394,7 @@ public class PopUpWindows {
     }
 
     public static ArrayList<LocalBranchHelper> getUntrackedBranchesToPush(ArrayList<LocalBranchHelper> branches) {
-
+        Main.assertFxThread();
         final ArrayList<LocalBranchHelper> result = new ArrayList<>(branches.size());
 
         Alert alert = new Alert(Alert.AlertType.NONE);
@@ -452,6 +424,7 @@ public class PopUpWindows {
     }
 
     public static boolean trackCurrentBranchRemotely(String branchName) {
+        Main.assertFxThread();
 
         final boolean[] result = new boolean[1];
         result[0] = false;

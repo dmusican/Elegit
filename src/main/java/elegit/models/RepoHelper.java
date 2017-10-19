@@ -43,7 +43,7 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 @ThreadSafe
 // ... at least regarding shared memory.
-// TODO: The actual Git operations, regarding simultaneous access to a working directory, should be throught through.
+// TODO: The actual Git operations, regarding simultaneous access to a working directory, should be thought through.
 public class RepoHelper {
 
     private final String password;
