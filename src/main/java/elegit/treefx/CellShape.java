@@ -6,10 +6,12 @@ import javafx.scene.shape.Circle;
 import javafx.scene.shape.Polygon;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
+import org.apache.http.annotation.ThreadSafe;
 
 /**
  * Enum for the different shapes a cell can take on
  */
+@ThreadSafe
 public enum CellShape{
     SQUARE,
     CIRCLE,
@@ -45,7 +47,7 @@ public enum CellShape{
     /**
      * @return the JavaFX object corresponding to the shape
      */
-    public Shape get(){
+    private Shape get(){
         switch(this){
             case CIRCLE:
                 return new Circle(Cell.BOX_SIZE / 2., Cell.BOX_SIZE / 2., Cell.BOX_SIZE / 2.);
