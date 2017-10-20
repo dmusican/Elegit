@@ -30,7 +30,7 @@ public class CommitTreeModel{
     private final AtomicReference<CommitTreePanelView> view = new AtomicReference<>();
 
     // The graph corresponding to this model
-    TreeGraph treeGraph;
+    private final TreeGraph treeGraph;
 
     // A list of commits in this model
     private List<CommitHelper> commitsInModel;
@@ -49,10 +49,11 @@ public class CommitTreeModel{
      * view. Private to enforce singleton pattern.
      */
     private CommitTreeModel() {
-        this.commitsInModel = new ArrayList<>();
-        this.localCommitsInModel = new ArrayList<>();
-        this.remoteCommitsInModel = new ArrayList<>();
-        this.branchesInModel = new ArrayList<>();
+        commitsInModel = new ArrayList<>();
+        localCommitsInModel = new ArrayList<>();
+        remoteCommitsInModel = new ArrayList<>();
+        branchesInModel = new ArrayList<>();
+        treeGraph = new TreeGraph(new TreeGraphModel());
     }
 
     public static CommitTreeModel getCommitTreeModel() {
@@ -66,6 +67,10 @@ public class CommitTreeModel{
 
     public CommitTreePanelView getView() {
         return view.get();
+    }
+
+    public TreeGraph getTreeGraph() {
+        return treeGraph;
     }
 
     /**
@@ -90,7 +95,6 @@ public class CommitTreeModel{
      */
     public synchronized void init(){
         Main.assertFxThread();
-        treeGraph = new TreeGraph(new TreeGraphModel());
 
         CommitTreeController.resetSelection();
 

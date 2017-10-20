@@ -106,8 +106,8 @@ public class CommitTreeController{
      * @param allGenerations whether to highlight further generations than just parents/children (i.e. grandparents, grandchildren etc)
      */
     private static void selectCommitInGraph(String commitID, boolean ancestors, boolean descendants, boolean allGenerations){
-        if (commitTreeModel.treeGraph != null) {
-            TreeGraphModel m = commitTreeModel.treeGraph.treeGraphModel;
+        if (commitTreeModel.getTreeGraph() != null) {
+            TreeGraphModel m = commitTreeModel.getTreeGraph().treeGraphModel;
             selectCommitInGraph(commitID, m, true, ancestors, descendants, allGenerations);
         }
 
@@ -123,8 +123,8 @@ public class CommitTreeController{
      * @param isOverCell whether to highlight or un-highlight the corresponding cells
      */
     private static void highlightCommitInGraph(String commitID, boolean isOverCell){
-        if (commitTreeModel.treeGraph != null) {
-            TreeGraphModel m = commitTreeModel.treeGraph.treeGraphModel;
+        if (commitTreeModel.getTreeGraph() != null) {
+            TreeGraphModel m = commitTreeModel.getTreeGraph().treeGraphModel;
 
             if(selectedCellIds.size()>0 && !isSelected(commitID)){
                 Highlighter.highlightCell(commitID, selectedCellIds.get(0), m, isOverCell);
@@ -197,11 +197,11 @@ public class CommitTreeController{
     public static void init(CommitTreeModel commitTreeModel){
         RepoHelper repo = SessionModel.getSessionModel().getCurrentRepoHelper();
 
-        commitTreeModel.treeGraph.update();
+        commitTreeModel.getTreeGraph().update();
 
         setBranchHeads(commitTreeModel, repo);
 
-        commitTreeModel.getView().displayTreeGraph(commitTreeModel.treeGraph, SessionModel.getSessionModel()
+        commitTreeModel.getView().displayTreeGraph(commitTreeModel.getTreeGraph(), SessionModel.getSessionModel()
                 .getCurrentRepoHelper().getBranchModel().getCurrentBranchHead());
     }
 
@@ -217,11 +217,11 @@ public class CommitTreeController{
         RepoHelper repo = SessionModel.getSessionModel().getCurrentRepoHelper();
 
         BusyWindow.setLoadingText("B2");
-        commitTreeModel.treeGraph.update();
+        commitTreeModel.getTreeGraph().update();
 
         Platform.runLater(() -> System.out.println("event 1"));
         BusyWindow.setLoadingText("B3");
-        commitTreeModel.getView().displayTreeGraph(commitTreeModel.treeGraph, SessionModel.getSessionModel()
+        commitTreeModel.getView().displayTreeGraph(commitTreeModel.getTreeGraph(), SessionModel.getSessionModel()
                 .getCurrentRepoHelper().getBranchModel().getCurrentBranchHead());
         Platform.runLater(() -> System.out.println("event 2"));
 
@@ -240,8 +240,8 @@ public class CommitTreeController{
         if(commit == null)
             return;
 
-        if(commitTreeModel.treeGraph != null && commitTreeModel.treeGraph.treeGraphModel.containsID(commit.getName())){
-            Cell c = commitTreeModel.treeGraph.treeGraphModel.getCell(commit.getName());
+        if(commitTreeModel.getTreeGraph().treeGraphModel.containsID(commit.getName())){
+            Cell c = commitTreeModel.getTreeGraph().treeGraphModel.getCell(commit.getName());
             Highlighter.emphasizeCell(c);
         }
     }
@@ -255,8 +255,8 @@ public class CommitTreeController{
         if(commitID == null)
             return;
 
-        if(commitTreeModel.treeGraph != null && commitTreeModel.treeGraph.treeGraphModel.containsID(commitID)){
-            Cell c = commitTreeModel.treeGraph.treeGraphModel.getCell(commitID);
+        if(commitTreeModel.getTreeGraph().treeGraphModel.containsID(commitID)){
+            Cell c = commitTreeModel.getTreeGraph().treeGraphModel.getCell(commitID);
             Highlighter.emphasizeCell(c);
         }
     }

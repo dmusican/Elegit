@@ -160,7 +160,7 @@ public class CommitLabelTest {
         fail("This test fails because it uses way too much JavaFX stuff, and makes lots of other code complicated. Need to fix the test.");
         // Get the cell from the tree
         assertTrue(commitTreeModel.containsID(cellID));
-        Cell cell = commitTreeModel.treeGraph.treeGraphModel.getCell(cellID);
+        Cell cell = commitTreeModel.getTreeGraph().treeGraphModel.getCell(cellID);
         assertNotNull(cell);
 
         // Pull the labels from the cell
