@@ -12,6 +12,7 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 /**
@@ -23,12 +24,11 @@ import java.util.stream.Collectors;
 public class CommitTreeModel{
 
     // The singleton reference
-    private static CommitTreeModel commitTreeModel;
-    // The view corresponding to this model
-    CommitTreePanelView view;
+    private final static CommitTreeModel commitTreeModel = new CommitTreeModel();
 
-    // The model from which this class pulls its commits
-    SessionModel sessionModel;
+    // The view corresponding to this model
+    private final AtomicReference<CommitTreePanelView> view = new AtomicReference<>();
+
     // The graph corresponding to this model
     TreeGraph treeGraph;
 
@@ -49,7 +49,6 @@ public class CommitTreeModel{
      * view. Private to enforce singleton pattern.
      */
     private CommitTreeModel() {
-        this.sessionModel = SessionModel.getSessionModel();
         this.commitsInModel = new ArrayList<>();
         this.localCommitsInModel = new ArrayList<>();
         this.remoteCommitsInModel = new ArrayList<>();
@@ -57,15 +56,16 @@ public class CommitTreeModel{
     }
 
     public static CommitTreeModel getCommitTreeModel() {
-        if (commitTreeModel == null) {
-            commitTreeModel = new CommitTreeModel();
-        }
         return commitTreeModel;
     }
 
     public void setView(CommitTreePanelView view) {
-        this.view = view;
-        this.view.setName("Local commit tree");
+        this.view.set(view);
+        view.setName("Local commit tree");
+    }
+
+    public CommitTreePanelView getView() {
+        return view.get();
     }
 
     /**
@@ -90,14 +90,14 @@ public class CommitTreeModel{
      */
     public synchronized void init(){
         Main.assertFxThread();
-        treeGraph = this.createNewTreeGraph();
+        treeGraph = new TreeGraph(new TreeGraphModel());
 
         CommitTreeController.resetSelection();
 
-        if (this.sessionModel.getCurrentRepoHelper() != null) {
+        if (SessionModel.getSessionModel().getCurrentRepoHelper() != null) {
             this.addAllCommitsToTree();
             //this.branchesInModel = getAllBranches(this.sessionModel.getCurrentRepoHelper());
-            this.branchesInModel = this.sessionModel.getCurrentRepoHelper().getBranchModel().getAllBranches();
+            this.branchesInModel = SessionModel.getSessionModel().getCurrentRepoHelper().getBranchModel().getAllBranches();
         }
 
         this.initView();
@@ -106,9 +106,9 @@ public class CommitTreeModel{
     public synchronized void update() throws GitAPIException, IOException {
         //Main.assertNotFxThread();
         // Handles rare edge case with the RepositoryMonitor and removing repos
-        if(this.sessionModel.getCurrentRepoHelper() != null){
+        if(SessionModel.getSessionModel().getCurrentRepoHelper() != null){
             // Get the changes between this model and the repo after updating the repo
-            this.sessionModel.getCurrentRepoHelper().updateModel();
+            SessionModel.getSessionModel().getCurrentRepoHelper().updateModel();
             UpdateModel updates = this.getChanges();
 
             if (!updates.hasChanges()) return;
@@ -116,7 +116,7 @@ public class CommitTreeModel{
             this.removeCommitsFromTree(updates.getCommitsToRemove());
             this.addCommitsToTree(updates.getCommitsToAdd());
             this.updateCommitFills(updates.getCommitsToUpdate());  // SLOW
-            this.sessionModel.getCurrentRepoHelper().getBranchModel().updateAllBranches();
+            SessionModel.getSessionModel().getCurrentRepoHelper().getBranchModel().updateAllBranches();
             this.resetBranchHeads();
             this.updateAllRefLabels(); // SLOW
             TreeLayout.stopMovingCells();
@@ -132,16 +132,16 @@ public class CommitTreeModel{
      */
     public UpdateModel getChanges() throws IOException {
         UpdateModel updateModel = new UpdateModel();
-        RepoHelper repo = this.sessionModel.getCurrentRepoHelper();
+        RepoHelper repo = SessionModel.getSessionModel().getCurrentRepoHelper();
 
         // Added commits are all commits in the current repo helper that aren't in the model's list
-        List<CommitHelper> commitsToAdd = new ArrayList<>(this.getAllCommits(this.sessionModel.getCurrentRepoHelper()));
+        List<CommitHelper> commitsToAdd = new ArrayList<>(this.getAllCommits(SessionModel.getSessionModel().getCurrentRepoHelper()));
         commitsToAdd.removeAll(this.getCommitsInModel());
         updateModel.setCommitsToAdd(commitsToAdd);
 
         // Removed commits are those in the model, but not in the current repo helper
         List<CommitHelper> commitsToRemove = new ArrayList<>(this.commitsInModel);
-        commitsToRemove.removeAll(this.getAllCommits(this.sessionModel.getCurrentRepoHelper()));
+        commitsToRemove.removeAll(this.getAllCommits(SessionModel.getSessionModel().getCurrentRepoHelper()));
         updateModel.setCommitsToRemove(commitsToRemove);
 
         // Updated commits are ones that have changed whether they are tracked locally
@@ -166,7 +166,7 @@ public class CommitTreeModel{
 
         /* ************************ BRANCHES ************************ */
 
-        List<BranchHelper> branchesToUpdate = new ArrayList<>(this.sessionModel.getCurrentRepoHelper().getBranchModel().getAllBranches());
+        List<BranchHelper> branchesToUpdate = new ArrayList<>(SessionModel.getSessionModel().getCurrentRepoHelper().getBranchModel().getAllBranches());
         Map<String, BranchHelper> currentBranchMap = new HashMap<>();
         Map<String, BranchHelper> updateBranchMap = new HashMap<>();
 
@@ -192,7 +192,7 @@ public class CommitTreeModel{
         }
 
         /* ************************ TAGS ************************ */
-        List<TagHelper> tagsInRepo = new ArrayList<>(this.sessionModel.getCurrentRepoHelper().getTagModel().getAllTags());
+        List<TagHelper> tagsInRepo = new ArrayList<>(SessionModel.getSessionModel().getCurrentRepoHelper().getTagModel().getAllTags());
 
         // Check for added tags
         for (TagHelper tag : tagsInRepo)
@@ -258,18 +258,7 @@ public class CommitTreeModel{
      * @return true if the tree was updated, otherwise false
      */
     private boolean addAllCommitsToTree() {
-        return this.addCommitsToTree(this.getAllCommits(this.sessionModel.getCurrentRepoHelper()));
-    }
-
-    /**
-     * Creates a new TreeGraph with a new model. Updates the list
-     * of all models accordingly
-     * @return the newly created graph
-     */
-    private TreeGraph createNewTreeGraph(){
-        TreeGraphModel graphModel = new TreeGraphModel();
-        treeGraph = new TreeGraph(graphModel);
-        return treeGraph;
+        return this.addCommitsToTree(this.getAllCommits(SessionModel.getSessionModel().getCurrentRepoHelper()));
     }
 
     /**
@@ -304,7 +293,7 @@ public class CommitTreeModel{
         if(commits.size() == 0) return false;
 
         for(CommitHelper curCommitHelper : commits)
-            this.updateCommitFill(curCommitHelper, treeGraph.treeGraphModel, this.sessionModel.getCurrentRepoHelper());
+            this.updateCommitFill(curCommitHelper, treeGraph.treeGraphModel, SessionModel.getSessionModel().getCurrentRepoHelper());
 
         return true;
     }
@@ -353,7 +342,7 @@ public class CommitTreeModel{
 
             CommitHelper commitToAdd = queue.poll();
 
-            RepoHelper repo = sessionModel.getCurrentRepoHelper();
+            RepoHelper repo = SessionModel.getSessionModel().getCurrentRepoHelper();
             String displayLabel = repo.getCommitDescriptorString(commitToAdd, false);
             List<RefHelper> refLabels = repo.getRefsForCommit(commitToAdd);
             Cell.CellType computedType = repo.getCommitType(commitToAdd);
@@ -427,7 +416,7 @@ public class CommitTreeModel{
             logger.info("Delete tag dialog started.");
             if (presentDeleteDialog(tagHelper)) {
                 try {
-                    sessionModel.getCurrentRepoHelper().getTagModel().deleteTag(tagHelper.getRefName());
+                    SessionModel.getSessionModel().getCurrentRepoHelper().getTagModel().deleteTag(tagHelper.getRefName());
                     update();
                 } catch (GitAPIException | MissingRepoException | IOException e) {
                     e.printStackTrace();
@@ -598,10 +587,10 @@ public class CommitTreeModel{
     // TODO: This happens off FX thread when called from somewhere (gitStatus?) but happens on the thread when called from SessionController.handleCommitSortToggle. Fix.
     public void updateView() throws IOException{
         //Main.assertNotFxThread();
-        if(this.sessionModel != null && this.sessionModel.getCurrentRepoHelper() != null){
+        if(SessionModel.getSessionModel().getCurrentRepoHelper() != null){
             CommitTreeController.update(this);
         }else{
-            view.displayEmptyView();
+            getView().displayEmptyView();
         }
     }
 
@@ -609,10 +598,10 @@ public class CommitTreeModel{
      * Initializes the corresponding view if possible
      */
     private void initView(){
-        if(this.sessionModel != null && this.sessionModel.getCurrentRepoHelper() != null){
+        if(SessionModel.getSessionModel().getCurrentRepoHelper() != null){
             CommitTreeController.init(this);
         }else{
-            view.displayEmptyView();
+            getView().displayEmptyView();
         }
     }
 
@@ -641,7 +630,7 @@ public class CommitTreeModel{
      */
     public void updateAllRefLabels() {
         //Main.assertNotFxThread();
-        RepoHelper repo = sessionModel.getCurrentRepoHelper();
+        RepoHelper repo = SessionModel.getSessionModel().getCurrentRepoHelper();
 
         List<RefHelper> refHelpers = new ArrayList<>();
         refHelpers.addAll(repo.getBranchModel().getAllBranches());
@@ -663,9 +652,9 @@ public class CommitTreeModel{
         }
 
         // Set the labels
-        Set<String> currentAbbrevBranches = this.sessionModel.getCurrentRepoHelper().getBranchModel().getCurrentAbbrevBranches();
+        Set<String> currentAbbrevBranches = SessionModel.getSessionModel().getCurrentRepoHelper().getBranchModel().getCurrentAbbrevBranches();
         for (String commit : commitLabelMap.keySet()) {
-            if(this.sessionModel.getCurrentRepoHelper().getCommit(commit) != null) {
+            if(SessionModel.getSessionModel().getCurrentRepoHelper().getCommit(commit) != null) {
                 if (!treeGraph.treeGraphModel.containsID(commit)) {
                     // TODO make this not a banaid fix...
                     //System.out.println("Does not yet contain "+commit);
@@ -707,10 +696,10 @@ public class CommitTreeModel{
      */
     public void resetBranchHeads(){
         List<String> resetIDs = treeGraph.treeGraphModel.resetCellShapes();
-        RepoHelper repo = sessionModel.getCurrentRepoHelper();
+        RepoHelper repo = SessionModel.getSessionModel().getCurrentRepoHelper();
         this.branchesInModel = repo.getBranchModel().getAllBranches();
         for(String id : resetIDs){
-            if(this.sessionModel.getCurrentRepoHelper().getCommit(id) != null) {
+            if(SessionModel.getSessionModel().getCurrentRepoHelper().getCommit(id) != null) {
                 String displayLabel = repo.getCommitDescriptorString(id, false);
                 List<RefHelper> branchLabels = new ArrayList<>();
                 treeGraph.treeGraphModel.setCellLabels(id, displayLabel, branchLabels);
@@ -723,7 +712,7 @@ public class CommitTreeModel{
     }
 
     public String getViewName() {
-        return this.view.getName();
+        return this.getView().getName();
     }
 
 

@@ -1,4 +1,4 @@
-package elegit;
+    package elegit;
 
 import elegit.controllers.BusyWindow;
 import elegit.controllers.SessionController;
@@ -195,13 +195,13 @@ public class CommitTreeController{
      * @param commitTreeModel the model whose view should be updated
      */
     public static void init(CommitTreeModel commitTreeModel){
-        RepoHelper repo = commitTreeModel.sessionModel.getCurrentRepoHelper();
+        RepoHelper repo = SessionModel.getSessionModel().getCurrentRepoHelper();
 
         commitTreeModel.treeGraph.update();
 
         setBranchHeads(commitTreeModel, repo);
 
-        commitTreeModel.view.displayTreeGraph(commitTreeModel.treeGraph, commitTreeModel.sessionModel
+        commitTreeModel.getView().displayTreeGraph(commitTreeModel.treeGraph, SessionModel.getSessionModel()
                 .getCurrentRepoHelper().getBranchModel().getCurrentBranchHead());
     }
 
@@ -214,14 +214,14 @@ public class CommitTreeController{
     public static void update(CommitTreeModel commitTreeModel){
         //Main.assertNotFxThread();
         BusyWindow.setLoadingText("B1");
-        RepoHelper repo = commitTreeModel.sessionModel.getCurrentRepoHelper();
+        RepoHelper repo = SessionModel.getSessionModel().getCurrentRepoHelper();
 
         BusyWindow.setLoadingText("B2");
         commitTreeModel.treeGraph.update();
 
         Platform.runLater(() -> System.out.println("event 1"));
         BusyWindow.setLoadingText("B3");
-        commitTreeModel.view.displayTreeGraph(commitTreeModel.treeGraph, commitTreeModel.sessionModel
+        commitTreeModel.getView().displayTreeGraph(commitTreeModel.treeGraph, SessionModel.getSessionModel()
                 .getCurrentRepoHelper().getBranchModel().getCurrentBranchHead());
         Platform.runLater(() -> System.out.println("event 2"));
 
