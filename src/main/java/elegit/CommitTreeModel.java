@@ -33,10 +33,11 @@ public class CommitTreeModel{
     private final TreeGraph treeGraph;
 
     // A list of commits in this model
-    private List<CommitHelper> commitsInModel;
-    private List<CommitHelper> localCommitsInModel;
-    private List<CommitHelper> remoteCommitsInModel;
-    private List<BranchHelper> branchesInModel;
+    private final List<CommitHelper> commitsInModel;
+    private final List<CommitHelper> localCommitsInModel;
+    private final List<CommitHelper> remoteCommitsInModel;
+    private final List<BranchHelper> branchesInModel;
+
     private List<TagHelper> tagsInModel;
 
     // A list of tags that haven't been pushed yet
