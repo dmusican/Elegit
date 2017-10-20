@@ -285,10 +285,6 @@ public class CommitTreeController{
         return true;
     }
 
-    public static ObjectProperty<String> selectedIDProperty(){
-        return selectedIDProperty;
-    }
-
     /**
      * @return the commit tree model for the current session
      */

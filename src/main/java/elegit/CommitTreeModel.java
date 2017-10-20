@@ -69,18 +69,10 @@ public class CommitTreeModel{
     }
 
     /**
-     * @param repoHelper the repository to get the branches from
-     * @return a list of all branches tracked by this model
-     */
-    protected List<BranchHelper> getAllBranches(RepoHelper repoHelper) {
-        return repoHelper.getBranchModel().getBranchListUntyped(BranchModel.BranchType.LOCAL);
-    }
-
-    /**
      * @param repoHelper the repository to get the commits from
      * @return a list of all commits tracked by this model
      */
-    protected List<CommitHelper> getAllCommits(RepoHelper repoHelper) {
+    private List<CommitHelper> getAllCommits(RepoHelper repoHelper) {
         return repoHelper.getAllCommits();
     }
 
@@ -88,7 +80,7 @@ public class CommitTreeModel{
      * @param id the id to check
      * @return true if the given id corresponds to a commit in the tree, false otherwise
      */
-    public boolean containsID(String id){
+    boolean containsID(String id){
         return treeGraph != null && treeGraph.treeGraphModel.containsID(id);
     }
 
