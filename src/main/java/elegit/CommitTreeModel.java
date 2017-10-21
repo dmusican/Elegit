@@ -25,40 +25,28 @@ import java.util.stream.Collectors;
  * As a singleton class, there will be only one object. To ensure complete threadsafety,
  * use the "monitor" pattern; all methods are synchronized.
  */
-// TODO: Make sure threadsafe; UpdateModel class within in particular; also a lot of FX-code throughout that
+// TODO: Make sure threadsafe; also a lot of FX-code throughout that
 //      seems more controller-like may not belong here
 public class CommitTreeModel{
 
     // The singleton reference
-    private final static CommitTreeModel commitTreeModel = new CommitTreeModel();
+    private static final CommitTreeModel commitTreeModel = new CommitTreeModel();
+
+    private static final Logger logger = LogManager.getLogger();
 
     // The view corresponding to this model
     private final AtomicReference<CommitTreePanelView> view = new AtomicReference<>();
 
     // The graph corresponding to this model
-    private final TreeGraph treeGraph;
+    private final TreeGraph treeGraph = new TreeGraph(new TreeGraphModel());
 
     // A list of commits in this model
-    private final Set<CommitHelper> commitsInModel;
-    private final Set<CommitHelper> localCommitsInModel;
-    private final Set<CommitHelper> remoteCommitsInModel;
-    private final Set<BranchHelper> branchesInModel;
-    private final Set<TagHelper> tagsInModel;
+    private final Set<CommitHelper> commitsInModel = ConcurrentHashMap.newKeySet();
+    private final Set<CommitHelper> localCommitsInModel = ConcurrentHashMap.newKeySet();
+    private final Set<CommitHelper> remoteCommitsInModel = ConcurrentHashMap.newKeySet();
+    private final Set<BranchHelper> branchesInModel = ConcurrentHashMap.newKeySet();
+    private final Set<TagHelper> tagsInModel = ConcurrentHashMap.newKeySet();
 
-    private static final Logger logger = LogManager.getLogger();
-
-    /**
-     * Constructs a new commit tree model that supplies the data for the given
-     * view. Private to enforce singleton pattern.
-     */
-    private CommitTreeModel() {
-        commitsInModel = ConcurrentHashMap.newKeySet();
-        localCommitsInModel = ConcurrentHashMap.newKeySet();
-        remoteCommitsInModel = ConcurrentHashMap.newKeySet();
-        branchesInModel = ConcurrentHashMap.newKeySet();
-        tagsInModel = ConcurrentHashMap.newKeySet();
-        treeGraph = new TreeGraph(new TreeGraphModel());
-    }
 
     public synchronized static CommitTreeModel getCommitTreeModel() {
         return commitTreeModel;
@@ -222,17 +210,9 @@ public class CommitTreeModel{
     private class UpdateModel {
         private final Set<CommitHelper> commitsToAdd = ConcurrentHashMap.newKeySet();
         private final Set<CommitHelper> commitsToRemove = ConcurrentHashMap.newKeySet();
-        private Set<CommitHelper> commitsToUpdate = ConcurrentHashMap.newKeySet();
-        private List<BranchHelper> branchesToUpdate;
-        private List<TagHelper> tagsToUpdate;
-
-        /**
-         * Constructor without params, initializes lists
-         */
-        public UpdateModel() {
-            this.branchesToUpdate = new ArrayList<>();
-            this.tagsToUpdate = new ArrayList<>();
-        }
+        private final Set<CommitHelper> commitsToUpdate = ConcurrentHashMap.newKeySet();
+        private final Set<BranchHelper> branchesToUpdate = ConcurrentHashMap.newKeySet();
+        private final Set<TagHelper> tagsToUpdate = ConcurrentHashMap.newKeySet();
 
         /**
          * Method to see if there are changes in the update model
