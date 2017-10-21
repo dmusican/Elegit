@@ -81,7 +81,7 @@ public class CommitTreeModel{
      * @param repoHelper the repository to get the commits from
      * @return a list of all commits tracked by this model
      */
-    private synchronized List<CommitHelper> getAllCommits(RepoHelper repoHelper) {
+    private synchronized Set<CommitHelper> getAllCommits(RepoHelper repoHelper) {
         return repoHelper.getAllCommits();
     }
 
@@ -220,7 +220,8 @@ public class CommitTreeModel{
      * Class to hold updates for a commit tree model
      */
     private class UpdateModel {
-        private List<CommitHelper> commitsToAdd, commitsToRemove, commitsToUpdate;
+        private final Set<CommitHelper> commitsToAdd = ConcurrentHashMap.newKeySet();
+        private List<CommitHelper> commitsToRemove, commitsToUpdate;
         private List<BranchHelper> branchesToUpdate;
         private List<TagHelper> tagsToUpdate;
 
@@ -228,7 +229,6 @@ public class CommitTreeModel{
          * Constructor without params, initializes lists
          */
         public UpdateModel() {
-            this.commitsToAdd = new ArrayList<>();
             this.commitsToRemove = new ArrayList<>();
             this.commitsToUpdate = new ArrayList<>();
             this.branchesToUpdate = new ArrayList<>();
@@ -251,13 +251,18 @@ public class CommitTreeModel{
 
         // ********************* GETTERS AND SETTERS ************************
 
-        List<CommitHelper> getCommitsToAdd() { return this.commitsToAdd; }
+        Set<CommitHelper> getCommitsToAdd() { return Collections.unmodifiableSet(this.commitsToAdd); }
         List<CommitHelper> getCommitsToRemove() { return this.commitsToRemove; }
         List<CommitHelper> getCommitsToUpdate() { return this.commitsToUpdate; }
 
-        void setCommitsToAdd(List<CommitHelper> commitsToAdd) { this.commitsToAdd = commitsToAdd; }
+        void setCommitsToAdd(List<CommitHelper> commitsToAdd) {
+            this.commitsToAdd.clear();
+            this.commitsToAdd.addAll(commitsToAdd);
+        }
         void setCommitsToRemove(List<CommitHelper> commitsToRemove) { this.commitsToRemove = commitsToRemove; }
-        void setCommitsToUpdate(List<CommitHelper> commitsToUpdate) { this.commitsToUpdate = commitsToUpdate; }
+        void setCommitsToUpdate(List<CommitHelper> commitsToUpdate) {
+            this.commitsToUpdate = commitsToUpdate;
+        }
     }
 
 
@@ -274,7 +279,7 @@ public class CommitTreeModel{
      * @param commits the commits to add
      * @return true if commits where added, else false
      */
-    private synchronized boolean addCommitsToTree(List<CommitHelper> commits){
+    private synchronized boolean addCommitsToTree(Set<CommitHelper> commits){
         if(commits.size() == 0) return false;
 
         for(CommitHelper curCommitHelper : commits){

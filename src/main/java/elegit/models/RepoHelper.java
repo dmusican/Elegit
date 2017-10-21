@@ -961,11 +961,11 @@ public class RepoHelper {
     /**
      * @return all commits (remote and local) that have been parsed
      */
-    public List<CommitHelper> getAllCommits () {
-        List<CommitHelper> allCommits = new ArrayList<>();
+    public Set<CommitHelper> getAllCommits () {
+        Set<CommitHelper> allCommits = ConcurrentHashMap.newKeySet();
         allCommits.addAll(getLocalCommits());
         allCommits.addAll(getRemoteCommits());
-        return Collections.unmodifiableList(allCommits);
+        return Collections.unmodifiableSet(allCommits);
     }
 
     /**
