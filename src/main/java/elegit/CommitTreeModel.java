@@ -12,15 +12,21 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
+
 
 /**
  * Handles the conversion/creation of a list of commit helpers into a nice
  * tree structure. It also takes care of updating the view its given to
  * display the new tree whenever the graph is updated.
+ *
+ * As a singleton class, there will be only one object. To ensure complete threadsafety,
+ * use the "monitor" pattern; all methods are synchronized.
  */
-// TODO: Make sure threadsafe
+// TODO: Make sure threadsafe; UpdateModel class within in particular; also a lot of FX-code throughout that
+//      seems more controller-like may not belong here
 public class CommitTreeModel{
 
     // The singleton reference
@@ -33,44 +39,41 @@ public class CommitTreeModel{
     private final TreeGraph treeGraph;
 
     // A list of commits in this model
-    private final List<CommitHelper> commitsInModel;
-    private final List<CommitHelper> localCommitsInModel;
-    private final List<CommitHelper> remoteCommitsInModel;
-    private final List<BranchHelper> branchesInModel;
+    private final Set<CommitHelper> commitsInModel;
+    private final Set<CommitHelper> localCommitsInModel;
+    private final Set<CommitHelper> remoteCommitsInModel;
+    private final Set<BranchHelper> branchesInModel;
+    private final Set<TagHelper> tagsInModel;
 
-    private List<TagHelper> tagsInModel;
-
-    // A list of tags that haven't been pushed yet
-    public List<TagHelper> tagsToBePushed;
-
-    static final Logger logger = LogManager.getLogger();
+    private static final Logger logger = LogManager.getLogger();
 
     /**
      * Constructs a new commit tree model that supplies the data for the given
      * view. Private to enforce singleton pattern.
      */
     private CommitTreeModel() {
-        commitsInModel = new ArrayList<>();
-        localCommitsInModel = new ArrayList<>();
-        remoteCommitsInModel = new ArrayList<>();
-        branchesInModel = new ArrayList<>();
+        commitsInModel = ConcurrentHashMap.newKeySet();
+        localCommitsInModel = ConcurrentHashMap.newKeySet();
+        remoteCommitsInModel = ConcurrentHashMap.newKeySet();
+        branchesInModel = ConcurrentHashMap.newKeySet();
+        tagsInModel = ConcurrentHashMap.newKeySet();
         treeGraph = new TreeGraph(new TreeGraphModel());
     }
 
-    public static CommitTreeModel getCommitTreeModel() {
+    public synchronized static CommitTreeModel getCommitTreeModel() {
         return commitTreeModel;
     }
 
-    public void setView(CommitTreePanelView view) {
+    public synchronized void setView(CommitTreePanelView view) {
         this.view.set(view);
         view.setName("Local commit tree");
     }
 
-    public CommitTreePanelView getView() {
+    public synchronized CommitTreePanelView getView() {
         return view.get();
     }
 
-    public TreeGraph getTreeGraph() {
+    public synchronized TreeGraph getTreeGraph() {
         return treeGraph;
     }
 
@@ -78,7 +81,7 @@ public class CommitTreeModel{
      * @param repoHelper the repository to get the commits from
      * @return a list of all commits tracked by this model
      */
-    private List<CommitHelper> getAllCommits(RepoHelper repoHelper) {
+    private synchronized List<CommitHelper> getAllCommits(RepoHelper repoHelper) {
         return repoHelper.getAllCommits();
     }
 
@@ -86,7 +89,7 @@ public class CommitTreeModel{
      * @param id the id to check
      * @return true if the given id corresponds to a commit in the tree, false otherwise
      */
-    boolean containsID(String id){
+    synchronized boolean containsID(String id){
         return treeGraph != null && treeGraph.treeGraphModel.containsID(id);
     }
 
@@ -101,8 +104,8 @@ public class CommitTreeModel{
 
         if (SessionModel.getSessionModel().getCurrentRepoHelper() != null) {
             this.addAllCommitsToTree();
-            //this.branchesInModel = getAllBranches(this.sessionModel.getCurrentRepoHelper());
-            this.branchesInModel = SessionModel.getSessionModel().getCurrentRepoHelper().getBranchModel().getAllBranches();
+            this.branchesInModel.clear();
+            this.branchesInModel.addAll(SessionModel.getSessionModel().getCurrentRepoHelper().getBranchModel().getAllBranches());
         }
 
         this.initView();
@@ -135,7 +138,7 @@ public class CommitTreeModel{
      *
      * @return an update model that has all the differences between these
      */
-    public UpdateModel getChanges() throws IOException {
+    public synchronized UpdateModel getChanges() throws IOException {
         UpdateModel updateModel = new UpdateModel();
         RepoHelper repo = SessionModel.getSessionModel().getCurrentRepoHelper();
 
@@ -262,7 +265,7 @@ public class CommitTreeModel{
      * Gets all commits tracked by this model and adds them to the tree
      * @return true if the tree was updated, otherwise false
      */
-    private boolean addAllCommitsToTree() {
+    private synchronized boolean addAllCommitsToTree() {
         return this.addCommitsToTree(this.getAllCommits(SessionModel.getSessionModel().getCurrentRepoHelper()));
     }
 
@@ -271,7 +274,7 @@ public class CommitTreeModel{
      * @param commits the commits to add
      * @return true if commits where added, else false
      */
-    private boolean addCommitsToTree(List<CommitHelper> commits){
+    private synchronized boolean addCommitsToTree(List<CommitHelper> commits){
         if(commits.size() == 0) return false;
 
         for(CommitHelper curCommitHelper : commits){
@@ -283,24 +286,21 @@ public class CommitTreeModel{
     /**
      * Removes the given list of commits from the treeGraph
      * @param commits the commits to remove
-     * @return true if commits were removed, else false
      */
-    private boolean removeCommitsFromTree(List<CommitHelper> commits){
-        if(commits.size() == 0) return false;
+    private synchronized void removeCommitsFromTree(List<CommitHelper> commits){
+        if(commits.size() == 0) return;
 
         for(CommitHelper curCommitHelper : commits)
             this.removeCommitFromTree(curCommitHelper, treeGraph.treeGraphModel);
 
-        return true;
     }
 
-    private boolean updateCommitFills(List<CommitHelper> commits) {
-        if(commits.size() == 0) return false;
+    private synchronized void updateCommitFills(List<CommitHelper> commits) {
+        if(commits.size() == 0) return;
 
         for(CommitHelper curCommitHelper : commits)
             this.updateCommitFill(curCommitHelper, treeGraph.treeGraphModel, SessionModel.getSessionModel().getCurrentRepoHelper());
 
-        return true;
     }
 
     /**
@@ -309,7 +309,7 @@ public class CommitTreeModel{
      * @param commitHelper the commit to be added
      * @param graphModel the treeGraphModel to add the commit to
      */
-    private void addCommitToTree(CommitHelper commitHelper, TreeGraphModel graphModel) {
+    private synchronized void addCommitToTree(CommitHelper commitHelper, TreeGraphModel graphModel) {
 
 
         ArrayDeque<CommitHelper> traversalStack = new ArrayDeque<>();
@@ -375,7 +375,7 @@ public class CommitTreeModel{
      * @param commitHelper the commit to remove
      * @param graphModel the graph model to remove the commit from
      */
-    private void removeCommitFromTree(CommitHelper commitHelper, TreeGraphModel graphModel){
+    private synchronized void removeCommitFromTree(CommitHelper commitHelper, TreeGraphModel graphModel){
         String commitID = commitHelper.getName();
 
         this.commitsInModel.remove(commitHelper);
@@ -385,7 +385,7 @@ public class CommitTreeModel{
         graphModel.removeCell(commitID);
     }
 
-    private void updateCommitFill(CommitHelper helper, TreeGraphModel graphModel, RepoHelper repo) {
+    private synchronized void updateCommitFill(CommitHelper helper, TreeGraphModel graphModel, RepoHelper repo) {
         Cell.CellType type = (repo.getLocalCommits().contains(helper)) ?
                 (repo.getRemoteCommits().contains(helper)) ? Cell.CellType.BOTH : Cell.CellType.LOCAL : Cell.CellType.REMOTE;
         this.localCommitsInModel.remove(helper);
@@ -413,7 +413,7 @@ public class CommitTreeModel{
      * @param tagHelper the tag that this context menu will refer to
      * @return the context menu with a delete option
      */
-    public ContextMenu getTagLabelMenu(TagHelper tagHelper) {
+    public synchronized ContextMenu getTagLabelMenu(TagHelper tagHelper) {
         ContextMenu contextMenu = new ContextMenu();
 
         MenuItem deleteitem = new MenuItem("Delete");
@@ -433,7 +433,7 @@ public class CommitTreeModel{
         return contextMenu;
     }
 
-    private boolean presentDeleteDialog(TagHelper tagHelper) {
+    private synchronized boolean presentDeleteDialog(TagHelper tagHelper) {
         //Create the dialog
         Dialog<Boolean> dialog = new Dialog<>();
         dialog.setTitle("Delete Tag");
@@ -455,7 +455,7 @@ public class CommitTreeModel{
      * @param branch the branch to have a menu for
      * @return the context menu with various options related to branches
      */
-    private ContextMenu getBranchLabelMenu(BranchHelper branch) {
+    private synchronized ContextMenu getBranchLabelMenu(BranchHelper branch) {
         ContextMenu contextMenu = new ContextMenu();
 
         MenuItem checkoutItem = new MenuItem("Checkout");
@@ -476,7 +476,7 @@ public class CommitTreeModel{
      * @param commit the commit for which this context menu is for
      * @return the context menu for the commit
      */
-    private ContextMenu getContextMenu(CommitHelper commit){
+    private synchronized ContextMenu getContextMenu(CommitHelper commit){
         // This line appears to be somewhat slow.
         ContextMenu contextMenu = new ContextMenu();
 
@@ -499,7 +499,7 @@ public class CommitTreeModel{
      * @param commit CommitHelper
      * @return relativesMenu
      */
-    private Menu getRelativesMenu(CommitHelper commit) {
+    private synchronized Menu getRelativesMenu(CommitHelper commit) {
         Menu relativesMenu = new Menu("Show Relatives");
 
         MenuItem parentsItem = new MenuItem("Parents");
@@ -530,7 +530,7 @@ public class CommitTreeModel{
      * @param commit CommitHelper
      * @return revertMenu
      */
-    private Menu getRevertMenu(CommitHelper commit) {
+    private synchronized Menu getRevertMenu(CommitHelper commit) {
         Menu revertMenu = new Menu("Revert...");
         MenuItem revertItem = new MenuItem("Revert this commit");
         MenuItem revertMultipleItem = new MenuItem("Revert multiple commits...");
@@ -553,7 +553,7 @@ public class CommitTreeModel{
         return revertMenu;
     }
 
-    private Menu getResetMenu(CommitHelper commit) {
+    private synchronized Menu getResetMenu(CommitHelper commit) {
         Menu resetMenu = new Menu("Reset...");
         MenuItem resetItem = new MenuItem("Reset to this commit");
         MenuItem helpItem = new MenuItem("Help");
@@ -568,7 +568,7 @@ public class CommitTreeModel{
         return resetMenu;
     }
 
-    private Menu getAdvancedResetMenu(CommitHelper commit) {
+    private synchronized Menu getAdvancedResetMenu(CommitHelper commit) {
         Menu resetMenu = new Menu("Advanced");
         MenuItem hardItem = new MenuItem("reset --hard");
         MenuItem mixedItem = new MenuItem("reset --mixed");
@@ -590,7 +590,7 @@ public class CommitTreeModel{
      * Updates the corresponding view if possible
      */
     // TODO: This happens off FX thread when called from somewhere (gitStatus?) but happens on the thread when called from SessionController.handleCommitSortToggle. Fix.
-    public void updateView() throws IOException{
+    public synchronized void updateView() throws IOException{
         //Main.assertNotFxThread();
         if(SessionModel.getSessionModel().getCurrentRepoHelper() != null){
             CommitTreeController.update(this);
@@ -602,7 +602,7 @@ public class CommitTreeModel{
     /**
      * Initializes the corresponding view if possible
      */
-    private void initView(){
+    private synchronized void initView(){
         if(SessionModel.getSessionModel().getCurrentRepoHelper() != null){
             CommitTreeController.init(this);
         }else{
@@ -616,24 +616,18 @@ public class CommitTreeModel{
      * @param helper the commit helper that we want to set as a branch head
      * @param tracked whether or not the commit is the head of a tracked branch
      */
-    public void setCommitAsBranchHead(CommitHelper helper, boolean tracked) {
+    public synchronized void setCommitAsBranchHead(CommitHelper helper, boolean tracked) {
         String commitId;
         commitId = helper.getName();
         CellShape shape = (tracked) ? Cell.TRACKED_BRANCH_HEAD_SHAPE : Cell.UNTRACKED_BRANCH_HEAD_SHAPE;
 
         treeGraph.treeGraphModel.setCellShape(commitId, shape);
-        /*
-        RepoHelper repo = sessionModel.getCurrentRepoHelper();
-        String displayLabel = repo.getCommitDescriptorString(commitId, false);
-        List<String> branchLabels = repo.getBranchModel().getBranchesWithHead(commitId);
-        treeGraph.treeGraphModel.setCellLabels(commitId, displayLabel, branchLabels);
-        treeGraph.treeGraphModel.setCurrentCellLabels(commitId,this.sessionModel.getCurrentRepoHelper().getBranchModel().getCurrentBranches());*/
     }
 
     /**
      * Looks for all ref labels, then adds them to the commit tree graph
      */
-    public void updateAllRefLabels() {
+    public synchronized void updateAllRefLabels() {
         //Main.assertNotFxThread();
         RepoHelper repo = SessionModel.getSessionModel().getCurrentRepoHelper();
 
@@ -646,7 +640,8 @@ public class CommitTreeModel{
         Map<RefHelper, ContextMenu> menuMap = new HashMap<>();
         List<String> remoteBranches = new ArrayList<>();
 
-        this.tagsInModel = repo.getTagModel().getAllTags();
+        this.tagsInModel.clear();
+        this.tagsInModel.addAll(repo.getTagModel().getAllTags());
 
         Map<String, List<RefHelper>> commitLabelMap = new HashMap<>();
 
@@ -675,7 +670,7 @@ public class CommitTreeModel{
         }
     }
 
-    private void addCommitRefMaps(List<RefHelper> helpers, Map<String, List<RefHelper>> commitLabelMap,
+    private synchronized void addCommitRefMaps(List<RefHelper> helpers, Map<String, List<RefHelper>> commitLabelMap,
                                   Map<RefHelper, ContextMenu> menuMap) {
         String commitId;
         for (RefHelper helper : helpers) {
@@ -699,10 +694,11 @@ public class CommitTreeModel{
     /**
      * Forgets information about tracked/untracked branch heads in the tree and updates the model
      */
-    public void resetBranchHeads(){
+    public synchronized void resetBranchHeads(){
         List<String> resetIDs = treeGraph.treeGraphModel.resetCellShapes();
         RepoHelper repo = SessionModel.getSessionModel().getCurrentRepoHelper();
-        this.branchesInModel = repo.getBranchModel().getAllBranches();
+        this.branchesInModel.clear();
+        this.branchesInModel.addAll(repo.getBranchModel().getAllBranches());
         for(String id : resetIDs){
             if(SessionModel.getSessionModel().getCurrentRepoHelper().getCommit(id) != null) {
                 String displayLabel = repo.getCommitDescriptorString(id, false);
@@ -712,19 +708,7 @@ public class CommitTreeModel{
         }
     }
 
-    public List<TagHelper> getTagsToBePushed() {
-        return tagsToBePushed;
-    }
 
-    public String getViewName() {
-        return this.getView().getName();
-    }
+    public synchronized Set<CommitHelper> getCommitsInModel() { return this.commitsInModel; }
 
-
-
-    public List<CommitHelper> getCommitsInModel() { return this.commitsInModel; }
-
-    public List<BranchHelper> getBranchesInModel() { return this.branchesInModel; }
-
-    public List<TagHelper> getTagsInModel() { return this.tagsInModel; }
 }

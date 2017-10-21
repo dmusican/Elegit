@@ -391,11 +391,11 @@ public class BranchModel {
      * @return a list of all remote branches and local branches
      */
     // Synchronized for localBranchesTyped
-    public List<BranchHelper> getAllBranches() {
-        List<BranchHelper> tmp = new ArrayList<>();
+    public Set<BranchHelper> getAllBranches() {
+        Set<BranchHelper> tmp = ConcurrentHashMap.newKeySet();
         tmp.addAll(this.remoteBranchesTyped);
         tmp.addAll(this.localBranchesTyped);
-        return Collections.unmodifiableList(tmp);
+        return Collections.unmodifiableSet(tmp);
     }
 
     /**
@@ -486,7 +486,7 @@ public class BranchModel {
 
         this.refreshHeadIds();
 
-        List<BranchHelper> branches = this.getAllBranches();
+        Set<BranchHelper> branches = this.getAllBranches();
 
         for(BranchHelper branch : branches){
             CommitHelper head = branch.getCommit();
