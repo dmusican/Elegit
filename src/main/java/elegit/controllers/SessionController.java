@@ -160,7 +160,7 @@ public class SessionController {
         // Creates the commit tree model, and points MVC all looking at each other
         commitTreeModel = CommitTreeModel.getCommitTreeModel();
         commitTreeModel.setView(commitTreePanelView);
-        CommitTreeController.commitTreeModel = this.commitTreeModel;
+        //CommitTreeController.commitTreeModel = this.commitTreeModel;
 
         this.initializeLayoutParameters();
 

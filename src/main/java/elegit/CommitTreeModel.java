@@ -5,6 +5,7 @@ import elegit.models.*;
 import elegit.treefx.*;
 import elegit.treefx.Cell;
 import javafx.scene.control.*;
+import org.apache.http.annotation.ThreadSafe;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jgit.api.ResetCommand;
@@ -25,8 +26,11 @@ import java.util.stream.Collectors;
  * As a singleton class, there will be only one object. To ensure complete threadsafety,
  * use the "monitor" pattern; all methods are synchronized.
  */
-// TODO: Make sure threadsafe; also a lot of FX-code throughout that
-//      seems more controller-like may not belong here
+@ThreadSafe
+// but critically only because of all the asserts requiring this be done only in the FX thread. Without that, it
+// isn't threadsafe. This is currently very tangled up with the TreeGraph, which ultimately keeps track of hierarchy
+// in the FX data. There are also a lot of methods in here that should really be in the controller, not in the model.
+// But again, these are really knotted together currently.
 public class CommitTreeModel{
 
     // The singleton reference
@@ -53,15 +57,18 @@ public class CommitTreeModel{
     }
 
     public synchronized void setView(CommitTreePanelView view) {
+        Main.assertFxThread();
         this.view.set(view);
         view.setName("Local commit tree");
     }
 
     public synchronized CommitTreePanelView getView() {
+        Main.assertFxThread();
         return view.get();
     }
 
     public synchronized TreeGraph getTreeGraph() {
+        Main.assertFxThread();
         return treeGraph;
     }
 
@@ -78,7 +85,8 @@ public class CommitTreeModel{
      * @return true if the given id corresponds to a commit in the tree, false otherwise
      */
     synchronized boolean containsID(String id){
-        return treeGraph != null && treeGraph.treeGraphModel.containsID(id);
+        Main.assertFxThread();
+        return treeGraph.treeGraphModel.containsID(id);
     }
 
     /**
@@ -100,7 +108,7 @@ public class CommitTreeModel{
     }
 
     public synchronized void update() throws GitAPIException, IOException {
-        //Main.assertNotFxThread();
+        Main.assertFxThread();
         // Handles rare edge case with the RepositoryMonitor and removing repos
         if(SessionModel.getSessionModel().getCurrentRepoHelper() != null){
             // Get the changes between this model and the repo after updating the repo
@@ -307,7 +315,7 @@ public class CommitTreeModel{
      * @param graphModel the treeGraphModel to add the commit to
      */
     private synchronized void addCommitToTree(CommitHelper commitHelper, TreeGraphModel graphModel) {
-
+        Main.assertFxThread();
 
         ArrayDeque<CommitHelper> traversalStack = new ArrayDeque<>();
 
@@ -373,6 +381,7 @@ public class CommitTreeModel{
      * @param graphModel the graph model to remove the commit from
      */
     private synchronized void removeCommitFromTree(CommitHelper commitHelper, TreeGraphModel graphModel){
+        Main.assertFxThread();
         String commitID = commitHelper.getName();
 
         this.commitsInModel.remove(commitHelper);
@@ -383,6 +392,7 @@ public class CommitTreeModel{
     }
 
     private synchronized void updateCommitFill(CommitHelper helper, TreeGraphModel graphModel, RepoHelper repo) {
+        Main.assertFxThread();
         Cell.CellType type = (repo.getLocalCommits().contains(helper)) ?
                 (repo.getRemoteCommits().contains(helper)) ? Cell.CellType.BOTH : Cell.CellType.LOCAL : Cell.CellType.REMOTE;
         this.localCommitsInModel.remove(helper);
@@ -411,6 +421,7 @@ public class CommitTreeModel{
      * @return the context menu with a delete option
      */
     public synchronized ContextMenu getTagLabelMenu(TagHelper tagHelper) {
+        Main.assertFxThread();
         ContextMenu contextMenu = new ContextMenu();
 
         MenuItem deleteitem = new MenuItem("Delete");
@@ -431,6 +442,7 @@ public class CommitTreeModel{
     }
 
     private synchronized boolean presentDeleteDialog(TagHelper tagHelper) {
+        Main.assertFxThread();
         //Create the dialog
         Dialog<Boolean> dialog = new Dialog<>();
         dialog.setTitle("Delete Tag");
@@ -453,6 +465,7 @@ public class CommitTreeModel{
      * @return the context menu with various options related to branches
      */
     private synchronized ContextMenu getBranchLabelMenu(BranchHelper branch) {
+        Main.assertFxThread();
         ContextMenu contextMenu = new ContextMenu();
 
         MenuItem checkoutItem = new MenuItem("Checkout");
@@ -474,6 +487,7 @@ public class CommitTreeModel{
      * @return the context menu for the commit
      */
     private synchronized ContextMenu getContextMenu(CommitHelper commit){
+        Main.assertFxThread();
         // This line appears to be somewhat slow.
         ContextMenu contextMenu = new ContextMenu();
 
@@ -497,6 +511,7 @@ public class CommitTreeModel{
      * @return relativesMenu
      */
     private synchronized Menu getRelativesMenu(CommitHelper commit) {
+        Main.assertFxThread();
         Menu relativesMenu = new Menu("Show Relatives");
 
         MenuItem parentsItem = new MenuItem("Parents");
@@ -528,6 +543,7 @@ public class CommitTreeModel{
      * @return revertMenu
      */
     private synchronized Menu getRevertMenu(CommitHelper commit) {
+        Main.assertFxThread();
         Menu revertMenu = new Menu("Revert...");
         MenuItem revertItem = new MenuItem("Revert this commit");
         MenuItem revertMultipleItem = new MenuItem("Revert multiple commits...");
@@ -551,6 +567,7 @@ public class CommitTreeModel{
     }
 
     private synchronized Menu getResetMenu(CommitHelper commit) {
+        Main.assertFxThread();
         Menu resetMenu = new Menu("Reset...");
         MenuItem resetItem = new MenuItem("Reset to this commit");
         MenuItem helpItem = new MenuItem("Help");
@@ -566,6 +583,7 @@ public class CommitTreeModel{
     }
 
     private synchronized Menu getAdvancedResetMenu(CommitHelper commit) {
+        Main.assertFxThread();
         Menu resetMenu = new Menu("Advanced");
         MenuItem hardItem = new MenuItem("reset --hard");
         MenuItem mixedItem = new MenuItem("reset --mixed");
@@ -588,7 +606,7 @@ public class CommitTreeModel{
      */
     // TODO: This happens off FX thread when called from somewhere (gitStatus?) but happens on the thread when called from SessionController.handleCommitSortToggle. Fix.
     public synchronized void updateView() throws IOException{
-        //Main.assertNotFxThread();
+        Main.assertFxThread();
         if(SessionModel.getSessionModel().getCurrentRepoHelper() != null){
             CommitTreeController.update(this);
         }else{
@@ -600,6 +618,7 @@ public class CommitTreeModel{
      * Initializes the corresponding view if possible
      */
     private synchronized void initView(){
+        Main.assertFxThread();
         if(SessionModel.getSessionModel().getCurrentRepoHelper() != null){
             CommitTreeController.init(this);
         }else{
@@ -614,6 +633,7 @@ public class CommitTreeModel{
      * @param tracked whether or not the commit is the head of a tracked branch
      */
     public synchronized void setCommitAsBranchHead(CommitHelper helper, boolean tracked) {
+        Main.assertFxThread();
         String commitId;
         commitId = helper.getName();
         CellShape shape = (tracked) ? Cell.TRACKED_BRANCH_HEAD_SHAPE : Cell.UNTRACKED_BRANCH_HEAD_SHAPE;
@@ -625,7 +645,7 @@ public class CommitTreeModel{
      * Looks for all ref labels, then adds them to the commit tree graph
      */
     public synchronized void updateAllRefLabels() {
-        //Main.assertNotFxThread();
+        Main.assertFxThread();
         RepoHelper repo = SessionModel.getSessionModel().getCurrentRepoHelper();
 
         List<RefHelper> refHelpers = new ArrayList<>();
@@ -669,6 +689,7 @@ public class CommitTreeModel{
 
     private synchronized void addCommitRefMaps(List<RefHelper> helpers, Map<String, List<RefHelper>> commitLabelMap,
                                   Map<RefHelper, ContextMenu> menuMap) {
+        Main.assertFxThread();
         String commitId;
         for (RefHelper helper : helpers) {
             commitId = helper.getCommit().getName();
@@ -692,6 +713,7 @@ public class CommitTreeModel{
      * Forgets information about tracked/untracked branch heads in the tree and updates the model
      */
     public synchronized void resetBranchHeads(){
+        Main.assertFxThread();
         List<String> resetIDs = treeGraph.treeGraphModel.resetCellShapes();
         RepoHelper repo = SessionModel.getSessionModel().getCurrentRepoHelper();
         this.branchesInModel.clear();

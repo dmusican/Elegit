@@ -24,16 +24,15 @@ import java.util.Map;
  */
 public class CommitTreeController{
 
-    // The list of all models controlled by this controller
-    public static CommitTreeModel commitTreeModel;
+    public static final CommitTreeModel commitTreeModel = CommitTreeModel.getCommitTreeModel();
 
     // The list of selected cells
-    private static List<String> selectedCellIds = new ArrayList<>();
+    private static final List<String> selectedCellIds = new ArrayList<>();
 
     // The session controller if this controller needs to access other models/views
     public static SessionController sessionController;
 
-    private static ObjectProperty<String> selectedIDProperty = new SimpleObjectProperty<>();
+    private static final ObjectProperty<String> selectedIDProperty = new SimpleObjectProperty<>();
     static Property<Boolean> multipleNotSelectedProperty = new SimpleBooleanProperty(true);
 
     /**
