@@ -17,7 +17,6 @@ public class CommitTreePanelView extends Region{
 
     // Thread information
     public boolean isLayoutThreadRunning = false;
-    private String name;
 
     /**
      * Constructs a new view for the commit tree
@@ -80,15 +79,4 @@ public class CommitTreePanelView extends Region{
         return sp;
     }
 
-    /**
-     * Sets the name of this view, which appears in the Threads spawned by it
-     * @param name the name
-     */
-    public void setName(String name){
-        this.name = name;
-    }
-
-    public String getName() {
-        return this.name;
-    }
 }

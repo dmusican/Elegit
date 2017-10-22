@@ -59,7 +59,6 @@ public class CommitTreeModel{
     public synchronized void setView(CommitTreePanelView view) {
         Main.assertFxThread();
         this.view.set(view);
-        view.setName("Local commit tree");
     }
 
     public synchronized CommitTreePanelView getView() {
