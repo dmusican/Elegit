@@ -2,6 +2,7 @@ package elegit;
 
 import elegit.models.ClonedRepoHelper;
 import elegit.treefx.Cell;
+import elegit.treefx.CommitTreeModel;
 import javafx.application.Application;
 import javafx.scene.Node;
 import javafx.scene.control.Label;

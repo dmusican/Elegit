@@ -132,7 +132,7 @@ public class PopUpWindows {
     /**
      * Shows a window with some info about git reset
      */
-    static void showResetHelpAlert() {
+    public static void showResetHelpAlert() {
         Platform.runLater(() -> {
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
             alert.getDialogPane().setPrefSize(300, 300);
@@ -153,7 +153,7 @@ public class PopUpWindows {
     /**
      * Show a window with info about git revert
      */
-    static void showRevertHelpAlert() {
+    public static void showRevertHelpAlert() {
         Platform.runLater(() -> {
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
             alert.getDialogPane().setPrefWidth(500);

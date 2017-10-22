@@ -7,6 +7,8 @@ import elegit.models.BranchModel;
 import elegit.models.LocalBranchHelper;
 import elegit.models.RemoteBranchHelper;
 import elegit.models.RepoHelper;
+import elegit.treefx.CommitTreeController;
+import elegit.treefx.CommitTreeModel;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;

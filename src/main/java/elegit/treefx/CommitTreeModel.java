@@ -1,9 +1,10 @@
-package elegit;
+package elegit.treefx;
 
+import elegit.Main;
+import elegit.PopUpWindows;
+import elegit.SessionModel;
 import elegit.exceptions.MissingRepoException;
 import elegit.models.*;
-import elegit.treefx.*;
-import elegit.treefx.Cell;
 import javafx.scene.control.*;
 import org.apache.http.annotation.ThreadSafe;
 import org.apache.logging.log4j.LogManager;
@@ -83,7 +84,7 @@ public class CommitTreeModel{
      * @param id the id to check
      * @return true if the given id corresponds to a commit in the tree, false otherwise
      */
-    synchronized boolean containsID(String id){
+    public synchronized boolean containsID(String id){
         Main.assertFxThread();
         return treeGraph.treeGraphModel.containsID(id);
     }

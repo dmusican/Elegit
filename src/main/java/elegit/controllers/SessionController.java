@@ -5,7 +5,9 @@ import elegit.exceptions.*;
 import elegit.models.*;
 import elegit.repofile.MissingRepoFile;
 import elegit.repofile.RepoFile;
-import elegit.sshauthentication.ElegitUserInfoGUI;
+import elegit.treefx.CommitTreeController;
+import elegit.treefx.CommitTreeModel;
+import elegit.treefx.CommitTreePanelView;
 import elegit.treefx.TreeLayout;
 import io.reactivex.Observable;
 import io.reactivex.ObservableSource;
@@ -2215,10 +2217,10 @@ public class SessionController {
                         RepositoryMonitor.pause();
 
                         // If the layout is still going, don't run
-                        if (commitTreePanelView.isLayoutThreadRunning) {
-                            RepositoryMonitor.unpause();
-                            return;
-                        }
+//                        if (commitTreePanelView.isLayoutThreadRunning) {
+//                            RepositoryMonitor.unpause();
+//                            return;
+//                        }
                         try {
                             theModel.getCurrentRepoHelper().getBranchModel().updateAllBranches();
                             commitTreeModel.update();

@@ -3,6 +3,7 @@ package elegit.repofile;
 import elegit.*;
 import elegit.controllers.SessionController;
 import elegit.models.RepoHelper;
+import elegit.treefx.CommitTreeController;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ContextMenu;

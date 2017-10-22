@@ -1,28 +1,30 @@
-package elegit;
+package elegit.treefx;
 
+import elegit.Main;
 import elegit.models.CommitHelper;
+import elegit.treefx.CommitTreeController;
 import elegit.treefx.TreeGraph;
 import elegit.treefx.TreeLayout;
-import javafx.application.Platform;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.Region;
+import org.apache.http.annotation.ThreadSafe;
 
 /**
  * Class for the local and remote panel views that handles the drawing of a tree structure
  * from a given treeGraph.
  *
  */
-// TODO: Make sure this is threadsafe
+@ThreadSafe
+// but critically only because of all the asserts requiring this be done only in the FX thread. Without that, it
+// isn't threadsafe. This has bindings, etc, lots of things that require it to be done in FX thread.
 public class CommitTreePanelView extends Region{
-
-    // Thread information
-    public boolean isLayoutThreadRunning = false;
 
     /**
      * Constructs a new view for the commit tree
      */
     public CommitTreePanelView(){
         super();
+        Main.assertFxThread();
         this.setMinHeight(0);
     }
 
@@ -31,12 +33,11 @@ public class CommitTreePanelView extends Region{
      * @param treeGraph TreeGraph
      */
     private void initCommitTreeScrollPanes(TreeGraph treeGraph) {
-        //Main.assertNotFxThread();
+        Main.assertFxThread();
         ScrollPane sp = treeGraph.getScrollPane();
         sp.setOnMouseClicked(event -> CommitTreeController.handleMouseClicked());
-        Platform.runLater(() -> getChildren().clear());
-        Platform.runLater(() -> getChildren().add(anchorScrollPane(sp)));
-        isLayoutThreadRunning = false;
+        getChildren().clear();
+        getChildren().add(anchorScrollPane(sp));
     }
 
     /**
@@ -46,12 +47,10 @@ public class CommitTreePanelView extends Region{
      * @param treeGraph the graph to be displayed
      */
     synchronized void displayTreeGraph(TreeGraph treeGraph, CommitHelper commitToFocusOnLoad){
+        Main.assertFxThread();
         initCommitTreeScrollPanes(treeGraph);
 
-        // TODO: isLayoutThreadRunning may be unnecessary, but gitStatus uses it, at least for now
-        isLayoutThreadRunning = true;
         TreeLayout.doTreeLayout(treeGraph);
-        isLayoutThreadRunning = false;
 
         CommitTreeController.focusCommitInGraph(commitToFocusOnLoad);
     }
@@ -60,11 +59,10 @@ public class CommitTreePanelView extends Region{
      * Displays an empty scroll pane
      */
     void displayEmptyView(){
-        Platform.runLater(() -> {
-            ScrollPane sp = new ScrollPane();
-            this.getChildren().clear();
-            this.getChildren().add(anchorScrollPane(sp));
-        });
+        Main.assertFxThread();
+        ScrollPane sp = new ScrollPane();
+        this.getChildren().clear();
+        this.getChildren().add(anchorScrollPane(sp));
     }
 
     /**
@@ -74,6 +72,7 @@ public class CommitTreePanelView extends Region{
      * @return the passed in scrollpane after being anchored
      */
     private ScrollPane anchorScrollPane(ScrollPane sp){
+        Main.assertFxThread();
         sp.prefWidthProperty().bind(this.widthProperty());
         sp.prefHeightProperty().bind(this.heightProperty());
         return sp;

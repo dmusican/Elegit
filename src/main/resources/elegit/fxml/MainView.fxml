@@ -8,6 +8,7 @@
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.shape.*?>
 
+<?import elegit.treefx.CommitTreePanelView?>
 <BorderPane xmlns:fx="http://javafx.com/fxml"
             fx:controller="elegit.controllers.SessionController">
 
@@ -312,10 +313,10 @@
 
                 <!-- Commit tree panel view and legend-->
                 <CommitTreePanelView fx:id="commitTreePanelView"
-                                        GridPane.rowIndex="4"
-                                        GridPane.rowSpan="4"
-                                        GridPane.columnIndex="4"
-                                        GridPane.columnSpan="3">
+                                     GridPane.rowIndex="4"
+                                     GridPane.rowSpan="4"
+                                     GridPane.columnIndex="4"
+                                     GridPane.columnSpan="3">
                     <GridPane.margin>
                         <Insets right="15"/>
                     </GridPane.margin>

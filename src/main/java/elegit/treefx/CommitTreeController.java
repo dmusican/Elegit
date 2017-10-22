@@ -1,19 +1,15 @@
-    package elegit;
+    package elegit.treefx;
 
-import com.jcraft.jsch.Session;
-import elegit.controllers.BusyWindow;
+import elegit.Main;
+import elegit.SessionModel;
 import elegit.controllers.SessionController;
 import elegit.models.BranchHelper;
 import elegit.models.CommitHelper;
 import elegit.models.RepoHelper;
-import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import elegit.treefx.Cell;
-import elegit.treefx.Highlighter;
-import elegit.treefx.TreeGraphModel;
 import org.apache.http.annotation.ThreadSafe;
 
 import java.util.ArrayList;
@@ -25,7 +21,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * The controller class for the commit trees. Handles mouse interaction, cell selection/highlighting,
  * as well as updating the views when necessary
  */
-    @ThreadSafe
+@ThreadSafe
 // but critically only because of all the asserts requiring this be done only in the FX thread. Without that, it
 // isn't threadsafe. This has bindings, etc, lots of things that require it to be done in FX thread.
 public class CommitTreeController{
@@ -227,22 +223,11 @@ public class CommitTreeController{
      */
     public static void update(CommitTreeModel commitTreeModel){
         Main.assertFxThread();
-        BusyWindow.setLoadingText("B1");
         RepoHelper repo = SessionModel.getSessionModel().getCurrentRepoHelper();
-
-        BusyWindow.setLoadingText("B2");
         commitTreeModel.getTreeGraph().update();
-
-        Platform.runLater(() -> System.out.println("event 1"));
-        BusyWindow.setLoadingText("B3");
         commitTreeModel.getView().displayTreeGraph(commitTreeModel.getTreeGraph(), SessionModel.getSessionModel()
                 .getCurrentRepoHelper().getBranchModel().getCurrentBranchHead());
-        Platform.runLater(() -> System.out.println("event 2"));
-
-        BusyWindow.setLoadingText("B4");
         setBranchHeads(commitTreeModel, repo);
-        Platform.runLater(() -> System.out.println("event 3"));
-        BusyWindow.setLoadingText("B5");
     }
 
     /**

@@ -2,6 +2,8 @@ package elegit.controllers;
 
 import elegit.*;
 import elegit.models.*;
+import elegit.treefx.CommitTreeController;
+import elegit.treefx.CommitTreeModel;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.concurrent.Task;
