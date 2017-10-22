@@ -1,5 +1,6 @@
     package elegit;
 
+import com.jcraft.jsch.Session;
 import elegit.controllers.BusyWindow;
 import elegit.controllers.SessionController;
 import elegit.models.BranchHelper;
@@ -13,27 +14,29 @@ import javafx.beans.property.SimpleObjectProperty;
 import elegit.treefx.Cell;
 import elegit.treefx.Highlighter;
 import elegit.treefx.TreeGraphModel;
+import org.apache.http.annotation.ThreadSafe;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
-/**
+    /**
  * The controller class for the commit trees. Handles mouse interaction, cell selection/highlighting,
  * as well as updating the views when necessary
  */
+    @ThreadSafe
+// but critically only because of all the asserts requiring this be done only in the FX thread. Without that, it
+// isn't threadsafe. This has bindings, etc, lots of things that require it to be done in FX thread.
 public class CommitTreeController{
-
-    public static final CommitTreeModel commitTreeModel = CommitTreeModel.getCommitTreeModel();
 
     // The list of selected cells
     private static final List<String> selectedCellIds = new ArrayList<>();
 
     // The session controller if this controller needs to access other models/views
-    public static SessionController sessionController;
-
+    public static final AtomicReference<SessionController> sessionController = new AtomicReference<>();
     private static final ObjectProperty<String> selectedIDProperty = new SimpleObjectProperty<>();
-    static Property<Boolean> multipleNotSelectedProperty = new SimpleBooleanProperty(true);
+    private static final Property<Boolean> multipleNotSelectedProperty = new SimpleBooleanProperty(true);
 
     /**
      * Takes in the cell that was clicked on, and either selects or deselects
@@ -41,6 +44,7 @@ public class CommitTreeController{
      * @param clickedCellId the id of the cell that was clicked
      */
     public static void handleMouseClicked(String clickedCellId){
+        Main.assertFxThread();
         if(selectedCellIds.size()==1 && clickedCellId.equals(selectedCellIds.get(0))){
             resetSelection();
         } else if (selectedCellIds.size()==0) {
@@ -58,10 +62,11 @@ public class CommitTreeController{
      * @param cell the cell that was clicked with shift down
      */
     public static void handleMouseClickedShift(Cell cell) {
+        Main.assertFxThread();
         if (selectedCellIds.contains(cell.getCellId())) {
             if (isSelected(cell.getCellId())) {
                 selectedIDProperty.set(null);
-                sessionController.clearSelectedCommit();
+                sessionController.get().clearSelectedCommit();
             }
             Highlighter.resetCell(cell);
             selectedCellIds.remove(cell.getCellId());
@@ -78,6 +83,7 @@ public class CommitTreeController{
      * @return the list of selected cells
      */
     static List<String> getSelectedIds() {
+        Main.assertFxThread();
         return selectedCellIds;
     }
 
@@ -85,6 +91,7 @@ public class CommitTreeController{
      * Handles mouse clicks that didn't happen on a cell. Deselects everything.
      */
     static void handleMouseClicked(){
+        Main.assertFxThread();
         resetSelection();
     }
 
@@ -94,6 +101,7 @@ public class CommitTreeController{
      * @param isOverCell whether the mouse is entering or exiting the cell
      */
     public static void handleMouseover(Cell cell, boolean isOverCell){
+        Main.assertFxThread();
         highlightCommitInGraph(cell.getCellId(), isOverCell);
     }
 
@@ -105,8 +113,9 @@ public class CommitTreeController{
      * @param allGenerations whether to highlight further generations than just parents/children (i.e. grandparents, grandchildren etc)
      */
     private static void selectCommitInGraph(String commitID, boolean ancestors, boolean descendants, boolean allGenerations){
-        if (commitTreeModel.getTreeGraph() != null) {
-            TreeGraphModel m = commitTreeModel.getTreeGraph().treeGraphModel;
+        Main.assertFxThread();
+        if (getCommitTreeModel().getTreeGraph() != null) {
+            TreeGraphModel m = getCommitTreeModel().getTreeGraph().treeGraphModel;
             selectCommitInGraph(commitID, m, true, ancestors, descendants, allGenerations);
         }
 
@@ -122,8 +131,9 @@ public class CommitTreeController{
      * @param isOverCell whether to highlight or un-highlight the corresponding cells
      */
     private static void highlightCommitInGraph(String commitID, boolean isOverCell){
-        if (commitTreeModel.getTreeGraph() != null) {
-            TreeGraphModel m = commitTreeModel.getTreeGraph().treeGraphModel;
+        Main.assertFxThread();
+        if (getCommitTreeModel().getTreeGraph() != null) {
+            TreeGraphModel m = getCommitTreeModel().getTreeGraph().treeGraphModel;
 
             if(selectedCellIds.size()>0 && !isSelected(commitID)){
                 Highlighter.highlightCell(commitID, selectedCellIds.get(0), m, isOverCell);
@@ -143,6 +153,7 @@ public class CommitTreeController{
      * @param allGenerations whether to highlight further generations than just parents/children (i.e. grandparents, grandchildren etc)
      */
     private static void selectCommitInGraph(String commitID, TreeGraphModel model, boolean enable, boolean ancestors, boolean descendants, boolean allGenerations){
+        Main.assertFxThread();
         Highlighter.highlightSelectedCell(commitID, model, enable, ancestors, descendants, allGenerations);
         if(enable){
             Highlighter.updateCellEdges(commitID, commitID, model, true);
@@ -160,22 +171,24 @@ public class CommitTreeController{
      * @param allGenerations whether to highlight further generations than just parents/children (i.e. grandparents, grandchildren etc)
      */
     public static void selectCommit(String id, boolean ancestors, boolean descendants, boolean allGenerations){
+        Main.assertFxThread();
         resetSelection();
         selectCommitInGraph(id, ancestors, descendants, allGenerations);
-        sessionController.selectCommit(id);
+        sessionController.get().selectCommit(id);
     }
 
     /**
      * Deselects the currently selected commit, if there is one
      */
     public static void resetSelection(){
+        Main.assertFxThread();
         if(selectedCellIds.size() > 0){
             Highlighter.resetAll();
             selectedCellIds.clear();
             selectedIDProperty.set(null);
             multipleNotSelectedProperty.setValue(true);
         }
-        sessionController.clearSelectedCommit();
+        sessionController.get().clearSelectedCommit();
     }
 
     /**
@@ -184,6 +197,7 @@ public class CommitTreeController{
      * @return true if it is selected, false otherwise
      */
     private static boolean isSelected(String cellID){
+        Main.assertFxThread();
         return selectedCellIds.size()==1 && selectedCellIds.get(0).equals(cellID);
     }
 
@@ -194,6 +208,7 @@ public class CommitTreeController{
      * @param commitTreeModel the model whose view should be updated
      */
     public static void init(CommitTreeModel commitTreeModel){
+        Main.assertFxThread();
         RepoHelper repo = SessionModel.getSessionModel().getCurrentRepoHelper();
 
         commitTreeModel.getTreeGraph().update();
@@ -211,7 +226,7 @@ public class CommitTreeController{
      * @param commitTreeModel the model whose view should be updated
      */
     public static void update(CommitTreeModel commitTreeModel){
-        //Main.assertNotFxThread();
+        Main.assertFxThread();
         BusyWindow.setLoadingText("B1");
         RepoHelper repo = SessionModel.getSessionModel().getCurrentRepoHelper();
 
@@ -236,11 +251,12 @@ public class CommitTreeController{
      * @param commit the commit to focus
      */
     public static void focusCommitInGraph(CommitHelper commit){
+        Main.assertFxThread();
         if(commit == null)
             return;
 
-        if(commitTreeModel.getTreeGraph().treeGraphModel.containsID(commit.getName())){
-            Cell c = commitTreeModel.getTreeGraph().treeGraphModel.getCell(commit.getName());
+        if(getCommitTreeModel().getTreeGraph().treeGraphModel.containsID(commit.getName())){
+            Cell c = getCommitTreeModel().getTreeGraph().treeGraphModel.getCell(commit.getName());
             Highlighter.emphasizeCell(c);
         }
     }
@@ -251,11 +267,12 @@ public class CommitTreeController{
      * @param commitID the ID of the commit to focus
      */
     public static void focusCommitInGraph(String commitID){
+        Main.assertFxThread();
         if(commitID == null)
             return;
 
-        if(commitTreeModel.getTreeGraph().treeGraphModel.containsID(commitID)){
-            Cell c = commitTreeModel.getTreeGraph().treeGraphModel.getCell(commitID);
+        if(getCommitTreeModel().getTreeGraph().treeGraphModel.containsID(commitID)){
+            Cell c = getCommitTreeModel().getTreeGraph().treeGraphModel.getCell(commitID);
             Highlighter.emphasizeCell(c);
         }
     }
@@ -267,6 +284,7 @@ public class CommitTreeController{
      * @return true if the model has branches, false if not
      */
     public static boolean setBranchHeads(CommitTreeModel model, RepoHelper repo) {
+        Main.assertFxThread();
         repo.getBranchModel().updateAllBranches();
         Map<CommitHelper, List<BranchHelper>> headIds = repo.getBranchModel().getAllBranchHeads();
         if(headIds == null) return false;
@@ -288,6 +306,23 @@ public class CommitTreeController{
      * @return the commit tree model for the current session
      */
     public static CommitTreeModel getCommitTreeModel() {
-        return commitTreeModel;
+        Main.assertFxThread();
+        return CommitTreeModel.getCommitTreeModel();
     }
+
+    public static SessionController getSessionController() {
+        Main.assertFxThread();
+        return sessionController.get();
+    }
+
+    public static void setSessionController(SessionController sc) {
+        Main.assertFxThread();
+        sessionController.set(sc);
+    }
+
+    public static Property<Boolean> getMultipleNotSelectedProperty() {
+        Main.assertFxThread();
+        return multipleNotSelectedProperty;
+    }
+
 }

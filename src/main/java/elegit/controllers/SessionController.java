@@ -152,7 +152,7 @@ public class SessionController {
         Main.assertFxThread();
 
         // Gives other controllers access to this one
-        CommitTreeController.sessionController = this;
+        CommitTreeController.setSessionController(this);
         menuController.setSessionController(this);
         dropdownController.setSessionController(this);
         commitInfoController.setSessionController(this);

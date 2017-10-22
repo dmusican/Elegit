@@ -77,7 +77,7 @@ public class RepoFile implements Comparable<RepoFile> {
         addToIgnoreItem.setOnAction(event -> GitIgnoreEditor.show(this.repo, this.filePath));
 
         MenuItem checkoutItem = new MenuItem("Checkout...");
-        SessionController controller = CommitTreeController.sessionController;
+        SessionController controller = CommitTreeController.getSessionController();
         checkoutItem.setOnAction(event -> {
             controller.handleCheckoutButton(filePath);
         });

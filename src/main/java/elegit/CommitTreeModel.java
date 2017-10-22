@@ -469,10 +469,10 @@ public class CommitTreeModel{
         ContextMenu contextMenu = new ContextMenu();
 
         MenuItem checkoutItem = new MenuItem("Checkout");
-        checkoutItem.setOnAction(event -> CommitTreeController.sessionController.checkoutBranch(branch) );
+        checkoutItem.setOnAction(event -> CommitTreeController.getSessionController().checkoutBranch(branch) );
 
         MenuItem deleteitem = new MenuItem("Delete");
-        deleteitem.setOnAction(event -> CommitTreeController.sessionController.deleteBranch(branch) );
+        deleteitem.setOnAction(event -> CommitTreeController.getSessionController().deleteBranch(branch) );
 
         contextMenu.getItems().addAll(checkoutItem, deleteitem);
 
@@ -494,7 +494,7 @@ public class CommitTreeModel{
         MenuItem checkoutItem = new MenuItem("Checkout files...");
         checkoutItem.setOnAction(event -> {
             logger.info("Checkout files from commit button clicked");
-            CommitTreeController.sessionController.handleCheckoutFilesButton(commit);
+            CommitTreeController.getSessionController().handleCheckoutFilesButton(commit);
         });
         Menu relativesMenu = getRelativesMenu(commit);
         Menu revertMenu = getRevertMenu(commit);
@@ -547,16 +547,16 @@ public class CommitTreeModel{
         Menu revertMenu = new Menu("Revert...");
         MenuItem revertItem = new MenuItem("Revert this commit");
         MenuItem revertMultipleItem = new MenuItem("Revert multiple commits...");
-        revertMultipleItem.disableProperty().bind(CommitTreeController.multipleNotSelectedProperty);
+        revertMultipleItem.disableProperty().bind(CommitTreeController.getMultipleNotSelectedProperty());
         MenuItem helpItem = new MenuItem("Help");
 
-        revertItem.setOnAction(event -> CommitTreeController.sessionController.handleRevertButton(commit));
+        revertItem.setOnAction(event -> CommitTreeController.getSessionController().handleRevertButton(commit));
 
         revertMultipleItem.setOnAction(event -> {
             // Some fancy lambda syntax and collect call
             List<CommitHelper> commits = commitsInModel.stream().filter(commitHelper ->
                     CommitTreeController.getSelectedIds().contains(commitHelper.getName())).collect(Collectors.toList());
-            CommitTreeController.sessionController.handleRevertMultipleButton(commits);
+            CommitTreeController.getSessionController().handleRevertMultipleButton(commits);
         });
 
         helpItem.setOnAction(event -> PopUpWindows.showRevertHelpAlert());
@@ -573,7 +573,7 @@ public class CommitTreeModel{
         MenuItem helpItem = new MenuItem("Help");
         Menu advancedMenu = getAdvancedResetMenu(commit);
 
-        resetItem.setOnAction(event -> CommitTreeController.sessionController.handleResetButton(commit));
+        resetItem.setOnAction(event -> CommitTreeController.getSessionController().handleResetButton(commit));
 
         helpItem.setOnAction(event -> PopUpWindows.showResetHelpAlert());
 
@@ -590,11 +590,11 @@ public class CommitTreeModel{
         MenuItem softItem = new MenuItem("reset --soft");
 
         hardItem.setOnAction(event ->
-                CommitTreeController.sessionController.handleAdvancedResetButton(commit, ResetCommand.ResetType.HARD));
+                CommitTreeController.getSessionController().handleAdvancedResetButton(commit, ResetCommand.ResetType.HARD));
         mixedItem.setOnAction(event ->
-                CommitTreeController.sessionController.handleAdvancedResetButton(commit, ResetCommand.ResetType.MIXED));
+                CommitTreeController.getSessionController().handleAdvancedResetButton(commit, ResetCommand.ResetType.MIXED));
         softItem.setOnAction(event ->
-                CommitTreeController.sessionController.handleAdvancedResetButton(commit, ResetCommand.ResetType.SOFT));
+                CommitTreeController.getSessionController().handleAdvancedResetButton(commit, ResetCommand.ResetType.SOFT));
 
         resetMenu.getItems().setAll(hardItem, mixedItem, softItem);
 

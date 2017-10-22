@@ -61,7 +61,7 @@ public class BranchCheckoutController {
         sessionModel = SessionModel.getSessionModel();
         repoHelper = sessionModel.getCurrentRepoHelper();
         branchModel = repoHelper.getBranchModel();
-        localCommitTreeModel = CommitTreeController.commitTreeModel;
+        localCommitTreeModel = CommitTreeController.getCommitTreeModel();
     }
 
     public void initialize() throws Exception {
