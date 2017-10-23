@@ -52,7 +52,7 @@ public class SessionModel {
 
     private final AtomicReference<RepoHelper> currentRepoHelper = new AtomicReference<>();
 
-    ObjectProperty<RepoHelper> currentRepoHelperProperty;
+    final ObjectProperty<RepoHelper> currentRepoHelperProperty = new SimpleObjectProperty<>();
 
 
     private static SessionModel sessionModel;
@@ -76,7 +76,6 @@ public class SessionModel {
     private SessionModel() {
         this.allRepoHelpers = new ArrayList<>();
         this.preferences = Preferences.userNodeForPackage(this.getClass());
-        currentRepoHelperProperty = new SimpleObjectProperty<>(currentRepoHelper.get());
         loadRecentRepoHelpersFromStoredPathStrings();
         loadMostRecentRepoHelper();
     }
@@ -174,6 +173,7 @@ public class SessionModel {
      * @param repoHelper the repository to open
      */
     // synchronized for allRepoHelpers
+    // An FX property is being set, so essential this is done in FX thread
     private synchronized void openRepo(RepoHelper repoHelper) throws BackingStoreException, IOException, ClassNotFoundException {
         if(!this.allRepoHelpers.contains(repoHelper)) {
             this.allRepoHelpers.add(repoHelper);

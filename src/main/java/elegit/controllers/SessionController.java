@@ -452,7 +452,7 @@ public class SessionController {
      * Initializes the repository monitor
      */
     private void initRepositoryMonitor() {
-        RepositoryMonitor.startWatching(theModel, this);
+        RepositoryMonitor.startWatching(this);
         RepositoryMonitor.hasFoundNewRemoteChanges.addListener((observable, oldValue, newValue) -> {
             if(newValue) updateStatusText();
         });
@@ -731,7 +731,6 @@ public class SessionController {
     private List<Result> loadRepo (Optional<RepoHelperBuilder.AuthDialogResponse> responseOptional,
                                                 RepoHelper repoHelper) {
         synchronized (globalLock) {
-            Main.assertNotFxThread();
             List<Result> results = new ArrayList<>();
             try {
                 responseOptional.ifPresent(response ->

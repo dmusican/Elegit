@@ -30,52 +30,34 @@ public class RepositoryMonitor{
     public static final int CHECK_INTERVAL = 1;
 
     // Whether there are new remote changes
-    public static BooleanProperty hasFoundNewRemoteChanges = new SimpleBooleanProperty(false);
+    public static final BooleanProperty hasFoundNewRemoteChanges = new SimpleBooleanProperty(false);
 
     // Whether to ignore any new changes
     private static boolean ignoreNewRemoteChanges = false;
     private static boolean pauseLocalMonitor = false;
 
     private static int pauseCounter = 0;
-    private static AtomicInteger pauseCount = new AtomicInteger(0);
 
     // Thread information
     private static Thread th;
     private static boolean interrupted = false;
 
-    private static SessionModel currentModel;
-
     private static boolean alreadyWatching = false;
 
-    private static void setSessionModel(SessionModel model) {
-        currentModel = model;
-    }
-
-    private static Observable interval;
-
-    public static void startWatching(SessionModel model, SessionController controller) {
-        startWatchingRemoteAndMaybeLocal(model, controller, true);
-    }
-
-
-    public static void startWatchingRemoteAndMaybeLocal(SessionModel model, SessionController controller,
-        boolean watchingLocal) {
-        setSessionModel(model);
+    public synchronized static void startWatching(SessionController controller) {
         if(!alreadyWatching){
             Main.allSubscriptions.add(
                     Observable.interval(CHECK_INTERVAL, TimeUnit.SECONDS, Schedulers.io())
                             .subscribe()
             );
-            if (watchingLocal)
-                beginWatchingLocal(controller);
+            beginWatchingLocal(controller);
             beginWatchingRemote();
             alreadyWatching = true;
         }
     }
 
     // For unit testing purposes only
-    public static void startWatchingRemoteOnly(SessionModel model) {
-        setSessionModel(model);
+    public synchronized static void startWatchingRemoteOnly() {
         if(!alreadyWatching){
             Main.allSubscriptions.add(
                     Observable.interval(CHECK_INTERVAL, TimeUnit.SECONDS, Schedulers.io())
@@ -93,10 +75,10 @@ public class RepositoryMonitor{
      * and begin watching the new one
      */
     private static void beginWatchingRemote(){
-        currentModel.currentRepoHelperProperty.addListener(
+        SessionModel.getSessionModel().currentRepoHelperProperty.addListener(
             (observable, oldValue, newValue) -> watchRepoForRemoteChanges(newValue)
         );
-        watchRepoForRemoteChanges(currentModel.getCurrentRepoHelper());
+        watchRepoForRemoteChanges(SessionModel.getSessionModel().getCurrentRepoHelper());
     }
 
     /**
@@ -215,7 +197,8 @@ public class RepositoryMonitor{
     private static synchronized void beginWatchingLocal(SessionController controller){
         Thread thread = new Thread(() -> {
             while(true){
-                if(!pauseLocalMonitor && currentModel.getCurrentRepoHelper() != null && currentModel.getCurrentRepoHelper().exists()){
+                if(!pauseLocalMonitor && SessionModel.getSessionModel().getCurrentRepoHelper() != null &&
+                        SessionModel.getSessionModel().getCurrentRepoHelper().exists()){
                     Platform.runLater(controller::gitStatus);
                 }
 
