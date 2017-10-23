@@ -1,5 +1,7 @@
-package elegit;
+package gui;
 
+import elegit.Main;
+import elegit.PopUpWindows;
 import elegit.models.RepoHelper;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
@@ -17,6 +19,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
+import org.apache.http.annotation.ThreadSafe;
 import org.eclipse.jgit.lib.Constants;
 
 import java.io.BufferedReader;
@@ -29,6 +32,9 @@ import java.nio.file.Path;
 /**
  * A simple editor for .gitignore files
  */
+@ThreadSafe
+// because everything runs in the FX thread. This is clearly a heavy-duty FX-based class; it all belongs there.
+// Threadsafety is lost if you take out the asserts throughout.
 public class GitIgnoreEditor {
 
     private static Stage window;
@@ -41,8 +47,8 @@ public class GitIgnoreEditor {
      * @return the main window
      */
     private static Stage initWindow(){
-        Stage window = new Stage();
-
+        window = new Stage();
+        Main.assertFxThread();
         Rectangle2D primaryScreenBounds = Screen.getPrimary().getVisualBounds();
 
         window.setMaxHeight(primaryScreenBounds.getHeight());
@@ -64,6 +70,7 @@ public class GitIgnoreEditor {
      * @return the top-level node in the scene
      */
     private static Parent getRootOfScene(){
+        Main.assertFxThread();
         TextArea textArea = new TextArea();
         textArea.setStyle("-fx-focus-color: transparent; -fx-faint-focus-color: transparent;");
 
@@ -93,6 +100,7 @@ public class GitIgnoreEditor {
      * @param saveChanges whether to write to file or not
      */
     private static void handleConfirmation(String newText, boolean saveChanges) {
+        Main.assertFxThread();
         if(saveChanges){
             try(BufferedReader br = new BufferedReader(new StringReader(newText));
                 BufferedWriter bw = Files.newBufferedWriter(gitIgnoreFile)){
@@ -114,6 +122,7 @@ public class GitIgnoreEditor {
      * @return the full text from the .gitignore file, with the added file path added on the end
      */
     private static String getTextFromGitIgnoreFile() {
+        Main.assertFxThread();
         String returnText = addedPath.length() > 0 ? "\n" + addedPath + "\n" : "";
         try {
             returnText = new String(Files.readAllBytes(gitIgnoreFile)) + returnText;
@@ -128,6 +137,7 @@ public class GitIgnoreEditor {
      * @param pathToAdd the path of a file to append to the .gitignore, if applicable
      */
     public static void show(RepoHelper repo, Path pathToAdd){
+        Main.assertFxThread();
         repoHelper = repo;
         gitIgnoreFile = repoHelper.getLocalPath().resolve(Constants.DOT_GIT_IGNORE);
         addedPath = pathToAdd == null ? "" : pathToAdd.toString().replaceAll("\\\\","/");

@@ -230,7 +230,7 @@ public class PopUpWindows {
      *
      * @param trackedIgnoredFiles collections of files being ignored
      */
-    static void showTrackingIgnoredFilesWarning(Collection<String> trackedIgnoredFiles) {
+    public static void showTrackingIgnoredFilesWarning(Collection<String> trackedIgnoredFiles) {
         Platform.runLater(() -> {
             if (trackedIgnoredFiles.size() > 0) {
                 String fileStrings = "";
