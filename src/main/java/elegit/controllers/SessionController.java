@@ -359,6 +359,7 @@ public class SessionController {
      * whether or not there are remote changes to fetch
      */
     private void updateStatusText(){
+        Main.assertFxThread();
         if (this.theModel.getCurrentRepoHelper()==null) return;
         boolean update;
 

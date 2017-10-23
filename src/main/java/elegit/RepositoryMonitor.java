@@ -14,6 +14,7 @@ import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import org.apache.http.annotation.GuardedBy;
+import org.apache.http.annotation.ThreadSafe;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Ref;
 
@@ -26,7 +27,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * A class that creates a thread to watch the current remote repository for new changes
  */
-// TODO: Make sure threadsafe
+@ThreadSafe
 public class RepositoryMonitor{
 
     // How long to pause between checks
@@ -56,13 +57,12 @@ public class RepositoryMonitor{
     }
 
 
-
     /**
      * Associates the given model with this monitor. Updating the current
      * repository will cause the monitor to stop watching the old repository
      * and begin watching the new one
      */
-    private static void beginWatchingRemote(){
+    private static synchronized void beginWatchingRemote(){
         watchRepoForRemoteChanges(SessionModel.getSessionModel().getCurrentRepoHelper());
     }
 

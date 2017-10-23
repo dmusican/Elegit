@@ -70,8 +70,7 @@ public class Main extends Application {
         final Logger logger = LogManager.getLogger();
 
         // -----------------------Logging Initialization End-----------------------------
-        // Handles some concurrency issues with gitStatus()
-        // TODO: This can't be the right way to first interact with the repository monitor
+        // Wait to monitor reposoitory until everything is up
         RepositoryMonitor.pause();
 
         // Initialize the busy window
@@ -122,8 +121,7 @@ public class Main extends Application {
 
         primaryStage.show();
 
-        // Handles some concurrency issues with gitStatus()
-        // TODO: Again, manage RepositoryMonitor
+        // Now finally start watching repositories
         RepositoryMonitor.unpause();
     }
 
