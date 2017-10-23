@@ -2,6 +2,7 @@ package elegit;
 
 import elegit.controllers.BusyWindow;
 import elegit.controllers.SessionController;
+import elegit.monitors.RepositoryMonitor;
 import io.reactivex.disposables.CompositeDisposable;
 import javafx.application.Application;
 import javafx.application.Platform;

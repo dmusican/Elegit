@@ -51,8 +51,7 @@ public class SessionModel {
     /////////
 
     private final AtomicReference<RepoHelper> currentRepoHelper = new AtomicReference<>();
-
-    final ObjectProperty<RepoHelper> currentRepoHelperProperty = new SimpleObjectProperty<>();
+    private final ObjectProperty<RepoHelper> currentRepoHelperProperty = new SimpleObjectProperty<>();
 
 
     private static SessionModel sessionModel;
@@ -601,5 +600,10 @@ public class SessionModel {
         }
         sessionModel = new SessionModel();
     }
+
+    public ObjectProperty<RepoHelper> getCurrentRepoHelperProperty() {
+        return currentRepoHelperProperty;
+    }
+
 
 }

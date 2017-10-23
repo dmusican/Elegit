@@ -2,11 +2,10 @@ package elegit;
 
 import elegit.models.ClonedRepoHelper;
 import elegit.models.ExistingRepoHelper;
+import elegit.monitors.RepositoryMonitor;
 import elegit.sshauthentication.ElegitUserInfoTest;
-import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.embed.swing.JFXPanel;
-import javafx.stage.Stage;
 import org.eclipse.jgit.api.PushCommand;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
@@ -24,7 +23,7 @@ import java.util.Date;
 import java.util.Scanner;
 import java.util.concurrent.CountDownLatch;
 
-import static elegit.RepositoryMonitor.REMOTE_CHECK_INTERVAL;
+import static elegit.monitors.RepositoryMonitor.REMOTE_CHECK_INTERVAL;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;

@@ -1,12 +1,11 @@
-package elegit;
+package elegit.monitors;
 
-import com.sun.org.apache.regexp.internal.RE;
+import elegit.SessionModel;
 import elegit.controllers.SessionController;
 import elegit.models.BranchHelper;
 import elegit.models.BranchModel;
 import elegit.models.RepoHelper;
 import io.reactivex.Observable;
-import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.rxjavafx.schedulers.JavaFxScheduler;
 import io.reactivex.schedulers.Schedulers;
@@ -22,7 +21,6 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * A class that creates a thread to watch the current remote repository for new changes
@@ -50,7 +48,7 @@ public class RepositoryMonitor{
 
     // For unit testing purposes only
     public synchronized static void initRemote() {
-        SessionModel.getSessionModel().currentRepoHelperProperty.addListener(
+        SessionModel.getSessionModel().getCurrentRepoHelperProperty().addListener(
                 (observable, oldValue, newValue) -> watchRepoForRemoteChanges(newValue)
         );
         beginWatchingRemote();
