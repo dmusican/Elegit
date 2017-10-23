@@ -1,10 +1,13 @@
 package elegit;
 
+import com.sun.org.apache.regexp.internal.RE;
 import elegit.controllers.SessionController;
 import elegit.models.BranchHelper;
 import elegit.models.BranchModel;
 import elegit.models.RepoHelper;
 import io.reactivex.Observable;
+import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
@@ -37,6 +40,8 @@ public class RepositoryMonitor{
     private static boolean pauseLocalMonitor = false;
 
     private static int pauseCounter = 0;
+
+    private static Disposable remoteTimer = Observable.empty().subscribe();
 
     // Thread information
     private static Thread th;
@@ -88,44 +93,20 @@ public class RepositoryMonitor{
      * changes)
      * @param repo the repository to monitor
      */
+    // TODO: Need to make sure threadsafe, i.e., not fetching (e.g.) at the same time
     private static synchronized void watchRepoForRemoteChanges(RepoHelper repo){
-        pause();
-        if(th != null){
-            interrupted = true;
-            try{
-                th.join();
-            }catch(InterruptedException ignored){
-            }finally{
-                interrupted = false;
-                th = null;
-            }
-        }
+        remoteTimer.dispose();
 
         if(repo == null || !repo.exists() || !repo.hasRemote()) {
-            unpause();
             return;
         }
 
-        th = new Thread(() -> {
-
-            while(!interrupted){
-                if (remoteHasNewChanges(repo))
-                    setFoundNewChanges();
-
-                try{
-                    Thread.sleep(REMOTE_CHECK_INTERVAL);
-                }catch(InterruptedException e){
-                    interrupted = true;
-                }
-            }
-        });
-
-        th.setDaemon(true);
-        th.setName("Remote monitor for repository \"" + repo + "\"");
-        th.setPriority(2);
-        th.start();
-
-        unpause();
+        remoteTimer = Observable
+                .interval(0, REMOTE_CHECK_INTERVAL, TimeUnit.MILLISECONDS, Schedulers.io())
+                .subscribe(i -> {
+                    if (remoteHasNewChanges(repo))
+                        setFoundNewChanges();
+                });
     }
 
     private static boolean remoteHasNewChanges(RepoHelper repo) {
@@ -165,10 +146,9 @@ public class RepositoryMonitor{
     /**
      * Sets hasFoundNewRemoteChanges to true if not ignoring new changes
      */
+    // TODO: Needs to be threadsafe, it isn't
     private static void setFoundNewChanges(){
-        // Not threadsafe. Needs to be fixed.
-        if(!ignoreNewRemoteChanges)
-            hasFoundNewRemoteChanges.set(true);
+        hasFoundNewRemoteChanges.set(true);
     }
 
     /**
