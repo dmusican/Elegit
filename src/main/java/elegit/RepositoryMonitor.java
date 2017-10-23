@@ -8,6 +8,7 @@ import elegit.models.RepoHelper;
 import io.reactivex.Observable;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
+import io.reactivex.rxjavafx.schedulers.JavaFxScheduler;
 import io.reactivex.schedulers.Schedulers;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
@@ -35,35 +36,25 @@ public class RepositoryMonitor{
     // Whether there are new remote changes
     public static final BooleanProperty hasFoundNewRemoteChanges = new SimpleBooleanProperty(false);
 
-    // Whether to ignore any new changes
-    private static boolean pauseLocalMonitor = false;
-
     @GuardedBy("this") private static int pauseCounter = 0;
     @GuardedBy("this") private static Disposable remoteTimer = Observable.empty().subscribe();
+    @GuardedBy("this") private static Disposable localTimer = Observable.empty().subscribe();
+    @GuardedBy("this") private static SessionController controller;
 
-    private static boolean alreadyWatching = false;
-
-    public synchronized static void startWatching(SessionController controller) {
-        if(!alreadyWatching){
-            beginWatchingLocal(controller);
-            SessionModel.getSessionModel().currentRepoHelperProperty.addListener(
-                    (observable, oldValue, newValue) -> watchRepoForRemoteChanges(newValue)
-            );
-            beginWatchingRemote();
-            alreadyWatching = true;
-        }
+    public synchronized static void init(SessionController controller) {
+        RepositoryMonitor.controller = controller;
+        beginWatchingLocal();
+        initRemote();
     }
 
     // For unit testing purposes only
-    public synchronized static void startWatchingRemoteOnly() {
-        if(!alreadyWatching){
-            SessionModel.getSessionModel().currentRepoHelperProperty.addListener(
-                    (observable, oldValue, newValue) -> watchRepoForRemoteChanges(newValue)
-            );
-            beginWatchingRemote();
-            alreadyWatching = true;
-        }
+    public synchronized static void initRemote() {
+        SessionModel.getSessionModel().currentRepoHelperProperty.addListener(
+                (observable, oldValue, newValue) -> watchRepoForRemoteChanges(newValue)
+        );
+        beginWatchingRemote();
     }
+
 
 
     /**
@@ -83,12 +74,11 @@ public class RepositoryMonitor{
      * @param repo the repository to monitor
      */
     private static synchronized void watchRepoForRemoteChanges(RepoHelper repo){
-        remoteTimer.dispose();
-
         if(repo == null || !repo.exists() || !repo.hasRemote()) {
             return;
         }
 
+        remoteTimer.dispose();
         remoteTimer = Observable
                 .interval(0, REMOTE_CHECK_INTERVAL, TimeUnit.MILLISECONDS, Schedulers.io())
                 .subscribe(i -> {
@@ -151,51 +141,24 @@ public class RepositoryMonitor{
         Platform.runLater(() -> hasFoundNewRemoteChanges.set(false));
     }
 
-    private static synchronized void beginWatchingLocal(SessionController controller){
-        Thread thread = new Thread(() -> {
-            while(true){
-                if(!pauseLocalMonitor && SessionModel.getSessionModel().getCurrentRepoHelper() != null &&
-                        SessionModel.getSessionModel().getCurrentRepoHelper().exists()){
-                    Platform.runLater(controller::gitStatus);
-                }
-
-                try{
-                    Thread.sleep(LOCAL_CHECK_INTERVAL);
-                }catch(InterruptedException ignored){}
-            }
-        });
-        thread.setDaemon(true);
-        thread.setName("Local monitor");
-        thread.setPriority(2);
-        thread.start();
+    private static synchronized void beginWatchingLocal(){
+        localTimer.dispose();
+        localTimer = Observable
+                .interval(0, LOCAL_CHECK_INTERVAL, TimeUnit.MILLISECONDS, Schedulers.io())
+                .observeOn(JavaFxScheduler.platform())
+                .subscribe(i -> controller.gitStatus());
     }
 
-    private static void pauseWatchingLocal(long millis){
-        pauseLocalMonitor = true;
-
-        if(millis < 0) {
-            return;
-        }
-
-        Thread waitThread = new Thread(() -> {
-            try{
-                Thread.sleep(millis);
-            }catch(InterruptedException ignored){
-            }finally{
-                pauseLocalMonitor = false;
-            }
-        });
-
-        waitThread.setDaemon(true);
-        waitThread.setName("Local monitor pause timer");
-        waitThread.setPriority(2);
-        waitThread.start();
+    private static synchronized void stopWatchingLocal(){
+        localTimer.dispose();
+        localTimer = Observable.empty().subscribe();
     }
 
 
     public static synchronized void pause(){
         if(pauseCounter == 0) {
             stopWatchingRemoteRepo();
+            stopWatchingLocal();
         }
         pauseCounter++;
     }
@@ -203,7 +166,13 @@ public class RepositoryMonitor{
     public static synchronized void unpause(){
         pauseCounter--;
         if(pauseCounter == 0) {
+            beginWatchingLocal();
             beginWatchingRemote();
         }
+    }
+
+    public static synchronized void disposeTimers() {
+        localTimer.dispose();
+        remoteTimer.dispose();
     }
 }

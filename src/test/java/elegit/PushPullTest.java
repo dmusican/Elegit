@@ -3,13 +3,16 @@ package elegit;
 import elegit.models.ClonedRepoHelper;
 import elegit.models.ExistingRepoHelper;
 import elegit.sshauthentication.ElegitUserInfoTest;
+import javafx.application.Application;
+import javafx.application.Platform;
+import javafx.embed.swing.JFXPanel;
+import javafx.stage.Stage;
 import org.eclipse.jgit.api.PushCommand;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.*;
 
+import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -19,6 +22,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.Scanner;
+import java.util.concurrent.CountDownLatch;
 
 import static elegit.RepositoryMonitor.REMOTE_CHECK_INTERVAL;
 import static org.junit.Assert.assertFalse;
@@ -37,6 +41,31 @@ public class PushPullTest {
 
     // Used to indicate that if password files are missing, then tests should just pass
     private boolean looseTesting;
+
+    //@Rule
+    //public JavaFXThreadingRule javafxRule = new JavaFXThreadingRule();
+
+    @BeforeClass
+    public static void setupJavaFX() throws InterruptedException {
+
+        long timeMillis = System.currentTimeMillis();
+
+        final CountDownLatch latch = new CountDownLatch(1);
+
+        SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                // initializes JavaFX environment
+                new JFXPanel();
+
+                latch.countDown();
+            }
+        });
+
+        System.out.println("javafx initialising...");
+        latch.await();
+        System.out.println("javafx is initialised in " + (System.currentTimeMillis() - timeMillis) + "ms");
+    }
+
 
     @Before
     public void setUp() throws Exception {
@@ -76,6 +105,9 @@ public class PushPullTest {
     }
 
     @Test
+    // This test has some thread safety issues that should probably be fixed; the RepositoryMonitor is started
+    // in the FX thread (which is right), but there's a lot of code here in this test not run in the FX thread
+    // that probably should be. Fix it if this test starts causing trouble. In the meantime... it's a test.
     public void testPushPullBothCloned() throws Exception {
         File authData = new File(testFileLocation + "httpUsernamePassword.txt");
 
@@ -103,10 +135,19 @@ public class PushPullTest {
         assertNotNull(helperPull);
         helperPull.obtainRepository(remoteURL);
 
-        // Create a session model for helperPull so can later verify if changes have been seen
-        SessionModel model = SessionModel.getSessionModel();
-        model.openRepoFromHelper(helperPull);
-        RepositoryMonitor.startWatchingRemoteOnly();
+        Platform.runLater(() -> {
+            try {
+                // Create a session model for helperPull so can later verify if changes have been seen
+                SessionModel model = SessionModel.getSessionModel();
+                model.openRepoFromHelper(helperPull);
+                RepositoryMonitor.initRemote();
+            } catch (Exception e) {
+                throw new AssertionError(e);
+            }
+        });
+
+        // The RepositoryMonitor posts updates to hasFoundNewRemoteChanges to the FX thread, so need to run
+        // this separately to be able to observe changes
         assertFalse(RepositoryMonitor.hasFoundNewRemoteChanges.get());
 
         // Update the file, then commit and push
@@ -127,7 +168,7 @@ public class PushPullTest {
         ObjectId headId = helperPush.getBranchModel().getCurrentBranch().getHeadId();
         String tagName = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmSSS"));
         assertFalse(helperPush.getCommit(headId).hasTag(tagName));
-        helperPush.getTagModel().tag(tagName,headId.name());
+        helperPush.getTagModel().tag(tagName, headId.name());
         assertTrue(helperPush.getCommit(headId).hasTag(tagName));
         helperPush.pushTags();
 
@@ -144,6 +185,7 @@ public class PushPullTest {
 
         // Update lists of branches
         helperPull.getBranchModel().updateAllBranches();
+        System.out.println("done");
     }
 
     @Test

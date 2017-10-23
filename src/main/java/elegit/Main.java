@@ -111,6 +111,7 @@ public class Main extends Application {
             logger.info("Closed");
             // used to stop the service that moves cells in TreeLayout
             isAppClosed.set(true);
+            RepositoryMonitor.disposeTimers();
             allSubscriptions.clear();
         });
         primaryStage.setTitle("Elegit");

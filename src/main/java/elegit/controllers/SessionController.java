@@ -452,7 +452,7 @@ public class SessionController {
      * Initializes the repository monitor
      */
     private void initRepositoryMonitor() {
-        RepositoryMonitor.startWatching(this);
+        RepositoryMonitor.init(this);
         RepositoryMonitor.hasFoundNewRemoteChanges.addListener((observable, oldValue, newValue) -> {
             if(newValue) updateStatusText();
         });
@@ -2203,7 +2203,10 @@ public class SessionController {
      * Updates the trees, changed files, and branch information. Equivalent
      * to 'git status'
      */
-    public synchronized void gitStatus() {
+    // TODO: Add error checking below from RepositoryMonitor (it doesn't need to do this)
+    //                 if(!pauseLocalMonitor && SessionModel.getSessionModel().getCurrentRepoHelper() != null &&
+    //                    SessionModel.getSessionModel().getCurrentRepoHelper().exists()){
+        public synchronized void gitStatus() {
             //Main.assertFxThread();
 
             Observable.just(1)

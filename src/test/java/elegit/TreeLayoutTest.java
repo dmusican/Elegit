@@ -6,6 +6,7 @@ import elegit.treefx.TreeLayout;
 import javafx.application.Application;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -18,21 +19,8 @@ public class TreeLayoutTest {
 
     private static ArrayList<Cell> allCells = new ArrayList<>();
 
-    @BeforeClass
-    public static void setUpJFX() throws Exception{
-        // Launch the Elegit application in a thread so we get control back
-        Thread t = new Thread("JavaFX Init Thread"){
-            public void run(){
-                Application.launch(Main.class);
-            }
-        };
-        t.setDaemon(true);
-        t.start();
-
-        Main.startLatch.await();
-        // Sleep until the JavaFX environment is up and running
-        Thread.sleep(500);
-    }
+    @Rule
+    public JavaFXThreadingRule javafxRule = new JavaFXThreadingRule();
 
     /*
              0     5
