@@ -4,6 +4,7 @@ import elegit.models.AuthMethod;
 import elegit.models.ExistingRepoHelper;
 import elegit.models.PrefObj;
 import elegit.models.RepoHelper;
+import elegit.monitors.ConflictingFileWatcher;
 import elegit.repofile.*;
 import elegit.sshauthentication.ElegitUserInfoGUI;
 import javafx.beans.property.ObjectProperty;

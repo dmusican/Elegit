@@ -1,6 +1,8 @@
-package elegit;
+package elegit.monitors;
 
 import elegit.models.RepoHelper;
+import io.reactivex.Observable;
+import io.reactivex.schedulers.Schedulers;
 import javafx.concurrent.Task;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -12,11 +14,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Created by connellyj on 6/29/16.
- *
  * Class used to watch a conflictingRepoFile to see if it's been modified
  * after the user has been informed that the file was conflicting
  */
@@ -55,20 +56,20 @@ public class ConflictingFileWatcher {
 
         if(currentRepo == null) return;
 
-        Thread watcherThread = new Thread(new Task<Void>() {
+        Observable.fromCallable(new Callable<Boolean>() {
 
             @Override
-            protected Void call() throws IOException, GitAPIException {
+            public Boolean call() throws IOException, GitAPIException {
                 // gets the conflicting files
                 Set<String> newConflictingFiles = (new Git(currentRepo.getRepo()).status().call()).getConflicting();
-                for(String newFile : newConflictingFiles) {
-                    if(!conflictingFiles.contains(newFile)) {
+                for (String newFile : newConflictingFiles) {
+                    if (!conflictingFiles.contains(newFile)) {
                         conflictingFiles.add(newFile);
                     }
                 }
                 // removes files that aren't conflicting anymore from conflictingThenModifiedFiles
-                for(String marked : conflictingThenModifiedFiles) {
-                    if(!conflictingFiles.contains(marked)) {
+                for (String marked : conflictingThenModifiedFiles) {
+                    if (!conflictingFiles.contains(marked)) {
                         conflictingThenModifiedFiles.remove(marked);
                     }
                 }
@@ -77,64 +78,58 @@ public class ConflictingFileWatcher {
                 Path directory = (new File(currentRepo.getRepo().getDirectory().getParent())).toPath();
 
                 // for each conflicting file, watch its parent directory
-                for(String fileToWatch : conflictingFiles) {
+                for (String fileToWatch : conflictingFiles) {
                     Path fileToWatchPath = directory.resolve((new File(fileToWatch)).toPath()).getParent();
                     watch(fileToWatchPath, fileToWatch);
                 }
-                return null;
+                return true;
             }
 
             /**
              * Spins off a new thread to watch each directory
+             *
              * @param directoryToWatch Path
              * @throws IOException
              */
             private void watch(Path directoryToWatch, String fileToWatch) throws IOException {
-                Thread watch = new Thread(new Task<Void>() {
-                    @Override
-                    protected Void call() throws IOException {
-                        // creates a WatchService
-                        WatchService watcher = FileSystems.getDefault().newWatchService();
-                        WatchKey key = directoryToWatch.register(watcher, StandardWatchEventKinds.ENTRY_MODIFY);
 
-                        // while the file is conflicting, check to see if its been modified
-                        while(conflictingFiles.contains(fileToWatch)) {
-                            List<WatchEvent<?>> events = key.pollEvents();
-                            for(WatchEvent<?> event : events) {
+                Observable.fromCallable(() -> {
+                    // creates a WatchService
+                    WatchService watcher = FileSystems.getDefault().newWatchService();
+                    WatchKey key = directoryToWatch.register(watcher, StandardWatchEventKinds.ENTRY_MODIFY);
 
-                                // if a conflicting file was modified, remove it from conflictingFiles and add it to conflictingThenModifiedFiles
-                                String path = event.context().toString();
-                                Path tmp = (new File(fileToWatch)).toPath();
-                                // the path in conflictingFiles is either the file name itself or a path that ends with the file name
-                                if(tmp.endsWith(path) || tmp.toString().equals(path)) {
-                                    conflictingFiles.remove(tmp.toString());
-                                    conflictingThenModifiedFiles.add(tmp.toString());
-                                }
+                    // while the file is conflicting, check to see if its been modified
+                    while (conflictingFiles.contains(fileToWatch)) {
+                        List<WatchEvent<?>> events = key.pollEvents();
+                        for (WatchEvent<?> event : events) {
+
+                            // if a conflicting file was modified, remove it from conflictingFiles and add it to conflictingThenModifiedFiles
+                            String path = event.context().toString();
+                            Path tmp = (new File(fileToWatch)).toPath();
+                            // the path in conflictingFiles is either the file name itself or a path that ends with the file name
+                            if (tmp.endsWith(path) || tmp.toString().equals(path)) {
+                                conflictingFiles.remove(tmp.toString());
+                                conflictingThenModifiedFiles.add(tmp.toString());
                             }
-                            boolean valid = key.reset();
-                            if(!valid) {
-                                break;
-                            }
-
-                            try{
-                                Thread.sleep(CONFLICT_CHECK_INTERVAL);
-                            }catch(InterruptedException e){
-                                // TODO: SOMETHING REASONABLE
-                            }
-
                         }
-                        return null;
-                    }
-                });
-                watch.setDaemon(true);
-                watch.setName("watching a directory");
-                watch.setPriority(2);
-                watch.start();
-            }
-        });
+                        boolean valid = key.reset();
+                        if (!valid) {
+                            break;
+                        }
 
-        watcherThread.setDaemon(true);
-        watcherThread.setName("initializing a watcher");
-        watcherThread.start();
+                        try {
+                            Thread.sleep(CONFLICT_CHECK_INTERVAL);
+                        } catch (InterruptedException e) {
+                            // TODO: SOMETHING REASONABLE
+                        }
+
+                    }
+                    return true;
+                }).subscribeOn(Schedulers.io())
+                  .subscribe();
+            }
+        })
+        .subscribeOn(Schedulers.io())
+        .subscribe();
     }
 }

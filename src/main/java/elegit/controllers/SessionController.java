@@ -3,6 +3,7 @@ package elegit.controllers;
 import elegit.*;
 import elegit.exceptions.*;
 import elegit.models.*;
+import elegit.monitors.ConflictingFileWatcher;
 import elegit.monitors.RepositoryMonitor;
 import elegit.repofile.MissingRepoFile;
 import elegit.repofile.RepoFile;
