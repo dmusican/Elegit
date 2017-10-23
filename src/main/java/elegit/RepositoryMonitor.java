@@ -12,6 +12,7 @@ import io.reactivex.schedulers.Schedulers;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import org.apache.http.annotation.GuardedBy;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Ref;
 
@@ -30,32 +31,24 @@ public class RepositoryMonitor{
     // How long to pause between checks
     public static final long REMOTE_CHECK_INTERVAL = 6000;
     public static final long LOCAL_CHECK_INTERVAL = 5000;
-    public static final int CHECK_INTERVAL = 1;
 
     // Whether there are new remote changes
     public static final BooleanProperty hasFoundNewRemoteChanges = new SimpleBooleanProperty(false);
 
     // Whether to ignore any new changes
-    private static boolean ignoreNewRemoteChanges = false;
     private static boolean pauseLocalMonitor = false;
 
-    private static int pauseCounter = 0;
-
-    private static Disposable remoteTimer = Observable.empty().subscribe();
-
-    // Thread information
-    private static Thread th;
-    private static boolean interrupted = false;
+    @GuardedBy("this") private static int pauseCounter = 0;
+    @GuardedBy("this") private static Disposable remoteTimer = Observable.empty().subscribe();
 
     private static boolean alreadyWatching = false;
 
     public synchronized static void startWatching(SessionController controller) {
         if(!alreadyWatching){
-            Main.allSubscriptions.add(
-                    Observable.interval(CHECK_INTERVAL, TimeUnit.SECONDS, Schedulers.io())
-                            .subscribe()
-            );
             beginWatchingLocal(controller);
+            SessionModel.getSessionModel().currentRepoHelperProperty.addListener(
+                    (observable, oldValue, newValue) -> watchRepoForRemoteChanges(newValue)
+            );
             beginWatchingRemote();
             alreadyWatching = true;
         }
@@ -64,9 +57,8 @@ public class RepositoryMonitor{
     // For unit testing purposes only
     public synchronized static void startWatchingRemoteOnly() {
         if(!alreadyWatching){
-            Main.allSubscriptions.add(
-                    Observable.interval(CHECK_INTERVAL, TimeUnit.SECONDS, Schedulers.io())
-                            .subscribe()
+            SessionModel.getSessionModel().currentRepoHelperProperty.addListener(
+                    (observable, oldValue, newValue) -> watchRepoForRemoteChanges(newValue)
             );
             beginWatchingRemote();
             alreadyWatching = true;
@@ -80,9 +72,6 @@ public class RepositoryMonitor{
      * and begin watching the new one
      */
     private static void beginWatchingRemote(){
-        SessionModel.getSessionModel().currentRepoHelperProperty.addListener(
-            (observable, oldValue, newValue) -> watchRepoForRemoteChanges(newValue)
-        );
         watchRepoForRemoteChanges(SessionModel.getSessionModel().getCurrentRepoHelper());
     }
 
@@ -93,7 +82,6 @@ public class RepositoryMonitor{
      * changes)
      * @param repo the repository to monitor
      */
-    // TODO: Need to make sure threadsafe, i.e., not fetching (e.g.) at the same time
     private static synchronized void watchRepoForRemoteChanges(RepoHelper repo){
         remoteTimer.dispose();
 
@@ -109,7 +97,12 @@ public class RepositoryMonitor{
                 });
     }
 
-    private static boolean remoteHasNewChanges(RepoHelper repo) {
+    private static synchronized void stopWatchingRemoteRepo() {
+        remoteTimer.dispose();
+        remoteTimer = Observable.empty().subscribe();
+    }
+
+    private static synchronized boolean remoteHasNewChanges(RepoHelper repo) {
         try{
             List<BranchHelper> localOriginHeads = repo.getBranchModel().getBranchListUntyped(BranchModel.BranchType.REMOTE);
             Collection<Ref> remoteHeads = repo.getRefsFromRemote(false);
@@ -146,32 +139,16 @@ public class RepositoryMonitor{
     /**
      * Sets hasFoundNewRemoteChanges to true if not ignoring new changes
      */
-    // TODO: Needs to be threadsafe, it isn't
-    private static void setFoundNewChanges(){
-        hasFoundNewRemoteChanges.set(true);
+    private static void setFoundNewChanges() {
+        // hasFoundNewRemoteChanges is a property which is bound within SessionController. Critical that this
+        // update is done on FX thread so that when it fires listener, that happens on FX thread.
+        Platform.runLater(() -> hasFoundNewRemoteChanges.set(true));
     }
 
-    /**
-     * Sets hasFoundNewRemoteChanges to false. If ignore is true, ignores
-     * new changes indefinitely, else ignores them for a short grace
-     * period (2 check cycles) and then begins monitoring again
-     */
     public static synchronized void resetFoundNewChanges(){
-        resetFoundNewChanges(REMOTE_CHECK_INTERVAL * 2);
-    }
-
-    /**
-     * Sets hasFoundNewChangess to false and then ignores any
-     * new changes for the given amount of time (in milliseconds).
-     * Passing in a negative value tells the monitor to ignore
-     * new changes for an indefinite amount of time
-     * @param millis the amount of time (in milliseconds) to ignore
-     *               new changes. A negative value indicates an
-     *               indefinite wait.
-     */
-    public static synchronized void resetFoundNewChanges(long millis){
-        pauseWatchingRemote(millis);
-        hasFoundNewRemoteChanges.set(false);
+        // hasFoundNewRemoteChanges is a property which is bound within SessionController. Critical that this
+        // update is done on FX thread so that when it fires listener, that happens on FX thread.
+        Platform.runLater(() -> hasFoundNewRemoteChanges.set(false));
     }
 
     private static synchronized void beginWatchingLocal(SessionController controller){
@@ -191,28 +168,6 @@ public class RepositoryMonitor{
         thread.setName("Local monitor");
         thread.setPriority(2);
         thread.start();
-    }
-
-    private static void pauseWatchingRemote(long millis){
-        ignoreNewRemoteChanges = true;
-
-        if(millis < 0) {
-            return;
-        }
-
-        Thread waitThread = new Thread(() -> {
-            try{
-                Thread.sleep(millis);
-            }catch(InterruptedException ignored){
-            }finally{
-                ignoreNewRemoteChanges = false;
-            }
-        });
-
-        waitThread.setDaemon(true);
-        waitThread.setName("Remote monitor ignore timer");
-        waitThread.setPriority(2);
-        waitThread.start();
     }
 
     private static void pauseWatchingLocal(long millis){
@@ -237,18 +192,18 @@ public class RepositoryMonitor{
         waitThread.start();
     }
 
-    public static synchronized void pause(long millis){
-        pauseWatchingLocal(millis);
-        pauseWatchingRemote(millis);
-    }
 
     public static synchronized void pause(){
-        if(pauseCounter == 0) pause(-1);
+        if(pauseCounter == 0) {
+            stopWatchingRemoteRepo();
+        }
         pauseCounter++;
     }
 
     public static synchronized void unpause(){
         pauseCounter--;
-        if(pauseCounter == 0) pause(0);
+        if(pauseCounter == 0) {
+            beginWatchingRemote();
+        }
     }
 }
