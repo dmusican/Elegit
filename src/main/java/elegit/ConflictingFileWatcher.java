@@ -9,8 +9,10 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created by connellyj on 6/29/16.
@@ -22,16 +24,16 @@ import java.util.Set;
 public class ConflictingFileWatcher {
 
     // list of files that were modified after the user was informed they were conflicting
-    private static ArrayList<String> conflictingThenModifiedFiles = new ArrayList<>();
-    private static ArrayList<String> conflictingFiles = new ArrayList<>();
+    private static final Set<String> conflictingThenModifiedFiles = ConcurrentHashMap.newKeySet();
+    private static final Set<String> conflictingFiles = ConcurrentHashMap.newKeySet();
     private static final long CONFLICT_CHECK_INTERVAL = 1000;
 
     /**
      * returns a list of the files that were conflicting and then recently modified
      * @return ArrayList<String>
      */
-    public static ArrayList<String> getConflictingThenModifiedFiles() {
-        return conflictingThenModifiedFiles;
+    public static Set<String> getConflictingThenModifiedFiles() {
+        return Collections.unmodifiableSet(conflictingThenModifiedFiles);
     }
 
     /**

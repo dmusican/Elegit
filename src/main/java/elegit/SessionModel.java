@@ -365,7 +365,7 @@ public class SessionModel {
         Set<String> untrackedFiles = getUntrackedFiles(status);
         Set<String> conflictingFiles = getConflictingFiles(status);
         Set<String> stagedFiles = getStagedFiles(status);
-        ArrayList<String> conflictingThenModifiedFiles = ConflictingFileWatcher.getConflictingThenModifiedFiles();
+        Set<String> conflictingThenModifiedFiles = ConflictingFileWatcher.getConflictingThenModifiedFiles();
 
         List<RepoFile> changedRepoFiles = new ArrayList<>();
 
