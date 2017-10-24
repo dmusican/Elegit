@@ -8,6 +8,7 @@ import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import javafx.scene.layout.Region;
 import javafx.util.Callback;
+import org.apache.http.annotation.ThreadSafe;
 import org.eclipse.jgit.api.errors.GitAPIException;
 
 import java.io.IOException;
@@ -19,7 +20,9 @@ import java.util.List;
  *
  * This is a view and controller merged together
  */
-// TODO: Make sure this is threadsafe
+@ThreadSafe
+// because of all the assert statements I have throughout. This is a view class, and at least for now,
+// all methods must run on the FX thread. This class loses threadsafeness if any of that is changed.
 public abstract class FileStructurePanelView extends Region{
 
     private TreeView<RepoFile> directoryTreeView;

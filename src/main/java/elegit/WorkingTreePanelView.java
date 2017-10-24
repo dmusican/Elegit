@@ -15,6 +15,7 @@ import javafx.scene.control.cell.CheckBoxTreeCell;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.util.Callback;
+import org.apache.http.annotation.ThreadSafe;
 import org.eclipse.jgit.api.errors.GitAPIException;
 
 import java.nio.file.Path;
@@ -28,18 +29,19 @@ import java.util.*;
  * untracked/new, modified, or deleted.
  *
  */
-// TODO: Make sure this is threadsafe
+@ThreadSafe
+// because of all the assert statements I have throughout. This is a view class, and at least for now,
+// all methods must run on the FX thread. This class loses threadsafeness if any of that is changed.
+// MOREOVER, there is extensive use of bindings and listeners here, which must happen on the FX thread.
 public class WorkingTreePanelView extends FileStructurePanelView{
 
-    private BooleanProperty isAnyFileSelectedProperty;
-
+    private final BooleanProperty isAnyFileSelectedProperty = new SimpleBooleanProperty(false);
     private final List<TreeItem<RepoFile>> displayedFiles = new LinkedList<>();
 
     private CheckBoxTreeItem<RepoFile> checkBox;
 
     public WorkingTreePanelView() {
         Main.assertFxThread();
-        isAnyFileSelectedProperty = new SimpleBooleanProperty(false);
 
         // Used to disable/enable add and remove buttons
         isAnyFileSelectedProperty.addListener(((observable, oldValue, newValue) -> SessionController.anythingCheckedProperty().set(newValue)));
@@ -62,6 +64,7 @@ public class WorkingTreePanelView extends FileStructurePanelView{
 
     @Override
     protected TreeItem<RepoFile> getRootTreeItem(DirectoryRepoFile rootDirectory) {
+        Main.assertFxThread();
         TreeItem<RepoFile> item = new CheckBoxTreeItem<>(rootDirectory);
         initCheckBox();
         item.getChildren().add(checkBox);
@@ -69,6 +72,7 @@ public class WorkingTreePanelView extends FileStructurePanelView{
     }
 
     private void initCheckBox() {
+        Main.assertFxThread();
         Text txt = new Text("select all");
         txt.setFont(new Font(10));
         checkBox = new CheckBoxTreeItem<>(null, txt);
@@ -85,6 +89,7 @@ public class WorkingTreePanelView extends FileStructurePanelView{
 
     // Replaces the old file with the updated file in both the tree structure and displayedFiles list
     private void updateRepoFile(CheckBoxTreeItem<RepoFile> oldItem, CheckBoxTreeItem<RepoFile> newItem, int index) {
+        Main.assertFxThread();
         newItem.setSelected(oldItem.isSelected());
         List<TreeItem<RepoFile>> directoryFiles = oldItem.getParent().getChildren();
         directoryFiles.set(directoryFiles.indexOf(oldItem), newItem);
@@ -93,6 +98,7 @@ public class WorkingTreePanelView extends FileStructurePanelView{
 
     // Adds a new repo file to its proper place in the tree
     private void addNewRepoFile(RepoFile repoFile, CheckBoxTreeItem<RepoFile> newItem, TreeItem<RepoFile> root) {
+        Main.assertFxThread();
         Path pathToParent = repoFile.getFilePath().getParent();
         if (pathToParent != null) {
             // Check if the file should be added to an existing directory
@@ -214,6 +220,7 @@ public class WorkingTreePanelView extends FileStructurePanelView{
      */
     @Override
     public List<RepoFile> getFilesToDisplay() throws GitAPIException{
+        Main.assertFxThread();
         return SessionModel.getSessionModel().getAllChangedRepoFiles();
     }
 
@@ -223,6 +230,7 @@ public class WorkingTreePanelView extends FileStructurePanelView{
      * @return an array of RepoFiles whose CheckBoxTreeItem cells are checked.
      */
     public ArrayList<RepoFile> getCheckedFilesInDirectory() {
+        Main.assertFxThread();
         ArrayList<RepoFile> checkedFiles = new ArrayList<>();
         for (TreeItem fileLeaf : this.displayedFiles) {
             CheckBoxTreeItem checkBoxFile = (CheckBoxTreeItem) fileLeaf;
@@ -237,6 +245,7 @@ public class WorkingTreePanelView extends FileStructurePanelView{
      * @param selected true to check every box, false to uncheck every box
      */
     public void setAllFilesSelected(boolean selected) {
+        Main.assertFxThread();
         for (TreeItem fileLeaf : displayedFiles) {
             CheckBoxTreeItem checkBoxFile = (CheckBoxTreeItem) fileLeaf;
             checkBoxFile.setSelected(selected);
@@ -247,6 +256,7 @@ public class WorkingTreePanelView extends FileStructurePanelView{
      * @return true if any file is checked, else false
      */
     public boolean isAnyFileSelected(){
+        Main.assertFxThread();
         return isAnyFileSelectedProperty.get();
     }
 
@@ -254,6 +264,7 @@ public class WorkingTreePanelView extends FileStructurePanelView{
      * @return true if any file has been staged, else false
      */
     public boolean isAnyFileStaged() {
+        Main.assertFxThread();
         for (TreeItem<RepoFile> treeItem: displayedFiles) {
             if (treeItem.getValue() instanceof StagedAndModifiedRepoFile || treeItem.getValue() instanceof StagedRepoFile)
                 return true;
@@ -265,6 +276,7 @@ public class WorkingTreePanelView extends FileStructurePanelView{
      * @return true if any file that is selected is a staged file
      */
     public boolean isAnyFileStagedSelected() {
+        Main.assertFxThread();
         for (RepoFile treeItem : getCheckedFilesInDirectory()) {
             if (treeItem instanceof StagedRepoFile)
                 return true;
@@ -277,6 +289,7 @@ public class WorkingTreePanelView extends FileStructurePanelView{
      * @return true if the select all box is checked
      */
     public boolean isSelectAllChecked() {
+        Main.assertFxThread();
         return checkBox.isSelected();
     }
 }

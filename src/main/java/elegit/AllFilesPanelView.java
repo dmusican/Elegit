@@ -14,6 +14,7 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * AllFilesPanelView displays all files in the current repository,
@@ -23,8 +24,13 @@ import java.util.*;
 // TODO: Make sure this is threadsafe
 public class AllFilesPanelView extends FileStructurePanelView{
 
-    private Map<Path, TreeItem<RepoFile>> itemMap = new HashMap<>();
+    private Map<Path, TreeItem<RepoFile>> itemMap;
 
+    @Override
+    public void init() {
+        super.init();
+        itemMap = new ConcurrentHashMap<>();
+    }
 
     /**
      * @return a factory that generates a custom tree cell that includes a context menu for each
@@ -144,6 +150,7 @@ public class AllFilesPanelView extends FileStructurePanelView{
      */
     @Override
     public List<RepoFile> getFilesToDisplay() throws GitAPIException, IOException {
+        Main.assertFxThread();
         return SessionModel.getSessionModel().getAllRepoFiles();
     }
 
@@ -154,6 +161,7 @@ public class AllFilesPanelView extends FileStructurePanelView{
     private class RepoFileTreeCell extends CheckBoxTreeCell<RepoFile> {
         @Override
         public void updateItem(RepoFile item, boolean empty){
+            Main.assertFxThread();
             super.updateItem(item, empty);
 
             setText(getItem() == null ? "" : getItem().toString());

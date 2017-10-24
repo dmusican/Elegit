@@ -8,6 +8,7 @@ import javafx.scene.control.TreeCell;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import javafx.util.Callback;
+import org.apache.http.annotation.ThreadSafe;
 import org.eclipse.jgit.api.errors.GitAPIException;
 
 import java.io.IOException;
@@ -18,7 +19,9 @@ import java.util.*;
  * and their status
  */
 
-// TODO: Make sure this is threadsafe
+@ThreadSafe
+// because of all the assert statements I have throughout. This is a view class, and at least for now,
+// all methods must run on the FX thread. This class loses threadsafeness if any of that is changed.
 public class StagedTreePanelView extends FileStructurePanelView{
 
     /**
@@ -92,6 +95,7 @@ public class StagedTreePanelView extends FileStructurePanelView{
      */
     @Override
     public List<RepoFile> getFilesToDisplay() throws GitAPIException, IOException {
+        Main.assertFxThread();
         List<RepoFile> repoFiles = new ArrayList<>();
         for (RepoFile file : SessionModel.getSessionModel().getAllChangedRepoFiles()) {
             if (file instanceof StagedRepoFile || file instanceof StagedAndModifiedRepoFile)
@@ -107,6 +111,7 @@ public class StagedTreePanelView extends FileStructurePanelView{
     private class RepoFileTreeCell extends TreeCell<RepoFile>{
         @Override
         protected void updateItem(RepoFile item, boolean empty){
+            Main.assertFxThread();
             super.updateItem(item, empty);
 
             setText(getItem() == null ? "" : getItem().toString());
