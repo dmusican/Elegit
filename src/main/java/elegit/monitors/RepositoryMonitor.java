@@ -90,7 +90,9 @@ public class RepositoryMonitor{
         remoteTimer = Observable.empty().subscribe();
     }
 
-    private static synchronized boolean remoteHasNewChanges(RepoHelper repo) {
+    // This method is not synchronized because it is called from the monitor thread, and a slow network connection
+    // could block it up considerably. It uses no shared memory, and it makes calls to threadsafe libraries.
+    private static boolean remoteHasNewChanges(RepoHelper repo) {
         try{
             List<BranchHelper> localOriginHeads = repo.getBranchModel().getBranchListUntyped(BranchModel.BranchType.REMOTE);
             Collection<Ref> remoteHeads = repo.getRefsFromRemote(false);
