@@ -144,7 +144,9 @@ public class RepositoryMonitor{
         localTimer = Observable
                 .interval(0, LOCAL_CHECK_INTERVAL, TimeUnit.MILLISECONDS, Schedulers.io())
                 .observeOn(JavaFxScheduler.platform())
-                .subscribe(i -> controller.gitStatus());
+                .subscribe();
+                // TODO: Get status back in here once I have it threaded right
+                //.subscribe(i -> controller.gitStatus());
     }
 
     private static synchronized void stopWatchingLocal(){
