@@ -21,10 +21,6 @@ import java.util.*;
 // TODO: Make sure this is threadsafe
 public class StagedTreePanelView extends FileStructurePanelView{
 
-    public StagedTreePanelView() {
-        this.init();
-    }
-
     /**
      * @return a factory that generates a custom tree cell that includes a context menu for each
      * item

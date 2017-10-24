@@ -37,10 +37,6 @@ public class WorkingTreePanelView extends FileStructurePanelView{
 
     private CheckBoxTreeItem<RepoFile> checkBox;
 
-    public WorkingTreePanelView() {
-        this.init();
-    }
-
     @Override
     public void init(){
         Main.assertFxThread();

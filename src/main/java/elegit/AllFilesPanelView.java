@@ -23,11 +23,7 @@ import java.util.*;
 // TODO: Make sure this is threadsafe
 public class AllFilesPanelView extends FileStructurePanelView{
 
-    private Map<Path, TreeItem<RepoFile>> itemMap;
-
-    public AllFilesPanelView() {
-        this.init();
-    }
+    private Map<Path, TreeItem<RepoFile>> itemMap = new HashMap<>();
 
     @Override
     public void init(){
