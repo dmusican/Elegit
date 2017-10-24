@@ -26,22 +26,13 @@ public abstract class FileStructurePanelView extends Region{
     private TreeItem<RepoFile> treeRoot;
 
     /**
-     * Simple constructor that calls init()
-     */
-    public FileStructurePanelView() {
-        this.init();
-
-        // This line isn't necessary for displaying the tree, but it does prevent the tabs from getting
-        // cut off and displaying a drop down arrow to flip between them.
-        // TODO: Figure out why and fix it
-        this.getChildren().clear();
-        this.getChildren().add(this.directoryTreeView);
-    }
-
-    /**
      * Builds a new tree view using the abstract methods to set up a cell
      * factory and add items to the tree.
      */
+    public FileStructurePanelView() {
+        this.init();
+    }
+
     public void init(){
         // DRM: May not definitively need to be on FX thread, but putting it there for now to get architecture in shape
         Main.assertFxThread();

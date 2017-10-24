@@ -25,11 +25,6 @@ public class AllFilesPanelView extends FileStructurePanelView{
 
     private Map<Path, TreeItem<RepoFile>> itemMap = new HashMap<>();
 
-    @Override
-    public void init(){
-        this.itemMap = new HashMap<>();
-        super.init();
-    }
 
     /**
      * @return a factory that generates a custom tree cell that includes a context menu for each

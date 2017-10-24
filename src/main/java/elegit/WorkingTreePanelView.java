@@ -37,14 +37,12 @@ public class WorkingTreePanelView extends FileStructurePanelView{
 
     private CheckBoxTreeItem<RepoFile> checkBox;
 
-    @Override
-    public void init(){
+    public WorkingTreePanelView() {
         Main.assertFxThread();
         isAnyFileSelectedProperty = new SimpleBooleanProperty(false);
 
         // Used to disable/enable add and remove buttons
         isAnyFileSelectedProperty.addListener(((observable, oldValue, newValue) -> SessionController.anythingCheckedProperty().set(newValue)));
-        super.init();
     }
 
     /**
