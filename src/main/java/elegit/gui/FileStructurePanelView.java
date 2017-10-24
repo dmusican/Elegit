@@ -1,5 +1,7 @@
-package elegit;
+package elegit.gui;
 
+import elegit.Main;
+import elegit.SessionModel;
 import elegit.repofile.DirectoryRepoFile;
 import elegit.repofile.RepoFile;
 import javafx.application.Platform;

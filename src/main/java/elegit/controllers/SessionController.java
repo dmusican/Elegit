@@ -2,6 +2,9 @@ package elegit.controllers;
 
 import elegit.*;
 import elegit.exceptions.*;
+import elegit.gui.AllFilesPanelView;
+import elegit.gui.StagedTreePanelView;
+import elegit.gui.WorkingTreePanelView;
 import elegit.models.*;
 import elegit.monitors.ConflictingFileWatcher;
 import elegit.monitors.RepositoryMonitor;

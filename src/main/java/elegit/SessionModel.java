@@ -359,7 +359,7 @@ public class SessionModel {
      * @return a list of changed files, contained in RepoFile objects.
      * @throws GitAPIException if the `git status` calls fail.
      */
-    List<RepoFile> getAllChangedRepoFiles() throws GitAPIException {
+    public List<RepoFile> getAllChangedRepoFiles() throws GitAPIException {
         Status status = new Git(this.getCurrentRepo()).status().call();
         Set<String> modifiedFiles = getModifiedFiles(status);
         Set<String> missingFiles = getMissingFiles(status);
@@ -442,7 +442,7 @@ public class SessionModel {
      * @return a list of changed files, contained in RepoFile objects.
      * @throws GitAPIException if the `git status` calls fail.
      */
-    List<RepoFile> getAllRepoFiles() throws GitAPIException, IOException {
+    public List<RepoFile> getAllRepoFiles() throws GitAPIException, IOException {
         List<RepoFile> allFiles = getAllChangedRepoFiles();
 
         Status status = new Git(this.getCurrentRepo()).status().call();

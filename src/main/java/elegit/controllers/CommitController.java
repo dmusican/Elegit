@@ -2,6 +2,8 @@ package elegit.controllers;
 
 import elegit.*;
 import elegit.exceptions.MissingRepoException;
+import elegit.gui.AllFilesPanelView;
+import elegit.gui.StagedTreePanelView;
 import elegit.models.RepoHelper;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;

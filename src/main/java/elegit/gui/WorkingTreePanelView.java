@@ -1,5 +1,7 @@
-package elegit;
+package elegit.gui;
 
+import elegit.Main;
+import elegit.SessionModel;
 import elegit.controllers.SessionController;
 import elegit.repofile.DirectoryRepoFile;
 import elegit.repofile.RepoFile;
