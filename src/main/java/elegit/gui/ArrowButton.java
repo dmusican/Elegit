@@ -1,5 +1,6 @@
-package elegit;
+package elegit.gui;
 
+import elegit.Main;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.control.Button;
@@ -10,7 +11,7 @@ import javafx.scene.control.Button;
  */
 public class ArrowButton extends Button{
 
-    private BooleanProperty arrowUp, arrowRight, arrowDown, arrowLeft;
+    private final BooleanProperty arrowUp, arrowRight, arrowDown, arrowLeft;
 
     public ArrowButton(){
         super();

@@ -3,6 +3,7 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.Text?>
 <?import elegit.*?>
+<?import elegit.gui.*?>
 <?import java.net.URL?>
 <?import javafx.scene.image.*?>
 <?import javafx.scene.text.Font?>

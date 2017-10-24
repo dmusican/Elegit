@@ -1,5 +1,6 @@
-package elegit;
+package elegit.gui;
 
+import elegit.Main;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.scene.Group;
@@ -60,15 +61,18 @@ public class ArrowButtonSkin extends Group implements Skin<Button>{
         text.setId(button.getId());
 
         Path path = new Path();
-        text.backgroundProperty().addListener((observable, oldValue, newValue) -> {
-            Paint color = Paint.valueOf("#52B3D9");
-            path.setFill(color);
-            path.setStroke(color);
-        });
+        Paint color = Paint.valueOf("#52B3D9");
+        path.setFill(color);
+        path.setStroke(color);
 
         button.getStyleClass().clear();
         getChildren().setAll(path, text);
 
+        // This is here because getBoundsInLocal doesn't work until the window is laid out, which happens later.
+        // https://stackoverflow.com/questions/26152642/get-the-height-of-a-node-in-javafx-generate-a-layout-pass
+        // Perhaps this could be fixed with calls to applyCss() and layout(), but this works fine, and doesn't do
+        // anything otherwise dangerous. The code starts on the FX thread, and posts more code on the Fx thread to
+        // run later.
         Platform.runLater(() -> {
             double labelWidth = text.getBoundsInLocal().getWidth();
             double labelHeight = text.getBoundsInLocal().getHeight();

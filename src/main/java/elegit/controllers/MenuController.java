@@ -1,6 +1,6 @@
 package elegit.controllers;
 
-import gui.GitIgnoreEditor;
+import elegit.gui.GitIgnoreEditor;
 import elegit.models.LoggingModel;
 import elegit.SessionModel;
 import elegit.treefx.TreeLayout;

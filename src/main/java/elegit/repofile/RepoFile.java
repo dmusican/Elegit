@@ -4,7 +4,7 @@ import elegit.*;
 import elegit.controllers.SessionController;
 import elegit.models.RepoHelper;
 import elegit.treefx.CommitTreeController;
-import gui.GitIgnoreEditor;
+import elegit.gui.GitIgnoreEditor;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ContextMenu;

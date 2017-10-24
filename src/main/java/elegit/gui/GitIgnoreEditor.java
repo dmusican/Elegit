@@ -1,4 +1,4 @@
-package gui;
+package elegit.gui;
 
 import elegit.Main;
 import elegit.PopUpWindows;
