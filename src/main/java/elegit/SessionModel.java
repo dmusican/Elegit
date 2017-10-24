@@ -479,7 +479,7 @@ public class SessionModel {
         }
 
         Collections.sort(allFiles);
-        return allFiles;
+        return Collections.unmodifiableList(allFiles);
     }
 
     /**
@@ -552,10 +552,10 @@ public class SessionModel {
         authPrefs.remove(hashPathname(pathname));
     }
 
-    String[] listAuthPaths() {
+    List<String> listAuthPaths() {
         Preferences authPrefs = preferences.node("authentication");
         try {
-            return authPrefs.keys();
+            return Collections.unmodifiableList(Arrays.asList(authPrefs.keys()));
         } catch (BackingStoreException e) {
             throw new RuntimeException(e);
         }
