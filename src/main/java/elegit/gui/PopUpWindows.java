@@ -1,5 +1,6 @@
-package elegit;
+package elegit.gui;
 
+import elegit.Main;
 import elegit.models.LocalBranchHelper;
 import elegit.models.RemoteBranchHelper;
 import javafx.application.Platform;
@@ -23,9 +24,11 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * Created by connellyj on 7/7/16.
- *
  * Class that initializes a given pop up window. Essentially both a view and controller for pop up windows.
+ *
+ * All Platform.runLater calls have been removed from this class; this is a view that should always be run
+ * on the FX thread. The calling code should figure out how to handle these windows if they are being called
+ * from off-FX thread.
  */
 public class PopUpWindows {
 
@@ -108,67 +111,61 @@ public class PopUpWindows {
      * Shows a window with instructions on how to fix a conflict
      */
     public static void showConflictingHelpAlert() {
-        Platform.runLater(() -> {
-            Alert window = new Alert(Alert.AlertType.INFORMATION);
-            window.setResizable(true);
-            window.getDialogPane().setPrefSize(550, 350);
-            window.setTitle("How to fix conflicting files");
-            window.setHeaderText("How to fix conflicting files");
-            window.setContentText("1. First, open up the file that is marked as conflicting.\n" +
-                                  "2. In the file, you should see something like this:\n\n" +
-                                  "\t<<<<<< <branch_name>\n" +
-                                  "\tChanges being made on the branch that is being merged into.\n" +
-                                  "\tIn most cases, this is the branch that you currently have checked out (i.e. HEAD).\n" +
-                                  "\t=======\n" +
-                                  "\tChanges made on the branch that is being merged in.\n" +
-                                  "\t>>>>>>> <branch name>\n\n" +
-                                  "3. Delete the contents you don't want to keep after the merge\n" +
-                                  "4. Remove the markers (<<<<<<<, =======, >>>>>>>) git put in the file\n" +
-                                  "5. Done! You can now safely add and commit the file");
-            window.showAndWait();
-        });
+        Alert window = new Alert(Alert.AlertType.INFORMATION);
+        window.setResizable(true);
+        window.getDialogPane().setPrefSize(550, 350);
+        window.setTitle("How to fix conflicting files");
+        window.setHeaderText("How to fix conflicting files");
+        window.setContentText("1. First, open up the file that is marked as conflicting.\n" +
+                "2. In the file, you should see something like this:\n\n" +
+                "\t<<<<<< <branch_name>\n" +
+                "\tChanges being made on the branch that is being merged into.\n" +
+                "\tIn most cases, this is the branch that you currently have checked out (i.e. HEAD).\n" +
+                "\t=======\n" +
+                "\tChanges made on the branch that is being merged in.\n" +
+                "\t>>>>>>> <branch name>\n\n" +
+                "3. Delete the contents you don't want to keep after the merge\n" +
+                "4. Remove the markers (<<<<<<<, =======, >>>>>>>) git put in the file\n" +
+                "5. Done! You can now safely add and commit the file");
+        window.showAndWait();
     }
 
     /**
      * Shows a window with some info about git reset
      */
     public static void showResetHelpAlert() {
-        Platform.runLater(() -> {
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.getDialogPane().setPrefSize(300, 300);
-            alert.setTitle("Reset Help");
-            alert.setHeaderText("What is reset?");
-            ImageView img = new ImageView(new Image("/elegit/images/undo.png"));
-            img.setFitHeight(60);
-            img.setFitWidth(60);
-            alert.setGraphic(img);
-            alert.setContentText("Move the current branch tip backward to the selected commit, " +
-                                 "reset the staging area to match, " +
-                                 "but leave the working directory alone. " +
-                                 "All changes made since the selected commit will reside in the working directory.");
-            alert.showAndWait();
-        });
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.getDialogPane().setPrefSize(300, 300);
+        alert.setTitle("Reset Help");
+        alert.setHeaderText("What is reset?");
+        ImageView img = new ImageView(new Image("/elegit/images/undo.png"));
+        img.setFitHeight(60);
+        img.setFitWidth(60);
+        alert.setGraphic(img);
+        alert.setContentText("Move the current branch tip backward to the selected commit, " +
+                "reset the staging area to match, " +
+                "but leave the working directory alone. " +
+                "All changes made since the selected commit will reside in the working directory.");
+        alert.showAndWait();
     }
 
     /**
      * Show a window with info about git revert
      */
     public static void showRevertHelpAlert() {
-        Platform.runLater(() -> {
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.getDialogPane().setPrefWidth(500);
-            alert.setTitle("Revert Help");
-            alert.setHeaderText("What is revert?");
-            ImageView img = new ImageView(new Image("/elegit/images/undo.png"));
-            img.setFitHeight(60);
-            img.setFitWidth(60);
-            alert.setGraphic(img);
-            alert.setContentText("Basically, git revert takes your current files, " +
-                    "and deletes any changes from the commit(s) you give it, making a new commit. " +
-                    "See\n\nhttp://dmusican.github.io/Elegit/jekyll/update/2016/08/04/what-is-revert.html\n\n" +
-                    "for more information");
-            alert.showAndWait();
-        });
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.getDialogPane().setPrefWidth(500);
+        alert.setTitle("Revert Help");
+        alert.setHeaderText("What is revert?");
+        ImageView img = new ImageView(new Image("/elegit/images/undo.png"));
+        img.setFitHeight(60);
+        img.setFitWidth(60);
+        alert.setGraphic(img);
+        alert.setContentText("Basically, git revert takes your current files, " +
+                "and deletes any changes from the commit(s) you give it, making a new commit. " +
+                "See\n\nhttp://dmusican.github.io/Elegit/jekyll/update/2016/08/04/what-is-revert.html\n\n" +
+                "for more information");
+        alert.showAndWait();
     }
 
     /**
@@ -231,17 +228,15 @@ public class PopUpWindows {
      * @param trackedIgnoredFiles collections of files being ignored
      */
     public static void showTrackingIgnoredFilesWarning(Collection<String> trackedIgnoredFiles) {
-        Platform.runLater(() -> {
-            if (trackedIgnoredFiles.size() > 0) {
-                String fileStrings = "";
-                for (String s : trackedIgnoredFiles) {
-                    fileStrings += "\n" + s;
-                }
-                Alert alert = new Alert(Alert.AlertType.WARNING, "The following files are being tracked by Git, " +
-                                                                 "but also match an ignore pattern. If you want to ignore these files, remove them from Git.\n" + fileStrings);
-                alert.showAndWait();
+        if (trackedIgnoredFiles.size() > 0) {
+            String fileStrings = "";
+            for (String s : trackedIgnoredFiles) {
+                fileStrings += "\n" + s;
             }
-        });
+            Alert alert = new Alert(Alert.AlertType.WARNING, "The following files are being tracked by Git, " +
+                    "but also match an ignore pattern. If you want to ignore these files, remove them from Git.\n" + fileStrings);
+            alert.showAndWait();
+        }
     }
 
     /**

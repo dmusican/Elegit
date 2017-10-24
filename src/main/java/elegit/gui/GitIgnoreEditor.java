@@ -1,7 +1,6 @@
 package elegit.gui;
 
 import elegit.Main;
-import elegit.PopUpWindows;
 import elegit.models.RepoHelper;
 import javafx.application.Platform;
 import javafx.geometry.Insets;

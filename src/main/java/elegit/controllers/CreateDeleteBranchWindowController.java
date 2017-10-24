@@ -1,6 +1,6 @@
 package elegit.controllers;
 
-import elegit.*;
+import elegit.gui.PopUpWindows;
 import elegit.models.*;
 import elegit.treefx.CommitTreeController;
 import elegit.treefx.CommitTreeModel;

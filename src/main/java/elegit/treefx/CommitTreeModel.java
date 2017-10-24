@@ -1,7 +1,7 @@
 package elegit.treefx;
 
 import elegit.Main;
-import elegit.PopUpWindows;
+import elegit.gui.PopUpWindows;
 import elegit.models.SessionModel;
 import elegit.exceptions.MissingRepoException;
 import elegit.models.*;

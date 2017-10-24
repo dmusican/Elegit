@@ -1,7 +1,7 @@
 package elegit.repofile;
 
 import elegit.Main;
-import elegit.PopUpWindows;
+import elegit.gui.PopUpWindows;
 import elegit.models.RepoHelper;
 import io.reactivex.Observable;
 import io.reactivex.schedulers.Schedulers;
