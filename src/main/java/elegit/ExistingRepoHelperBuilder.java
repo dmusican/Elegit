@@ -6,6 +6,7 @@ import elegit.models.ExistingRepoHelper;
 import elegit.models.RepoHelper;
 import elegit.models.SessionModel;
 import elegit.sshauthentication.ElegitUserInfoGUI;
+import org.apache.http.annotation.ThreadSafe;
 import org.eclipse.jgit.api.errors.GitAPIException;
 
 import java.io.File;
@@ -18,10 +19,9 @@ import java.nio.file.Path;
  * user (using dialogs) for the parameters required to build an ExistingRepoHelper.
  *
  */
+@ThreadSafe
+// all methods execute on FX thread anyway. If something comes off, verify thread safety
 public class ExistingRepoHelperBuilder extends RepoHelperBuilder {
-    public ExistingRepoHelperBuilder(SessionModel sessionModel) {
-        super(sessionModel);
-    }
 
     /**
      * Shows a file chooser dialog and makes the ExistingRepoHelper from it.

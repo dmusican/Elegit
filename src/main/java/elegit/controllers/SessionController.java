@@ -671,14 +671,14 @@ public class SessionController {
      * Called when the "Load existing repository" option is clicked
      */
     public void handleLoadExistingRepoOption() {
-        handleLoadRepoMenuItem(new ExistingRepoHelperBuilder(this.theModel));
+        handleLoadRepoMenuItem(new ExistingRepoHelperBuilder());
     }
 
     /**
      * Called when the "Clone repository" option is clicked
      */
     void handleCloneNewRepoOption() {
-        handleLoadRepoMenuItem(new ClonedRepoHelperBuilder(this.theModel));
+        handleLoadRepoMenuItem(new ClonedRepoHelperBuilder());
     }
 
     /**

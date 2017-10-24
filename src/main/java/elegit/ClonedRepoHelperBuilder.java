@@ -19,6 +19,7 @@ import javafx.scene.text.Text;
 import javafx.util.Pair;
 import elegit.exceptions.CancelledAuthorizationException;
 import elegit.exceptions.NoRepoSelectedException;
+import org.apache.http.annotation.ThreadSafe;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jgit.api.Git;
@@ -41,20 +42,18 @@ import java.util.Optional;
  * parameters.
  *
  */
+@ThreadSafe
+// but only because everything here runs on the FX thread.
 public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
 
     private static String prevRemoteURL, prevDestinationPath, prevRepoName;
 
-    static final Logger logger = LogManager.getLogger();
+    private static final Logger logger = LogManager.getLogger();
 
     private ButtonType cloneButtonType;
     private TextField remoteURLField;
     private TextField enclosingFolderField;
     private TextField repoNameField;
-
-    public ClonedRepoHelperBuilder(SessionModel sessionModel) {
-        super(sessionModel);
-    }
 
     /**
      * Builds (with a grid) and shows dialogs that prompt the user for
@@ -64,7 +63,7 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
      */
     @Override
     public RepoHelper getRepoHelperFromDialogs() throws GitAPIException, IOException, NoRepoSelectedException, CancelledAuthorizationException{
-
+        Main.assertFxThread();
         Dialog<Pair<String, String>> dialog = createCloneDialog();
         setUpDialogButtons(dialog);
         arrangeDialogFields(dialog);
@@ -88,6 +87,7 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
 
 
     private Dialog<Pair<String, String>> createCloneDialog() {
+        Main.assertFxThread();
         logger.info("Load remote repo dialog started");
         Dialog<Pair<String, String>> dialog = new Dialog<>();
         dialog.setTitle("Clone");
@@ -97,6 +97,7 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
     }
 
     private void setUpDialogButtons(Dialog<Pair<String, String>> dialog) {
+        Main.assertFxThread();
         // Set the button types.
         cloneButtonType = new ButtonType("Clone", ButtonBar.ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().addAll(cloneButtonType, ButtonType.CANCEL);
@@ -106,6 +107,7 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
     }
 
     private void arrangeDialogFields(Dialog<Pair<String, String>> dialog) {
+        Main.assertFxThread();
 
         GridPane grid = new GridPane();
         grid.setHgap(10);
@@ -178,6 +180,7 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
 
 
     private void configureCloneButton(Dialog<Pair<String, String>> dialog) {
+        Main.assertFxThread();
         Node cloneButton = dialog.getDialogPane().lookupButton(cloneButtonType);
 
         //////
@@ -216,6 +219,7 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
                                                 UserInfo userInfo)
             throws GitAPIException, IOException, CancelledAuthorizationException, NoRepoSelectedException {
 
+        Main.assertFxThread();
         // Always use authentication. If authentication is unneeded (HTTP), it will still work even if the wrong
         // username password is used. This is what Eclipse does; in fact, it asks for username/password in the
         // same dialog box that the URL is entered.

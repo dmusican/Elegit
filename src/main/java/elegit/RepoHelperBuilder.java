@@ -13,6 +13,7 @@ import javafx.scene.layout.GridPane;
 import javafx.stage.DirectoryChooser;
 import elegit.exceptions.CancelledAuthorizationException;
 import elegit.exceptions.NoRepoSelectedException;
+import org.apache.http.annotation.ThreadSafe;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -26,19 +27,15 @@ import java.util.Optional;
  * An abstract class for building RepoHelpers by presenting dialogs to
  * get the required parameters.
  */
-// TODO: Make sure threadsafe
+@ThreadSafe
+// all methods execute on FX thread anyway. If something comes off, verify thread safety
 public abstract class RepoHelperBuilder {
 
-    private static class UsernamePassword {
-        public String username;
-        public String password;
-    }
-
     public static class AuthDialogResponse {
-        AuthMethod protocol;
-        public String username;
-        public String password;
-        boolean isSelected;
+        public final AuthMethod protocol;
+        public final String username;
+        public final String password;
+        public final boolean isSelected;
         AuthDialogResponse(AuthMethod protocol, String username, String password, boolean isSelected) {
             this.protocol = protocol;
             this.username = username;
@@ -47,16 +44,10 @@ public abstract class RepoHelperBuilder {
         }
     }
 
-    SessionModel sessionModel;
-    private String defaultFilePickerStartFolder = System.getProperty("user.home");
-    //private static HashMap<String, UsernamePassword> repoToAuth = new HashMap<>();
+    private final String defaultFilePickerStartFolder = System.getProperty("user.home");
 
-    public RepoHelperBuilder(SessionModel sessionModel) {
-        this.sessionModel = sessionModel;
 
-    }
-
-    static final Logger logger = LogManager.getLogger();
+    private static final Logger logger = LogManager.getLogger();
 
     public abstract RepoHelper getRepoHelperFromDialogs() throws GitAPIException, IOException, NoRepoSelectedException, CancelledAuthorizationException;
 
@@ -67,6 +58,7 @@ public abstract class RepoHelperBuilder {
      * @return the chosen file from the file chooser.
      */
     File getDirectoryPathFromChooser(String title) {
+        Main.assertFxThread(); // method shows a dialog
         File path = new File(this.defaultFilePickerStartFolder); // start the file browser in the user's home folder
 
         File returnFile;
@@ -88,6 +80,7 @@ public abstract class RepoHelperBuilder {
      */
     public static AuthDialogResponse getAuthCredentialFromDialog() throws
             CancelledAuthorizationException {
+        Main.assertFxThread();   // lots of FX work
         logger.info("Creating authorization dialog");
         // Create the custom dialog.
         Dialog<AuthDialogResponse> dialog = new Dialog<>();
@@ -203,12 +196,13 @@ public abstract class RepoHelperBuilder {
         UsernamePasswordCredentialsProvider ownerAuth;
 
         if (result.isPresent()) {
-            UsernamePassword usernamePassword = new UsernamePassword();
-            usernamePassword.username = result.get().username;
+                // TODO: Storing password must not be working -- this is all local
+//            UsernamePassword usernamePassword = new UsernamePassword();
+//            usernamePassword.username = result.get().username;
             //Only store password if remember password was selected
             if (result.get().isSelected) {
                 logger.info("Selected remember password");
-                usernamePassword.password = result.get().password;
+//                usernamePassword.password = result.get().password;
             }
             //repoToAuth.put(remoteURL,usernamePassword);
         } else {
