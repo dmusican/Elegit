@@ -4,6 +4,7 @@ import elegit.*;
 import elegit.models.BranchModel;
 import elegit.models.LocalBranchHelper;
 import elegit.models.RepoHelper;
+import elegit.models.SessionModel;
 import elegit.monitors.ConflictingFileWatcher;
 import elegit.treefx.CellLabel;
 import javafx.application.Platform;

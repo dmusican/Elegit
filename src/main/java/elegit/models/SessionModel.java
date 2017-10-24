@@ -1,9 +1,6 @@
-package elegit;
+package elegit.models;
 
-import elegit.models.AuthMethod;
-import elegit.models.ExistingRepoHelper;
-import elegit.models.PrefObj;
-import elegit.models.RepoHelper;
+import elegit.Main;
 import elegit.monitors.ConflictingFileWatcher;
 import elegit.repofile.*;
 import elegit.sshauthentication.ElegitUserInfoGUI;
@@ -12,6 +9,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import elegit.exceptions.CancelledAuthorizationException;
 import elegit.exceptions.MissingRepoException;
 import org.apache.http.annotation.GuardedBy;
+import org.apache.http.annotation.ThreadSafe;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jgit.api.Git;
@@ -39,7 +37,8 @@ import java.util.stream.Stream;
  * The singleton SessionModel stores all the Repos (contained in RepoHelper objects)
  * in the session and lets the user switch between repos.
  */
-// TODO: Make sure threadsafe
+@ThreadSafe
+// at least with regards to memory. Should be thought throught with respect to working tree git operations.
 public class SessionModel {
 
     // Keys for preferences recall
@@ -533,12 +532,12 @@ public class SessionModel {
         PrefObj.putObject(this.preferences, LAST_UUID_KEY, null);
     }
 
-    void setAuthPref(String pathname, AuthMethod authTechnique) {
+    public void setAuthPref(String pathname, AuthMethod authTechnique) {
         Preferences authPrefs = preferences.node("authentication");
         authPrefs.putInt(hashPathname(pathname), authTechnique.getEnumValue());
     }
 
-    AuthMethod getAuthPref(String pathname)  {
+    public AuthMethod getAuthPref(String pathname)  {
         Preferences authPrefs = preferences.node("authentication");
         int enumValue = authPrefs.getInt(hashPathname(pathname), -1);
         if (enumValue == -1)
@@ -547,12 +546,12 @@ public class SessionModel {
         return AuthMethod.getEnumFromValue(enumValue);
     }
 
-    void removeAuthPref(String pathname) {
+    public void removeAuthPref(String pathname) {
         Preferences authPrefs = preferences.node("authentication");
         authPrefs.remove(hashPathname(pathname));
     }
 
-    List<String> listAuthPaths() {
+    public List<String> listAuthPaths() {
         Preferences authPrefs = preferences.node("authentication");
         try {
             return Collections.unmodifiableList(Arrays.asList(authPrefs.keys()));
@@ -563,7 +562,7 @@ public class SessionModel {
 
     // Preferences API has a limit of 80 characters max, and some pathnames
     // may be longer than that. Hashing it will solve that problem.
-    String hashPathname(String pathname) {
+    public String hashPathname(String pathname) {
         MessageDigest md;
         try {
             md = MessageDigest.getInstance("SHA");

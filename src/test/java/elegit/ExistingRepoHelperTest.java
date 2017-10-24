@@ -2,6 +2,7 @@ package elegit;
 
 import elegit.models.AuthMethod;
 import elegit.models.ExistingRepoHelper;
+import elegit.models.SessionModel;
 import elegit.sshauthentication.ElegitUserInfoTest;
 import org.eclipse.jgit.api.Git;
 import org.junit.After;

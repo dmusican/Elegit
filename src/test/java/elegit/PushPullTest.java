@@ -2,6 +2,7 @@ package elegit;
 
 import elegit.models.ClonedRepoHelper;
 import elegit.models.ExistingRepoHelper;
+import elegit.models.SessionModel;
 import elegit.monitors.RepositoryMonitor;
 import elegit.sshauthentication.ElegitUserInfoTest;
 import javafx.application.Platform;

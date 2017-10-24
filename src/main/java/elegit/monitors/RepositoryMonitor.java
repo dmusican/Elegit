@@ -1,7 +1,7 @@
 package elegit.monitors;
 
 import elegit.Main;
-import elegit.SessionModel;
+import elegit.models.SessionModel;
 import elegit.controllers.SessionController;
 import elegit.models.BranchHelper;
 import elegit.models.BranchModel;

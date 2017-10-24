@@ -2,7 +2,7 @@ package elegit.controllers;
 
 import elegit.models.CommitHelper;
 import elegit.models.RepoHelper;
-import elegit.SessionModel;
+import elegit.models.SessionModel;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.event.EventHandler;

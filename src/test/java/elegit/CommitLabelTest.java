@@ -1,6 +1,7 @@
 package elegit;
 
 import elegit.models.ClonedRepoHelper;
+import elegit.models.SessionModel;
 import elegit.treefx.Cell;
 import elegit.treefx.CommitTreeModel;
 import javafx.application.Application;

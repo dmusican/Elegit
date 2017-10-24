@@ -1,7 +1,7 @@
 package elegit.controllers;
 
 import elegit.models.RepoHelper;
-import elegit.SessionModel;
+import elegit.models.SessionModel;
 import elegit.exceptions.NoFilesToStashException;
 import javafx.fxml.FXML;
 import javafx.scene.Scene;

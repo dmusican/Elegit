@@ -5,6 +5,7 @@ import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import elegit.*;
 import elegit.models.CommitHelper;
 import elegit.models.RepoHelper;
+import elegit.models.SessionModel;
 import javafx.fxml.FXML;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;

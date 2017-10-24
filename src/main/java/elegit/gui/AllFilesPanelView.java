@@ -1,7 +1,7 @@
 package elegit.gui;
 
 import elegit.Main;
-import elegit.SessionModel;
+import elegit.models.SessionModel;
 import elegit.repofile.DirectoryRepoFile;
 import elegit.repofile.RepoFile;
 import javafx.scene.control.CheckBoxTreeItem;

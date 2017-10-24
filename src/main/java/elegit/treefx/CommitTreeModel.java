@@ -2,7 +2,7 @@ package elegit.treefx;
 
 import elegit.Main;
 import elegit.PopUpWindows;
-import elegit.SessionModel;
+import elegit.models.SessionModel;
 import elegit.exceptions.MissingRepoException;
 import elegit.models.*;
 import javafx.scene.control.*;

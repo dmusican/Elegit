@@ -1,6 +1,5 @@
 package elegit.controllers;
 
-import elegit.SessionModel;
 import javafx.fxml.FXML;
 import javafx.scene.text.Text;
 import org.apache.http.annotation.GuardedBy;

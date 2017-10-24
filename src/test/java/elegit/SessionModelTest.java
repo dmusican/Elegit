@@ -1,6 +1,7 @@
 package elegit;
 
 import elegit.models.AuthMethod;
+import elegit.models.SessionModel;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;

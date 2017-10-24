@@ -1,10 +1,9 @@
 package elegit.gui;
 
 import elegit.Main;
-import elegit.SessionModel;
+import elegit.models.SessionModel;
 import elegit.repofile.DirectoryRepoFile;
 import elegit.repofile.RepoFile;
-import javafx.application.Platform;
 import javafx.scene.control.TreeCell;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;

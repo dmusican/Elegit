@@ -6,6 +6,7 @@ import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import elegit.models.AuthMethod;
 import elegit.models.ClonedRepoHelper;
 import elegit.models.RepoHelper;
+import elegit.models.SessionModel;
 import elegit.sshauthentication.ElegitUserInfoGUI;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;

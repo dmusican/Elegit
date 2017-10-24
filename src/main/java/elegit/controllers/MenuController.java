@@ -2,7 +2,7 @@ package elegit.controllers;
 
 import elegit.gui.GitIgnoreEditor;
 import elegit.models.LoggingModel;
-import elegit.SessionModel;
+import elegit.models.SessionModel;
 import elegit.treefx.TreeLayout;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
