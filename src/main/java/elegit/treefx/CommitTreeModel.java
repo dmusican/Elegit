@@ -303,8 +303,9 @@ public class CommitTreeModel{
     private synchronized void updateCommitFills(Set<CommitHelper> commits) {
         if(commits.size() == 0) return;
 
+        RepoHelper repoHelper = SessionModel.getSessionModel().getCurrentRepoHelper();
         for(CommitHelper curCommitHelper : commits)
-            this.updateCommitFill(curCommitHelper, treeGraph.treeGraphModel, SessionModel.getSessionModel().getCurrentRepoHelper());
+            this.updateCommitFill(curCommitHelper, treeGraph.treeGraphModel, repoHelper);
 
     }
 
@@ -348,11 +349,11 @@ public class CommitTreeModel{
             }
         }
 
+        RepoHelper repo = SessionModel.getSessionModel().getCurrentRepoHelper();
         while (!queue.isEmpty()) {
 
             CommitHelper commitToAdd = queue.poll();
 
-            RepoHelper repo = SessionModel.getSessionModel().getCurrentRepoHelper();
             String displayLabel = repo.getCommitDescriptorString(commitToAdd, false);
             List<RefHelper> refLabels = repo.getRefsForCommit(commitToAdd);
             Cell.CellType computedType = repo.getCommitType(commitToAdd);
@@ -669,9 +670,10 @@ public class CommitTreeModel{
         }
 
         // Set the labels
-        Set<String> currentAbbrevBranches = SessionModel.getSessionModel().getCurrentRepoHelper().getBranchModel().getCurrentAbbrevBranches();
+        RepoHelper repoHelper = SessionModel.getSessionModel().getCurrentRepoHelper();
+        Set<String> currentAbbrevBranches = repoHelper.getBranchModel().getCurrentAbbrevBranches();
         for (String commit : commitLabelMap.keySet()) {
-            if(SessionModel.getSessionModel().getCurrentRepoHelper().getCommit(commit) != null) {
+            if(repoHelper.getCommit(commit) != null) {
                 if (!treeGraph.treeGraphModel.containsID(commit)) {
                     // TODO make this not a banaid fix...
                     //System.out.println("Does not yet contain "+commit);

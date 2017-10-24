@@ -28,6 +28,7 @@ import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
@@ -48,26 +49,21 @@ public class SessionModel {
     private static final Logger logger = LogManager.getLogger();
     private final AtomicReference<RepoHelper> currentRepoHelper = new AtomicReference<>();
     private final ObjectProperty<RepoHelper> currentRepoHelperProperty = new SimpleObjectProperty<>();
-
-    /////////
-    // Above have been checked for thread safety
-    /////////
-
-
-
-    private static SessionModel sessionModel;
-
-    public Preferences preferences;
+    private static final AtomicInteger constructorCount = new AtomicInteger();
+    private final static AtomicReference<SessionModel> sessionModel = new AtomicReference<>();
+    private final Preferences preferences;
 
 
     /**
      * @return the SessionModel object
      */
-    public static SessionModel getSessionModel() {
-        if (sessionModel == null) {
-            sessionModel = new SessionModel();
+    // synchronized is critical for sessionModel, to make sure that it is updated as one operation.
+    // compareAndSet would be briefer, but dramatically slower.
+    public synchronized static SessionModel getSessionModel() {
+        if (sessionModel.get() == null) {
+            sessionModel.set(new SessionModel());
         }
-        return sessionModel;
+        return sessionModel.get();
     }
 
     /**
@@ -275,7 +271,7 @@ public class SessionModel {
             status = new Git(this.getCurrentRepo()).status().call();
         }
 
-        return status.getUntracked();
+        return Collections.unmodifiableSet(status.getUntracked());
     }
 
     /**
@@ -289,7 +285,7 @@ public class SessionModel {
             status = new Git(this.getCurrentRepo()).status().call();
         }
 
-        return status.getIgnoredNotInIndex();
+        return Collections.unmodifiableSet(status.getIgnoredNotInIndex());
     }
 
     /**
@@ -303,7 +299,7 @@ public class SessionModel {
             status = new Git(this.getCurrentRepo()).status().call();
         }
 
-        return status.getConflicting();
+        return Collections.unmodifiableSet(status.getConflicting());
     }
 
     /**
@@ -317,7 +313,7 @@ public class SessionModel {
             status = new Git(this.getCurrentRepo()).status().call();
         }
 
-        return status.getMissing();
+        return Collections.unmodifiableSet(status.getMissing());
     }
 
     /**
@@ -333,7 +329,7 @@ public class SessionModel {
             status = new Git(this.getCurrentRepo()).status().call();
         }
 
-        return status.getModified();
+        return Collections.unmodifiableSet(status.getModified());
     }
 
 
@@ -594,13 +590,15 @@ public class SessionModel {
      * After the last RepoHelper is closed by user, sessionModel needs to be
      * updated and reflect the new view.
      */
-    public void resetSessionModel() {
+    // synchronized is critical for sessionModel, to make sure that it is updated as one operation.
+    // compareAndSet would be briefer, but dramatically slower.
+    public synchronized void resetSessionModel() {
         try {
             clearStoredPreferences();
         } catch (Exception exception) {
             exception.printStackTrace();
         }
-        sessionModel = new SessionModel();
+        sessionModel.set(new SessionModel());
     }
 
     public ObjectProperty<RepoHelper> getCurrentRepoHelperProperty() {
