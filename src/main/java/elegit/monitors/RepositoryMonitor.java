@@ -1,5 +1,6 @@
 package elegit.monitors;
 
+import elegit.Main;
 import elegit.SessionModel;
 import elegit.controllers.SessionController;
 import elegit.models.BranchHelper;
@@ -48,6 +49,8 @@ public class RepositoryMonitor{
 
     // For unit testing purposes only
     public synchronized static void initRemote() {
+        // An FX property is being accessed, so essential this is done in FX thread
+        Main.assertFxThread();
         SessionModel.getSessionModel().getCurrentRepoHelperProperty().addListener(
                 (observable, oldValue, newValue) -> watchRepoForRemoteChanges(newValue)
         );

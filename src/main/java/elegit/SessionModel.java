@@ -46,13 +46,13 @@ public class SessionModel {
     private static final String LAST_UUID_KEY="LAST_UUID";
     @GuardedBy("this") private final List<RepoHelper> allRepoHelpers;
     private static final Logger logger = LogManager.getLogger();
+    private final AtomicReference<RepoHelper> currentRepoHelper = new AtomicReference<>();
+    private final ObjectProperty<RepoHelper> currentRepoHelperProperty = new SimpleObjectProperty<>();
 
     /////////
     // Above have been checked for thread safety
     /////////
 
-    private final AtomicReference<RepoHelper> currentRepoHelper = new AtomicReference<>();
-    private final ObjectProperty<RepoHelper> currentRepoHelperProperty = new SimpleObjectProperty<>();
 
 
     private static SessionModel sessionModel;
@@ -173,8 +173,9 @@ public class SessionModel {
      * @param repoHelper the repository to open
      */
     // synchronized for allRepoHelpers
-    // An FX property is being set, so essential this is done in FX thread
     private synchronized void openRepo(RepoHelper repoHelper) throws BackingStoreException, IOException, ClassNotFoundException {
+        // An FX property is being set, so essential this is done in FX thread
+        Main.assertFxThread();
         if(!this.allRepoHelpers.contains(repoHelper)) {
             this.allRepoHelpers.add(repoHelper);
         }
@@ -603,6 +604,8 @@ public class SessionModel {
     }
 
     public ObjectProperty<RepoHelper> getCurrentRepoHelperProperty() {
+        // Accesses FX property, so should be on FX thread
+        Main.assertFxThread();
         return currentRepoHelperProperty;
     }
 
