@@ -5,7 +5,7 @@ import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 import com.jcraft.jsch.UserInfo;
 import elegit.gui.PopUpWindows;
-import elegit.SimpleProgressMonitor;
+import elegit.gui.SimpleProgressMonitor;
 import elegit.exceptions.*;
 import elegit.treefx.Cell;
 import org.apache.http.annotation.GuardedBy;

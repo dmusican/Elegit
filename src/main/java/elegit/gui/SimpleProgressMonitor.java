@@ -1,4 +1,4 @@
-package elegit;
+package elegit.gui;
 
 import org.eclipse.jgit.lib.ProgressMonitor;
 
