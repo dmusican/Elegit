@@ -1,12 +1,12 @@
-package elegit;
+package elegit.gui;
 
 import com.jcraft.jsch.UserInfo;
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
+import elegit.Main;
 import elegit.models.AuthMethod;
 import elegit.models.ClonedRepoHelper;
 import elegit.models.RepoHelper;
-import elegit.models.SessionModel;
 import elegit.sshauthentication.ElegitUserInfoGUI;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
@@ -214,7 +214,7 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
 
     }
 
-    static RepoHelper cloneRepositoryWithChecks(String remoteURL, Path destinationPath,
+    public static RepoHelper cloneRepositoryWithChecks(String remoteURL, Path destinationPath,
                                                 RepoHelperBuilder.AuthDialogResponse response,
                                                 UserInfo userInfo)
             throws GitAPIException, IOException, CancelledAuthorizationException, NoRepoSelectedException {

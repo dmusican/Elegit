@@ -1,6 +1,8 @@
 package elegit;
 
 import com.jcraft.jsch.*;
+import elegit.gui.ClonedRepoHelperBuilder;
+import elegit.gui.RepoHelperBuilder;
 import elegit.models.AuthMethod;
 import elegit.models.ClonedRepoHelper;
 import elegit.models.RepoHelper;

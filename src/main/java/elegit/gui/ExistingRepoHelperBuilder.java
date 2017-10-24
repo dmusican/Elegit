@@ -1,10 +1,10 @@
-package elegit;
+package elegit.gui;
 
+import elegit.Main;
 import elegit.exceptions.CancelledAuthorizationException;
 import elegit.exceptions.NoRepoSelectedException;
 import elegit.models.ExistingRepoHelper;
 import elegit.models.RepoHelper;
-import elegit.models.SessionModel;
 import elegit.sshauthentication.ElegitUserInfoGUI;
 import org.apache.http.annotation.ThreadSafe;
 import org.eclipse.jgit.api.errors.GitAPIException;

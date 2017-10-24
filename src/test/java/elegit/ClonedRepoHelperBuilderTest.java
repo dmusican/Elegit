@@ -1,5 +1,6 @@
 package elegit;
 
+import elegit.gui.ClonedRepoHelperBuilder;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.LsRemoteCommand;
 import org.junit.After;

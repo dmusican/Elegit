@@ -1,5 +1,6 @@
-package elegit;
+package elegit.gui;
 
+import elegit.Main;
 import elegit.models.AuthMethod;
 import elegit.models.RepoHelper;
 import elegit.models.SessionModel;
@@ -36,7 +37,7 @@ public abstract class RepoHelperBuilder {
         public final String username;
         public final String password;
         public final boolean isSelected;
-        AuthDialogResponse(AuthMethod protocol, String username, String password, boolean isSelected) {
+        public AuthDialogResponse(AuthMethod protocol, String username, String password, boolean isSelected) {
             this.protocol = protocol;
             this.username = username;
             this.password = password;
