@@ -28,6 +28,7 @@ import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.prefs.BackingStoreException;
@@ -343,10 +344,10 @@ public class SessionModel {
         if(status == null) {
             status = new Git(this.getCurrentRepo()).status().call();
         }
-        HashSet<String> stagedFiles = new HashSet<>();
+        Set<String> stagedFiles = ConcurrentHashMap.newKeySet();
         stagedFiles.addAll(status.getChanged());
         stagedFiles.addAll(status.getAdded());
-        return stagedFiles;
+        return Collections.unmodifiableSet(stagedFiles);
     }
 
     /**
@@ -430,7 +431,7 @@ public class SessionModel {
         }
 
         Collections.sort(changedRepoFiles);
-        return changedRepoFiles;
+        return Collections.unmodifiableList(changedRepoFiles);
     }
     /**
      * Assembles all files in the repository's folder into RepoFiles
@@ -440,7 +441,7 @@ public class SessionModel {
      * @throws GitAPIException if the `git status` calls fail.
      */
     public List<RepoFile> getAllRepoFiles() throws GitAPIException, IOException {
-        List<RepoFile> allFiles = getAllChangedRepoFiles();
+        List<RepoFile> allFiles = new ArrayList<>(getAllChangedRepoFiles());
 
         Status status = new Git(this.getCurrentRepo()).status().call();
 
