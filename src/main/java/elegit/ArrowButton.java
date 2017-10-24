@@ -14,17 +14,13 @@ public class ArrowButton extends Button{
 
     public ArrowButton(){
         super();
+        Main.assertFxThread();
         this.setSkin(new ArrowButtonSkin(this));
 
         arrowUp = new SimpleBooleanProperty(false);
         arrowRight = new SimpleBooleanProperty(false);
         arrowDown = new SimpleBooleanProperty(false);
         arrowLeft = new SimpleBooleanProperty(false);
-
-        arrowUp.addListener((observable, oldValue, newValue) -> ((ArrowButtonSkin) this.getSkin()).up = newValue);
-        arrowRight.addListener((observable, oldValue, newValue) -> ((ArrowButtonSkin) this.getSkin()).right = newValue);
-        arrowDown.addListener((observable, oldValue, newValue) -> ((ArrowButtonSkin) this.getSkin()).down = newValue);
-        arrowLeft.addListener((observable, oldValue, newValue) -> ((ArrowButtonSkin) this.getSkin()).left = newValue);
     }
 
     ///////////////////////////////////////////////////////////////
