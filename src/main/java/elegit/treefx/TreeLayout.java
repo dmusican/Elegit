@@ -145,7 +145,9 @@ public class TreeLayout{
             loading.layoutXProperty().bind(viewportX);
             loading.setRotationAxis(Rotate.X_AXIS);
             loading.setRotate(180);
-            cellLayer.getChildren().add(loading);
+            // TODO: Put loading bar back in. It's out because it's not appearing anyway without threads currently,...
+            // and also because it was messing up the top portion of the screen where the commits were supposed to go.
+            //cellLayer.getChildren().add(loading);
 
             sp.vvalueProperty().addListener(((observable, oldValue, newValue) -> {
                 viewportY.set(cellLayer.getLayoutBounds().getHeight()-((double) newValue * cellLayer.getLayoutBounds().getHeight() +
