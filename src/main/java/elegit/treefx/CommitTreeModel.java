@@ -255,13 +255,13 @@ public class CommitTreeModel{
             this.commitsToAdd.addAll(commitsToAdd);
         }
         void setCommitsToRemove(List<CommitHelper> commitsToRemove) {
-            this.commitsToAdd.clear();
-            this.commitsToAdd.addAll(commitsToRemove);
+            this.commitsToRemove.clear();
+            this.commitsToRemove.addAll(commitsToRemove);
         }
 
         void setCommitsToUpdate(Set<CommitHelper> commitsToUpdate) {
-            this.commitsToAdd.clear();
-            this.commitsToAdd.addAll(commitsToUpdate);
+            this.commitsToUpdate.clear();
+            this.commitsToUpdate.addAll(commitsToUpdate);
         }
     }
 
