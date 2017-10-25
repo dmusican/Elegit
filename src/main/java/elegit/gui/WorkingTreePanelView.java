@@ -47,8 +47,16 @@ public class WorkingTreePanelView extends FileStructurePanelView{
 
         // Used to disable/enable add and remove buttons
         isAnyFileSelectedProperty.addListener(((observable, oldValue, newValue) -> SessionController.anythingCheckedProperty().set(newValue)));
+
+        init();
     }
 
+    @Override
+    public void init() {
+        Main.assertFxThread();
+        displayedFiles.clear();
+        super.init();
+    }
     /**
      * @return the cell from CheckBoxTreeCell's implementation of a TreeView factory, with
      * an added context menu for the given RepoFile
@@ -135,6 +143,11 @@ public class WorkingTreePanelView extends FileStructurePanelView{
     protected void addTreeItemsToRoot(List<RepoFile> updatedRepoFiles, TreeItem<RepoFile> root) {
         Main.assertFxThread();
 
+        System.out.println("Getting started ");
+        for (TreeItem item : root.getChildren()) {
+            System.out.println(item);
+        }
+
         // Re-adds the checkbox if it had been removed
         if(root.getChildren().isEmpty()) {
             root.getChildren().add(checkBox);
@@ -185,6 +198,11 @@ public class WorkingTreePanelView extends FileStructurePanelView{
             }
         }
 
+        System.out.println("And again ");
+        for (TreeItem item : root.getChildren()) {
+            System.out.println(item);
+        }
+
         // Remove all elements that shouldn't be displayed
         for(TreeItem item : shouldKeepChild.keySet()){
             if(!shouldKeepChild.get(item)){
@@ -193,8 +211,11 @@ public class WorkingTreePanelView extends FileStructurePanelView{
                     // The file to remove must be a grandchild of the root
                     // Loop through all the directory parents until we have removed the item
                     TreeItem<RepoFile> directoryRepoFile = root.getChildren().get(1);
+                    System.out.println("Trying to remove... " + item);
+                    System.out.println("directoryRepoFile = " + directoryRepoFile);
                     while (!directoryRepoFile.getChildren().remove(item)) {
                         directoryRepoFile = directoryRepoFile.nextSibling();
+                        System.out.println("directoryRepoFile = " + directoryRepoFile);
                     }
 
                     // If we have removed all files in a directory, remove the directory
@@ -294,4 +315,5 @@ public class WorkingTreePanelView extends FileStructurePanelView{
         Main.assertFxThread();
         return checkBox.isSelected();
     }
+
 }

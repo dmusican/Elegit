@@ -26,6 +26,10 @@ import java.util.*;
 // all methods must run on the FX thread. This class loses threadsafeness if any of that is changed.
 public class StagedTreePanelView extends FileStructurePanelView{
 
+    public StagedTreePanelView() {
+        super.init();
+    }
+
     /**
      * @return a factory that generates a custom tree cell that includes a context menu for each
      * item

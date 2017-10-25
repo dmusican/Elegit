@@ -30,13 +30,9 @@ public abstract class FileStructurePanelView extends Region{
     private TreeItem<RepoFile> treeRoot;
 
     /**
-     * Builds a new tree view using the abstract methods to set up a cell
+     * Builds a new tree view using the methods to set up a cell
      * factory and add items to the tree.
      */
-    public FileStructurePanelView() {
-        this.init();
-    }
-
     public void init(){
         // DRM: May not definitively need to be on FX thread, but putting it there for now to get architecture in shape
         Main.assertFxThread();
@@ -68,10 +64,12 @@ public abstract class FileStructurePanelView extends Region{
         Main.assertFxThread();
         if(SessionModel.getSessionModel().getCurrentRepoHelper() == null) return;
 
+        showDebugOutput();
         if(this.treeRoot == null || !this.treeRoot.getValue().getRepo().equals(SessionModel.getSessionModel().getCurrentRepoHelper())) {
             this.init();
         }
-
+        System.out.println("after init");
+        showDebugOutput();
         List<RepoFile> filesToShow = this.getFilesToDisplay();
         this.addTreeItemsToRoot(filesToShow, this.treeRoot);
     }
@@ -110,5 +108,13 @@ public abstract class FileStructurePanelView extends Region{
      * @throws IOException
      */
     protected abstract List<RepoFile> getFilesToDisplay() throws GitAPIException, IOException;
+
+    public void showDebugOutput() {
+        System.out.println("What's in the tree? ");
+        for (TreeItem item : treeRoot.getChildren()) {
+            System.out.println(item);
+        }
+    }
+
 
 }

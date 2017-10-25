@@ -78,7 +78,7 @@ public class DropdownController {
     }
 
     public synchronized void loadSelectedRepo() {
-        sessionController.loadSelectedRepo();
+        sessionController.loadDesignatedRepo(getCurrentRepo());
     }
 
     public synchronized void openRepoDirectory() {

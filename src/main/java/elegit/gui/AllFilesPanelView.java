@@ -10,6 +10,7 @@ import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import javafx.scene.control.cell.CheckBoxTreeCell;
 import javafx.util.Callback;
+import org.apache.http.annotation.ThreadSafe;
 import org.eclipse.jgit.api.errors.GitAPIException;
 
 import java.io.IOException;
@@ -22,15 +23,24 @@ import java.util.concurrent.ConcurrentHashMap;
  * whether tracked or otherwise, as well as their status. It does so
  * in a hierarchical manner
  */
-// TODO: Make sure this is threadsafe
-public class AllFilesPanelView extends FileStructurePanelView{
+@ThreadSafe
+// because of all the assert statements I have throughout. This is a view class, and at least for now,
+// all methods must run on the FX thread. This class loses threadsafeness if any of that is changed.
+// MOREOVER, there is extensive use of bindings and listeners here, which must happen on the FX thread.
+public class AllFilesPanelView extends FileStructurePanelView {
 
-    private Map<Path, TreeItem<RepoFile>> itemMap;
+    private final Map<Path, TreeItem<RepoFile>> itemMap = new ConcurrentHashMap<>();
+
+    public AllFilesPanelView() {
+        Main.assertFxThread();
+        init();
+    }
 
     @Override
     public void init() {
+        Main.assertFxThread();
+        itemMap.clear();
         super.init();
-        itemMap = new ConcurrentHashMap<>();
     }
 
     /**
@@ -39,11 +49,13 @@ public class AllFilesPanelView extends FileStructurePanelView{
      */
     @Override
     protected Callback<TreeView<RepoFile>, TreeCell<RepoFile>> getTreeCellFactory() {
+        Main.assertFxThread();
         return arg -> new RepoFileTreeCell();
     }
 
     @Override
     protected TreeItem<RepoFile> getRootTreeItem(DirectoryRepoFile rootDirectory) {
+        Main.assertFxThread();
         return new TreeItem<>(rootDirectory);
     }
 

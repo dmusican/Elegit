@@ -280,10 +280,10 @@ public class SessionController {
                 .just(1)
                 .map(integer -> authenticateReactive(httpAuth.get()))
 
-                .observeOn(Schedulers.io())
+                //.observeOn(Schedulers.io())
                 .map(gitOp::doGitOperation)
 
-                .observeOn(JavaFxScheduler.platform())
+                //.observeOn(JavaFxScheduler.platform())
                 .map(results -> {
                     gitOperationShowResults(notificationPaneController, results);
                     if (tryOpAgain(results)) {
@@ -693,7 +693,7 @@ public class SessionController {
         }
     }
 
-    private void loadDesignatedRepo(RepoHelper repoHelper) {
+    public void loadDesignatedRepo(RepoHelper repoHelper) {
         GitOperation gitOp = authResponse -> loadRepo(authResponse, repoHelper);
 
         if (theModel.getCurrentRepoHelper() != null && repoHelper.getLocalPath().equals(theModel.getCurrentRepoHelper().getLocalPath())) {
@@ -712,6 +712,7 @@ public class SessionController {
                 .flatMap(unused -> doAndRepeatGitOperation(gitOp))
 
                 //.observeOn(Schedulers.io())
+                .doOnNext(result -> System.out.println("result is :" + result))
                 .doOnNext((result) -> {
                     if (result.equals("success")) {
                         synchronized (globalLock) {
@@ -783,16 +784,6 @@ public class SessionController {
     private synchronized void handleRecentRepoMenuItem(RepoHelper repoHelper){
         Main.assertFxThread();
         loadDesignatedRepo(repoHelper);
-    }
-
-    /**
-     * A helper method that grabs the currently selected repo in the repo dropdown
-     * and loads it using the handleRecentRepoMenuItem(...) method.
-     */
-    public void loadSelectedRepo() {
-        if (theModel.getAllRepoHelpers().size() == 0) return;
-        RepoHelper selectedRepoHelper = dropdownController.getCurrentRepo();
-        this.handleRecentRepoMenuItem(selectedRepoHelper);
     }
 
     public void handleAddButton() {
@@ -2214,6 +2205,7 @@ public class SessionController {
             //Main.assertFxThread();
 
             Observable.just(1)
+                    .doOnNext(o -> System.out.println("starting git status"))
                     //.doOnNext(u -> BusyWindow.show())
                     //.doOnNext(u -> BusyWindow.setLoadingText("Git status..."))
 
@@ -2230,6 +2222,7 @@ public class SessionController {
                         try {
                             theModel.getCurrentRepoHelper().getBranchModel().updateAllBranches();
                             commitTreeModel.update();
+                            workingTreePanelView.showDebugOutput();
                             workingTreePanelView.drawDirectoryView();
                             allFilesPanelView.drawDirectoryView();
                             indexPanelView.drawDirectoryView();
@@ -2246,6 +2239,7 @@ public class SessionController {
 
                     }})
 
+                    .doOnNext(o -> System.out.println("ending git status"))
                     .observeOn(JavaFxScheduler.platform())
                     //.doOnNext(u -> BusyWindow.hide())
                     .subscribe(u -> {}, Throwable::printStackTrace);
@@ -2353,7 +2347,7 @@ public class SessionController {
             RepoHelper newCurrentRepo = this.theModel.getAllRepoHelpers()
                     .get(newIndex);
 
-            handleRecentRepoMenuItem(newCurrentRepo);
+            loadDesignatedRepo(newCurrentRepo);
             dropdownController.setCurrentRepo(newCurrentRepo);
 
             this.refreshRecentReposInDropdown();
