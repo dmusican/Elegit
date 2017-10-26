@@ -4,6 +4,9 @@
 <?import elegit.*?>
 <?import java.net.URL?>
 
+<?import elegit.gui.StagedTreePanelView?>
+<?import elegit.gui.AllFilesPanelView?>
+<?import elegit.gui.ArrowButton?>
 <GridPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity"
           prefHeight="250" prefWidth="400" xmlns:fx="http://javafx.com/fxml/1"
           xmlns="http://javafx.com/javafx/8"
