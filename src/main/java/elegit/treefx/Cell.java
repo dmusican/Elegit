@@ -75,7 +75,7 @@ public class Cell extends Pane {
 
     // Constants
     public static final CellShape UNTRACKED_BRANCH_HEAD_SHAPE = CellShape.CIRCLE;
-    public static final CellShape TRACKED_BRANCH_HEAD_SHAPE = CellShape.TRIANGLE_UP;
+    public static final CellShape TRACKED_BRANCH_HEAD_SHAPE = CellShape.TRIANGLE_DOWN;
     // The size of the rectangle being drawn
     public static final int BOX_SIZE = 20;
     //The height of the shift for the cells;
