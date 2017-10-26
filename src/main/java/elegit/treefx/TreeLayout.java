@@ -184,26 +184,33 @@ public class TreeLayout{
         // directly with cells. Perhaps other portions of this could be spun off, but for now, keeping it here.
         Main.assertFxThread();
 
-        // Don't try to compute a new position if the cell has already been moved
-        if (movedCells.contains(ycoord))
-            return;
+        boolean done = false;
 
-        // Get cell at the inputted position
-        Cell c = allCells.get(allCells.size()-1-ycoord);
+        while (!done) {
+            // Don't try to compute a new position if the cell has already been moved
+            if (movedCells.contains(ycoord))
+                return;
 
-        int xcoord = getXCoordFromYCoord(minRowUsedInCol, ycoord);
-        setCellPosition(c, minRowUsedInCol, movedCells, isInitialSetupFinished, xcoord, ycoord);
+            // Get cell at the inputted position
+            Cell c = allCells.get(allCells.size() - 1 - ycoord);
 
-        // Update the reserved columns in rows with the cells parents, oldest to newest
-        List<Cell> list = new ArrayList<>(c.getCellParents());
-        list.sort(Comparator.comparingLong(Cell::getTime));
+            int xcoord = getXCoordFromYCoord(minRowUsedInCol, ycoord);
+            System.out.println("ycoord = " + ycoord + " " + c + " xcoord = " + xcoord);
+            setCellPosition(c, minRowUsedInCol, movedCells, isInitialSetupFinished, xcoord, ycoord);
 
-        // For each parent, oldest to newest, place it in the highest row possible recursively
-        for(Cell parent : list){
-            if (parent.getTime()>c.getTime() || allCells.indexOf(parent)<0) break;
-            computeCellPosition(allCells, minRowUsedInCol, movedCells, isInitialSetupFinished,
-                    allCells.size()-1- allCells.indexOf(parent));
-            break;
+            // Update the reserved columns in rows with the cells parents, oldest to newest
+            List<Cell> list = new ArrayList<>(c.getCellParents());
+            list.sort(Comparator.comparingLong(Cell::getTime));
+
+            // For each parent, oldest to newest, place it in the highest row possible recursively
+            for (Cell parent : list) {
+                if (parent.getTime() > c.getTime() || allCells.indexOf(parent) < 0) {
+                    done = true;
+                    break;
+                }
+                ycoord = allCells.size() - 1 - allCells.indexOf(parent);
+                break;
+            }
         }
     }
 
@@ -232,6 +239,7 @@ public class TreeLayout{
         boolean willCellMove = oldColumnLocation != x || oldRowLocation != y;
 
         // Update where the cell has been placed
+        System.out.println("minrowUsedInCol: " + x + " -> " + y);
         minRowUsedInCol.put(x,y);
 
         // Set the animation and use parent properties of the cell
@@ -319,7 +327,7 @@ public class TreeLayout{
     private static int getXCoordFromYCoord(Map<Integer, Integer> minRowUsedInCol, int ycoord){
         //Main.assertNotFxThread();
         int xcoord = 0;
-        while(minRowUsedInCol.containsKey(xcoord) && (ycoord > minRowUsedInCol.get(xcoord))){
+        while(minRowUsedInCol.containsKey(xcoord) && (minRowUsedInCol.get(xcoord) < ycoord)){
             xcoord++;
         }
         return xcoord;
