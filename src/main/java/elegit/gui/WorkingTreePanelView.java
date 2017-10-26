@@ -143,11 +143,6 @@ public class WorkingTreePanelView extends FileStructurePanelView{
     protected void addTreeItemsToRoot(List<RepoFile> updatedRepoFiles, TreeItem<RepoFile> root) {
         Main.assertFxThread();
 
-        System.out.println("Getting started ");
-        for (TreeItem item : root.getChildren()) {
-            System.out.println(item);
-        }
-
         // Re-adds the checkbox if it had been removed
         if(root.getChildren().isEmpty()) {
             root.getChildren().add(checkBox);
@@ -196,11 +191,6 @@ public class WorkingTreePanelView extends FileStructurePanelView{
                 displayedFiles.add(newItem);
                 shouldKeepChild.put(newItem, true);
             }
-        }
-
-        System.out.println("And again ");
-        for (TreeItem item : root.getChildren()) {
-            System.out.println(item);
         }
 
         // Remove all elements that shouldn't be displayed

@@ -197,7 +197,6 @@ public class TreeLayout{
             Cell c = allCells.get(cellIndex);
 
             int xcoord = getXCoordFromYCoord(minRowUsedInCol, ycoord);
-            System.out.println("ycoord = " + ycoord + " " + c + " xcoord = " + xcoord);
             setCellPosition(c, minRowUsedInCol, movedCells, isInitialSetupFinished, xcoord, ycoord);
 
             // Update the reserved columns in rows with the cells parents, oldest to newest
@@ -241,7 +240,6 @@ public class TreeLayout{
         boolean willCellMove = oldColumnLocation != x || oldRowLocation != y;
 
         // Update where the cell has been placed
-        System.out.println("minrowUsedInCol: " + x + " -> " + y);
         minRowUsedInCol.put(x,y);
 
         // Set the animation and use parent properties of the cell

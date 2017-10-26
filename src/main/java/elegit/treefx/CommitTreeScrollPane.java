@@ -53,12 +53,11 @@ class CommitTreeScrollPane extends ScrollPane {
      */
     static void scrollTo(double pos){
         Main.assertFxThread();
-        if(pos < 0 || pos > numItems){
+        if(pos < 0 || pos >= numItems){
             vPos.setValue(DEFAULT_SCROLL_POS);
         }else{
-            double ratio = pos/numItems;
-            double offset = ratio >= 0.5 ? 1.0/numItems : -1.0/numItems;
-            vPos.setValue(1-(ratio+offset));
+            double ratio = pos/(numItems-1);
+            vPos.setValue(ratio);
         }
         vPos.setValue(-1.0);
     }

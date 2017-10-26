@@ -119,7 +119,6 @@ public class Main extends Application {
         primaryStage.setScene(scene);
         sessionController.setStage(primaryStage);
         startLatch.countDown();
-
         primaryStage.show();
 
         // Now finally start watching repositories
