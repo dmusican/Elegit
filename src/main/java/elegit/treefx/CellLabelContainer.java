@@ -36,7 +36,7 @@ public class CellLabelContainer extends GridPane {
     public void translate(double x, double y) {
         Main.assertFxThread();
         setTranslateX(x+BOX_SIZE+10);
-        setTranslateY(y+BOX_SIZE-this.getHeight()-2);
+        setTranslateY(y+BOX_SIZE);
     }
 
     /**

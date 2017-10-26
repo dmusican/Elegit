@@ -115,14 +115,14 @@ public class TreeLayout{
             Map<Integer,Integer> minRowUsedInCol = new ConcurrentHashMap<>();
             Set<Integer> movedCells = ConcurrentHashMap.newKeySet();
 
-            boolean firstTimeTreeLayout = treeGraphModel.checkAndFlipTreeLayoutDoneAtLeastOnce();
+            boolean treeLayoutDoneAtLeastOnce = treeGraphModel.checkAndFlipTreeLayoutDoneAtLeastOnce();
 
             // Compute the positions of cells recursively
-            //for (int i = allCells.size() - 1; i >= 0; i--) {
             for (int i = 0; i < allCells.size(); i++) {
                 computeCellPosition(allCells, minRowUsedInCol, movedCells,
-                        firstTimeTreeLayout, i);
+                        treeLayoutDoneAtLeastOnce, i);
             }
+
             // Once all cell's positions have been set, move them in a service
             CellMover mover = new CellMover(allCells);
 
@@ -168,7 +168,6 @@ public class TreeLayout{
 
             loadingCommits.setVisible(false);
             progressBar.setVisible(false);
-
         } catch (Exception e) {
             e.printStackTrace();
         }
