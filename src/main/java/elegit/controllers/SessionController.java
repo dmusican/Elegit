@@ -2213,7 +2213,7 @@ public class SessionController {
                     //.observeOn(Schedulers.io())
                     .doOnNext(u -> { synchronized (globalLock) {
                         RepositoryMonitor.pause();
-
+                        System.out.println("It's paused");
                         // If the layout is still going, don't run
 //                        if (commitTreePanelView.isLayoutThreadRunning) {
 //                            RepositoryMonitor.unpause();
@@ -2224,6 +2224,7 @@ public class SessionController {
                             commitTreeModel.update();
                             workingTreePanelView.drawDirectoryView();
                             allFilesPanelView.drawDirectoryView();
+                            System.out.println("I'm halfway through");
                             indexPanelView.drawDirectoryView();
                             this.theModel.getCurrentRepoHelper().getTagModel().updateTags();
                             updateStatusText();

@@ -81,7 +81,7 @@ public class RepositoryMonitor{
 
         remoteTimer.dispose();
         remoteTimer = Observable
-                .interval(0, REMOTE_CHECK_INTERVAL, TimeUnit.MILLISECONDS, Schedulers.io())
+                .interval(REMOTE_CHECK_INTERVAL, REMOTE_CHECK_INTERVAL, TimeUnit.MILLISECONDS, Schedulers.io())
                 .subscribe(i -> {
                     if (remoteHasNewChanges(repo))
                         setFoundNewChanges();
@@ -147,11 +147,11 @@ public class RepositoryMonitor{
     private static synchronized void beginWatchingLocal(){
         localTimer.dispose();
         localTimer = Observable
-                .interval(0, LOCAL_CHECK_INTERVAL, TimeUnit.MILLISECONDS, Schedulers.io())
+                .interval(LOCAL_CHECK_INTERVAL, LOCAL_CHECK_INTERVAL, TimeUnit.MILLISECONDS, Schedulers.io())
                 .observeOn(JavaFxScheduler.platform())
-                .subscribe();
+                //.subscribe();
                 // TODO: Get status back in here once I have it threaded right
-                //.subscribe(i -> controller.gitStatus());
+                .subscribe(i -> controller.gitStatus());
     }
 
     private static synchronized void stopWatchingLocal(){
