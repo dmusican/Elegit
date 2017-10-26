@@ -6,6 +6,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import elegit.exceptions.ExceptionAdapter;
 import elegit.exceptions.MissingRepoException;
 import elegit.exceptions.TagNameExistsException;
 import org.apache.http.annotation.ThreadSafe;
@@ -37,6 +38,7 @@ public class TagModel {
     public TagModel(RepoHelper repoHelper) {
         this.repoHelper = repoHelper;
         tagIdMap = new ConcurrentHashMap<>();
+        getAllLocalTags();
     }
 
     /**
@@ -110,7 +112,7 @@ public class TagModel {
      * @throws IOException
      * @throws GitAPIException
      */
-    private TagHelper makeTagHelper(Ref r, String tagName) throws IOException, GitAPIException {
+    private TagHelper makeTagHelper(Ref r, String tagName) {
         String commitName;
         boolean isAnnotated = false;
 
@@ -124,28 +126,32 @@ public class TagModel {
         CommitHelper c = this.repoHelper.getCommit(commitName);
         TagHelper t;
 
-        // If the commit that this tag points to isn't in the commitIdMap,
-        // then that commit has not yet been pushed, so warn the user
-        if (c == null) {
-            return null;
-        }
+        try {
+            // If the commit that this tag points to isn't in the commitIdMap,
+            // then that commit has not yet been pushed, so warn the user
+            if (c == null) {
+                return null;
+            }
 
-        // If it's not an annotated tag, we make a lightweight tag helper
-        if (!isAnnotated) {
-            t = new TagHelper(tagName, c);
-            c.addTag(t);
-        }
-        // Otherwise, the tag has a message and all the stuff a commit has
-        else {
-            ObjectReader objectReader = repoHelper.getRepo().newObjectReader();
-            ObjectLoader objectLoader = objectReader.open(r.getObjectId());
-            RevTag tag = RevTag.parse(objectLoader.getBytes());
-            objectReader.close();
-            t = new TagHelper(tag, c);
-            c.addTag(t);
-        }
-        if (!tagIdMap.containsKey(tagName)) {
-            tagIdMap.put(tagName, t);
+            // If it's not an annotated tag, we make a lightweight tag helper
+            if (!isAnnotated) {
+                t = new TagHelper(tagName, c);
+                c.addTag(t);
+            }
+            // Otherwise, the tag has a message and all the stuff a commit has
+            else {
+                ObjectReader objectReader = repoHelper.getRepo().newObjectReader();
+                ObjectLoader objectLoader = objectReader.open(r.getObjectId());
+                RevTag tag = RevTag.parse(objectLoader.getBytes());
+                objectReader.close();
+                t = new TagHelper(tag, c);
+                c.addTag(t);
+            }
+            if (!tagIdMap.containsKey(tagName)) {
+                tagIdMap.put(tagName, t);
+            }
+        } catch (IOException e) {
+            throw new ExceptionAdapter(e);
         }
         return t;
     }
@@ -184,7 +190,7 @@ public class TagModel {
      * @throws IOException
      * @throws GitAPIException
      */
-    public List<TagHelper> getAllLocalTags() throws IOException, GitAPIException {
+    public List<TagHelper> getAllLocalTags()  {
         Map<String, Ref> tagMap = this.repoHelper.getRepo().getTags();
         List<TagHelper> tags = new ArrayList<>();
         for (String s : tagMap.keySet()) {

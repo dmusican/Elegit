@@ -57,7 +57,7 @@ public class RepoHelper {
     private final Map<String, CommitHelper> commitIdMap = new ConcurrentHashMap<>();
     private final Map<ObjectId, String> idMap = new ConcurrentHashMap<>();
     private final AtomicReference<BranchModel> branchModel = new AtomicReference<>();
-    private final TagModel tagModel = new TagModel(this);
+    private final AtomicReference<TagModel> tagModel = new AtomicReference<>();
     private final AtomicBoolean hasRemoteRepo = new AtomicBoolean();
     private final AtomicReference<UsernamePasswordCredentialsProvider> ownerAuth = new AtomicReference<>();
 
@@ -165,7 +165,9 @@ public class RepoHelper {
 
     // Common setup tasks shared by constructors
     protected void setup() throws GitAPIException, IOException {
-        boolean nullAsExpected = branchModel.compareAndSet(null, new BranchModel(this));
+        boolean nullAsExpected;
+
+        nullAsExpected = branchModel.compareAndSet(null, new BranchModel(this));
         if (!nullAsExpected) {
             throw new IllegalStateException("branchModel in RepoHelper should not have been set a second time");
         }
@@ -176,6 +178,11 @@ public class RepoHelper {
         nullAsExpected = hasRemoteRepo.compareAndSet(false, !getLinkedRemoteRepoURLs().isEmpty());
         if (!nullAsExpected) {
             throw new IllegalStateException("hasRemoteRepo in RepoHelper should not have been set a second time");
+        }
+
+        nullAsExpected = tagModel.compareAndSet(null, new TagModel(this));
+        if (!nullAsExpected) {
+            throw new IllegalStateException("tagModel in RepoHelper should not have been set a second time");
         }
 
     }
@@ -196,7 +203,7 @@ public class RepoHelper {
         this.localCommits.set(this.parseAllLocalCommits());
         this.remoteCommits.set(this.parseAllRemoteCommits());
 
-        tagModel.updateTags();
+        tagModel.get().updateTags();
     }
 
     /**
@@ -622,7 +629,7 @@ public class RepoHelper {
 
         git.close();
 
-        this.tagModel.updateTags();
+        this.tagModel.get().updateTags();
 
         return pushResult;
     }
@@ -1387,7 +1394,7 @@ public class RepoHelper {
         List<RefHelper> helpers = new ArrayList<>();
         if (this.getBranchModel().getBranchesWithHead(helper).size() > 0)
             helpers.addAll(this.getBranchModel().getAllBranchHeads().get(helper));
-        Map<CommitHelper, List<TagHelper>> tagMap = this.tagModel.getTagCommitMap();
+        Map<CommitHelper, List<TagHelper>> tagMap = this.tagModel.get().getTagCommitMap();
         if (tagMap.containsKey(helper))
             helpers.addAll(tagMap.get(helper));
         return Collections.unmodifiableList(helpers);
@@ -1397,7 +1404,7 @@ public class RepoHelper {
         return this.branchModel.get();
     }
 
-    public TagModel getTagModel() { return this.tagModel; }
+    public TagModel getTagModel() { return this.tagModel.get(); }
 
 
     /**
