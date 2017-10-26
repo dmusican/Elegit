@@ -59,14 +59,14 @@ public class Edge extends Group {
         this.addedMidPoints = false;
 
         DoubleBinding endX = source.translateXProperty().add(source.widthProperty().divide(2.0));
-        DoubleBinding endY = source.translateYProperty().add(source.heightProperty());
+        DoubleBinding endY = source.translateYProperty().add(0);//source.heightProperty());
 
         DoubleBinding startX = target.translateXProperty().add(target.widthProperty().divide(2.0));
-        DoubleBinding startY = target.translateYProperty().add(0);
+        DoubleBinding startY = target.translateYProperty().add(source.heightProperty());
 
         path = new DirectedPath(startX, startY, endX, endY); // SLOW-ISH
         checkAndAddMidPoints(startY, endY);
-        path.addPoint(endX, endY.add(TreeLayout.V_SPACING / 4.));
+        path.addPoint(endX, endY.add(-TreeLayout.V_SPACING / 4.));
 
         source.translateXProperty().addListener((observable, oldValue, newValue) -> {
             checkAndAddMidPoints(startY, endY);
@@ -121,8 +121,8 @@ public class Edge extends Group {
         if(target.rowLocationProperty.get() - source.rowLocationProperty.get() > 1
                 || target.rowLocationProperty.get() - source.rowLocationProperty.get() < 0){
             if(!addedMidPoints){
-                path.addPoint(midLineX.add(0), startY.subtract(TreeLayout.V_SPACING/3.), 1);
-                path.addPoint(midLineX.add(0), endY.add(TreeLayout.V_SPACING/2.), 2);
+                path.addPoint(midLineX.add(0), startY.add(TreeLayout.V_SPACING/3.), 1);
+                path.addPoint(midLineX.add(0), endY.subtract(TreeLayout.V_SPACING/2.), 2);
                 this.addedMidPoints = true;
             }
         }else{
