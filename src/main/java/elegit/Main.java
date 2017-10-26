@@ -120,7 +120,6 @@ public class Main extends Application {
         sessionController.setStage(primaryStage);
         startLatch.countDown();
 
-        System.out.println("???? " + Platform.isSupported(ConditionalFeature.SCENE3D));
         primaryStage.show();
 
         // Now finally start watching repositories

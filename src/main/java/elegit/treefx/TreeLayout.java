@@ -113,7 +113,7 @@ public class TreeLayout{
 
             // Initialize variables
             Map<Integer,Integer> minRowUsedInCol = new ConcurrentHashMap<>();
-            List<Integer> movedCells = new ArrayList<>();
+            Set<Integer> movedCells = ConcurrentHashMap.newKeySet();
 
             boolean firstTimeTreeLayout = treeGraphModel.checkAndFlipTreeLayoutDoneAtLeastOnce();
 
@@ -178,7 +178,7 @@ public class TreeLayout{
      * @param ycoord position of cell to compute position for
      */
     private static void computeCellPosition(List<Cell> allCells, Map<Integer,Integer> minRowUsedInCol,
-                                            List<Integer> movedCells, boolean isInitialSetupFinished,
+                                            Set<Integer> movedCells, boolean isInitialSetupFinished,
                                             int ycoord) {
         // This method calls setCellPosition, which critically needs to happen on the FX thread. It also interacts
         // directly with cells. Perhaps other portions of this could be spun off, but for now, keeping it here.
@@ -215,7 +215,7 @@ public class TreeLayout{
      * @param x the new column of the cell
      * @param y the new row of the cell
      */
-    private static void setCellPosition(Cell c, Map<Integer, Integer> minRowUsedInCol, List<Integer> movedCells,
+    private static void setCellPosition(Cell c, Map<Integer, Integer> minRowUsedInCol, Set<Integer> movedCells,
                                         boolean isInitialSetupFinished, int x, int y) {
         // This must run on the FX thread, since it uses properties that FX thread values will automatically be
         // seeing.

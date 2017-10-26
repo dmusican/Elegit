@@ -2222,7 +2222,6 @@ public class SessionController {
                         try {
                             theModel.getCurrentRepoHelper().getBranchModel().updateAllBranches();
                             commitTreeModel.update();
-                            workingTreePanelView.showDebugOutput();
                             workingTreePanelView.drawDirectoryView();
                             allFilesPanelView.drawDirectoryView();
                             indexPanelView.drawDirectoryView();
