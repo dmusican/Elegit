@@ -259,7 +259,7 @@
 }
 
 .cell#tree-cell {
-    -fx-effect: -fx-dropshadow-up;
+    -fx-effect: -fx-dropshadow;
 }
 
 .invisCell {

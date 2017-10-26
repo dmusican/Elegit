@@ -118,8 +118,8 @@ public class Edge extends Group {
      */
     private void checkAndAddMidPoints(DoubleBinding startY, DoubleBinding endY){
         Main.assertFxThread();
-        if(target.rowLocationProperty.get() - source.rowLocationProperty.get() > 1
-                || target.rowLocationProperty.get() - source.rowLocationProperty.get() < 0){
+        if(source.rowLocationProperty.get() - target.rowLocationProperty.get() > 1
+                || source.rowLocationProperty.get() - target.rowLocationProperty.get() < 0){
             if(!addedMidPoints){
                 path.addPoint(midLineX.add(0), startY.add(TreeLayout.V_SPACING/3.), 1);
                 path.addPoint(midLineX.add(0), endY.subtract(TreeLayout.V_SPACING/2.), 2);
