@@ -118,7 +118,8 @@ public class TreeLayout{
             boolean firstTimeTreeLayout = treeGraphModel.checkAndFlipTreeLayoutDoneAtLeastOnce();
 
             // Compute the positions of cells recursively
-            for (int i = allCells.size() - 1; i >= 0; i--) {
+            //for (int i = allCells.size() - 1; i >= 0; i--) {
+            for (int i = 0; i < allCells.size(); i++) {
                 computeCellPosition(allCells, minRowUsedInCol, movedCells,
                         firstTimeTreeLayout, i);
             }
@@ -175,11 +176,11 @@ public class TreeLayout{
 
     /**
      * Helper method that computes the cell position for a given cell and its parents (oldest to newest), recursively
-     * @param ycoord position of cell to compute position for
+     * @param cellIndex position of cell to compute position for
      */
     private static void computeCellPosition(List<Cell> allCells, Map<Integer,Integer> minRowUsedInCol,
                                             Set<Integer> movedCells, boolean isInitialSetupFinished,
-                                            int ycoord) {
+                                            int cellIndex) {
         // This method calls setCellPosition, which critically needs to happen on the FX thread. It also interacts
         // directly with cells. Perhaps other portions of this could be spun off, but for now, keeping it here.
         Main.assertFxThread();
@@ -188,11 +189,12 @@ public class TreeLayout{
 
         while (!done) {
             // Don't try to compute a new position if the cell has already been moved
+            int ycoord = cellIndex; //allCells.size() - 1 - cellIndex;
             if (movedCells.contains(ycoord))
                 return;
 
             // Get cell at the inputted position
-            Cell c = allCells.get(allCells.size() - 1 - ycoord);
+            Cell c = allCells.get(cellIndex);
 
             int xcoord = getXCoordFromYCoord(minRowUsedInCol, ycoord);
             System.out.println("ycoord = " + ycoord + " " + c + " xcoord = " + xcoord);
@@ -208,7 +210,7 @@ public class TreeLayout{
                     done = true;
                     break;
                 }
-                ycoord = allCells.size() - 1 - allCells.indexOf(parent);
+                cellIndex = allCells.indexOf(parent);
                 break;
             }
         }
@@ -327,7 +329,7 @@ public class TreeLayout{
     private static int getXCoordFromYCoord(Map<Integer, Integer> minRowUsedInCol, int ycoord){
         //Main.assertNotFxThread();
         int xcoord = 0;
-        while(minRowUsedInCol.containsKey(xcoord) && (minRowUsedInCol.get(xcoord) < ycoord)){
+        while(minRowUsedInCol.containsKey(xcoord) && (minRowUsedInCol.get(xcoord) > ycoord)){
             xcoord++;
         }
         return xcoord;
