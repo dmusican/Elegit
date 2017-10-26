@@ -110,8 +110,8 @@ public class CellLabelContainer extends GridPane {
         // We rotate the labels because it's more efficient than having our tree
         // upside down and moving everything around often.
         this.setMaxHeight(20);
-        this.setRotationAxis(Rotate.X_AXIS);
-        this.setRotate(180);
+        //this.setRotationAxis(Rotate.X_AXIS);
+        //this.setRotate(180);
         this.visibleProperty().bind(cell.visibleProperty());
 
         getChildren().clear();

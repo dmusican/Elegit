@@ -1,20 +1,17 @@
 package elegit.treefx;
 
 import elegit.Main;
-import javafx.application.Platform;
 import javafx.beans.property.*;
-import javafx.concurrent.Task;
-import javafx.geometry.Pos;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
-import javafx.scene.transform.Rotate;
 import org.apache.http.annotation.ThreadSafe;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -115,7 +112,7 @@ public class TreeLayout{
                 sortListOfCells(allCells);
 
             // Initialize variables
-            List<Integer> minRowUsedInCol = new ArrayList<>();
+            Map<Integer,Integer> minRowUsedInCol = new ConcurrentHashMap<>();
             List<Integer> movedCells = new ArrayList<>();
 
             boolean firstTimeTreeLayout = treeGraphModel.checkAndFlipTreeLayoutDoneAtLeastOnce();
@@ -138,28 +135,28 @@ public class TreeLayout{
             Text loadingCommits = new Text("Loading commits ");
             loadingCommits.setFont(new Font(14));
             VBox loading = new VBox(loadingCommits, progressBar);
-            loading.setPickOnBounds(false);
-            loading.setAlignment(Pos.CENTER);
-            loading.setSpacing(5);
-            loading.layoutYProperty().bind(viewportY);
-            loading.layoutXProperty().bind(viewportX);
-            loading.setRotationAxis(Rotate.X_AXIS);
-            loading.setRotate(180);
+//            loading.setPickOnBounds(false);
+//            loading.setAlignment(Pos.CENTER);
+//            loading.setSpacing(5);
+//            loading.layoutYProperty().bind(viewportY);
+//            loading.layoutXProperty().bind(viewportX);
+            //loading.setRotationAxis(Rotate.X_AXIS);
+//            loading.setRotate(180);
             // TODO: Put loading bar back in. It's out because it's not appearing anyway without threads currently,...
             // and also because it was messing up the top portion of the screen where the commits were supposed to go.
             //cellLayer.getChildren().add(loading);
 
-            sp.vvalueProperty().addListener(((observable, oldValue, newValue) -> {
-                viewportY.set(cellLayer.getLayoutBounds().getHeight()-((double) newValue * cellLayer.getLayoutBounds().getHeight() +
-                        (0.5 - (double) newValue) * sp.getViewportBounds().getHeight()));
-            }));
-
-            sp.viewportBoundsProperty().addListener(((observable, oldValue, newValue) -> {
-                viewportX.set(sp.getViewportBounds().getWidth() - loading.getWidth() - 35);
-                viewportY.set(cellLayer.getLayoutBounds().getHeight()
-                        - (sp.getVvalue() * cellLayer.getLayoutBounds().getHeight()
-                        + (0.5 - sp.getVvalue()) * sp.getViewportBounds().getHeight()));
-            }));
+//            sp.vvalueProperty().addListener(((observable, oldValue, newValue) -> {
+//                viewportY.set(cellLayer.getLayoutBounds().getHeight()-((double) newValue * cellLayer.getLayoutBounds().getHeight() +
+//                        (0.5 - (double) newValue) * sp.getViewportBounds().getHeight()));
+//            }));
+//
+//            sp.viewportBoundsProperty().addListener(((observable, oldValue, newValue) -> {
+//                viewportX.set(sp.getViewportBounds().getWidth() - loading.getWidth() - 35);
+//                viewportY.set(cellLayer.getLayoutBounds().getHeight()
+//                        - (sp.getVvalue() * cellLayer.getLayoutBounds().getHeight()
+//                        + (0.5 - sp.getVvalue()) * sp.getViewportBounds().getHeight()));
+//            }));
             //********************** Loading Bar End **********************
 
             while (!Main.isAppClosed.get() && movingCells.get() && mover.currentCell < allCells.size() - 1) {
@@ -178,24 +175,24 @@ public class TreeLayout{
 
     /**
      * Helper method that computes the cell position for a given cell and its parents (oldest to newest), recursively
-     * @param cellPosition position of cell to compute position for
+     * @param ycoord position of cell to compute position for
      */
-    private static void computeCellPosition(List<Cell> allCells, List<Integer> minRowUsedInCol,
+    private static void computeCellPosition(List<Cell> allCells, Map<Integer,Integer> minRowUsedInCol,
                                             List<Integer> movedCells, boolean isInitialSetupFinished,
-                                            int cellPosition) {
+                                            int ycoord) {
         // This method calls setCellPosition, which critically needs to happen on the FX thread. It also interacts
         // directly with cells. Perhaps other portions of this could be spun off, but for now, keeping it here.
         Main.assertFxThread();
 
         // Don't try to compute a new position if the cell has already been moved
-        if (movedCells.contains(cellPosition))
+        if (movedCells.contains(ycoord))
             return;
 
         // Get cell at the inputted position
-        Cell c = allCells.get(allCells.size()-1-cellPosition);
+        Cell c = allCells.get(allCells.size()-1-ycoord);
 
-        setCellPosition(c, minRowUsedInCol, movedCells, isInitialSetupFinished,
-                getColumnOfCellInRow(minRowUsedInCol, cellPosition), cellPosition);
+        int xcoord = getXCoordFromYCoord(minRowUsedInCol, ycoord);
+        setCellPosition(c, minRowUsedInCol, movedCells, isInitialSetupFinished, xcoord, ycoord);
 
         // Update the reserved columns in rows with the cells parents, oldest to newest
         List<Cell> list = new ArrayList<>(c.getCellParents());
@@ -218,7 +215,7 @@ public class TreeLayout{
      * @param x the new column of the cell
      * @param y the new row of the cell
      */
-    private static void setCellPosition(Cell c, List<Integer> minRowUsedInCol, List<Integer> movedCells,
+    private static void setCellPosition(Cell c, Map<Integer, Integer> minRowUsedInCol, List<Integer> movedCells,
                                         boolean isInitialSetupFinished, int x, int y) {
         // This must run on the FX thread, since it uses properties that FX thread values will automatically be
         // seeing.
@@ -235,10 +232,7 @@ public class TreeLayout{
         boolean willCellMove = oldColumnLocation != x || oldRowLocation != y;
 
         // Update where the cell has been placed
-        if (x >= minRowUsedInCol.size())
-            minRowUsedInCol.add(y);
-        else
-            minRowUsedInCol.set(x, y);
+        minRowUsedInCol.put(x,y);
 
         // Set the animation and use parent properties of the cell
         c.setAnimate(isInitialSetupFinished && willCellMove);
@@ -319,16 +313,16 @@ public class TreeLayout{
      * Calculates the column closest to the left of the screen to place the
      * given cell based on the cell's row and the heights of each column so far
      * @param minRowUsedInCol the map of max rows used in each column
-     * @param cellRow the row the cell to examine is in
+     * @param ycoord the row the cell to examine is in
      * @return the lowest indexed row in which to place c
      */
-    private static int getColumnOfCellInRow(List<Integer> minRowUsedInCol, int cellRow){
+    private static int getXCoordFromYCoord(Map<Integer, Integer> minRowUsedInCol, int ycoord){
         //Main.assertNotFxThread();
-        int col = 0;
-        while(minRowUsedInCol.size() > col && (cellRow > minRowUsedInCol.get(col))){
-            col++;
+        int xcoord = 0;
+        while(minRowUsedInCol.containsKey(xcoord) && (ycoord > minRowUsedInCol.get(xcoord))){
+            xcoord++;
         }
-        return col;
+        return xcoord;
     }
 
     /**

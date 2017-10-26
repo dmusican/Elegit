@@ -5,6 +5,7 @@ import elegit.controllers.SessionController;
 import elegit.monitors.RepositoryMonitor;
 import io.reactivex.disposables.CompositeDisposable;
 import javafx.application.Application;
+import javafx.application.ConditionalFeature;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Rectangle2D;
@@ -119,7 +120,7 @@ public class Main extends Application {
         sessionController.setStage(primaryStage);
         startLatch.countDown();
 
-
+        System.out.println("???? " + Platform.isSupported(ConditionalFeature.SCENE3D));
         primaryStage.show();
 
         // Now finally start watching repositories

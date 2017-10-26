@@ -43,8 +43,8 @@ public class TreeGraph{
         this.treeGraphModel = m;
 
         cellLayer = new Pane();
-        cellLayer.setRotationAxis(Rotate.X_AXIS);
-        cellLayer.setRotate(180);
+        //cellLayer.setRotationAxis(Rotate.X_AXIS);
+        //cellLayer.setRotate(180);
         cellLayer.setPadding(new Insets(0,0,Cell.BOX_SIZE+TreeLayout.V_PAD,0));
         cellLayer.boundsInLocalProperty().addListener((observable, oldValue, newValue) -> cellLayer.setMinWidth(newValue.getMaxX()));
 
