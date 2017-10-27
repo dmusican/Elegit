@@ -12,7 +12,9 @@ import io.reactivex.rxjavafx.schedulers.JavaFxScheduler;
 import io.reactivex.schedulers.Schedulers;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import org.apache.http.annotation.GuardedBy;
 import org.apache.http.annotation.ThreadSafe;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -22,6 +24,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * A class that creates a thread to watch the current remote repository for new changes
@@ -36,6 +39,11 @@ public class RepositoryMonitor{
     // Whether there are new remote changes
     public static final BooleanProperty hasFoundNewRemoteChanges = new SimpleBooleanProperty(false);
 
+    // Used purely for unit testing
+    private static final AtomicInteger numRemoteChecks = new AtomicInteger();
+    private static final AtomicInteger numLocalChecks = new AtomicInteger();
+
+
     @GuardedBy("this") private static int pauseCounter = 0;
     @GuardedBy("this") private static Disposable remoteTimer = Observable.empty().subscribe();
     @GuardedBy("this") private static Disposable localTimer = Observable.empty().subscribe();
@@ -47,13 +55,8 @@ public class RepositoryMonitor{
         initRemote();
     }
 
-    // For unit testing purposes only
     public synchronized static void initRemote() {
-        // An FX property is being accessed, so essential this is done in FX thread
-        Main.assertFxThread();
-        SessionModel.getSessionModel().getCurrentRepoHelperProperty().addListener(
-                (observable, oldValue, newValue) -> watchRepoForRemoteChanges(newValue)
-        );
+        SessionModel.getSessionModel().subscribeToOpenedRepos(RepositoryMonitor::watchRepoForRemoteChanges);
         beginWatchingRemote();
     }
 
@@ -78,11 +81,11 @@ public class RepositoryMonitor{
         if(repo == null || !repo.exists() || !repo.hasRemote()) {
             return;
         }
-
         remoteTimer.dispose();
         remoteTimer = Observable
-                .interval(REMOTE_CHECK_INTERVAL, REMOTE_CHECK_INTERVAL, TimeUnit.MILLISECONDS, Schedulers.io())
+                .interval(0, REMOTE_CHECK_INTERVAL, TimeUnit.MILLISECONDS, Schedulers.io())
                 .subscribe(i -> {
+                    numRemoteChecks.getAndIncrement();
                     if (remoteHasNewChanges(repo))
                         setFoundNewChanges();
                 });
@@ -148,9 +151,11 @@ public class RepositoryMonitor{
         localTimer.dispose();
         localTimer = Observable
                 .interval(LOCAL_CHECK_INTERVAL, LOCAL_CHECK_INTERVAL, TimeUnit.MILLISECONDS, Schedulers.io())
+                .doOnNext(i -> numLocalChecks.getAndIncrement())
                 .observeOn(JavaFxScheduler.platform())
                 //.subscribe();
                 // TODO: Get status back in here once I have it threaded right
+                // TODO: This is still really messy; it calls gitStatus, which pauses, which starts up again...
                 .subscribe(i -> controller.gitStatus());
     }
 
@@ -179,5 +184,13 @@ public class RepositoryMonitor{
     public static synchronized void disposeTimers() {
         localTimer.dispose();
         remoteTimer.dispose();
+    }
+
+    public static int getNumRemoteChecks() {
+        return numRemoteChecks.get();
+    }
+
+    public static int getNumLocalChecks() {
+        return numLocalChecks.get();
     }
 }

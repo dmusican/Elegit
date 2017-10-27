@@ -214,12 +214,13 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
 
     }
 
+    // This method accesses no shared memory at all, and all calls within are threadsafe; hence
+    // this does not actually have to run on the FX thread.
     public static RepoHelper cloneRepositoryWithChecks(String remoteURL, Path destinationPath,
                                                 RepoHelperBuilder.AuthDialogResponse response,
                                                 UserInfo userInfo)
             throws GitAPIException, IOException, CancelledAuthorizationException, NoRepoSelectedException {
 
-        Main.assertFxThread();
         // Always use authentication. If authentication is unneeded (HTTP), it will still work even if the wrong
         // username password is used. This is what Eclipse does; in fact, it asks for username/password in the
         // same dialog box that the URL is entered.

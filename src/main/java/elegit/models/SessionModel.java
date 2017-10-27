@@ -4,6 +4,11 @@ import elegit.Main;
 import elegit.monitors.ConflictingFileWatcher;
 import elegit.repofile.*;
 import elegit.sshauthentication.ElegitUserInfoGUI;
+import io.reactivex.Observer;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Consumer;
+import io.reactivex.subjects.PublishSubject;
+import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import elegit.exceptions.CancelledAuthorizationException;
@@ -25,7 +30,14 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -38,7 +50,7 @@ import java.util.stream.Stream;
  * in the session and lets the user switch between repos.
  */
 @ThreadSafe
-// at least with regards to memory. Should be thought throught with respect to working tree git operations.
+// at least with regards to memory. Should be thought through with respect to working tree git operations.
 public class SessionModel {
 
     // Keys for preferences recall
@@ -48,10 +60,11 @@ public class SessionModel {
     @GuardedBy("this") private final List<RepoHelper> allRepoHelpers;
     private static final Logger logger = LogManager.getLogger();
     private final AtomicReference<RepoHelper> currentRepoHelper = new AtomicReference<>();
-    private final ObjectProperty<RepoHelper> currentRepoHelperProperty = new SimpleObjectProperty<>();
+    //private final ObjectProperty<RepoHelper> currentRepoHelperProperty = new SimpleObjectProperty<>();
     private static final AtomicInteger constructorCount = new AtomicInteger();
     private final static AtomicReference<SessionModel> sessionModel = new AtomicReference<>();
     private final Preferences preferences;
+    private final PublishSubject<RepoHelper> openedRepos = PublishSubject.create();
 
 
     /**
@@ -120,7 +133,6 @@ public class SessionModel {
      * Uses the Java Preferences API (wrapped in IBM's PrefObj class) to load the repo.
      */
     public void loadMostRecentRepoHelper() {
-        Main.assertFxThread();
         try{
             String lastOpenedRepoPathString = (String) PrefObj.getObject(
                     preferences, LAST_OPENED_REPO_PATH_KEY
@@ -168,17 +180,20 @@ public class SessionModel {
      *
      * @param repoHelper the repository to open
      */
-    // synchronized for allRepoHelpers
+    // synchronized for allRepoHelpers, and openedRepos
     private synchronized void openRepo(RepoHelper repoHelper) throws BackingStoreException, IOException, ClassNotFoundException {
-        // An FX property is being set, so essential this is done in FX thread
-        Main.assertFxThread();
         if(!this.allRepoHelpers.contains(repoHelper)) {
             this.allRepoHelpers.add(repoHelper);
         }
         this.currentRepoHelper.set(repoHelper);
-        currentRepoHelperProperty.set(this.currentRepoHelper.get());
         this.saveListOfRepoPathStrings();
         this.saveMostRecentRepoPathString();
+
+        openedRepos.onNext(this.currentRepoHelper.get());
+    }
+
+    public synchronized void subscribeToOpenedRepos(Consumer<RepoHelper> consumer) {
+        openedRepos.subscribe(consumer);
     }
 
     /**
@@ -601,11 +616,6 @@ public class SessionModel {
         sessionModel.set(new SessionModel());
     }
 
-    public ObjectProperty<RepoHelper> getCurrentRepoHelperProperty() {
-        // Accesses FX property, so should be on FX thread
-        Main.assertFxThread();
-        return currentRepoHelperProperty;
-    }
 
 
 }

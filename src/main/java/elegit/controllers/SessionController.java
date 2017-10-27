@@ -2459,6 +2459,8 @@ public class SessionController {
 
     void showGenericErrorNotification() {
         Platform.runLater(()-> {
+            System.out.println("I am dumping");
+            Thread.dumpStack();
             logger.warn("Generic error warning.");
             notificationPaneController.addNotification("Sorry, there was an error.");
         });

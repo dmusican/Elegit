@@ -63,7 +63,6 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception{
-
         // -----------------------Logging Initialization Start---------------------------
         logPath = Paths.get("logs");
         String s = logPath.toAbsolutePath().toString();

@@ -1,9 +1,10 @@
-package elegit;
+package elegitfx;
 
 import elegit.controllers.SessionController;
 import elegit.models.ClonedRepoHelper;
 import elegit.models.CommitHelper;
 import elegit.models.SessionModel;
+import elegit.monitors.RepositoryMonitor;
 import elegit.treefx.Cell;
 import elegit.treefx.CommitTreeModel;
 import javafx.application.Platform;
@@ -23,6 +24,7 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.testfx.api.FxToolkit;
 import org.testfx.framework.junit.ApplicationTest;
 
 import java.io.File;
@@ -51,25 +53,25 @@ public class CommitLabelTestFX extends ApplicationTest {
     private Path repoPath;
     private ClonedRepoHelper helper;
 
-    private FXMLLoader fxmlLoader;
 
     private SessionController sessionController;
 
     @Override
     public void start(Stage stage) throws Exception {
-        fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/MainView.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/MainView.fxml"));
         fxmlLoader.load();
         sessionController = fxmlLoader.getController();
         BorderPane root = fxmlLoader.getRoot();
         Rectangle2D primScreenBounds = Screen.getPrimary().getVisualBounds();
         int screenWidth = (int) primScreenBounds.getWidth();
         int screenHeight = (int) primScreenBounds.getHeight();
-        Scene scene = new Scene(root, screenWidth * 4 / 5, screenHeight * 4 / 5);
+        Scene scene = new Scene(root);
         stage.setScene(scene);
+        System.out.println("Showing stage");
         stage.show();
         /* Do not forget to put the GUI in front of windows. Otherwise, the robots may interact with another
         window, the one in front of all the windows... */
-        stage.toFront();
+        //stage.toFront();
 
         // Clone the testing repo into a temporary location
         this.directoryPath = Files.createTempDirectory("commitLabelTestRepos");
@@ -90,16 +92,10 @@ public class CommitLabelTestFX extends ApplicationTest {
         commitTreeModel.init();
 
         testAddFileAndCommit();
-    }
 
-    @Before
-    public void setUp() throws Exception {
-    }
-
-    @After
-    public void tearDown() throws Exception {
         // Delete the cloned files.
         removeAllFilesFromDirectory(this.directoryPath.toFile());
+
     }
 
     // Helper tear-down method:
@@ -110,14 +106,29 @@ public class CommitLabelTestFX extends ApplicationTest {
         }
     }
 
+    @After
+    public void tearDown() throws Exception {
+        FxToolkit.hideStage();
+        FxToolkit.cleanupStages();
+    }
+
 
     @Test
+    // Dummy test to get something to run. This test really all happens in start, so just need to have a test
+    // to get it going.
     public void test1() {
         assertEquals(1, 1);
     }
 
-    public void testAddFileAndCommit() throws Exception {
 
+    @Test
+    // Dummy test to get something to run. This test really all happens in start, so just need to have a test
+    // to get it going.
+    public void test2() {
+        assertEquals(1, 1);
+    }
+
+    public void testAddFileAndCommit() throws Exception {
         // Make sure both "master" and "origin/master" labels are on the inital commit
         testCellLabelContainsMaster(commitTreeModel, INITIAL_COMMIT_ID, true, true);
 
@@ -154,6 +165,7 @@ public class CommitLabelTestFX extends ApplicationTest {
 
         this.helper.addFilePathTest(file.toPath());
         this.helper.commit("Modified file.txt in a unit test again!");
+        sessionController.gitStatus();
 
         // Get the information about this new commit
         String oldHeadID = newHeadID;
@@ -161,6 +173,7 @@ public class CommitLabelTestFX extends ApplicationTest {
         assertNotNull(newHead);
         newHeadID = newHead.getName();
         assertNotEquals(oldHeadID, newHeadID);
+
 
         // Check the labels on every commit again
         this.testCellLabelContainsMaster(commitTreeModel, newHeadID, true, false);
