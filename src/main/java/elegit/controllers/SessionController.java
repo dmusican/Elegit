@@ -562,7 +562,6 @@ public class SessionController {
      * Initializes each panel of the view
      */
     public synchronized void initPanelViews() {
-        System.out.println("doing it");
         try {
             workingTreePanelView.drawDirectoryView();
             allFilesPanelView.drawDirectoryView();

@@ -47,9 +47,10 @@ public class CommitTreeScrollPane extends ScrollPane {
         double value = DEFAULT_SCROLL_POS;
         if (pos >= 0 && pos < numItems) {
             double ratio = pos/(numItems-1);
-            System.out.println(ratio);
             value = ratio;
         }
+        CommitTreeModel.getCommitTreeModel().getTreeGraph().getScrollPane().applyCss();
+        CommitTreeModel.getCommitTreeModel().getTreeGraph().getScrollPane().layout();
         CommitTreeModel.getCommitTreeModel().getTreeGraph().getScrollPane().setVvalue(value);
     }
 }
