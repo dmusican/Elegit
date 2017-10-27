@@ -15,7 +15,7 @@ import org.apache.http.annotation.ThreadSafe;
 @ThreadSafe
 // but critically only because of all the asserts requiring this be done only in the FX thread. Without that, it
 // isn't threadsafe, not least because of the bindings / listeners that are done.
-class CommitTreeScrollPane extends ScrollPane {
+public class CommitTreeScrollPane extends ScrollPane {
 
     private final static double DEFAULT_SCROLL_POS = 1.0;
 
@@ -25,18 +25,9 @@ class CommitTreeScrollPane extends ScrollPane {
     // The number of horizontally arranged items present in the scroll panes
     private static int numItems = 1;
 
-    private static final DoubleProperty vPos = new SimpleDoubleProperty(-1.0);
-
     CommitTreeScrollPane(Node node) {
         super(node);
         Main.assertFxThread();
-
-        vPos.addListener((observable, oldValue, newValue) -> {
-            if (newValue.doubleValue() != -1) {
-                double value = newValue.doubleValue()>1 ? 1 : newValue.doubleValue();
-                this.vvalueProperty().setValue(value);
-            }
-        });
 
         NumItemsProperty.addListener((observable, oldValue, newValue) -> numItems = newValue.intValue());
     }
@@ -51,14 +42,14 @@ class CommitTreeScrollPane extends ScrollPane {
      * @param pos the horizontal position to scroll to when compared as a ratio
      *            to numItems
      */
-    static void scrollTo(double pos){
+    public static void scrollTo(double pos){
         Main.assertFxThread();
-        if(pos < 0 || pos >= numItems){
-            vPos.setValue(DEFAULT_SCROLL_POS);
-        }else{
+        double value = DEFAULT_SCROLL_POS;
+        if (pos >= 0 && pos < numItems) {
             double ratio = pos/(numItems-1);
-            vPos.setValue(ratio);
+            System.out.println(ratio);
+            value = ratio;
         }
-        vPos.setValue(-1.0);
+        CommitTreeModel.getCommitTreeModel().getTreeGraph().getScrollPane().setVvalue(value);
     }
 }

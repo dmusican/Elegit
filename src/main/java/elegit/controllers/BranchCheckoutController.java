@@ -34,8 +34,6 @@ import java.util.List;
 public class BranchCheckoutController {
 
     // All FXML variables are not threadsafe. Only access them from within the FX thread.
-    // TODO: Make sure that RemoteBranchHelper is threadsafe
-    // TODO: Make sure that LocalBranchHelper is threadsafe
     @FXML private ListView<RemoteBranchHelper> remoteListView;
     @FXML private ListView<LocalBranchHelper> localListView;
     @FXML private AnchorPane anchorRoot;
@@ -50,7 +48,6 @@ public class BranchCheckoutController {
     private final SessionModel sessionModel;
     private final RepoHelper repoHelper;
     private final BranchModel branchModel;
-    // TODO: Make sure that CommitTreeController is threadsafe
     private final CommitTreeModel localCommitTreeModel;
 
 

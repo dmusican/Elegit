@@ -561,7 +561,8 @@ public class SessionController {
     /**
      * Initializes each panel of the view
      */
-    private synchronized void initPanelViews() {
+    public synchronized void initPanelViews() {
+        System.out.println("doing it");
         try {
             workingTreePanelView.drawDirectoryView();
             allFilesPanelView.drawDirectoryView();
@@ -1829,8 +1830,6 @@ public class SessionController {
      */
     private List<Result> gitFetch(Optional<RepoHelperBuilder.AuthDialogResponse> responseOptional, boolean prune, boolean pull) {
         synchronized(globalLock) {
-            Main.assertNotFxThread();
-
             List<Result> results = new ArrayList<>();
             try {
                 RepositoryMonitor.resetFoundNewChanges();
@@ -2205,7 +2204,6 @@ public class SessionController {
             //Main.assertFxThread();
 
             Observable.just(1)
-                    .doOnNext(o -> System.out.println("starting git status"))
                     //.doOnNext(u -> BusyWindow.show())
                     //.doOnNext(u -> BusyWindow.setLoadingText("Git status..."))
 
@@ -2213,7 +2211,6 @@ public class SessionController {
                     //.observeOn(Schedulers.io())
                     .doOnNext(u -> { synchronized (globalLock) {
                         RepositoryMonitor.pause();
-                        System.out.println("It's paused");
                         // If the layout is still going, don't run
 //                        if (commitTreePanelView.isLayoutThreadRunning) {
 //                            RepositoryMonitor.unpause();
@@ -2224,7 +2221,6 @@ public class SessionController {
                             commitTreeModel.update();
                             workingTreePanelView.drawDirectoryView();
                             allFilesPanelView.drawDirectoryView();
-                            System.out.println("I'm halfway through");
                             indexPanelView.drawDirectoryView();
                             this.theModel.getCurrentRepoHelper().getTagModel().updateTags();
                             updateStatusText();
@@ -2239,7 +2235,6 @@ public class SessionController {
 
                     }})
 
-                    .doOnNext(o -> System.out.println("ending git status"))
                     .observeOn(JavaFxScheduler.platform())
                     //.doOnNext(u -> BusyWindow.hide())
                     .subscribe(u -> {}, Throwable::printStackTrace);

@@ -26,11 +26,10 @@ public class BusyWindow {
         Main.assertFxThread();
         Stage window = new Stage();
 
-        // TODO: Verify that this window fix works on Windows and Mac
-//        window.setMaxHeight(200);
-//        window.setMaxWidth(300);
-//        window.setMinHeight(200);
-//        window.setMinWidth(300);
+        window.setMaxHeight(200);
+        window.setMaxWidth(300);
+        window.setMinHeight(200);
+        window.setMinWidth(300);
 
         window.initStyle(StageStyle.UNDECORATED);
         window.initModality(Modality.APPLICATION_MODAL);
