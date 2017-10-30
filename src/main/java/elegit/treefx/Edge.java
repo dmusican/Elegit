@@ -38,7 +38,7 @@ public class Edge extends Group {
     private final Cell target;
 
     // The path that will be drawn to represent this edge
-    private final DirectedPath path;
+    public final DirectedPath path;
 
     // Whether extra points between the start and endpoints have been added
     private boolean addedMidPoints;

@@ -77,10 +77,16 @@ public class TreeGraph{
         final List<Node> queuedToRemove = new ArrayList<>();
 
         queuedToRemove.addAll(treeGraphModel.getRemovedCells());
-        queuedToRemove.addAll(treeGraphModel.getRemovedEdges());
+//        queuedToRemove.addAll(treeGraphModel.getRemovedEdges());
+        for (Edge edge : treeGraphModel.getRemovedEdges()) {
+            queuedToRemove.add(edge.path);
+        }
 
         queuedToAdd.addAll(treeGraphModel.getAddedCells());
-        queuedToAdd.addAll(treeGraphModel.getAddedEdges());
+        //queuedToAdd.addAll(treeGraphModel.getAddedEdges());
+        for (Edge edge : treeGraphModel.getAddedEdges()) {
+            queuedToAdd.add(edge.path);
+        }
 
         // merge added & removed cells with all cells
         treeGraphModel.merge();
@@ -95,12 +101,20 @@ public class TreeGraph{
                     moreToAdd.add(labels);
                 }
             }
+//            if (n instanceof Edge) {
+//                moreToAdd.add(((Edge) n).path.arrow);
+//                moreToAdd.add(((Edge) n).path.path);
+//            }
         }
 
         // remove components from treeGraph pane
         for (Node n:queuedToRemove) {
             if (n instanceof Cell)
                 moreToRemove.add(((Cell)n).getLabel());
+//            if (n instanceof Edge) {
+//                moreToRemove.add(((Edge) n).path.arrow);
+//                moreToRemove.add(((Edge) n).path.path);
+//            }
         }
 
         // Emit 10 at a time, so as to leave space in the FX thread for other events, but not individually

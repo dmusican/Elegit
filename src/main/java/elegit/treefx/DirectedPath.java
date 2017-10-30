@@ -26,8 +26,8 @@ public class DirectedPath extends Group{
     // The length of the arrow
     private static final IntegerProperty ARROW_LENGTH = new SimpleIntegerProperty(Cell.BOX_SIZE / 3);
 
-    private Path arrow;
-    private Path path;
+    public Path arrow;
+    public Path path;
 
     /**
      * Constructs and binds the appropriate properties for the line and
