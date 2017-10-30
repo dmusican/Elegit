@@ -48,10 +48,7 @@ public class TreeGraph{
         cellLayer.setPadding(new Insets(0,0,Cell.BOX_SIZE+TreeLayout.V_PAD,0));
         cellLayer.boundsInLocalProperty().addListener((observable, oldValue, newValue) -> cellLayer.setMinWidth(newValue.getMaxX()));
 
-        // Reason for Group explained here:
-        // https://docs.oracle.com/javase/8/javafx/api/javafx/scene/control/ScrollPane.html
-        // Without the Group, doesn't always layout ScrollPane correctly
-        scrollPane = new CommitTreeScrollPane(new Group(cellLayer));
+        scrollPane = new CommitTreeScrollPane(cellLayer);
 
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
         scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);

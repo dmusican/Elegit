@@ -51,6 +51,15 @@ public class CommitTreeScrollPane extends ScrollPane {
             double ratio = pos/(numItems-1);
             value = ratio;
         }
+        // The below-code is necessary to get the scroll pane layout to kick in before scrolling it to the right
+        // position. The reason is explained here, after a fashion, where it talks about the need for a Group:
+        // https://docs.oracle.com/javase/8/javafx/api/javafx/scene/control/ScrollPane.html
+        // Wrapping the cell pane in a group, like this:
+        // scrollPane = new CommitTreeScrollPane(new Group(cellLayer));
+        // ... in TreeGraph.java works great and avoids the hack below, but kills performance dramatically.
+        CommitTreeModel.getCommitTreeModel().getTreeGraph().getScrollPane().applyCss();
+        CommitTreeModel.getCommitTreeModel().getTreeGraph().getScrollPane().layout();
+
         CommitTreeModel.getCommitTreeModel().getTreeGraph().getScrollPane().setVvalue(value);
     }
 }

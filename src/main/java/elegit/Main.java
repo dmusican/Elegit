@@ -121,6 +121,7 @@ public class Main extends Application {
         sessionController.setStage(primaryStage);
         startLatch.countDown();
         long startTime = System.currentTimeMillis();
+        System.out.println("About to render...");
         primaryStage.show();
         System.out.println("Time to render: " + (System.currentTimeMillis()-startTime));
 

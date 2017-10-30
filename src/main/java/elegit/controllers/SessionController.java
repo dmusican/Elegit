@@ -2199,6 +2199,7 @@ public class SessionController {
     //                 if(!pauseLocalMonitor && SessionModel.getSessionModel().getCurrentRepoHelper() != null &&
     //                    SessionModel.getSessionModel().getCurrentRepoHelper().exists()){
         public synchronized void gitStatus() {
+            System.out.println("git status");
             //Main.assertFxThread();
 
             Observable.just(1)
