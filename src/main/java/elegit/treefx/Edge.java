@@ -25,10 +25,7 @@ import org.apache.http.annotation.ThreadSafe;
 @ThreadSafe
 // but critically only because of all the asserts requiring this be done only in the FX thread. Without that, it
 // isn't threadsafe.
-public class Edge extends Group {
-
-    // Determines whether all edges are set to be visible or not
-    private static final BooleanProperty allVisible = new SimpleBooleanProperty(true);
+public class Edge  {
 
     // Whether or not this edge is visible
     private final BooleanProperty visible = new SimpleBooleanProperty(false);
@@ -100,10 +97,10 @@ public class Edge extends Group {
         if(source.getCellType() != Cell.CellType.BOTH || target.getCellType() != Cell.CellType.BOTH){
             path.setDashed(true);
         }
-        getChildren().add(path);
+        //getChildren().add(path);
 
-        visibleProperty().bind(source.visibleProperty().and(target.visibleProperty())
-                .and(allVisible.or(visible)));
+//        visibleProperty().bind(source.visibleProperty().and(target.visibleProperty())
+//                .and(allVisible.or(visible)));
 
         source.addEdge(this);
         target.addEdge(this);
