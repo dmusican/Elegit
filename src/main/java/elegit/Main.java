@@ -120,7 +120,9 @@ public class Main extends Application {
         primaryStage.setScene(scene);
         sessionController.setStage(primaryStage);
         startLatch.countDown();
+        long startTime = System.currentTimeMillis();
         primaryStage.show();
+        System.out.println("Time to render: " + (System.currentTimeMillis()-startTime));
 
         // Now finally start watching repositories
         RepositoryMonitor.unpause();

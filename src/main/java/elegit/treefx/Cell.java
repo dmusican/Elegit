@@ -404,7 +404,7 @@ public class Cell extends Pane {
         return time;
     }
 
-    public Node getLabel() {
+    public CellLabelContainer getLabel() {
         Main.assertFxThread();
         return this.refLabels;
     }

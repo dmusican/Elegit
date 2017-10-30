@@ -92,8 +92,12 @@ public class TreeGraph{
         LinkedList<Node> moreToAdd = new LinkedList<>();
         LinkedList<Node> moreToRemove = new LinkedList<>();
         for (Node n: queuedToAdd) {
-            if (n instanceof Cell)
-                moreToAdd.add(((Cell)n).getLabel());
+            if (n instanceof Cell) {
+                CellLabelContainer labels = ((Cell) n).getLabel();
+                if (labels.getChildren().size() > 0) {
+                    moreToAdd.add(labels);
+                }
+            }
         }
 
         // remove components from treeGraph pane
