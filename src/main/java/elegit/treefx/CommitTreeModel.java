@@ -282,9 +282,11 @@ public class CommitTreeModel{
     private synchronized boolean addCommitsToTree(Set<CommitHelper> commits){
         if(commits.size() == 0) return false;
 
+        Main.startTime = 0;
         for(CommitHelper curCommitHelper : commits){
             this.addCommitToTree(curCommitHelper, treeGraph.treeGraphModel);
         }
+
         return true;
     }
 

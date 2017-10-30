@@ -34,6 +34,7 @@ import java.util.prefs.Preferences;
  */
 public class Main extends Application {
     private Path logPath;
+    public static long startTime;
 
     // boolean used to stop the service that moves cells in TreeLayout.
     // TODO: This is likely misplaced, but I can't really do much with it until I fix TreeLayout
@@ -80,6 +81,7 @@ public class Main extends Application {
         BusyWindow.setParentWindow(primaryStage);
 
         // Load the fxml
+        startTime = System.currentTimeMillis();
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/MainView.fxml"));
         fxmlLoader.load();
         BorderPane root = fxmlLoader.getRoot();
@@ -120,7 +122,7 @@ public class Main extends Application {
         primaryStage.setScene(scene);
         sessionController.setStage(primaryStage);
         startLatch.countDown();
-        long startTime = System.currentTimeMillis();
+        startTime = System.currentTimeMillis();
         System.out.println("About to render...");
         primaryStage.show();
         System.out.println("Time to render: " + (System.currentTimeMillis()-startTime));

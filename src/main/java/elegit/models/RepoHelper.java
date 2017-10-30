@@ -4,6 +4,7 @@ import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 import com.jcraft.jsch.UserInfo;
+import elegit.Main;
 import elegit.gui.PopUpWindows;
 import elegit.gui.SimpleProgressMonitor;
 import elegit.exceptions.*;
@@ -954,14 +955,14 @@ public class RepoHelper {
      * @return all local commits that have already been parsed
      */
     public Set<CommitHelper> getLocalCommits() {
-        return Collections.unmodifiableSet(new HashSet<>(this.localCommits.get()));
+        return Collections.unmodifiableSet(this.localCommits.get());
     }
 
     /**
      * @return all remote commits that have already been parsed
      */
     public Set<CommitHelper> getRemoteCommits() {
-        return Collections.unmodifiableSet(new HashSet<>(this.remoteCommits.get()));
+        return Collections.unmodifiableSet(this.remoteCommits.get());
     }
 
     /**
@@ -1143,7 +1144,7 @@ public class RepoHelper {
      * @throws IOException
      */
     private PlotCommitList<PlotLane> parseAllRawLocalCommits() throws IOException, GitAPIException {
-        Set<ObjectId> allStarts = new HashSet<>();
+        Set<ObjectId> allStarts = ConcurrentHashMap.newKeySet();
         allStarts.add(getRepo().resolve("HEAD"));
         List<LocalBranchHelper> branches = this.getBranchModel().getLocalBranchesTyped();
         for (BranchHelper branch : branches) {

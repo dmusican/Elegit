@@ -207,12 +207,14 @@ public class CommitTreeController{
         Main.assertFxThread();
         RepoHelper repo = SessionModel.getSessionModel().getCurrentRepoHelper();
 
+
         commitTreeModel.getTreeGraph().update();
 
         setBranchHeads(commitTreeModel, repo);
 
         commitTreeModel.getView().displayTreeGraph(commitTreeModel.getTreeGraph(), SessionModel.getSessionModel()
                 .getCurrentRepoHelper().getBranchModel().getCurrentBranchHead());
+
     }
 
     /**
