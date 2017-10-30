@@ -27,7 +27,9 @@ public class CommitTreeScrollPane extends ScrollPane {
 
     CommitTreeScrollPane(Node node) {
         super(node);
+        //super();
         Main.assertFxThread();
+        setId("Elegit scroll pane");
 
         NumItemsProperty.addListener((observable, oldValue, newValue) -> numItems = newValue.intValue());
     }
@@ -49,8 +51,6 @@ public class CommitTreeScrollPane extends ScrollPane {
             double ratio = pos/(numItems-1);
             value = ratio;
         }
-        CommitTreeModel.getCommitTreeModel().getTreeGraph().getScrollPane().applyCss();
-        CommitTreeModel.getCommitTreeModel().getTreeGraph().getScrollPane().layout();
         CommitTreeModel.getCommitTreeModel().getTreeGraph().getScrollPane().setVvalue(value);
     }
 }

@@ -3,6 +3,7 @@ package elegit;
 import elegit.controllers.BusyWindow;
 import elegit.controllers.SessionController;
 import elegit.monitors.RepositoryMonitor;
+import elegit.treefx.CommitTreeModel;
 import elegit.treefx.CommitTreeScrollPane;
 import io.reactivex.disposables.CompositeDisposable;
 import javafx.application.Application;

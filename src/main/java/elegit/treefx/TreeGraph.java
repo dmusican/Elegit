@@ -4,6 +4,7 @@ import elegit.Main;
 import io.reactivex.Observable;
 import io.reactivex.rxjavafx.schedulers.JavaFxScheduler;
 import javafx.geometry.Insets;
+import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.Pane;
@@ -43,12 +44,14 @@ public class TreeGraph{
         this.treeGraphModel = m;
 
         cellLayer = new Pane();
-        //cellLayer.setRotationAxis(Rotate.X_AXIS);
-        //cellLayer.setRotate(180);
+        cellLayer.setId("cell layer");
         cellLayer.setPadding(new Insets(0,0,Cell.BOX_SIZE+TreeLayout.V_PAD,0));
         cellLayer.boundsInLocalProperty().addListener((observable, oldValue, newValue) -> cellLayer.setMinWidth(newValue.getMaxX()));
 
-        scrollPane = new CommitTreeScrollPane(cellLayer);
+        // Reason for Group explained here:
+        // https://docs.oracle.com/javase/8/javafx/api/javafx/scene/control/ScrollPane.html
+        // Without the Group, doesn't always layout ScrollPane correctly
+        scrollPane = new CommitTreeScrollPane(new Group(cellLayer));
 
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
         scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
@@ -116,7 +119,6 @@ public class TreeGraph{
                 .subscribe(cellsToAdd -> {
                     cellLayer.getChildren().removeAll(cellsToAdd);
                 });
-
     }
 
     Pane getCellLayerPane() {

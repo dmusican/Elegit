@@ -712,7 +712,6 @@ public class SessionController {
                 .flatMap(unused -> doAndRepeatGitOperation(gitOp))
 
                 //.observeOn(Schedulers.io())
-                .doOnNext(result -> System.out.println("result is :" + result))
                 .doOnNext((result) -> {
                     if (result.equals("success")) {
                         synchronized (globalLock) {
