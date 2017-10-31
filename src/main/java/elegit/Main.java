@@ -25,6 +25,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Scanner;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
@@ -35,6 +37,8 @@ import java.util.prefs.Preferences;
 public class Main extends Application {
     private Path logPath;
     public static long startTime;
+
+    public static ExecutorService backgroundExec = Executors.newCachedThreadPool();
 
     // boolean used to stop the service that moves cells in TreeLayout.
     // TODO: This is likely misplaced, but I can't really do much with it until I fix TreeLayout

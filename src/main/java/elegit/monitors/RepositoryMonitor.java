@@ -148,7 +148,7 @@ public class RepositoryMonitor{
     }
 
     private static synchronized void beginWatchingLocal(){
-        System.out.println("Starting repo mon");
+        //System.out.println("Starting repo mon");
         localTimer.dispose();
         localTimer = Observable
                 .interval(LOCAL_CHECK_INTERVAL, LOCAL_CHECK_INTERVAL, TimeUnit.MILLISECONDS, Schedulers.io())
@@ -167,7 +167,7 @@ public class RepositoryMonitor{
 
 
     public static synchronized void pause(){
-        System.out.println("stopping repo mon");
+        //System.out.println("stopping repo mon");
         if(pauseCounter == 0) {
             stopWatchingRemoteRepo();
             stopWatchingLocal();

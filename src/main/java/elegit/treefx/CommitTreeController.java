@@ -228,7 +228,7 @@ public class CommitTreeController{
         RepoHelper repo = SessionModel.getSessionModel().getCurrentRepoHelper();
         commitTreeModel.getTreeGraph().update();
         commitTreeModel.getView().displayTreeGraph(commitTreeModel.getTreeGraph(), SessionModel.getSessionModel()
-                .getCurrentRepoHelper().getBranchModel().getCurrentBranchHead());
+                .getCurrentRepoHelper().getBranchModel().getCurrentBranchHead());  // SLOW
         setBranchHeads(commitTreeModel, repo);
     }
 

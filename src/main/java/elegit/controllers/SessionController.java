@@ -695,18 +695,15 @@ public class SessionController {
 
     public void loadDesignatedRepo(RepoHelper repoHelper) {
         GitOperation gitOp = authResponse -> loadRepo(authResponse, repoHelper);
-
         if (theModel.getCurrentRepoHelper() != null && repoHelper.getLocalPath().equals(theModel.getCurrentRepoHelper().getLocalPath())) {
             showSameRepoLoadedNotification();
             return;
         }
         TreeLayout.stopMovingCells();
         refreshRecentReposInDropdown();
-
         Observable
                 .just(1)
                 .doOnNext(unused -> showBusyWindowAndPauseRepoMonitor("Loading repository..."))
-
                 // Note that the below is a threaded operation, and so we want to make sure that the following
                 // operations (hiding the window, etc) depend on it.
                 .flatMap(unused -> doAndRepeatGitOperation(gitOp))
@@ -730,6 +727,7 @@ public class SessionController {
                 .doOnNext(unused -> hideBusyWindowAndResumeRepoMonitor())
                 .subscribe(unused -> {
                 }, Throwable::printStackTrace);
+
     }
 
     private List<Result> loadRepo (Optional<RepoHelperBuilder.AuthDialogResponse> responseOptional,
@@ -2221,7 +2219,7 @@ public class SessionController {
         }
 
     public void gitStatusWorkload() throws GitAPIException, IOException {
-        System.out.println("git status");
+        //System.out.println("git status");
         theModel.getCurrentRepoHelper().getBranchModel().updateAllBranches();
         commitTreeModel.update();
         workingTreePanelView.drawDirectoryView();

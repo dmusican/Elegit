@@ -2,8 +2,12 @@ package elegit.controllers;
 
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
+import elegit.Main;
 import elegit.models.RepoHelper;
 import elegit.models.SessionModel;
+import io.reactivex.Observable;
+import io.reactivex.schedulers.Schedulers;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;

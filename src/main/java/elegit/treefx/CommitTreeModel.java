@@ -122,7 +122,7 @@ public class CommitTreeModel{
             this.updateCommitFills(updates.getCommitsToUpdate());  // SLOW
             SessionModel.getSessionModel().getCurrentRepoHelper().getBranchModel().updateAllBranches();
             this.resetBranchHeads();
-            this.updateAllRefLabels(); // SLOW
+            this.updateAllRefLabels();
             TreeLayout.stopMovingCells();
             this.updateView();  // SLOW
         }

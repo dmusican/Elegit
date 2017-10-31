@@ -49,10 +49,8 @@ public class CommitTreePanelView extends Region{
     synchronized void displayTreeGraph(TreeGraph treeGraph, CommitHelper commitToFocusOnLoad){
         Main.assertFxThread();
         initCommitTreeScrollPanes(treeGraph);
-
         TreeLayout.doTreeLayout(treeGraph);
-
-        CommitTreeController.focusCommitInGraph(commitToFocusOnLoad);
+        CommitTreeController.focusCommitInGraph(commitToFocusOnLoad);  // SLOW
     }
 
     /**

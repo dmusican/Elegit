@@ -1,6 +1,7 @@
 package elegit.treefx;
 
 import elegit.Main;
+import javafx.application.Platform;
 import javafx.beans.property.*;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.ScrollPane;
@@ -64,22 +65,23 @@ public class TreeLayout{
             // This is calling moveCell, which definitively needs access to FX thread, so for now, leave this there
             // as well
             Main.assertFxThread();
-
             final int startCell = currentCell;
-            for (int i = startCell; i < startCell + 10; i++) {
-                if (i > allCellsSortedByTime.size() - 1) {
-                    percent.set(100);
-                    return;
-                }
-                ;
-                moveCell(allCellsSortedByTime.get(i));
+            Platform.runLater(() -> {
+                for (int i = startCell; i < startCell + 10; i++) {
+                    if (i > allCellsSortedByTime.size() - 1) {
+                        percent.set(100);
+                        return;
+                    }
+                    ;
+                    moveCell(allCellsSortedByTime.get(i));
 
-                // Update progress if need be
-                int max = allCellsSortedByTime.size()-1;
-                if (i * 100.0 / max > percent.get() && percent.get() < 100) {
-                    percent.set(i * 100 / max);
+                    // Update progress if need be
+                    int max = allCellsSortedByTime.size()-1;
+                    if (i * 100.0 / max > percent.get() && percent.get() < 100) {
+                        percent.set(i * 100 / max);
+                    }
                 }
-            }
+            });
         }
     }
 
@@ -163,7 +165,7 @@ public class TreeLayout{
             while (!Main.isAppClosed.get() && movingCells.get() && mover.currentCell < allCells.size() - 1) {
                 mover.moveSomeCells();
                 mover.setCurrentCell(mover.currentCell + 10);
-                progressBar.setProgress(mover.percent.get() / 100.0);
+                //progressBar.setProgress(mover.percent.get() / 100.0);
             }
 
             loadingCommits.setVisible(false);
@@ -338,6 +340,7 @@ public class TreeLayout{
      * @param c the cell to move
      */
     static void moveCell(Cell c){
+//        Platform.runLater(() -> {
         Main.assertFxThread();
         boolean animate = c.getAnimate();
         boolean useParentPosAsSource = c.getUseParentAsSource();
@@ -351,7 +354,7 @@ public class TreeLayout{
         double y = c.rowLocationProperty.get() * V_SPACING + V_PAD;
 
         c.moveTo(x, y, animate, animate && useParentPosAsSource);
-
+        //});
     }
 
     // This can get called from either a worker thread or from the FX thread. It's simply a trigger to tell it

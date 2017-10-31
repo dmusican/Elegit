@@ -211,7 +211,6 @@ public class Highlighter{
         if(!blockedCellIDs.contains(c.getCellId())){
             blockedCellIDs.add(c.getCellId());
         }
-
         CommitTreeScrollPane.scrollTo(c.rowLocationProperty.doubleValue());
         c.setCellState(CellState.EMPHASIZED);
 

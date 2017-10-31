@@ -178,6 +178,7 @@ public class Cell extends Pane {
         // In principle, there's a compare-and-set bug below, in getting numCellsBeingAnimated, testing its value,
         // and then conditionally incrementing, but this is all running the FX thread anyway. Leave that assert
         // below in there, it's critical.
+        // TODO: Interrupt an animation by switching repos in the middle, throws an exception
         Main.assertFxThread();
         if(animate && numCellsBeingAnimated.get() < MAX_NUM_CELLS_TO_ANIMATE){
             numCellsBeingAnimated.getAndIncrement();
