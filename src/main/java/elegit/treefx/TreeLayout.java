@@ -167,7 +167,7 @@ public class TreeLayout{
 //            }));
             //********************** Loading Bar End **********************
 
-            while (!Main.isAppClosed.get() && movingCells.get() && mover.currentCell < allCells.size() - 1) {
+            while (!Main.isAppClosed.get() && movingCells.get() && mover.currentCell < allCells.size()) {
                 mover.moveSomeCells();
                 mover.setCurrentCell(mover.currentCell + CELLS_AT_A_TIME);
                 //progressBar.setProgress(mover.percent.get() / 100.0);
