@@ -115,7 +115,7 @@ public class TreeLayout{
             Map<Integer,Integer> minRowUsedInCol = new ConcurrentHashMap<>();
             Set<Integer> movedCells = ConcurrentHashMap.newKeySet();
 
-            boolean treeLayoutDoneAtLeastOnce = false; //treeGraphModel.checkAndFlipTreeLayoutDoneAtLeastOnce();
+            boolean treeLayoutDoneAtLeastOnce = treeGraphModel.checkAndFlipTreeLayoutDoneAtLeastOnce();
 
             // Compute the positions of cells recursively
             for (int i = 0; i < allCells.size(); i++) {
