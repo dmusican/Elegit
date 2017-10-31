@@ -2199,44 +2199,36 @@ public class SessionController {
     //                 if(!pauseLocalMonitor && SessionModel.getSessionModel().getCurrentRepoHelper() != null &&
     //                    SessionModel.getSessionModel().getCurrentRepoHelper().exists()){
         public synchronized void gitStatus() {
-            System.out.println("git status");
-            //Main.assertFxThread();
-
-            Observable.just(1)
-                    //.doOnNext(u -> BusyWindow.show())
-                    //.doOnNext(u -> BusyWindow.setLoadingText("Git status..."))
-
-
-                    //.observeOn(Schedulers.io())
-                    .doOnNext(u -> { synchronized (globalLock) {
-                        RepositoryMonitor.pause();
-                        // If the layout is still going, don't run
+            synchronized (globalLock) {
+                RepositoryMonitor.pause();
+                // If the layout is still going, don't run
 //                        if (commitTreePanelView.isLayoutThreadRunning) {
 //                            RepositoryMonitor.unpause();
 //                            return;
 //                        }
-                        try {
-                            theModel.getCurrentRepoHelper().getBranchModel().updateAllBranches();
-                            commitTreeModel.update();
-                            workingTreePanelView.drawDirectoryView();
-                            allFilesPanelView.drawDirectoryView();
-                            indexPanelView.drawDirectoryView();
-                            this.theModel.getCurrentRepoHelper().getTagModel().updateTags();
-                            updateStatusText();
+                try {
+                    gitStatusWorkload();
 
-                        } catch (Exception e) {
-                            showGenericErrorNotification();
-                            e.printStackTrace();
-                        } finally {
-                            RepositoryMonitor.unpause();
+                } catch (Exception e) {
+                    showGenericErrorNotification();
+                    throw new ExceptionAdapter(e);
+                } finally {
+                    RepositoryMonitor.unpause();
 
-                        }
+                }
 
-                    }})
+            }
+        }
 
-                    .observeOn(JavaFxScheduler.platform())
-                    //.doOnNext(u -> BusyWindow.hide())
-                    .subscribe(u -> {}, Throwable::printStackTrace);
+    public void gitStatusWorkload() throws GitAPIException, IOException {
+        System.out.println("git status");
+        theModel.getCurrentRepoHelper().getBranchModel().updateAllBranches();
+        commitTreeModel.update();
+        workingTreePanelView.drawDirectoryView();
+        allFilesPanelView.drawDirectoryView();
+        indexPanelView.drawDirectoryView();
+        this.theModel.getCurrentRepoHelper().getTagModel().updateTags();
+        updateStatusText();
     }
 
     /**
@@ -2453,8 +2445,6 @@ public class SessionController {
 
     void showGenericErrorNotification() {
         Platform.runLater(()-> {
-            System.out.println("I am dumping");
-            Thread.dumpStack();
             logger.warn("Generic error warning.");
             notificationPaneController.addNotification("Sorry, there was an error.");
         });

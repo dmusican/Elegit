@@ -60,6 +60,7 @@ public class CommitLabelTestFX extends ApplicationTest {
     public void start(Stage stage) throws Exception {
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/MainView.fxml"));
         fxmlLoader.load();
+        RepositoryMonitor.pause();
         sessionController = fxmlLoader.getController();
         BorderPane root = fxmlLoader.getRoot();
         Rectangle2D primScreenBounds = Screen.getPrimary().getVisualBounds();
@@ -143,7 +144,7 @@ public class CommitLabelTestFX extends ApplicationTest {
         this.helper.addFilePathTest(file.toPath());
         this.helper.commit("Modified file.txt in a unit test!");
 
-        sessionController.gitStatus();
+        sessionController.gitStatusWorkload();
 
         //commitTreeModel.update();
 
@@ -165,7 +166,7 @@ public class CommitLabelTestFX extends ApplicationTest {
 
         this.helper.addFilePathTest(file.toPath());
         this.helper.commit("Modified file.txt in a unit test again!");
-        sessionController.gitStatus();
+        sessionController.gitStatusWorkload();
 
         // Get the information about this new commit
         String oldHeadID = newHeadID;
