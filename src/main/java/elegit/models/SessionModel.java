@@ -4,6 +4,7 @@ import elegit.Main;
 import elegit.monitors.ConflictingFileWatcher;
 import elegit.repofile.*;
 import elegit.sshauthentication.ElegitUserInfoGUI;
+import elegit.treefx.CommitTreeModel;
 import io.reactivex.Observer;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
@@ -188,6 +189,7 @@ public class SessionModel {
         this.currentRepoHelper.set(repoHelper);
         this.saveListOfRepoPathStrings();
         this.saveMostRecentRepoPathString();
+        CommitTreeModel.getCommitTreeModel().getTreeGraph().treeGraphModel.resetLayoutAtLeastOnce();
 
         openedRepos.onNext(this.currentRepoHelper.get());
     }

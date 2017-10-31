@@ -38,6 +38,7 @@ public class TreeLayout{
         commitSortTopological.bind(status);
     }
 
+    private final static int CELLS_AT_A_TIME = 10;
 
     /**
      * The task within is specifically designed to pick out 10 cells, and move them one-by-one.
@@ -67,21 +68,25 @@ public class TreeLayout{
             Main.assertFxThread();
             final int startCell = currentCell;
             Platform.runLater(() -> {
-                for (int i = startCell; i < startCell + 10; i++) {
-                    if (i > allCellsSortedByTime.size() - 1) {
-                        percent.set(100);
-                        return;
-                    }
-                    ;
-                    moveCell(allCellsSortedByTime.get(i));
-
-                    // Update progress if need be
-                    int max = allCellsSortedByTime.size()-1;
-                    if (i * 100.0 / max > percent.get() && percent.get() < 100) {
-                        percent.set(i * 100 / max);
-                    }
-                }
+                moveSomeCells(startCell);
             });
+        }
+
+        private void moveSomeCells(int startCell) {
+            for (int i = startCell; i < startCell + CELLS_AT_A_TIME; i++) {
+                if (i > allCellsSortedByTime.size() - 1) {
+                    percent.set(100);
+                    return;
+                }
+                ;
+                moveCell(allCellsSortedByTime.get(i));
+
+                // Update progress if need be
+                int max = allCellsSortedByTime.size()-1;
+                if (i * 100.0 / max > percent.get() && percent.get() < 100) {
+                    percent.set(i * 100 / max);
+                }
+            }
         }
     }
 
@@ -164,7 +169,7 @@ public class TreeLayout{
 
             while (!Main.isAppClosed.get() && movingCells.get() && mover.currentCell < allCells.size() - 1) {
                 mover.moveSomeCells();
-                mover.setCurrentCell(mover.currentCell + 10);
+                mover.setCurrentCell(mover.currentCell + CELLS_AT_A_TIME);
                 //progressBar.setProgress(mover.percent.get() / 100.0);
             }
 

@@ -64,11 +64,15 @@ public class TreeGraphModel {
         cellsWithNonDefaultShapesOrLabels = new ArrayList<>();
     }
 
-    public boolean checkAndFlipTreeLayoutDoneAtLeastOnce() {
+    public synchronized boolean checkAndFlipTreeLayoutDoneAtLeastOnce() {
         Main.assertFxThread();
         boolean oldValue = firstTimeLayoutFlag;
         firstTimeLayoutFlag = true;
         return oldValue;
+    }
+
+    public synchronized void resetLayoutAtLeastOnce() {
+        firstTimeLayoutFlag = false;
     }
 
     /**
