@@ -21,6 +21,8 @@ import org.eclipse.jgit.api.CheckoutResult;
 import java.util.ArrayList;
 import java.util.List;
 
+import static elegit.Main.sessionController;
+
 /**
  * Controller class for the checkout files window
  */
@@ -38,7 +40,6 @@ public class CheckoutFilesController {
     private final RepoHelper repoHelper;
 
     @GuardedBy("this") private final List<String> fileNames;
-    // TODO: Make sure CommitHelper is threadsafe
     @GuardedBy("this") private CommitHelper commitHelper;
 
     private static final Logger logger = LogManager.getLogger();
@@ -46,7 +47,6 @@ public class CheckoutFilesController {
 
 
 
-    // TODO: Make sure SessionModel is threadsafe, and also RepoHelper, especially methods used here
     public CheckoutFilesController() {
         repoHelper = SessionModel.getSessionModel().getCurrentRepoHelper();
         this.fileNames = new ArrayList<>();
@@ -106,8 +106,7 @@ public class CheckoutFilesController {
                 // was entered, for now just call git status and close
                 // TODO: figure out if anything actually changed
                 case OK:
-                    // TODO: find a better way to register gitStatus needs to be done, once that has been reworked
-                    //sessionController.gitStatus();
+                    sessionController.gitStatus();
                     closeWindow();
                     break;
             }
