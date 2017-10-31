@@ -34,9 +34,11 @@ public class DirectedPath extends Group{
      * the arrow
      */
     DirectedPath(DoubleBinding startX, DoubleBinding startY,
-                 DoubleBinding endX, DoubleBinding endY){
+                 DoubleBinding endX, DoubleBinding endY,
+                 String sourceId, String targetId){
         Main.assertFxThread();
 
+        this.setId(sourceId + " " + targetId);
         this.path = new Path();
 
         MoveTo start = new MoveTo();

@@ -61,7 +61,7 @@ public class Edge  {
         DoubleBinding startX = target.translateXProperty().add(target.widthProperty().divide(2.0));
         DoubleBinding startY = target.translateYProperty().add(source.heightProperty());
 
-        path = new DirectedPath(startX, startY, endX, endY); // SLOW-ISH
+        path = new DirectedPath(startX, startY, endX, endY, source.getCellId(), target.getCellId()); // SLOW-ISH
         checkAndAddMidPoints(startY, endY);
         path.addPoint(endX, endY.add(-TreeLayout.V_SPACING / 4.));
 
