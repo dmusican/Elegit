@@ -391,7 +391,7 @@ public class SessionController {
             remoteHead = this.theModel.getCurrentRepoHelper().getBranchModel().getCurrentRemoteBranchHead();
             remoteBranchFull = this.theModel.getCurrentRepoHelper().getBranchModel().getCurrentRemoteBranch();
         } catch (IOException e) {
-            this.showGenericErrorNotification();
+            this.showGenericErrorNotification(e);
         }
         if (remoteBranch==null) {
             remoteBranch = "N/A";
@@ -417,7 +417,7 @@ public class SessionController {
             ahead = this.theModel.getCurrentRepoHelper().getAheadCount();
             behind = this.theModel.getCurrentRepoHelper().getBehindCount();
         } catch (IOException e) {
-            this.showGenericErrorNotification();
+            this.showGenericErrorNotification(e);
         }
         String statusText="Up to date.";
         if (ahead >0) {
@@ -569,7 +569,7 @@ public class SessionController {
             commitTreeModel.init();
             this.setBrowserURL();
         } catch (GitAPIException | IOException e) {
-            showGenericErrorNotification();
+            showGenericErrorNotification(e);
         }
     }
 
@@ -882,7 +882,7 @@ public class SessionController {
                     } catch (UnableToRemoveException e) {
                         showCannotRemoveFileNotification(e.getFilename());
                     } catch (GitAPIException e) {
-                        showGenericErrorNotification();
+                        showGenericErrorNotification(e);
                     } finally {
                         BusyWindow.hide();
                     }
@@ -919,7 +919,7 @@ public class SessionController {
         } catch (MissingRepoException e) {
             showMissingRepoNotification();
         } catch (GitAPIException e) {
-            showGenericErrorNotification();
+            showGenericErrorNotification(e);
         } catch (CancelledDialogueException e) {
             // Do nothing if the dialogue was cancelled.
         }
@@ -950,7 +950,7 @@ public class SessionController {
         } catch (MissingRepoException e) {
             this.showMissingRepoNotification();
         } catch (GitAPIException e) {
-            this.showGenericErrorNotification();
+            this.showGenericErrorNotification(e);
         } catch (CancelledDialogueException e) {
             // Do nothing
         }
@@ -976,7 +976,7 @@ public class SessionController {
             AnchorPane fxmlRoot = fxmlLoader.getRoot();
             checkoutFilesController.showStage(fxmlRoot);
         }catch(IOException e){
-            this.showGenericErrorNotification();
+            this.showGenericErrorNotification(e);
             e.printStackTrace();
         }catch(NoRepoLoadedException e){
             this.showNoRepoLoadedNotification();
@@ -1020,7 +1020,7 @@ public class SessionController {
         } catch(NoFilesStagedForCommitException e){
             this.showNoFilesStagedForCommitNotification();
         } catch(IOException e){
-            showGenericErrorNotification();
+            showGenericErrorNotification(e);
             e.printStackTrace();
         } catch(Exception e) {
             e.printStackTrace();
@@ -1103,13 +1103,13 @@ public class SessionController {
                         showTransportExceptionNotification(e);
                     } catch(GitAPIException e){
                         // Git error
-                        showGenericErrorNotification();
+                        showGenericErrorNotification(e);
                         e.printStackTrace();
                     } catch(TagNameExistsException e){
                         showTagExistsNotification();
                     }
                     catch(Exception e) {
-                        showGenericErrorNotification();
+                        showGenericErrorNotification(e);
                         e.printStackTrace();
                     }
                     tagNameField.setText("");
@@ -1177,7 +1177,7 @@ public class SessionController {
         } catch (NoCommitsToPushException e) {
             this.showNoCommitsToPushNotification();
         } catch (IOException e) {
-            this.showGenericErrorNotification();
+            this.showGenericErrorNotification(e);
         } catch (PushToAheadRemoteError pushToAheadRemoteError) {
             pushToAheadRemoteError.printStackTrace();
         } catch (MissingRepoException e) {
@@ -1185,7 +1185,7 @@ public class SessionController {
             setButtonsDisabled(true);
             refreshRecentReposInDropdown();
         } catch (GitAPIException e) {
-            showGenericErrorNotification();
+            showGenericErrorNotification(e);
             e.printStackTrace();
         }
 
@@ -1351,7 +1351,7 @@ public class SessionController {
             throw e;
 
         } catch(Exception e) {
-            showGenericErrorNotification();
+            showGenericErrorNotification(e);
             e.printStackTrace();
         }
     }
@@ -1371,7 +1371,7 @@ public class SessionController {
             } catch (RefAlreadyExistsException e) {
                 showRefAlreadyExistsNotification();
             } catch (Exception e) {
-                showGenericErrorNotification();
+                showGenericErrorNotification(e);
             }
         }
         try {
@@ -1387,7 +1387,7 @@ public class SessionController {
         } catch (CheckoutConflictException e){
             showCheckoutConflictsNotification(e.getConflictingPaths());
         } catch (GitAPIException | IOException e) {
-            showGenericErrorNotification();
+            showGenericErrorNotification(e);
         }
         return false;
     }
@@ -1427,7 +1427,7 @@ public class SessionController {
             authorizationSucceeded = false;
         } catch (GitAPIException e) {
             logger.warn("IO error");
-            this.showGenericErrorNotification();
+            this.showGenericErrorNotification(e);
         } finally {
             gitStatus();
             if (authorizationSucceeded) {
@@ -1501,7 +1501,7 @@ public class SessionController {
             throw e;
         } catch (GitAPIException | IOException e) {
             logger.warn("IO error");
-            this.showGenericErrorNotification();
+            this.showGenericErrorNotification(e);
         }
     }
 
@@ -1541,7 +1541,7 @@ public class SessionController {
                         setButtonsDisabled(true);
                         refreshRecentReposInDropdown();
                     } catch(Exception e) {
-                        showGenericErrorNotification();
+                        showGenericErrorNotification(e);
                         e.printStackTrace();
                     }finally {
                         BusyWindow.hide();
@@ -1591,7 +1591,7 @@ public class SessionController {
                         setButtonsDisabled(true);
                         refreshRecentReposInDropdown();
                     } catch(Exception e) {
-                        showGenericErrorNotification();
+                        showGenericErrorNotification(e);
                         e.printStackTrace();
                     }finally {
                         BusyWindow.hide();
@@ -1644,7 +1644,7 @@ public class SessionController {
                         setButtonsDisabled(true);
                         refreshRecentReposInDropdown();
                     } catch(Exception e) {
-                        showGenericErrorNotification();
+                        showGenericErrorNotification(e);
                         e.printStackTrace();
                     }finally {
                         BusyWindow.hide();
@@ -1677,7 +1677,7 @@ public class SessionController {
             AnchorPane fxmlRoot = fxmlLoader.getRoot();
             stashSaveController.showStage(fxmlRoot);
         } catch (IOException e) {
-            this.showGenericErrorNotification();
+            this.showGenericErrorNotification(e);
             e.printStackTrace();
         } catch (NoRepoLoadedException e) {
             this.showNoRepoLoadedNotification();
@@ -1694,7 +1694,7 @@ public class SessionController {
             this.theModel.getCurrentRepoHelper().stashSave(false);
             gitStatus();
         } catch (GitAPIException e) {
-            this.showGenericErrorNotification();
+            this.showGenericErrorNotification(e);
             e.printStackTrace();
         } catch (NoFilesToStashException e) {
             this.showNoFilesToStashNotification();
@@ -1716,9 +1716,9 @@ public class SessionController {
         } catch (StashApplyFailureException e) {
             showStashConflictsNotification();
         } catch (GitAPIException e) {
-            showGenericErrorNotification();
+            showGenericErrorNotification(e);
         } catch (IOException e) {
-            showGenericErrorNotification();
+            showGenericErrorNotification(e);
         }
     }
 
@@ -1738,7 +1738,7 @@ public class SessionController {
             AnchorPane fxmlRoot = fxmlLoader.getRoot();
             stashListController.showStage(fxmlRoot);
         } catch (IOException e) {
-            this.showGenericErrorNotification();
+            this.showGenericErrorNotification(e);
             e.printStackTrace();
         } catch (NoRepoLoadedException e) {
             this.showNoRepoLoadedNotification();
@@ -1755,7 +1755,7 @@ public class SessionController {
             // TODO: implement droping something besides 0
             this.theModel.getCurrentRepoHelper().stashDrop(0);
         } catch (GitAPIException e) {
-            showGenericErrorNotification();
+            showGenericErrorNotification(e);
         }
     }
 
@@ -2087,7 +2087,7 @@ public class SessionController {
             commitTreeModel.updateView();
         } catch (Exception e) {
             e.printStackTrace();
-            showGenericErrorNotification();
+            showGenericErrorNotification(e);
         }
     }
 
@@ -2128,7 +2128,7 @@ public class SessionController {
             AnchorPane fxmlRoot = fxmlLoader.getRoot();
             createDeleteBranchController.showStage(fxmlRoot, tab);
         }catch(IOException e){
-            this.showGenericErrorNotification();
+            this.showGenericErrorNotification(e);
             e.printStackTrace();
         }catch(NoRepoLoadedException e){
             this.showNoRepoLoadedNotification();
@@ -2181,7 +2181,7 @@ public class SessionController {
             AnchorPane fxmlRoot = fxmlLoader.getRoot();
             mergeWindowController.showStage(fxmlRoot, localTabOpen);
         }catch(IOException e){
-            this.showGenericErrorNotification();
+            this.showGenericErrorNotification(e);
             e.printStackTrace();
         }catch(NoRepoLoadedException e){
             this.showNoRepoLoadedNotification();
@@ -2208,7 +2208,7 @@ public class SessionController {
                     gitStatusWorkload();
 
                 } catch (Exception e) {
-                    showGenericErrorNotification();
+                    showGenericErrorNotification(e);
                     e.printStackTrace();
                     throw new ExceptionAdapter(e);
                 } finally {
@@ -2263,7 +2263,7 @@ public class SessionController {
                 }
             }
         }catch(URISyntaxException | IOException e){
-            this.showGenericErrorNotification();
+            this.showGenericErrorNotification(e);
         }catch(MissingRepoException e){
             this.showMissingRepoNotification();
             this.setButtonsDisabled(true);
@@ -2375,7 +2375,7 @@ public class SessionController {
             AnchorPane fxmlRoot = fxmlLoader.getRoot();
             branchCheckoutController.showStage(fxmlRoot);
         }catch(IOException e){
-            this.showGenericErrorNotification();
+            this.showGenericErrorNotification(e);
             e.printStackTrace();
         }catch(NoRepoLoadedException e){
             this.showNoRepoLoadedNotification();
@@ -2399,7 +2399,7 @@ public class SessionController {
             stage.setOnCloseRequest(event -> logger.info("Closed legend"));
             stage.show();
         }catch(IOException e) {
-            this.showGenericErrorNotification();
+            this.showGenericErrorNotification(e);
             e.printStackTrace();
         }
     }
@@ -2442,10 +2442,11 @@ public class SessionController {
     /// ********                 BEGIN: ERROR NOTIFICATIONS:                  ********
     /// ******************************************************************************
 
-    void showGenericErrorNotification() {
+    void showGenericErrorNotification(Exception e) {
         Platform.runLater(()-> {
             logger.warn("Generic error warning.");
             notificationPaneController.addNotification("Sorry, there was an error.");
+            e.printStackTrace();
         });
     }
 

@@ -134,7 +134,7 @@ public class MenuController {
             stage.setOnCloseRequest(event -> logger.info("Closed about"));
             stage.show();
         }catch(IOException e) {
-            sessionController.showGenericErrorNotification();
+            sessionController.showGenericErrorNotification(e);
             e.printStackTrace();
         }
     }
