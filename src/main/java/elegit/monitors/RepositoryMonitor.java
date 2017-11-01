@@ -49,6 +49,7 @@ public class RepositoryMonitor{
     @GuardedBy("this") private static Disposable remoteTimer = Observable.empty().subscribe();
     @GuardedBy("this") private static Disposable localTimer = Observable.empty().subscribe();
     @GuardedBy("this") private static SessionController controller;
+    @GuardedBy("this") private static int exceptionCounter = 0;  // used for testing
 
     public synchronized static void init(SessionController controller) {
         RepositoryMonitor.controller = controller;
@@ -150,6 +151,9 @@ public class RepositoryMonitor{
 
     private static synchronized void beginWatchingLocal(){
         //System.out.println("Starting repo mon");
+        if (SessionModel.getSessionModel().getCurrentRepoHelper() == null)
+            return;
+
         localTimer.dispose();
         localTimer = Observable
                 .interval(LOCAL_CHECK_INTERVAL, LOCAL_CHECK_INTERVAL, TimeUnit.MILLISECONDS, Schedulers.io())
@@ -158,7 +162,10 @@ public class RepositoryMonitor{
                 //.subscribe();
                 // TODO: Get status back in here once I have it threaded right
                 // TODO: This is still really messy; it calls gitStatus, which pauses, which starts up again...
-                .subscribe(i -> controller.gitStatus(), throwable -> {throw new ExceptionAdapter(throwable);});
+                .subscribe(i -> controller.gitStatus(), throwable -> {
+                    exceptionCounter++;
+                    throw new ExceptionAdapter(throwable);
+                });
     }
 
     private static synchronized void stopWatchingLocal(){
@@ -195,5 +202,9 @@ public class RepositoryMonitor{
 
     public static int getNumLocalChecks() {
         return numLocalChecks.get();
+    }
+
+    public static int getExceptionCounter() {
+        return exceptionCounter;
     }
 }

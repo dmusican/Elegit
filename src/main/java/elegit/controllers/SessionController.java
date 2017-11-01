@@ -65,6 +65,7 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.prefs.BackingStoreException;
@@ -138,6 +139,7 @@ public class SessionController {
     @GuardedBy("this") public CommitTreeModel commitTreeModel;
     private final AtomicReference<String> commitInfoNameText = new AtomicReference<>();
 
+    private static AtomicInteger genericExceptionCount = new AtomicInteger(0);  // used for testing
 
     public static final Object globalLock = new Object();
 
@@ -2443,6 +2445,7 @@ public class SessionController {
     /// ******************************************************************************
 
     void showGenericErrorNotification(Exception e) {
+        genericExceptionCount.getAndIncrement();
         Platform.runLater(()-> {
             logger.warn("Generic error warning.");
             notificationPaneController.addNotification("Sorry, there was an error.");
@@ -2711,5 +2714,9 @@ public class SessionController {
 
     public NotificationController getNotificationPaneController() {
         return notificationPaneController;
+    }
+
+    public static int getGenericExceptionCount() {
+        return genericExceptionCount.get();
     }
 }

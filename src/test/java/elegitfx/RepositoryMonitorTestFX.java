@@ -1,5 +1,6 @@
 package elegitfx;
 
+import com.sun.org.apache.regexp.internal.RE;
 import elegit.Main;
 import elegit.controllers.BusyWindow;
 import elegit.controllers.SessionController;
@@ -74,6 +75,20 @@ public class RepositoryMonitorTestFX extends ApplicationTest {
 
     }
 
+    @Test
+    public void repoMonitorOnNoRepoOpenTest() throws Exception {
+        RepositoryMonitor.unpause();
+        sleep(Math.max(RepositoryMonitor.REMOTE_CHECK_INTERVAL,
+                RepositoryMonitor.LOCAL_CHECK_INTERVAL)+1000);
+        int numLocalChecks = RepositoryMonitor.getNumLocalChecks();
+        System.out.println("Number of local checks = " + numLocalChecks);
+        int numRemoteChecks = RepositoryMonitor.getNumRemoteChecks();
+        System.out.println("Number of remote checks = " + numRemoteChecks);
+        assertEquals(0, RepositoryMonitor.getExceptionCounter());
+        assertEquals(0, SessionController.getGenericExceptionCount());
+        //assertTrue(numLocalChecks > 0 && numLocalChecks < 5);
+        //assertTrue(numRemoteChecks > 0 && numRemoteChecks < 5);
+    }
 
     @Test
     public void openLocalRepoTest() throws Exception {
