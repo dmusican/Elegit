@@ -1,8 +1,11 @@
 package elegitfx;
 
+import elegit.Main;
+import elegit.controllers.BusyWindow;
 import elegit.controllers.SessionController;
 import elegit.models.ClonedRepoHelper;
 import elegit.models.CommitHelper;
+import elegit.models.RepoHelper;
 import elegit.models.SessionModel;
 import elegit.monitors.RepositoryMonitor;
 import elegit.treefx.Cell;
@@ -27,6 +30,7 @@ import org.testfx.api.FxToolkit;
 import org.testfx.framework.junit.ApplicationTest;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -34,7 +38,9 @@ import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.prefs.Preferences;
 
+import static javafx.scene.input.KeyCode.ENTER;
 import static junit.framework.TestCase.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
@@ -47,6 +53,12 @@ public class RepositoryMonitorTestFX extends ApplicationTest {
 
     @Override
     public void start(Stage stage) throws Exception {
+        Main.testMode = true;
+        BusyWindow.setParentWindow(stage);
+
+        Preferences prefs = Preferences.userNodeForPackage(this.getClass());
+        prefs.removeNode();
+
         SessionModel.setPreferencesNodeClass(this.getClass());
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/MainView.fxml"));
         fxmlLoader.load();
@@ -89,9 +101,40 @@ public class RepositoryMonitorTestFX extends ApplicationTest {
 
     @Test
     public void openLocalRepoTest() throws Exception {
-        clickOn("#loadNewRepoButton").clickOn("#loadExistingRepoOption");
+        initializeLogger();
+        Path directoryPath = Files.createTempDirectory("unitTestRepos");
+        directoryPath.toFile().deleteOnExit();
+        Path repoPath = directoryPath.resolve("testrepo");
+        // Clone from dummy repo:
+        String remoteURL = "https://github.com/TheElegitTeam/TestRepository.git";
+
+        // This repo doesn't check username/password for read-only
+        UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider("", "");
+        ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, remoteURL, credentials);
+        System.out.println(repoPath);
+        helper.obtainRepository(remoteURL);
+        assertNotNull(helper);
+
+        clickOn("#loadNewRepoButton")
+                .clickOn("#loadExistingRepoOption")
+                .write(repoPath.toString())
+                .push(ENTER);
         Thread.sleep(5000);
         assertTrue(true);
     }
+
+    // Helper method to avoid annoying traces from logger
+    void initializeLogger() {
+        // Create a temp directory for the files to be placed in
+        Path logPath = null;
+        try {
+            logPath = Files.createTempDirectory("elegitLogs");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        logPath.toFile().deleteOnExit();
+        System.setProperty("logFolder", logPath.toString());
+    }
+
 
 }

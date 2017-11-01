@@ -69,7 +69,11 @@ public abstract class RepoHelperBuilder {
 
         // Could change parent window to non-null, but we want to be able
         // to move the file chooser around.
-        returnFile = chooser.showDialog(null);
+        if (Main.testMode) {
+            returnFile = new File(new TextInputDialog().showAndWait().get());
+        } else {
+            returnFile = chooser.showDialog(null);
+        }
         return returnFile;
     }
 

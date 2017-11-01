@@ -47,6 +47,9 @@ public class Main extends Application {
     // Marker for sessionController; only used for unit testing
     public static SessionController sessionController;
 
+    // Set to true when unit testing for occasional differences in code
+    public static boolean testMode = false;
+
     // This is used to keep track of a subscription for a RepositoryMonitor timer that seems to never
     // actually get used.
     // It's also a threading disaster. Is RepositoryMonitor changing this from a different thread?
