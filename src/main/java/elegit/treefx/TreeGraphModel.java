@@ -2,11 +2,15 @@ package elegit.treefx;
 
 import elegit.Main;
 import elegit.models.RefHelper;
+import elegit.models.RepoHelper;
+import elegit.models.SessionModel;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.scene.control.ContextMenu;
 import org.apache.http.annotation.ThreadSafe;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 
 /**
@@ -39,6 +43,9 @@ public class TreeGraphModel {
     // Whether this graph has been through the layout process already or not
     private boolean firstTimeLayoutFlag;
 
+    // Last repo displayed, so can determine if doing the same one again or not
+    private Path pathOfRepoLastDisplayed;
+
     // A list of cells in this graph that do not have the default shape
     private List<Cell> cellsWithNonDefaultShapesOrLabels;
 
@@ -62,18 +69,20 @@ public class TreeGraphModel {
         cellMap = new HashMap<>(); // <id,cell>
         firstTimeLayoutFlag = false;
         cellsWithNonDefaultShapesOrLabels = new ArrayList<>();
+
+        pathOfRepoLastDisplayed = Paths.get("");
     }
 
     public synchronized boolean checkAndFlipTreeLayoutDoneAtLeastOnce() {
         Main.assertFxThread();
-        boolean oldValue = firstTimeLayoutFlag;
-        firstTimeLayoutFlag = true;
-        return oldValue;
+        Path currentPath = SessionModel.getSessionModel().getCurrentRepoHelper().getLocalPath();
+        if (!pathOfRepoLastDisplayed.equals(currentPath)) {
+            pathOfRepoLastDisplayed = currentPath;
+            return false;
+        }
+        return true;
     }
 
-    public synchronized void resetLayoutAtLeastOnce() {
-        firstTimeLayoutFlag = false;
-    }
 
     /**
      * @param id the id to check

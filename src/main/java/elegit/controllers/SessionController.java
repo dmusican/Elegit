@@ -756,7 +756,7 @@ public class SessionController {
         Main.assertFxThread();
         synchronized (this) {
             RepoHelper currentRepo = this.theModel.getCurrentRepoHelper();
-            dropdownController.setCurrentRepo(currentRepo);
+            dropdownController.setCurrentRepoWithoutInvokingAction(currentRepo);
         }
     }
 
@@ -2209,6 +2209,7 @@ public class SessionController {
 
                 } catch (Exception e) {
                     showGenericErrorNotification();
+                    e.printStackTrace();
                     throw new ExceptionAdapter(e);
                 } finally {
                     RepositoryMonitor.unpause();
@@ -2332,7 +2333,7 @@ public class SessionController {
                     .get(newIndex);
 
             loadDesignatedRepo(newCurrentRepo);
-            dropdownController.setCurrentRepo(newCurrentRepo);
+            dropdownController.setCurrentRepoWithoutInvokingAction(newCurrentRepo);
 
             this.refreshRecentReposInDropdown();
 
@@ -2705,5 +2706,9 @@ public class SessionController {
 
     public synchronized CommitTreeModel getCommitTreeModel() {
         return commitTreeModel;
+    }
+
+    public NotificationController getNotificationPaneController() {
+        return notificationPaneController;
     }
 }

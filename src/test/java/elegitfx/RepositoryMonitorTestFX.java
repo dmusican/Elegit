@@ -76,25 +76,6 @@ public class RepositoryMonitorTestFX extends ApplicationTest {
 
 
     @Test
-    // Dummy test to get something to run. This test really all happens in start, so just need to have a test
-    // to get it going.
-    public void test1() {
-        RepositoryMonitor.init(sessionController);
-        try {
-            Thread.sleep(Math.max(RepositoryMonitor.REMOTE_CHECK_INTERVAL,
-                                        RepositoryMonitor.LOCAL_CHECK_INTERVAL)+1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        int numLocalChecks = RepositoryMonitor.getNumLocalChecks();
-        System.out.println("Number of local checks = " + numLocalChecks);
-        int numRemoteChecks = RepositoryMonitor.getNumRemoteChecks();
-        System.out.println("Number of remote checks = " + numRemoteChecks);
-        assertTrue(numLocalChecks > 0 && numLocalChecks < 5);
-        assertTrue(numRemoteChecks > 0 && numRemoteChecks < 5);
-    }
-
-    @Test
     public void openLocalRepoTest() throws Exception {
         initializeLogger();
         Path directoryPath = Files.createTempDirectory("unitTestRepos");
@@ -106,7 +87,7 @@ public class RepositoryMonitorTestFX extends ApplicationTest {
         // This repo doesn't check username/password for read-only
         UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider("", "");
         ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, remoteURL, credentials);
-        System.out.println(repoPath);
+        System.out.println("Repo path = " + repoPath);
         helper.obtainRepository(remoteURL);
         assertNotNull(helper);
 
@@ -114,8 +95,19 @@ public class RepositoryMonitorTestFX extends ApplicationTest {
                 .clickOn("#loadExistingRepoOption")
                 .write(repoPath.toString())
                 .push(ENTER);
-        Thread.sleep(3000);
-        assertTrue(true);
+
+        assertEquals(0,sessionController.getNotificationPaneController().getNotificationNum());
+
+        RepositoryMonitor.unpause();
+        sleep(Math.max(RepositoryMonitor.REMOTE_CHECK_INTERVAL,
+                RepositoryMonitor.LOCAL_CHECK_INTERVAL)+1000);
+        int numLocalChecks = RepositoryMonitor.getNumLocalChecks();
+        System.out.println("Number of local checks = " + numLocalChecks);
+        int numRemoteChecks = RepositoryMonitor.getNumRemoteChecks();
+        System.out.println("Number of remote checks = " + numRemoteChecks);
+        assertTrue(numLocalChecks > 0 && numLocalChecks < 5);
+        assertTrue(numRemoteChecks > 0 && numRemoteChecks < 5);
+
     }
 
     // Helper method to avoid annoying traces from logger

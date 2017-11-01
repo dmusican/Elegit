@@ -196,7 +196,7 @@ public class SessionModel {
         this.currentRepoHelper.set(repoHelper);
         this.saveListOfRepoPathStrings();
         this.saveMostRecentRepoPathString();
-        CommitTreeModel.getCommitTreeModel().getTreeGraph().treeGraphModel.resetLayoutAtLeastOnce();
+        //CommitTreeModel.getCommitTreeModel().getTreeGraph().treeGraphModel.resetLayoutAtLeastOnce();
 
         openedRepos.onNext(this.currentRepoHelper.get());
     }

@@ -4,8 +4,8 @@ package elegit.exceptions;
 import java.io.*;
 public class ExceptionAdapter extends RuntimeException {
     private final String stackTrace;
-    public Exception originalException;
-    public ExceptionAdapter(Exception e) {
+    public Throwable originalException;
+    public ExceptionAdapter(Throwable e) {
         super(e.toString());
         originalException = e;
         StringWriter sw = new StringWriter();
@@ -27,5 +27,5 @@ public class ExceptionAdapter extends RuntimeException {
             s.print(stackTrace);
         }
     }
-    public void rethrow() throws Exception{ throw originalException; }
+    public void rethrow() throws Throwable{ throw originalException; }
 }

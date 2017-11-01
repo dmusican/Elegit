@@ -1,6 +1,7 @@
 package elegit.monitors;
 
 import elegit.Main;
+import elegit.exceptions.ExceptionAdapter;
 import elegit.models.SessionModel;
 import elegit.controllers.SessionController;
 import elegit.models.BranchHelper;
@@ -157,7 +158,7 @@ public class RepositoryMonitor{
                 //.subscribe();
                 // TODO: Get status back in here once I have it threaded right
                 // TODO: This is still really messy; it calls gitStatus, which pauses, which starts up again...
-                .subscribe(i -> controller.gitStatus());
+                .subscribe(i -> controller.gitStatus(), throwable -> {throw new ExceptionAdapter(throwable);});
     }
 
     private static synchronized void stopWatchingLocal(){

@@ -10,6 +10,8 @@ import io.reactivex.schedulers.Schedulers;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.geometry.Side;
 import javafx.scene.control.*;
@@ -127,8 +129,11 @@ public class DropdownController {
         });
     }
 
-    public void setCurrentRepo(RepoHelper repoHelper) {
+    public void setCurrentRepoWithoutInvokingAction(RepoHelper repoHelper) {
+        EventHandler<ActionEvent> handler = repoDropdownSelector.getOnAction();
+        repoDropdownSelector.setOnAction(null);
         repoDropdownSelector.setValue(repoHelper);
+        repoDropdownSelector.setOnAction(handler);
     }
 
     public RepoHelper getCurrentRepo() {

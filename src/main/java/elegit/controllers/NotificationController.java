@@ -322,6 +322,11 @@ public class NotificationController {
         else this.notificationNum.setText("");
     }
 
+    public synchronized int getNotificationNum() {
+        int num = ((VBox)this.notificationList.getContent()).getChildren().size();
+        return num;
+    }
+
     /**
      * Alerts the user that there's a new notification by popping up a little bubble in the lower right corner
      *
