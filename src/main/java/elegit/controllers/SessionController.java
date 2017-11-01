@@ -314,7 +314,7 @@ public class SessionController {
      * Helper method that passes the main stage to session controller
      * @param stage Stage
      */
-    public void setStage(Stage stage) {
+    public void setStageForNotifications(Stage stage) {
         notificationPaneController.setAnchor(stage);
     }
 

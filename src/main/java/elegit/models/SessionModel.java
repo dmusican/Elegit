@@ -66,7 +66,7 @@ public class SessionModel {
     private final static AtomicReference<SessionModel> sessionModel = new AtomicReference<>();
     private final Preferences preferences;
     private final PublishSubject<RepoHelper> openedRepos = PublishSubject.create();
-
+    private static Class<?> preferencesNodeClass = SessionModel.class;
 
     /**
      * @return the SessionModel object
@@ -80,17 +80,24 @@ public class SessionModel {
         return sessionModel.get();
     }
 
+
     /**
      * Private constructor for the SessionModel singleton
      */
     private SessionModel() {
         this.allRepoHelpers = new ArrayList<>();
-        this.preferences = Preferences.userNodeForPackage(this.getClass());
+        this.preferences = Preferences.userNodeForPackage(preferencesNodeClass);
         loadRecentRepoHelpersFromStoredPathStrings();
         loadMostRecentRepoHelper();
     }
 
 
+    /**
+     * Indicate that unit testing is being run, so that things can be set up differently if need be
+     */
+    public static void setPreferencesNodeClass(Class<?> preferencesNodeClass) {
+        SessionModel.preferencesNodeClass = preferencesNodeClass;
+    }
 
     /**
      * Loads all recently loaded repositories (stored with the Java Preferences API)

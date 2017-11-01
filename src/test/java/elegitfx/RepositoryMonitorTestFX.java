@@ -10,6 +10,7 @@ import elegit.treefx.CommitTreeModel;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
@@ -21,6 +22,7 @@ import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
+import org.loadui.testfx.GuiTest;
 import org.testfx.api.FxToolkit;
 import org.testfx.framework.junit.ApplicationTest;
 
@@ -40,19 +42,23 @@ import static org.junit.Assert.assertTrue;
 
 public class RepositoryMonitorTestFX extends ApplicationTest {
 
-    // The URL of
     private SessionController sessionController;
+    private static GuiTest testController;
 
     @Override
     public void start(Stage stage) throws Exception {
+        SessionModel.setPreferencesNodeClass(this.getClass());
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/MainView.fxml"));
         fxmlLoader.load();
         sessionController = fxmlLoader.getController();
-        BorderPane root = fxmlLoader.getRoot();
+        Parent root = fxmlLoader.getRoot();
         Scene scene = new Scene(root);
         stage.setScene(scene);
+        sessionController.setStageForNotifications(stage);
         stage.show();
         stage.toFront();
+        // TODO: Remove this pause and keep test working; no good reason for it to be necessary
+        RepositoryMonitor.pause();
 
     }
 
@@ -73,10 +79,19 @@ public class RepositoryMonitorTestFX extends ApplicationTest {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        assertTrue(RepositoryMonitor.getNumLocalChecks() > 0);
-        assertTrue(RepositoryMonitor.getNumRemoteChecks() > 0);
-        assertTrue(RepositoryMonitor.getNumLocalChecks() < 5);
-        assertTrue(RepositoryMonitor.getNumRemoteChecks() < 5);
+        int numLocalChecks = RepositoryMonitor.getNumLocalChecks();
+        System.out.println("Number of local checks = " + numLocalChecks);
+        int numRemoteChecks = RepositoryMonitor.getNumRemoteChecks();
+        System.out.println("Number of remote checks = " + numRemoteChecks);
+        assertTrue(numLocalChecks > 0 && numLocalChecks < 5);
+        assertTrue(numRemoteChecks > 0 && numRemoteChecks < 5);
+    }
+
+    @Test
+    public void openLocalRepoTest() throws Exception {
+        clickOn("#loadNewRepoButton").clickOn("#loadExistingRepoOption");
+        Thread.sleep(5000);
+        assertTrue(true);
     }
 
 }

@@ -14,9 +14,11 @@
                   onAction="#loadSelectedRepo"/>
 
         <Button fx:id="openRepoDirButton"
+                id="openRepoDirButton"
                 onAction="#openRepoDirectory"/>
 
         <Button fx:id="loadNewRepoButton"
+                id="loadNewRepoButton"
                 onAction="#handleLoadNewRepoButton">
             <contextMenu>
                 <ContextMenu fx:id="newRepoOptionsMenu">
@@ -26,6 +28,7 @@
                                   text="Clone repository"/>
                         <MenuItem fx:id="existingOption"
                                   onAction="#handleLoadExistingRepoOption"
+                                  id="loadExistingRepoOption"
                                   text="Load existing repository"/>
                     </items>
                 </ContextMenu>
