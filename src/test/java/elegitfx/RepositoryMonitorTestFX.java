@@ -74,11 +74,6 @@ public class RepositoryMonitorTestFX extends ApplicationTest {
 
     }
 
-    @After
-    public void tearDown() throws Exception {
-        FxToolkit.hideStage();
-        FxToolkit.cleanupStages();
-    }
 
     @Test
     // Dummy test to get something to run. This test really all happens in start, so just need to have a test
@@ -119,7 +114,7 @@ public class RepositoryMonitorTestFX extends ApplicationTest {
                 .clickOn("#loadExistingRepoOption")
                 .write(repoPath.toString())
                 .push(ENTER);
-        Thread.sleep(5000);
+        Thread.sleep(3000);
         assertTrue(true);
     }
 

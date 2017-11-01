@@ -63,6 +63,7 @@ public class Main extends Application {
             launch(args);
         } else if (args[0].equals("clearprefs")) {
             clearPreferences();
+            launch(args);
         } else {
             System.out.println("Invalid option.");
         }

@@ -64,7 +64,7 @@ public abstract class FileStructurePanelView extends Region{
         Main.assertFxThread();
         if(SessionModel.getSessionModel().getCurrentRepoHelper() == null) return;
 
-        if(this.treeRoot == null || !this.treeRoot.getValue().getRepo().equals(SessionModel.getSessionModel().getCurrentRepoHelper())) {
+        if(this.treeRoot.getValue().getRepo() == null || !this.treeRoot.getValue().getRepo().equals(SessionModel.getSessionModel().getCurrentRepoHelper())) {
             this.init();
         }
         List<RepoFile> filesToShow = this.getFilesToDisplay();
