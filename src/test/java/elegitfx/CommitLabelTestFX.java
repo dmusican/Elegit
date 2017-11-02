@@ -107,13 +107,6 @@ public class CommitLabelTestFX extends ApplicationTest {
         }
     }
 
-    @After
-    public void tearDown() throws Exception {
-        FxToolkit.hideStage();
-        FxToolkit.cleanupStages();
-    }
-
-
     @Test
     // Dummy test to get something to run. This test really all happens in start, so just need to have a test
     // to get it going.
