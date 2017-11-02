@@ -1769,6 +1769,7 @@ public class SessionController {
     private void hideBusyWindowAndResumeRepoMonitor() {
         Main.assertFxThread();
         gitStatus();
+        System.out.println("hiding");
         BusyWindow.hide();
         RepositoryMonitor.unpause();
         LoggingModel.submitLog();
@@ -2017,6 +2018,7 @@ public class SessionController {
 
     private void showBusyWindow(String message) {
         BusyWindow.show();
+        System.out.println("showing");
         BusyWindow.setLoadingText(message);
     }
 
@@ -2222,14 +2224,15 @@ public class SessionController {
         }
 
     public void gitStatusWorkload() throws GitAPIException, IOException {
-        //System.out.println("git status");
+        System.out.println("git status");
         theModel.getCurrentRepoHelper().getBranchModel().updateAllBranches();
-        commitTreeModel.update();
         workingTreePanelView.drawDirectoryView();
         allFilesPanelView.drawDirectoryView();
         indexPanelView.drawDirectoryView();
         this.theModel.getCurrentRepoHelper().getTagModel().updateTags();
         updateStatusText();
+        commitTreeModel.update();
+        System.out.println("Git status done");
     }
 
     /**

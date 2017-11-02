@@ -12,6 +12,7 @@ import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
+import org.apache.http.annotation.GuardedBy;
 import org.apache.http.annotation.ThreadSafe;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -20,6 +21,7 @@ import org.eclipse.jgit.api.ResetCommand;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
@@ -37,30 +39,29 @@ import java.util.stream.Collectors;
 // isn't threadsafe. It seems like this class should be able to live outside of the FX thread, at least for some
 // of its work, but it's too tightly connected to Cell and Edge. Cell in particular maintains data on which cells
 // it connects to. That's not "view"-like at all, but it's in there, and tightly integrated.
+//
+// Going for "monitor" pattern: all methods are synchronized
 public class TreeGraphModel {
 
-    private final List<Cell> allCells;
-    private final List<Cell> addedCells;
-    private final List<Cell> removedCells;
+    @GuardedBy("this") private final List<Cell> allCells;
+    @GuardedBy("this") private final List<Cell> addedCells;
+    @GuardedBy("this") private final List<Cell> removedCells;
 
-    private final List<Edge> addedEdges;
-    private final List<Edge> removedEdges;
+    @GuardedBy("this") private final List<Edge> addedEdges;
+    @GuardedBy("this") private final List<Edge> removedEdges;
 
     // Map of each cell's id to the cell itself
-    private final Map<String,Cell> cellMap;
-
-    // Whether this graph has been through the layout process already or not
-    private boolean firstTimeLayoutFlag;
+    @GuardedBy("this") private final Map<String,Cell> cellMap;
 
     // Last repo displayed, so can determine if doing the same one again or not
-    private Path pathOfRepoLastDisplayed;
+    @GuardedBy("this") private Path pathOfRepoLastDisplayed;
 
     // A list of cells in this graph that do not have the default shape
-    private List<Cell> cellsWithNonDefaultShapesOrLabels;
+    @GuardedBy("this") private List<Cell> cellsWithNonDefaultShapesOrLabels;
 
     // Updated every time merge is called to hold the number of cells present
     // This is not private so other aspects of the view can bind it. Don't touch it unless on FX thread!
-    final IntegerProperty numCellsProperty = new SimpleIntegerProperty();
+    @GuardedBy("this") private final IntegerProperty numCellsProperty = new SimpleIntegerProperty();
 
     private static final Logger logger = LogManager.getLogger();
 
@@ -68,8 +69,8 @@ public class TreeGraphModel {
      * Constructs a new model for a tree graph.
      * Resets and creates the cell and edge lists, as well as the cell map
      */
+    // No side effects, so doesn't need to be on FX thread. Be careful if you change this!
     public TreeGraphModel() {
-        Main.assertFxThread();
         allCells = new ArrayList<>();
         addedCells = new ArrayList<>();
         removedCells = new ArrayList<>();
@@ -77,15 +78,14 @@ public class TreeGraphModel {
         addedEdges = new ArrayList<>();
         removedEdges = new ArrayList<>();
 
-        cellMap = new HashMap<>(); // <id,cell>
-        firstTimeLayoutFlag = false;
+        cellMap = new ConcurrentHashMap<>(); // <id,cell>
         cellsWithNonDefaultShapesOrLabels = new ArrayList<>();
 
         pathOfRepoLastDisplayed = Paths.get("");
     }
 
+    // No side effects, so doesn't need to be on FX thread. Be careful if you change this!
     public synchronized boolean checkAndFlipTreeLayoutDoneAtLeastOnce() {
-        Main.assertFxThread();
         Path currentPath = SessionModel.getSessionModel().getCurrentRepoHelper().getLocalPath();
         if (!pathOfRepoLastDisplayed.equals(currentPath)) {
             pathOfRepoLastDisplayed = currentPath;
@@ -99,45 +99,45 @@ public class TreeGraphModel {
      * @param id the id to check
      * @return whether this graph contains the given id or not
      */
-    public boolean containsID(String id){
-        Main.assertFxThread();
+    // No side effects, so doesn't need to be on FX thread. Be careful if you change this!
+    public synchronized boolean containsID(String id){
         return cellMap.containsKey(id);
     }
 
-    public Cell getCell(String id) {
-        Main.assertFxThread();
+    // No side effects, so doesn't need to be on FX thread. Be careful if you change this!
+    public synchronized Cell getCell(String id) {
         return cellMap.get(id);
     }
 
     /**
      * @return the cells added since the last update
      */
-    public List<Cell> getAddedCells() {
-        Main.assertFxThread();
+    // No side effects, so doesn't need to be on FX thread. Be careful if you change this!
+    public synchronized List<Cell> getAddedCells() {
         return Collections.unmodifiableList(new ArrayList<>(addedCells));
     }
 
     /**
      * @return the cells removed since the last update
      */
-    public List<Cell> getRemovedCells() {
-        Main.assertFxThread();
+    // No side effects, so doesn't need to be on FX thread. Be careful if you change this!
+    public synchronized List<Cell> getRemovedCells() {
         return Collections.unmodifiableList(new ArrayList<>(removedCells));
     }
 
     /**
      * @return the edges added since the last update
      */
-    public List<Edge> getAddedEdges() {
-        Main.assertFxThread();
+    // No side effects, so doesn't need to be on FX thread. Be careful if you change this!
+    public synchronized List<Edge> getAddedEdges() {
         return Collections.unmodifiableList(new ArrayList<>(addedEdges));
     }
     /**
      * @return the edges removed since the last update
      */
-    public List<Edge> getRemovedEdges() {
+    public synchronized List<Edge> getRemovedEdges() {
         Main.assertFxThread();
-        List<String> removedMap = new ArrayList<>();
+        Set<String> removedMap = new HashSet<>();
         for (Cell c : removedCells)
             removedMap.add(c.getCellId());
         List<Edge> oldRemoved = new ArrayList<>();
@@ -162,7 +162,7 @@ public class TreeGraphModel {
      * Adds a new cell with the given ID, time, and labels to the tree whose
      * parents are the cells with the given IDs.
      */
-    public void addCell(CommitHelper commitToAdd){
+    public synchronized void addCell(CommitHelper commitToAdd){
         Main.assertFxThread();
 
         String newId = commitToAdd.getName();
@@ -333,7 +333,7 @@ public class TreeGraphModel {
      * any cell with a conflicting ID
      * @param cell the cell to add
      */
-    private void addCell(Cell cell) {
+    private synchronized void addCell(Cell cell) {
         Main.assertFxThread();
         if(cellMap.containsKey(cell.getCellId())){
             Cell oldCell = cellMap.remove(cell.getCellId());
@@ -354,7 +354,7 @@ public class TreeGraphModel {
      * @param sourceId the parent cell
      * @param targetId the child cell
      */
-    public void addEdge(String sourceId, String targetId) {
+    public synchronized void addEdge(String sourceId, String targetId) {
         Main.assertFxThread();
         Cell sourceCell = cellMap.get(sourceId);
         Cell targetCell = cellMap.get(targetId);
@@ -368,7 +368,7 @@ public class TreeGraphModel {
      * @param source the source (parent) cell
      * @param target
      */
-    public void addEdge(Cell source, Cell target) {
+    public synchronized void addEdge(Cell source, Cell target) {
         Main.assertFxThread();
         Edge edge = new Edge(source, target);
         source.addEdge(edge);
@@ -383,7 +383,7 @@ public class TreeGraphModel {
      *
      * @param id the cell id to remove
      */
-    public void removeCell(String id) {
+    public synchronized void removeCell(String id) {
         Main.assertFxThread();
         Cell cell = cellMap.get(id);
         if(cell != null && cellMap.containsKey(cell.getCellId())){
@@ -400,7 +400,7 @@ public class TreeGraphModel {
      * Removes all edges connected to the given cell
      * @param cell the cell whose edges will be removed
      */
-    private void removeEdges(Cell cell){
+    private synchronized void removeEdges(Cell cell){
         Main.assertFxThread();
         List<Edge> oldEdges = cell.getEdges();
 
@@ -417,7 +417,7 @@ public class TreeGraphModel {
      * @param commitDescriptor the new commit descriptor
      * @param refs the branch names to include on the label
      */
-    public void setCellLabels(String cellId, String commitDescriptor, List<RefHelper> refs){
+    public synchronized void setCellLabels(String cellId, String commitDescriptor, List<RefHelper> refs){
         Main.assertFxThread();
         setCellLabels(cellMap.get(cellId), commitDescriptor, refs);
     }
@@ -428,28 +428,28 @@ public class TreeGraphModel {
      * @param commitDescriptor the labels to put on the cell
      * @param refs the list of refs to add
      */
-    private void setCellLabels(Cell cell, String commitDescriptor, List<RefHelper> refs){
+    private synchronized void setCellLabels(Cell cell, String commitDescriptor, List<RefHelper> refs){
         Main.assertFxThread();
         cell.setLabels(commitDescriptor, refs);
         if(refs.size() > 0) cellsWithNonDefaultShapesOrLabels.add(cell);
     }
 
-    public void setCurrentCellLabels(String cellId, Set<String> refs) {
+    public synchronized void setCurrentCellLabels(String cellId, Set<String> refs) {
         Main.assertFxThread();
         setCurrentCellLabels(cellMap.get(cellId), refs);
     }
 
-    public void setCurrentCellLabels(Cell cell, Set<String> refs) {
+    public synchronized void setCurrentCellLabels(Cell cell, Set<String> refs) {
         Main.assertFxThread();
         cell.setCurrentLabels(refs);
     }
 
-    public void setLabelMenus(String cellId, Map<RefHelper, ContextMenu> menuMap) {
+    public synchronized void setLabelMenus(String cellId, Map<RefHelper, ContextMenu> menuMap) {
         Main.assertFxThread();
         cellMap.get(cellId).setLabelMenus(menuMap);
     }
 
-    public void setRemoteBranchCells(String cellId, List<String> remoteBranches) {
+    public synchronized void setRemoteBranchCells(String cellId, List<String> remoteBranches) {
         Main.assertFxThread();
         cellMap.get(cellId).setRemoteLabels(remoteBranches);
     }
@@ -461,7 +461,7 @@ public class TreeGraphModel {
      * @param cellId the id of the cell to label
      * @param shape the new shape
      */
-    public void setCellShape(String cellId, CellShape shape){
+    public synchronized void setCellShape(String cellId, CellShape shape){
         Main.assertFxThread();
         Cell cell = cellMap.get(cellId);
         cell.setShape(shape);
@@ -473,7 +473,7 @@ public class TreeGraphModel {
      * If the type isn't the default (CellType.BOTH), adds it to the list
      * of non-default cells.
      */
-    public void setCellType(CommitHelper commitToAdd) {
+    public synchronized void setCellType(CommitHelper commitToAdd) {
         Main.assertFxThread();
         String cellId = commitToAdd.getName();
         RepoHelper repo = SessionModel.getSessionModel().getCurrentRepoHelper();
@@ -491,7 +491,7 @@ public class TreeGraphModel {
      * Changes every cell back to the default shape
      * @return a list of CellIDs corresponding to the cells that were changed
      */
-    public List<String> resetCellShapes(){
+    public synchronized List<String> resetCellShapes(){
         Main.assertFxThread();
         List<String> resetIDs = new ArrayList<>();
         for(Cell cell : cellsWithNonDefaultShapesOrLabels){
@@ -507,7 +507,7 @@ public class TreeGraphModel {
      * Updates the lists for added and removed cells, leaving the tree
      * completely updated
      */
-    public void merge() {
+    public synchronized void merge() {
         Main.assertFxThread();
         // cells
         allCells.addAll(addedCells);
@@ -522,8 +522,13 @@ public class TreeGraphModel {
         numCellsProperty.set(allCells.size());
     }
 
-    public List<Cell> getAllCells() {
+    // synchronized for allCells
+    public synchronized List<Cell> getAllCells() {
         Main.assertFxThread();
         return new ArrayList<>(allCells);
+    }
+
+    public synchronized IntegerProperty getNumCellsProperty() {
+        return numCellsProperty;
     }
 }
