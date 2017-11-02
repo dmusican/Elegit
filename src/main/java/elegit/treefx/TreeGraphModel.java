@@ -1,6 +1,7 @@
 package elegit.treefx;
 
 import elegit.Main;
+import elegit.models.CommitHelper;
 import elegit.models.RefHelper;
 import elegit.models.RepoHelper;
 import elegit.models.SessionModel;
@@ -150,17 +151,18 @@ public class TreeGraphModel {
     /**
      * Adds a new cell with the given ID, time, and labels to the tree whose
      * parents are the cells with the given IDs.
-     * @param newId the id of the new cell
-     * @param time the time of the new cell
-     * @param displayLabel the displayLabel of the new cell
      * @param contextMenu the context contextMenu that will appear when right clicking on a cell
      * @param parentIds the IDs of the parents of the new cell, if any
      * @param type the type of the cell, local, remote, or both
      */
-    public void addCell(String newId, long time, String displayLabel,
-                        List<RefHelper> refs, ContextMenu contextMenu,
+    public void addCell(CommitHelper commitToAdd, ContextMenu contextMenu,
                         List<String> parentIds, Cell.CellType type){
         Main.assertFxThread();
+        String newId = commitToAdd.getName();
+        long time = commitToAdd.getWhen().getTime();
+        RepoHelper repo = SessionModel.getSessionModel().getCurrentRepoHelper();
+        String displayLabel = repo.getCommitDescriptorString(commitToAdd, false);
+        List<RefHelper> refs = repo.getRefsForCommit(commitToAdd);
         // Create a list of parents
         List<Cell> parents = new ArrayList<>();
         for (String parentId : parentIds) {
@@ -190,6 +192,7 @@ public class TreeGraphModel {
         for (String parentId : parentIds)
             this.addEdge(parentId, newId);
     }
+
 
     /**
      * Adds a cell to both the addedCells list and the cell map, and removes

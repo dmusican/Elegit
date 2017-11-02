@@ -117,14 +117,19 @@ public class CommitTreeModel{
 
             if (!updates.hasChanges()) return;
 
+            System.out.println("CommitTreeModel.update before 1");
             this.removeCommitsFromTree(updates.getCommitsToRemove());
+            System.out.println("CommitTreeModel.update before 2");
             this.addCommitsToTree(updates.getCommitsToAdd());
+            System.out.println("CommitTreeModel.update before 3");
             this.updateCommitFills(updates.getCommitsToUpdate());  // SLOW
+            System.out.println("CommitTreeModel.update before 4");
             SessionModel.getSessionModel().getCurrentRepoHelper().getBranchModel().updateAllBranches();
             this.resetBranchHeads();
             this.updateAllRefLabels();
             TreeLayout.stopMovingCells();
             this.updateView();  // SLOW
+            System.out.println("CommitTreeModel.update after");
         }
     }
 
@@ -356,8 +361,6 @@ public class CommitTreeModel{
 
             CommitHelper commitToAdd = queue.poll();
 
-            String displayLabel = repo.getCommitDescriptorString(commitToAdd, false);
-            List<RefHelper> refLabels = repo.getRefsForCommit(commitToAdd);
             Cell.CellType computedType = repo.getCommitType(commitToAdd);
 
             this.commitsInModel.add(commitToAdd);
@@ -371,7 +374,7 @@ public class CommitTreeModel{
             if (graphModel.containsID(commitID)) {
                 graphModel.setCellType(commitID, computedType);
             } else {
-                graphModel.addCell(commitID, commitToAdd.getWhen().getTime(), displayLabel, refLabels, getContextMenu(commitToAdd), parentIds, computedType);
+                graphModel.addCell(commitToAdd, getContextMenu(commitToAdd), parentIds, computedType);
             }
         }
     }
