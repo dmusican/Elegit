@@ -108,8 +108,9 @@ public class RepositoryMonitorTestFX extends ApplicationTest {
 
         clickOn("#loadNewRepoButton")
                 .clickOn("#loadExistingRepoOption")
+                .clickOn("#repoInputDialog")
                 .write(repoPath.toString())
-                .push(ENTER);
+                .clickOn("#repoInputDialogOK");
 
         assertEquals(0,sessionController.getNotificationPaneController().getNotificationNum());
 
