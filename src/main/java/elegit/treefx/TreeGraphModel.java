@@ -1,6 +1,7 @@
 package elegit.treefx;
 
 import elegit.Main;
+import elegit.gui.PopUpWindows;
 import elegit.models.CommitHelper;
 import elegit.models.RefHelper;
 import elegit.models.RepoHelper;
@@ -8,11 +9,18 @@ import elegit.models.SessionModel;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.scene.control.ContextMenu;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.SeparatorMenuItem;
 import org.apache.http.annotation.ThreadSafe;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.eclipse.jgit.api.ResetCommand;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Thanks to RolandC for providing the base graph code structure:
@@ -53,6 +61,8 @@ public class TreeGraphModel {
     // Updated every time merge is called to hold the number of cells present
     // This is not private so other aspects of the view can bind it. Don't touch it unless on FX thread!
     final IntegerProperty numCellsProperty = new SimpleIntegerProperty();
+
+    private static final Logger logger = LogManager.getLogger();
 
     /**
      * Constructs a new model for a tree graph.
@@ -151,18 +161,19 @@ public class TreeGraphModel {
     /**
      * Adds a new cell with the given ID, time, and labels to the tree whose
      * parents are the cells with the given IDs.
-     * @param contextMenu the context contextMenu that will appear when right clicking on a cell
-     * @param parentIds the IDs of the parents of the new cell, if any
-     * @param type the type of the cell, local, remote, or both
      */
-    public void addCell(CommitHelper commitToAdd, ContextMenu contextMenu,
-                        List<String> parentIds, Cell.CellType type){
+    public void addCell(CommitHelper commitToAdd){
         Main.assertFxThread();
+
         String newId = commitToAdd.getName();
         long time = commitToAdd.getWhen().getTime();
         RepoHelper repo = SessionModel.getSessionModel().getCurrentRepoHelper();
         String displayLabel = repo.getCommitDescriptorString(commitToAdd, false);
         List<RefHelper> refs = repo.getRefsForCommit(commitToAdd);
+        ContextMenu contextMenu = getContextMenu(commitToAdd);
+        List<String> parentIds = commitToAdd.getParentNames();
+        Cell.CellType type = repo.getCommitType(commitToAdd);
+
         // Create a list of parents
         List<Cell> parents = new ArrayList<>();
         for (String parentId : parentIds) {
@@ -192,6 +203,129 @@ public class TreeGraphModel {
         for (String parentId : parentIds)
             this.addEdge(parentId, newId);
     }
+
+    /**
+     * Constructs and returns a context menu corresponding to the given commit. Will
+     * be shown on right click in the tree diagram
+     * @param commit the commit for which this context menu is for
+     * @return the context menu for the commit
+     */
+    private synchronized ContextMenu getContextMenu(CommitHelper commit){
+        Main.assertFxThread();
+        // This line appears to be somewhat slow.
+        ContextMenu contextMenu = new ContextMenu();
+
+        MenuItem checkoutItem = new MenuItem("Checkout files...");
+        checkoutItem.setOnAction(event -> {
+            logger.info("Checkout files from commit button clicked");
+            CommitTreeController.getSessionController().handleCheckoutFilesButton(commit);
+        });
+        Menu relativesMenu = getRelativesMenu(commit);
+        Menu revertMenu = getRevertMenu(commit);
+        Menu resetMenu = getResetMenu(commit);
+
+        contextMenu.getItems().addAll(revertMenu, resetMenu, checkoutItem, new SeparatorMenuItem(), relativesMenu);
+
+        return contextMenu;
+    }
+
+    /**
+     * Helper method for getContextMenu that gets the relativesMenu
+     * @param commit CommitHelper
+     * @return relativesMenu
+     */
+    private synchronized Menu getRelativesMenu(CommitHelper commit) {
+        Main.assertFxThread();
+        Menu relativesMenu = new Menu("Show Relatives");
+
+        MenuItem parentsItem = new MenuItem("Parents");
+        parentsItem.setOnAction(event -> {
+            logger.info("Selected see parents");
+            CommitTreeController.selectCommit(commit.getName(), true, false, false);
+        });
+
+        MenuItem childrenItem = new MenuItem("Children");
+        childrenItem.setOnAction(event -> {
+            logger.info("Selected see children");
+            CommitTreeController.selectCommit(commit.getName(), false, true, false);
+        });
+
+        MenuItem parentsAndChildrenItem = new MenuItem("Both");
+        parentsAndChildrenItem.setOnAction(event -> {
+            logger.info("Selected see children and parents");
+            CommitTreeController.selectCommit(commit.getName(), true, true, false);
+        });
+
+        relativesMenu.getItems().setAll(parentsItem, childrenItem, parentsAndChildrenItem);
+
+        return relativesMenu;
+    }
+
+    /**
+     * Helper method for getContextMenu that initializes the revert part of the menu
+     * @param commit CommitHelper
+     * @return revertMenu
+     */
+    private synchronized Menu getRevertMenu(CommitHelper commit) {
+        Main.assertFxThread();
+        Menu revertMenu = new Menu("Revert...");
+        MenuItem revertItem = new MenuItem("Revert this commit");
+        MenuItem revertMultipleItem = new MenuItem("Revert multiple commits...");
+        revertMultipleItem.disableProperty().bind(CommitTreeController.getMultipleNotSelectedProperty());
+        MenuItem helpItem = new MenuItem("Help");
+
+        revertItem.setOnAction(event -> CommitTreeController.getSessionController().handleRevertButton(commit));
+
+        Set<CommitHelper> commitsInModel = CommitTreeModel.getCommitTreeModel().getCommitsInModel();
+        revertMultipleItem.setOnAction(event -> {
+            // Some fancy lambda syntax and collect call
+            List<CommitHelper> commits = commitsInModel.stream().filter(commitHelper ->
+                    CommitTreeController.getSelectedIds().contains(commitHelper.getName())).collect(Collectors.toList());
+            CommitTreeController.getSessionController().handleRevertMultipleButton(commits);
+        });
+
+        helpItem.setOnAction(event -> PopUpWindows.showRevertHelpAlert());
+
+        revertMenu.getItems().setAll(revertItem, revertMultipleItem, helpItem);
+
+        return revertMenu;
+    }
+
+    private synchronized Menu getResetMenu(CommitHelper commit) {
+        Main.assertFxThread();
+        Menu resetMenu = new Menu("Reset...");
+        MenuItem resetItem = new MenuItem("Reset to this commit");
+        MenuItem helpItem = new MenuItem("Help");
+        Menu advancedMenu = getAdvancedResetMenu(commit);
+
+        resetItem.setOnAction(event -> CommitTreeController.getSessionController().handleResetButton(commit));
+
+        helpItem.setOnAction(event -> PopUpWindows.showResetHelpAlert());
+
+        resetMenu.getItems().setAll(resetItem, advancedMenu, helpItem);
+
+        return resetMenu;
+    }
+
+    private synchronized Menu getAdvancedResetMenu(CommitHelper commit) {
+        Main.assertFxThread();
+        Menu resetMenu = new Menu("Advanced");
+        MenuItem hardItem = new MenuItem("reset --hard");
+        MenuItem mixedItem = new MenuItem("reset --mixed");
+        MenuItem softItem = new MenuItem("reset --soft");
+
+        hardItem.setOnAction(event ->
+                CommitTreeController.getSessionController().handleAdvancedResetButton(commit, ResetCommand.ResetType.HARD));
+        mixedItem.setOnAction(event ->
+                CommitTreeController.getSessionController().handleAdvancedResetButton(commit, ResetCommand.ResetType.MIXED));
+        softItem.setOnAction(event ->
+                CommitTreeController.getSessionController().handleAdvancedResetButton(commit, ResetCommand.ResetType.SOFT));
+
+        resetMenu.getItems().setAll(hardItem, mixedItem, softItem);
+
+        return resetMenu;
+    }
+
 
 
     /**
@@ -338,11 +472,13 @@ public class TreeGraphModel {
      * Sets the type of the cell with the given ID to be the given type.
      * If the type isn't the default (CellType.BOTH), adds it to the list
      * of non-default cells.
-     * @param cellId the id of the cell to type
-     * @param type the new type
      */
-    public void setCellType(String cellId, Cell.CellType type) {
+    public void setCellType(CommitHelper commitToAdd) {
         Main.assertFxThread();
+        String cellId = commitToAdd.getName();
+        RepoHelper repo = SessionModel.getSessionModel().getCurrentRepoHelper();
+        Cell.CellType type = repo.getCommitType(commitToAdd);
+
         Cell cell = cellMap.get(cellId);
         if (cell == null)
             return;

@@ -360,21 +360,19 @@ public class CommitTreeModel{
         while (!queue.isEmpty()) {
 
             CommitHelper commitToAdd = queue.poll();
+            this.commitsInModel.add(commitToAdd);
 
             Cell.CellType computedType = repo.getCommitType(commitToAdd);
-
-            this.commitsInModel.add(commitToAdd);
             if (computedType == Cell.CellType.BOTH || computedType == Cell.CellType.LOCAL)
                 this.localCommitsInModel.add(commitToAdd);
             if (computedType == Cell.CellType.BOTH || computedType == Cell.CellType.REMOTE)
                 this.remoteCommitsInModel.add(commitToAdd);
 
-            List<String> parentIds = commitToAdd.getParentNames();
             String commitID = commitToAdd.getName();
             if (graphModel.containsID(commitID)) {
-                graphModel.setCellType(commitID, computedType);
+                graphModel.setCellType(commitToAdd);
             } else {
-                graphModel.addCell(commitToAdd, getContextMenu(commitToAdd), parentIds, computedType);
+                graphModel.addCell(commitToAdd);
             }
         }
     }
@@ -417,7 +415,7 @@ public class CommitTreeModel{
             default:
                 break;
         }
-        graphModel.setCellType(helper.getName(), type);
+        graphModel.setCellType(helper);
     }
 
     /**
@@ -485,127 +483,6 @@ public class CommitTreeModel{
         return contextMenu;
     }
 
-
-    /**
-     * Constructs and returns a context menu corresponding to the given commit. Will
-     * be shown on right click in the tree diagram
-     * @param commit the commit for which this context menu is for
-     * @return the context menu for the commit
-     */
-    private synchronized ContextMenu getContextMenu(CommitHelper commit){
-        Main.assertFxThread();
-        // This line appears to be somewhat slow.
-        ContextMenu contextMenu = new ContextMenu();
-
-        MenuItem checkoutItem = new MenuItem("Checkout files...");
-        checkoutItem.setOnAction(event -> {
-            logger.info("Checkout files from commit button clicked");
-            CommitTreeController.getSessionController().handleCheckoutFilesButton(commit);
-        });
-        Menu relativesMenu = getRelativesMenu(commit);
-        Menu revertMenu = getRevertMenu(commit);
-        Menu resetMenu = getResetMenu(commit);
-
-        contextMenu.getItems().addAll(revertMenu, resetMenu, checkoutItem, new SeparatorMenuItem(), relativesMenu);
-
-        return contextMenu;
-    }
-
-    /**
-     * Helper method for getContextMenu that gets the relativesMenu
-     * @param commit CommitHelper
-     * @return relativesMenu
-     */
-    private synchronized Menu getRelativesMenu(CommitHelper commit) {
-        Main.assertFxThread();
-        Menu relativesMenu = new Menu("Show Relatives");
-
-        MenuItem parentsItem = new MenuItem("Parents");
-        parentsItem.setOnAction(event -> {
-            logger.info("Selected see parents");
-            CommitTreeController.selectCommit(commit.getName(), true, false, false);
-        });
-
-        MenuItem childrenItem = new MenuItem("Children");
-        childrenItem.setOnAction(event -> {
-            logger.info("Selected see children");
-            CommitTreeController.selectCommit(commit.getName(), false, true, false);
-        });
-
-        MenuItem parentsAndChildrenItem = new MenuItem("Both");
-        parentsAndChildrenItem.setOnAction(event -> {
-            logger.info("Selected see children and parents");
-            CommitTreeController.selectCommit(commit.getName(), true, true, false);
-        });
-
-        relativesMenu.getItems().setAll(parentsItem, childrenItem, parentsAndChildrenItem);
-
-        return relativesMenu;
-    }
-
-    /**
-     * Helper method for getContextMenu that initializes the revert part of the menu
-     * @param commit CommitHelper
-     * @return revertMenu
-     */
-    private synchronized Menu getRevertMenu(CommitHelper commit) {
-        Main.assertFxThread();
-        Menu revertMenu = new Menu("Revert...");
-        MenuItem revertItem = new MenuItem("Revert this commit");
-        MenuItem revertMultipleItem = new MenuItem("Revert multiple commits...");
-        revertMultipleItem.disableProperty().bind(CommitTreeController.getMultipleNotSelectedProperty());
-        MenuItem helpItem = new MenuItem("Help");
-
-        revertItem.setOnAction(event -> CommitTreeController.getSessionController().handleRevertButton(commit));
-
-        revertMultipleItem.setOnAction(event -> {
-            // Some fancy lambda syntax and collect call
-            List<CommitHelper> commits = commitsInModel.stream().filter(commitHelper ->
-                    CommitTreeController.getSelectedIds().contains(commitHelper.getName())).collect(Collectors.toList());
-            CommitTreeController.getSessionController().handleRevertMultipleButton(commits);
-        });
-
-        helpItem.setOnAction(event -> PopUpWindows.showRevertHelpAlert());
-
-        revertMenu.getItems().setAll(revertItem, revertMultipleItem, helpItem);
-
-        return revertMenu;
-    }
-
-    private synchronized Menu getResetMenu(CommitHelper commit) {
-        Main.assertFxThread();
-        Menu resetMenu = new Menu("Reset...");
-        MenuItem resetItem = new MenuItem("Reset to this commit");
-        MenuItem helpItem = new MenuItem("Help");
-        Menu advancedMenu = getAdvancedResetMenu(commit);
-
-        resetItem.setOnAction(event -> CommitTreeController.getSessionController().handleResetButton(commit));
-
-        helpItem.setOnAction(event -> PopUpWindows.showResetHelpAlert());
-
-        resetMenu.getItems().setAll(resetItem, advancedMenu, helpItem);
-
-        return resetMenu;
-    }
-
-    private synchronized Menu getAdvancedResetMenu(CommitHelper commit) {
-        Main.assertFxThread();
-        Menu resetMenu = new Menu("Advanced");
-        MenuItem hardItem = new MenuItem("reset --hard");
-        MenuItem mixedItem = new MenuItem("reset --mixed");
-        MenuItem softItem = new MenuItem("reset --soft");
-
-        hardItem.setOnAction(event ->
-                CommitTreeController.getSessionController().handleAdvancedResetButton(commit, ResetCommand.ResetType.HARD));
-        mixedItem.setOnAction(event ->
-                CommitTreeController.getSessionController().handleAdvancedResetButton(commit, ResetCommand.ResetType.MIXED));
-        softItem.setOnAction(event ->
-                CommitTreeController.getSessionController().handleAdvancedResetButton(commit, ResetCommand.ResetType.SOFT));
-
-        resetMenu.getItems().setAll(hardItem, mixedItem, softItem);
-
-        return resetMenu;
-    }
 
     /**
      * Updates the corresponding view if possible
@@ -735,6 +612,7 @@ public class CommitTreeModel{
     }
 
 
-    public synchronized Set<CommitHelper> getCommitsInModel() { return this.commitsInModel; }
+    public synchronized Set<CommitHelper> getCommitsInModel() {
+        return Collections.unmodifiableSet(this.commitsInModel); }
 
 }
