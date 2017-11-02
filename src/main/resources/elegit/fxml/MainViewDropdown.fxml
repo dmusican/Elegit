@@ -34,8 +34,8 @@
                 </ContextMenu>
             </contextMenu>
         </Button>
-        <Button id="warningButton"
-                onAction="#chooseRecentReposToDelete"
+        <Button onAction="#chooseRecentReposToDelete"
+                id="removeRecentReposButton"
                 fx:id="removeRecentReposButton"/>
     </HBox>
 

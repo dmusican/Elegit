@@ -1769,7 +1769,6 @@ public class SessionController {
     private void hideBusyWindowAndResumeRepoMonitor() {
         Main.assertFxThread();
         gitStatus();
-        System.out.println("hiding");
         BusyWindow.hide();
         RepositoryMonitor.unpause();
         LoggingModel.submitLog();
@@ -2018,7 +2017,6 @@ public class SessionController {
 
     private void showBusyWindow(String message) {
         BusyWindow.show();
-        System.out.println("showing");
         BusyWindow.setLoadingText(message);
     }
 

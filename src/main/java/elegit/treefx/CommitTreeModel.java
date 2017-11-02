@@ -368,7 +368,6 @@ public class CommitTreeModel{
 
             String commitID = commitToAdd.getName();
             if (graphModel.containsID(commitID)) {
-                System.out.println("I think this is rare");
                 graphModel.setCellType(commitToAdd);
             } else {
                 graphModel.addCell(commitToAdd);

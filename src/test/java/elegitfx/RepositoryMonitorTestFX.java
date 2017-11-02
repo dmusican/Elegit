@@ -22,6 +22,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
+import org.controlsfx.control.CheckListView;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.junit.After;
 import org.junit.Assert;
@@ -139,5 +140,62 @@ public class RepositoryMonitorTestFX extends ApplicationTest {
         System.setProperty("logFolder", logPath.toString());
     }
 
+    @Test
+    public void openAndCloseReposTest() throws Exception {
+        initializeLogger();
+        Path directoryPath = Files.createTempDirectory("unitTestRepos");
+        directoryPath.toFile().deleteOnExit();
+        Path repoPath = directoryPath.resolve("testrepo");
+        // Clone from dummy repo:
+        String remoteURL = "https://github.com/TheElegitTeam/TestRepository.git";
+
+        // This repo doesn't check username/password for read-only
+        UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider("", "");
+        ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, remoteURL, credentials);
+        System.out.println("Repo path = " + repoPath);
+        helper.obtainRepository(remoteURL);
+        assertNotNull(helper);
+
+        clickOn("#loadNewRepoButton")
+                .clickOn("#loadExistingRepoOption")
+                .clickOn("#repoInputDialog")
+                .write(repoPath.toString())
+                .clickOn("#repoInputDialogOK");
+
+        Path repoPath2 = directoryPath.resolve("otherrepo");
+
+        remoteURL = "https://github.com/TheElegitTeam/testrepo.git";
+        ClonedRepoHelper helper2 = new ClonedRepoHelper(repoPath2, remoteURL, credentials);
+        System.out.println("Repo path = " + repoPath);
+        helper2.obtainRepository(remoteURL);
+        assertNotNull(helper2);
+
+        clickOn("#loadNewRepoButton")
+                .clickOn("#loadExistingRepoOption")
+                .clickOn("#repoInputDialog")
+                .write(repoPath2.toString())
+                .clickOn("#repoInputDialogOK");
+
+        Node dropdown = lookup("#repoDropdown").query();
+        System.out.println(dropdown);
+        clickOn(dropdown).clickOn("testrepo");
+        clickOn(dropdown).clickOn("otherrepo");
+        clickOn(dropdown).clickOn("testrepo");
+        clickOn(dropdown).clickOn("otherrepo");
+
+        clickOn("#removeRecentReposButton");
+
+        ((CheckListView<RepoHelper>)(lookup("#repoCheckList").query())).getItemBooleanProperty(0).set(true);
+
+        clickOn((Node)(lookup("#reposDeleteRemoveSelectedButton").query()));
+
+        assertEquals(0, sessionController.getNotificationPaneController().getNotificationNum());
+
+        ((CheckListView<RepoHelper>)(lookup("#repoCheckList").query())).getItemBooleanProperty(0).set(true);
+
+        clickOn((Node)(lookup("#reposDeleteRemoveSelectedButton").query()));
+
+        assertEquals(0, sessionController.getNotificationPaneController().getNotificationNum());
+    }
 
 }

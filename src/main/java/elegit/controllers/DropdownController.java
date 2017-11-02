@@ -14,6 +14,7 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.geometry.Side;
+import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
@@ -109,14 +110,16 @@ public class DropdownController {
     // TODO: Make sure that RepoHelper is threadsafe
     public synchronized void chooseRecentReposToDelete() {
         logger.info("Remove repos button clicked");
-        System.out.println("yep");
 
         // creates a CheckListView with all the repos in it
         List<RepoHelper> repoHelpers = SessionModel.getSessionModel().getAllRepoHelpers();
         CheckListView<RepoHelper> repoCheckListView = new CheckListView<>(FXCollections.observableArrayList(repoHelpers));
+        repoCheckListView.setId("repoCheckList");
 
+        repoCheckListView.getItemBooleanProperty(0).set(true);
         // creates a popover with the list and a button used to remove repo shortcuts
         Button removeSelectedButton = new Button("Remove repository shortcuts from Elegit");
+        removeSelectedButton.setId("reposDeleteRemoveSelectedButton");
         PopOver popover = new PopOver(new VBox(repoCheckListView, removeSelectedButton));
         popover.setTitle("Manage Recent Repositories");
 
