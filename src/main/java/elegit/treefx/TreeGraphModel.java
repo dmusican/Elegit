@@ -132,6 +132,7 @@ public class TreeGraphModel {
     public synchronized List<Edge> getAddedEdges() {
         return Collections.unmodifiableList(new ArrayList<>(addedEdges));
     }
+
     /**
      * @return the edges removed since the last update
      */

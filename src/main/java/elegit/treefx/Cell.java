@@ -3,6 +3,7 @@ package elegit.treefx;
 import elegit.Main;
 import elegit.models.RefHelper;
 import javafx.animation.TranslateTransition;
+import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -15,6 +16,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Shape;
 import javafx.util.Duration;
+import org.apache.http.annotation.GuardedBy;
 import org.apache.http.annotation.ThreadSafe;
 
 import java.util.*;
@@ -26,17 +28,11 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  * A Cell extends Pane, so it IS a JavaFX node and should be treated as one.
  *
- * This code should have no Platform.runLater code in it whatsoever. The Cell becomes part of the scene graph.
- * Could aspects of be done off thread? Sure, but that gets really complicated, and it's why the FX thread is single-
- * threaded to start with. Some code in here is called from off-thread, but it's the job of them to make sure they
- * call Platform.runLater (or whatever) and deal with the consequences of the timing. From the perspective of this
- * class, it's all on FX thread. Don't take any of the asserts out without a complete rethinking of the philosophy.
- *
  */
 @ThreadSafe
 // but critically only because of all the asserts requiring this be done only in the FX thread. Without that, it
-// isn't threadsafe.
-// TODO: If this sticks, take out the atomic references etc I put in, they aren't necessary; ditto synchronized
+// isn't threadsafe. In some cases, non FX-thread specific information can be done off-thread, and that's been
+// carefully checked. Beware of making updates here without being similarly careful.
 public class Cell extends Pane {
 
     // Base shapes for different types of cells
@@ -61,7 +57,7 @@ public class Cell extends Pane {
     private final AtomicBoolean useParentAsSource = new AtomicBoolean();
 
     private CellShape shape;
-    private CellType type;
+    @GuardedBy("this") private CellType type;
 
     private ContextMenu contextMenu;
     private CellLabelContainer refLabels;
@@ -85,7 +81,7 @@ public class Cell extends Pane {
     private BooleanProperty hasUpdatedPosition;
 
     // All edges that have this cell as an endpoint
-    private List<Edge> edges = new ArrayList<>();
+    @GuardedBy("this") private final List<Edge> edges = new ArrayList<>();
 
 
     // The following are kept public so that other aspects of the view can bind and work with them. It is critical
@@ -152,18 +148,20 @@ public class Cell extends Pane {
         this.view=getBaseView();
     }
 
+    // Can be done off FX thread since synchronized, and doesn't make any actual GUI changes. Critical to note
+    // that if someone USES the edge in a nefarious way off the FX thread, that's a bad bug. Be very careful about
+    // using this list of edges.
     public List<Edge> getEdges() {
-        Main.assertFxThread();
         return Collections.unmodifiableList(new ArrayList<>(edges));
     }
 
-    public void addEdge(Edge e) {
-        Main.assertFxThread();
+    // Can be done off FX thread since synchronized, and doesn't make any actual GUI changes
+    public synchronized void addEdge(Edge e) {
         edges.add(e);
     }
 
+    // Can be done off FX thread since synchronized, and doesn't make any actual GUI changes
     public void removeEdge(Edge e) {
-        Main.assertFxThread();
         edges.remove(e);
     }
 
@@ -215,7 +213,8 @@ public class Cell extends Pane {
     /**
      * @return the basic view for this cell
      */
-    private Node getBaseView(){
+    // synchronized for this.type
+    private synchronized Node getBaseView(){
         Main.assertFxThread();
         Node node = DEFAULT_SHAPE.getType(this.type);
         setFillType((Shape)node, CellState.STANDARD);
@@ -247,6 +246,7 @@ public class Cell extends Pane {
      * Set the shape of this cell
      * @param newShape the new shape
      */
+    // synchronized for this.type and this.shape
     public synchronized void setShape(CellShape newShape){
         Main.assertFxThread();
         if(this.shape == newShape) return;
@@ -375,8 +375,10 @@ public class Cell extends Pane {
      * Sets the cell type to local, both or remote and resets edges accordingly
      * @param type the type of the cell
      */
-    void setCellType(CellType type) {
-        Main.assertFxThread();
+    // synchronized for use of edges and this.type
+    // This can be done off the FX thread in general, as a Cell might be constructed off and used later. However,
+    // it is critical that this method not be used on a Cell that is already on the scene graph from off thread.
+    synchronized void setCellType(CellType type) {
         this.type = type;
         setFillType((Shape) view, CellState.STANDARD);
         for (Edge e : edges) {
@@ -384,16 +386,17 @@ public class Cell extends Pane {
         }
     }
 
-    CellType getCellType() {
-        Main.assertFxThread();
+    // synchronized for this.type
+    // This just returns a constant enum variable, safe to use off FX thread
+    synchronized CellType getCellType() {
         return this.type;
     }
 
     /**
      * @return the unique ID of this cell
      */
+    // cellId is final and an immutable String, so it is safe to return it across threads
     public String getCellId() {
-        Main.assertFxThread();
         return cellId;
     }
 
@@ -422,8 +425,10 @@ public class Cell extends Pane {
      * @param n the shape to set the fill of
      * @param state the state of the cell, determines coloring
      */
-    private void setFillType(Shape n, CellState state) {
-        Main.assertFxThread();
+    // synchronized for this.type
+    // This can be done off the FX thread in general, as a Cell might be constructed off and used later. However,
+    // it is critical that this method not be used on a Cell that is already on the scene graph from off thread.
+    private synchronized void setFillType(Shape n, CellState state) {
         Color baseColor = Color.web(state.getBackgroundColor());
         switch(this.type) {
             case LOCAL:
@@ -442,11 +447,13 @@ public class Cell extends Pane {
         }
     }
 
+
     public enum CellType {
         BOTH,
         LOCAL,
         REMOTE
     }
+
 
     /**
      * A class that holds the parents of a cell
@@ -488,5 +495,7 @@ public class Cell extends Pane {
                 }
             }
         }
+
+
     }
 }

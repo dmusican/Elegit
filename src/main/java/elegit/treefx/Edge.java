@@ -139,13 +139,17 @@ public class Edge  {
         this.visible.set(enable);
     }
 
+    // source is final, so safe to return pointer without being on FX thread. That said, using that pointer
+    // to update the Cell would be a disaster if the Cll is in the scene graph and if the receiver is not in the
+    // FX thread. Beware!
     public Cell getSource() {
-        Main.assertFxThread();
         return this.source;
     }
 
+    // target is final, so safe to return pointer without being on FX thread. That said, using that pointer
+    // to update the Cell would be a disaster if the Cll is in the scene graph and if the receiver is not in the
+    // FX thread. Beware!
     public Cell getTarget() {
-        Main.assertFxThread();
         return this.target;
     }
 
