@@ -190,7 +190,6 @@ public class SessionModel {
      */
     // synchronized for allRepoHelpers, and openedRepos
     private synchronized void openRepo(RepoHelper repoHelper) throws BackingStoreException, IOException, ClassNotFoundException {
-        System.out.println("SessionModel.openRepo");
         if(!this.allRepoHelpers.contains(repoHelper)) {
             this.allRepoHelpers.add(repoHelper);
         }

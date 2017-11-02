@@ -697,6 +697,9 @@ public class SessionController {
 
     public void loadDesignatedRepo(RepoHelper repoHelper) {
         GitOperation gitOp = authResponse -> loadRepo(authResponse, repoHelper);
+        System.out.println("repoHelper = " + repoHelper);
+        if (repoHelper == null)
+            throw new RuntimeException();
         if (theModel.getCurrentRepoHelper() != null && repoHelper.getLocalPath().equals(theModel.getCurrentRepoHelper().getLocalPath())) {
             showSameRepoLoadedNotification();
             return;
@@ -772,7 +775,7 @@ public class SessionController {
             List<RepoHelper> repoHelpers = this.theModel.getAllRepoHelpers();
             ObservableList<RepoHelper> obsRepoHelpers = FXCollections.observableArrayList(repoHelpers);
             ObservableList<RepoHelper> immutableRepoHelpers = FXCollections.unmodifiableObservableList(obsRepoHelpers);
-            dropdownController.setAllRepos(FXCollections.observableArrayList(immutableRepoHelpers));
+            dropdownController.setAllReposWithoutInvokingAction(FXCollections.observableArrayList(immutableRepoHelpers));
         }
     }
 
@@ -2222,7 +2225,6 @@ public class SessionController {
         }
 
     public void gitStatusWorkload() throws GitAPIException, IOException {
-        System.out.println("git status");
         theModel.getCurrentRepoHelper().getBranchModel().updateAllBranches();
         workingTreePanelView.drawDirectoryView();
         allFilesPanelView.drawDirectoryView();
@@ -2230,7 +2232,6 @@ public class SessionController {
         this.theModel.getCurrentRepoHelper().getTagModel().updateTags();
         updateStatusText();
         commitTreeModel.update();
-        System.out.println("Git status done");
     }
 
     /**
@@ -2351,6 +2352,7 @@ public class SessionController {
             // The repos have been removed, this line just keeps the current repo loaded
         }else {
             try {
+                System.out.println("the current = " + theModel.getCurrentRepoHelper());
                 theModel.openRepoFromHelper(theModel.getCurrentRepoHelper());
             } catch (BackingStoreException | IOException | MissingRepoException | ClassNotFoundException e1) {
                 e1.printStackTrace();

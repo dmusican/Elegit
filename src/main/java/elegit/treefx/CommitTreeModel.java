@@ -118,16 +118,13 @@ public class CommitTreeModel{
             if (!updates.hasChanges()) return;
 
             this.removeCommitsFromTree(updates.getCommitsToRemove());
-            System.out.println("CommitTreeModel.update before 2");
             this.addCommitsToTree(updates.getCommitsToAdd()); // SLOW
-            System.out.println("CommitTreeModel.update before 3");
             this.updateCommitFills(updates.getCommitsToUpdate());
             SessionModel.getSessionModel().getCurrentRepoHelper().getBranchModel().updateAllBranches();
             this.resetBranchHeads();
             this.updateAllRefLabels();
             TreeLayout.stopMovingCells();
             this.updateView();  // SLOW
-            System.out.println("CommitTreeModel.update after");
         }
     }
 

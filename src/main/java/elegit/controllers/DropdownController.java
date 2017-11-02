@@ -143,7 +143,10 @@ public class DropdownController {
         return repoDropdownSelector.getValue();
     }
 
-    public void setAllRepos(ObservableList<RepoHelper> repoHelpers) {
+    public void setAllReposWithoutInvokingAction(ObservableList<RepoHelper> repoHelpers) {
+        EventHandler<ActionEvent> handler = repoDropdownSelector.getOnAction();
+        repoDropdownSelector.setOnAction(null);
         repoDropdownSelector.setItems(repoHelpers);
+        repoDropdownSelector.setOnAction(handler);
     }
 }

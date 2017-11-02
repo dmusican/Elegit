@@ -103,7 +103,6 @@ public class RepositoryMonitorTestFX extends ApplicationTest {
         // This repo doesn't check username/password for read-only
         UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider("", "");
         ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, remoteURL, credentials);
-        System.out.println("Repo path = " + repoPath);
         helper.obtainRepository(remoteURL);
         assertNotNull(helper);
 
@@ -152,7 +151,6 @@ public class RepositoryMonitorTestFX extends ApplicationTest {
         // This repo doesn't check username/password for read-only
         UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider("", "");
         ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, remoteURL, credentials);
-        System.out.println("Repo path = " + repoPath);
         helper.obtainRepository(remoteURL);
         assertNotNull(helper);
 
@@ -166,7 +164,6 @@ public class RepositoryMonitorTestFX extends ApplicationTest {
 
         remoteURL = "https://github.com/TheElegitTeam/testrepo.git";
         ClonedRepoHelper helper2 = new ClonedRepoHelper(repoPath2, remoteURL, credentials);
-        System.out.println("Repo path = " + repoPath);
         helper2.obtainRepository(remoteURL);
         assertNotNull(helper2);
 
