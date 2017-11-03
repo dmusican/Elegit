@@ -42,7 +42,8 @@ public class TreeLayout{
         commitSortTopological.bind(status);
     }
 
-    private final static int CELLS_AT_A_TIME = 100;
+    private final static int CELLS_AT_A_TIME = 20;
+    private final static int CELL_RENDER_TIME_DELAY = 100;
 
     /**
      * The task within is specifically designed to pick out 10 cells, and move them one-by-one.
@@ -173,8 +174,10 @@ public class TreeLayout{
 //            }));
             //********************** Loading Bar End **********************
 
-            return Observable.intervalRange(0, (int)(Math.ceil(allCells.size()/(double)CELLS_AT_A_TIME)), 0,
-            5000, TimeUnit.MILLISECONDS, Schedulers.io())
+            return Observable.intervalRange(0, (int)(Math.ceil(allCells.size()/(double)CELLS_AT_A_TIME)),
+                    0, CELL_RENDER_TIME_DELAY, TimeUnit.MILLISECONDS,
+                    Schedulers.io())
+
                     .observeOn(JavaFxScheduler.platform())
                     .map(cellNumber -> mover.moveSomeCells(cellNumber.intValue()*CELLS_AT_A_TIME));
 
