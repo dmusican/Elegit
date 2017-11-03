@@ -5,6 +5,7 @@ import elegit.models.CommitHelper;
 import elegit.treefx.CommitTreeController;
 import elegit.treefx.TreeGraph;
 import elegit.treefx.TreeLayout;
+import io.reactivex.Observable;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.Region;
 import org.apache.http.annotation.ThreadSafe;
@@ -26,6 +27,7 @@ public class CommitTreePanelView extends Region{
         super();
         Main.assertFxThread();
         this.setMinHeight(0);
+        initCommitTreeScrollPanes(CommitTreeModel.getCommitTreeModel().getTreeGraph());
     }
 
     /**
@@ -48,9 +50,18 @@ public class CommitTreePanelView extends Region{
      */
     synchronized void displayTreeGraph(TreeGraph treeGraph, CommitHelper commitToFocusOnLoad){
         Main.assertFxThread();
-        initCommitTreeScrollPanes(treeGraph);
-        TreeLayout.doTreeLayout(treeGraph);
-        CommitTreeController.focusCommitInGraph(commitToFocusOnLoad);  // SLOW
+        System.out.println("before focus");
+        //initCommitTreeScrollPanes(treeGraph);
+        System.out.println("after init");
+        //TreeLayout.doTreeLayout(treeGraph).subscribe();
+        TreeLayout.doTreeLayout(treeGraph)
+                .concatWith(Observable.fromCallable(() -> {
+                    CommitTreeController.focusCommitInGraph(commitToFocusOnLoad);
+                    return true;
+                }))
+                .subscribe();
+        //CommitTreeController.focusCommitInGraph(commitToFocusOnLoad);  // SLOW
+        System.out.println("after focus");
     }
 
     /**

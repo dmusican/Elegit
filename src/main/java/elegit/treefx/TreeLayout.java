@@ -1,6 +1,9 @@
 package elegit.treefx;
 
 import elegit.Main;
+import io.reactivex.Observable;
+import io.reactivex.rxjavafx.schedulers.JavaFxScheduler;
+import io.reactivex.schedulers.Schedulers;
 import javafx.application.Platform;
 import javafx.beans.property.*;
 import javafx.scene.control.ProgressBar;
@@ -13,6 +16,7 @@ import org.apache.http.annotation.ThreadSafe;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -38,7 +42,7 @@ public class TreeLayout{
         commitSortTopological.bind(status);
     }
 
-    private final static int CELLS_AT_A_TIME = 10;
+    private final static int CELLS_AT_A_TIME = 100;
 
     /**
      * The task within is specifically designed to pick out 10 cells, and move them one-by-one.
@@ -72,11 +76,12 @@ public class TreeLayout{
             });
         }
 
-        private void moveSomeCells(int startCell) {
+        public boolean moveSomeCells(int startCell) {
+            Main.assertFxThread();
             for (int i = startCell; i < startCell + CELLS_AT_A_TIME; i++) {
                 if (i > allCellsSortedByTime.size() - 1) {
                     percent.set(100);
-                    return;
+                    return true;
                 }
                 ;
                 moveCell(allCellsSortedByTime.get(i));
@@ -87,6 +92,7 @@ public class TreeLayout{
                     percent.set(i * 100 / max);
                 }
             }
+            return true;
         }
     }
 
@@ -102,7 +108,7 @@ public class TreeLayout{
              * every cell. When complete, updates the model if necessary to show
              * it has been through the layout process at least once already
              */
-    public static void doTreeLayout(TreeGraph g) {
+    public static Observable<Boolean> doTreeLayout(TreeGraph g) {
         // TreeGraph has to live on FX thread, and this calls methods on it, so this should start there too.
         // Spin off slow parts as I need to, perhaps. Be careful, lots of code below involves bindings, etc, that
         // certainly must stay.
@@ -167,17 +173,23 @@ public class TreeLayout{
 //            }));
             //********************** Loading Bar End **********************
 
-            while (!Main.isAppClosed.get() && movingCells.get() && mover.currentCell < allCells.size()) {
-                mover.moveSomeCells();
-                mover.setCurrentCell(mover.currentCell + CELLS_AT_A_TIME);
-                //progressBar.setProgress(mover.percent.get() / 100.0);
-            }
+            return Observable.intervalRange(0, (int)(Math.ceil(allCells.size()/(double)CELLS_AT_A_TIME)), 0,
+            5000, TimeUnit.MILLISECONDS, Schedulers.io())
+                    .observeOn(JavaFxScheduler.platform())
+                    .map(cellNumber -> mover.moveSomeCells(cellNumber.intValue()*CELLS_AT_A_TIME));
 
-            loadingCommits.setVisible(false);
-            progressBar.setVisible(false);
+//            while (!Main.isAppClosed.get() && movingCells.get() && mover.currentCell < allCells.size()) {
+//                mover.moveSomeCells();
+//                mover.setCurrentCell(mover.currentCell + CELLS_AT_A_TIME);
+//                //progressBar.setProgress(mover.percent.get() / 100.0);
+//            }
+
+            //loadingCommits.setVisible(false);
+            //progressBar.setVisible(false);
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return null;
     }
 
     /**
@@ -357,7 +369,6 @@ public class TreeLayout{
 
         double x = c.columnLocationProperty.get() * H_SPACING + H_PAD;
         double y = c.rowLocationProperty.get() * V_SPACING + V_PAD;
-
         c.moveTo(x, y, animate, animate && useParentPosAsSource);
         //});
     }

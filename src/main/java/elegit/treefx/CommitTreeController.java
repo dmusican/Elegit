@@ -237,15 +237,16 @@ public class CommitTreeController{
      * to the given commit in every view corresponding to a tracked CommitTreeModel
      * @param commit the commit to focus
      */
-    public static void focusCommitInGraph(CommitHelper commit){
+    public static boolean focusCommitInGraph(CommitHelper commit){
         Main.assertFxThread();
         if(commit == null)
-            return;
+            return false;
 
         if(getCommitTreeModel().getTreeGraph().treeGraphModel.containsID(commit.getName())){
             Cell c = getCommitTreeModel().getTreeGraph().treeGraphModel.getCell(commit.getName());
             Highlighter.emphasizeCell(c);
         }
+        return true;
     }
 
     /**
