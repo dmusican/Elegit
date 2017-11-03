@@ -182,13 +182,14 @@ public class RepositoryMonitorTestFX extends ApplicationTest {
 
         clickOn("#removeRecentReposButton");
 
-        ((CheckListView<RepoHelper>)(lookup("#repoCheckList").query())).getItemBooleanProperty(0).set(true);
+        CheckListView<RepoHelper> repoCheckList = lookup("#repoCheckList").query();
+        repoCheckList.getItemBooleanProperty(0).set(true);
 
         clickOn((Node)(lookup("#reposDeleteRemoveSelectedButton").query()));
 
         assertEquals(0, sessionController.getNotificationPaneController().getNotificationNum());
 
-        ((CheckListView<RepoHelper>)(lookup("#repoCheckList").query())).getItemBooleanProperty(0).set(true);
+        repoCheckList.getItemBooleanProperty(0).set(true);
 
         clickOn((Node)(lookup("#reposDeleteRemoveSelectedButton").query()));
 

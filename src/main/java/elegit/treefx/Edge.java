@@ -97,10 +97,8 @@ public class Edge  {
         if(source.getCellType() != Cell.CellType.BOTH || target.getCellType() != Cell.CellType.BOTH){
             path.setDashed(true);
         }
-        //getChildren().add(path);
 
-//        visibleProperty().bind(source.visibleProperty().and(target.visibleProperty())
-//                .and(allVisible.or(visible)));
+        path.visibleProperty().bind(source.visibleProperty().and(target.visibleProperty()));
 
         source.addEdge(this);
         target.addEdge(this);

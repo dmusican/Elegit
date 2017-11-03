@@ -97,7 +97,7 @@ public class Highlighter{
     /**
      * Takes care of ensuring the edges surrounding highlighted and selected cells are correctly
      * flagged as visible
-     * TODO: examine how we want to do edge highlighting
+     * TODO: examine how we want to do edge highlighting, perhaps just eliminate
      * @param cellID the cell whose edges this method will examine
      * @param selectedCellID the currently selected cell, if any
      * @param model the model wherein these cells are found
