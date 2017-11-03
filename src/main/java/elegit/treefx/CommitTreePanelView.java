@@ -54,11 +54,11 @@ public class CommitTreePanelView extends Region{
         //initCommitTreeScrollPanes(treeGraph);
         System.out.println("after init");
         //TreeLayout.doTreeLayout(treeGraph).subscribe();
-        TreeLayout.doTreeLayout(treeGraph)
-                .concatWith(Observable.fromCallable(() -> {
-                    CommitTreeController.focusCommitInGraph(commitToFocusOnLoad);
-                    return true;
-                }))
+        TreeLayout.doTreeLayout(treeGraph, commitToFocusOnLoad)
+//                .concatWith(Observable.fromCallable(() -> {
+//                    CommitTreeController.focusCommitInGraph(commitToFocusOnLoad);
+//                    return true;
+//                }))
                 .subscribe();
         //CommitTreeController.focusCommitInGraph(commitToFocusOnLoad);  // SLOW
         System.out.println("after focus");

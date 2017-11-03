@@ -1,5 +1,6 @@
 package elegit.treefx;
 
+import com.sun.source.tree.Tree;
 import elegit.Main;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
@@ -46,11 +47,7 @@ public class CommitTreeScrollPane extends ScrollPane {
      */
     public static void scrollTo(double pos){
         Main.assertFxThread();
-        double value = DEFAULT_SCROLL_POS;
-        if (pos >= 0 && pos < numItems) {
-            double ratio = pos/(numItems-1);
-            value = ratio;
-        }
+
         // The below-code is necessary to get the scroll pane layout to kick in before scrolling it to the right
         // position. The reason is explained here, after a fashion, where it talks about the need for a Group:
         // https://docs.oracle.com/javase/8/javafx/api/javafx/scene/control/ScrollPane.html
@@ -59,6 +56,11 @@ public class CommitTreeScrollPane extends ScrollPane {
         // ... in TreeGraph.java works great and avoids the hack below, but kills performance dramatically.
         CommitTreeModel.getCommitTreeModel().getTreeGraph().getScrollPane().applyCss();
         CommitTreeModel.getCommitTreeModel().getTreeGraph().getScrollPane().layout();
+
+        ScrollPane scrollPane = CommitTreeModel.getCommitTreeModel().getTreeGraph().getScrollPane();
+        double pixelPosition = pos* TreeLayout.V_SPACING;
+        double paneSize =  scrollPane.getContent().getBoundsInParent().getHeight();
+        double value = pixelPosition / (paneSize-TreeLayout.V_PAD-TreeLayout.V_SPACING);
 
         CommitTreeModel.getCommitTreeModel().getTreeGraph().getScrollPane().setVvalue(value);
     }

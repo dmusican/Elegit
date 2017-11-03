@@ -239,7 +239,6 @@ public class CommitTreeController{
      */
     public static boolean focusCommitInGraph(CommitHelper commit){
         Main.assertFxThread();
-        System.out.println("CommitTreeController.focusCommitInGraph");
         if(commit == null)
             return false;
 

@@ -1,6 +1,7 @@
 package elegit.treefx;
 
 import elegit.Main;
+import elegit.models.CommitHelper;
 import io.reactivex.Observable;
 import io.reactivex.rxjavafx.schedulers.JavaFxScheduler;
 import io.reactivex.schedulers.Schedulers;
@@ -65,19 +66,7 @@ public class TreeLayout{
             movingCells.set(true);
         }
 
-        void setCurrentCell(int currentCell) { this.currentCell = currentCell; }
-
-        void moveSomeCells() {
-            // This is calling moveCell, which definitively needs access to FX thread, so for now, leave this there
-            // as well
-            Main.assertFxThread();
-            final int startCell = currentCell;
-            Platform.runLater(() -> {
-                moveSomeCells(startCell);
-            });
-        }
-
-        public boolean moveSomeCells(int startCell) {
+        public boolean moveSomeCells(int startCell, Optional<CommitHelper> commitToHighlight) {
             Main.assertFxThread();
             for (int i = startCell; i < startCell + CELLS_AT_A_TIME; i++) {
                 if (i > allCellsSortedByTime.size() - 1) {
@@ -85,7 +74,12 @@ public class TreeLayout{
                     return true;
                 }
                 ;
-                moveCell(allCellsSortedByTime.get(i));
+                Cell cellToMove = allCellsSortedByTime.get(i);
+                moveCell(cellToMove);
+
+                if (commitToHighlight.isPresent() && cellToMove.getCellId().equals(commitToHighlight.get().getName())) {
+                        CommitTreeController.focusCommitInGraph(commitToHighlight.get());
+                }
 
                 // Update progress if need be
                 int max = allCellsSortedByTime.size()-1;
@@ -109,7 +103,7 @@ public class TreeLayout{
              * every cell. When complete, updates the model if necessary to show
              * it has been through the layout process at least once already
              */
-    public static Observable<Boolean> doTreeLayout(TreeGraph g) {
+    public static Observable<Boolean> doTreeLayout(TreeGraph g, CommitHelper commitToHighlight) {
         // TreeGraph has to live on FX thread, and this calls methods on it, so this should start there too.
         // Spin off slow parts as I need to, perhaps. Be careful, lots of code below involves bindings, etc, that
         // certainly must stay.
@@ -174,12 +168,19 @@ public class TreeLayout{
 //            }));
             //********************** Loading Bar End **********************
 
+            final Optional<CommitHelper> commitToHighlightOrNot;
+            if (treeLayoutDoneAtLeastOnce)
+                commitToHighlightOrNot = Optional.empty();
+            else
+                commitToHighlightOrNot = Optional.of(commitToHighlight);
+
             return Observable.intervalRange(0, (int)(Math.ceil(allCells.size()/(double)CELLS_AT_A_TIME)),
                     0, CELL_RENDER_TIME_DELAY, TimeUnit.MILLISECONDS,
                     Schedulers.io())
 
                     .observeOn(JavaFxScheduler.platform())
-                    .map(cellNumber -> mover.moveSomeCells(cellNumber.intValue()*CELLS_AT_A_TIME));
+                    .map(cellNumber -> mover.moveSomeCells(cellNumber.intValue()*CELLS_AT_A_TIME,
+                            commitToHighlightOrNot));
 
 //            while (!Main.isAppClosed.get() && movingCells.get() && mover.currentCell < allCells.size()) {
 //                mover.moveSomeCells();
