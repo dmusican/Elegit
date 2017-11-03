@@ -1,6 +1,5 @@
 package elegit.treefx;
 
-import com.sun.source.tree.Tree;
 import elegit.Main;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;

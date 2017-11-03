@@ -23,6 +23,7 @@ public class CommitHelper{
 
     // The commit this helper wraps. It appears that RevCommit is immutable.
     private final RevCommit commit;
+    private final DateFormat formatter = new SimpleDateFormat("MMM dd yyyy, h:mm a");
 
     // The parents and children of this commit
     @GuardedBy("this") private final ArrayList<CommitHelper> parents;
@@ -78,14 +79,13 @@ public class CommitHelper{
      * @return the date object corresponding to the time of this commit
      */
     public Date getWhen(){
-        return new Date(commit.getAuthorIdent().getWhen().getTime());
+        return commit.getAuthorIdent().getWhen();
     }
 
     /**
      * @return the formatted date string corresponding to the time of this commit
      */
     public String getFormattedWhen(){
-        DateFormat formatter = new SimpleDateFormat("MMM dd yyyy, h:mm a");
         return formatter.format(this.getWhen());
     }
 
