@@ -171,7 +171,7 @@ public class TreeGraphModel {
         RepoHelper repo = SessionModel.getSessionModel().getCurrentRepoHelper();
         String displayLabel = repo.getCommitDescriptorString(commitToAdd, false);
         List<RefHelper> refs = repo.getRefsForCommit(commitToAdd);
-        ContextMenu contextMenu = getContextMenu(commitToAdd);
+        ContextMenu contextMenu = getContextMenu(commitToAdd); // WORKING HERE
         List<String> parentIds = commitToAdd.getParentNames();
         Cell.CellType type = repo.getCommitType(commitToAdd);
 
@@ -211,8 +211,9 @@ public class TreeGraphModel {
      * @param commit the commit for which this context menu is for
      * @return the context menu for the commit
      */
+    // Doesn't have to run on FX thread. Simply creates context menus. Some of the code that runs from those
+    // menus needs to be on the FX thread, but the menus don't have to be created there.
     private synchronized ContextMenu getContextMenu(CommitHelper commit){
-        Main.assertFxThread();
         // This line appears to be somewhat slow.
         ContextMenu contextMenu = new ContextMenu();
 
@@ -235,8 +236,9 @@ public class TreeGraphModel {
      * @param commit CommitHelper
      * @return relativesMenu
      */
+    // Doesn't have to run on FX thread. Simply creates context menus. Some of the code that runs from those
+    // menus needs to be on the FX thread, but the menus don't have to be created there.
     private synchronized Menu getRelativesMenu(CommitHelper commit) {
-        Main.assertFxThread();
         Menu relativesMenu = new Menu("Show Relatives");
 
         MenuItem parentsItem = new MenuItem("Parents");
@@ -267,15 +269,21 @@ public class TreeGraphModel {
      * @param commit CommitHelper
      * @return revertMenu
      */
+    // Doesn't have to run on FX thread. Simply creates context menus. Some of the code that runs from those
+    // menus needs to be on the FX thread, but the menus don't have to be created there.
     private synchronized Menu getRevertMenu(CommitHelper commit) {
-        Main.assertFxThread();
         Menu revertMenu = new Menu("Revert...");
         MenuItem revertItem = new MenuItem("Revert this commit");
         MenuItem revertMultipleItem = new MenuItem("Revert multiple commits...");
-        revertMultipleItem.disableProperty().bind(CommitTreeController.getMultipleNotSelectedProperty());
         MenuItem helpItem = new MenuItem("Help");
 
-        revertItem.setOnAction(event -> CommitTreeController.getSessionController().handleRevertButton(commit));
+        revertMenu.setOnShown( event -> {
+            revertMultipleItem.disableProperty().bind(CommitTreeController.getMultipleNotSelectedProperty());
+        });
+
+        revertItem.setOnAction(event -> {
+            CommitTreeController.getSessionController().handleRevertButton(commit);
+        });
 
         Set<CommitHelper> commitsInModel = CommitTreeModel.getCommitTreeModel().getCommitsInModel();
         revertMultipleItem.setOnAction(event -> {
@@ -285,15 +293,18 @@ public class TreeGraphModel {
             CommitTreeController.getSessionController().handleRevertMultipleButton(commits);
         });
 
-        helpItem.setOnAction(event -> PopUpWindows.showRevertHelpAlert());
+        helpItem.setOnAction(event -> {
+            PopUpWindows.showRevertHelpAlert();
+        });
 
         revertMenu.getItems().setAll(revertItem, revertMultipleItem, helpItem);
 
         return revertMenu;
     }
 
+    // Doesn't have to run on FX thread. Simply creates context menus. Some of the code that runs from those
+    // menus needs to be on the FX thread, but the menus don't have to be created there.
     private synchronized Menu getResetMenu(CommitHelper commit) {
-        Main.assertFxThread();
         Menu resetMenu = new Menu("Reset...");
         MenuItem resetItem = new MenuItem("Reset to this commit");
         MenuItem helpItem = new MenuItem("Help");
@@ -308,8 +319,9 @@ public class TreeGraphModel {
         return resetMenu;
     }
 
+    // Doesn't have to run on FX thread. Simply creates context menus. Some of the code that runs from those
+    // menus needs to be on the FX thread, but the menus don't have to be created there.
     private synchronized Menu getAdvancedResetMenu(CommitHelper commit) {
-        Main.assertFxThread();
         Menu resetMenu = new Menu("Advanced");
         MenuItem hardItem = new MenuItem("reset --hard");
         MenuItem mixedItem = new MenuItem("reset --mixed");
