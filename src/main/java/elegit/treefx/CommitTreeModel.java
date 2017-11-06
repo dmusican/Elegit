@@ -352,6 +352,8 @@ public class CommitTreeModel{
         }
 
         RepoHelper repo = SessionModel.getSessionModel().getCurrentRepoHelper();
+        List<CommitHelper> cellsWithNewTypes = new ArrayList<>();
+
         while (!queue.isEmpty()) {
 
             CommitHelper commitToAdd = queue.poll();
@@ -365,10 +367,14 @@ public class CommitTreeModel{
 
             String commitID = commitToAdd.getName();
             if (graphModel.containsID(commitID)) {
-                graphModel.setCellType(commitToAdd);
+                cellsWithNewTypes.add(commitToAdd);
             } else {
                 graphModel.addCell(commitToAdd);
             }
+        }
+
+        for (CommitHelper commit : cellsWithNewTypes) {
+            graphModel.setCellType(commit);
         }
     }
 
