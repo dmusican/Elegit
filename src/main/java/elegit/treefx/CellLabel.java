@@ -14,6 +14,7 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
+import org.apache.http.annotation.GuardedBy;
 import org.apache.http.annotation.ThreadSafe;
 
 /**
@@ -21,25 +22,27 @@ import org.apache.http.annotation.ThreadSafe;
  */
 @ThreadSafe
 // but critically only because of all the asserts requiring this be done only in the FX thread. Without that, it
-// isn't threadsafe, not least because of the bindings that are done.
+// isn't threadsafe, not least because of the bindings that are done. (see exceptions as commented below)
 public class CellLabel extends HBox {
     private String name;
     private RefHelper refHelper;
-    private boolean isCurrent, isTag, isRemote;
-    private Text pointer;
-    private ImageView image;
-    private Label label;
+    @GuardedBy("this") private boolean isTag;
+    @GuardedBy("this") private boolean isCurrent;
+    private boolean isRemote;
+    @GuardedBy("this") private Text pointer;
+    @GuardedBy("this") private ImageView image;
+    @GuardedBy("this") private Label label;
     private ContextMenu contextMenu;
     public static final int MAX_CHAR_PER_LABEL=25;
 
-    private static Image tagImage = new Image("elegit/images/tag.png");
-    private static Image currentImage = new Image("elegit/images/branch_white.png");
-    private static Image remoteImage = new Image("elegit/images/remote.png");
-    private static Image remoteWhiteImage = new Image("elegit/images/remote_white.png");
-    private static Image otherImage = new Image("elegit/images/branch.png");
+    private static final Image tagImage = new Image("elegit/images/tag.png");
+    private static final Image currentImage = new Image("elegit/images/branch_white.png");
+    private static final Image remoteImage = new Image("elegit/images/remote.png");
+    private static final Image remoteWhiteImage = new Image("elegit/images/remote_white.png");
+    private static final Image otherImage = new Image("elegit/images/branch.png");
 
+    // Doesn't necessarily have to be on FX thread, since object may not be on scene graph
     CellLabel(RefHelper refHelper, boolean isCurrent, boolean isTag) {
-        Main.assertFxThread();
         this.refHelper = refHelper;
         this.name = refHelper.getAbbrevName();
         this.isCurrent = isCurrent;
@@ -69,15 +72,17 @@ public class CellLabel extends HBox {
     /**
      * @return the pointer with the right color based on the
      */
-    private Text getPointer() {
-        Main.assertFxThread();
+    // Doesn't necessarily have to be on FX thread, since object may not be on scene graph
+    // synchronized because of pointer, isCurrent
+    private synchronized Text getPointer() {
         pointer = GlyphsDude.createIcon(FontAwesomeIcon.CHEVRON_LEFT);
         pointer.setFill(Color.web(isCurrent ? "#FFFFFF" : "333333"));
         return pointer;
     }
 
-    protected Label getLabel() {
-        Main.assertFxThread();
+    // Doesn't necessarily have to be on FX thread, since object may not be on scene graph
+    // synchronized because of label, isCurrent
+    protected synchronized Label getLabel() {
         label = new Label();
         label.getStyleClass().clear();
         if (name.length() > MAX_CHAR_PER_LABEL) {
@@ -95,8 +100,9 @@ public class CellLabel extends HBox {
     /**
      * @return the imageView with the correct image
      */
-    protected ImageView getImage() {
-        Main.assertFxThread();
+    // Doesn't necessarily have to be on FX thread, since object may not be on scene graph
+    // synchronized for image, isTag, isCurrent
+    protected synchronized ImageView getImage() {
         image = new ImageView(isTag ? tagImage : isCurrent ? currentImage : otherImage);
         image.setFitHeight(15);
         image.setPreserveRatio(true);
@@ -140,8 +146,8 @@ public class CellLabel extends HBox {
      * @param l the label to add a tooltip to
      * @param text the text of the tooltip
      */
+    // Doesn't necessarily have to be on FX thread, since object may not be on scene graph
     private void addToolTip(Label l, String text) {
-        Main.assertFxThread();
         Tooltip tooltip = new Tooltip(text);
         tooltip.setWrapText(true);
         tooltip.setMaxWidth(350);
@@ -152,7 +158,8 @@ public class CellLabel extends HBox {
      * Sets the various items to have the current style
      * @param current whether or not this label is current
      */
-    void setCurrent(boolean current) {
+    // synchronized for pointer, isTag, isCurrent
+    synchronized void setCurrent(boolean current) {
         Main.assertFxThread();
         this.isCurrent = current;
 
@@ -167,7 +174,8 @@ public class CellLabel extends HBox {
      * Sets the various items to have the tag style
      * @param tag whether or not this label is a tag
      */
-    void setTag(boolean tag) {
+    // synchronized for isTag, isCurrent
+    synchronized void setTag(boolean tag) {
         Main.assertFxThread();
         this.isTag = tag;
 
@@ -180,7 +188,8 @@ public class CellLabel extends HBox {
         return this.name;
     }
 
-    private void refreshIcon() {
+    // synchronized for isTag, isCurrent
+    private synchronized void refreshIcon() {
         Main.assertFxThread();
         Image image;
         if (isTag) {

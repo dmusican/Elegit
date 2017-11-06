@@ -163,15 +163,15 @@ public class TreeGraphModel {
      * Adds a new cell with the given ID, time, and labels to the tree whose
      * parents are the cells with the given IDs.
      */
+    // Carefully checked that this all works for off-scene graph cell creation, so doesn't have to be on the FX thread
     public synchronized void addCell(CommitHelper commitToAdd){
-        Main.assertFxThread();
 
         String newId = commitToAdd.getName();
         long time = commitToAdd.getWhen().getTime();
         RepoHelper repo = SessionModel.getSessionModel().getCurrentRepoHelper();
         String displayLabel = repo.getCommitDescriptorString(commitToAdd, false);
         List<RefHelper> refs = repo.getRefsForCommit(commitToAdd);
-        ContextMenu contextMenu = getContextMenu(commitToAdd); // WORKING HERE
+        ContextMenu contextMenu = getContextMenu(commitToAdd);
         List<String> parentIds = commitToAdd.getParentNames();
         Cell.CellType type = repo.getCommitType(commitToAdd);
 
@@ -185,7 +185,7 @@ public class TreeGraphModel {
         Cell cell;
         switch(type) {
             case LOCAL:
-                cell = new Cell(newId, time, parents, Cell.CellType.LOCAL);
+                cell = new Cell(newId, time, parents, Cell.CellType.LOCAL);  // WORKING HERE
                 break;
             case REMOTE:
                 cell = new Cell(newId, time, parents, Cell.CellType.REMOTE);
@@ -214,11 +214,11 @@ public class TreeGraphModel {
     // Doesn't have to run on FX thread. Simply creates context menus. Some of the code that runs from those
     // menus needs to be on the FX thread, but the menus don't have to be created there.
     private synchronized ContextMenu getContextMenu(CommitHelper commit){
-        // This line appears to be somewhat slow.
         ContextMenu contextMenu = new ContextMenu();
 
         MenuItem checkoutItem = new MenuItem("Checkout files...");
         checkoutItem.setOnAction(event -> {
+            Main.assertFxThread();
             logger.info("Checkout files from commit button clicked");
             CommitTreeController.getSessionController().handleCheckoutFilesButton(commit);
         });
@@ -278,6 +278,7 @@ public class TreeGraphModel {
         MenuItem helpItem = new MenuItem("Help");
 
         revertMenu.setOnShown( event -> {
+            Main.assertFxThread();
             revertMultipleItem.disableProperty().bind(CommitTreeController.getMultipleNotSelectedProperty());
         });
 
@@ -346,8 +347,9 @@ public class TreeGraphModel {
      * any cell with a conflicting ID
      * @param cell the cell to add
      */
+    // Safe to not have on FX thread since all within is data and threadsafe
+    // synchronized for cellMap, removedCells, addedCells
     private synchronized void addCell(Cell cell) {
-        Main.assertFxThread();
         if(cellMap.containsKey(cell.getCellId())){
             Cell oldCell = cellMap.remove(cell.getCellId());
             for(Cell p : cell.getCellParents()){
@@ -367,8 +369,9 @@ public class TreeGraphModel {
      * @param sourceId the parent cell
      * @param targetId the child cell
      */
+    // Safe to not have on FX thread since all within is data and threadsafe
+    // synchronized for cellMap
     public synchronized void addEdge(String sourceId, String targetId) {
-        Main.assertFxThread();
         Cell sourceCell = cellMap.get(sourceId);
         Cell targetCell = cellMap.get(targetId);
 
@@ -381,8 +384,9 @@ public class TreeGraphModel {
      * @param source the source (parent) cell
      * @param target
      */
+    // Safe to not have on FX thread since all within is data and threadsafe
+    // synchronized for addedEdges
     public synchronized void addEdge(Cell source, Cell target) {
-        Main.assertFxThread();
         Edge edge = new Edge(source, target);
         source.addEdge(edge);
         target.addEdge(edge);
@@ -413,8 +417,9 @@ public class TreeGraphModel {
      * Removes all edges connected to the given cell
      * @param cell the cell whose edges will be removed
      */
+    // Just data, can be done off FX thread if not in scene graph
+    // synchronized for removedEdges
     private synchronized void removeEdges(Cell cell){
-        Main.assertFxThread();
         List<Edge> oldEdges = cell.getEdges();
 
         for(Edge e : oldEdges){
@@ -441,10 +446,16 @@ public class TreeGraphModel {
      * @param commitDescriptor the labels to put on the cell
      * @param refs the list of refs to add
      */
+    // Can potentially be done off FX thread since synchronized, and might be used on something off the scene graph.
+    // synchronized for cellsWithNonDefaultShapesOrLabels
     private synchronized void setCellLabels(Cell cell, String commitDescriptor, List<RefHelper> refs){
-        Main.assertFxThread();
         cell.setLabels(commitDescriptor, refs);
-        if(refs.size() > 0) cellsWithNonDefaultShapesOrLabels.add(cell);
+
+        // In order to be threadsafe, refs must be read-only
+        assert(Collections.unmodifiableList(refs).getClass().isInstance(refs));
+
+        if(refs.size() > 0)
+            cellsWithNonDefaultShapesOrLabels.add(cell);
     }
 
     public synchronized void setCurrentCellLabels(String cellId, Set<String> refs) {

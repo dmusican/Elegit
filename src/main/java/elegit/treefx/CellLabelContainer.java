@@ -25,6 +25,8 @@ import static elegit.treefx.Cell.BOX_SIZE;
  * Class for the container that shows all the labels for a given cell
  */
 @ThreadSafe
+// Might be used on cell label containers that are not yet in a scene graph, so could be run from off FX thread.
+// Important for methods to be synchronized in that case
 public class CellLabelContainer extends GridPane {
     private final int MAX_COL_PER_ROW=4;
 
@@ -33,8 +35,7 @@ public class CellLabelContainer extends GridPane {
      * @param x the x coordinate of the new location
      * @param y the y coordinate of the new location
      */
-    public void translate(double x, double y) {
-        Main.assertFxThread();
+    public synchronized void translate(double x, double y) {
         setTranslateX(x+BOX_SIZE+10);
         setTranslateY(y+BOX_SIZE);
     }
@@ -45,7 +46,10 @@ public class CellLabelContainer extends GridPane {
      * @param refHelpers the labels to create and place in this container
      * @param cell the cell these labels are associated with
      */
-    void setLabels(List<RefHelper> refHelpers, Cell cell) {
+    synchronized void setLabels(List<RefHelper> refHelpers, Cell cell) {
+        // In order to be threadsafe, refHelpers must be read-only
+        assert(Collections.unmodifiableList(refHelpers).getClass().isInstance(refHelpers));
+
         Main.assertFxThread();
         getChildren().clear();
         if (refHelpers.size() < 1) {
@@ -110,8 +114,9 @@ public class CellLabelContainer extends GridPane {
         // We rotate the labels because it's more efficient than having our tree
         // upside down and moving everything around often.
         this.setMaxHeight(20);
-        //this.setRotationAxis(Rotate.X_AXIS);
-        //this.setRotate(180);
+
+        // Safe since in constructor, and also because calling method is synchronized, but responsibility of cell
+        // to make sure to do updates in FX thread if cell is in scene graph
         this.visibleProperty().bind(cell.visibleProperty());
 
         getChildren().clear();
@@ -125,7 +130,8 @@ public class CellLabelContainer extends GridPane {
      * Helper method to set the current cell labels
      * @param labels the labels that refer to the current refs
      */
-    void setCurrentLabels(Set<String> labels) {
+    // syncronized for label
+    synchronized void setCurrentLabels(Set<String> labels) {
         Main.assertFxThread();
         for (Node m : getChildren()) {
             if (m instanceof HBox) {
@@ -166,7 +172,8 @@ public class CellLabelContainer extends GridPane {
      * Helper method to set the remote branch cell icons
      * @param labels the labels to set as remote
      */
-    void setRemoteLabels(List<String>  labels) {
+    // synchronized for label
+    synchronized void setRemoteLabels(List<String>  labels) {
         Main.assertFxThread();
         for (Node m : getChildren()) {
             if (m instanceof HBox) {

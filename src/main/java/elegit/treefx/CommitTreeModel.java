@@ -557,7 +557,8 @@ public class CommitTreeModel{
                     continue;
                 }
                 String commitDescriptor = repo.getCommitDescriptorString(commit, false);
-                treeGraph.treeGraphModel.setCellLabels(commit, commitDescriptor, commitLabelMap.get(commit));
+                treeGraph.treeGraphModel.setCellLabels(commit, commitDescriptor,
+                        Collections.unmodifiableList(commitLabelMap.get(commit)));
                 treeGraph.treeGraphModel.setCurrentCellLabels(commit, currentAbbrevBranches);
 
                 treeGraph.treeGraphModel.setLabelMenus(commit, menuMap);
@@ -600,7 +601,7 @@ public class CommitTreeModel{
         for(String id : resetIDs){
             if(SessionModel.getSessionModel().getCurrentRepoHelper().getCommit(id) != null) {
                 String displayLabel = repo.getCommitDescriptorString(id, false);
-                List<RefHelper> branchLabels = new ArrayList<>();
+                List<RefHelper> branchLabels = Collections.unmodifiableList(new ArrayList<>());
                 treeGraph.treeGraphModel.setCellLabels(id, displayLabel, branchLabels);
             }
         }

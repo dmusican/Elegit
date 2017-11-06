@@ -45,7 +45,7 @@ public class Cell extends Pane {
     private static AtomicInteger numCellsBeingAnimated = new AtomicInteger(0);
 
     // The tooltip shown on hover
-    private final Tooltip tooltip;
+    @GuardedBy("this") private final Tooltip tooltip;
 
     // The unique ID of this cell
     private final String cellId;
@@ -60,14 +60,14 @@ public class Cell extends Pane {
     private CellShape shape;
     @GuardedBy("this") private CellType type;
 
-    private ContextMenu contextMenu;
+    @GuardedBy("this") private ContextMenu contextMenu;
     private CellLabelContainer refLabels;
 
     // The list of children of this cell
-    private final List<Cell> childrenList = new ArrayList<>();
+    @GuardedBy("this") private final List<Cell> childrenList = new ArrayList<>();
 
     // The parent object that holds the parents of this cell
-    private final ParentCell parents;
+    @GuardedBy("this") private final ParentCell parents;
 
 
     // Constants
@@ -102,8 +102,8 @@ public class Cell extends Pane {
      * @param parents the parent(s) of this cell
      * @param type the type of cell to add
      */
+    // Can be done off FX thread since doesn't actually affect anything on the FX scene graph
     public Cell(String cellId, long time, List<Cell> parents, CellType type){
-        Main.assertFxThread();
         this.cellId = cellId;
         this.time = time;
         this.parents = new ParentCell(this, parents);
@@ -115,6 +115,10 @@ public class Cell extends Pane {
         this.columnLocationProperty = new SimpleIntegerProperty(-1);
         this.rowLocationProperty = new SimpleIntegerProperty(-1);
 
+        // These are all FX safe because they are in the constructor, and hence no one else has access to them yet
+        // ... so bindings are ok at this point in time
+        // https://docs.oracle.com/javase/specs/jls/se8/html/jls-8.html#jls-8.8.3
+        // https://bruceeckel.github.io/2017/01/13/constructors-are-not-thread-safe/
         this.hasUpdatedPosition = new SimpleBooleanProperty(false);
         visibleProperty().bind(this.hasUpdatedPosition);
 
@@ -131,17 +135,21 @@ public class Cell extends Pane {
         Tooltip.install(this, tooltip);
 
         this.setOnMouseClicked(event -> {
-            if(event.getButton() == MouseButton.PRIMARY){
-                if (event.isShiftDown())
-                    CommitTreeController.handleMouseClickedShift(this);
-                else
-                    CommitTreeController.handleMouseClicked(this.cellId);
-            }else if(event.getButton() == MouseButton.SECONDARY){
-                if(contextMenu != null){
-                    contextMenu.show(this, event.getScreenX(), event.getScreenY());
+            Main.assertFxThread();
+            // synchronized for contextMenu
+            synchronized (this) {
+                if (event.getButton() == MouseButton.PRIMARY) {
+                    if (event.isShiftDown())
+                        CommitTreeController.handleMouseClickedShift(this);
+                    else
+                        CommitTreeController.handleMouseClicked(this.cellId);
+                } else if (event.getButton() == MouseButton.SECONDARY) {
+                    if (contextMenu != null) {
+                        contextMenu.show(this, event.getScreenX(), event.getScreenY());
+                    }
                 }
+                event.consume();
             }
-            event.consume();
         });
         this.setOnMouseEntered(event -> CommitTreeController.handleMouseover(this, true));
         this.setOnMouseExited(event -> CommitTreeController.handleMouseover(this, false));
@@ -162,7 +170,7 @@ public class Cell extends Pane {
     }
 
     // Can be done off FX thread since synchronized, and doesn't make any actual GUI changes
-    public void removeEdge(Edge e) {
+    public synchronized void removeEdge(Edge e) {
         edges.remove(e);
     }
 
@@ -215,8 +223,8 @@ public class Cell extends Pane {
      * @return the basic view for this cell
      */
     // synchronized for this.type
+    // Doesn't need to be on FX thread; creates a node, but doesn't have to be in scene graph (yet)
     private synchronized Node getBaseView(){
-        Main.assertFxThread();
         Node node = DEFAULT_SHAPE.getType(this.type);
         setFillType((Shape)node, CellState.STANDARD);
         node.getStyleClass().setAll("cell");
@@ -228,8 +236,8 @@ public class Cell extends Pane {
      * Sets the look of this cell
      * @param newView the new view
      */
+    // Doesn't need to be on FX thread; creates a node, but doesn't have to be in scene graph (yet)
     public synchronized void setView(Node newView) {
-        Main.assertFxThread();
         if(this.view == null){
             this.view = getBaseView();
         }
@@ -247,9 +255,9 @@ public class Cell extends Pane {
      * Set the shape of this cell
      * @param newShape the new shape
      */
+    // Doesn't need to be on FX thread; manipulates FX nodes, but doesn't have to be in scene graph (yet)
     // synchronized for this.type and this.shape
     public synchronized void setShape(CellShape newShape){
-        Main.assertFxThread();
         if(this.shape == newShape) return;
         setView(newShape.getType(this.type));
         this.shape = newShape;
@@ -264,13 +272,16 @@ public class Cell extends Pane {
      * Sets the tooltip to display the given text
      * @param label the text to display
      */
-    private void setCommitDescriptor(String label){
-        Main.assertFxThread();
+    // Can potentially be done off FX thread since synchronized, and might be used on something off the scene graph.
+    // It's the responsibility of the caller to verify that.
+    private synchronized void setCommitDescriptor(String label){
         tooltip.setText(label);
     }
 
+    // Can potentially be done off FX thread since synchronized, and might be used on something off the scene graph.
+    // It's the responsibility of the caller to verify that.
+    // synchronized for "this" reference; need to make sure properties of Cell aren't being accessed simultaneously
     private void setRefLabels(List<RefHelper> refs){
-        Main.assertFxThread();
         this.refLabels.setLabels(refs, this);
     }
 
@@ -279,8 +290,8 @@ public class Cell extends Pane {
         this.refLabels.setCurrentLabels(refs);
     }
 
-    void setLabels(String commitDescriptor, List<RefHelper> refLabels){
-        Main.assertFxThread();
+    // Can potentially be done off FX thread since synchronized, and might be used on something off the scene graph.
+    synchronized void setLabels(String commitDescriptor, List<RefHelper> refLabels){
         setCommitDescriptor(commitDescriptor);
         setRefLabels(refLabels);
     }
@@ -308,8 +319,9 @@ public class Cell extends Pane {
         Main.assertFxThread();
         this.useParentAsSource.set(useParentAsSource);}
 
-    void setContextMenu(ContextMenu contextMenu) {
-        Main.assertFxThread();
+    // Can potentially be done off FX thread since synchronized, and might be used on something off the scene graph.
+    // synchronized for contextMenu
+    synchronized void setContextMenu(ContextMenu contextMenu) {
         this.contextMenu = contextMenu;
     }
 
@@ -317,24 +329,27 @@ public class Cell extends Pane {
      * Adds a child to this cell
      * @param cell the new child
      */
-    private void addCellChild(Cell cell) {
-        Main.assertFxThread();
+    // Doesn't need to be on FX thread; this is simply data, not attached to FX viewing
+    // synchronized for childrenList
+    private synchronized void addCellChild(Cell cell) {
         childrenList.add(cell);
     }
 
     /**
      * @return the list of the childrenList of this cell
      */
+    // Doesn't need to be on FX thread; this is simply data, not attached to FX viewing
+    // synchronized for childrenList
     List<Cell> getCellChildren() {
-        Main.assertFxThread();
         return Collections.unmodifiableList(new ArrayList<>(childrenList));
     }
 
     /**
      * @return the list of the parents of this cell
      */
+    // Doesn't need to be on FX thread; this is simply data, not attached to FX viewing
+    // synchronized for parents
     List<Cell> getCellParents(){
-        Main.assertFxThread();
         return parents.toList();
     }
 
@@ -358,8 +373,9 @@ public class Cell extends Pane {
      * Removes the given cell from the childrenList of this cell
      * @param cell the cell to remove
      */
+    // Doesn't need to be on FX thread; this is simply data, not attached to FX viewing
+    // synchronized for childrenList
     void removeCellChild(Cell cell) {
-        Main.assertFxThread();
         childrenList.remove(cell);
     }
 
@@ -468,8 +484,9 @@ public class Cell extends Pane {
          * @param child the child cell
          * @param parents the list of parents
          */
+        // Doesn't need to be on FX thread; this is simply data, not attached to FX viewing
+        // synchronized for childrenList
         ParentCell(Cell child, List<Cell> parents) {
-            Main.assertFxThread();
             ArrayList<Cell> buildingParents = new ArrayList<>();
             buildingParents.addAll(parents);
             this.parents = Collections.unmodifiableList(buildingParents);
@@ -488,8 +505,8 @@ public class Cell extends Pane {
          * Sets the given sell to be the child of each non-null parent
          * @param cell the child to add
          */
+        // Doesn't need to be on FX thread; this is simply data, not attached to FX viewing
         private void setChild(Cell cell){
-            Main.assertFxThread();
             for(Cell parent : parents) {
                 if(parent != null) {
                     parent.addCellChild(cell);

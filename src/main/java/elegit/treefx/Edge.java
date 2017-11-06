@@ -49,59 +49,66 @@ public class Edge  {
      * @param source the source (parent) cell
      * @param target the target (child) cell
      */
+    // Because of all the binding, it is critical that this work be done while no one else is acting on the cells,
+    // hence the extra synchronization.
     public Edge(Cell source, Cell target) {
         Main.assertFxThread();
         this.source = source;
         this.target = target;
         this.addedMidPoints = false;
 
-        DoubleBinding endX = source.translateXProperty().add(source.widthProperty().divide(2.0));
-        DoubleBinding endY = source.translateYProperty().add(0);//source.heightProperty());
+        synchronized (source) {
+            synchronized (target) {
 
-        DoubleBinding startX = target.translateXProperty().add(target.widthProperty().divide(2.0));
-        DoubleBinding startY = target.translateYProperty().add(source.heightProperty());
+                DoubleBinding endX = source.translateXProperty().add(source.widthProperty().divide(2.0));
+                DoubleBinding endY = source.translateYProperty().add(0);//source.heightProperty());
 
-        path = new DirectedPath(startX, startY, endX, endY, source.getCellId(), target.getCellId()); // SLOW-ISH
-        checkAndAddMidPoints(startY, endY);
-        path.addPoint(endX, endY.add(-TreeLayout.V_SPACING / 4.));
+                DoubleBinding startX = target.translateXProperty().add(target.widthProperty().divide(2.0));
+                DoubleBinding startY = target.translateYProperty().add(source.heightProperty());
 
-        source.translateXProperty().addListener((observable, oldValue, newValue) -> {
-            checkAndAddMidPoints(startY, endY);
-        });
+                path = new DirectedPath(startX, startY, endX, endY, source.getCellId(), target.getCellId()); // SLOW-ISH
+                checkAndAddMidPoints(startY, endY);
+                path.addPoint(endX, endY.add(-TreeLayout.V_SPACING / 4.));
 
-        target.translateYProperty().addListener((observable, oldValue, newValue) -> {
-            checkAndAddMidPoints(startY, endY);
-        });
+                source.translateXProperty().addListener((observable, oldValue, newValue) -> {
+                    checkAndAddMidPoints(startY, endY);
+                });
 
-        source.translateXProperty().addListener((observable, oldValue, newValue) -> {
-            checkAndAddMidPoints(startY, endY);
-        });
-        target.translateYProperty().addListener((observable, oldValue, newValue) -> {
-            checkAndAddMidPoints(startY, endY);
-        });
+                target.translateYProperty().addListener((observable, oldValue, newValue) -> {
+                    checkAndAddMidPoints(startY, endY);
+                });
 
-        // Change the X of the midpoints depending on whether the target is above, below, or at the same
-        // level as the source
-        midLineX.bind(new When(target.rowLocationProperty.subtract(source.rowLocationProperty).lessThan(0))
-                .then(new When(target.columnLocationProperty.subtract(source.columnLocationProperty).greaterThan(0))
-                        .then(endX.add(TreeLayout.H_SPACING / 2.))
-                        .otherwise(new When(target.columnLocationProperty.subtract(source.columnLocationProperty).lessThan(0))
-                                .then(startX.add(TreeLayout.H_SPACING / 2.))
-                                .otherwise(startX)))
-                .otherwise(new When(target.columnLocationProperty.subtract(source.columnLocationProperty).greaterThan(0))
-                        .then(endX.add(TreeLayout.H_SPACING / 2.))
-                        .otherwise(new When(target.columnLocationProperty.subtract(source.columnLocationProperty).lessThan(0))
-                                .then(startX.add(TreeLayout.H_SPACING / 2.))
-                                .otherwise(startX))));
+                source.translateXProperty().addListener((observable, oldValue, newValue) -> {
+                    checkAndAddMidPoints(startY, endY);
+                });
+                target.translateYProperty().addListener((observable, oldValue, newValue) -> {
+                    checkAndAddMidPoints(startY, endY);
+                });
 
-        if(source.getCellType() != Cell.CellType.BOTH || target.getCellType() != Cell.CellType.BOTH){
-            path.setDashed(true);
+                // Change the X of the midpoints depending on whether the target is above, below, or at the same
+                // level as the source
+                midLineX.bind(new When(target.rowLocationProperty.subtract(source.rowLocationProperty).lessThan(0))
+                        .then(new When(target.columnLocationProperty.subtract(source.columnLocationProperty).greaterThan(0))
+                                .then(endX.add(TreeLayout.H_SPACING / 2.))
+                                .otherwise(new When(target.columnLocationProperty.subtract(source.columnLocationProperty).lessThan(0))
+                                        .then(startX.add(TreeLayout.H_SPACING / 2.))
+                                        .otherwise(startX)))
+                        .otherwise(new When(target.columnLocationProperty.subtract(source.columnLocationProperty).greaterThan(0))
+                                .then(endX.add(TreeLayout.H_SPACING / 2.))
+                                .otherwise(new When(target.columnLocationProperty.subtract(source.columnLocationProperty).lessThan(0))
+                                        .then(startX.add(TreeLayout.H_SPACING / 2.))
+                                        .otherwise(startX))));
+
+                if(source.getCellType() != Cell.CellType.BOTH || target.getCellType() != Cell.CellType.BOTH){
+                    path.setDashed(true);
+                }
+
+                path.visibleProperty().bind(source.visibleProperty().and(target.visibleProperty()));
+
+                source.addEdge(this);
+                target.addEdge(this);
+            }
         }
-
-        path.visibleProperty().bind(source.visibleProperty().and(target.visibleProperty()));
-
-        source.addEdge(this);
-        target.addEdge(this);
     }
 
     /**
