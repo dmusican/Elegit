@@ -11,12 +11,14 @@ import elegit.models.SessionModel;
 import elegit.monitors.RepositoryMonitor;
 import elegit.treefx.Cell;
 import elegit.treefx.CommitTreeModel;
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -68,6 +70,8 @@ public class RepositoryMonitorTestFX extends ApplicationTest {
         Parent root = fxmlLoader.getRoot();
         Scene scene = new Scene(root);
         stage.setScene(scene);
+        stage.setX(0);
+        stage.setY(0);
         sessionController.setStageForNotifications(stage);
         stage.show();
         stage.toFront();
@@ -106,11 +110,32 @@ public class RepositoryMonitorTestFX extends ApplicationTest {
         helper.obtainRepository(remoteURL);
         assertNotNull(helper);
 
+        interact(() -> {
+            ScrollPane sp = sessionController.getCommitTreeModel().getTreeGraph().getScrollPane();
+            System.out.println("scroll pane info" + sp.getContent().getBoundsInLocal());
+            // Test that scroll pane has no content yet
+            System.out.println("scene = " + sp.getScene());
+            assertTrue(sp.getScene() == null);
+        });
+
+
+
         clickOn("#loadNewRepoButton")
                 .clickOn("#loadExistingRepoOption")
                 .clickOn("#repoInputDialog")
                 .write(repoPath.toString())
                 .clickOn("#repoInputDialogOK");
+
+
+        interact(() -> {
+            ScrollPane sp = sessionController.getCommitTreeModel().getTreeGraph().getScrollPane();
+            System.out.println("scroll pane info" + sp.getContent().getBoundsInLocal());
+            // Test that scroll pane now has content in it
+            System.out.println("scene = " + sp.getScene());
+            assertTrue(sp.getScene() != null);
+        });
+
+
 
         assertEquals(0,sessionController.getNotificationPaneController().getNotificationNum());
 

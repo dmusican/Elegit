@@ -27,11 +27,12 @@ public class CommitTreePanelView extends Region{
         super();
         Main.assertFxThread();
         this.setMinHeight(0);
-        initCommitTreeScrollPanes(CommitTreeModel.getCommitTreeModel().getTreeGraph());
     }
 
     /**
-     * Helper method to initialize the commit tree scroll panes
+     * Helper method to initialize the commit tree scroll panes. Note that if no repo was loaded before this,
+     * a different scroll pane (empty one) is shown, so this needs to be done every time a repo is loaded after
+     * none has been showing.
      * @param treeGraph TreeGraph
      */
     private void initCommitTreeScrollPanes(TreeGraph treeGraph) {
@@ -51,7 +52,7 @@ public class CommitTreePanelView extends Region{
     synchronized void displayTreeGraph(TreeGraph treeGraph, CommitHelper commitToFocusOnLoad){
         Main.assertFxThread();
         System.out.println("before focus");
-        //initCommitTreeScrollPanes(treeGraph);
+        initCommitTreeScrollPanes(treeGraph);
         System.out.println("after init");
         //TreeLayout.doTreeLayout(treeGraph).subscribe();
         TreeLayout.doTreeLayout(treeGraph, commitToFocusOnLoad)
