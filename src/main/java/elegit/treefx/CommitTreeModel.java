@@ -5,6 +5,7 @@ import elegit.gui.PopUpWindows;
 import elegit.models.SessionModel;
 import elegit.exceptions.MissingRepoException;
 import elegit.models.*;
+import io.reactivex.Observable;
 import javafx.scene.control.*;
 import org.apache.http.annotation.ThreadSafe;
 import org.apache.logging.log4j.LogManager;
@@ -282,9 +283,15 @@ public class CommitTreeModel{
     private synchronized boolean addCommitsToTree(Set<CommitHelper> commits){
         if(commits.size() == 0) return false;
 
-        Main.startTime = 0;
+        List<CommitHelper> cellsWithNewTypes = new ArrayList<>();
+
         for(CommitHelper curCommitHelper : commits){
-            this.addCommitToTree(curCommitHelper, treeGraph.treeGraphModel);
+            List<CommitHelper> batchOfCellsWithNewTypes = addCommitToTree(curCommitHelper, treeGraph.treeGraphModel);
+            cellsWithNewTypes.addAll(batchOfCellsWithNewTypes);
+        }
+
+        for (CommitHelper commit : cellsWithNewTypes) {
+            treeGraph.treeGraphModel.setCellType(commit);
         }
 
         return true;
@@ -317,9 +324,9 @@ public class CommitTreeModel{
      * @param commitHelper the commit to be added
      * @param graphModel the treeGraphModel to add the commit to
      */
-    private synchronized void addCommitToTree(CommitHelper commitHelper, TreeGraphModel graphModel) {
-        Main.assertFxThread();
-
+    // Does not need to be on FX thread; look carefully through it, all effort is local or calls other threadsafe code
+    // BE VERY CAREFUL about modifying this
+    private synchronized List<CommitHelper> addCommitToTree(CommitHelper commitHelper, TreeGraphModel graphModel) {
         ArrayDeque<CommitHelper> traversalStack = new ArrayDeque<>();
 
         ArrayDeque<CommitHelper> queue = new ArrayDeque<>();
@@ -373,9 +380,7 @@ public class CommitTreeModel{
             }
         }
 
-        for (CommitHelper commit : cellsWithNewTypes) {
-            graphModel.setCellType(commit);
-        }
+        return cellsWithNewTypes;
     }
 
 
