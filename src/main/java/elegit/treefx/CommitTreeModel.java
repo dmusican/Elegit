@@ -6,6 +6,8 @@ import elegit.models.SessionModel;
 import elegit.exceptions.MissingRepoException;
 import elegit.models.*;
 import io.reactivex.Observable;
+import io.reactivex.rxjavafx.schedulers.JavaFxScheduler;
+import io.reactivex.schedulers.Schedulers;
 import javafx.scene.control.*;
 import org.apache.http.annotation.ThreadSafe;
 import org.apache.logging.log4j.LogManager;
@@ -94,18 +96,25 @@ public class CommitTreeModel{
      * Initializes the treeGraph, unselects any previously selected commit,
      * and then adds all commits tracked by this model to the tree
      */
-    public synchronized void init(){
+    public synchronized Observable<Boolean> init(){
         Main.assertFxThread();
 
         CommitTreeController.resetSelection();
 
         if (SessionModel.getSessionModel().getCurrentRepoHelper() != null) {
-            this.addAllCommitsToTree();
-            this.branchesInModel.clear();
-            this.branchesInModel.addAll(SessionModel.getSessionModel().getCurrentRepoHelper().getBranchModel().getAllBranches());
+            return this.addCommitsToTree(this.getAllCommits(SessionModel.getSessionModel().getCurrentRepoHelper()))
+                    .doOnComplete(() -> {
+                        this.branchesInModel.clear();
+                        this.branchesInModel.addAll(SessionModel.getSessionModel().getCurrentRepoHelper().getBranchModel().getAllBranches());
+                        this.initView();
+                    });
         }
 
-        this.initView();
+        return Observable.fromCallable(() -> {
+            this.initView();
+            return true;
+        });
+
     }
 
     public synchronized void update() throws GitAPIException, IOException {
@@ -119,7 +128,7 @@ public class CommitTreeModel{
             if (!updates.hasChanges()) return;
 
             this.removeCommitsFromTree(updates.getCommitsToRemove());
-            this.addCommitsToTree(updates.getCommitsToAdd()); // SLOW
+            this.addCommitsToTree(updates.getCommitsToAdd()).subscribe(); // SLOW
             this.updateCommitFills(updates.getCommitsToUpdate());
             SessionModel.getSessionModel().getCurrentRepoHelper().getBranchModel().updateAllBranches();
             this.resetBranchHeads();
@@ -268,33 +277,44 @@ public class CommitTreeModel{
 
 
     /**
-     * Gets all commits tracked by this model and adds them to the tree
-     * @return true if the tree was updated, otherwise false
-     */
-    private synchronized boolean addAllCommitsToTree() {
-        return this.addCommitsToTree(this.getAllCommits(SessionModel.getSessionModel().getCurrentRepoHelper()));
-    }
-
-    /**
      * Adds the given list of commits to the treeGraph
      * @param commits the commits to add
      * @return true if commits where added, else false
      */
-    private synchronized boolean addCommitsToTree(Set<CommitHelper> commits){
-        if(commits.size() == 0) return false;
+    private synchronized Observable<Boolean> addCommitsToTree(Set<CommitHelper> commits){
+        if(commits.size() == 0)
+            return Observable.empty();
+        //return false;
 
         List<CommitHelper> cellsWithNewTypes = new ArrayList<>();
 
-        for(CommitHelper curCommitHelper : commits){
-            List<CommitHelper> batchOfCellsWithNewTypes = addCommitToTree(curCommitHelper, treeGraph.treeGraphModel);
-            cellsWithNewTypes.addAll(batchOfCellsWithNewTypes);
-        }
+        return Observable.fromIterable(commits)
+                .subscribeOn(Schedulers.io())
+                .map(curCommitHelper -> addCommitToTree(curCommitHelper, treeGraph.treeGraphModel))
+                .map(batchOfCellswithNewTypes -> cellsWithNewTypes.addAll(batchOfCellswithNewTypes))
+                .doOnNext(o -> System.out.println("here 1"))
 
-        for (CommitHelper commit : cellsWithNewTypes) {
-            treeGraph.treeGraphModel.setCellType(commit);
-        }
+                .observeOn(JavaFxScheduler.platform())
+                .doOnComplete(() -> {
+                    for (CommitHelper commit : cellsWithNewTypes) {
+                        treeGraph.treeGraphModel.setCellType(commit);
+                    }
 
-        return true;
+                });
+
+
+                //.subscribe();
+
+//        for(CommitHelper curCommitHelper : commits){
+//            List<CommitHelper> batchOfCellsWithNewTypes = addCommitToTree(curCommitHelper, treeGraph.treeGraphModel);
+//            cellsWithNewTypes.addAll(batchOfCellsWithNewTypes);
+//        }
+//
+//        for (CommitHelper commit : cellsWithNewTypes) {
+//            treeGraph.treeGraphModel.setCellType(commit);
+//        }
+
+        //return true;
     }
 
     /**

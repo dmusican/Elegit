@@ -22,9 +22,7 @@ import org.apache.http.annotation.ThreadSafe;
  * class, it's all on FX thread. Don't take any of the asserts out without a complete rethinking of the philosophy.
  *
  */
-@ThreadSafe
-// but critically only because of all the asserts requiring this be done only in the FX thread. Without that, it
-// isn't threadsafe.
+// but dangerous; if Edge ends up on scene graph, be very careful to only call it there
 public class Edge  {
 
     // Whether or not this edge is visible
@@ -52,7 +50,6 @@ public class Edge  {
     // Because of all the binding, it is critical that this work be done while no one else is acting on the cells,
     // hence the extra synchronization.
     public Edge(Cell source, Cell target) {
-        Main.assertFxThread();
         this.source = source;
         this.target = target;
         this.addedMidPoints = false;
@@ -118,8 +115,7 @@ public class Edge  {
      * @param startY the starting y coordinate of this edge
      * @param endY the ending y coordinate of this edge
      */
-    private void checkAndAddMidPoints(DoubleBinding startY, DoubleBinding endY){
-        Main.assertFxThread();
+    private synchronized void checkAndAddMidPoints(DoubleBinding startY, DoubleBinding endY){
         if(source.rowLocationProperty.get() - target.rowLocationProperty.get() > 1
                 || source.rowLocationProperty.get() - target.rowLocationProperty.get() < 0){
             if(!addedMidPoints){
@@ -139,26 +135,25 @@ public class Edge  {
     /**
      * @param enable whether to set this edge as visible or not
      */
-    public void setHighlighted(boolean enable){
-        Main.assertFxThread();
+    public synchronized void setHighlighted(boolean enable){
         this.visible.set(enable);
     }
 
     // source is final, so safe to return pointer without being on FX thread. That said, using that pointer
     // to update the Cell would be a disaster if the Cll is in the scene graph and if the receiver is not in the
     // FX thread. Beware!
-    public Cell getSource() {
+    public synchronized Cell getSource() {
         return this.source;
     }
 
     // target is final, so safe to return pointer without being on FX thread. That said, using that pointer
     // to update the Cell would be a disaster if the Cll is in the scene graph and if the receiver is not in the
     // FX thread. Beware!
-    public Cell getTarget() {
+    public synchronized Cell getTarget() {
         return this.target;
     }
 
-    public void resetDashed() {
+    public synchronized void resetDashed() {
         Main.assertFxThread();
         if(source.getCellType() != Cell.CellType.BOTH || target.getCellType() != Cell.CellType.BOTH)
             path.setDashed(true);

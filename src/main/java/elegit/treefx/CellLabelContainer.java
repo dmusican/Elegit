@@ -50,7 +50,6 @@ public class CellLabelContainer extends GridPane {
         // In order to be threadsafe, refHelpers must be read-only
         assert(Collections.unmodifiableList(refHelpers).getClass().isInstance(refHelpers));
 
-        Main.assertFxThread();
         getChildren().clear();
         if (refHelpers.size() < 1) {
             return;

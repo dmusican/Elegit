@@ -176,23 +176,27 @@ public class SessionController {
         this.setButtonsDisabled(true);
         this.initWorkingTreePanelTab();
 
+        BusyWindow.show();
         // SLOW
         // here now looking
-        this.initPanelViews();
-        this.updateUIEnabledStatus();
-        this.setRecentReposDropdownToCurrentRepo();
-        this.refreshRecentReposInDropdown();
+        this.initPanelViews()
+                .doOnComplete(() -> {
+                    this.updateUIEnabledStatus();
+                    this.setRecentReposDropdownToCurrentRepo();
+                    this.refreshRecentReposInDropdown();
 
-        this.initRepositoryMonitor();
+                    this.initRepositoryMonitor();
 
-        this.initStatusText();
+                    this.initStatusText();
 
-        this.notificationPaneController.bindParentBounds(anchorRoot.heightProperty());
+                    this.notificationPaneController.bindParentBounds(anchorRoot.heightProperty());
 
-        VBox.setVgrow(filesTabPane, Priority.ALWAYS);
+                    VBox.setVgrow(filesTabPane, Priority.ALWAYS);
 
-        // if there are conflicting files on startup, watches them for changes
-        ConflictingFileWatcher.watchConflictingFiles(theModel.getCurrentRepoHelper());
+                    // if there are conflicting files on startup, watches them for changes
+                    ConflictingFileWatcher.watchConflictingFiles(theModel.getCurrentRepoHelper());
+                    BusyWindow.hide();
+                }).subscribe();
     }
 
     @FXML void handleFetchButton() {
@@ -563,16 +567,18 @@ public class SessionController {
     /**
      * Initializes each panel of the view
      */
-    public synchronized void initPanelViews() {
+    public synchronized Observable<Boolean> initPanelViews() {
         try {
             workingTreePanelView.drawDirectoryView();
             allFilesPanelView.drawDirectoryView();
             indexPanelView.drawDirectoryView();
-            commitTreeModel.init();
             this.setBrowserURL();
+            return commitTreeModel.init();
         } catch (GitAPIException | IOException e) {
             showGenericErrorNotification(e);
         }
+
+        return Observable.empty();
     }
 
     /**

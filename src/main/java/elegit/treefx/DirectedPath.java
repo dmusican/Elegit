@@ -12,22 +12,21 @@ import javafx.scene.shape.LineTo;
 import javafx.scene.shape.MoveTo;
 import javafx.scene.shape.Path;
 import javafx.scene.shape.PathElement;
+import org.apache.http.annotation.GuardedBy;
 import org.apache.http.annotation.ThreadSafe;
 
 /**
  * Represents a line with an arrow at the end. The arrow is constructed using a three-point Path
  * object that has its vertices bound to the end of the line.
  */
-@ThreadSafe
-// but critically only because of all the asserts requiring this be done only in the FX thread. Without that, it
-// isn't threadsafe, not least because of the bindings / listeners that are done.
+// but beware; if this DirectedPath ends up on an active scene graph, bindings must be carefully managed
 public class DirectedPath extends Group{
 
     // The length of the arrow
     private static final IntegerProperty ARROW_LENGTH = new SimpleIntegerProperty(Cell.BOX_SIZE / 3);
 
-    public Path arrow;
-    public Path path;
+    @GuardedBy("this") private Path arrow;
+    @GuardedBy("this") private Path path;
 
     /**
      * Constructs and binds the appropriate properties for the line and
@@ -36,7 +35,6 @@ public class DirectedPath extends Group{
     DirectedPath(DoubleBinding startX, DoubleBinding startY,
                  DoubleBinding endX, DoubleBinding endY,
                  String sourceId, String targetId){
-        Main.assertFxThread();
 
         this.setId(sourceId + " " + targetId);
         this.path = new Path();
@@ -63,8 +61,8 @@ public class DirectedPath extends Group{
     /**
      * @param isDashed whether to draw this line as a dashed or solid line
      */
-    void setDashed(boolean isDashed){
-        Main.assertFxThread();
+    // synchronized for path
+    synchronized void setDashed(boolean isDashed){
         if(isDashed){
             this.path.getStyleClass().setAll("edge", "invisEdge");
         }else{
@@ -79,8 +77,8 @@ public class DirectedPath extends Group{
      * @param newY the y of the new point
      * @param index the index to add the point in
      */
-    void addPoint(DoubleBinding newX, DoubleBinding newY, int index){
-        Main.assertFxThread();
+    // synchronized for arrow, path
+    synchronized void addPoint(DoubleBinding newX, DoubleBinding newY, int index){
         this.getChildren().remove(path);
         this.getChildren().remove(arrow);
 
@@ -100,8 +98,8 @@ public class DirectedPath extends Group{
      * @param newX the x of the new point
      * @param newY the y of the new point
      */
-    void addPoint(DoubleBinding newX, DoubleBinding newY){
-        Main.assertFxThread();
+    // synchronized for path
+    synchronized void addPoint(DoubleBinding newX, DoubleBinding newY){
         this.addPoint(newX, newY, path.getElements().size() - 1);
     }
 
@@ -109,8 +107,8 @@ public class DirectedPath extends Group{
      * Removes the point at the given index from the line
      * @param index the index of the point to remove
      */
-    void removePoint(int index){
-        Main.assertFxThread();
+    // synchronized for arrow, path
+    synchronized void removePoint(int index){
         this.getChildren().remove(path);
         this.getChildren().remove(arrow);
 
@@ -131,8 +129,8 @@ public class DirectedPath extends Group{
      *
      * @return the path that will draw an arrow at the end of the line
      */
-    private Path getArrow(){
-        Main.assertFxThread();
+    // synchronized for Path
+    private synchronized Path getArrow(){
         ObservableList<PathElement> list =  this.path.getElements();
         DoubleBinding tipX = ((LineTo) list.get(list.size()-1)).xProperty().add(0);
         DoubleBinding tipY = ((LineTo) list.get(list.size()-1)).yProperty().add(0);
@@ -180,7 +178,6 @@ public class DirectedPath extends Group{
         private final DoubleProperty x, y;
 
         ArcTanBinding(DoubleProperty x, DoubleProperty y){
-            Main.assertFxThread();
             this.x = x;
             this.y = y;
             super.bind(this.x);
@@ -188,8 +185,7 @@ public class DirectedPath extends Group{
         }
 
         @Override
-        protected double computeValue(){
-            Main.assertFxThread();
+        synchronized protected double computeValue(){
             return Math.atan2(this.x.get(), this.y.get());
         }
     }
@@ -201,14 +197,12 @@ public class DirectedPath extends Group{
         private final DoubleBinding theta;
 
         SinBinding(DoubleBinding theta){
-            Main.assertFxThread();
             this.theta = theta;
             super.bind(this.theta);
         }
 
         @Override
-        protected double computeValue(){
-            Main.assertFxThread();
+        protected synchronized double computeValue(){
             return Math.sin(this.theta.get());
         }
     }
@@ -220,14 +214,12 @@ public class DirectedPath extends Group{
         private final DoubleBinding theta;
 
         CosBinding(DoubleBinding theta){
-            Main.assertFxThread();
             this.theta = theta;
             super.bind(this.theta);
         }
 
         @Override
-        protected double computeValue(){
-            Main.assertFxThread();
+        protected synchronized double computeValue(){
             return Math.cos(this.theta.get());
         }
     }
