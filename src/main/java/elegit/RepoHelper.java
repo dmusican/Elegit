@@ -350,6 +350,7 @@ public class RepoHelper {
     public void checkoutFile(Path filePath) throws GitAPIException {
         Git git = new Git(this.repo);
         git.checkout().addPath(filePath.toString()).call();
+        TranscriptHelper.post("git checkout "+filePath.toString());
         git.close();
     }
 
@@ -359,10 +360,14 @@ public class RepoHelper {
      */
     public void checkoutFiles(List<Path> filePaths) throws GitAPIException {
         Git git = new Git(this.repo);
+        ArrayList<String> fileNames = new ArrayList();
         CheckoutCommand checkout = git.checkout();
-        for (Path filePath : filePaths)
+        for (Path filePath : filePaths) {
             checkout.addPath(filePath.toString());
+            fileNames.add(filePath.toString());
+        }
         checkout.call();
+        TranscriptHelper.post("git checkout "+String.join(" ", fileNames));
         git.close();
     }
 
@@ -416,12 +421,15 @@ public class RepoHelper {
      */
     public void removeFilePaths(ArrayList<Path> filePaths) throws GitAPIException {
         Git git = new Git(this.repo);
+        ArrayList<String> fileNames = new ArrayList();
         // git rm:
         RmCommand remover = git.rm();
         for (Path filePath : filePaths) {
             remover.addFilepattern(filePath.toString());
+            fileNames.add(filePath.toString());
         }
         remover.call();
+        TranscriptHelper.post("git rm -- "+String.join(" ", fileNames));
         git.close();
     }
 
