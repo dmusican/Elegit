@@ -14,6 +14,7 @@ import elegit.treefx.CommitTreePanelView;
 import elegit.treefx.TreeLayout;
 import io.reactivex.Observable;
 import io.reactivex.ObservableSource;
+import io.reactivex.Single;
 import io.reactivex.rxjavafx.schedulers.JavaFxScheduler;
 import io.reactivex.schedulers.Schedulers;
 import javafx.application.Platform;
@@ -180,7 +181,7 @@ public class SessionController {
         // SLOW
         // here now looking
         this.initPanelViews()
-                .doOnComplete(() -> {
+                .doOnSuccess((unused) -> {
                     this.updateUIEnabledStatus();
                     this.setRecentReposDropdownToCurrentRepo();
                     this.refreshRecentReposInDropdown();
@@ -275,19 +276,20 @@ public class SessionController {
 
                 // Note that the below is a threaded operation, and so we want to make sure that the following
                 // operations (hiding the window, etc) depend on it.
-                .flatMap(unused -> doAndRepeatGitOperation(gitOp))
+                .flatMap(unused -> doAndRepeatGitOperation(gitOp).toObservable())
                 .doOnNext(unused -> hideBusyWindowAndResumeRepoMonitor())
                 .subscribe(unused -> {}, Throwable::printStackTrace);
     }
 
     // Repeat trying to fetch. First time: no authentication window. On repeated attempts,
     // authentication window is shown. Effort ends when authentication window is cancelled.
-    private Observable<String> doAndRepeatGitOperation(GitOperation gitOp) {
+    private Single<String> doAndRepeatGitOperation(GitOperation gitOp) {
         Main.assertFxThread();
         AtomicBoolean httpAuth = new AtomicBoolean(false);
-        return Observable
-                .just(1)
-                .map(integer -> authenticateReactive(httpAuth.get()))
+        return Single.fromCallable(() -> authenticateReactive(httpAuth.get()))
+//                Observable
+//                .just(1)
+//                .map(integer -> authenticateReactive(httpAuth.get()))
 
                 //.observeOn(Schedulers.io())
                 .map(gitOp::doGitOperation)
@@ -302,7 +304,7 @@ public class SessionController {
                     return "success";
                 })
                 .retry(throwable -> throwable instanceof TryAgainException)
-                .onErrorResumeNext(Observable.just("cancelled"));
+                .onErrorResumeNext(Single.just("cancelled"));
     }
 
     private boolean tryOpAgain(List<Result> results) {
@@ -570,7 +572,7 @@ public class SessionController {
     /**
      * Initializes each panel of the view
      */
-    public synchronized Observable<Boolean> initPanelViews() {
+    public synchronized Single<Boolean> initPanelViews() {
         try {
             workingTreePanelView.drawDirectoryView();
             allFilesPanelView.drawDirectoryView();
@@ -581,7 +583,7 @@ public class SessionController {
             showGenericErrorNotification(e);
         }
 
-        return Observable.empty();
+        return Single.just(true);
     }
 
     /**
@@ -715,32 +717,42 @@ public class SessionController {
         }
         TreeLayout.stopMovingCells();
         refreshRecentReposInDropdown();
-        Observable
-                .just(1)
-                .doOnNext(unused -> showBusyWindowAndPauseRepoMonitor("Loading repository..."))
-                // Note that the below is a threaded operation, and so we want to make sure that the following
-                // operations (hiding the window, etc) depend on it.
-                .flatMap(unused -> doAndRepeatGitOperation(gitOp))
-
-                //.observeOn(Schedulers.io())
-                .doOnNext((result) -> {
+        showBusyWindowAndPauseRepoMonitor("Loading repository...");
+        doAndRepeatGitOperation(gitOp)
+                .flatMap((result) -> {
                     if (result.equals("success")) {
-                        synchronized (globalLock) {
-                            initPanelViews();
-                        }
+                        return initPanelViews()
+                                .doOnSuccess((unused) -> {
+                                    setRecentReposDropdownToCurrentRepo();
+                                    updateUIEnabledStatus();
+                                    hideBusyWindowAndResumeRepoMonitor();
+                                });
+                    } else {
+                        return Single.fromCallable(() -> {
+                            hideBusyWindowAndResumeRepoMonitor();
+                            return true;
+                        });
                     }
-                })
 
-                //.observeOn(JavaFxScheduler.platform())
-                .doOnNext((result) -> {
-                    if (result.equals("success")) {
-                        setRecentReposDropdownToCurrentRepo();
-                        updateUIEnabledStatus();
-                    }
                 })
-                .doOnNext(unused -> hideBusyWindowAndResumeRepoMonitor())
-                .subscribe(unused -> {
-                }, Throwable::printStackTrace);
+                .subscribe(unused -> {}, Throwable::printStackTrace);
+
+//        Observable
+//                .just(1)
+//                .doOnNext(unused -> showBusyWindowAndPauseRepoMonitor("Loading repository..."))
+//                // Note that the below is a threaded operation, and so we want to make sure that the following
+//                // operations (hiding the window, etc) depend on it.
+//                .flatMap(unused -> doAndRepeatGitOperation(gitOp))
+//
+//                .doOnNext((result) -> {
+//                    if (result.equals("success")) {
+//                        initPanelViews();
+//                        setRecentReposDropdownToCurrentRepo();
+//                        updateUIEnabledStatus();
+//                    }
+//                    hideBusyWindowAndResumeRepoMonitor();
+//                })
+//                .subscribe(unused -> {}, Throwable::printStackTrace);
 
     }
 
@@ -1218,7 +1230,7 @@ public class SessionController {
 
                 // Note that the below is a threaded operation, and so we want to make sure that the following
                 // operations (hiding the window, etc) depend on it.
-                .flatMap(unused -> doAndRepeatGitOperation(gitOp))
+                .flatMap(unused -> doAndRepeatGitOperation(gitOp).toObservable())
                 .doOnNext(unused -> hideBusyWindowAndResumeRepoMonitor())
                 .subscribe(unused -> {}, Throwable::printStackTrace);
     }
@@ -2225,28 +2237,29 @@ public class SessionController {
 //                            return;
 //                        }
                 try {
-                    gitStatusWorkload();
+                    gitStatusWorkload()
+                    .doFinally(() -> {
+                        RepositoryMonitor.unpause();
+                    })
+                    .subscribe();
 
                 } catch (Exception e) {
                     showGenericErrorNotification(e);
                     e.printStackTrace();
                     throw new ExceptionAdapter(e);
-                } finally {
-                    RepositoryMonitor.unpause();
-
                 }
 
             }
         }
 
-    public void gitStatusWorkload() throws GitAPIException, IOException {
+    public Single<Boolean> gitStatusWorkload() throws GitAPIException, IOException {
         theModel.getCurrentRepoHelper().getBranchModel().updateAllBranches();
         workingTreePanelView.drawDirectoryView();
         allFilesPanelView.drawDirectoryView();
         indexPanelView.drawDirectoryView();
         this.theModel.getCurrentRepoHelper().getTagModel().updateTags();
         updateStatusText();
-        commitTreeModel.update();
+        return commitTreeModel.update();
     }
 
     /**

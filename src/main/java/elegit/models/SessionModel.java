@@ -216,6 +216,7 @@ public class SessionModel {
      */
     // synchronized for allRepoHelpers
     public synchronized void openRepoFromHelper(RepoHelper repoHelperToLoad) throws BackingStoreException, IOException, ClassNotFoundException, MissingRepoException {
+        System.out.println("SessionModel.openRepoFromHelper 0");
         RepoHelper matchedRepoHelper = this.matchRepoWithAlreadyLoadedRepo(repoHelperToLoad);
         if (matchedRepoHelper == null) {
             // So, this repo isn't loaded into the model yet
@@ -230,6 +231,7 @@ public class SessionModel {
                 throw new MissingRepoException();
             }
         }
+        System.out.println("SessionModel.openRepoFromHelper 100");
     }
 
     /**

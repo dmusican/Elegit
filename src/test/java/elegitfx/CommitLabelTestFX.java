@@ -7,6 +7,7 @@ import elegit.models.SessionModel;
 import elegit.monitors.RepositoryMonitor;
 import elegit.treefx.Cell;
 import elegit.treefx.CommitTreeModel;
+import io.reactivex.Single;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Rectangle2D;
@@ -56,6 +57,8 @@ public class CommitLabelTestFX extends ApplicationTest {
 
     private SessionController sessionController;
 
+    private Throwable testFailures;
+
     @Override
     public void start(Stage stage) throws Exception {
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/MainView.fxml"));
@@ -90,12 +93,14 @@ public class CommitLabelTestFX extends ApplicationTest {
 
         // Load this repo in Elegit, and initialize
         SessionModel.getSessionModel().openRepoFromHelper(helper);
-        commitTreeModel.init();
 
-        testAddFileAndCommit();
+        commitTreeModel.init()
+                .flatMap((unused) -> testAddFileAndCommit())
 
-        // Delete the cloned files.
-        removeAllFilesFromDirectory(this.directoryPath.toFile());
+                .doOnSuccess((unused) -> {
+                    // Delete the cloned files.
+                    removeAllFilesFromDirectory(this.directoryPath.toFile());
+                }).subscribe((unused) -> {}, t -> testFailures = t);
 
     }
 
@@ -111,18 +116,14 @@ public class CommitLabelTestFX extends ApplicationTest {
     // Dummy test to get something to run. This test really all happens in start, so just need to have a test
     // to get it going.
     public void test1() {
+        assertNull(testFailures);
         assertEquals(1, 1);
     }
 
 
-    @Test
-    // Dummy test to get something to run. This test really all happens in start, so just need to have a test
-    // to get it going.
-    public void test2() {
-        assertEquals(1, 1);
-    }
+    private String headIDForTesting;
 
-    public void testAddFileAndCommit() throws Exception {
+    public Single<Boolean> testAddFileAndCommit() throws Exception {
         // Make sure both "master" and "origin/master" labels are on the inital commit
         testCellLabelContainsMaster(commitTreeModel, INITIAL_COMMIT_ID, true, true);
 
@@ -137,44 +138,51 @@ public class CommitLabelTestFX extends ApplicationTest {
         this.helper.addFilePathTest(file.toPath());
         this.helper.commit("Modified file.txt in a unit test!");
 
-        sessionController.gitStatusWorkload();
+        return sessionController.gitStatusWorkload()
+                .doOnSuccess((unused) -> {
 
-        //commitTreeModel.update();
+                    // Get the information about the new commit
+                    CommitHelper newHead = this.helper.getCommit("master");
+                    assertNotNull(newHead);
+                    String newHeadID = newHead.getName();
+                    assertNotEquals(INITIAL_COMMIT_ID, newHeadID);
 
-        // Get the information about the new commit
-        CommitHelper newHead = this.helper.getCommit("master");
-        assertNotNull(newHead);
-        String newHeadID = newHead.getName();
-        assertNotEquals(INITIAL_COMMIT_ID, newHeadID);
+                    // Check the labels are appropriate again
+                    this.testCellLabelContainsMaster(commitTreeModel, newHeadID, true, false);
 
-        // Check the labels are appropriate again
-        this.testCellLabelContainsMaster(commitTreeModel, newHeadID, true, false);
+                    this.testCellLabelContainsMaster(commitTreeModel, INITIAL_COMMIT_ID, false, true);
 
-        this.testCellLabelContainsMaster(commitTreeModel, INITIAL_COMMIT_ID, false, true);
+                    // Make another commit
+                    try (PrintWriter fileTextWriter = new PrintWriter(file)) {
+                        fileTextWriter.println("Add another line to the file");
+                    }
 
-        // Make another commit
-        try(PrintWriter fileTextWriter = new PrintWriter( file )){
-            fileTextWriter.println("Add another line to the file");
-        }
+                    this.helper.addFilePathTest(file.toPath());
+                    this.helper.commit("Modified file.txt in a unit test again!");
+                    headIDForTesting = newHeadID;
+                })
 
-        this.helper.addFilePathTest(file.toPath());
-        this.helper.commit("Modified file.txt in a unit test again!");
-        sessionController.gitStatusWorkload();
+                .flatMap((unused) -> sessionController.gitStatusWorkload())
 
-        // Get the information about this new commit
-        String oldHeadID = newHeadID;
-        newHead = this.helper.getCommit("master");
-        assertNotNull(newHead);
-        newHeadID = newHead.getName();
-        assertNotEquals(oldHeadID, newHeadID);
+                .doOnSuccess((unused) -> {
 
 
-        // Check the labels on every commit again
-        this.testCellLabelContainsMaster(commitTreeModel, newHeadID, true, false);
+                    // Get the information about this new commit
+                    String oldHeadID = headIDForTesting;
+                    CommitHelper newHead = this.helper.getCommit("master");
+                    assertNotNull(newHead);
+                    String newHeadID = newHead.getName();
+                    assertNotEquals(oldHeadID, newHeadID);
 
-        this.testCellLabelContainsMaster(commitTreeModel, oldHeadID, false, false);
 
-        this.testCellLabelContainsMaster(commitTreeModel, INITIAL_COMMIT_ID, false, true);
+                    // Check the labels on every commit again
+                    this.testCellLabelContainsMaster(commitTreeModel, newHeadID, true, false);
+
+                    this.testCellLabelContainsMaster(commitTreeModel, oldHeadID, false, false);
+
+                    this.testCellLabelContainsMaster(commitTreeModel, INITIAL_COMMIT_ID, false, true);
+
+                });
 
     }
 
@@ -188,6 +196,12 @@ public class CommitLabelTestFX extends ApplicationTest {
      */
     private void testCellLabelContainsMaster(CommitTreeModel commitTreeModel, String cellID, boolean matchLocal, boolean matchRemote) {
         // Get the cell from the tree
+        System.out.println("========");
+        System.out.println(cellID);
+        System.out.println(commitTreeModel.containsID(cellID));
+        System.out.println(commitTreeModel.getTreeGraph().treeGraphModel.getCell(cellID));
+        System.out.println("========");
+
         assertTrue(commitTreeModel.containsID(cellID));
         Cell cell = commitTreeModel.getTreeGraph().treeGraphModel.getCell(cellID);
         assertNotNull(cell);

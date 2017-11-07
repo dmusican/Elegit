@@ -6,6 +6,7 @@ import elegit.models.SessionModel;
 import elegit.exceptions.MissingRepoException;
 import elegit.models.*;
 import io.reactivex.Observable;
+import io.reactivex.Single;
 import io.reactivex.rxjavafx.schedulers.JavaFxScheduler;
 import io.reactivex.schedulers.Schedulers;
 import javafx.scene.control.*;
@@ -96,46 +97,52 @@ public class CommitTreeModel{
      * Initializes the treeGraph, unselects any previously selected commit,
      * and then adds all commits tracked by this model to the tree
      */
-    public synchronized Observable<Boolean> init(){
+    public synchronized Single<Boolean> init(){
         Main.assertFxThread();
 
         CommitTreeController.resetSelection();
 
         if (SessionModel.getSessionModel().getCurrentRepoHelper() != null) {
             return this.addCommitsToTree(this.getAllCommits(SessionModel.getSessionModel().getCurrentRepoHelper()))
-                    .doOnComplete(() -> {
+                    .doOnSuccess((result) -> {
                         this.branchesInModel.clear();
                         this.branchesInModel.addAll(SessionModel.getSessionModel().getCurrentRepoHelper().getBranchModel().getAllBranches());
                         this.initView();
                     });
         }
 
-        return Observable.fromCallable(() -> {
+        return Single.fromCallable(() -> {
             this.initView();
             return true;
         });
 
     }
 
-    public synchronized void update() throws GitAPIException, IOException {
+    public synchronized Single<Boolean> update() throws GitAPIException, IOException {
         Main.assertFxThread();
+        Single<Boolean> result = Single.just(true);
         // Handles rare edge case with the RepositoryMonitor and removing repos
         if(SessionModel.getSessionModel().getCurrentRepoHelper() != null){
             // Get the changes between this model and the repo after updating the repo
             SessionModel.getSessionModel().getCurrentRepoHelper().updateModel();
             UpdateModel updates = this.getChanges();
 
-            if (!updates.hasChanges()) return;
+            if (!updates.hasChanges()) return result;
 
             this.removeCommitsFromTree(updates.getCommitsToRemove());
-            this.addCommitsToTree(updates.getCommitsToAdd()).subscribe(); // SLOW
-            this.updateCommitFills(updates.getCommitsToUpdate());
-            SessionModel.getSessionModel().getCurrentRepoHelper().getBranchModel().updateAllBranches();
-            this.resetBranchHeads();
-            this.updateAllRefLabels();
-            TreeLayout.stopMovingCells();
-            this.updateView();  // SLOW
+            result = this.addCommitsToTree(updates.getCommitsToAdd())
+                    .doOnSuccess((unused) -> {
+                        System.out.println("CommitTreeModel.update 1");
+                        this.updateCommitFills(updates.getCommitsToUpdate());
+                        SessionModel.getSessionModel().getCurrentRepoHelper().getBranchModel().updateAllBranches();
+                        this.resetBranchHeads();
+                        this.updateAllRefLabels();
+                        TreeLayout.stopMovingCells();
+                        this.updateView();  // SLOW
+                        System.out.println("CommitTreeModel.update 80");
+                    });
         }
+        return result;
     }
 
 
@@ -281,9 +288,9 @@ public class CommitTreeModel{
      * @param commits the commits to add
      * @return true if commits where added, else false
      */
-    private synchronized Observable<Boolean> addCommitsToTree(Set<CommitHelper> commits){
+    private synchronized Single<Boolean> addCommitsToTree(Set<CommitHelper> commits){
         if(commits.size() == 0)
-            return Observable.empty();
+            return Single.just(true);
         //return false;
 
         List<CommitHelper> cellsWithNewTypes = new ArrayList<>();
@@ -299,7 +306,8 @@ public class CommitTreeModel{
                         treeGraph.treeGraphModel.setCellType(commit);
                     }
 
-                });
+                })
+                .reduce(false, (a,b) -> a&&b);
 
 
                 //.subscribe();
@@ -459,7 +467,7 @@ public class CommitTreeModel{
             if (presentDeleteDialog(tagHelper)) {
                 try {
                     SessionModel.getSessionModel().getCurrentRepoHelper().getTagModel().deleteTag(tagHelper.getRefName());
-                    update();
+                    update().subscribe();
                 } catch (GitAPIException | MissingRepoException | IOException e) {
                     e.printStackTrace();
                 }
