@@ -69,7 +69,7 @@ public class CommitLabelTestFX extends ApplicationTest {
         Rectangle2D primScreenBounds = Screen.getPrimary().getVisualBounds();
         int screenWidth = (int) primScreenBounds.getWidth();
         int screenHeight = (int) primScreenBounds.getHeight();
-        Scene scene = new Scene(root);
+        Scene scene = new Scene(root, screenWidth*4/5, screenHeight*4/5);
         stage.setScene(scene);
         System.out.println("Showing stage");
         stage.show();

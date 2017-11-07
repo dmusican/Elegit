@@ -68,10 +68,11 @@ public class RepositoryMonitorTestFX extends ApplicationTest {
         fxmlLoader.load();
         sessionController = fxmlLoader.getController();
         Parent root = fxmlLoader.getRoot();
-        Scene scene = new Scene(root);
+        Rectangle2D primScreenBounds = Screen.getPrimary().getVisualBounds();
+        int screenWidth = (int) primScreenBounds.getWidth();
+        int screenHeight = (int) primScreenBounds.getHeight();
+        Scene scene = new Scene(root, screenWidth*4/5, screenHeight*4/5);
         stage.setScene(scene);
-        stage.setX(0);
-        stage.setY(0);
         sessionController.setStageForNotifications(stage);
         stage.show();
         stage.toFront();
