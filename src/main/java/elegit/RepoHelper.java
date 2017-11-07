@@ -324,6 +324,7 @@ public class RepoHelper {
      */
     public void addFilePaths(ArrayList<Path> filePaths) throws GitAPIException {
         Git git = new Git(this.repo);
+        ArrayList<String> fileNames = new ArrayList();
         // git add:
         AddCommand adder = git.add();
         for (Path filePath : filePaths) {
@@ -334,9 +335,11 @@ public class RepoHelper {
                 else
                     pathToAdd = pathToAdd.replaceAll(File.separator, "/");
             }
+            fileNames.add(pathToAdd);
             adder.addFilepattern(pathToAdd);
         }
         adder.call();
+        TranscriptHelper.post("git add "+String.join(" ", fileNames));
         git.close();
     }
 
@@ -492,6 +495,7 @@ public class RepoHelper {
         git.commit()
                 .setMessage(commitMessage)
                 .call();
+        TranscriptHelper.post("git commit -m \""+commitMessage+"\"");
         git.close();
 
         // Update the local commits
@@ -508,6 +512,7 @@ public class RepoHelper {
 
         Git git = new Git(repo);
         git.commit().setMessage(message).setAll(true).call();
+        TranscriptHelper.post("git commit -am \""+message+"\"");
         git.close();
 
         localCommits = parseAllLocalCommits();
