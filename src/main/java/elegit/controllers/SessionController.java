@@ -176,7 +176,7 @@ public class SessionController {
         this.setButtonsDisabled(true);
         this.initWorkingTreePanelTab();
 
-        BusyWindow.show();
+        //BusyWindow.show();
         // SLOW
         // here now looking
         this.initPanelViews()
@@ -195,6 +195,9 @@ public class SessionController {
 
                     // if there are conflicting files on startup, watches them for changes
                     ConflictingFileWatcher.watchConflictingFiles(theModel.getCurrentRepoHelper());
+
+                    // Make sure this code happens in FX thread; if not, potential race condition with Main
+                    Main.initializationComplete.set(true);
                     BusyWindow.hide();
                 }).subscribe();
     }
@@ -1803,8 +1806,8 @@ public class SessionController {
         handleFetchButton(false, true);
     }
 
-    enum ResultStatus {OK, NOCOMMITS, EXCEPTION, MERGE_FAILED};
-    enum ResultOperation {FETCH, MERGE, ADD, LOAD, PUSH};
+    public enum ResultStatus {OK, NOCOMMITS, EXCEPTION, MERGE_FAILED};
+    public enum ResultOperation {FETCH, MERGE, ADD, LOAD, PUSH, CHECK_REMOTE_FOR_CHANGES};
 
     public static class Result {
         public final ResultStatus status;
@@ -1871,6 +1874,11 @@ public class SessionController {
         gitStatus();
     }
 
+    public void showExceptionAsGlobalNotification(Result result) {
+        showSingleResult(notificationPaneController, result);
+
+    }
+
     private void showSingleResult(NotificationController nc, Result result) {
         if (result.status == ResultStatus.NOCOMMITS)
             showNotification(nc, "No commits fetched warning", "No new commits were fetched.");
@@ -1895,8 +1903,9 @@ public class SessionController {
                 refreshRecentReposInDropdown();
 
             } else if (result.exception instanceof TransportException) {
-                // TODO: need to enhance with text from  showTransportExceptionNotification(e);
-                showNotification(nc, "Transport Exception", "Transport Exception.");
+                showNotification(nc,
+                        "Transport Exception: " + result.exception.getLocalizedMessage(),
+                        "Transport Exception: " + result.exception.getLocalizedMessage());
 
             } else if (result.exception instanceof CheckoutConflictException) {
                 showNotification(nc, "Can't merge with modified files warning",

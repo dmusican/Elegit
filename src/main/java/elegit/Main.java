@@ -44,8 +44,8 @@ public class Main extends Application {
     // TODO: This is likely misplaced, but I can't really do much with it until I fix TreeLayout
     public final static AtomicBoolean isAppClosed = new AtomicBoolean();
 
-    // Latch used to indicate when start is nearly complete; used for unit testing
-    public final static CountDownLatch startLatch = new CountDownLatch(1);
+    // Used to indicate when initialization is done; used to avoid misordering showing initial BusyWindow
+    public final static AtomicBoolean initializationComplete = new AtomicBoolean(false);
 
     // Marker for sessionController; only used for unit testing
     public static SessionController sessionController;
@@ -97,6 +97,7 @@ public class Main extends Application {
 
         sessionController.loadLogging();
 
+        RepositoryMonitor.setSessionController(sessionController);
         // sets the icon
         Image img = new Image(getClass().getResourceAsStream("/elegit/images/elegit_icon.png"));
         primaryStage.getIcons().add(img);
@@ -129,10 +130,16 @@ public class Main extends Application {
         primaryStage.setTitle("Elegit");
         primaryStage.setScene(scene);
         sessionController.setStageForNotifications(primaryStage);
-        startLatch.countDown();
         startTime = System.currentTimeMillis();
         System.out.println("About to render...");
         primaryStage.show();
+
+        // This code is not in a synchronization block because the updates for initializationComplete should ONLY
+        // happen on FX thread
+        if (!Main.initializationComplete.get()) {
+            BusyWindow.show();
+        }
+
         System.out.println("Time to render: " + (System.currentTimeMillis()-startTime));
 
         // Now finally start watching repositories

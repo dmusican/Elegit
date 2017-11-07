@@ -55,6 +55,7 @@ public class BusyWindow {
 
     public static void setParentWindow(Window parent){
         Main.assertFxThread();
+        System.out.println("BusyWindow.setParentWindow");
         window.initOwner(parent);
         window.setX(parent.getX()+parent.getWidth()/2-window.getWidth()/2);
         window.setY(parent.getY()+parent.getHeight()/2-window.getHeight()/2);

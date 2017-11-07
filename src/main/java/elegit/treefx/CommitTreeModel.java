@@ -292,7 +292,6 @@ public class CommitTreeModel{
                 .subscribeOn(Schedulers.io())
                 .map(curCommitHelper -> addCommitToTree(curCommitHelper, treeGraph.treeGraphModel))
                 .map(batchOfCellswithNewTypes -> cellsWithNewTypes.addAll(batchOfCellswithNewTypes))
-                .doOnNext(o -> System.out.println("here 1"))
 
                 .observeOn(JavaFxScheduler.platform())
                 .doOnComplete(() -> {

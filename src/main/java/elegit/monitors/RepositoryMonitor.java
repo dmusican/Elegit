@@ -1,5 +1,6 @@
 package elegit.monitors;
 
+import com.jcraft.jsch.Session;
 import elegit.Main;
 import elegit.exceptions.ExceptionAdapter;
 import elegit.models.SessionModel;
@@ -19,6 +20,7 @@ import javafx.beans.property.SimpleIntegerProperty;
 import org.apache.http.annotation.GuardedBy;
 import org.apache.http.annotation.ThreadSafe;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.api.errors.TransportException;
 import org.eclipse.jgit.lib.Ref;
 
 import java.io.IOException;
@@ -26,6 +28,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * A class that creates a thread to watch the current remote repository for new changes
@@ -50,6 +53,8 @@ public class RepositoryMonitor{
     @GuardedBy("this") private static Disposable localTimer = Observable.empty().subscribe();
     @GuardedBy("this") private static SessionController controller;
     @GuardedBy("this") private static int exceptionCounter = 0;  // used for testing
+
+    private static final AtomicReference<SessionController> sessionController = new AtomicReference<>();
 
     public synchronized static void init(SessionController controller) {
         RepositoryMonitor.controller = controller;
@@ -129,7 +134,13 @@ public class RepositoryMonitor{
             }
         }catch(GitAPIException | IOException e)
         {
-            e.printStackTrace();
+            SessionController sessionController = RepositoryMonitor.sessionController.get();
+            // This work has been happening off FX thread, so notification needs to go back on it
+            Platform.runLater(() -> {
+                sessionController.showExceptionAsGlobalNotification(
+                        new SessionController.Result(SessionController.ResultOperation.CHECK_REMOTE_FOR_CHANGES, e));
+            });
+            //e.printStackTrace();
         }
         return false;
     }
@@ -206,5 +217,9 @@ public class RepositoryMonitor{
 
     public static int getExceptionCounter() {
         return exceptionCounter;
+    }
+
+    public static void setSessionController(SessionController sessionController) {
+        RepositoryMonitor.sessionController.set(sessionController);
     }
 }
