@@ -493,7 +493,7 @@ public class BranchModel {
             if(heads.containsKey(head)){
                 heads.get(head).add(branch);
             }else{
-                List<BranchHelper> helpers = new ArrayList<>();
+                List<BranchHelper> helpers = new ArrayList<>(branches.size());
                 helpers.add(branch);
                 heads.put(head, helpers);
             }

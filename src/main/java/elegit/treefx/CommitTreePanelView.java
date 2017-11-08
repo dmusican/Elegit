@@ -51,9 +51,7 @@ public class CommitTreePanelView extends Region{
      */
     synchronized void displayTreeGraph(TreeGraph treeGraph, CommitHelper commitToFocusOnLoad){
         Main.assertFxThread();
-        System.out.println("before focus");
         initCommitTreeScrollPanes(treeGraph);
-        System.out.println("after init");
         //TreeLayout.doTreeLayout(treeGraph).subscribe();
         TreeLayout.doTreeLayout(treeGraph, commitToFocusOnLoad)
 //                .concatWith(Observable.fromCallable(() -> {
@@ -62,7 +60,6 @@ public class CommitTreePanelView extends Region{
 //                }))
                 .subscribe();
         //CommitTreeController.focusCommitInGraph(commitToFocusOnLoad);  // SLOW
-        System.out.println("after focus");
     }
 
     /**

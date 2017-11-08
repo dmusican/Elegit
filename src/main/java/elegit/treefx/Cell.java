@@ -2,13 +2,17 @@ package elegit.treefx;
 
 import elegit.Main;
 import elegit.models.RefHelper;
+import elegit.models.SessionModel;
 import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
+import javafx.beans.Observable;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
+import javafx.collections.ObservableList;
 import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Tooltip;
@@ -185,7 +189,6 @@ public class Cell extends Pane {
         // In principle, there's a compare-and-set bug below, in getting numCellsBeingAnimated, testing its value,
         // and then conditionally incrementing, but this is all running the FX thread anyway. Leave that assert
         // below in there, it's critical.
-        // TODO: Interrupt an animation by switching repos in the middle, throws an exception
         Main.assertFxThread();
         if(animate && numCellsBeingAnimated.get() < MAX_NUM_CELLS_TO_ANIMATE){
             numCellsBeingAnimated.getAndIncrement();
@@ -194,7 +197,7 @@ public class Cell extends Pane {
             placeHolder.setTranslateX(x+TreeLayout.H_PAD);
             placeHolder.setTranslateY(y+BOX_SHIFT);
             placeHolder.setOpacity(0.0);
-            ((Pane)(this.getParent())).getChildren().add(placeHolder);
+            CommitTreeModel.getCommitTreeModel().getTreeGraph().getCellLayerPane().getChildren().add(placeHolder);
 
             TranslateTransition t = new TranslateTransition(Duration.millis(3000), this);
             t.setToX(x);
@@ -202,7 +205,7 @@ public class Cell extends Pane {
             t.setCycleCount(1);
             t.setOnFinished(event -> {
                 numCellsBeingAnimated.getAndDecrement();
-                ((Pane)(this.getParent())).getChildren().remove(placeHolder);
+                CommitTreeModel.getCommitTreeModel().getTreeGraph().getCellLayerPane().getChildren().remove(placeHolder);
             });
             t.play();
 

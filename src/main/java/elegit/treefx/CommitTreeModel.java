@@ -132,14 +132,12 @@ public class CommitTreeModel{
             this.removeCommitsFromTree(updates.getCommitsToRemove());
             result = this.addCommitsToTree(updates.getCommitsToAdd())
                     .doOnSuccess((unused) -> {
-                        System.out.println("CommitTreeModel.update 1");
                         this.updateCommitFills(updates.getCommitsToUpdate());
                         SessionModel.getSessionModel().getCurrentRepoHelper().getBranchModel().updateAllBranches();
                         this.resetBranchHeads();
                         this.updateAllRefLabels();
                         TreeLayout.stopMovingCells();
                         this.updateView();  // SLOW
-                        System.out.println("CommitTreeModel.update 80");
                     });
         }
         return result;

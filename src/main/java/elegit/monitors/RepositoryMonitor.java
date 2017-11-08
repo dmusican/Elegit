@@ -47,6 +47,8 @@ public class RepositoryMonitor{
     private static final AtomicInteger numRemoteChecks = new AtomicInteger();
     private static final AtomicInteger numLocalChecks = new AtomicInteger();
 
+    // Used purely for debugging purposes to turn off monitor permanently
+    private static final boolean monitorOff = false;
 
     @GuardedBy("this") private static int pauseCounter = 0;
     @GuardedBy("this") private static Disposable remoteTimer = Observable.empty().subscribe();
@@ -85,7 +87,7 @@ public class RepositoryMonitor{
      * @param repo the repository to monitor
      */
     private static synchronized void watchRepoForRemoteChanges(RepoHelper repo){
-        if(repo == null || !repo.exists() || !repo.hasRemote()) {
+        if(repo == null || !repo.exists() || !repo.hasRemote() || monitorOff) {
             return;
         }
         remoteTimer.dispose();
@@ -162,7 +164,7 @@ public class RepositoryMonitor{
 
     private static synchronized void beginWatchingLocal(){
         //System.out.println("Starting repo mon");
-        if (SessionModel.getSessionModel().getCurrentRepoHelper() == null)
+        if (SessionModel.getSessionModel().getCurrentRepoHelper() == null || monitorOff)
             return;
 
         localTimer.dispose();

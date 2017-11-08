@@ -20,6 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Handles the layout of cells in a TreeGraph in an appropriate tree structure
@@ -45,6 +46,10 @@ public class TreeLayout{
 
     private final static int CELLS_AT_A_TIME = 20;
     private final static int CELL_RENDER_TIME_DELAY = 100;
+
+    // For testing purposes, to make sure that multiple layouts aren't happening simultaneously
+    private final static AtomicLong layoutId = new AtomicLong();
+
 
     /**
      * The task within is specifically designed to pick out 10 cells, and move them one-by-one.
@@ -174,13 +179,24 @@ public class TreeLayout{
             else
                 commitToHighlightOrNot = Optional.of(commitToHighlight);
 
+            final long thisLayoutId = layoutId.incrementAndGet();
+
             return Observable.intervalRange(0, (int)(Math.ceil(allCells.size()/(double)CELLS_AT_A_TIME)),
                     0, CELL_RENDER_TIME_DELAY, TimeUnit.MILLISECONDS,
                     Schedulers.io())
 
+                    // Stop laying out if told to stop laying out, or if a more recent layout has started
+                    .takeWhile(unused -> movingCells.get() && thisLayoutId == layoutId.get())
+
                     .observeOn(JavaFxScheduler.platform())
+                    .doOnNext(cellNumber -> System.out.println("Laying out " + cellNumber))
                     .map(cellNumber -> mover.moveSomeCells(cellNumber.intValue()*CELLS_AT_A_TIME,
-                            commitToHighlightOrNot));
+                            commitToHighlightOrNot))
+
+                    .doOnComplete(() -> {
+                        System.out.println("all laid out");
+                    });
+
 
 //            while (!Main.isAppClosed.get() && movingCells.get() && mover.currentCell < allCells.size()) {
 //                mover.moveSomeCells();

@@ -204,6 +204,8 @@ public class RepositoryMonitorTestFX extends ApplicationTest {
         clickOn(dropdown).clickOn("otherrepo");
         clickOn(dropdown).clickOn("testrepo");
         clickOn(dropdown).clickOn("otherrepo");
+        clickOn(dropdown).clickOn("testrepo");
+        clickOn(dropdown).clickOn("otherrepo");
 
         clickOn("#removeRecentReposButton");
 

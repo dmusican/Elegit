@@ -126,7 +126,7 @@ public class TreeGraph{
                 });
     }
 
-    Pane getCellLayerPane() {
+    public Pane getCellLayerPane() {
         Main.assertFxThread();
         return cellLayer;
     }

@@ -81,6 +81,8 @@ public class Main extends Application {
 
         final Logger logger = LogManager.getLogger();
 
+        startTime = 0;
+
         // -----------------------Logging Initialization End-----------------------------
         // Wait to monitor reposoitory until everything is up
         RepositoryMonitor.pause();
@@ -89,7 +91,6 @@ public class Main extends Application {
         BusyWindow.setParentWindow(primaryStage);
 
         // Load the fxml
-        startTime = System.currentTimeMillis();
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/MainView.fxml"));
         fxmlLoader.load();
         BorderPane root = fxmlLoader.getRoot();
@@ -130,8 +131,6 @@ public class Main extends Application {
         primaryStage.setTitle("Elegit");
         primaryStage.setScene(scene);
         sessionController.setStageForNotifications(primaryStage);
-        startTime = System.currentTimeMillis();
-        System.out.println("About to render...");
         primaryStage.show();
 
         // This code is not in a synchronization block because the updates for initializationComplete should ONLY
@@ -140,7 +139,7 @@ public class Main extends Application {
             BusyWindow.show();
         }
 
-        System.out.println("Time to render: " + (System.currentTimeMillis()-startTime));
+        System.out.println("Time : " + startTime);
 
         // Now finally start watching repositories
         RepositoryMonitor.unpause();
