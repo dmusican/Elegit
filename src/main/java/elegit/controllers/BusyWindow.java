@@ -26,15 +26,15 @@ public class BusyWindow {
         Main.assertFxThread();
         Stage window = new Stage();
 
-        window.setMaxHeight(200);
-        window.setMaxWidth(300);
-        window.setMinHeight(200);
-        window.setMinWidth(300);
+//        window.setMaxHeight(200);
+//        window.setMaxWidth(300);
+//        window.setMinHeight(200);
+//        window.setMinWidth(300);
 
         window.initStyle(StageStyle.UNDECORATED);
         window.initModality(Modality.APPLICATION_MODAL);
 
-        loadingMessage = new Text("loading");
+        loadingMessage = new Text("Loading...");
         loadingMessage.setFont(new Font(20));
 
         window.setScene(new Scene(getRootOfScene()));
@@ -55,7 +55,6 @@ public class BusyWindow {
 
     public static void setParentWindow(Window parent){
         Main.assertFxThread();
-        System.out.println("BusyWindow.setParentWindow");
         window.initOwner(parent);
         window.setX(parent.getX()+parent.getWidth()/2-window.getWidth()/2);
         window.setY(parent.getY()+parent.getHeight()/2-window.getHeight()/2);
@@ -77,6 +76,7 @@ public class BusyWindow {
             }
             window.setX(parent.getX()+parent.getWidth()/2-windowWidth/2);
             window.setY(parent.getY()+parent.getHeight()/2-windowHeight/2);
+            window.setMinWidth(loadingMessage.getBoundsInLocal().getWidth() + 20);
             window.show();
         }
         numProcessesActive++;

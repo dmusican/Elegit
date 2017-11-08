@@ -163,18 +163,7 @@ public class Highlighter{
      */
     private static void highlightCell(Cell cell, CellState state, boolean persistent){
         Main.assertFxThread();
-        System.out.println("Highlighter.highlightCell");
         if(persistent) cellStates.put(cell, state);
-
-//        if(blockedCellIDs.contains(cell.getCellId())) return;
-//
-//        if(state == CellState.STANDARD){
-//            if(cellStates.containsKey(cell)){
-//                cell.setCellState(cellStates.get(cell));
-//                return;
-//            }
-//        }
-//        cell.setCellState(state);
     }
 
     /**

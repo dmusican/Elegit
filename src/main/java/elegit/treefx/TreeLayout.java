@@ -139,42 +139,7 @@ public class TreeLayout{
                         treeLayoutDoneAtLeastOnce, i);
             }
 
-            // Once all cell's positions have been set, move them in a service
             CellMover mover = new CellMover(allCells);
-
-            //********************* Loading Bar Start *********************
-            Pane cellLayer = g.getCellLayerPane();
-            ScrollPane sp = g.getScrollPane();
-            SimpleDoubleProperty viewportY = new SimpleDoubleProperty(0);
-            SimpleDoubleProperty viewportX = new SimpleDoubleProperty(0);
-            ProgressBar progressBar = new ProgressBar();
-
-            Text loadingCommits = new Text("Loading commits ");
-            loadingCommits.setFont(new Font(14));
-            VBox loading = new VBox(loadingCommits, progressBar);
-//            loading.setPickOnBounds(false);
-//            loading.setAlignment(Pos.CENTER);
-//            loading.setSpacing(5);
-//            loading.layoutYProperty().bind(viewportY);
-//            loading.layoutXProperty().bind(viewportX);
-            //loading.setRotationAxis(Rotate.X_AXIS);
-//            loading.setRotate(180);
-            // TODO: Put loading bar back in. It's out because it's not appearing anyway without threads currently,...
-            // and also because it was messing up the top portion of the screen where the commits were supposed to go.
-            //cellLayer.getChildren().add(loading);
-
-//            sp.vvalueProperty().addListener(((observable, oldValue, newValue) -> {
-//                viewportY.set(cellLayer.getLayoutBounds().getHeight()-((double) newValue * cellLayer.getLayoutBounds().getHeight() +
-//                        (0.5 - (double) newValue) * sp.getViewportBounds().getHeight()));
-//            }));
-//
-//            sp.viewportBoundsProperty().addListener(((observable, oldValue, newValue) -> {
-//                viewportX.set(sp.getViewportBounds().getWidth() - loading.getWidth() - 35);
-//                viewportY.set(cellLayer.getLayoutBounds().getHeight()
-//                        - (sp.getVvalue() * cellLayer.getLayoutBounds().getHeight()
-//                        + (0.5 - sp.getVvalue()) * sp.getViewportBounds().getHeight()));
-//            }));
-            //********************** Loading Bar End **********************
 
             final Optional<CommitHelper> commitToHighlightOrNot;
             if (treeLayoutDoneAtLeastOnce)
@@ -195,7 +160,6 @@ public class TreeLayout{
 
                     .observeOn(JavaFxScheduler.platform())
                     .doOnNext(cellNumber -> {
-                        System.out.println("Laying out " + cellNumber);
                         sessionController.setCommitTreeProgressBar(cellNumber/((double)allCells.size()/CELLS_AT_A_TIME));
                     })
                     .map(cellNumber -> mover.moveSomeCells(cellNumber.intValue()*CELLS_AT_A_TIME,
@@ -203,7 +167,6 @@ public class TreeLayout{
 
                     .doOnComplete(() -> {
                         sessionController.hideCommitTreeProgressBar();
-                        System.out.println("all laid out " + Thread.currentThread());
                     });
 
 

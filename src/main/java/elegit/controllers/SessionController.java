@@ -2052,8 +2052,8 @@ public class SessionController {
     }
 
     private void showBusyWindow(String message) {
-        BusyWindow.show();
         BusyWindow.setLoadingText(message);
+        BusyWindow.show();
     }
 
     /**
@@ -2259,11 +2259,6 @@ public class SessionController {
         }
 
     public Single<Boolean> gitStatusWorkload() throws GitAPIException, IOException {
-        System.out.println("SessionController.gitStatusWorkload");
-        Runtime runtime = Runtime.getRuntime();
-        int mb = 1024*1024;
-        System.out.println("Used Memory:"
-                + (runtime.totalMemory() - runtime.freeMemory()) / mb);
         theModel.getCurrentRepoHelper().getBranchModel().updateAllBranches();
         workingTreePanelView.drawDirectoryView();
         allFilesPanelView.drawDirectoryView();
@@ -2776,7 +2771,6 @@ public class SessionController {
 
     public void hideCommitTreeProgressBar() {
         Main.assertFxThread();
-        System.out.println("hiding bar");
         commitTreeProgressBarAndLabel.setVisible(false);
     }
 }

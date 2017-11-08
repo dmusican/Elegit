@@ -139,25 +139,9 @@ public class Main extends Application {
             BusyWindow.show();
         }
 
-        System.out.println("Time : " + startTime);
 
         // Now finally start watching repositories
         RepositoryMonitor.unpause();
-
-//        BusyWindow.show();
-//        Observable.fromCallable(() -> {
-//            Thread.sleep(3000);
-//            System.out.println("done sleeping");
-//            return true;
-//        }).subscribeOn(Schedulers.io())
-//                .observeOn(JavaFxScheduler.platform())
-//                .doOnNext(o -> {
-//                    System.out.println("hi friend");
-//                    System.out.println(Thread.currentThread());
-//                }).subscribe();
-//        System.out.println("right here");
-//        Platform.runLater(() -> System.out.println("hi dude"));
-
     }
 
     private static void clearPreferences() {
