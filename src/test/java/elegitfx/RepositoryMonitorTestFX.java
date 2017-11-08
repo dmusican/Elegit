@@ -11,6 +11,7 @@ import elegit.models.SessionModel;
 import elegit.monitors.RepositoryMonitor;
 import elegit.treefx.Cell;
 import elegit.treefx.CommitTreeModel;
+import elegit.treefx.Highlighter;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Rectangle2D;
@@ -201,7 +202,9 @@ public class RepositoryMonitorTestFX extends ApplicationTest {
         Node dropdown = lookup("#repoDropdown").query();
         System.out.println(dropdown);
         clickOn(dropdown).clickOn("testrepo");
+        assertTrue(Highlighter.cellStatesEmpty());
         clickOn(dropdown).clickOn("otherrepo");
+        assertTrue(Highlighter.cellStatesEmpty());
         clickOn(dropdown).clickOn("testrepo");
         clickOn(dropdown).clickOn("otherrepo");
         clickOn(dropdown).clickOn("testrepo");

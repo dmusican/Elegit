@@ -178,8 +178,8 @@ public class CommitTreeController{
      */
     public static void resetSelection(){
         Main.assertFxThread();
+        Highlighter.resetAll();
         if(selectedCellIds.size() > 0){
-            Highlighter.resetAll();
             selectedCellIds.clear();
             selectedIDProperty.set(null);
             multipleNotSelectedProperty.setValue(true);

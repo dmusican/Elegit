@@ -163,17 +163,18 @@ public class Highlighter{
      */
     private static void highlightCell(Cell cell, CellState state, boolean persistent){
         Main.assertFxThread();
+        System.out.println("Highlighter.highlightCell");
         if(persistent) cellStates.put(cell, state);
 
-        if(blockedCellIDs.contains(cell.getCellId())) return;
-
-        if(state == CellState.STANDARD){
-            if(cellStates.containsKey(cell)){
-                cell.setCellState(cellStates.get(cell));
-                return;
-            }
-        }
-        cell.setCellState(state);
+//        if(blockedCellIDs.contains(cell.getCellId())) return;
+//
+//        if(state == CellState.STANDARD){
+//            if(cellStates.containsKey(cell)){
+//                cell.setCellState(cellStates.get(cell));
+//                return;
+//            }
+//        }
+//        cell.setCellState(state);
     }
 
     /**
@@ -207,6 +208,7 @@ public class Highlighter{
      * @param c the cell to emphasize
      */
     public static void emphasizeCell(Cell c){
+        System.out.println("Highlighter.emphasizeCell");
         Main.assertFxThread();
         if(!blockedCellIDs.contains(c.getCellId())){
             blockedCellIDs.add(c.getCellId());
@@ -238,5 +240,12 @@ public class Highlighter{
         Main.assertFxThread();
         blockedCellIDs.remove(c.getCellId());
         highlightCell(c, cellStates.getOrDefault(c, CellState.STANDARD), true);
+    }
+
+    /**
+     * For testing purposes
+     */
+    public static boolean cellStatesEmpty() {
+        return cellStates.isEmpty();
     }
 }

@@ -73,6 +73,7 @@ public class TreeLayout{
 
         public boolean moveSomeCells(int startCell, Optional<CommitHelper> commitToHighlight) {
             Main.assertFxThread();
+
             for (int i = startCell; i < startCell + CELLS_AT_A_TIME; i++) {
                 if (i > allCellsSortedByTime.size() - 1) {
                     percent.set(100);
@@ -189,7 +190,7 @@ public class TreeLayout{
                     .takeWhile(unused -> movingCells.get() && thisLayoutId == layoutId.get())
 
                     .observeOn(JavaFxScheduler.platform())
-                    .doOnNext(cellNumber -> System.out.println("Laying out " + cellNumber))
+                    //.doOnNext(cellNumber -> System.out.println("Laying out " + cellNumber))
                     .map(cellNumber -> mover.moveSomeCells(cellNumber.intValue()*CELLS_AT_A_TIME,
                             commitToHighlightOrNot))
 

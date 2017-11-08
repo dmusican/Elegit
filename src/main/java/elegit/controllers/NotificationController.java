@@ -333,7 +333,7 @@ public class NotificationController {
      * @param notification to put in window
      */
     private synchronized void showBubble(String notification) {
-        if(!isListPaneVisible()) {
+        if(!Main.isAppClosed.get() && !isListPaneVisible()) {
             notificationAlert = updateNotificationBubble(notification);
             notificationAlert.show(this.anchor, anchor.getX() + anchor.getWidth() - 15, anchor.getY() + anchor.getHeight() - 15);
             notificationAlert.detach();

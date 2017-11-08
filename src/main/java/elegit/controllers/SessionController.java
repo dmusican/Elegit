@@ -276,14 +276,14 @@ public class SessionController {
 
                 // Note that the below is a threaded operation, and so we want to make sure that the following
                 // operations (hiding the window, etc) depend on it.
-                .flatMap(unused -> doAndDisplayGitOperation(gitOp).toObservable())
+                .flatMap(unused -> doGitOperation(gitOp).toObservable())
                 .doOnNext(unused -> hideBusyWindowAndResumeRepoMonitor())
                 .subscribe(unused -> {}, Throwable::printStackTrace);
     }
 
     // Repeat trying to fetch. First time: no authentication window. On repeated attempts,
     // authentication window is shown. Effort ends when authentication window is cancelled.
-    private Single<String> doAndDisplayGitOperation(GitOperation gitOp) {
+    private Single<String> doGitOperation(GitOperation gitOp) {
         Main.assertFxThread();
         AtomicBoolean httpAuth = new AtomicBoolean(false);
         return Single.fromCallable(() -> authenticateReactive(httpAuth.get()))
@@ -718,14 +718,15 @@ public class SessionController {
         TreeLayout.stopMovingCells();
         refreshRecentReposInDropdown();
         showBusyWindowAndPauseRepoMonitor("Loading repository...");
-        doAndDisplayGitOperation(gitOp)
+        doGitOperation(gitOp)
                 .flatMap((result) -> {
                     if (result.equals("success")) {
-                        return Single.fromCallable(() -> {
+                        return initPanelViews()
+                        .doOnSuccess(unused -> {
                             setRecentReposDropdownToCurrentRepo();
                             updateUIEnabledStatus();
                             hideBusyWindowAndResumeRepoMonitor();
-                            return true;
+//                            return true;
                         });
                     } else {
                         return Single.fromCallable(() -> {
@@ -742,7 +743,7 @@ public class SessionController {
 //                .doOnNext(unused -> showBusyWindowAndPauseRepoMonitor("Loading repository..."))
 //                // Note that the below is a threaded operation, and so we want to make sure that the following
 //                // operations (hiding the window, etc) depend on it.
-//                .flatMap(unused -> doAndDisplayGitOperation(gitOp))
+//                .flatMap(unused -> doGitOperation(gitOp))
 //
 //                .doOnNext((result) -> {
 //                    if (result.equals("success")) {
@@ -1230,7 +1231,7 @@ public class SessionController {
 
                 // Note that the below is a threaded operation, and so we want to make sure that the following
                 // operations (hiding the window, etc) depend on it.
-                .flatMap(unused -> doAndDisplayGitOperation(gitOp).toObservable())
+                .flatMap(unused -> doGitOperation(gitOp).toObservable())
                 .doOnNext(unused -> hideBusyWindowAndResumeRepoMonitor())
                 .subscribe(unused -> {}, Throwable::printStackTrace);
     }
@@ -2253,6 +2254,10 @@ public class SessionController {
 
     public Single<Boolean> gitStatusWorkload() throws GitAPIException, IOException {
         System.out.println("SessionController.gitStatusWorkload");
+        Runtime runtime = Runtime.getRuntime();
+        int mb = 1024*1024;
+        System.out.println("Used Memory:"
+                + (runtime.totalMemory() - runtime.freeMemory()) / mb);
         theModel.getCurrentRepoHelper().getBranchModel().updateAllBranches();
         workingTreePanelView.drawDirectoryView();
         allFilesPanelView.drawDirectoryView();
