@@ -116,6 +116,7 @@ public class SessionController {
     @FXML private ContextMenu fetchContextMenu;
 
     @FXML private Hyperlink legendLink;
+    @FXML private ProgressBar commitTreeProgressBar;
     @FXML private StackPane statusTextPane;
     @FXML private AnchorPane anchorRoot;
     @FXML private NotificationController notificationPaneController;
@@ -176,6 +177,8 @@ public class SessionController {
         this.setButtonIconsAndTooltips();
         this.setButtonsDisabled(true);
         this.initWorkingTreePanelTab();
+
+        commitTreeProgressBar.setVisible(false);
 
         //BusyWindow.show();
         // SLOW
@@ -2754,5 +2757,23 @@ public class SessionController {
 
     public static int getGenericExceptionCount() {
         return genericExceptionCount.get();
+    }
+
+    public void setCommitTreeProgressBar(double value) {
+        Main.assertFxThread();
+        commitTreeProgressBar.setVisible(true);
+        commitTreeProgressBar.setProgress(value);
+    }
+
+    public void showCommitTreeProgressBar() {
+        Main.assertFxThread();
+        System.out.println("showing bar");
+        commitTreeProgressBar.setVisible(true);
+    }
+
+    public void hideCommitTreeProgressBar() {
+        Main.assertFxThread();
+        System.out.println("hiding bar");
+        commitTreeProgressBar.setVisible(false);
     }
 }

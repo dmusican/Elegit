@@ -208,7 +208,6 @@ public class Highlighter{
      * @param c the cell to emphasize
      */
     public static void emphasizeCell(Cell c){
-        System.out.println("Highlighter.emphasizeCell");
         Main.assertFxThread();
         if(!blockedCellIDs.contains(c.getCellId())){
             blockedCellIDs.add(c.getCellId());

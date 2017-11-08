@@ -329,6 +329,10 @@
                             GridPane.columnIndex="4"
                             GridPane.columnSpan="2"/>
 
+                <ProgressBar fx:id="commitTreeProgressBar"
+                             GridPane.rowIndex="8"
+                             GridPane.columnIndex="6" />
+
                 <!-- Local repository and remote repository separator -->
                 <VBox   GridPane.rowIndex="1"
                         GridPane.rowSpan="2"

@@ -1,6 +1,8 @@
 package elegit.treefx;
 
 import elegit.Main;
+import elegit.controllers.CommitController;
+import elegit.controllers.SessionController;
 import elegit.models.CommitHelper;
 import io.reactivex.Observable;
 import io.reactivex.rxjavafx.schedulers.JavaFxScheduler;
@@ -182,31 +184,30 @@ public class TreeLayout{
 
             final long thisLayoutId = layoutId.incrementAndGet();
 
+            SessionController sessionController = CommitTreeController.getSessionController();
+
             return Observable.intervalRange(0, (int)(Math.ceil(allCells.size()/(double)CELLS_AT_A_TIME)),
                     0, CELL_RENDER_TIME_DELAY, TimeUnit.MILLISECONDS,
                     Schedulers.io())
 
                     // Stop laying out if told to stop laying out, or if a more recent layout has started
-                    .takeWhile(unused -> movingCells.get() && thisLayoutId == layoutId.get())
+                    .takeWhile(unused -> movingCells.get() && thisLayoutId == layoutId.get() && !Main.isAppClosed.get())
 
                     .observeOn(JavaFxScheduler.platform())
-                    //.doOnNext(cellNumber -> System.out.println("Laying out " + cellNumber))
+                    .doOnNext(cellNumber -> {
+                        System.out.println("Laying out " + cellNumber);
+                        sessionController.setCommitTreeProgressBar(cellNumber/((double)allCells.size()/CELLS_AT_A_TIME));
+                    })
                     .map(cellNumber -> mover.moveSomeCells(cellNumber.intValue()*CELLS_AT_A_TIME,
                             commitToHighlightOrNot))
 
                     .doOnComplete(() -> {
-                        System.out.println("all laid out");
+                        sessionController.hideCommitTreeProgressBar();
+                        System.out.println("all laid out " + Thread.currentThread());
                     });
 
 
-//            while (!Main.isAppClosed.get() && movingCells.get() && mover.currentCell < allCells.size()) {
-//                mover.moveSomeCells();
-//                mover.setCurrentCell(mover.currentCell + CELLS_AT_A_TIME);
-//                //progressBar.setProgress(mover.percent.get() / 100.0);
-//            }
 
-            //loadingCommits.setVisible(false);
-            //progressBar.setVisible(false);
         } catch (Exception e) {
             e.printStackTrace();
         }
