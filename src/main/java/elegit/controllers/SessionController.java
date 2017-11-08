@@ -26,6 +26,7 @@ import javafx.concurrent.Task;
 import javafx.event.*;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -117,6 +118,7 @@ public class SessionController {
 
     @FXML private Hyperlink legendLink;
     @FXML private ProgressBar commitTreeProgressBar;
+    @FXML private HBox commitTreeProgressBarAndLabel;
     @FXML private StackPane statusTextPane;
     @FXML private AnchorPane anchorRoot;
     @FXML private NotificationController notificationPaneController;
@@ -178,7 +180,8 @@ public class SessionController {
         this.setButtonsDisabled(true);
         this.initWorkingTreePanelTab();
 
-        commitTreeProgressBar.setVisible(false);
+        commitTreeProgressBarAndLabel.setAlignment(Pos.CENTER);
+        commitTreeProgressBarAndLabel.setVisible(false);
 
         //BusyWindow.show();
         // SLOW
@@ -2761,19 +2764,19 @@ public class SessionController {
 
     public void setCommitTreeProgressBar(double value) {
         Main.assertFxThread();
-        commitTreeProgressBar.setVisible(true);
+        commitTreeProgressBarAndLabel.setVisible(true);
         commitTreeProgressBar.setProgress(value);
     }
 
     public void showCommitTreeProgressBar() {
         Main.assertFxThread();
         System.out.println("showing bar");
-        commitTreeProgressBar.setVisible(true);
+        commitTreeProgressBarAndLabel.setVisible(true);
     }
 
     public void hideCommitTreeProgressBar() {
         Main.assertFxThread();
         System.out.println("hiding bar");
-        commitTreeProgressBar.setVisible(false);
+        commitTreeProgressBarAndLabel.setVisible(false);
     }
 }

@@ -328,10 +328,12 @@
                             GridPane.rowIndex="8"
                             GridPane.columnIndex="4"
                             GridPane.columnSpan="2"/>
-
-                <ProgressBar fx:id="commitTreeProgressBar"
-                             GridPane.rowIndex="8"
-                             GridPane.columnIndex="6" />
+                <HBox   fx:id="commitTreeProgressBarAndLabel"
+                        GridPane.rowIndex="8"
+                        GridPane.columnIndex="6">
+                    <Text text="Loading commits...   "/>
+                    <ProgressBar fx:id="commitTreeProgressBar"/>
+                </HBox>
 
                 <!-- Local repository and remote repository separator -->
                 <VBox   GridPane.rowIndex="1"
