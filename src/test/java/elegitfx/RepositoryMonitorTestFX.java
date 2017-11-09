@@ -121,11 +121,11 @@ public class RepositoryMonitorTestFX extends ApplicationTest {
 
         interact(() -> {
             ScrollPane sp = sessionController.getCommitTreeModel().getTreeGraph().getScrollPane();
-            System.out.println("scroll pane info" + sp.getContent().getBoundsInLocal());
             // Test that scroll pane has no content yet
-            System.out.println("scene = " + sp.getScene());
             assertTrue(sp.getScene() == null);
         });
+
+        CommitTreeModel.setAddCommitDelay(500);
 
 
 
@@ -135,12 +135,11 @@ public class RepositoryMonitorTestFX extends ApplicationTest {
                 .write(repoPath.toString())
                 .clickOn("#repoInputDialogOK");
 
+        SessionController.gitStatusCompletedOnce.await();
 
         interact(() -> {
             ScrollPane sp = sessionController.getCommitTreeModel().getTreeGraph().getScrollPane();
-            System.out.println("scroll pane info" + sp.getContent().getBoundsInLocal());
             // Test that scroll pane now has content in it
-            System.out.println("scene = " + sp.getScene());
             assertTrue(sp.getScene() != null);
         });
 

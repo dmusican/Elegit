@@ -66,6 +66,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -147,6 +148,8 @@ public class SessionController {
 
     public static final Object globalLock = new Object();
 
+    // Used for testing purposes; look at testing code to see where used
+    public static CountDownLatch gitStatusCompletedOnce = new CountDownLatch(1);
 
     public SessionController() {
         theModel = SessionModel.getSessionModel();
@@ -206,6 +209,10 @@ public class SessionController {
                     // Make sure this code happens in FX thread; if not, potential race condition with Main
                     Main.initializationComplete.set(true);
                     BusyWindow.hide();
+
+                    // Now finally start watching repositories
+                    RepositoryMonitor.unpause();
+
                 }).subscribe();
     }
 
@@ -714,7 +721,6 @@ public class SessionController {
 
     public void loadDesignatedRepo(RepoHelper repoHelper) {
         GitOperation gitOp = authResponse -> loadRepo(authResponse, repoHelper);
-        System.out.println("repoHelper = " + repoHelper);
         if (repoHelper == null)
             throw new RuntimeException();
         if (theModel.getCurrentRepoHelper() != null && repoHelper.getLocalPath().equals(theModel.getCurrentRepoHelper().getLocalPath())) {
@@ -2246,6 +2252,7 @@ public class SessionController {
                     gitStatusWorkload()
                     .doFinally(() -> {
                         RepositoryMonitor.unpause();
+                        gitStatusCompletedOnce.countDown();
                     })
                     .subscribe();
 

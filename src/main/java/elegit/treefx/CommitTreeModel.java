@@ -56,6 +56,8 @@ public class CommitTreeModel{
     private final Set<BranchHelper> branchesInModel = ConcurrentHashMap.newKeySet();
     private final Set<TagHelper> tagsInModel = ConcurrentHashMap.newKeySet();
 
+    // Used purely to slow down commit loading to test for threading errors
+    private static int addCommitDelay = 0;
 
     public synchronized static CommitTreeModel getCommitTreeModel() {
         return commitTreeModel;
@@ -297,6 +299,9 @@ public class CommitTreeModel{
                 .subscribeOn(Schedulers.io())
                 .map(curCommitHelper -> addCommitToTree(curCommitHelper, treeGraph.treeGraphModel))
                 .map(batchOfCellswithNewTypes -> cellsWithNewTypes.addAll(batchOfCellswithNewTypes))
+
+                // Purely for testing purposes; see testing code that uses this variable
+                .doOnNext(unused -> Thread.sleep(addCommitDelay))
 
                 .observeOn(JavaFxScheduler.platform())
                 .doOnComplete(() -> {
@@ -645,6 +650,11 @@ public class CommitTreeModel{
 
 
     public synchronized Set<CommitHelper> getCommitsInModel() {
-        return Collections.unmodifiableSet(this.commitsInModel); }
+        return Collections.unmodifiableSet(this.commitsInModel);
+    }
+
+    public static synchronized void setAddCommitDelay(int delay) {
+        addCommitDelay = delay;
+    }
 
 }

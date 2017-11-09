@@ -1,7 +1,5 @@
 package elegit.monitors;
 
-import com.jcraft.jsch.Session;
-import elegit.Main;
 import elegit.exceptions.ExceptionAdapter;
 import elegit.models.SessionModel;
 import elegit.controllers.SessionController;
@@ -10,6 +8,7 @@ import elegit.models.BranchModel;
 import elegit.models.RepoHelper;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
+import io.reactivex.exceptions.CompositeException;
 import io.reactivex.rxjavafx.schedulers.JavaFxScheduler;
 import io.reactivex.schedulers.Schedulers;
 import javafx.application.Platform;
@@ -19,6 +18,8 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import org.apache.http.annotation.GuardedBy;
 import org.apache.http.annotation.ThreadSafe;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.TransportException;
 import org.eclipse.jgit.lib.Ref;
@@ -57,6 +58,8 @@ public class RepositoryMonitor{
     @GuardedBy("this") private static int exceptionCounter = 0;  // used for testing
 
     private static final AtomicReference<SessionController> sessionController = new AtomicReference<>();
+
+    private static final Logger logger = LogManager.getLogger();
 
     public synchronized static void init(SessionController controller) {
         RepositoryMonitor.controller = controller;
@@ -168,6 +171,8 @@ public class RepositoryMonitor{
             return;
 
         localTimer.dispose();
+
+
         localTimer = Observable
                 .interval(LOCAL_CHECK_INTERVAL, LOCAL_CHECK_INTERVAL, TimeUnit.MILLISECONDS, Schedulers.io())
                 .doOnNext(i -> numLocalChecks.getAndIncrement())
@@ -188,8 +193,9 @@ public class RepositoryMonitor{
 
 
     public static synchronized void pause(){
-        //System.out.println("stopping repo mon");
+        logger.info("Repository monitor asked to pause");
         if(pauseCounter == 0) {
+            logger.info("Repository monitor pausing");
             stopWatchingRemoteRepo();
             stopWatchingLocal();
         }
@@ -197,8 +203,10 @@ public class RepositoryMonitor{
     }
 
     public static synchronized void unpause(){
+        logger.info("Repository monitor asked to unpause");
         pauseCounter--;
         if(pauseCounter == 0) {
+            logger.info("Repository monitor unpausing");
             beginWatchingLocal();
             beginWatchingRemote();
         }
