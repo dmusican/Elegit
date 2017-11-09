@@ -53,6 +53,13 @@ import static org.junit.Assert.assertTrue;
 
 public class RepositoryMonitorTestFX extends ApplicationTest {
 
+    static {
+        // -----------------------Logging Initialization Start---------------------------
+        Path logPath = Paths.get("logs");
+        String s = logPath.toAbsolutePath().toString();
+        System.setProperty("logFolder", s);
+    }
+
     private SessionController sessionController;
     private static GuiTest testController;
 
