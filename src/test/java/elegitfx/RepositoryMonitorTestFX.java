@@ -232,42 +232,42 @@ public class RepositoryMonitorTestFX extends ApplicationTest {
 
         final ComboBox<RepoHelper> dropdown = lookup("#repoDropdown").query();
 
+
         for (int i=0; i < 3; i++) {
-            // Spin wait until result is visible
-            for (int j=0; j < 10 && !(dropdown.getValue().toString().equals("otherrepo")); j++) {
-                Thread.sleep(1000);
-                System.out.println("Spot 1: " + dropdown.getItems());
-            }
+            GuiTest.waitUntil(dropdown, (ComboBox<RepoHelper> d) -> d.getValue().toString().equals("otherrepo"));
             clickOn(dropdown).clickOn("testrepo");
-
-
-            for (int j=0; j < 10 && !(dropdown.getValue().toString().equals("testrepo")); j++) {
-                Thread.sleep(1000);
-                System.out.println("Spot 2: " + dropdown.getItems());
-            }
+//            sleep(5000);
+            GuiTest.waitUntil(BusyWindow.window.isShowing(),org.hamcrest.Matchers.is(false));
+//            GuiTest.waitUntil(dropdown, (ComboBox<RepoHelper> d) -> d.getValue().toString().equals("testrepo"));
+//            GuiTest.waitUntil(dropdown, (ComboBox<RepoHelper> d) -> d.getItems().stream().anyMatch( (RepoHelper repo) -> repo.toString().equals("otherrepo")));
+            interact(() -> System.out.println(dropdown.getItems()));
             clickOn(dropdown).clickOn("otherrepo");
-
-
+            sleep(5000);
         }
 
+        GuiTest.waitUntil(dropdown, (ComboBox<RepoHelper> d) -> d.getValue().toString().equals("otherrepo"));
         clickOn("#removeRecentReposButton");
 
         CheckListView<RepoHelper> repoCheckList = lookup("#repoCheckList").query();
+
+        // Selects testrepo
         interact(() -> {
             repoCheckList.getItemBooleanProperty(0).set(true);
         });
 
+        // Clicks button to remove testrepo
         clickOn((Node)(lookup("#reposDeleteRemoveSelectedButton").query()));
 
         assertEquals(0, sessionController.getNotificationPaneController().getNotificationNum());
 
-        for (int j=0; j < 5 && !(dropdown.getValue().toString().equals("otherrepo")); j++) {
-            Thread.sleep(500);
-        }
         assertNotEquals(null,lookup("otherrepo").query());
+
+        GuiTest.waitUntil(dropdown, (ComboBox<RepoHelper> d) -> d.getValue().toString().equals("otherrepo"));
+
 
         clickOn("#removeRecentReposButton");
 
+        // Selects otherrepo
         interact(() -> {
             repoCheckList.getItemBooleanProperty(0).set(true);
         });

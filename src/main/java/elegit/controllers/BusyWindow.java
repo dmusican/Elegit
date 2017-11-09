@@ -10,17 +10,21 @@ import javafx.scene.layout.*;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.*;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Created by makik on 7/8/15.
  */
 public class BusyWindow {
 
-    private static final Stage window = initWindow();
+    public static final Stage window = initWindow();
 
     private static int numProcessesActive = 0;
 
     private static Text loadingMessage;
+
+    private static final Logger logger = LogManager.getLogger();
 
     private static Stage initWindow(){
         Main.assertFxThread();
@@ -86,6 +90,7 @@ public class BusyWindow {
         Main.assertFxThread();
         numProcessesActive--;
         if(numProcessesActive == 0) {
+            logger.info("Hiding busy window");
             window.hide();
             loadingMessage.setText("Loading...");
         }

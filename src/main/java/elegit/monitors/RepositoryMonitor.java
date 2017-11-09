@@ -193,9 +193,9 @@ public class RepositoryMonitor{
 
 
     public static synchronized void pause(){
-        logger.info("Repository monitor asked to pause");
+//        logger.info("Repository monitor asked to pause");
         if(pauseCounter == 0) {
-            logger.info("Repository monitor pausing");
+//            logger.info("Repository monitor pausing");
             stopWatchingRemoteRepo();
             stopWatchingLocal();
         }
@@ -203,10 +203,10 @@ public class RepositoryMonitor{
     }
 
     public static synchronized void unpause(){
-        logger.info("Repository monitor asked to unpause");
+//        logger.info("Repository monitor asked to unpause");
         pauseCounter--;
         if(pauseCounter == 0) {
-            logger.info("Repository monitor unpausing");
+//            logger.info("Repository monitor unpausing");
             beginWatchingLocal();
             beginWatchingRemote();
         }
