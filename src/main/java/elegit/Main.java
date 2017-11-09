@@ -25,7 +25,17 @@ import java.util.prefs.Preferences;
  * The starting point for this JavaFX application.
  */
 public class Main extends Application {
-    private Path logPath;
+
+    private static final Logger logger;
+
+    static {
+        // Initialize logging. This must be done as early as possible, since other static loggers in other classes
+        // depend on this system property being set; hence done in this static initializer block.
+        Path logPath = Paths.get("logs");
+        String s = logPath.toAbsolutePath().toString();
+        System.setProperty("logFolder", s);
+        logger = LogManager.getLogger();
+    }
 
     // boolean used to stop the service that moves cells in TreeLayout
     public static boolean isAppClosed;
@@ -50,14 +60,6 @@ public class Main extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception{
 
-        // -----------------------Logging Initialization Start---------------------------
-        logPath = Paths.get("logs");
-        String s = logPath.toAbsolutePath().toString();
-        System.setProperty("logFolder", s);
-
-        final Logger logger = LogManager.getLogger();
-
-        // -----------------------Logging Initialization End-----------------------------
         // Handles some concurrency issues with gitStatus()
         RepositoryMonitor.pause();
 
