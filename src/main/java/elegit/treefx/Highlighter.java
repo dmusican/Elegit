@@ -1,6 +1,7 @@
 package elegit.treefx;
 
 import elegit.Main;
+import elegit.models.SessionModel;
 import javafx.animation.ScaleTransition;
 import javafx.application.Platform;
 import javafx.scene.shape.Shape;
@@ -22,8 +23,6 @@ public class Highlighter{
 
     // Cells that are currently blocked from being highlighted
     private static final List<String> blockedCellIDs = new ArrayList<>();
-    // A map from each known cell to its state
-    private static final Map<Cell, CellState> cellStates = new HashMap<>();
 
     /**
      * Highlights the cell corresponding to the given id in the given model, as well as
@@ -163,7 +162,8 @@ public class Highlighter{
      */
     private static void highlightCell(Cell cell, CellState state, boolean persistent){
         Main.assertFxThread();
-        if(persistent) cellStates.put(cell, state);
+        if(persistent)
+            cell.setPersistentCellState(state);
     }
 
     /**
@@ -172,10 +172,9 @@ public class Highlighter{
      */
     public static void resetAll(){
         Main.assertFxThread();
-        for(Cell cell : cellStates.keySet()){
-            cell.setCellState(CellState.STANDARD);
+        for (Cell cell : CommitTreeModel.getCommitTreeModel().getTreeGraph().treeGraphModel.getAllCells()) {
+            cell.setPersistentCellState(CellState.STANDARD);
         }
-        cellStates.clear();
     }
 
     /**
@@ -185,7 +184,7 @@ public class Highlighter{
     public static void resetCell(Cell cell) {
         Main.assertFxThread();
         cell.setCellState(CellState.STANDARD);
-        cellStates.remove(cell);
+        cell.setPersistentCellState(CellState.STANDARD);
     }
 
     /**
@@ -227,7 +226,7 @@ public class Highlighter{
     private static void endEmphasisOnCell(Cell c){
         Main.assertFxThread();
         blockedCellIDs.remove(c.getCellId());
-        highlightCell(c, cellStates.getOrDefault(c, CellState.STANDARD), true);
+        highlightCell(c, c.getPersistentCellState(), true);
     }
 
     /**
@@ -235,6 +234,10 @@ public class Highlighter{
      */
     public static boolean cellStatesEmpty() {
         Main.assertFxThread();
-        return cellStates.isEmpty();
+        for (Cell cell : CommitTreeModel.getCommitTreeModel().getTreeGraph().treeGraphModel.getAllCells()) {
+            if (cell.getPersistentCellState() != CellState.STANDARD)
+                return false;
+        }
+        return true;
     }
 }

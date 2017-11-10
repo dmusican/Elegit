@@ -73,6 +73,8 @@ public class Cell extends Pane {
     // The parent object that holds the parents of this cell
     @GuardedBy("this") private final ParentCell parents;
 
+    // Used to keep track of a cell's "permanent" state; it may transiently change as the result of an animation
+    @GuardedBy("this") private CellState persistentCellState;
 
     // Constants
     public static final CellShape UNTRACKED_BRANCH_HEAD_SHAPE = CellShape.CIRCLE;
@@ -159,6 +161,8 @@ public class Cell extends Pane {
         this.setOnMouseExited(event -> CommitTreeController.handleMouseover(this, false));
 
         this.view=getBaseView();
+
+        this.persistentCellState = CellState.STANDARD;
     }
 
     // Can be done off FX thread since synchronized, and doesn't make any actual GUI changes. Critical to note
@@ -467,6 +471,14 @@ public class Cell extends Pane {
         }
     }
 
+
+    public void setPersistentCellState(CellState state) {
+        persistentCellState = state;
+    }
+
+    public CellState getPersistentCellState() {
+        return persistentCellState;
+    }
 
     public enum CellType {
         BOTH,
