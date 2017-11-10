@@ -4,25 +4,37 @@ import elegit.models.AuthMethod;
 import elegit.models.ExistingRepoHelper;
 import elegit.models.SessionModel;
 import elegit.sshauthentication.ElegitUserInfoTest;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.PushCommand;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+
+import static org.junit.Assert.fail;
 
 /**
  * Created by dmusican on 2/24/16.
  */
 public class ExistingRepoHelperTest {
     Path logPath;
+    private Path directoryPath;
+
+    private static final Logger logger = LogManager.getLogger("consolelogger");
 
     @Before
     public void setUp() throws Exception {
+        logger.info("Unit test started");
+        directoryPath = Files.createTempDirectory("unitTestRepos");
+        //directoryPath.toFile().deleteOnExit();
         initializeLogger();
     }
 
@@ -58,15 +70,42 @@ public class ExistingRepoHelperTest {
         localPath.delete();
 
         Git git = Git.cloneRepository()
-                    .setURI("https://github.com/dmusican/testrepo.git")
-                    .setDirectory(localPath)
-                    .call();
+                .setURI("https://github.com/dmusican/testrepo.git")
+                .setDirectory(localPath)
+                .call();
 
         SessionModel.getSessionModel().setAuthPref(localPath.toString(), AuthMethod.HTTPS);
 
         String username = null;
         ExistingRepoHelper repoHelper = new ExistingRepoHelper(Paths.get(localPath.getAbsolutePath()),
-                                                               new ElegitUserInfoTest());
+                new ElegitUserInfoTest());
         git.close();
+    }
+
+    @Test
+    public void newLocalRepo() throws Exception {
+        logger.info("Temp directory: " + directoryPath);
+        Path remote = directoryPath.resolve("remote");
+        Path local = directoryPath.resolve("local");
+        Git.init().setDirectory(remote.toFile()).setBare(true).call();
+        Git.cloneRepository().setDirectory(local.toFile()).setURI("file://"+remote).call();
+
+        ExistingRepoHelper helper = new ExistingRepoHelper(local, new ElegitUserInfoTest());
+
+        Path fileLocation = local.resolve("README.md");
+
+        for (int i=0; i < 100; i++) {
+            FileWriter fw = new FileWriter(fileLocation.toString(), true);
+            fw.write(""+i);
+            fw.close();
+            helper.addFilePathTest(fileLocation);
+            helper.commit("Appended to file");
+        }
+
+        PushCommand command = helper.prepareToPushAll();
+        helper.pushAll(command);
+
+        logger.info(remote);
+        logger.info(local);
     }
 }

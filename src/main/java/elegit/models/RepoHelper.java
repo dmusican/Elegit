@@ -1027,7 +1027,7 @@ public class RepoHelper {
      * @return the commit associated with the given id, if it has been parsed
      */
     public CommitHelper getCommit(ObjectId id) {
-        if (idMap.containsKey(id)) {
+        if (id != null && idMap.containsKey(id)) {
             return getCommit(idMap.get(id));
         } else {
             return null;
@@ -1146,7 +1146,10 @@ public class RepoHelper {
      */
     private PlotCommitList<PlotLane> parseAllRawLocalCommits() throws IOException, GitAPIException {
         Set<ObjectId> allStarts = ConcurrentHashMap.newKeySet();
-        allStarts.add(getRepo().resolve("HEAD"));
+        ObjectId gitObjectId = getRepo().resolve("HEAD");
+        if (gitObjectId != null) {
+            allStarts.add(gitObjectId);
+        }
         List<LocalBranchHelper> branches = this.getBranchModel().getLocalBranchesTyped();
         for (BranchHelper branch : branches) {
             ObjectId branchId = branch.getHeadId();
