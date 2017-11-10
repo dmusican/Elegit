@@ -2,6 +2,7 @@ package elegit;
 
 import elegit.models.AuthMethod;
 import elegit.models.ExistingRepoHelper;
+import elegit.models.LocalBranchHelper;
 import elegit.models.SessionModel;
 import elegit.sshauthentication.ElegitUserInfoTest;
 import org.apache.logging.log4j.LogManager;
@@ -94,8 +95,16 @@ public class ExistingRepoHelperTest {
 
         Path fileLocation = local.resolve("README.md");
 
+        FileWriter fw = new FileWriter(fileLocation.toString(), true);
+        fw.write("start");
+        fw.close();
+        helper.addFilePathTest(fileLocation);
+        helper.commit("Appended to file");
+
         for (int i=0; i < 100; i++) {
-            FileWriter fw = new FileWriter(fileLocation.toString(), true);
+            LocalBranchHelper branchHelper = helper.getBranchModel().createNewLocalBranch("branch" + i);
+            branchHelper.checkoutBranch();
+            fw = new FileWriter(fileLocation.toString(), true);
             fw.write(""+i);
             fw.close();
             helper.addFilePathTest(fileLocation);
