@@ -18,6 +18,9 @@
                 <CheckMenuItem   text="Sort Commits Topologically"
                             fx:id="commitSortToggle"
                             onAction="#handleCommitSortToggle"/>
+                <MenuItem   text="Re-enable window resizing"
+                            fx:id="reenableWindowResizing"
+                            onAction="#handleReenableWindowResizing"/>
                 <MenuItem   text="About"
                             fx:id="about"
                             onAction="#handleAbout"/>

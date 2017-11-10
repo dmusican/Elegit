@@ -234,6 +234,7 @@ public class Highlighter{
      * For testing purposes
      */
     public static boolean cellStatesEmpty() {
+        Main.assertFxThread();
         return cellStates.isEmpty();
     }
 }

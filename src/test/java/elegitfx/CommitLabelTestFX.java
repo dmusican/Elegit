@@ -43,6 +43,13 @@ import static org.junit.Assert.*;
 
 public class CommitLabelTestFX extends ApplicationTest {
 
+    static {
+        // -----------------------Logging Initialization Start---------------------------
+        Path logPath = Paths.get("logs");
+        String s = logPath.toAbsolutePath().toString();
+        System.setProperty("logFolder", s);
+    }
+
     // The URL of the testing repository for this unit test
     private static final String remoteURL = "https://bitbucket.org/makik/commitlabeltestrepo.git";
     // This is the ID of the initial commit in the testing repository
@@ -58,6 +65,7 @@ public class CommitLabelTestFX extends ApplicationTest {
     private SessionController sessionController;
 
     private Throwable testFailures;
+
 
     @Override
     public void start(Stage stage) throws Exception {

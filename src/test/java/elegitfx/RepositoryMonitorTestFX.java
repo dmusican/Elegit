@@ -18,6 +18,7 @@ import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.BorderPane;
@@ -25,10 +26,13 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.controlsfx.control.CheckListView;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.loadui.testfx.GuiTest;
 import org.testfx.api.FxToolkit;
@@ -43,6 +47,7 @@ import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import java.util.prefs.Preferences;
 
 import static javafx.scene.input.KeyCode.ENTER;
@@ -59,6 +64,8 @@ public class RepositoryMonitorTestFX extends ApplicationTest {
         String s = logPath.toAbsolutePath().toString();
         System.setProperty("logFolder", s);
     }
+
+    private static final Logger logger = LogManager.getLogger();
 
     private SessionController sessionController;
     private static GuiTest testController;
@@ -87,6 +94,17 @@ public class RepositoryMonitorTestFX extends ApplicationTest {
         // TODO: Remove this pause and keep test working; no good reason for it to be necessary
         RepositoryMonitor.pause();
 
+    }
+
+    @Before
+    public void setup() {
+        logger.info("Unit test started");
+    }
+
+    @After
+    public void tearDown() {
+        System.out.println("Tearing down");
+        assertEquals(0,Main.getAssertionCount());
     }
 
     @Test
@@ -187,11 +205,17 @@ public class RepositoryMonitorTestFX extends ApplicationTest {
         helper.obtainRepository(remoteURL);
         assertNotNull(helper);
 
+        CommitTreeModel.setAddCommitDelay(5);
+
+        SessionController.gitStatusCompletedOnce = new CountDownLatch(1);
+
         clickOn("#loadNewRepoButton")
                 .clickOn("#loadExistingRepoOption")
                 .clickOn("#repoInputDialog")
                 .write(repoPath.toString())
                 .clickOn("#repoInputDialogOK");
+
+        SessionController.gitStatusCompletedOnce.await();
 
         Path repoPath2 = directoryPath.resolve("otherrepo");
 
@@ -206,16 +230,25 @@ public class RepositoryMonitorTestFX extends ApplicationTest {
                 .write(repoPath2.toString())
                 .clickOn("#repoInputDialogOK");
 
-        Node dropdown = lookup("#repoDropdown").query();
-        System.out.println(dropdown);
-        clickOn(dropdown).clickOn("testrepo");
-        assertTrue(Highlighter.cellStatesEmpty());
-        clickOn(dropdown).clickOn("otherrepo");
-        assertTrue(Highlighter.cellStatesEmpty());
-        clickOn(dropdown).clickOn("testrepo");
-        clickOn(dropdown).clickOn("otherrepo");
-        clickOn(dropdown).clickOn("testrepo");
-        clickOn(dropdown).clickOn("otherrepo");
+        final ComboBox<RepoHelper> dropdown = lookup("#repoDropdown").query();
+
+        for (int i=0; i < 3; i++) {
+            // Spin wait until result is visible
+            for (int j=0; j < 10 && !(dropdown.getValue().toString().equals("otherrepo")); j++) {
+                Thread.sleep(1000);
+                System.out.println("Spot 1: " + dropdown.getItems());
+            }
+            clickOn(dropdown).clickOn("testrepo");
+
+
+            for (int j=0; j < 10 && !(dropdown.getValue().toString().equals("testrepo")); j++) {
+                Thread.sleep(1000);
+                System.out.println("Spot 2: " + dropdown.getItems());
+            }
+            clickOn(dropdown).clickOn("otherrepo");
+
+
+        }
 
         clickOn("#removeRecentReposButton");
 
@@ -227,6 +260,11 @@ public class RepositoryMonitorTestFX extends ApplicationTest {
         clickOn((Node)(lookup("#reposDeleteRemoveSelectedButton").query()));
 
         assertEquals(0, sessionController.getNotificationPaneController().getNotificationNum());
+
+        for (int j=0; j < 5 && !(dropdown.getValue().toString().equals("otherrepo")); j++) {
+            Thread.sleep(500);
+        }
+        assertNotEquals(null,lookup("otherrepo").query());
 
         clickOn("#removeRecentReposButton");
 

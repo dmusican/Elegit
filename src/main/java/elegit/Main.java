@@ -25,6 +25,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
@@ -56,6 +57,8 @@ public class Main extends Application {
     // Marker for sessionController; only used for unit testing
     public static SessionController sessionController;
 
+    public static Stage primaryStage;
+
     // Set to true when unit testing for occasional differences in code
     public static boolean testMode = false;
 
@@ -64,6 +67,9 @@ public class Main extends Application {
     // It's also a threading disaster. Is RepositoryMonitor changing this from a different thread?
     // TODO: Verify this is useful or get rid of it
     public static CompositeDisposable allSubscriptions = new CompositeDisposable();
+
+    // Used for testing purposes
+    public static final AtomicInteger assertionCount = new AtomicInteger(0);
 
     public static void main(String[] args) {
         // If this gets fancier, we should write a more robust command-line parser or use a library.
@@ -94,6 +100,7 @@ public class Main extends Application {
         sessionController = fxmlLoader.getController();
 
         sessionController.loadLogging();
+        Main.primaryStage = primaryStage;
 
         RepositoryMonitor.setSessionController(sessionController);
         // sets the icon
@@ -172,6 +179,26 @@ public class Main extends Application {
             new Throwable().printStackTrace();
 
         }
+    }
+
+    public static void assertAndLog(boolean condition, String message) {
+        if (!condition) {
+            assertionCount.incrementAndGet();
+            logger.error(message, new AssertionError());
+            assert(condition);
+        }
+    }
+
+    public static int getAssertionCount() {
+        return assertionCount.get();
+    }
+
+    public static void showPrimaryStage() {
+        primaryStage.show();
+    }
+
+    public static void hidePrimaryStage() {
+        primaryStage.hide();
     }
 
 }

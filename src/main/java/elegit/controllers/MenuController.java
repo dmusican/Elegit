@@ -1,5 +1,6 @@
 package elegit.controllers;
 
+import elegit.Main;
 import elegit.gui.GitIgnoreEditor;
 import elegit.models.LoggingModel;
 import elegit.models.SessionModel;
@@ -16,6 +17,7 @@ import javafx.scene.input.KeyCombination;
 import javafx.scene.layout.GridPane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import org.apache.commons.lang3.SystemUtils;
 import org.apache.http.annotation.GuardedBy;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -41,6 +43,7 @@ public class MenuController {
     @FXML private MenuItem pushMenuItem;
     @FXML private MenuItem stashMenuItem1;
     @FXML private MenuItem stashMenuItem2;
+    @FXML private MenuItem reenableWindowResizing;
 
     // Normally, our MVC-like setup should put the toggle status in the model. However, the FX
     // CheckMenuItem can't be bound to that; it is set here and automatically toggled when the menu is selected.
@@ -57,6 +60,12 @@ public class MenuController {
         TreeLayout.bindSorting(commitSortToggle.selectedProperty());
 
         commitSortToggle.setSelected(true); //default
+
+        // Workaround for this bug:
+        // http://bugs.java.com/bugdatabase/view_bug.do?bug_id=8140491
+        if (!SystemUtils.IS_OS_LINUX) {
+            reenableWindowResizing.setVisible(false);
+        }
     }
 
     public void initializeLoggingToggle() {
@@ -139,6 +148,10 @@ public class MenuController {
         }
     }
 
+    public void handleReenableWindowResizing() {
+        Main.hidePrimaryStage();
+        Main.showPrimaryStage();
+    }
 
     /**
      * Helper method for disabling the menu bar

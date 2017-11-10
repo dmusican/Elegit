@@ -11,6 +11,7 @@ import elegit.repofile.RepoFile;
 import elegit.treefx.CommitTreeController;
 import elegit.treefx.CommitTreeModel;
 import elegit.treefx.CommitTreePanelView;
+import elegit.treefx.Highlighter;
 import elegit.treefx.TreeLayout;
 import io.reactivex.Observable;
 import io.reactivex.ObservableSource;
@@ -738,6 +739,10 @@ public class SessionController {
                             setRecentReposDropdownToCurrentRepo();
                             updateUIEnabledStatus();
                             hideBusyWindowAndResumeRepoMonitor();
+
+                            Main.assertAndLog(Highlighter.cellStatesEmpty(),
+                                    "Cell states not cleared");  // Verify that things got cleared up as they should
+
 //                            return true;
                         });
                     } else {
@@ -2392,12 +2397,12 @@ public class SessionController {
 
             // The repos have been removed, this line just keeps the current repo loaded
         }else {
-            try {
-                System.out.println("the current = " + theModel.getCurrentRepoHelper());
-                theModel.openRepoFromHelper(theModel.getCurrentRepoHelper());
-            } catch (BackingStoreException | IOException | MissingRepoException | ClassNotFoundException e1) {
-                e1.printStackTrace();
-            }
+            System.out.println("the current = " + theModel.getCurrentRepoHelper());
+//            try {
+//                theModel.openRepoFromHelper(theModel.getCurrentRepoHelper());
+//            } catch (BackingStoreException | IOException | MissingRepoException | ClassNotFoundException e1) {
+//                e1.printStackTrace();
+//            }
         }
 
         this.refreshRecentReposInDropdown();
