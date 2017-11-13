@@ -37,6 +37,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 
 /**
  * The RepoHelper class, used for interacting with a repository.
@@ -523,6 +524,19 @@ public class RepoHelper {
      */
     public PushCommand prepareToPushAll() throws GitAPIException, MissingRepoException, PushToAheadRemoteError,
             IOException, NoCommitsToPushException {
+        Function<ArrayList<LocalBranchHelper>, ArrayList<LocalBranchHelper>>
+                untrackedBranchesQueryView = PopUpWindows::getUntrackedBranchesToPush;
+
+        return prepareToPushAll(untrackedBranchesQueryView);
+    }
+
+    public PushCommand prepareToPushAll(
+            Function<ArrayList<LocalBranchHelper>, ArrayList<LocalBranchHelper>>
+                    untrackedBranchesQueryView)
+
+            throws
+            GitAPIException, MissingRepoException, PushToAheadRemoteError, IOException, NoCommitsToPushException {
+
         logger.info("Attempting push");
         if (!exists()) throw new MissingRepoException();
         if (!hasRemote()) throw new InvalidRemoteException("No remote repository");
@@ -550,7 +564,7 @@ public class RepoHelper {
 
         // Asks the user which untracked local branches to push and track
         if(untrackedLocalBranches.size() > 0) {
-            branchesToTrack = PopUpWindows.getUntrackedBranchesToPush(untrackedLocalBranches);
+            branchesToTrack = untrackedBranchesQueryView.apply(untrackedLocalBranches);
             if(branchesToTrack != null) {
                 for(LocalBranchHelper branch : branchesToTrack) {
                     push.add(branch.getRefPathString());

@@ -35,7 +35,7 @@ public class ExistingRepoHelperTest {
     public void setUp() throws Exception {
         logger.info("Unit test started");
         directoryPath = Files.createTempDirectory("unitTestRepos");
-        //directoryPath.toFile().deleteOnExit();
+        directoryPath.toFile().deleteOnExit();
         initializeLogger();
     }
 
@@ -111,7 +111,8 @@ public class ExistingRepoHelperTest {
             helper.commit("Appended to file");
         }
 
-        PushCommand command = helper.prepareToPushAll();
+        // Just push all untracked local branches
+        PushCommand command = helper.prepareToPushAll(untrackedLocalBranches -> untrackedLocalBranches);
         helper.pushAll(command);
 
         logger.info(remote);

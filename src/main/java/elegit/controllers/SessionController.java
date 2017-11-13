@@ -1270,8 +1270,6 @@ public class SessionController {
     private List<Result> pushBranchOrAllDetails(Optional<RepoHelperBuilder.AuthDialogResponse> responseOptional, PushType pushType,
                                         PushCommand push) {
         synchronized (globalLock) {
-            Main.assertNotFxThread();
-
             List<Result> results = new ArrayList<>();
             try {
                 RepositoryMonitor.resetFoundNewChanges();
