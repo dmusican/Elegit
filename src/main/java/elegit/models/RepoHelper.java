@@ -405,14 +405,15 @@ public class RepoHelper {
      *
      * @param commitMessage the message for the commit.
      * @throws GitAPIException if the `git commit` call fails.
+     * @return RevCommit the commit object
      */
-    public void commit(String commitMessage) throws GitAPIException, MissingRepoException {
+    public RevCommit commit(String commitMessage) throws GitAPIException, MissingRepoException {
         logger.info("Attempting commit");
         if (!exists()) throw new MissingRepoException();
 
         Git git = new Git(this.getRepo());
         // git commit:
-        git.commit()
+        RevCommit commit = git.commit()
                 .setMessage(commitMessage)
                 .call();
         git.close();
@@ -423,6 +424,8 @@ public class RepoHelper {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        return commit;
     }
 
     public void commitAll(String message) throws MissingRepoException, GitAPIException, IOException {

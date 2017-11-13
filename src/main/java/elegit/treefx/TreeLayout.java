@@ -1,20 +1,12 @@
 package elegit.treefx;
 
 import elegit.Main;
-import elegit.controllers.CommitController;
 import elegit.controllers.SessionController;
 import elegit.models.CommitHelper;
 import io.reactivex.Observable;
 import io.reactivex.rxjavafx.schedulers.JavaFxScheduler;
 import io.reactivex.schedulers.Schedulers;
-import javafx.application.Platform;
 import javafx.beans.property.*;
-import javafx.scene.control.ProgressBar;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.VBox;
-import javafx.scene.text.Font;
-import javafx.scene.text.Text;
 import org.apache.http.annotation.ThreadSafe;
 
 import java.util.*;
@@ -47,7 +39,9 @@ public class TreeLayout{
     }
 
     private final static int CELLS_AT_A_TIME = 20;
-    private final static int CELL_RENDER_TIME_DELAY = 100;
+
+    // This should only be modified by unit tests
+    public final static AtomicInteger cellRenderTimeDelay = new AtomicInteger(100);
 
     // For testing purposes, to make sure that multiple layouts aren't happening simultaneously
     private final static AtomicLong layoutId = new AtomicLong();
@@ -152,7 +146,7 @@ public class TreeLayout{
             SessionController sessionController = CommitTreeController.getSessionController();
 
             return Observable.intervalRange(0, (int)(Math.ceil(allCells.size()/(double)CELLS_AT_A_TIME)),
-                    0, CELL_RENDER_TIME_DELAY, TimeUnit.MILLISECONDS,
+                    0, cellRenderTimeDelay.get(), TimeUnit.MILLISECONDS,
                     Schedulers.io())
 
                     // Stop laying out if told to stop laying out, or if a more recent layout has started

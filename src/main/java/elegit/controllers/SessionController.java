@@ -2783,4 +2783,5 @@ public class SessionController {
         Main.assertFxThread();
         commitTreeProgressBarAndLabel.setVisible(false);
     }
+
 }
