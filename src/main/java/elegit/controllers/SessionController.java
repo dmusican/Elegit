@@ -310,7 +310,7 @@ public class SessionController {
 
                 //.observeOn(JavaFxScheduler.platform())
                 .map(results -> {
-                    gitOperationShowResults(notificationPaneController, results);
+                    gitOperationShowNotifications(notificationPaneController, results);
                     if (tryOpAgain(results)) {
                         httpAuth.set(true);
                         throw new TryAgainException();
@@ -735,6 +735,7 @@ public class SessionController {
                 .flatMap((result) -> {
                     if (result.equals("success")) {
                         return initPanelViews()
+                        .map(unused -> gitStatusWorkload())
                         .doOnSuccess(unused -> {
                             setRecentReposDropdownToCurrentRepo();
                             updateUIEnabledStatus();
@@ -746,10 +747,8 @@ public class SessionController {
 //                            return true;
                         });
                     } else {
-                        return Single.fromCallable(() -> {
-                            hideBusyWindowAndResumeRepoMonitor();
-                            return true;
-                        });
+                        return gitStatusWorkload()
+                                .doOnSuccess(unused -> hideBusyWindowAndResumeRepoMonitor());
                     }
 
                 })
@@ -828,6 +827,7 @@ public class SessionController {
     }
 
     public void handleAddButton() {
+        // TODO: gitStatus was taken out of showing results; may need to go back in here.
         Main.assertFxThread();
 
         logger.info("Add button clicked");
@@ -841,7 +841,7 @@ public class SessionController {
                 //.observeOn(JavaFxScheduler.platform())
 
                 .onErrorResumeNext(this::wrapMergeException)
-                .doOnNext(results -> gitOperationShowResults(notificationPaneController, results))
+                .doOnNext(results -> gitOperationShowNotifications(notificationPaneController, results))
                 .doOnNext(unused -> hideBusyWindowAndResumeRepoMonitor())
                 .subscribe(unused -> {}, Throwable::printStackTrace);
     }
@@ -1889,16 +1889,12 @@ public class SessionController {
         }
     }
 
-    private void gitOperationShowResults(NotificationController nc, List<Result> results) {
+    private void gitOperationShowNotifications(NotificationController nc, List<Result> results) {
         Main.assertFxThread();
 
         for (Result result : results) {
             showSingleResult(nc, result);
         }
-
-        // Ensures that after updating the interface based on some results,
-        // that everything is as up to date as possible.
-        gitStatus();
     }
 
     public void showExceptionAsGlobalNotification(Result result) {
@@ -2079,6 +2075,7 @@ public class SessionController {
      * merges the remote-tracking branch associated with the current branch into the current local branch
      */
     public Observable<List<Result>> mergeFromFetchCreateChain(NotificationController nc) {
+        // TODO: gitStatus was taken out of showing results; may need to go back in here.
         Main.assertFxThread();
         logger.info("Merge from fetch button clicked");
 
@@ -2092,7 +2089,7 @@ public class SessionController {
                 .observeOn(JavaFxScheduler.platform())
 
                 .onErrorResumeNext(this::wrapMergeException)
-                .doOnNext(results -> gitOperationShowResults(nc, results))
+                .doOnNext(results -> gitOperationShowNotifications(nc, results))
                 .doOnNext(unused -> hideBusyWindowAndResumeRepoMonitor());
 
         //  notice there is no subscribe here; the caller to this method should use it
