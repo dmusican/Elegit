@@ -11,6 +11,7 @@ import elegit.models.SessionModel;
 import elegit.monitors.RepositoryMonitor;
 import elegit.sshauthentication.ElegitUserInfoTest;
 import elegit.treefx.Cell;
+import elegit.treefx.CellState;
 import elegit.treefx.TreeLayout;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Rectangle2D;
@@ -183,4 +184,66 @@ public class RepoCreationTests extends ApplicationTest {
         });
         logger.info("Layout done");
     }
+
+
+    @Test
+    public void clickCommitTest() throws Exception {
+        logger.info("Temp directory: " + directoryPath);
+        Path remote = directoryPath.resolve("remote");
+        Path local = directoryPath.resolve("local");
+        Git.init().setDirectory(remote.toFile()).setBare(true).call();
+        Git.cloneRepository().setDirectory(local.toFile()).setURI("file://"+remote).call();
+
+        ExistingRepoHelper helper = new ExistingRepoHelper(local, new ElegitUserInfoTest());
+
+        Path fileLocation = local.resolve("README.md");
+
+        FileWriter fw = new FileWriter(fileLocation.toString(), true);
+        fw.write("start");
+        fw.close();
+        helper.addFilePathTest(fileLocation);
+        RevCommit firstCommit = helper.commit("Appended to file");
+        Cell firstCellAttempt = lookup(firstCommit.getName()).query();
+        logger.info("firstCell = " + firstCellAttempt);
+
+        for (int i=0; i < 5; i++) {
+            fw = new FileWriter(fileLocation.toString(), true);
+            fw.write(""+i);
+            fw.close();
+            helper.addFilePathTest(fileLocation);
+            helper.commit("Appended to file");
+        }
+
+        // Just push all untracked local branches
+        PushCommand command = helper.prepareToPushAll(untrackedLocalBranches -> untrackedLocalBranches);
+        helper.pushAll(command);
+
+        logger.info(remote);
+        logger.info(local);
+
+        clickOn("#loadNewRepoButton")
+                .clickOn("#loadExistingRepoOption")
+                .clickOn("#repoInputDialog")
+                .write(local.toString())
+                .clickOn("#repoInputDialogOK");
+
+        logger.info("First commit is " + firstCommit.getName());
+        interact( () -> {
+            Cell firstCell = lookup(Matchers.hasToString(firstCommit.getName())).query();
+            assertNotEquals(null, firstCell);
+            FxAssert.verifyThat(firstCell, (Cell cell) -> (cell.isVisible()));
+            assertEquals(CellState.STANDARD, firstCell.getPersistentCellState());
+        });
+
+        clickOn(Matchers.hasToString(firstCommit.getName()));
+
+        interact(() -> {
+            Cell firstCell = lookup(Matchers.hasToString(firstCommit.getName())).query();
+            assertEquals(CellState.SELECTED, firstCell.getPersistentCellState());
+        });
+
+        sleep(5000);
+
+    }
+
 }
