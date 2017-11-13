@@ -1,2 +1,2 @@
 language: java
-script: mvn clean test -B -DskipDisplay=true
+script: mvn clean test -B -DskipDisplay=true -Djava.awt.headless -Dtestfx.robot=glass -Dtestfx.headless=true -Dprism.order=sw -Dprism.text=t2k -Dtestfx.setup.timeout=20000
