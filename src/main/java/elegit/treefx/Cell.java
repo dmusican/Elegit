@@ -461,7 +461,7 @@ public class Cell extends Pane {
     // synchronized for this.localOrRemote
     // This can be done off the FX thread in general, as a Cell might be constructed off and used later. However,
     // it is critical that this method not be used on a Cell that is already on the scene graph from off thread.
-    private synchronized void setFillType(Shape n, CellState state) {
+    public synchronized void setFillType(Shape n, CellState state) {
         Color baseColor = Color.web(state.getBackgroundColor());
         switch(this.localOrRemote) {
             case LOCAL:
@@ -487,6 +487,10 @@ public class Cell extends Pane {
 
     public CellState getPersistentCellState() {
         return persistentCellState;
+    }
+
+    public Shape getFxShapeObject() {
+        return fxShapeObject;
     }
 
     public enum CellType {

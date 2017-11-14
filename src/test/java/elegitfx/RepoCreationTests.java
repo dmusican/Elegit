@@ -18,6 +18,7 @@ import javafx.geometry.Rectangle2D;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.layout.HBox;
+import javafx.scene.paint.Color;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
@@ -239,6 +240,10 @@ public class RepoCreationTests extends ApplicationTest {
 
         interact(() -> {
             Cell firstCell = lookup(Matchers.hasToString(firstCommit.getName())).query();
+            logger.info(firstCell.getFxShapeObject() + " " + firstCell.getFxShapeObject().hashCode());
+            logger.info("# of fx children = " + firstCell.getChildren().size() + " " + firstCell.getChildren().get(0).hashCode());
+            assertEquals(Color.web(CellState.SELECTED.getBackgroundColor()).toString(),
+                         Color.web(firstCell.getFxShapeObject().getFill().toString()).toString());
             assertEquals(CellState.SELECTED, firstCell.getPersistentCellState());
         });
 

@@ -4,9 +4,12 @@ import elegit.Main;
 import elegit.models.SessionModel;
 import javafx.animation.ScaleTransition;
 import javafx.application.Platform;
+import javafx.scene.paint.Color;
 import javafx.scene.shape.Shape;
 import javafx.util.Duration;
 import org.apache.http.annotation.ThreadSafe;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -23,6 +26,8 @@ public class Highlighter{
 
     // Cells that are currently blocked from being highlighted
     private static final List<String> blockedCellIDs = new ArrayList<>();
+
+    private static final Logger console = LogManager.getLogger("consolelogger");
 
     /**
      * Highlights the cell corresponding to the given id in the given model, as well as
@@ -164,6 +169,11 @@ public class Highlighter{
         Main.assertFxThread();
         if(persistent)
             cell.setPersistentCellState(state);
+
+        console.info("fill type was " + cell.fxShapeObject.getFill());
+        cell.setFillType(cell.fxShapeObject, CellState.SELECTED);
+        console.info("fill type is " + cell.fxShapeObject.getFill());
+        console.info("Hash code is " + cell.fxShapeObject.hashCode());
     }
 
     /**
