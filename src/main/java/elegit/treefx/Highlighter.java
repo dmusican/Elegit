@@ -203,7 +203,7 @@ public class Highlighter{
         CommitTreeScrollPane.scrollTo(c.rowLocationProperty.doubleValue());
         c.setCellState(CellState.EMPHASIZED);
 
-        Shape s = (Shape) c.view;
+        Shape s = (Shape) c.fxShapeObject;
 
         ScaleTransition sct = new ScaleTransition(Duration.millis(425), s);
         sct.setByX(0.3f);
@@ -211,8 +211,8 @@ public class Highlighter{
         sct.setCycleCount(6);
         sct.setAutoReverse(true);
 
-        c.view.setScaleX(1.0);
-        c.view.setScaleY(1.0);
+        c.fxShapeObject.setScaleX(1.0);
+        c.fxShapeObject.setScaleY(1.0);
 
         sct.play();
 

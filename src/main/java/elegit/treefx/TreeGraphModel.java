@@ -520,7 +520,7 @@ public class TreeGraphModel {
         Main.assertFxThread();
         List<String> resetIDs = new ArrayList<>();
         for(Cell cell : cellsWithNonDefaultShapesOrLabels){
-            cell.setShapeDefault();
+            cell.setShape(Cell.DEFAULT_SHAPE);
             String id = cell.getCellId();
             if(!resetIDs.contains(id) && allCells.contains(cell)) resetIDs.add(id);
         }

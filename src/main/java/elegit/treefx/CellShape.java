@@ -1,7 +1,5 @@
 package elegit.treefx;
 
-import elegit.Main;
-import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Polygon;
 import javafx.scene.shape.Rectangle;
@@ -22,32 +20,9 @@ public enum CellShape{
 
     /**
      * Gets a shape based on the type of a cell
-     * @param type the type of the cell (local, remote, or both)
-     * @return the shape of the cell, just the basic shape for local or remote and a concentric circle for both
-     */
-    public Shape getType(Cell.CellType type) {
-        Shape toReturn;
-        switch (type) {
-            case LOCAL:
-                toReturn = get();
-                break;
-            case REMOTE:
-                toReturn = get();
-                break;
-            case BOTH:
-                toReturn = get();
-                break;
-            default:
-                toReturn = null;
-                break;
-        }
-        return toReturn;
-    }
-
-    /**
      * @return the JavaFX object corresponding to the shape
      */
-    private Shape get(){
+    public Shape getNewFxShapeObject(){
         switch(this){
             case CIRCLE:
                 return new Circle(Cell.BOX_SIZE / 2., Cell.BOX_SIZE / 2., Cell.BOX_SIZE / 2.);

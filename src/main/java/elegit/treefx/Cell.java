@@ -41,25 +41,24 @@ import java.util.concurrent.atomic.AtomicInteger;
 // carefully checked. Beware of making updates here without being similarly careful.
 public class Cell extends Pane {
 
+    //// Class variables; constants and such
     // Base shapes for different types of cells
-    private static final CellShape DEFAULT_SHAPE = CellShape.SQUARE;
+    public static final CellShape DEFAULT_SHAPE = CellShape.SQUARE;
     public static final CellShape UNTRACKED_BRANCH_HEAD_SHAPE = CellShape.CIRCLE;
     public static final CellShape TRACKED_BRANCH_HEAD_SHAPE = CellShape.TRIANGLE_DOWN;
-
     private static final String BACKGROUND_COLOR = "#F4F4F4";
 
     // Limits on animation so the app doesn't begin to stutter
     private static final int MAX_NUM_CELLS_TO_ANIMATE = 5;
     private static AtomicInteger numCellsBeingAnimated = new AtomicInteger(0);
 
-    // Constants
     // The size of the rectangle being drawn
     public static final int BOX_SIZE = 20;
     //The height of the shift for the cells;
     private static final int BOX_SHIFT = 20;
 
 
-
+    ///// Instance variables, specific for a particular cell
     // The tooltip shown on hover
     @GuardedBy("this") private final Tooltip tooltip;
 
@@ -69,14 +68,26 @@ public class Cell extends Pane {
     // The assigned time of this commit
     private final long time;
 
-
+    // animate represents whether or not this cell should be animated when it moves
+    // useParentAsSource seems to be a secondary animate variable.
+    // TODO: clean up useParentAsSource. Make it more understandable and determine if it is serving a necessary purpose.
     private final AtomicBoolean animate = new AtomicBoolean();
     private final AtomicBoolean useParentAsSource = new AtomicBoolean();
 
-    private CellShape shape;
-    @GuardedBy("this") private CellType type;
+    // Whether this cell has been moved to its appropriate location
+    private final BooleanProperty hasUpdatedPosition;
 
+    // Actual shape of the cell itself (triangle, circle, etc.)
+    private CellShape shape;
+
+    // Whether the cell represents a local commit, a remote commit, or both (they're rendered differently)
+    @GuardedBy("this") private CellType localOrRemote;
+
+    // The right-click context menu that is attached to the cell
     @GuardedBy("this") private ContextMenu contextMenu;
+
+    // All of the reference labels attached to the cell (branch name, tags, etc.)
+    // TODO: Make sure refLabels is appropriately handled from a threading perspective.
     private CellLabelContainer refLabels;
 
     // The list of children of this cell
@@ -88,9 +99,6 @@ public class Cell extends Pane {
     // Used to keep track of a cell's "permanent" state; it may transiently change as the result of an animation
     @GuardedBy("this") private CellState persistentCellState;
 
-    // Whether this cell has been moved to its appropriate location
-    private BooleanProperty hasUpdatedPosition;
-
     // All edges that have this cell as an endpoint
     @GuardedBy("this") private final List<Edge> edges = new ArrayList<>();
 
@@ -99,18 +107,17 @@ public class Cell extends Pane {
     // that they only be accessed from the FX thread.
 
     // The displayed view. Don't touch this except on FX thread!
-    Shape view;
+    Shape fxShapeObject;
 
     // The row and column location of this cell. Don't touch these except on FX thread!
     IntegerProperty columnLocationProperty, rowLocationProperty;
-
 
 
     /**
      * Constructs a node with the given ID and the given parents
      * @param cellId the ID of this node
      * @param parents the parent(s) of this cell
-     * @param type the type of cell to add
+     * @param type the localOrRemote of cell to add
      */
     // Can be done off FX thread since doesn't actually affect anything on the FX scene graph
     public Cell(String cellId, long time, List<Cell> parents, CellType type){
@@ -118,7 +125,7 @@ public class Cell extends Pane {
         this.time = time;
         this.parents = new ParentCell(this, parents);
         this.refLabels = new CellLabelContainer();
-        this.type = type;
+        this.localOrRemote = type;
 
         setShape(DEFAULT_SHAPE);
 
@@ -163,8 +170,6 @@ public class Cell extends Pane {
         });
         this.setOnMouseEntered(event -> CommitTreeController.handleMouseover(this, true));
         this.setOnMouseExited(event -> CommitTreeController.handleMouseover(this, false));
-
-        this.view=getBaseView();
 
         this.persistentCellState = CellState.STANDARD;
     }
@@ -233,10 +238,11 @@ public class Cell extends Pane {
     /**
      * @return the basic view for this cell
      */
-    // synchronized for this.type
+    // synchronized for this.localOrRemote
     // Doesn't need to be on FX thread; creates a node, but doesn't have to be in scene graph (yet)
+    // TODO: straighten this out
     private synchronized Shape getBaseView(){
-        Shape node = DEFAULT_SHAPE.getType(this.type);
+        Shape node = DEFAULT_SHAPE.getNewFxShapeObject();
         setFillType(node, CellState.STANDARD);
         node.getStyleClass().setAll("cell");
         node.setId("tree-cell");
@@ -244,39 +250,38 @@ public class Cell extends Pane {
     }
 
     /**
-     * Sets the look of this cell
-     * @param newView the new view
-     */
-    // Doesn't need to be on FX thread; creates a node, but doesn't have to be in scene graph (yet)
-    public synchronized void setView(Shape newView) {
-        if(this.view == null){
-            this.view = getBaseView();
-        }
-
-        newView.getStyleClass().setAll(this.view.getStyleClass());
-        newView.setId(this.view.getId());
-
-        this.view = newView;
-        getChildren().clear();
-        getChildren().add(this.view);
-        setFillType(this.view, CellState.STANDARD);
-    }
-
-    /**
-     * Set the shape of this cell
+     * Set the shape of this cell. The FX shape object needs to retain the styling of the previous one,
+     * so this method creates a new FX shape object, then transfers the styling of the old one to it.
      * @param newShape the new shape
      */
     // Doesn't need to be on FX thread; manipulates FX nodes, but doesn't have to be in scene graph (yet)
-    // synchronized for this.type and this.shape
+    // synchronized for this.localOrRemote and this.shape
     public synchronized void setShape(CellShape newShape){
-        if(this.shape == newShape) return;
-        setView(newShape.getType(this.type));
-        this.shape = newShape;
-    }
 
-    public void setShapeDefault() {
-        Main.assertFxThread();
-        setShape(DEFAULT_SHAPE);
+        // If no change in shape, do nothing
+        if(this.shape == newShape)
+            return;
+
+        Shape newFxShapeObject = newShape.getNewFxShapeObject();
+
+        if(this.fxShapeObject == null){
+            this.fxShapeObject = getBaseView();
+        }
+
+        // All styling to this shape object (could include labels, etc) should remain, and so they need to be applied
+        // to the new object.
+        newFxShapeObject.getStyleClass().setAll(this.fxShapeObject.getStyleClass());
+        newFxShapeObject.setId(this.fxShapeObject.getId());
+
+        this.shape = newShape;
+        this.fxShapeObject = newFxShapeObject;
+
+        // Remove old fx object from pane, and add new one
+        getChildren().clear();
+        getChildren().add(this.fxShapeObject);
+
+        setFillType(this.fxShapeObject, CellState.STANDARD);
+
     }
 
     /**
@@ -396,28 +401,28 @@ public class Cell extends Pane {
      */
     void setCellState(CellState state){
         Main.assertFxThread();
-        setFillType(view, state);
+        setFillType(fxShapeObject, state);
     }
 
     /**
-     * Sets the cell type to local, both or remote and resets edges accordingly
-     * @param type the type of the cell
+     * Sets the cell localOrRemote to local, both or remote and resets edges accordingly
+     * @param type the localOrRemote of the cell
      */
-    // synchronized for use of edges and this.type
+    // synchronized for use of edges and this.localOrRemote
     // This can be done off the FX thread in general, as a Cell might be constructed off and used later. However,
     // it is critical that this method not be used on a Cell that is already on the scene graph from off thread.
     synchronized void setCellType(CellType type) {
-        this.type = type;
-        setFillType(view, CellState.STANDARD);
+        this.localOrRemote = type;
+        setFillType(fxShapeObject, CellState.STANDARD);
         for (Edge e : edges) {
             e.resetDashed();
         }
     }
 
-    // synchronized for this.type
+    // synchronized for this.localOrRemote
     // This just returns a constant enum variable, safe to use off FX thread
     synchronized CellType getCellType() {
-        return this.type;
+        return this.localOrRemote;
     }
 
     /**
@@ -449,16 +454,16 @@ public class Cell extends Pane {
 
 
     /**
-     * Sets the fill type of a shape based on this cell's type
+     * Sets the fill localOrRemote of a shape based on this cell's localOrRemote
      * @param n the shape to set the fill of
      * @param state the state of the cell, determines coloring
      */
-    // synchronized for this.type
+    // synchronized for this.localOrRemote
     // This can be done off the FX thread in general, as a Cell might be constructed off and used later. However,
     // it is critical that this method not be used on a Cell that is already on the scene graph from off thread.
     private synchronized void setFillType(Shape n, CellState state) {
         Color baseColor = Color.web(state.getBackgroundColor());
-        switch(this.type) {
+        switch(this.localOrRemote) {
             case LOCAL:
                 n.setFill(baseColor);
                 break;
