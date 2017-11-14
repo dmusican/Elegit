@@ -483,11 +483,12 @@ public class TreeGraphModel {
      * If the shape is not the default shape, adds it to the list of non-
      * default shaped cells.
      * @param cellId the id of the cell to label
-     * @param shape the new shape
+     * @param tracked whether or not the commit is tracked remotely
      */
-    public synchronized void setCellShape(String cellId, CellShape shape){
+    public synchronized void setCellShape(String cellId, boolean tracked){
         Main.assertFxThread();
         Cell cell = cellMap.get(cellId);
+        CellShape shape = (tracked) ? Cell.TRACKED_BRANCH_HEAD_SHAPE : Cell.UNTRACKED_BRANCH_HEAD_SHAPE;
         cell.setShape(shape);
         cellsWithNonDefaultShapesOrLabels.add(cell);
     }

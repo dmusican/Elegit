@@ -2,19 +2,12 @@ package elegit.treefx;
 
 import elegit.Main;
 import elegit.models.RefHelper;
-import elegit.models.SessionModel;
 import javafx.animation.TranslateTransition;
-import javafx.application.Platform;
-import javafx.beans.Observable;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
-import javafx.collections.ObservableList;
-import javafx.scene.Node;
-import javafx.scene.Parent;
 import javafx.scene.control.ContextMenu;
-import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.Pane;
@@ -24,7 +17,11 @@ import javafx.util.Duration;
 import org.apache.http.annotation.GuardedBy;
 import org.apache.http.annotation.ThreadSafe;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -32,6 +29,10 @@ import java.util.concurrent.atomic.AtomicInteger;
  * A class that represents a node in a TreeGraph
  *
  * A Cell extends Pane, so it IS a JavaFX node and should be treated as one.
+ *
+ * The reason we use a Pane instead of just the shape directly itself is that we want it to be clickable, be able
+ * to set styling, etc; and we sometimes swap out one shape for another depending on the features of the commit.
+ * So the Cell represents everything bout that node in the graph, whereas the shape is just one feature.
  *
  */
 @ThreadSafe
@@ -42,11 +43,22 @@ public class Cell extends Pane {
 
     // Base shapes for different types of cells
     private static final CellShape DEFAULT_SHAPE = CellShape.SQUARE;
+    public static final CellShape UNTRACKED_BRANCH_HEAD_SHAPE = CellShape.CIRCLE;
+    public static final CellShape TRACKED_BRANCH_HEAD_SHAPE = CellShape.TRIANGLE_DOWN;
+
     private static final String BACKGROUND_COLOR = "#F4F4F4";
 
     // Limits on animation so the app doesn't begin to stutter
     private static final int MAX_NUM_CELLS_TO_ANIMATE = 5;
     private static AtomicInteger numCellsBeingAnimated = new AtomicInteger(0);
+
+    // Constants
+    // The size of the rectangle being drawn
+    public static final int BOX_SIZE = 20;
+    //The height of the shift for the cells;
+    private static final int BOX_SHIFT = 20;
+
+
 
     // The tooltip shown on hover
     @GuardedBy("this") private final Tooltip tooltip;
@@ -76,14 +88,6 @@ public class Cell extends Pane {
     // Used to keep track of a cell's "permanent" state; it may transiently change as the result of an animation
     @GuardedBy("this") private CellState persistentCellState;
 
-    // Constants
-    public static final CellShape UNTRACKED_BRANCH_HEAD_SHAPE = CellShape.CIRCLE;
-    public static final CellShape TRACKED_BRANCH_HEAD_SHAPE = CellShape.TRIANGLE_DOWN;
-    // The size of the rectangle being drawn
-    public static final int BOX_SIZE = 20;
-    //The height of the shift for the cells;
-    private static final int BOX_SHIFT = 20;
-
     // Whether this cell has been moved to its appropriate location
     private BooleanProperty hasUpdatedPosition;
 
@@ -95,7 +99,7 @@ public class Cell extends Pane {
     // that they only be accessed from the FX thread.
 
     // The displayed view. Don't touch this except on FX thread!
-    Node view;
+    Shape view;
 
     // The row and column location of this cell. Don't touch these except on FX thread!
     IntegerProperty columnLocationProperty, rowLocationProperty;
@@ -197,7 +201,7 @@ public class Cell extends Pane {
         if(animate && numCellsBeingAnimated.get() < MAX_NUM_CELLS_TO_ANIMATE){
             numCellsBeingAnimated.getAndIncrement();
 
-            Shape placeHolder = (Shape) getBaseView();
+            Shape placeHolder = getBaseView();
             placeHolder.setTranslateX(x+TreeLayout.H_PAD);
             placeHolder.setTranslateY(y+BOX_SHIFT);
             placeHolder.setOpacity(0.0);
@@ -231,9 +235,9 @@ public class Cell extends Pane {
      */
     // synchronized for this.type
     // Doesn't need to be on FX thread; creates a node, but doesn't have to be in scene graph (yet)
-    private synchronized Node getBaseView(){
-        Node node = DEFAULT_SHAPE.getType(this.type);
-        setFillType((Shape)node, CellState.STANDARD);
+    private synchronized Shape getBaseView(){
+        Shape node = DEFAULT_SHAPE.getType(this.type);
+        setFillType(node, CellState.STANDARD);
         node.getStyleClass().setAll("cell");
         node.setId("tree-cell");
         return node;
@@ -244,7 +248,7 @@ public class Cell extends Pane {
      * @param newView the new view
      */
     // Doesn't need to be on FX thread; creates a node, but doesn't have to be in scene graph (yet)
-    public synchronized void setView(Node newView) {
+    public synchronized void setView(Shape newView) {
         if(this.view == null){
             this.view = getBaseView();
         }
@@ -255,7 +259,7 @@ public class Cell extends Pane {
         this.view = newView;
         getChildren().clear();
         getChildren().add(this.view);
-        setFillType((Shape) this.view, CellState.STANDARD);
+        setFillType(this.view, CellState.STANDARD);
     }
 
     /**
@@ -392,7 +396,7 @@ public class Cell extends Pane {
      */
     void setCellState(CellState state){
         Main.assertFxThread();
-        setFillType((Shape) view, state);
+        setFillType(view, state);
     }
 
     /**
@@ -404,7 +408,7 @@ public class Cell extends Pane {
     // it is critical that this method not be used on a Cell that is already on the scene graph from off thread.
     synchronized void setCellType(CellType type) {
         this.type = type;
-        setFillType((Shape) view, CellState.STANDARD);
+        setFillType(view, CellState.STANDARD);
         for (Edge e : edges) {
             e.resetDashed();
         }
