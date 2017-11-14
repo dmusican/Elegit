@@ -171,7 +171,7 @@ public class Highlighter{
             cell.setPersistentCellState(state);
 
         console.info("fill type was " + cell.fxShapeObject.getFill());
-        cell.setFillType(cell.fxShapeObject, CellState.SELECTED);
+        cell.setFillType(cell.fxShapeObject, state);
         console.info("fill type is " + cell.fxShapeObject.getFill());
         console.info("Hash code is " + cell.fxShapeObject.hashCode());
     }
