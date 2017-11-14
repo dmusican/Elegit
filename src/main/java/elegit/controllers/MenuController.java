@@ -90,6 +90,15 @@ public class MenuController {
         sessionController.handleGitIgnoreMenuItem();
     }
 
+    // "Transcript" Dropdown Menu Item:
+
+    public void handleTranscriptViewMenuItem() {
+        sessionController.handleTranscriptViewMenuItem();
+    }
+    public void handleTranscriptClearMenuItem() {
+        sessionController.handleTranscriptClearItem();
+    }
+
     // "Repository" Dropdown Menu Items (2 layers):
 
     public void handleNewBranchButton() {

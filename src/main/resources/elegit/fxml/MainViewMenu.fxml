@@ -23,6 +23,16 @@
                             onAction="#handleAbout"/>
             </items>
         </Menu>
+        <Menu   text="Transcript">
+            <items>
+                <MenuItem   text="View"
+                            fx:id="viewTranscriptMenuItem"
+                            onAction="#handleTranscriptViewMenuItem"/>
+                <MenuItem   text="Clear"
+                            fx:id="clearTranscriptMenuItem"
+                            onAction="#handleTranscriptClearMenuItem"/>
+            </items>
+        </Menu>
         <Menu   text="Edit">
             <items>
                 <MenuItem   text=".gitignore"

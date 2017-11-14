@@ -18,4 +18,16 @@ public class TranscriptHelper {
 
         }
     }
+
+    public static void clear() {
+        String log_file_path = System.getProperty("logFolder") + "/transcript.log";
+
+        try {
+            FileWriter writer = new FileWriter(log_file_path, false);
+            writer.flush();
+            writer.close();
+        } catch (IOException e) {
+
+        }
+    }
 }
