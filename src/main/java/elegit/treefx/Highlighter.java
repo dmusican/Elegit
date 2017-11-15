@@ -1,10 +1,7 @@
 package elegit.treefx;
 
 import elegit.Main;
-import elegit.models.SessionModel;
 import javafx.animation.ScaleTransition;
-import javafx.application.Platform;
-import javafx.scene.paint.Color;
 import javafx.scene.shape.Shape;
 import javafx.util.Duration;
 import org.apache.http.annotation.ThreadSafe;
@@ -12,9 +9,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * This class provides static methods for highlighting and animating cells in a tree graph
@@ -170,10 +165,7 @@ public class Highlighter{
         if(persistent)
             cell.setPersistentCellState(state);
 
-        console.info("fill type was " + cell.fxShapeObject.getFill());
         cell.setFillType(cell.fxShapeObject, state);
-        console.info("fill type is " + cell.fxShapeObject.getFill());
-        console.info("Hash code is " + cell.fxShapeObject.hashCode());
     }
 
     /**
@@ -183,6 +175,7 @@ public class Highlighter{
     public static void resetAll(){
         Main.assertFxThread();
         for (Cell cell : CommitTreeModel.getCommitTreeModel().getTreeGraph().treeGraphModel.getAllCells()) {
+            cell.setCellState(CellState.STANDARD);
             cell.setPersistentCellState(CellState.STANDARD);
         }
     }

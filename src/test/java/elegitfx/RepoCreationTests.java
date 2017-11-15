@@ -236,18 +236,27 @@ public class RepoCreationTests extends ApplicationTest {
             assertEquals(CellState.STANDARD, firstCell.getPersistentCellState());
         });
 
+        // Click on first commit
         clickOn(Matchers.hasToString(firstCommit.getName()));
 
+        // Verify that when you click on it, it turns the appopriate color
         interact(() -> {
             Cell firstCell = lookup(Matchers.hasToString(firstCommit.getName())).query();
-            logger.info(firstCell.getFxShapeObject() + " " + firstCell.getFxShapeObject().hashCode());
-            logger.info("# of fx children = " + firstCell.getChildren().size() + " " + firstCell.getChildren().get(0).hashCode());
             assertEquals(Color.web(CellState.SELECTED.getBackgroundColor()).toString(),
                          Color.web(firstCell.getFxShapeObject().getFill().toString()).toString());
             assertEquals(CellState.SELECTED, firstCell.getPersistentCellState());
         });
 
-        sleep(5000);
+        clickOn(Matchers.hasToString(firstCommit.getName()));
+
+        // Verify that when you click on it again, it turns back
+        interact(() -> {
+            Cell firstCell = lookup(Matchers.hasToString(firstCommit.getName())).query();
+            assertEquals(Color.web(CellState.STANDARD.getBackgroundColor()).toString(),
+                         Color.web(firstCell.getFxShapeObject().getFill().toString()).toString());
+            assertEquals(CellState.STANDARD, firstCell.getPersistentCellState());
+        });
+
 
     }
 
