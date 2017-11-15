@@ -305,6 +305,8 @@ public class RepoCreationTests extends ApplicationTest {
         assertNotEquals(null, firstCell1);
 
         Set<Cell> cells1 = lookup(Matchers.instanceOf(Cell.class)).queryAll();
+        logger.info("Commits added 1");
+        cells1.stream().forEach(logger::info);
         assertEquals(6,cells1.size());
 
         clickOn("#loadNewRepoButton")
@@ -320,6 +322,8 @@ public class RepoCreationTests extends ApplicationTest {
         sleep(3000);
 
         Set<Cell> cells2 = lookup(Matchers.instanceOf(Cell.class)).queryAll();
+        logger.info("Commits added 2");
+        cells2.stream().forEach(logger::info);
         assertEquals(6,cells2.size());
     }
 

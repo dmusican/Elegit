@@ -1,6 +1,7 @@
 package elegit.treefx;
 
 import elegit.Main;
+import elegit.exceptions.ExceptionAdapter;
 import elegit.gui.PopUpWindows;
 import elegit.models.SessionModel;
 import elegit.exceptions.MissingRepoException;
@@ -105,6 +106,19 @@ public class CommitTreeModel{
         CommitTreeController.resetSelection();
 
         if (SessionModel.getSessionModel().getCurrentRepoHelper() != null) {
+            // Get the changes between this model and the repo after updating the repo
+
+            try {
+                SessionModel.getSessionModel().getCurrentRepoHelper().updateModel();
+                UpdateModel updates = this.getChanges();
+                if (updates.hasChanges()) {
+                    Set<CommitHelper> commitsToRemove = updates.getCommitsToRemove();
+                    this.removeCommitsFromTree(commitsToRemove);
+                }
+            } catch (GitAPIException | IOException e) {
+                throw new ExceptionAdapter(e);
+            }
+
             return this.addCommitsToTree(this.getAllCommits(SessionModel.getSessionModel().getCurrentRepoHelper()))
                     .doOnSuccess((result) -> {
                         this.branchesInModel.clear();
@@ -131,7 +145,8 @@ public class CommitTreeModel{
 
             if (!updates.hasChanges()) return result;
 
-            this.removeCommitsFromTree(updates.getCommitsToRemove());
+            Set<CommitHelper> commitsToRemove = updates.getCommitsToRemove();
+            this.removeCommitsFromTree(commitsToRemove);    // DAVE IT IS RIGHT HERE
             result = this.addCommitsToTree(updates.getCommitsToAdd())
                     .doOnSuccess((unused) -> {
                         this.updateCommitFills(updates.getCommitsToUpdate());
@@ -336,6 +351,7 @@ public class CommitTreeModel{
 
         for(CommitHelper curCommitHelper : commits)
             this.removeCommitFromTree(curCommitHelper, treeGraph.treeGraphModel);
+
 
     }
 
