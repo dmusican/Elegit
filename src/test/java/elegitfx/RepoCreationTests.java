@@ -44,6 +44,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Random;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.prefs.Preferences;
 
@@ -61,6 +63,8 @@ public class RepoCreationTests extends ApplicationTest {
     }
 
     private static final Logger logger = LogManager.getLogger("consolelogger");
+
+    private static final Random random = new Random(90125);
 
     private SessionController sessionController;
     private static GuiTest testController;
@@ -300,19 +304,23 @@ public class RepoCreationTests extends ApplicationTest {
         Cell firstCell1 = lookup(Matchers.hasToString(firstCommit1.getName())).query();
         assertNotEquals(null, firstCell1);
 
+        Set<Cell> cells1 = lookup(Matchers.instanceOf(Cell.class)).queryAll();
+        assertEquals(6,cells1.size());
+
         clickOn("#loadNewRepoButton")
                 .clickOn("#loadExistingRepoOption")
                 .clickOn("#repoInputDialog")
                 .write(local2.toString())
                 .clickOn("#repoInputDialogOK");
 
+
         Cell firstCell2 = lookup(Matchers.hasToString(firstCommit2.getName())).query();
         assertNotEquals(null, firstCell2);
 
-        // Should no longer be there
-        firstCell1 = lookup(Matchers.hasToString(firstCommit1.getName())).query();
-        assertEquals(null, firstCell1);
+        sleep(3000);
 
+        Set<Cell> cells2 = lookup(Matchers.instanceOf(Cell.class)).queryAll();
+        assertEquals(6,cells2.size());
     }
 
     private RevCommit makeTestRepo(Path remote, Path local, int numCommits) throws GitAPIException, IOException, CancelledAuthorizationException, MissingRepoException, PushToAheadRemoteError, NoCommitsToPushException {
@@ -324,7 +332,7 @@ public class RepoCreationTests extends ApplicationTest {
         Path fileLocation = local.resolve("README.md");
 
         FileWriter fw = new FileWriter(fileLocation.toString(), true);
-        fw.write("start");
+        fw.write("start"+random.nextInt()); // need this to make sure each repo comes out with different hashes
         fw.close();
         helper.addFilePathTest(fileLocation);
         RevCommit firstCommit = helper.commit("Appended to file");

@@ -1895,6 +1895,8 @@ public class SessionController {
         for (Result result : results) {
             showSingleResult(nc, result);
         }
+
+        //gitStatus();
     }
 
     public void showExceptionAsGlobalNotification(Result result) {
