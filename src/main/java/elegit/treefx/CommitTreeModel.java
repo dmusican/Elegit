@@ -100,7 +100,7 @@ public class CommitTreeModel{
      * Initializes the treeGraph, unselects any previously selected commit,
      * and then adds all commits tracked by this model to the tree
      */
-    public synchronized Single<Boolean> init(){
+    public synchronized Single<Boolean> whenInitializedForNewRepo(){
         Main.assertFxThread();
 
         CommitTreeController.resetSelection();
@@ -134,7 +134,7 @@ public class CommitTreeModel{
 
     }
 
-    public synchronized Single<Boolean> update() throws GitAPIException, IOException {
+    public synchronized Single<Boolean> whenUpdatedForChangesInRepo() throws GitAPIException, IOException {
         Main.assertFxThread();
         Single<Boolean> result = Single.just(true);
         // Handles rare edge case with the RepositoryMonitor and removing repos
@@ -486,7 +486,7 @@ public class CommitTreeModel{
             if (presentDeleteDialog(tagHelper)) {
                 try {
                     SessionModel.getSessionModel().getCurrentRepoHelper().getTagModel().deleteTag(tagHelper.getRefName());
-                    update().subscribe();
+                    whenUpdatedForChangesInRepo().subscribe();
                 } catch (GitAPIException | MissingRepoException | IOException e) {
                     e.printStackTrace();
                 }

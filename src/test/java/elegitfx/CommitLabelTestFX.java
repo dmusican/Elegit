@@ -102,7 +102,7 @@ public class CommitLabelTestFX extends ApplicationTest {
         // Load this repo in Elegit, and initialize
         SessionModel.getSessionModel().openRepoFromHelper(helper);
 
-        commitTreeModel.init()
+        commitTreeModel.whenInitializedForNewRepo()
                 .flatMap((unused) -> testAddFileAndCommit())
 
                 .doOnSuccess((unused) -> {

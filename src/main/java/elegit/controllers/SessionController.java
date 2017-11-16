@@ -592,7 +592,7 @@ public class SessionController {
             allFilesPanelView.drawDirectoryView();
             indexPanelView.drawDirectoryView();
             this.setBrowserURL();
-            return commitTreeModel.init();
+            return commitTreeModel.whenInitializedForNewRepo();
         } catch (GitAPIException | IOException e) {
             showGenericErrorNotification(e);
         }
@@ -2273,7 +2273,7 @@ public class SessionController {
         indexPanelView.drawDirectoryView();
         this.theModel.getCurrentRepoHelper().getTagModel().updateTags();
         updateStatusText();
-        return commitTreeModel.update();
+        return commitTreeModel.whenUpdatedForChangesInRepo();
     }
 
     /**
