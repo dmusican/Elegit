@@ -102,9 +102,7 @@ public class RepoCreationTests extends ApplicationTest {
         sessionController = fxmlLoader.getController();
         Parent root = fxmlLoader.getRoot();
         Rectangle2D primScreenBounds = Screen.getPrimary().getVisualBounds();
-        int screenWidth = (int) primScreenBounds.getWidth();
-        int screenHeight = (int) primScreenBounds.getHeight();
-        Scene scene = new Scene(root, screenWidth * 4 / 5, screenHeight * 4 / 5);
+        Scene scene = new Scene(root, 800, 600);
         stage.setScene(scene);
         sessionController.setStageForNotifications(stage);
         stage.show();
@@ -217,7 +215,7 @@ public class RepoCreationTests extends ApplicationTest {
         Cell firstCellAttempt = lookup(firstCommit.getName()).query();
         logger.info("firstCell = " + firstCellAttempt);
 
-        for (int i=0; i < 5; i++) {
+        for (int i=0; i < 3; i++) {
             fw = new FileWriter(fileLocation.toString(), true);
             fw.write(""+i);
             fw.close();

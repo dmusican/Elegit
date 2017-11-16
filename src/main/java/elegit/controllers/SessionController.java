@@ -2456,32 +2456,30 @@ public class SessionController {
      * @param id the selected commit
      */
     public void selectCommit(String id){
-        Platform.runLater(() -> {
-            CommitHelper commit = this.theModel.getCurrentRepoHelper().getCommit(id);
-            commitInfoNameText.set(commit.getName());
+        Main.assertFxThread();
+        CommitHelper commit = this.theModel.getCurrentRepoHelper().getCommit(id);
+        commitInfoNameText.set(commit.getName());
 
-            commitInfoController.setCommitInfoMessageText(theModel.getCurrentRepoHelper().getCommitDescriptorString(commit, true));
+        commitInfoController.setCommitInfoMessageText(theModel.getCurrentRepoHelper().getCommitDescriptorString(commit, true));
 
-            tagNameField.setVisible(true);
-            tagButton.setVisible(true);
-            infoTagBox.toFront();
-        });
+        tagNameField.setVisible(true);
+        tagButton.setVisible(true);
+        infoTagBox.toFront();
     }
 
     /**
      * Stops displaying commit information
      */
     public void clearSelectedCommit(){
-        Platform.runLater(() -> {
-            commitInfoController.clearCommit();
-            commitTreePanelView.toFront();
+        Main.assertFxThread();
+        commitInfoController.clearCommit();
+        commitTreePanelView.toFront();
 
-            tagNameField.setText("");
-            tagNameField.setVisible(false);
-            tagButton.setVisible(false);
-            pushTagsButton.setVisible(false);
-            infoTagBox.toBack();
-        });
+        tagNameField.setText("");
+        tagNameField.setVisible(false);
+        tagButton.setVisible(false);
+        pushTagsButton.setVisible(false);
+        infoTagBox.toBack();
     }
 
 
