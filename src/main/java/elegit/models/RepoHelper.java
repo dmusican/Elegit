@@ -113,6 +113,20 @@ public class RepoHelper {
         sshSessionFactory = setupSshSessionFactory();
     }
 
+    /**
+     * A JschConfigSessionFactory has methods that are invoked whenever JGit (and its underlying library, JSch)
+     * makes an SSh connection. Here, we put into it two items:
+     *
+     * - password: this might be null. It's only relevant if making a password-based ssh connection. This is a
+     * password-style connection, not a public-key with passphrase one.
+     *
+     * - userInfo: this is the class that contains methods indicating how ssh is supposed to interact to obtain
+     * passphrases and the like. During normal running of Elegit, it pops up GUI dialogs; during testing, it does so
+     * via harcoded text responses. So we have two different implementations of UserInfo.
+     *
+     * @return the SshSessionFactory object, which we add to the Git command when needed. Find where it is used
+     * elsewhere in the code.
+     */
     private SshSessionFactory setupSshSessionFactory() {
         return new JschConfigSessionFactory() {
             @Override
@@ -146,6 +160,16 @@ public class RepoHelper {
         wrapAuthentication(command, this.ownerAuth.get());
     }
 
+    /**
+     * Add authentication to the Git command provided. Authentication could be HTTP(S), or SSH.
+     *
+     * If authentication is HTTP(S), JGit expects a UsernamePasswordCredentialsProvider object to be provided that
+     * contains the username and password. That's contained in the parameter below. If HTTP(S) is not the method of
+     * authentication, then that parameter is null.
+     *
+     * @param command
+     * @param ownerAuth
+     */
     public void wrapAuthentication(TransportCommand command, UsernamePasswordCredentialsProvider ownerAuth) {
 
         if (ownerAuth != null)

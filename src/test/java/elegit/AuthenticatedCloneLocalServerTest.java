@@ -110,8 +110,8 @@ public class AuthenticatedCloneLocalServerTest {
 
         String testFileLocation = System.getProperty("user.home") + File.separator +
                 "elegitTests" + File.separator;
-//        File passwordFile = new File(testFileLocation + "sshPrivateKeyPassword.txt");
-        File passwordFile = new File(testFileLocation + "anotherpass.txt");
+        File passwordFile = new File(testFileLocation + "sshPrivateKeyPassword.txt");
+//        File passwordFile = new File(testFileLocation + "anotherpass.txt");
         File keyFile = new File(testFileLocation + "anotherkeyfile.txt");
 
         Scanner scanner = new Scanner(passwordFile);
