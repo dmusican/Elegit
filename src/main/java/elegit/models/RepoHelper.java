@@ -125,7 +125,7 @@ public class RepoHelper {
             protected JSch createDefaultJSch(FS fs) throws JSchException {
                 JSch defaultJSch = super.createDefaultJSch(fs);
                 defaultJSch.getIdentityNames().forEach(name -> System.out.println("Identity " + name));
-                defaultJSch.removeAllIdentity();
+                //defaultJSch.removeAllIdentity();
                 defaultJSch.getIdentityNames().forEach(name -> System.out.println("Identityc " + name));
                 return defaultJSch;
             }
