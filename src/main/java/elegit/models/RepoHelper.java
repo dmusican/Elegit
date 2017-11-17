@@ -124,7 +124,9 @@ public class RepoHelper {
             @Override
             protected JSch createDefaultJSch(FS fs) throws JSchException {
                 JSch defaultJSch = super.createDefaultJSch(fs);
+                defaultJSch.getIdentityNames().forEach(name -> System.out.println("Identity " + name));
                 defaultJSch.removeAllIdentity();
+                defaultJSch.getIdentityNames().forEach(name -> System.out.println("Identityc " + name));
                 return defaultJSch;
             }
         };
@@ -146,7 +148,6 @@ public class RepoHelper {
 
     public void wrapAuthentication(TransportCommand command, UsernamePasswordCredentialsProvider ownerAuth) {
 
-        System.out.println("RepoHelper.wrapAuthentication");
         if (ownerAuth != null)
             command.setCredentialsProvider(ownerAuth);
         else

@@ -25,13 +25,11 @@ public class ElegitUserInfoTest implements UserInfo {
 
     @Override
     public String getPassphrase() {
-        System.out.println("ElegitUserInfoTest.getPassphrase");
         return passphrase;
     }
 
     @Override
     public String getPassword() {
-        System.out.println("ElegitUserInfoTest.getPassword");
         return password;
     }
 

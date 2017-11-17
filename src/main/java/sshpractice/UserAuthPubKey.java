@@ -14,10 +14,32 @@ import java.awt.*;
 import javax.swing.*;
 
 public class UserAuthPubKey{
+
+
+    // http://www.jcraft.com/jsch/examples/Logger.java.html
+    public static class MyLogger implements com.jcraft.jsch.Logger {
+        static java.util.Hashtable<Integer,String> name=new java.util.Hashtable<>();
+        static{
+            name.put(DEBUG, "DEBUG: ");
+            name.put(INFO, "INFO: ");
+            name.put(WARN, "WARN: ");
+            name.put(ERROR, "ERROR: ");
+            name.put(FATAL, "FATAL: ");
+        }
+        public boolean isEnabled(int level){
+            return true;
+        }
+        public void log(int level, String message){
+            System.err.print(name.get(level));
+            System.err.println(message);
+        }
+    }
+
     public static void main(String[] arg){
 
         try{
             JSch jsch=new JSch();
+            JSch.setLogger(new MyLogger());
 
             JFileChooser chooser = new JFileChooser();
             chooser.setDialogTitle("Choose your privatekey(ex. ~/.ssh/id_dsa)");

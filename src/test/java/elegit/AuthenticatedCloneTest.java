@@ -318,6 +318,8 @@ public class AuthenticatedCloneTest {
         Path repoPath = directoryPath.resolve("testrepo");
         File urlFile = new File(testFileLocation + "sshPrivateKeyURL.txt");
         File passwordFile = new File(testFileLocation + "sshPrivateKeyPassword.txt");
+//        File urlFile = new File(testFileLocation + "anotherurl.txt");
+//        File passwordFile = new File(testFileLocation + "anotherpass.txt");
 
         // If a developer does not have this file present, test should just pass.
         if ((!urlFile.exists() || !passwordFile.exists()) && looseTesting)

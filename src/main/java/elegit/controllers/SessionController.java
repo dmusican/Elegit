@@ -754,23 +754,6 @@ public class SessionController {
                 })
                 .subscribe(unused -> {}, Throwable::printStackTrace);
 
-//        Observable
-//                .just(1)
-//                .doOnNext(unused -> showBusyWindowAndPauseRepoMonitor("Loading repository..."))
-//                // Note that the below is a threaded operation, and so we want to make sure that the following
-//                // operations (hiding the window, etc) depend on it.
-//                .flatMap(unused -> doGitOperationWhenSubscribed(gitOp))
-//
-//                .doOnNext((result) -> {
-//                    if (result.equals("success")) {
-//                        initPanelViews();
-//                        setRecentReposDropdownToCurrentRepo();
-//                        updateUIEnabledStatus();
-//                    }
-//                    hideBusyWindowAndResumeRepoMonitor();
-//                })
-//                .subscribe(unused -> {}, Throwable::printStackTrace);
-
     }
 
     private List<Result> loadRepo (Optional<RepoHelperBuilder.AuthDialogResponse> responseOptional,

@@ -37,7 +37,6 @@ public class ClonedRepoHelper extends RepoHelper {
             CancelledAuthorizationException {
         CloneCommand cloneCommand = Git.cloneRepository();
         cloneCommand.setURI(remoteURL);
-        System.out.println("ClonedRepoHelper.obtainRepository");
         myWrapAuthentication(cloneCommand);
         File destination = this.getLocalPath().toFile();
         cloneCommand.setDirectory(destination);
