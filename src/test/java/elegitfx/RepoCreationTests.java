@@ -230,11 +230,15 @@ public class RepoCreationTests extends ApplicationTest {
         logger.info(remote);
         logger.info(local);
 
+        SessionController.gitStatusCompletedOnce = new CountDownLatch(1);
+
         clickOn("#loadNewRepoButton")
                 .clickOn("#loadExistingRepoOption")
                 .clickOn("#repoInputDialog")
                 .write(local.toString())
                 .clickOn("#repoInputDialogOK");
+
+        SessionController.gitStatusCompletedOnce.await();
 
         logger.info("First commit is " + firstCommit.getName());
         interact( () -> {
@@ -243,6 +247,7 @@ public class RepoCreationTests extends ApplicationTest {
             FxAssert.verifyThat(firstCell, (Cell cell) -> (cell.isVisible()));
             assertEquals(CellState.STANDARD, firstCell.getPersistentCellState());
         });
+
 
         // Click on first commit
         clickOn(Matchers.hasToString(firstCommit.getName()));

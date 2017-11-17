@@ -2,7 +2,6 @@ package elegit.treefx;
 
 import elegit.Main;
 import elegit.exceptions.ExceptionAdapter;
-import elegit.gui.PopUpWindows;
 import elegit.models.SessionModel;
 import elegit.exceptions.MissingRepoException;
 import elegit.models.*;
@@ -14,14 +13,12 @@ import javafx.scene.control.*;
 import org.apache.http.annotation.ThreadSafe;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.eclipse.jgit.api.ResetCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
 
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
 
 
 /**
@@ -100,7 +97,7 @@ public class CommitTreeModel{
      * Initializes the treeGraph, unselects any previously selected commit,
      * and then adds all commits tracked by this model to the tree
      */
-    public synchronized Single<Boolean> whenInitializedForNewRepo(){
+    public synchronized Single<Boolean> initializeModelForNewRepoWhenSubscribed(){
         Main.assertFxThread();
 
         CommitTreeController.resetSelection();
@@ -119,7 +116,7 @@ public class CommitTreeModel{
                 throw new ExceptionAdapter(e);
             }
 
-            return this.addCommitsToTree(this.getAllCommits(SessionModel.getSessionModel().getCurrentRepoHelper()))
+            return this.addCommitsToTreeWhenSubscribed(this.getAllCommits(SessionModel.getSessionModel().getCurrentRepoHelper()))
                     .doOnSuccess((result) -> {
                         this.branchesInModel.clear();
                         this.branchesInModel.addAll(SessionModel.getSessionModel().getCurrentRepoHelper().getBranchModel().getAllBranches());
@@ -134,7 +131,7 @@ public class CommitTreeModel{
 
     }
 
-    public synchronized Single<Boolean> whenUpdatedForChangesInRepo() throws GitAPIException, IOException {
+    public synchronized Single<Boolean> updateModelForChangesWithinRepoWhenSubscribed() throws GitAPIException, IOException {
         Main.assertFxThread();
         Single<Boolean> result = Single.just(true);
         // Handles rare edge case with the RepositoryMonitor and removing repos
@@ -147,7 +144,7 @@ public class CommitTreeModel{
 
             Set<CommitHelper> commitsToRemove = updates.getCommitsToRemove();
             this.removeCommitsFromTree(commitsToRemove);    // DAVE IT IS RIGHT HERE
-            result = this.addCommitsToTree(updates.getCommitsToAdd())
+            result = this.addCommitsToTreeWhenSubscribed(updates.getCommitsToAdd())
                     .doOnSuccess((unused) -> {
                         this.updateCommitFills(updates.getCommitsToUpdate());
                         SessionModel.getSessionModel().getCurrentRepoHelper().getBranchModel().updateAllBranches();
@@ -303,7 +300,7 @@ public class CommitTreeModel{
      * @param commits the commits to add
      * @return true if commits where added, else false
      */
-    private synchronized Single<Boolean> addCommitsToTree(Set<CommitHelper> commits){
+    private synchronized Single<Boolean> addCommitsToTreeWhenSubscribed(Set<CommitHelper> commits){
         if(commits.size() == 0)
             return Single.just(true);
         //return false;
@@ -486,7 +483,7 @@ public class CommitTreeModel{
             if (presentDeleteDialog(tagHelper)) {
                 try {
                     SessionModel.getSessionModel().getCurrentRepoHelper().getTagModel().deleteTag(tagHelper.getRefName());
-                    whenUpdatedForChangesInRepo().subscribe();
+                    updateModelForChangesWithinRepoWhenSubscribed().subscribe();
                 } catch (GitAPIException | MissingRepoException | IOException e) {
                     e.printStackTrace();
                 }

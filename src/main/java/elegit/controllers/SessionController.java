@@ -190,7 +190,7 @@ public class SessionController {
         //BusyWindow.show();
         // SLOW
         // here now looking
-        this.initPanelViews()
+        this.initPanelViewsWhenSubscribed()
                 .doOnSuccess((unused) -> {
                     this.updateUIEnabledStatus();
                     this.setRecentReposDropdownToCurrentRepo();
@@ -290,14 +290,14 @@ public class SessionController {
 
                 // Note that the below is a threaded operation, and so we want to make sure that the following
                 // operations (hiding the window, etc) depend on it.
-                .flatMap(unused -> doGitOperation(gitOp).toObservable())
+                .flatMap(unused -> doGitOperationWhenSubscribed(gitOp).toObservable())
                 .doOnNext(unused -> hideBusyWindowAndResumeRepoMonitor())
                 .subscribe(unused -> {}, Throwable::printStackTrace);
     }
 
     // Repeat trying to fetch. First time: no authentication window. On repeated attempts,
     // authentication window is shown. Effort ends when authentication window is cancelled.
-    private Single<String> doGitOperation(GitOperation gitOp) {
+    private Single<String> doGitOperationWhenSubscribed(GitOperation gitOp) {
         Main.assertFxThread();
         AtomicBoolean httpAuth = new AtomicBoolean(false);
         return Single.fromCallable(() -> authenticateReactive(httpAuth.get()))
@@ -586,13 +586,13 @@ public class SessionController {
     /**
      * Initializes each panel of the view
      */
-    public synchronized Single<Boolean> initPanelViews() {
+    public synchronized Single<Boolean> initPanelViewsWhenSubscribed() {
         try {
             workingTreePanelView.drawDirectoryView();
             allFilesPanelView.drawDirectoryView();
             indexPanelView.drawDirectoryView();
             this.setBrowserURL();
-            return commitTreeModel.whenInitializedForNewRepo();
+            return commitTreeModel.initializeModelForNewRepoWhenSubscribed();
         } catch (GitAPIException | IOException e) {
             showGenericErrorNotification(e);
         }
@@ -731,11 +731,11 @@ public class SessionController {
         TreeLayout.stopMovingCells();
         refreshRecentReposInDropdown();
         showBusyWindowAndPauseRepoMonitor("Loading repository...");
-        doGitOperation(gitOp)
+        doGitOperationWhenSubscribed(gitOp)
                 .flatMap((result) -> {
                     if (result.equals("success")) {
-                        return initPanelViews()
-                        .map(unused -> gitStatusWorkload())
+                        return initPanelViewsWhenSubscribed()
+                        .map(unused -> doGitStatusWhenSubscribed())
                         .doOnSuccess(unused -> {
                             setRecentReposDropdownToCurrentRepo();
                             updateUIEnabledStatus();
@@ -747,7 +747,7 @@ public class SessionController {
 //                            return true;
                         });
                     } else {
-                        return gitStatusWorkload()
+                        return doGitStatusWhenSubscribed()
                                 .doOnSuccess(unused -> hideBusyWindowAndResumeRepoMonitor());
                     }
 
@@ -759,7 +759,7 @@ public class SessionController {
 //                .doOnNext(unused -> showBusyWindowAndPauseRepoMonitor("Loading repository..."))
 //                // Note that the below is a threaded operation, and so we want to make sure that the following
 //                // operations (hiding the window, etc) depend on it.
-//                .flatMap(unused -> doGitOperation(gitOp))
+//                .flatMap(unused -> doGitOperationWhenSubscribed(gitOp))
 //
 //                .doOnNext((result) -> {
 //                    if (result.equals("success")) {
@@ -1248,7 +1248,7 @@ public class SessionController {
 
                 // Note that the below is a threaded operation, and so we want to make sure that the following
                 // operations (hiding the window, etc) depend on it.
-                .flatMap(unused -> doGitOperation(gitOp).toObservable())
+                .flatMap(unused -> doGitOperationWhenSubscribed(gitOp).toObservable())
                 .doOnNext(unused -> hideBusyWindowAndResumeRepoMonitor())
                 .subscribe(unused -> {}, Throwable::printStackTrace);
     }
@@ -2250,7 +2250,7 @@ public class SessionController {
 //                            return;
 //                        }
                 try {
-                    gitStatusWorkload()
+                    doGitStatusWhenSubscribed()
                     .doFinally(() -> {
                         RepositoryMonitor.unpause();
                         gitStatusCompletedOnce.countDown();
@@ -2266,14 +2266,14 @@ public class SessionController {
             }
         }
 
-    public Single<Boolean> gitStatusWorkload() throws GitAPIException, IOException {
+    public Single<Boolean> doGitStatusWhenSubscribed() throws GitAPIException, IOException {
         theModel.getCurrentRepoHelper().getBranchModel().updateAllBranches();
         workingTreePanelView.drawDirectoryView();
         allFilesPanelView.drawDirectoryView();
         indexPanelView.drawDirectoryView();
         this.theModel.getCurrentRepoHelper().getTagModel().updateTags();
         updateStatusText();
-        return commitTreeModel.whenUpdatedForChangesInRepo();
+        return commitTreeModel.updateModelForChangesWithinRepoWhenSubscribed();
     }
 
     /**

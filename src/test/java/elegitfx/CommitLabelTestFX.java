@@ -8,11 +8,9 @@ import elegit.monitors.RepositoryMonitor;
 import elegit.treefx.Cell;
 import elegit.treefx.CommitTreeModel;
 import io.reactivex.Single;
-import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
-import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
@@ -21,11 +19,8 @@ import javafx.scene.layout.HBox;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
-import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
-import org.testfx.api.FxToolkit;
 import org.testfx.framework.junit.ApplicationTest;
 
 import java.io.File;
@@ -102,7 +97,7 @@ public class CommitLabelTestFX extends ApplicationTest {
         // Load this repo in Elegit, and initialize
         SessionModel.getSessionModel().openRepoFromHelper(helper);
 
-        commitTreeModel.whenInitializedForNewRepo()
+        commitTreeModel.initializeModelForNewRepoWhenSubscribed()
                 .flatMap((unused) -> testAddFileAndCommit())
 
                 .doOnSuccess((unused) -> {
@@ -146,7 +141,7 @@ public class CommitLabelTestFX extends ApplicationTest {
         this.helper.addFilePathTest(file.toPath());
         this.helper.commit("Modified file.txt in a unit test!");
 
-        return sessionController.gitStatusWorkload()
+        return sessionController.doGitStatusWhenSubscribed()
                 .doOnSuccess((unused) -> {
 
                     // Get the information about the new commit
@@ -170,7 +165,7 @@ public class CommitLabelTestFX extends ApplicationTest {
                     headIDForTesting = newHeadID;
                 })
 
-                .flatMap((unused) -> sessionController.gitStatusWorkload())
+                .flatMap((unused) -> sessionController.doGitStatusWhenSubscribed())
 
                 .doOnSuccess((unused) -> {
 

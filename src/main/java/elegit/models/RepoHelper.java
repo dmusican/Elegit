@@ -146,6 +146,7 @@ public class RepoHelper {
 
     public void wrapAuthentication(TransportCommand command, UsernamePasswordCredentialsProvider ownerAuth) {
 
+        System.out.println("RepoHelper.wrapAuthentication");
         if (ownerAuth != null)
             command.setCredentialsProvider(ownerAuth);
         else
