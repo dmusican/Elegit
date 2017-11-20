@@ -13,12 +13,19 @@ import org.apache.sshd.common.config.keys.FilePasswordProvider;
 import org.apache.sshd.common.keyprovider.KeyPairProvider;
 import org.apache.sshd.common.keyprovider.MappedKeyPairProvider;
 import org.apache.sshd.common.util.security.SecurityUtils;
+import org.apache.sshd.git.pack.GitPackCommandFactory;
+import org.apache.sshd.server.Command;
+import org.apache.sshd.server.CommandFactory;
 import org.apache.sshd.server.SshServer;
 import org.apache.sshd.server.auth.password.PasswordAuthenticator;
 import org.apache.sshd.server.auth.pubkey.AcceptAllPublickeyAuthenticator;
+import org.apache.sshd.server.auth.pubkey.KeySetPublickeyAuthenticator;
 import org.apache.sshd.server.auth.pubkey.PublickeyAuthenticator;
 import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider;
+import org.apache.sshd.server.scp.ScpCommandFactory;
 import org.apache.sshd.server.session.ServerSession;
+import org.apache.sshd.server.shell.InteractiveProcessShellFactory;
+import org.apache.sshd.server.shell.ProcessShellFactory;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.PushCommand;
 import org.junit.After;
@@ -106,8 +113,10 @@ public class AuthenticatedCloneLocalServerTest {
     public void testSshPrivateKey() throws Exception {
         JSch.setLogger(new AuthenticatedCloneTest.MyLogger());
 
+        // Set up test SSH server.
         SshServer sshd = SshServer.setUpDefaultServer();
 
+        // Provide SSH server with public and private key info that client will be connecting with
         String testFileLocation = System.getProperty("user.home") + File.separator +
                 "elegitTests" + File.separator;
         File passwordFile = new File(testFileLocation + "sshPrivateKeyPassword.txt");
@@ -123,7 +132,6 @@ public class AuthenticatedCloneLocalServerTest {
 
         InputStream inputStream = Files.newInputStream(Paths.get(keyFileName));
         FilePasswordProvider filePasswordProvider = FilePasswordProvider.of(passphrase);
-
         KeyPair kp = SecurityUtils.loadKeyPairIdentity("testkey", inputStream, filePasswordProvider);
         ArrayList<KeyPair> pairs = new ArrayList<>();
         pairs.add(kp);
@@ -133,8 +141,7 @@ public class AuthenticatedCloneLocalServerTest {
         // Need to use a non-standard port, as there may be an ssh server already running on this machine
         sshd.setPort(2222);
 
-
-
+        // Set up a fall-back password authenticator to help in diagnosing failed test
         sshd.setPasswordAuthenticator(new PasswordAuthenticator() {
             public boolean authenticate(String username, String password, ServerSession session) {
                 fail("Tried to use password instead of public key authentication");
@@ -142,39 +149,55 @@ public class AuthenticatedCloneLocalServerTest {
             }
         });
 
+        // This replaces the role of authorized_keys, so that any key we try is allowed to be used.
+        // Note that this means that all public keys will be allowed, but it does not allow an actual
+        // connection unless the user has the desired private key.
         sshd.setPublickeyAuthenticator(AcceptAllPublickeyAuthenticator.INSTANCE);
 
-
-        sshd.start();
-
-
-        Path remote = directoryPath.resolve("remote");
+        // Locations of simulated remote and local repos.
+        Path remoteFull = directoryPath.resolve("remote");
+        Path remoteBrief = Paths.get("remote");
         Path local = directoryPath.resolve("local");
-
-        console.info("Remote path = " + remote);
+        console.info("Setting server root to " + directoryPath);
+        console.info("Remote path full = " + remoteFull);
+        console.info("Remote path brief = " + remoteBrief);
         console.info("Local path = " + local);
 
-        Git remoteHandle = Git.init().setDirectory(remote.toFile()).setBare(true).call();
 
-        String remoteURL = "ssh://localhost:2222"+remote;
+        // Amazingly useful Git command setup provided by Mina.
+        sshd.setCommandFactory(new GitPackCommandFactory(directoryPath.toString()));
+
+        // Start the SSH test server.
+        sshd.start();
+
+        // Create a bare repo on the remote to be cloned.
+        Git remoteHandle = Git.init().setDirectory(remoteFull.toFile()).setBare(true).call();
+
+        // Clone the bare repo, using the SSH connection, to the local.
+        String remoteURL = "ssh://localhost:2222/"+remoteBrief;
         console.info("Connecting to " + remoteURL);
         ClonedRepoHelper helper = new ClonedRepoHelper(local, remoteURL, passphrase,
                                                        new ElegitUserInfoTest(null, passphrase));
         helper.obtainRepository(remoteURL);
+
+        // Verify that it is an SSH connection, then try a getch
         assertEquals(helper.getCompatibleAuthentication(), AuthMethod.SSH);
         helper.fetch(false);
 
+        // Create a new test file at the local repo
         Path fileLocation = local.resolve("README.md");
-
         FileWriter fw = new FileWriter(fileLocation.toString(), true);
         fw.write("start");
         fw.close();
+
+        // Commit, and push to remote
         helper.addFilePathTest(fileLocation);
         helper.commit("Appended to file");
-
-
         PushCommand command = helper.prepareToPushAll();
         helper.pushAll(command);
+
+        // Shut down test SSH server
+        sshd.stop();
 
 
     }
