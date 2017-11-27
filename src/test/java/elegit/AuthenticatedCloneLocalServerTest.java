@@ -2,50 +2,44 @@ package elegit;
 
 import com.jcraft.jsch.JSch;
 import elegit.exceptions.ExceptionAdapter;
-import elegit.models.AuthMethod;
-import elegit.models.ClonedRepoHelper;
-import elegit.models.ExistingRepoHelper;
-import elegit.models.LocalBranchHelper;
-import elegit.sshauthentication.ElegitUserInfoTest;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.sshd.common.config.keys.FilePasswordProvider;
-import org.apache.sshd.common.keyprovider.KeyPairProvider;
 import org.apache.sshd.common.keyprovider.MappedKeyPairProvider;
 import org.apache.sshd.common.util.security.SecurityUtils;
-import org.apache.sshd.git.pack.GitPackCommandFactory;
-import org.apache.sshd.server.Command;
-import org.apache.sshd.server.CommandFactory;
 import org.apache.sshd.server.SshServer;
-import org.apache.sshd.server.auth.password.PasswordAuthenticator;
-import org.apache.sshd.server.auth.pubkey.AcceptAllPublickeyAuthenticator;
-import org.apache.sshd.server.auth.pubkey.KeySetPublickeyAuthenticator;
-import org.apache.sshd.server.auth.pubkey.PublickeyAuthenticator;
-import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider;
-import org.apache.sshd.server.scp.ScpCommandFactory;
-import org.apache.sshd.server.session.ServerSession;
-import org.apache.sshd.server.shell.InteractiveProcessShellFactory;
-import org.apache.sshd.server.shell.ProcessShellFactory;
-import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.PushCommand;
+import org.bouncycastle.asn1.nist.NISTObjectIdentifiers;
+import org.bouncycastle.openssl.PKCS8Generator;
+import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
+import org.bouncycastle.openssl.jcajce.JcaPKCS8Generator;
+import org.bouncycastle.pkcs.jcajce.JcePKCSPBEOutputEncryptorBuilder;
+import org.bouncycastle.util.io.pem.PemObject;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import javax.crypto.Cipher;
+import javax.crypto.EncryptedPrivateKeyInfo;
+import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.PBEKeySpec;
+import javax.crypto.spec.PBEParameterSpec;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.AlgorithmParameters;
+import java.security.KeyFactory;
 import java.security.KeyPair;
-import java.security.PublicKey;
-import java.util.ArrayList;
-import java.util.Scanner;
+import java.security.KeyPairGenerator;
+import java.security.PrivateKey;
+import java.security.SecureRandom;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.util.Base64;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
 
 public class AuthenticatedCloneLocalServerTest {
 
@@ -73,12 +67,13 @@ public class AuthenticatedCloneLocalServerTest {
 
         directoryPath = Files.createTempDirectory("unitTestRepos");
         directoryPath.toFile().deleteOnExit();
+        console.info("Setting server root to " + directoryPath);
     }
 
     @After
     public void tearDown() throws Exception {
-        removeAllFilesFromDirectory(this.logPath.toFile());
-        removeAllFilesFromDirectory(directoryPath.toFile());
+//        removeAllFilesFromDirectory(this.logPath.toFile());
+//        removeAllFilesFromDirectory(directoryPath.toFile());
     }
 
     // Helper tear-down method:
@@ -116,88 +111,139 @@ public class AuthenticatedCloneLocalServerTest {
         // Set up test SSH server.
         SshServer sshd = SshServer.setUpDefaultServer();
 
-        // Provide SSH server with public and private key info that client will be connecting with
-        String testFileLocation = System.getProperty("user.home") + File.separator +
-                "elegitTests" + File.separator;
-        File passwordFile = new File(testFileLocation + "sshPrivateKeyPassword.txt");
-//        File passwordFile = new File(testFileLocation + "anotherpass.txt");
-        File keyFile = new File(testFileLocation + "anotherkeyfile.txt");
+        // Pay close attention; we're using two different classes called KeyPair throughout the code.
 
-        Scanner scanner = new Scanner(passwordFile);
-        String passphrase = scanner.next();
-        console.info("phrase is " + passphrase);
-
-        scanner = new Scanner(keyFile);
-        String keyFileName = scanner.next();
-
-        InputStream inputStream = Files.newInputStream(Paths.get(keyFileName));
-        FilePasswordProvider filePasswordProvider = FilePasswordProvider.of(passphrase);
-        KeyPair kp = SecurityUtils.loadKeyPairIdentity("testkey", inputStream, filePasswordProvider);
-        ArrayList<KeyPair> pairs = new ArrayList<>();
-        pairs.add(kp);
-        KeyPairProvider hostKeyProvider = new MappedKeyPairProvider(pairs);
-        sshd.setKeyPairProvider(hostKeyProvider);
-
-        // Need to use a non-standard port, as there may be an ssh server already running on this machine
-        sshd.setPort(2222);
-
-        // Set up a fall-back password authenticator to help in diagnosing failed test
-        sshd.setPasswordAuthenticator(new PasswordAuthenticator() {
-            public boolean authenticate(String username, String password, ServerSession session) {
-                fail("Tried to use password instead of public key authentication");
-                return false;
-            }
-        });
-
-        // This replaces the role of authorized_keys, so that any key we try is allowed to be used.
-        // Note that this means that all public keys will be allowed, but it does not allow an actual
-        // connection unless the user has the desired private key.
-        sshd.setPublickeyAuthenticator(AcceptAllPublickeyAuthenticator.INSTANCE);
-
-        // Locations of simulated remote and local repos.
-        Path remoteFull = directoryPath.resolve("remote");
-        Path remoteBrief = Paths.get("remote");
-        Path local = directoryPath.resolve("local");
-        console.info("Setting server root to " + directoryPath);
-        console.info("Remote path full = " + remoteFull);
-        console.info("Remote path brief = " + remoteBrief);
-        console.info("Local path = " + local);
+        // Generate public and private key pair for testing, and write to key files.
+//        com.jcraft.jsch.KeyPair jschKeyPair = com.jcraft.jsch.KeyPair.genKeyPair(new JSch(),
+//                                                                           com.jcraft.jsch.KeyPair.RSA,
+//                                                                                 1024);
+        Path keyPath = directoryPath.resolve("keys");
+        Files.createDirectory(keyPath);
+        String privateKeyFileName = keyPath.resolve("generated_key").toString();
+        String publicKeyFileName = keyPath.resolve("generated_key.pub").toString();
+//        jschKeyPair.writePublicKey(publicKeyFileName,"a test key");
+//        jschKeyPair.writePrivateKey(privateKeyFileName);//, passphrase.getBytes());
 
 
-        // Amazingly useful Git command setup provided by Mina.
-        sshd.setCommandFactory(new GitPackCommandFactory(directoryPath.toString()));
+        // https://stackoverflow.com/questions/5127379/how-to-generate-a-rsa-keypair-with-a-privatekey-encrypted-with-password
+        KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
+        keyPairGenerator.initialize(1024);
+        KeyPair keyPair = keyPairGenerator.generateKeyPair();
 
-        // Start the SSH test server.
-        sshd.start();
+        // extract the encoded private key, this is an unencrypted PKCS#8 private key
+        byte[] encodedprivkey = keyPair.getPrivate().getEncoded();
 
-        // Create a bare repo on the remote to be cloned.
-        Git remoteHandle = Git.init().setDirectory(remoteFull.toFile()).setBare(true).call();
+        // We must use a PasswordBasedEncryption algorithm in order to encrypt the private key, you may use any common algorithm supported by openssl, you can check them in the openssl documentation http://www.openssl.org/docs/apps/pkcs8.html
+        String MYPBEALG = "PBEWithSHA1AndDESede";
+        String passphrase = "pleaseChangeit!";
 
-        // Clone the bare repo, using the SSH connection, to the local.
-        String remoteURL = "ssh://localhost:2222/"+remoteBrief;
-        console.info("Connecting to " + remoteURL);
-        ClonedRepoHelper helper = new ClonedRepoHelper(local, remoteURL, passphrase,
-                                                       new ElegitUserInfoTest(null, passphrase));
-        helper.obtainRepository(remoteURL);
+        int count = 20;// hash iteration count
+        SecureRandom random = new SecureRandom();
+        byte[] salt = new byte[8];
+        random.nextBytes(salt);
 
-        // Verify that it is an SSH connection, then try a getch
-        assertEquals(helper.getCompatibleAuthentication(), AuthMethod.SSH);
-        helper.fetch(false);
+        // Create PBE parameter set
+        PBEParameterSpec pbeParamSpec = new PBEParameterSpec(salt, count);
+        PBEKeySpec pbeKeySpec = new PBEKeySpec(passphrase.toCharArray());
+        SecretKeyFactory keyFac = SecretKeyFactory.getInstance(MYPBEALG);
+        SecretKey pbeKey = keyFac.generateSecret(pbeKeySpec);
 
-        // Create a new test file at the local repo
-        Path fileLocation = local.resolve("README.md");
-        FileWriter fw = new FileWriter(fileLocation.toString(), true);
-        fw.write("start");
-        fw.close();
+        Cipher pbeCipher = Cipher.getInstance(MYPBEALG);
 
-        // Commit, and push to remote
-        helper.addFilePathTest(fileLocation);
-        helper.commit("Appended to file");
-        PushCommand command = helper.prepareToPushAll();
-        helper.pushAll(command);
+        // Initialize PBE Cipher with key and parameters
+        pbeCipher.init(Cipher.ENCRYPT_MODE, pbeKey, pbeParamSpec);
 
-        // Shut down test SSH server
-        sshd.stop();
+        // Encrypt the encoded Private Key with the PBE key
+        byte[] ciphertext = pbeCipher.doFinal(encodedprivkey);
+
+        // Now construct  PKCS #8 EncryptedPrivateKeyInfo object
+        AlgorithmParameters algparms = AlgorithmParameters.getInstance(MYPBEALG);
+        algparms.init(pbeParamSpec);
+        EncryptedPrivateKeyInfo encinfo = new EncryptedPrivateKeyInfo(algparms, ciphertext);
+
+        // and here we have it! a DER encoded PKCS#8 encrypted key!
+        byte[] encryptedPkcs8 = encinfo.getEncoded();
+
+
+        // https://stackoverflow.com/questions/24506246/java-how-to-save-a-private-key-in-a-pem-file-with-password-protection
+        KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+        PrivateKey encPrivateKey = keyFactory.generatePrivate(new PKCS8EncodedKeySpec(encryptedPkcs8));
+        System.out.println(encPrivateKey);
+        JcaPEMWriter writer = new JcaPEMWriter(new PrintWriter(new File(privateKeyFileName)));
+        writer.writeObject(encPrivateKey);
+        writer.close();
+
+
+        // Read back from key files, and insert into test server.
+        InputStream privateKeyInputStream = Files.newInputStream(Paths.get(privateKeyFileName));
+        FilePasswordProvider passphraseProvider = FilePasswordProvider.of(passphrase);
+        java.security.KeyPair javasecKeyPair =
+                SecurityUtils.loadKeyPairIdentity("generated_key",
+                                                  privateKeyInputStream,
+                                                  passphraseProvider);
+        sshd.setKeyPairProvider(new MappedKeyPairProvider(javasecKeyPair));
+//
+//        // Need to use a non-standard port, as there may be an ssh server already running on this machine
+//        sshd.setPort(2222);
+//
+//        // Set up a fall-back password authenticator to help in diagnosing failed test
+//        sshd.setPasswordAuthenticator(new PasswordAuthenticator() {
+//            public boolean authenticate(String username, String password, ServerSession session) {
+//                fail("Tried to use password instead of public key authentication");
+//                return false;
+//            }
+//        });
+//
+//        // This replaces the role of authorized_keys, indicating that this key is allowed to be used.
+//        // Note that this is not actually determining that a private/public key match has happened; merely that
+//        // this key is allowed.
+//        ArrayList<PublicKey> publicKeys = new ArrayList<>();
+//        publicKeys.add(javasecKeyPair.getPublic());
+//        sshd.setPublickeyAuthenticator(new KeySetPublickeyAuthenticator(publicKeys));
+//
+//
+//        // Locations of simulated remote and local repos.
+//        Path remoteFull = directoryPath.resolve("remote");
+//        Path remoteBrief = Paths.get("remote");
+//        Path local = directoryPath.resolve("local");
+//        console.info("Remote path full = " + remoteFull);
+//        console.info("Remote path brief = " + remoteBrief);
+//        console.info("Local path = " + local);
+//
+//        // Amazingly useful Git command setup provided by Mina.
+//        sshd.setCommandFactory(new GitPackCommandFactory(directoryPath.toString()));
+//
+//        // Start the SSH test server.
+//        sshd.start();
+//
+//        // Create a bare repo on the remote to be cloned.
+//        Git remoteHandle = Git.init().setDirectory(remoteFull.toFile()).setBare(true).call();
+//
+//        // Clone the bare repo, using the SSH connection, to the local.
+//        String remoteURL = "ssh://localhost:2222/"+remoteBrief;
+//        console.info("Connecting to " + remoteURL);
+//        ClonedRepoHelper helper = new ClonedRepoHelper(local, remoteURL, passphrase,
+//                                                       new ElegitUserInfoTest(null, passphrase));
+//        helper.obtainRepository(remoteURL);
+//
+//        // Verify that it is an SSH connection, then try a getch
+//        assertEquals(helper.getCompatibleAuthentication(), AuthMethod.SSH);
+//        helper.fetch(false);
+//
+//        // Create a new test file at the local repo
+//        Path fileLocation = local.resolve("README.md");
+//        FileWriter fw = new FileWriter(fileLocation.toString(), true);
+//        fw.write("start");
+//        fw.close();
+//
+//        // Commit, and push to remote
+//        helper.addFilePathTest(fileLocation);
+//        helper.commit("Appended to file");
+//        PushCommand command = helper.prepareToPushAll();
+//        helper.pushAll(command);
+//
+//        // Shut down test SSH server
+//        sshd.stop();
 
 
     }
