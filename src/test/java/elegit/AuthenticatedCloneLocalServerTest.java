@@ -165,13 +165,18 @@ public class AuthenticatedCloneLocalServerTest {
         // Create a bare repo on the remote to be cloned.
         Git remoteHandle = Git.init().setDirectory(remoteFull.toFile()).setBare(true).call();
 
+        // Create temporary known_hosts file.
+        Path knownHostsFileLocation = directoryPath.resolve("testing_known_hosts");
+        Files.createFile(knownHostsFileLocation);
+
         // Clone the bare repo, using the SSH connection, to the local.
         String remoteURL = "ssh://localhost:2222/"+remoteBrief;
         console.info("Connecting to " + remoteURL);
         ClonedRepoHelper helper =
                 new ClonedRepoHelper(local, remoteURL, passphrase,
                                      new ElegitUserInfoTest(null, passphrase),
-                                     getClass().getResource(privateKeyFileLocation).getFile());
+                                     getClass().getResource(privateKeyFileLocation).getFile(),
+                                     directoryPath.resolve("testing_known_hosts").toString());
         helper.obtainRepository(remoteURL);
 
         // Verify that it is an SSH connection, then try a getch

@@ -30,9 +30,9 @@ public class ClonedRepoHelper extends RepoHelper {
     }
 
     public ClonedRepoHelper(Path directoryPath, String remoteURL, String sshPassword, UserInfo userInfo,
-                            String privateKeyFileLocation)
+                            String privateKeyFileLocation, String knownHostsFileLocation)
             throws GitAPIException, IOException, CancelledAuthorizationException {
-        super(directoryPath, sshPassword, userInfo, privateKeyFileLocation);
+        super(directoryPath, sshPassword, userInfo, privateKeyFileLocation, knownHostsFileLocation);
     }
 
     /**
