@@ -31,6 +31,7 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
@@ -52,6 +53,7 @@ public class RepoHelper {
     private final Path localPath;
     private final UserInfo userInfo;
     private final SshSessionFactory sshSessionFactory;
+    private final String privateKeyFileLocation;
 
     private final AtomicReference<Set<CommitHelper>> localCommits = new AtomicReference<>();
     private final AtomicReference<Set<CommitHelper>> remoteCommits = new AtomicReference<>();
@@ -80,6 +82,7 @@ public class RepoHelper {
         setOwnerAuth(ownerAuth);
         this.password = null;
         this.userInfo = null;
+        this.privateKeyFileLocation = null;
         sshSessionFactory = setupSshSessionFactory();
     }
 
@@ -88,6 +91,7 @@ public class RepoHelper {
         this.localPath = directoryPath;
         this.password = null;
         this.userInfo = userInfo;
+        this.privateKeyFileLocation = null;
         sshSessionFactory = setupSshSessionFactory();
     }
 
@@ -96,6 +100,16 @@ public class RepoHelper {
         this.localPath = directoryPath;
         this.password = sshPassword;
         this.userInfo = userInfo;
+        this.privateKeyFileLocation = null;
+        sshSessionFactory = setupSshSessionFactory();
+    }
+
+    public RepoHelper(Path directoryPath, String sshPassword, UserInfo userInfo, String privateKeyFileLocation)
+            throws GitAPIException, IOException, CancelledAuthorizationException {
+        this.localPath = directoryPath;
+        this.password = sshPassword;
+        this.userInfo = userInfo;
+        this.privateKeyFileLocation = privateKeyFileLocation;
         sshSessionFactory = setupSshSessionFactory();
     }
 
@@ -103,6 +117,7 @@ public class RepoHelper {
         this.localPath = null;
         this.password = sshPassword;
         this.userInfo = null;
+        this.privateKeyFileLocation = null;
         sshSessionFactory = setupSshSessionFactory();
     }
 
@@ -110,6 +125,7 @@ public class RepoHelper {
         this.localPath = null;
         this.userInfo = userInfo;
         this.password = null;
+        this.privateKeyFileLocation = null;
         sshSessionFactory = setupSshSessionFactory();
     }
 
@@ -138,6 +154,10 @@ public class RepoHelper {
             @Override
             protected JSch createDefaultJSch(FS fs) throws JSchException {
                 JSch defaultJSch = super.createDefaultJSch(fs);
+                if (privateKeyFileLocation != null) {
+                    defaultJSch.addIdentity(privateKeyFileLocation);
+//                    defaultJSch.addIdentity("/Accounts/dmusicant/IdeaProjects/Elegit/target/test-classes/rsa_key1");
+                }
                 defaultJSch.getIdentityNames().forEach(name -> System.out.println("Identity " + name));
                 //defaultJSch.removeAllIdentity();
                 defaultJSch.getIdentityNames().forEach(name -> System.out.println("Identityc " + name));

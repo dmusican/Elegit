@@ -122,7 +122,8 @@ public class AuthenticatedCloneLocalServerTest {
         String passphrase = scanner.next();
         console.info("phrase is " + passphrase);
 
-        InputStream privateKeyStream = getClass().getResourceAsStream("/rsa_key1");
+        String privateKeyFileLocation = "/rsa_key1";
+        InputStream privateKeyStream = getClass().getResourceAsStream(privateKeyFileLocation);
         FilePasswordProvider filePasswordProvider = FilePasswordProvider.of(passphrase);
         KeyPair kp = SecurityUtils.loadKeyPairIdentity("testkey", privateKeyStream, filePasswordProvider);
         ArrayList<KeyPair> pairs = new ArrayList<>();
@@ -167,8 +168,10 @@ public class AuthenticatedCloneLocalServerTest {
         // Clone the bare repo, using the SSH connection, to the local.
         String remoteURL = "ssh://localhost:2222/"+remoteBrief;
         console.info("Connecting to " + remoteURL);
-        ClonedRepoHelper helper = new ClonedRepoHelper(local, remoteURL, passphrase,
-                                                       new ElegitUserInfoTest(null, passphrase));
+        ClonedRepoHelper helper =
+                new ClonedRepoHelper(local, remoteURL, passphrase,
+                                     new ElegitUserInfoTest(null, passphrase),
+                                     getClass().getResource(privateKeyFileLocation).getFile());
         helper.obtainRepository(remoteURL);
 
         // Verify that it is an SSH connection, then try a getch
