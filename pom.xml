@@ -13,6 +13,7 @@
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
     <build>
@@ -35,7 +36,12 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>2.20.1</version>
                 <configuration>
-                    <!--<argLine> -Djava.awt.headless -Dtestfx.robot=glass -Dtestfx.headless=true -Dprism.order=sw -Dprism.text=t2k -Dtestfx.setup.timeout=20000</argLine>-->
+                    <argLine> -Djava.awt.headless -Dtestfx.robot=glass -Dtestfx.headless=true -Dprism.order=sw -Dprism.text=t2k -Dtestfx.setup.timeout=20000</argLine>
+                    <!-- https://github.com/TestFX/TestFX/issues/132 -->
+                    <reuseForks>false</reuseForks>
+                    <additionalClasspathElements>
+                        <additionalClasspathElement>${java.home}/lib/ext/jfxrt.jar</additionalClasspathElement>
+                    </additionalClasspathElements>
                 </configuration>
             </plugin>
 
