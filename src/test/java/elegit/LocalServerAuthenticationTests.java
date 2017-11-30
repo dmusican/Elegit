@@ -42,12 +42,13 @@ import java.nio.file.Paths;
 import java.security.KeyPair;
 import java.security.PublicKey;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Scanner;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
-public class AuthenticatedCloneLocalServerTest {
+public class LocalServerAuthenticationTests {
 
     private static Path logPath;
 
@@ -142,10 +143,10 @@ public class AuthenticatedCloneLocalServerTest {
             }
         });
 
-        // This replaces the role of authorized_keys, so that any key we try is allowed to be used.
-        // Note that this means that all public keys will be allowed, but it does not allow an actual
-        // connection unless the user has the desired private key.
-        sshd.setPublickeyAuthenticator(AcceptAllPublickeyAuthenticator.INSTANCE);
+        // This replaces the role of authorized_keys.
+        Collection<PublicKey> allowedKeys = new ArrayList<>();
+        allowedKeys.add(kp.getPublic());
+        sshd.setPublickeyAuthenticator(new KeySetPublickeyAuthenticator(allowedKeys));
 
         // Locations of simulated remote and local repos.
         Path remoteFull = directoryPath.resolve("remote");
@@ -194,6 +195,9 @@ public class AuthenticatedCloneLocalServerTest {
         helper.commit("Appended to file");
         PushCommand command = helper.prepareToPushAll();
         helper.pushAll(command);
+
+        // Other methods to test if authentication is succeeding
+        helper.getRefsFromRemote(false);
 
         // Shut down test SSH server
         sshd.stop();
