@@ -1459,10 +1459,18 @@ public class RepoHelper {
         if(includeTags) return new Git(repo).lsRemote().setHeads(true).setTags(true).setCredentialsProvider(ownerAuth).call();
         else return new Git(repo).lsRemote().setHeads(true).setCredentialsProvider(ownerAuth).call();*/
 
-        if (includeTags)
-            return Collections.unmodifiableCollection(new Git(getRepo()).lsRemote().setHeads(true).setTags(includeTags).call());
-        else
-            return Collections.unmodifiableCollection(new Git(getRepo()).lsRemote().setHeads(true).call());
+        LsRemoteCommand command = new Git(getRepo()).lsRemote().setHeads(true);
+        if (includeTags) {
+            command = command.setTags(includeTags);
+        }
+        myWrapAuthentication(command);
+        return Collections.unmodifiableCollection(command.call());
+
+
+//        if (includeTags)
+//            return Collections.unmodifiableCollection(new Git(getRepo()).lsRemote().setHeads(true).setTags(includeTags).call());
+//        else
+//            return Collections.unmodifiableCollection(new Git(getRepo()).lsRemote().setHeads(true).call());
     }
 
     public List<RefHelper> getRefsForCommit(CommitHelper helper) {

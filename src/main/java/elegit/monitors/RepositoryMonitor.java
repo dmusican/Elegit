@@ -94,13 +94,16 @@ public class RepositoryMonitor{
             return;
         }
         remoteTimer.dispose();
+
+
         remoteTimer = Observable
                 .interval(0, REMOTE_CHECK_INTERVAL, TimeUnit.MILLISECONDS, Schedulers.io())
-                .subscribe(i -> {
+                .doOnNext(i -> {
                     numRemoteChecks.getAndIncrement();
                     if (remoteHasNewChanges(repo))
                         setFoundNewChanges();
-                });
+                })
+                .subscribe();
     }
 
     private static synchronized void stopWatchingRemoteRepo() {
@@ -111,41 +114,44 @@ public class RepositoryMonitor{
     // This method is not synchronized because it is called from the monitor thread, and a slow network connection
     // could block it up considerably. It uses no shared memory, and it makes calls to threadsafe libraries.
     private static boolean remoteHasNewChanges(RepoHelper repo) {
-        try{
-            List<BranchHelper> localOriginHeads = repo.getBranchModel().getBranchListUntyped(BranchModel.BranchType.REMOTE);
+        try {
+            List<BranchHelper> localOriginHeads = repo.getBranchModel().getBranchListUntyped(
+                    BranchModel.BranchType.REMOTE);
             Collection<Ref> remoteHeads = repo.getRefsFromRemote(false);
 
-            if(localOriginHeads.size() >= remoteHeads.size()){
-                for(Ref ref : remoteHeads){
+            if (localOriginHeads.size() >= remoteHeads.size()) {
+                for (Ref ref : remoteHeads) {
                     boolean hasFoundMatchingBranch = false;
                     boolean hasFoundNewChanges = false;
 
-                    for(BranchHelper branch : localOriginHeads){
-                        if(ref.getName().equals("refs/heads/"+repo.getRepo().shortenRemoteBranchName(branch.getRefPathString()))){
+                    for (BranchHelper branch : localOriginHeads) {
+                        if (ref.getName().equals(
+                                "refs/heads/" + repo.getRepo().shortenRemoteBranchName(branch.getRefPathString()))) {
                             hasFoundMatchingBranch = true;
-                            if(!branch.getHeadId().equals(ref.getObjectId())){
+                            if (!branch.getHeadId().equals(ref.getObjectId())) {
                                 hasFoundNewChanges = true;
                             }
                             break;
                         }
                     }
 
-                    if(hasFoundNewChanges || !hasFoundMatchingBranch){
+                    if (hasFoundNewChanges || !hasFoundMatchingBranch) {
                         return true;
                     }
                 }
-            }else{
+            } else {
                 return true;
             }
         }catch(GitAPIException | IOException e)
         {
+            System.out.println("Made it in here");
             SessionController sessionController = RepositoryMonitor.sessionController.get();
             // This work has been happening off FX thread, so notification needs to go back on it
             Platform.runLater(() -> {
                 sessionController.showExceptionAsGlobalNotification(
                         new SessionController.Result(SessionController.ResultOperation.CHECK_REMOTE_FOR_CHANGES, e));
             });
-            //e.printStackTrace();
+            e.printStackTrace();
         }
         return false;
     }

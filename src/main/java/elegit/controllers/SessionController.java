@@ -1912,7 +1912,8 @@ public class SessionController {
             } else if (result.exception instanceof TransportException) {
                 showNotification(nc,
                         "Transport Exception: " + result.exception.getLocalizedMessage(),
-                        "Transport Exception: " + result.exception.getLocalizedMessage());
+                        "Transport Exception: " + result.exception.getLocalizedMessage(),
+                                 result.exception);
 
             } else if (result.exception instanceof CheckoutConflictException) {
                 showNotification(nc, "Can't merge with modified files warning",
@@ -2017,6 +2018,12 @@ public class SessionController {
         nc.addNotification(userText);
     }
 
+    private void showNotification(NotificationController nc, String loggerText, String userText,
+                                  Throwable throwable) {
+        Main.assertFxThread();
+        logger.warn(loggerText, throwable);
+        nc.addNotification(userText);
+    }
 
     private RepoHelperBuilder.AuthDialogResponse authenticateAndShowBusy(String message)
             throws NoRepoLoadedException, CancelledAuthorizationException {

@@ -2,6 +2,7 @@ package elegit.sshauthentication;
 
 import com.jcraft.jsch.UserInfo;
 import elegit.Main;
+import elegit.exceptions.ExceptionAdapter;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
@@ -103,9 +104,10 @@ public class ElegitUserInfoGUI implements UserInfo {
         Platform.runLater(futureTask);
         Optional<String> result = Optional.of("");
         try {
-            return futureTask.get();
+            result = futureTask.get();
         } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
+            throw new ExceptionAdapter(e);
         }
         return result;
     }
