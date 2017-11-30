@@ -50,7 +50,7 @@ import java.util.prefs.Preferences;
 import static junit.framework.TestCase.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 
-public class RepoCreationTests2 extends ApplicationTest {
+public class RepoCreation3FXTest extends ApplicationTest {
 
     static {
         // -----------------------Logging Initialization Start---------------------------
@@ -126,28 +126,78 @@ public class RepoCreationTests2 extends ApplicationTest {
 
 
     @Test
-    public void clickCommitTest() throws Exception {
+    public void countOfCommitsInTreeTest() throws Exception {
+
+        // Make two repos; swap between them, make sure number of commits is correct in tree
         logger.info("Temp directory: " + directoryPath);
-        Path remote = directoryPath.resolve("remote");
-        Path local = directoryPath.resolve("local");
+
+        Path remote1 = directoryPath.resolve("remote1");
+        Path local1 = directoryPath.resolve("local1");
+        RevCommit firstCommit1 = makeTestRepo(remote1, local1, 5);
+        logger.info(remote1);
+        logger.info(local1);
+
+        Path remote2 = directoryPath.resolve("remote2");
+        Path local2 = directoryPath.resolve("local2");
+        RevCommit firstCommit2 = makeTestRepo(remote2, local2, 5);
+        logger.info(remote2);
+        logger.info(local2);
+
+        SessionController.gitStatusCompletedOnce = new CountDownLatch(1);
+
+        clickOn("#loadNewRepoButton")
+                .clickOn("#loadExistingRepoOption")
+                .clickOn("#repoInputDialog")
+                .write(local1.toString())
+                .clickOn("#repoInputDialogOK");
+
+        SessionController.gitStatusCompletedOnce.await();
+
+        Cell firstCell1 = lookup(Matchers.hasToString(firstCommit1.getName())).query();
+        assertNotEquals(null, firstCell1);
+
+        Set<Cell> cells1 = lookup(Matchers.instanceOf(Cell.class)).queryAll();
+        logger.info("Commits added 1");
+        cells1.stream().forEach(logger::info);
+        assertEquals(6,cells1.size());
+
+        clickOn("#loadNewRepoButton")
+                .clickOn("#loadExistingRepoOption")
+                .clickOn("#repoInputDialog")
+                .write(local2.toString())
+                .clickOn("#repoInputDialogOK");
+
+
+        Cell firstCell2 = lookup(Matchers.hasToString(firstCommit2.getName())).query();
+        assertNotEquals(null, firstCell2);
+
+        sleep(3000);
+
+        Set<Cell> cells2 = lookup(Matchers.instanceOf(Cell.class)).queryAll();
+        logger.info("Commits added 2");
+        cells2.stream().forEach(logger::info);
+        assertEquals(6,cells2.size());
+    }
+
+    private RevCommit makeTestRepo(Path remote, Path local, int numCommits) throws GitAPIException, IOException, CancelledAuthorizationException, MissingRepoException, PushToAheadRemoteError, NoCommitsToPushException {
         Git.init().setDirectory(remote.toFile()).setBare(true).call();
-        Git.cloneRepository().setDirectory(local.toFile()).setURI("file://"+remote).call();
+        Git.cloneRepository().setDirectory(local.toFile()).setURI("file://" + remote).call();
 
         ExistingRepoHelper helper = new ExistingRepoHelper(local, new ElegitUserInfoTest());
 
         Path fileLocation = local.resolve("README.md");
 
         FileWriter fw = new FileWriter(fileLocation.toString(), true);
-        fw.write("start");
+        fw.write("start"+random.nextInt()); // need this to make sure each repo comes out with different hashes
         fw.close();
         helper.addFilePathTest(fileLocation);
         RevCommit firstCommit = helper.commit("Appended to file");
         Cell firstCellAttempt = lookup(firstCommit.getName()).query();
         logger.info("firstCell = " + firstCellAttempt);
 
-        for (int i=0; i < 3; i++) {
+        for (int i = 0; i < numCommits; i++) {
             fw = new FileWriter(fileLocation.toString(), true);
-            fw.write(""+i);
+            fw.write("" + i);
             fw.close();
             helper.addFilePathTest(fileLocation);
             helper.commit("Appended to file");
@@ -157,52 +207,7 @@ public class RepoCreationTests2 extends ApplicationTest {
         PushCommand command = helper.prepareToPushAll(untrackedLocalBranches -> untrackedLocalBranches);
         helper.pushAll(command);
 
-        logger.info(remote);
-        logger.info(local);
-
-        SessionController.gitStatusCompletedOnce = new CountDownLatch(1);
-
-        clickOn("#loadNewRepoButton")
-                .clickOn("#loadExistingRepoOption")
-                .clickOn("#repoInputDialog")
-                .write(local.toString())
-                .clickOn("#repoInputDialogOK");
-
-        SessionController.gitStatusCompletedOnce.await();
-
-        logger.info("First commit is " + firstCommit.getName());
-        interact( () -> {
-            Cell firstCell = lookup(Matchers.hasToString(firstCommit.getName())).query();
-            assertNotEquals(null, firstCell);
-            FxAssert.verifyThat(firstCell, (Cell cell) -> (cell.isVisible()));
-            assertEquals(CellState.STANDARD, firstCell.getPersistentCellState());
-        });
-
-
-        // Click on first commit
-        clickOn(Matchers.hasToString(firstCommit.getName()));
-
-        // Verify that when you click on it, it turns the appopriate color
-        interact(() -> {
-            Cell firstCell = lookup(Matchers.hasToString(firstCommit.getName())).query();
-            assertEquals(Color.web(CellState.SELECTED.getBackgroundColor()).toString(),
-                         Color.web(firstCell.getFxShapeObject().getFill().toString()).toString());
-            assertEquals(CellState.SELECTED, firstCell.getPersistentCellState());
-        });
-
-        clickOn(Matchers.hasToString(firstCommit.getName()));
-
-        // Verify that when you click on it again, it turns back
-        interact(() -> {
-            Cell firstCell = lookup(Matchers.hasToString(firstCommit.getName())).query();
-            assertEquals(Color.web(CellState.STANDARD.getBackgroundColor()).toString(),
-                         Color.web(firstCell.getFxShapeObject().getFill().toString()).toString());
-            assertEquals(CellState.STANDARD, firstCell.getPersistentCellState());
-        });
-
-
+        return firstCommit;
     }
-
-
 
 }

@@ -112,7 +112,8 @@ public class LocalServerAuthenticationTests {
 
     @Test
     public void testSshPrivateKey() throws Exception {
-        JSch.setLogger(new AuthenticatedCloneTest.MyLogger());
+        // Uncomment this to get detail SSH logging info, for debugging
+        //JSch.setLogger(new AuthenticatedCloneTest.MyLogger());
 
         // Set up test SSH server.
         SshServer sshd = SshServer.setUpDefaultServer();

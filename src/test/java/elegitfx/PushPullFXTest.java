@@ -33,7 +33,7 @@ import static org.junit.Assert.assertTrue;
 /**
  * Created by dmusican. Enjoy!
  */
-public class PushPullTestFX extends ApplicationTest {
+public class PushPullFXTest extends ApplicationTest {
 
 
     private Path directoryPath;

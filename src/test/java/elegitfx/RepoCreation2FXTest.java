@@ -7,11 +7,7 @@ import elegit.exceptions.CancelledAuthorizationException;
 import elegit.exceptions.MissingRepoException;
 import elegit.exceptions.NoCommitsToPushException;
 import elegit.exceptions.PushToAheadRemoteError;
-import elegit.models.BranchHelper;
-import elegit.models.BranchModel;
-import elegit.models.ExistingRepoHelper;
-import elegit.models.LocalBranchHelper;
-import elegit.models.SessionModel;
+import elegit.models.*;
 import elegit.monitors.RepositoryMonitor;
 import elegit.sshauthentication.ElegitUserInfoTest;
 import elegit.treefx.Cell;
@@ -53,9 +49,8 @@ import java.util.prefs.Preferences;
 
 import static junit.framework.TestCase.assertEquals;
 import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.fail;
 
-public class RepoCreationTests1 extends ApplicationTest {
+public class RepoCreation2FXTest extends ApplicationTest {
 
     static {
         // -----------------------Logging Initialization Start---------------------------
@@ -129,8 +124,9 @@ public class RepoCreationTests1 extends ApplicationTest {
 
     }
 
+
     @Test
-    public void highlightCommitTest() throws Exception {
+    public void clickCommitTest() throws Exception {
         logger.info("Temp directory: " + directoryPath);
         Path remote = directoryPath.resolve("remote");
         Path local = directoryPath.resolve("local");
@@ -149,9 +145,7 @@ public class RepoCreationTests1 extends ApplicationTest {
         Cell firstCellAttempt = lookup(firstCommit.getName()).query();
         logger.info("firstCell = " + firstCellAttempt);
 
-        for (int i=0; i < 100; i++) {
-            LocalBranchHelper branchHelper = helper.getBranchModel().createNewLocalBranch("branch" + i);
-            branchHelper.checkoutBranch();
+        for (int i=0; i < 3; i++) {
             fw = new FileWriter(fileLocation.toString(), true);
             fw.write(""+i);
             fw.close();
@@ -166,15 +160,7 @@ public class RepoCreationTests1 extends ApplicationTest {
         logger.info(remote);
         logger.info(local);
 
-        // Checkout a branch in the middle to see if commit jumps properly
-        BranchHelper branchHelper =
-                helper.getBranchModel().getBranchByName(BranchModel.BranchType.LOCAL, "branch50");
-
-        branchHelper.checkoutBranch();
-
-        // Used to slow down commit adds. Set to help cause bug we saw where highlight commit was happening before
-        // layout was done
-        TreeLayout.cellRenderTimeDelay.set(1000);
+        SessionController.gitStatusCompletedOnce = new CountDownLatch(1);
 
         clickOn("#loadNewRepoButton")
                 .clickOn("#loadExistingRepoOption")
@@ -182,21 +168,41 @@ public class RepoCreationTests1 extends ApplicationTest {
                 .write(local.toString())
                 .clickOn("#repoInputDialogOK");
 
-        HBox barAndLabel= lookup("#commitTreeProgressBarAndLabel").query();
+        SessionController.gitStatusCompletedOnce.await();
 
-        // The bug I'm witnessing involves layout getting called twice in rapid succession. The below code
-        // waits for the layout to start and stop; then below that, verifies that the first commit is in there
-        GuiTest.waitUntil(barAndLabel, (HBox box) -> (box.isVisible()));
-        GuiTest.waitUntil(barAndLabel, (HBox box) -> !(box.isVisible()));
-
-        // Verify that first commit is actually added at end of first layout call
+        logger.info("First commit is " + firstCommit.getName());
         interact( () -> {
             Cell firstCell = lookup(Matchers.hasToString(firstCommit.getName())).query();
             assertNotEquals(null, firstCell);
             FxAssert.verifyThat(firstCell, (Cell cell) -> (cell.isVisible()));
+            assertEquals(CellState.STANDARD, firstCell.getPersistentCellState());
         });
-        logger.info("Layout done");
+
+
+        // Click on first commit
+        clickOn(Matchers.hasToString(firstCommit.getName()));
+
+        // Verify that when you click on it, it turns the appopriate color
+        interact(() -> {
+            Cell firstCell = lookup(Matchers.hasToString(firstCommit.getName())).query();
+            assertEquals(Color.web(CellState.SELECTED.getBackgroundColor()).toString(),
+                         Color.web(firstCell.getFxShapeObject().getFill().toString()).toString());
+            assertEquals(CellState.SELECTED, firstCell.getPersistentCellState());
+        });
+
+        clickOn(Matchers.hasToString(firstCommit.getName()));
+
+        // Verify that when you click on it again, it turns back
+        interact(() -> {
+            Cell firstCell = lookup(Matchers.hasToString(firstCommit.getName())).query();
+            assertEquals(Color.web(CellState.STANDARD.getBackgroundColor()).toString(),
+                         Color.web(firstCell.getFxShapeObject().getFill().toString()).toString());
+            assertEquals(CellState.STANDARD, firstCell.getPersistentCellState());
+        });
+
+
     }
+
 
 
 }

@@ -107,10 +107,10 @@ public class SessionModelTest {
         String pathname = directoryPath.toString();
         System.out.println("..." + pathname);
         sessionModel.setAuthPref(pathname,AuthMethod.SSH);
-        System.out.println(sessionModel.getAuthPref(pathname));
-        for (String s : sessionModel.listAuthPaths()) {
-            System.out.println(s);
-        }
+//        System.out.println(sessionModel.getAuthPref(pathname));
+//        for (String s : sessionModel.listAuthPaths()) {
+//            System.out.println(s);
+//        }
     }
 
 }

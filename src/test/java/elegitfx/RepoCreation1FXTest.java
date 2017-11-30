@@ -7,7 +7,11 @@ import elegit.exceptions.CancelledAuthorizationException;
 import elegit.exceptions.MissingRepoException;
 import elegit.exceptions.NoCommitsToPushException;
 import elegit.exceptions.PushToAheadRemoteError;
-import elegit.models.*;
+import elegit.models.BranchHelper;
+import elegit.models.BranchModel;
+import elegit.models.ExistingRepoHelper;
+import elegit.models.LocalBranchHelper;
+import elegit.models.SessionModel;
 import elegit.monitors.RepositoryMonitor;
 import elegit.sshauthentication.ElegitUserInfoTest;
 import elegit.treefx.Cell;
@@ -49,8 +53,9 @@ import java.util.prefs.Preferences;
 
 import static junit.framework.TestCase.assertEquals;
 import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.fail;
 
-public class RepoCreationTests3 extends ApplicationTest {
+public class RepoCreation1FXTest extends ApplicationTest {
 
     static {
         // -----------------------Logging Initialization Start---------------------------
@@ -124,80 +129,31 @@ public class RepoCreationTests3 extends ApplicationTest {
 
     }
 
-
     @Test
-    public void countOfCommitsInTreeTest() throws Exception {
-
-        // Make two repos; swap between them, make sure number of commits is correct in tree
+    public void highlightCommitTest() throws Exception {
         logger.info("Temp directory: " + directoryPath);
-
-        Path remote1 = directoryPath.resolve("remote1");
-        Path local1 = directoryPath.resolve("local1");
-        RevCommit firstCommit1 = makeTestRepo(remote1, local1, 5);
-        logger.info(remote1);
-        logger.info(local1);
-
-        Path remote2 = directoryPath.resolve("remote2");
-        Path local2 = directoryPath.resolve("local2");
-        RevCommit firstCommit2 = makeTestRepo(remote2, local2, 5);
-        logger.info(remote2);
-        logger.info(local2);
-
-        SessionController.gitStatusCompletedOnce = new CountDownLatch(1);
-
-        clickOn("#loadNewRepoButton")
-                .clickOn("#loadExistingRepoOption")
-                .clickOn("#repoInputDialog")
-                .write(local1.toString())
-                .clickOn("#repoInputDialogOK");
-
-        SessionController.gitStatusCompletedOnce.await();
-
-        Cell firstCell1 = lookup(Matchers.hasToString(firstCommit1.getName())).query();
-        assertNotEquals(null, firstCell1);
-
-        Set<Cell> cells1 = lookup(Matchers.instanceOf(Cell.class)).queryAll();
-        logger.info("Commits added 1");
-        cells1.stream().forEach(logger::info);
-        assertEquals(6,cells1.size());
-
-        clickOn("#loadNewRepoButton")
-                .clickOn("#loadExistingRepoOption")
-                .clickOn("#repoInputDialog")
-                .write(local2.toString())
-                .clickOn("#repoInputDialogOK");
-
-
-        Cell firstCell2 = lookup(Matchers.hasToString(firstCommit2.getName())).query();
-        assertNotEquals(null, firstCell2);
-
-        sleep(3000);
-
-        Set<Cell> cells2 = lookup(Matchers.instanceOf(Cell.class)).queryAll();
-        logger.info("Commits added 2");
-        cells2.stream().forEach(logger::info);
-        assertEquals(6,cells2.size());
-    }
-
-    private RevCommit makeTestRepo(Path remote, Path local, int numCommits) throws GitAPIException, IOException, CancelledAuthorizationException, MissingRepoException, PushToAheadRemoteError, NoCommitsToPushException {
+        Path remote = directoryPath.resolve("remote");
+        Path local = directoryPath.resolve("local");
         Git.init().setDirectory(remote.toFile()).setBare(true).call();
-        Git.cloneRepository().setDirectory(local.toFile()).setURI("file://" + remote).call();
+        Git.cloneRepository().setDirectory(local.toFile()).setURI("file://"+remote).call();
 
         ExistingRepoHelper helper = new ExistingRepoHelper(local, new ElegitUserInfoTest());
 
         Path fileLocation = local.resolve("README.md");
 
         FileWriter fw = new FileWriter(fileLocation.toString(), true);
-        fw.write("start"+random.nextInt()); // need this to make sure each repo comes out with different hashes
+        fw.write("start");
         fw.close();
         helper.addFilePathTest(fileLocation);
         RevCommit firstCommit = helper.commit("Appended to file");
         Cell firstCellAttempt = lookup(firstCommit.getName()).query();
         logger.info("firstCell = " + firstCellAttempt);
 
-        for (int i = 0; i < numCommits; i++) {
+        for (int i=0; i < 100; i++) {
+            LocalBranchHelper branchHelper = helper.getBranchModel().createNewLocalBranch("branch" + i);
+            branchHelper.checkoutBranch();
             fw = new FileWriter(fileLocation.toString(), true);
-            fw.write("" + i);
+            fw.write(""+i);
             fw.close();
             helper.addFilePathTest(fileLocation);
             helper.commit("Appended to file");
@@ -207,7 +163,40 @@ public class RepoCreationTests3 extends ApplicationTest {
         PushCommand command = helper.prepareToPushAll(untrackedLocalBranches -> untrackedLocalBranches);
         helper.pushAll(command);
 
-        return firstCommit;
+        logger.info(remote);
+        logger.info(local);
+
+        // Checkout a branch in the middle to see if commit jumps properly
+        BranchHelper branchHelper =
+                helper.getBranchModel().getBranchByName(BranchModel.BranchType.LOCAL, "branch50");
+
+        branchHelper.checkoutBranch();
+
+        // Used to slow down commit adds. Set to help cause bug we saw where highlight commit was happening before
+        // layout was done
+        TreeLayout.cellRenderTimeDelay.set(1000);
+
+        clickOn("#loadNewRepoButton")
+                .clickOn("#loadExistingRepoOption")
+                .clickOn("#repoInputDialog")
+                .write(local.toString())
+                .clickOn("#repoInputDialogOK");
+
+        HBox barAndLabel= lookup("#commitTreeProgressBarAndLabel").query();
+
+        // The bug I'm witnessing involves layout getting called twice in rapid succession. The below code
+        // waits for the layout to start and stop; then below that, verifies that the first commit is in there
+        GuiTest.waitUntil(barAndLabel, (HBox box) -> (box.isVisible()));
+        GuiTest.waitUntil(barAndLabel, (HBox box) -> !(box.isVisible()));
+
+        // Verify that first commit is actually added at end of first layout call
+        interact( () -> {
+            Cell firstCell = lookup(Matchers.hasToString(firstCommit.getName())).query();
+            assertNotEquals(null, firstCell);
+            FxAssert.verifyThat(firstCell, (Cell cell) -> (cell.isVisible()));
+        });
+        logger.info("Layout done");
     }
+
 
 }

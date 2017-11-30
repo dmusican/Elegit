@@ -36,7 +36,7 @@ import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.assertFalse;
 import static org.junit.Assert.*;
 
-public class CommitLabelTestFX extends ApplicationTest {
+public class CommitLabelFXTest extends ApplicationTest {
 
     static {
         // -----------------------Logging Initialization Start---------------------------

@@ -13,7 +13,7 @@ import static org.junit.Assert.assertEquals;
 /**
  * Created by dmusicant on 12/6/16.
  */
-public class TreeLayoutTest extends ApplicationTest {
+public class TreeLayoutFXTest extends ApplicationTest {
 
     private static ArrayList<Cell> allCells = new ArrayList<>();
 

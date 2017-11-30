@@ -314,7 +314,9 @@ public class AuthenticatedCloneTest {
     @Test
     public void testSshPrivateKey() throws Exception {
 
-        JSch.setLogger(new MyLogger());
+        // Uncomment for more detailed debug info
+        //JSch.setLogger(new MyLogger());
+
         Path repoPath = directoryPath.resolve("testrepo");
         File urlFile = new File(testFileLocation + "sshPrivateKeyURL.txt");
         File passwordFile = new File(testFileLocation + "sshPrivateKeyPassword.txt");
