@@ -9,6 +9,7 @@ import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.nio.file.Path;
 
 /**
@@ -17,6 +18,7 @@ import java.nio.file.Path;
 public class ClonedRepoHelper extends RepoHelper {
 
     // Authentication via username/password combo
+    // TODO: remoteURL not used in these constructors. Remove, or alternatively get out of obtainRepository if possible.
     public ClonedRepoHelper(Path directoryPath, String remoteURL, UsernamePasswordCredentialsProvider ownerAuth)
             throws GitAPIException, IOException, CancelledAuthorizationException {
         super(directoryPath, ownerAuth);
@@ -25,6 +27,12 @@ public class ClonedRepoHelper extends RepoHelper {
     public ClonedRepoHelper(Path directoryPath, String remoteURL, String sshPassword, UserInfo userInfo)
             throws GitAPIException, IOException, CancelledAuthorizationException {
         super(directoryPath, sshPassword, userInfo);
+    }
+
+    public ClonedRepoHelper(Path directoryPath, String remoteURL, String sshPassword, UserInfo userInfo,
+                            String privateKeyFileLocation, String knownHostsFileLocation)
+            throws GitAPIException, IOException, CancelledAuthorizationException {
+        super(directoryPath, sshPassword, userInfo, privateKeyFileLocation, knownHostsFileLocation);
     }
 
     /**

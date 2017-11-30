@@ -31,6 +31,7 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
@@ -52,6 +53,8 @@ public class RepoHelper {
     private final Path localPath;
     private final UserInfo userInfo;
     private final SshSessionFactory sshSessionFactory;
+    private final String privateKeyFileLocation;
+    private final String knownHostsFileLocation;
 
     private final AtomicReference<Set<CommitHelper>> localCommits = new AtomicReference<>();
     private final AtomicReference<Set<CommitHelper>> remoteCommits = new AtomicReference<>();
@@ -80,6 +83,8 @@ public class RepoHelper {
         setOwnerAuth(ownerAuth);
         this.password = null;
         this.userInfo = null;
+        this.privateKeyFileLocation = null;
+        this.knownHostsFileLocation = null;
         sshSessionFactory = setupSshSessionFactory();
     }
 
@@ -88,6 +93,8 @@ public class RepoHelper {
         this.localPath = directoryPath;
         this.password = null;
         this.userInfo = userInfo;
+        this.privateKeyFileLocation = null;
+        this.knownHostsFileLocation = null;
         sshSessionFactory = setupSshSessionFactory();
     }
 
@@ -96,6 +103,19 @@ public class RepoHelper {
         this.localPath = directoryPath;
         this.password = sshPassword;
         this.userInfo = userInfo;
+        this.privateKeyFileLocation = null;
+        this.knownHostsFileLocation = null;
+        sshSessionFactory = setupSshSessionFactory();
+    }
+
+    public RepoHelper(Path directoryPath, String sshPassword, UserInfo userInfo, String privateKeyFileLocation,
+                      String knownHostsFileLocation)
+            throws GitAPIException, IOException, CancelledAuthorizationException {
+        this.localPath = directoryPath;
+        this.password = sshPassword;
+        this.userInfo = userInfo;
+        this.privateKeyFileLocation = privateKeyFileLocation;
+        this.knownHostsFileLocation = knownHostsFileLocation;
         sshSessionFactory = setupSshSessionFactory();
     }
 
@@ -103,6 +123,8 @@ public class RepoHelper {
         this.localPath = null;
         this.password = sshPassword;
         this.userInfo = null;
+        this.privateKeyFileLocation = null;
+        this.knownHostsFileLocation = null;
         sshSessionFactory = setupSshSessionFactory();
     }
 
@@ -110,6 +132,8 @@ public class RepoHelper {
         this.localPath = null;
         this.userInfo = userInfo;
         this.password = null;
+        this.privateKeyFileLocation = null;
+        this.knownHostsFileLocation = null;
         sshSessionFactory = setupSshSessionFactory();
     }
 
@@ -138,9 +162,12 @@ public class RepoHelper {
             @Override
             protected JSch createDefaultJSch(FS fs) throws JSchException {
                 JSch defaultJSch = super.createDefaultJSch(fs);
-                defaultJSch.getIdentityNames().forEach(name -> System.out.println("Identity " + name));
-                //defaultJSch.removeAllIdentity();
-                defaultJSch.getIdentityNames().forEach(name -> System.out.println("Identityc " + name));
+                if (privateKeyFileLocation != null) {
+                    defaultJSch.addIdentity(privateKeyFileLocation);
+                }
+                if (knownHostsFileLocation != null) {
+                    defaultJSch.setKnownHosts(knownHostsFileLocation);
+                }
                 return defaultJSch;
             }
         };
@@ -1432,10 +1459,18 @@ public class RepoHelper {
         if(includeTags) return new Git(repo).lsRemote().setHeads(true).setTags(true).setCredentialsProvider(ownerAuth).call();
         else return new Git(repo).lsRemote().setHeads(true).setCredentialsProvider(ownerAuth).call();*/
 
-        if (includeTags)
-            return Collections.unmodifiableCollection(new Git(getRepo()).lsRemote().setHeads(true).setTags(includeTags).call());
-        else
-            return Collections.unmodifiableCollection(new Git(getRepo()).lsRemote().setHeads(true).call());
+        LsRemoteCommand command = new Git(getRepo()).lsRemote().setHeads(true);
+        if (includeTags) {
+            command = command.setTags(includeTags);
+        }
+        myWrapAuthentication(command);
+        return Collections.unmodifiableCollection(command.call());
+
+
+//        if (includeTags)
+//            return Collections.unmodifiableCollection(new Git(getRepo()).lsRemote().setHeads(true).setTags(includeTags).call());
+//        else
+//            return Collections.unmodifiableCollection(new Git(getRepo()).lsRemote().setHeads(true).call());
     }
 
     public List<RefHelper> getRefsForCommit(CommitHelper helper) {

@@ -35,13 +35,13 @@ public class ElegitUserInfoTest implements UserInfo {
 
     @Override
     public boolean promptPassword(String s) {
-        System.out.println(s);
+        System.out.println("Prompting password...\n " + s);
         return true;
     }
 
     @Override
     public boolean promptPassphrase(String s) {
-        System.out.println(s);
+        System.out.println("Prompting passphrase...\n" + s);
         return true;
     }
 
