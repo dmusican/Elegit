@@ -115,6 +115,10 @@ public class RepositoryMonitor{
     // could block it up considerably. It uses no shared memory, and it makes calls to threadsafe libraries.
     private static boolean remoteHasNewChanges(RepoHelper repo) {
         try {
+            if (!repo.getRemoteAuthenticationSuccess()) {
+                return false;
+            }
+
             List<BranchHelper> localOriginHeads = repo.getBranchModel().getBranchListUntyped(
                     BranchModel.BranchType.REMOTE);
             Collection<Ref> remoteHeads = repo.getRefsFromRemote(false);
@@ -144,7 +148,10 @@ public class RepositoryMonitor{
             }
         }catch(GitAPIException | IOException e)
         {
-            System.out.println("Made it in here");
+            // If exception thrown, stop monitoring. This could undoubtedly be made fancier and better, but
+            // it is better to stop checking than it is to keep hammering a server with bad authentication.
+            repo.setRemoteAuthenticationSuccess(false);
+
             SessionController sessionController = RepositoryMonitor.sessionController.get();
             // This work has been happening off FX thread, so notification needs to go back on it
             Platform.runLater(() -> {

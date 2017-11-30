@@ -4,7 +4,6 @@ import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 import com.jcraft.jsch.UserInfo;
-import elegit.Main;
 import elegit.gui.PopUpWindows;
 import elegit.gui.SimpleProgressMonitor;
 import elegit.exceptions.*;
@@ -31,7 +30,6 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
@@ -67,6 +65,9 @@ public class RepoHelper {
     private final AtomicReference<UsernamePasswordCredentialsProvider> ownerAuth = new AtomicReference<>();
 
     private static final Logger logger = LogManager.getLogger();
+
+    @GuardedBy("this")
+    private boolean remoteAuthenticationSuccess = true;
 
     /**
      * Creates a RepoHelper object for holding a Repository and interacting with it
@@ -1557,5 +1558,13 @@ public class RepoHelper {
 
     public void setOwnerAuth(UsernamePasswordCredentialsProvider ownerAuth) {
         this.ownerAuth.set(ownerAuth);
+    }
+
+    public synchronized void setRemoteAuthenticationSuccess(boolean remoteAuthenticationSuccess) {
+        this.remoteAuthenticationSuccess = remoteAuthenticationSuccess;
+    }
+
+    public synchronized boolean getRemoteAuthenticationSuccess() {
+        return this.remoteAuthenticationSuccess;
     }
 }

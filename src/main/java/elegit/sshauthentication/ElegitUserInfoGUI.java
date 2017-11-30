@@ -68,7 +68,7 @@ public class ElegitUserInfoGUI implements UserInfo {
     // this code gets run on the FX thread, it will deadlock. That's fine anyway, as an ssh connection will
     // be slow, and should never be attempted from the FX thread at any rate.
     private Optional<String> prompt(String s, String title, String headerText, String contentText) {
-        Main.assertNotFxThread();
+            Main.assertNotFxThread();
         FutureTask<Optional<String>> futureTask = new FutureTask<>(() -> {
             System.out.println(s);
 

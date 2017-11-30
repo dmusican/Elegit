@@ -78,8 +78,8 @@ public class LocalServerAuthenticationTests {
 
     @After
     public void tearDown() throws Exception {
-        removeAllFilesFromDirectory(this.logPath.toFile());
-        removeAllFilesFromDirectory(directoryPath.toFile());
+//        removeAllFilesFromDirectory(this.logPath.toFile());
+//        removeAllFilesFromDirectory(directoryPath.toFile());
     }
 
     // Helper tear-down method:

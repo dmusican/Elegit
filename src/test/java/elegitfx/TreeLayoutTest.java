@@ -1,26 +1,21 @@
-package elegit;
+package elegitfx;
 
 import elegit.treefx.Cell;
-import elegit.treefx.CellShape;
 import elegit.treefx.TreeLayout;
-import javafx.application.Application;
 import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Rule;
 import org.junit.Test;
-import static org.junit.Assert.*;
+import org.testfx.framework.junit.ApplicationTest;
 
 import java.util.ArrayList;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * Created by dmusicant on 12/6/16.
  */
-public class TreeLayoutTest {
+public class TreeLayoutTest extends ApplicationTest {
 
     private static ArrayList<Cell> allCells = new ArrayList<>();
-
-    @Rule
-    public JavaFXThreadingRule javafxRule = new JavaFXThreadingRule();
 
     /*
              0     5
@@ -73,34 +68,38 @@ public class TreeLayoutTest {
 
     @Test
     public void testCellSorting() throws Exception {
-        TreeLayout.sortListOfCells(allCells);
-        for (Cell cell : allCells) {
-            System.out.print(cell.getCellId() + " ");
-        }
-        System.out.println();
-        assertEquals(allCells.get(0).getCellId(),"cell5");
-        assertEquals(allCells.get(1).getCellId(),"cell0");
-        assertEquals(allCells.get(2).getCellId(),"cell6");
-        assertEquals(allCells.get(3).getCellId(),"cell2");
-        assertEquals(allCells.get(4).getCellId(),"cell1");
-        assertEquals(allCells.get(5).getCellId(),"cell3");
-        assertEquals(allCells.get(6).getCellId(),"cell4");
+        interact(() -> {
+            TreeLayout.sortListOfCells(allCells);
+            for (Cell cell : allCells) {
+                System.out.print(cell.getCellId() + " ");
+            }
+            System.out.println();
+            assertEquals(allCells.get(0).getCellId(),"cell5");
+            assertEquals(allCells.get(1).getCellId(),"cell0");
+            assertEquals(allCells.get(2).getCellId(),"cell6");
+            assertEquals(allCells.get(3).getCellId(),"cell2");
+            assertEquals(allCells.get(4).getCellId(),"cell1");
+            assertEquals(allCells.get(5).getCellId(),"cell3");
+            assertEquals(allCells.get(6).getCellId(),"cell4");
+        });
     }
 
     @Test
     public void testTopographicalSorting() throws Exception {
-        TreeLayout.topologicalSortListOfCells(allCells);
-        for (Cell cell : allCells) {
-            System.out.print(cell.getCellId() + " ");
-        }
-        System.out.println();
-        assertEquals(allCells.get(0).getCellId(),"cell5");
-        assertEquals(allCells.get(1).getCellId(),"cell0");
-        assertEquals(allCells.get(2).getCellId(),"cell6");
-        assertEquals(allCells.get(3).getCellId(),"cell2");
-        assertEquals(allCells.get(4).getCellId(),"cell1");
-        assertEquals(allCells.get(5).getCellId(),"cell3");
-        assertEquals(allCells.get(6).getCellId(),"cell4");
+        interact(() -> {
+            TreeLayout.topologicalSortListOfCells(allCells);
+            for (Cell cell : allCells) {
+                System.out.print(cell.getCellId() + " ");
+            }
+            System.out.println();
+            assertEquals(allCells.get(0).getCellId(),"cell5");
+            assertEquals(allCells.get(1).getCellId(),"cell0");
+            assertEquals(allCells.get(2).getCellId(),"cell6");
+            assertEquals(allCells.get(3).getCellId(),"cell2");
+            assertEquals(allCells.get(4).getCellId(),"cell1");
+            assertEquals(allCells.get(5).getCellId(),"cell3");
+            assertEquals(allCells.get(6).getCellId(),"cell4");
+        });
     }
 
 
