@@ -118,7 +118,7 @@ public class CellLabel extends HBox {
      * @param isRemote whether or not the ref label is remote
      */
     void setRemote(boolean isRemote) {
-        this.isRemote = true;
+        this.isRemote = isRemote;
         refreshIcon();
     }
 
@@ -163,17 +163,18 @@ public class CellLabel extends HBox {
     }
 
     /**
-     * Refreshes the icon based on various boolean values
+     * Refreshes the icon based on whether the cell is a tag, a remote branch label, or a local branch label
      */
     private void refreshIcon() {
         String image = "elegit/images/";
         if (isTag) {
             image += "tag.png";
+        } else if (isRemote && isCurrent) {
+            image += "remote_white.png";
+        } else if (isRemote) {
+            image += "remote.png";
         } else if (isCurrent) {
-            if (isRemote)
-                image += "remote_white.png";
-            else
-                image += "remote.png";
+            image += "branch_white.png";
         } else {
             image += "branch.png";
         }
