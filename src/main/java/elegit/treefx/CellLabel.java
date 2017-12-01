@@ -211,4 +211,8 @@ public class CellLabel extends HBox {
         Main.assertFxThread();
         return this.refHelper;
     }
+
+    public String getFullName() {
+        return refHelper.getRefName();
+    }
 }

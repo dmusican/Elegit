@@ -175,7 +175,7 @@ public class CellLabelContainer extends GridPane {
         for (Node m : getChildren()) {
             if (m instanceof HBox) {
                 for (Node n : ((HBox) m).getChildren()) {
-                    if (n instanceof CellLabel && labels.contains(((CellLabel) n).getLabel().getText())) {
+                    if (n instanceof CellLabel && labels.contains(((CellLabel) n).getFullName())) {
                         ((CellLabel) n).setRemote(true);
                     }
                 }
