@@ -139,12 +139,10 @@ public class CellLabelContainer extends GridPane {
                 Observable.fromIterable(((HBox) m).getChildren())
                         .buffer(10)
                         .subscribe(nodes -> {
-                            Platform.runLater( () -> {
                                 for (Node n : nodes) {
                                     if (n instanceof CellLabel && labels.contains(((CellLabel) n).getLabel().getText()))
                                         ((CellLabel) n).setCurrent(true);
                                 }
-                            });
                         }, Throwable::printStackTrace);
             }
         }
