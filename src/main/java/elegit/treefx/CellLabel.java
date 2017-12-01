@@ -192,17 +192,14 @@ public class CellLabel extends HBox {
     private synchronized void refreshIcon() {
         Main.assertFxThread();
         Image image;
-        System.out.println("isCurrent = " + isCurrent);
         if (isTag) {
             image = tagImage;
-        } else if (isCurrent) {
-            if (isRemote) {
+        } else if (isRemote) {
+            if (isCurrent) {
                 image = remoteWhiteImage;
-                System.out.println("CellLabel.refreshIcon 10");
             }
             else {
                 image = remoteImage;
-                System.out.println("CellLabel.refreshIcon 20");
             }
         } else {
             image = otherImage;
