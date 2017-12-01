@@ -21,7 +21,9 @@ import javafx.util.Callback;
 import org.apache.http.annotation.GuardedBy;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.MergeResult;
+import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.lib.BranchTrackingStatus;
 import org.eclipse.jgit.lib.Repository;
@@ -123,7 +125,7 @@ public class MergeWindowController {
         BranchTrackingStatus b = BranchTrackingStatus.of(repoHelper.getRepo(), curBranch);
         if(b == null) {
             disable = true;
-            mergeRemoteTrackingText.setText("This branch does not have an\n" +
+            mergeRemoteTrackingText.setText("\nThis branch does not have an\n" +
                     "upstream remote branch.\n\n" +
                     "Push to create a remote branch.");
             hideRemoteMerge();
@@ -168,6 +170,7 @@ public class MergeWindowController {
         stage = new Stage();
         stage.setTitle("Merge");
         stage.setScene(new Scene(anchorRoot));
+        stage.setResizable(false);
         stage.initModality(Modality.APPLICATION_MODAL);
         stage.setOnCloseRequest(event -> logger.info("Closed merge window"));
         stage.show();
@@ -248,11 +251,17 @@ public class MergeWindowController {
             this.showUpToDateNotification();
 
         } else if (mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.FAILED)) {
-            this.showFailedMergeNotification();
-
+            if (!SessionModel.getSessionModel().modifiedAndStagedFilesAreSame()) {
+                this.showChangedFilesNotification();
+            } else {
+                this.showFailedMergeNotification();
+            }
         } else if (mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.MERGED)
                 || mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.MERGED_NOT_COMMITTED)) {
-            this.showMergeSuccessNotification();
+            // TODO: Call gitStatus once I've got it better threaded
+            sessionController.gitStatus();
+            closeWindow();
+            return;
 
         } else if (mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.FAST_FORWARD)) {
             this.showFastForwardMergeNotification();
@@ -289,6 +298,11 @@ public class MergeWindowController {
     private void showFailedMergeNotification() {
         logger.warn("Merge failed notification");
         notificationPaneController.addNotification("The merge failed.");
+    }
+
+    private void showChangedFilesNotification() {
+        logger.warn("Merge failed because of changed files notification");
+        notificationPaneController.addNotification("Merge failed. Commit or reset any changed files.");
     }
 
     private void showUpToDateNotification() {
