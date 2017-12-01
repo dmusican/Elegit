@@ -137,7 +137,7 @@ public class CellLabel extends HBox {
      */
     void setRemote(boolean isRemote) {
         Main.assertFxThread();
-        this.isRemote = true;
+        this.isRemote = isRemote;
         refreshIcon();
     }
 
@@ -192,13 +192,18 @@ public class CellLabel extends HBox {
     private synchronized void refreshIcon() {
         Main.assertFxThread();
         Image image;
+        System.out.println("isCurrent = " + isCurrent);
         if (isTag) {
             image = tagImage;
         } else if (isCurrent) {
-            if (isRemote)
+            if (isRemote) {
                 image = remoteWhiteImage;
-            else
+                System.out.println("CellLabel.refreshIcon 10");
+            }
+            else {
                 image = remoteImage;
+                System.out.println("CellLabel.refreshIcon 20");
+            }
         } else {
             image = otherImage;
         }
