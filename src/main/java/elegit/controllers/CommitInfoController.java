@@ -46,6 +46,7 @@ public class CommitInfoController {
         commitInfoMessageText.setVisible(true);
         commitInfoNameCopyButton.setVisible(true);
         commitInfoGoToButton.setVisible(true);
+        commitInfoButton.setVisible(true);
         commitInfoMessageText.setText(text);
     }
 
@@ -66,5 +67,6 @@ public class CommitInfoController {
         commitInfoMessageText.setVisible(false);
         commitInfoNameCopyButton.setVisible(false);
         commitInfoGoToButton.setVisible(false);
+        commitInfoButton.setVisible(false);
     }
 }
