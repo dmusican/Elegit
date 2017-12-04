@@ -1,5 +1,6 @@
 package elegit.gui;
 
+import com.sun.javafx.scene.control.skin.TextFieldSkin;
 import elegit.Main;
 import elegit.models.AuthMethod;
 import elegit.models.RepoHelper;
@@ -23,6 +24,25 @@ import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import java.io.File;
 import java.io.IOException;
 import java.util.Optional;
+
+class PasswordSkin extends TextFieldSkin {
+    public PasswordSkin(TextField textField) {
+        super(textField);
+    }
+
+    protected String maskText(String txt) {
+        if (getSkinnable() instanceof PasswordField) {
+            int n = txt.length();
+            StringBuilder passwordBuilder = new StringBuilder(n);
+            for (int i = 0; i < n; i++)
+                passwordBuilder.append("\u26ab");
+
+            return passwordBuilder.toString();
+        } else {
+            return txt;
+        }
+    }
+}
 
 /**
  * An abstract class for building RepoHelpers by presenting dialogs to
@@ -141,6 +161,7 @@ public abstract class RepoHelperBuilder {
 
         PasswordField password = new PasswordField();
         CheckBox remember = new CheckBox("Remember Password");
+        password.setSkin(new PasswordSkin(password));
 
         //TODO: remember the password somehow
         /*

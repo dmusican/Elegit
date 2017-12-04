@@ -17,7 +17,7 @@
     </properties>
 
     <build>
-        <finalName>${project.artifactId}</finalName>
+        <finalName>${project.artifactId}-${project.version}</finalName>
         <plugins>
             <plugin>
                 <groupId>com.zenjava</groupId>
@@ -42,19 +42,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <configuration>
-                    <systemProperties>
-                        <property>
-                            <name>skipDisplay</name>
-                            <value>${skipDisplay}</value>
-                        </property>
-                    </systemProperties>
-                </configuration>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
                 <version>2.20.1</version>
                 <configuration>
                     <argLine> -Djava.awt.headless -Dtestfx.robot=glass -Dtestfx.headless=true -Dprism.order=sw -Dprism.text=t2k -Dtestfx.setup.timeout=20000</argLine>
@@ -65,7 +52,6 @@
                     </additionalClasspathElements>
                 </configuration>
             </plugin>
-
         </plugins>
         <resources>
             <resource>
