@@ -298,9 +298,9 @@ public class SessionModel {
     }
 
     /**
-     * Calls `git status` and returns the set of untracked files that Git reports.
+     * Calls `git status` and returns the set of ignored files that Git reports.
      *
-     * @return a set of untracked filenames in the working directory.
+     * @return a set of ignored filenames in the working directory.
      * @throws GitAPIException if the `git status` call fails.
      */
     private Set<String> getIgnoredFiles(Status status) throws GitAPIException {
