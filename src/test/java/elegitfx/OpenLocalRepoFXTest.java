@@ -143,9 +143,6 @@ public class OpenLocalRepoFXTest extends ApplicationTest {
         assertTrue(numLocalChecks > 0 && numLocalChecks < 5);
         assertTrue(numRemoteChecks > 0 && numRemoteChecks < 5);
 
-        // Click on commit info menu to see if can reach it
-        clickOn("#commitInfoButton");
-
     }
 
     // Helper method to avoid annoying traces from logger
