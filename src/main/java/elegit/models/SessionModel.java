@@ -373,6 +373,16 @@ public class SessionModel {
     }
 
     /**
+     * Determines if the set of modified and the set of staged files are the same or not
+     * @return true if the same, false otherwise
+     * @throws GitAPIException if the 'git status' call fails.
+     */
+    public boolean modifiedAndStagedFilesAreSame() throws GitAPIException {
+        Status status = new Git(this.getCurrentRepo()).status().call();
+        return getModifiedFiles(status).equals(getStagedFiles(status));
+    }
+
+    /**
      * Assembles all the changed files (modified, missing, untracked) into RepoFiles
      * and returns a list of them.
      *

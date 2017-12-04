@@ -37,7 +37,7 @@ import java.util.prefs.Preferences;
 import static junit.framework.TestCase.assertEquals;
 import static org.junit.Assert.*;
 
-public class RepositoryMonitor2FXTest extends ApplicationTest {
+public class OpenLocalRepoFXTest extends ApplicationTest {
 
     static {
         // -----------------------Logging Initialization Start---------------------------
@@ -146,7 +146,7 @@ public class RepositoryMonitor2FXTest extends ApplicationTest {
     }
 
     // Helper method to avoid annoying traces from logger
-    void initializeLogger() {
+    private void initializeLogger() {
         // Create a temp directory for the files to be placed in
         Path logPath = null;
         try {
