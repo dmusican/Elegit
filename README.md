@@ -4,6 +4,10 @@ A graphics-based Git client for teaching people both how to work Git and how Git
 ### Getting Elegit
 If you just want to use Elegit, visit our [website](http://elegit.org) to download the application.
 
+### Tutorial
+
+[Here is a great tutorial](https://faculty.cascadia.edu/mpanitz/Courses/BIT142/Lessons/Lesson_110_Git/Elegit/Install_Basics.html) for getting started with Elegit. Thanks to Mike Panitz for this!
+
 ### Running the source code in IntelliJ:
 1. Open [IntelliJ](https://www.jetbrains.com/idea/).
 2. Visit the File, Other Settings, Default Settings menu. In the dialog that pops up, go to Build, Execution, and Deployment,

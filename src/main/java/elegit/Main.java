@@ -33,7 +33,6 @@ import java.util.prefs.Preferences;
  * The starting point for this JavaFX application.
  */
 public class Main extends Application {
-
     private static final Logger logger;
 
     static {

@@ -17,7 +17,7 @@
     </properties>
 
     <build>
-        <finalName>${project.artifactId}-${project.version}</finalName>
+        <finalName>${project.artifactId}</finalName>
         <plugins>
             <plugin>
                 <groupId>com.zenjava</groupId>
@@ -28,6 +28,27 @@
                     <appName>Elegit</appName>
                     <mainClass>elegit.Main</mainClass>
                     <nativeReleaseVersion>${project.version}</nativeReleaseVersion>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>3.1.0</version>
+                <configuration>
+                    <descriptors>
+                        <descriptor>src/main/deploy/assembly/distribution.xml</descriptor>
+                    </descriptors>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <systemProperties>
+                        <property>
+                            <name>skipDisplay</name>
+                            <value>${skipDisplay}</value>
+                        </property>
+                    </systemProperties>
                 </configuration>
             </plugin>
 
@@ -62,6 +83,7 @@
                 </excludes>
             </resource>
         </resources>
+
     </build>
 
     <dependencies>
