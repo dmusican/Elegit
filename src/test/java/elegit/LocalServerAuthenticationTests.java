@@ -30,6 +30,7 @@ import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.PushCommand;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Test;
 
 import java.io.File;
@@ -50,19 +51,8 @@ import static org.junit.Assert.fail;
 
 public class LocalServerAuthenticationTests {
 
-    private static Path logPath;
-
-    static {
-        try {
-            logPath = Files.createTempDirectory("elegitLogs");
-        } catch (IOException e) {
-            throw new ExceptionAdapter(e);
-        }
-
-        logPath.toFile().deleteOnExit();
-
-        System.setProperty("logFolder", logPath.toString());
-    }
+    @ClassRule
+    public static final TestingLogPath testingLogPath = new TestingLogPath();
 
     private static final Logger console = LogManager.getLogger("briefconsolelogger");
 
@@ -78,8 +68,7 @@ public class LocalServerAuthenticationTests {
 
     @After
     public void tearDown() throws Exception {
-//        removeAllFilesFromDirectory(this.logPath.toFile());
-//        removeAllFilesFromDirectory(directoryPath.toFile());
+        removeAllFilesFromDirectory(directoryPath.toFile());
     }
 
     // Helper tear-down method:

@@ -111,4 +111,48 @@ public class AddDirTest {
         assertEquals(git.status().call().getAdded().size(), 1);
         assertEquals(git.status().call().getChanged().size(), 1);
     }
+
+    public void testAddOrig() throws Exception {
+        File authData = new File(testFileLocation + "httpUsernamePassword.txt");
+
+        // If a developer does not have this file present, test should just pass.
+        if (!authData.exists() && looseTesting)
+            return;
+
+        Scanner scanner = new Scanner(authData);
+        String ignoreURL = scanner.next();
+        String username = scanner.next();
+        String password = scanner.next();
+        UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider(username, password);
+
+        String remoteURL = "https://github.com/TheElegitTeam/AddDir.git";
+
+        // Repo that will add to master
+        Path repoPathAdd = directoryPath.resolve("adder");
+        ClonedRepoHelper helperAdd = new ClonedRepoHelper(repoPathAdd, remoteURL, credentials);
+        assertNotNull(helperAdd);
+        helperAdd.obtainRepository(remoteURL);
+
+
+        /* ********************* EDIT AND PUSH SECTION ********************* */
+        // Make some changes
+        Path filePath = repoPathAdd.resolve("foo"+File.separator+"bar.txt");
+        Path filePathNew = repoPathAdd.resolve("foo"+File.separator+"new.txt");
+        String timestamp = "testInDirAdd " + (new Date()).toString() + "\n";
+        Files.write(filePath, timestamp.getBytes(), StandardOpenOption.APPEND);
+        Files.write(filePathNew, timestamp.getBytes());
+        ArrayList<Path> paths = new ArrayList<>();
+        paths.add(filePath);
+        paths.add(filePathNew);
+        helperAdd.addFilePathsTest(paths);
+
+        Git git = new Git(helperAdd.getRepo());
+
+        // Check that the file was added.
+        System.out.println(git.status().call().getAdded());
+        System.out.println(git.status().call().getChanged());
+        System.out.println(git.status().call().getModified());
+        assertEquals(git.status().call().getAdded().size(), 1);
+        assertEquals(git.status().call().getChanged().size(), 1);
+    }
 }
