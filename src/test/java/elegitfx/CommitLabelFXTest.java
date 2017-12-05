@@ -31,10 +31,13 @@ import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.prefs.Preferences;
 
 import static junit.framework.TestCase.assertEquals;
-import static junit.framework.TestCase.assertFalse;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 public class CommitLabelFXTest extends ApplicationTest {
 
@@ -64,6 +67,10 @@ public class CommitLabelFXTest extends ApplicationTest {
 
     @Override
     public void start(Stage stage) throws Exception {
+        Preferences prefs = Preferences.userNodeForPackage(this.getClass());
+        prefs.removeNode();
+        SessionModel.setPreferencesNodeClass(this.getClass());
+
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/MainView.fxml"));
         fxmlLoader.load();
         RepositoryMonitor.pause();
@@ -96,19 +103,10 @@ public class CommitLabelFXTest extends ApplicationTest {
 
         // Load this repo in Elegit, and initialize
         SessionModel.getSessionModel().openRepoFromHelper(helper);
-
-        commitTreeModel.initializeModelForNewRepoWhenSubscribed()
-                .flatMap((unused) -> testAddFileAndCommit())
-
-                .doOnSuccess((unused) -> {
-                    // Delete the cloned files.
-                    removeAllFilesFromDirectory(this.directoryPath.toFile());
-                }).subscribe((unused) -> {}, t -> testFailures = t);
-
     }
 
     // Helper tear-down method:
-    void removeAllFilesFromDirectory(File dir) {
+    private void removeAllFilesFromDirectory(File dir) {
         for (File file : dir.listFiles()) {
             if (file.isDirectory()) removeAllFilesFromDirectory(file);
             file.delete();
@@ -119,8 +117,22 @@ public class CommitLabelFXTest extends ApplicationTest {
     // Dummy test to get something to run. This test really all happens in start, so just need to have a test
     // to get it going.
     public void test1() {
-        assertNull(testFailures);
-        assertEquals(1, 1);
+
+        interact( () -> {
+            commitTreeModel.initializeModelForNewRepoWhenSubscribed()
+                    .flatMap((unused) -> testAddFileAndCommit())
+
+                    .doOnSuccess((unused) -> {
+                        // Delete the cloned files.
+                        removeAllFilesFromDirectory(this.directoryPath.toFile());
+                    })
+
+                .subscribe((unused) -> {}, t -> testFailures = t);
+            assertNull(testFailures);
+            assertEquals(1, 1);
+
+        });
+
     }
 
 
