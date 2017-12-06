@@ -19,7 +19,6 @@ public class TestingLogPath extends ExternalResource {
     static {
         try {
             logPath = Files.createTempDirectory("elegitLogs");
-            System.out.println(logPath);
         } catch (IOException e) {
             throw new ExceptionAdapter(e);
         }
