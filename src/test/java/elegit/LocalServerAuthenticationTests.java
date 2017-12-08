@@ -56,12 +56,12 @@ public class LocalServerAuthenticationTests {
     public static final TestingLogPath testingLogPath = new TestingLogPath();
 
     @Rule
-    public final TestingRemoteAndLocalRepos testingRemoteAndLocalRepos = new TestingRemoteAndLocalRepos();
+    public final TestingRemoteAndLocalRepos testingRemoteAndLocalRepos =
+            new TestingRemoteAndLocalRepos(true);
     private Path directoryPath;
 
     private static final Logger console = LogManager.getLogger("briefconsolelogger");
 
-//
     @Before
     public void setUp() throws Exception {
         console.info("Unit test started");
