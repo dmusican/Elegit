@@ -50,7 +50,7 @@ import java.util.Scanner;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
-public class LocalServerAuthenticationTests {
+public class LocalSshAuthenticationTests {
 
     @ClassRule
     public static final TestingLogPath testingLogPath = new TestingLogPath();

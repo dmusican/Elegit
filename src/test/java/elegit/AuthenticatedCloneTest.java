@@ -312,38 +312,6 @@ public class AuthenticatedCloneTest {
     }
 
     @Test
-    public void testSshPrivateKey() throws Exception {
-
-        // Uncomment for more detailed debug info
-        //JSch.setLogger(new MyLogger());
-
-        Path repoPath = directoryPath.resolve("testrepo");
-        File urlFile = new File(testFileLocation + "sshPrivateKeyURL.txt");
-        File passwordFile = new File(testFileLocation + "sshPrivateKeyPassword.txt");
-//        File urlFile = new File(testFileLocation + "anotherurl.txt");
-//        File passwordFile = new File(testFileLocation + "anotherpass.txt");
-
-        // If a developer does not have this file present, test should just pass.
-        if ((!urlFile.exists() || !passwordFile.exists()) && looseTesting)
-            return;
-
-        Scanner scanner = new Scanner(urlFile);
-        String remoteURL = scanner.next();
-        scanner.close();
-        scanner = new Scanner(passwordFile);
-        String passphrase = scanner.next();
-
-        ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, remoteURL, passphrase,
-                                                       new ElegitUserInfoTest(null, passphrase));
-        helper.obtainRepository(remoteURL);
-        assertEquals(helper.getCompatibleAuthentication(), AuthMethod.SSH);
-        helper.fetch(false);
-        PushCommand command = helper.prepareToPushAll();
-        helper.pushAll(command);
-        scanner.close();
-    }
-
-    @Test
     public void testTransportProtocols() throws Exception {
         List<TransportProtocol> protocols = TransportGitSsh.getTransportProtocols();
         for (TransportProtocol protocol : protocols) {
