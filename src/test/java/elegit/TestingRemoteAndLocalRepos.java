@@ -39,7 +39,7 @@ public class TestingRemoteAndLocalRepos extends ExternalResource {
 
     @Override
     protected void after()  {
-        removeAllFilesFromDirectory(directoryPath.toFile());
+//        removeAllFilesFromDirectory(directoryPath.toFile());
     }
 
     private void removeAllFilesFromDirectory(File dir) {

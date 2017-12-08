@@ -265,33 +265,6 @@ public class AuthenticatedCloneTest {
     public ExpectedException exception = ExpectedException.none();
 
 
-    @Test
-    public void testSshPassword() throws Exception {
-        Path repoPath = directoryPath.resolve("testrepo");
-        File urlFile = new File(testFileLocation + "sshPasswordURL.txt");
-        Path passwordFile = Paths.get(testFileLocation, "sshPasswordPassword.txt");
-
-        // If a developer does not have this file present, test should just pass.
-        if ((!urlFile.exists() || !Files.exists(passwordFile) && looseTesting))
-            return;
-
-        Scanner scanner = new Scanner(urlFile);
-        String remoteURL = scanner.next();
-        scanner.close();
-        scanner = new Scanner(passwordFile);
-        String password = scanner.next();
-
-        //ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, remoteURL, new ElegitUserInfoTest(password, null));
-        ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, remoteURL, password,
-                                                       new ElegitUserInfoTest(password, null));
-        helper.obtainRepository(remoteURL);
-        assertEquals(helper.getCompatibleAuthentication(), AuthMethod.SSH);
-        helper.fetch(false);
-        PushCommand command = helper.prepareToPushAll();
-        helper.pushAll(command);
-    }
-
-
     // http://www.jcraft.com/jsch/examples/Logger.java.html
     public static class MyLogger implements com.jcraft.jsch.Logger {
         static java.util.Hashtable<Integer,String> name=new java.util.Hashtable<>();

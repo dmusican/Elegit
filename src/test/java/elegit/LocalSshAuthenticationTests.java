@@ -1,11 +1,8 @@
 package elegit;
 
-import com.jcraft.jsch.JSch;
-import elegit.exceptions.ExceptionAdapter;
 import elegit.models.AuthMethod;
 import elegit.models.ClonedRepoHelper;
 import elegit.models.ExistingRepoHelper;
-import elegit.models.LocalBranchHelper;
 import elegit.sshauthentication.ElegitUserInfoTest;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -14,33 +11,20 @@ import org.apache.sshd.common.keyprovider.KeyPairProvider;
 import org.apache.sshd.common.keyprovider.MappedKeyPairProvider;
 import org.apache.sshd.common.util.security.SecurityUtils;
 import org.apache.sshd.git.pack.GitPackCommandFactory;
-import org.apache.sshd.server.Command;
-import org.apache.sshd.server.CommandFactory;
 import org.apache.sshd.server.SshServer;
 import org.apache.sshd.server.auth.password.PasswordAuthenticator;
-import org.apache.sshd.server.auth.pubkey.AcceptAllPublickeyAuthenticator;
 import org.apache.sshd.server.auth.pubkey.KeySetPublickeyAuthenticator;
-import org.apache.sshd.server.auth.pubkey.PublickeyAuthenticator;
-import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider;
-import org.apache.sshd.server.scp.ScpCommandFactory;
 import org.apache.sshd.server.session.ServerSession;
-import org.apache.sshd.server.shell.InteractiveProcessShellFactory;
-import org.apache.sshd.server.shell.ProcessShellFactory;
-import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.PushCommand;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 
-import java.io.File;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.security.KeyPair;
 import java.security.PublicKey;
 import java.util.ArrayList;
@@ -57,7 +41,7 @@ public class LocalSshAuthenticationTests {
 
     @Rule
     public final TestingRemoteAndLocalRepos testingRemoteAndLocalRepos =
-            new TestingRemoteAndLocalRepos(true);
+            new TestingRemoteAndLocalRepos(false);
     private Path directoryPath;
 
     private static final Logger console = LogManager.getLogger("briefconsolelogger");
@@ -148,7 +132,7 @@ public class LocalSshAuthenticationTests {
                                      directoryPath.resolve("testing_known_hosts").toString());
         helper.obtainRepository(remoteURL);
 
-        // Verify that it is an SSH connection, then try a getch
+        // Verify that it is an SSH connection, then try a fetch
         assertEquals(helper.getCompatibleAuthentication(), AuthMethod.SSH);
         helper.fetch(false);
 
@@ -169,7 +153,90 @@ public class LocalSshAuthenticationTests {
 
         // Shut down test SSH server
         sshd.stop();
-
-
     }
+
+    @Test
+    public void testSshPassword() throws Exception {
+
+        Path local = testingRemoteAndLocalRepos.getLocalFull();
+        Path remote = testingRemoteAndLocalRepos.getRemoteFull();
+
+        // Set up remote repo
+        Path remoteFilePath = remote.resolve("file.txt");
+        Files.write(remoteFilePath, "testSshPassword".getBytes());
+        ArrayList<Path> paths = new ArrayList<>();
+        paths.add(remoteFilePath);
+        ExistingRepoHelper helperServer = new ExistingRepoHelper(remote, null);
+        helperServer.addFilePathsTest(paths);
+        helperServer.commit("Initial unit test commit");
+
+        // Set up test SSH server.
+        SshServer sshd = SshServer.setUpDefaultServer();
+
+        // All of this key set up is gratuitous, but it's the only way that I was able to get sshd to start up.
+        // In the end, it is ignore, and the password is used.
+
+        // Provide SSH server with public and private key info that client will be connecting with
+        InputStream passwordFileStream = getClass().getResourceAsStream("/rsa_key1_passphrase.txt");
+        Scanner scanner = new Scanner(passwordFileStream);
+        String passphrase = scanner.next();
+        console.info("phrase is " + passphrase);
+
+        String privateKeyFileLocation = "/rsa_key1";
+        InputStream privateKeyStream = getClass().getResourceAsStream(privateKeyFileLocation);
+        FilePasswordProvider filePasswordProvider = FilePasswordProvider.of(passphrase);
+        KeyPair kp = SecurityUtils.loadKeyPairIdentity("testkey", privateKeyStream, filePasswordProvider);
+        ArrayList<KeyPair> pairs = new ArrayList<>();
+        pairs.add(kp);
+        KeyPairProvider hostKeyProvider = new MappedKeyPairProvider(pairs);
+        sshd.setKeyPairProvider(hostKeyProvider);
+
+        // Need to use a non-standard port, as there may be an ssh server already running on this machine
+        sshd.setPort(2222);
+
+        String testPassword = "a_test_password";
+
+        // Set up a fall-back password authenticator to help in diagnosing failed test
+        sshd.setPasswordAuthenticator(
+                (username, password, session) -> {
+                    if (password.equals(testPassword)) {
+                        return true;
+                    } else {
+                        fail("Tried to use password instead of public key authentication");
+                        return false;
+                    }
+                });
+
+
+        // This replaces the role of authorized_keys.
+        Collection<PublicKey> allowedKeys = new ArrayList<>();
+        allowedKeys.add(kp.getPublic());
+        sshd.setPublickeyAuthenticator(new KeySetPublickeyAuthenticator(allowedKeys));
+
+        // Amazingly useful Git command setup provided by Mina.
+        sshd.setCommandFactory(new GitPackCommandFactory(directoryPath.toString()));
+
+        // Start the SSH test server.
+        sshd.start();
+
+        // Create temporary known_hosts file.
+        Path knownHostsFileLocation = directoryPath.resolve("testing_known_hosts");
+        Files.createFile(knownHostsFileLocation);
+
+        // Clone the bare repo, using the SSH connection, to the local.
+        String remoteURL = "ssh://localhost:2222/"+testingRemoteAndLocalRepos.getRemoteBrief();
+        console.info("Connecting to " + remoteURL);
+        local = testingRemoteAndLocalRepos.getLocalFull();
+        ClonedRepoHelper helper =
+                new ClonedRepoHelper(local, remoteURL,testPassword,
+                                     new ElegitUserInfoTest(null, null));
+        helper.obtainRepository(remoteURL);
+
+        assertEquals(helper.getCompatibleAuthentication(), AuthMethod.SSH);
+        helper.fetch(false);
+        PushCommand command = helper.prepareToPushAll();
+        helper.pushAll(command);
+    }
+
+
 }
