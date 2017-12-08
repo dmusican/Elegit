@@ -6,6 +6,7 @@ import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Test;
 
 import java.io.File;
@@ -31,9 +32,12 @@ public class AddDirTest {
     // Used to indicate that if password files are missing, then tests should just pass
     private boolean looseTesting;
 
+    @ClassRule
+    public static final TestingLogPath testingLogPath = new TestingLogPath();
+
+
     @Before
     public void setUp() throws Exception {
-        initializeLogger();
         this.directoryPath = Files.createTempDirectory("unitTestRepos");
         directoryPath.toFile().deleteOnExit();
         testFileLocation = System.getProperty("user.home") + File.separator +
@@ -43,29 +47,9 @@ public class AddDirTest {
     }
 
     @After
-    public void tearDown() throws Exception {
-        removeAllFilesFromDirectory(this.logPath.toFile());
+    public void tearDown() {
     }
 
-    // Helper method to avoid annoying traces from logger
-    void initializeLogger() {
-        // Create a temp directory for the files to be placed in
-        try {
-            this.logPath = Files.createTempDirectory("elegitLogs");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        this.logPath.toFile().deleteOnExit();
-        System.setProperty("logFolder", logPath.toString());
-    }
-
-    // Helper tear-down method:
-    void removeAllFilesFromDirectory(File dir) {
-        for (File file: dir.listFiles()) {
-            if (file.isDirectory()) removeAllFilesFromDirectory(file);
-            file.delete();
-        }
-    }
 
     @Test
     public void testAdd() throws Exception {
