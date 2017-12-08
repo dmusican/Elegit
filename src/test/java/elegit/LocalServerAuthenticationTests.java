@@ -31,6 +31,7 @@ import org.eclipse.jgit.api.PushCommand;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.File;
@@ -54,29 +55,17 @@ public class LocalServerAuthenticationTests {
     @ClassRule
     public static final TestingLogPath testingLogPath = new TestingLogPath();
 
-    private static final Logger console = LogManager.getLogger("briefconsolelogger");
-
+    @Rule
+    public final TestingRemoteAndLocalRepos testingRemoteAndLocalRepos = new TestingRemoteAndLocalRepos();
     private Path directoryPath;
 
+    private static final Logger console = LogManager.getLogger("briefconsolelogger");
+
+//
     @Before
     public void setUp() throws Exception {
         console.info("Unit test started");
-
-        directoryPath = Files.createTempDirectory("unitTestRepos");
-        directoryPath.toFile().deleteOnExit();
-    }
-
-    @After
-    public void tearDown() throws Exception {
-        removeAllFilesFromDirectory(directoryPath.toFile());
-    }
-
-    // Helper tear-down method:
-    void removeAllFilesFromDirectory(File dir) {
-        for (File file : dir.listFiles()) {
-            if (file.isDirectory()) removeAllFilesFromDirectory(file);
-            file.delete();
-        }
+        directoryPath = testingRemoteAndLocalRepos.getDirectoryPath();
     }
 
     // http://www.jcraft.com/jsch/examples/Logger.java.html
@@ -138,31 +127,20 @@ public class LocalServerAuthenticationTests {
         allowedKeys.add(kp.getPublic());
         sshd.setPublickeyAuthenticator(new KeySetPublickeyAuthenticator(allowedKeys));
 
-        // Locations of simulated remote and local repos.
-        Path remoteFull = directoryPath.resolve("remote");
-        Path remoteBrief = Paths.get("remote");
-        Path local = directoryPath.resolve("local");
-        console.info("Setting server root to " + directoryPath);
-        console.info("Remote path full = " + remoteFull);
-        console.info("Remote path brief = " + remoteBrief);
-        console.info("Local path = " + local);
-
         // Amazingly useful Git command setup provided by Mina.
         sshd.setCommandFactory(new GitPackCommandFactory(directoryPath.toString()));
 
         // Start the SSH test server.
         sshd.start();
 
-        // Create a bare repo on the remote to be cloned.
-        Git remoteHandle = Git.init().setDirectory(remoteFull.toFile()).setBare(true).call();
-
         // Create temporary known_hosts file.
         Path knownHostsFileLocation = directoryPath.resolve("testing_known_hosts");
         Files.createFile(knownHostsFileLocation);
 
         // Clone the bare repo, using the SSH connection, to the local.
-        String remoteURL = "ssh://localhost:2222/"+remoteBrief;
+        String remoteURL = "ssh://localhost:2222/"+testingRemoteAndLocalRepos.getRemoteBrief();
         console.info("Connecting to " + remoteURL);
+        Path local = testingRemoteAndLocalRepos.getLocalFull();
         ClonedRepoHelper helper =
                 new ClonedRepoHelper(local, remoteURL, passphrase,
                                      new ElegitUserInfoTest(null, passphrase),
