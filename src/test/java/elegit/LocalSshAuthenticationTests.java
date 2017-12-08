@@ -1,8 +1,11 @@
 package elegit;
 
+import elegit.exceptions.CancelledAuthorizationException;
+import elegit.exceptions.MissingRepoException;
 import elegit.models.AuthMethod;
 import elegit.models.ClonedRepoHelper;
 import elegit.models.ExistingRepoHelper;
+import elegit.models.RepoHelper;
 import elegit.sshauthentication.ElegitUserInfoTest;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -15,20 +18,28 @@ import org.apache.sshd.server.SshServer;
 import org.apache.sshd.server.auth.password.PasswordAuthenticator;
 import org.apache.sshd.server.auth.pubkey.KeySetPublickeyAuthenticator;
 import org.apache.sshd.server.session.ServerSession;
+import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.PushCommand;
+import org.eclipse.jgit.api.TransportCommand;
+import org.eclipse.jgit.api.errors.GitAPIException;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.io.File;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.security.GeneralSecurityException;
 import java.security.KeyPair;
 import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Scanner;
 
 import static org.junit.Assert.assertEquals;
@@ -45,6 +56,9 @@ public class LocalSshAuthenticationTests {
     private Path directoryPath;
 
     private static final Logger console = LogManager.getLogger("briefconsolelogger");
+
+    private static final String testPassword = "a_test_password";
+
 
     @Before
     public void setUp() throws Exception {
@@ -158,6 +172,33 @@ public class LocalSshAuthenticationTests {
     @Test
     public void testSshPassword() throws Exception {
 
+        String remoteURL = setUpTestSshServer();
+
+        console.info("Connecting to " + remoteURL);
+        Path local = testingRemoteAndLocalRepos.getLocalFull();
+        ClonedRepoHelper helper =
+                new ClonedRepoHelper(local, remoteURL,testPassword,
+                                     new ElegitUserInfoTest(null, null));
+        helper.obtainRepository(remoteURL);
+
+        assertEquals(helper.getCompatibleAuthentication(), AuthMethod.SSH);
+        helper.fetch(false);
+        PushCommand command = helper.prepareToPushAll();
+        helper.pushAll(command);
+    }
+
+    @Test
+    public void testLsSshPassword() throws Exception {
+        String remoteURL = setUpTestSshServer();
+        TransportCommand command = Git.lsRemoteRepository().setRemote(remoteURL);
+        RepoHelper helper = new RepoHelper(new ElegitUserInfoTest(testPassword, null));
+        helper.wrapAuthentication(command);
+        command.call();
+    }
+
+
+
+    private String setUpTestSshServer() throws IOException, GitAPIException, CancelledAuthorizationException, MissingRepoException, GeneralSecurityException {
         Path local = testingRemoteAndLocalRepos.getLocalFull();
         Path remote = testingRemoteAndLocalRepos.getRemoteFull();
 
@@ -194,8 +235,6 @@ public class LocalSshAuthenticationTests {
         // Need to use a non-standard port, as there may be an ssh server already running on this machine
         sshd.setPort(2222);
 
-        String testPassword = "a_test_password";
-
         // Set up a fall-back password authenticator to help in diagnosing failed test
         sshd.setPasswordAuthenticator(
                 (username, password, session) -> {
@@ -224,19 +263,9 @@ public class LocalSshAuthenticationTests {
         Files.createFile(knownHostsFileLocation);
 
         // Clone the bare repo, using the SSH connection, to the local.
-        String remoteURL = "ssh://localhost:2222/"+testingRemoteAndLocalRepos.getRemoteBrief();
-        console.info("Connecting to " + remoteURL);
-        local = testingRemoteAndLocalRepos.getLocalFull();
-        ClonedRepoHelper helper =
-                new ClonedRepoHelper(local, remoteURL,testPassword,
-                                     new ElegitUserInfoTest(null, null));
-        helper.obtainRepository(remoteURL);
-
-        assertEquals(helper.getCompatibleAuthentication(), AuthMethod.SSH);
-        helper.fetch(false);
-        PushCommand command = helper.prepareToPushAll();
-        helper.pushAll(command);
+        return "ssh://localhost:2222/"+testingRemoteAndLocalRepos.getRemoteBrief();
     }
+
 
 
 }

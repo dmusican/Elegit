@@ -237,30 +237,6 @@ public class AuthenticatedCloneTest {
     }
 
 
-    /* The sshPassword should contain two lines:
-        repo ssh address
-        password
-     */
-    @Test
-    public void testLsSshPassword() throws Exception {
-
-        File urlFile = new File(testFileLocation + "sshPasswordURL.txt");
-        Path passwordFile = Paths.get(testFileLocation, "sshPasswordPassword.txt");
-
-        // If a developer does not have this file present, test should just pass.
-        if ((!urlFile.exists() || !Files.exists(passwordFile) && looseTesting))
-            return;
-
-        Scanner scanner = new Scanner(urlFile);
-        String remoteURL = scanner.next();
-
-        List<String> userCredentials = Files.readAllLines(passwordFile);
-        TransportCommand command = Git.lsRemoteRepository().setRemote(remoteURL);
-        RepoHelper helper = new RepoHelper(new ElegitUserInfoTest(userCredentials.get(0), null));
-        helper.wrapAuthentication(command);
-        command.call();
-    }
-
     @Rule
     public ExpectedException exception = ExpectedException.none();
 
