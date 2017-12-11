@@ -283,50 +283,6 @@ public class AuthenticatedCloneTest {
         }
     }
 
-    @Test
-    public void testSshCallback() throws Exception {
-
-        File urlFile = new File(testFileLocation + "keypairTesting.txt");
-
-        // If a developer does not have this file present, test should just pass.
-        if (!urlFile.exists() && looseTesting) {
-            System.out.println("Ignoring keypair testing. Create a keypairTesting.txt file if you wish.");
-            return;
-
-        }
-
-        LsRemoteCommand command = Git.lsRemoteRepository();
-        //command.setRemote("https://github.com/TheElegitTeam/TestRepository.git");
-        command.setRemote("git@github.com:TheElegitTeam/TestRepository.git");
-
-        SshSessionFactory sshSessionFactory = new JschConfigSessionFactory() {
-            @Override
-            protected void configure(OpenSshConfig.Host host, Session session) {
-                // do nothing
-            }
-        };
-
-        command.setTransportConfigCallback(new TransportConfigCallback() {
-            @Override
-            public void configure(Transport transport) {
-                System.out.println(transport.getClass());
-                // This cast will fail if SSH is not the protocol used
-                SshTransport sshTransport = (SshTransport) transport;
-                sshTransport.setSshSessionFactory(sshSessionFactory);
-
-            }
-        });
-        // Command will fail if config not set up correctly; uses public/private key
-
-        try {
-            command.call();
-        } catch (TransportException e) {
-            fail("Public/private key authentication failed. You should set this up in your ssh/.config.");
-
-        }
-
-    }
-
 
     @Test
     public void testCloneRepositoryWithCheckshHttpUsernamePasswordPublic() throws Exception {
