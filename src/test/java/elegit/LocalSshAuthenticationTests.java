@@ -1,7 +1,5 @@
 package elegit;
 
-import com.jcraft.jsch.JSch;
-import com.jcraft.jsch.Session;
 import elegit.exceptions.CancelledAuthorizationException;
 import elegit.exceptions.MissingRepoException;
 import elegit.models.AuthMethod;
@@ -18,34 +16,25 @@ import org.apache.sshd.common.util.security.SecurityUtils;
 import org.apache.sshd.git.pack.GitPackCommandFactory;
 import org.apache.sshd.server.SshServer;
 import org.apache.sshd.server.auth.password.PasswordAuthenticator;
-import org.apache.sshd.server.auth.pubkey.AcceptAllPublickeyAuthenticator;
 import org.apache.sshd.server.auth.pubkey.KeySetPublickeyAuthenticator;
 import org.apache.sshd.server.session.ServerSession;
 import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.LsRemoteCommand;
 import org.eclipse.jgit.api.PushCommand;
 import org.eclipse.jgit.api.TransportCommand;
-import org.eclipse.jgit.api.TransportConfigCallback;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.api.errors.TransportException;
-import org.eclipse.jgit.transport.JschConfigSessionFactory;
-import org.eclipse.jgit.transport.OpenSshConfig;
-import org.eclipse.jgit.transport.SshSessionFactory;
-import org.eclipse.jgit.transport.SshTransport;
-import org.eclipse.jgit.transport.Transport;
-import org.junit.After;
+import org.eclipse.jgit.transport.TransportGitSsh;
+import org.eclipse.jgit.transport.TransportProtocol;
+import org.eclipse.jgit.transport.URIish;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 
-import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.security.GeneralSecurityException;
 import java.security.KeyPair;
 import java.security.PublicKey;
@@ -55,6 +44,7 @@ import java.util.List;
 import java.util.Scanner;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.fail;
 
 public class LocalSshAuthenticationTests {
@@ -280,6 +270,29 @@ public class LocalSshAuthenticationTests {
 
         // Clone the bare repo, using the SSH connection, to the local.
         return "ssh://localhost:2222/"+testingRemoteAndLocalRepos.getRemoteBrief();
+    }
+
+    @Test
+    public void testTransportProtocols() throws Exception {
+        List<TransportProtocol> protocols = TransportGitSsh.getTransportProtocols();
+        for (TransportProtocol protocol : protocols) {
+            System.out.println(protocol + " " + protocol.getName());
+            for (String scheme : protocol.getSchemes()) {
+                System.out.println("\t" + scheme);
+            }
+        }
+        System.out.println();
+        for (TransportProtocol protocol : protocols) {
+            if (protocol.canHandle(new URIish("https://anything.com/repo.git"))) {
+                assertEquals(protocol.getName(), "HTTP");
+                assertNotEquals(protocol.getName(), "SSH");
+            }
+
+            if (protocol.canHandle(new URIish("ssh://anything.com/repo.git"))) {
+                assertEquals(protocol.getName(), "SSH");
+                assertNotEquals(protocol.getName(), "HTTP");
+            }
+        }
     }
 
 

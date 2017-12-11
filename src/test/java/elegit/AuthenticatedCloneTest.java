@@ -261,30 +261,6 @@ public class AuthenticatedCloneTest {
     }
 
     @Test
-    public void testTransportProtocols() throws Exception {
-        List<TransportProtocol> protocols = TransportGitSsh.getTransportProtocols();
-        for (TransportProtocol protocol : protocols) {
-            System.out.println(protocol + " " + protocol.getName());
-            for (String scheme : protocol.getSchemes()) {
-                System.out.println("\t" + scheme);
-            }
-        }
-        System.out.println();
-        for (TransportProtocol protocol : protocols) {
-            if (protocol.canHandle(new URIish("https://github.com/TheElegitTeam/TestRepository.git"))) {
-                assertEquals(protocol.getName(), "HTTP");
-                assertNotEquals(protocol.getName(), "SSH");
-            }
-
-            if (protocol.canHandle(new URIish("git@github.com:TheElegitTeam/TestRepository.git"))) {
-                assertEquals(protocol.getName(), "SSH");
-                assertNotEquals(protocol.getName(), "HTTP");
-            }
-        }
-    }
-
-
-    @Test
     public void testCloneRepositoryWithCheckshHttpUsernamePasswordPublic() throws Exception {
         testCloneRepositoryWithChecksHttpUsernamePassword("httpUsernamePassword.txt");
     }
