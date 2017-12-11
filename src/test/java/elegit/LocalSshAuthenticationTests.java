@@ -1,5 +1,7 @@
 package elegit;
 
+import com.devsmart.miniweb.Server;
+import com.devsmart.miniweb.ServerBuilder;
 import elegit.exceptions.CancelledAuthorizationException;
 import elegit.exceptions.MissingRepoException;
 import elegit.models.AuthMethod;
@@ -18,21 +20,36 @@ import org.apache.sshd.server.SshServer;
 import org.apache.sshd.server.auth.password.PasswordAuthenticator;
 import org.apache.sshd.server.auth.pubkey.KeySetPublickeyAuthenticator;
 import org.apache.sshd.server.session.ServerSession;
+import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.PushCommand;
 import org.eclipse.jgit.api.TransportCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.errors.RepositoryNotFoundException;
+import org.eclipse.jgit.http.server.GitServlet;
+import org.eclipse.jgit.internal.storage.file.FileRepository;
+import org.eclipse.jgit.junit.http.AppServer;
+import org.eclipse.jgit.junit.http.SimpleHttpServer;
+import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.transport.TransportGitSsh;
 import org.eclipse.jgit.transport.TransportProtocol;
 import org.eclipse.jgit.transport.URIish;
+import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
+import org.eclipse.jgit.transport.resolver.RepositoryResolver;
+import org.eclipse.jgit.transport.resolver.ServiceNotEnabledException;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 
+import javax.servlet.http.HttpServletRequest;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.GeneralSecurityException;
@@ -45,6 +62,7 @@ import java.util.Scanner;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
 public class LocalSshAuthenticationTests {
@@ -281,7 +299,6 @@ public class LocalSshAuthenticationTests {
                 System.out.println("\t" + scheme);
             }
         }
-        System.out.println();
         for (TransportProtocol protocol : protocols) {
             if (protocol.canHandle(new URIish("https://anything.com/repo.git"))) {
                 assertEquals(protocol.getName(), "HTTP");
@@ -295,5 +312,24 @@ public class LocalSshAuthenticationTests {
         }
     }
 
+    @Test
+    public void testCloneHttpNoPassword() throws Exception {
+
+        Path remoteFull = testingRemoteAndLocalRepos.getRemoteFull();
+        Path localFull = testingRemoteAndLocalRepos.getLocalFull();
+        Repository db = new FileRepository(remoteFull.toString());
+
+        SimpleHttpServer server = new SimpleHttpServer(db);
+        server.start();
+        String remoteURL = server.getUri().toString();
+        console.info(remoteURL);
+
+        UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider("agitter",
+                                                                                                  "letmein");
+        ClonedRepoHelper helper = new ClonedRepoHelper(localFull, remoteURL, credentials);
+        assertNotNull(helper);
+        helper.obtainRepository(remoteURL);
+
+    }
 
 }

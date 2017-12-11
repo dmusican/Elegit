@@ -93,10 +93,17 @@
             <artifactId>slf4j-simple</artifactId>
             <version>1.7.25</version>
         </dependency>
+
         <dependency>
             <groupId>org.eclipse.jgit</groupId>
             <artifactId>org.eclipse.jgit</artifactId>
-            <version>4.6.0.201612231935-r</version>
+            <version>4.9.1.201712030800-r</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.eclipse.jgit</groupId>
+            <artifactId>org.eclipse.jgit.junit.http</artifactId>
+            <version>4.9.1.201712030800-r</version>
         </dependency>
 
         <dependency>
@@ -184,7 +191,11 @@
             <version>1.6.0</version>
         </dependency>
 
-
+        <dependency>
+            <groupId>com.dev-smart</groupId>
+            <artifactId>miniweb-core</artifactId>
+            <version>0.1.5</version>
+        </dependency>
     </dependencies>
 
 
