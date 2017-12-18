@@ -89,15 +89,6 @@ public class AuthenticatedCloneTest {
     }
 
     @Test
-    public void testHttpUsernamePasswordPublic() throws Exception {
-        testHttpUsernamePassword("httpUsernamePassword.txt", GITHUB_REMOTE_URL);
-    }
-
-    @Test
-    public void testHttpUsernamePasswordPrivate() throws Exception {
-        testHttpUsernamePassword("httpUsernamePasswordPrivate.txt", BITBUCKET_REMOTE_URL);
-    }
-
     /* The httpUsernamePassword should contain three lines, containing:
         repo http(s) address
         username

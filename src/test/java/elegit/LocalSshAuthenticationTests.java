@@ -1,7 +1,5 @@
 package elegit;
 
-import com.devsmart.miniweb.Server;
-import com.devsmart.miniweb.ServerBuilder;
 import elegit.exceptions.CancelledAuthorizationException;
 import elegit.exceptions.MissingRepoException;
 import elegit.models.AuthMethod;
@@ -9,6 +7,7 @@ import elegit.models.ClonedRepoHelper;
 import elegit.models.ExistingRepoHelper;
 import elegit.models.RepoHelper;
 import elegit.sshauthentication.ElegitUserInfoTest;
+import junit.framework.TestCase;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.sshd.common.config.keys.FilePasswordProvider;
@@ -20,30 +19,56 @@ import org.apache.sshd.server.SshServer;
 import org.apache.sshd.server.auth.password.PasswordAuthenticator;
 import org.apache.sshd.server.auth.pubkey.KeySetPublickeyAuthenticator;
 import org.apache.sshd.server.session.ServerSession;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.servlet.ServletHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.PushCommand;
 import org.eclipse.jgit.api.TransportCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.errors.RepositoryNotFoundException;
+import org.eclipse.jgit.errors.UnsupportedCredentialItem;
 import org.eclipse.jgit.http.server.GitServlet;
 import org.eclipse.jgit.internal.storage.file.FileRepository;
+import org.eclipse.jgit.junit.TestRepository;
 import org.eclipse.jgit.junit.http.AppServer;
+import org.eclipse.jgit.junit.http.HttpTestCase;
+import org.eclipse.jgit.junit.http.RecordingLogger;
 import org.eclipse.jgit.junit.http.SimpleHttpServer;
+import org.eclipse.jgit.lib.ConfigConstants;
+import org.eclipse.jgit.lib.Constants;
+import org.eclipse.jgit.lib.NullProgressMonitor;
 import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.transport.CredentialItem;
+import org.eclipse.jgit.transport.CredentialsProvider;
+import org.eclipse.jgit.transport.RefSpec;
+import org.eclipse.jgit.transport.ServiceMayNotContinueException;
+import org.eclipse.jgit.transport.Transport;
 import org.eclipse.jgit.transport.TransportGitSsh;
 import org.eclipse.jgit.transport.TransportProtocol;
 import org.eclipse.jgit.transport.URIish;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.eclipse.jgit.transport.resolver.RepositoryResolver;
+import org.eclipse.jgit.transport.resolver.ServiceNotAuthorizedException;
 import org.eclipse.jgit.transport.resolver.ServiceNotEnabledException;
+import org.eclipse.jgit.util.HttpSupport;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 
+import javax.servlet.DispatcherType;
+import javax.servlet.Filter;
+import javax.servlet.FilterChain;
+import javax.servlet.FilterConfig;
+import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -57,8 +82,11 @@ import java.security.KeyPair;
 import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Scanner;
+import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
@@ -79,11 +107,14 @@ public class LocalSshAuthenticationTests {
 
     private static final String testPassword = "a_test_password";
 
+    private URIish authURI;
 
     @Before
     public void setUp() throws Exception {
         console.info("Unit test started");
         directoryPath = testingRemoteAndLocalRepos.getDirectoryPath();
+
+
     }
 
     // http://www.jcraft.com/jsch/examples/Logger.java.html
@@ -312,23 +343,116 @@ public class LocalSshAuthenticationTests {
         }
     }
 
+    protected static URIish extendPath(URIish uri, String pathComponents)
+            throws URISyntaxException {
+        String raw = uri.toString();
+        String newComponents = pathComponents;
+        if (!newComponents.startsWith("/")) {
+            newComponents = '/' + newComponents;
+        }
+        if (!newComponents.endsWith("/")) {
+            newComponents += '/';
+        }
+        int i = raw.lastIndexOf('/');
+        raw = raw.substring(0, i) + newComponents + raw.substring(i + 1);
+        return new URIish(raw);
+    }
+
+    protected static Set<RefSpec> mirror(String... refs) {
+        HashSet<RefSpec> r = new HashSet<>();
+        for (String name : refs) {
+            RefSpec rs = new RefSpec(name);
+            rs = rs.setDestination(name);
+            rs = rs.setForceUpdate(true);
+            r.add(rs);
+        }
+        return r;
+    }
+
+
+
     @Test
-    public void testCloneHttpNoPassword() throws Exception {
+    public void testCloneHttpPassword() throws Exception  {
 
-        Path remoteFull = testingRemoteAndLocalRepos.getRemoteFull();
-        Path localFull = testingRemoteAndLocalRepos.getLocalFull();
-        Repository db = new FileRepository(remoteFull.toString());
+//        Path remoteFull = testingRemoteAndLocalRepos.getRemoteFull();
+//        Path localFull = testingRemoteAndLocalRepos.getLocalFull();
+//        System.out.println("remote full is " + remoteFull);
+//        Repository db = new FileRepository(remoteFull.toString());
+////        Repository db = new FileRepository("/tmp/sbasic");
 
-        SimpleHttpServer server = new SimpleHttpServer(db);
+        // Set up remote repo
+//        Path remoteFilePath = remoteFull.resolve("file.txt");
+//        Files.write(remoteFilePath, "hello".getBytes());
+//        ArrayList<Path> paths = new ArrayList<>();
+//        paths.add(remoteFilePath);
+//        ExistingRepoHelper helperServer = new ExistingRepoHelper(remoteFull, null);
+//        helperServer.addFilePathsTest(paths);
+//        helperServer.commit("Initial unit test commit");
+
+
+        Repository db = new FileRepository("/sbasic/remote");
+        SimpleHttpServer server = new SimpleHttpServer(db, false);
         server.start();
-        String remoteURL = server.getUri().toString();
-        console.info(remoteURL);
+        System.out.println(server.getUri().toString());
+        while(true);
 
-        UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider("agitter",
-                                                                                                  "letmein");
-        ClonedRepoHelper helper = new ClonedRepoHelper(localFull, remoteURL, credentials);
-        assertNotNull(helper);
-        helper.obtainRepository(remoteURL);
+//
+//        UsernamePasswordCredentialsProvider testCredentials = new UsernamePasswordCredentialsProvider("agitter",
+//                                                                                                  "letmein");
+//
+////        CredentialsProvider uriSpecificCredentialsProvider = new UsernamePasswordCredentialsProvider(
+////                "unknown", "none") {
+////            @Override
+////            public boolean get(URIish uri, CredentialItem... items)
+////                    throws UnsupportedCredentialItem {
+////                // Only return the true credentials if the uri path starts with
+////                // /auth. This ensures that we do provide the correct
+////                // credentials only for the URi after the redirect, making the
+////                // test fail if we should be asked for the credentials for the
+////                // original URI.
+////                if (uri.getPath().startsWith("/auth")) {
+////                    return testCredentials.get(uri, items);
+////                }
+////                return super.get(uri, items);
+////            }
+////        };
+//        Repository outdb = new FileRepository("/tmp/dave2");
+//        outdb.create(true);
+//        System.out.println(server.getURI());
+//        try (Transport t = Transport.open(outdb, authURI)) {
+//            t.setCredentialsProvider(testCredentials);
+//            t.fetch(NullProgressMonitor.INSTANCE, mirror(Constants.R_HEADS + Constants.MASTER));
+//        }
+//
+//
+////
+////        while(true) {
+////            if (RecordingLogger.getWarnings().size() > 0) {
+////                System.out.println(RecordingLogger.getWarnings());
+////            }
+////        }
+
+//        UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider("agitter",
+//                                                                                                  "letmein");
+//        ClonedRepoHelper helper = new ClonedRepoHelper(localFull, server.getUri().toString(), credentials);
+//        assertNotNull(helper);
+//        helper.obtainRepository(server.getUri().toString());
+
+        ////        assertEquals(helper.getCompatibleAuthentication(), AuthMethod.HTTP);
+////        helper.fetch(false);
+////        Path fileLocation = localFull.resolve("file.txt");
+////        console.info("File location is " + fileLocation);
+////        FileWriter fw = new FileWriter(fileLocation.toString(), true);
+////        fw.write("1");
+////        fw.close();
+////        while (true);
+////        paths = new ArrayList<>();
+////        paths.add(fileLocation.getFileName());
+////        helper.addFilePaths(paths);
+////        helper.commit("Appended to file");
+////        PushCommand command = helper.prepareToPushAll();
+////        helper.pushAll(command);
+
 
     }
 

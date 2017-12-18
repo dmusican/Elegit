@@ -24,7 +24,8 @@ public class TestingRemoteAndLocalRepos extends ExternalResource {
 
     @Override
     protected void before() throws Exception {
-        directoryPath = Files.createTempDirectory("unitTestRepos");
+        //directoryPath = Files.createTempDirectory("unitTestRepos");
+        directoryPath = Paths.get("/sbasic");
         directoryPath.toFile().deleteOnExit();
 
         // Locations of simulated remote and local repos.
@@ -39,7 +40,7 @@ public class TestingRemoteAndLocalRepos extends ExternalResource {
 
     @Override
     protected void after()  {
-        removeAllFilesFromDirectory(directoryPath.toFile());
+//        removeAllFilesFromDirectory(directoryPath.toFile());
     }
 
     private void removeAllFilesFromDirectory(File dir) {
@@ -65,7 +66,7 @@ public class TestingRemoteAndLocalRepos extends ExternalResource {
     }
 
     public Path getLocalFull() {
-        return directoryPath.resolve("local");
+        return directoryPath.resolve("localelegit");
     }
 
     public Path getLocalBrief() {
