@@ -43,22 +43,15 @@
 
 package elegit;
 
-import elegit.models.AuthMethod;
-import elegit.models.ClonedRepoHelper;
-import elegit.models.ExistingRepoHelper;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
-import org.eclipse.jgit.api.PushCommand;
 import org.eclipse.jgit.errors.RemoteRepositoryException;
 import org.eclipse.jgit.errors.TransportException;
 import org.eclipse.jgit.errors.UnsupportedCredentialItem;
 import org.eclipse.jgit.http.server.GitServlet;
 import org.eclipse.jgit.internal.JGitText;
 import org.eclipse.jgit.internal.storage.dfs.DfsRepositoryDescription;
-import org.eclipse.jgit.internal.storage.file.FileRepository;
 import org.eclipse.jgit.junit.TestRepository;
 import org.eclipse.jgit.junit.TestRng;
 import org.eclipse.jgit.junit.http.AccessEvent;
@@ -94,8 +87,6 @@ import org.eclipse.jgit.util.FS;
 import org.eclipse.jgit.util.HttpSupport;
 import org.eclipse.jgit.util.SystemReader;
 import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -111,15 +102,10 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URISyntaxException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.text.MessageFormat;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -163,28 +149,12 @@ public class SmartClientSmartServerTest extends HttpTestCase {
 
 	private RevCommit A, B;
 
-	@ClassRule
-	public static final TestingLogPath testingLogPath = new TestingLogPath();
-
-	@Rule
-	public final TestingRemoteAndLocalRepos testingRemoteAndLocalRepos =
-			new TestingRemoteAndLocalRepos(false);
-	private Path directoryPath;
-
-	private static final Logger console = LogManager.getLogger("briefconsolelogger");
-
-	private static final String testPassword = "a_test_password";
-
-
-
 	@Parameters
 	public static Collection<Object[]> data() {
 		// run all tests with both connection factories we have
 		return Arrays.asList(new Object[][] {
-				{ new JDKHttpConnectionFactory() }
-				,
-				{ new HttpClientConnectionFactory() }
-		});
+				{ new JDKHttpConnectionFactory() },
+				{ new HttpClientConnectionFactory() } });
 	}
 
 	public SmartClientSmartServerTest(HttpConnectionFactory cf) {
@@ -195,7 +165,6 @@ public class SmartClientSmartServerTest extends HttpTestCase {
 	@Before
 	public void setUp() throws Exception {
 		super.setUp();
-		directoryPath = testingRemoteAndLocalRepos.getDirectoryPath();
 
 		final TestRepository<Repository> src = createTestRepository();
 		final String srcName = src.getRepository().getDirectory().getName();
@@ -208,73 +177,29 @@ public class SmartClientSmartServerTest extends HttpTestCase {
 
 		ServletContextHandler app = addNormalContext(gs, src, srcName);
 
-//		ServletContextHandler broken = addBrokenContext(gs, src, srcName);
+		ServletContextHandler broken = addBrokenContext(gs, src, srcName);
 
-//		ServletContextHandler redirect = addRedirectContext(gs);
+		ServletContextHandler redirect = addRedirectContext(gs);
 
 		ServletContextHandler auth = addAuthContext(gs, "auth");
 
-//		ServletContextHandler authOnPost = addAuthContext(gs, "pauth", "POST");
+		ServletContextHandler authOnPost = addAuthContext(gs, "pauth", "POST");
 
 		server.setUp();
 
 		remoteRepository = src.getRepository();
-//		remoteURI = toURIish(app, srcName);
-//		brokenURI = toURIish(broken, srcName);
-//		redirectURI = toURIish(redirect, srcName);
+		remoteURI = toURIish(app, srcName);
+		brokenURI = toURIish(broken, srcName);
+		redirectURI = toURIish(redirect, srcName);
 		authURI = toURIish(auth, srcName);
-//		authOnPostURI = toURIish(authOnPost, srcName);
+		authOnPostURI = toURIish(authOnPost, srcName);
 
-//		A_txt = src.blob("A");
-//		A = src.commit().add("A_txt", A_txt).create();
-//		B = src.commit().parent(A).add("A_txt", "C").add("B", "B").create();
-//		src.update(master, B);
-//
-//		src.update("refs/garbage/a/very/long/ref/name/to/compress", B);
-	}
+		A_txt = src.blob("A");
+		A = src.commit().add("A_txt", A_txt).create();
+		B = src.commit().parent(A).add("A_txt", "C").add("B", "B").create();
+		src.update(master, B);
 
-	@Test
-	public void myTest() throws Exception {
-		Path remoteFull = testingRemoteAndLocalRepos.getRemoteFull();
-		Path localFull = testingRemoteAndLocalRepos.getLocalFull();
-		System.out.println("Remote full is " + remoteFull);
-		Repository db = new FileRepository(new File(remoteFull.toString()));
-		console.info("repo " + db.toString());
-
-
-		// Set up remote repo
-		Path remoteFilePath = remoteFull.resolve("file.txt");
-		Files.write(remoteFilePath, "hello".getBytes());
-		ArrayList<Path> paths = new ArrayList<>();
-		paths.add(remoteFilePath);
-		ExistingRepoHelper helperServer = new ExistingRepoHelper(remoteFull, null);
-		helperServer.addFilePathsTest(paths);
-		helperServer.commit("Initial unit test commit");
-
-		UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider("agitter",
-																								  "letmein");
-		console.info("Remote is " + db.getBranch() + " " + db.getRemoteName("hey"));
-		System.out.println("Remote URI is " + remoteURI);
-		System.out.println(localFull);
-		ClonedRepoHelper helper = new ClonedRepoHelper(localFull, remoteURI.toString(), credentials);
-//        assertNotNull(helper);
-		helper.obtainRepository(remoteURI.toString());
-
-		assertEquals(helper.getCompatibleAuthentication(), AuthMethod.HTTP);
-		helper.fetch(false);
-		Path fileLocation = localFull.resolve("file.txt");
-		console.info("File location is " + fileLocation);
-		FileWriter fw = new FileWriter(fileLocation.toString(), true);
-		fw.write("1");
-		fw.close();
-		paths = new ArrayList<>();
-		paths.add(fileLocation.getFileName());
-		helper.addFilePaths(paths);
-		helper.commit("Appended to file");
-		PushCommand command = helper.prepareToPushAll();
-        helper.pushAll(command);
-
-
+		src.update("refs/garbage/a/very/long/ref/name/to/compress", B);
 	}
 
 	private ServletContextHandler addNormalContext(GitServlet gs, TestRepository<Repository> src, String srcName) {
@@ -532,12 +457,13 @@ public class SmartClientSmartServerTest extends HttpTestCase {
 	@Test
 	public void testInitialClone_Small() throws Exception {
 		Repository dst = createBareRepository();
+		System.out.println(dst.getDirectory());
 		assertFalse(dst.hasObject(A_txt));
 
 		try (Transport t = Transport.open(dst, remoteURI)) {
 			t.fetch(NullProgressMonitor.INSTANCE, mirror(master));
 		}
-
+        System.out.println(remoteURI);
 		assertTrue(dst.hasObject(A_txt));
 		assertEquals(B, dst.exactRef(master).getObjectId());
 		fsck(dst, B);
@@ -567,6 +493,7 @@ public class SmartClientSmartServerTest extends HttpTestCase {
 		assertEquals(200, service.getStatus());
 		assertEquals("application/x-git-upload-pack-result", service
 				.getResponseHeader(HDR_CONTENT_TYPE));
+		while(true);
 	}
 
 	private void initialClone_Redirect(int nofRedirects, int code)
@@ -786,6 +713,8 @@ public class SmartClientSmartServerTest extends HttpTestCase {
 			t.fetch(NullProgressMonitor.INSTANCE, mirror(master));
 		}
 
+        System.out.println(dst.getDirectory());
+        System.out.println(authURI);
 		assertTrue(dst.hasObject(A_txt));
 		assertEquals(B, dst.exactRef(master).getObjectId());
 		fsck(dst, B);
@@ -819,6 +748,7 @@ public class SmartClientSmartServerTest extends HttpTestCase {
 		assertEquals(200, service.getStatus());
 		assertEquals("application/x-git-upload-pack-result",
 				service.getResponseHeader(HDR_CONTENT_TYPE));
+		while(true);
 	}
 
 	@Test
@@ -1173,6 +1103,7 @@ public class SmartClientSmartServerTest extends HttpTestCase {
 		}
 	}
 
+
 	@Test
 	public void testPush_NotAuthorized() throws Exception {
 		final TestRepository src = createTestRepository();
@@ -1342,83 +1273,5 @@ public class SmartClientSmartServerTest extends HttpTestCase {
 		cfg.setBoolean("http", null, "receivepack", true);
 		cfg.save();
 	}
-
-
-
-
-
-    @Test
-    public void testInitialClone_WithAuthentication2() throws Exception {
-
-        Path remoteFull = testingRemoteAndLocalRepos.getRemoteFull();
-        Path localFull = testingRemoteAndLocalRepos.getLocalFull();
-        Repository db = new FileRepository(remoteFull.toString());
-
-        // Set up remote repo
-        Path remoteFilePath = remoteFull.resolve("file.txt");
-        Files.write(remoteFilePath, "hello".getBytes());
-        ArrayList<Path> paths = new ArrayList<>();
-        paths.add(remoteFilePath);
-        ExistingRepoHelper helperServer = new ExistingRepoHelper(remoteFull, null);
-        helperServer.addFilePathsTest(paths);
-        helperServer.commit("Initial unit test commit");
-
-//        Repository dst = createBareRepository();
-        Repository dst = new FileRepository(remoteFull.toFile());
-
-        System.out.println("dst = " + dst);
-        System.out.println("auth url = " + authURI);
-//        try (Transport t = Transport.open(dst, authURI)) {
-//            t.setCredentialsProvider(testCredentials);
-//            t.fetch(NullProgressMonitor.INSTANCE, mirror(master));
-//
-//        }
-
-        System.out.println(authURI.getRawPath());
-        console.info("Trying to clone to " + localFull);
-        ClonedRepoHelper helper = new ClonedRepoHelper(localFull, "unused", (UsernamePasswordCredentialsProvider) testCredentials);
-        assertNotNull(helper);
-
-        while (true);
-        //helper.obtainRepository(authURI.toString());
-
-//
-//        assertTrue(dst.hasObject(A_txt));
-//        assertEquals(B, dst.exactRef(master).getObjectId());
-//        fsck(dst, B);
-//
-//        List<AccessEvent> requests = getRequests();
-//        assertEquals(3, requests.size());
-//
-//        AccessEvent info = requests.get(0);
-//        assertEquals("GET", info.getMethod());
-//        assertEquals(401, info.getStatus());
-//
-//        info = requests.get(1);
-//        assertEquals("GET", info.getMethod());
-//        assertEquals(join(authURI, "info/refs"), info.getPath());
-//        assertEquals(1, info.getParameters().size());
-//        assertEquals("git-upload-pack", info.getParameter("service"));
-//        assertEquals(200, info.getStatus());
-//        assertEquals("application/x-git-upload-pack-advertisement",
-//                     info.getResponseHeader(HDR_CONTENT_TYPE));
-//        assertEquals("gzip", info.getResponseHeader(HDR_CONTENT_ENCODING));
-//
-//        AccessEvent service = requests.get(2);
-//        assertEquals("POST", service.getMethod());
-//        assertEquals(join(authURI, "git-upload-pack"), service.getPath());
-//        assertEquals(0, service.getParameters().size());
-//        assertNotNull("has content-length",
-//                      service.getRequestHeader(HDR_CONTENT_LENGTH));
-//        assertNull("not chunked",
-//                   service.getRequestHeader(HDR_TRANSFER_ENCODING));
-//
-//        assertEquals(200, service.getStatus());
-//        assertEquals("application/x-git-upload-pack-result",
-//                     service.getResponseHeader(HDR_CONTENT_TYPE));
-    }
-
-
-
 
 }

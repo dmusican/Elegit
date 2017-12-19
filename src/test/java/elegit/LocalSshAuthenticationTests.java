@@ -390,7 +390,9 @@ public class LocalSshAuthenticationTests {
 //        helperServer.commit("Initial unit test commit");
 
 
-        Repository db = new FileRepository("/sbasic/remote");
+
+        //Repository db = new FileRepository("/sbasic/remote");
+        Repository db = new FileRepository("remote");
         SimpleHttpServer server = new SimpleHttpServer(db, false);
         server.start();
         System.out.println(server.getUri().toString());
