@@ -718,7 +718,7 @@ public class SmartClientSmartServerTest extends HttpTestCase {
 
         // Set up remote repo
         TestingRemoteAndLocalRepos testingRemoteAndLocalRepos =
-                new TestingRemoteAndLocalRepos(true);
+                new TestingRemoteAndLocalRepos(false);
         testingRemoteAndLocalRepos.before();
         Path remoteFull = testingRemoteAndLocalRepos.getRemoteFull();
         Path localFull = testingRemoteAndLocalRepos.getLocalFull();
@@ -736,17 +736,9 @@ public class SmartClientSmartServerTest extends HttpTestCase {
 
 
         Repository dst = createBareRepository();
-		assertFalse(dst.hasObject(A_txt));
 
         System.out.println("Location is " + db.getDirectory());
         System.out.println("Other location is " + dst.getDirectory());
-//        Thread.sleep(1000000);
-//        try (Transport t = Transport.open(db, authURI)) {
-////		try (Transport t = Transport.open(dst, authURI)) {
-//			t.setCredentialsProvider(testCredentials);
-//			t.fetch(NullProgressMonitor.INSTANCE, mirror(master));
-//		}
-
         System.out.println(dst.getDirectory());
         System.out.println(authURI);
 
@@ -771,41 +763,6 @@ public class SmartClientSmartServerTest extends HttpTestCase {
         PushCommand command = helper.prepareToPushAll();
         helper.pushAll(command);
 
-
-//		assertTrue(dst.hasObject(A_txt));
-//		assertEquals(B, dst.exactRef(master).getObjectId());
-//		fsck(dst, B);
-
-//		List<AccessEvent> requests = getRequests();
-//		assertEquals(3, requests.size());
-//
-//		AccessEvent info = requests.get(0);
-//		assertEquals("GET", info.getMethod());
-//		assertEquals(401, info.getStatus());
-//
-//		info = requests.get(1);
-//		assertEquals("GET", info.getMethod());
-//		assertEquals(join(authURI, "info/refs"), info.getPath());
-//		assertEquals(1, info.getParameters().size());
-//		assertEquals("git-upload-pack", info.getParameter("service"));
-//		assertEquals(200, info.getStatus());
-//		assertEquals("application/x-git-upload-pack-advertisement",
-//				info.getResponseHeader(HDR_CONTENT_TYPE));
-//		assertEquals("gzip", info.getResponseHeader(HDR_CONTENT_ENCODING));
-//
-//		AccessEvent service = requests.get(2);
-//		assertEquals("POST", service.getMethod());
-//		assertEquals(join(authURI, "git-upload-pack"), service.getPath());
-//		assertEquals(0, service.getParameters().size());
-//		assertNotNull("has content-length",
-//				service.getRequestHeader(HDR_CONTENT_LENGTH));
-//		assertNull("not chunked",
-//				service.getRequestHeader(HDR_TRANSFER_ENCODING));
-//
-//		assertEquals(200, service.getStatus());
-//		assertEquals("application/x-git-upload-pack-result",
-//				service.getResponseHeader(HDR_CONTENT_TYPE));
-//		while(true);
 	}
 
 	@Test

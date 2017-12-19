@@ -24,8 +24,7 @@ public class TestingRemoteAndLocalRepos extends ExternalResource {
 
     @Override
     protected void before() throws Exception {
-        //directoryPath = Files.createTempDirectory("unitTestRepos");
-        directoryPath = Paths.get("/sbasic");
+        directoryPath = Files.createTempDirectory("unitTestRepos");
         directoryPath.toFile().deleteOnExit();
 
         // Locations of simulated remote and local repos.
