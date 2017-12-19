@@ -1,4 +1,10 @@
 /*
+ * Note that this code contains some content from the JGit testing libraries, as is allowed via the following
+ * license, which we repeat as required:
+ */
+
+/*
+ *
  * Copyright (C) 2010, 2017 Google Inc.
  * and other copyright owners as documented in the project's IP log.
  *
@@ -136,20 +142,12 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-@RunWith(Parameterized.class)
 public class SmartClientSmartServerTest extends HttpTestCase {
 
     private URIish authURI;
 
-	@Parameters
-	public static Collection<Object[]> data() {
-		// run all tests with both connection factories we have
-		return Arrays.asList(new Object[][] {
-				{ new HttpClientConnectionFactory() } });
-	}
-
-	public SmartClientSmartServerTest(HttpConnectionFactory cf) {
-		HttpTransport.setConnectionFactory(cf);
+	public SmartClientSmartServerTest() {
+		HttpTransport.setConnectionFactory(new HttpClientConnectionFactory());
 	}
 
 	@Override
@@ -224,7 +222,8 @@ public class SmartClientSmartServerTest extends HttpTestCase {
         System.out.println(dst.getDirectory());
         System.out.println(authURI);
 
-        UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider("agitter", "letmein");
+        UsernamePasswordCredentialsProvider credentials =
+                new UsernamePasswordCredentialsProvider("agitter", "letmein");
         System.out.println("Local path is " + localFull);
         ClonedRepoHelper helper = new ClonedRepoHelper(localFull, authURI.toString(), credentials);
         assertNotNull(helper);
