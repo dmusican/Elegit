@@ -138,20 +138,10 @@ import static org.junit.Assert.fail;
 
 @RunWith(Parameterized.class)
 public class SmartClientSmartServerTest extends HttpTestCase {
-	private static final String HDR_TRANSFER_ENCODING = "Transfer-Encoding";
 
-	private Repository remoteRepository;
+    private URIish authURI;
 
-	private CredentialsProvider testCredentials = new UsernamePasswordCredentialsProvider(
-            AppServer.username, AppServer.password);
-
-	private URIish remoteURI;
-
-	private URIish authURI;
-
-	private RevBlob A_txt;
-
-	private RevCommit A, B;
+    private RevCommit A, B;
 
 	@Parameters
 	public static Collection<Object[]> data() {
@@ -183,11 +173,9 @@ public class SmartClientSmartServerTest extends HttpTestCase {
 
 		server.setUp();
 
-		remoteRepository = src.getRepository();
-		remoteURI = toURIish(app, srcName);
-		authURI = toURIish(auth, srcName);
+        authURI = toURIish(auth, srcName);
 
-		A_txt = src.blob("A");
+        RevBlob A_txt = src.blob("A");
 		A = src.commit().add("A_txt", A_txt).create();
 		B = src.commit().parent(A).add("A_txt", "C").add("B", "B").create();
 		src.update(master, B);
