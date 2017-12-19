@@ -200,15 +200,33 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
 		return server.authBasic(auth, methods);
 	}
 
-//    @Test
-//    public void testCloneHttpNoPassword() throws Exception {
-//
-//        UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider("", "");
-//        ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, remoteURL, credentials);
-//        assertNotNull(helper);
-//        helper.obtainRepository(remoteURL);
-//
-//    }
+    @Test
+    public void testCloneHttpNoPassword() throws Exception {
+
+        // Set up remote repo
+        Path remoteFull = testingRemoteAndLocalRepos.getRemoteFull();
+        Path localFull = testingRemoteAndLocalRepos.getLocalFull();
+        System.out.println("remote full is " + remoteFull);
+
+        Repository db = new FileRepository(remoteFull.toString());
+
+        Path remoteFilePath = remoteFull.resolve("file.txt");
+        Files.write(remoteFilePath, "hello".getBytes());
+        ArrayList<Path> paths = new ArrayList<>();
+        paths.add(remoteFilePath);
+        ExistingRepoHelper helperServer = new ExistingRepoHelper(remoteFull, null);
+        helperServer.addFilePathsTest(paths);
+        helperServer.commit("Initial unit test commit");
+
+        System.out.println("Location is " + db.getDirectory());
+        System.out.println(remoteURI);
+
+        UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider("", "");
+        ClonedRepoHelper helper = new ClonedRepoHelper(localFull, remoteURI.toString(), credentials);
+        assertNotNull(helper);
+        helper.obtainRepository(remoteURI.toString());
+
+    }
 
 
     @Test
@@ -228,8 +246,6 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
         ExistingRepoHelper helperServer = new ExistingRepoHelper(remoteFull, null);
         helperServer.addFilePathsTest(paths);
         helperServer.commit("Initial unit test commit");
-
-
 
         System.out.println("Location is " + db.getDirectory());
         System.out.println(authURI);
