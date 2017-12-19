@@ -43,11 +43,13 @@
 
 package elegit;
 
+import elegit.models.AuthMethod;
 import elegit.models.ClonedRepoHelper;
 import elegit.models.ExistingRepoHelper;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jgit.api.PushCommand;
 import org.eclipse.jgit.errors.RemoteRepositoryException;
 import org.eclipse.jgit.errors.TransportException;
 import org.eclipse.jgit.errors.UnsupportedCredentialItem;
@@ -105,6 +107,7 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URISyntaxException;
@@ -752,6 +755,21 @@ public class SmartClientSmartServerTest extends HttpTestCase {
         ClonedRepoHelper helper = new ClonedRepoHelper(localFull, authURI.toString(), credentials);
         assertNotNull(helper);
         helper.obtainRepository(authURI.toString());
+
+
+        assertEquals(helper.getCompatibleAuthentication(), AuthMethod.HTTP);
+        helper.fetch(false);
+        Path fileLocation = localFull.resolve("file.txt");
+        //console.info("File location is " + fileLocation);
+        FileWriter fw = new FileWriter(fileLocation.toString(), true);
+        fw.write("1");
+        fw.close();
+        paths = new ArrayList<>();
+        paths.add(fileLocation.getFileName());
+        helper.addFilePaths(paths);
+        helper.commit("Appended to file");
+        PushCommand command = helper.prepareToPushAll();
+        helper.pushAll(command);
 
 
 //		assertTrue(dst.hasObject(A_txt));
