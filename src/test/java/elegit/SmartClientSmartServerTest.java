@@ -141,8 +141,6 @@ public class SmartClientSmartServerTest extends HttpTestCase {
 
     private URIish authURI;
 
-    private RevCommit A, B;
-
 	@Parameters
 	public static Collection<Object[]> data() {
 		// run all tests with both connection factories we have
@@ -176,60 +174,13 @@ public class SmartClientSmartServerTest extends HttpTestCase {
         authURI = toURIish(auth, srcName);
 
         RevBlob A_txt = src.blob("A");
-		A = src.commit().add("A_txt", A_txt).create();
-		B = src.commit().parent(A).add("A_txt", "C").add("B", "B").create();
+		RevCommit A = src.commit().add("A_txt", A_txt).create();
+		RevCommit B = src.commit().parent(A).add("A_txt", "C").add("B", "B").create();
 		src.update(master, B);
-
-		src.update("refs/garbage/a/very/long/ref/name/to/compress", B);
-	}
+    }
 
 	private ServletContextHandler addNormalContext(GitServlet gs, TestRepository<Repository> src, String srcName) {
 		ServletContextHandler app = server.addContext("/git");
-		app.addFilter(new FilterHolder(new Filter() {
-
-			@Override
-			public void init(FilterConfig filterConfig)
-					throws ServletException {
-				// empty
-			}
-
-			// Does an internal forward for GET requests containing "/post/",
-			// and issues a 301 redirect on POST requests for such URLs. Used
-			// in the POST redirect tests.
-			@Override
-			public void doFilter(ServletRequest request,
-					ServletResponse response, FilterChain chain)
-					throws IOException, ServletException {
-				final HttpServletResponse httpServletResponse = (HttpServletResponse) response;
-				final HttpServletRequest httpServletRequest = (HttpServletRequest) request;
-				final StringBuffer fullUrl = httpServletRequest.getRequestURL();
-				if (httpServletRequest.getQueryString() != null) {
-					fullUrl.append("?")
-							.append(httpServletRequest.getQueryString());
-				}
-				String urlString = fullUrl.toString();
-				if ("POST".equalsIgnoreCase(httpServletRequest.getMethod())) {
-					httpServletResponse.setStatus(
-							HttpServletResponse.SC_MOVED_PERMANENTLY);
-					httpServletResponse.setHeader(HttpSupport.HDR_LOCATION,
-                                                  urlString.replace("/post/", "/"));
-				} else {
-					String path = httpServletRequest.getPathInfo();
-					path = path.replace("/post/", "/");
-					if (httpServletRequest.getQueryString() != null) {
-						path += '?' + httpServletRequest.getQueryString();
-					}
-					RequestDispatcher dispatcher = httpServletRequest
-							.getRequestDispatcher(path);
-					dispatcher.forward(httpServletRequest, httpServletResponse);
-				}
-			}
-
-			@Override
-			public void destroy() {
-				// empty
-			}
-		}), "/post/*", EnumSet.of(DispatcherType.REQUEST));
 		gs.setRepositoryResolver(new TestRepositoryResolver(src, srcName));
 		app.addServlet(new ServletHolder(gs), "/*");
 		return app;
