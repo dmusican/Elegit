@@ -186,23 +186,13 @@ public class SmartClientSmartServerTest extends HttpTestCase {
 		GitServlet gs = new GitServlet();
 
 		ServletContextHandler app = addNormalContext(gs, src, srcName);
-
-		ServletContextHandler broken = addBrokenContext(gs, src, srcName);
-
-		ServletContextHandler redirect = addRedirectContext(gs);
-
 		ServletContextHandler auth = addAuthContext(gs, "auth");
-
-		ServletContextHandler authOnPost = addAuthContext(gs, "pauth", "POST");
 
 		server.setUp();
 
 		remoteRepository = src.getRepository();
 		remoteURI = toURIish(app, srcName);
-		brokenURI = toURIish(broken, srcName);
-		redirectURI = toURIish(redirect, srcName);
 		authURI = toURIish(auth, srcName);
-		authOnPostURI = toURIish(authOnPost, srcName);
 
 		A_txt = src.blob("A");
 		A = src.commit().add("A_txt", A_txt).create();
