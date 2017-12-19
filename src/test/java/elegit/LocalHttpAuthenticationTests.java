@@ -331,12 +331,11 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
 
     }
 
-    @Test
     /* This is a version of the test where the username password is entered incorrectly at first, which works for a
      * public repo, but later needs to be specified for a push.
      * and needs to be fixed later.
      */
-
+    @Test
     public void testHttpBadUsernamePassword() throws Exception {
 
         System.out.println("remote " + remoteURI);
@@ -344,7 +343,7 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
         Path localFull = testingRemoteAndLocalRepos.getLocalFull();
         System.out.println("local " + localFull);
         UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider("", "");
-        ClonedRepoHelper helper = new ClonedRepoHelper(localFull, remoteURI.toString(), credentials);
+        ClonedRepoHelper helper = new ClonedRepoHelper(localFull, "", credentials);
         helper.obtainRepository(remoteURI.toString());
         assertEquals(helper.getCompatibleAuthentication(), AuthMethod.HTTP);
         helper.fetch(false);
@@ -365,6 +364,8 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
         helper.setOwnerAuth(credentials);
         PushCommand command = helper.prepareToPushAll();
         helper.pushAll(command);
+        String commitName = helper.getAllCommits().iterator().next().getName();
+        helper.getTagModel().tag("aTestTag", commitName);
         helper.pushTags();
     }
 
