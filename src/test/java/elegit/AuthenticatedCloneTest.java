@@ -126,22 +126,7 @@ public class AuthenticatedCloneTest {
     }
 
 
-    @Test
-    // Test Https access, with empty string credentials, to see if it works for a repo that is public
-    // ... and verify it fails with a bad username or password
-    public void testLsHttpUsernamePasswordEmpty() throws Exception {
 
-        UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider("a", "asdas");
-
-        TransportCommand command =
-                Git.lsRemoteRepository().setRemote("https://github.com/TheElegitTeam/TestRepository.git");
-        //RepoHelper.wrapAuthentication(command, credentials);
-        command.call();
-    }
-
-
-    @Rule
-    public ExpectedException exception = ExpectedException.none();
 
 
     // http://www.jcraft.com/jsch/examples/Logger.java.html
@@ -163,38 +148,7 @@ public class AuthenticatedCloneTest {
         }
     }
 
-    @Test
-    public void testCloneRepositoryWithCheckshHttpUsernamePasswordPublic() throws Exception {
-        testCloneRepositoryWithChecksHttpUsernamePassword("httpUsernamePassword.txt");
-    }
 
-    @Test
-    public void testCloneRepositoryWithChecksHttpUsernamePasswordPrivate() throws Exception {
-        testCloneRepositoryWithChecksHttpUsernamePassword("httpUsernamePasswordPrivate.txt");
-    }
-
-
-    private void testCloneRepositoryWithChecksHttpUsernamePassword(String filename) throws Exception {
-        File authData = new File(testFileLocation + filename);
-
-        // If a developer does not have this file present, test should just pass.
-        if (!authData.exists())
-            return;
-
-        Scanner scanner = new Scanner(authData);
-        String ignoreURL = scanner.next();
-        String username = scanner.next();
-        String password = scanner.next();
-
-        Path repoPath = directoryPath.resolve("testrepo");
-
-        RepoHelperBuilder.AuthDialogResponse response =
-                new RepoHelperBuilder.AuthDialogResponse(null, username, password, false);
-
-        ClonedRepoHelperBuilder.cloneRepositoryWithChecks(GITHUB_REMOTE_URL, repoPath, response,
-                                                          new ElegitUserInfoTest());
-
-    }
 
 
 }

@@ -49,10 +49,13 @@
 
 package elegit;
 
+import elegit.gui.ClonedRepoHelperBuilder;
+import elegit.gui.RepoHelperBuilder;
 import elegit.models.AuthMethod;
 import elegit.models.ClonedRepoHelper;
 import elegit.models.ExistingRepoHelper;
 import elegit.models.RepoHelper;
+import elegit.sshauthentication.ElegitUserInfoTest;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -267,9 +270,34 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
 
 	}
 
-	@Test
-    public void testLsHttpUsernamePassword() throws Exception {
+    @Test
+    public void testLsHttpPublicUsernamePassword() throws Exception {
 
+        UsernamePasswordCredentialsProvider credentials =
+                new UsernamePasswordCredentialsProvider("", "");
+
+        TransportCommand command = Git.lsRemoteRepository().setRemote(remoteURI.toString());
+        RepoHelper helper = new RepoHelper("");
+        helper.wrapAuthentication(command, credentials);
+        command.call();
+    }
+
+    @Test
+    public void testLsHttpPublicUsernamePasswordEmpty() throws Exception {
+
+        UsernamePasswordCredentialsProvider credentials =
+                new UsernamePasswordCredentialsProvider("a", "asdas");
+
+        TransportCommand command = Git.lsRemoteRepository().setRemote(remoteURI.toString());
+        RepoHelper helper = new RepoHelper("");
+        helper.wrapAuthentication(command, credentials);
+        command.call();
+    }
+
+    @Test
+    public void testLsHttpPrivateUsernamePassword() throws Exception {
+
+        System.out.println(authURI);
         UsernamePasswordCredentialsProvider credentials =
                 new UsernamePasswordCredentialsProvider("agitter", "letmein");
 
@@ -277,6 +305,67 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
         RepoHelper helper = new RepoHelper("");
         helper.wrapAuthentication(command, credentials);
         command.call();
+    }
+
+    @Test
+    public void testCloneRepositoryPublicWithChecksHttpUsernamePassword() throws Exception {
+
+        RepoHelperBuilder.AuthDialogResponse response =
+                new RepoHelperBuilder.AuthDialogResponse(null, "", "", false);
+
+        Path localFull = testingRemoteAndLocalRepos.getLocalFull();
+        ClonedRepoHelperBuilder.cloneRepositoryWithChecks(remoteURI.toString(), localFull, response,
+                                                          new ElegitUserInfoTest());
+
+    }
+
+    @Test
+    public void testCloneRepositoryPrivateWithChecksHttpUsernamePassword() throws Exception {
+
+        RepoHelperBuilder.AuthDialogResponse response =
+                new RepoHelperBuilder.AuthDialogResponse(null, "agitter", "letmein", false);
+
+        Path localFull = testingRemoteAndLocalRepos.getLocalFull();
+        ClonedRepoHelperBuilder.cloneRepositoryWithChecks(authURI.toString(), localFull, response,
+                                                          new ElegitUserInfoTest());
+
+    }
+
+    @Test
+    /* This is a version of the test where the username password is entered incorrectly at first, which works for a
+     * public repo, but later needs to be specified for a push.
+     * and needs to be fixed later.
+     */
+
+    public void testHttpBadUsernamePassword() throws Exception {
+
+        System.out.println("remote " + remoteURI);
+        System.out.println("auth " + authURI);
+        Path localFull = testingRemoteAndLocalRepos.getLocalFull();
+        System.out.println("local " + localFull);
+        UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider("", "");
+        ClonedRepoHelper helper = new ClonedRepoHelper(localFull, remoteURI.toString(), credentials);
+        helper.obtainRepository(remoteURI.toString());
+        assertEquals(helper.getCompatibleAuthentication(), AuthMethod.HTTP);
+        helper.fetch(false);
+        Path fileLocation = localFull.resolve("README.md");
+        System.out.println(fileLocation);
+        FileWriter fw = new FileWriter(fileLocation.toString(), true);
+        fw.write("1");
+        fw.close();
+        helper.addFilePathTest(fileLocation);
+        helper.commit("Appended to file");
+
+        // https://stackoverflow.com/questions/12799573/add-remote-via-jgit
+        Git git = new Git(helper.getRepo());
+        StoredConfig config = git.getRepository().getConfig();
+        config.setString("remote","origin","url",authURI.toString());
+        config.save();
+        credentials = new UsernamePasswordCredentialsProvider("agitter", "letmein");
+        helper.setOwnerAuth(credentials);
+        PushCommand command = helper.prepareToPushAll();
+        helper.pushAll(command);
+        helper.pushTags();
     }
 
 
