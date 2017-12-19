@@ -88,48 +88,6 @@ public class AuthenticatedCloneTest {
         testLsHttpUsernamePassword("httpNoUsernamePassword.txt");
     }
 
-    @Test
-    /* The httpUsernamePassword should contain three lines, containing:
-        repo http(s) address
-        username
-        password
-     */
-    public void testHttpUsernamePassword(String filename, String remoteURL) throws Exception {
-        Path repoPath = directoryPath.resolve("testrepo");
-        File authData = new File(testFileLocation + filename);
-
-        // If a developer does not have this file present, test should just pass.
-        if (!authData.exists() && looseTesting)
-            return;
-
-        Scanner scanner = new Scanner(authData);
-        String ignoreURL = scanner.next();
-        String username = scanner.next();
-        String password = scanner.next();
-        UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider(username, password);
-        try {
-            ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, remoteURL, credentials);
-            helper.obtainRepository(remoteURL);
-            assertEquals(helper.getCompatibleAuthentication(), AuthMethod.HTTP);
-            helper.fetch(false);
-            Path fileLocation = repoPath.resolve("README.md");
-            System.out.println(fileLocation);
-            FileWriter fw = new FileWriter(fileLocation.toString(), true);
-            fw.write("1");
-            fw.close();
-            helper.addFilePathTest(fileLocation);
-            helper.commit("Appended to file");
-            PushCommand command = helper.prepareToPushAll();
-            helper.pushAll(command);
-        } catch (TransportException e) {
-            e.printStackTrace();
-            fail("Test failed; it is likely that you have not name/password correctly in the file " +
-                 "or you do not have access to the Bitbucket repo. Note that httpUsernamePassword.txt " +
-                 "should have GitHub authentication info; httpUsernamePasswordPrivate.txt should have" +
-                 "Bitbucket authentication info.");
-        }
-    }
-
 
     @Test
     public void testHttpBadUsernamePasswordPublic() throws Exception {

@@ -98,6 +98,8 @@ import org.eclipse.jgit.util.FS;
 import org.eclipse.jgit.util.HttpSupport;
 import org.eclipse.jgit.util.SystemReader;
 import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -142,11 +144,20 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-public class SmartClientSmartServerTest extends HttpTestCase {
+public class LocalHttpAuthenticationTests extends HttpTestCase {
 
+
+    @ClassRule
+    public static final TestingLogPath testingLogPath = new TestingLogPath();
+
+    @Rule
+    public final TestingRemoteAndLocalRepos testingRemoteAndLocalRepos =
+            new TestingRemoteAndLocalRepos(false);
+
+    private URIish remoteURI;
     private URIish authURI;
 
-	public SmartClientSmartServerTest() {
+	public LocalHttpAuthenticationTests() {
 		HttpTransport.setConnectionFactory(new HttpClientConnectionFactory());
 	}
 
@@ -163,14 +174,11 @@ public class SmartClientSmartServerTest extends HttpTestCase {
                             ConfigConstants.CONFIG_KEY_LOGALLREFUPDATES, true);
 
 		GitServlet gs = new GitServlet();
-
 		ServletContextHandler app = addNormalContext(gs, src, srcName);
 		ServletContextHandler auth = addAuthContext(gs, "auth");
-
 		server.setUp();
-
+        remoteURI = toURIish(app, srcName);
         authURI = toURIish(auth, srcName);
-
         RevBlob A_txt = src.blob("A");
 		RevCommit A = src.commit().add("A_txt", A_txt).create();
 		RevCommit B = src.commit().parent(A).add("A_txt", "C").add("B", "B").create();
@@ -192,14 +200,21 @@ public class SmartClientSmartServerTest extends HttpTestCase {
 		return server.authBasic(auth, methods);
 	}
 
+//    @Test
+//    public void testCloneHttpNoPassword() throws Exception {
+//
+//        UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider("", "");
+//        ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, remoteURL, credentials);
+//        assertNotNull(helper);
+//        helper.obtainRepository(remoteURL);
+//
+//    }
 
-	@Test
-	public void testInitialClone_WithAuthentication() throws Exception {
+
+    @Test
+	public void testCloneHttpWithUsernamePassword() throws Exception {
 
         // Set up remote repo
-        TestingRemoteAndLocalRepos testingRemoteAndLocalRepos =
-                new TestingRemoteAndLocalRepos(false);
-        testingRemoteAndLocalRepos.before();
         Path remoteFull = testingRemoteAndLocalRepos.getRemoteFull();
         Path localFull = testingRemoteAndLocalRepos.getLocalFull();
         System.out.println("remote full is " + remoteFull);
@@ -215,11 +230,8 @@ public class SmartClientSmartServerTest extends HttpTestCase {
         helperServer.commit("Initial unit test commit");
 
 
-        Repository dst = createBareRepository();
 
         System.out.println("Location is " + db.getDirectory());
-        System.out.println("Other location is " + dst.getDirectory());
-        System.out.println(dst.getDirectory());
         System.out.println(authURI);
 
         UsernamePasswordCredentialsProvider credentials =
