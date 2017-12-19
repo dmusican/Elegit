@@ -66,7 +66,7 @@ public class TestingRemoteAndLocalRepos extends ExternalResource {
     }
 
     public Path getLocalFull() {
-        return directoryPath.resolve("localelegit");
+        return directoryPath.resolve("local");
     }
 
     public Path getLocalBrief() {
