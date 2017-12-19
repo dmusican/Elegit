@@ -71,11 +71,6 @@ public class AuthenticatedCloneTest {
     }
 
 
-    @Test
-    public void testLsHttpNoPassword() throws Exception {
-        testLsHttpUsernamePassword("httpNoUsernamePassword.txt");
-    }
-
 
     @Test
     public void testHttpBadUsernamePasswordPublic() throws Exception {
@@ -130,35 +125,6 @@ public class AuthenticatedCloneTest {
         }
     }
 
-    @Test
-    public void testLshHttpUsernamePasswordPublic() throws Exception {
-        testLsHttpUsernamePassword("httpUsernamePassword.txt");
-    }
-
-    @Test
-    public void testLshHttpUsernamePasswordPrivate() throws Exception {
-        testLsHttpUsernamePassword("httpUsernamePasswordPrivate.txt");
-    }
-
-    public void testLsHttpUsernamePassword(String filename) throws Exception {
-
-        File authData = new File(testFileLocation + filename);
-
-        // If a developer does not have this file present, test should just pass.
-        if (!authData.exists())
-            return;
-
-        Scanner scanner = new Scanner(authData);
-        String ignoreURL = scanner.next();
-        String username = scanner.next();
-        String password = scanner.next();
-        UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider(username, password);
-
-        TransportCommand command = Git.lsRemoteRepository().setRemote(GITHUB_REMOTE_URL);
-        RepoHelper helper = new RepoHelper("");
-        helper.wrapAuthentication(command, credentials);
-        command.call();
-    }
 
     @Test
     // Test Https access, with empty string credentials, to see if it works for a repo that is public

@@ -52,10 +52,13 @@ package elegit;
 import elegit.models.AuthMethod;
 import elegit.models.ClonedRepoHelper;
 import elegit.models.ExistingRepoHelper;
+import elegit.models.RepoHelper;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.PushCommand;
+import org.eclipse.jgit.api.TransportCommand;
 import org.eclipse.jgit.errors.RemoteRepositoryException;
 import org.eclipse.jgit.errors.TransportException;
 import org.eclipse.jgit.errors.UnsupportedCredentialItem;
@@ -115,6 +118,7 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -130,6 +134,7 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -261,6 +266,18 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
         helper.pushAll(command);
 
 	}
+
+	@Test
+    public void testLsHttpUsernamePassword() throws Exception {
+
+        UsernamePasswordCredentialsProvider credentials =
+                new UsernamePasswordCredentialsProvider("agitter", "letmein");
+
+        TransportCommand command = Git.lsRemoteRepository().setRemote(authURI.toString());
+        RepoHelper helper = new RepoHelper("");
+        helper.wrapAuthentication(command, credentials);
+        command.call();
+    }
 
 
 }
