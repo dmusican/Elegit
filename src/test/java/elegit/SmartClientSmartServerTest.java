@@ -147,13 +147,7 @@ public class SmartClientSmartServerTest extends HttpTestCase {
 
 	private URIish remoteURI;
 
-	private URIish brokenURI;
-
-	private URIish redirectURI;
-
 	private URIish authURI;
-
-	private URIish authOnPostURI;
 
 	private RevBlob A_txt;
 
@@ -163,7 +157,6 @@ public class SmartClientSmartServerTest extends HttpTestCase {
 	public static Collection<Object[]> data() {
 		// run all tests with both connection factories we have
 		return Arrays.asList(new Object[][] {
-//				{ new JDKHttpConnectionFactory() },
 				{ new HttpClientConnectionFactory() } });
 	}
 
@@ -254,131 +247,12 @@ public class SmartClientSmartServerTest extends HttpTestCase {
 		return app;
 	}
 
-	@SuppressWarnings("unused")
-	private ServletContextHandler addBrokenContext(GitServlet gs, TestRepository<Repository> src, String srcName) {
-		ServletContextHandler broken = server.addContext("/bad");
-		broken.addFilter(new FilterHolder(new Filter() {
-
-			@Override
-			public void doFilter(ServletRequest request,
-					ServletResponse response, FilterChain chain)
-					throws IOException, ServletException {
-				final HttpServletResponse r = (HttpServletResponse) response;
-				r.setContentType("text/plain");
-				r.setCharacterEncoding("UTF-8");
-				PrintWriter w = r.getWriter();
-				w.print("OK");
-				w.close();
-			}
-
-			@Override
-			public void init(FilterConfig filterConfig)
-					throws ServletException {
-				// empty
-			}
-
-			@Override
-			public void destroy() {
-				// empty
-			}
-		}), "/" + srcName + "/git-upload-pack",
-                         EnumSet.of(DispatcherType.REQUEST));
-		broken.addServlet(new ServletHolder(gs), "/*");
-		return broken;
-	}
 
 	private ServletContextHandler addAuthContext(GitServlet gs,
                                                  String contextPath, String... methods) {
 		ServletContextHandler auth = server.addContext('/' + contextPath);
 		auth.addServlet(new ServletHolder(gs), "/*");
 		return server.authBasic(auth, methods);
-	}
-
-	private ServletContextHandler addRedirectContext(GitServlet gs) {
-		ServletContextHandler redirect = server.addContext("/redirect");
-		redirect.addFilter(new FilterHolder(new Filter() {
-
-			// Enables tests for different codes, and for multiple redirects.
-			// First parameter is the number of redirects, second one is the
-			// redirect status code that should be used
-			private Pattern responsePattern = Pattern
-					.compile("/response/(\\d+)/(30[1237])/");
-
-			// Enables tests to specify the context that the request should be
-			// redirected to in the end. If not present, redirects got to the
-			// normal /git context.
-			private Pattern targetPattern = Pattern.compile("/target(/\\w+)/");
-
-			@Override
-			public void init(FilterConfig filterConfig)
-					throws ServletException {
-				// empty
-			}
-
-			@Override
-			public void doFilter(ServletRequest request,
-					ServletResponse response, FilterChain chain)
-					throws IOException, ServletException {
-				final HttpServletResponse httpServletResponse = (HttpServletResponse) response;
-				final HttpServletRequest httpServletRequest = (HttpServletRequest) request;
-				final StringBuffer fullUrl = httpServletRequest.getRequestURL();
-				if (httpServletRequest.getQueryString() != null) {
-					fullUrl.append("?")
-							.append(httpServletRequest.getQueryString());
-				}
-				String urlString = fullUrl.toString();
-				if (urlString.contains("/loop/")) {
-					urlString = urlString.replace("/loop/", "/loop/x/");
-					if (urlString.contains("/loop/x/x/x/x/x/x/x/x/")) {
-						// Go back to initial.
-						urlString = urlString.replace("/loop/x/x/x/x/x/x/x/x/",
-								"/loop/");
-					}
-					httpServletResponse.setStatus(
-							HttpServletResponse.SC_MOVED_TEMPORARILY);
-					httpServletResponse.setHeader(HttpSupport.HDR_LOCATION,
-                                                  urlString);
-					return;
-				}
-				int responseCode = HttpServletResponse.SC_MOVED_PERMANENTLY;
-				int nofRedirects = 0;
-				Matcher matcher = responsePattern.matcher(urlString);
-				if (matcher.find()) {
-					nofRedirects = Integer
-							.parseUnsignedInt(matcher.group(1));
-					responseCode = Integer.parseUnsignedInt(matcher.group(2));
-					if (--nofRedirects <= 0) {
-						urlString = urlString.substring(0, matcher.start())
-								+ '/' + urlString.substring(matcher.end());
-					} else {
-						urlString = urlString.substring(0, matcher.start())
-								+ "/response/" + nofRedirects + "/"
-								+ responseCode + '/'
-								+ urlString.substring(matcher.end());
-					}
-				}
-				httpServletResponse.setStatus(responseCode);
-				if (nofRedirects <= 0) {
-					String targetContext = "/git";
-					matcher = targetPattern.matcher(urlString);
-					if (matcher.find()) {
-						urlString = urlString.substring(0, matcher.start())
-								+ '/' + urlString.substring(matcher.end());
-						targetContext = matcher.group(1);
-					}
-					urlString = urlString.replace("/redirect", targetContext);
-				}
-				httpServletResponse.setHeader(HttpSupport.HDR_LOCATION,
-                                              urlString);
-			}
-
-			@Override
-			public void destroy() {
-				// empty
-			}
-		}), "/*", EnumSet.of(DispatcherType.REQUEST));
-		redirect.addServlet(new ServletHolder(gs), "/*");
-		return redirect;
 	}
 
 
