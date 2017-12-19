@@ -183,6 +183,23 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
 		RevCommit A = src.commit().add("A_txt", A_txt).create();
 		RevCommit B = src.commit().parent(A).add("A_txt", "C").add("B", "B").create();
 		src.update(master, B);
+
+
+        // Set up remote repo
+        Path remoteFull = testingRemoteAndLocalRepos.getRemoteFull();
+        System.out.println("remote full is " + remoteFull);
+
+        Repository db = new FileRepository(remoteFull.toString());
+
+        Path remoteFilePath = remoteFull.resolve("file.txt");
+        Files.write(remoteFilePath, "hello".getBytes());
+        ArrayList<Path> paths = new ArrayList<>();
+        paths.add(remoteFilePath);
+        ExistingRepoHelper helperServer = new ExistingRepoHelper(remoteFull, null);
+        helperServer.addFilePathsTest(paths);
+        helperServer.commit("Initial unit test commit");
+
+        System.out.println("Location is " + db.getDirectory());
     }
 
 	private ServletContextHandler addNormalContext(GitServlet gs, TestRepository<Repository> src, String srcName) {
@@ -203,22 +220,8 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
     @Test
     public void testCloneHttpNoPassword() throws Exception {
 
-        // Set up remote repo
-        Path remoteFull = testingRemoteAndLocalRepos.getRemoteFull();
         Path localFull = testingRemoteAndLocalRepos.getLocalFull();
-        System.out.println("remote full is " + remoteFull);
 
-        Repository db = new FileRepository(remoteFull.toString());
-
-        Path remoteFilePath = remoteFull.resolve("file.txt");
-        Files.write(remoteFilePath, "hello".getBytes());
-        ArrayList<Path> paths = new ArrayList<>();
-        paths.add(remoteFilePath);
-        ExistingRepoHelper helperServer = new ExistingRepoHelper(remoteFull, null);
-        helperServer.addFilePathsTest(paths);
-        helperServer.commit("Initial unit test commit");
-
-        System.out.println("Location is " + db.getDirectory());
         System.out.println(remoteURI);
 
         UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider("", "");
@@ -231,23 +234,8 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
 
     @Test
 	public void testCloneHttpWithUsernamePassword() throws Exception {
-
-        // Set up remote repo
-        Path remoteFull = testingRemoteAndLocalRepos.getRemoteFull();
         Path localFull = testingRemoteAndLocalRepos.getLocalFull();
-        System.out.println("remote full is " + remoteFull);
 
-        Repository db = new FileRepository(remoteFull.toString());
-
-        Path remoteFilePath = remoteFull.resolve("file.txt");
-        Files.write(remoteFilePath, "hello".getBytes());
-        ArrayList<Path> paths = new ArrayList<>();
-        paths.add(remoteFilePath);
-        ExistingRepoHelper helperServer = new ExistingRepoHelper(remoteFull, null);
-        helperServer.addFilePathsTest(paths);
-        helperServer.commit("Initial unit test commit");
-
-        System.out.println("Location is " + db.getDirectory());
         System.out.println(authURI);
 
         UsernamePasswordCredentialsProvider credentials =
@@ -265,7 +253,7 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
         FileWriter fw = new FileWriter(fileLocation.toString(), true);
         fw.write("1");
         fw.close();
-        paths = new ArrayList<>();
+        ArrayList<Path> paths = new ArrayList<>();
         paths.add(fileLocation.getFileName());
         helper.addFilePaths(paths);
         helper.commit("Appended to file");

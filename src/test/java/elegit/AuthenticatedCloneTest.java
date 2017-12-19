@@ -70,18 +70,6 @@ public class AuthenticatedCloneTest {
         }
     }
 
-    @Test
-    public void testCloneHttpNoPassword() throws Exception {
-        Path repoPath = directoryPath.resolve("testrepo");
-        // Clone from dummy repo:
-        String remoteURL = "https://github.com/TheElegitTeam/TestRepository.git";
-
-        UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider("", "");
-        ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, remoteURL, credentials);
-        assertNotNull(helper);
-        helper.obtainRepository(remoteURL);
-
-    }
 
     @Test
     public void testLsHttpNoPassword() throws Exception {
