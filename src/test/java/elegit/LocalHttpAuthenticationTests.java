@@ -61,6 +61,7 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.PushCommand;
+import org.eclipse.jgit.api.ResetCommand;
 import org.eclipse.jgit.api.TransportCommand;
 import org.eclipse.jgit.errors.RemoteRepositoryException;
 import org.eclipse.jgit.errors.TransportException;
@@ -129,6 +130,7 @@ import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -165,7 +167,9 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
     private URIish remoteURI;
     private URIish authURI;
 
-	public LocalHttpAuthenticationTests() {
+    private static final String EDIT_STRING = "Lorem Ipsum";
+
+    public LocalHttpAuthenticationTests() {
 		HttpTransport.setConnectionFactory(new HttpClientConnectionFactory());
 	}
 
@@ -369,5 +373,97 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
         helper.pushTags();
     }
 
+    // Test to make sure creating a local branch lets us push and
+    // that pushing will create the new branch.
+    @Test
+    public void testResetFile() throws Exception {
+
+        // Repo that will commit to master
+        Path repoPath = testingRemoteAndLocalRepos.getLocalFull();
+        UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider("agitter",
+                                                                                                  "letmein");
+        ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, "", credentials);
+        assertNotNull(helper);
+        helper.obtainRepository(authURI.toString());
+
+
+        Git git = new Git(helper.getRepo());
+
+        /* ********************* FILE RESET SECTION ********************* */
+        // Single file reset
+        Path filePath = repoPath.resolve("A_txt");
+        String text = "Lorem Ipsum";
+        Files.write(filePath, text.getBytes(), StandardOpenOption.APPEND);
+        helper.addFilePathTest(filePath);
+        // Check that the file is staged
+        assertEquals(1,git.status().call().getChanged().size());
+        // Reset the file and check that it worked
+        helper.reset(filePath);
+        assertEquals(0,git.status().call().getChanged().size());
+
+        // Multiple file reset
+        Path readPath = repoPath.resolve("B");
+        Files.write(readPath, text.getBytes(), StandardOpenOption.APPEND);
+        ArrayList<Path> paths = new ArrayList<>();
+        paths.add(filePath);
+        paths.add(readPath);
+        // Add both files and check that they are staged.
+        helper.addFilePathsTest(paths);
+        assertEquals(2,git.status().call().getChanged().size());
+        // Reset both the files and check that it worked
+        helper.reset(paths);
+        assertEquals(0,git.status().call().getChanged().size());
+
+        /* ********************* COMMIT RESET SECTION ********************* */
+        helper.getBranchModel().updateAllBranches();
+        String oldHead = helper.getBranchModel().getCurrentBranch().getCommit().getName();
+
+        modifyAddFile(helper, filePath);
+        helper.commit("Modified a file");
+
+        helper.getBranchModel().updateAllBranches();
+        assertEquals(false, oldHead.equals(helper.getBranchModel().getCurrentBranch().getCommit().getName()));
+
+        // hard reset (to previous commit)
+        helper.reset("HEAD~1", ResetCommand.ResetType.HARD);
+        helper.getBranchModel().updateAllBranches();
+        // Check that the files in the index and working directory got reset
+        assertEquals(0, git.status().call().getModified().size()
+                + git.status().call().getChanged().size());
+        assertEquals(oldHead, helper.getBranchModel().getCurrentBranch().getCommit().getName());
+
+        // mixed reset (to HEAD)
+        // modify and add file, then reset to head
+        modifyAddFile(helper, filePath);
+        helper.reset("HEAD", ResetCommand.ResetType.MIXED);
+        helper.getBranchModel().updateAllBranches();
+        // Check that the file in the index got reset
+        assertEquals(0, git.status().call().getChanged().size());
+        assertEquals(1, git.status().call().getModified().size());
+
+
+        // soft reset (to HEAD~1)
+        // commit, then put changes in index and wd, check that they stayed
+        helper.addFilePathTest(filePath);
+        helper.commit("modified file");
+        modifyFile(readPath);
+        modifyAddFile(helper, filePath);
+        helper.reset("HEAD~1", ResetCommand.ResetType.SOFT);
+        helper.getBranchModel().updateAllBranches();
+
+        assertEquals(oldHead, helper.getBranchModel().getCurrentBranch().getCommit().getName());
+        assertEquals(1, git.status().call().getChanged().size());
+        assertEquals(1, git.status().call().getModified().size());
+    }
+
+    private void modifyFile(Path file) throws Exception {
+        String text = "Lorem Ipsum";
+        Files.write(file, text.getBytes(), StandardOpenOption.APPEND);
+    }
+
+    private void modifyAddFile(RepoHelper helper, Path file) throws Exception {
+        Files.write(file, EDIT_STRING.getBytes(), StandardOpenOption.APPEND);
+        helper.addFilePathTest(file);
+    }
 
 }
