@@ -29,6 +29,7 @@ import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
+import sharedrules.TestingLogPathRule;
 import sharedrules.TestingRemoteAndLocalReposRule;
 
 import java.io.FileWriter;
@@ -51,7 +52,7 @@ import static org.junit.Assert.fail;
 public class LocalSshAuthenticationTests {
 
     @ClassRule
-    public static final TestingLogPath testingLogPath = new TestingLogPath();
+    public static final TestingLogPathRule testingLogPath = new TestingLogPathRule();
 
     @Rule
     public final TestingRemoteAndLocalReposRule testingRemoteAndLocalRepos =

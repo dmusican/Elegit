@@ -1,4 +1,4 @@
-package elegit;
+package sharedrules;
 
 import elegit.exceptions.ExceptionAdapter;
 import org.junit.rules.ExternalResource;
@@ -12,7 +12,7 @@ import java.nio.file.Path;
  * Before each test that uses this rule, move the execution logs to a temporary location so as not to
  * get in the way of actual logs generated in production.
  */
-public class TestingLogPath extends ExternalResource {
+public class TestingLogPathRule extends ExternalResource {
 
     private static Path logPath;
 

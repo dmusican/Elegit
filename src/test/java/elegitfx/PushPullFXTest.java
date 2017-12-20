@@ -1,19 +1,13 @@
 package elegitfx;
 
-import elegit.Main;
-import elegit.TestingLogPath;
+import sharedrules.TestingLogPathRule;
 import elegit.models.ClonedRepoHelper;
-import elegit.models.ExistingRepoHelper;
 import elegit.models.SessionModel;
 import elegit.monitors.RepositoryMonitor;
-import elegit.sshauthentication.ElegitUserInfoTest;
 import javafx.application.Platform;
 import org.eclipse.jgit.api.PushCommand;
 import org.eclipse.jgit.lib.ObjectId;
-import org.eclipse.jgit.transport.URIish;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
@@ -21,15 +15,12 @@ import org.testfx.framework.junit.ApplicationTest;
 import sharedrules.JGitTestingRepositoryRule;
 import sharedrules.TestingRemoteAndLocalReposRule;
 
-import java.io.File;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
-import java.util.Scanner;
 
 import static elegit.monitors.RepositoryMonitor.REMOTE_CHECK_INTERVAL;
 import static org.junit.Assert.assertFalse;
@@ -43,7 +34,7 @@ public class PushPullFXTest extends ApplicationTest {
 
 
     @ClassRule
-    public static final TestingLogPath testingLogPath = new TestingLogPath();
+    public static final TestingLogPathRule testingLogPath = new TestingLogPathRule();
 
     @Rule
     public final TestingRemoteAndLocalReposRule testingRemoteAndLocalRepos =

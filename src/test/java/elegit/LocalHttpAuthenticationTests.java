@@ -88,6 +88,7 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import sharedrules.JGitTestingRepositoryRule;
+import sharedrules.TestingLogPathRule;
 import sharedrules.TestingRemoteAndLocalReposRule;
 
 import java.io.File;
@@ -114,7 +115,7 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
 
 
     @ClassRule
-    public static final TestingLogPath testingLogPath = new TestingLogPath();
+    public static final TestingLogPathRule testingLogPath = new TestingLogPathRule();
 
     @Rule
     public final TestingRemoteAndLocalReposRule testingRemoteAndLocalRepos =
