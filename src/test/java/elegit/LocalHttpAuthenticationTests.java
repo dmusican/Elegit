@@ -138,6 +138,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
@@ -587,5 +588,40 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
         helper.addFilePathTest(file);
     }
 
+    @Test
+    public void testPushPullBothClonedExisting() throws Exception {
+        UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider("agitter",
+                                                                                                  "letmein");
+
+        Path directoryPath = testingRemoteAndLocalRepos.getDirectoryPath();
+
+        // Repo that will push
+        Path repoPathPush = directoryPath.resolve("pushpull1");
+        ClonedRepoHelper helperPush = new ClonedRepoHelper(repoPathPush, "", credentials);
+        assertNotNull(helperPush);
+        helperPush.obtainRepository(authURI.toString());
+
+        // Repo that will pull
+        Path repoPathPull = directoryPath.resolve("pushpull2");
+        ClonedRepoHelper clonedHelperPull = new ClonedRepoHelper(repoPathPull, "", credentials);
+        assertNotNull(clonedHelperPull);
+        clonedHelperPull.obtainRepository(authURI.toString());
+        ExistingRepoHelper existingHelperPull = new ExistingRepoHelper(repoPathPull, new ElegitUserInfoTest());
+        existingHelperPull.setOwnerAuth(credentials);
+
+        // Update the file, then commit and push
+        Path readmePath = repoPathPush.resolve("README.md");
+        System.out.println(readmePath);
+        String timestamp = "testPushPullBothClonedExisting " + (new Date()).toString() + "\n";
+        Files.write(readmePath, timestamp.getBytes(), StandardOpenOption.APPEND);
+        helperPush.addFilePathTest(readmePath);
+        helperPush.commit("added a character");
+        PushCommand command = helperPush.prepareToPushAll();
+        helperPush.pushAll(command);
+
+        // Now do the pull (well, a fetch)
+        existingHelperPull.fetch(false);
+        existingHelperPull.mergeFromFetch();
+    }
 
 }
