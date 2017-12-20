@@ -624,4 +624,30 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
         existingHelperPull.mergeFromFetch();
     }
 
+    @Test
+    public void cloneThenPushTest() throws Exception {
+        UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider("agitter",
+                                                                                                  "letmein");
+
+        Path directoryPath = testingRemoteAndLocalRepos.getDirectoryPath();
+
+
+        Path repoPathPush = directoryPath.resolve("clonepush");
+        ClonedRepoHelper helperPush = new ClonedRepoHelper(repoPathPush, "", credentials);
+        assertNotNull(helperPush);
+        helperPush.obtainRepository(authURI.toString());
+
+        // Update the file, then commit and push
+        Path readmePath = repoPathPush.resolve("README.md");
+        System.out.println(readmePath);
+        String timestamp = (new Date()).toString() + "\n";
+        Files.write(readmePath, timestamp.getBytes(), StandardOpenOption.APPEND);
+        helperPush.addFilePathTest(readmePath);
+        helperPush.commit("added a character");
+        PushCommand push = helperPush.prepareToPushAll();
+        helperPush.pushAll(push);
+
+    }
+
+
 }
