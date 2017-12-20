@@ -53,6 +53,7 @@ import elegit.gui.ClonedRepoHelperBuilder;
 import elegit.gui.RepoHelperBuilder;
 import elegit.models.AuthMethod;
 import elegit.models.ClonedRepoHelper;
+import elegit.models.CommitHelper;
 import elegit.models.ExistingRepoHelper;
 import elegit.models.RepoHelper;
 import elegit.sshauthentication.ElegitUserInfoTest;
@@ -196,6 +197,11 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
 		RevCommit B = src.commit().parent(A).add("A_txt", "C").add("B", "B").create();
 		src.update(master, B);
 
+		RevCommit C = src.commit().parent(B)
+                .add("modify.txt", "A file to be modified, then reset\n").create();
+		RevCommit D = src.commit().parent(C)
+                .add("README.md", "# Reset testing\nA test repo to pull\n").create();
+        src.update(master, D);
 
         // Set up remote repo
         Path remoteFull = testingRemoteAndLocalRepos.getRemoteFull();
@@ -391,9 +397,8 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
 
         /* ********************* FILE RESET SECTION ********************* */
         // Single file reset
-        Path filePath = repoPath.resolve("A_txt");
-        String text = "Lorem Ipsum";
-        Files.write(filePath, text.getBytes(), StandardOpenOption.APPEND);
+        Path filePath = repoPath.resolve("modify.txt");
+        Files.write(filePath, EDIT_STRING.getBytes(), StandardOpenOption.APPEND);
         helper.addFilePathTest(filePath);
         // Check that the file is staged
         assertEquals(1,git.status().call().getChanged().size());
@@ -402,8 +407,8 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
         assertEquals(0,git.status().call().getChanged().size());
 
         // Multiple file reset
-        Path readPath = repoPath.resolve("B");
-        Files.write(readPath, text.getBytes(), StandardOpenOption.APPEND);
+        Path readPath = repoPath.resolve("README.md");
+        Files.write(readPath, EDIT_STRING.getBytes(), StandardOpenOption.APPEND);
         ArrayList<Path> paths = new ArrayList<>();
         paths.add(filePath);
         paths.add(readPath);
@@ -456,14 +461,79 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
         assertEquals(1, git.status().call().getModified().size());
     }
 
+    // Test to make sure creating a local branch lets us push and
+    // that pushing will create the new branch.
+    @Test
+    public void testRevertFile() throws Exception {
+        UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider("agitter",
+                                                                                                  "letmein");
+
+        // Repo that will commit to master
+        Path repoPath = testingRemoteAndLocalRepos.getLocalFull();
+        ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, "", credentials);
+        assertNotNull(helper);
+        helper.obtainRepository(authURI.toString());
+
+
+        Path filePath = repoPath.resolve("modify.txt");
+
+
+        /* ********************* SINGLE REVERT SECTION ********************* */
+        // make a commit, then revert it, check that changes occurred
+
+        helper.getBranchModel().refreshHeadIds();
+        String oldHead = helper.getBranchModel().getCurrentBranchHead().getName();
+
+        modifyAddFile(helper, filePath);
+        helper.commit("Modified file #1");
+        helper.updateModel();
+        helper.getBranchModel().refreshHeadIds();
+        assertEquals(false, helper.getBranchModel().getCurrentBranchHead().getName().equals(oldHead));
+        helper.revert(helper.getBranchModel().getCurrentBranchHead());
+        helper.updateModel();
+        helper.getBranchModel().refreshHeadIds();
+        CommitHelper firstRevert = helper.getBranchModel().getCurrentBranchHead();
+        // The EDIT_TEXT should have been reverted
+        assertEquals(1, Files.readAllLines(filePath).size());
+        // And a new HEAD should be there
+        assertEquals(false, helper.getBranchModel().getCurrentBranchHead().getName().equals(oldHead));
+
+        /* ********************* MULTIPLE REVERT SECTION ********************* */
+        // make 2 more commits revert first revert and third commit, check content
+        Path readPath = repoPath.resolve("README.md");
+        modifyAddFile(helper, readPath, "Keep Text\n");
+        helper.commit("Modified file #2");
+
+        modifyAddFile(helper, readPath, "Revert Text");
+        helper.commit("Modified file #3");
+        helper.updateModel();
+        List<CommitHelper> commitsToRevert = new ArrayList<>();
+        helper.getBranchModel().refreshHeadIds();
+        commitsToRevert.add(firstRevert);
+        commitsToRevert.add(helper.getBranchModel().getCurrentBranchHead());
+
+        // Revert and check content
+        helper.revertHelpers(commitsToRevert);
+        helper.getBranchModel().refreshHeadIds();
+        assertEquals(3, Files.readAllLines(readPath).size());
+        assertEquals("Keep Text", Files.readAllLines(readPath).get(2));
+        assertEquals(EDIT_STRING, Files.readAllLines(filePath).get(1));
+    }
+
+
     private void modifyFile(Path file) throws Exception {
-        String text = "Lorem Ipsum";
-        Files.write(file, text.getBytes(), StandardOpenOption.APPEND);
+        Files.write(file, EDIT_STRING.getBytes(), StandardOpenOption.APPEND);
     }
 
     private void modifyAddFile(RepoHelper helper, Path file) throws Exception {
         Files.write(file, EDIT_STRING.getBytes(), StandardOpenOption.APPEND);
         helper.addFilePathTest(file);
     }
+
+    private void modifyAddFile(RepoHelper helper, Path file, String editString) throws Exception {
+        Files.write(file, editString.getBytes(), StandardOpenOption.APPEND);
+        helper.addFilePathTest(file);
+    }
+
 
 }
