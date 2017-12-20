@@ -77,11 +77,8 @@ import org.eclipse.jgit.http.server.GitServlet;
 import org.eclipse.jgit.internal.storage.file.FileRepository;
 import org.eclipse.jgit.junit.TestRepository;
 import org.eclipse.jgit.junit.http.HttpTestCase;
-import org.eclipse.jgit.lib.ConfigConstants;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.lib.StoredConfig;
-import org.eclipse.jgit.revwalk.RevBlob;
-import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.transport.HttpTransport;
 import org.eclipse.jgit.transport.URIish;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
@@ -90,6 +87,7 @@ import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
+import sharedrules.JGitTestingRepository;
 import sharedrules.TestingRemoteAndLocalRepos;
 
 import java.io.File;
@@ -122,9 +120,12 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
     public final TestingRemoteAndLocalRepos testingRemoteAndLocalRepos =
             new TestingRemoteAndLocalRepos(false);
 
+    @Rule
+    public final JGitTestingRepository jGitTestingRepository = new JGitTestingRepository();
+
     private URIish remoteURI;
     private URIish authURI;
-    private TestRepository<Repository> src;
+    private TestRepository<Repository> jGitTestRepo;
 
     private static final String EDIT_STRING = "Lorem Ipsum";
 
@@ -137,30 +138,9 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
 	public void setUp() throws Exception {
 		super.setUp();
 
-		// Set up primary remote repo
-		src = createTestRepository();
-		final String srcName = src.getRepository().getDirectory().getName();
-		src.getRepository()
-				.getConfig()
-				.setBoolean(ConfigConstants.CONFIG_CORE_SECTION, null,
-                            ConfigConstants.CONFIG_KEY_LOGALLREFUPDATES, true);
-
-		GitServlet gs = new GitServlet();
-		ServletContextHandler app = addNormalContext(gs, src, srcName);
-		ServletContextHandler auth = addAuthContext(gs, "auth");
-		server.setUp();
-        remoteURI = toURIish(app, srcName);
-        authURI = toURIish(auth, srcName);
-        RevBlob A_txt = src.blob("A");
-		RevCommit A = src.commit().add("A_txt", A_txt).create();
-		RevCommit B = src.commit().parent(A).add("A_txt", "C").add("B", "B").create();
-		src.update(master, B);
-
-		RevCommit C = src.commit().parent(B)
-                .add("modify.txt", "A file to be modified, then reset\n").create();
-		RevCommit D = src.commit().parent(C)
-                .add("README.md", "# Reset testing\nA test repo to pull\n").create();
-        src.update(master, D);
+		jGitTestRepo = jGitTestingRepository.getJgitTestRepo();
+		remoteURI = jGitTestingRepository.getRemoteURI();
+		authURI = jGitTestingRepository.getAuthURI();
 
         // Set up secondary remote repo
         Path remoteFull = testingRemoteAndLocalRepos.getRemoteFull();
@@ -728,7 +708,7 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
 
     @Test
     public void testFastForwardMergeFromFetch() throws Exception {
-        Path remoteFull = src.getRepository().getDirectory().toPath();
+        Path remoteFull = jGitTestRepo.getRepository().getDirectory().toPath();
         ExistingRepoHelper helperServer = new ExistingRepoHelper(remoteFull, null);
         helperServer.getBranchModel().createNewLocalBranch("new_branch");
 
