@@ -51,6 +51,7 @@ package elegit;
 
 import elegit.exceptions.ConflictingFilesException;
 import elegit.exceptions.MissingRepoException;
+import elegit.exceptions.NoTrackingException;
 import elegit.gui.ClonedRepoHelperBuilder;
 import elegit.gui.RepoHelperBuilder;
 import elegit.models.AuthMethod;
@@ -864,6 +865,67 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
 
         // Check that new_branch was fast-forwarded instead of merged with master
         assert(is_fast_forward);
+    }
+
+
+    @Test
+    public void testLocalBranchMerge() throws Exception {
+        Path directoryPath = testingRemoteAndLocalRepos.getDirectoryPath();
+        UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider("agitter",
+                                                                                                  "letmein");
+
+        // Repo that will commit to master
+        Path repoPathPush = directoryPath.resolve("pusher");
+        ClonedRepoHelper helperPush = new ClonedRepoHelper(repoPathPush, "", credentials);
+        assertNotNull(helperPush);
+        helperPush.obtainRepository(authURI.toString());
+
+        // Repo that will fetch and mergefromfetch
+        Path repoPathFetch = directoryPath.resolve("fetcher");
+        ClonedRepoHelper helperFetch = new ClonedRepoHelper(repoPathFetch, "", credentials);
+        assertNotNull(helperPush);
+        helperFetch.obtainRepository(authURI.toString());
+
+
+        /* ********************* EDIT AND PUSH SECTION ********************* */
+        // Make some changes in master in pusher
+        Path filePath = repoPathPush.resolve("README.md");
+        String timestamp = "testLocalBranchPush " + (new Date()).toString() + "\n";
+        Files.write(filePath, timestamp.getBytes(), StandardOpenOption.APPEND);
+        helperPush.addFilePathTest(filePath);
+
+        // Commit changes in master in pusher and push
+        helperPush.commit("added line in master");
+        PushCommand command = helperPush.prepareToPushAll();
+        helperPush.pushAll(command);
+
+
+        // Make a new branch in fetcher and check it out
+        LocalBranchHelper new_branch_fetch_helper =
+                helperFetch.getBranchModel().createNewLocalBranch("new_branch_name");
+        new_branch_fetch_helper.checkoutBranch();
+
+        // Make some changes in new_branch in pusher
+        filePath = repoPathFetch.resolve("README.md");
+        timestamp = "testLocalBranchFetch " + (new Date()).toString() + "\n";
+        Files.write(filePath, timestamp.getBytes(), StandardOpenOption.APPEND);
+        helperFetch.addFilePathTest(filePath);
+        /* ******************** FETCH AND MERGE SECTION ******************** */
+
+        // Fetch changes
+        helperFetch.fetch(false);
+
+        // Merge from the fetch
+        boolean local_branch_is_tracked = false;
+        try {
+            helperFetch.mergeFromFetch();
+        } catch (IOException | GitAPIException | MissingRepoException | ConflictingFilesException e) { }
+        catch (NoTrackingException e) {
+            local_branch_is_tracked = true;
+        } catch (Exception e) { }
+
+        // Check that new_branch was fast-forwarded instead of merged with master
+        assert(local_branch_is_tracked);
 
     }
 
