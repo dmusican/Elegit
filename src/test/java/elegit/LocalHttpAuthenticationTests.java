@@ -867,5 +867,41 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
 
     }
 
+    @Test
+    public void testClonedRepoHelper() throws Exception {
+        UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider("", "");
+        Path repoPath = testingRemoteAndLocalRepos.getLocalFull();
+        ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, "", credentials);
+        helper.obtainRepository(remoteURI.toString());
+        assertNotNull(helper);
+        assertTrue(helper.exists());
+        assertNotNull(helper.getRepo());
+    }
+
+    @Test
+    public void testAddFileAndCommit() throws Exception {
+        UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider("", "");
+        Path repoPath = testingRemoteAndLocalRepos.getLocalFull();
+        ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, "", credentials);
+        helper.obtainRepository(remoteURI.toString());
+
+        assertFalse(helper.getAheadCount()>0);
+
+        Path directoryPath = testingRemoteAndLocalRepos.getDirectoryPath();
+        Path newPath = Paths.get(directoryPath.toString(), "new.txt");
+
+        // Need to make the "newFile.txt" actually exist:
+        Files.createFile(newPath);
+
+        try(PrintWriter newPathTextWriter = new PrintWriter( newPath.toString() )){
+            newPathTextWriter.println("Dummy text for the new file to commit");
+        }
+
+        helper.addFilePathTest(newPath);
+        helper.commit("Added a new file in a unit test!");
+
+        assertTrue(helper.getAheadCount()>0);
+
+    }
 
 }
