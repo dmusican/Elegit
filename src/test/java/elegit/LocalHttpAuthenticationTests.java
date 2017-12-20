@@ -87,8 +87,8 @@ import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
-import sharedrules.JGitTestingRepository;
-import sharedrules.TestingRemoteAndLocalRepos;
+import sharedrules.JGitTestingRepositoryRule;
+import sharedrules.TestingRemoteAndLocalReposRule;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -117,11 +117,11 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
     public static final TestingLogPath testingLogPath = new TestingLogPath();
 
     @Rule
-    public final TestingRemoteAndLocalRepos testingRemoteAndLocalRepos =
-            new TestingRemoteAndLocalRepos(false);
+    public final TestingRemoteAndLocalReposRule testingRemoteAndLocalRepos =
+            new TestingRemoteAndLocalReposRule(false);
 
     @Rule
-    public final JGitTestingRepository jGitTestingRepository = new JGitTestingRepository();
+    public final JGitTestingRepositoryRule jGitTestingRepositoryRule = new JGitTestingRepositoryRule();
 
     private URIish remoteURI;
     private URIish authURI;
@@ -138,9 +138,9 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
 	public void setUp() throws Exception {
 		super.setUp();
 
-		jGitTestRepo = jGitTestingRepository.getJgitTestRepo();
-		remoteURI = jGitTestingRepository.getRemoteURI();
-		authURI = jGitTestingRepository.getAuthURI();
+		jGitTestRepo = jGitTestingRepositoryRule.getJgitTestRepo();
+		remoteURI = jGitTestingRepositoryRule.getRemoteURI();
+		authURI = jGitTestingRepositoryRule.getAuthURI();
 
         // Set up secondary remote repo
         Path remoteFull = testingRemoteAndLocalRepos.getRemoteFull();

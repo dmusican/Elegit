@@ -29,7 +29,7 @@ import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
-import sharedrules.TestingRemoteAndLocalRepos;
+import sharedrules.TestingRemoteAndLocalReposRule;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -54,8 +54,8 @@ public class LocalSshAuthenticationTests {
     public static final TestingLogPath testingLogPath = new TestingLogPath();
 
     @Rule
-    public final TestingRemoteAndLocalRepos testingRemoteAndLocalRepos =
-            new TestingRemoteAndLocalRepos(false);
+    public final TestingRemoteAndLocalReposRule testingRemoteAndLocalRepos =
+            new TestingRemoteAndLocalReposRule(false);
     private Path directoryPath;
 
     private static final Logger console = LogManager.getLogger("briefconsolelogger");

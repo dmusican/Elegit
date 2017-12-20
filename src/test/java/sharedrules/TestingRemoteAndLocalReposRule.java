@@ -10,7 +10,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-public class TestingRemoteAndLocalRepos extends ExternalResource {
+public class TestingRemoteAndLocalReposRule extends ExternalResource {
 
     private Path directoryPath;
 
@@ -18,7 +18,7 @@ public class TestingRemoteAndLocalRepos extends ExternalResource {
 
     private boolean bareRemoteRepo;
 
-    public TestingRemoteAndLocalRepos(boolean bareRemoteRepo) {
+    public TestingRemoteAndLocalReposRule(boolean bareRemoteRepo) {
         this.bareRemoteRepo = bareRemoteRepo;
     }
 

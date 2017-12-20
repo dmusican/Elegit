@@ -52,7 +52,6 @@ package sharedrules;
 import elegit.TestRepositoryResolver;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
-import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.http.server.GitServlet;
 import org.eclipse.jgit.junit.TestRepository;
 import org.eclipse.jgit.junit.http.HttpTestCase;
@@ -61,14 +60,11 @@ import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevBlob;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.transport.URIish;
-import org.junit.rules.ExternalResource;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 
-import java.nio.file.Files;
-
-public class JGitTestingRepository extends HttpTestCase implements TestRule {
+public class JGitTestingRepositoryRule extends HttpTestCase implements TestRule {
 
     private TestRepository<Repository> jgitTestRepo;
     private URIish remoteURI;
@@ -80,7 +76,7 @@ public class JGitTestingRepository extends HttpTestCase implements TestRule {
             @Override
             public void evaluate() throws Throwable {
 
-                JGitTestingRepository.super.setUp();
+                JGitTestingRepositoryRule.super.setUp();
 
                 // Set up primary remote repo
                 jgitTestRepo = createTestRepository();

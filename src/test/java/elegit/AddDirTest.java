@@ -9,7 +9,7 @@ import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
-import sharedrules.TestingRemoteAndLocalRepos;
+import sharedrules.TestingRemoteAndLocalReposRule;
 
 import java.io.File;
 import java.nio.file.*;
@@ -28,8 +28,8 @@ public class AddDirTest {
     public static final TestingLogPath testingLogPath = new TestingLogPath();
 
     @Rule
-    public final TestingRemoteAndLocalRepos testingRemoteAndLocalRepos =
-            new TestingRemoteAndLocalRepos(false);
+    public final TestingRemoteAndLocalReposRule testingRemoteAndLocalRepos =
+            new TestingRemoteAndLocalReposRule(false);
 
     private static final Logger console = LogManager.getLogger("briefconsolelogger");
 
