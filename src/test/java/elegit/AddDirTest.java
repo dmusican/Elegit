@@ -9,6 +9,7 @@ import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
+import sharedrules.TestingRemoteAndLocalRepos;
 
 import java.io.File;
 import java.nio.file.*;
