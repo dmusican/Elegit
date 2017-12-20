@@ -146,6 +146,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -698,6 +699,78 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
 
         // Check that the branch was deleted
         assertEquals(true, helperPush.getBranchModel().getCurrentRemoteBranch()==null);
+    }
+
+    @Test
+    public void testSwitchingRepoInvisCommit() throws Exception {
+        UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider("agitter",
+                                                                                                  "letmein");
+
+        Path directoryPath = testingRemoteAndLocalRepos.getDirectoryPath();
+
+        // First copy of the repo
+        Path repoPath1 = directoryPath.resolve("repo1");
+        ClonedRepoHelper repo1 = new ClonedRepoHelper(repoPath1, "", credentials);
+        assertNotNull(repo1);
+        repo1.obtainRepository(authURI.toString());
+
+        CommitHelper repo1OldHead = repo1.getCommit("master");
+        assertNotNull(repo1OldHead);
+
+        // Make a change in repo1 and commit it
+        File file = Paths.get(repoPath1.toString(), "modify.txt").toFile();
+        assertTrue(file.exists());
+
+        try(PrintWriter fileTextWriter = new PrintWriter( file )){
+            fileTextWriter.println("Add a line");
+        }
+
+        repo1.addFilePathTest(file.toPath());
+        repo1.commit("Modified modify.txt in a unit test!");
+
+        CommitHelper repo1NewHead = repo1.getCommit("master");
+        assertNotNull(repo1NewHead);
+
+        // Second copy of the repo
+        Path repoPath2 = directoryPath.resolve("repo2");
+        ClonedRepoHelper repo2 = new ClonedRepoHelper(repoPath2, "", credentials);
+        assertNotNull(repo2);
+        repo2.obtainRepository(authURI.toString());
+
+        CommitHelper repo2OldHead = repo2.getCommit("master");
+        assertNotNull(repo2OldHead);
+        assertEquals(repo1OldHead.getName(), repo2OldHead.getName());
+
+        // Push the previous commit
+        PushCommand push = repo1.prepareToPushAll();
+        repo1.pushAll(push);
+
+        // Fetch into the second repo
+        repo2.fetch(false);
+        repo2.mergeFromFetch();
+
+        CommitHelper repo2NewHead = repo2.getCommit("master");
+        assertNotNull(repo2NewHead);
+        assertEquals(repo1NewHead.getName(), repo2NewHead.getName());
+
+        repo1.updateModel();
+        Set<CommitHelper> repo1LocalCommits = repo1.getLocalCommits();
+        Set<CommitHelper> repo1RemoteCommits = repo1.getRemoteCommits();
+
+        assertTrue(repo1LocalCommits.contains(repo1OldHead));
+        assertTrue(repo1RemoteCommits.contains(repo1OldHead));
+        assertTrue(repo1LocalCommits.contains(repo1NewHead));
+        assertTrue(repo1RemoteCommits.contains(repo1NewHead));
+
+        repo2.updateModel();
+        Set<CommitHelper> repo2LocalCommits = repo2.getLocalCommits();
+        Set<CommitHelper> repo2RemoteCommits = repo2.getRemoteCommits();
+
+        assertTrue(repo2LocalCommits.contains(repo2OldHead));
+        assertTrue(repo2RemoteCommits.contains(repo2OldHead));
+        assertTrue(repo2LocalCommits.contains(repo2NewHead));
+        assertTrue(repo2RemoteCommits.contains(repo2NewHead));
+
     }
 
 }
