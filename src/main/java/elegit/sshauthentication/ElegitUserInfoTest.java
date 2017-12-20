@@ -56,8 +56,13 @@ public class ElegitUserInfoTest implements UserInfo {
         // Are you sure you want to continue connecting?
         ////////////////////////////////////////
         // then for test purposes, the answer should be yes.
+        // Likewise, for a warning that REMOTE IDENTIFICATION HAS CHANGED,
+        // this seems unavoidable when password testing. So at least form a unit testing perspective,
+        // we'll consider it acceptable.
 
         if (s.startsWith("The authenticity of host")) {
+            return true;
+        } else if (s.startsWith("WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!")) {
             return true;
         } else {
             throw new RuntimeException("promptYesNo case not handled.");

@@ -1,29 +1,26 @@
 package elegitfx;
 
-import elegit.Main;
+import sharedrules.TestingLogPathRule;
 import elegit.models.ClonedRepoHelper;
-import elegit.models.ExistingRepoHelper;
 import elegit.models.SessionModel;
 import elegit.monitors.RepositoryMonitor;
-import elegit.sshauthentication.ElegitUserInfoTest;
 import javafx.application.Platform;
 import org.eclipse.jgit.api.PushCommand;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
-import org.junit.After;
-import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
 import org.testfx.framework.junit.ApplicationTest;
+import sharedrules.JGitTestingRepositoryRule;
+import sharedrules.TestingRemoteAndLocalReposRule;
 
-import java.io.File;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
-import java.util.Scanner;
 
 import static elegit.monitors.RepositoryMonitor.REMOTE_CHECK_INTERVAL;
 import static org.junit.Assert.assertFalse;
@@ -36,83 +33,39 @@ import static org.junit.Assert.assertTrue;
 public class PushPullFXTest extends ApplicationTest {
 
 
-    private Path directoryPath;
-    private String testFileLocation;
-    Path logPath;
+    @ClassRule
+    public static final TestingLogPathRule testingLogPath = new TestingLogPathRule();
 
-    // Used to indicate that if password files are missing, then tests should just pass
-    private boolean looseTesting;
+    @Rule
+    public final TestingRemoteAndLocalReposRule testingRemoteAndLocalRepos =
+            new TestingRemoteAndLocalReposRule(false);
 
-
-
-
-    @Before
-    public void setUp() throws Exception {
-        initializeLogger();
-        this.directoryPath = Files.createTempDirectory("unitTestRepos");
-        //directoryPath.toFile().deleteOnExit();
-        testFileLocation = System.getProperty("user.home") + File.separator +
-                           "elegitTests" + File.separator;
-        File strictTestingFile = new File(testFileLocation + "strictAuthenticationTesting.txt");
-        looseTesting = !strictTestingFile.exists();
-    }
-
-    @After
-    public void tearDown() throws Exception {
-        removeAllFilesFromDirectory(this.logPath.toFile());
-        Main.allSubscriptions.clear();
-    }
-
-    // Helper method to avoid annoying traces from logger
-    void initializeLogger() {
-        // Create a temp directory for the files to be placed in
-        try {
-            this.logPath = Files.createTempDirectory("elegitLogs");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        this.logPath.toFile().deleteOnExit();
-        System.setProperty("logFolder", logPath.toString());
-    }
-
-    // Helper tear-down method:
-    void removeAllFilesFromDirectory(File dir) {
-        for (File file: dir.listFiles()) {
-            if (file.isDirectory()) removeAllFilesFromDirectory(file);
-            file.delete();
-        }
-    }
+    @Rule
+    public final JGitTestingRepositoryRule jGitTestingRepositoryRule = new JGitTestingRepositoryRule();
 
     @Test
     // This test has some thread safety issues that should probably be fixed; the RepositoryMonitor is started
     // in the FX thread (which is right), but there's a lot of code here in this test not run in the FX thread
     // that probably should be. Fix it if this test starts causing trouble. In the meantime... it's a test.
     public void testPushPullBothCloned() throws Exception {
-        File authData = new File(testFileLocation + "httpUsernamePassword.txt");
+        UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider("agitter",
+                                                                                                  "letmein");
 
-        // If a developer does not have this file present, test should just pass.
-        if (!authData.exists() && looseTesting)
-            return;
+        Path directoryPath = testingRemoteAndLocalRepos.getDirectoryPath();
 
-        Scanner scanner = new Scanner(authData);
-        String ignoreURL = scanner.next();
-        String username = scanner.next();
-        String password = scanner.next();
-        UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider(username, password);
-
-        String remoteURL = "https://github.com/TheElegitTeam/PushPullTests.git";
+        String authURI = jGitTestingRepositoryRule.getAuthURI().toString();
 
         // Repo that will push
         Path repoPathPush = directoryPath.resolve("pushpull1");
-        ClonedRepoHelper helperPush = new ClonedRepoHelper(repoPathPush, remoteURL, credentials);
+        ClonedRepoHelper helperPush = new ClonedRepoHelper(repoPathPush, "", credentials);
         assertNotNull(helperPush);
-        helperPush.obtainRepository(remoteURL);
+        helperPush.obtainRepository(authURI);
 
         // Repo that will pull
         Path repoPathPull = directoryPath.resolve("pushpull2");
-        ClonedRepoHelper helperPull = new ClonedRepoHelper(repoPathPull, remoteURL, credentials);
+        ClonedRepoHelper helperPull = new ClonedRepoHelper(repoPathPull, "", credentials);
         assertNotNull(helperPull);
-        helperPull.obtainRepository(remoteURL);
+        helperPull.obtainRepository(authURI);
 
         Platform.runLater(() -> {
             try {
