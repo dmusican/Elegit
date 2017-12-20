@@ -63,6 +63,7 @@ import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.PushCommand;
 import org.eclipse.jgit.api.ResetCommand;
+import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.TransportCommand;
 import org.eclipse.jgit.errors.RemoteRepositoryException;
 import org.eclipse.jgit.errors.TransportException;
@@ -520,6 +521,57 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
         assertEquals(EDIT_STRING, Files.readAllLines(filePath).get(1));
     }
 
+    @Test
+    public void testStash() throws Exception {
+        Path repoPath = testingRemoteAndLocalRepos.getLocalFull();
+        UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider("",
+                                                                                                  "");
+        ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, "", credentials);
+        assertNotNull(helper);
+        helper.obtainRepository(remoteURI.toString());
+
+        Path modify = repoPath.resolve("modify.txt");
+        modifyFile(modify);
+
+        Path untracked = Paths.get(repoPath.toString(), "new.txt");
+        Files.createFile(untracked);
+
+        Git git = new Git(helper.getRepo());
+
+        Status status = git.status().call();
+        assertEquals(1, status.getModified().size());
+        assertEquals(1, status.getUntracked().size());
+
+        // Save only tracked files
+        helper.stashSave(false);
+
+        status = git.status().call();
+        assertEquals(0, status.getModified().size());
+        assertEquals(1, status.getUntracked().size());
+
+        // Stash untracked files
+        helper.stashSave(true);
+
+        status = git.status().call();
+        assertEquals(0, status.getModified().size());
+        assertEquals(0, status.getUntracked().size());
+
+        List<CommitHelper> stashList = helper.stashList();
+        assertEquals(2, stashList.size());
+
+        // Apply a given stash
+        helper.stashApply(stashList.get(0).getName(), false);
+
+        status = git.status().call();
+        assertEquals(0, status.getModified().size());
+        assertEquals(1, status.getUntracked().size());
+
+        // Clear all the stashes
+        helper.stashClear();
+
+        stashList = helper.stashList();
+        assertEquals(0, stashList.size());
+    }
 
     private void modifyFile(Path file) throws Exception {
         Files.write(file, EDIT_STRING.getBytes(), StandardOpenOption.APPEND);
