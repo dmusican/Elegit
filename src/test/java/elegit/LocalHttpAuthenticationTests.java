@@ -49,6 +49,8 @@
 
 package elegit;
 
+import elegit.exceptions.ConflictingFilesException;
+import elegit.exceptions.MissingRepoException;
 import elegit.gui.ClonedRepoHelperBuilder;
 import elegit.gui.RepoHelperBuilder;
 import elegit.models.AuthMethod;
@@ -57,6 +59,7 @@ import elegit.models.BranchModel;
 import elegit.models.ClonedRepoHelper;
 import elegit.models.CommitHelper;
 import elegit.models.ExistingRepoHelper;
+import elegit.models.LocalBranchHelper;
 import elegit.models.RemoteBranchHelper;
 import elegit.models.RepoHelper;
 import elegit.sshauthentication.ElegitUserInfoTest;
@@ -64,10 +67,12 @@ import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.api.PushCommand;
 import org.eclipse.jgit.api.ResetCommand;
 import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.TransportCommand;
+import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.errors.RemoteRepositoryException;
 import org.eclipse.jgit.errors.TransportException;
 import org.eclipse.jgit.errors.UnsupportedCredentialItem;
@@ -173,6 +178,7 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
 
     private URIish remoteURI;
     private URIish authURI;
+    private TestRepository<Repository> src;
 
     private static final String EDIT_STRING = "Lorem Ipsum";
 
@@ -185,7 +191,8 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
 	public void setUp() throws Exception {
 		super.setUp();
 
-		final TestRepository<Repository> src = createTestRepository();
+		// Set up primary remote repo
+		src = createTestRepository();
 		final String srcName = src.getRepository().getDirectory().getName();
 		src.getRepository()
 				.getConfig()
@@ -209,7 +216,7 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
                 .add("README.md", "# Reset testing\nA test repo to pull\n").create();
         src.update(master, D);
 
-        // Set up remote repo
+        // Set up secondary remote repo
         Path remoteFull = testingRemoteAndLocalRepos.getRemoteFull();
         System.out.println("remote full is " + remoteFull);
 
@@ -772,5 +779,93 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
         assertTrue(repo2RemoteCommits.contains(repo2NewHead));
 
     }
+
+    @Test
+    public void testFastForwardMergeFromFetch() throws Exception {
+        Path remoteFull = src.getRepository().getDirectory().toPath();
+        ExistingRepoHelper helperServer = new ExistingRepoHelper(remoteFull, null);
+        helperServer.getBranchModel().createNewLocalBranch("new_branch");
+
+        UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider("agitter",
+                                                                                                  "letmein");
+
+        Path directoryPath = testingRemoteAndLocalRepos.getDirectoryPath();
+
+
+        // Repo that will commit to new_branch
+        Path repoPathPush = directoryPath.resolve("pusher");
+        ClonedRepoHelper helperPush = new ClonedRepoHelper(repoPathPush, "", credentials);
+        assertNotNull(helperPush);
+        helperPush.obtainRepository(authURI.toString());
+
+        // Repo that will fetch and mergefromfetch
+        Path repoPathFetch = directoryPath.resolve("fetcher");
+        ClonedRepoHelper helperFetch = new ClonedRepoHelper(repoPathFetch, "", credentials);
+        assertNotNull(helperPush);
+        helperFetch.obtainRepository(authURI.toString());
+
+
+        /* ********************* EDIT AND PUSH SECTION ********************* */
+        RemoteBranchHelper remote_helper_push, remote_helper_fetch;
+        LocalBranchHelper new_branch_push_helper, master_push_helper, new_branch_fetch_helper;
+
+        // Find the remote 'new_branch' for push repo
+        remote_helper_push = (RemoteBranchHelper) helperPush
+                .getBranchModel().getBranchByName(BranchModel.BranchType.REMOTE, "origin/new_branch");
+        assertNotNull(remote_helper_push);
+        // Track new_branch and check it out
+        new_branch_push_helper = helperPush.getBranchModel().trackRemoteBranch(remote_helper_push);
+        new_branch_push_helper.checkoutBranch();
+
+        // Make some different changes in new_branch
+        Path filePath = repoPathPush.resolve("README.md");
+        String newBranchLine = "Line for new branch\n";
+        Files.write(filePath, newBranchLine.getBytes(), StandardOpenOption.APPEND);
+        helperPush.addFilePathTest(filePath);
+
+        // Commit changes in new_branch
+        helperPush.commit("added line in new_branch");
+
+        // Make some changes in master
+        master_push_helper = (LocalBranchHelper) helperPush.getBranchModel().getBranchByName(BranchModel.BranchType.LOCAL, "master");
+        master_push_helper.checkoutBranch();
+        filePath = repoPathPush.resolve("README.md");
+        newBranchLine = "Line for master\n";
+        Files.write(filePath, newBranchLine.getBytes(), StandardOpenOption.APPEND);
+        helperPush.addFilePathTest(filePath);
+
+        // Commit the changes in master and push
+        helperPush.commit("added line in master");
+
+        PushCommand push = helperPush.prepareToPushAll();
+        helperPush.pushAll(push);
+
+
+        /* ******************** FETCH AND MERGE SECTION ******************** */
+
+        // Checkout new_branch
+        remote_helper_fetch = (RemoteBranchHelper) helperFetch.getBranchModel().getBranchByName(BranchModel.BranchType.REMOTE, "origin/new_branch");
+        assertNotNull(remote_helper_fetch);
+        // Track new_branch and check it out
+        new_branch_fetch_helper = helperFetch.getBranchModel().trackRemoteBranch(remote_helper_fetch);
+        new_branch_fetch_helper.checkoutBranch();
+
+        // Fetch changes
+        helperFetch.fetch(false);
+
+        // Merge from the fetch
+        boolean is_fast_forward = true;
+        try {
+            is_fast_forward = helperFetch.mergeFromFetch() == MergeResult.MergeStatus.FAST_FORWARD;
+        } catch (IOException | GitAPIException | MissingRepoException e) { }
+        catch (ConflictingFilesException e) {
+            is_fast_forward = false;
+        }
+
+        // Check that new_branch was fast-forwarded instead of merged with master
+        assert(is_fast_forward);
+
+    }
+
 
 }
