@@ -52,9 +52,12 @@ package elegit;
 import elegit.gui.ClonedRepoHelperBuilder;
 import elegit.gui.RepoHelperBuilder;
 import elegit.models.AuthMethod;
+import elegit.models.BranchHelper;
+import elegit.models.BranchModel;
 import elegit.models.ClonedRepoHelper;
 import elegit.models.CommitHelper;
 import elegit.models.ExistingRepoHelper;
+import elegit.models.RemoteBranchHelper;
 import elegit.models.RepoHelper;
 import elegit.sshauthentication.ElegitUserInfoTest;
 import org.eclipse.jetty.servlet.FilterHolder;
@@ -649,5 +652,52 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
 
     }
 
+    // Test to make sure creating a local branch lets us push and
+    // that pushing will create the new branch.
+    @Test
+    public void testBranchPushAndDelete() throws Exception {
+        UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider("agitter",
+                                                                                                  "letmein");
+
+        Path directoryPath = testingRemoteAndLocalRepos.getDirectoryPath();
+
+        // Repo that will commit to master
+        Path repoPathPush = directoryPath.resolve("pusher");
+        ClonedRepoHelper helperPush = new ClonedRepoHelper(repoPathPush, "", credentials);
+        assertNotNull(helperPush);
+        helperPush.obtainRepository(authURI.toString());
+
+
+        /* ********************* BRANCH AND PUSH SECTION ********************* */
+        // Check that a previous test wasn't interrupted, if so make sure our branch is not there
+        for (RemoteBranchHelper helper : helperPush.getBranchModel().getRemoteBranchesTyped()) {
+            if (helper.getRefName().contains("new_branch")) {
+                helperPush.getBranchModel().deleteRemoteBranch(helper);
+            }
+        }
+
+        // Make a new branch and push it
+        helperPush.getBranchModel().createNewLocalBranch("new_branch");
+        helperPush.getBranchModel().getBranchByName(BranchModel.BranchType.LOCAL, "new_branch").checkoutBranch();
+        helperPush.updateModel();
+        // Check that we can push
+        assertEquals(true, helperPush.canPush());
+
+        PushCommand push = helperPush.prepareToPushCurrentBranch(true);
+        helperPush.pushCurrentBranch(push);
+        helperPush.updateModel();
+        // Check that there is a remote branch now
+        assertEquals(true, helperPush.getBranchModel().getRemoteBranchesTyped().toString().contains("new_branch"));
+
+
+
+        // Test that we can delete the branch too
+        helperPush.getBranchModel().updateRemoteBranches();
+        BranchHelper remoteBranchHelper = helperPush.getBranchModel().getBranchByName(BranchModel.BranchType.REMOTE, "origin/new_branch");
+        helperPush.getBranchModel().deleteRemoteBranch((RemoteBranchHelper) remoteBranchHelper);
+
+        // Check that the branch was deleted
+        assertEquals(true, helperPush.getBranchModel().getCurrentRemoteBranch()==null);
+    }
 
 }
