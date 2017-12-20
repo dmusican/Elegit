@@ -966,4 +966,62 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
 
     }
 
+    @Test
+    public void testFastForward() throws Exception {
+        UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider("agitter",
+                                                                                                  "letmein");
+
+        Path directoryPath = testingRemoteAndLocalRepos.getDirectoryPath();
+
+        // Repo that will commit to make a fast forward commit
+        Path repoPathFast = directoryPath.resolve("fastforward");
+        ClonedRepoHelper helperFast = new ClonedRepoHelper(repoPathFast, "", credentials);
+        assertNotNull(helperFast);
+        helperFast.obtainRepository(authURI.toString());
+
+        // Create the branch 'fast_branch'
+        helperFast.getBranchModel().createNewLocalBranch("fast_branch");
+
+
+        LocalBranchHelper fastBranch = (LocalBranchHelper) helperFast
+                .getBranchModel().getBranchByName(BranchModel.BranchType.LOCAL, "fast_branch");
+        Git git = new Git(helperFast.getRepo());
+        // Just push all untracked local branches
+        PushCommand command = helperFast.prepareToPushAll(untrackedLocalBranches -> untrackedLocalBranches);
+        helperFast.pushAll(command);
+
+
+        // Track fast_branch and check it out
+        fastBranch.checkoutBranch();
+        helperFast.updateModel();
+
+        // Update the file in fast_branch
+        Path filePath = repoPathFast.resolve("modify.txt");
+        String timestamp = (new Date()).toString() + "\n";
+        Files.write(filePath, timestamp.getBytes(), StandardOpenOption.APPEND);
+        helperFast.addFilePathTest(filePath);
+
+        // Commit changes in fast_branch and push
+        helperFast.commit("added a character");
+        command = helperFast.prepareToPushAll();
+        helperFast.pushAll(command);
+
+        //Checkout master
+        LocalBranchHelper master_helper = (LocalBranchHelper) helperFast
+                .getBranchModel().getBranchByName(BranchModel.BranchType.LOCAL, "master");
+        master_helper.checkoutBranch();
+
+        // Merge fast_forward into master
+        helperFast.getBranchModel().mergeWithBranch(fastBranch);
+
+        // Check that Elegit recognizes there are unpushed commits
+        assertEquals(true, helperFast.getAheadCount()>0);
+
+        // Push changes
+        command = helperFast.prepareToPushAll();
+        helperFast.pushAll(command);
+
+    }
+
+
 }
