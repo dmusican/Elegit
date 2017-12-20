@@ -1023,5 +1023,63 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
 
     }
 
+    @Test
+    public void testFastForwardCommitCanPush() throws Exception {
+        UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider("agitter",
+                                                                                                  "letmein");
+
+        Path directoryPath = testingRemoteAndLocalRepos.getDirectoryPath();
+        // Repo that will commit to make a fast forward commit
+        Path repoPathFast = directoryPath.resolve("fastforward");
+        ClonedRepoHelper helperFast = new ClonedRepoHelper(repoPathFast, "", credentials);
+        assertNotNull(helperFast);
+        helperFast.obtainRepository(authURI.toString());
+
+
+        // Create the branches
+        helperFast.getBranchModel().createNewLocalBranch("can_push");
+        LocalBranchHelper fastBranch = (LocalBranchHelper) helperFast
+                .getBranchModel().getBranchByName(BranchModel.BranchType.LOCAL, "can_push");
+        // Just push all untracked local branches
+        PushCommand command = helperFast.prepareToPushAll(untrackedLocalBranches -> untrackedLocalBranches);
+        helperFast.pushAll(command);
+
+        helperFast.getBranchModel().createNewLocalBranch("can_pushb");
+        LocalBranchHelper fastBranchb = (LocalBranchHelper) helperFast
+                .getBranchModel().getBranchByName(BranchModel.BranchType.LOCAL, "can_pushb");
+        // Just push all untracked local branches
+        command = helperFast.prepareToPushAll(untrackedLocalBranches -> untrackedLocalBranches);
+        helperFast.pushAll(command);
+
+
+        // Track can_push and check it out
+        fastBranch.checkoutBranch();
+        helperFast.updateModel();
+
+        // Update the file in can_push
+        Path filePath = repoPathFast.resolve("modify.txt");
+        String timestamp = (new Date()).toString() + "\n";
+        Files.write(filePath, timestamp.getBytes(), StandardOpenOption.APPEND);
+        helperFast.addFilePathTest(filePath);
+
+        // Commit changes in can_push and push
+        helperFast.commit("added a character");
+        command = helperFast.prepareToPushAll();
+        helperFast.pushAll(command);
+
+        // Track can_pushb and check it out
+        fastBranchb.checkoutBranch();
+
+        // Merge can_push into can_pushb
+        helperFast.getBranchModel().mergeWithBranch(fastBranch);
+
+        // Check that Elegit recognizes there are unpushed commits
+        assertEquals(true, helperFast.getAheadCount()>0);
+
+        // Push changes
+        command = helperFast.prepareToPushAll();
+        helperFast.pushAll(command);
+
+    }
 
 }
