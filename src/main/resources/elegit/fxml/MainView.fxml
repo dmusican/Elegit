@@ -432,6 +432,13 @@
                             <Text   text="remote: "/>
                             <Text fx:id="browserText"/>
                         </HBox>
+                        <HBox   alignment="TOP_CENTER">
+                            <padding>
+                                <Insets top="10"/>
+                            </padding>
+                            <Hyperlink  fx:id="remoteMonitoringStatus"
+                                        onAction="#changeRemoteMonitoringStatus"/>
+                        </HBox>
                     </VBox>
                 </StackPane>
 

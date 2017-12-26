@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -55,6 +56,8 @@ public class RepositoryMonitor{
     @GuardedBy("this") private static Disposable remoteTimer = Observable.empty().subscribe();
     @GuardedBy("this") private static Disposable localTimer = Observable.empty().subscribe();
     @GuardedBy("this") private static SessionController controller;
+    // Whether or not remote status checking is enabled
+    @GuardedBy("this") private static boolean remoteStatusChecking = true;
     @GuardedBy("this") private static int exceptionCounter = 0;  // used for testing
 
     private static final AtomicReference<SessionController> sessionController = new AtomicReference<>();
@@ -68,6 +71,7 @@ public class RepositoryMonitor{
     }
 
     public synchronized static void initRemote() {
+        remoteStatusChecking = true;
         SessionModel.getSessionModel().subscribeToOpenedRepos(RepositoryMonitor::watchRepoForRemoteChanges);
         beginWatchingRemote();
     }
@@ -115,6 +119,10 @@ public class RepositoryMonitor{
     // could block it up considerably. It uses no shared memory, and it makes calls to threadsafe libraries.
     private static boolean remoteHasNewChanges(RepoHelper repo) {
         try {
+            if (!remoteStatusChecking) {
+                return false;
+            }
+
             if (!repo.getRemoteAuthenticationSuccess()) {
                 return false;
             }
