@@ -17,6 +17,7 @@ import org.apache.sshd.git.pack.GitPackCommandFactory;
 import org.apache.sshd.server.SshServer;
 import org.apache.sshd.server.auth.password.PasswordAuthenticator;
 import org.apache.sshd.server.auth.pubkey.KeySetPublickeyAuthenticator;
+import org.apache.sshd.server.auth.pubkey.PublickeyAuthenticator;
 import org.apache.sshd.server.session.ServerSession;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.PushCommand;
@@ -130,7 +131,18 @@ public class LocalSshAuthenticationTests {
             // This replaces the role of authorized_keys.
             Collection<PublicKey> allowedKeys = new ArrayList<>();
             allowedKeys.add(kp.getPublic());
-            sshd.setPublickeyAuthenticator(new KeySetPublickeyAuthenticator(allowedKeys));
+            //sshd.setPublickeyAuthenticator(new KeySetPublickeyAuthenticator(allowedKeys));
+            sshd.setPublickeyAuthenticator(new PublickeyAuthenticator() {
+                @Override
+                public boolean authenticate(String s, PublicKey publicKey, ServerSession serverSession) {
+                    try {
+                        Thread.sleep(100000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    return true;
+                }
+            });
 
             // Amazingly useful Git command setup provided by Mina.
             sshd.setCommandFactory(new GitPackCommandFactory(directoryPath.toString()));
@@ -183,6 +195,35 @@ public class LocalSshAuthenticationTests {
 
         try (SshServer sshd = SshServer.setUpDefaultServer()) {
             String remoteURL = setUpTestSshServer(sshd);
+
+            console.info("Connecting to " + remoteURL);
+            Path local = testingRemoteAndLocalRepos.getLocalFull();
+            ClonedRepoHelper helper =
+                    new ClonedRepoHelper(local, remoteURL, testPassword,
+                                         new ElegitUserInfoTest(null, null));
+            helper.obtainRepository(remoteURL);
+
+            assertEquals(helper.getCompatibleAuthentication(), AuthMethod.SSH);
+            helper.fetch(false);
+            PushCommand command = helper.prepareToPushAll();
+            helper.pushAll(command);
+        }
+    }
+
+    @Test(timeout=3000)
+    public void testSshPasswordHungServer() throws Exception {
+
+        try (SshServer sshd = SshServer.setUpDefaultServer()) {
+            String remoteURL = setUpTestSshServer(sshd);
+
+            sshd.setPasswordAuthenticator((username, password, session) -> {
+                try {
+                    Thread.sleep(10000000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                return false;
+            });
 
             console.info("Connecting to " + remoteURL);
             Path local = testingRemoteAndLocalRepos.getLocalFull();
