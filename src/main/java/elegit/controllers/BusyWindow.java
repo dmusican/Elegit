@@ -4,6 +4,8 @@ import elegit.Main;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.ProgressBar;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
@@ -49,8 +51,10 @@ public class BusyWindow {
     // link to .gif loading indicator creator: http://www.ajaxload.info
     private static Parent getRootOfScene(){
         Main.assertFxThread();
-        ImageView img = new ImageView(new Image("/elegit/images/loading.gif"));
-        VBox parent = new VBox(img, loadingMessage);
+        ProgressBar pb = new ProgressBar();
+        pb.setProgress(-1); // indicates indeterminate
+        Button cancel = new Button("Cancel");
+        VBox parent = new VBox(pb, loadingMessage, cancel);
         parent.setSpacing(20);
         parent.setAlignment(Pos.CENTER);
         parent.setStyle("-fx-border-color: #000000;\n -fx-padding: 10 10 10 10");
