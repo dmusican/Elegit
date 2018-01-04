@@ -4,6 +4,7 @@ import elegit.Main;
 import elegit.gui.GitIgnoreEditor;
 import elegit.models.LoggingModel;
 import elegit.models.SessionModel;
+import elegit.monitors.RepositoryMonitor;
 import elegit.treefx.TreeLayout;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -50,6 +51,7 @@ public class MenuController {
     // So, this is the primary space the status is being stored; and the model status is bound to this one.
     @FXML private CheckMenuItem loggingToggle;
     @FXML private CheckMenuItem commitSortToggle;
+    @FXML private CheckMenuItem remoteStatusCheckToggle;
 
     private static final Logger logger = LogManager.getLogger();
 
@@ -60,6 +62,7 @@ public class MenuController {
         TreeLayout.bindSorting(commitSortToggle.selectedProperty());
 
         commitSortToggle.setSelected(true); //default
+        remoteStatusCheckToggle.setSelected(true);
 
         // Workaround for this bug:
         // http://bugs.java.com/bugdatabase/view_bug.do?bug_id=8140491
@@ -107,6 +110,10 @@ public class MenuController {
 
     public synchronized void handleCommitSortToggle() {
         sessionController.handleCommitSortToggle();
+    }
+
+    public synchronized void handleRemoteStatusCheckToggle() {
+        RepositoryMonitor.flipRemoteStatusChecking();
     }
 
 
@@ -248,4 +255,8 @@ public class MenuController {
         sessionController.handleStashDropButton();
     }
 
+    public boolean getRemoteToggleStatus() {
+        Main.assertFxThread();
+        return remoteStatusCheckToggle.isSelected();
+    }
 }

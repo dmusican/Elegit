@@ -10,6 +10,7 @@
 <?import javafx.scene.shape.*?>
 
 <?import elegit.treefx.CommitTreePanelView?>
+<?import org.controlsfx.control.ToggleSwitch?>
 <BorderPane xmlns:fx="http://javafx.com/fxml"
             fx:controller="elegit.controllers.SessionController">
 
@@ -436,8 +437,6 @@
                             <padding>
                                 <Insets top="10"/>
                             </padding>
-                            <Hyperlink  fx:id="remoteMonitoringStatus"
-                                        onAction="#changeRemoteMonitoringStatus"/>
                         </HBox>
                     </VBox>
                 </StackPane>

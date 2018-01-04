@@ -113,7 +113,6 @@ public class SessionController {
     @FXML private Text browserText;
     @FXML private Text needToFetch;
     @FXML private Text branchStatusText;
-    @FXML private Hyperlink remoteMonitoringStatus;
 
     @FXML private ContextMenu pushContextMenu;
     @FXML private ContextMenu commitContextMenu;
@@ -150,9 +149,6 @@ public class SessionController {
 
     public static final Object globalLock = new Object();
 
-
-    public static final String remoteMonitoringOnText = "Remote monitoring is on: click to disable.";
-    public static final String remoteMonitoringOffText = "Remote monitoring is off: click to enable.";
 
     // Used for testing purposes; look at testing code to see where used
     public static CountDownLatch gitStatusCompletedOnce = new CountDownLatch(1);
@@ -356,7 +352,6 @@ public class SessionController {
         currentLocalBranchLabel = new Label("N/A");
         initCellLabel(currentLocalBranchLabel, currentLocalBranchHbox);
         initCellLabel(currentRemoteTrackingLabel, currentRemoteTrackingBranchHbox);
-        remoteMonitoringStatus.setText(remoteMonitoringOnText);
 
         updateStatusText();
     }
@@ -2777,18 +2772,9 @@ public class SessionController {
         commitTreeProgressBarAndLabel.setVisible(false);
     }
 
-    public void changeRemoteMonitoringStatus() {
+    public MenuController getMenuController() {
         Main.assertFxThread();
-        if (remoteMonitoringStatus.getText().equals(remoteMonitoringOnText)) {
-            remoteMonitoringStatus.setText(remoteMonitoringOffText);
-        } else {
-            remoteMonitoringStatus.setText(remoteMonitoringOnText);
-        }
-    }
-
-    public String remoteMonitoringStatusText() {
-        Main.assertFxThread();
-        return remoteMonitoringStatus.getText();
+        return menuController;
     }
 
 }

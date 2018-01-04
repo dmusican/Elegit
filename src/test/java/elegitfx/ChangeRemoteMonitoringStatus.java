@@ -2,6 +2,7 @@ package elegitfx;
 
 import elegit.Main;
 import elegit.controllers.BusyWindow;
+import elegit.controllers.MenuController;
 import elegit.controllers.SessionController;
 import elegit.models.ClonedRepoHelper;
 import elegit.models.SessionModel;
@@ -9,8 +10,10 @@ import elegit.monitors.RepositoryMonitor;
 import elegit.treefx.CommitTreeModel;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Rectangle2D;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.CheckMenuItem;
 import javafx.scene.control.ScrollPane;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
@@ -45,7 +48,7 @@ public class ChangeRemoteMonitoringStatus extends ApplicationTest {
     private static final Logger logger = LogManager.getLogger();
 
     private SessionController sessionController;
-    private static GuiTest testController;
+    private MenuController menuController;
 
     @Override
     public void start(Stage stage) throws Exception {
@@ -70,6 +73,8 @@ public class ChangeRemoteMonitoringStatus extends ApplicationTest {
         stage.toFront();
         // TODO: Remove this pause and keep test working; no good reason for it to be necessary
         RepositoryMonitor.pause();
+
+        menuController = sessionController.getMenuController();
 
     }
 
@@ -110,47 +115,28 @@ public class ChangeRemoteMonitoringStatus extends ApplicationTest {
 
         SessionController.gitStatusCompletedOnce.await();
 
-        interact(() -> {
-            assertEquals(SessionController.remoteMonitoringOnText, sessionController.remoteMonitoringStatusText());
-        });
-
-        clickOn("#remoteMonitoringStatus");
 
         interact(() -> {
-            assertEquals(SessionController.remoteMonitoringOffText, sessionController.remoteMonitoringStatusText());
+            assertEquals(true, menuController.getRemoteToggleStatus());
+            assertEquals(true, RepositoryMonitor.getRemoteStatusChecking());
         });
 
-        clickOn("#remoteMonitoringStatus");
+        clickOn("Preferences")
+                .clickOn("#remoteStatusCheckToggle");
 
         interact(() -> {
-            assertEquals(SessionController.remoteMonitoringOnText, sessionController.remoteMonitoringStatusText());
+            assertEquals(false, menuController.getRemoteToggleStatus());
+            assertEquals(false, RepositoryMonitor.getRemoteStatusChecking());
         });
 
-        clickOn("#remoteMonitoringStatus");
+        clickOn("Preferences")
+                .clickOn("#remoteStatusCheckToggle");
 
         interact(() -> {
-            assertEquals(SessionController.remoteMonitoringOffText, sessionController.remoteMonitoringStatusText());
+            assertEquals(true, menuController.getRemoteToggleStatus());
+            assertEquals(true, RepositoryMonitor.getRemoteStatusChecking());
         });
 
-//        interact(() -> {
-//            ScrollPane sp = sessionController.getCommitTreeModel().getTreeGraph().getScrollPane();
-//            // Test that scroll pane now has content in it
-//            assertTrue(sp.getScene() != null);
-//        });
-//
-//
-//
-//        assertEquals(0,sessionController.getNotificationPaneController().getNotificationNum());
-//
-//        RepositoryMonitor.unpause();
-//        sleep(Math.max(RepositoryMonitor.REMOTE_CHECK_INTERVAL,
-//                RepositoryMonitor.LOCAL_CHECK_INTERVAL)+1000);
-//        int numLocalChecks = RepositoryMonitor.getNumLocalChecks();
-//        System.out.println("Number of local checks = " + numLocalChecks);
-//        int numRemoteChecks = RepositoryMonitor.getNumRemoteChecks();
-//        System.out.println("Number of remote checks = " + numRemoteChecks);
-//        assertTrue(numLocalChecks > 0 && numLocalChecks < 5);
-//        assertTrue(numRemoteChecks > 0 && numRemoteChecks < 5);
 
     }
 

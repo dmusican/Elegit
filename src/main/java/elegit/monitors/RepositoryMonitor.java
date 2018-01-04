@@ -253,4 +253,13 @@ public class RepositoryMonitor{
     public static void setSessionController(SessionController sessionController) {
         RepositoryMonitor.sessionController.set(sessionController);
     }
+
+
+    public static synchronized void flipRemoteStatusChecking() {
+        remoteStatusChecking = !remoteStatusChecking;
+    }
+
+    public static synchronized boolean getRemoteStatusChecking() {
+        return remoteStatusChecking;
+    }
 }
