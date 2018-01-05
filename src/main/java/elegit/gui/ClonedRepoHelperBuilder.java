@@ -102,6 +102,7 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
         cloneButtonType = new ButtonType("Clone", ButtonBar.ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().addAll(cloneButtonType, ButtonType.CANCEL);
         Node cloneButton = dialog.getDialogPane().lookupButton(cloneButtonType);
+        cloneButton.setId("cloneButton");
         cloneButton.setDisable(true);   // starts off as disabled
         dialog.setOnCloseRequest(event -> logger.info("Closed clone from remote dialog"));
     }
@@ -118,11 +119,16 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
                 "to be created in.");
 
         remoteURLField = new TextField();
+        remoteURLField.setId("remoteURLField");
         remoteURLField.setPromptText("Remote URL");
         if(prevRemoteURL != null) remoteURLField.setText(prevRemoteURL);
 
         enclosingFolderField = new TextField();
-        enclosingFolderField.setEditable(false); // for now, it will just show the folder you selected
+        enclosingFolderField.setId("enclosingFolderField");
+
+        // for now, it will just show the folder you selected, unless running system tests
+        enclosingFolderField.setEditable(Main.testMode);
+
         if(prevDestinationPath != null) enclosingFolderField.setText(prevDestinationPath);
 
         Text enclosingDirectoryPathText = new Text();
@@ -139,6 +145,7 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
         });
 
         repoNameField = new TextField();
+        repoNameField.setId("repoNameField");
         repoNameField.setPromptText("Repository name...");
         remoteURLField.textProperty().addListener((obs, oldText, newText) -> {
             repoNameField.setText(guessRepoName(newText));

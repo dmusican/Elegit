@@ -192,6 +192,8 @@ public abstract class RepoHelperBuilder {
 
         // Enable/Disable login button depending on whether a password was entered.
         Node loginButton = dialog.getDialogPane().lookupButton(loginButtonType);
+        loginButton.setId("loginButton");
+
         //TODO: see above about password and username
         /*
         if (hashedPassword == null || hashedUsername == null) {

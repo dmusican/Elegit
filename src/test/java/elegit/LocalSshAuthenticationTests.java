@@ -135,11 +135,6 @@ public class LocalSshAuthenticationTests {
             sshd.setPublickeyAuthenticator(new PublickeyAuthenticator() {
                 @Override
                 public boolean authenticate(String s, PublicKey publicKey, ServerSession serverSession) {
-                    try {
-                        Thread.sleep(100000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
                     return true;
                 }
             });
