@@ -32,11 +32,6 @@ public class BusyWindow {
         Main.assertFxThread();
         Stage window = new Stage();
 
-//        window.setMaxHeight(200);
-//        window.setMaxWidth(300);
-//        window.setMinHeight(200);
-//        window.setMinWidth(300);
-
         window.initStyle(StageStyle.UNDECORATED);
         window.initModality(Modality.APPLICATION_MODAL);
 
@@ -53,8 +48,7 @@ public class BusyWindow {
         Main.assertFxThread();
         ProgressBar pb = new ProgressBar();
         pb.setProgress(-1); // indicates indeterminate
-        Button cancel = new Button("Cancel");
-        VBox parent = new VBox(pb, loadingMessage, cancel);
+        VBox parent = new VBox(pb, loadingMessage);
         parent.setSpacing(20);
         parent.setAlignment(Pos.CENTER);
         parent.setStyle("-fx-border-color: #000000;\n -fx-padding: 10 10 10 10");
