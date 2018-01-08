@@ -5,6 +5,7 @@ import elegit.Main;
 import elegit.models.AuthMethod;
 import elegit.models.RepoHelper;
 import elegit.models.SessionModel;
+import io.reactivex.Single;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -244,5 +245,9 @@ public abstract class RepoHelperBuilder {
         }
         logger.info("Entered authorization credentials");
         return result.get();
+    }
+
+    public Single<RepoHelper> getRepoHelperFromDialogsWhenSubscribed() {
+        return Single.fromCallable(this::getRepoHelperFromDialogs);
     }
 }

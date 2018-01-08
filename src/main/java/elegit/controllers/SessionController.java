@@ -716,19 +716,23 @@ public class SessionController {
         Main.assertFxThread();
         try {
             RepoHelper repoHelper = builder.getRepoHelperFromDialogs();
+//            builder.getRepoHelperFromDialogsWhenSubscribed()
+//                    .map(this::loadDesignatedRepo)
+//                    .subscribe();
+
             loadDesignatedRepo(repoHelper);
         } catch (Exception e) {
             showSingleResult(notificationPaneController, new Result(ResultOperation.LOAD, e));
         }
     }
 
-    public void loadDesignatedRepo(RepoHelper repoHelper) {
+    public boolean loadDesignatedRepo(RepoHelper repoHelper) {
         GitOperation gitOp = authResponse -> loadRepo(authResponse, repoHelper);
         if (repoHelper == null)
             throw new RuntimeException();
         if (theModel.getCurrentRepoHelper() != null && repoHelper.getLocalPath().equals(theModel.getCurrentRepoHelper().getLocalPath())) {
             showSameRepoLoadedNotification();
-            return;
+            return false;
         }
         TreeLayout.stopMovingCells();
         refreshRecentReposInDropdown();
@@ -755,6 +759,7 @@ public class SessionController {
 
                 })
                 .subscribe(unused -> {}, Throwable::printStackTrace);
+        return true;
 
     }
 

@@ -3,6 +3,9 @@ package elegit.sshauthentication;
 import com.jcraft.jsch.UserInfo;
 import elegit.Main;
 import elegit.exceptions.ExceptionAdapter;
+import io.reactivex.Single;
+import io.reactivex.rxjavafx.schedulers.JavaFxScheduler;
+import io.reactivex.schedulers.Schedulers;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
@@ -117,23 +120,32 @@ public class ElegitUserInfoGUI implements UserInfo {
     // TODO: This method will only work on FX thread, but likely gets called off it. Something is missing in testing.
     @Override
     public boolean promptYesNo(String s) {
-        System.out.println(s);
+        Main.assertNotFxThread();
 
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.setTitle("SSH yes/no confirmation");
-        alert.setHeaderText("SSH yes/no question.");
-        alert.setContentText(s);
+        System.out.println("ElegitUserInfoGUI.promptYesNo");
+        return Single.fromCallable(() -> {
+            System.out.println(s);
 
-        alert.getButtonTypes().setAll(ButtonType.YES, ButtonType.NO);
-        Optional<ButtonType> result = alert.showAndWait();
-        if (result.orElse(null) == ButtonType.YES)
-            return true;
-        else if (result.orElse(null) == ButtonType.NO)
-            return false;
-        else {
-            logger.error("Internal error with SSH yes/no prompt.");
-            return false;
-        }
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+            alert.setTitle("SSH yes/no confirmation");
+            alert.setHeaderText("SSH yes/no question.");
+            alert.setContentText(s);
+
+            alert.getButtonTypes().setAll(ButtonType.YES, ButtonType.NO);
+            Optional<ButtonType> result = alert.showAndWait();
+            if (result.orElse(null) == ButtonType.YES)
+                return true;
+            else if (result.orElse(null) == ButtonType.NO)
+                return false;
+            else {
+                logger.error("Internal error with SSH yes/no prompt.");
+                return false;
+            }
+        })
+                .subscribeOn(JavaFxScheduler.platform())
+                .observeOn(Schedulers.io())
+                .blockingGet();
+
     }
 
     // This method doesn't need to be synchronized, as it does not interact with the shared instance variables
@@ -141,6 +153,7 @@ public class ElegitUserInfoGUI implements UserInfo {
     // TODO: This method will only work on FX thread, but likely gets called off it. Something is missing in testing.
     @Override
     public void showMessage(String s) {
+        System.out.println("ElegitUserInfoGUI.showMessage");
         System.out.println(s);
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("SSH message");

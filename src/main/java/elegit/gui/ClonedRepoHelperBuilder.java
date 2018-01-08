@@ -8,6 +8,9 @@ import elegit.models.AuthMethod;
 import elegit.models.ClonedRepoHelper;
 import elegit.models.RepoHelper;
 import elegit.sshauthentication.ElegitUserInfoGUI;
+import io.reactivex.Single;
+import io.reactivex.rxjavafx.schedulers.JavaFxScheduler;
+import io.reactivex.schedulers.Schedulers;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -76,8 +79,15 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
             String remoteURL = result.get().getValue();
 
             RepoHelperBuilder.AuthDialogResponse response = RepoHelperBuilder.getAuthCredentialFromDialog();
-            return cloneRepositoryWithChecks(remoteURL, destinationPath, response,
-                                                              new ElegitUserInfoGUI());
+
+            return cloneRepositoryWithChecksWhenSubscribed
+                    (
+                            remoteURL, destinationPath, response, new ElegitUserInfoGUI()
+                    )
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(JavaFxScheduler.platform())
+                    .blockingGet();
+
         } else {
             logger.info("Cloned repo helper dialog canceled");
             // This happens when the user pressed cancel.
@@ -242,7 +252,6 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
         // Try calling `git ls-remote ___` on the remote URL to see if it's valid
         TransportCommand command = Git.lsRemoteRepository().setRemote(remoteURL);
 
-
         ClonedRepoHelper repoHelper = new ClonedRepoHelper(destinationPath, remoteURL, sshPassword, userInfo);
         repoHelper.wrapAuthentication(command, credentials);
         try {
@@ -283,5 +292,14 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
         return repoHelper;
     }
 
+    public static Single<RepoHelper> cloneRepositoryWithChecksWhenSubscribed(
+            String remoteURL, Path destinationPath,
+            RepoHelperBuilder.AuthDialogResponse response,
+            UserInfo userInfo)      {
+        return Single.fromCallable(() -> cloneRepositoryWithChecks(remoteURL,
+                                                                   destinationPath,
+                                                                   response,
+                                                                   userInfo));
+    }
 
 }
