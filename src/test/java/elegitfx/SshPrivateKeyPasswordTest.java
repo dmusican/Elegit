@@ -1,5 +1,6 @@
 package elegitfx;
 
+import com.jcraft.jsch.JSch;
 import elegit.Main;
 import elegit.controllers.BusyWindow;
 import elegit.controllers.SessionController;
@@ -159,11 +160,30 @@ public class SshPrivateKeyPasswordTest extends ApplicationTest {
     }
 
 
+    // http://www.jcraft.com/jsch/examples/Logger.java.html
+    public static class MyLogger implements com.jcraft.jsch.Logger {
+        static java.util.Hashtable<Integer,String> name=new java.util.Hashtable<>();
+        static{
+            name.put(DEBUG, "DEBUG: ");
+            name.put(INFO, "INFO: ");
+            name.put(WARN, "WARN: ");
+            name.put(ERROR, "ERROR: ");
+            name.put(FATAL, "FATAL: ");
+        }
+        public boolean isEnabled(int level){
+            return true;
+        }
+        public void log(int level, String message){
+            System.err.print(name.get(level));
+            System.err.println(message);
+        }
+    }
+
 
     @Test
     public void testSshPrivateKey() throws Exception {
         // Uncomment this to get detail SSH logging info, for debugging
-        //JSch.setLogger(new AuthenticatedCloneTest.MyLogger());
+        JSch.setLogger(new MyLogger());
 
         // Set up test SSH server.
         try (SshServer sshd = SshServer.setUpDefaultServer()) {

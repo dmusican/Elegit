@@ -72,6 +72,7 @@ public class ElegitUserInfoGUI implements UserInfo {
     // be slow, and should never be attempted from the FX thread at any rate.
     private Optional<String> prompt(String s, String title, String headerText, String contentText) {
             Main.assertNotFxThread();
+        System.out.println("ElegitUserInfoGUI.prompt start");
         FutureTask<Optional<String>> futureTask = new FutureTask<>(() -> {
             System.out.println("ElegitUserInfoGUI.prompt");
             System.out.println(s);
