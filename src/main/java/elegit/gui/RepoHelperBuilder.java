@@ -58,6 +58,7 @@ public abstract class RepoHelperBuilder {
         public final String username;
         public final String password;
         public final boolean isSelected;
+
         public AuthDialogResponse(AuthMethod protocol, String username, String password, boolean isSelected) {
             this.protocol = protocol;
             this.username = username;
@@ -70,8 +71,6 @@ public abstract class RepoHelperBuilder {
 
 
     private static final Logger logger = LogManager.getLogger();
-
-    public abstract RepoHelper getRepoHelperFromDialogs() throws GitAPIException, IOException, NoRepoSelectedException, CancelledAuthorizationException;
 
     /**
      * Presents a file chooser and returns the chosen file.
@@ -130,7 +129,7 @@ public abstract class RepoHelperBuilder {
         grid.setVgap(10);
         grid.setPadding(new Insets(20, 150, 10, 10));
 
-        grid.add(new Label("Protocol:"),0,0);
+        grid.add(new Label("Protocol:"), 0, 0);
 
         ObservableList<String> protocols =
                 FXCollections.observableArrayList(
@@ -138,7 +137,7 @@ public abstract class RepoHelperBuilder {
                 );
         ComboBox<String> protocol = new ComboBox<>(protocols);
         protocol.setValue("HTTPS");
-        grid.add(protocol,1,0);
+        grid.add(protocol, 1, 0);
 
         grid.add(new Label("Username:"), 0, 1);
 
@@ -151,7 +150,7 @@ public abstract class RepoHelperBuilder {
         // Conditionally ask for the username if it hasn't yet been set.
         TextField username = new TextField();
 //        if (hashedUsername == null) {
-            username.setPromptText("Username");
+        username.setPromptText("Username");
 //        } else {
 //            username.setText(hashedUsername);
 //            username.setEditable(false);
@@ -186,7 +185,7 @@ public abstract class RepoHelperBuilder {
         if (hashedUsername == null) {
             editUsername.setVisible(false);
         }*/
-        grid.add(editUsername,2,1);
+        grid.add(editUsername, 2, 1);
 
         remember.setIndeterminate(false);
         grid.add(remember, 1, 3);
@@ -202,8 +201,10 @@ public abstract class RepoHelperBuilder {
         }*/
 
         // Do some validation (using the Java 8 lambda syntax).
-        password.textProperty().addListener((observable, oldValue, newValue) -> loginButton.setDisable(newValue.trim().isEmpty()));
-        username.textProperty().addListener((observable, oldValue, newValue) -> loginButton.setDisable(newValue.trim().isEmpty()));
+        password.textProperty().addListener(
+                (observable, oldValue, newValue) -> loginButton.setDisable(newValue.trim().isEmpty()));
+        username.textProperty().addListener(
+                (observable, oldValue, newValue) -> loginButton.setDisable(newValue.trim().isEmpty()));
 
         dialog.getDialogPane().setContent(grid);
 
@@ -230,7 +231,7 @@ public abstract class RepoHelperBuilder {
         UsernamePasswordCredentialsProvider ownerAuth;
 
         if (result.isPresent()) {
-                // TODO: Storing password must not be working -- this is all local
+            // TODO: Storing password must not be working -- this is all local
 //            UsernamePassword usernamePassword = new UsernamePassword();
 //            usernamePassword.username = result.get().username;
             //Only store password if remember password was selected
@@ -247,7 +248,5 @@ public abstract class RepoHelperBuilder {
         return result.get();
     }
 
-    public Single<RepoHelper> getRepoHelperFromDialogsWhenSubscribed() {
-        return Single.fromCallable(this::getRepoHelperFromDialogs);
-    }
+    public abstract Single<RepoHelper> getRepoHelperFromDialogsWhenSubscribed();
 }

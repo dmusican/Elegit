@@ -65,7 +65,7 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
      * @return the new ClonedRepoHelper.
      */
     @Override
-    public RepoHelper getRepoHelperFromDialogs() throws GitAPIException, IOException, NoRepoSelectedException, CancelledAuthorizationException{
+    public Single<RepoHelper> getRepoHelperFromDialogsWhenSubscribed() {
         Main.assertFxThread();
         Dialog<Pair<String, String>> dialog = createCloneDialog();
         setUpDialogButtons(dialog);
@@ -85,8 +85,7 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
                             remoteURL, destinationPath, response, new ElegitUserInfoGUI()
                     )
                     .subscribeOn(Schedulers.io())
-                    .observeOn(JavaFxScheduler.platform())
-                    .blockingGet();
+                    .observeOn(JavaFxScheduler.platform());
 
         } else {
             logger.info("Cloned repo helper dialog canceled");

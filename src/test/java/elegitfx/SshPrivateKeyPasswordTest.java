@@ -229,8 +229,11 @@ public class SshPrivateKeyPasswordTest extends ApplicationTest {
                     .doubleClickOn("#repoNameField")
                     .write(testingRemoteAndLocalRepos.getLocalBrief().toString())
                     .clickOn("#cloneButton")
-                    .clickOn("#loginButton")
-                    .clickOn("Yes");
+                    .clickOn("#loginButton");
+
+            Thread.sleep(1000);
+
+            clickOn("Yes");
 
 //            Thread.sleep(10000);
 

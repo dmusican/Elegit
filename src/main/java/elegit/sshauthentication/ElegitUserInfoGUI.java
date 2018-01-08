@@ -73,6 +73,7 @@ public class ElegitUserInfoGUI implements UserInfo {
     private Optional<String> prompt(String s, String title, String headerText, String contentText) {
             Main.assertNotFxThread();
         FutureTask<Optional<String>> futureTask = new FutureTask<>(() -> {
+            System.out.println("ElegitUserInfoGUI.prompt");
             System.out.println(s);
 
             Dialog<String> dialog = new Dialog<>();
@@ -123,7 +124,9 @@ public class ElegitUserInfoGUI implements UserInfo {
         Main.assertNotFxThread();
 
         System.out.println("ElegitUserInfoGUI.promptYesNo");
+        System.out.println("a" + Thread.currentThread());
         return Single.fromCallable(() -> {
+            System.out.println("ElegitUserInfoGUI.promptYesNo inside thread");
             System.out.println(s);
 
             Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
@@ -143,7 +146,10 @@ public class ElegitUserInfoGUI implements UserInfo {
             }
         })
                 .subscribeOn(JavaFxScheduler.platform())
-                .observeOn(Schedulers.io())
+                .doOnSuccess((a) -> {
+                    System.out.println("b " + Thread.currentThread());
+                })
+                //.observeOn(Schedulers.io())
                 .blockingGet();
 
     }

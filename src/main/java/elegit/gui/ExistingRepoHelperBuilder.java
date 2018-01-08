@@ -6,6 +6,7 @@ import elegit.exceptions.NoRepoSelectedException;
 import elegit.models.ExistingRepoHelper;
 import elegit.models.RepoHelper;
 import elegit.sshauthentication.ElegitUserInfoGUI;
+import io.reactivex.Single;
 import org.apache.http.annotation.ThreadSafe;
 import org.eclipse.jgit.api.errors.GitAPIException;
 
@@ -31,7 +32,7 @@ public class ExistingRepoHelperBuilder extends RepoHelperBuilder {
      * @throws Exception why? has to do with the new ExistingRepoHelper(...).
      */
     @Override
-    public RepoHelper getRepoHelperFromDialogs() throws GitAPIException, IOException, NoRepoSelectedException, CancelledAuthorizationException{
+    public Single<RepoHelper> getRepoHelperFromDialogsWhenSubscribed() {
         Main.assertFxThread();
         File existingRepoDirectoryFile = this.getDirectoryPathFromChooser("Choose existing repository directory");
 
@@ -42,6 +43,6 @@ public class ExistingRepoHelperBuilder extends RepoHelperBuilder {
 
         Path directoryPath = existingRepoDirectoryFile.toPath();
 
-        return new ExistingRepoHelper(directoryPath, new ElegitUserInfoGUI());
+        return Single.fromCallable(() -> new ExistingRepoHelper(directoryPath, new ElegitUserInfoGUI()));
     }
 }

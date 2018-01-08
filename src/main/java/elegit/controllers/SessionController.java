@@ -715,12 +715,16 @@ public class SessionController {
     private synchronized void handleLoadRepoMenuItem(RepoHelperBuilder builder) {
         Main.assertFxThread();
         try {
-            RepoHelper repoHelper = builder.getRepoHelperFromDialogs();
-//            builder.getRepoHelperFromDialogsWhenSubscribed()
-//                    .map(this::loadDesignatedRepo)
-//                    .subscribe();
+//            RepoHelper repoHelper = builder.getRepoHelperFromDialogs();
+            builder.getRepoHelperFromDialogsWhenSubscribed()
+                    .map(this::loadDesignatedRepo)
+                    .subscribe((unused) -> {},
+                               (e) -> {
+                                   System.out.println("SessionController.handleLoadRepoMenuItem " + e);
+                                   showSingleResult(notificationPaneController, new Result(ResultOperation.LOAD, e));
+                               });
 
-            loadDesignatedRepo(repoHelper);
+//            loadDesignatedRepo(repoHelper);
         } catch (Exception e) {
             showSingleResult(notificationPaneController, new Result(ResultOperation.LOAD, e));
         }

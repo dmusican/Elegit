@@ -6,5 +6,5 @@ package elegit.exceptions;
  * dialog.
  *
  */
-public class CancelledAuthorizationException extends Exception {
+public class CancelledAuthorizationException extends RuntimeException {
 }

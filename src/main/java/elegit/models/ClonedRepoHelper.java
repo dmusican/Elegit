@@ -48,6 +48,7 @@ public class ClonedRepoHelper extends RepoHelper {
         myWrapAuthentication(cloneCommand);
         File destination = this.getLocalPath().toFile();
         cloneCommand.setDirectory(destination);
+        System.out.println("ClonedRepoHelper.obtainRepository " + Thread.currentThread());
         Git cloneCall = cloneCommand.call();
         cloneCall.close();
             setRepo(cloneCall.getRepository());
