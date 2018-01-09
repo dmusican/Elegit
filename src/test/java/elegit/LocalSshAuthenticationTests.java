@@ -18,6 +18,7 @@ import org.apache.sshd.server.SshServer;
 import org.apache.sshd.server.auth.password.PasswordAuthenticator;
 import org.apache.sshd.server.auth.pubkey.KeySetPublickeyAuthenticator;
 import org.apache.sshd.server.auth.pubkey.PublickeyAuthenticator;
+import org.apache.sshd.server.auth.pubkey.RejectAllPublickeyAuthenticator;
 import org.apache.sshd.server.session.ServerSession;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.PushCommand;
@@ -131,13 +132,7 @@ public class LocalSshAuthenticationTests {
             // This replaces the role of authorized_keys.
             Collection<PublicKey> allowedKeys = new ArrayList<>();
             allowedKeys.add(kp.getPublic());
-            //sshd.setPublickeyAuthenticator(new KeySetPublickeyAuthenticator(allowedKeys));
-            sshd.setPublickeyAuthenticator(new PublickeyAuthenticator() {
-                @Override
-                public boolean authenticate(String s, PublicKey publicKey, ServerSession serverSession) {
-                    return true;
-                }
-            });
+            sshd.setPublickeyAuthenticator(new KeySetPublickeyAuthenticator(allowedKeys));
 
             // Amazingly useful Git command setup provided by Mina.
             sshd.setCommandFactory(new GitPackCommandFactory(directoryPath.toString()));
@@ -154,7 +149,7 @@ public class LocalSshAuthenticationTests {
             console.info("Connecting to " + remoteURL);
             Path local = testingRemoteAndLocalRepos.getLocalFull();
             ClonedRepoHelper helper =
-                    new ClonedRepoHelper(local, remoteURL, passphrase,
+                    new ClonedRepoHelper(local, remoteURL, "",
                                          new ElegitUserInfoTest(null, passphrase),
                                          getClass().getResource(privateKeyFileLocation).getFile(),
                                          directoryPath.resolve("testing_known_hosts").toString());

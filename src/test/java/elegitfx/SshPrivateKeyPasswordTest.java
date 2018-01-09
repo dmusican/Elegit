@@ -233,13 +233,7 @@ public class SshPrivateKeyPasswordTest extends ApplicationTest {
             // This replaces the role of authorized_keys.
             Collection<PublicKey> allowedKeys = new ArrayList<>();
             allowedKeys.add(kp.getPublic());
-            //sshd.setPublickeyAuthenticator(new KeySetPublickeyAuthenticator(allowedKeys));
-            sshd.setPublickeyAuthenticator(new PublickeyAuthenticator() {
-                @Override
-                public boolean authenticate(String s, PublicKey publicKey, ServerSession serverSession) {
-                    return true;
-                }
-            });
+            sshd.setPublickeyAuthenticator(new KeySetPublickeyAuthenticator(allowedKeys));
 
             // Amazingly useful Git command setup provided by Mina.
             sshd.setCommandFactory(new GitPackCommandFactory(directoryPath.toString()));
