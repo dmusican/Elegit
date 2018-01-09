@@ -110,65 +110,60 @@ public class TreeLayout{
         // Spin off slow parts as I need to, perhaps. Be careful, lots of code below involves bindings, etc, that
         // certainly must stay.
         Main.assertFxThread();
-        try {
-            TreeGraphModel treeGraphModel = g.treeGraphModel;
+        TreeGraphModel treeGraphModel = g.treeGraphModel;
 
-            // This is a new ArrayList, not a pointer to the one inside the model, so it can be safely changed here
-            // (not the cells within, of course)
-            List<Cell> allCells = treeGraphModel.getAllCells();
-            if (commitSortTopological.get())
-                topologicalSortListOfCells(allCells);
-            else
-                sortListOfCells(allCells);
+        // This is a new ArrayList, not a pointer to the one inside the model, so it can be safely changed here
+        // (not the cells within, of course)
+        List<Cell> allCells = treeGraphModel.getAllCells();
+        if (commitSortTopological.get())
+            topologicalSortListOfCells(allCells);
+        else
+            sortListOfCells(allCells);
 
-            // Initialize variables
-            Map<Integer,Integer> minRowUsedInCol = new ConcurrentHashMap<>();
-            Set<Integer> movedCells = ConcurrentHashMap.newKeySet();
+        // Initialize variables
+        Map<Integer,Integer> minRowUsedInCol = new ConcurrentHashMap<>();
+        Set<Integer> movedCells = ConcurrentHashMap.newKeySet();
 
-            boolean treeLayoutDoneAtLeastOnce = treeGraphModel.checkAndFlipTreeLayoutDoneAtLeastOnce();
+        boolean treeLayoutDoneAtLeastOnce = treeGraphModel.checkAndFlipTreeLayoutDoneAtLeastOnce();
 
-            // Compute the positions of cells recursively
-            for (int i = 0; i < allCells.size(); i++) {
-                computeCellPosition(allCells, minRowUsedInCol, movedCells,
-                        treeLayoutDoneAtLeastOnce, i);
-            }
-
-            CellMover mover = new CellMover(allCells);
-
-            final Optional<CommitHelper> commitToHighlightOrNot;
-            if (treeLayoutDoneAtLeastOnce)
-                commitToHighlightOrNot = Optional.empty();
-            else
-                commitToHighlightOrNot = Optional.of(commitToHighlight);
-
-            final long thisLayoutId = layoutId.incrementAndGet();
-
-            SessionController sessionController = CommitTreeController.getSessionController();
-
-            return Observable.intervalRange(0, (int)(Math.ceil(allCells.size()/(double)CELLS_AT_A_TIME)),
-                    0, cellRenderTimeDelay.get(), TimeUnit.MILLISECONDS,
-                    Schedulers.io())
-
-                    // Stop laying out if told to stop laying out, or if a more recent layout has started
-                    .takeWhile(unused -> movingCells.get() && thisLayoutId == layoutId.get() && !Main.isAppClosed.get())
-
-                    .observeOn(JavaFxScheduler.platform())
-                    .doOnNext(cellNumber -> {
-                        sessionController.setCommitTreeProgressBar(cellNumber/((double)allCells.size()/CELLS_AT_A_TIME));
-                    })
-                    .map(cellNumber -> mover.moveSomeCells(cellNumber.intValue()*CELLS_AT_A_TIME,
-                            commitToHighlightOrNot))
-
-                    .doOnComplete(() -> {
-                        sessionController.hideCommitTreeProgressBar();
-                    });
-
-
-
-        } catch (Exception e) {
-            e.printStackTrace();
+        // Compute the positions of cells recursively
+        for (int i = 0; i < allCells.size(); i++) {
+            computeCellPosition(allCells, minRowUsedInCol, movedCells,
+                                treeLayoutDoneAtLeastOnce, i);
         }
-        return null;
+
+        CellMover mover = new CellMover(allCells);
+
+        final Optional<CommitHelper> commitToHighlightOrNot;
+        if (treeLayoutDoneAtLeastOnce)
+            commitToHighlightOrNot = Optional.empty();
+        else
+            commitToHighlightOrNot = Optional.of(commitToHighlight);
+
+        final long thisLayoutId = layoutId.incrementAndGet();
+
+        SessionController sessionController = CommitTreeController.getSessionController();
+
+        return Observable.intervalRange(0, (int)(Math.ceil(allCells.size()/(double)CELLS_AT_A_TIME)),
+                                        0, cellRenderTimeDelay.get(), TimeUnit.MILLISECONDS,
+                                        Schedulers.io())
+
+                // Stop laying out if told to stop laying out, or if a more recent layout has started
+                .takeWhile(unused -> movingCells.get() && thisLayoutId == layoutId.get() && !Main.isAppClosed.get())
+
+                .observeOn(JavaFxScheduler.platform())
+                .doOnNext(cellNumber -> {
+                    sessionController.setCommitTreeProgressBar(cellNumber/((double)allCells.size()/CELLS_AT_A_TIME));
+                })
+                .map(cellNumber -> mover.moveSomeCells(cellNumber.intValue()*CELLS_AT_A_TIME,
+                                                       commitToHighlightOrNot))
+
+                .doOnComplete(() -> {
+                    sessionController.hideCommitTreeProgressBar();
+                });
+
+
+
     }
 
     /**

@@ -5,6 +5,7 @@ import elegit.Main;
 import elegit.controllers.BusyWindow;
 import elegit.controllers.SessionController;
 import elegit.exceptions.CancelledAuthorizationException;
+import elegit.exceptions.ExceptionAdapter;
 import elegit.exceptions.MissingRepoException;
 import elegit.models.AuthMethod;
 import elegit.models.ClonedRepoHelper;
@@ -13,10 +14,14 @@ import elegit.models.RepoHelper;
 import elegit.models.SessionModel;
 import elegit.monitors.RepositoryMonitor;
 import elegit.sshauthentication.ElegitUserInfoTest;
+import elegit.treefx.Cell;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Rectangle2D;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.ComboBox;
+import javafx.scene.layout.HBox;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import junit.framework.TestCase;
@@ -36,10 +41,12 @@ import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.PushCommand;
 import org.eclipse.jgit.api.TransportCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.transport.TransportGitSsh;
 import org.eclipse.jgit.transport.TransportProtocol;
 import org.eclipse.jgit.transport.URIish;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
+import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -60,11 +67,8 @@ import java.nio.file.Paths;
 import java.security.GeneralSecurityException;
 import java.security.KeyPair;
 import java.security.PublicKey;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Random;
-import java.util.Scanner;
+import java.util.*;
+import java.util.concurrent.Callable;
 import java.util.prefs.Preferences;
 
 import static org.junit.Assert.assertEquals;
@@ -182,6 +186,18 @@ public class SshPrivateKeyPasswordTest extends ApplicationTest {
 
     @Test
     public void testSshPrivateKey() throws Exception {
+
+        // Set up remote repo
+        Path remote = testingRemoteAndLocalRepos.getRemoteFull();
+        Path remoteFilePath = remote.resolve("file.txt");
+        Files.write(remoteFilePath, "testSshPassword".getBytes());
+        ArrayList<Path> paths = new ArrayList<>();
+        paths.add(remoteFilePath);
+        ExistingRepoHelper helperServer = new ExistingRepoHelper(remote, null);
+        helperServer.addFilePathsTest(paths);
+        RevCommit firstCommit = helperServer.commit("Initial unit test commit");
+        console.info("firstCommit name = " + firstCommit.getName());
+
         // Uncomment this to get detail SSH logging info, for debugging
         JSch.setLogger(new MyLogger());
 
@@ -251,11 +267,16 @@ public class SshPrivateKeyPasswordTest extends ApplicationTest {
                     .clickOn("#cloneButton")
                     .clickOn("#loginButton");
 
+            RepositoryMonitor.pause();
             Thread.sleep(1000);
 
             clickOn("Yes");
 
-//            Thread.sleep(10000);
+            // Wait until a node is in the graph, indicating clone is done
+            Callable<Node> callable = () -> {return lookup("#tree-cell").query();};
+            GuiTest.waitUntil(callable, Matchers.notNullValue(Node.class));
+
+            assertEquals(0, ExceptionAdapter.getWrappedCount());
 
             // Shut down test SSH server
             sshd.stop();

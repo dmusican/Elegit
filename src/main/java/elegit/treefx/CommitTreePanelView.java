@@ -1,6 +1,7 @@
 package elegit.treefx;
 
 import elegit.Main;
+import elegit.exceptions.ExceptionAdapter;
 import elegit.models.CommitHelper;
 import elegit.treefx.CommitTreeController;
 import elegit.treefx.TreeGraph;
@@ -58,7 +59,8 @@ public class CommitTreePanelView extends Region{
 //                    CommitTreeController.focusCommitInGraph(commitToFocusOnLoad);
 //                    return true;
 //                }))
-                .subscribe();
+                .subscribe((unused) -> {},
+                           (t) -> {throw new ExceptionAdapter(t);});
         //CommitTreeController.focusCommitInGraph(commitToFocusOnLoad);  // SLOW
     }
 

@@ -762,7 +762,7 @@ public class SessionController {
                     }
 
                 })
-                .subscribe(unused -> {}, Throwable::printStackTrace);
+                .subscribe(unused -> {}, (t) -> {throw new ExceptionAdapter(t);});
         return true;
 
     }
