@@ -76,7 +76,7 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
-public class SshPrivateKeyPasswordTest extends ApplicationTest {
+public class SshPrivateKeyPasswordFXTest extends ApplicationTest {
 
     @ClassRule
     public static final TestingLogPathRule testingLogPath = new TestingLogPathRule();
@@ -247,7 +247,14 @@ public class SshPrivateKeyPasswordTest extends ApplicationTest {
 
             // Clone the bare repo, using the SSH connection, to the local.
             String remoteURL = "ssh://localhost:2222/" + testingRemoteAndLocalRepos.getRemoteBrief();
-
+            console.info("Connecting to " + remoteURL);
+//            Path local = testingRemoteAndLocalRepos.getLocalFull();
+//            ClonedRepoHelper helper =
+//                    new ClonedRepoHelper(local, remoteURL, "",
+//                                         new ElegitUserInfoTest(null, passphrase),
+//                                         getClass().getResource(privateKeyFileLocation).getFile(),
+//                                         directoryPath.resolve("testing_known_hosts").toString());
+//            helper.obtainRepository(remoteURL);
 
 
             clickOn("#loadNewRepoButton")
@@ -271,6 +278,8 @@ public class SshPrivateKeyPasswordTest extends ApplicationTest {
             GuiTest.waitUntil(callable, Matchers.notNullValue(Node.class));
 
             assertEquals(0, ExceptionAdapter.getWrappedCount());
+
+            Thread.sleep(100000);
 
             // Shut down test SSH server
             sshd.stop();

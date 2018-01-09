@@ -1,5 +1,6 @@
 package elegit;
 
+import com.jcraft.jsch.JSch;
 import elegit.exceptions.CancelledAuthorizationException;
 import elegit.exceptions.MissingRepoException;
 import elegit.models.AuthMethod;
@@ -98,7 +99,7 @@ public class LocalSshAuthenticationTests {
     @Test
     public void testSshPrivateKey() throws Exception {
         // Uncomment this to get detail SSH logging info, for debugging
-        //JSch.setLogger(new AuthenticatedCloneTest.MyLogger());
+        JSch.setLogger(new MyLogger());
 
         // Set up test SSH server.
         try (SshServer sshd = SshServer.setUpDefaultServer()) {

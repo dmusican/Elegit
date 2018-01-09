@@ -77,12 +77,22 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
             // Unpack the destination-remote Pair created above:
             Path destinationPath = Paths.get(result.get().getKey());
             String remoteURL = result.get().getValue();
+            String additionalPrivateKey = null;
+            String knownHostsLocation = null;
+
+            // If in test mode, enter in a new private key file. Normally, this would be expected to be in an
+            // ssh/.config.
+            if (Main.testMode && remoteURL.startsWith("ssh:")) {
+                additionalPrivateKey = getFileByTypingPath("Enter private key location:").toString();
+                knownHostsLocation = getFileByTypingPath("Enter known hosts location:").toString();
+            }
 
             RepoHelperBuilder.AuthDialogResponse response = RepoHelperBuilder.getAuthCredentialFromDialog();
 
             return cloneRepositoryWithChecksWhenSubscribed
                     (
-                            remoteURL, destinationPath, response, new ElegitUserInfoGUI()
+                            remoteURL, destinationPath, response, new ElegitUserInfoGUI(), additionalPrivateKey,
+                            knownHostsLocation
                     )
                     .subscribeOn(Schedulers.io())
                     .observeOn(JavaFxScheduler.platform());
@@ -233,8 +243,10 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
     // This method accesses no shared memory at all, and all calls within are threadsafe; hence
     // this does not actually have to run on the FX thread.
     public static RepoHelper cloneRepositoryWithChecks(String remoteURL, Path destinationPath,
-                                                RepoHelperBuilder.AuthDialogResponse response,
-                                                UserInfo userInfo)
+                                                       RepoHelperBuilder.AuthDialogResponse response,
+                                                       UserInfo userInfo,
+                                                       String additionalPrivateKey,
+                                                       String knownHostsLocation)
             throws GitAPIException, IOException, CancelledAuthorizationException, NoRepoSelectedException {
 
         // Always use authentication. If authentication is unneeded (HTTP), it will still work even if the wrong
@@ -294,11 +306,15 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
     public static Single<RepoHelper> cloneRepositoryWithChecksWhenSubscribed(
             String remoteURL, Path destinationPath,
             RepoHelperBuilder.AuthDialogResponse response,
-            UserInfo userInfo)      {
+            UserInfo userInfo,
+            String additionalPrivateKey,
+            String knownHostsLocation)      {
         return Single.fromCallable(() -> cloneRepositoryWithChecks(remoteURL,
                                                                    destinationPath,
                                                                    response,
-                                                                   userInfo));
+                                                                   userInfo,
+                                                                   additionalPrivateKey,
+                                                                   knownHostsLocation));
     }
 
 }

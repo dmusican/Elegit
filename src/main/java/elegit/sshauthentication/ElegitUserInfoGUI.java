@@ -75,7 +75,6 @@ public class ElegitUserInfoGUI implements UserInfo {
         System.out.println("ElegitUserInfoGUI.prompt start");
         FutureTask<Optional<String>> futureTask = new FutureTask<>(() -> {
             System.out.println("ElegitUserInfoGUI.prompt");
-            System.out.println(s);
 
             Dialog<String> dialog = new Dialog<>();
 
@@ -128,7 +127,6 @@ public class ElegitUserInfoGUI implements UserInfo {
         System.out.println("a" + Thread.currentThread());
         return Single.fromCallable(() -> {
             System.out.println("ElegitUserInfoGUI.promptYesNo inside thread");
-            System.out.println(s);
 
             Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
             alert.setTitle("SSH yes/no confirmation");

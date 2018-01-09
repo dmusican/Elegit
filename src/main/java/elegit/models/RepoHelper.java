@@ -1,9 +1,6 @@
 package elegit.models;
 
-import com.jcraft.jsch.JSch;
-import com.jcraft.jsch.JSchException;
-import com.jcraft.jsch.Session;
-import com.jcraft.jsch.UserInfo;
+import com.jcraft.jsch.*;
 import elegit.gui.PopUpWindows;
 import elegit.gui.SimpleProgressMonitor;
 import elegit.exceptions.*;
@@ -51,7 +48,6 @@ public class RepoHelper {
     private final Path localPath;
     private final UserInfo userInfo;
     private final SshSessionFactory sshSessionFactory;
-    private final String privateKeyFileLocation;
     private final String knownHostsFileLocation;
 
     private final AtomicReference<Set<CommitHelper>> localCommits = new AtomicReference<>();
@@ -69,6 +65,8 @@ public class RepoHelper {
     @GuardedBy("this")
     private boolean remoteAuthenticationSuccess = true;
 
+    private final AtomicReference<String> privateKeyFileLocation = new AtomicReference<>();
+
     /**
      * Creates a RepoHelper object for holding a Repository and interacting with it
      * through JGit.
@@ -84,7 +82,6 @@ public class RepoHelper {
         setOwnerAuth(ownerAuth);
         this.password = null;
         this.userInfo = null;
-        this.privateKeyFileLocation = null;
         this.knownHostsFileLocation = null;
         sshSessionFactory = setupSshSessionFactory();
     }
@@ -94,7 +91,6 @@ public class RepoHelper {
         this.localPath = directoryPath;
         this.password = null;
         this.userInfo = userInfo;
-        this.privateKeyFileLocation = null;
         this.knownHostsFileLocation = null;
         sshSessionFactory = setupSshSessionFactory();
     }
@@ -104,7 +100,6 @@ public class RepoHelper {
         this.localPath = directoryPath;
         this.password = sshPassword;
         this.userInfo = userInfo;
-        this.privateKeyFileLocation = null;
         this.knownHostsFileLocation = null;
         sshSessionFactory = setupSshSessionFactory();
     }
@@ -115,7 +110,7 @@ public class RepoHelper {
         this.localPath = directoryPath;
         this.password = sshPassword;
         this.userInfo = userInfo;
-        this.privateKeyFileLocation = privateKeyFileLocation;
+        this.privateKeyFileLocation.set(privateKeyFileLocation);
         this.knownHostsFileLocation = knownHostsFileLocation;
         sshSessionFactory = setupSshSessionFactory();
     }
@@ -124,7 +119,6 @@ public class RepoHelper {
         this.localPath = null;
         this.password = sshPassword;
         this.userInfo = null;
-        this.privateKeyFileLocation = null;
         this.knownHostsFileLocation = null;
         sshSessionFactory = setupSshSessionFactory();
     }
@@ -133,7 +127,6 @@ public class RepoHelper {
         this.localPath = null;
         this.userInfo = userInfo;
         this.password = null;
-        this.privateKeyFileLocation = null;
         this.knownHostsFileLocation = null;
         sshSessionFactory = setupSshSessionFactory();
     }
@@ -163,14 +156,16 @@ public class RepoHelper {
             @Override
             protected JSch createDefaultJSch(FS fs) throws JSchException {
                 JSch defaultJSch = super.createDefaultJSch(fs);
-                if (privateKeyFileLocation != null) {
-                    defaultJSch.addIdentity(privateKeyFileLocation);
+                if (privateKeyFileLocation.get() != null) {
+                    defaultJSch.addIdentity(privateKeyFileLocation.get());
                 }
                 if (knownHostsFileLocation != null) {
                     defaultJSch.setKnownHosts(knownHostsFileLocation);
                 }
+                System.out.println("JSCH: " + defaultJSch.getIdentityNames());
                 return defaultJSch;
             }
+
         };
     }
 
@@ -1566,5 +1561,9 @@ public class RepoHelper {
 
     public synchronized boolean getRemoteAuthenticationSuccess() {
         return this.remoteAuthenticationSuccess;
+    }
+
+    public void setPrivateKeyFileLocation(String privateKeyFileLocation) {
+        this.privateKeyFileLocation.set(privateKeyFileLocation);
     }
 }
