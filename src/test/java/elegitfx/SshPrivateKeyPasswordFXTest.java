@@ -248,14 +248,6 @@ public class SshPrivateKeyPasswordFXTest extends ApplicationTest {
             // Clone the bare repo, using the SSH connection, to the local.
             String remoteURL = "ssh://localhost:2222/" + testingRemoteAndLocalRepos.getRemoteBrief();
             console.info("Connecting to " + remoteURL);
-//            Path local = testingRemoteAndLocalRepos.getLocalFull();
-//            ClonedRepoHelper helper =
-//                    new ClonedRepoHelper(local, remoteURL, "",
-//                                         new ElegitUserInfoTest(null, passphrase),
-//                                         getClass().getResource(privateKeyFileLocation).getFile(),
-//                                         directoryPath.resolve("testing_known_hosts").toString());
-//            helper.obtainRepository(remoteURL);
-
 
             clickOn("#loadNewRepoButton")
                     .clickOn("#cloneOption")
@@ -297,8 +289,6 @@ public class SshPrivateKeyPasswordFXTest extends ApplicationTest {
             GuiTest.waitUntil(callable, Matchers.notNullValue(Node.class));
 
             assertEquals(0, ExceptionAdapter.getWrappedCount());
-
-            Thread.sleep(100000);
 
             // Shut down test SSH server
             sshd.stop();
