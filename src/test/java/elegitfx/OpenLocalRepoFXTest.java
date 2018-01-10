@@ -4,22 +4,18 @@ import elegit.Main;
 import elegit.controllers.BusyWindow;
 import elegit.controllers.SessionController;
 import elegit.models.ClonedRepoHelper;
-import elegit.models.RepoHelper;
 import elegit.models.SessionModel;
 import elegit.monitors.RepositoryMonitor;
 import elegit.treefx.CommitTreeModel;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Rectangle2D;
-import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.ComboBox;
 import javafx.scene.control.ScrollPane;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.controlsfx.control.CheckListView;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.junit.After;
 import org.junit.Before;
@@ -31,7 +27,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.concurrent.CountDownLatch;
 import java.util.prefs.Preferences;
 
 import static junit.framework.TestCase.assertEquals;
@@ -101,7 +96,7 @@ public class OpenLocalRepoFXTest extends ApplicationTest {
 
         // This repo doesn't check username/password for read-only
         UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider("", "");
-        ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, remoteURL, credentials);
+        ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, credentials);
         helper.obtainRepository(remoteURL);
         assertNotNull(helper);
 

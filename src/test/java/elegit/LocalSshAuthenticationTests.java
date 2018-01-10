@@ -18,8 +18,6 @@ import org.apache.sshd.git.pack.GitPackCommandFactory;
 import org.apache.sshd.server.SshServer;
 import org.apache.sshd.server.auth.password.PasswordAuthenticator;
 import org.apache.sshd.server.auth.pubkey.KeySetPublickeyAuthenticator;
-import org.apache.sshd.server.auth.pubkey.PublickeyAuthenticator;
-import org.apache.sshd.server.auth.pubkey.RejectAllPublickeyAuthenticator;
 import org.apache.sshd.server.session.ServerSession;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.PushCommand;
@@ -154,7 +152,7 @@ public class LocalSshAuthenticationTests {
         console.info("Connecting to " + remoteURL);
         Path local = testingRemoteAndLocalRepos.getLocalFull();
         ClonedRepoHelper helper =
-                new ClonedRepoHelper(local, remoteURL, "",
+                new ClonedRepoHelper(local, "",
                                      new ElegitUserInfoTest(null, passphrase),
                                      getClass().getResource(privateKeyFileLocation).getFile(),
                                      directoryPath.resolve("testing_known_hosts").toString());
@@ -190,8 +188,9 @@ public class LocalSshAuthenticationTests {
         console.info("Connecting to " + remoteURL);
         Path local = testingRemoteAndLocalRepos.getLocalFull();
         ClonedRepoHelper helper =
-                new ClonedRepoHelper(local, remoteURL, testPassword,
-                                     new ElegitUserInfoTest(null, null));
+                new ClonedRepoHelper(local, testPassword,
+                                     new ElegitUserInfoTest(null, null),
+                                     null, null);
         helper.obtainRepository(remoteURL);
 
         assertEquals(helper.getCompatibleAuthentication(), AuthMethod.SSH);
@@ -206,7 +205,7 @@ public class LocalSshAuthenticationTests {
         sshd = SshServer.setUpDefaultServer();
         String remoteURL = setUpTestSshServer(sshd);
         TransportCommand command = Git.lsRemoteRepository().setRemote(remoteURL);
-        RepoHelper helper = new RepoHelper(new ElegitUserInfoTest(testPassword, null));
+        RepoHelper helper = new RepoHelper(null, new ElegitUserInfoTest(testPassword, null));
         helper.wrapAuthentication(command);
         command.call();
     }

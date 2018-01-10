@@ -1,29 +1,19 @@
 package elegitfx;
 
-import com.sun.org.apache.regexp.internal.RE;
 import elegit.Main;
 import elegit.controllers.BusyWindow;
 import elegit.controllers.SessionController;
 import elegit.models.ClonedRepoHelper;
-import elegit.models.CommitHelper;
 import elegit.models.RepoHelper;
 import elegit.models.SessionModel;
 import elegit.monitors.RepositoryMonitor;
-import elegit.treefx.Cell;
 import elegit.treefx.CommitTreeModel;
-import elegit.treefx.Highlighter;
-import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.ComboBox;
-import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
@@ -31,26 +21,18 @@ import org.apache.logging.log4j.Logger;
 import org.controlsfx.control.CheckListView;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.loadui.testfx.GuiTest;
-import org.testfx.api.FxToolkit;
 import org.testfx.framework.junit.ApplicationTest;
 
-import java.io.File;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.prefs.Preferences;
 
-import static javafx.scene.input.KeyCode.ENTER;
 import static junit.framework.TestCase.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
@@ -132,7 +114,7 @@ public class RepositoryMonitor1FXTest extends ApplicationTest {
 
         // This repo doesn't check username/password for read-only
         UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider("", "");
-        ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, remoteURL, credentials);
+        ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, credentials);
         helper.obtainRepository(remoteURL);
         assertNotNull(helper);
 
@@ -151,7 +133,7 @@ public class RepositoryMonitor1FXTest extends ApplicationTest {
         Path repoPath2 = directoryPath.resolve("otherrepo");
 
         remoteURL = "https://github.com/TheElegitTeam/testrepo.git";
-        ClonedRepoHelper helper2 = new ClonedRepoHelper(repoPath2, remoteURL, credentials);
+        ClonedRepoHelper helper2 = new ClonedRepoHelper(repoPath2, credentials);
         helper2.obtainRepository(remoteURL);
         assertNotNull(helper2);
 

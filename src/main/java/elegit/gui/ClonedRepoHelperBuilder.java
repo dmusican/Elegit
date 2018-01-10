@@ -263,9 +263,10 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
         // Try calling `git ls-remote ___` on the remote URL to see if it's valid
         TransportCommand command = Git.lsRemoteRepository().setRemote(remoteURL);
 
-        ClonedRepoHelper repoHelper = new ClonedRepoHelper(destinationPath, remoteURL, sshPassword, userInfo,
+        ClonedRepoHelper repoHelper = new ClonedRepoHelper(destinationPath, sshPassword, userInfo,
                                                            additionalPrivateKey, knownHostsLocation);
-        repoHelper.wrapAuthentication(command, credentials);
+        repoHelper.setOwnerAuth(credentials);
+        repoHelper.wrapAuthentication(command);
         try {
             command.call();
         } catch (TransportException e) {

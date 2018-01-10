@@ -67,7 +67,7 @@ public class BranchManagerUiUpdateTest {
 
         repoPath = directoryPath.resolve("testRepo");
         try {
-            helper = new ClonedRepoHelper(repoPath, REMOTE_URL, new UsernamePasswordCredentialsProvider("",""));
+            helper = new ClonedRepoHelper(repoPath, new UsernamePasswordCredentialsProvider("", ""));
             helper.obtainRepository(REMOTE_URL);
         } catch (Exception e) {
             e.printStackTrace();

@@ -183,7 +183,7 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
         System.out.println(remoteURI);
 
         UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider("", "");
-        ClonedRepoHelper helper = new ClonedRepoHelper(localFull, remoteURI.toString(), credentials);
+        ClonedRepoHelper helper = new ClonedRepoHelper(localFull, credentials);
         assertNotNull(helper);
         helper.obtainRepository(remoteURI.toString());
 
@@ -199,7 +199,7 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
         UsernamePasswordCredentialsProvider credentials =
                 new UsernamePasswordCredentialsProvider("agitter", "letmein");
         System.out.println("Local path is " + localFull);
-        ClonedRepoHelper helper = new ClonedRepoHelper(localFull, authURI.toString(), credentials);
+        ClonedRepoHelper helper = new ClonedRepoHelper(localFull, credentials);
         assertNotNull(helper);
         helper.obtainRepository(authURI.toString());
 
@@ -227,8 +227,9 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
                 new UsernamePasswordCredentialsProvider("", "");
 
         TransportCommand command = Git.lsRemoteRepository().setRemote(remoteURI.toString());
-        RepoHelper helper = new RepoHelper("");
-        helper.wrapAuthentication(command, credentials);
+        RepoHelper helper = new RepoHelper();
+        helper.setOwnerAuth(credentials);
+        helper.wrapAuthentication(command);
         command.call();
     }
 
@@ -239,8 +240,9 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
                 new UsernamePasswordCredentialsProvider("a", "asdas");
 
         TransportCommand command = Git.lsRemoteRepository().setRemote(remoteURI.toString());
-        RepoHelper helper = new RepoHelper("");
-        helper.wrapAuthentication(command, credentials);
+        RepoHelper helper = new RepoHelper();
+        helper.setOwnerAuth(credentials);
+        helper.wrapAuthentication(command);
         command.call();
     }
 
@@ -252,8 +254,9 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
                 new UsernamePasswordCredentialsProvider("agitter", "letmein");
 
         TransportCommand command = Git.lsRemoteRepository().setRemote(authURI.toString());
-        RepoHelper helper = new RepoHelper("");
-        helper.wrapAuthentication(command, credentials);
+        RepoHelper helper = new RepoHelper();
+        helper.setOwnerAuth(credentials);
+        helper.wrapAuthentication(command);
         command.call();
     }
 
@@ -293,7 +296,7 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
         Path localFull = testingRemoteAndLocalRepos.getLocalFull();
         System.out.println("local " + localFull);
         UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider("", "");
-        ClonedRepoHelper helper = new ClonedRepoHelper(localFull, "", credentials);
+        ClonedRepoHelper helper = new ClonedRepoHelper(localFull, credentials);
         helper.obtainRepository(remoteURI.toString());
         assertEquals(helper.getCompatibleAuthentication(), AuthMethod.HTTP);
         helper.fetch(false);
@@ -328,7 +331,7 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
         Path repoPath = testingRemoteAndLocalRepos.getLocalFull();
         UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider("agitter",
                                                                                                   "letmein");
-        ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, "", credentials);
+        ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, credentials);
         assertNotNull(helper);
         helper.obtainRepository(authURI.toString());
 
@@ -410,7 +413,7 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
 
         // Repo that will commit to master
         Path repoPath = testingRemoteAndLocalRepos.getLocalFull();
-        ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, "", credentials);
+        ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, credentials);
         assertNotNull(helper);
         helper.obtainRepository(authURI.toString());
 
@@ -465,7 +468,7 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
         Path repoPath = testingRemoteAndLocalRepos.getLocalFull();
         UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider("",
                                                                                                   "");
-        ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, "", credentials);
+        ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, credentials);
         assertNotNull(helper);
         helper.obtainRepository(remoteURI.toString());
 
@@ -535,13 +538,13 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
 
         // Repo that will push
         Path repoPathPush = directoryPath.resolve("pushpull1");
-        ClonedRepoHelper helperPush = new ClonedRepoHelper(repoPathPush, "", credentials);
+        ClonedRepoHelper helperPush = new ClonedRepoHelper(repoPathPush, credentials);
         assertNotNull(helperPush);
         helperPush.obtainRepository(authURI.toString());
 
         // Repo that will pull
         Path repoPathPull = directoryPath.resolve("pushpull2");
-        ClonedRepoHelper clonedHelperPull = new ClonedRepoHelper(repoPathPull, "", credentials);
+        ClonedRepoHelper clonedHelperPull = new ClonedRepoHelper(repoPathPull, credentials);
         assertNotNull(clonedHelperPull);
         clonedHelperPull.obtainRepository(authURI.toString());
         ExistingRepoHelper existingHelperPull = new ExistingRepoHelper(repoPathPull, new ElegitUserInfoTest());
@@ -571,7 +574,7 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
 
 
         Path repoPathPush = directoryPath.resolve("clonepush");
-        ClonedRepoHelper helperPush = new ClonedRepoHelper(repoPathPush, "", credentials);
+        ClonedRepoHelper helperPush = new ClonedRepoHelper(repoPathPush, credentials);
         assertNotNull(helperPush);
         helperPush.obtainRepository(authURI.toString());
 
@@ -598,7 +601,7 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
 
         // Repo that will commit to master
         Path repoPathPush = directoryPath.resolve("pusher");
-        ClonedRepoHelper helperPush = new ClonedRepoHelper(repoPathPush, "", credentials);
+        ClonedRepoHelper helperPush = new ClonedRepoHelper(repoPathPush, credentials);
         assertNotNull(helperPush);
         helperPush.obtainRepository(authURI.toString());
 
@@ -644,7 +647,7 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
 
         // First copy of the repo
         Path repoPath1 = directoryPath.resolve("repo1");
-        ClonedRepoHelper repo1 = new ClonedRepoHelper(repoPath1, "", credentials);
+        ClonedRepoHelper repo1 = new ClonedRepoHelper(repoPath1, credentials);
         assertNotNull(repo1);
         repo1.obtainRepository(authURI.toString());
 
@@ -667,7 +670,7 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
 
         // Second copy of the repo
         Path repoPath2 = directoryPath.resolve("repo2");
-        ClonedRepoHelper repo2 = new ClonedRepoHelper(repoPath2, "", credentials);
+        ClonedRepoHelper repo2 = new ClonedRepoHelper(repoPath2, credentials);
         assertNotNull(repo2);
         repo2.obtainRepository(authURI.toString());
 
@@ -721,13 +724,13 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
 
         // Repo that will commit to new_branch
         Path repoPathPush = directoryPath.resolve("pusher");
-        ClonedRepoHelper helperPush = new ClonedRepoHelper(repoPathPush, "", credentials);
+        ClonedRepoHelper helperPush = new ClonedRepoHelper(repoPathPush, credentials);
         assertNotNull(helperPush);
         helperPush.obtainRepository(authURI.toString());
 
         // Repo that will fetch and mergefromfetch
         Path repoPathFetch = directoryPath.resolve("fetcher");
-        ClonedRepoHelper helperFetch = new ClonedRepoHelper(repoPathFetch, "", credentials);
+        ClonedRepoHelper helperFetch = new ClonedRepoHelper(repoPathFetch, credentials);
         assertNotNull(helperPush);
         helperFetch.obtainRepository(authURI.toString());
 
@@ -802,13 +805,13 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
 
         // Repo that will commit to master
         Path repoPathPush = directoryPath.resolve("pusher");
-        ClonedRepoHelper helperPush = new ClonedRepoHelper(repoPathPush, "", credentials);
+        ClonedRepoHelper helperPush = new ClonedRepoHelper(repoPathPush, credentials);
         assertNotNull(helperPush);
         helperPush.obtainRepository(authURI.toString());
 
         // Repo that will fetch and mergefromfetch
         Path repoPathFetch = directoryPath.resolve("fetcher");
-        ClonedRepoHelper helperFetch = new ClonedRepoHelper(repoPathFetch, "", credentials);
+        ClonedRepoHelper helperFetch = new ClonedRepoHelper(repoPathFetch, credentials);
         assertNotNull(helperPush);
         helperFetch.obtainRepository(authURI.toString());
 
@@ -859,7 +862,7 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
     public void testClonedRepoHelper() throws Exception {
         UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider("", "");
         Path repoPath = testingRemoteAndLocalRepos.getLocalFull();
-        ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, "", credentials);
+        ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, credentials);
         helper.obtainRepository(remoteURI.toString());
         assertNotNull(helper);
         assertTrue(helper.exists());
@@ -870,7 +873,7 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
     public void testAddFileAndCommit() throws Exception {
         UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider("", "");
         Path repoPath = testingRemoteAndLocalRepos.getLocalFull();
-        ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, "", credentials);
+        ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, credentials);
         helper.obtainRepository(remoteURI.toString());
 
         assertFalse(helper.getAheadCount()>0);
@@ -901,7 +904,7 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
 
         // Repo that will commit to make a fast forward commit
         Path repoPathFast = directoryPath.resolve("fastforward");
-        ClonedRepoHelper helperFast = new ClonedRepoHelper(repoPathFast, "", credentials);
+        ClonedRepoHelper helperFast = new ClonedRepoHelper(repoPathFast, credentials);
         assertNotNull(helperFast);
         helperFast.obtainRepository(authURI.toString());
 
@@ -957,7 +960,7 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
         Path directoryPath = testingRemoteAndLocalRepos.getDirectoryPath();
         // Repo that will commit to make a fast forward commit
         Path repoPathFast = directoryPath.resolve("fastforward");
-        ClonedRepoHelper helperFast = new ClonedRepoHelper(repoPathFast, "", credentials);
+        ClonedRepoHelper helperFast = new ClonedRepoHelper(repoPathFast, credentials);
         assertNotNull(helperFast);
         helperFast.obtainRepository(authURI.toString());
 

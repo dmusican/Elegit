@@ -7,14 +7,10 @@ import elegit.controllers.SessionController;
 import elegit.models.ClonedRepoHelper;
 import elegit.models.SessionModel;
 import elegit.monitors.RepositoryMonitor;
-import elegit.treefx.CommitTreeModel;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Rectangle2D;
-import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.CheckMenuItem;
-import javafx.scene.control.ScrollPane;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
@@ -23,7 +19,6 @@ import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.loadui.testfx.GuiTest;
 import org.testfx.framework.junit.ApplicationTest;
 
 import java.io.IOException;
@@ -102,7 +97,7 @@ public class ChangeRemoteMonitoringStatus extends ApplicationTest {
 
         // This repo doesn't check username/password for read-only
         UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider("", "");
-        ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, remoteURL, credentials);
+        ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, credentials);
         helper.obtainRepository(remoteURL);
         assertNotNull(helper);
 

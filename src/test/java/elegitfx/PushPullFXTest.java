@@ -57,13 +57,13 @@ public class PushPullFXTest extends ApplicationTest {
 
         // Repo that will push
         Path repoPathPush = directoryPath.resolve("pushpull1");
-        ClonedRepoHelper helperPush = new ClonedRepoHelper(repoPathPush, "", credentials);
+        ClonedRepoHelper helperPush = new ClonedRepoHelper(repoPathPush, credentials);
         assertNotNull(helperPush);
         helperPush.obtainRepository(authURI);
 
         // Repo that will pull
         Path repoPathPull = directoryPath.resolve("pushpull2");
-        ClonedRepoHelper helperPull = new ClonedRepoHelper(repoPathPull, "", credentials);
+        ClonedRepoHelper helperPull = new ClonedRepoHelper(repoPathPull, credentials);
         assertNotNull(helperPull);
         helperPull.obtainRepository(authURI);
 
