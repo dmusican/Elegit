@@ -265,7 +265,7 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
 
         Path localFull = testingRemoteAndLocalRepos.getLocalFull();
         ClonedRepoHelperBuilder.cloneRepositoryWithChecks(remoteURI.toString(), localFull, response,
-                                                          new ElegitUserInfoTest());
+                                                          new ElegitUserInfoTest(), null, null);
 
     }
 
@@ -277,7 +277,7 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
 
         Path localFull = testingRemoteAndLocalRepos.getLocalFull();
         ClonedRepoHelperBuilder.cloneRepositoryWithChecks(authURI.toString(), localFull, response,
-                                                          new ElegitUserInfoTest());
+                                                          new ElegitUserInfoTest(), null, null);
 
     }
 

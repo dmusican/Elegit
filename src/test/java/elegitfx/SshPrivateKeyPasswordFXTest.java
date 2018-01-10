@@ -266,12 +266,31 @@ public class SshPrivateKeyPasswordFXTest extends ApplicationTest {
                     .doubleClickOn("#repoNameField")
                     .write(testingRemoteAndLocalRepos.getLocalBrief().toString())
                     .clickOn("#cloneButton")
+
+                    // Enter in private key location
+                    .clickOn("#repoInputDialog")
+                    .write(getClass().getResource(privateKeyFileLocation).getFile())
+                    .clickOn("#repoInputDialogOK")
+
+                    // Enter in known hosts location
+                    .clickOn("#repoInputDialog")
+                    .write(knownHostsFileLocation.toString())
+                    .clickOn("#repoInputDialogOK")
+
+                    // Useless HTTP login screen that should eventually go away
                     .clickOn("#loginButton");
+
 
             RepositoryMonitor.pause();
             Thread.sleep(1000);
 
             clickOn("Yes");
+
+            Thread.sleep(1000);
+            // Enter passphrase
+            clickOn("#sshprompt")
+                    .write(passphrase)
+                    .write("\n");
 
             // Wait until a node is in the graph, indicating clone is done
             Callable<Node> callable = () -> {return lookup("#tree-cell").query();};

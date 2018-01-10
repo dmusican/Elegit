@@ -84,6 +84,7 @@ public class ElegitUserInfoGUI implements UserInfo {
             grid.setPadding(new Insets(10, 10, 10, 10));
 
             PasswordField passwordField = new PasswordField();
+            passwordField.setId("sshprompt");
             grid.add(passwordField,2,0);
 
             dialog.getDialogPane().setContent(grid);
