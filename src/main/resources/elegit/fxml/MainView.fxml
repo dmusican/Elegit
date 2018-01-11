@@ -1,480 +1,330 @@
-<?import javafx.geometry.Insets?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
-<?import javafx.scene.text.Text?>
-<?import elegit.*?>
-<?import elegit.gui.*?>
-<?import java.net.URL?>
-<?import javafx.scene.image.*?>
-<?import javafx.scene.text.Font?>
-<?import javafx.scene.shape.*?>
+<?xml version="1.0" encoding="UTF-8"?>
 
+<?import elegit.gui.AllFilesPanelView?>
+<?import elegit.gui.ArrowButton?>
+<?import elegit.gui.StagedTreePanelView?>
+<?import elegit.gui.WorkingTreePanelView?>
 <?import elegit.treefx.CommitTreePanelView?>
-<?import org.controlsfx.control.ToggleSwitch?>
-<BorderPane xmlns:fx="http://javafx.com/fxml"
-            fx:controller="elegit.controllers.SessionController">
+<?import java.net.URL?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.ContextMenu?>
+<?import javafx.scene.control.Hyperlink?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.ProgressBar?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.Rectangle?>
+<?import javafx.scene.text.Font?>
+<?import javafx.scene.text.Text?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml/1"  fx:controller="elegit.controllers.SessionController">
 
     <!-- the top section of the border pane -->
     <top>
-        <fx:include fx:id="menu" source="MainViewMenu.fxml"/>
+        <fx:include fx:id="menu" source="MainViewMenu.fxml" />
     </top>
 
     <!-- the center part of the border pane -->
     <center>
-        <AnchorPane
-                fx:id="anchorRoot"
-                >
-            <GridPane fx:id="root"
-                  AnchorPane.rightAnchor="5"
-                  AnchorPane.leftAnchor="5"
-                  AnchorPane.topAnchor="5"
-                  AnchorPane.bottomAnchor="20">
+        <AnchorPane fx:id="anchorRoot">
+            <GridPane fx:id="root" AnchorPane.bottomAnchor="20" AnchorPane.leftAnchor="5" AnchorPane.rightAnchor="5" AnchorPane.topAnchor="5">
                 <columnConstraints>
-                    <ColumnConstraints hgrow="NEVER"/>
-                    <ColumnConstraints hgrow="NEVER"/>
-                    <ColumnConstraints hgrow="NEVER"/>
-                    <ColumnConstraints hgrow="NEVER"/>
-                    <ColumnConstraints hgrow="ALWAYS"/>
-                    <ColumnConstraints hgrow="NEVER"/>
-                    <ColumnConstraints hgrow="NEVER"/>
+                    <ColumnConstraints hgrow="NEVER" />
+                    <ColumnConstraints hgrow="NEVER" />
+                    <ColumnConstraints hgrow="NEVER" />
+                    <ColumnConstraints hgrow="NEVER" />
+                    <ColumnConstraints hgrow="ALWAYS" />
+                    <ColumnConstraints hgrow="NEVER" />
+                    <ColumnConstraints hgrow="NEVER" />
                 </columnConstraints>
                 <rowConstraints>
-                    <RowConstraints vgrow="NEVER"/>
-                    <RowConstraints vgrow="NEVER"/>
-                    <RowConstraints vgrow="NEVER"/>
-                    <RowConstraints vgrow="NEVER"/>
-                    <RowConstraints vgrow="NEVER"/>
-                    <RowConstraints vgrow="ALWAYS"/>
-                    <RowConstraints vgrow="NEVER"/>
-                    <RowConstraints vgrow="NEVER"/>
-                    <RowConstraints vgrow="NEVER"/>
+                    <RowConstraints vgrow="NEVER" />
+                    <RowConstraints vgrow="NEVER" />
+                    <RowConstraints vgrow="NEVER" />
+                    <RowConstraints vgrow="NEVER" />
+                    <RowConstraints vgrow="NEVER" />
+                    <RowConstraints vgrow="ALWAYS" />
+                    <RowConstraints vgrow="NEVER" />
+                    <RowConstraints vgrow="NEVER" />
+                    <RowConstraints vgrow="NEVER" />
                 </rowConstraints>
 
                 <!-- Background for ribbon -->
-                <Pane GridPane.columnSpan="7"
-                      id="ribbon">
+                <Pane id="ribbon" GridPane.columnSpan="7">
                     <GridPane.margin>
-                        <Insets top="-10" bottom="-4" left="-10" right="-10"/>
+                        <Insets bottom="-4" left="-10" right="-10" top="-10" />
                     </GridPane.margin>
                 </Pane>
 
                 <!-- Separator between ribbon and rest of pane -->
-                <HBox GridPane.rowIndex="1"
-                      GridPane.columnSpan="7"
-                      id="separator"
-                      minHeight="4">
+                <HBox id="separator" minHeight="4" GridPane.columnSpan="7" GridPane.rowIndex="1">
                     <GridPane.margin>
-                        <Insets top="4" bottom="4" left="-10" right="-10"/>
+                        <Insets bottom="4" left="-10" right="-10" top="4" />
                     </GridPane.margin>
-                    <Rectangle height="4"/>
+                    <Rectangle height="4" />
                 </HBox>
 
                 <!-- Ribbon content-->
-                <fx:include fx:id="dropdown" source="MainViewDropdown.fxml"/>
+                <fx:include fx:id="dropdown" source="MainViewDropdown.fxml" />
 
                 <!-- Local and remote branches-->
-                <HBox   spacing="5"
-                        GridPane.columnIndex="1"
-                        GridPane.columnSpan="4"
-                        alignment="CENTER_LEFT">
-                    <Text   text="Local branch: "
-                            textAlignment="CENTER"/>
-                    <HBox   fx:id="currentLocalBranchHbox"
-                            alignment="CENTER"
-                            maxHeight="20">
+                <HBox alignment="CENTER_LEFT" spacing="5" GridPane.columnIndex="1" GridPane.columnSpan="4">
+                    <Text text="Local branch: " textAlignment="CENTER" />
+                    <HBox fx:id="currentLocalBranchHbox" alignment="CENTER" maxHeight="20">
                         <padding>
-                            <Insets right="5" left="5"/>
+                            <Insets left="5" right="5" />
                         </padding>
                     </HBox>
                     <HBox>
                         <padding>
-                            <Insets right="10"/>
+                            <Insets right="10" />
                         </padding>
                     </HBox>
-                    <Text   text="Remote-tracking branch: "/>
-                    <HBox   GridPane.halignment="CENTER"
-                            fx:id="currentRemoteTrackingBranchHbox"
-                            alignment="CENTER"
-                             maxHeight="20">
+                    <Text text="Remote-tracking branch: " />
+                    <HBox fx:id="currentRemoteTrackingBranchHbox" alignment="CENTER" maxHeight="20" GridPane.halignment="CENTER">
                         <padding>
-                            <Insets right="5" left="5"/>
+                            <Insets left="5" right="5" />
                         </padding>
                     </HBox>
                 </HBox>
 
                 <!-- Working Directory block -->
-                <StackPane  GridPane.rowIndex="2"
-                            GridPane.valignment="TOP"
-                            alignment="TOP_CENTER">
-                    <ImageView
-                            fitHeight="120"
-                            fitWidth="150"
-                            opacity="0.2">
-                        <Image url="@../images/folder.png"/>
+                <StackPane alignment="TOP_CENTER" GridPane.rowIndex="2" GridPane.valignment="TOP">
+                    <ImageView fitHeight="120" fitWidth="150" opacity="0.2">
+                        <Image url="@../images/folder.png" />
                     </ImageView>
-                    <VBox   alignment="CENTER">
-                        <Text   text="Working Tree">
+                    <VBox alignment="CENTER">
+                        <Text text="Working Tree">
                             <font>
-                                <Font   size="25"/>
+                                <Font size="25" />
                             </font>
                         </Text>
                     </VBox>
                 </StackPane>
 
                 <!-- File tree panel view -->
-                <TabPane GridPane.rowIndex="4"
-                         fx:id="filesTabPane">
-                    <Tab text="Changed Files"
-                         closable="false"
-                         fx:id="workingTreePanelTab">
-                        <WorkingTreePanelView fx:id="workingTreePanelView"/>
+                <TabPane fx:id="filesTabPane" GridPane.rowIndex="4">
+                    <Tab fx:id="workingTreePanelTab" closable="false" text="Changed Files">
+                        <WorkingTreePanelView fx:id="workingTreePanelView" />
                     </Tab>
-                    <Tab text="All Files"
-                         closable="false"
-                         fx:id="allFilesPanelTab">
-                        <AllFilesPanelView fx:id="allFilesPanelView"/>
+                    <Tab fx:id="allFilesPanelTab" closable="false" text="All Files">
+                        <AllFilesPanelView fx:id="allFilesPanelView" />
                     </Tab>
                 </TabPane>
 
                 <!-- Remove button block -->
-                <HBox   spacing="10"
-                        GridPane.halignment="CENTER"
-                        GridPane.rowIndex="5"
-                        alignment="CENTER_LEFT">
-                    <Button id="codeButton"
-                            fx:id="removeButton"
-                            text="Remove"
-                            onAction="#handleRemoveButton"/>
+                <HBox alignment="CENTER_LEFT" spacing="10" GridPane.halignment="CENTER" GridPane.rowIndex="5">
+                    <Button id="codeButton" fx:id="removeButton" onAction="#handleRemoveButton" text="Remove" />
                 </HBox>
 
                 <!-- Checkout branch button and create/delete branch button -->
-                <Button text="Checkout different branch"
-                        fx:id="checkoutButton"
-                        id = "codeButton"
-                        onAction="#showBranchCheckout"
-                        GridPane.rowIndex="6"
-                        GridPane.halignment="CENTER"
-                        GridPane.valignment="BOTTOM"/>
-                <Button text="Create/delete a branch"
-                        id = "codeButton"
-                        fx:id="addDeleteBranchButton"
-                        onAction="#handleCreateOrDeleteBranchButton"
-                        GridPane.rowIndex="7"
-                        GridPane.halignment="CENTER"/>
+                <Button id="codeButton" fx:id="checkoutButton" onAction="#showBranchCheckout" text="Checkout different branch" GridPane.halignment="CENTER" GridPane.rowIndex="6" GridPane.valignment="BOTTOM" />
+                <Button id="codeButton" fx:id="addDeleteBranchButton" onAction="#handleCreateOrDeleteBranchButton" text="Create/delete a branch" GridPane.halignment="CENTER" GridPane.rowIndex="7" />
 
                 <!-- Working directory and index separator -->
-                <VBox GridPane.rowSpan="8"
-                      GridPane.rowIndex="1"
-                      GridPane.columnIndex="1"
-                      minWidth="4"
-                      id="separator">
+                <VBox id="separator" minWidth="4" GridPane.columnIndex="1" GridPane.rowIndex="1" GridPane.rowSpan="8">
                     <GridPane.margin>
-                       <Insets top="4" left="15" right="15" bottom="-2"/>
+                       <Insets bottom="-2" left="15" right="15" top="4" />
                     </GridPane.margin>
                 </VBox>
 
                 <!-- Index block -->
-                <StackPane  GridPane.rowIndex="2"
-                            GridPane.columnIndex="2"
-                            GridPane.valignment="TOP"
-                            alignment="TOP_CENTER">
-                    <ImageView
-                            fitHeight="120"
-                            fitWidth="150"
-                            opacity="0.2">
-                        <Image url="@../images/index.png"/>
+                <StackPane alignment="TOP_CENTER" GridPane.columnIndex="2" GridPane.rowIndex="2" GridPane.valignment="TOP">
+                    <ImageView fitHeight="120" fitWidth="150" opacity="0.2">
+                        <Image url="@../images/index.png" />
                     </ImageView>
-                    <VBox   alignment="CENTER">
-                        <Text   text="Index">
+                    <VBox alignment="CENTER">
+                        <Text text="Index">
                             <font>
-                                <Font   size="25"/>
+                                <Font size="25" />
                             </font>
                         </Text>
                     </VBox>
                 </StackPane>
 
                 <!-- Index file view -->
-                <TabPane GridPane.rowIndex="4"
-                         GridPane.columnIndex="2"
-                         fx:id="indexTabPane">
-                    <Tab text="Staged Files"
-                         closable="false"
-                         fx:id="indexPanelTab">
-                        <StagedTreePanelView fx:id="indexPanelView"/>
+                <TabPane fx:id="indexTabPane" GridPane.columnIndex="2" GridPane.rowIndex="4">
+                    <Tab fx:id="indexPanelTab" closable="false" text="Staged Files">
+                        <StagedTreePanelView fx:id="indexPanelView" />
                     </Tab>
                 </TabPane>
 
                 <!-- Index and local repo separator -->
-                <VBox GridPane.rowSpan="8"
-                      GridPane.rowIndex="1"
-                      GridPane.columnIndex="3"
-                      minWidth="4"
-                      id="separator">
+                <VBox id="separator" minWidth="4" GridPane.columnIndex="3" GridPane.rowIndex="1" GridPane.rowSpan="8">
                     <GridPane.margin>
-                        <Insets top="4" left="15" right="15" bottom="-2"/>
+                        <Insets bottom="-2" left="15" right="15" top="4" />
                     </GridPane.margin>
                 </VBox>
 
                     <!-- Local Repository block -->
-                <StackPane  GridPane.rowIndex="2"
-                            GridPane.columnIndex="4"
-                            GridPane.halignment="CENTER">
-                    <ImageView
-                            fitHeight="137.5"
-                            fitWidth="137.5"
-                            opacity="0.25"
-                            preserveRatio="true">
-                        <Image url="@../images/repository.png"/>
+                <StackPane GridPane.columnIndex="4" GridPane.halignment="CENTER" GridPane.rowIndex="2">
+                    <ImageView fitHeight="137.5" fitWidth="137.5" opacity="0.25" preserveRatio="true">
+                        <Image url="@../images/repository.png" />
                     </ImageView>
-                    <VBox   GridPane.halignment="CENTER"
-                            spacing="5"
-                            alignment="CENTER"
-                            GridPane.rowIndex="1"
-                            GridPane.columnIndex="2">
-                        <Text   text="Local Repository">
+                    <VBox alignment="CENTER" spacing="5" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.rowIndex="1">
+                        <Text text="Local Repository">
                             <font>
-                                <Font   size="25"/>
+                                <Font size="25" />
                             </font>
                         </Text>
                     </VBox>
                 </StackPane>
 
-                <HBox   alignment="CENTER"
-                        GridPane.rowIndex="3"
-                        GridPane.columnIndex="4">
-                    <Text   text="Status: "/>
-                    <StackPane  fx:id="statusTextPane">
-                        <Text   fx:id="branchStatusText"/>
+                <HBox alignment="CENTER" GridPane.columnIndex="4" GridPane.rowIndex="3">
+                    <Text text="Status: " />
+                    <StackPane fx:id="statusTextPane">
+                        <Text fx:id="branchStatusText" />
                     </StackPane>
                 </HBox>
 
                 <!-- Checkout Files button -->
-                <ArrowButton id="codeButton"
-                             fx:id="checkoutFileButton"
-                             text="Checkout Files"
-                             arrowLeft="true"
-                             onAction="#handleCheckoutButton"
-                             GridPane.rowIndex="5"
-                             GridPane.columnIndex="1"
-                             GridPane.valignment="TOP"
-                             GridPane.halignment="LEFT">
+                <ArrowButton id="codeButton" fx:id="checkoutFileButton" arrowLeft="true" onAction="#handleCheckoutButton" text="Checkout Files" GridPane.columnIndex="1" GridPane.halignment="LEFT" GridPane.rowIndex="5" GridPane.valignment="TOP">
                     <GridPane.margin>
-                        <Insets left="-60" right="-60" top="20"/>
+                        <Insets left="-60" right="-60" top="20" />
                     </GridPane.margin>
                 </ArrowButton>
 
                 <!-- Merge and Add buttons -->
-                <Button text="Merge"
-                        fx:id="mergeButton"
-                        id = "codeButton"
-                        onAction="#handleMergeFromFetchButton"
-                        GridPane.rowIndex="2"
-                        GridPane.columnIndex="1"
-                        GridPane.valignment="BOTTOM"
-                        GridPane.halignment="LEFT">
+                <Button id="codeButton" fx:id="mergeButton" onAction="#handleMergeFromFetchButton" text="Merge" GridPane.columnIndex="1" GridPane.halignment="LEFT" GridPane.rowIndex="2" GridPane.valignment="BOTTOM">
                     <GridPane.margin>
-                        <Insets left="-10" right="-40" bottom="20"/>
+                        <Insets bottom="20" left="-10" right="-40" />
                     </GridPane.margin>
                 </Button>
-                <ArrowButton id="codeButton"
-                             fx:id="addButton"
-                             text="Add"
-                             arrowRight="true"
-                             onAction="#handleAddButton"
-                             GridPane.rowIndex="2"
-                             GridPane.columnIndex="1"
-                             GridPane.valignment="TOP"
-                             GridPane.halignment="LEFT">
+                <ArrowButton id="codeButton" fx:id="addButton" arrowRight="true" onAction="#handleAddButton" text="Add" GridPane.columnIndex="1" GridPane.halignment="LEFT" GridPane.rowIndex="2" GridPane.valignment="TOP">
                     <GridPane.margin>
-                        <Insets left="-10" right="-40" top="20"/>
+                        <Insets left="-10" right="-40" top="20" />
                     </GridPane.margin>
                 </ArrowButton>
 
                 <!-- Commit button -->
-                <ArrowButton id="codeButton"
-                             fx:id="commitButton"
-                             text="Commit"
-                             arrowRight="true"
-                             onAction="#handleCommitNormal"
-                             GridPane.rowIndex="2"
-                             GridPane.columnIndex="3"
-                             GridPane.valignment="TOP"
-                             GridPane.halignment="LEFT">
+                <ArrowButton id="codeButton" fx:id="commitButton" arrowRight="true" onAction="#handleCommitNormal" text="Commit" GridPane.columnIndex="3" GridPane.halignment="LEFT" GridPane.rowIndex="2" GridPane.valignment="TOP">
                     <contextMenu>
-                        <ContextMenu    fx:id="commitContextMenu">
+                        <ContextMenu fx:id="commitContextMenu">
                             <items>
-                                <MenuItem   text="Commit -a"
-                                            onAction="#handleCommitAll"/>
+                                <MenuItem onAction="#handleCommitAll" text="Commit -a" />
                             </items>
                         </ContextMenu>
                     </contextMenu>
                     <GridPane.margin>
-                        <Insets left="-10" right="-40" top="20"/>
+                        <Insets left="-10" right="-40" top="20" />
                     </GridPane.margin>
                 </ArrowButton>
 
                 <!-- Commit tree panel view and legend-->
-                <CommitTreePanelView fx:id="commitTreePanelView"
-                                     GridPane.rowIndex="4"
-                                     GridPane.rowSpan="4"
-                                     GridPane.columnIndex="4"
-                                     GridPane.columnSpan="3">
+                <CommitTreePanelView fx:id="commitTreePanelView" GridPane.columnIndex="4" GridPane.columnSpan="3" GridPane.rowIndex="4" GridPane.rowSpan="4">
                     <GridPane.margin>
-                        <Insets right="15"/>
+                        <Insets right="15" />
                     </GridPane.margin>
                 </CommitTreePanelView>
-                <Hyperlink  fx:id="legendLink"
-                            text="What do all these symbols mean?"
-                            onAction="#showLegend"
-                            GridPane.rowIndex="8"
-                            GridPane.columnIndex="4"
-                            GridPane.columnSpan="2"/>
-                <HBox   fx:id="commitTreeProgressBarAndLabel"
-                        GridPane.rowIndex="8"
-                        GridPane.columnIndex="6">
-                    <Text text="Loading commits...   "/>
-                    <ProgressBar fx:id="commitTreeProgressBar"/>
+                <Hyperlink fx:id="legendLink" onAction="#showLegend" text="What do all these symbols mean?" GridPane.columnIndex="4" GridPane.columnSpan="2" GridPane.rowIndex="8" />
+                <HBox fx:id="commitTreeProgressBarAndLabel" GridPane.columnIndex="6" GridPane.rowIndex="8">
+                    <Text text="Loading commits...   " />
+                    <ProgressBar fx:id="commitTreeProgressBar" />
                 </HBox>
 
                 <!-- Local repository and remote repository separator -->
-                <VBox   GridPane.rowIndex="1"
-                        GridPane.rowSpan="2"
-                        GridPane.columnIndex="5"
-                        id="separator"
-                        minWidth="4">
+                <VBox id="separator" minWidth="4" GridPane.columnIndex="5" GridPane.rowIndex="1" GridPane.rowSpan="2">
                     <GridPane.margin>
-                        <Insets top="4" left="15" right="15" bottom="-10"/>
+                        <Insets bottom="-10" left="15" right="15" top="4" />
                     </GridPane.margin>
                 </VBox>
 
 
                 <!-- Separator between remote and commit info -->
-                <HBox GridPane.rowIndex="3"
-                      GridPane.columnIndex="6"
-                      id="separator"
-                      minHeight="4">
+                <HBox id="separator" minHeight="4" GridPane.columnIndex="6" GridPane.rowIndex="3">
                     <GridPane.margin>
-                        <Insets top="10" bottom="10" left="-19" right="-15"/>
+                        <Insets bottom="10" left="-19" right="-15" top="10" />
                     </GridPane.margin>
-                    <Rectangle height="4"/>
+                    <Rectangle height="4" />
                 </HBox>
 
                 <!-- Fetch and push buttons -->
-                <ArrowButton id="codeButton"
-                             fx:id="fetchButton"
-                             text="Fetch"
-                             arrowLeft="true"
-                             onAction="#handleFetchButton"
-                             GridPane.rowIndex="2"
-                             GridPane.columnIndex="5"
-                             GridPane.halignment="LEFT"
-                             GridPane.valignment="BOTTOM">
+                <ArrowButton id="codeButton" fx:id="fetchButton" arrowLeft="true" onAction="#handleFetchButton" text="Fetch" GridPane.columnIndex="5" GridPane.halignment="LEFT" GridPane.rowIndex="2" GridPane.valignment="BOTTOM">
                     <GridPane.margin>
-                        <Insets left="-20" right="-30" bottom="20"/>
+                        <Insets bottom="20" left="-20" right="-30" />
                     </GridPane.margin>
                     <contextMenu>
-                        <ContextMenu    fx:id="fetchContextMenu">
+                        <ContextMenu fx:id="fetchContextMenu">
                             <items>
-                                <MenuItem   text="Fetch -p"
-                                            onAction="#handlePruneFetchButton"/>
+                                <MenuItem onAction="#handlePruneFetchButton" text="Fetch -p" />
                             </items>
                         </ContextMenu>
                     </contextMenu>
                 </ArrowButton>
-                <ArrowButton id="codeButton"
-                             fx:id="pushButton"
-                             text="Push"
-                             arrowRight="true"
-                             onAction="#handlePushButton"
-                             GridPane.columnIndex="5"
-                             GridPane.rowIndex="2"
-                             GridPane.halignment="LEFT"
-                             GridPane.valignment="TOP">
+                <ArrowButton id="codeButton" fx:id="pushButton" arrowRight="true" onAction="#handlePushButton" text="Push" GridPane.columnIndex="5" GridPane.halignment="LEFT" GridPane.rowIndex="2" GridPane.valignment="TOP">
                     <GridPane.margin>
-                        <Insets top="20" left="-10" right="-20"/>
+                        <Insets left="-10" right="-20" top="20" />
                     </GridPane.margin>
                     <contextMenu>
-                        <ContextMenu    fx:id="pushContextMenu">
+                        <ContextMenu fx:id="pushContextMenu">
                             <items>
-                                <MenuItem   text="Push all branches"
-                                            onAction="#handlePushAllButton"/>
-                                <MenuItem   text="push --tags"
-                                            onAction="#handlePushTagsButton"/>
+                                <MenuItem onAction="#handlePushAllButton" text="Push all branches" />
+                                <MenuItem onAction="#handlePushTagsButton" text="push --tags" />
                             </items>
                         </ContextMenu>
                     </contextMenu>
                 </ArrowButton>
 
                 <!-- Remote repository block -->
-                <StackPane  GridPane.columnIndex="6"
-                            GridPane.rowIndex="2"
-                            GridPane.valignment="TOP"
-                            alignment="TOP_CENTER">
-                    <ImageView
-                            fx:id = "remoteImage"
-                            fitHeight="175"
-                            fitWidth="175"
-                            opacity="0.2"
-                            preserveRatio="true">
-                        <Image url="@../images/graycloud.png"/>
+                <StackPane alignment="TOP_CENTER" GridPane.columnIndex="6" GridPane.rowIndex="2" GridPane.valignment="TOP">
+                    <ImageView fx:id="remoteImage" fitHeight="175" fitWidth="175" opacity="0.2" preserveRatio="true">
+                        <Image url="@../images/graycloud.png" />
                     </ImageView>
-                    <VBox   alignment="CENTER">
+                    <VBox alignment="CENTER">
                         <Text text="Remote Repository">
                             <font>
-                                <Font size="25"/>
+                                <Font size="25" />
                             </font>
                         </Text>
-                        <HBox   alignment="TOP_CENTER">
-                            <Text   fx:id="needToFetch"/>
+                        <HBox alignment="TOP_CENTER">
+                            <Text fx:id="needToFetch" />
                         </HBox>
-                        <HBox   alignment="CENTER"
-                                style="-fx-cursor: hand"
-                                onMouseClicked="#handleRemoteMouseClick">
-                            <Text   text="remote: "/>
-                            <Text fx:id="browserText"/>
+                        <HBox alignment="CENTER" onMouseClicked="#handleRemoteMouseClick" style="-fx-cursor: hand">
+                            <Text text="remote: " />
+                            <Text fx:id="browserText" />
                         </HBox>
-                        <HBox   alignment="TOP_CENTER">
+                        <HBox alignment="TOP_CENTER">
+                            <CheckBox text="Connected to remote"
+                                      fx:id="remoteConnected" />
                             <padding>
-                                <Insets top="10"/>
+                                <Insets top="10" />
                             </padding>
                         </HBox>
                     </VBox>
                 </StackPane>
 
                 <!-- Tagging and Commit Info -->
-                <VBox   alignment="CENTER"
-                        spacing="5"
-                        GridPane.rowIndex="4"
-                        GridPane.columnIndex="6"
-                        GridPane.rowSpan="2"
-                        GridPane.halignment="CENTER"
-                        fx:id="infoTagBox">
-                    <fx:include source="CommitInfoView.fxml" fx:id="commitInfo"/>
+                <VBox fx:id="infoTagBox" alignment="CENTER" spacing="5" GridPane.columnIndex="6" GridPane.halignment="CENTER" GridPane.rowIndex="4" GridPane.rowSpan="2">
+                    <fx:include fx:id="commitInfo" source="CommitInfoView.fxml" />
                     <HBox>
-                        <ArrowButton id="codeButton"
-                                     fx:id="tagButton"
-                                     text="Tag"
-                                     arrowLeft="true"
-                                     onAction="#handleTagButton"/>
-                        <TextField   prefHeight="30"
-                                    prefWidth="170"
-                                    fx:id="tagNameField"
-                                    promptText="tag..." />
+                        <ArrowButton id="codeButton" fx:id="tagButton" arrowLeft="true" onAction="#handleTagButton" text="Tag" />
+                        <TextField fx:id="tagNameField" prefHeight="30" prefWidth="170" promptText="tag..." />
 
                     </HBox>
-                    <ArrowButton id="codeButton"
-                                 fx:id="pushTagsButton"
-                                 text="Push Tags"
-                                 arrowRight="true"
-                                 onAction="#handlePushTagsButton">
+                    <ArrowButton id="codeButton" fx:id="pushTagsButton" arrowRight="true" onAction="#handlePushTagsButton" text="Push Tags">
                     </ArrowButton>
                 </VBox>
             </GridPane>
 
-            <fx:include source="NotificationPane.fxml" fx:id="notificationPane"/>
+            <fx:include fx:id="notificationPane" source="NotificationPane.fxml" />
 
             <stylesheets>
-                <URL value="@../css/BaseStyle.css"/>
+                <URL value="@../css/BaseStyle.css" />
             </stylesheets>
         </AnchorPane>
     </center>

@@ -20,7 +20,8 @@
                             onAction="#handleCommitSortToggle"/>
                 <CheckMenuItem   text="Check remote frequently for updates"
                                  fx:id="remoteStatusCheckToggle"
-                                 onAction="#handleRemoteStatusCheckToggle"/>
+                />
+                <!--onAction="#handleRemoteStatusCheckToggle"-->
                 <MenuItem   text="Re-enable window resizing"
                             fx:id="reenableWindowResizing"
                             onAction="#handleReenableWindowResizing"/>

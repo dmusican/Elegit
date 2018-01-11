@@ -8,27 +8,22 @@ import elegit.models.BranchModel;
 import elegit.models.RepoHelper;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.exceptions.CompositeException;
 import io.reactivex.rxjavafx.schedulers.JavaFxScheduler;
 import io.reactivex.schedulers.Schedulers;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleIntegerProperty;
 import org.apache.http.annotation.GuardedBy;
 import org.apache.http.annotation.ThreadSafe;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.api.errors.TransportException;
 import org.eclipse.jgit.lib.Ref;
 
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -123,7 +118,8 @@ public class RepositoryMonitor{
                 return false;
             }
 
-            if (!repo.getRemoteAuthenticationSuccess()) {
+ //           if (!repo.getRemoteStatusCheckingProperty().get()) {
+            if (!repo.getRemoteStatusCheckingValueFromOffThread()) {
                 return false;
             }
 
@@ -158,7 +154,7 @@ public class RepositoryMonitor{
         {
             // If exception thrown, stop monitoring. This could undoubtedly be made fancier and better, but
             // it is better to stop checking than it is to keep hammering a server with bad authentication.
-            repo.setRemoteAuthenticationSuccess(false);
+            repo.setRemoteStatusChecking(false);
 
             SessionController sessionController = RepositoryMonitor.sessionController.get();
             // This work has been happening off FX thread, so notification needs to go back on it

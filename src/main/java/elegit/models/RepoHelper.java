@@ -1,10 +1,17 @@
 package elegit.models;
 
 import com.jcraft.jsch.*;
+import elegit.Main;
 import elegit.gui.PopUpWindows;
 import elegit.gui.SimpleProgressMonitor;
 import elegit.exceptions.*;
 import elegit.treefx.Cell;
+import io.reactivex.Completable;
+import io.reactivex.Single;
+import io.reactivex.rxjavafx.schedulers.JavaFxScheduler;
+import javafx.application.Platform;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import org.apache.http.annotation.GuardedBy;
 import org.apache.http.annotation.ThreadSafe;
 import org.apache.logging.log4j.LogManager;
@@ -64,6 +71,10 @@ public class RepoHelper {
 
     @GuardedBy("this")
     private boolean remoteAuthenticationSuccess = true;
+
+    // This is a JavaFX property, so this is thread safe in that it will only be changed in the FX thread.
+    @GuardedBy("this")
+    private final BooleanProperty remoteStatusChecking = new SimpleBooleanProperty(true);
 
     private final AtomicReference<String> privateKeyFileLocation = new AtomicReference<>();
 
@@ -1528,12 +1539,27 @@ public class RepoHelper {
         this.ownerAuth.set(ownerAuth);
     }
 
-    public synchronized void setRemoteAuthenticationSuccess(boolean remoteAuthenticationSuccess) {
-        this.remoteAuthenticationSuccess = remoteAuthenticationSuccess;
+    public synchronized void setRemoteStatusChecking(boolean remoteStatusChecking) {
+        // Critical that we set this JavaFX property on the FX thread, since a control is bound to it
+        Platform.runLater(() -> {
+            this.remoteStatusChecking.set(remoteStatusChecking);
+        });
     }
 
-    public synchronized boolean getRemoteAuthenticationSuccess() {
-        return this.remoteAuthenticationSuccess;
+    public synchronized BooleanProperty getRemoteStatusCheckingProperty() {
+        // Critical that we only access this on the JavaFX thread. Technically you could snag the property itself
+        // off-thread so long as you check its value on thread, but there's no need for that.
+        Main.assertFxThread();
+        return this.remoteStatusChecking;
+    }
+
+    public synchronized boolean getRemoteStatusCheckingValueFromOffThread() {
+        // This is an accessor specifically designed to be called from off the FX thread.
+        Main.assertNotFxThread();
+        return Single.just(1)
+                .subscribeOn(JavaFxScheduler.platform())
+                .map((unused) -> this.remoteStatusChecking.get())
+                .blockingGet();
     }
 
     public void setPrivateKeyFileLocation(String privateKeyFileLocation) {

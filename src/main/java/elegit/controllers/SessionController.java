@@ -111,6 +111,7 @@ public class SessionController {
     @FXML private HBox currentRemoteTrackingBranchHbox;
 
     @FXML private Text browserText;
+    @FXML private CheckBox remoteConnected;
     @FXML private Text needToFetch;
     @FXML private Text branchStatusText;
 
@@ -589,6 +590,7 @@ public class SessionController {
      * Initializes each panel of the view
      */
     public synchronized Single<Boolean> initPanelViewsWhenSubscribed() {
+        Main.assertFxThread();
         try {
             workingTreePanelView.drawDirectoryView();
             allFilesPanelView.drawDirectoryView();
@@ -607,41 +609,45 @@ public class SessionController {
      */
     private void setBrowserURL() {
         Main.assertFxThread();
-        try {
-            RepoHelper currentRepoHelper = this.theModel.getCurrentRepoHelper();
-            if (currentRepoHelper == null) throw new NoRepoLoadedException();
-            if (!currentRepoHelper.exists()) throw new MissingRepoException();
-            List<String> remoteURLs = currentRepoHelper.getLinkedRemoteRepoURLs();
-            if(remoteURLs.size() == 0){
-                this.showNoRemoteNotification();
-                return;
-            }
-            String URLString = remoteURLs.get(0);
+        RepoHelper currentRepoHelper = this.theModel.getCurrentRepoHelper();
 
-            if (URLString != null) {
-                if(URLString.contains("@")){
-                    URLString = "https://"+URLString.replace(":","/").split("@")[1];
-                }
-                try {
-                    URL remoteURL = new URL(URLString);
-                    browserText.setText(remoteURL.getHost());
-                } catch (MalformedURLException e) {
-                    browserText.setText(URLString);
-                }
-            }
-            Tooltip URLTooltip = new Tooltip(URLString);
-            Tooltip.install(browserText, URLTooltip);
+        if (currentRepoHelper == null) {
+            setButtonsDisabled(true);
+            remoteConnected.setSelected(false);
+            remoteConnected.setDisable(true);
+            return;
+        }
 
-            browserText.setFill(Color.DARKCYAN);
-            browserText.setUnderline(true);
+        if (!currentRepoHelper.exists()) {
+            showMissingRepoNotification();
+            setButtonsDisabled(true);
+            refreshRecentReposInDropdown();
+            return;
         }
-        catch(MissingRepoException e) {
-            this.showMissingRepoNotification();
-            this.setButtonsDisabled(true);
-            this.refreshRecentReposInDropdown();
-        }catch(NoRepoLoadedException e) {
-            this.setButtonsDisabled(true);
+
+        List<String> remoteURLs = currentRepoHelper.getLinkedRemoteRepoURLs();
+        if(remoteURLs.size() == 0){
+            this.showNoRemoteNotification();
+            return;
         }
+        String URLString = remoteURLs.get(0);
+
+        if (URLString != null) {
+            if(URLString.contains("@")){
+                URLString = "https://"+URLString.replace(":","/").split("@")[1];
+            }
+            try {
+                URL remoteURL = new URL(URLString);
+                browserText.setText(remoteURL.getHost());
+            } catch (MalformedURLException e) {
+                browserText.setText(URLString);
+            }
+        }
+        Tooltip URLTooltip = new Tooltip(URLString);
+        Tooltip.install(browserText, URLTooltip);
+
+        browserText.setFill(Color.DARKCYAN);
+        browserText.setUnderline(true);
     }
 
     /**
