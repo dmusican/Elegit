@@ -99,6 +99,7 @@ public class RepositoryMonitor{
                 .interval(0, REMOTE_CHECK_INTERVAL, TimeUnit.MILLISECONDS, Schedulers.io())
                 .doOnNext(i -> {
                     numRemoteChecks.getAndIncrement();
+                    System.out.println("RepositoryMonitor.watchRepoForRemoteChanges");
                     if (remoteHasNewChanges(repo))
                         setFoundNewChanges();
                 })

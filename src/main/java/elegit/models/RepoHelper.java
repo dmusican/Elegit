@@ -1556,10 +1556,15 @@ public class RepoHelper {
     public synchronized boolean getRemoteStatusCheckingValueFromOffThread() {
         // This is an accessor specifically designed to be called from off the FX thread.
         Main.assertNotFxThread();
-        return Single.just(1)
-                .subscribeOn(JavaFxScheduler.platform())
+        Thread.dumpStack();
+        boolean status = Single.just(1)
+                .doOnSubscribe((unused) -> System.out.println("WORKINGWOK"))
+                // THE FX THREAD IS LIKELY BLOCKED
+                //.subscribeOn(JavaFxScheduler.platform())
                 .map((unused) -> this.remoteStatusChecking.get())
                 .blockingGet();
+        System.out.println("status = " + status);
+        return status;
     }
 
     public void setPrivateKeyFileLocation(String privateKeyFileLocation) {
