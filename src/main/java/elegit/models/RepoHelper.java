@@ -73,6 +73,7 @@ public class RepoHelper {
     private boolean remoteAuthenticationSuccess = true;
 
     // This is a JavaFX property, so this is thread safe in that it will only be changed in the FX thread.
+    // This is critical to do because it will be bound to a JavaFX object.
     @GuardedBy("this")
     private final BooleanProperty remoteStatusChecking = new SimpleBooleanProperty(true);
 
@@ -210,6 +211,7 @@ public class RepoHelper {
      * Synchronized because it seems that if multiple threads tried to do this, that the whole thing should be atomic
      */
     public synchronized void updateModel() throws GitAPIException, IOException {
+        System.out.println("RepoHelper.updateModel 10");
         this.commitIdMap.clear();
         this.idMap.clear();
 
@@ -1539,32 +1541,22 @@ public class RepoHelper {
         this.ownerAuth.set(ownerAuth);
     }
 
-    public synchronized void setRemoteStatusChecking(boolean remoteStatusChecking) {
-        // Critical that we set this JavaFX property on the FX thread, since a control is bound to it
-        Platform.runLater(() -> {
-            this.remoteStatusChecking.set(remoteStatusChecking);
-        });
+    // Only runs on JavaFX thread, so therefore threadsafe
+    public void setRemoteStatusChecking(boolean remoteStatusChecking) {
+        Main.assertFxThread();
+        this.remoteStatusChecking.set(remoteStatusChecking);
     }
 
-    public synchronized BooleanProperty getRemoteStatusCheckingProperty() {
-        // Critical that we only access this on the JavaFX thread. Technically you could snag the property itself
-        // off-thread so long as you check its value on thread, but there's no need for that.
+    // Only runs on JavaFX thread, so therefore threadsafe
+    public BooleanProperty getRemoteStatusCheckingProperty() {
         Main.assertFxThread();
         return this.remoteStatusChecking;
     }
 
-    public synchronized boolean getRemoteStatusCheckingValueFromOffThread() {
-        // This is an accessor specifically designed to be called from off the FX thread.
-        Main.assertNotFxThread();
-        Thread.dumpStack();
-        boolean status = Single.just(1)
-                .doOnSubscribe((unused) -> System.out.println("WORKINGWOK"))
-                // THE FX THREAD IS LIKELY BLOCKED
-                //.subscribeOn(JavaFxScheduler.platform())
-                .map((unused) -> this.remoteStatusChecking.get())
-                .blockingGet();
-        System.out.println("status = " + status);
-        return status;
+    // Only runs on JavaFX thread, so therefore threadsafe
+    public boolean getRemoteStatusChecking() {
+        Main.assertFxThread();
+        return this.remoteStatusChecking.get();
     }
 
     public void setPrivateKeyFileLocation(String privateKeyFileLocation) {

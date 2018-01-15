@@ -592,10 +592,12 @@ public class SessionController {
     public synchronized Single<Boolean> initPanelViewsWhenSubscribed() {
         Main.assertFxThread();
         try {
+            System.out.println("SessionController.initPanelViewsWhenSubscribed 10");
             workingTreePanelView.drawDirectoryView();
             allFilesPanelView.drawDirectoryView();
             indexPanelView.drawDirectoryView();
             this.setBrowserURL();
+            System.out.println("SessionController.initPanelViewsWhenSubscribed 50");
             return commitTreeModel.initializeModelForNewRepoWhenSubscribed();
         } catch (GitAPIException | IOException e) {
             showGenericErrorNotification(e);
@@ -624,6 +626,8 @@ public class SessionController {
             refreshRecentReposInDropdown();
             return;
         }
+
+        remoteConnected.setDisable(false);
 
         List<String> remoteURLs = currentRepoHelper.getLinkedRemoteRepoURLs();
         if(remoteURLs.size() == 0){
@@ -750,6 +754,7 @@ public class SessionController {
         doGitOperationWhenSubscribed(gitOp)
                 .flatMap((result) -> {
                     if (result.equals("success")) {
+                        System.out.println("SessionController.loadDesignatedRepo " + Thread.currentThread());
                         return initPanelViewsWhenSubscribed()
                         .map(unused -> doGitStatusWhenSubscribed())
                         .doOnSuccess(unused -> {
@@ -2790,6 +2795,11 @@ public class SessionController {
     public MenuController getMenuController() {
         Main.assertFxThread();
         return menuController;
+    }
+
+    public boolean getRemoteConnectedStatus() {
+        Main.assertFxThread();
+        return remoteConnected.isSelected();
     }
 
 }

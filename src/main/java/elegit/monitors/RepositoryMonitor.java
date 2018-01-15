@@ -7,6 +7,7 @@ import elegit.models.BranchHelper;
 import elegit.models.BranchModel;
 import elegit.models.RepoHelper;
 import io.reactivex.Observable;
+import io.reactivex.Single;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.rxjavafx.schedulers.JavaFxScheduler;
 import io.reactivex.schedulers.Schedulers;
@@ -119,8 +120,12 @@ public class RepositoryMonitor{
                 return false;
             }
 
- //           if (!repo.getRemoteStatusCheckingProperty().get()) {
-            if (!repo.getRemoteStatusCheckingValueFromOffThread()) {
+            boolean remoteStatusChecking =
+                    Single.just(1)
+                    .subscribeOn(JavaFxScheduler.platform())
+                    .map(unused -> repo.getRemoteStatusChecking())
+                    .blockingGet();
+            if (!remoteStatusChecking) {
                 return false;
             }
 

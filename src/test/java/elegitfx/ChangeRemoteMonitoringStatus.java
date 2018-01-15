@@ -110,27 +110,36 @@ public class ChangeRemoteMonitoringStatus extends ApplicationTest {
 
         SessionController.gitStatusCompletedOnce.await();
 
-
         interact(() -> {
-            assertEquals(true, menuController.getRemoteToggleStatus());
-            assertEquals(true, RepositoryMonitor.getRemoteStatusChecking());
+            assertEquals(false, sessionController.getRemoteConnectedStatus());
         });
 
-        clickOn("Preferences")
-                .clickOn("#remoteStatusCheckToggle");
+        clickOn("#remoteConnected");
 
         interact(() -> {
-            assertEquals(false, menuController.getRemoteToggleStatus());
-            assertEquals(false, RepositoryMonitor.getRemoteStatusChecking());
+            assertEquals(true, sessionController.getRemoteConnectedStatus());
         });
-
-        clickOn("Preferences")
-                .clickOn("#remoteStatusCheckToggle");
-
-        interact(() -> {
-            assertEquals(true, menuController.getRemoteToggleStatus());
-            assertEquals(true, RepositoryMonitor.getRemoteStatusChecking());
-        });
+//
+//        interact(() -> {
+//            assertEquals(true, menuController.getRemoteToggleStatus());
+//            assertEquals(true, RepositoryMonitor.getRemoteStatusChecking());
+//        });
+//
+//        clickOn("Preferences")
+//                .clickOn("#remoteStatusCheckToggle");
+//
+//        interact(() -> {
+//            assertEquals(false, menuController.getRemoteToggleStatus());
+//            assertEquals(false, RepositoryMonitor.getRemoteStatusChecking());
+//        });
+//
+//        clickOn("Preferences")
+//                .clickOn("#remoteStatusCheckToggle");
+//
+//        interact(() -> {
+//            assertEquals(true, menuController.getRemoteToggleStatus());
+//            assertEquals(true, RepositoryMonitor.getRemoteStatusChecking());
+//        });
 
 
     }
