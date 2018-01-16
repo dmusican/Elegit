@@ -777,6 +777,7 @@ public class SessionController {
     }
 
     public boolean loadDesignatedRepo(RepoHelper repoHelper) {
+        Main.assertFxThread();
         GitOperation gitOp = authResponse -> loadRepo(authResponse, repoHelper);
         if (repoHelper == null)
             throw new RuntimeException();
