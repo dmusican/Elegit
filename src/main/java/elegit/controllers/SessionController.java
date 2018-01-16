@@ -20,12 +20,12 @@ import io.reactivex.rxjavafx.schedulers.JavaFxScheduler;
 import io.reactivex.schedulers.Schedulers;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.Property;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.event.*;
-import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
@@ -112,7 +112,15 @@ public class SessionController {
     @FXML private HBox currentRemoteTrackingBranchHbox;
 
     @FXML private Text browserText;
+
+    // The remoteConnected checkbox is bound to a property in the current RepoHelper. When the RepoHelper is changed,
+    // it needs to unbound and then bound to the new one. Because we're using a bidirectional binding, JavaFX doesn't
+    // remember the binding; there's no automatic unbind command. Therefore, we need to remember the repo so we can
+    // unbind it. It should ONLY be accessed from the JavaFX thread, since it is only used for purposes of unbinding
+    // a property.
     @FXML private CheckBox remoteConnected;
+    @GuardedBy("this") private BooleanProperty remoteConnectedCheckboxPreviousBinding = null;
+
     @FXML private Text needToFetch;
     @FXML private Text branchStatusText;
 
@@ -150,6 +158,7 @@ public class SessionController {
     private static AtomicInteger genericExceptionCount = new AtomicInteger(0);  // used for testing
 
     public static final Object globalLock = new Object();
+
 
 
     // Used for testing purposes; look at testing code to see where used
@@ -659,19 +668,19 @@ public class SessionController {
         Main.assertFxThread();
 
         RepoHelper currentRepoHelper = this.theModel.getCurrentRepoHelper();
-//        remoteConnected.selectedProperty().
-//        remoteConnected.selectedProperty().unbindBidirectional(currentRepoHelper.getRemoteStatusCheckingProperty());
+
+        if (remoteConnectedCheckboxPreviousBinding != null) {
+            remoteConnected.selectedProperty().unbindBidirectional(remoteConnectedCheckboxPreviousBinding);
+        }
 
         if (currentRepoHelper == null || !currentRepoHelper.exists()) {
             remoteConnected.setSelected(false);
             remoteConnected.setDisable(true);
         } else {
             remoteConnected.setDisable(false);
-//            remoteConnected.selectedProperty().bindBidirectional(currentRepoHelper.getRemoteStatusCheckingProperty());
-            currentRepoHelper.bindit(remoteConnected.selectedProperty());
-            remoteConnected.setOnAction((ActionEvent e) -> {
-                System.out.println("clicked!");
-            });
+            BooleanProperty remoteStatusCheckingProperty = currentRepoHelper.getRemoteStatusCheckingProperty();
+            remoteConnectedCheckboxPreviousBinding = remoteStatusCheckingProperty;
+            remoteConnected.selectedProperty().bindBidirectional(remoteStatusCheckingProperty);
         }
     }
 

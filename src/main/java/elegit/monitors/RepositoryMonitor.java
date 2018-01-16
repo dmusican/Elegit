@@ -93,6 +93,7 @@ public class RepositoryMonitor{
         if(repo == null || !repo.exists() || !repo.hasRemote() || monitorOff) {
             return;
         }
+        System.out.println("repo.getRemoteStatusChecking() = " + repo.getRemoteStatusChecking());
         remoteTimer.dispose();
 
 

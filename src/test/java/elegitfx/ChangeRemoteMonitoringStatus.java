@@ -115,17 +115,13 @@ public class ChangeRemoteMonitoringStatus extends ApplicationTest {
 
         SessionController.gitStatusCompletedOnce.await();
 
-        interact(() -> {
-            assertEquals(true, sessionController.getRemoteConnectedStatus());
-            System.out.println("1 helper.getRemoteStatusChecking() = " + helper.getRemoteStatusChecking());
-        });
+//        interact(() -> {
+//            assertEquals(true, sessionController.getRemoteConnectedStatus());
+//        });
 
         clickOn("#remoteConnected");
 
         while(true) {
-            interact(() -> {
-                System.out.println(helper.getRemoteStatusChecking());
-            });
             Thread.sleep(500);
         }
 //            assertEquals(false, sessionController.getRemoteConnectedStatus());
