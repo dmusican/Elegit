@@ -102,16 +102,12 @@ public class CommitTreeModel{
 
         CommitTreeController.resetSelection();
 
-        System.out.println("CommitTreeModel.initializeModelForNewRepoWhenSubscribed 10");
         if (SessionModel.getSessionModel().getCurrentRepoHelper() != null) {
             // Get the changes between this model and the repo after updating the repo
 
-            System.out.println("CommitTreeModel.initializeModelForNewRepoWhenSubscribed 20");
             try {
                 RepoHelper currentRepoHelper = SessionModel.getSessionModel().getCurrentRepoHelper();
-                System.out.println("CommitTreeModel.initializeModelForNewRepoWhenSubscribed 25");
                 currentRepoHelper.updateModel();
-                System.out.println("CommitTreeModel.initializeModelForNewRepoWhenSubscribed 30");
                 UpdateModel updates = this.getChanges();
                 if (updates.hasChanges()) {
                     Set<CommitHelper> commitsToRemove = updates.getCommitsToRemove();
@@ -129,7 +125,6 @@ public class CommitTreeModel{
                     });
         }
 
-        System.out.println("CommitTreeModel.initializeModelForNewRepoWhenSubscribed 50");
         return Single.fromCallable(() -> {
             this.initView();
             return true;

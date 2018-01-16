@@ -211,7 +211,6 @@ public class RepoHelper {
      * Synchronized because it seems that if multiple threads tried to do this, that the whole thing should be atomic
      */
     public synchronized void updateModel() throws GitAPIException, IOException {
-        System.out.println("RepoHelper.updateModel 10");
         this.commitIdMap.clear();
         this.idMap.clear();
 
@@ -1561,5 +1560,9 @@ public class RepoHelper {
 
     public void setPrivateKeyFileLocation(String privateKeyFileLocation) {
         this.privateKeyFileLocation.set(privateKeyFileLocation);
+    }
+
+    public void bindit(BooleanProperty binding) {
+        this.remoteStatusChecking.bindBidirectional(binding);
     }
 }

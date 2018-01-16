@@ -25,6 +25,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.event.*;
+import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
@@ -596,7 +597,8 @@ public class SessionController {
             workingTreePanelView.drawDirectoryView();
             allFilesPanelView.drawDirectoryView();
             indexPanelView.drawDirectoryView();
-            this.setBrowserURL();
+            setBrowserURL();
+            resetRemoteConnectedCheckbox();
             System.out.println("SessionController.initPanelViewsWhenSubscribed 50");
             return commitTreeModel.initializeModelForNewRepoWhenSubscribed();
         } catch (GitAPIException | IOException e) {
@@ -615,8 +617,6 @@ public class SessionController {
 
         if (currentRepoHelper == null) {
             setButtonsDisabled(true);
-            remoteConnected.setSelected(false);
-            remoteConnected.setDisable(true);
             return;
         }
 
@@ -626,8 +626,6 @@ public class SessionController {
             refreshRecentReposInDropdown();
             return;
         }
-
-        remoteConnected.setDisable(false);
 
         List<String> remoteURLs = currentRepoHelper.getLinkedRemoteRepoURLs();
         if(remoteURLs.size() == 0){
@@ -653,6 +651,30 @@ public class SessionController {
         browserText.setFill(Color.DARKCYAN);
         browserText.setUnderline(true);
     }
+
+    /**
+     * Resets the status of the checkbox associated with the remote connections.
+     */
+    private void resetRemoteConnectedCheckbox() {
+        Main.assertFxThread();
+
+        RepoHelper currentRepoHelper = this.theModel.getCurrentRepoHelper();
+//        remoteConnected.selectedProperty().
+//        remoteConnected.selectedProperty().unbindBidirectional(currentRepoHelper.getRemoteStatusCheckingProperty());
+
+        if (currentRepoHelper == null || !currentRepoHelper.exists()) {
+            remoteConnected.setSelected(false);
+            remoteConnected.setDisable(true);
+        } else {
+            remoteConnected.setDisable(false);
+//            remoteConnected.selectedProperty().bindBidirectional(currentRepoHelper.getRemoteStatusCheckingProperty());
+            currentRepoHelper.bindit(remoteConnected.selectedProperty());
+            remoteConnected.setOnAction((ActionEvent e) -> {
+                System.out.println("clicked!");
+            });
+        }
+    }
+
 
     /**
      * A helper method for enabling/disabling buttons.
@@ -2800,6 +2822,11 @@ public class SessionController {
     public boolean getRemoteConnectedStatus() {
         Main.assertFxThread();
         return remoteConnected.isSelected();
+    }
+
+    public boolean getRemoteConnectedDiabledStatus() {
+        Main.assertFxThread();
+        return remoteConnected.isDisabled();
     }
 
 }

@@ -101,6 +101,11 @@ public class ChangeRemoteMonitoringStatus extends ApplicationTest {
         helper.obtainRepository(remoteURL);
         assertNotNull(helper);
 
+        interact(() -> {
+            assertEquals(false, sessionController.getRemoteConnectedStatus());
+            assertEquals(true, sessionController.getRemoteConnectedDiabledStatus());
+        });
+
 
         clickOn("#loadNewRepoButton")
                 .clickOn("#loadExistingRepoOption")
@@ -111,14 +116,22 @@ public class ChangeRemoteMonitoringStatus extends ApplicationTest {
         SessionController.gitStatusCompletedOnce.await();
 
         interact(() -> {
-            assertEquals(false, sessionController.getRemoteConnectedStatus());
+            assertEquals(true, sessionController.getRemoteConnectedStatus());
+            System.out.println("1 helper.getRemoteStatusChecking() = " + helper.getRemoteStatusChecking());
         });
 
         clickOn("#remoteConnected");
 
-        interact(() -> {
-            assertEquals(true, sessionController.getRemoteConnectedStatus());
-        });
+        while(true) {
+            interact(() -> {
+                System.out.println(helper.getRemoteStatusChecking());
+            });
+            Thread.sleep(500);
+        }
+//            assertEquals(false, sessionController.getRemoteConnectedStatus());
+//            assertEquals(false, helper.getRemoteStatusChecking());
+//            System.out.println("2 helper.getRemoteStatusChecking() = " + helper.getRemoteStatusChecking());
+        //});
 //
 //        interact(() -> {
 //            assertEquals(true, menuController.getRemoteToggleStatus());
