@@ -51,7 +51,6 @@ public class RepositoryMonitor{
     @GuardedBy("this") private static int pauseCounter = 0;
     @GuardedBy("this") private static Disposable remoteTimer = Observable.empty().subscribe();
     @GuardedBy("this") private static Disposable localTimer = Observable.empty().subscribe();
-    @GuardedBy("this") private static SessionController controller;
     @GuardedBy("this") private static int exceptionCounter = 0;  // used for testing
 
     private static final AtomicReference<SessionController> sessionController = new AtomicReference<>();
@@ -59,7 +58,7 @@ public class RepositoryMonitor{
     private static final Logger logger = LogManager.getLogger();
 
     public synchronized static void init(SessionController controller) {
-        RepositoryMonitor.controller = controller;
+        RepositoryMonitor.sessionController.set(controller);
         beginWatchingLocal();
         initRemote();
     }
@@ -99,7 +98,7 @@ public class RepositoryMonitor{
                     if (remoteHasNewChanges(repo))
                         setFoundNewChanges();
                 })
-                .subscribe();
+                .subscribe((unused) -> {}, (t) -> new ExceptionAdapter(t));
     }
 
     private static synchronized void stopWatchingRemoteRepo() {
@@ -167,7 +166,6 @@ public class RepositoryMonitor{
                 sessionController.showExceptionAsGlobalNotification(
                         new SessionController.Result(SessionController.ResultOperation.CHECK_REMOTE_FOR_CHANGES, e));
             });
-            e.printStackTrace();
         }
         return false;
     }
@@ -202,7 +200,7 @@ public class RepositoryMonitor{
                 //.subscribe();
                 // TODO: Get status back in here once I have it threaded right
                 // TODO: This is still really messy; it calls gitStatus, which pauses, which starts up again...
-                .subscribe(i -> controller.gitStatus(), throwable -> {
+                .subscribe(i -> sessionController.get().gitStatus(), throwable -> {
                     exceptionCounter++;
                     throw new ExceptionAdapter(throwable);
                 });
@@ -255,5 +253,9 @@ public class RepositoryMonitor{
         RepositoryMonitor.sessionController.set(sessionController);
     }
 
+
+    public static SessionController getSessionController() {
+        return sessionController.get();
+    }
 
 }

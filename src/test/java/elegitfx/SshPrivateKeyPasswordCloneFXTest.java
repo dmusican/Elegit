@@ -76,7 +76,7 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
-public class SshPrivateKeyPasswordFXTest extends ApplicationTest {
+public class SshPrivateKeyPasswordCloneFXTest extends ApplicationTest {
 
     @ClassRule
     public static final TestingLogPathRule testingLogPath = new TestingLogPathRule();
