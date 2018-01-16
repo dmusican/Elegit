@@ -52,8 +52,6 @@ public class RepositoryMonitor{
     @GuardedBy("this") private static Disposable remoteTimer = Observable.empty().subscribe();
     @GuardedBy("this") private static Disposable localTimer = Observable.empty().subscribe();
     @GuardedBy("this") private static SessionController controller;
-    // Whether or not remote status checking is enabled
-    @GuardedBy("this") private static boolean remoteStatusChecking = true;
     @GuardedBy("this") private static int exceptionCounter = 0;  // used for testing
 
     private static final AtomicReference<SessionController> sessionController = new AtomicReference<>();
@@ -67,7 +65,6 @@ public class RepositoryMonitor{
     }
 
     public synchronized static void initRemote() {
-        remoteStatusChecking = true;
         SessionModel.getSessionModel().subscribeToOpenedRepos(RepositoryMonitor::watchRepoForRemoteChanges);
         beginWatchingRemote();
     }
@@ -93,15 +90,12 @@ public class RepositoryMonitor{
         if(repo == null || !repo.exists() || !repo.hasRemote() || monitorOff) {
             return;
         }
-        System.out.println("repo.getRemoteStatusChecking() = " + repo.getRemoteStatusChecking());
         remoteTimer.dispose();
 
 
         remoteTimer = Observable
                 .interval(0, REMOTE_CHECK_INTERVAL, TimeUnit.MILLISECONDS, Schedulers.io())
                 .doOnNext(i -> {
-                    numRemoteChecks.getAndIncrement();
-                    System.out.println("RepositoryMonitor.watchRepoForRemoteChanges");
                     if (remoteHasNewChanges(repo))
                         setFoundNewChanges();
                 })
@@ -117,10 +111,9 @@ public class RepositoryMonitor{
     // could block it up considerably. It uses no shared memory, and it makes calls to threadsafe libraries.
     private static boolean remoteHasNewChanges(RepoHelper repo) {
         try {
-            if (!remoteStatusChecking) {
-                return false;
-            }
 
+            // Check to see if status checking is disabled. Must be done on FX thread since it is stored in a bound
+            // property. If status checking disabled, don't do it.
             boolean remoteStatusChecking =
                     Single.just(1)
                     .subscribeOn(JavaFxScheduler.platform())
@@ -129,6 +122,9 @@ public class RepositoryMonitor{
             if (!remoteStatusChecking) {
                 return false;
             }
+
+            // Only increment if actually going to check
+            numRemoteChecks.getAndIncrement();
 
             List<BranchHelper> localOriginHeads = repo.getBranchModel().getBranchListUntyped(
                     BranchModel.BranchType.REMOTE);
@@ -161,7 +157,9 @@ public class RepositoryMonitor{
         {
             // If exception thrown, stop monitoring. This could undoubtedly be made fancier and better, but
             // it is better to stop checking than it is to keep hammering a server with bad authentication.
-            repo.setRemoteStatusChecking(false);
+            Platform.runLater(() -> {
+                repo.setRemoteStatusChecking(false);
+            });
 
             SessionController sessionController = RepositoryMonitor.sessionController.get();
             // This work has been happening off FX thread, so notification needs to go back on it
@@ -258,11 +256,4 @@ public class RepositoryMonitor{
     }
 
 
-    public static synchronized void flipRemoteStatusChecking() {
-        remoteStatusChecking = !remoteStatusChecking;
-    }
-
-    public static synchronized boolean getRemoteStatusChecking() {
-        return remoteStatusChecking;
-    }
 }

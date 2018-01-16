@@ -32,26 +32,41 @@ import java.util.Properties;
  */
 public class MenuController {
 
-    @GuardedBy("this") private SessionController sessionController;
+    @GuardedBy("this")
+    private SessionController sessionController;
 
-    @FXML private MenuItem gitIgnoreMenuItem;
-    @FXML private Menu repoMenu;
-    @FXML private MenuItem cloneMenuItem;
-    @FXML private MenuItem createBranchMenuItem;
-    @FXML private MenuItem commitNormalMenuItem;
-    @FXML private MenuItem normalFetchMenuItem;
-    @FXML private MenuItem pullMenuItem;
-    @FXML private MenuItem pushMenuItem;
-    @FXML private MenuItem stashMenuItem1;
-    @FXML private MenuItem stashMenuItem2;
-    @FXML private MenuItem reenableWindowResizing;
+    @FXML
+    private MenuItem gitIgnoreMenuItem;
+    @FXML
+    private Menu repoMenu;
+    @FXML
+    private MenuItem cloneMenuItem;
+    @FXML
+    private MenuItem createBranchMenuItem;
+    @FXML
+    private MenuItem commitNormalMenuItem;
+    @FXML
+    private MenuItem normalFetchMenuItem;
+    @FXML
+    private MenuItem pullMenuItem;
+    @FXML
+    private MenuItem pushMenuItem;
+    @FXML
+    private MenuItem stashMenuItem1;
+    @FXML
+    private MenuItem stashMenuItem2;
+    @FXML
+    private MenuItem reenableWindowResizing;
 
     // Normally, our MVC-like setup should put the toggle status in the model. However, the FX
     // CheckMenuItem can't be bound to that; it is set here and automatically toggled when the menu is selected.
     // So, this is the primary space the status is being stored; and the model status is bound to this one.
-    @FXML private CheckMenuItem loggingToggle;
-    @FXML private CheckMenuItem commitSortToggle;
-    @FXML private CheckMenuItem remoteStatusCheckToggle;
+    @FXML
+    private CheckMenuItem loggingToggle;
+    @FXML
+    private CheckMenuItem commitSortToggle;
+    @FXML
+    private CheckMenuItem remoteStatusCheckToggle;
 
     private static final Logger logger = LogManager.getLogger();
 
@@ -77,15 +92,15 @@ public class MenuController {
 
     /**
      * Sets up keyboard shortcuts for menu items
-     *
-     *  Combinations:
-     *  CMD-N   Clone
-     *  Shift + CMD-B   Branch
-     *  Shift + CMD-C   Commit
-     *  Shift + CMD-F   Fetch
-     *  Shift + CMD-L   Pull
-     *  Shift + CMD-P   Push (current branch)
-     *  Shift + CMD-S   Stash (manager)
+     * <p>
+     * Combinations:
+     * CMD-N   Clone
+     * Shift + CMD-B   Branch
+     * Shift + CMD-C   Commit
+     * Shift + CMD-F   Fetch
+     * Shift + CMD-L   Pull
+     * Shift + CMD-P   Push (current branch)
+     * Shift + CMD-S   Stash (manager)
      */
     private void initMenuBarShortcuts() {
         cloneMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.N, KeyCombination.META_DOWN));
@@ -112,11 +127,6 @@ public class MenuController {
         sessionController.handleCommitSortToggle();
     }
 
-    public synchronized void handleRemoteStatusCheckToggle() {
-        RepositoryMonitor.flipRemoteStatusChecking();
-    }
-
-
     private String getVersion() {
         String path = "/version.prop";
         InputStream stream = getClass().getResourceAsStream(path);
@@ -133,7 +143,7 @@ public class MenuController {
     }
 
     public synchronized void handleAbout() {
-        try{
+        try {
             logger.info("About clicked");
             // Create and display the Stage:
             FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/About.fxml"));
@@ -149,7 +159,7 @@ public class MenuController {
             stage.initModality(Modality.APPLICATION_MODAL);
             stage.setOnCloseRequest(event -> logger.info("Closed about"));
             stage.show();
-        }catch(IOException e) {
+        } catch (IOException e) {
             sessionController.showGenericErrorNotification(e);
             e.printStackTrace();
         }
@@ -172,8 +182,7 @@ public class MenuController {
     // "Edit" Dropdown Menu Item:
 
     // TODO: Make sure GitIgnoreEditor is threadsafe
-    public void handleGitIgnoreMenuItem()
-    {
+    public void handleGitIgnoreMenuItem() {
         GitIgnoreEditor.show(SessionModel.getSessionModel().getCurrentRepoHelper(), null);
     }
 
@@ -255,8 +264,4 @@ public class MenuController {
         sessionController.handleStashDropButton();
     }
 
-    public boolean getRemoteToggleStatus() {
-        Main.assertFxThread();
-        return remoteStatusCheckToggle.isSelected();
-    }
 }
