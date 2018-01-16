@@ -15,6 +15,7 @@ import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.text.Text;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import junit.framework.TestCase;
@@ -241,55 +242,30 @@ public class SshPrivateKeyPasswordExistingFXTest extends ApplicationTest {
                                          directoryPath.resolve("testing_known_hosts").toString());
             helper.obtainRepository(remoteURL);
 
+            // Make sure initial status is correct
+            Text branchStatusText = lookup("#branchStatusText").query();
+            assertEquals("",branchStatusText.getText());
+
+            Text needToFetch = lookup("#needToFetch").query();
+            assertEquals("",needToFetch.getText());
+
             // Open as an existing repo
             clickOn("#loadNewRepoButton")
                     .clickOn("#loadExistingRepoOption")
                     .clickOn("#repoInputDialog")
                     .write(local.toString() + "\n");
-//                    .clickOn("#remoteURLField")
-//                    .write(remoteURL)
-//                    .clickOn("#enclosingFolderField")
-//                    .write(testingRemoteAndLocalRepos.getDirectoryPath().toString())
-//                    .doubleClickOn("#repoNameField")
-//                    .write(testingRemoteAndLocalRepos.getLocalBrief().toString())
-//                    .clickOn("#cloneButton")
-//
-//                    // Enter in private key location
-//                    .clickOn("#repoInputDialog")
-//                    .write(getClass().getResource(privateKeyFileLocation).getFile())
-//                    .clickOn("#repoInputDialogOK")
-//
-//                    // Enter in known hosts location
-//                    .clickOn("#repoInputDialog")
-//                    .write(knownHostsFileLocation.toString())
-//                    .clickOn("#repoInputDialogOK")
-//
-//                    // Useless HTTP login screen that should eventually go away
-//                    .clickOn("#loginButton");
-//
-//
-//            RepositoryMonitor.pause();
-//            Thread.sleep(1000);
-//
-//            clickOn("Yes");
-//
-//            Thread.sleep(1000);
-//            // Enter passphrase
-//            clickOn("#sshprompt")
-//                    .write(passphrase)
-//                    .write("\n");
-//
-//            // Wait until a node is in the graph, indicating clone is done
-//            Callable<Node> callable = () -> {return lookup("#tree-cell").query();};
-//            GuiTest.waitUntil(callable, Matchers.notNullValue(Node.class));
-//
+
+
+            // Since remote checking should still be off, make sure status is empty
+            branchStatusText = lookup("#branchStatusText").query();
+            assertEquals("",branchStatusText.getText());
+
+            // Make sure no errors occurred
             assertNotEquals(null, RepositoryMonitor.getSessionController());
             assertEquals(0, ExceptionAdapter.getWrappedCount());
-
             assertEquals(0, sessionController.getNotificationPaneController().getNotificationNum());
 
 
-            //Thread.sleep(5000);
             // Shut down test SSH server
             sshd.stop();
         }

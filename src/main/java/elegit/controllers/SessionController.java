@@ -124,6 +124,7 @@ public class SessionController {
     @FXML private Text needToFetch;
     @FXML private Text branchStatusText;
 
+
     @FXML private ContextMenu pushContextMenu;
     @FXML private ContextMenu commitContextMenu;
     @FXML private ContextMenu fetchContextMenu;
@@ -400,17 +401,23 @@ public class SessionController {
      */
     private void updateStatusText(){
         Main.assertFxThread();
-        if (this.theModel.getCurrentRepoHelper()==null) return;
-        boolean update;
 
-        update = RepositoryMonitor.hasFoundNewRemoteChanges.get();
+        RepoHelper repoHelper = theModel.getCurrentRepoHelper();
+
+        if (repoHelper == null || !repoHelper.getRemoteStatusChecking()) {
+            branchStatusText.setText("");
+            needToFetch.setText("");
+            return;
+        }
+
+        boolean update = RepositoryMonitor.hasFoundNewRemoteChanges.get();
         String fetchText = update ? "New changes to fetch" : "Up to date";
         Color fetchColor = update ? Color.FIREBRICK : Color.FORESTGREEN;
         needToFetch.setText(fetchText);
         needToFetch.setFont(new Font(15));
         needToFetch.setFill(fetchColor);
 
-        BranchHelper localBranch = this.theModel.getCurrentRepoHelper().getBranchModel().getCurrentBranch();
+        BranchHelper localBranch = repoHelper.getBranchModel().getCurrentBranch();
         update = !localBranch.getAbbrevName().equals(currentLocalBranchLabel.getText());
         if (update) {
             Platform.runLater(() -> {
@@ -424,9 +431,9 @@ public class SessionController {
         String remoteBranchFull = "N/A";
         CommitHelper remoteHead = null;
         try {
-            remoteBranch = this.theModel.getCurrentRepoHelper().getBranchModel().getCurrentRemoteAbbrevBranch();
-            remoteHead = this.theModel.getCurrentRepoHelper().getBranchModel().getCurrentRemoteBranchHead();
-            remoteBranchFull = this.theModel.getCurrentRepoHelper().getBranchModel().getCurrentRemoteBranch();
+            remoteBranch = repoHelper.getBranchModel().getCurrentRemoteAbbrevBranch();
+            remoteHead = repoHelper.getBranchModel().getCurrentRemoteBranchHead();
+            remoteBranchFull = repoHelper.getBranchModel().getCurrentRemoteBranch();
         } catch (IOException e) {
             this.showGenericErrorNotification(e);
         }
@@ -451,8 +458,8 @@ public class SessionController {
         // Ahead/behind count
         int ahead=0, behind=0;
         try {
-            ahead = this.theModel.getCurrentRepoHelper().getAheadCount();
-            behind = this.theModel.getCurrentRepoHelper().getBehindCount();
+            ahead = repoHelper.getAheadCount();
+            behind = repoHelper.getBehindCount();
         } catch (IOException e) {
             this.showGenericErrorNotification(e);
         }
