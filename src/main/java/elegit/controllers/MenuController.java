@@ -4,7 +4,6 @@ import elegit.Main;
 import elegit.gui.GitIgnoreEditor;
 import elegit.models.LoggingModel;
 import elegit.models.SessionModel;
-import elegit.monitors.RepositoryMonitor;
 import elegit.treefx.TreeLayout;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -65,8 +64,6 @@ public class MenuController {
     private CheckMenuItem loggingToggle;
     @FXML
     private CheckMenuItem commitSortToggle;
-    @FXML
-    private CheckMenuItem remoteStatusCheckToggle;
 
     private static final Logger logger = LogManager.getLogger();
 
@@ -77,7 +74,6 @@ public class MenuController {
         TreeLayout.bindSorting(commitSortToggle.selectedProperty());
 
         commitSortToggle.setSelected(true); //default
-        remoteStatusCheckToggle.setSelected(true);
 
         // Workaround for this bug:
         // http://bugs.java.com/bugdatabase/view_bug.do?bug_id=8140491

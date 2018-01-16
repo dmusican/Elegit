@@ -18,10 +18,6 @@
                 <CheckMenuItem   text="Sort Commits Topologically"
                             fx:id="commitSortToggle"
                             onAction="#handleCommitSortToggle"/>
-                <CheckMenuItem   text="Check remote frequently for updates"
-                                 fx:id="remoteStatusCheckToggle"
-                />
-                <!--onAction="#handleRemoteStatusCheckToggle"-->
                 <MenuItem   text="Re-enable window resizing"
                             fx:id="reenableWindowResizing"
                             onAction="#handleReenableWindowResizing"/>

@@ -602,13 +602,11 @@ public class SessionController {
     public synchronized Single<Boolean> initPanelViewsWhenSubscribed() {
         Main.assertFxThread();
         try {
-            System.out.println("SessionController.initPanelViewsWhenSubscribed 10");
             workingTreePanelView.drawDirectoryView();
             allFilesPanelView.drawDirectoryView();
             indexPanelView.drawDirectoryView();
             setBrowserURL();
             resetRemoteConnectedCheckbox();
-            System.out.println("SessionController.initPanelViewsWhenSubscribed 50");
             return commitTreeModel.initializeModelForNewRepoWhenSubscribed();
         } catch (GitAPIException | IOException e) {
             showGenericErrorNotification(e);
