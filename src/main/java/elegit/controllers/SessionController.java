@@ -13,6 +13,7 @@ import elegit.treefx.CommitTreeModel;
 import elegit.treefx.CommitTreePanelView;
 import elegit.treefx.Highlighter;
 import elegit.treefx.TreeLayout;
+import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.ObservableSource;
 import io.reactivex.Single;
@@ -20,7 +21,6 @@ import io.reactivex.rxjavafx.schedulers.JavaFxScheduler;
 import io.reactivex.schedulers.Schedulers;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.Property;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -614,9 +614,9 @@ public class SessionController {
             allFilesPanelView.drawDirectoryView();
             indexPanelView.drawDirectoryView();
             setBrowserURL();
-            authenticateToRemote();
-            resetRemoteConnectedCheckbox();
-            return commitTreeModel.initializeModelForNewRepoWhenSubscribed();
+            return authenticateToRemoteWhenSubscribed()
+                    .flatMap(unused -> resetRemoteConnectedCheckboxWhenSubscribed())
+                    .flatMap(unused -> commitTreeModel.initializeModelForNewRepoWhenSubscribed());
         } catch (GitAPIException | IOException e) {
             showGenericErrorNotification(e);
         }
@@ -673,43 +673,49 @@ public class SessionController {
           * This is intended to be done as part of repo loading, and so should only be done behind an already visible
           * BusyWindow.
           */
-    private void authenticateToRemote() {
-        Main.assertFxThread();
+    private Single<Boolean> authenticateToRemoteWhenSubscribed() {
 
-        RepoHelper repoHelper = this.theModel.getCurrentRepoHelper();
-        if (repoHelper != null) {
-            // This should be done as part of a process where either the busy window is up, or initialization is still
-            // going on
-            Main.assertAndLog(BusyWindow.isShowing() || !Main.initializationComplete.get(),
-                                      "authenticateToRemote: busyWindow is not showing");
-            Collection<Ref> refs = repoHelper.getRefsFromRemote(false);
-            if (refs != null) {
-                repoHelper.setRemoteStatusChecking(true);
+        return Single.fromCallable(() -> {
+            Main.assertFxThread();
+
+            RepoHelper repoHelper = this.theModel.getCurrentRepoHelper();
+            if (repoHelper != null) {
+                Collection<Ref> refs = repoHelper.getRefsFromRemote(false);
+                if (refs != null) {
+                    repoHelper.setRemoteStatusChecking(true);
+                }
             }
-        }
+
+            return true;
+        });
     }
 
     /**
      * Resets the status of the checkbox associated with the remote connections.
      */
-    private void resetRemoteConnectedCheckbox() {
-        Main.assertFxThread();
+    private Single<Boolean> resetRemoteConnectedCheckboxWhenSubscribed() {
 
-        RepoHelper currentRepoHelper = this.theModel.getCurrentRepoHelper();
+        return Single.fromCallable(() -> {
+            Main.assertFxThread();
 
-        if (remoteConnectedCheckboxPreviousBinding != null) {
-            remoteConnected.selectedProperty().unbindBidirectional(remoteConnectedCheckboxPreviousBinding);
-        }
+            RepoHelper currentRepoHelper = this.theModel.getCurrentRepoHelper();
 
-        if (currentRepoHelper == null || !currentRepoHelper.exists()) {
-            remoteConnected.setSelected(false);
-            remoteConnected.setDisable(true);
-        } else {
-            remoteConnected.setDisable(false);
-            BooleanProperty remoteStatusCheckingProperty = currentRepoHelper.getRemoteStatusCheckingProperty();
-            remoteConnectedCheckboxPreviousBinding = remoteStatusCheckingProperty;
-            remoteConnected.selectedProperty().bindBidirectional(remoteStatusCheckingProperty);
-        }
+            if (remoteConnectedCheckboxPreviousBinding != null) {
+                remoteConnected.selectedProperty().unbindBidirectional(remoteConnectedCheckboxPreviousBinding);
+            }
+
+            if (currentRepoHelper == null || !currentRepoHelper.exists()) {
+                remoteConnected.setSelected(false);
+                remoteConnected.setDisable(true);
+            } else {
+                remoteConnected.setDisable(false);
+                BooleanProperty remoteStatusCheckingProperty = currentRepoHelper.getRemoteStatusCheckingProperty();
+                remoteConnectedCheckboxPreviousBinding = remoteStatusCheckingProperty;
+                remoteConnected.selectedProperty().bindBidirectional(remoteStatusCheckingProperty);
+            }
+
+            return true;
+        });
     }
 
 
