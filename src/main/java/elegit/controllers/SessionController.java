@@ -53,6 +53,7 @@ import org.eclipse.jgit.api.PushCommand;
 import org.eclipse.jgit.api.ResetCommand;
 import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.errors.NoMergeBaseException;
+import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.jgit.transport.RemoteRefUpdate;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
@@ -613,6 +614,7 @@ public class SessionController {
             allFilesPanelView.drawDirectoryView();
             indexPanelView.drawDirectoryView();
             setBrowserURL();
+            authenticateToRemote();
             resetRemoteConnectedCheckbox();
             return commitTreeModel.initializeModelForNewRepoWhenSubscribed();
         } catch (GitAPIException | IOException e) {
@@ -664,6 +666,27 @@ public class SessionController {
 
         browserText.setFill(Color.DARKCYAN);
         browserText.setUnderline(true);
+    }
+
+    /**
+          * Tries to authenticate to remote, and sets status as appropriate.
+          * This is intended to be done as part of repo loading, and so should only be done behind an already visible
+          * BusyWindow.
+          */
+    private void authenticateToRemote() {
+        Main.assertFxThread();
+
+        RepoHelper repoHelper = this.theModel.getCurrentRepoHelper();
+        if (repoHelper != null) {
+            // This should be done as part of a process where either the busy window is up, or initialization is still
+            // going on
+            Main.assertAndLog(BusyWindow.isShowing() || !Main.initializationComplete.get(),
+                                      "authenticateToRemote: busyWindow is not showing");
+            Collection<Ref> refs = repoHelper.getRefsFromRemote(false);
+            if (refs != null) {
+                repoHelper.setRemoteStatusChecking(true);
+            }
+        }
     }
 
     /**

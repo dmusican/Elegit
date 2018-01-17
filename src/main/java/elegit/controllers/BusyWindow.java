@@ -98,4 +98,10 @@ public class BusyWindow {
         Main.assertFxThread();
         loadingMessage.setText(message);
     }
+
+    public static boolean isShowing() {
+        Main.assertFxThread();
+        return window.isShowing();
+    }
+
 }

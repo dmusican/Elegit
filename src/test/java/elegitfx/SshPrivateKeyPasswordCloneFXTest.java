@@ -199,7 +199,7 @@ public class SshPrivateKeyPasswordCloneFXTest extends ApplicationTest {
         console.info("firstCommit name = " + firstCommit.getName());
 
         // Uncomment this to get detail SSH logging info, for debugging
-        JSch.setLogger(new MyLogger());
+        // JSch.setLogger(new MyLogger());
 
         // Set up test SSH server.
         try (SshServer sshd = SshServer.setUpDefaultServer()) {

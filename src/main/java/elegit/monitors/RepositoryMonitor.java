@@ -152,8 +152,7 @@ public class RepositoryMonitor{
             } else {
                 return true;
             }
-        }catch(GitAPIException | IOException e)
-        {
+        }catch (IOException e) {
             // If exception thrown, stop monitoring. This could undoubtedly be made fancier and better, but
             // it is better to stop checking than it is to keep hammering a server with bad authentication.
             Platform.runLater(() -> {
