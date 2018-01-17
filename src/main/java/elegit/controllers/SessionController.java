@@ -676,21 +676,6 @@ public class SessionController {
           * BusyWindow.
           */
     private Single<Boolean> authenticateToRemoteWhenSubscribed() {
-//
-//        return Single.fromCallable(() -> {
-//            Main.assertFxThread();
-//
-//            RepoHelper repoHelper = this.theModel.getCurrentRepoHelper();
-//            if (repoHelper != null) {
-//                Collection<Ref> refs = repoHelper.getRefsFromRemote(false);
-//                if (refs != null) {
-//                    repoHelper.setRemoteStatusChecking(true);
-//                }
-//            }
-//
-//            return true;
-//        });
-
         return Single.fromCallable(() -> {
                     RepoHelper repoHelper = theModel.getCurrentRepoHelper();
                     if (repoHelper != null) {
@@ -841,7 +826,6 @@ public class SessionController {
         doGitOperationWhenSubscribed(gitOp)
                 .flatMap((result) -> {
                     if (result.equals("success")) {
-                        System.out.println("SessionController.loadDesignatedRepo " + Thread.currentThread());
                         return initPanelViewsWhenSubscribed()
                         .map(unused -> doGitStatusWhenSubscribed())
                         .doOnSuccess(unused -> {

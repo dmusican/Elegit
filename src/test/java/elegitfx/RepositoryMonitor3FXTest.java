@@ -84,7 +84,6 @@ public class RepositoryMonitor3FXTest extends ApplicationTest {
 
     @After
     public void tearDown() {
-        System.out.println("Tearing down");
         assertEquals(0,Main.getAssertionCount());
     }
 
