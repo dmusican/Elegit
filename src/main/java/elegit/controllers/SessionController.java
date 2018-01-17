@@ -76,6 +76,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.prefs.BackingStoreException;
 
+import static java.util.Optional.of;
+
 /**
  * The controller for the entire session.
  */
@@ -674,20 +676,39 @@ public class SessionController {
           * BusyWindow.
           */
     private Single<Boolean> authenticateToRemoteWhenSubscribed() {
+//
+//        return Single.fromCallable(() -> {
+//            Main.assertFxThread();
+//
+//            RepoHelper repoHelper = this.theModel.getCurrentRepoHelper();
+//            if (repoHelper != null) {
+//                Collection<Ref> refs = repoHelper.getRefsFromRemote(false);
+//                if (refs != null) {
+//                    repoHelper.setRemoteStatusChecking(true);
+//                }
+//            }
+//
+//            return true;
+//        });
 
         return Single.fromCallable(() -> {
-            Main.assertFxThread();
+                    RepoHelper repoHelper = theModel.getCurrentRepoHelper();
+                    if (repoHelper != null) {
+                        return Optional.of(repoHelper.getRefsFromRemote(false));
+                    } else {
+                        return Optional.empty();
+                    }
+                })
+                .subscribeOn(Schedulers.io())
 
-            RepoHelper repoHelper = this.theModel.getCurrentRepoHelper();
-            if (repoHelper != null) {
-                Collection<Ref> refs = repoHelper.getRefsFromRemote(false);
-                if (refs != null) {
-                    repoHelper.setRemoteStatusChecking(true);
-                }
-            }
+                .observeOn(JavaFxScheduler.platform())
+                .map(refs -> {
+                    if (refs.isPresent()) {
+                        theModel.getCurrentRepoHelper().setRemoteStatusChecking(true);
+                    }
 
-            return true;
-        });
+                    return true;
+                });
     }
 
     /**
@@ -2130,7 +2151,7 @@ public class SessionController {
 
 
         if (response != null) {
-            return Optional.of(response);
+            return of(response);
         } else
             return Optional.empty();
     }
