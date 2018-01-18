@@ -161,6 +161,7 @@ public class SessionController {
     public static final Object globalLock = new Object();
 
 
+    private static final Logger console = LogManager.getLogger("briefconsolelogger");
 
     // Used for testing purposes; look at testing code to see where used
     public static CountDownLatch gitStatusCompletedOnce = new CountDownLatch(1);
@@ -199,7 +200,7 @@ public class SessionController {
 
         commitTreeProgressBarAndLabel.setAlignment(Pos.CENTER);
         commitTreeProgressBarAndLabel.setVisible(false);
-
+        console.info("SessionController.initialize(203)");
         //BusyWindow.show();
         // SLOW
         // here now looking
@@ -209,6 +210,8 @@ public class SessionController {
                     this.setRecentReposDropdownToCurrentRepo();
                     this.refreshRecentReposInDropdown();
 
+                    console.info("Spot 1");
+                    System.out.println("SessionController.initialize");
                     this.initRepositoryMonitor();
 
                     this.initStatusText();
@@ -227,7 +230,7 @@ public class SessionController {
                     // Now finally start watching repositories
                     RepositoryMonitor.unpause();
 
-                }).subscribe();
+                }).subscribe(unused -> {}, t -> new ExceptionAdapter(t));
     }
 
     @FXML void handleFetchButton() {

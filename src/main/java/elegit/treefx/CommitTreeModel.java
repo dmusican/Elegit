@@ -40,6 +40,7 @@ public class CommitTreeModel{
     private static final CommitTreeModel commitTreeModel = new CommitTreeModel();
 
     private static final Logger logger = LogManager.getLogger();
+    private static final Logger console = LogManager.getLogger("briefconsolelogger");
 
     // The view corresponding to this model
     private final AtomicReference<CommitTreePanelView> view = new AtomicReference<>();

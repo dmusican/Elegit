@@ -56,6 +56,7 @@ public class RepositoryMonitor{
     private static final AtomicReference<SessionController> sessionController = new AtomicReference<>();
 
     private static final Logger logger = LogManager.getLogger();
+    private static final Logger console = LogManager.getLogger("briefconsolelogger");
 
     public synchronized static void init(SessionController controller) {
         RepositoryMonitor.sessionController.set(controller);
@@ -122,6 +123,7 @@ public class RepositoryMonitor{
                 return false;
             }
 
+            console.info("RepositoryMonitor.remoteHasNewChanges(126)");
             // Only increment if actually going to check
             numRemoteChecks.getAndIncrement();
 
