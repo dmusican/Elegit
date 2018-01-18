@@ -123,7 +123,6 @@ public class RepositoryMonitor{
                 return false;
             }
 
-            console.info("RepositoryMonitor.remoteHasNewChanges(126)");
             // Only increment if actually going to check
             numRemoteChecks.getAndIncrement();
 
