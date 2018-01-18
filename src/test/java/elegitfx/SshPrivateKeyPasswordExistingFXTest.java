@@ -9,6 +9,7 @@ import elegit.models.ClonedRepoHelper;
 import elegit.models.ExistingRepoHelper;
 import elegit.models.SessionModel;
 import elegit.monitors.RepositoryMonitor;
+import elegit.sshauthentication.ElegitUserInfoGUI;
 import elegit.sshauthentication.ElegitUserInfoTest;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Rectangle2D;
@@ -39,6 +40,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestName;
 import org.loadui.testfx.GuiTest;
+import org.loadui.testfx.controls.impl.VisibleNodesMatcher;
 import org.testfx.framework.junit.ApplicationTest;
 import sharedrules.TestingLogPathRule;
 import sharedrules.TestingRemoteAndLocalReposRule;
@@ -139,6 +141,8 @@ public class SshPrivateKeyPasswordExistingFXTest extends ApplicationTest {
         Rectangle2D primScreenBounds = Screen.getPrimary().getVisualBounds();
         Scene scene = new Scene(root, 800, 600);
         stage.setScene(scene);
+        stage.setX(0);
+        stage.setY(0);
         sessionController.setStageForNotifications(stage);
         stage.show();
         stage.toFront();
@@ -265,8 +269,30 @@ public class SshPrivateKeyPasswordExistingFXTest extends ApplicationTest {
             assertEquals(0, ExceptionAdapter.getWrappedCount());
             assertEquals(0, sessionController.getNotificationPaneController().getNotificationNum());
 
+            clickOn("#remoteConnected");
+
+            // Wait for known hosts confirmation dialog, then click
+            GuiTest.waitUntil("Yes", Matchers.is(VisibleNodesMatcher.visible()));
+            clickOn("Yes");
+
+            // RepositoryMonitor shouldn't be checking yet, because even though we have enabled remoteConnected,
+            // we have not actually succeeded until the password has been taken and we've verified that we can
+            // do it.
+            Thread.sleep(RepositoryMonitor.REMOTE_CHECK_INTERVAL);
+            assertEquals(0, RepositoryMonitor.getNumRemoteChecks());
+
+//            // Enter passphrase
+//            clickOn("#sshprompt")
+//                    .write(passphrase)
+//                    .write("\n");
+//
+//            // Wait until a node is in the graph, indicating clone is done
+//            Callable<Node> callable = () -> {return lookup("#tree-cell").query();};
+//            GuiTest.waitUntil(callable, Matchers.notNullValue(Node.class));
+
 
             // Shut down test SSH server
+            assertEquals(0, ExceptionAdapter.getWrappedCount());
             sshd.stop();
         }
     }

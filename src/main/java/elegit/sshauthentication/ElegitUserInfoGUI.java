@@ -30,7 +30,6 @@ public class ElegitUserInfoGUI implements UserInfo {
     @GuardedBy("this") private Optional<String> passphrase;
     private static final Logger logger = LogManager.getLogger();
 
-
     public ElegitUserInfoGUI() {
         password = Optional.empty();
         passphrase = Optional.empty();
@@ -133,6 +132,7 @@ public class ElegitUserInfoGUI implements UserInfo {
             alert.setTitle("SSH yes/no confirmation");
             alert.setHeaderText("SSH yes/no question.");
             alert.setContentText(s);
+
 
             alert.getButtonTypes().setAll(ButtonType.YES, ButtonType.NO);
             Optional<ButtonType> result = alert.showAndWait();

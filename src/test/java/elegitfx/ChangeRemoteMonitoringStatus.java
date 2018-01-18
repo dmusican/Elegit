@@ -103,7 +103,7 @@ public class ChangeRemoteMonitoringStatus extends ApplicationTest {
 
         interact(() -> {
             assertEquals(false, sessionController.getRemoteConnectedStatus());
-            assertEquals(true, sessionController.getRemoteConnectedDiabledStatus());
+            assertEquals(true, sessionController.getRemoteConnectedDisabledStatus());
         });
 
 

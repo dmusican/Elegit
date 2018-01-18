@@ -2839,7 +2839,7 @@ public class SessionController {
         return remoteConnected.isSelected();
     }
 
-    public boolean getRemoteConnectedDiabledStatus() {
+    public boolean getRemoteConnectedDisabledStatus() {
         Main.assertFxThread();
         return remoteConnected.isDisabled();
     }
