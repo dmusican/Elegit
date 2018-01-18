@@ -1422,33 +1422,18 @@ public class RepoHelper {
      * @return a list of remotre references
      * @throws GitAPIException
      */
-    public Collection<Ref> getRefsFromRemote(boolean includeTags) throws GitAPIException {
-
-        //No UsernamePasswordCredentialsProvider is needed for this, as far as I can tell
-        //TODO: see if UsernamePasswordCredentialsProvider is needed to getRefsFromRemote
-        /*UsernamePasswordCredentialsProvider ownerAuth;
-        try {
-            ownerAuth = setRepoHelperAuthCredentialFromDialog();
-        } catch (CancelledAuthorizationException e) {
-            // If the user doesn't enter credentials for this action, then we'll leave the ownerAuth
-            // as null.
-            ownerAuth = null;
-        }
-        if(includeTags) return new Git(repo).lsRemote().setHeads(true).setTags(true).setCredentialsProvider(ownerAuth).call();
-        else return new Git(repo).lsRemote().setHeads(true).setCredentialsProvider(ownerAuth).call();*/
-
+    public Collection<Ref> getRefsFromRemote(boolean includeTags) {
         LsRemoteCommand command = new Git(getRepo()).lsRemote().setHeads(true);
         if (includeTags) {
             command = command.setTags(includeTags);
         }
         wrapAuthentication(command);
-        return Collections.unmodifiableCollection(command.call());
 
-
-//        if (includeTags)
-//            return Collections.unmodifiableCollection(new Git(getRepo()).lsRemote().setHeads(true).setTags(includeTags).call());
-//        else
-//            return Collections.unmodifiableCollection(new Git(getRepo()).lsRemote().setHeads(true).call());
+        try {
+            return Collections.unmodifiableCollection(command.call());
+        } catch (GitAPIException e) {
+            throw new ExceptionAdapter(e);
+        }
     }
 
     public List<RefHelper> getRefsForCommit(CommitHelper helper) {

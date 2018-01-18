@@ -149,10 +149,7 @@ public class RepositoryMonitor1FXTest extends ApplicationTest {
         for (int i=0; i < 3; i++) {
             GuiTest.waitUntil(dropdown, (ComboBox<RepoHelper> d) -> d.getValue().toString().equals("otherrepo"));
             clickOn(dropdown).clickOn("testrepo");
-//            sleep(5000);
             GuiTest.waitUntil(BusyWindow.window.isShowing(),org.hamcrest.Matchers.is(false));
-//            GuiTest.waitUntil(dropdown, (ComboBox<RepoHelper> d) -> d.getValue().toString().equals("testrepo"));
-//            GuiTest.waitUntil(dropdown, (ComboBox<RepoHelper> d) -> d.getItems().stream().anyMatch( (RepoHelper repo) -> repo.toString().equals("otherrepo")));
             interact(() -> System.out.println(dropdown.getItems()));
             clickOn(dropdown).clickOn("otherrepo");
             sleep(5000);

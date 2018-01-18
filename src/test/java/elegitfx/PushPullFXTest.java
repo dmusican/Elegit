@@ -72,6 +72,7 @@ public class PushPullFXTest extends ApplicationTest {
                 // Create a session model for helperPull so can later verify if changes have been seen
                 SessionModel model = SessionModel.getSessionModel();
                 model.openRepoFromHelper(helperPull);
+                helperPull.setRemoteStatusChecking(true);
                 RepositoryMonitor.initRemote();
             } catch (Exception e) {
                 throw new AssertionError(e);

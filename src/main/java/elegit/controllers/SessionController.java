@@ -13,6 +13,7 @@ import elegit.treefx.CommitTreeModel;
 import elegit.treefx.CommitTreePanelView;
 import elegit.treefx.Highlighter;
 import elegit.treefx.TreeLayout;
+import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.ObservableSource;
 import io.reactivex.Single;
@@ -20,7 +21,6 @@ import io.reactivex.rxjavafx.schedulers.JavaFxScheduler;
 import io.reactivex.schedulers.Schedulers;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.Property;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -53,6 +53,7 @@ import org.eclipse.jgit.api.PushCommand;
 import org.eclipse.jgit.api.ResetCommand;
 import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.errors.NoMergeBaseException;
+import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.jgit.transport.RemoteRefUpdate;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
@@ -74,6 +75,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.prefs.BackingStoreException;
+
+import static java.util.Optional.of;
 
 /**
  * The controller for the entire session.
@@ -616,8 +619,9 @@ public class SessionController {
             allFilesPanelView.drawDirectoryView();
             indexPanelView.drawDirectoryView();
             setBrowserURL();
-            resetRemoteConnectedCheckbox();
-            return commitTreeModel.initializeModelForNewRepoWhenSubscribed();
+            return authenticateToRemoteWhenSubscribed()
+                    .flatMap(unused -> resetRemoteConnectedCheckboxWhenSubscribed())
+                    .flatMap(unused -> commitTreeModel.initializeModelForNewRepoWhenSubscribed());
         } catch (GitAPIException | IOException e) {
             showGenericErrorNotification(e);
         }
@@ -670,26 +674,57 @@ public class SessionController {
     }
 
     /**
+          * Tries to authenticate to remote, and sets status as appropriate.
+          * This is intended to be done as part of repo loading, and so should only be done behind an already visible
+          * BusyWindow.
+          */
+    private Single<Boolean> authenticateToRemoteWhenSubscribed() {
+        return Single.fromCallable(() -> {
+                    RepoHelper repoHelper = theModel.getCurrentRepoHelper();
+                    if (repoHelper != null) {
+                        return Optional.of(repoHelper.getRefsFromRemote(false));
+                    } else {
+                        return Optional.empty();
+                    }
+                })
+                .subscribeOn(Schedulers.io())
+
+                .observeOn(JavaFxScheduler.platform())
+                .map(refs -> {
+                    if (refs.isPresent()) {
+                        theModel.getCurrentRepoHelper().setRemoteStatusChecking(true);
+                    }
+
+                    return true;
+                });
+    }
+
+    /**
      * Resets the status of the checkbox associated with the remote connections.
      */
-    private void resetRemoteConnectedCheckbox() {
-        Main.assertFxThread();
+    private Single<Boolean> resetRemoteConnectedCheckboxWhenSubscribed() {
 
-        RepoHelper currentRepoHelper = this.theModel.getCurrentRepoHelper();
+        return Single.fromCallable(() -> {
+            Main.assertFxThread();
 
-        if (remoteConnectedCheckboxPreviousBinding != null) {
-            remoteConnected.selectedProperty().unbindBidirectional(remoteConnectedCheckboxPreviousBinding);
-        }
+            RepoHelper currentRepoHelper = this.theModel.getCurrentRepoHelper();
 
-        if (currentRepoHelper == null || !currentRepoHelper.exists()) {
-            remoteConnected.setSelected(false);
-            remoteConnected.setDisable(true);
-        } else {
-            remoteConnected.setDisable(false);
-            BooleanProperty remoteStatusCheckingProperty = currentRepoHelper.getRemoteStatusCheckingProperty();
-            remoteConnectedCheckboxPreviousBinding = remoteStatusCheckingProperty;
-            remoteConnected.selectedProperty().bindBidirectional(remoteStatusCheckingProperty);
-        }
+            if (remoteConnectedCheckboxPreviousBinding != null) {
+                remoteConnected.selectedProperty().unbindBidirectional(remoteConnectedCheckboxPreviousBinding);
+            }
+
+            if (currentRepoHelper == null || !currentRepoHelper.exists()) {
+                remoteConnected.setSelected(false);
+                remoteConnected.setDisable(true);
+            } else {
+                remoteConnected.setDisable(false);
+                BooleanProperty remoteStatusCheckingProperty = currentRepoHelper.getRemoteStatusCheckingProperty();
+                remoteConnectedCheckboxPreviousBinding = remoteStatusCheckingProperty;
+                remoteConnected.selectedProperty().bindBidirectional(remoteStatusCheckingProperty);
+            }
+
+            return true;
+        });
     }
 
 
@@ -794,7 +829,6 @@ public class SessionController {
         doGitOperationWhenSubscribed(gitOp)
                 .flatMap((result) -> {
                     if (result.equals("success")) {
-                        System.out.println("SessionController.loadDesignatedRepo " + Thread.currentThread());
                         return initPanelViewsWhenSubscribed()
                         .map(unused -> doGitStatusWhenSubscribed())
                         .doOnSuccess(unused -> {
@@ -2104,7 +2138,7 @@ public class SessionController {
 
 
         if (response != null) {
-            return Optional.of(response);
+            return of(response);
         } else
             return Optional.empty();
     }
