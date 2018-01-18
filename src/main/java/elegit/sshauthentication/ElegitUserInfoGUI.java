@@ -71,10 +71,7 @@ public class ElegitUserInfoGUI implements UserInfo {
     // be slow, and should never be attempted from the FX thread at any rate.
     private Optional<String> prompt(String s, String title, String headerText, String contentText) {
             Main.assertNotFxThread();
-        System.out.println("ElegitUserInfoGUI.prompt start");
         FutureTask<Optional<String>> futureTask = new FutureTask<>(() -> {
-            System.out.println("ElegitUserInfoGUI.prompt");
-
             Dialog<String> dialog = new Dialog<>();
 
             GridPane grid = new GridPane();
@@ -123,11 +120,7 @@ public class ElegitUserInfoGUI implements UserInfo {
     public boolean promptYesNo(String s) {
         Main.assertNotFxThread();
 
-        System.out.println("ElegitUserInfoGUI.promptYesNo");
-        System.out.println("a" + Thread.currentThread());
         return Single.fromCallable(() -> {
-            System.out.println("ElegitUserInfoGUI.promptYesNo inside thread");
-
             Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
             alert.setTitle("SSH yes/no confirmation");
             alert.setHeaderText("SSH yes/no question.");

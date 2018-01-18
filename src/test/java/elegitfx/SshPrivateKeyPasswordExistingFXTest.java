@@ -189,7 +189,7 @@ public class SshPrivateKeyPasswordExistingFXTest extends ApplicationTest {
         console.info("firstCommit name = " + firstCommit.getName());
 
         // Uncomment this to get detail SSH logging info, for debugging
-        //        JSch.setLogger(new MyLogger());
+        JSch.setLogger(new MyLogger());
 
         // Set up test SSH server.
         try (SshServer sshd = SshServer.setUpDefaultServer()) {
@@ -236,6 +236,7 @@ public class SshPrivateKeyPasswordExistingFXTest extends ApplicationTest {
             Files.createFile(knownHostsFileLocation);
 
             // Clone the bare repo, using the SSH connection, to the local.
+            console.info("About to clone repo before bringing into Elegit");
             String remoteURL = "ssh://localhost:2222/" + testingRemoteAndLocalRepos.getRemoteBrief();
             console.info("Connecting to " + remoteURL);
             Path local = testingRemoteAndLocalRepos.getLocalFull();
@@ -245,6 +246,7 @@ public class SshPrivateKeyPasswordExistingFXTest extends ApplicationTest {
                                          getClass().getResource(privateKeyFileLocation).getFile(),
                                          directoryPath.resolve("testing_known_hosts").toString());
             helper.obtainRepository(remoteURL);
+            console.info("Repo cloned");
 
             // Make sure initial status is correct
             Text branchStatusText = lookup("#branchStatusText").query();
@@ -260,6 +262,18 @@ public class SshPrivateKeyPasswordExistingFXTest extends ApplicationTest {
                     .write(local.toString() + "\n");
 
 
+            // THIS IS WHERE TEST NEEDS TO BE FIXED; ON EXISTING REPO, NEED TO GET PRIVATE KEY IN THERE
+            // Enter in private key location
+            clickOn("#repoInputDialog")
+                    .write(getClass().getResource(privateKeyFileLocation).getFile())
+                    .clickOn("#repoInputDialogOK");
+
+            // Enter in known hosts location
+            clickOn("#repoInputDialog")
+                    .write(knownHostsFileLocation.toString())
+                    .clickOn("#repoInputDialogOK");
+
+
             // Since remote checking should still be off, make sure status is empty
             branchStatusText = lookup("#branchStatusText").query();
             assertEquals("",branchStatusText.getText());
@@ -269,27 +283,18 @@ public class SshPrivateKeyPasswordExistingFXTest extends ApplicationTest {
             assertEquals(0, ExceptionAdapter.getWrappedCount());
             assertEquals(0, sessionController.getNotificationPaneController().getNotificationNum());
 
-            clickOn("#remoteConnected");
 
             // Wait for known hosts confirmation dialog, then click
             GuiTest.waitUntil("Yes", Matchers.is(VisibleNodesMatcher.visible()));
             clickOn("Yes");
 
-            // RepositoryMonitor shouldn't be checking yet, because even though we have enabled remoteConnected,
-            // we have not actually succeeded until the password has been taken and we've verified that we can
-            // do it.
-            Thread.sleep(RepositoryMonitor.REMOTE_CHECK_INTERVAL);
-            assertEquals(0, RepositoryMonitor.getNumRemoteChecks());
+            // Enter passphrase
+            clickOn("#sshprompt")
+                    .write(passphrase)
+                    .write("\n");
 
-//            // Enter passphrase
-//            clickOn("#sshprompt")
-//                    .write(passphrase)
-//                    .write("\n");
-//
-//            // Wait until a node is in the graph, indicating clone is done
-//            Callable<Node> callable = () -> {return lookup("#tree-cell").query();};
-//            GuiTest.waitUntil(callable, Matchers.notNullValue(Node.class));
-
+            // Wait a while, to make sure that RepositoryMonitor has kicked in and is happy
+            Thread.sleep(10000);
 
             // Shut down test SSH server
             assertEquals(0, ExceptionAdapter.getWrappedCount());
