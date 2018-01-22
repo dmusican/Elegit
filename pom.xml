@@ -52,7 +52,7 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>2.20.1</version>
                 <configuration>
-                    <argLine> -Djava.awt.headless -Dtestfx.robot=glass -Dtestfx.headless=true -Dprism.order=sw -Dprism.text=t2k -Dtestfx.setup.timeout=20000</argLine>
+                    <!--<argLine> -Djava.awt.headless -Dtestfx.robot=glass -Dtestfx.headless=true -Dprism.order=sw -Dprism.text=t2k -Dtestfx.setup.timeout=20000</argLine>-->
                     <!-- https://github.com/TestFX/TestFX/issues/132 -->
                     <reuseForks>false</reuseForks>
                     <additionalClasspathElements>
@@ -176,13 +176,13 @@
         <dependency>
             <groupId>org.testfx</groupId>
             <artifactId>testfx-core</artifactId>
-            <version>4.0.8-alpha</version>
+            <version>4.0.10-alpha</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.testfx</groupId>
             <artifactId>testfx-junit</artifactId>
-            <version>4.0.8-alpha</version>
+            <version>4.0.10-alpha</version>
             <scope>test</scope>
         </dependency>
 

@@ -25,12 +25,14 @@ import org.junit.Before;
 import org.junit.Test;
 import org.loadui.testfx.GuiTest;
 import org.testfx.framework.junit.ApplicationTest;
+import org.testfx.util.WaitForAsyncUtils;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.prefs.Preferences;
 
 import static junit.framework.TestCase.assertEquals;
@@ -48,6 +50,7 @@ public class RepositoryMonitor1FXTest extends ApplicationTest {
     }
 
     private static final Logger logger = LogManager.getLogger();
+    private static final Logger console = LogManager.getLogger("briefconsolelogger");
 
     private SessionController sessionController;
     private static GuiTest testController;
@@ -66,10 +69,10 @@ public class RepositoryMonitor1FXTest extends ApplicationTest {
         sessionController = fxmlLoader.getController();
         Parent root = fxmlLoader.getRoot();
         Rectangle2D primScreenBounds = Screen.getPrimary().getVisualBounds();
-        int screenWidth = (int) primScreenBounds.getWidth();
-        int screenHeight = (int) primScreenBounds.getHeight();
-        Scene scene = new Scene(root, screenWidth*4/5, screenHeight*4/5);
+        Scene scene = new Scene(root, 800, 600);
         stage.setScene(scene);
+        stage.setX(0);
+        stage.setY(0);
         sessionController.setStageForNotifications(stage);
         stage.show();
         stage.toFront();
@@ -147,12 +150,23 @@ public class RepositoryMonitor1FXTest extends ApplicationTest {
 
 
         for (int i=0; i < 3; i++) {
-            GuiTest.waitUntil(dropdown, (ComboBox<RepoHelper> d) -> d.getValue().toString().equals("otherrepo"));
+            WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+                                      () -> dropdown.getValue().toString().equals("otherrepo"));
+
             clickOn(dropdown).clickOn("testrepo");
-            GuiTest.waitUntil(BusyWindow.window.isShowing(),org.hamcrest.Matchers.is(false));
-            interact(() -> System.out.println(dropdown.getItems()));
+
+            WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+                                      () -> !BusyWindow.window.isShowing());
+
+            interact(() -> console.info(dropdown.getItems()));
+            GuiTest.waitUntil(dropdown, (ComboBox<RepoHelper> d) -> d.getValue().toString().equals("testrepo"));
             clickOn(dropdown).clickOn("otherrepo");
-            sleep(5000);
+
+            WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+                                      () -> !BusyWindow.window.isShowing());
+
+            interact(() -> console.info(dropdown.getItems()));
+            //sleep(5000);
         }
 
         GuiTest.waitUntil(dropdown, (ComboBox<RepoHelper> d) -> d.getValue().toString().equals("otherrepo"));

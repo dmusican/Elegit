@@ -203,7 +203,6 @@ public class SessionController {
 
         commitTreeProgressBarAndLabel.setAlignment(Pos.CENTER);
         commitTreeProgressBarAndLabel.setVisible(false);
-        console.info("SessionController.initialize(203)");
         //BusyWindow.show();
         // SLOW
         // here now looking
@@ -213,8 +212,6 @@ public class SessionController {
                     this.setRecentReposDropdownToCurrentRepo();
                     this.refreshRecentReposInDropdown();
 
-                    console.info("Spot 1");
-                    System.out.println("SessionController.initialize");
                     this.initRepositoryMonitor();
 
                     this.initStatusText();
