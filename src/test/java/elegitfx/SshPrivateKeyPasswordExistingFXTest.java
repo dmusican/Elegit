@@ -284,9 +284,9 @@ public class SshPrivateKeyPasswordExistingFXTest extends ApplicationTest {
             assertEquals(0, sessionController.getNotificationPaneController().getNotificationNum());
 
 
-            // Wait for known hosts confirmation dialog, then click
-            GuiTest.waitUntil("Yes", Matchers.is(VisibleNodesMatcher.visible()));
-            clickOn("Yes");
+//            // Wait for known hosts confirmation dialog, then click
+//            GuiTest.waitUntil("Yes", Matchers.is(VisibleNodesMatcher.visible()));
+//            clickOn("Yes");
 
             // Enter passphrase
             clickOn("#sshprompt")
