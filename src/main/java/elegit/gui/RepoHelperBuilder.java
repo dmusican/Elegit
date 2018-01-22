@@ -5,6 +5,7 @@ import elegit.Main;
 import elegit.models.AuthMethod;
 import elegit.models.RepoHelper;
 import elegit.models.SessionModel;
+import io.reactivex.Single;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -57,6 +58,7 @@ public abstract class RepoHelperBuilder {
         public final String username;
         public final String password;
         public final boolean isSelected;
+
         public AuthDialogResponse(AuthMethod protocol, String username, String password, boolean isSelected) {
             this.protocol = protocol;
             this.username = username;
@@ -69,8 +71,6 @@ public abstract class RepoHelperBuilder {
 
 
     private static final Logger logger = LogManager.getLogger();
-
-    public abstract RepoHelper getRepoHelperFromDialogs() throws GitAPIException, IOException, NoRepoSelectedException, CancelledAuthorizationException;
 
     /**
      * Presents a file chooser and returns the chosen file.
@@ -90,15 +90,21 @@ public abstract class RepoHelperBuilder {
         // Could change parent window to non-null, but we want to be able
         // to move the file chooser around.
         if (Main.testMode) {
-            TextInputDialog repoInputDialog = new TextInputDialog();
-            DialogPane dialogPane = repoInputDialog.getDialogPane();
-            dialogPane.setId("repoInputDialog");
-            Node okButton = dialogPane.lookupButton(ButtonType.OK);
-            okButton.setId("repoInputDialogOK");
-            returnFile = new File(repoInputDialog.showAndWait().get());
+            returnFile = getFileByTypingPath("Enter repo location:");
         } else {
             returnFile = chooser.showDialog(null);
         }
+        return returnFile;
+    }
+
+    protected File getFileByTypingPath(String headerText) {
+        TextInputDialog repoInputDialog = new TextInputDialog();
+        repoInputDialog.setHeaderText(headerText);
+        DialogPane dialogPane = repoInputDialog.getDialogPane();
+        dialogPane.setId("repoInputDialog");
+        Node okButton = dialogPane.lookupButton(ButtonType.OK);
+        okButton.setId("repoInputDialogOK");
+        File returnFile = new File(repoInputDialog.showAndWait().get());
         return returnFile;
     }
 
@@ -129,7 +135,7 @@ public abstract class RepoHelperBuilder {
         grid.setVgap(10);
         grid.setPadding(new Insets(20, 150, 10, 10));
 
-        grid.add(new Label("Protocol:"),0,0);
+        grid.add(new Label("Protocol:"), 0, 0);
 
         ObservableList<String> protocols =
                 FXCollections.observableArrayList(
@@ -137,7 +143,7 @@ public abstract class RepoHelperBuilder {
                 );
         ComboBox<String> protocol = new ComboBox<>(protocols);
         protocol.setValue("HTTPS");
-        grid.add(protocol,1,0);
+        grid.add(protocol, 1, 0);
 
         grid.add(new Label("Username:"), 0, 1);
 
@@ -150,7 +156,7 @@ public abstract class RepoHelperBuilder {
         // Conditionally ask for the username if it hasn't yet been set.
         TextField username = new TextField();
 //        if (hashedUsername == null) {
-            username.setPromptText("Username");
+        username.setPromptText("Username");
 //        } else {
 //            username.setText(hashedUsername);
 //            username.setEditable(false);
@@ -185,13 +191,15 @@ public abstract class RepoHelperBuilder {
         if (hashedUsername == null) {
             editUsername.setVisible(false);
         }*/
-        grid.add(editUsername,2,1);
+        grid.add(editUsername, 2, 1);
 
         remember.setIndeterminate(false);
         grid.add(remember, 1, 3);
 
         // Enable/Disable login button depending on whether a password was entered.
         Node loginButton = dialog.getDialogPane().lookupButton(loginButtonType);
+        loginButton.setId("loginButton");
+
         //TODO: see above about password and username
         /*
         if (hashedPassword == null || hashedUsername == null) {
@@ -199,8 +207,10 @@ public abstract class RepoHelperBuilder {
         }*/
 
         // Do some validation (using the Java 8 lambda syntax).
-        password.textProperty().addListener((observable, oldValue, newValue) -> loginButton.setDisable(newValue.trim().isEmpty()));
-        username.textProperty().addListener((observable, oldValue, newValue) -> loginButton.setDisable(newValue.trim().isEmpty()));
+        password.textProperty().addListener(
+                (observable, oldValue, newValue) -> loginButton.setDisable(newValue.trim().isEmpty()));
+        username.textProperty().addListener(
+                (observable, oldValue, newValue) -> loginButton.setDisable(newValue.trim().isEmpty()));
 
         dialog.getDialogPane().setContent(grid);
 
@@ -227,7 +237,7 @@ public abstract class RepoHelperBuilder {
         UsernamePasswordCredentialsProvider ownerAuth;
 
         if (result.isPresent()) {
-                // TODO: Storing password must not be working -- this is all local
+            // TODO: Storing password must not be working -- this is all local
 //            UsernamePassword usernamePassword = new UsernamePassword();
 //            usernamePassword.username = result.get().username;
             //Only store password if remember password was selected
@@ -243,4 +253,6 @@ public abstract class RepoHelperBuilder {
         logger.info("Entered authorization credentials");
         return result.get();
     }
+
+    public abstract Single<RepoHelper> getRepoHelperFromDialogsWhenSubscribed();
 }

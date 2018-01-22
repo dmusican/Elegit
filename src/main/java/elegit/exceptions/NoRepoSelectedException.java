@@ -8,6 +8,6 @@ package elegit.exceptions;
  * box.
  *
  */
-public class NoRepoSelectedException extends Exception {
+public class NoRepoSelectedException extends RuntimeException {
 
 }

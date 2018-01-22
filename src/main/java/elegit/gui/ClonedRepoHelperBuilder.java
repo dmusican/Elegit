@@ -8,6 +8,9 @@ import elegit.models.AuthMethod;
 import elegit.models.ClonedRepoHelper;
 import elegit.models.RepoHelper;
 import elegit.sshauthentication.ElegitUserInfoGUI;
+import io.reactivex.Single;
+import io.reactivex.rxjavafx.schedulers.JavaFxScheduler;
+import io.reactivex.schedulers.Schedulers;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -62,7 +65,7 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
      * @return the new ClonedRepoHelper.
      */
     @Override
-    public RepoHelper getRepoHelperFromDialogs() throws GitAPIException, IOException, NoRepoSelectedException, CancelledAuthorizationException{
+    public Single<RepoHelper> getRepoHelperFromDialogsWhenSubscribed() {
         Main.assertFxThread();
         Dialog<Pair<String, String>> dialog = createCloneDialog();
         setUpDialogButtons(dialog);
@@ -74,10 +77,26 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
             // Unpack the destination-remote Pair created above:
             Path destinationPath = Paths.get(result.get().getKey());
             String remoteURL = result.get().getValue();
+            String additionalPrivateKey = null;
+            String knownHostsLocation = null;
+
+            // If in test mode, enter in a new private key file. Normally, this would be expected to be in an
+            // ssh/.config.
+            if (Main.testMode && remoteURL.startsWith("ssh:")) {
+                additionalPrivateKey = getFileByTypingPath("Enter private key location:").toString();
+                knownHostsLocation = getFileByTypingPath("Enter known hosts location:").toString();
+            }
 
             RepoHelperBuilder.AuthDialogResponse response = RepoHelperBuilder.getAuthCredentialFromDialog();
-            return cloneRepositoryWithChecks(remoteURL, destinationPath, response,
-                                                              new ElegitUserInfoGUI());
+
+            return cloneRepositoryWithChecksWhenSubscribed
+                    (
+                            remoteURL, destinationPath, response, new ElegitUserInfoGUI(), additionalPrivateKey,
+                            knownHostsLocation
+                    )
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(JavaFxScheduler.platform());
+
         } else {
             logger.info("Cloned repo helper dialog canceled");
             // This happens when the user pressed cancel.
@@ -102,6 +121,7 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
         cloneButtonType = new ButtonType("Clone", ButtonBar.ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().addAll(cloneButtonType, ButtonType.CANCEL);
         Node cloneButton = dialog.getDialogPane().lookupButton(cloneButtonType);
+        cloneButton.setId("cloneButton");
         cloneButton.setDisable(true);   // starts off as disabled
         dialog.setOnCloseRequest(event -> logger.info("Closed clone from remote dialog"));
     }
@@ -118,11 +138,16 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
                 "to be created in.");
 
         remoteURLField = new TextField();
+        remoteURLField.setId("remoteURLField");
         remoteURLField.setPromptText("Remote URL");
         if(prevRemoteURL != null) remoteURLField.setText(prevRemoteURL);
 
         enclosingFolderField = new TextField();
-        enclosingFolderField.setEditable(false); // for now, it will just show the folder you selected
+        enclosingFolderField.setId("enclosingFolderField");
+
+        // for now, it will just show the folder you selected, unless running system tests
+        enclosingFolderField.setEditable(Main.testMode);
+
         if(prevDestinationPath != null) enclosingFolderField.setText(prevDestinationPath);
 
         Text enclosingDirectoryPathText = new Text();
@@ -139,6 +164,7 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
         });
 
         repoNameField = new TextField();
+        repoNameField.setId("repoNameField");
         repoNameField.setPromptText("Repository name...");
         remoteURLField.textProperty().addListener((obs, oldText, newText) -> {
             repoNameField.setText(guessRepoName(newText));
@@ -217,8 +243,10 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
     // This method accesses no shared memory at all, and all calls within are threadsafe; hence
     // this does not actually have to run on the FX thread.
     public static RepoHelper cloneRepositoryWithChecks(String remoteURL, Path destinationPath,
-                                                RepoHelperBuilder.AuthDialogResponse response,
-                                                UserInfo userInfo)
+                                                       RepoHelperBuilder.AuthDialogResponse response,
+                                                       UserInfo userInfo,
+                                                       String additionalPrivateKey,
+                                                       String knownHostsLocation)
             throws GitAPIException, IOException, CancelledAuthorizationException, NoRepoSelectedException {
 
         // Always use authentication. If authentication is unneeded (HTTP), it will still work even if the wrong
@@ -235,9 +263,10 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
         // Try calling `git ls-remote ___` on the remote URL to see if it's valid
         TransportCommand command = Git.lsRemoteRepository().setRemote(remoteURL);
 
-
-        ClonedRepoHelper repoHelper = new ClonedRepoHelper(destinationPath, remoteURL, sshPassword, userInfo);
-        repoHelper.wrapAuthentication(command, credentials);
+        ClonedRepoHelper repoHelper = new ClonedRepoHelper(destinationPath, sshPassword, userInfo,
+                                                           additionalPrivateKey, knownHostsLocation);
+        repoHelper.setOwnerAuth(credentials);
+        repoHelper.wrapAuthentication(command);
         try {
             command.call();
         } catch (TransportException e) {
@@ -276,5 +305,18 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
         return repoHelper;
     }
 
+    public static Single<RepoHelper> cloneRepositoryWithChecksWhenSubscribed(
+            String remoteURL, Path destinationPath,
+            RepoHelperBuilder.AuthDialogResponse response,
+            UserInfo userInfo,
+            String additionalPrivateKey,
+            String knownHostsLocation)      {
+        return Single.fromCallable(() -> cloneRepositoryWithChecks(remoteURL,
+                                                                   destinationPath,
+                                                                   response,
+                                                                   userInfo,
+                                                                   additionalPrivateKey,
+                                                                   knownHostsLocation));
+    }
 
 }

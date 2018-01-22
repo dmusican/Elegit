@@ -7,21 +7,18 @@ import elegit.models.BranchHelper;
 import elegit.models.BranchModel;
 import elegit.models.RepoHelper;
 import io.reactivex.Observable;
+import io.reactivex.Single;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.exceptions.CompositeException;
 import io.reactivex.rxjavafx.schedulers.JavaFxScheduler;
 import io.reactivex.schedulers.Schedulers;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleIntegerProperty;
 import org.apache.http.annotation.GuardedBy;
 import org.apache.http.annotation.ThreadSafe;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.api.errors.TransportException;
 import org.eclipse.jgit.lib.Ref;
 
 import java.io.IOException;
@@ -54,15 +51,15 @@ public class RepositoryMonitor{
     @GuardedBy("this") private static int pauseCounter = 0;
     @GuardedBy("this") private static Disposable remoteTimer = Observable.empty().subscribe();
     @GuardedBy("this") private static Disposable localTimer = Observable.empty().subscribe();
-    @GuardedBy("this") private static SessionController controller;
     @GuardedBy("this") private static int exceptionCounter = 0;  // used for testing
 
     private static final AtomicReference<SessionController> sessionController = new AtomicReference<>();
 
     private static final Logger logger = LogManager.getLogger();
+    private static final Logger console = LogManager.getLogger("briefconsolelogger");
 
     public synchronized static void init(SessionController controller) {
-        RepositoryMonitor.controller = controller;
+        RepositoryMonitor.sessionController.set(controller);
         beginWatchingLocal();
         initRemote();
     }
@@ -99,11 +96,10 @@ public class RepositoryMonitor{
         remoteTimer = Observable
                 .interval(0, REMOTE_CHECK_INTERVAL, TimeUnit.MILLISECONDS, Schedulers.io())
                 .doOnNext(i -> {
-                    numRemoteChecks.getAndIncrement();
                     if (remoteHasNewChanges(repo))
                         setFoundNewChanges();
                 })
-                .subscribe();
+                .subscribe((unused) -> {}, (t) -> new ExceptionAdapter(t));
     }
 
     private static synchronized void stopWatchingRemoteRepo() {
@@ -115,9 +111,20 @@ public class RepositoryMonitor{
     // could block it up considerably. It uses no shared memory, and it makes calls to threadsafe libraries.
     private static boolean remoteHasNewChanges(RepoHelper repo) {
         try {
-            if (!repo.getRemoteAuthenticationSuccess()) {
+
+            // Check to see if status checking is disabled. Must be done on FX thread since it is stored in a bound
+            // property. If status checking disabled, don't do it.
+            boolean remoteStatusChecking =
+                    Single.just(1)
+                    .subscribeOn(JavaFxScheduler.platform())
+                    .map(unused -> repo.getRemoteStatusChecking())
+                    .blockingGet();
+            if (!remoteStatusChecking) {
                 return false;
             }
+
+            // Only increment if actually going to check
+            numRemoteChecks.getAndIncrement();
 
             List<BranchHelper> localOriginHeads = repo.getBranchModel().getBranchListUntyped(
                     BranchModel.BranchType.REMOTE);
@@ -146,11 +153,12 @@ public class RepositoryMonitor{
             } else {
                 return true;
             }
-        }catch(GitAPIException | IOException e)
-        {
+        }catch (IOException e) {
             // If exception thrown, stop monitoring. This could undoubtedly be made fancier and better, but
             // it is better to stop checking than it is to keep hammering a server with bad authentication.
-            repo.setRemoteAuthenticationSuccess(false);
+            Platform.runLater(() -> {
+                repo.setRemoteStatusChecking(false);
+            });
 
             SessionController sessionController = RepositoryMonitor.sessionController.get();
             // This work has been happening off FX thread, so notification needs to go back on it
@@ -158,7 +166,6 @@ public class RepositoryMonitor{
                 sessionController.showExceptionAsGlobalNotification(
                         new SessionController.Result(SessionController.ResultOperation.CHECK_REMOTE_FOR_CHANGES, e));
             });
-            e.printStackTrace();
         }
         return false;
     }
@@ -193,7 +200,7 @@ public class RepositoryMonitor{
                 //.subscribe();
                 // TODO: Get status back in here once I have it threaded right
                 // TODO: This is still really messy; it calls gitStatus, which pauses, which starts up again...
-                .subscribe(i -> controller.gitStatus(), throwable -> {
+                .subscribe(i -> sessionController.get().gitStatus(), throwable -> {
                     exceptionCounter++;
                     throw new ExceptionAdapter(throwable);
                 });
@@ -245,4 +252,10 @@ public class RepositoryMonitor{
     public static void setSessionController(SessionController sessionController) {
         RepositoryMonitor.sessionController.set(sessionController);
     }
+
+
+    public static SessionController getSessionController() {
+        return sessionController.get();
+    }
+
 }

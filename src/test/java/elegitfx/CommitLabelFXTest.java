@@ -94,7 +94,7 @@ public class CommitLabelFXTest extends ApplicationTest {
 
         // This repo doesn't check username/password for read-only
         UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider("", "");
-        helper = new ClonedRepoHelper(repoPath, remoteURL, credentials);
+        helper = new ClonedRepoHelper(repoPath, credentials);
         assertNotNull(helper);
         helper.obtainRepository(remoteURL);
 

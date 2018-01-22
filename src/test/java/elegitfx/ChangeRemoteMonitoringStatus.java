@@ -2,16 +2,15 @@ package elegitfx;
 
 import elegit.Main;
 import elegit.controllers.BusyWindow;
+import elegit.controllers.MenuController;
 import elegit.controllers.SessionController;
 import elegit.models.ClonedRepoHelper;
 import elegit.models.SessionModel;
 import elegit.monitors.RepositoryMonitor;
-import elegit.treefx.CommitTreeModel;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.ScrollPane;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
@@ -20,7 +19,6 @@ import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.loadui.testfx.GuiTest;
 import org.testfx.framework.junit.ApplicationTest;
 
 import java.io.IOException;
@@ -30,9 +28,10 @@ import java.nio.file.Paths;
 import java.util.prefs.Preferences;
 
 import static junit.framework.TestCase.assertEquals;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
-public class OpenLocalRepoFXTest extends ApplicationTest {
+public class ChangeRemoteMonitoringStatus extends ApplicationTest {
 
     static {
         // -----------------------Logging Initialization Start---------------------------
@@ -44,7 +43,7 @@ public class OpenLocalRepoFXTest extends ApplicationTest {
     private static final Logger logger = LogManager.getLogger();
 
     private SessionController sessionController;
-    private static GuiTest testController;
+    private MenuController menuController;
 
     @Override
     public void start(Stage stage) throws Exception {
@@ -70,6 +69,8 @@ public class OpenLocalRepoFXTest extends ApplicationTest {
         // TODO: Remove this pause and keep test working; no good reason for it to be necessary
         RepositoryMonitor.pause();
 
+        menuController = sessionController.getMenuController();
+
     }
 
     @Before
@@ -79,13 +80,14 @@ public class OpenLocalRepoFXTest extends ApplicationTest {
 
     @After
     public void tearDown() {
+        System.out.println("Tearing down");
         assertEquals(0,Main.getAssertionCount());
     }
 
 
 
     @Test
-    public void openLocalRepoTest() throws Exception {
+    public void changeRemoteMonitoringStatusTest() throws Exception {
         initializeLogger();
         Path directoryPath = Files.createTempDirectory("unitTestRepos");
         directoryPath.toFile().deleteOnExit();
@@ -100,13 +102,9 @@ public class OpenLocalRepoFXTest extends ApplicationTest {
         assertNotNull(helper);
 
         interact(() -> {
-            ScrollPane sp = sessionController.getCommitTreeModel().getTreeGraph().getScrollPane();
-            // Test that scroll pane has no content yet
-            assertTrue(sp.getScene() == null);
+            assertEquals(false, sessionController.getRemoteConnectedStatus());
+            assertEquals(true, sessionController.getRemoteConnectedDisabledStatus());
         });
-
-        CommitTreeModel.setAddCommitDelay(500);
-
 
 
         clickOn("#loadNewRepoButton")
@@ -117,25 +115,16 @@ public class OpenLocalRepoFXTest extends ApplicationTest {
 
         SessionController.gitStatusCompletedOnce.await();
 
-        interact(() -> {
-            ScrollPane sp = sessionController.getCommitTreeModel().getTreeGraph().getScrollPane();
-            // Test that scroll pane now has content in it
-            assertTrue(sp.getScene() != null);
-        });
+        int initNumRemoteChecks = RepositoryMonitor.getNumRemoteChecks();
+        Thread.sleep(RepositoryMonitor.REMOTE_CHECK_INTERVAL);
+        assertTrue(initNumRemoteChecks < RepositoryMonitor.getNumRemoteChecks());
 
+        clickOn("#remoteConnected");
 
+        initNumRemoteChecks = RepositoryMonitor.getNumRemoteChecks();
+        Thread.sleep(RepositoryMonitor.REMOTE_CHECK_INTERVAL);
+        assertEquals(initNumRemoteChecks, RepositoryMonitor.getNumRemoteChecks());
 
-        assertEquals(0,sessionController.getNotificationPaneController().getNotificationNum());
-
-        RepositoryMonitor.unpause();
-        sleep(Math.max(RepositoryMonitor.REMOTE_CHECK_INTERVAL,
-                RepositoryMonitor.LOCAL_CHECK_INTERVAL)+1000);
-        int numLocalChecks = RepositoryMonitor.getNumLocalChecks();
-        System.out.println("Number of local checks = " + numLocalChecks);
-        int numRemoteChecks = RepositoryMonitor.getNumRemoteChecks();
-        System.out.println("Number of remote checks = " + numRemoteChecks);
-        assertTrue(numLocalChecks > 0 && numLocalChecks < 5);
-        assertTrue(numRemoteChecks > 0 && numRemoteChecks < 5);
 
     }
 

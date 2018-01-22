@@ -13,6 +13,7 @@ import elegit.treefx.CommitTreeModel;
 import elegit.treefx.CommitTreePanelView;
 import elegit.treefx.Highlighter;
 import elegit.treefx.TreeLayout;
+import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.ObservableSource;
 import io.reactivex.Single;
@@ -52,6 +53,7 @@ import org.eclipse.jgit.api.PushCommand;
 import org.eclipse.jgit.api.ResetCommand;
 import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.errors.NoMergeBaseException;
+import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.jgit.transport.RemoteRefUpdate;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
@@ -73,6 +75,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.prefs.BackingStoreException;
+
+import static java.util.Optional.of;
 
 /**
  * The controller for the entire session.
@@ -111,8 +115,18 @@ public class SessionController {
     @FXML private HBox currentRemoteTrackingBranchHbox;
 
     @FXML private Text browserText;
+
+    // The remoteConnected checkbox is bound to a property in the current RepoHelper. When the RepoHelper is changed,
+    // it needs to unbound and then bound to the new one. Because we're using a bidirectional binding, JavaFX doesn't
+    // remember the binding; there's no automatic unbind command. Therefore, we need to remember the repo so we can
+    // unbind it. It should ONLY be accessed from the JavaFX thread, since it is only used for purposes of unbinding
+    // a property.
+    @FXML private CheckBox remoteConnected;
+    @GuardedBy("this") private BooleanProperty remoteConnectedCheckboxPreviousBinding = null;
+
     @FXML private Text needToFetch;
     @FXML private Text branchStatusText;
+
 
     @FXML private ContextMenu pushContextMenu;
     @FXML private ContextMenu commitContextMenu;
@@ -148,6 +162,9 @@ public class SessionController {
     private static AtomicInteger genericExceptionCount = new AtomicInteger(0);  // used for testing
 
     public static final Object globalLock = new Object();
+
+
+    private static final Logger console = LogManager.getLogger("briefconsolelogger");
 
     // Used for testing purposes; look at testing code to see where used
     public static CountDownLatch gitStatusCompletedOnce = new CountDownLatch(1);
@@ -186,7 +203,7 @@ public class SessionController {
 
         commitTreeProgressBarAndLabel.setAlignment(Pos.CENTER);
         commitTreeProgressBarAndLabel.setVisible(false);
-
+        console.info("SessionController.initialize(203)");
         //BusyWindow.show();
         // SLOW
         // here now looking
@@ -196,6 +213,8 @@ public class SessionController {
                     this.setRecentReposDropdownToCurrentRepo();
                     this.refreshRecentReposInDropdown();
 
+                    console.info("Spot 1");
+                    System.out.println("SessionController.initialize");
                     this.initRepositoryMonitor();
 
                     this.initStatusText();
@@ -214,7 +233,7 @@ public class SessionController {
                     // Now finally start watching repositories
                     RepositoryMonitor.unpause();
 
-                }).subscribe();
+                }).subscribe(unused -> {}, t -> new ExceptionAdapter(t));
     }
 
     @FXML void handleFetchButton() {
@@ -388,17 +407,23 @@ public class SessionController {
      */
     private void updateStatusText(){
         Main.assertFxThread();
-        if (this.theModel.getCurrentRepoHelper()==null) return;
-        boolean update;
 
-        update = RepositoryMonitor.hasFoundNewRemoteChanges.get();
+        RepoHelper repoHelper = theModel.getCurrentRepoHelper();
+
+        if (repoHelper == null || !repoHelper.getRemoteStatusChecking()) {
+            branchStatusText.setText("");
+            needToFetch.setText("");
+            return;
+        }
+
+        boolean update = RepositoryMonitor.hasFoundNewRemoteChanges.get();
         String fetchText = update ? "New changes to fetch" : "Up to date";
         Color fetchColor = update ? Color.FIREBRICK : Color.FORESTGREEN;
         needToFetch.setText(fetchText);
         needToFetch.setFont(new Font(15));
         needToFetch.setFill(fetchColor);
 
-        BranchHelper localBranch = this.theModel.getCurrentRepoHelper().getBranchModel().getCurrentBranch();
+        BranchHelper localBranch = repoHelper.getBranchModel().getCurrentBranch();
         update = !localBranch.getAbbrevName().equals(currentLocalBranchLabel.getText());
         if (update) {
             Platform.runLater(() -> {
@@ -412,9 +437,9 @@ public class SessionController {
         String remoteBranchFull = "N/A";
         CommitHelper remoteHead = null;
         try {
-            remoteBranch = this.theModel.getCurrentRepoHelper().getBranchModel().getCurrentRemoteAbbrevBranch();
-            remoteHead = this.theModel.getCurrentRepoHelper().getBranchModel().getCurrentRemoteBranchHead();
-            remoteBranchFull = this.theModel.getCurrentRepoHelper().getBranchModel().getCurrentRemoteBranch();
+            remoteBranch = repoHelper.getBranchModel().getCurrentRemoteAbbrevBranch();
+            remoteHead = repoHelper.getBranchModel().getCurrentRemoteBranchHead();
+            remoteBranchFull = repoHelper.getBranchModel().getCurrentRemoteBranch();
         } catch (IOException e) {
             this.showGenericErrorNotification(e);
         }
@@ -439,8 +464,8 @@ public class SessionController {
         // Ahead/behind count
         int ahead=0, behind=0;
         try {
-            ahead = this.theModel.getCurrentRepoHelper().getAheadCount();
-            behind = this.theModel.getCurrentRepoHelper().getBehindCount();
+            ahead = repoHelper.getAheadCount();
+            behind = repoHelper.getBehindCount();
         } catch (IOException e) {
             this.showGenericErrorNotification(e);
         }
@@ -467,6 +492,7 @@ public class SessionController {
             branchStatusText.setText(statusText);
             branchStatusText.setFill(statusColor);
         }
+
     }
 
     /**
@@ -587,12 +613,15 @@ public class SessionController {
      * Initializes each panel of the view
      */
     public synchronized Single<Boolean> initPanelViewsWhenSubscribed() {
+        Main.assertFxThread();
         try {
             workingTreePanelView.drawDirectoryView();
             allFilesPanelView.drawDirectoryView();
             indexPanelView.drawDirectoryView();
-            this.setBrowserURL();
-            return commitTreeModel.initializeModelForNewRepoWhenSubscribed();
+            setBrowserURL();
+            return authenticateToRemoteWhenSubscribed()
+                    .flatMap(unused -> resetRemoteConnectedCheckboxWhenSubscribed())
+                    .flatMap(unused -> commitTreeModel.initializeModelForNewRepoWhenSubscribed());
         } catch (GitAPIException | IOException e) {
             showGenericErrorNotification(e);
         }
@@ -605,42 +634,99 @@ public class SessionController {
      */
     private void setBrowserURL() {
         Main.assertFxThread();
-        try {
-            RepoHelper currentRepoHelper = this.theModel.getCurrentRepoHelper();
-            if (currentRepoHelper == null) throw new NoRepoLoadedException();
-            if (!currentRepoHelper.exists()) throw new MissingRepoException();
-            List<String> remoteURLs = currentRepoHelper.getLinkedRemoteRepoURLs();
-            if(remoteURLs.size() == 0){
-                this.showNoRemoteNotification();
-                return;
-            }
-            String URLString = remoteURLs.get(0);
+        RepoHelper currentRepoHelper = this.theModel.getCurrentRepoHelper();
 
-            if (URLString != null) {
-                if(URLString.contains("@")){
-                    URLString = "https://"+URLString.replace(":","/").split("@")[1];
-                }
-                try {
-                    URL remoteURL = new URL(URLString);
-                    browserText.setText(remoteURL.getHost());
-                } catch (MalformedURLException e) {
-                    browserText.setText(URLString);
-                }
-            }
-            Tooltip URLTooltip = new Tooltip(URLString);
-            Tooltip.install(browserText, URLTooltip);
+        if (currentRepoHelper == null) {
+            setButtonsDisabled(true);
+            return;
+        }
 
-            browserText.setFill(Color.DARKCYAN);
-            browserText.setUnderline(true);
+        if (!currentRepoHelper.exists()) {
+            showMissingRepoNotification();
+            setButtonsDisabled(true);
+            refreshRecentReposInDropdown();
+            return;
         }
-        catch(MissingRepoException e) {
-            this.showMissingRepoNotification();
-            this.setButtonsDisabled(true);
-            this.refreshRecentReposInDropdown();
-        }catch(NoRepoLoadedException e) {
-            this.setButtonsDisabled(true);
+
+        List<String> remoteURLs = currentRepoHelper.getLinkedRemoteRepoURLs();
+        if(remoteURLs.size() == 0){
+            this.showNoRemoteNotification();
+            return;
         }
+        String URLString = remoteURLs.get(0);
+
+        if (URLString != null) {
+            if(URLString.contains("@")){
+                URLString = "https://"+URLString.replace(":","/").split("@")[1];
+            }
+            try {
+                URL remoteURL = new URL(URLString);
+                browserText.setText(remoteURL.getHost());
+            } catch (MalformedURLException e) {
+                browserText.setText(URLString);
+            }
+        }
+        Tooltip URLTooltip = new Tooltip(URLString);
+        Tooltip.install(browserText, URLTooltip);
+
+        browserText.setFill(Color.DARKCYAN);
+        browserText.setUnderline(true);
     }
+
+    /**
+          * Tries to authenticate to remote, and sets status as appropriate.
+          * This is intended to be done as part of repo loading, and so should only be done behind an already visible
+          * BusyWindow.
+          */
+    private Single<Boolean> authenticateToRemoteWhenSubscribed() {
+        return Single.fromCallable(() -> {
+                    RepoHelper repoHelper = theModel.getCurrentRepoHelper();
+                    if (repoHelper != null) {
+                        return Optional.of(repoHelper.getRefsFromRemote(false));
+                    } else {
+                        return Optional.empty();
+                    }
+                })
+                .subscribeOn(Schedulers.io())
+
+                .observeOn(JavaFxScheduler.platform())
+                .map(refs -> {
+                    if (refs.isPresent()) {
+                        theModel.getCurrentRepoHelper().setRemoteStatusChecking(true);
+                    }
+
+                    return true;
+                });
+    }
+
+    /**
+     * Resets the status of the checkbox associated with the remote connections.
+     */
+    private Single<Boolean> resetRemoteConnectedCheckboxWhenSubscribed() {
+
+        return Single.fromCallable(() -> {
+            Main.assertFxThread();
+
+            RepoHelper currentRepoHelper = this.theModel.getCurrentRepoHelper();
+
+            if (remoteConnectedCheckboxPreviousBinding != null) {
+                remoteConnected.selectedProperty().unbindBidirectional(remoteConnectedCheckboxPreviousBinding);
+            }
+
+            if (currentRepoHelper == null || !currentRepoHelper.exists()) {
+                remoteConnected.setSelected(false);
+                remoteConnected.setDisable(true);
+            } else {
+                remoteConnected.setDisable(false);
+                BooleanProperty remoteStatusCheckingProperty = currentRepoHelper.getRemoteStatusCheckingProperty();
+                remoteConnectedCheckboxPreviousBinding = remoteStatusCheckingProperty;
+                remoteConnected.selectedProperty().bindBidirectional(remoteStatusCheckingProperty);
+            }
+
+            return true;
+        });
+    }
+
 
     /**
      * A helper method for enabling/disabling buttons.
@@ -713,20 +799,29 @@ public class SessionController {
     private synchronized void handleLoadRepoMenuItem(RepoHelperBuilder builder) {
         Main.assertFxThread();
         try {
-            RepoHelper repoHelper = builder.getRepoHelperFromDialogs();
-            loadDesignatedRepo(repoHelper);
+//            RepoHelper repoHelper = builder.getRepoHelperFromDialogs();
+            builder.getRepoHelperFromDialogsWhenSubscribed()
+                    .map(this::loadDesignatedRepo)
+                    .subscribe((unused) -> {},
+                               (e) -> {
+                                   System.out.println("SessionController.handleLoadRepoMenuItem " + e);
+                                   showSingleResult(notificationPaneController, new Result(ResultOperation.LOAD, e));
+                               });
+
+//            loadDesignatedRepo(repoHelper);
         } catch (Exception e) {
             showSingleResult(notificationPaneController, new Result(ResultOperation.LOAD, e));
         }
     }
 
-    public void loadDesignatedRepo(RepoHelper repoHelper) {
+    public boolean loadDesignatedRepo(RepoHelper repoHelper) {
+        Main.assertFxThread();
         GitOperation gitOp = authResponse -> loadRepo(authResponse, repoHelper);
         if (repoHelper == null)
             throw new RuntimeException();
         if (theModel.getCurrentRepoHelper() != null && repoHelper.getLocalPath().equals(theModel.getCurrentRepoHelper().getLocalPath())) {
             showSameRepoLoadedNotification();
-            return;
+            return false;
         }
         TreeLayout.stopMovingCells();
         refreshRecentReposInDropdown();
@@ -752,7 +847,8 @@ public class SessionController {
                     }
 
                 })
-                .subscribe(unused -> {}, Throwable::printStackTrace);
+                .subscribe(unused -> {}, (t) -> {throw new ExceptionAdapter(t);});
+        return true;
 
     }
 
@@ -2042,7 +2138,7 @@ public class SessionController {
 
 
         if (response != null) {
-            return Optional.of(response);
+            return of(response);
         } else
             return Optional.empty();
     }
@@ -2768,6 +2864,21 @@ public class SessionController {
     public void hideCommitTreeProgressBar() {
         Main.assertFxThread();
         commitTreeProgressBarAndLabel.setVisible(false);
+    }
+
+    public MenuController getMenuController() {
+        Main.assertFxThread();
+        return menuController;
+    }
+
+    public boolean getRemoteConnectedStatus() {
+        Main.assertFxThread();
+        return remoteConnected.isSelected();
+    }
+
+    public boolean getRemoteConnectedDisabledStatus() {
+        Main.assertFxThread();
+        return remoteConnected.isDisabled();
     }
 
 }

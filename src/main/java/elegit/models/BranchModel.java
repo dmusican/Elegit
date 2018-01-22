@@ -250,7 +250,7 @@ public class BranchModel {
         // instead of what it shows up on local: refs/<remote>/<branchname>, so we manually enter
         // this thing in here
         pushCommand.setRemote("origin").add(":refs/heads/"+branchHelper.parseBranchName());
-        this.repoHelper.myWrapAuthentication(pushCommand);
+        this.repoHelper.wrapAuthentication(pushCommand);
 
         // Update the remote branches in case it worked
         updateRemoteBranches();

@@ -17,10 +17,10 @@
         <root level="INFO">
             <appender-ref ref="RollingFile" />
         </root>
-        <logger name="consolelogger">
+        <logger level="info" name="consolelogger">
             <appender-ref ref="CONSOLE" />
         </logger>
-        <logger name="briefconsolelogger">
+        <logger level="info" name="briefconsolelogger">
             <appender-ref ref="BriefConsole" />
         </logger>
     </Loggers>

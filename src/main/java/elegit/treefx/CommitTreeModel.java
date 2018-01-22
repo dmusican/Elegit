@@ -40,6 +40,7 @@ public class CommitTreeModel{
     private static final CommitTreeModel commitTreeModel = new CommitTreeModel();
 
     private static final Logger logger = LogManager.getLogger();
+    private static final Logger console = LogManager.getLogger("briefconsolelogger");
 
     // The view corresponding to this model
     private final AtomicReference<CommitTreePanelView> view = new AtomicReference<>();
@@ -106,7 +107,8 @@ public class CommitTreeModel{
             // Get the changes between this model and the repo after updating the repo
 
             try {
-                SessionModel.getSessionModel().getCurrentRepoHelper().updateModel();
+                RepoHelper currentRepoHelper = SessionModel.getSessionModel().getCurrentRepoHelper();
+                currentRepoHelper.updateModel();
                 UpdateModel updates = this.getChanges();
                 if (updates.hasChanges()) {
                     Set<CommitHelper> commitsToRemove = updates.getCommitsToRemove();

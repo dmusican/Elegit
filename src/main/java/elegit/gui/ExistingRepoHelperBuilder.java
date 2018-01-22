@@ -1,17 +1,17 @@
 package elegit.gui;
 
 import elegit.Main;
-import elegit.exceptions.CancelledAuthorizationException;
+import elegit.exceptions.ExceptionAdapter;
 import elegit.exceptions.NoRepoSelectedException;
 import elegit.models.ExistingRepoHelper;
 import elegit.models.RepoHelper;
 import elegit.sshauthentication.ElegitUserInfoGUI;
+import io.reactivex.Single;
 import org.apache.http.annotation.ThreadSafe;
-import org.eclipse.jgit.api.errors.GitAPIException;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Path;
+import java.util.List;
 
 /**
  *
@@ -31,7 +31,7 @@ public class ExistingRepoHelperBuilder extends RepoHelperBuilder {
      * @throws Exception why? has to do with the new ExistingRepoHelper(...).
      */
     @Override
-    public RepoHelper getRepoHelperFromDialogs() throws GitAPIException, IOException, NoRepoSelectedException, CancelledAuthorizationException{
+    public Single<RepoHelper> getRepoHelperFromDialogsWhenSubscribed() {
         Main.assertFxThread();
         File existingRepoDirectoryFile = this.getDirectoryPathFromChooser("Choose existing repository directory");
 
@@ -42,6 +42,48 @@ public class ExistingRepoHelperBuilder extends RepoHelperBuilder {
 
         Path directoryPath = existingRepoDirectoryFile.toPath();
 
-        return new ExistingRepoHelper(directoryPath, new ElegitUserInfoGUI());
+        try {
+
+            SshFileData sshFileData = getSshFileDataIfTesting(directoryPath);
+
+            RepoHelper repoHelper = new ExistingRepoHelper(directoryPath,
+                                                           new ElegitUserInfoGUI(),
+                                                           sshFileData.additionalPrivateKey,
+                                                           sshFileData.knownHostsLocation);
+
+            return Single.fromCallable(() -> repoHelper);
+
+        } catch (Exception e) {
+            throw new ExceptionAdapter(e);
+        }
+    }
+
+    // For test purposes, we need to have tests insert their own private key and host name location if this
+    // is an ssh repo. So create a repo helper with barebones information in order to find out remote URL is
+    // ssh; if so, insert via test info appropriately.
+    private SshFileData getSshFileDataIfTesting(Path directoryPath) {
+        SshFileData sshFileData = new SshFileData();
+        try {
+            if (Main.testMode) {
+                RepoHelper initialHelper = new ExistingRepoHelper(directoryPath, new ElegitUserInfoGUI());
+                List<String> remotes = initialHelper.getLinkedRemoteRepoURLs();
+                if (remotes.size() > 0 && remotes.get(0).startsWith("ssh:")) {
+                    sshFileData.additionalPrivateKey =
+                            getFileByTypingPath("Enter private key location:").toString();
+                    sshFileData.knownHostsLocation =
+                            getFileByTypingPath("Enter known hosts location:").toString();
+                }
+            }
+            return sshFileData;
+        } catch (Exception e) {
+            throw new ExceptionAdapter(e);
+        }
+
+
+    }
+
+    private class SshFileData {
+        private String additionalPrivateKey;
+        private String knownHostsLocation;
     }
 }

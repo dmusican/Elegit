@@ -59,7 +59,7 @@ public class AddDirTest {
 
         // Clone remote to local repo
         String remoteURL = "file://"+testingRemoteAndLocalRepos.getRemoteFull();
-        ClonedRepoHelper helperAdd = new ClonedRepoHelper(local, remoteURL, null);
+        ClonedRepoHelper helperAdd = new ClonedRepoHelper(local, null);
         assertNotNull(helperAdd);
         helperAdd.obtainRepository(remoteURL);
 
