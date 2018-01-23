@@ -154,47 +154,40 @@ public class RepositoryMonitor1FXTest extends ApplicationTest {
         final ComboBox<RepoHelper> dropdown = lookup("#repoDropdown").query();
 
 
-        Thread.sleep(10000);
         console.info("About to enter critical section");
-//        ///////////////
-//        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
-//                                  () -> dropdown.getValue().toString().equals("otherrepo"));
-//
-//        clickOn(dropdown).clickOn("testrepo");
-//
-//        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
-//                                  () -> !BusyWindow.window.isShowing());
-//
-//        interact(() -> console.info(dropdown.getItems()));
-//        GuiTest.waitUntil(dropdown, (ComboBox<RepoHelper> d) -> d.getValue().toString().equals("testrepo"));
-//        clickOn(dropdown).clickOn("otherrepo");
-//
-//        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
-//                                  () -> !BusyWindow.window.isShowing());
-//
-//        interact(() -> console.info(dropdown.getItems()));
-//
-//
-//        ////////////////////
 
         for (int i=0; i < 3; i++) {
             WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
                                       () -> dropdown.getValue().toString().equals("otherrepo"));
+            interact(() -> console.info(dropdown.getItems() + " " + dropdown.getValue()));
+            clickOn(dropdown);
 
-            clickOn(dropdown).clickOn("testrepo");
-
+            // The below awful hack is very likely related to this bug:
+            // https://github.com/dmusican/Elegit/issues/539
+            // For unknown (as of yet) reasons, the dropbox sometimes requires a second click to fire.
+            // This should be fixed, but that's a separate non-critical issue form what this test is trying to test.
+            if (i > 0) {
+                clickOn(dropdown);
+            }
+            console.info("Dropdown clicked");
+            interact(() -> console.info(dropdown.getItems() + " " + dropdown.getValue()));
+            clickOn("testrepo");
             WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
                                       () -> !BusyWindow.window.isShowing());
+            interact(() -> console.info(dropdown.getItems() + " " + dropdown.getValue()));
 
-            interact(() -> console.info(dropdown.getItems()));
-            GuiTest.waitUntil(dropdown, (ComboBox<RepoHelper> d) -> d.getValue().toString().equals("testrepo"));
-            clickOn(dropdown).clickOn("otherrepo");
 
             WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+                                      () -> dropdown.getValue().toString().equals("testrepo"));
+            clickOn(dropdown);
+            // See comment above regarding bug #539.
+            if (i > 0) {
+                clickOn(dropdown);
+            }
+            clickOn("otherrepo");
+            WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
                                       () -> !BusyWindow.window.isShowing());
-
-            interact(() -> console.info(dropdown.getItems()));
-            //sleep(5000);
+            interact(() -> console.info(dropdown.getItems() + " " + dropdown.getValue()));
         }
 
         GuiTest.waitUntil(dropdown, (ComboBox<RepoHelper> d) -> d.getValue().toString().equals("otherrepo"));
