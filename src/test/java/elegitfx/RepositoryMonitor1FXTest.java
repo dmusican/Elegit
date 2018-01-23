@@ -23,7 +23,6 @@ import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.loadui.testfx.GuiTest;
 import org.testfx.framework.junit.ApplicationTest;
 import org.testfx.util.WaitForAsyncUtils;
 
@@ -53,7 +52,6 @@ public class RepositoryMonitor1FXTest extends ApplicationTest {
     private static final Logger console = LogManager.getLogger("briefconsolelogger");
 
     private SessionController sessionController;
-    private static GuiTest testController;
 
     @Override
     public void start(Stage stage) throws Exception {
@@ -190,7 +188,8 @@ public class RepositoryMonitor1FXTest extends ApplicationTest {
             interact(() -> console.info(dropdown.getItems() + " " + dropdown.getValue()));
         }
 
-        GuiTest.waitUntil(dropdown, (ComboBox<RepoHelper> d) -> d.getValue().toString().equals("otherrepo"));
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+                                  () -> dropdown.getValue().toString().equals("otherrepo"));
         clickOn("#removeRecentReposButton");
 
         CheckListView<RepoHelper> repoCheckList = lookup("#repoCheckList").query();
@@ -207,8 +206,8 @@ public class RepositoryMonitor1FXTest extends ApplicationTest {
 
         assertNotEquals(null,lookup("otherrepo").query());
 
-        GuiTest.waitUntil(dropdown, (ComboBox<RepoHelper> d) -> d.getValue().toString().equals("otherrepo"));
-
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+                                  () -> dropdown.getValue().toString().equals("otherrepo"));
 
         clickOn("#removeRecentReposButton");
 
