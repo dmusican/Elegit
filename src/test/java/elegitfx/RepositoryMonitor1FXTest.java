@@ -79,6 +79,10 @@ public class RepositoryMonitor1FXTest extends ApplicationTest {
         // TODO: Remove this pause and keep test working; no good reason for it to be necessary
         RepositoryMonitor.pause();
 
+        if (!Main.initializationComplete.get()) {
+            BusyWindow.show();
+        }
+
     }
 
     @Before
@@ -140,6 +144,7 @@ public class RepositoryMonitor1FXTest extends ApplicationTest {
         helper2.obtainRepository(remoteURL);
         assertNotNull(helper2);
 
+
         clickOn("#loadNewRepoButton")
                 .clickOn("#loadExistingRepoOption")
                 .clickOn("#repoInputDialog")
@@ -148,6 +153,29 @@ public class RepositoryMonitor1FXTest extends ApplicationTest {
 
         final ComboBox<RepoHelper> dropdown = lookup("#repoDropdown").query();
 
+
+        Thread.sleep(10000);
+        console.info("About to enter critical section");
+//        ///////////////
+//        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+//                                  () -> dropdown.getValue().toString().equals("otherrepo"));
+//
+//        clickOn(dropdown).clickOn("testrepo");
+//
+//        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+//                                  () -> !BusyWindow.window.isShowing());
+//
+//        interact(() -> console.info(dropdown.getItems()));
+//        GuiTest.waitUntil(dropdown, (ComboBox<RepoHelper> d) -> d.getValue().toString().equals("testrepo"));
+//        clickOn(dropdown).clickOn("otherrepo");
+//
+//        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+//                                  () -> !BusyWindow.window.isShowing());
+//
+//        interact(() -> console.info(dropdown.getItems()));
+//
+//
+//        ////////////////////
 
         for (int i=0; i < 3; i++) {
             WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,

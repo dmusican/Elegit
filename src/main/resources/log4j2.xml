@@ -5,7 +5,7 @@
             <PatternLayout pattern="%d{MM-dd-yyyy HH:mm:ss.SSS} %-5level [%t] %-30M %msg%n" />
         </Console>
         <Console name="BriefConsole" target="SYSTEM_OUT">
-            <PatternLayout pattern="%d{MM/dd HH:mm:ss.SSS} %-5level [%t] %-15M %msg%n" />
+            <PatternLayout pattern="%d{MM/dd HH:mm:ss.SSS} %-5level [%t] %15C:%M:%L %msg%n" />
         </Console>
         <RollingFile name="RollingFile" filename="${sys:logFolder}/elegit.log"
                      filePattern="logs/elegit-%d{MM-dd-yyyy}.log" ignoreExceptions="false">
