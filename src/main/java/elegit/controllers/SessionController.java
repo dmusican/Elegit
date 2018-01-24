@@ -209,9 +209,7 @@ public class SessionController {
         this.initPanelViewsWhenSubscribed()
                 .doOnSuccess((unused) -> {
                     this.updateUIEnabledStatus();
-                    this.setRecentReposDropdownToCurrentRepo();
                     this.refreshRecentReposInDropdown();
-
                     this.initRepositoryMonitor();
 
                     this.initStatusText();
@@ -230,7 +228,7 @@ public class SessionController {
                     // Now finally start watching repositories
                     RepositoryMonitor.unpause();
 
-                }).subscribe(unused -> {}, t -> new ExceptionAdapter(t));
+                }).subscribe(unused -> {}, t -> {throw new ExceptionAdapter(t);});
     }
 
     @FXML void handleFetchButton() {
@@ -612,15 +610,21 @@ public class SessionController {
     public synchronized Single<Boolean> initPanelViewsWhenSubscribed() {
         Main.assertFxThread();
         try {
+            console.info("before");
             workingTreePanelView.drawDirectoryView();
             allFilesPanelView.drawDirectoryView();
             indexPanelView.drawDirectoryView();
             setBrowserURL();
+            console.info("after");
             return authenticateToRemoteWhenSubscribed()
+                    .doOnSuccess(unused -> console.info("10"))
                     .flatMap(unused -> resetRemoteConnectedCheckboxWhenSubscribed())
-                    .flatMap(unused -> commitTreeModel.initializeModelForNewRepoWhenSubscribed());
+                    .doOnSuccess(unused -> console.info("20"))
+                    .flatMap(unused -> commitTreeModel.initializeModelForNewRepoWhenSubscribed())
+                    .doOnSuccess(unused -> console.info("100"));
         } catch (GitAPIException | IOException e) {
             showGenericErrorNotification(e);
+            console.info("Exception thrown: " + e);
         }
 
         return Single.just(true);
@@ -677,7 +681,9 @@ public class SessionController {
           */
     private Single<Boolean> authenticateToRemoteWhenSubscribed() {
         return Single.fromCallable(() -> {
+                    console.info("10");
                     RepoHelper repoHelper = theModel.getCurrentRepoHelper();
+                    console.info("20 " + repoHelper);
                     if (repoHelper != null) {
                         return Optional.of(repoHelper.getRefsFromRemote(false));
                     } else {
@@ -685,12 +691,15 @@ public class SessionController {
                     }
                 })
                 .subscribeOn(Schedulers.io())
+                .doOnSuccess(unused -> console.info("25"))
 
                 .observeOn(JavaFxScheduler.platform())
                 .map(refs -> {
+                    console.info("30");
                     if (refs.isPresent()) {
                         theModel.getCurrentRepoHelper().setRemoteStatusChecking(true);
                     }
+                    console.info("40");
 
                     return true;
                 });
@@ -821,15 +830,17 @@ public class SessionController {
             return false;
         }
         TreeLayout.stopMovingCells();
-        refreshRecentReposInDropdown();
+        //refreshRecentReposInDropdown();
         showBusyWindowAndPauseRepoMonitor("Loading repository...");
         doGitOperationWhenSubscribed(gitOp)
                 .flatMap((result) -> {
                     if (result.equals("success")) {
+                        console.info("got to success");
                         return initPanelViewsWhenSubscribed()
                         .map(unused -> doGitStatusWhenSubscribed())
                         .doOnSuccess(unused -> {
-                            setRecentReposDropdownToCurrentRepo();
+                            console.info("about to refresh");
+                            refreshRecentReposInDropdown();
                             updateUIEnabledStatus();
                             hideBusyWindowAndResumeRepoMonitor();
 
@@ -867,17 +878,6 @@ public class SessionController {
     }
 
 
-    /**
-     * Gets the current RepoHelper and sets it as the selected value of the dropdown.
-     */
-    @FXML
-    private void setRecentReposDropdownToCurrentRepo() {
-        Main.assertFxThread();
-        synchronized (this) {
-            RepoHelper currentRepo = this.theModel.getCurrentRepoHelper();
-            dropdownController.setCurrentRepoWithoutInvokingAction(currentRepo);
-        }
-    }
 
     /**
      * Adds all the model's RepoHelpers to the dropdown
@@ -886,10 +886,11 @@ public class SessionController {
     private void refreshRecentReposInDropdown() {
         Main.assertFxThread();
         synchronized (this) {
+            RepoHelper repoHelper = this.theModel.getCurrentRepoHelper();
             List<RepoHelper> repoHelpers = this.theModel.getAllRepoHelpers();
             ObservableList<RepoHelper> obsRepoHelpers = FXCollections.observableArrayList(repoHelpers);
             ObservableList<RepoHelper> immutableRepoHelpers = FXCollections.unmodifiableObservableList(obsRepoHelpers);
-            dropdownController.setAllReposWithoutInvokingAction(FXCollections.observableArrayList(immutableRepoHelpers));
+            dropdownController.setCurrentRepoWithoutInvokingAction(repoHelper, FXCollections.observableArrayList(immutableRepoHelpers));
         }
     }
 
@@ -2462,8 +2463,6 @@ public class SessionController {
                     .get(newIndex);
 
             loadDesignatedRepo(newCurrentRepo);
-            dropdownController.setCurrentRepoWithoutInvokingAction(newCurrentRepo);
-
             this.refreshRecentReposInDropdown();
 
             // If there are no repos, reset everything

@@ -105,7 +105,7 @@ public class CommitTreeModel{
 
         if (SessionModel.getSessionModel().getCurrentRepoHelper() != null) {
             // Get the changes between this model and the repo after updating the repo
-
+            console.info("10");
             try {
                 RepoHelper currentRepoHelper = SessionModel.getSessionModel().getCurrentRepoHelper();
                 currentRepoHelper.updateModel();
@@ -117,12 +117,16 @@ public class CommitTreeModel{
             } catch (GitAPIException | IOException e) {
                 throw new ExceptionAdapter(e);
             }
-
+            console.info("20");
             return this.addCommitsToTreeWhenSubscribed(this.getAllCommits(SessionModel.getSessionModel().getCurrentRepoHelper()))
                     .doOnSuccess((result) -> {
+                        console.info("30");
                         this.branchesInModel.clear();
+                        console.info("40");
                         this.branchesInModel.addAll(SessionModel.getSessionModel().getCurrentRepoHelper().getBranchModel().getAllBranches());
+                        console.info("50");
                         this.initView();
+                        console.info("60");
                     });
         }
 

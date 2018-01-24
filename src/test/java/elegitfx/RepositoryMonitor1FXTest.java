@@ -90,7 +90,7 @@ public class RepositoryMonitor1FXTest extends ApplicationTest {
 
     @After
     public void tearDown() {
-        System.out.println("Tearing down");
+        console.info("Tearing down");
         assertEquals(0,Main.getAssertionCount());
     }
 
@@ -135,6 +135,16 @@ public class RepositoryMonitor1FXTest extends ApplicationTest {
 
         SessionController.gitStatusCompletedOnce.await();
 
+        final ComboBox<RepoHelper> dropdown = lookup("#repoDropdown").query();
+
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+                                  () -> !BusyWindow.window.isShowing());
+
+
+        // Now that both repos have been added, the dropdown should contain both of them.
+        // It's important that test happens on the FX thread, since the above update happens there.
+        interact(() -> assertEquals(1, dropdown.getItems().size()));
+
         Path repoPath2 = directoryPath.resolve("otherrepo");
 
         remoteURL = "https://github.com/TheElegitTeam/testrepo.git";
@@ -142,6 +152,7 @@ public class RepositoryMonitor1FXTest extends ApplicationTest {
         helper2.obtainRepository(remoteURL);
         assertNotNull(helper2);
 
+        console.info("Loading second repo.");
 
         clickOn("#loadNewRepoButton")
                 .clickOn("#loadExistingRepoOption")
@@ -149,8 +160,12 @@ public class RepositoryMonitor1FXTest extends ApplicationTest {
                 .write(repoPath2.toString())
                 .clickOn("#repoInputDialogOK");
 
-        final ComboBox<RepoHelper> dropdown = lookup("#repoDropdown").query();
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+                                  () -> !BusyWindow.window.isShowing());
 
+        // Now that both repos have been added, the dropdown should contain both of them.
+        // It's important that test happens on the FX thread, since the above update happens there.
+        interact(() -> assertEquals(2, dropdown.getItems().size()));
 
         console.info("About to enter critical section");
 

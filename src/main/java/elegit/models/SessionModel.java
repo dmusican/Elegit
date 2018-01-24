@@ -60,6 +60,7 @@ public class SessionModel {
     private static final String LAST_UUID_KEY="LAST_UUID";
     @GuardedBy("this") private final List<RepoHelper> allRepoHelpers;
     private static final Logger logger = LogManager.getLogger();
+    private static final Logger console = LogManager.getLogger("briefconsolelogger");
     private final AtomicReference<RepoHelper> currentRepoHelper = new AtomicReference<>();
     //private final ObjectProperty<RepoHelper> currentRepoHelperProperty = new SimpleObjectProperty<>();
     private static final AtomicInteger constructorCount = new AtomicInteger();
