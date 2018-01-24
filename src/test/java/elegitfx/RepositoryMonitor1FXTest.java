@@ -136,7 +136,9 @@ public class RepositoryMonitor1FXTest extends ApplicationTest {
 
         SessionController.gitStatusCompletedOnce = new CountDownLatch(1);
 
-        addSwapAndRemoveRepos(repoPath, repoPath2);
+        for (int i=0; i < 2; i++) {
+            addSwapAndRemoveRepos(repoPath, repoPath2);
+        }
 
     }
 

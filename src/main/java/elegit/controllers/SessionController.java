@@ -2465,6 +2465,7 @@ public class SessionController {
             theModel.resetSessionModel();
             workingTreePanelView.resetFileStructurePanelView();
             allFilesPanelView.resetFileStructurePanelView();
+            RepositoryMonitor.pause();
             initialize();
 
             // The repos have been removed, this line just keeps the current repo loaded
