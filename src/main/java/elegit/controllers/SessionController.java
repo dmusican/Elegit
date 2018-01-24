@@ -2444,13 +2444,10 @@ public class SessionController {
      */
     void handleRemoveReposButton(List<RepoHelper> checkedItems) {
         logger.info("Removed repos");
-        console.info("Before removing from model: " + theModel.getCurrentRepoHelper() + " " + theModel.getAllRepoHelpers());
         this.theModel.removeRepoHelpers(checkedItems);
 
-        // If there are repos that aren't the current one, and the current repo is being removed, load a different repo
-        console.info("Contains? " + this.theModel.getAllRepoHelpers().contains(theModel.getCurrentRepoHelper()));
-        console.info("After removing from model: " + theModel.getCurrentRepoHelper() + " " + theModel.getAllRepoHelpers());
         if (!this.theModel.getAllRepoHelpers().isEmpty() && !this.theModel.getAllRepoHelpers().contains(theModel.getCurrentRepoHelper())) {
+            // If there are repos that aren't the current one, and the current repo is being removed, load a different repo
             int newIndex = this.theModel.getAllRepoHelpers().size()-1;
             RepoHelper newCurrentRepo = this.theModel.getAllRepoHelpers()
                     .get(newIndex);
@@ -2458,25 +2455,17 @@ public class SessionController {
             loadDesignatedRepo(newCurrentRepo);
             this.refreshRecentReposInDropdown();
 
+        } else if (this.theModel.getAllRepoHelpers().isEmpty()) {
             // If there are no repos, reset everything
-        } else if (this.theModel.getAllRepoHelpers().isEmpty()){
-            console.info("Handling empty case");
             TreeLayout.stopMovingCells();
             theModel.resetSessionModel();
             workingTreePanelView.resetFileStructurePanelView();
             allFilesPanelView.resetFileStructurePanelView();
             RepositoryMonitor.pause();
             initialize();
-
-            // The repos have been removed, this line just keeps the current repo loaded
-        }else {
-            console.info("the current = " + theModel.getCurrentRepoHelper());
-//            try {
-//                theModel.openRepoFromHelper(theModel.getCurrentRepoHelper());
-//            } catch (BackingStoreException | IOException | MissingRepoException | ClassNotFoundException e1) {
-//                e1.printStackTrace();
-//            }
         }
+
+        // The repos have been removed, so no 'else' case above is necessary
 
         this.refreshRecentReposInDropdown();
     }

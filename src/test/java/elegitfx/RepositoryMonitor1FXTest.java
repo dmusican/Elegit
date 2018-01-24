@@ -138,7 +138,9 @@ public class RepositoryMonitor1FXTest extends ApplicationTest {
 
         for (int i=0; i < 2; i++) {
             addSwapAndRemoveRepos(repoPath, repoPath2);
+            console.info("Pass #" + i + " completed");
         }
+
 
     }
 
@@ -188,9 +190,13 @@ public class RepositoryMonitor1FXTest extends ApplicationTest {
             // https://github.com/dmusican/Elegit/issues/539
             // For unknown (as of yet) reasons, the dropbox sometimes requires a second click to fire.
             // This should be fixed, but that's a separate non-critical issue form what this test is trying to test.
-            if (i > 0) {
-                clickOn(dropdown);
-            }
+            interact(() -> {
+                if (!dropdown.isShowing())
+                    clickOn(dropdown);
+            });
+//            if (i > 0) {
+//                clickOn(dropdown);
+//            }
             console.info("Dropdown clicked");
             interact(() -> console.info(dropdown.getItems() + " " + dropdown.getValue()));
             clickOn("testrepo");
@@ -203,9 +209,13 @@ public class RepositoryMonitor1FXTest extends ApplicationTest {
                                       () -> dropdown.getValue().toString().equals("testrepo"));
             clickOn(dropdown);
             // See comment above regarding bug #539.
-            if (i > 0) {
-                clickOn(dropdown);
-            }
+            interact(() -> {
+                if (!dropdown.isShowing())
+                    clickOn(dropdown);
+            });
+//            if (i > 0) {
+//                clickOn(dropdown);
+//            }
             clickOn("otherrepo");
             WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
                                       () -> !BusyWindow.window.isShowing());
