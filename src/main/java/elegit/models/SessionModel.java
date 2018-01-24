@@ -629,6 +629,7 @@ public class SessionModel {
     public synchronized void resetSessionModel() {
         try {
             clearStoredPreferences();
+            currentRepoHelper.set(null);
         } catch (Exception exception) {
             exception.printStackTrace();
         }

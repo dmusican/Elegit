@@ -32,6 +32,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.prefs.Preferences;
 
 import static junit.framework.TestCase.assertEquals;
@@ -123,10 +124,23 @@ public class RepositoryMonitor1FXTest extends ApplicationTest {
         helper.obtainRepository(remoteURL);
         assertNotNull(helper);
 
+        Path repoPath2 = directoryPath.resolve("otherrepo");
+
+        remoteURL = "https://github.com/TheElegitTeam/testrepo.git";
+        ClonedRepoHelper helper2 = new ClonedRepoHelper(repoPath2, credentials);
+        helper2.obtainRepository(remoteURL);
+        assertNotNull(helper2);
+
+
         CommitTreeModel.setAddCommitDelay(5);
 
         SessionController.gitStatusCompletedOnce = new CountDownLatch(1);
 
+        addSwapAndRemoveRepos(repoPath, repoPath2);
+
+    }
+
+    private void addSwapAndRemoveRepos(Path repoPath, Path repoPath2) throws InterruptedException, TimeoutException {
         clickOn("#loadNewRepoButton")
                 .clickOn("#loadExistingRepoOption")
                 .clickOn("#repoInputDialog")
@@ -144,13 +158,6 @@ public class RepositoryMonitor1FXTest extends ApplicationTest {
         // Now that both repos have been added, the dropdown should contain both of them.
         // It's important that test happens on the FX thread, since the above update happens there.
         interact(() -> assertEquals(1, dropdown.getItems().size()));
-
-        Path repoPath2 = directoryPath.resolve("otherrepo");
-
-        remoteURL = "https://github.com/TheElegitTeam/testrepo.git";
-        ClonedRepoHelper helper2 = new ClonedRepoHelper(repoPath2, credentials);
-        helper2.obtainRepository(remoteURL);
-        assertNotNull(helper2);
 
         console.info("Loading second repo.");
 
@@ -203,8 +210,14 @@ public class RepositoryMonitor1FXTest extends ApplicationTest {
             interact(() -> console.info(dropdown.getItems() + " " + dropdown.getValue()));
         }
 
+
+        // Verify that now only one repo remains on the list
+        interact(() -> assertEquals(2, dropdown.getItems().size()));
+        interact(() -> assertEquals(2, SessionModel.getSessionModel().getAllRepoHelpers().size()));
+
         WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
                                   () -> dropdown.getValue().toString().equals("otherrepo"));
+        interact(() -> console.info(dropdown.getItems() + " " + dropdown.getValue()));
         clickOn("#removeRecentReposButton");
 
         CheckListView<RepoHelper> repoCheckList = lookup("#repoCheckList").query();
@@ -213,6 +226,8 @@ public class RepositoryMonitor1FXTest extends ApplicationTest {
         interact(() -> {
             repoCheckList.getItemBooleanProperty(0).set(true);
         });
+
+        interact(() -> console.info(dropdown.getItems() + " " + dropdown.getValue()));
 
         // Clicks button to remove testrepo
         clickOn((Node)(lookup("#reposDeleteRemoveSelectedButton").query()));
@@ -224,6 +239,9 @@ public class RepositoryMonitor1FXTest extends ApplicationTest {
         WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
                                   () -> dropdown.getValue().toString().equals("otherrepo"));
 
+        // Verify that now only one repo remains on the list
+        interact(() -> assertEquals(1, dropdown.getItems().size()));
+
         clickOn("#removeRecentReposButton");
 
         // Selects otherrepo
@@ -234,6 +252,9 @@ public class RepositoryMonitor1FXTest extends ApplicationTest {
         clickOn((Node)(lookup("#reposDeleteRemoveSelectedButton").query()));
 
         assertEquals(0, sessionController.getNotificationPaneController().getNotificationNum());
+
+        // Verify that now no repos remains on the list
+        interact(() -> assertEquals(0, dropdown.getItems().size()));
     }
 
 }

@@ -138,7 +138,7 @@ public class DropdownController {
     public void setCurrentRepoWithoutInvokingAction(RepoHelper repoHelper, ObservableList<RepoHelper> repoHelpers) {
         console.info(repoHelper);
         if (!containedInList(repoHelper, repoHelpers)) {
-            throw new RuntimeException("Repo being set is not in list of repos.");
+            throw new RuntimeException("Repo being set [" + repoHelper + "] is not in list of repos: " + repoHelpers);
         }
         setAllReposWithoutInvokingAction(repoHelpers);
         EventHandler<ActionEvent> handler = repoDropdownSelector.getOnAction();

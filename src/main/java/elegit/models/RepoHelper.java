@@ -1424,20 +1424,15 @@ public class RepoHelper {
      * @throws GitAPIException
      */
     public Collection<Ref> getRefsFromRemote(boolean includeTags) {
-        console.info("10");
         LsRemoteCommand command = new Git(getRepo()).lsRemote().setHeads(true);
-        console.info("20");
         if (includeTags) {
             command = command.setTags(includeTags);
         }
-        console.info("30");
         wrapAuthentication(command);
-        console.info("40");
 
         try {
             return Collections.unmodifiableCollection(command.call());
         } catch (GitAPIException e) {
-            console.info("50");
             throw new ExceptionAdapter(e);
         }
     }

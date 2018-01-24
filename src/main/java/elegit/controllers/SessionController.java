@@ -610,18 +610,13 @@ public class SessionController {
     public synchronized Single<Boolean> initPanelViewsWhenSubscribed() {
         Main.assertFxThread();
         try {
-            console.info("before");
             workingTreePanelView.drawDirectoryView();
             allFilesPanelView.drawDirectoryView();
             indexPanelView.drawDirectoryView();
             setBrowserURL();
-            console.info("after");
             return authenticateToRemoteWhenSubscribed()
-                    .doOnSuccess(unused -> console.info("10"))
                     .flatMap(unused -> resetRemoteConnectedCheckboxWhenSubscribed())
-                    .doOnSuccess(unused -> console.info("20"))
-                    .flatMap(unused -> commitTreeModel.initializeModelForNewRepoWhenSubscribed())
-                    .doOnSuccess(unused -> console.info("100"));
+                    .flatMap(unused -> commitTreeModel.initializeModelForNewRepoWhenSubscribed());
         } catch (GitAPIException | IOException e) {
             showGenericErrorNotification(e);
             console.info("Exception thrown: " + e);
@@ -681,9 +676,7 @@ public class SessionController {
           */
     private Single<Boolean> authenticateToRemoteWhenSubscribed() {
         return Single.fromCallable(() -> {
-                    console.info("10");
                     RepoHelper repoHelper = theModel.getCurrentRepoHelper();
-                    console.info("20 " + repoHelper);
                     if (repoHelper != null) {
                         return Optional.of(repoHelper.getRefsFromRemote(false));
                     } else {
@@ -691,15 +684,12 @@ public class SessionController {
                     }
                 })
                 .subscribeOn(Schedulers.io())
-                .doOnSuccess(unused -> console.info("25"))
 
                 .observeOn(JavaFxScheduler.platform())
                 .map(refs -> {
-                    console.info("30");
                     if (refs.isPresent()) {
                         theModel.getCurrentRepoHelper().setRemoteStatusChecking(true);
                     }
-                    console.info("40");
 
                     return true;
                 });
@@ -2454,9 +2444,12 @@ public class SessionController {
      */
     void handleRemoveReposButton(List<RepoHelper> checkedItems) {
         logger.info("Removed repos");
+        console.info("Before removing from model: " + theModel.getCurrentRepoHelper() + " " + theModel.getAllRepoHelpers());
         this.theModel.removeRepoHelpers(checkedItems);
 
         // If there are repos that aren't the current one, and the current repo is being removed, load a different repo
+        console.info("Contains? " + this.theModel.getAllRepoHelpers().contains(theModel.getCurrentRepoHelper()));
+        console.info("After removing from model: " + theModel.getCurrentRepoHelper() + " " + theModel.getAllRepoHelpers());
         if (!this.theModel.getAllRepoHelpers().isEmpty() && !this.theModel.getAllRepoHelpers().contains(theModel.getCurrentRepoHelper())) {
             int newIndex = this.theModel.getAllRepoHelpers().size()-1;
             RepoHelper newCurrentRepo = this.theModel.getAllRepoHelpers()
@@ -2467,6 +2460,7 @@ public class SessionController {
 
             // If there are no repos, reset everything
         } else if (this.theModel.getAllRepoHelpers().isEmpty()){
+            console.info("Handling empty case");
             TreeLayout.stopMovingCells();
             theModel.resetSessionModel();
             workingTreePanelView.resetFileStructurePanelView();
@@ -2475,7 +2469,7 @@ public class SessionController {
 
             // The repos have been removed, this line just keeps the current repo loaded
         }else {
-            System.out.println("the current = " + theModel.getCurrentRepoHelper());
+            console.info("the current = " + theModel.getCurrentRepoHelper());
 //            try {
 //                theModel.openRepoFromHelper(theModel.getCurrentRepoHelper());
 //            } catch (BackingStoreException | IOException | MissingRepoException | ClassNotFoundException e1) {
