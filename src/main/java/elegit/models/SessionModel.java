@@ -60,7 +60,7 @@ public class SessionModel {
     private static final String LAST_UUID_KEY="LAST_UUID";
     private static final Logger logger = LogManager.getLogger();
     private static final Logger console = LogManager.getLogger("briefconsolelogger");
-    private final static AtomicReference<SessionModel> sessionModel = new AtomicReference<>();
+    @GuardedBy("this") private static SessionModel sessionModel;
     private final Preferences preferences;
     private static Class<?> preferencesNodeClass = SessionModel.class;
     private final PublishSubject<RepoHelper> openedRepos = PublishSubject.create();
@@ -74,10 +74,10 @@ public class SessionModel {
     // synchronized is critical for sessionModel, to make sure that it is updated as one operation.
     // compareAndSet would be briefer, but dramatically slower.
     public synchronized static SessionModel getSessionModel() {
-        if (sessionModel.get() == null) {
-            sessionModel.set(new SessionModel());
+        if (sessionModel == null) {
+            sessionModel = new SessionModel();
         }
-        return sessionModel.get();
+        return sessionModel;
     }
 
 
@@ -191,22 +191,14 @@ public class SessionModel {
      */
     // synchronized for allRepoHelpers, and openedRepos
     private synchronized void openRepo(RepoHelper repoHelper) throws BackingStoreException, IOException, ClassNotFoundException {
-        console.info("open repo");
-        console.info("All repos: " + allRepoHelpers);
         if(!this.allRepoHelpers.contains(repoHelper)) {
-            console.info("adding repo " + repoHelper);
             this.allRepoHelpers.add(repoHelper);
-        } else {
-            console.info("skipping adding repo " + repoHelper);
-            console.info("All repos: " + allRepoHelpers + " " + allRepoHelpers.hashCode());
-            console.info("All repos again: " + getAllRepoHelpers());
         }
         this.currentRepoHelper.set(repoHelper);
         this.saveListOfRepoPathStrings();
         this.saveMostRecentRepoPathString();
 
         openedRepos.onNext(this.currentRepoHelper.get());
-        console.info("All repos again: " + allRepoHelpers);
     }
 
     public synchronized void subscribeToOpenedRepos(Consumer<RepoHelper> consumer) {
@@ -225,30 +217,20 @@ public class SessionModel {
      */
     // synchronized for allRepoHelpers
     public synchronized void openRepoFromHelper(RepoHelper repoHelperToLoad) throws BackingStoreException, IOException, ClassNotFoundException, MissingRepoException {
-        console.info("open repo");
         RepoHelper matchedRepoHelper = this.matchRepoWithAlreadyLoadedRepo(repoHelperToLoad);
         if (matchedRepoHelper == null) {
-            console.info("All repos: " + allRepoHelpers + " " + getAllRepoHelpers());
-            console.info("repo doesn't match any already loaded, so adding it");
             // So, this repo isn't loaded into the model yet
             this.allRepoHelpers.add(repoHelperToLoad);
-            console.info("All repos: " + allRepoHelpers + " " + getAllRepoHelpers());
             this.openRepo(repoHelperToLoad);
         } else {
-            console.info("repo matched one already loaded");
             // So, this repo is already loaded into the model
             if(matchedRepoHelper.exists()){
-                console.info("repo exists");
-                console.info("All repos: " + allRepoHelpers + " " + getAllRepoHelpers());
                 this.openRepo(matchedRepoHelper);
             }else{
-                console.info("repo doesn't exist");
-                console.info("All repos: " + allRepoHelpers + " " + getAllRepoHelpers());
                 this.allRepoHelpers.remove(matchedRepoHelper);
                 throw new MissingRepoException();
             }
         }
-        console.info("All repos redux: " + allRepoHelpers);
     }
 
     /**
@@ -659,7 +641,6 @@ public class SessionModel {
         } catch (Exception exception) {
             exception.printStackTrace();
         }
-//        sessionModel.set(new SessionModel());
     }
 
 

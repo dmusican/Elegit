@@ -812,7 +812,6 @@ public class SessionController {
 
     public boolean loadDesignatedRepo(RepoHelper repoHelper) {
         Main.assertFxThread();
-        console.info("All repos" + theModel.getAllRepoHelpers());
         GitOperation gitOp = authResponse -> loadRepo(authResponse, repoHelper);
         if (repoHelper == null)
             throw new RuntimeException();
@@ -821,9 +820,7 @@ public class SessionController {
             return false;
         }
         TreeLayout.stopMovingCells();
-        //refreshRecentReposInDropdown();
         showBusyWindowAndPauseRepoMonitor("Loading repository...");
-        console.info("All repos" + theModel.getAllRepoHelpers());
         doGitOperationWhenSubscribed(gitOp)
                 .flatMap((result) -> {
                     if (result.equals("success")) {
@@ -860,8 +857,6 @@ public class SessionController {
                                 new UsernamePasswordCredentialsProvider(response.username, response.password))
                 );
                 theModel.openRepoFromHelper(repoHelper);
-                console.info("Yep all repos " + SessionModel.getSessionModel().getRepoHelpersDebug());
-                console.info("Yep all repos " + theModel.getRepoHelpersDebug());
             } catch (Exception e) {
                 results.add(new Result(ResultStatus.EXCEPTION, ResultOperation.LOAD, e));
             }

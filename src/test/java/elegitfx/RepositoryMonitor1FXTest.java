@@ -136,7 +136,7 @@ public class RepositoryMonitor1FXTest extends ApplicationTest {
 
         SessionController.gitStatusCompletedOnce = new CountDownLatch(1);
 
-        for (int i=0; i < 2; i++) {
+        for (int i=0; i < 3; i++) {
             addSwapAndRemoveRepos(repoPath, repoPath2);
             interact(() -> console.info("Pass completed"));
         }
@@ -161,7 +161,6 @@ public class RepositoryMonitor1FXTest extends ApplicationTest {
 
         // Now that both repos have been added, the dropdown should contain both of them.
         // It's important that test happens on the FX thread, since the above update happens there.
-        interact(() -> console.info(SessionModel.getSessionModel().getRepoHelpersDebug().hashCode()));
         interact(() -> assertEquals(1, dropdown.getItems().size()));
         interact(() -> assertEquals(1, SessionModel.getSessionModel().getAllRepoHelpers().size()));
 
@@ -181,11 +180,9 @@ public class RepositoryMonitor1FXTest extends ApplicationTest {
         interact(() -> assertEquals(2, dropdown.getItems().size()));
         interact(() -> assertEquals(2, SessionModel.getSessionModel().getAllRepoHelpers().size()));
 
-        // TODO: FIX TO 3
-        for (int i=0; i < 1; i++) {
+        for (int i=0; i < 3; i++) {
             WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
                                       () -> dropdown.getValue().toString().equals("otherrepo"));
-            interact(() -> console.info(dropdown.getItems() + " " + dropdown.getValue()));
             clickOn(dropdown);
 
             // The below awful hack is very likely related to this bug:
@@ -197,11 +194,9 @@ public class RepositoryMonitor1FXTest extends ApplicationTest {
                     clickOn(dropdown);
             });
 
-            interact(() -> console.info(dropdown.getItems() + " " + dropdown.getValue()));
             clickOn("testrepo");
             WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
                                       () -> !BusyWindow.window.isShowing());
-            interact(() -> console.info(dropdown.getItems() + " " + dropdown.getValue()));
 
 
             WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
@@ -217,7 +212,6 @@ public class RepositoryMonitor1FXTest extends ApplicationTest {
             clickOn("otherrepo");
             WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
                                       () -> !BusyWindow.window.isShowing());
-            interact(() -> console.info(dropdown.getItems() + " " + dropdown.getValue()));
         }
 
 
