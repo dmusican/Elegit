@@ -27,6 +27,7 @@ public class BusyWindow {
     private static Text loadingMessage;
 
     private static final Logger logger = LogManager.getLogger();
+    private static final Logger console = LogManager.getLogger("briefconsolelogger");
 
     private static Stage initWindow(){
         Main.assertFxThread();
@@ -64,7 +65,8 @@ public class BusyWindow {
 
     public static void show(){
         Main.assertFxThread();
-        if(numProcessesActive == 0) {
+
+        if(!window.isShowing()) {
             Window parent = window.getOwner();
             double windowWidth, windowHeight;
             // If window hasn't been shown before, getWidth() will be NaN
@@ -80,14 +82,18 @@ public class BusyWindow {
             window.setY(parent.getY()+parent.getHeight()/2-windowHeight/2);
             window.setMinWidth(loadingMessage.getBoundsInLocal().getWidth() + 20);
             window.show();
+        } else {
+            throw new RuntimeException("BusyWindow is already showing.");
         }
-        numProcessesActive++;
     }
 
+    /**
+     * Occasionally this hide method may be called even if the window is not showing, such as when Elegit is
+     * starting up.
+     */
     public static void hide(){
         Main.assertFxThread();
-        numProcessesActive--;
-        if(numProcessesActive == 0) {
+        if(window.isShowing()) {
             logger.info("Hiding busy window");
             window.hide();
             loadingMessage.setText("Loading...");

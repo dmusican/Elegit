@@ -203,18 +203,13 @@ public class SessionController {
 
         commitTreeProgressBarAndLabel.setAlignment(Pos.CENTER);
         commitTreeProgressBarAndLabel.setVisible(false);
-        console.info("SessionController.initialize(203)");
         //BusyWindow.show();
         // SLOW
         // here now looking
         this.initPanelViewsWhenSubscribed()
                 .doOnSuccess((unused) -> {
                     this.updateUIEnabledStatus();
-                    this.setRecentReposDropdownToCurrentRepo();
                     this.refreshRecentReposInDropdown();
-
-                    console.info("Spot 1");
-                    System.out.println("SessionController.initialize");
                     this.initRepositoryMonitor();
 
                     this.initStatusText();
@@ -233,7 +228,7 @@ public class SessionController {
                     // Now finally start watching repositories
                     RepositoryMonitor.unpause();
 
-                }).subscribe(unused -> {}, t -> new ExceptionAdapter(t));
+                }).subscribe(unused -> {}, t -> {throw new ExceptionAdapter(t);});
     }
 
     @FXML void handleFetchButton() {
@@ -624,6 +619,7 @@ public class SessionController {
                     .flatMap(unused -> commitTreeModel.initializeModelForNewRepoWhenSubscribed());
         } catch (GitAPIException | IOException e) {
             showGenericErrorNotification(e);
+            console.info("Exception thrown: " + e);
         }
 
         return Single.just(true);
@@ -824,7 +820,6 @@ public class SessionController {
             return false;
         }
         TreeLayout.stopMovingCells();
-        refreshRecentReposInDropdown();
         showBusyWindowAndPauseRepoMonitor("Loading repository...");
         doGitOperationWhenSubscribed(gitOp)
                 .flatMap((result) -> {
@@ -832,7 +827,7 @@ public class SessionController {
                         return initPanelViewsWhenSubscribed()
                         .map(unused -> doGitStatusWhenSubscribed())
                         .doOnSuccess(unused -> {
-                            setRecentReposDropdownToCurrentRepo();
+                            refreshRecentReposInDropdown();
                             updateUIEnabledStatus();
                             hideBusyWindowAndResumeRepoMonitor();
 
@@ -870,17 +865,6 @@ public class SessionController {
     }
 
 
-    /**
-     * Gets the current RepoHelper and sets it as the selected value of the dropdown.
-     */
-    @FXML
-    private void setRecentReposDropdownToCurrentRepo() {
-        Main.assertFxThread();
-        synchronized (this) {
-            RepoHelper currentRepo = this.theModel.getCurrentRepoHelper();
-            dropdownController.setCurrentRepoWithoutInvokingAction(currentRepo);
-        }
-    }
 
     /**
      * Adds all the model's RepoHelpers to the dropdown
@@ -889,10 +873,11 @@ public class SessionController {
     private void refreshRecentReposInDropdown() {
         Main.assertFxThread();
         synchronized (this) {
+            RepoHelper repoHelper = this.theModel.getCurrentRepoHelper();
             List<RepoHelper> repoHelpers = this.theModel.getAllRepoHelpers();
             ObservableList<RepoHelper> obsRepoHelpers = FXCollections.observableArrayList(repoHelpers);
             ObservableList<RepoHelper> immutableRepoHelpers = FXCollections.unmodifiableObservableList(obsRepoHelpers);
-            dropdownController.setAllReposWithoutInvokingAction(FXCollections.observableArrayList(immutableRepoHelpers));
+            dropdownController.setCurrentRepoWithoutInvokingAction(repoHelper, FXCollections.observableArrayList(immutableRepoHelpers));
         }
     }
 
@@ -2455,37 +2440,30 @@ public class SessionController {
      * @param checkedItems list of selected repos
      */
     void handleRemoveReposButton(List<RepoHelper> checkedItems) {
+        Main.assertFxThread();
         logger.info("Removed repos");
         this.theModel.removeRepoHelpers(checkedItems);
 
-        // If there are repos that aren't the current one, and the current repo is being removed, load a different repo
         if (!this.theModel.getAllRepoHelpers().isEmpty() && !this.theModel.getAllRepoHelpers().contains(theModel.getCurrentRepoHelper())) {
+            // If there are repos that aren't the current one, and the current repo is being removed, load a different repo
             int newIndex = this.theModel.getAllRepoHelpers().size()-1;
             RepoHelper newCurrentRepo = this.theModel.getAllRepoHelpers()
                     .get(newIndex);
 
             loadDesignatedRepo(newCurrentRepo);
-            dropdownController.setCurrentRepoWithoutInvokingAction(newCurrentRepo);
-
             this.refreshRecentReposInDropdown();
 
+        } else if (this.theModel.getAllRepoHelpers().isEmpty()) {
             // If there are no repos, reset everything
-        } else if (this.theModel.getAllRepoHelpers().isEmpty()){
             TreeLayout.stopMovingCells();
             theModel.resetSessionModel();
             workingTreePanelView.resetFileStructurePanelView();
             allFilesPanelView.resetFileStructurePanelView();
+            RepositoryMonitor.pause();
             initialize();
-
-            // The repos have been removed, this line just keeps the current repo loaded
-        }else {
-            System.out.println("the current = " + theModel.getCurrentRepoHelper());
-//            try {
-//                theModel.openRepoFromHelper(theModel.getCurrentRepoHelper());
-//            } catch (BackingStoreException | IOException | MissingRepoException | ClassNotFoundException e1) {
-//                e1.printStackTrace();
-//            }
         }
+
+        // The repos have been removed, so no 'else' case above is necessary
 
         this.refreshRecentReposInDropdown();
     }

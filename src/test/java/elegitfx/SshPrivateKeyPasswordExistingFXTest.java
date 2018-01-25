@@ -42,6 +42,7 @@ import org.junit.rules.TestName;
 import org.loadui.testfx.GuiTest;
 import org.loadui.testfx.controls.impl.VisibleNodesMatcher;
 import org.testfx.framework.junit.ApplicationTest;
+import org.testfx.util.WaitForAsyncUtils;
 import sharedrules.TestingLogPathRule;
 import sharedrules.TestingRemoteAndLocalReposRule;
 
@@ -58,6 +59,7 @@ import java.util.Hashtable;
 import java.util.Random;
 import java.util.Scanner;
 import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
 import java.util.prefs.Preferences;
 
 import static org.junit.Assert.assertEquals;
@@ -189,7 +191,7 @@ public class SshPrivateKeyPasswordExistingFXTest extends ApplicationTest {
         console.info("firstCommit name = " + firstCommit.getName());
 
         // Uncomment this to get detail SSH logging info, for debugging
-        JSch.setLogger(new MyLogger());
+        //JSch.setLogger(new MyLogger());
 
         // Set up test SSH server.
         try (SshServer sshd = SshServer.setUpDefaultServer()) {
@@ -262,7 +264,6 @@ public class SshPrivateKeyPasswordExistingFXTest extends ApplicationTest {
                     .write(local.toString() + "\n");
 
 
-            // THIS IS WHERE TEST NEEDS TO BE FIXED; ON EXISTING REPO, NEED TO GET PRIVATE KEY IN THERE
             // Enter in private key location
             clickOn("#repoInputDialog")
                     .write(getClass().getResource(privateKeyFileLocation).getFile())
@@ -283,11 +284,8 @@ public class SshPrivateKeyPasswordExistingFXTest extends ApplicationTest {
             assertEquals(0, ExceptionAdapter.getWrappedCount());
             assertEquals(0, sessionController.getNotificationPaneController().getNotificationNum());
 
-
-//            // Wait for known hosts confirmation dialog, then click
-//            GuiTest.waitUntil("Yes", Matchers.is(VisibleNodesMatcher.visible()));
-//            clickOn("Yes");
-
+            WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+                                      () -> lookup("#sshprompt").query() != null);
             // Enter passphrase
             clickOn("#sshprompt")
                     .write(passphrase)
@@ -298,6 +296,9 @@ public class SshPrivateKeyPasswordExistingFXTest extends ApplicationTest {
 
             // Shut down test SSH server
             assertEquals(0, ExceptionAdapter.getWrappedCount());
+
+            // Stop repository monitor, so it doesn't keep trying to work after sshd shuts down
+            RepositoryMonitor.pause();
             sshd.stop();
         }
     }

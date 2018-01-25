@@ -5,16 +5,12 @@ import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import elegit.Main;
 import elegit.models.RepoHelper;
 import elegit.models.SessionModel;
-import io.reactivex.Observable;
-import io.reactivex.schedulers.Schedulers;
-import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.geometry.Side;
-import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
@@ -43,6 +39,7 @@ public class DropdownController {
     @FXML private ComboBox<RepoHelper> repoDropdownSelector;
 
     private static final Logger logger = LogManager.getLogger();
+    private static final Logger console = LogManager.getLogger("briefconsolelogger");
 
     public synchronized void setSessionController(SessionController sessionController) {
         this.sessionController = sessionController;
@@ -132,18 +129,45 @@ public class DropdownController {
         });
     }
 
-    public void setCurrentRepoWithoutInvokingAction(RepoHelper repoHelper) {
+    /**
+     * When setting the current repo, always reset the list of repos at the same time. This way we can ensure
+     * that the repo being set as the current one is also in the list of repos.
+     * @param repoHelper The repo to show
+     * @param repoHelpers The list of all repos to show
+     */
+    public void setCurrentRepoWithoutInvokingAction(RepoHelper repoHelper, ObservableList<RepoHelper> repoHelpers) {
+        if (!containedInList(repoHelper, repoHelpers)) {
+            throw new RuntimeException("Repo being set [" + repoHelper + "] is not in list of repos: " + repoHelpers);
+        }
+        setAllReposWithoutInvokingAction(repoHelpers);
         EventHandler<ActionEvent> handler = repoDropdownSelector.getOnAction();
         repoDropdownSelector.setOnAction(null);
         repoDropdownSelector.setValue(repoHelper);
         repoDropdownSelector.setOnAction(handler);
     }
 
+    private boolean containedInList(RepoHelper repoHelper, ObservableList<RepoHelper> repoHelpers) {
+        // If the repoHelper is null, we should consider that as "contained," in that it is legitimate as a choice.
+        if (repoHelper == null) {
+            return true;
+        }
+
+        boolean containedInList = false;
+        for (RepoHelper repoInList : repoHelpers) {
+            if (repoHelper.getLocalPath().equals(repoInList.getLocalPath())) {
+                containedInList = true;
+                break;
+            }
+        }
+        return containedInList;
+    }
+
     public RepoHelper getCurrentRepo() {
         return repoDropdownSelector.getValue();
     }
 
-    public void setAllReposWithoutInvokingAction(ObservableList<RepoHelper> repoHelpers) {
+    private void setAllReposWithoutInvokingAction(ObservableList<RepoHelper> repoHelpers) {
+        Main.assertFxThread();
         EventHandler<ActionEvent> handler = repoDropdownSelector.getOnAction();
         repoDropdownSelector.setOnAction(null);
         repoDropdownSelector.setItems(repoHelpers);

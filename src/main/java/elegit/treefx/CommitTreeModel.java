@@ -105,7 +105,6 @@ public class CommitTreeModel{
 
         if (SessionModel.getSessionModel().getCurrentRepoHelper() != null) {
             // Get the changes between this model and the repo after updating the repo
-
             try {
                 RepoHelper currentRepoHelper = SessionModel.getSessionModel().getCurrentRepoHelper();
                 currentRepoHelper.updateModel();
@@ -117,7 +116,6 @@ public class CommitTreeModel{
             } catch (GitAPIException | IOException e) {
                 throw new ExceptionAdapter(e);
             }
-
             return this.addCommitsToTreeWhenSubscribed(this.getAllCommits(SessionModel.getSessionModel().getCurrentRepoHelper()))
                     .doOnSuccess((result) -> {
                         this.branchesInModel.clear();

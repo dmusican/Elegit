@@ -68,6 +68,7 @@ public class RepoHelper {
     private final AtomicReference<UsernamePasswordCredentialsProvider> ownerAuth = new AtomicReference<>();
 
     private static final Logger logger = LogManager.getLogger();
+    private static final Logger console = LogManager.getLogger("briefconsolelogger");
 
     @GuardedBy("this")
     private boolean remoteAuthenticationSuccess = true;

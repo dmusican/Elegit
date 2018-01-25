@@ -101,7 +101,7 @@ public class LocalSshAuthenticationTests {
     @Test
     public void testSshPrivateKey() throws Exception {
         // Uncomment this to get detail SSH logging info, for debugging
-        JSch.setLogger(new MyLogger());
+        //JSch.setLogger(new MyLogger());
 
         // Set up test SSH server.
         sshd = SshServer.setUpDefaultServer();

@@ -58,15 +58,15 @@ public class SessionModel {
     private static final String RECENT_REPOS_LIST_KEY = "RECENT_REPOS_LIST";
     public static final String LAST_OPENED_REPO_PATH_KEY = "LAST_OPENED_REPO_PATH";
     private static final String LAST_UUID_KEY="LAST_UUID";
-    @GuardedBy("this") private final List<RepoHelper> allRepoHelpers;
     private static final Logger logger = LogManager.getLogger();
-    private final AtomicReference<RepoHelper> currentRepoHelper = new AtomicReference<>();
-    //private final ObjectProperty<RepoHelper> currentRepoHelperProperty = new SimpleObjectProperty<>();
-    private static final AtomicInteger constructorCount = new AtomicInteger();
-    private final static AtomicReference<SessionModel> sessionModel = new AtomicReference<>();
+    private static final Logger console = LogManager.getLogger("briefconsolelogger");
+    @GuardedBy("this") private static SessionModel sessionModel;
     private final Preferences preferences;
-    private final PublishSubject<RepoHelper> openedRepos = PublishSubject.create();
     private static Class<?> preferencesNodeClass = SessionModel.class;
+    private final PublishSubject<RepoHelper> openedRepos = PublishSubject.create();
+
+    @GuardedBy("this") private final List<RepoHelper> allRepoHelpers;
+    private final AtomicReference<RepoHelper> currentRepoHelper = new AtomicReference<>();
 
     /**
      * @return the SessionModel object
@@ -74,10 +74,10 @@ public class SessionModel {
     // synchronized is critical for sessionModel, to make sure that it is updated as one operation.
     // compareAndSet would be briefer, but dramatically slower.
     public synchronized static SessionModel getSessionModel() {
-        if (sessionModel.get() == null) {
-            sessionModel.set(new SessionModel());
+        if (sessionModel == null) {
+            sessionModel = new SessionModel();
         }
-        return sessionModel.get();
+        return sessionModel;
     }
 
 
@@ -85,6 +85,7 @@ public class SessionModel {
      * Private constructor for the SessionModel singleton
      */
     private SessionModel() {
+        console.info("Creating new allRepoHelpers");
         this.allRepoHelpers = new ArrayList<>();
         this.preferences = Preferences.userNodeForPackage(preferencesNodeClass);
         loadRecentRepoHelpersFromStoredPathStrings();
@@ -283,6 +284,13 @@ public class SessionModel {
         return Collections.unmodifiableList(allRepoHelpers);
     }
 
+    /**
+     * Intended just for debugging purposes, returns entire list without modifying as above.
+     * @return list of all repos
+     */
+    public synchronized List<RepoHelper> getRepoHelpersDebug() {
+        return allRepoHelpers;
+    }
     /**
      * Calls `git status` and returns the set of untracked files that Git reports.
      *
@@ -628,10 +636,11 @@ public class SessionModel {
     public synchronized void resetSessionModel() {
         try {
             clearStoredPreferences();
+            currentRepoHelper.set(null);
+            allRepoHelpers.clear();
         } catch (Exception exception) {
             exception.printStackTrace();
         }
-        sessionModel.set(new SessionModel());
     }
 
 
