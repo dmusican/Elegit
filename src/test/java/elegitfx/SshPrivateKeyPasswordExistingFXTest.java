@@ -42,6 +42,7 @@ import org.junit.rules.TestName;
 import org.loadui.testfx.GuiTest;
 import org.loadui.testfx.controls.impl.VisibleNodesMatcher;
 import org.testfx.framework.junit.ApplicationTest;
+import org.testfx.util.WaitForAsyncUtils;
 import sharedrules.TestingLogPathRule;
 import sharedrules.TestingRemoteAndLocalReposRule;
 
@@ -58,6 +59,7 @@ import java.util.Hashtable;
 import java.util.Random;
 import java.util.Scanner;
 import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
 import java.util.prefs.Preferences;
 
 import static org.junit.Assert.assertEquals;
@@ -283,11 +285,8 @@ public class SshPrivateKeyPasswordExistingFXTest extends ApplicationTest {
             assertEquals(0, ExceptionAdapter.getWrappedCount());
             assertEquals(0, sessionController.getNotificationPaneController().getNotificationNum());
 
-
-//            // Wait for known hosts confirmation dialog, then click
-//            GuiTest.waitUntil("Yes", Matchers.is(VisibleNodesMatcher.visible()));
-//            clickOn("Yes");
-
+            WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+                                      () -> lookup("#sshprompt").query() != null);
             // Enter passphrase
             clickOn("#sshprompt")
                     .write(passphrase)
