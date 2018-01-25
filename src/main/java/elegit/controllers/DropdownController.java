@@ -136,7 +136,6 @@ public class DropdownController {
      * @param repoHelpers The list of all repos to show
      */
     public void setCurrentRepoWithoutInvokingAction(RepoHelper repoHelper, ObservableList<RepoHelper> repoHelpers) {
-        console.info(repoHelper);
         if (!containedInList(repoHelper, repoHelpers)) {
             throw new RuntimeException("Repo being set [" + repoHelper + "] is not in list of repos: " + repoHelpers);
         }
@@ -145,7 +144,6 @@ public class DropdownController {
         repoDropdownSelector.setOnAction(null);
         repoDropdownSelector.setValue(repoHelper);
         repoDropdownSelector.setOnAction(handler);
-        console.info("Finished");
     }
 
     private boolean containedInList(RepoHelper repoHelper, ObservableList<RepoHelper> repoHelpers) {
@@ -161,7 +159,6 @@ public class DropdownController {
                 break;
             }
         }
-        console.info("Finished: " + containedInList);
         return containedInList;
     }
 
@@ -171,7 +168,6 @@ public class DropdownController {
 
     private void setAllReposWithoutInvokingAction(ObservableList<RepoHelper> repoHelpers) {
         Main.assertFxThread();
-        console.info(repoHelpers);
         EventHandler<ActionEvent> handler = repoDropdownSelector.getOnAction();
         repoDropdownSelector.setOnAction(null);
         repoDropdownSelector.setItems(repoHelpers);

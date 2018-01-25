@@ -99,7 +99,7 @@ public class RepositoryMonitor{
                     if (remoteHasNewChanges(repo))
                         setFoundNewChanges();
                 })
-                .subscribe((unused) -> {}, (t) -> new ExceptionAdapter(t));
+                .subscribe((unused) -> {}, (t) -> {throw new ExceptionAdapter(t);});
     }
 
     private static synchronized void stopWatchingRemoteRepo() {

@@ -812,6 +812,7 @@ public class SessionController {
 
     public boolean loadDesignatedRepo(RepoHelper repoHelper) {
         Main.assertFxThread();
+        console.info("All repos" + theModel.getAllRepoHelpers());
         GitOperation gitOp = authResponse -> loadRepo(authResponse, repoHelper);
         if (repoHelper == null)
             throw new RuntimeException();
@@ -822,14 +823,13 @@ public class SessionController {
         TreeLayout.stopMovingCells();
         //refreshRecentReposInDropdown();
         showBusyWindowAndPauseRepoMonitor("Loading repository...");
+        console.info("All repos" + theModel.getAllRepoHelpers());
         doGitOperationWhenSubscribed(gitOp)
                 .flatMap((result) -> {
                     if (result.equals("success")) {
-                        console.info("got to success");
                         return initPanelViewsWhenSubscribed()
                         .map(unused -> doGitStatusWhenSubscribed())
                         .doOnSuccess(unused -> {
-                            console.info("about to refresh");
                             refreshRecentReposInDropdown();
                             updateUIEnabledStatus();
                             hideBusyWindowAndResumeRepoMonitor();
@@ -860,6 +860,8 @@ public class SessionController {
                                 new UsernamePasswordCredentialsProvider(response.username, response.password))
                 );
                 theModel.openRepoFromHelper(repoHelper);
+                console.info("Yep all repos " + SessionModel.getSessionModel().getRepoHelpersDebug());
+                console.info("Yep all repos " + theModel.getRepoHelpersDebug());
             } catch (Exception e) {
                 results.add(new Result(ResultStatus.EXCEPTION, ResultOperation.LOAD, e));
             }
@@ -2443,6 +2445,7 @@ public class SessionController {
      * @param checkedItems list of selected repos
      */
     void handleRemoveReposButton(List<RepoHelper> checkedItems) {
+        Main.assertFxThread();
         logger.info("Removed repos");
         this.theModel.removeRepoHelpers(checkedItems);
 

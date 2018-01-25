@@ -58,16 +58,15 @@ public class SessionModel {
     private static final String RECENT_REPOS_LIST_KEY = "RECENT_REPOS_LIST";
     public static final String LAST_OPENED_REPO_PATH_KEY = "LAST_OPENED_REPO_PATH";
     private static final String LAST_UUID_KEY="LAST_UUID";
-    @GuardedBy("this") private final List<RepoHelper> allRepoHelpers;
     private static final Logger logger = LogManager.getLogger();
     private static final Logger console = LogManager.getLogger("briefconsolelogger");
-    private final AtomicReference<RepoHelper> currentRepoHelper = new AtomicReference<>();
-    //private final ObjectProperty<RepoHelper> currentRepoHelperProperty = new SimpleObjectProperty<>();
-    private static final AtomicInteger constructorCount = new AtomicInteger();
     private final static AtomicReference<SessionModel> sessionModel = new AtomicReference<>();
     private final Preferences preferences;
-    private final PublishSubject<RepoHelper> openedRepos = PublishSubject.create();
     private static Class<?> preferencesNodeClass = SessionModel.class;
+    private final PublishSubject<RepoHelper> openedRepos = PublishSubject.create();
+
+    @GuardedBy("this") private final List<RepoHelper> allRepoHelpers;
+    private final AtomicReference<RepoHelper> currentRepoHelper = new AtomicReference<>();
 
     /**
      * @return the SessionModel object
@@ -86,6 +85,7 @@ public class SessionModel {
      * Private constructor for the SessionModel singleton
      */
     private SessionModel() {
+        console.info("Creating new allRepoHelpers");
         this.allRepoHelpers = new ArrayList<>();
         this.preferences = Preferences.userNodeForPackage(preferencesNodeClass);
         loadRecentRepoHelpersFromStoredPathStrings();
@@ -191,14 +191,22 @@ public class SessionModel {
      */
     // synchronized for allRepoHelpers, and openedRepos
     private synchronized void openRepo(RepoHelper repoHelper) throws BackingStoreException, IOException, ClassNotFoundException {
+        console.info("open repo");
+        console.info("All repos: " + allRepoHelpers);
         if(!this.allRepoHelpers.contains(repoHelper)) {
+            console.info("adding repo " + repoHelper);
             this.allRepoHelpers.add(repoHelper);
+        } else {
+            console.info("skipping adding repo " + repoHelper);
+            console.info("All repos: " + allRepoHelpers + " " + allRepoHelpers.hashCode());
+            console.info("All repos again: " + getAllRepoHelpers());
         }
         this.currentRepoHelper.set(repoHelper);
         this.saveListOfRepoPathStrings();
         this.saveMostRecentRepoPathString();
 
         openedRepos.onNext(this.currentRepoHelper.get());
+        console.info("All repos again: " + allRepoHelpers);
     }
 
     public synchronized void subscribeToOpenedRepos(Consumer<RepoHelper> consumer) {
@@ -217,20 +225,30 @@ public class SessionModel {
      */
     // synchronized for allRepoHelpers
     public synchronized void openRepoFromHelper(RepoHelper repoHelperToLoad) throws BackingStoreException, IOException, ClassNotFoundException, MissingRepoException {
+        console.info("open repo");
         RepoHelper matchedRepoHelper = this.matchRepoWithAlreadyLoadedRepo(repoHelperToLoad);
         if (matchedRepoHelper == null) {
+            console.info("All repos: " + allRepoHelpers + " " + getAllRepoHelpers());
+            console.info("repo doesn't match any already loaded, so adding it");
             // So, this repo isn't loaded into the model yet
             this.allRepoHelpers.add(repoHelperToLoad);
+            console.info("All repos: " + allRepoHelpers + " " + getAllRepoHelpers());
             this.openRepo(repoHelperToLoad);
         } else {
+            console.info("repo matched one already loaded");
             // So, this repo is already loaded into the model
             if(matchedRepoHelper.exists()){
+                console.info("repo exists");
+                console.info("All repos: " + allRepoHelpers + " " + getAllRepoHelpers());
                 this.openRepo(matchedRepoHelper);
             }else{
+                console.info("repo doesn't exist");
+                console.info("All repos: " + allRepoHelpers + " " + getAllRepoHelpers());
                 this.allRepoHelpers.remove(matchedRepoHelper);
                 throw new MissingRepoException();
             }
         }
+        console.info("All repos redux: " + allRepoHelpers);
     }
 
     /**
@@ -284,6 +302,13 @@ public class SessionModel {
         return Collections.unmodifiableList(allRepoHelpers);
     }
 
+    /**
+     * Intended just for debugging purposes, returns entire list without modifying as above.
+     * @return list of all repos
+     */
+    public synchronized List<RepoHelper> getRepoHelpersDebug() {
+        return allRepoHelpers;
+    }
     /**
      * Calls `git status` and returns the set of untracked files that Git reports.
      *
@@ -630,10 +655,11 @@ public class SessionModel {
         try {
             clearStoredPreferences();
             currentRepoHelper.set(null);
+            allRepoHelpers.clear();
         } catch (Exception exception) {
             exception.printStackTrace();
         }
-        sessionModel.set(new SessionModel());
+//        sessionModel.set(new SessionModel());
     }
 
 
