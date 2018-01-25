@@ -264,7 +264,6 @@ public class SshPrivateKeyPasswordExistingFXTest extends ApplicationTest {
                     .write(local.toString() + "\n");
 
 
-            // THIS IS WHERE TEST NEEDS TO BE FIXED; ON EXISTING REPO, NEED TO GET PRIVATE KEY IN THERE
             // Enter in private key location
             clickOn("#repoInputDialog")
                     .write(getClass().getResource(privateKeyFileLocation).getFile())
@@ -297,6 +296,9 @@ public class SshPrivateKeyPasswordExistingFXTest extends ApplicationTest {
 
             // Shut down test SSH server
             assertEquals(0, ExceptionAdapter.getWrappedCount());
+
+            // Stop repository monitor, so it doesn't keep trying to work after sshd shuts down
+            RepositoryMonitor.pause();
             sshd.stop();
         }
     }
