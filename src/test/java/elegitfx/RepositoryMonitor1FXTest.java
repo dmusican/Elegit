@@ -25,6 +25,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.testfx.framework.junit.ApplicationTest;
 import org.testfx.util.WaitForAsyncUtils;
+import sharedrules.TestUtilities;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -56,27 +57,7 @@ public class RepositoryMonitor1FXTest extends ApplicationTest {
 
     @Override
     public void start(Stage stage) throws Exception {
-        Main.testMode = true;
-        BusyWindow.setParentWindow(stage);
-
-        Preferences prefs = Preferences.userNodeForPackage(this.getClass());
-        prefs.removeNode();
-
-        SessionModel.setPreferencesNodeClass(this.getClass());
-        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/MainView.fxml"));
-        fxmlLoader.load();
-        sessionController = fxmlLoader.getController();
-        Parent root = fxmlLoader.getRoot();
-        Rectangle2D primScreenBounds = Screen.getPrimary().getVisualBounds();
-        Scene scene = new Scene(root, 800, 600);
-        stage.setScene(scene);
-        stage.setX(0);
-        stage.setY(0);
-        sessionController.setStageForNotifications(stage);
-        stage.show();
-        stage.toFront();
-        // TODO: Remove this pause and keep test working; no good reason for it to be necessary
-        RepositoryMonitor.pause();
+        sessionController = TestUtilities.commonTestFXstart(stage);
 
         if (!Main.initializationComplete.get()) {
             BusyWindow.show();
