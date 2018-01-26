@@ -115,7 +115,7 @@ public class TestUtilities {
 
 
 
-    public static SessionController commonTestFXstart(Stage stage) throws Exception {
+    public static SessionController commonTestFxStart(Stage stage) throws Exception {
         Main.testMode = true;
         BusyWindow.setParentWindow(stage);
 

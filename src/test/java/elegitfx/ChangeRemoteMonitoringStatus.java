@@ -1,17 +1,10 @@
 package elegitfx;
 
 import elegit.Main;
-import elegit.controllers.BusyWindow;
 import elegit.controllers.MenuController;
 import elegit.controllers.SessionController;
 import elegit.models.ClonedRepoHelper;
-import elegit.models.SessionModel;
 import elegit.monitors.RepositoryMonitor;
-import javafx.fxml.FXMLLoader;
-import javafx.geometry.Rectangle2D;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
-import javafx.stage.Screen;
 import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -26,7 +19,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.prefs.Preferences;
 
 import static junit.framework.TestCase.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -48,7 +40,7 @@ public class ChangeRemoteMonitoringStatus extends ApplicationTest {
 
     @Override
     public void start(Stage stage) throws Exception {
-        sessionController = TestUtilities.commonTestFXstart(stage);
+        sessionController = TestUtilities.commonTestFxStart(stage);
         menuController = sessionController.getMenuController();
 
     }

@@ -6,15 +6,9 @@ import elegit.controllers.SessionController;
 import elegit.models.ClonedRepoHelper;
 import elegit.models.RepoHelper;
 import elegit.models.SessionModel;
-import elegit.monitors.RepositoryMonitor;
 import elegit.treefx.CommitTreeModel;
-import javafx.fxml.FXMLLoader;
-import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.ComboBox;
-import javafx.stage.Screen;
 import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -34,7 +28,6 @@ import java.nio.file.Paths;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.prefs.Preferences;
 
 import static junit.framework.TestCase.assertEquals;
 import static org.junit.Assert.assertNotEquals;
@@ -57,7 +50,7 @@ public class RepositoryMonitor1FXTest extends ApplicationTest {
 
     @Override
     public void start(Stage stage) throws Exception {
-        sessionController = TestUtilities.commonTestFXstart(stage);
+        sessionController = TestUtilities.commonTestFxStart(stage);
 
         if (!Main.initializationComplete.get()) {
             BusyWindow.show();

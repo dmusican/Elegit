@@ -1,25 +1,14 @@
 package elegitfx;
 
 import elegit.Main;
-import elegit.controllers.BusyWindow;
 import elegit.controllers.SessionController;
 import elegit.exceptions.CancelledAuthorizationException;
 import elegit.exceptions.MissingRepoException;
 import elegit.exceptions.NoCommitsToPushException;
 import elegit.exceptions.PushToAheadRemoteError;
 import elegit.models.*;
-import elegit.monitors.RepositoryMonitor;
 import elegit.sshauthentication.ElegitUserInfoTest;
 import elegit.treefx.Cell;
-import elegit.treefx.CellState;
-import elegit.treefx.TreeLayout;
-import javafx.fxml.FXMLLoader;
-import javafx.geometry.Rectangle2D;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
-import javafx.scene.layout.HBox;
-import javafx.scene.paint.Color;
-import javafx.stage.Screen;
 import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -33,8 +22,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestName;
-import org.loadui.testfx.GuiTest;
-import org.testfx.api.FxAssert;
 import org.testfx.framework.junit.ApplicationTest;
 import sharedrules.TestUtilities;
 
@@ -46,7 +33,6 @@ import java.nio.file.Paths;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
-import java.util.prefs.Preferences;
 
 import static junit.framework.TestCase.assertEquals;
 import static org.junit.Assert.assertNotEquals;
@@ -100,7 +86,7 @@ public class RepoCreation3FXTest extends ApplicationTest {
 
     @Override
     public void start(Stage stage) throws Exception {
-        sessionController = TestUtilities.commonTestFXstart(stage);
+        sessionController = TestUtilities.commonTestFxStart(stage);
     }
 
 
