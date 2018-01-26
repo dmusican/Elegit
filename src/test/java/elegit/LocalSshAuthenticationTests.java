@@ -113,51 +113,20 @@ public class LocalSshAuthenticationTests {
         // Set up test SSH server.
         sshd = SshServer.setUpDefaultServer();
 
-        // Provide SSH server with public and private key info that client will be connecting with
-        InputStream passwordFileStream = getClass().getResourceAsStream("/rsa_key1_passphrase.txt");
+        String remoteURL = TestUtilities.setUpTestSshServer(sshd,
+                                                            directoryPath,
+                                                            testingRemoteAndLocalRepos.getRemoteFull(),
+                                                            testingRemoteAndLocalRepos.getRemoteBrief());
+
+        console.info("Connecting to " + remoteURL);
+        Path local = testingRemoteAndLocalRepos.getLocalFull();
+        InputStream passwordFileStream = TestUtilities.class.getResourceAsStream("/rsa_key1_passphrase.txt");
         Scanner scanner = new Scanner(passwordFileStream);
         String passphrase = scanner.next();
         console.info("phrase is " + passphrase);
-
         String privateKeyFileLocation = "/rsa_key1";
-        InputStream privateKeyStream = getClass().getResourceAsStream(privateKeyFileLocation);
-        FilePasswordProvider filePasswordProvider = FilePasswordProvider.of(passphrase);
-        KeyPair kp = SecurityUtils.loadKeyPairIdentity("testkey", privateKeyStream, filePasswordProvider);
-        ArrayList<KeyPair> pairs = new ArrayList<>();
-        pairs.add(kp);
-        KeyPairProvider hostKeyProvider = new MappedKeyPairProvider(pairs);
-        sshd.setKeyPairProvider(hostKeyProvider);
 
-        // Need to use a non-standard port, as there may be an ssh server already running on this machine
-        sshd.setPort(2222);
 
-        // Set up a fall-back password authenticator to help in diagnosing failed test
-        sshd.setPasswordAuthenticator(new PasswordAuthenticator() {
-            public boolean authenticate(String username, String password, ServerSession session) {
-                fail("Tried to use password instead of public key authentication");
-                return false;
-            }
-        });
-
-        // This replaces the role of authorized_keys.
-        Collection<PublicKey> allowedKeys = new ArrayList<>();
-        allowedKeys.add(kp.getPublic());
-        sshd.setPublickeyAuthenticator(new KeySetPublickeyAuthenticator(allowedKeys));
-
-        // Amazingly useful Git command setup provided by Mina.
-        sshd.setCommandFactory(new GitPackCommandFactory(directoryPath.toString()));
-
-        // Start the SSH test server.
-        sshd.start();
-
-        // Create temporary known_hosts file.
-        Path knownHostsFileLocation = directoryPath.resolve("testing_known_hosts");
-        Files.createFile(knownHostsFileLocation);
-
-        // Clone the bare repo, using the SSH connection, to the local.
-        String remoteURL = "ssh://localhost:2222/" + testingRemoteAndLocalRepos.getRemoteBrief();
-        console.info("Connecting to " + remoteURL);
-        Path local = testingRemoteAndLocalRepos.getLocalFull();
         ClonedRepoHelper helper =
                 new ClonedRepoHelper(local, "",
                                      new ElegitUserInfoTest(null, passphrase),
@@ -223,73 +192,6 @@ public class LocalSshAuthenticationTests {
         command.call();
     }
 
-
-    private String setUpTestSshServer(SshServer sshd) throws IOException, GitAPIException,
-            CancelledAuthorizationException,
-            MissingRepoException, GeneralSecurityException {
-        Path local = testingRemoteAndLocalRepos.getLocalFull();
-        Path remote = testingRemoteAndLocalRepos.getRemoteFull();
-
-        // Set up remote repo
-        Path remoteFilePath = remote.resolve("file.txt");
-        Files.write(remoteFilePath, "testSshPassword".getBytes());
-        ArrayList<Path> paths = new ArrayList<>();
-        paths.add(remoteFilePath);
-        ExistingRepoHelper helperServer = new ExistingRepoHelper(remote, null);
-        helperServer.addFilePathsTest(paths);
-        helperServer.commit("Initial unit test commit");
-
-        // All of this key set up is gratuitous, but it's the only way that I was able to get sshd to start up.
-        // In the end, it is ignore, and the password is used.
-
-        // Provide SSH server with public and private key info that client will be connecting with
-        InputStream passwordFileStream = getClass().getResourceAsStream("/rsa_key1_passphrase.txt");
-        Scanner scanner = new Scanner(passwordFileStream);
-        String passphrase = scanner.next();
-        console.info("phrase is " + passphrase);
-
-        String privateKeyFileLocation = "/rsa_key1";
-        InputStream privateKeyStream = getClass().getResourceAsStream(privateKeyFileLocation);
-        FilePasswordProvider filePasswordProvider = FilePasswordProvider.of(passphrase);
-        KeyPair kp = SecurityUtils.loadKeyPairIdentity("testkey", privateKeyStream, filePasswordProvider);
-        ArrayList<KeyPair> pairs = new ArrayList<>();
-        pairs.add(kp);
-        KeyPairProvider hostKeyProvider = new MappedKeyPairProvider(pairs);
-        sshd.setKeyPairProvider(hostKeyProvider);
-
-        // Need to use a non-standard port, as there may be an ssh server already running on this machine
-        sshd.setPort(2222);
-
-        // Set up a fall-back password authenticator to help in diagnosing failed test
-        sshd.setPasswordAuthenticator(
-                (username, password, session) -> {
-                    if (password.equals(testPassword)) {
-                        return true;
-                    } else {
-                        fail("Tried to use password instead of public key authentication");
-                        return false;
-                    }
-                });
-
-
-        // This replaces the role of authorized_keys.
-        Collection<PublicKey> allowedKeys = new ArrayList<>();
-        allowedKeys.add(kp.getPublic());
-        sshd.setPublickeyAuthenticator(new KeySetPublickeyAuthenticator(allowedKeys));
-
-        // Amazingly useful Git command setup provided by Mina.
-        sshd.setCommandFactory(new GitPackCommandFactory(directoryPath.toString()));
-
-        // Start the SSH test server.
-        sshd.start();
-
-        // Create temporary known_hosts file.
-        Path knownHostsFileLocation = directoryPath.resolve("testing_known_hosts");
-        Files.createFile(knownHostsFileLocation);
-
-        // Clone the bare repo, using the SSH connection, to the local.
-        return "ssh://localhost:2222/"+testingRemoteAndLocalRepos.getRemoteBrief();
-    }
 
     @Test
     public void testTransportProtocols() throws Exception {
