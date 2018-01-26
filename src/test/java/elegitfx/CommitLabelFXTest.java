@@ -22,6 +22,7 @@ import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.junit.Assert;
 import org.junit.Test;
 import org.testfx.framework.junit.ApplicationTest;
+import sharedrules.TestUtilities;
 
 import java.io.File;
 import java.io.PrintWriter;
@@ -67,25 +68,7 @@ public class CommitLabelFXTest extends ApplicationTest {
 
     @Override
     public void start(Stage stage) throws Exception {
-        Preferences prefs = Preferences.userNodeForPackage(this.getClass());
-        prefs.removeNode();
-        SessionModel.setPreferencesNodeClass(this.getClass());
-
-        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/MainView.fxml"));
-        fxmlLoader.load();
-        RepositoryMonitor.pause();
-        sessionController = fxmlLoader.getController();
-        BorderPane root = fxmlLoader.getRoot();
-        Rectangle2D primScreenBounds = Screen.getPrimary().getVisualBounds();
-        int screenWidth = (int) primScreenBounds.getWidth();
-        int screenHeight = (int) primScreenBounds.getHeight();
-        Scene scene = new Scene(root, screenWidth*4/5, screenHeight*4/5);
-        stage.setScene(scene);
-        System.out.println("Showing stage");
-        stage.show();
-        /* Do not forget to put the GUI in front of windows. Otherwise, the robots may interact with another
-        window, the one in front of all the windows... */
-        //stage.toFront();
+        sessionController = TestUtilities.commonTestFXstart(stage);
 
         // Clone the testing repo into a temporary location
         this.directoryPath = Files.createTempDirectory("commitLabelTestRepos");
