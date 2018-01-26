@@ -8,6 +8,7 @@ import elegit.monitors.ConflictingFileWatcher;
 import elegit.monitors.RepositoryMonitor;
 import elegit.repofile.MissingRepoFile;
 import elegit.repofile.RepoFile;
+import elegit.sshauthentication.ElegitUserInfoGUI;
 import elegit.treefx.CommitTreeController;
 import elegit.treefx.CommitTreeModel;
 import elegit.treefx.CommitTreePanelView;
@@ -188,6 +189,7 @@ public class SessionController {
         menuController.setSessionController(this);
         dropdownController.setSessionController(this);
         commitInfoController.setSessionController(this);
+        ElegitUserInfoGUI.setSessionController(this);
 
         // Creates the commit tree model, and points MVC all looking at each other
         commitTreeModel = CommitTreeModel.getCommitTreeModel();
@@ -2579,6 +2581,13 @@ public class SessionController {
         });
     }
 
+    public void showSshPasswordCancelledNotification() {
+        Platform.runLater(() -> {
+            logger.warn("Ssh password entry cancelled.");
+            notificationPaneController.addNotification("Ssh password entry was cancelled.");
+        });
+    }
+
     private void showMissingRepoNotification(){
         Platform.runLater(()-> {
             logger.warn("Missing repo warning");
@@ -2858,5 +2867,6 @@ public class SessionController {
         Main.assertFxThread();
         return remoteConnected.isDisabled();
     }
+
 
 }

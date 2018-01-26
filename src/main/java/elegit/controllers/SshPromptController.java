@@ -8,14 +8,17 @@ import javafx.scene.layout.GridPane;
 
 import java.util.Optional;
 
+/**
+ * A class used to manage prompting the user for an ssh password. Designed to be used from ElegitUserInfoGUI.
+ */
 public class SshPromptController {
 
     private static Dialog<String> dialog;
     private static PasswordField passwordField;
 
 
+    // Build the dialog structure.
     static {
-
         dialog = new Dialog<>();
 
         GridPane grid = new GridPane();
@@ -40,11 +43,17 @@ public class SshPromptController {
         });
     }
 
+    /**
+     * Prompt the user.
+     * @param s
+     * @param title
+     * @param headerText
+     * @param contentText
+     * @return the password entered.
+     */
     public static Optional<String> showAndWait(String s, String title, String headerText, String contentText) {
-
         dialog.setTitle(title);
-        dialog.setHeaderText(s);
-        dialog.setContentText(s);
+        dialog.headerTextProperty().setValue(s + "\n" + contentText);
         passwordField.setText("");
 
         return dialog.showAndWait();
