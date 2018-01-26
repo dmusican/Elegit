@@ -85,7 +85,6 @@ public class SessionModel {
      * Private constructor for the SessionModel singleton
      */
     private SessionModel() {
-        console.info("Creating new allRepoHelpers");
         this.allRepoHelpers = new ArrayList<>();
         this.preferences = Preferences.userNodeForPackage(preferencesNodeClass);
         loadRecentRepoHelpersFromStoredPathStrings();
