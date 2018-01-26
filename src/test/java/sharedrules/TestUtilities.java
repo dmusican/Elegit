@@ -1,8 +1,19 @@
 package sharedrules;
 
+import elegit.Main;
+import elegit.controllers.BusyWindow;
+import elegit.controllers.SessionController;
 import elegit.exceptions.CancelledAuthorizationException;
 import elegit.exceptions.MissingRepoException;
 import elegit.models.ExistingRepoHelper;
+import elegit.models.SessionModel;
+import elegit.monitors.RepositoryMonitor;
+import javafx.fxml.FXMLLoader;
+import javafx.geometry.Rectangle2D;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.stage.Screen;
+import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.sshd.common.config.keys.FilePasswordProvider;
@@ -24,6 +35,7 @@ import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Scanner;
+import java.util.prefs.Preferences;
 
 import static org.junit.Assert.fail;
 
@@ -101,4 +113,32 @@ public class TestUtilities {
         return "ssh://localhost:2222/"+remoteRepoDirectoryBrief;
     }
 
+
+
+    public static SessionController commonTestFXstart(Stage stage) throws Exception {
+        Main.testMode = true;
+        BusyWindow.setParentWindow(stage);
+
+        Preferences prefs = Preferences.userNodeForPackage(TestUtilities.class);
+        prefs.removeNode();
+
+        SessionModel.setPreferencesNodeClass(TestUtilities.class);
+        FXMLLoader fxmlLoader = new FXMLLoader(TestUtilities.class.getResource("/elegit/fxml/MainView.fxml"));
+        fxmlLoader.load();
+        SessionController sessionController = fxmlLoader.getController();
+        Parent root = fxmlLoader.getRoot();
+        Rectangle2D primScreenBounds = Screen.getPrimary().getVisualBounds();
+        int screenWidth = (int) primScreenBounds.getWidth();
+        int screenHeight = (int) primScreenBounds.getHeight();
+        Scene scene = new Scene(root, screenWidth*4/5, screenHeight*4/5);
+        stage.setScene(scene);
+        sessionController.setStageForNotifications(stage);
+        stage.show();
+        stage.toFront();
+        // TODO: Remove this pause and keep test working; no good reason for it to be necessary
+        RepositoryMonitor.pause();
+
+        return sessionController;
+
+    }
 }
