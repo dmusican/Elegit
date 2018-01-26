@@ -95,10 +95,6 @@ public class SshPrivateKeyPasswordExistingFXTest extends ApplicationTest {
     private static final Random random = new Random(90125);
 
     private SessionController sessionController;
-    private static GuiTest testController;
-
-
-    private Stage stage;
 
     @Rule
     public TestName testName = new TestName();
@@ -131,30 +127,7 @@ public class SshPrivateKeyPasswordExistingFXTest extends ApplicationTest {
 
     @Override
     public void start(Stage stage) throws Exception {
-        Main.testMode = true;
-        BusyWindow.setParentWindow(stage);
-
-        Preferences prefs = Preferences.userNodeForPackage(this.getClass());
-        prefs.removeNode();
-
-        SessionModel.setPreferencesNodeClass(this.getClass());
-        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/MainView.fxml"));
-        fxmlLoader.load();
-        sessionController = fxmlLoader.getController();
-        Parent root = fxmlLoader.getRoot();
-        Rectangle2D primScreenBounds = Screen.getPrimary().getVisualBounds();
-        Scene scene = new Scene(root, 800, 600);
-        stage.setScene(scene);
-        stage.setX(0);
-        stage.setY(0);
-        sessionController.setStageForNotifications(stage);
-        stage.show();
-        stage.toFront();
-        // TODO: Remove this pause and keep test working; no good reason for it to be necessary
-        RepositoryMonitor.pause();
-
-        this.stage = stage;
-
+        sessionController = TestUtilities.commonTestFxStart(stage);
     }
 
     @Test
