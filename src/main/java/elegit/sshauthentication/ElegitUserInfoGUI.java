@@ -2,6 +2,7 @@ package elegit.sshauthentication;
 
 import com.jcraft.jsch.UserInfo;
 import elegit.Main;
+import elegit.controllers.SshPromptController;
 import elegit.exceptions.ExceptionAdapter;
 import io.reactivex.Single;
 import io.reactivex.rxjavafx.schedulers.JavaFxScheduler;
@@ -71,42 +72,47 @@ public class ElegitUserInfoGUI implements UserInfo {
     // be slow, and should never be attempted from the FX thread at any rate.
     private Optional<String> prompt(String s, String title, String headerText, String contentText) {
             Main.assertNotFxThread();
-        FutureTask<Optional<String>> futureTask = new FutureTask<>(() -> {
-            Dialog<String> dialog = new Dialog<>();
+        FutureTask<Optional<String>> futureTask = new FutureTask<Optional<String>>(() -> {
+//            Dialog<String> dialog = new Dialog<>();
+//
+//            GridPane grid = new GridPane();
+//            grid.setHgap(10);
+//            grid.setVgap(10);
+//            grid.setPadding(new Insets(10, 10, 10, 10));
+//
+//            PasswordField passwordField = new PasswordField();
+//            passwordField.setId("sshprompt");
+//            grid.add(passwordField,2,0);
+//
+//            dialog.getDialogPane().setContent(grid);
+//
+//            dialog.setTitle(title);
+//            dialog.setHeaderText(s);
+//            dialog.setContentText(s);
+//
+//            dialog.getDialogPane().getButtonTypes().setAll(ButtonType.OK, ButtonType.CANCEL);
+//
+//            dialog.setResultConverter(dialogButton -> {
+//                if (dialogButton == ButtonType.OK)
+//                    return passwordField.getText();
+//                else {
+//                    return null;
+//                }
+//            });
+//
+//            return dialog.showAndWait();
 
-            GridPane grid = new GridPane();
-            grid.setHgap(10);
-            grid.setVgap(10);
-            grid.setPadding(new Insets(10, 10, 10, 10));
-
-            PasswordField passwordField = new PasswordField();
-            passwordField.setId("sshprompt");
-            grid.add(passwordField,2,0);
-
-            dialog.getDialogPane().setContent(grid);
-
-            dialog.setTitle(title);
-            dialog.setHeaderText(s);
-            dialog.setContentText(s);
-
-            dialog.getDialogPane().getButtonTypes().setAll(ButtonType.OK, ButtonType.CANCEL);
-
-            dialog.setResultConverter(dialogButton -> {
-                if (dialogButton == ButtonType.OK)
-                    return passwordField.getText();
-                else {
-                    return null;
-                }
-            });
-
-            return dialog.showAndWait();
+            return SshPromptController.showAndWait(s, title, headerText, contentText);
 
         });
         Platform.runLater(futureTask);
         Optional<String> result = Optional.of("");
         try {
             result = futureTask.get();
-        } catch (InterruptedException | ExecutionException e) {
+        } catch (InterruptedException e) {
+            System.out.println("Cancelled by someone.");
+            Platform.runLater(SshPromptController::hide);
+        } catch (ExecutionException e) {
             e.printStackTrace();
             throw new ExceptionAdapter(e);
         }

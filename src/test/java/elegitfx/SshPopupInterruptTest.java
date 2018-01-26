@@ -2,6 +2,7 @@ package elegitfx;
 
 import elegit.Main;
 import elegit.controllers.SessionController;
+import elegit.controllers.SshPromptController;
 import elegit.exceptions.ExceptionAdapter;
 import elegit.models.ClonedRepoHelper;
 import elegit.models.ExistingRepoHelper;
@@ -40,6 +41,7 @@ import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 
 public class SshPopupInterruptTest extends ApplicationTest {
@@ -105,16 +107,33 @@ public class SshPopupInterruptTest extends ApplicationTest {
 
 
         ElegitUserInfoGUI userInfo = new ElegitUserInfoGUI();
-        Thread t1 = new Thread(() -> userInfo.promptPassphrase("passphrase prompt"));
 
-        t1.start();
+        for (int i=0; i < 2; i++) {
+            Thread t1 = new Thread(() -> userInfo.promptPassphrase("passphrase prompt"));
 
-        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
-                                  () -> lookup("#sshprompt").query() != null);
+            t1.start();
 
-        t1.interrupt();
+            // This is here so you can actually see the popup when testing
+            sleep(1000);
 
-/
+            WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+                                      SshPromptController::isShowing);
+
+            assert(SshPromptController.getPassword().equals(""));
+
+            // Enter passphrase
+            clickOn("#sshprompt")
+                    .write("testphrase");
+
+            t1.interrupt();
+
+            WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+                                      () -> !SshPromptController.isShowing());
+
+            interact(() -> assertFalse(SshPromptController.isShowing()));
+        }
+
+
     }
 
 }
