@@ -27,6 +27,7 @@ import org.eclipse.jgit.transport.TransportGitSsh;
 import org.eclipse.jgit.transport.TransportProtocol;
 import org.eclipse.jgit.transport.URIish;
 import org.junit.*;
+import sharedrules.TestUtilities;
 import sharedrules.TestingLogPathRule;
 import sharedrules.TestingRemoteAndLocalReposRule;
 
@@ -51,6 +52,12 @@ public class LocalSshAuthenticationTests {
 
     @ClassRule
     public static final TestingLogPathRule testingLogPath = new TestingLogPathRule();
+
+    @BeforeClass
+    public static void setUpClass() {
+        // Uncomment for debugging purposes
+        //TestingRemoteAndLocalReposRule.doNotDeleteTempFiles();
+    }
 
     @Rule
     public final TestingRemoteAndLocalReposRule testingRemoteAndLocalRepos =
@@ -183,7 +190,10 @@ public class LocalSshAuthenticationTests {
     public void testSshPassword() throws Exception {
 
         sshd = SshServer.setUpDefaultServer();
-        String remoteURL = setUpTestSshServer(sshd);
+        String remoteURL = TestUtilities.setUpTestSshServer(sshd,
+                                                            directoryPath,
+                                                            testingRemoteAndLocalRepos.getRemoteFull(),
+                                                            testingRemoteAndLocalRepos.getRemoteBrief());
 
         console.info("Connecting to " + remoteURL);
         Path local = testingRemoteAndLocalRepos.getLocalFull();
@@ -203,7 +213,10 @@ public class LocalSshAuthenticationTests {
     @Test
     public void testLsSshPassword() throws Exception {
         sshd = SshServer.setUpDefaultServer();
-        String remoteURL = setUpTestSshServer(sshd);
+        String remoteURL = TestUtilities.setUpTestSshServer(sshd,
+                                                            directoryPath,
+                                                            testingRemoteAndLocalRepos.getRemoteFull(),
+                                                            testingRemoteAndLocalRepos.getRemoteBrief());
         TransportCommand command = Git.lsRemoteRepository().setRemote(remoteURL);
         RepoHelper helper = new RepoHelper(null, new ElegitUserInfoTest(testPassword, null));
         helper.wrapAuthentication(command);
