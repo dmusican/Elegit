@@ -7,13 +7,10 @@ import elegit.controllers.SshPromptController;
 import elegit.exceptions.ExceptionAdapter;
 import io.reactivex.Single;
 import io.reactivex.rxjavafx.schedulers.JavaFxScheduler;
-import io.reactivex.schedulers.Schedulers;
 import javafx.application.Platform;
-import javafx.geometry.Insets;
 import javafx.scene.control.*;
-import javafx.scene.layout.GridPane;
-import org.apache.http.annotation.GuardedBy;
-import org.apache.http.annotation.ThreadSafe;
+import net.jcip.annotations.ThreadSafe;
+import net.jcip.annotations.GuardedBy;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 

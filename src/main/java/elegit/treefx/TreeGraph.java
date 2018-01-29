@@ -9,7 +9,7 @@ import javafx.scene.Node;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.transform.Rotate;
-import org.apache.http.annotation.ThreadSafe;
+import net.jcip.annotations.ThreadSafe;
 
 import java.util.ArrayList;
 import java.util.LinkedList;

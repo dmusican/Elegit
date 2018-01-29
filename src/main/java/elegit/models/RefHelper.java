@@ -2,7 +2,7 @@ package elegit.models;
 
 import elegit.models.CommitHelper;
 import elegit.treefx.CellLabel;
-import org.apache.http.annotation.ThreadSafe;
+import net.jcip.annotations.ThreadSafe;
 
 import java.util.concurrent.atomic.AtomicReference;
 

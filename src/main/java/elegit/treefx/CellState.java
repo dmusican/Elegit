@@ -1,6 +1,6 @@
 package elegit.treefx;
 
-import org.apache.http.annotation.ThreadSafe;
+import net.jcip.annotations.ThreadSafe;
 
 /**
  * Enum for the different highlighting states of a cell

@@ -14,8 +14,8 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
-import org.apache.http.annotation.GuardedBy;
-import org.apache.http.annotation.ThreadSafe;
+import net.jcip.annotations.ThreadSafe;
+import net.jcip.annotations.GuardedBy;
 
 /**
  * Class for ref labels

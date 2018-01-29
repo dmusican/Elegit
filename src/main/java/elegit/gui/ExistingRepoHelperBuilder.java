@@ -7,7 +7,7 @@ import elegit.models.ExistingRepoHelper;
 import elegit.models.RepoHelper;
 import elegit.sshauthentication.ElegitUserInfoGUI;
 import io.reactivex.Single;
-import org.apache.http.annotation.ThreadSafe;
+import net.jcip.annotations.ThreadSafe;
 
 import java.io.File;
 import java.nio.file.Path;

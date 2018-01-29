@@ -245,12 +245,19 @@ public class LocalSshAuthenticationTests {
                         @Override
                         protected JSch createDefaultJSch(FS fs) throws JSchException {
                             JSch defaultJSch = super.createDefaultJSch(fs);
-                            InputStream passwordFileStream = TestUtilities.class.getResourceAsStream("/rsa_key1_passphrase.txt");
+
+                            // Snag passphrase from test file and add
+                            InputStream passwordFileStream = TestUtilities.class
+                                    .getResourceAsStream("/rsa_key1_passphrase.txt");
                             Scanner scanner = new Scanner(passwordFileStream);
                             String passphrase = scanner.next();
                             console.info("phrase is " + passphrase);
                             String privateKeyFileLocation = "/rsa_key1";
+
+                            System.setProperty("user.home",directoryPath.resolve("home").toString());
+
                             defaultJSch.addIdentity(getClass().getResource(privateKeyFileLocation).getFile());
+
                             defaultJSch.setKnownHosts(directoryPath.resolve("testing_known_hosts").toString());
                             return defaultJSch;
                         }

@@ -2,7 +2,7 @@ package elegit.repofile;
 
 import elegit.Main;
 import elegit.models.RepoHelper;
-import org.apache.http.annotation.ThreadSafe;
+import net.jcip.annotations.ThreadSafe;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;

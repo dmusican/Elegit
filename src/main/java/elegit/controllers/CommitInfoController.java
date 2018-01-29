@@ -6,7 +6,7 @@ import javafx.fxml.FXML;
 import javafx.geometry.Side;
 import javafx.scene.control.*;
 import javafx.scene.text.Text;
-import org.apache.http.annotation.GuardedBy;
+import net.jcip.annotations.GuardedBy;
 
 /**
  * Commit info subview of the main view controller

@@ -1,7 +1,7 @@
 package elegit.models;
 
-import org.apache.http.annotation.GuardedBy;
-import org.apache.http.annotation.ThreadSafe;
+import net.jcip.annotations.ThreadSafe;
+import net.jcip.annotations.GuardedBy;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.revwalk.RevCommit;
 

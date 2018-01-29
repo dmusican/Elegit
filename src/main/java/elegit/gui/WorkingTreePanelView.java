@@ -17,7 +17,7 @@ import javafx.scene.control.cell.CheckBoxTreeCell;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.util.Callback;
-import org.apache.http.annotation.ThreadSafe;
+import net.jcip.annotations.ThreadSafe;
 import org.eclipse.jgit.api.errors.GitAPIException;
 
 import java.nio.file.Path;

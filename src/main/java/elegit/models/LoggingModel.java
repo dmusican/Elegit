@@ -2,7 +2,7 @@ package elegit.models;
 
 import javafx.beans.property.*;
 import org.apache.http.HttpEntity;
-import org.apache.http.annotation.GuardedBy;
+import net.jcip.annotations.GuardedBy;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.mime.HttpMultipartMode;
