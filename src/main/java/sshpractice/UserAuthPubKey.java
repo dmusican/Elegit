@@ -61,6 +61,22 @@ public class UserAuthPubKey{
             channel.setOutputStream(System.out);
 
             channel.connect();
+
+            // second attempt
+            session=jsch.getSession(user, host, 22);
+
+            // username and passphrase will be given via UserInfo interface.
+            ui=new MyUserInfo();
+            session.setUserInfo(ui);
+            session.connect();
+
+            channel=session.openChannel("shell");
+
+            channel.setInputStream(System.in);
+            channel.setOutputStream(System.out);
+
+            channel.connect();
+
         }
         catch(Exception e){
             System.out.println(e);

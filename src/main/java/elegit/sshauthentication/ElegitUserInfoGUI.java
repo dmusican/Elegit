@@ -45,6 +45,7 @@ public class ElegitUserInfoGUI implements UserInfo {
 
     @Override
     public synchronized String getPassphrase() {
+        System.out.println("ElegitUserInfoGUI.getPassphrase");
         return passphrase.orElse("");
     }
 
@@ -64,6 +65,7 @@ public class ElegitUserInfoGUI implements UserInfo {
     @Override
     public synchronized boolean promptPassphrase(String s) {
 
+        System.out.println("ElegitUserInfoGUI.promptPassphrase");
         passphrase = prompt(s,"SSH public key authentication",
                                            "SSH public key authentication",
                                            "Enter your passphrase:");

@@ -70,9 +70,6 @@ public class RepoHelper {
     private static final Logger logger = LogManager.getLogger();
     private static final Logger console = LogManager.getLogger("briefconsolelogger");
 
-    @GuardedBy("this")
-    private boolean remoteAuthenticationSuccess = true;
-
     // This is a JavaFX property, so this is thread safe in that it will only be changed in the FX thread.
     // This is critical to do because it will be bound to a JavaFX object.
     @GuardedBy("this")
@@ -134,7 +131,7 @@ public class RepoHelper {
         return new JschConfigSessionFactory() {
             @Override
             protected void configure(OpenSshConfig.Host host, Session session) {
-                session.setPassword(password);
+//                session.setPassword(password);
                 session.setUserInfo(userInfo);
             }
 
@@ -147,6 +144,8 @@ public class RepoHelper {
                 if (knownHostsFileLocation != null) {
                     defaultJSch.setKnownHosts(knownHostsFileLocation);
                 }
+
+
                 return defaultJSch;
             }
 
