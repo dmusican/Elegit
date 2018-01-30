@@ -22,7 +22,7 @@ import javafx.scene.text.Text;
 import javafx.util.Pair;
 import elegit.exceptions.CancelledAuthorizationException;
 import elegit.exceptions.NoRepoSelectedException;
-import org.apache.http.annotation.ThreadSafe;
+import net.jcip.annotations.ThreadSafe;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jgit.api.Git;

@@ -2,16 +2,15 @@ package elegit.sshauthentication;
 
 import com.jcraft.jsch.UserInfo;
 import elegit.Main;
+import elegit.controllers.SessionController;
+import elegit.controllers.SshPromptController;
 import elegit.exceptions.ExceptionAdapter;
 import io.reactivex.Single;
 import io.reactivex.rxjavafx.schedulers.JavaFxScheduler;
-import io.reactivex.schedulers.Schedulers;
 import javafx.application.Platform;
-import javafx.geometry.Insets;
 import javafx.scene.control.*;
-import javafx.scene.layout.GridPane;
-import org.apache.http.annotation.GuardedBy;
-import org.apache.http.annotation.ThreadSafe;
+import net.jcip.annotations.ThreadSafe;
+import net.jcip.annotations.GuardedBy;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -26,6 +25,8 @@ import java.util.concurrent.FutureTask;
 @ThreadSafe
 public class ElegitUserInfoGUI implements UserInfo {
 
+    @GuardedBy("this") private static SessionController sessionController;
+
     @GuardedBy("this") private Optional<String> password;
     @GuardedBy("this") private Optional<String> passphrase;
     private static final Logger logger = LogManager.getLogger();
@@ -35,8 +36,13 @@ public class ElegitUserInfoGUI implements UserInfo {
         passphrase = Optional.empty();
     }
 
+    public static synchronized void setSessionController(SessionController sessionController) {
+        ElegitUserInfoGUI.sessionController = sessionController;
+    }
+
     @Override
     public synchronized String getPassphrase() {
+        System.out.println("ElegitUserInfoGUI.getPassphrase");
         return passphrase.orElse("");
     }
 
@@ -56,6 +62,7 @@ public class ElegitUserInfoGUI implements UserInfo {
     @Override
     public synchronized boolean promptPassphrase(String s) {
 
+        System.out.println("ElegitUserInfoGUI.promptPassphrase");
         passphrase = prompt(s,"SSH public key authentication",
                                            "SSH public key authentication",
                                            "Enter your passphrase:");
@@ -71,42 +78,18 @@ public class ElegitUserInfoGUI implements UserInfo {
     // be slow, and should never be attempted from the FX thread at any rate.
     private Optional<String> prompt(String s, String title, String headerText, String contentText) {
             Main.assertNotFxThread();
-        FutureTask<Optional<String>> futureTask = new FutureTask<>(() -> {
-            Dialog<String> dialog = new Dialog<>();
 
-            GridPane grid = new GridPane();
-            grid.setHgap(10);
-            grid.setVgap(10);
-            grid.setPadding(new Insets(10, 10, 10, 10));
-
-            PasswordField passwordField = new PasswordField();
-            passwordField.setId("sshprompt");
-            grid.add(passwordField,2,0);
-
-            dialog.getDialogPane().setContent(grid);
-
-            dialog.setTitle(title);
-            dialog.setHeaderText(s);
-            dialog.setContentText(s);
-
-            dialog.getDialogPane().getButtonTypes().setAll(ButtonType.OK, ButtonType.CANCEL);
-
-            dialog.setResultConverter(dialogButton -> {
-                if (dialogButton == ButtonType.OK)
-                    return passwordField.getText();
-                else {
-                    return null;
-                }
-            });
-
-            return dialog.showAndWait();
-
-        });
+        FutureTask<Optional<String>> futureTask = new FutureTask<>(
+                () -> SshPromptController.showAndWait(s, title, headerText, contentText));
         Platform.runLater(futureTask);
         Optional<String> result = Optional.of("");
         try {
             result = futureTask.get();
-        } catch (InterruptedException | ExecutionException e) {
+        } catch (InterruptedException e) {
+            sessionController.showSshPasswordCancelledNotification();
+//            System.out.println("Cancelled by someone.");
+            Platform.runLater(SshPromptController::hide);
+        } catch (ExecutionException e) {
             e.printStackTrace();
             throw new ExceptionAdapter(e);
         }

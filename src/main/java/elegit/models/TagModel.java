@@ -9,7 +9,7 @@ import java.util.stream.Stream;
 import elegit.exceptions.ExceptionAdapter;
 import elegit.exceptions.MissingRepoException;
 import elegit.exceptions.TagNameExistsException;
-import org.apache.http.annotation.ThreadSafe;
+import net.jcip.annotations.ThreadSafe;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jgit.api.Git;

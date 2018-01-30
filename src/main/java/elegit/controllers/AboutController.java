@@ -2,8 +2,8 @@ package elegit.controllers;
 
 import javafx.fxml.FXML;
 import javafx.scene.text.Text;
-import org.apache.http.annotation.GuardedBy;
-import org.apache.http.annotation.ThreadSafe;
+import net.jcip.annotations.ThreadSafe;
+import net.jcip.annotations.GuardedBy;
 
 /**
  *

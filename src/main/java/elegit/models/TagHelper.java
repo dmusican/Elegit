@@ -2,7 +2,7 @@ package elegit.models;
 
 import elegit.models.CommitHelper;
 import elegit.models.RefHelper;
-import org.apache.http.annotation.ThreadSafe;
+import net.jcip.annotations.ThreadSafe;
 import org.eclipse.jgit.revwalk.RevTag;
 
 /**

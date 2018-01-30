@@ -1,35 +1,20 @@
 package elegitfx;
 
 import elegit.Main;
-import elegit.controllers.BusyWindow;
 import elegit.controllers.SessionController;
-import elegit.exceptions.CancelledAuthorizationException;
-import elegit.exceptions.MissingRepoException;
-import elegit.exceptions.NoCommitsToPushException;
-import elegit.exceptions.PushToAheadRemoteError;
 import elegit.models.BranchHelper;
 import elegit.models.BranchModel;
 import elegit.models.ExistingRepoHelper;
 import elegit.models.LocalBranchHelper;
-import elegit.models.SessionModel;
-import elegit.monitors.RepositoryMonitor;
 import elegit.sshauthentication.ElegitUserInfoTest;
 import elegit.treefx.Cell;
-import elegit.treefx.CellState;
 import elegit.treefx.TreeLayout;
-import javafx.fxml.FXMLLoader;
-import javafx.geometry.Rectangle2D;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.layout.HBox;
-import javafx.scene.paint.Color;
-import javafx.stage.Screen;
 import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.PushCommand;
-import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.hamcrest.Matchers;
 import org.junit.After;
@@ -40,6 +25,7 @@ import org.junit.rules.TestName;
 import org.loadui.testfx.GuiTest;
 import org.testfx.api.FxAssert;
 import org.testfx.framework.junit.ApplicationTest;
+import sharedrules.TestUtilities;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -47,9 +33,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Random;
-import java.util.Set;
-import java.util.concurrent.CountDownLatch;
-import java.util.prefs.Preferences;
 
 import static junit.framework.TestCase.assertEquals;
 import static org.junit.Assert.assertNotEquals;
@@ -72,8 +55,6 @@ public class RepoCreation1FXTest extends ApplicationTest {
     private static GuiTest testController;
 
     private Path directoryPath;
-
-    private Stage stage;
 
     @Rule
     public TestName testName = new TestName();
@@ -105,28 +86,7 @@ public class RepoCreation1FXTest extends ApplicationTest {
 
     @Override
     public void start(Stage stage) throws Exception {
-        Main.testMode = true;
-        BusyWindow.setParentWindow(stage);
-
-        Preferences prefs = Preferences.userNodeForPackage(this.getClass());
-        prefs.removeNode();
-
-        SessionModel.setPreferencesNodeClass(this.getClass());
-        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/MainView.fxml"));
-        fxmlLoader.load();
-        sessionController = fxmlLoader.getController();
-        Parent root = fxmlLoader.getRoot();
-        Rectangle2D primScreenBounds = Screen.getPrimary().getVisualBounds();
-        Scene scene = new Scene(root, 800, 600);
-        stage.setScene(scene);
-        sessionController.setStageForNotifications(stage);
-        stage.show();
-        stage.toFront();
-        // TODO: Remove this pause and keep test working; no good reason for it to be necessary
-        RepositoryMonitor.pause();
-
-        this.stage = stage;
-
+        sessionController = TestUtilities.commonTestFxStart(stage);
     }
 
     @Test

@@ -17,15 +17,22 @@ public class TestingRemoteAndLocalReposRule extends ExternalResource {
     private static final Logger console = LogManager.getLogger("briefconsolelogger");
 
     private boolean bareRemoteRepo;
+    private static boolean deleteTempFiles = true;
 
     public TestingRemoteAndLocalReposRule(boolean bareRemoteRepo) {
         this.bareRemoteRepo = bareRemoteRepo;
     }
 
+    public static void doNotDeleteTempFiles() {
+        deleteTempFiles = false;
+    }
+
     @Override
     protected void before() throws Exception {
         directoryPath = Files.createTempDirectory("unitTestRepos");
-        directoryPath.toFile().deleteOnExit();
+        if (deleteTempFiles) {
+            directoryPath.toFile().deleteOnExit();
+        }
 
         // Locations of simulated remote and local repos.
         console.info("Setting server root to " + directoryPath);
@@ -39,7 +46,9 @@ public class TestingRemoteAndLocalReposRule extends ExternalResource {
 
     @Override
     protected void after()  {
-        removeAllFilesFromDirectory(directoryPath.toFile());
+        if (deleteTempFiles) {
+            removeAllFilesFromDirectory(directoryPath.toFile());
+        }
     }
 
     private void removeAllFilesFromDirectory(File dir) {

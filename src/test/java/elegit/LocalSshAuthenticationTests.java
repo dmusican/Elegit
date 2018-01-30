@@ -1,12 +1,17 @@
 package elegit;
 
 import com.jcraft.jsch.JSch;
+import com.jcraft.jsch.JSchException;
+import com.jcraft.jsch.Session;
+import com.jcraft.jsch.UserInfo;
 import elegit.exceptions.CancelledAuthorizationException;
+import elegit.exceptions.ExceptionAdapter;
 import elegit.exceptions.MissingRepoException;
 import elegit.models.AuthMethod;
 import elegit.models.ClonedRepoHelper;
 import elegit.models.ExistingRepoHelper;
 import elegit.models.RepoHelper;
+import elegit.sshauthentication.DetailedSshLogger;
 import elegit.sshauthentication.ElegitUserInfoTest;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -23,34 +28,40 @@ import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.PushCommand;
 import org.eclipse.jgit.api.TransportCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.transport.JschConfigSessionFactory;
+import org.eclipse.jgit.transport.OpenSshConfig;
+import org.eclipse.jgit.transport.SshSessionFactory;
+import org.eclipse.jgit.transport.SshTransport;
 import org.eclipse.jgit.transport.TransportGitSsh;
 import org.eclipse.jgit.transport.TransportProtocol;
 import org.eclipse.jgit.transport.URIish;
 import org.junit.*;
+import sharedrules.TestUtilities;
 import sharedrules.TestingLogPathRule;
 import sharedrules.TestingRemoteAndLocalReposRule;
 
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.security.GeneralSecurityException;
-import java.security.KeyPair;
-import java.security.PublicKey;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Scanner;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.fail;
 
 public class LocalSshAuthenticationTests {
 
     @ClassRule
     public static final TestingLogPathRule testingLogPath = new TestingLogPathRule();
+
+    @BeforeClass
+    public static void setUpClass() {
+        // Uncomment for debugging purposes
+//        TestingRemoteAndLocalReposRule.doNotDeleteTempFiles();
+    }
 
     @Rule
     public final TestingRemoteAndLocalReposRule testingRemoteAndLocalRepos =
@@ -78,79 +89,28 @@ public class LocalSshAuthenticationTests {
         }
     }
 
-    // http://www.jcraft.com/jsch/examples/Logger.java.html
-    public static class MyLogger implements com.jcraft.jsch.Logger {
-        static java.util.Hashtable<Integer,String> name=new java.util.Hashtable<>();
-        static{
-            name.put(DEBUG, "DEBUG: ");
-            name.put(INFO, "INFO: ");
-            name.put(WARN, "WARN: ");
-            name.put(ERROR, "ERROR: ");
-            name.put(FATAL, "FATAL: ");
-        }
-        public boolean isEnabled(int level){
-            return true;
-        }
-        public void log(int level, String message){
-            System.err.print(name.get(level));
-            System.err.println(message);
-        }
-    }
-
-
     @Test
     public void testSshPrivateKey() throws Exception {
         // Uncomment this to get detail SSH logging info, for debugging
-        //JSch.setLogger(new MyLogger());
+//        JSch.setLogger(new DetailedSshLogger());
 
         // Set up test SSH server.
         sshd = SshServer.setUpDefaultServer();
 
-        // Provide SSH server with public and private key info that client will be connecting with
-        InputStream passwordFileStream = getClass().getResourceAsStream("/rsa_key1_passphrase.txt");
+        String remoteURL = TestUtilities.setUpTestSshServer(sshd,
+                                                            directoryPath,
+                                                            testingRemoteAndLocalRepos.getRemoteFull(),
+                                                            testingRemoteAndLocalRepos.getRemoteBrief());
+
+        console.info("Connecting to " + remoteURL);
+        Path local = testingRemoteAndLocalRepos.getLocalFull();
+        InputStream passwordFileStream = TestUtilities.class.getResourceAsStream("/rsa_key1_passphrase.txt");
         Scanner scanner = new Scanner(passwordFileStream);
         String passphrase = scanner.next();
         console.info("phrase is " + passphrase);
-
         String privateKeyFileLocation = "/rsa_key1";
-        InputStream privateKeyStream = getClass().getResourceAsStream(privateKeyFileLocation);
-        FilePasswordProvider filePasswordProvider = FilePasswordProvider.of(passphrase);
-        KeyPair kp = SecurityUtils.loadKeyPairIdentity("testkey", privateKeyStream, filePasswordProvider);
-        ArrayList<KeyPair> pairs = new ArrayList<>();
-        pairs.add(kp);
-        KeyPairProvider hostKeyProvider = new MappedKeyPairProvider(pairs);
-        sshd.setKeyPairProvider(hostKeyProvider);
 
-        // Need to use a non-standard port, as there may be an ssh server already running on this machine
-        sshd.setPort(2222);
 
-        // Set up a fall-back password authenticator to help in diagnosing failed test
-        sshd.setPasswordAuthenticator(new PasswordAuthenticator() {
-            public boolean authenticate(String username, String password, ServerSession session) {
-                fail("Tried to use password instead of public key authentication");
-                return false;
-            }
-        });
-
-        // This replaces the role of authorized_keys.
-        Collection<PublicKey> allowedKeys = new ArrayList<>();
-        allowedKeys.add(kp.getPublic());
-        sshd.setPublickeyAuthenticator(new KeySetPublickeyAuthenticator(allowedKeys));
-
-        // Amazingly useful Git command setup provided by Mina.
-        sshd.setCommandFactory(new GitPackCommandFactory(directoryPath.toString()));
-
-        // Start the SSH test server.
-        sshd.start();
-
-        // Create temporary known_hosts file.
-        Path knownHostsFileLocation = directoryPath.resolve("testing_known_hosts");
-        Files.createFile(knownHostsFileLocation);
-
-        // Clone the bare repo, using the SSH connection, to the local.
-        String remoteURL = "ssh://localhost:2222/" + testingRemoteAndLocalRepos.getRemoteBrief();
-        console.info("Connecting to " + remoteURL);
-        Path local = testingRemoteAndLocalRepos.getLocalFull();
         ClonedRepoHelper helper =
                 new ClonedRepoHelper(local, "",
                                      new ElegitUserInfoTest(null, passphrase),
@@ -183,7 +143,10 @@ public class LocalSshAuthenticationTests {
     public void testSshPassword() throws Exception {
 
         sshd = SshServer.setUpDefaultServer();
-        String remoteURL = setUpTestSshServer(sshd);
+        String remoteURL = TestUtilities.setUpTestSshServer(sshd,
+                                                            directoryPath,
+                                                            testingRemoteAndLocalRepos.getRemoteFull(),
+                                                            testingRemoteAndLocalRepos.getRemoteBrief());
 
         console.info("Connecting to " + remoteURL);
         Path local = testingRemoteAndLocalRepos.getLocalFull();
@@ -203,80 +166,16 @@ public class LocalSshAuthenticationTests {
     @Test
     public void testLsSshPassword() throws Exception {
         sshd = SshServer.setUpDefaultServer();
-        String remoteURL = setUpTestSshServer(sshd);
+        String remoteURL = TestUtilities.setUpTestSshServer(sshd,
+                                                            directoryPath,
+                                                            testingRemoteAndLocalRepos.getRemoteFull(),
+                                                            testingRemoteAndLocalRepos.getRemoteBrief());
         TransportCommand command = Git.lsRemoteRepository().setRemote(remoteURL);
         RepoHelper helper = new RepoHelper(null, new ElegitUserInfoTest(testPassword, null));
         helper.wrapAuthentication(command);
         command.call();
     }
 
-
-    private String setUpTestSshServer(SshServer sshd) throws IOException, GitAPIException,
-            CancelledAuthorizationException,
-            MissingRepoException, GeneralSecurityException {
-        Path local = testingRemoteAndLocalRepos.getLocalFull();
-        Path remote = testingRemoteAndLocalRepos.getRemoteFull();
-
-        // Set up remote repo
-        Path remoteFilePath = remote.resolve("file.txt");
-        Files.write(remoteFilePath, "testSshPassword".getBytes());
-        ArrayList<Path> paths = new ArrayList<>();
-        paths.add(remoteFilePath);
-        ExistingRepoHelper helperServer = new ExistingRepoHelper(remote, null);
-        helperServer.addFilePathsTest(paths);
-        helperServer.commit("Initial unit test commit");
-
-        // All of this key set up is gratuitous, but it's the only way that I was able to get sshd to start up.
-        // In the end, it is ignore, and the password is used.
-
-        // Provide SSH server with public and private key info that client will be connecting with
-        InputStream passwordFileStream = getClass().getResourceAsStream("/rsa_key1_passphrase.txt");
-        Scanner scanner = new Scanner(passwordFileStream);
-        String passphrase = scanner.next();
-        console.info("phrase is " + passphrase);
-
-        String privateKeyFileLocation = "/rsa_key1";
-        InputStream privateKeyStream = getClass().getResourceAsStream(privateKeyFileLocation);
-        FilePasswordProvider filePasswordProvider = FilePasswordProvider.of(passphrase);
-        KeyPair kp = SecurityUtils.loadKeyPairIdentity("testkey", privateKeyStream, filePasswordProvider);
-        ArrayList<KeyPair> pairs = new ArrayList<>();
-        pairs.add(kp);
-        KeyPairProvider hostKeyProvider = new MappedKeyPairProvider(pairs);
-        sshd.setKeyPairProvider(hostKeyProvider);
-
-        // Need to use a non-standard port, as there may be an ssh server already running on this machine
-        sshd.setPort(2222);
-
-        // Set up a fall-back password authenticator to help in diagnosing failed test
-        sshd.setPasswordAuthenticator(
-                (username, password, session) -> {
-                    if (password.equals(testPassword)) {
-                        return true;
-                    } else {
-                        fail("Tried to use password instead of public key authentication");
-                        return false;
-                    }
-                });
-
-
-        // This replaces the role of authorized_keys.
-        Collection<PublicKey> allowedKeys = new ArrayList<>();
-        allowedKeys.add(kp.getPublic());
-        sshd.setPublickeyAuthenticator(new KeySetPublickeyAuthenticator(allowedKeys));
-
-        // Amazingly useful Git command setup provided by Mina.
-        sshd.setCommandFactory(new GitPackCommandFactory(directoryPath.toString()));
-
-        // Start the SSH test server.
-        sshd.start();
-
-        // Create temporary known_hosts file.
-        Path knownHostsFileLocation = directoryPath.resolve("testing_known_hosts");
-        Files.createFile(knownHostsFileLocation);
-
-        // Clone the bare repo, using the SSH connection, to the local.
-        return "ssh://localhost:2222/"+testingRemoteAndLocalRepos.getRemoteBrief();
-    }
 
     @Test
     public void testTransportProtocols() throws Exception {
@@ -299,5 +198,104 @@ public class LocalSshAuthenticationTests {
             }
         }
     }
+
+    private int passphrasePromptCount;
+
+    @Test
+    public void testForRepeatAuthentication() throws Exception {
+//        JSch.setLogger(new DetailedSshLogger());
+        // Get local SSH server running
+        sshd = SshServer.setUpDefaultServer();
+        String remoteURL = TestUtilities.setUpTestSshServer(sshd,
+                                                            directoryPath,
+                                                            testingRemoteAndLocalRepos.getRemoteFull(),
+                                                            testingRemoteAndLocalRepos.getRemoteBrief());
+
+        // Get test authentication files
+        InputStream passwordFileStream = TestUtilities.class.getResourceAsStream("/rsa_key1_passphrase.txt");
+        Scanner scanner = new Scanner(passwordFileStream);
+        String passphrase = scanner.next();
+        String privateKeyFileLocation = "/rsa_key1";
+
+        // Set up Git command
+        TransportCommand command = Git.lsRemoteRepository().setRemote(remoteURL);
+        SshSessionFactory sshSessionFactory = new TestSessionFactory(passphrase);
+        command.setTransportConfigCallback(
+                transport -> {
+                    SshTransport sshTransport = (SshTransport) transport;
+                    sshTransport.setSshSessionFactory(sshSessionFactory);
+                });
+
+        // Set up mock .ssh/config file
+        System.setProperty("user.home",directoryPath.resolve("home").toString());
+        Path sshDir = directoryPath.resolve("home").resolve(".ssh");
+        try {
+            Files.createDirectories(sshDir);
+
+            FileWriter fw = new FileWriter(sshDir.resolve("config").toString(), true);
+            fw.write("Host localhost\n");
+            fw.write("  HostName localhost\n");
+            fw.write("  IdentityFile " + getClass().getResource(privateKeyFileLocation).getFile());
+            fw.close();
+        } catch (IOException e) {
+            throw new ExceptionAdapter(e);
+        }
+
+        // Verify that calling the command twice still only checks ssh passphrase once, which was a bug that used
+        // to happen
+        passphrasePromptCount = 0;
+        System.out.println(command.call());
+        System.out.println(command.call());
+        assertEquals(1, passphrasePromptCount);
+
+    }
+
+    private class TestSessionFactory extends JschConfigSessionFactory {
+
+        private String passphrase;
+
+        public TestSessionFactory(String passphrase) {
+            this.passphrase = passphrase;
+        }
+
+        @Override
+        protected void configure(OpenSshConfig.Host hc, Session session) {
+            session.setUserInfo(new UserInfo() {
+                @Override
+                public String getPassphrase() {
+                    console.info("Getting passphrase");
+                    passphrasePromptCount++;
+                    return passphrase;
+                }
+
+                @Override
+                public String getPassword() {
+                    return null;
+                }
+
+                @Override
+                public boolean promptPassword(String message) {
+                    return true;
+                }
+
+                @Override
+                public boolean promptPassphrase(String message) {
+                    console.info("Prompting passphrase");
+                    return true;
+                }
+
+                @Override
+                public boolean promptYesNo(String message) {
+                    return true;
+                }
+
+                @Override
+                public void showMessage(String message) {
+                }
+            });
+        }
+    }
+
+
 
 }

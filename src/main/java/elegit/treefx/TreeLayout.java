@@ -7,7 +7,7 @@ import io.reactivex.Observable;
 import io.reactivex.rxjavafx.schedulers.JavaFxScheduler;
 import io.reactivex.schedulers.Schedulers;
 import javafx.beans.property.*;
-import org.apache.http.annotation.ThreadSafe;
+import net.jcip.annotations.ThreadSafe;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;

@@ -4,7 +4,7 @@ import elegit.Main;
 import elegit.gui.PopUpWindows;
 import elegit.models.RepoHelper;
 import javafx.application.Platform;
-import org.apache.http.annotation.ThreadSafe;
+import net.jcip.annotations.ThreadSafe;
 import org.eclipse.jgit.api.errors.GitAPIException;
 
 import java.nio.file.Path;
