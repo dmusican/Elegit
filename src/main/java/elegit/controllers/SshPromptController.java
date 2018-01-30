@@ -5,6 +5,7 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.PasswordField;
 import javafx.scene.layout.GridPane;
+import org.eclipse.jgit.api.errors.TransportException;
 
 import java.util.Optional;
 

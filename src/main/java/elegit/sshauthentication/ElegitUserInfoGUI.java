@@ -4,6 +4,7 @@ import com.jcraft.jsch.UserInfo;
 import elegit.Main;
 import elegit.controllers.SessionController;
 import elegit.controllers.SshPromptController;
+import elegit.exceptions.CancelledDialogueException;
 import elegit.exceptions.ExceptionAdapter;
 import io.reactivex.Single;
 import io.reactivex.rxjavafx.schedulers.JavaFxScheduler;
@@ -82,16 +83,19 @@ public class ElegitUserInfoGUI implements UserInfo {
         FutureTask<Optional<String>> futureTask = new FutureTask<>(
                 () -> SshPromptController.showAndWait(s, title, headerText, contentText));
         Platform.runLater(futureTask);
-        Optional<String> result = Optional.of("");
+        Optional<String> result = Optional.empty();
         try {
             result = futureTask.get();
         } catch (InterruptedException e) {
             sessionController.showSshPasswordCancelledNotification();
-//            System.out.println("Cancelled by someone.");
             Platform.runLater(SshPromptController::hide);
         } catch (ExecutionException e) {
             e.printStackTrace();
             throw new ExceptionAdapter(e);
+        }
+
+        if (!result.isPresent()) {
+            throw new CancelledDialogueException();
         }
         return result;
     }
@@ -122,10 +126,6 @@ public class ElegitUserInfoGUI implements UserInfo {
             }
         })
                 .subscribeOn(JavaFxScheduler.platform())
-                .doOnSuccess((a) -> {
-                    System.out.println("b " + Thread.currentThread());
-                })
-                //.observeOn(Schedulers.io())
                 .blockingGet();
 
     }
