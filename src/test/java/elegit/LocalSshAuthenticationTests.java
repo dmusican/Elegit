@@ -5,6 +5,7 @@ import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 import com.jcraft.jsch.UserInfo;
 import elegit.exceptions.CancelledAuthorizationException;
+import elegit.exceptions.ExceptionAdapter;
 import elegit.exceptions.MissingRepoException;
 import elegit.models.AuthMethod;
 import elegit.models.ClonedRepoHelper;
@@ -34,16 +35,19 @@ import org.eclipse.jgit.transport.TransportGitSsh;
 import org.eclipse.jgit.transport.TransportProtocol;
 import org.eclipse.jgit.transport.URIish;
 import org.eclipse.jgit.util.FS;
+import org.eclipse.jgit.util.FileUtils;
 import org.junit.*;
 import sharedrules.TestUtilities;
 import sharedrules.TestingLogPathRule;
 import sharedrules.TestingRemoteAndLocalReposRule;
 
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.GeneralSecurityException;
 import java.security.KeyPair;
 import java.security.PublicKey;
@@ -54,6 +58,7 @@ import java.util.Scanner;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 public class LocalSshAuthenticationTests {
@@ -64,7 +69,7 @@ public class LocalSshAuthenticationTests {
     @BeforeClass
     public static void setUpClass() {
         // Uncomment for debugging purposes
-//        TestingRemoteAndLocalReposRule.doNotDeleteTempFiles();
+        TestingRemoteAndLocalReposRule.doNotDeleteTempFiles();
     }
 
     @Rule
@@ -207,6 +212,7 @@ public class LocalSshAuthenticationTests {
 
     @Test
     public void testForRepeatAuthentication() throws Exception {
+        JSch.setLogger(new DetailedSshLogger());
         // Get local SSH server running
         sshd = SshServer.setUpDefaultServer();
         String remoteURL = TestUtilities.setUpTestSshServer(sshd,
@@ -246,23 +252,41 @@ public class LocalSshAuthenticationTests {
                         protected JSch createDefaultJSch(FS fs) throws JSchException {
                             JSch defaultJSch = super.createDefaultJSch(fs);
 
-                            // Snag passphrase from test file and add
-                            InputStream passwordFileStream = TestUtilities.class
-                                    .getResourceAsStream("/rsa_key1_passphrase.txt");
-                            Scanner scanner = new Scanner(passwordFileStream);
-                            String passphrase = scanner.next();
-                            console.info("phrase is " + passphrase);
-                            String privateKeyFileLocation = "/rsa_key1";
-
-                            System.setProperty("user.home",directoryPath.resolve("home").toString());
-
-                            defaultJSch.addIdentity(getClass().getResource(privateKeyFileLocation).getFile());
-
-                            defaultJSch.setKnownHosts(directoryPath.resolve("testing_known_hosts").toString());
                             return defaultJSch;
                         }
                     });
                 });
+
+
+        // Snag passphrase from test file and add
+//        InputStream passwordFileStream = TestUtilities.class
+//                .getResourceAsStream("/rsa_key1_passphrase.txt");
+//        Scanner scanner = new Scanner(passwordFileStream);
+//        String passphrase = scanner.next();
+//        console.info("phrase is " + passphrase);
+        String privateKeyFileLocation = "/rsa_key1";
+
+        System.setProperty("user.home",directoryPath.resolve("home").toString());
+//
+        Path sshDir = directoryPath.resolve("home").resolve(".ssh");
+        try {
+            Files.createDirectories(sshDir);
+
+            FileWriter fw = new FileWriter(sshDir.resolve("config").toString(), true);
+            fw.write("Host localhost\n");
+            fw.write("  HostName localhost\n");
+            fw.write("  IdentityFile " + getClass().getResource(privateKeyFileLocation).getFile());
+            fw.close();
+//
+//
+//                            System.setProperty("user.home",directoryPath.resolve("home").toString());
+//
+//                            defaultJSch.addIdentity(getClass().getResource(privateKeyFileLocation).getFile());
+//
+//                            defaultJSch.setKnownHosts(directoryPath.resolve("testing_known_hosts").toString());
+        } catch (IOException e) {
+            throw new ExceptionAdapter(e);
+        }
 
         passphrasePromptCount = 0;
 
