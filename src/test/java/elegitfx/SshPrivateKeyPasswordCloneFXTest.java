@@ -4,6 +4,7 @@ import com.jcraft.jsch.JSch;
 import elegit.Main;
 import elegit.controllers.BusyWindow;
 import elegit.controllers.SessionController;
+import elegit.controllers.SshPromptController;
 import elegit.exceptions.CancelledAuthorizationException;
 import elegit.exceptions.ExceptionAdapter;
 import elegit.exceptions.MissingRepoException;
@@ -56,6 +57,7 @@ import org.junit.Test;
 import org.junit.rules.TestName;
 import org.loadui.testfx.GuiTest;
 import org.testfx.framework.junit.ApplicationTest;
+import org.testfx.util.WaitForAsyncUtils;
 import sharedrules.TestUtilities;
 import sharedrules.TestingLogPathRule;
 import sharedrules.TestingRemoteAndLocalReposRule;
@@ -71,6 +73,7 @@ import java.security.KeyPair;
 import java.security.PublicKey;
 import java.util.*;
 import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
 import java.util.prefs.Preferences;
 
 import static org.junit.Assert.assertEquals;
@@ -198,11 +201,15 @@ public class SshPrivateKeyPasswordCloneFXTest extends ApplicationTest {
 
 
             RepositoryMonitor.pause();
-            Thread.sleep(1000);
 
+            WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+                                      () -> lookup("Yes").query() != null);
             clickOn("Yes");
 
-            Thread.sleep(1000);
+            WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+                                      () -> lookup("#sshprompt").query() != null);
+
+
             // Enter passphrase
             clickOn("#sshprompt")
                     .write(passphrase)
