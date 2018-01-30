@@ -88,7 +88,7 @@ public class RepoHelper {
      */
     public RepoHelper(Path directoryPath, String sshPassword, UserInfo userInfo, String privateKeyFileLocation,
                       String knownHostsFileLocation)
-            throws GitAPIException, IOException, CancelledAuthorizationException {
+            throws CancelledAuthorizationException {
         this.localPath = directoryPath;
         this.password = sshPassword;
         this.userInfo = userInfo;
@@ -131,7 +131,7 @@ public class RepoHelper {
         return new JschConfigSessionFactory() {
             @Override
             protected void configure(OpenSshConfig.Host host, Session session) {
-//                session.setPassword(password);
+                session.setPassword(password);
                 session.setUserInfo(userInfo);
             }
 
@@ -157,7 +157,7 @@ public class RepoHelper {
      * Add authentication to the Git command provided by attaching credentials stored in this RepoHelper.
      * Authentication could be HTTP(S), or SSH.
      *
-     * @param command
+     * @param command the Git command to be wrapped
      */
     public void wrapAuthentication(TransportCommand command) {
 
