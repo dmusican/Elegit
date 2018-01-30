@@ -1,7 +1,7 @@
 package elegit.sshauthentication;
 
 import com.jcraft.jsch.UserInfo;
-import org.apache.http.annotation.ThreadSafe;
+import net.jcip.annotations.ThreadSafe;
 
 /**
  * Class for purposes for JSch authentication (which JGit uses). This is the text-based version used

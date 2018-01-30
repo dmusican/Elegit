@@ -9,7 +9,7 @@ import elegit.treefx.TreeLayout;
 import io.reactivex.Observable;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.Region;
-import org.apache.http.annotation.ThreadSafe;
+import net.jcip.annotations.ThreadSafe;
 
 /**
  * Class for the local and remote panel views that handles the drawing of a tree structure

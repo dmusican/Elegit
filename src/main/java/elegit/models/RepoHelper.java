@@ -12,8 +12,8 @@ import io.reactivex.rxjavafx.schedulers.JavaFxScheduler;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
-import org.apache.http.annotation.GuardedBy;
-import org.apache.http.annotation.ThreadSafe;
+import net.jcip.annotations.ThreadSafe;
+import net.jcip.annotations.GuardedBy;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jgit.api.*;
@@ -70,9 +70,6 @@ public class RepoHelper {
     private static final Logger logger = LogManager.getLogger();
     private static final Logger console = LogManager.getLogger("briefconsolelogger");
 
-    @GuardedBy("this")
-    private boolean remoteAuthenticationSuccess = true;
-
     // This is a JavaFX property, so this is thread safe in that it will only be changed in the FX thread.
     // This is critical to do because it will be bound to a JavaFX object.
     @GuardedBy("this")
@@ -91,7 +88,7 @@ public class RepoHelper {
      */
     public RepoHelper(Path directoryPath, String sshPassword, UserInfo userInfo, String privateKeyFileLocation,
                       String knownHostsFileLocation)
-            throws GitAPIException, IOException, CancelledAuthorizationException {
+            throws CancelledAuthorizationException {
         this.localPath = directoryPath;
         this.password = sshPassword;
         this.userInfo = userInfo;
@@ -147,6 +144,8 @@ public class RepoHelper {
                 if (knownHostsFileLocation != null) {
                     defaultJSch.setKnownHosts(knownHostsFileLocation);
                 }
+
+
                 return defaultJSch;
             }
 
@@ -158,7 +157,7 @@ public class RepoHelper {
      * Add authentication to the Git command provided by attaching credentials stored in this RepoHelper.
      * Authentication could be HTTP(S), or SSH.
      *
-     * @param command
+     * @param command the Git command to be wrapped
      */
     public void wrapAuthentication(TransportCommand command) {
 

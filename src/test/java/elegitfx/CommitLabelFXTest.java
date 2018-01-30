@@ -4,24 +4,19 @@ import elegit.controllers.SessionController;
 import elegit.models.ClonedRepoHelper;
 import elegit.models.CommitHelper;
 import elegit.models.SessionModel;
-import elegit.monitors.RepositoryMonitor;
 import elegit.treefx.Cell;
 import elegit.treefx.CommitTreeModel;
 import io.reactivex.Single;
-import javafx.fxml.FXMLLoader;
-import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
-import javafx.scene.Scene;
 import javafx.scene.control.Label;
-import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
-import javafx.stage.Screen;
 import javafx.stage.Stage;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.junit.Assert;
 import org.junit.Test;
 import org.testfx.framework.junit.ApplicationTest;
+import sharedrules.TestUtilities;
 
 import java.io.File;
 import java.io.PrintWriter;
@@ -31,7 +26,6 @@ import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.prefs.Preferences;
 
 import static junit.framework.TestCase.assertEquals;
 import static org.junit.Assert.assertNotEquals;
@@ -67,25 +61,7 @@ public class CommitLabelFXTest extends ApplicationTest {
 
     @Override
     public void start(Stage stage) throws Exception {
-        Preferences prefs = Preferences.userNodeForPackage(this.getClass());
-        prefs.removeNode();
-        SessionModel.setPreferencesNodeClass(this.getClass());
-
-        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/MainView.fxml"));
-        fxmlLoader.load();
-        RepositoryMonitor.pause();
-        sessionController = fxmlLoader.getController();
-        BorderPane root = fxmlLoader.getRoot();
-        Rectangle2D primScreenBounds = Screen.getPrimary().getVisualBounds();
-        int screenWidth = (int) primScreenBounds.getWidth();
-        int screenHeight = (int) primScreenBounds.getHeight();
-        Scene scene = new Scene(root, screenWidth*4/5, screenHeight*4/5);
-        stage.setScene(scene);
-        System.out.println("Showing stage");
-        stage.show();
-        /* Do not forget to put the GUI in front of windows. Otherwise, the robots may interact with another
-        window, the one in front of all the windows... */
-        //stage.toFront();
+        sessionController = TestUtilities.commonTestFxStart(stage);
 
         // Clone the testing repo into a temporary location
         this.directoryPath = Files.createTempDirectory("commitLabelTestRepos");

@@ -1,7 +1,7 @@
 package elegit.exceptions;
 
 // http://www.mindview.net/Etc/Discussions/CheckedExceptions
-import org.apache.http.annotation.ThreadSafe;
+import net.jcip.annotations.ThreadSafe;
 
 import java.io.*;
 import java.util.concurrent.atomic.AtomicInteger;

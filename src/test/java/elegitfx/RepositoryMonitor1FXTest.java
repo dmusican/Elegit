@@ -6,15 +6,9 @@ import elegit.controllers.SessionController;
 import elegit.models.ClonedRepoHelper;
 import elegit.models.RepoHelper;
 import elegit.models.SessionModel;
-import elegit.monitors.RepositoryMonitor;
 import elegit.treefx.CommitTreeModel;
-import javafx.fxml.FXMLLoader;
-import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.ComboBox;
-import javafx.stage.Screen;
 import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -25,6 +19,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.testfx.framework.junit.ApplicationTest;
 import org.testfx.util.WaitForAsyncUtils;
+import sharedrules.TestUtilities;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -33,7 +28,6 @@ import java.nio.file.Paths;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.prefs.Preferences;
 
 import static junit.framework.TestCase.assertEquals;
 import static org.junit.Assert.assertNotEquals;
@@ -56,27 +50,7 @@ public class RepositoryMonitor1FXTest extends ApplicationTest {
 
     @Override
     public void start(Stage stage) throws Exception {
-        Main.testMode = true;
-        BusyWindow.setParentWindow(stage);
-
-        Preferences prefs = Preferences.userNodeForPackage(this.getClass());
-        prefs.removeNode();
-
-        SessionModel.setPreferencesNodeClass(this.getClass());
-        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/MainView.fxml"));
-        fxmlLoader.load();
-        sessionController = fxmlLoader.getController();
-        Parent root = fxmlLoader.getRoot();
-        Rectangle2D primScreenBounds = Screen.getPrimary().getVisualBounds();
-        Scene scene = new Scene(root, 800, 600);
-        stage.setScene(scene);
-        stage.setX(0);
-        stage.setY(0);
-        sessionController.setStageForNotifications(stage);
-        stage.show();
-        stage.toFront();
-        // TODO: Remove this pause and keep test working; no good reason for it to be necessary
-        RepositoryMonitor.pause();
+        sessionController = TestUtilities.commonTestFxStart(stage);
 
         if (!Main.initializationComplete.get()) {
             BusyWindow.show();

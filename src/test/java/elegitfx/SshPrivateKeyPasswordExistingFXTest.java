@@ -9,6 +9,7 @@ import elegit.models.ClonedRepoHelper;
 import elegit.models.ExistingRepoHelper;
 import elegit.models.SessionModel;
 import elegit.monitors.RepositoryMonitor;
+import elegit.sshauthentication.DetailedSshLogger;
 import elegit.sshauthentication.ElegitUserInfoGUI;
 import elegit.sshauthentication.ElegitUserInfoTest;
 import javafx.fxml.FXMLLoader;
@@ -43,6 +44,7 @@ import org.loadui.testfx.GuiTest;
 import org.loadui.testfx.controls.impl.VisibleNodesMatcher;
 import org.testfx.framework.junit.ApplicationTest;
 import org.testfx.util.WaitForAsyncUtils;
+import sharedrules.TestUtilities;
 import sharedrules.TestingLogPathRule;
 import sharedrules.TestingRemoteAndLocalReposRule;
 
@@ -93,10 +95,6 @@ public class SshPrivateKeyPasswordExistingFXTest extends ApplicationTest {
     private static final Random random = new Random(90125);
 
     private SessionController sessionController;
-    private static GuiTest testController;
-
-
-    private Stage stage;
 
     @Rule
     public TestName testName = new TestName();
@@ -129,52 +127,8 @@ public class SshPrivateKeyPasswordExistingFXTest extends ApplicationTest {
 
     @Override
     public void start(Stage stage) throws Exception {
-        Main.testMode = true;
-        BusyWindow.setParentWindow(stage);
-
-        Preferences prefs = Preferences.userNodeForPackage(this.getClass());
-        prefs.removeNode();
-
-        SessionModel.setPreferencesNodeClass(this.getClass());
-        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/MainView.fxml"));
-        fxmlLoader.load();
-        sessionController = fxmlLoader.getController();
-        Parent root = fxmlLoader.getRoot();
-        Rectangle2D primScreenBounds = Screen.getPrimary().getVisualBounds();
-        Scene scene = new Scene(root, 800, 600);
-        stage.setScene(scene);
-        stage.setX(0);
-        stage.setY(0);
-        sessionController.setStageForNotifications(stage);
-        stage.show();
-        stage.toFront();
-        // TODO: Remove this pause and keep test working; no good reason for it to be necessary
-        RepositoryMonitor.pause();
-
-        this.stage = stage;
-
+        sessionController = TestUtilities.commonTestFxStart(stage);
     }
-
-
-    // http://www.jcraft.com/jsch/examples/Logger.java.html
-    public static class MyLogger implements com.jcraft.jsch.Logger {
-        static Hashtable<Integer,String> name=new Hashtable<>();
-        static{
-            name.put(DEBUG, "DEBUG: ");
-            name.put(INFO, "INFO: ");
-            name.put(WARN, "WARN: ");
-            name.put(ERROR, "ERROR: ");
-            name.put(FATAL, "FATAL: ");
-        }
-        public boolean isEnabled(int level){
-            return true;
-        }
-        public void log(int level, String message){
-            System.err.print(name.get(level));
-            System.err.println(message);
-        }
-    }
-
 
     @Test
     public void testSshPrivateKey() throws Exception {
@@ -191,55 +145,23 @@ public class SshPrivateKeyPasswordExistingFXTest extends ApplicationTest {
         console.info("firstCommit name = " + firstCommit.getName());
 
         // Uncomment this to get detail SSH logging info, for debugging
-        //JSch.setLogger(new MyLogger());
+//        JSch.setLogger(new DetailedSshLogger());
 
         // Set up test SSH server.
         try (SshServer sshd = SshServer.setUpDefaultServer()) {
 
-            // Provide SSH server with public and private key info that client will be connecting with
+            String remoteURL = TestUtilities.setUpTestSshServer(sshd,
+                                                                directoryPath,
+                                                                testingRemoteAndLocalRepos.getRemoteFull(),
+                                                                testingRemoteAndLocalRepos.getRemoteBrief());
+
             InputStream passwordFileStream = getClass().getResourceAsStream("/rsa_key1_passphrase.txt");
             Scanner scanner = new Scanner(passwordFileStream);
             String passphrase = scanner.next();
+            String privateKeyFileLocation = "/rsa_key1";
+            Path knownHostsFileLocation = directoryPath.resolve("testing_known_hosts");
             console.info("phrase is " + passphrase);
 
-            String privateKeyFileLocation = "/rsa_key1";
-            InputStream privateKeyStream = getClass().getResourceAsStream(privateKeyFileLocation);
-            FilePasswordProvider filePasswordProvider = FilePasswordProvider.of(passphrase);
-            KeyPair kp = SecurityUtils.loadKeyPairIdentity("testkey", privateKeyStream, filePasswordProvider);
-            ArrayList<KeyPair> pairs = new ArrayList<>();
-            pairs.add(kp);
-            KeyPairProvider hostKeyProvider = new MappedKeyPairProvider(pairs);
-            sshd.setKeyPairProvider(hostKeyProvider);
-
-            // Need to use a non-standard port, as there may be an ssh server already running on this machine
-            sshd.setPort(2222);
-
-            // Set up a fall-back password authenticator to help in diagnosing failed test
-            sshd.setPasswordAuthenticator(new PasswordAuthenticator() {
-                public boolean authenticate(String username, String password, ServerSession session) {
-                    fail("Tried to use password instead of public key authentication");
-                    return false;
-                }
-            });
-
-            // This replaces the role of authorized_keys.
-            Collection<PublicKey> allowedKeys = new ArrayList<>();
-            allowedKeys.add(kp.getPublic());
-            sshd.setPublickeyAuthenticator(new KeySetPublickeyAuthenticator(allowedKeys));
-
-            // Amazingly useful Git command setup provided by Mina.
-            sshd.setCommandFactory(new GitPackCommandFactory(directoryPath.toString()));
-
-            // Start the SSH test server.
-            sshd.start();
-
-            // Create temporary known_hosts file.
-            Path knownHostsFileLocation = directoryPath.resolve("testing_known_hosts");
-            Files.createFile(knownHostsFileLocation);
-
-            // Clone the bare repo, using the SSH connection, to the local.
-            console.info("About to clone repo before bringing into Elegit");
-            String remoteURL = "ssh://localhost:2222/" + testingRemoteAndLocalRepos.getRemoteBrief();
             console.info("Connecting to " + remoteURL);
             Path local = testingRemoteAndLocalRepos.getLocalFull();
             ClonedRepoHelper helper =

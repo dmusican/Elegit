@@ -1,6 +1,6 @@
 package elegit.models;
 
-import org.apache.http.annotation.ThreadSafe;
+import net.jcip.annotations.ThreadSafe;
 
 import java.io.*;
 import java.util.prefs.BackingStoreException;

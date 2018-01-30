@@ -4,7 +4,7 @@ import elegit.Main;
 import javafx.animation.ScaleTransition;
 import javafx.scene.shape.Shape;
 import javafx.util.Duration;
-import org.apache.http.annotation.ThreadSafe;
+import net.jcip.annotations.ThreadSafe;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
