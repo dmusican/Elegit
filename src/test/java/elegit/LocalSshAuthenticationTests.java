@@ -30,12 +30,11 @@ import org.eclipse.jgit.api.TransportCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.transport.JschConfigSessionFactory;
 import org.eclipse.jgit.transport.OpenSshConfig;
+import org.eclipse.jgit.transport.SshSessionFactory;
 import org.eclipse.jgit.transport.SshTransport;
 import org.eclipse.jgit.transport.TransportGitSsh;
 import org.eclipse.jgit.transport.TransportProtocol;
 import org.eclipse.jgit.transport.URIish;
-import org.eclipse.jgit.util.FS;
-import org.eclipse.jgit.util.FileUtils;
 import org.junit.*;
 import sharedrules.TestUtilities;
 import sharedrules.TestingLogPathRule;
@@ -47,19 +46,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.security.GeneralSecurityException;
-import java.security.KeyPair;
-import java.security.PublicKey;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Scanner;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 public class LocalSshAuthenticationTests {
 
@@ -212,7 +203,7 @@ public class LocalSshAuthenticationTests {
 
     @Test
     public void testForRepeatAuthentication() throws Exception {
-        JSch.setLogger(new DetailedSshLogger());
+//        JSch.setLogger(new DetailedSshLogger());
         // Get local SSH server running
         sshd = SshServer.setUpDefaultServer();
         String remoteURL = TestUtilities.setUpTestSshServer(sshd,
@@ -223,51 +214,64 @@ public class LocalSshAuthenticationTests {
         // Get testing private key authentication data
         console.info("remoteURL = " + remoteURL);
         console.info("remote loc " + testingRemoteAndLocalRepos.getRemoteFull());
+
         TransportCommand command = Git.lsRemoteRepository().setRemote(remoteURL);
+
         InputStream passwordFileStream = TestUtilities.class.getResourceAsStream("/rsa_key1_passphrase.txt");
+        System.out.println("Getting passphrase:");
         Scanner scanner = new Scanner(passwordFileStream);
         String passphrase = scanner.next();
         console.info("Passphrase is " + passphrase);
 
-        // Set up dummy ssh authentication, whose sole purpose is to count number of times passphrase is prompted
+        SshSessionFactory sshSessionFactory = new JschConfigSessionFactory() {
+            @Override
+            protected void configure(OpenSshConfig.Host hc, Session session) {
+                session.setUserInfo(new UserInfo() {
+                                        @Override
+                                        public String getPassphrase() {
+                                            console.info("Getting passphrase");
+                                            passphrasePromptCount++;
+                                            return passphrase;
+                                        }
+
+                                        @Override
+                                        public String getPassword() {
+                                            return null;
+                                        }
+
+                                        @Override
+                                        public boolean promptPassword(String message) {
+                                            return true;
+                                        }
+
+                                        @Override
+                                        public boolean promptPassphrase(String message) {
+                                            console.info("Prompting passphrase");
+                                            return true;
+                                        }
+
+                                        @Override
+                                        public boolean promptYesNo(String message) {
+                                            return true;
+                                        }
+
+                                        @Override
+                                        public void showMessage(String message) {
+                                        }
+                                    });
+            }};
+
+
+
         command.setTransportConfigCallback(
                 transport -> {
                     SshTransport sshTransport = (SshTransport) transport;
-                    sshTransport.setSshSessionFactory(new JschConfigSessionFactory() {
-                        @Override
-                        protected void configure(OpenSshConfig.Host hc, Session session) {
-                            session.setUserInfo(new UserInfo() {
-                                @Override public String getPassphrase() {
-                                    passphrasePromptCount++;
-                                    return passphrase;
-                                }
-                                @Override public String getPassword() {return null;}
-                                @Override public boolean promptPassword(String message) {return true;}
-                                @Override public boolean promptPassphrase(String message) {return true;}
-                                @Override public boolean promptYesNo(String message) {return true;}
-                                @Override public void showMessage(String message) {}
-                            });
-                        }
-                        @Override
-                        protected JSch createDefaultJSch(FS fs) throws JSchException {
-                            JSch defaultJSch = super.createDefaultJSch(fs);
-
-                            return defaultJSch;
-                        }
-                    });
+                    sshTransport.setSshSessionFactory(sshSessionFactory);
                 });
 
-
-        // Snag passphrase from test file and add
-//        InputStream passwordFileStream = TestUtilities.class
-//                .getResourceAsStream("/rsa_key1_passphrase.txt");
-//        Scanner scanner = new Scanner(passwordFileStream);
-//        String passphrase = scanner.next();
-//        console.info("phrase is " + passphrase);
         String privateKeyFileLocation = "/rsa_key1";
 
         System.setProperty("user.home",directoryPath.resolve("home").toString());
-//
         Path sshDir = directoryPath.resolve("home").resolve(".ssh");
         try {
             Files.createDirectories(sshDir);
@@ -277,13 +281,6 @@ public class LocalSshAuthenticationTests {
             fw.write("  HostName localhost\n");
             fw.write("  IdentityFile " + getClass().getResource(privateKeyFileLocation).getFile());
             fw.close();
-//
-//
-//                            System.setProperty("user.home",directoryPath.resolve("home").toString());
-//
-//                            defaultJSch.addIdentity(getClass().getResource(privateKeyFileLocation).getFile());
-//
-//                            defaultJSch.setKnownHosts(directoryPath.resolve("testing_known_hosts").toString());
         } catch (IOException e) {
             throw new ExceptionAdapter(e);
         }
@@ -296,5 +293,7 @@ public class LocalSshAuthenticationTests {
         assertEquals(1, passphrasePromptCount);
 
     }
+
+
 
 }
