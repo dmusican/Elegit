@@ -60,7 +60,7 @@ public class LocalSshAuthenticationTests {
     @BeforeClass
     public static void setUpClass() {
         // Uncomment for debugging purposes
-        TestingRemoteAndLocalReposRule.doNotDeleteTempFiles();
+//        TestingRemoteAndLocalReposRule.doNotDeleteTempFiles();
     }
 
     @Rule
@@ -211,66 +211,22 @@ public class LocalSshAuthenticationTests {
                                                             testingRemoteAndLocalRepos.getRemoteFull(),
                                                             testingRemoteAndLocalRepos.getRemoteBrief());
 
-        // Get testing private key authentication data
-        console.info("remoteURL = " + remoteURL);
-        console.info("remote loc " + testingRemoteAndLocalRepos.getRemoteFull());
-
-        TransportCommand command = Git.lsRemoteRepository().setRemote(remoteURL);
-
+        // Get test authentication files
         InputStream passwordFileStream = TestUtilities.class.getResourceAsStream("/rsa_key1_passphrase.txt");
-        System.out.println("Getting passphrase:");
         Scanner scanner = new Scanner(passwordFileStream);
         String passphrase = scanner.next();
-        console.info("Passphrase is " + passphrase);
+        String privateKeyFileLocation = "/rsa_key1";
 
-        SshSessionFactory sshSessionFactory = new JschConfigSessionFactory() {
-            @Override
-            protected void configure(OpenSshConfig.Host hc, Session session) {
-                session.setUserInfo(new UserInfo() {
-                                        @Override
-                                        public String getPassphrase() {
-                                            console.info("Getting passphrase");
-                                            passphrasePromptCount++;
-                                            return passphrase;
-                                        }
-
-                                        @Override
-                                        public String getPassword() {
-                                            return null;
-                                        }
-
-                                        @Override
-                                        public boolean promptPassword(String message) {
-                                            return true;
-                                        }
-
-                                        @Override
-                                        public boolean promptPassphrase(String message) {
-                                            console.info("Prompting passphrase");
-                                            return true;
-                                        }
-
-                                        @Override
-                                        public boolean promptYesNo(String message) {
-                                            return true;
-                                        }
-
-                                        @Override
-                                        public void showMessage(String message) {
-                                        }
-                                    });
-            }};
-
-
-
+        // Set up Git command
+        TransportCommand command = Git.lsRemoteRepository().setRemote(remoteURL);
+        SshSessionFactory sshSessionFactory = new TestSessionFactory(passphrase);
         command.setTransportConfigCallback(
                 transport -> {
                     SshTransport sshTransport = (SshTransport) transport;
                     sshTransport.setSshSessionFactory(sshSessionFactory);
                 });
 
-        String privateKeyFileLocation = "/rsa_key1";
-
+        // Set up mock .ssh/config file
         System.setProperty("user.home",directoryPath.resolve("home").toString());
         Path sshDir = directoryPath.resolve("home").resolve(".ssh");
         try {
@@ -285,13 +241,59 @@ public class LocalSshAuthenticationTests {
             throw new ExceptionAdapter(e);
         }
 
+        // Verify that calling the command twice still only checks ssh passphrase once, which was a bug that used
+        // to happen
         passphrasePromptCount = 0;
-
         System.out.println(command.call());
         System.out.println(command.call());
-
         assertEquals(1, passphrasePromptCount);
 
+    }
+
+    private class TestSessionFactory extends JschConfigSessionFactory {
+
+        private String passphrase;
+
+        public TestSessionFactory(String passphrase) {
+            this.passphrase = passphrase;
+        }
+
+        @Override
+        protected void configure(OpenSshConfig.Host hc, Session session) {
+            session.setUserInfo(new UserInfo() {
+                @Override
+                public String getPassphrase() {
+                    console.info("Getting passphrase");
+                    passphrasePromptCount++;
+                    return passphrase;
+                }
+
+                @Override
+                public String getPassword() {
+                    return null;
+                }
+
+                @Override
+                public boolean promptPassword(String message) {
+                    return true;
+                }
+
+                @Override
+                public boolean promptPassphrase(String message) {
+                    console.info("Prompting passphrase");
+                    return true;
+                }
+
+                @Override
+                public boolean promptYesNo(String message) {
+                    return true;
+                }
+
+                @Override
+                public void showMessage(String message) {
+                }
+            });
+        }
     }
 
 
