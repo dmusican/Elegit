@@ -147,14 +147,6 @@ public class SshPrivateKeyPasswordOpeningCancelFXTest extends ApplicationTest {
         console.info("start started");
         sessionController = TestUtilities.startupFxApp(stage);
 
-        String lastOpenedRepoPathString = (String) PrefObj.getObject(preferences, LAST_OPENED_REPO_PATH_KEY);
-        console.info(lastOpenedRepoPathString);
-
-
-        Preferences preferences2 = Preferences.userNodeForPackage(SessionModel.getPreferencesNodeClass());
-        lastOpenedRepoPathString = (String) PrefObj.getObject(preferences2, LAST_OPENED_REPO_PATH_KEY);
-        console.info(lastOpenedRepoPathString);
-
 
         startComplete.countDown();
     }
@@ -164,85 +156,17 @@ public class SshPrivateKeyPasswordOpeningCancelFXTest extends ApplicationTest {
 
         startComplete.await();
 
-        console.info("Sleeping...");
-        Thread.sleep(10000);
-        // Set up remote repo
-        Path remote = testingRemoteAndLocalRepos.getRemoteFull();
-        Path remoteFilePath = remote.resolve("file.txt");
-        Files.write(remoteFilePath, "testSshPassword".getBytes());
-        ArrayList<Path> paths = new ArrayList<>();
-        paths.add(remoteFilePath);
-        ExistingRepoHelper helperServer = new ExistingRepoHelper(remote, null);
-        helperServer.addFilePathsTest(paths);
-        RevCommit firstCommit = helperServer.commit("Initial unit test commit");
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+                                  () -> lookup("Yes").query() != null);
+        clickOn("Yes");
 
-        // Uncomment this to get detail SSH logging info, for debugging
-//        JSch.setLogger(new DetailedSshLogger());
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+                                  () -> lookup("#sshprompt").query() != null);
+        // Enter passphrase
+        clickOn("Cancel");
 
-        // Set up test SSH server.
-        InputStream passwordFileStream = getClass().getResourceAsStream("/rsa_key1_passphrase.txt");
-        Scanner scanner = new Scanner(passwordFileStream);
-        String passphrase = scanner.next();
-        String privateKeyFileLocation = "/rsa_key1";
-        Path knownHostsFileLocation = directoryPath.resolve("testing_known_hosts");
-//
-//        console.info("Connecting to " + remoteURL);
-//        Path local = testingRemoteAndLocalRepos.getLocalFull();
-//        ClonedRepoHelper helper =
-//                new ClonedRepoHelper(local, "",
-//                                     new ElegitUserInfoTest(null, passphrase),
-//                                     getClass().getResource(privateKeyFileLocation).getFile(),
-//                                     directoryPath.resolve("testing_known_hosts").toString());
-//        helper.obtainRepository(remoteURL);
-//        console.info("Repo cloned");
-//
-//        // Make sure initial status is correct
-//        Text branchStatusText = lookup("#branchStatusText").query();
-//        assertEquals("",branchStatusText.getText());
-//
-//        Text needToFetch = lookup("#needToFetch").query();
-//        assertEquals("",needToFetch.getText());
-//
-//        // Open as an existing repo
-//        clickOn("#loadNewRepoButton")
-//                .clickOn("#loadExistingRepoOption")
-//                .clickOn("#repoInputDialog")
-//                .write(local.toString() + "\n");
-//
-//
-//        // Enter in private key location
-//        clickOn("#repoInputDialog")
-//                .write(getClass().getResource(privateKeyFileLocation).getFile())
-//                .clickOn("#repoInputDialogOK");
-//
-//        // Enter in known hosts location
-//        clickOn("#repoInputDialog")
-//                .write(knownHostsFileLocation.toString())
-//                .clickOn("#repoInputDialogOK");
-//
-//
-//        // Since remote checking should still be off, make sure status is empty
-//        branchStatusText = lookup("#branchStatusText").query();
-//        assertEquals("",branchStatusText.getText());
-//
-//        // Make sure no errors occurred
-//        assertNotEquals(null, RepositoryMonitor.getSessionController());
-//        assertEquals(0, ExceptionAdapter.getWrappedCount());
-//        assertEquals(0, sessionController.getNotificationPaneController().getNotificationNum());
-//
-//        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
-//                                  () -> lookup("#sshprompt").query() != null);
-//        // Enter passphrase
-//        clickOn("Cancel");
-//
-//        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS,
-//                                  () -> !BusyWindow.window.isShowing());
-////
-////            // Wait a while, to make sure that RepositoryMonitor has kicked in and is happy
-////            Thread.sleep(10000);
-//
-//        // Shut down test SSH server
-//        assertEquals(0, ExceptionAdapter.getWrappedCount());
+        // Shut down test SSH server
+        assertEquals(0, ExceptionAdapter.getWrappedCount());
 
         // Stop repository monitor, so it doesn't keep trying to work after sshd shuts down
         RepositoryMonitor.pause();
