@@ -86,6 +86,7 @@ public class SessionModel {
      */
     private SessionModel() {
         this.allRepoHelpers = new ArrayList<>();
+        console.info(preferencesNodeClass.toString());
         this.preferences = Preferences.userNodeForPackage(preferencesNodeClass);
         loadRecentRepoHelpersFromStoredPathStrings();
         loadMostRecentRepoHelper();
@@ -98,6 +99,11 @@ public class SessionModel {
     public static void setPreferencesNodeClass(Class<?> preferencesNodeClass) {
         SessionModel.preferencesNodeClass = preferencesNodeClass;
     }
+
+    public static Class<?> getPreferencesNodeClass() {
+        return preferencesNodeClass;
+    }
+
 
     /**
      * Loads all recently loaded repositories (stored with the Java Preferences API)

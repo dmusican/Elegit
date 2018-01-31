@@ -123,14 +123,19 @@ public class TestUtilities {
 
         initializePreferences();
 
+        return startupFxApp(stage);
+
+    }
+
+    public static SessionController startupFxApp(Stage stage) throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(TestUtilities.class.getResource("/elegit/fxml/MainView.fxml"));
         fxmlLoader.load();
         SessionController sessionController = fxmlLoader.getController();
         Parent root = fxmlLoader.getRoot();
         Rectangle2D primScreenBounds = Screen.getPrimary().getVisualBounds();
-        int screenWidth = (int) primScreenBounds.getWidth();
-        int screenHeight = (int) primScreenBounds.getHeight();
-        Scene scene = new Scene(root, screenWidth*4/5, screenHeight*4/5);
+        Scene scene = new Scene(root, 800, 600);
+        stage.setX(0);
+        stage.setY(0);
         stage.setScene(scene);
         sessionController.setStageForNotifications(stage);
         stage.show();
@@ -139,7 +144,6 @@ public class TestUtilities {
         RepositoryMonitor.pause();
 
         return sessionController;
-
     }
 
     public static void initializePreferences() throws BackingStoreException {
