@@ -192,7 +192,6 @@ public class SessionController {
         // Creates the commit tree model, and points MVC all looking at each other
         commitTreeModel = CommitTreeModel.getCommitTreeModel();
         commitTreeModel.setView(commitTreePanelView);
-        //CommitTreeController.commitTreeModel = this.commitTreeModel;
 
         this.initializeLayoutParameters();
 
@@ -203,9 +202,6 @@ public class SessionController {
 
         commitTreeProgressBarAndLabel.setAlignment(Pos.CENTER);
         commitTreeProgressBarAndLabel.setVisible(false);
-        //BusyWindow.show();
-        // SLOW
-        // here now looking
         this.initPanelViewsWhenSubscribed()
                 .doOnSuccess((unused) -> {
                     this.updateUIEnabledStatus();
@@ -795,16 +791,13 @@ public class SessionController {
     private synchronized void handleLoadRepoMenuItem(RepoHelperBuilder builder) {
         Main.assertFxThread();
         try {
-//            RepoHelper repoHelper = builder.getRepoHelperFromDialogs();
             builder.getRepoHelperFromDialogsWhenSubscribed()
                     .map(this::loadDesignatedRepo)
                     .subscribe((unused) -> {},
                                (e) -> {
-                                   System.out.println("SessionController.handleLoadRepoMenuItem " + e);
                                    showSingleResult(notificationPaneController, new Result(ResultOperation.LOAD, e));
                                });
 
-//            loadDesignatedRepo(repoHelper);
         } catch (Exception e) {
             showSingleResult(notificationPaneController, new Result(ResultOperation.LOAD, e));
         }

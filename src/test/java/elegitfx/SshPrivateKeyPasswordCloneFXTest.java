@@ -74,7 +74,6 @@ import java.security.PublicKey;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
-import java.util.prefs.Preferences;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;

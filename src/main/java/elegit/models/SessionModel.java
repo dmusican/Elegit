@@ -55,7 +55,7 @@ import java.util.stream.Stream;
 public class SessionModel {
 
     // Keys for preferences recall
-    private static final String RECENT_REPOS_LIST_KEY = "RECENT_REPOS_LIST";
+    public static final String RECENT_REPOS_LIST_KEY = "RECENT_REPOS_LIST";
     public static final String LAST_OPENED_REPO_PATH_KEY = "LAST_OPENED_REPO_PATH";
     private static final String LAST_UUID_KEY="LAST_UUID";
     private static final Logger logger = LogManager.getLogger();
@@ -641,7 +641,5 @@ public class SessionModel {
             exception.printStackTrace();
         }
     }
-
-
 
 }

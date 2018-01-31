@@ -35,6 +35,7 @@ import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Scanner;
+import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
 import static org.junit.Assert.fail;
@@ -43,6 +44,7 @@ public class TestUtilities {
 
     private static final Logger console = LogManager.getLogger("briefconsolelogger");
     private static final String testPassword = "a_test_password";
+    private static Preferences prefs;
 
     public static String setUpTestSshServer(SshServer sshd,
                                             Path serverDirectory,
@@ -51,6 +53,8 @@ public class TestUtilities {
             throws IOException, GitAPIException,
             CancelledAuthorizationException,
             MissingRepoException, GeneralSecurityException {
+
+        console.info("Setting up ssh server");
 
         // Set up remote repo
         Path remoteFilePath = remoteRepoDirectoryFull.resolve("file.txt");
@@ -68,7 +72,6 @@ public class TestUtilities {
         InputStream passwordFileStream = TestUtilities.class.getResourceAsStream("/rsa_key1_passphrase.txt");
         Scanner scanner = new Scanner(passwordFileStream);
         String passphrase = scanner.next();
-        console.info("phrase is " + passphrase);
 
         String privateKeyFileLocation = "/rsa_key1";
         InputStream privateKeyStream = TestUtilities.class.getResourceAsStream(privateKeyFileLocation);
@@ -119,10 +122,8 @@ public class TestUtilities {
         Main.testMode = true;
         BusyWindow.setParentWindow(stage);
 
-        Preferences prefs = Preferences.userNodeForPackage(TestUtilities.class);
-        prefs.removeNode();
+        initializePreferences();
 
-        SessionModel.setPreferencesNodeClass(TestUtilities.class);
         FXMLLoader fxmlLoader = new FXMLLoader(TestUtilities.class.getResource("/elegit/fxml/MainView.fxml"));
         fxmlLoader.load();
         SessionController sessionController = fxmlLoader.getController();
@@ -140,5 +141,15 @@ public class TestUtilities {
 
         return sessionController;
 
+    }
+
+    public static void initializePreferences() throws BackingStoreException {
+        prefs = Preferences.userNodeForPackage(TestUtilities.class);
+        prefs.removeNode();
+        SessionModel.setPreferencesNodeClass(TestUtilities.class);
+    }
+
+    public static Preferences getPreferences() {
+        return prefs;
     }
 }

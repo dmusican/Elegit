@@ -6,6 +6,8 @@ import elegit.controllers.SessionController;
 import elegit.exceptions.ExceptionAdapter;
 import elegit.models.ClonedRepoHelper;
 import elegit.models.ExistingRepoHelper;
+import elegit.models.PrefObj;
+import elegit.models.SessionModel;
 import elegit.monitors.RepositoryMonitor;
 import elegit.sshauthentication.ElegitUserInfoTest;
 import javafx.scene.text.Text;
@@ -35,12 +37,14 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.Scanner;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.prefs.Preferences;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 
-public class SshPrivateKeyPasswordCancelFXTest extends ApplicationTest {
+public class SshPrivateKeyPasswordOpeningCancelFXTest extends ApplicationTest {
 
     @ClassRule
     public static final TestingLogPathRule testingLogPath = new TestingLogPathRule();
@@ -52,8 +56,7 @@ public class SshPrivateKeyPasswordCancelFXTest extends ApplicationTest {
 
     private static final Logger console = LogManager.getLogger("briefconsolelogger");
 
-
-
+    private CountDownLatch startComplete = new CountDownLatch(1);
 
     static {
         // -----------------------Logging Initialization Start---------------------------
@@ -62,10 +65,6 @@ public class SshPrivateKeyPasswordCancelFXTest extends ApplicationTest {
         System.setProperty("logFolder", s);
     }
 
-    private static final Logger logger = LogManager.getLogger("consolelogger");
-
-    private static final Random random = new Random(90125);
-
     private SessionController sessionController;
 
     @Rule
@@ -73,12 +72,9 @@ public class SshPrivateKeyPasswordCancelFXTest extends ApplicationTest {
 
     @Before
     public void setup() throws Exception {
-        logger.info("Unit test started");
-        directoryPath = Files.createTempDirectory("unitTestRepos");
-        directoryPath.toFile().deleteOnExit();
+        console.info("Unit test started");
         initializeLogger();
-        logger.info("Test name: " + testName.getMethodName());
-        directoryPath = testingRemoteAndLocalRepos.getDirectoryPath();
+        console.info("Test name: " + testName.getMethodName());
     }
 
 
@@ -92,18 +88,67 @@ public class SshPrivateKeyPasswordCancelFXTest extends ApplicationTest {
 
     @After
     public void tearDown() {
-        logger.info("Tearing down");
+        console.info("Tearing down");
         TestCase.assertEquals(0, Main.getAssertionCount());
     }
 
 
+
     @Override
     public void start(Stage stage) throws Exception {
+
+        directoryPath = Files.createTempDirectory("unitTestRepos");
+        directoryPath.toFile().deleteOnExit();
+        directoryPath = testingRemoteAndLocalRepos.getDirectoryPath();
+
+        // For this test, the existing repo has to first be setup before the app starts. Since the app starts
+        // in the FX thread, that needs to be done here.
+        SshServer sshd = SshServer.setUpDefaultServer();
+
+        String remoteURL = TestUtilities.setUpTestSshServer(sshd,
+                                                            directoryPath,
+                                                            testingRemoteAndLocalRepos.getRemoteFull(),
+                                                            testingRemoteAndLocalRepos.getRemoteBrief());
+
+        console.info("Connecting to " + remoteURL);
+        Path local = testingRemoteAndLocalRepos.getLocalFull();
+        console.info("local = " + local);
+        InputStream passwordFileStream = TestUtilities.class.getResourceAsStream("/rsa_key1_passphrase.txt");
+        Scanner scanner = new Scanner(passwordFileStream);
+        String passphrase = scanner.next();
+        console.info("phrase is " + passphrase);
+        String privateKeyFileLocation = "/rsa_key1";
+
+
+        ClonedRepoHelper helper =
+                new ClonedRepoHelper(local, "",
+                                     new ElegitUserInfoTest(null, passphrase),
+                                     getClass().getResource(privateKeyFileLocation).getFile(),
+                                     directoryPath.resolve("testing_known_hosts").toString());
+        helper.obtainRepository(remoteURL);
+
+
+        sshd.stop();
+
+        TestUtilities.initializePreferences();
+
+        Preferences preferences = TestUtilities.getPreferences();
+        console.info("preferences = " + preferences);
+        PrefObj.putObject(preferences, SessionModel.LAST_OPENED_REPO_PATH_KEY, local.toString());
+        ArrayList<String> recentRepos = new ArrayList<>();
+        recentRepos.add(local.toString());
+        PrefObj.putObject(preferences, SessionModel.RECENT_REPOS_LIST_KEY, recentRepos);
+
+        console.info("start started");
         sessionController = TestUtilities.commonTestFxStart(stage);
+
+        startComplete.countDown();
     }
 
     @Test
     public void test() throws Exception {
+
+        startComplete.await();
 
         // Set up remote repo
         Path remote = testingRemoteAndLocalRepos.getRemoteFull();
@@ -114,7 +159,6 @@ public class SshPrivateKeyPasswordCancelFXTest extends ApplicationTest {
         ExistingRepoHelper helperServer = new ExistingRepoHelper(remote, null);
         helperServer.addFilePathsTest(paths);
         RevCommit firstCommit = helperServer.commit("Initial unit test commit");
-        console.info("firstCommit name = " + firstCommit.getName());
 
         // Uncomment this to get detail SSH logging info, for debugging
 //        JSch.setLogger(new DetailedSshLogger());
@@ -132,7 +176,6 @@ public class SshPrivateKeyPasswordCancelFXTest extends ApplicationTest {
             String passphrase = scanner.next();
             String privateKeyFileLocation = "/rsa_key1";
             Path knownHostsFileLocation = directoryPath.resolve("testing_known_hosts");
-            console.info("phrase is " + passphrase);
 
             console.info("Connecting to " + remoteURL);
             Path local = testingRemoteAndLocalRepos.getLocalFull();
