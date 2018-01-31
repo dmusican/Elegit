@@ -44,7 +44,6 @@ public class TestUtilities {
 
     private static final Logger console = LogManager.getLogger("briefconsolelogger");
     private static final String testPassword = "a_test_password";
-    private static Preferences prefs;
 
     public static String setUpTestSshServer(SshServer sshd,
                                             Path serverDirectory,
@@ -144,12 +143,12 @@ public class TestUtilities {
     }
 
     public static void initializePreferences() throws BackingStoreException {
-        prefs = Preferences.userNodeForPackage(TestUtilities.class);
+        Preferences prefs = Preferences.userNodeForPackage(TestUtilities.class);
         prefs.removeNode();
         SessionModel.setPreferencesNodeClass(TestUtilities.class);
     }
 
     public static Preferences getPreferences() {
-        return prefs;
+        return Preferences.userNodeForPackage(TestUtilities.class);
     }
 }
