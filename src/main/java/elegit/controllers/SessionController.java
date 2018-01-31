@@ -14,7 +14,6 @@ import elegit.treefx.CommitTreeModel;
 import elegit.treefx.CommitTreePanelView;
 import elegit.treefx.Highlighter;
 import elegit.treefx.TreeLayout;
-import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.ObservableSource;
 import io.reactivex.Single;
@@ -46,7 +45,6 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import net.jcip.annotations.GuardedBy;
 import org.apache.commons.lang3.SystemUtils;
-import net.jcip.annotations.ThreadSafe;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -55,7 +53,6 @@ import org.eclipse.jgit.api.PushCommand;
 import org.eclipse.jgit.api.ResetCommand;
 import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.errors.NoMergeBaseException;
-import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.jgit.transport.RemoteRefUpdate;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
@@ -829,7 +826,7 @@ public class SessionController {
                     if (result.equals("success")) {
                         return initPanelViewsWhenSubscribed()
                         .map(unused -> doGitStatusWhenSubscribed())
-                        .doOnSuccess(unused -> {
+                        .doAfterTerminate(() -> {
                             refreshRecentReposInDropdown();
                             updateUIEnabledStatus();
                             hideBusyWindowAndResumeRepoMonitor();
@@ -837,7 +834,6 @@ public class SessionController {
                             Main.assertAndLog(Highlighter.cellStatesEmpty(),
                                     "Cell states not cleared");  // Verify that things got cleared up as they should
 
-//                            return true;
                         });
                     } else {
                         return doGitStatusWhenSubscribed()
@@ -845,7 +841,14 @@ public class SessionController {
                     }
 
                 })
-                .subscribe(unused -> {}, (t) -> {throw new ExceptionAdapter(t);});
+                .subscribe(unused -> {}, (t) -> {
+                    console.info("Error handling is triggering");
+                    if (t instanceof TransportException) {
+                        showTransportExceptionNotification((TransportException)t);
+                    } else {
+                        throw new ExceptionAdapter(t);
+                    }
+                });
         return true;
 
     }
@@ -1021,7 +1024,7 @@ public class SessionController {
     public void handleCheckoutButton(Path filePath) {
         try {
             logger.info("Checkout file button clicked");
-            if (! PopUpWindows.showCheckoutAlert()) throw new CancelledDialogueException();
+            if (! PopUpWindows.showCheckoutAlert()) throw new CancelledDialogException();
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
             if(!this.theModel.getCurrentRepoHelper().exists()) throw new MissingRepoException();
             theModel.getCurrentRepoHelper().checkoutFile(filePath);
@@ -1031,7 +1034,7 @@ public class SessionController {
             showMissingRepoNotification();
         } catch (GitAPIException e) {
             showGenericErrorNotification(e);
-        } catch (CancelledDialogueException e) {
+        } catch (CancelledDialogException e) {
             // Do nothing if the dialogue was cancelled.
         }
     }
@@ -1046,7 +1049,7 @@ public class SessionController {
             if(!this.theModel.getCurrentRepoHelper().exists()) throw new MissingRepoException();
 
             if(!workingTreePanelView.isAnyFileSelected()) throw new NoFilesSelectedToAddException();
-            if (! PopUpWindows.showCheckoutAlert()) throw new CancelledDialogueException();
+            if (! PopUpWindows.showCheckoutAlert()) throw new CancelledDialogException();
             ArrayList<Path> filePathsToCheckout = new ArrayList<>();
             // Try to add all files, throw exception if there are ones that can't be added
             for(RepoFile checkedFile : workingTreePanelView.getCheckedFilesInDirectory()) {
@@ -1062,7 +1065,7 @@ public class SessionController {
             this.showMissingRepoNotification();
         } catch (GitAPIException e) {
             this.showGenericErrorNotification(e);
-        } catch (CancelledDialogueException e) {
+        } catch (CancelledDialogException e) {
             // Do nothing
         }
     }

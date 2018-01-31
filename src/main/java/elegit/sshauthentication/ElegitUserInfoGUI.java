@@ -4,7 +4,7 @@ import com.jcraft.jsch.UserInfo;
 import elegit.Main;
 import elegit.controllers.SessionController;
 import elegit.controllers.SshPromptController;
-import elegit.exceptions.CancelledDialogueException;
+import elegit.exceptions.CancelledDialogException;
 import elegit.exceptions.ExceptionAdapter;
 import io.reactivex.Single;
 import io.reactivex.rxjavafx.schedulers.JavaFxScheduler;
@@ -95,7 +95,7 @@ public class ElegitUserInfoGUI implements UserInfo {
         }
 
         if (!result.isPresent()) {
-            throw new CancelledDialogueException();
+            throw new CancelledDialogException();
         }
         return result;
     }
