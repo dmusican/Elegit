@@ -203,7 +203,7 @@ public class SessionController {
         commitTreeProgressBarAndLabel.setAlignment(Pos.CENTER);
         commitTreeProgressBarAndLabel.setVisible(false);
         this.initPanelViewsWhenSubscribed()
-                .doOnSuccess((unused) -> {
+                .doAfterTerminate(() -> {
                     this.updateUIEnabledStatus();
                     this.refreshRecentReposInDropdown();
                     this.initRepositoryMonitor();
@@ -224,7 +224,14 @@ public class SessionController {
                     // Now finally start watching repositories
                     RepositoryMonitor.unpause();
 
-                }).subscribe(unused -> {}, t -> {throw new ExceptionAdapter(t);});
+                })
+                .subscribe(unused -> {}, t -> {
+                    if (t instanceof TransportException) {
+                        showTransportExceptionNotification((TransportException) t);
+                    } else {
+                        throw new ExceptionAdapter(t);
+                    }
+                });
     }
 
     @FXML void handleFetchButton() {
@@ -835,7 +842,6 @@ public class SessionController {
 
                 })
                 .subscribe(unused -> {}, (t) -> {
-                    console.info("Error handling is triggering");
                     if (t instanceof TransportException) {
                         showTransportExceptionNotification((TransportException)t);
                     } else {
