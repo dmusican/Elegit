@@ -3,6 +3,7 @@ package elegitfx;
 import elegit.Main;
 import elegit.controllers.SessionController;
 import elegit.controllers.SshPromptController;
+import elegit.exceptions.CancelledDialogException;
 import elegit.exceptions.ExceptionAdapter;
 import elegit.models.ClonedRepoHelper;
 import elegit.models.ExistingRepoHelper;
@@ -14,6 +15,7 @@ import io.reactivex.schedulers.Schedulers;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import junit.framework.TestCase;
+import junit.framework.TestFailure;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.sshd.server.SshServer;
@@ -98,6 +100,10 @@ public class SshPopupInterruptTest extends ApplicationTest {
         SessionController sessionController = TestUtilities.commonTestFxStart(stage);
     }
 
+    /**
+     * Verify that a passphrase prompt works as expected when clicking the cancel button
+     * @throws Exception
+     */
     @Test
     public void test() throws Exception {
 
@@ -105,11 +111,23 @@ public class SshPopupInterruptTest extends ApplicationTest {
         ElegitUserInfoGUI userInfo = new ElegitUserInfoGUI();
 
         for (int i=0; i < 2; i++) {
-            Thread t1 = new Thread(() -> userInfo.promptPassphrase("passphrase prompt"));
 
+            // A CancelledDialogException should get thrown as a result of the interrupt later on.
+            // Therefore, catch the exception and move on to make the test succeed.
+            // If the exception _doesn't_ get thrown, that's evidence that the test failed, so throw
+            // an exception if get to that point.
+            Thread t1 = new Thread(() -> {
+                try {
+                    userInfo.promptPassphrase("passphrase prompt");
+                    throw new RuntimeException("Dialog was not cancelled as expected");
+                } catch (CancelledDialogException e) {
+                    // All is good, exception was thrown as expected
+                }
+            });
             t1.start();
 
-            // This is here so you can actually see the popup when testing
+            // This is here so you can actually see the popup when running test interactively; without it,
+            // the waitFor that follows happens instantly, the click follows, and you can't see what happens
             sleep(1000);
 
             WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
@@ -121,6 +139,7 @@ public class SshPopupInterruptTest extends ApplicationTest {
             clickOn("#sshprompt")
                     .write("testphrase");
 
+            // Issue interrupt to thread running popup, which results in task with dialog getting cancelled
             t1.interrupt();
 
             WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
