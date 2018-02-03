@@ -244,54 +244,6 @@ public class SessionController {
         List<Result> doGitOperation(Optional<RepoHelperBuilder.AuthDialogResponse> authResponse);
     }
 
-//    /**
-//     * Loads the repository (from its RepoHelper) that was open when the app was
-//     * last closed. If this repo has been moved or deleted, it doesn't load anything.
-//     *
-//     * Uses the Java Preferences API (wrapped in IBM's PrefObj class) to load the repo.
-//     */
-//    public void loadMostRecentRepoHelper() {
-//        Main.assertFxThread();
-//        try{
-//            String lastOpenedRepoPathString = (String) PrefObj.getObject(
-//                    theModel.preferences, theModel.LAST_OPENED_REPO_PATH_KEY
-//            );
-//            if (lastOpenedRepoPathString != null) {
-//                Path path = Paths.get(lastOpenedRepoPathString);
-//                try {
-//                    ExistingRepoHelper existingRepoHelper =
-//                            new ExistingRepoHelper(path, new ElegitUserInfoGUI());
-//                    theModel.openRepoFromHelper(existingRepoHelper);
-//                    return;
-//                } catch (IllegalArgumentException e) {
-//                    logger.warn("Recent repo not found in directory it used to be in");
-//                    // The most recent repo is no longer in the directory it used to be in,
-//                    // so just don't load it.
-//                }catch(GitAPIException | MissingRepoException e) {
-//                    logger.error("Git error or missing repo exception");
-//                    logger.debug(e.getStackTrace());
-//                    e.printStackTrace();
-//                } catch (CancelledAuthorizationException e) {
-//                    // Should never be used, as no authorization is needed for loading local files.
-//                }
-//            }
-//            List<RepoHelper> allRepoHelpers = theModel.getAllRepoHelpers();
-//            if (allRepoHelpers.size()>0) {
-//                RepoHelper helper = allRepoHelpers.get(0);
-//                try {
-//                    theModel.openRepoFromHelper(helper);
-//                } catch (MissingRepoException e) {
-//                    logger.error("Missing repo exception");
-//                    e.printStackTrace();
-//                }
-//            }
-//        }catch(IOException | BackingStoreException | ClassNotFoundException e){
-//            logger.error("Some sort of error loading most recent repo helper");
-//            logger.debug(e.getStackTrace());
-//            e.printStackTrace();
-//        }
-//    }
-
     private void handleFetchButton(boolean prune, boolean pull) {
         Main.assertFxThread();
 
@@ -320,14 +272,11 @@ public class SessionController {
         Main.assertFxThread();
         AtomicBoolean httpAuth = new AtomicBoolean(false);
         return Single.fromCallable(() -> authenticateReactive(httpAuth.get()))
-//                Observable
-//                .just(1)
-//                .map(integer -> authenticateReactive(httpAuth.get()))
 
-                //.observeOn(Schedulers.io())
+                .observeOn(Schedulers.io())
                 .map(gitOp::doGitOperation)
 
-                //.observeOn(JavaFxScheduler.platform())
+                .observeOn(JavaFxScheduler.platform())
                 .map(results -> {
                     gitOperationShowNotifications(notificationPaneController, results);
                     if (tryOpAgain(results)) {
@@ -886,15 +835,6 @@ public class SessionController {
             ObservableList<RepoHelper> immutableRepoHelpers = FXCollections.unmodifiableObservableList(obsRepoHelpers);
             dropdownController.setCurrentRepoWithoutInvokingAction(repoHelper, FXCollections.observableArrayList(immutableRepoHelpers));
         }
-    }
-
-    /**
-     * Loads the given repository and updates the UI accordingly.
-     * @param repoHelper the repository to open
-     */
-    private synchronized void handleRecentRepoMenuItem(RepoHelper repoHelper){
-        Main.assertFxThread();
-        loadDesignatedRepo(repoHelper);
     }
 
     public void handleAddButton() {

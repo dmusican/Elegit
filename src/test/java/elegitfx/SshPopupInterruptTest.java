@@ -52,7 +52,6 @@ public class SshPopupInterruptTest extends ApplicationTest {
     @Rule
     public final TestingRemoteAndLocalReposRule testingRemoteAndLocalRepos =
             new TestingRemoteAndLocalReposRule(false);
-    private Path directoryPath;
 
     private static final Logger console = LogManager.getLogger("briefconsolelogger");
 
@@ -69,8 +68,6 @@ public class SshPopupInterruptTest extends ApplicationTest {
     private static final Logger logger = LogManager.getLogger("consolelogger");
 
 
-    private SessionController sessionController;
-
     @Rule
     public TestName testName = new TestName();
 
@@ -78,7 +75,6 @@ public class SshPopupInterruptTest extends ApplicationTest {
     public void setup() throws Exception {
         logger.info("Unit test started");
         initializeLogger();
-        directoryPath = testingRemoteAndLocalRepos.getDirectoryPath();
     }
 
 
@@ -99,7 +95,7 @@ public class SshPopupInterruptTest extends ApplicationTest {
 
     @Override
     public void start(Stage stage) throws Exception {
-        sessionController = TestUtilities.commonTestFxStart(stage);
+        SessionController sessionController = TestUtilities.commonTestFxStart(stage);
     }
 
     @Test
