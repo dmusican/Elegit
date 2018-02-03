@@ -293,6 +293,8 @@ public class SessionController {
 //    }
 
     private void handleFetchButton(boolean prune, boolean pull) {
+        Main.assertFxThread();
+
         GitOperation gitOp = authResponse -> gitFetch(authResponse, prune, pull);
 
         String displayString;

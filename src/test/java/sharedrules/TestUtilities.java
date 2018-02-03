@@ -119,8 +119,6 @@ public class TestUtilities {
 
     public static SessionController commonTestFxStart(Stage stage) throws Exception {
         Main.testMode = true;
-        BusyWindow.setParentWindow(stage);
-
         initializePreferences();
 
         return startupFxApp(stage);
@@ -128,6 +126,8 @@ public class TestUtilities {
     }
 
     public static SessionController startupFxApp(Stage stage) throws IOException {
+        BusyWindow.setParentWindow(stage);
+
         FXMLLoader fxmlLoader = new FXMLLoader(TestUtilities.class.getResource("/elegit/fxml/MainView.fxml"));
         fxmlLoader.load();
         SessionController sessionController = fxmlLoader.getController();
