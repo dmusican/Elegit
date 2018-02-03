@@ -130,9 +130,6 @@ public class SshPrivateKeyPasswordOpeningCancelFXTest extends ApplicationTest {
                                      directoryPath.resolve("testing_known_hosts").toString());
         helper.obtainRepository(remoteURL);
 
-
-//        sshd.stop();
-
         TestUtilities.initializePreferences();
 
         Preferences preferences = TestUtilities.getPreferences();
@@ -147,26 +144,42 @@ public class SshPrivateKeyPasswordOpeningCancelFXTest extends ApplicationTest {
         console.info("start started");
         sessionController = TestUtilities.startupFxApp(stage);
 
-
         startComplete.countDown();
     }
 
+    /**
+     * Verify that cancelling password prompts behaves gracefully, when starting with an ssh private key
+     * repo being the active one when you start up Elegit.
+     *
+     * The sleep code throughout is for visual debugging purposes; the code goes by so fast it's hard for a human to
+     * see. Adjust the timing as appropriate.
+     * @throws Exception
+     */
     @Test
     public void test() throws Exception {
 
+        int delay = 0;
+
         startComplete.await();
 
+        // Handle hosts file
         WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
                                   () -> lookup("Yes").query() != null);
         clickOn("Yes");
+        sleep(delay);
 
+        // Wait for ssh prompt, then click cancel
         WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
                                   () -> lookup("#sshprompt").query() != null);
-        // Enter passphrase
         clickOn("Cancel");
+        sleep(delay);
 
-        // Test that trying to fetch after cancelling works gracefully
+        // Test that trying to fetch after cancelling works gracefully, then try cancelling again
         clickOn("Fetch");
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+                                  () -> lookup("#sshprompt").query() != null);
+        clickOn("Cancel");
+        sleep(delay);
 
         assertEquals(0, ExceptionAdapter.getWrappedCount());
 
