@@ -309,7 +309,7 @@ public class SessionController {
                 // operations (hiding the window, etc) depend on it.
                 .flatMap(unused -> doGitOperationWhenSubscribed(gitOp).toObservable())
                 .doOnNext(unused -> hideBusyWindowAndResumeRepoMonitor())
-                .subscribe(unused -> {}, Throwable::printStackTrace);
+                .subscribe(unused -> {}, t -> {throw new ExceptionAdapter(t);});
     }
 
     // Repeat trying to fetch. First time: no authentication window. On repeated attempts,

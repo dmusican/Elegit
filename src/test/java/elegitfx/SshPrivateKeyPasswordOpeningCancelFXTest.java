@@ -165,11 +165,15 @@ public class SshPrivateKeyPasswordOpeningCancelFXTest extends ApplicationTest {
         // Enter passphrase
         clickOn("Cancel");
 
-        // Shut down test SSH server
+        // Test that trying to fetch after cancelling works gracefully
+        clickOn("Fetch");
+
         assertEquals(0, ExceptionAdapter.getWrappedCount());
 
         // Stop repository monitor, so it doesn't keep trying to work after sshd shuts down
         RepositoryMonitor.pause();
+
+        // Shut down test SSH server
         sshd.stop();
     }
 
