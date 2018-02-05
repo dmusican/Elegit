@@ -11,6 +11,9 @@ import elegit.models.PrefObj;
 import elegit.models.SessionModel;
 import elegit.monitors.RepositoryMonitor;
 import elegit.sshauthentication.ElegitUserInfoTest;
+import javafx.scene.Node;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.PasswordField;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import junit.framework.TestCase;
@@ -25,7 +28,9 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestName;
+import org.loadui.testfx.GuiTest;
 import org.testfx.framework.junit.ApplicationTest;
+import org.testfx.service.query.NodeQuery;
 import org.testfx.util.WaitForAsyncUtils;
 import sharedrules.TestUtilities;
 import sharedrules.TestingLogPathRule;
@@ -165,11 +170,14 @@ public class SshPrivateKeyPasswordOpeningCancelFXTest extends ApplicationTest {
 
         int delay = 0;
 
+        console.info("awaiting");
         startComplete.await();
+        console.info("awaiting done");
 
         // Handle hosts file
-        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
-                                  () -> lookup("Yes").query() != null);
+        waitUntil("Yes", Matchers.is(visible()));
+//        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+//                                  () -> lookup("Yes").query() != null);
         clickOn("Yes");
         sleep(delay);
 
@@ -180,7 +188,11 @@ public class SshPrivateKeyPasswordOpeningCancelFXTest extends ApplicationTest {
 
         // Test that trying to fetch after cancelling works gracefully, then try cancelling again
         clickOn("Fetch");
-        waitUntil("Cancel",Matchers.is(visible()));
+//        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+//                                  () -> lookup("Cancel").query() != null);
+//        waitUntil((Node)lookup("#sshprompt").query(), Matchers.notNullValue());
+//        waitUntil((PasswordField)(lookup("#sshprompt").query()), (PasswordField d) -> d.isVisible());
+        waitUntil("Cancel", Matchers.is(visible()));
         clickOn("Cancel");
         sleep(delay);
 
