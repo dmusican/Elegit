@@ -15,6 +15,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.sshd.server.SshServer;
 import org.eclipse.jgit.revwalk.RevCommit;
+import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -39,6 +40,8 @@ import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
+import static org.loadui.testfx.GuiTest.waitUntil;
+import static org.loadui.testfx.controls.impl.VisibleNodesMatcher.visible;
 
 public class SshPrivateKeyPasswordCancelFXTest extends ApplicationTest {
 
@@ -178,8 +181,8 @@ public class SshPrivateKeyPasswordCancelFXTest extends ApplicationTest {
             assertEquals(0, ExceptionAdapter.getWrappedCount());
             assertEquals(0, sessionController.getNotificationPaneController().getNotificationNum());
 
-            WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
-                                      () -> lookup("#sshprompt").query() != null);
+            waitUntil("Cancel", Matchers.is(visible()), 10);
+
             // Enter passphrase
             clickOn("Cancel");
 

@@ -246,8 +246,11 @@ public class SessionController {
 
     private void handleFetchButton(boolean prune, boolean pull) {
         Main.assertFxThread();
-
-        GitOperation gitOp = authResponse -> gitFetch(authResponse, prune, pull);
+        console.info("Handling fetch button.");
+        GitOperation gitOp = authResponse -> {
+            console.info("Running the git op");
+            return gitFetch(authResponse, prune, pull);
+        };
 
         String displayString;
         if (!pull)
@@ -270,10 +273,12 @@ public class SessionController {
     // authentication window is shown. Effort ends when authentication window is cancelled.
     private Single<String> doGitOperationWhenSubscribed(GitOperation gitOp) {
         Main.assertFxThread();
+        console.info("doGitOp");
         AtomicBoolean httpAuth = new AtomicBoolean(false);
         return Single.fromCallable(() -> authenticateReactive(httpAuth.get()))
 
                 .observeOn(Schedulers.io())
+                .doOnSuccess(unused -> console.info("got op in progress"))
                 .map(gitOp::doGitOperation)
 
                 .observeOn(JavaFxScheduler.platform())
@@ -1819,6 +1824,7 @@ public class SessionController {
 
     private void hideBusyWindowAndResumeRepoMonitor() {
         Main.assertFxThread();
+        console.info("Hiding busy window");
         BusyWindow.hide();
         RepositoryMonitor.unpause();
         LoggingModel.submitLog();
@@ -1877,6 +1883,9 @@ public class SessionController {
      * Equivalent to `git fetch`
      */
     private List<Result> gitFetch(Optional<RepoHelperBuilder.AuthDialogResponse> responseOptional, boolean prune, boolean pull) {
+        console.info("Starting it off");
+        Main.assertNotFxThread();
+        console.info("gitFetch itself is running");
         synchronized(globalLock) {
             List<Result> results = new ArrayList<>();
             try {
@@ -2076,6 +2085,7 @@ public class SessionController {
     }
 
     private void showBusyWindow(String message) {
+        console.info("showing busy window");
         BusyWindow.setLoadingText(message);
         BusyWindow.show();
     }

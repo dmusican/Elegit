@@ -168,7 +168,7 @@ public class SshPrivateKeyPasswordOpeningCancelFXTest extends ApplicationTest {
     @Test
     public void test() throws Exception {
 
-        int delay = 0;
+        int delay = 1000;
 
         console.info("awaiting");
         startComplete.await();
@@ -176,6 +176,7 @@ public class SshPrivateKeyPasswordOpeningCancelFXTest extends ApplicationTest {
 
         // Handle hosts file
         waitUntil("Yes", Matchers.is(visible()));
+
 //        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
 //                                  () -> lookup("Yes").query() != null);
         clickOn("Yes");
@@ -192,8 +193,8 @@ public class SshPrivateKeyPasswordOpeningCancelFXTest extends ApplicationTest {
 //                                  () -> lookup("Cancel").query() != null);
 //        waitUntil((Node)lookup("#sshprompt").query(), Matchers.notNullValue());
 //        waitUntil((PasswordField)(lookup("#sshprompt").query()), (PasswordField d) -> d.isVisible());
-        waitUntil("Cancel", Matchers.is(visible()));
-        clickOn("Cancel");
+        waitUntil("Cancel", Matchers.is(visible()),10);
+        /*clickOn("Cancel");
         sleep(delay);
 
         assertEquals(0, ExceptionAdapter.getWrappedCount());
@@ -202,7 +203,7 @@ public class SshPrivateKeyPasswordOpeningCancelFXTest extends ApplicationTest {
         RepositoryMonitor.pause();
 
         // Shut down test SSH server
-        sshd.stop();
+        sshd.stop();*/
     }
 
 }

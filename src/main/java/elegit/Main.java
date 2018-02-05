@@ -162,13 +162,13 @@ public class Main extends Application {
     // This can't be easily done with a standard assert, because standard asserts are exceptions, which end
     // up getting ignored in other threads
     public static void assertFxThread() {
-        assert(Platform.isFxApplicationThread());
         if (!Platform.isFxApplicationThread()) {
             System.err.println("Not in FX thread");
             System.err.println(Thread.currentThread());
             new Throwable().printStackTrace();
             assert(Platform.isFxApplicationThread());
         }
+        assert(Platform.isFxApplicationThread());
     }
 
 

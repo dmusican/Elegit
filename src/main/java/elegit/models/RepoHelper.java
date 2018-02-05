@@ -680,7 +680,7 @@ public class RepoHelper {
      */
     public boolean fetch(boolean prune) throws
             GitAPIException, MissingRepoException, IOException {
-        //assert(!Platform.isFxApplicationThread());
+        Main.assertNotFxThread();
         logger.info("Attempting fetch");
         if (!exists()) throw new MissingRepoException();
         Git git = new Git(this.getRepo());
