@@ -47,6 +47,7 @@ public class RepoCreation3FXTest extends ApplicationTest {
     }
 
     private static final Logger logger = LogManager.getLogger("consolelogger");
+    private static final Logger console = LogManager.getLogger("briefconsolelogger");
 
     private static final Random random = new Random(90125);
 
@@ -61,11 +62,11 @@ public class RepoCreation3FXTest extends ApplicationTest {
 
     @Before
     public void setup() throws Exception {
-        logger.info("Unit test started");
+        console.info("Unit test started");
         directoryPath = Files.createTempDirectory("unitTestRepos");
         directoryPath.toFile().deleteOnExit();
         initializeLogger();
-        logger.info("Test name: " + testName.getMethodName());
+        console.info("Test name: " + testName.getMethodName());
     }
 
 
@@ -79,7 +80,7 @@ public class RepoCreation3FXTest extends ApplicationTest {
 
     @After
     public void tearDown() {
-        logger.info("Tearing down");
+        console.info("Tearing down");
         assertEquals(0, Main.getAssertionCount());
     }
 
@@ -94,19 +95,19 @@ public class RepoCreation3FXTest extends ApplicationTest {
     public void countOfCommitsInTreeTest() throws Exception {
 
         // Make two repos; swap between them, make sure number of commits is correct in tree
-        logger.info("Temp directory: " + directoryPath);
+        console.info("Temp directory: " + directoryPath);
 
         Path remote1 = directoryPath.resolve("remote1");
         Path local1 = directoryPath.resolve("local1");
         RevCommit firstCommit1 = makeTestRepo(remote1, local1, 5);
-        logger.info(remote1);
-        logger.info(local1);
+        console.info(remote1);
+        console.info(local1);
 
         Path remote2 = directoryPath.resolve("remote2");
         Path local2 = directoryPath.resolve("local2");
         RevCommit firstCommit2 = makeTestRepo(remote2, local2, 5);
-        logger.info(remote2);
-        logger.info(local2);
+        console.info(remote2);
+        console.info(local2);
 
         SessionController.gitStatusCompletedOnce = new CountDownLatch(1);
 
@@ -122,9 +123,11 @@ public class RepoCreation3FXTest extends ApplicationTest {
         assertNotEquals(null, firstCell1);
 
         Set<Cell> cells1 = lookup(Matchers.instanceOf(Cell.class)).queryAll();
-        logger.info("Commits added 1");
-        cells1.stream().forEach(logger::info);
+        console.info("Commits added 1");
+        cells1.stream().forEach(console::info);
         assertEquals(6,cells1.size());
+
+        SessionController.gitStatusCompletedOnce = new CountDownLatch(1);
 
         clickOn("#loadNewRepoButton")
                 .clickOn("#loadExistingRepoOption")
@@ -132,6 +135,7 @@ public class RepoCreation3FXTest extends ApplicationTest {
                 .write(local2.toString())
                 .clickOn("#repoInputDialogOK");
 
+        SessionController.gitStatusCompletedOnce.await();
 
         Cell firstCell2 = lookup(Matchers.hasToString(firstCommit2.getName())).query();
         assertNotEquals(null, firstCell2);
@@ -139,7 +143,7 @@ public class RepoCreation3FXTest extends ApplicationTest {
         sleep(3000);
 
         Set<Cell> cells2 = lookup(Matchers.instanceOf(Cell.class)).queryAll();
-        logger.info("Commits added 2");
+        console.info("Commits added 2");
         cells2.stream().forEach(logger::info);
         assertEquals(6,cells2.size());
     }
@@ -158,7 +162,7 @@ public class RepoCreation3FXTest extends ApplicationTest {
         helper.addFilePathTest(fileLocation);
         RevCommit firstCommit = helper.commit("Appended to file");
         Cell firstCellAttempt = lookup(firstCommit.getName()).query();
-        logger.info("firstCell = " + firstCellAttempt);
+        console.info("firstCell = " + firstCellAttempt);
 
         for (int i = 0; i < numCommits; i++) {
             fw = new FileWriter(fileLocation.toString(), true);
