@@ -133,7 +133,7 @@ public class SshPopupInterruptTest extends ApplicationTest {
             WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
                                       SshPromptController::isShowing);
 
-            assert(SshPromptController.getPassword().equals(""));
+            interact(() -> assertEquals("",SshPromptController.getPassword()));
 
             // Enter passphrase
             clickOn("#sshprompt")

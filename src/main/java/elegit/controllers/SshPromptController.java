@@ -73,15 +73,18 @@ public class SshPromptController {
         dialog.hide();
     }
 
-    public static boolean isShowing() {
-        Main.assertFxThread();
-        return dialog.isShowing();
-    }
-
     public static String getPassword() {
         Main.assertFxThread();
         return passwordField.getText();
     }
+
+
+    public static boolean isShowing() {
+        // No assertFxThread here. because this method is only used from an FXTest. DO NOT call this method from
+        // production code.
+        return dialog.isShowing();
+    }
+
 
 }
 
