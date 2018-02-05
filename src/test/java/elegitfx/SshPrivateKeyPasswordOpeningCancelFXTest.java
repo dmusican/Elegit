@@ -3,6 +3,7 @@ package elegitfx;
 import elegit.Main;
 import elegit.controllers.BusyWindow;
 import elegit.controllers.SessionController;
+import elegit.controllers.SshPromptController;
 import elegit.exceptions.ExceptionAdapter;
 import elegit.models.ClonedRepoHelper;
 import elegit.models.ExistingRepoHelper;
@@ -17,6 +18,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.sshd.server.SshServer;
 import org.eclipse.jgit.revwalk.RevCommit;
+import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -44,6 +46,9 @@ import java.util.prefs.Preferences;
 import static elegit.models.SessionModel.LAST_OPENED_REPO_PATH_KEY;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
+import static org.loadui.testfx.GuiTest.find;
+import static org.loadui.testfx.GuiTest.waitUntil;
+import static org.loadui.testfx.controls.impl.VisibleNodesMatcher.visible;
 
 public class SshPrivateKeyPasswordOpeningCancelFXTest extends ApplicationTest {
 
@@ -169,15 +174,13 @@ public class SshPrivateKeyPasswordOpeningCancelFXTest extends ApplicationTest {
         sleep(delay);
 
         // Wait for ssh prompt, then click cancel
-        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
-                                  () -> lookup("#sshprompt").query() != null);
+        waitUntil("Cancel", Matchers.is(visible()));
         clickOn("Cancel");
         sleep(delay);
 
         // Test that trying to fetch after cancelling works gracefully, then try cancelling again
         clickOn("Fetch");
-        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
-                                  () -> lookup("#sshprompt").query() != null);
+        waitUntil("Cancel",Matchers.is(visible()));
         clickOn("Cancel");
         sleep(delay);
 

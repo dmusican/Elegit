@@ -80,8 +80,7 @@ public class SshPromptController {
 
 
     public static boolean isShowing() {
-        // No assertFxThread here. because this method is only used from an FXTest. DO NOT call this method from
-        // production code.
+        Main.assertFxThread();
         return dialog.isShowing();
     }
 
