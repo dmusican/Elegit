@@ -1,10 +1,12 @@
 package elegit.controllers;
 
+import elegit.Main;
 import javafx.geometry.Insets;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.PasswordField;
 import javafx.scene.layout.GridPane;
+import net.jcip.annotations.ThreadSafe;
 import org.eclipse.jgit.api.errors.TransportException;
 
 import java.util.Optional;
@@ -12,6 +14,8 @@ import java.util.Optional;
 /**
  * A class used to manage prompting the user for an ssh password. Designed to be used from ElegitUserInfoGUI.
  */
+// Only threadsafe because every method must be run on FX thread
+@ThreadSafe
 public class SshPromptController {
 
     private static Dialog<String> dialog;
@@ -20,6 +24,8 @@ public class SshPromptController {
 
     // Build the dialog structure.
     static {
+        Main.assertFxThread();
+
         dialog = new Dialog<>();
 
         GridPane grid = new GridPane();
@@ -53,6 +59,8 @@ public class SshPromptController {
      * @return the password entered.
      */
     public static Optional<String> showAndWait(String s, String title, String headerText, String contentText) {
+        Main.assertFxThread();
+
         dialog.setTitle(title);
         dialog.headerTextProperty().setValue(s + "\n" + contentText);
         passwordField.setText("");
@@ -61,14 +69,17 @@ public class SshPromptController {
     }
 
     public static void hide() {
+        Main.assertFxThread();
         dialog.hide();
     }
 
     public static boolean isShowing() {
+        Main.assertFxThread();
         return dialog.isShowing();
     }
 
     public static String getPassword() {
+        Main.assertFxThread();
         return passwordField.getText();
     }
 
