@@ -14,17 +14,17 @@ import java.util.Optional;
 /**
  * A class used to manage prompting the user for an ssh password. Designed to be used from ElegitUserInfoGUI.
  */
-// Only threadsafe because every method must be run on FX thread
+// Threadsafe because every method is synchronized, and all variables are private
 @ThreadSafe
 public class SshPromptController {
 
-    private static Dialog<String> dialog;
-    private static PasswordField passwordField;
+    private Dialog<String> dialog;
+    private PasswordField passwordField;
 
 
-    // Build the dialog structure.
-    static {
-        Main.assertFxThread();
+    // Build the dialog structure. It is built off-FX thread, then displayed as needed.
+    public SshPromptController() {
+        Main.assertNotFxThread();
 
         dialog = new Dialog<>();
 
@@ -58,7 +58,7 @@ public class SshPromptController {
      * @param contentText
      * @return the password entered.
      */
-    public static Optional<String> showAndWait(String s, String title, String headerText, String contentText) {
+    public synchronized Optional<String> showAndWait(String s, String title, String headerText, String contentText) {
         Main.assertFxThread();
 
         dialog.setTitle(title);
@@ -68,18 +68,18 @@ public class SshPromptController {
         return dialog.showAndWait();
     }
 
-    public static void hide() {
+    public synchronized void hide() {
         Main.assertFxThread();
         dialog.hide();
     }
 
-    public static String getPassword() {
+    public synchronized String getPassword() {
         Main.assertFxThread();
         return passwordField.getText();
     }
 
 
-    public static boolean isShowing() {
+    public synchronized boolean isShowing() {
         Main.assertFxThread();
         return dialog.isShowing();
     }

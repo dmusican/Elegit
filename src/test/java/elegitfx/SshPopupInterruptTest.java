@@ -12,6 +12,7 @@ import elegit.sshauthentication.ElegitUserInfoGUI;
 import elegit.sshauthentication.ElegitUserInfoTest;
 import io.reactivex.Completable;
 import io.reactivex.schedulers.Schedulers;
+import javafx.scene.control.PasswordField;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import junit.framework.TestCase;
@@ -135,7 +136,8 @@ public class SshPopupInterruptTest extends ApplicationTest {
 
             waitUntil("#sshprompt", Matchers.is(visible()));
 
-            interact(() -> assertEquals("",SshPromptController.getPassword()));
+            PasswordField passwordField = (PasswordField)lookup("#sshprompt").query();
+            interact(() -> assertEquals("",passwordField.getText()));
 
             // Enter passphrase
             clickOn("#sshprompt")
@@ -146,7 +148,7 @@ public class SshPopupInterruptTest extends ApplicationTest {
 
             waitUntil("#sshprompt", Matchers.is(visible()));
 
-            interact(() -> assertFalse(SshPromptController.isShowing()));
+            interact(() -> assertFalse(lookup("#sshprompt").query().isVisible()));
         }
 
 

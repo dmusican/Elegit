@@ -81,15 +81,17 @@ public class ElegitUserInfoGUI implements UserInfo {
     private Optional<String> prompt(String s, String title, String headerText, String contentText) {
         Main.assertNotFxThread();
 
+        SshPromptController sshPromptController = new SshPromptController();
         FutureTask<Optional<String>> futureTask = new FutureTask<>(
-                () -> SshPromptController.showAndWait(s, title, headerText, contentText));
+                () -> sshPromptController.showAndWait(s, title, headerText, contentText));
         Platform.runLater(futureTask);
         Optional<String> result = Optional.empty();
         try {
+            Thread.yield();
             result = futureTask.get();
         } catch (InterruptedException e) {
             sessionController.get().showSshPasswordCancelledNotification();
-            Platform.runLater(SshPromptController::hide);
+            Platform.runLater(sshPromptController::hide);
         } catch (ExecutionException e) {
             e.printStackTrace();
             throw new ExceptionAdapter(e);
