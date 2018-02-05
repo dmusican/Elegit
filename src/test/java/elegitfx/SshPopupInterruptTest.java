@@ -20,6 +20,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.sshd.server.SshServer;
 import org.eclipse.jgit.revwalk.RevCommit;
+import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -45,6 +46,8 @@ import java.util.concurrent.TimeUnit;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
+import static org.loadui.testfx.GuiTest.waitUntil;
+import static org.loadui.testfx.controls.impl.VisibleNodesMatcher.visible;
 
 public class SshPopupInterruptTest extends ApplicationTest {
 
@@ -130,8 +133,7 @@ public class SshPopupInterruptTest extends ApplicationTest {
             // the waitFor that follows happens instantly, the click follows, and you can't see what happens
             sleep(1000);
 
-            WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
-                                      SshPromptController::isShowing);
+            waitUntil("#sshprompt", Matchers.is(visible()));
 
             interact(() -> assertEquals("",SshPromptController.getPassword()));
 
@@ -142,8 +144,7 @@ public class SshPopupInterruptTest extends ApplicationTest {
             // Issue interrupt to thread running popup, which results in task with dialog getting cancelled
             t1.interrupt();
 
-            WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
-                                      () -> !SshPromptController.isShowing());
+            waitUntil("#sshprompt", Matchers.is(visible()));
 
             interact(() -> assertFalse(SshPromptController.isShowing()));
         }
