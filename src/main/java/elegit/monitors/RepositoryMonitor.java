@@ -18,6 +18,8 @@ import net.jcip.annotations.ThreadSafe;
 import net.jcip.annotations.GuardedBy;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Ref;
 
 import java.io.IOException;
@@ -108,7 +110,7 @@ public class RepositoryMonitor{
 
     // This method is not synchronized because it is called from the monitor thread, and a slow network connection
     // could block it up considerably. It uses no shared memory, and it makes calls to threadsafe libraries.
-    private static boolean remoteHasNewChanges(RepoHelper repo) {
+    private static boolean remoteHasNewChanges(RepoHelper repo) throws GitAPIException {
         try {
 
             // Check to see if status checking is disabled. Must be done on FX thread since it is stored in a bound

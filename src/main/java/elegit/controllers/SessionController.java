@@ -14,7 +14,6 @@ import elegit.treefx.CommitTreeModel;
 import elegit.treefx.CommitTreePanelView;
 import elegit.treefx.Highlighter;
 import elegit.treefx.TreeLayout;
-import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.ObservableSource;
 import io.reactivex.Single;
@@ -46,7 +45,6 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import net.jcip.annotations.GuardedBy;
 import org.apache.commons.lang3.SystemUtils;
-import net.jcip.annotations.ThreadSafe;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -55,7 +53,6 @@ import org.eclipse.jgit.api.PushCommand;
 import org.eclipse.jgit.api.ResetCommand;
 import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.errors.NoMergeBaseException;
-import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.jgit.transport.RemoteRefUpdate;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
@@ -195,7 +192,6 @@ public class SessionController {
         // Creates the commit tree model, and points MVC all looking at each other
         commitTreeModel = CommitTreeModel.getCommitTreeModel();
         commitTreeModel.setView(commitTreePanelView);
-        //CommitTreeController.commitTreeModel = this.commitTreeModel;
 
         this.initializeLayoutParameters();
 
@@ -206,11 +202,8 @@ public class SessionController {
 
         commitTreeProgressBarAndLabel.setAlignment(Pos.CENTER);
         commitTreeProgressBarAndLabel.setVisible(false);
-        //BusyWindow.show();
-        // SLOW
-        // here now looking
         this.initPanelViewsWhenSubscribed()
-                .doOnSuccess((unused) -> {
+                .doAfterTerminate(() -> {
                     this.updateUIEnabledStatus();
                     this.refreshRecentReposInDropdown();
                     this.initRepositoryMonitor();
@@ -231,7 +224,14 @@ public class SessionController {
                     // Now finally start watching repositories
                     RepositoryMonitor.unpause();
 
-                }).subscribe(unused -> {}, t -> {throw new ExceptionAdapter(t);});
+                })
+                .subscribe(unused -> {}, t -> {
+                    if (t instanceof TransportException) {
+                        showTransportExceptionNotification((TransportException) t);
+                    } else {
+                        throw new ExceptionAdapter(t);
+                    }
+                });
     }
 
     @FXML void handleFetchButton() {
@@ -244,56 +244,11 @@ public class SessionController {
         List<Result> doGitOperation(Optional<RepoHelperBuilder.AuthDialogResponse> authResponse);
     }
 
-//    /**
-//     * Loads the repository (from its RepoHelper) that was open when the app was
-//     * last closed. If this repo has been moved or deleted, it doesn't load anything.
-//     *
-//     * Uses the Java Preferences API (wrapped in IBM's PrefObj class) to load the repo.
-//     */
-//    public void loadMostRecentRepoHelper() {
-//        Main.assertFxThread();
-//        try{
-//            String lastOpenedRepoPathString = (String) PrefObj.getObject(
-//                    theModel.preferences, theModel.LAST_OPENED_REPO_PATH_KEY
-//            );
-//            if (lastOpenedRepoPathString != null) {
-//                Path path = Paths.get(lastOpenedRepoPathString);
-//                try {
-//                    ExistingRepoHelper existingRepoHelper =
-//                            new ExistingRepoHelper(path, new ElegitUserInfoGUI());
-//                    theModel.openRepoFromHelper(existingRepoHelper);
-//                    return;
-//                } catch (IllegalArgumentException e) {
-//                    logger.warn("Recent repo not found in directory it used to be in");
-//                    // The most recent repo is no longer in the directory it used to be in,
-//                    // so just don't load it.
-//                }catch(GitAPIException | MissingRepoException e) {
-//                    logger.error("Git error or missing repo exception");
-//                    logger.debug(e.getStackTrace());
-//                    e.printStackTrace();
-//                } catch (CancelledAuthorizationException e) {
-//                    // Should never be used, as no authorization is needed for loading local files.
-//                }
-//            }
-//            List<RepoHelper> allRepoHelpers = theModel.getAllRepoHelpers();
-//            if (allRepoHelpers.size()>0) {
-//                RepoHelper helper = allRepoHelpers.get(0);
-//                try {
-//                    theModel.openRepoFromHelper(helper);
-//                } catch (MissingRepoException e) {
-//                    logger.error("Missing repo exception");
-//                    e.printStackTrace();
-//                }
-//            }
-//        }catch(IOException | BackingStoreException | ClassNotFoundException e){
-//            logger.error("Some sort of error loading most recent repo helper");
-//            logger.debug(e.getStackTrace());
-//            e.printStackTrace();
-//        }
-//    }
-
     private void handleFetchButton(boolean prune, boolean pull) {
-        GitOperation gitOp = authResponse -> gitFetch(authResponse, prune, pull);
+        Main.assertFxThread();
+        GitOperation gitOp = authResponse -> {
+            return gitFetch(authResponse, prune, pull);
+        };
 
         String displayString;
         if (!pull)
@@ -309,7 +264,7 @@ public class SessionController {
                 // operations (hiding the window, etc) depend on it.
                 .flatMap(unused -> doGitOperationWhenSubscribed(gitOp).toObservable())
                 .doOnNext(unused -> hideBusyWindowAndResumeRepoMonitor())
-                .subscribe(unused -> {}, Throwable::printStackTrace);
+                .subscribe(unused -> {}, t -> {throw new ExceptionAdapter(t);});
     }
 
     // Repeat trying to fetch. First time: no authentication window. On repeated attempts,
@@ -318,14 +273,11 @@ public class SessionController {
         Main.assertFxThread();
         AtomicBoolean httpAuth = new AtomicBoolean(false);
         return Single.fromCallable(() -> authenticateReactive(httpAuth.get()))
-//                Observable
-//                .just(1)
-//                .map(integer -> authenticateReactive(httpAuth.get()))
 
-                //.observeOn(Schedulers.io())
+                .observeOn(Schedulers.io())
                 .map(gitOp::doGitOperation)
 
-                //.observeOn(JavaFxScheduler.platform())
+                .observeOn(JavaFxScheduler.platform())
                 .map(results -> {
                     gitOperationShowNotifications(notificationPaneController, results);
                     if (tryOpAgain(results)) {
@@ -798,16 +750,13 @@ public class SessionController {
     private synchronized void handleLoadRepoMenuItem(RepoHelperBuilder builder) {
         Main.assertFxThread();
         try {
-//            RepoHelper repoHelper = builder.getRepoHelperFromDialogs();
             builder.getRepoHelperFromDialogsWhenSubscribed()
                     .map(this::loadDesignatedRepo)
                     .subscribe((unused) -> {},
                                (e) -> {
-                                   System.out.println("SessionController.handleLoadRepoMenuItem " + e);
                                    showSingleResult(notificationPaneController, new Result(ResultOperation.LOAD, e));
                                });
 
-//            loadDesignatedRepo(repoHelper);
         } catch (Exception e) {
             showSingleResult(notificationPaneController, new Result(ResultOperation.LOAD, e));
         }
@@ -829,7 +778,7 @@ public class SessionController {
                     if (result.equals("success")) {
                         return initPanelViewsWhenSubscribed()
                         .map(unused -> doGitStatusWhenSubscribed())
-                        .doOnSuccess(unused -> {
+                        .doAfterTerminate(() -> {
                             refreshRecentReposInDropdown();
                             updateUIEnabledStatus();
                             hideBusyWindowAndResumeRepoMonitor();
@@ -837,7 +786,6 @@ public class SessionController {
                             Main.assertAndLog(Highlighter.cellStatesEmpty(),
                                     "Cell states not cleared");  // Verify that things got cleared up as they should
 
-//                            return true;
                         });
                     } else {
                         return doGitStatusWhenSubscribed()
@@ -845,7 +793,13 @@ public class SessionController {
                     }
 
                 })
-                .subscribe(unused -> {}, (t) -> {throw new ExceptionAdapter(t);});
+                .subscribe(unused -> {}, (t) -> {
+                    if (t instanceof TransportException) {
+                        showTransportExceptionNotification((TransportException)t);
+                    } else {
+                        throw new ExceptionAdapter(t);
+                    }
+                });
         return true;
 
     }
@@ -882,15 +836,6 @@ public class SessionController {
             ObservableList<RepoHelper> immutableRepoHelpers = FXCollections.unmodifiableObservableList(obsRepoHelpers);
             dropdownController.setCurrentRepoWithoutInvokingAction(repoHelper, FXCollections.observableArrayList(immutableRepoHelpers));
         }
-    }
-
-    /**
-     * Loads the given repository and updates the UI accordingly.
-     * @param repoHelper the repository to open
-     */
-    private synchronized void handleRecentRepoMenuItem(RepoHelper repoHelper){
-        Main.assertFxThread();
-        loadDesignatedRepo(repoHelper);
     }
 
     public void handleAddButton() {
@@ -1021,7 +966,7 @@ public class SessionController {
     public void handleCheckoutButton(Path filePath) {
         try {
             logger.info("Checkout file button clicked");
-            if (! PopUpWindows.showCheckoutAlert()) throw new CancelledDialogueException();
+            if (! PopUpWindows.showCheckoutAlert()) throw new CancelledDialogException();
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
             if(!this.theModel.getCurrentRepoHelper().exists()) throw new MissingRepoException();
             theModel.getCurrentRepoHelper().checkoutFile(filePath);
@@ -1031,7 +976,7 @@ public class SessionController {
             showMissingRepoNotification();
         } catch (GitAPIException e) {
             showGenericErrorNotification(e);
-        } catch (CancelledDialogueException e) {
+        } catch (CancelledDialogException e) {
             // Do nothing if the dialogue was cancelled.
         }
     }
@@ -1046,7 +991,7 @@ public class SessionController {
             if(!this.theModel.getCurrentRepoHelper().exists()) throw new MissingRepoException();
 
             if(!workingTreePanelView.isAnyFileSelected()) throw new NoFilesSelectedToAddException();
-            if (! PopUpWindows.showCheckoutAlert()) throw new CancelledDialogueException();
+            if (! PopUpWindows.showCheckoutAlert()) throw new CancelledDialogException();
             ArrayList<Path> filePathsToCheckout = new ArrayList<>();
             // Try to add all files, throw exception if there are ones that can't be added
             for(RepoFile checkedFile : workingTreePanelView.getCheckedFilesInDirectory()) {
@@ -1062,7 +1007,7 @@ public class SessionController {
             this.showMissingRepoNotification();
         } catch (GitAPIException e) {
             this.showGenericErrorNotification(e);
-        } catch (CancelledDialogueException e) {
+        } catch (CancelledDialogException e) {
             // Do nothing
         }
     }
@@ -1933,6 +1878,9 @@ public class SessionController {
      * Equivalent to `git fetch`
      */
     private List<Result> gitFetch(Optional<RepoHelperBuilder.AuthDialogResponse> responseOptional, boolean prune, boolean pull) {
+        console.info("Starting it off");
+        Main.assertNotFxThread();
+        console.info("gitFetch itself is running");
         synchronized(globalLock) {
             List<Result> results = new ArrayList<>();
             try {

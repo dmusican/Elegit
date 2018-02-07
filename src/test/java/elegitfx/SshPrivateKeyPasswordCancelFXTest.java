@@ -1,37 +1,19 @@
 package elegitfx;
 
-import com.jcraft.jsch.JSch;
 import elegit.Main;
 import elegit.controllers.BusyWindow;
 import elegit.controllers.SessionController;
 import elegit.exceptions.ExceptionAdapter;
 import elegit.models.ClonedRepoHelper;
 import elegit.models.ExistingRepoHelper;
-import elegit.models.SessionModel;
 import elegit.monitors.RepositoryMonitor;
-import elegit.sshauthentication.DetailedSshLogger;
-import elegit.sshauthentication.ElegitUserInfoGUI;
 import elegit.sshauthentication.ElegitUserInfoTest;
-import javafx.fxml.FXMLLoader;
-import javafx.geometry.Rectangle2D;
-import javafx.scene.Node;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.text.Text;
-import javafx.stage.Screen;
 import javafx.stage.Stage;
 import junit.framework.TestCase;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.sshd.common.config.keys.FilePasswordProvider;
-import org.apache.sshd.common.keyprovider.KeyPairProvider;
-import org.apache.sshd.common.keyprovider.MappedKeyPairProvider;
-import org.apache.sshd.common.util.security.SecurityUtils;
-import org.apache.sshd.git.pack.GitPackCommandFactory;
 import org.apache.sshd.server.SshServer;
-import org.apache.sshd.server.auth.password.PasswordAuthenticator;
-import org.apache.sshd.server.auth.pubkey.KeySetPublickeyAuthenticator;
-import org.apache.sshd.server.session.ServerSession;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.hamcrest.Matchers;
 import org.junit.After;
@@ -51,21 +33,15 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.KeyPair;
-import java.security.PublicKey;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Hashtable;
 import java.util.Random;
 import java.util.Scanner;
-import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.fail;
 
-public class SshPrivateKeyPasswordExistingFXTest extends ApplicationTest {
+public class SshPrivateKeyPasswordCancelFXTest extends ApplicationTest {
 
     @ClassRule
     public static final TestingLogPathRule testingLogPath = new TestingLogPathRule();
@@ -128,7 +104,7 @@ public class SshPrivateKeyPasswordExistingFXTest extends ApplicationTest {
     }
 
     @Test
-    public void testSshPrivateKey() throws Exception {
+    public void test() throws Exception {
 
         // Set up remote repo
         Path remote = testingRemoteAndLocalRepos.getRemoteFull();
@@ -204,11 +180,13 @@ public class SshPrivateKeyPasswordExistingFXTest extends ApplicationTest {
             assertEquals(0, sessionController.getNotificationPaneController().getNotificationNum());
 
             WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
-                                      () -> lookup("#sshprompt").query() != null);
+                                      () -> lookup("Cancel").query() != null);
+
             // Enter passphrase
-            clickOn("#sshprompt")
-                    .write(passphrase)
-                    .write("\n");
+            clickOn("Cancel");
+
+            WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS,
+                                      () -> !BusyWindow.window.isShowing());
 
             // Wait a while, to make sure that RepositoryMonitor has kicked in and is happy
             Thread.sleep(10000);

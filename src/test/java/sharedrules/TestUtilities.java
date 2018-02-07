@@ -35,6 +35,7 @@ import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Scanner;
+import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
 import static org.junit.Assert.fail;
@@ -52,6 +53,8 @@ public class TestUtilities {
             CancelledAuthorizationException,
             MissingRepoException, GeneralSecurityException {
 
+        console.info("Setting up ssh server");
+
         // Set up remote repo
         Path remoteFilePath = remoteRepoDirectoryFull.resolve("file.txt");
         Files.write(remoteFilePath, "testSshPassword".getBytes());
@@ -68,7 +71,6 @@ public class TestUtilities {
         InputStream passwordFileStream = TestUtilities.class.getResourceAsStream("/rsa_key1_passphrase.txt");
         Scanner scanner = new Scanner(passwordFileStream);
         String passphrase = scanner.next();
-        console.info("phrase is " + passphrase);
 
         String privateKeyFileLocation = "/rsa_key1";
         InputStream privateKeyStream = TestUtilities.class.getResourceAsStream(privateKeyFileLocation);
@@ -116,21 +118,23 @@ public class TestUtilities {
 
 
     public static SessionController commonTestFxStart(Stage stage) throws Exception {
-        Main.testMode = true;
+        initializePreferences();
+
+        return startupFxApp(stage);
+
+    }
+
+    public static SessionController startupFxApp(Stage stage) throws IOException {
         BusyWindow.setParentWindow(stage);
 
-        Preferences prefs = Preferences.userNodeForPackage(TestUtilities.class);
-        prefs.removeNode();
-
-        SessionModel.setPreferencesNodeClass(TestUtilities.class);
         FXMLLoader fxmlLoader = new FXMLLoader(TestUtilities.class.getResource("/elegit/fxml/MainView.fxml"));
         fxmlLoader.load();
         SessionController sessionController = fxmlLoader.getController();
         Parent root = fxmlLoader.getRoot();
         Rectangle2D primScreenBounds = Screen.getPrimary().getVisualBounds();
-        int screenWidth = (int) primScreenBounds.getWidth();
-        int screenHeight = (int) primScreenBounds.getHeight();
-        Scene scene = new Scene(root, screenWidth*4/5, screenHeight*4/5);
+        Scene scene = new Scene(root, 800, 600);
+        stage.setX(0);
+        stage.setY(0);
         stage.setScene(scene);
         sessionController.setStageForNotifications(stage);
         stage.show();
@@ -139,6 +143,16 @@ public class TestUtilities {
         RepositoryMonitor.pause();
 
         return sessionController;
+    }
 
+    public static void initializePreferences() throws BackingStoreException {
+        Main.testMode = true;
+        Preferences prefs = Preferences.userNodeForPackage(TestUtilities.class);
+        prefs.removeNode();
+        SessionModel.setPreferencesNodeClass(TestUtilities.class);
+    }
+
+    public static Preferences getPreferences() {
+        return Preferences.userNodeForPackage(TestUtilities.class);
     }
 }

@@ -68,6 +68,9 @@ public class BusyWindow {
 
         if(!window.isShowing()) {
             Window parent = window.getOwner();
+            if (parent == null) {
+                throw new RuntimeException("Parent window not set.");
+            }
             double windowWidth, windowHeight;
             // If window hasn't been shown before, getWidth() will be NaN
             // so we have to have a default

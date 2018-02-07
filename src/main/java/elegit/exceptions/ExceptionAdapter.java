@@ -15,7 +15,7 @@ public class ExceptionAdapter extends RuntimeException {
 
     private final String stackTrace;
 
-    private Throwable originalException;
+    private final Throwable originalException;
 
     public ExceptionAdapter(Throwable e) {
         super(e.toString());

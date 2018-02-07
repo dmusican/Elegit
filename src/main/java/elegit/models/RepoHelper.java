@@ -680,7 +680,7 @@ public class RepoHelper {
      */
     public boolean fetch(boolean prune) throws
             GitAPIException, MissingRepoException, IOException {
-        //assert(!Platform.isFxApplicationThread());
+        Main.assertNotFxThread();
         logger.info("Attempting fetch");
         if (!exists()) throw new MissingRepoException();
         Git git = new Git(this.getRepo());
@@ -1422,18 +1422,14 @@ public class RepoHelper {
      * @return a list of remotre references
      * @throws GitAPIException
      */
-    public Collection<Ref> getRefsFromRemote(boolean includeTags) {
+    public Collection<Ref> getRefsFromRemote(boolean includeTags) throws GitAPIException {
         LsRemoteCommand command = new Git(getRepo()).lsRemote().setHeads(true);
         if (includeTags) {
             command = command.setTags(includeTags);
         }
         wrapAuthentication(command);
 
-        try {
-            return Collections.unmodifiableCollection(command.call());
-        } catch (GitAPIException e) {
-            throw new ExceptionAdapter(e);
-        }
+        return Collections.unmodifiableCollection(command.call());
     }
 
     public List<RefHelper> getRefsForCommit(CommitHelper helper) {

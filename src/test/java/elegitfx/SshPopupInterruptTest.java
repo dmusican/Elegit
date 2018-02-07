@@ -3,6 +3,7 @@ package elegitfx;
 import elegit.Main;
 import elegit.controllers.SessionController;
 import elegit.controllers.SshPromptController;
+import elegit.exceptions.CancelledDialogException;
 import elegit.exceptions.ExceptionAdapter;
 import elegit.models.ClonedRepoHelper;
 import elegit.models.ExistingRepoHelper;
@@ -11,13 +12,16 @@ import elegit.sshauthentication.ElegitUserInfoGUI;
 import elegit.sshauthentication.ElegitUserInfoTest;
 import io.reactivex.Completable;
 import io.reactivex.schedulers.Schedulers;
+import javafx.scene.control.PasswordField;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import junit.framework.TestCase;
+import junit.framework.TestFailure;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.sshd.server.SshServer;
 import org.eclipse.jgit.revwalk.RevCommit;
+import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -52,7 +56,6 @@ public class SshPopupInterruptTest extends ApplicationTest {
     @Rule
     public final TestingRemoteAndLocalReposRule testingRemoteAndLocalRepos =
             new TestingRemoteAndLocalReposRule(false);
-    private Path directoryPath;
 
     private static final Logger console = LogManager.getLogger("briefconsolelogger");
 
@@ -69,8 +72,6 @@ public class SshPopupInterruptTest extends ApplicationTest {
     private static final Logger logger = LogManager.getLogger("consolelogger");
 
 
-    private SessionController sessionController;
-
     @Rule
     public TestName testName = new TestName();
 
@@ -78,7 +79,6 @@ public class SshPopupInterruptTest extends ApplicationTest {
     public void setup() throws Exception {
         logger.info("Unit test started");
         initializeLogger();
-        directoryPath = testingRemoteAndLocalRepos.getDirectoryPath();
     }
 
 
@@ -99,9 +99,13 @@ public class SshPopupInterruptTest extends ApplicationTest {
 
     @Override
     public void start(Stage stage) throws Exception {
-        sessionController = TestUtilities.commonTestFxStart(stage);
+        SessionController sessionController = TestUtilities.commonTestFxStart(stage);
     }
 
+    /**
+     * Verify that a passphrase prompt works as expected when clicking the cancel button
+     * @throws Exception
+     */
     @Test
     public void test() throws Exception {
 
@@ -109,31 +113,41 @@ public class SshPopupInterruptTest extends ApplicationTest {
         ElegitUserInfoGUI userInfo = new ElegitUserInfoGUI();
 
         for (int i=0; i < 2; i++) {
-            Thread t1 = new Thread(() -> userInfo.promptPassphrase("passphrase prompt"));
 
+            // A CancelledDialogException should get thrown as a result of the interrupt later on.
+            // Therefore, catch the exception and move on to make the test succeed.
+            // If the exception _doesn't_ get thrown, that's evidence that the test failed, so throw
+            // an exception if get to that point.
+            Thread t1 = new Thread(() -> {
+                try {
+                    userInfo.promptPassphrase("passphrase prompt");
+                    throw new RuntimeException("Dialog was not cancelled as expected");
+                } catch (CancelledDialogException e) {
+                    // All is good, exception was thrown as expected
+                }
+            });
             t1.start();
 
-            // This is here so you can actually see the popup when testing
+            // This is here so you can actually see the popup when running test interactively; without it,
+            // the waitFor that follows happens instantly, the click follows, and you can't see what happens
             sleep(1000);
 
             WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
-                                      SshPromptController::isShowing);
+                                      () -> lookup("#sshprompt").query() != null);
 
-            assert(SshPromptController.getPassword().equals(""));
+            PasswordField passwordField = (PasswordField)lookup("#sshprompt").query();
+            interact(() -> assertEquals("",passwordField.getText()));
 
             // Enter passphrase
             clickOn("#sshprompt")
                     .write("testphrase");
 
+            // Issue interrupt to thread running popup, which results in task with dialog getting cancelled
             t1.interrupt();
 
             WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
-                                      () -> !SshPromptController.isShowing());
+                                      () -> lookup("#sshprompt").query() == null);
 
-            interact(() -> assertFalse(SshPromptController.isShowing()));
         }
-
-
     }
-
 }

@@ -34,11 +34,6 @@ public class TestingRemoteAndLocalReposRule extends ExternalResource {
             directoryPath.toFile().deleteOnExit();
         }
 
-        // Locations of simulated remote and local repos.
-        console.info("Setting server root to " + directoryPath);
-        console.info("Remote path = " + getRemoteFull());
-        console.info("Local path = " + getLocalFull());
-
         // Create a bare repo on the remote to be cloned.
         Git remoteHandle = Git.init().setDirectory(getRemoteFull().toFile()).setBare(bareRemoteRepo).call();
 

@@ -1,24 +1,30 @@
 package elegit.controllers;
 
+import elegit.Main;
 import javafx.geometry.Insets;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.PasswordField;
 import javafx.scene.layout.GridPane;
+import net.jcip.annotations.ThreadSafe;
+import org.eclipse.jgit.api.errors.TransportException;
 
 import java.util.Optional;
 
 /**
  * A class used to manage prompting the user for an ssh password. Designed to be used from ElegitUserInfoGUI.
  */
+// Threadsafe because every method is synchronized, and all variables are private
+@ThreadSafe
 public class SshPromptController {
 
-    private static Dialog<String> dialog;
-    private static PasswordField passwordField;
+    private final Dialog<String> dialog;
+    private final PasswordField passwordField;
 
 
-    // Build the dialog structure.
-    static {
+    // Build the dialog structure. It is built off-FX thread, then displayed as needed.
+    public SshPromptController() {
+        Main.assertFxThread();
         dialog = new Dialog<>();
 
         GridPane grid = new GridPane();
@@ -51,7 +57,9 @@ public class SshPromptController {
      * @param contentText
      * @return the password entered.
      */
-    public static Optional<String> showAndWait(String s, String title, String headerText, String contentText) {
+    public synchronized Optional<String> showAndWait(String s, String title, String headerText, String contentText) {
+        Main.assertFxThread();
+
         dialog.setTitle(title);
         dialog.headerTextProperty().setValue(s + "\n" + contentText);
         passwordField.setText("");
@@ -59,17 +67,22 @@ public class SshPromptController {
         return dialog.showAndWait();
     }
 
-    public static void hide() {
+    public synchronized void hide() {
+        Main.assertFxThread();
         dialog.hide();
     }
 
-    public static boolean isShowing() {
+    public synchronized String getPassword() {
+        Main.assertFxThread();
+        return passwordField.getText();
+    }
+
+
+    public synchronized boolean isShowing() {
+        Main.assertFxThread();
         return dialog.isShowing();
     }
 
-    public static String getPassword() {
-        return passwordField.getText();
-    }
 
 }
 

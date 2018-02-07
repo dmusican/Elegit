@@ -55,7 +55,7 @@ import java.util.stream.Stream;
 public class SessionModel {
 
     // Keys for preferences recall
-    private static final String RECENT_REPOS_LIST_KEY = "RECENT_REPOS_LIST";
+    public static final String RECENT_REPOS_LIST_KEY = "RECENT_REPOS_LIST";
     public static final String LAST_OPENED_REPO_PATH_KEY = "LAST_OPENED_REPO_PATH";
     private static final String LAST_UUID_KEY="LAST_UUID";
     private static final Logger logger = LogManager.getLogger();
@@ -86,6 +86,7 @@ public class SessionModel {
      */
     private SessionModel() {
         this.allRepoHelpers = new ArrayList<>();
+        console.info(preferencesNodeClass.toString());
         this.preferences = Preferences.userNodeForPackage(preferencesNodeClass);
         loadRecentRepoHelpersFromStoredPathStrings();
         loadMostRecentRepoHelper();
@@ -98,6 +99,11 @@ public class SessionModel {
     public static void setPreferencesNodeClass(Class<?> preferencesNodeClass) {
         SessionModel.preferencesNodeClass = preferencesNodeClass;
     }
+
+    public static Class<?> getPreferencesNodeClass() {
+        return preferencesNodeClass;
+    }
+
 
     /**
      * Loads all recently loaded repositories (stored with the Java Preferences API)
@@ -641,7 +647,5 @@ public class SessionModel {
             exception.printStackTrace();
         }
     }
-
-
 
 }

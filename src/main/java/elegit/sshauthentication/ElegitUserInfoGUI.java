@@ -4,8 +4,12 @@ import com.jcraft.jsch.UserInfo;
 import elegit.Main;
 import elegit.controllers.SessionController;
 import elegit.controllers.SshPromptController;
+import elegit.exceptions.CancelledDialogException;
 import elegit.exceptions.ExceptionAdapter;
+import io.reactivex.Completable;
+import io.reactivex.Observable;
 import io.reactivex.Single;
+import io.reactivex.SingleSource;
 import io.reactivex.rxjavafx.schedulers.JavaFxScheduler;
 import javafx.application.Platform;
 import javafx.scene.control.*;
@@ -17,6 +21,7 @@ import org.apache.logging.log4j.Logger;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Class for purposes for JSch authentication (which JGit uses). This is the text-based version used
@@ -25,19 +30,22 @@ import java.util.concurrent.FutureTask;
 @ThreadSafe
 public class ElegitUserInfoGUI implements UserInfo {
 
-    @GuardedBy("this") private static SessionController sessionController;
-
+    private static final AtomicReference<SessionController> sessionController = new AtomicReference<>();
     @GuardedBy("this") private Optional<String> password;
     @GuardedBy("this") private Optional<String> passphrase;
+    private final AtomicReference<SshPromptController> sshPromptController = new AtomicReference<>();
+
     private static final Logger logger = LogManager.getLogger();
+    private static final Logger console = LogManager.getLogger("briefconsolelogger");
+
 
     public ElegitUserInfoGUI() {
         password = Optional.empty();
         passphrase = Optional.empty();
     }
 
-    public static synchronized void setSessionController(SessionController sessionController) {
-        ElegitUserInfoGUI.sessionController = sessionController;
+    public static void setSessionController(SessionController sessionController) {
+        ElegitUserInfoGUI.sessionController.set(sessionController);
     }
 
     @Override
@@ -76,29 +84,45 @@ public class ElegitUserInfoGUI implements UserInfo {
     // That's because it has to block on getting the result from a dialog that goes on the FX thread. If
     // this code gets run on the FX thread, it will deadlock. That's fine anyway, as an ssh connection will
     // be slow, and should never be attempted from the FX thread at any rate.
+
     private Optional<String> prompt(String s, String title, String headerText, String contentText) {
-            Main.assertNotFxThread();
+        Main.assertNotFxThread();
+
+
+        Platform.runLater(() -> {
+            console.info("sshPromptController about to be created");
+            sshPromptController.set(new SshPromptController());
+            console.info("sshPromptController created");
+        });
+
 
         FutureTask<Optional<String>> futureTask = new FutureTask<>(
-                () -> SshPromptController.showAndWait(s, title, headerText, contentText));
+                () -> {
+                    console.info("About to show dialog");
+                    return sshPromptController.get().showAndWait(s, title, headerText, contentText);
+                });
         Platform.runLater(futureTask);
-        Optional<String> result = Optional.of("");
+
+        Optional<String> result = Optional.empty();
         try {
             result = futureTask.get();
         } catch (InterruptedException e) {
-            sessionController.showSshPasswordCancelledNotification();
-//            System.out.println("Cancelled by someone.");
-            Platform.runLater(SshPromptController::hide);
+            sessionController.get().showSshPasswordCancelledNotification();
+            Platform.runLater(sshPromptController.get()::hide);
         } catch (ExecutionException e) {
             e.printStackTrace();
             throw new ExceptionAdapter(e);
+        }
+
+        if (!result.isPresent()) {
+            sessionController.get().showSshPasswordCancelledNotification();
+            throw new CancelledDialogException();
         }
         return result;
     }
 
     // This method doesn't need to be synchronized, as it does not interact with the shared instance variables
     // at all.
-    // TODO: This method will only work on FX thread, but likely gets called off it. Something is missing in testing.
     @Override
     public boolean promptYesNo(String s) {
         Main.assertNotFxThread();
@@ -108,7 +132,6 @@ public class ElegitUserInfoGUI implements UserInfo {
             alert.setTitle("SSH yes/no confirmation");
             alert.setHeaderText("SSH yes/no question.");
             alert.setContentText(s);
-
 
             alert.getButtonTypes().setAll(ButtonType.YES, ButtonType.NO);
             Optional<ButtonType> result = alert.showAndWait();
@@ -122,27 +145,29 @@ public class ElegitUserInfoGUI implements UserInfo {
             }
         })
                 .subscribeOn(JavaFxScheduler.platform())
-                .doOnSuccess((a) -> {
-                    System.out.println("b " + Thread.currentThread());
-                })
-                //.observeOn(Schedulers.io())
                 .blockingGet();
 
     }
 
     // This method doesn't need to be synchronized, as it does not interact with the shared instance variables
     // at all.
-    // TODO: This method will only work on FX thread, but likely gets called off it. Something is missing in testing.
     @Override
     public void showMessage(String s) {
-        System.out.println("ElegitUserInfoGUI.showMessage");
-        System.out.println(s);
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.setTitle("SSH message");
-        alert.setHeaderText("SSH message");
-        alert.setContentText(s);
+        Main.assertNotFxThread();
 
-        alert.getButtonTypes().setAll(ButtonType.OK);
-        alert.showAndWait();
+        Single.fromCallable(() -> {
+            System.out.println("ElegitUserInfoGUI.showMessage");
+            System.out.println(s);
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+            alert.setTitle("SSH message");
+            alert.setHeaderText("SSH message");
+            alert.setContentText(s);
+
+            alert.getButtonTypes().setAll(ButtonType.OK);
+            alert.showAndWait();
+            return true;
+        })
+                .subscribeOn(JavaFxScheduler.platform())
+                .blockingGet();
     }
 }
