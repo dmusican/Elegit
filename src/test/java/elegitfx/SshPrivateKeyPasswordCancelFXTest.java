@@ -180,7 +180,7 @@ public class SshPrivateKeyPasswordCancelFXTest extends ApplicationTest {
             assertEquals(0, sessionController.getNotificationPaneController().getNotificationNum());
 
             WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
-                                      () -> lookup("Cancel").query() == null);
+                                      () -> lookup("Cancel").query() != null);
 
             // Enter passphrase
             clickOn("Cancel");
