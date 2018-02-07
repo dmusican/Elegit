@@ -18,14 +18,13 @@ import java.util.Optional;
 @ThreadSafe
 public class SshPromptController {
 
-    private Dialog<String> dialog;
-    private PasswordField passwordField;
+    private final Dialog<String> dialog;
+    private final PasswordField passwordField;
 
 
     // Build the dialog structure. It is built off-FX thread, then displayed as needed.
     public SshPromptController() {
-        Main.assertNotFxThread();
-
+        Main.assertFxThread();
         dialog = new Dialog<>();
 
         GridPane grid = new GridPane();

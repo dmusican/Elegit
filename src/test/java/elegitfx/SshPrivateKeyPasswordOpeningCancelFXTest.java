@@ -188,13 +188,15 @@ public class SshPrivateKeyPasswordOpeningCancelFXTest extends ApplicationTest {
         sleep(delay);
 
         // Test that trying to fetch after cancelling works gracefully, then try cancelling again
+        console.info("This is where I'm waiting");
         clickOn("Fetch");
+        console.info("Didn't happen");
         WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
                                   () -> lookup("Cancel").query() != null);
 //        waitUntil((Node)lookup("#sshprompt").query(), Matchers.notNullValue());
 //        waitUntil((PasswordField)(lookup("#sshprompt").query()), (PasswordField d) -> d.isVisible());
 //        waitUntil("Cancel", Matchers.is(visible()),10);
-        /*clickOn("Cancel");
+        clickOn("Cancel");
         sleep(delay);
 
         assertEquals(0, ExceptionAdapter.getWrappedCount());
@@ -203,7 +205,7 @@ public class SshPrivateKeyPasswordOpeningCancelFXTest extends ApplicationTest {
         RepositoryMonitor.pause();
 
         // Shut down test SSH server
-        sshd.stop();*/
+        sshd.stop();
     }
 
 }

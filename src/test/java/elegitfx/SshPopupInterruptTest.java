@@ -146,12 +146,8 @@ public class SshPopupInterruptTest extends ApplicationTest {
             // Issue interrupt to thread running popup, which results in task with dialog getting cancelled
             t1.interrupt();
 
-            waitUntil("#sshprompt", Matchers.is(visible()));
+            waitUntil("#sshprompt", Matchers.not(visible()));
 
-            interact(() -> assertFalse(lookup("#sshprompt").query().isVisible()));
         }
-
-
     }
-
 }

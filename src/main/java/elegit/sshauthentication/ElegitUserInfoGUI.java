@@ -6,7 +6,10 @@ import elegit.controllers.SessionController;
 import elegit.controllers.SshPromptController;
 import elegit.exceptions.CancelledDialogException;
 import elegit.exceptions.ExceptionAdapter;
+import io.reactivex.Completable;
+import io.reactivex.Observable;
 import io.reactivex.Single;
+import io.reactivex.SingleSource;
 import io.reactivex.rxjavafx.schedulers.JavaFxScheduler;
 import javafx.application.Platform;
 import javafx.scene.control.*;
@@ -78,16 +81,24 @@ public class ElegitUserInfoGUI implements UserInfo {
     // That's because it has to block on getting the result from a dialog that goes on the FX thread. If
     // this code gets run on the FX thread, it will deadlock. That's fine anyway, as an ssh connection will
     // be slow, and should never be attempted from the FX thread at any rate.
+
+    private SshPromptController sshPromptController;
+
     private Optional<String> prompt(String s, String title, String headerText, String contentText) {
         Main.assertNotFxThread();
 
-        SshPromptController sshPromptController = new SshPromptController();
+
+        Platform.runLater(() -> {
+           sshPromptController = new SshPromptController();
+        });
+
+
         FutureTask<Optional<String>> futureTask = new FutureTask<>(
                 () -> sshPromptController.showAndWait(s, title, headerText, contentText));
         Platform.runLater(futureTask);
+
         Optional<String> result = Optional.empty();
         try {
-            Thread.yield();
             result = futureTask.get();
         } catch (InterruptedException e) {
             sessionController.get().showSshPasswordCancelledNotification();
@@ -98,6 +109,7 @@ public class ElegitUserInfoGUI implements UserInfo {
         }
 
         if (!result.isPresent()) {
+            sessionController.get().showSshPasswordCancelledNotification();
             throw new CancelledDialogException();
         }
         return result;
