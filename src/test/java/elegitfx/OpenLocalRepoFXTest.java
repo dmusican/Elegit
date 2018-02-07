@@ -13,7 +13,6 @@ import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.loadui.testfx.GuiTest;
 import org.testfx.framework.junit.ApplicationTest;
 import sharedrules.TestUtilities;
 
@@ -37,7 +36,6 @@ public class OpenLocalRepoFXTest extends ApplicationTest {
     private static final Logger logger = LogManager.getLogger();
 
     private SessionController sessionController;
-    private static GuiTest testController;
 
     @Override
     public void start(Stage stage) throws Exception {

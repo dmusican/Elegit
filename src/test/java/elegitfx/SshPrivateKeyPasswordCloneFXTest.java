@@ -55,7 +55,6 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestName;
-import org.loadui.testfx.GuiTest;
 import org.testfx.framework.junit.ApplicationTest;
 import org.testfx.util.WaitForAsyncUtils;
 import sharedrules.TestUtilities;
@@ -216,7 +215,10 @@ public class SshPrivateKeyPasswordCloneFXTest extends ApplicationTest {
 
             // Wait until a node is in the graph, indicating clone is done
             Callable<Node> callable = () -> {return lookup("#tree-cell").query();};
-            GuiTest.waitUntil(callable, Matchers.notNullValue(Node.class));
+
+            //            GuiTest.waitUntil(callable, Matchers.notNullValue(Node.class));
+                        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+                                      () -> lookup("#tree-cell").query() != null);
 
             assertEquals(0, ExceptionAdapter.getWrappedCount());
 

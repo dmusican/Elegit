@@ -22,9 +22,9 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestName;
-import org.loadui.testfx.GuiTest;
 import org.testfx.api.FxAssert;
 import org.testfx.framework.junit.ApplicationTest;
+import org.testfx.util.WaitForAsyncUtils;
 import sharedrules.TestUtilities;
 
 import java.io.FileWriter;
@@ -33,6 +33,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 import static junit.framework.TestCase.assertEquals;
 import static org.junit.Assert.assertNotEquals;
@@ -52,7 +53,6 @@ public class RepoCreation1FXTest extends ApplicationTest {
     private static final Random random = new Random(90125);
 
     private SessionController sessionController;
-    private static GuiTest testController;
 
     private Path directoryPath;
 
@@ -146,8 +146,12 @@ public class RepoCreation1FXTest extends ApplicationTest {
 
         // The bug I'm witnessing involves layout getting called twice in rapid succession. The below code
         // waits for the layout to start and stop; then below that, verifies that the first commit is in there
-        GuiTest.waitUntil(barAndLabel, (HBox box) -> (box.isVisible()));
-        GuiTest.waitUntil(barAndLabel, (HBox box) -> !(box.isVisible()));
+//        GuiTest.waitUntil(barAndLabel, (HBox box) -> (box.isVisible()));
+//        GuiTest.waitUntil(barAndLabel, (HBox box) -> !(box.isVisible()));
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+                                  () -> barAndLabel.isVisible());
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+                                  () -> !barAndLabel.isVisible());
 
         // Verify that first commit is actually added at end of first layout call
         interact( () -> {

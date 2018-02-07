@@ -28,7 +28,6 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestName;
-import org.loadui.testfx.GuiTest;
 import org.testfx.framework.junit.ApplicationTest;
 import org.testfx.service.query.NodeQuery;
 import org.testfx.util.WaitForAsyncUtils;
@@ -51,9 +50,6 @@ import java.util.prefs.Preferences;
 import static elegit.models.SessionModel.LAST_OPENED_REPO_PATH_KEY;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
-import static org.loadui.testfx.GuiTest.find;
-import static org.loadui.testfx.GuiTest.waitUntil;
-import static org.loadui.testfx.controls.impl.VisibleNodesMatcher.visible;
 
 public class SshPrivateKeyPasswordOpeningCancelFXTest extends ApplicationTest {
 
