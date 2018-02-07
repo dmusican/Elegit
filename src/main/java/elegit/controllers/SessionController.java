@@ -273,12 +273,10 @@ public class SessionController {
     // authentication window is shown. Effort ends when authentication window is cancelled.
     private Single<String> doGitOperationWhenSubscribed(GitOperation gitOp) {
         Main.assertFxThread();
-        console.info("doGitOp");
         AtomicBoolean httpAuth = new AtomicBoolean(false);
         return Single.fromCallable(() -> authenticateReactive(httpAuth.get()))
 
                 .observeOn(Schedulers.io())
-                .doOnSuccess(unused -> console.info("got op in progress"))
                 .map(gitOp::doGitOperation)
 
                 .observeOn(JavaFxScheduler.platform())
@@ -2085,7 +2083,6 @@ public class SessionController {
     }
 
     private void showBusyWindow(String message) {
-        console.info("showing busy window");
         BusyWindow.setLoadingText(message);
         BusyWindow.show();
     }
