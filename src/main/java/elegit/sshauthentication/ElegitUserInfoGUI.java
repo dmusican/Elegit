@@ -36,6 +36,7 @@ public class ElegitUserInfoGUI implements UserInfo {
     private final AtomicReference<SshPromptController> sshPromptController = new AtomicReference<>();
 
     private static final Logger logger = LogManager.getLogger();
+    private static final Logger console = LogManager.getLogger("briefconsolelogger");
 
 
     public ElegitUserInfoGUI() {
@@ -89,12 +90,17 @@ public class ElegitUserInfoGUI implements UserInfo {
 
 
         Platform.runLater(() -> {
-           sshPromptController.set(new SshPromptController());
+            console.info("sshPromptController about to be created");
+            sshPromptController.set(new SshPromptController());
+            console.info("sshPromptController created");
         });
 
 
         FutureTask<Optional<String>> futureTask = new FutureTask<>(
-                () -> sshPromptController.get().showAndWait(s, title, headerText, contentText));
+                () -> {
+                    console.info("About to show dialog");
+                    return sshPromptController.get().showAndWait(s, title, headerText, contentText);
+                });
         Platform.runLater(futureTask);
 
         Optional<String> result = Optional.empty();
