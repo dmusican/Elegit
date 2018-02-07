@@ -1822,7 +1822,6 @@ public class SessionController {
 
     private void hideBusyWindowAndResumeRepoMonitor() {
         Main.assertFxThread();
-        console.info("Hiding busy window");
         BusyWindow.hide();
         RepositoryMonitor.unpause();
         LoggingModel.submitLog();

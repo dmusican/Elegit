@@ -134,7 +134,10 @@ public class SshPopupInterruptTest extends ApplicationTest {
             // the waitFor that follows happens instantly, the click follows, and you can't see what happens
             sleep(1000);
 
-            waitUntil("#sshprompt", Matchers.is(visible()));
+            WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+                                      () -> lookup("#sshprompt").query() != null);
+
+//            waitUntil("#sshprompt", Matchers.is(visible()));
 
             PasswordField passwordField = (PasswordField)lookup("#sshprompt").query();
             interact(() -> assertEquals("",passwordField.getText()));
@@ -146,7 +149,10 @@ public class SshPopupInterruptTest extends ApplicationTest {
             // Issue interrupt to thread running popup, which results in task with dialog getting cancelled
             t1.interrupt();
 
-            waitUntil("#sshprompt", Matchers.not(visible()));
+            WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+                                      () -> lookup("#sshprompt").query() == null);
+//
+//            waitUntil("#sshprompt", Matchers.not(visible()));
 
         }
     }
