@@ -174,6 +174,7 @@ public class SshPrivateKeyPasswordOpeningCancelFXTest extends ApplicationTest {
         // Handle hosts file
 //        waitUntil("Yes", Matchers.is(visible()));
 
+        WaitForAsyncUtils.waitForFxEvents();
         WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
                                   () -> lookup("Yes").query() != null);
         clickOn("Yes");

@@ -118,7 +118,6 @@ public class TestUtilities {
 
 
     public static SessionController commonTestFxStart(Stage stage) throws Exception {
-        Main.testMode = true;
         initializePreferences();
 
         return startupFxApp(stage);
@@ -147,6 +146,7 @@ public class TestUtilities {
     }
 
     public static void initializePreferences() throws BackingStoreException {
+        Main.testMode = true;
         Preferences prefs = Preferences.userNodeForPackage(TestUtilities.class);
         prefs.removeNode();
         SessionModel.setPreferencesNodeClass(TestUtilities.class);

@@ -246,9 +246,7 @@ public class SessionController {
 
     private void handleFetchButton(boolean prune, boolean pull) {
         Main.assertFxThread();
-        console.info("Handling fetch button.");
         GitOperation gitOp = authResponse -> {
-            console.info("Running the git op");
             return gitFetch(authResponse, prune, pull);
         };
 
