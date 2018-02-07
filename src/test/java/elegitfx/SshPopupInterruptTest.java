@@ -137,8 +137,6 @@ public class SshPopupInterruptTest extends ApplicationTest {
             WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
                                       () -> lookup("#sshprompt").query() != null);
 
-//            waitUntil("#sshprompt", Matchers.is(visible()));
-
             PasswordField passwordField = (PasswordField)lookup("#sshprompt").query();
             interact(() -> assertEquals("",passwordField.getText()));
 
@@ -151,8 +149,6 @@ public class SshPopupInterruptTest extends ApplicationTest {
 
             WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
                                       () -> lookup("#sshprompt").query() == null);
-//
-//            waitUntil("#sshprompt", Matchers.not(visible()));
 
         }
     }

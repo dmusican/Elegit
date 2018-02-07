@@ -33,8 +33,10 @@ public class ElegitUserInfoGUI implements UserInfo {
     private static final AtomicReference<SessionController> sessionController = new AtomicReference<>();
     @GuardedBy("this") private Optional<String> password;
     @GuardedBy("this") private Optional<String> passphrase;
+    private final AtomicReference<SshPromptController> sshPromptController = new AtomicReference<>();
 
     private static final Logger logger = LogManager.getLogger();
+
 
     public ElegitUserInfoGUI() {
         password = Optional.empty();
@@ -82,19 +84,17 @@ public class ElegitUserInfoGUI implements UserInfo {
     // this code gets run on the FX thread, it will deadlock. That's fine anyway, as an ssh connection will
     // be slow, and should never be attempted from the FX thread at any rate.
 
-    private SshPromptController sshPromptController;
-
     private Optional<String> prompt(String s, String title, String headerText, String contentText) {
         Main.assertNotFxThread();
 
 
         Platform.runLater(() -> {
-           sshPromptController = new SshPromptController();
+           sshPromptController.set(new SshPromptController());
         });
 
 
         FutureTask<Optional<String>> futureTask = new FutureTask<>(
-                () -> sshPromptController.showAndWait(s, title, headerText, contentText));
+                () -> sshPromptController.get().showAndWait(s, title, headerText, contentText));
         Platform.runLater(futureTask);
 
         Optional<String> result = Optional.empty();
@@ -102,7 +102,7 @@ public class ElegitUserInfoGUI implements UserInfo {
             result = futureTask.get();
         } catch (InterruptedException e) {
             sessionController.get().showSshPasswordCancelledNotification();
-            Platform.runLater(sshPromptController::hide);
+            Platform.runLater(sshPromptController.get()::hide);
         } catch (ExecutionException e) {
             e.printStackTrace();
             throw new ExceptionAdapter(e);

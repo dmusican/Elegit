@@ -181,16 +181,17 @@ public class SshPrivateKeyPasswordCancelFXTest extends ApplicationTest {
             assertEquals(0, ExceptionAdapter.getWrappedCount());
             assertEquals(0, sessionController.getNotificationPaneController().getNotificationNum());
 
-            waitUntil("Cancel", Matchers.is(visible()), 10);
+            WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+                                      () -> lookup("Cancel").query() == null);
 
             // Enter passphrase
             clickOn("Cancel");
 
             WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS,
                                       () -> !BusyWindow.window.isShowing());
-//
-//            // Wait a while, to make sure that RepositoryMonitor has kicked in and is happy
-//            Thread.sleep(10000);
+
+            // Wait a while, to make sure that RepositoryMonitor has kicked in and is happy
+            Thread.sleep(10000);
 
             // Shut down test SSH server
             assertEquals(0, ExceptionAdapter.getWrappedCount());

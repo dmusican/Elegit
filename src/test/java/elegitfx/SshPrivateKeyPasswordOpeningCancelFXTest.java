@@ -151,7 +151,6 @@ public class SshPrivateKeyPasswordOpeningCancelFXTest extends ApplicationTest {
         recentRepos.add(local.toString());
         PrefObj.putObject(preferences, SessionModel.RECENT_REPOS_LIST_KEY, recentRepos);
 
-        console.info("start started");
         sessionController = TestUtilities.startupFxApp(stage);
 
         startComplete.countDown();
@@ -170,32 +169,27 @@ public class SshPrivateKeyPasswordOpeningCancelFXTest extends ApplicationTest {
 
         int delay = 0;
 
-        console.info("awaiting");
         startComplete.await();
-        console.info("awaiting done");
 
         // Handle hosts file
-        waitUntil("Yes", Matchers.is(visible()));
+//        waitUntil("Yes", Matchers.is(visible()));
 
-//        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
-//                                  () -> lookup("Yes").query() != null);
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+                                  () -> lookup("Yes").query() != null);
         clickOn("Yes");
         sleep(delay);
 
         // Wait for ssh prompt, then click cancel
-        waitUntil("Cancel", Matchers.is(visible()));
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+                                  () -> lookup("Cancel").query() != null);
+//        waitUntil("Cancel", Matchers.is(visible()));
         clickOn("Cancel");
         sleep(delay);
 
         // Test that trying to fetch after cancelling works gracefully, then try cancelling again
-        console.info("This is where I'm waiting");
         clickOn("Fetch");
-        console.info("Didn't happen");
         WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
                                   () -> lookup("Cancel").query() != null);
-//        waitUntil((Node)lookup("#sshprompt").query(), Matchers.notNullValue());
-//        waitUntil((PasswordField)(lookup("#sshprompt").query()), (PasswordField d) -> d.isVisible());
-//        waitUntil("Cancel", Matchers.is(visible()),10);
         clickOn("Cancel");
         sleep(delay);
 
