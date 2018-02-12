@@ -23,6 +23,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestName;
 import org.testfx.framework.junit.ApplicationTest;
+import org.testfx.util.WaitForAsyncUtils;
 import sharedrules.TestUtilities;
 
 import java.io.FileWriter;
@@ -33,6 +34,7 @@ import java.nio.file.Paths;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import static junit.framework.TestCase.assertEquals;
 import static org.junit.Assert.assertNotEquals;
@@ -109,25 +111,21 @@ public class RepoCreation3FXTest extends ApplicationTest {
         console.info(remote2);
         console.info(local2);
 
-        SessionController.gitStatusCompletedOnce = new CountDownLatch(1);
-
         clickOn("#loadNewRepoButton")
                 .clickOn("#loadExistingRepoOption")
                 .clickOn("#repoInputDialog")
                 .write(local1.toString())
                 .clickOn("#repoInputDialogOK");
 
-        SessionController.gitStatusCompletedOnce.await();
-
-        Cell firstCell1 = lookup(Matchers.hasToString(firstCommit1.getName())).query();
-        assertNotEquals(null, firstCell1);
+        // Wait for cell to appear; will time out of it doesn't
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+                                  () -> lookup(Matchers.hasToString(firstCommit1.getName())).query() != null);
 
         Set<Cell> cells1 = lookup(Matchers.instanceOf(Cell.class)).queryAll();
         console.info("Commits added 1");
         cells1.stream().forEach(console::info);
         assertEquals(6,cells1.size());
 
-        SessionController.gitStatusCompletedOnce = new CountDownLatch(1);
 
         clickOn("#loadNewRepoButton")
                 .clickOn("#loadExistingRepoOption")
@@ -135,10 +133,10 @@ public class RepoCreation3FXTest extends ApplicationTest {
                 .write(local2.toString())
                 .clickOn("#repoInputDialogOK");
 
-        SessionController.gitStatusCompletedOnce.await();
+        // Wait for cell to appear; will time out of it doesn't
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+                                  () -> lookup(Matchers.hasToString(firstCommit2.getName())).query() != null);
 
-        Cell firstCell2 = lookup(Matchers.hasToString(firstCommit2.getName())).query();
-        assertNotEquals(null, firstCell2);
 
         sleep(3000);
 
