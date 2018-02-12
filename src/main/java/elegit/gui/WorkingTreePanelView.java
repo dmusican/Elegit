@@ -302,8 +302,17 @@ public class WorkingTreePanelView extends FileStructurePanelView{
      * @return true if the select all box is checked
      */
     public boolean isSelectAllChecked() {
-        Main.assertFxThread();
+            Main.assertFxThread();
         return checkBox.isSelected();
+    }
+
+    /**
+     * Set the checkmark in all selected. Used for testing.
+     */
+    public void checkSelectAll() {
+        Main.assertFxThread();
+        checkBox.setSelected(true);
+
     }
 
 }

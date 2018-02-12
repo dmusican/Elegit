@@ -839,7 +839,6 @@ public class SessionController {
     }
 
     public void handleAddButton() {
-        // TODO: gitStatus was taken out of showing results; may need to go back in here.
         Main.assertFxThread();
 
         logger.info("Add button clicked");
@@ -847,15 +846,13 @@ public class SessionController {
                 .doOnNext(unused -> addPreChecks())
                 .doOnNext(unused -> showBusyWindowAndPauseRepoMonitor("Adding..."))
 
-                //.observeOn(Schedulers.io())
                 .map(unused -> addOperation())
-
-                //.observeOn(JavaFxScheduler.platform())
 
                 .onErrorResumeNext(this::wrapMergeException)
                 .doOnNext(results -> gitOperationShowNotifications(notificationPaneController, results))
+                .map(unused -> doGitStatusWhenSubscribed())
                 .doOnNext(unused -> hideBusyWindowAndResumeRepoMonitor())
-                .subscribe(unused -> {}, Throwable::printStackTrace);
+                .subscribe(unused -> {}, t -> {throw new ExceptionAdapter(t);});
     }
 
     private void addPreChecks() throws NoRepoLoadedException, MissingRepoException, NoFilesSelectedToAddException, StagedFileCheckedException {
@@ -868,7 +865,7 @@ public class SessionController {
 
     /**
      * Adds all files that are selected if they can be added
-     * TODO: Make sure this gets appropriately synchronized
+     * TODO: Make sure this gets appropriately synchronized. The globalLock probably isn't right.
      */
     private List<Result> addOperation() {
         synchronized (globalLock) {

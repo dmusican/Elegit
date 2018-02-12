@@ -184,7 +184,7 @@ public class RepositoryMonitor1FXTest extends ApplicationTest {
             });
 
             clickOn("otherrepo");
-            WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+            WaitForAsyncUtils.waitFor(15, TimeUnit.SECONDS,
                                       () -> !BusyWindow.window.isShowing());
         }
 
