@@ -1,7 +1,9 @@
 package elegitfx;
 
 import elegit.Main;
+import elegit.controllers.BusyWindow;
 import elegit.controllers.SessionController;
+import elegit.gui.WorkingTreePanelView;
 import elegit.models.ClonedRepoHelper;
 import elegit.models.ExistingRepoHelper;
 import elegit.monitors.RepositoryMonitor;
@@ -11,6 +13,7 @@ import javafx.scene.Node;
 import javafx.scene.control.CheckBoxTreeItem;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TreeItem;
+import javafx.scene.control.cell.CheckBoxTreeCell;
 import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -21,6 +24,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.testfx.framework.junit.ApplicationTest;
+import org.testfx.util.WaitForAsyncUtils;
 import sharedrules.TestUtilities;
 import sharedrules.TestingRemoteAndLocalReposRule;
 
@@ -29,6 +33,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import static junit.framework.TestCase.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -101,15 +107,26 @@ public class AddFXTest extends ApplicationTest {
         fw.write("update");
         fw.close();
 
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+                                  () -> lookup("README.md").queryAll().size() == 2);
+
+
         // Wait for RepositoryMonitor to pick up change
-        sleep(10000);
+//        sleep(10000);
 
-        CheckBoxTreeItem changedFile = (CheckBoxTreeItem)lookup("README.md").query();
+        // When looking up README.md, it registers multiple nodes since it is nested inside a tree. Pick the
+        // checkbox of interest.
+        WorkingTreePanelView workingTree = lookup("#workingTreePanelView").query();
+        interact(() -> workingTree.checkSelectAll());
 
-        interact(() -> ((CheckBoxTreeItem)changedFile).setSelected(true);
-        clickOn(changedFile);
 
+        clickOn("Add");
 
+        // Wait for file to also be added to index pane
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+                                  () -> lookup("README.md").queryAll().size() == 3);
+
+//        sleep(100000000);
         //
 //        SessionController.gitStatusCompletedOnce.await();
 //
