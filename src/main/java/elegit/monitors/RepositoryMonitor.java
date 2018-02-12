@@ -227,7 +227,6 @@ public class RepositoryMonitor{
 //        logger.info("Repository monitor asked to unpause");
         pauseCounter--;
         if(pauseCounter == 0) {
-            console.info("Repository monitor unpausing");
             beginWatchingLocal();
             beginWatchingRemote();
         }
