@@ -302,7 +302,7 @@ public class WorkingTreePanelView extends FileStructurePanelView{
      * @return true if the select all box is checked
      */
     public boolean isSelectAllChecked() {
-        Main.assertFxThread();
+            Main.assertFxThread();
         return checkBox.isSelected();
     }
 

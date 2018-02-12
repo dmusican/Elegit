@@ -111,44 +111,20 @@ public class AddFXTest extends ApplicationTest {
                                   () -> lookup("README.md").queryAll().size() == 2);
 
 
-        // Wait for RepositoryMonitor to pick up change
-//        sleep(10000);
-
         // When looking up README.md, it registers multiple nodes since it is nested inside a tree. Pick the
         // checkbox of interest.
         WorkingTreePanelView workingTree = lookup("#workingTreePanelView").query();
         interact(() -> workingTree.checkSelectAll());
 
 
+        console.info("Before clicking add");
         clickOn("Add");
 
         // Wait for file to also be added to index pane
         WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
                                   () -> lookup("README.md").queryAll().size() == 3);
 
-//        sleep(100000000);
-        //
-//        SessionController.gitStatusCompletedOnce.await();
-//
-//        interact(() -> {
-//            ScrollPane sp = sessionController.getCommitTreeModel().getTreeGraph().getScrollPane();
-//            // Test that scroll pane now has content in it
-//            assertTrue(sp.getScene() != null);
-//        });
-//
-//
-//
-//        assertEquals(0,sessionController.getNotificationPaneController().getNotificationNum());
-//
-//        RepositoryMonitor.unpause();
-//        sleep(Math.max(RepositoryMonitor.REMOTE_CHECK_INTERVAL,
-//                RepositoryMonitor.LOCAL_CHECK_INTERVAL)+1000);
-//        int numLocalChecks = RepositoryMonitor.getNumLocalChecks();
-//        System.out.println("Number of local checks = " + numLocalChecks);
-//        int numRemoteChecks = RepositoryMonitor.getNumRemoteChecks();
-//        System.out.println("Number of remote checks = " + numRemoteChecks);
-//        assertTrue(numLocalChecks > 0 && numLocalChecks < 5);
-//        assertTrue(numRemoteChecks > 0 && numRemoteChecks < 5);
+        console.info("When add seems to be done");
 
     }
 
