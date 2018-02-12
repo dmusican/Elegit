@@ -843,7 +843,6 @@ public class SessionController {
 
         logger.info("Add button clicked");
         Observable.just(1)
-                .doOnNext(unused -> console.info("Add starting up"))
                 .doOnNext(unused -> addPreChecks())
                 .doOnNext(unused -> showBusyWindowAndPauseRepoMonitor("Adding..."))
 
@@ -853,8 +852,7 @@ public class SessionController {
                 .doOnNext(results -> gitOperationShowNotifications(notificationPaneController, results))
                 .map(unused -> doGitStatusWhenSubscribed())
                 .doOnNext(unused -> hideBusyWindowAndResumeRepoMonitor())
-                .doOnNext(unused -> console.info("Add done"))
-                .subscribe(unused -> {}, Throwable::printStackTrace);
+                .subscribe(unused -> {}, t -> {throw new ExceptionAdapter(t);});
     }
 
     private void addPreChecks() throws NoRepoLoadedException, MissingRepoException, NoFilesSelectedToAddException, StagedFileCheckedException {
