@@ -174,6 +174,7 @@ public class SshPrivateKeyPasswordOpeningCancelFXTest extends ApplicationTest {
         WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
                                   () -> lookup("Yes").query().isVisible());
         WaitForAsyncUtils.waitForFxEvents();
+        sleep(100);  // Additional catchup; seems to be necessary
         clickOn("Yes");
         WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
                                   () -> lookup("Yes").query() == null);
@@ -185,6 +186,7 @@ public class SshPrivateKeyPasswordOpeningCancelFXTest extends ApplicationTest {
         WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
                                   () -> lookup("Cancel").query().isVisible());
         WaitForAsyncUtils.waitForFxEvents();
+        sleep(100);  // Additional catchup; seems to be necessary
         clickOn("Cancel");
         sleep(delay);
         WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
@@ -197,6 +199,7 @@ public class SshPrivateKeyPasswordOpeningCancelFXTest extends ApplicationTest {
         WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
                                   () -> lookup("Cancel").query().isVisible());
         WaitForAsyncUtils.waitForFxEvents();
+        sleep(100);  // Additional catchup; seems to be necessary
         clickOn("Cancel");
         sleep(delay);
 
@@ -206,6 +209,8 @@ public class SshPrivateKeyPasswordOpeningCancelFXTest extends ApplicationTest {
                                   () -> lookup("Cancel").query() != null);
         WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
                                   () -> lookup("Cancel").query().isVisible());
+        WaitForAsyncUtils.waitForFxEvents();
+        sleep(100);  // Additional catchup; seems to be necessary
         clickOn("Cancel");
         sleep(delay);
 
