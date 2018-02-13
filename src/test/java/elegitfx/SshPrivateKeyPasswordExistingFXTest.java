@@ -211,7 +211,7 @@ public class SshPrivateKeyPasswordExistingFXTest extends ApplicationTest {
                     .write("\n");
 
             // Wait a while, to make sure that RepositoryMonitor has kicked in and is happy
-            Thread.sleep(10000);
+            Thread.sleep(Math.max(RepositoryMonitor.REMOTE_CHECK_INTERVAL, RepositoryMonitor.LOCAL_CHECK_INTERVAL));
 
             // Shut down test SSH server
             assertEquals(0, ExceptionAdapter.getWrappedCount());

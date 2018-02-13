@@ -39,7 +39,7 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-public class RepositoryMonitor1FXTest extends ApplicationTest {
+public class OpenAndCloseReposFXTest extends ApplicationTest {
 
     static {
         // -----------------------Logging Initialization Start---------------------------
@@ -89,7 +89,7 @@ public class RepositoryMonitor1FXTest extends ApplicationTest {
 
 
     @Test
-    public void openAndCloseReposTest() throws Exception {
+    public void test() throws Exception {
         initializeLogger();
         Path directoryPath = Files.createTempDirectory("unitTestRepos");
         directoryPath.toFile().deleteOnExit();
