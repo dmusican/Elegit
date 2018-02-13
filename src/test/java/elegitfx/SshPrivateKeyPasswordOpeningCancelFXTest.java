@@ -167,26 +167,50 @@ public class SshPrivateKeyPasswordOpeningCancelFXTest extends ApplicationTest {
 
         startComplete.await();
 
-        // Handle hosts file
-//        waitUntil("Yes", Matchers.is(visible()));
-
         WaitForAsyncUtils.waitForFxEvents();
+
         WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
                                   () -> lookup("Yes").query() != null);
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+                                  () -> lookup("Yes").query().isVisible());
+        WaitForAsyncUtils.waitForFxEvents();
+        sleep(100);  // Additional catchup; seems to be necessary
         clickOn("Yes");
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+                                  () -> lookup("Yes").query() == null);
         sleep(delay);
 
         // Wait for ssh prompt, then click cancel
         WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
                                   () -> lookup("Cancel").query() != null);
-//        waitUntil("Cancel", Matchers.is(visible()));
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+                                  () -> lookup("Cancel").query().isVisible());
+        WaitForAsyncUtils.waitForFxEvents();
+        sleep(100);  // Additional catchup; seems to be necessary
         clickOn("Cancel");
         sleep(delay);
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+                                  () -> lookup("Cancel").query() == null);
 
         // Test that trying to fetch after cancelling works gracefully, then try cancelling again
         clickOn("Fetch");
         WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
                                   () -> lookup("Cancel").query() != null);
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+                                  () -> lookup("Cancel").query().isVisible());
+        WaitForAsyncUtils.waitForFxEvents();
+        sleep(100);  // Additional catchup; seems to be necessary
+        clickOn("Cancel");
+        sleep(delay);
+
+
+        // HTTP cancel. Should someday get rid of this, but for now, gets rid of error messages to acknowledge it.
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+                                  () -> lookup("Cancel").query() != null);
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+                                  () -> lookup("Cancel").query().isVisible());
+        WaitForAsyncUtils.waitForFxEvents();
+        sleep(100);  // Additional catchup; seems to be necessary
         clickOn("Cancel");
         sleep(delay);
 

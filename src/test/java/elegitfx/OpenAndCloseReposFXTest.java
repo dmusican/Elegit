@@ -4,8 +4,10 @@ import elegit.Main;
 import elegit.controllers.BusyWindow;
 import elegit.controllers.SessionController;
 import elegit.models.ClonedRepoHelper;
+import elegit.models.ExistingRepoHelper;
 import elegit.models.RepoHelper;
 import elegit.models.SessionModel;
+import elegit.sshauthentication.ElegitUserInfoTest;
 import elegit.treefx.CommitTreeModel;
 import javafx.scene.Node;
 import javafx.scene.control.ComboBox;
@@ -13,6 +15,8 @@ import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.controlsfx.control.CheckListView;
+import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.junit.After;
 import org.junit.Before;
@@ -21,6 +25,7 @@ import org.testfx.framework.junit.ApplicationTest;
 import org.testfx.util.WaitForAsyncUtils;
 import sharedrules.TestUtilities;
 
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -34,7 +39,7 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-public class RepositoryMonitor1FXTest extends ApplicationTest {
+public class OpenAndCloseReposFXTest extends ApplicationTest {
 
     static {
         // -----------------------Logging Initialization Start---------------------------
@@ -84,37 +89,44 @@ public class RepositoryMonitor1FXTest extends ApplicationTest {
 
 
     @Test
-    public void openAndCloseReposTest() throws Exception {
+    public void test() throws Exception {
         initializeLogger();
         Path directoryPath = Files.createTempDirectory("unitTestRepos");
         directoryPath.toFile().deleteOnExit();
-        Path repoPath = directoryPath.resolve("testrepo");
-        // Clone from dummy repo:
-        String remoteURL = "https://github.com/TheElegitTeam/TestRepository.git";
 
-        // This repo doesn't check username/password for read-only
-        UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider("", "");
-        ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, credentials);
-        helper.obtainRepository(remoteURL);
-        assertNotNull(helper);
-
-        Path repoPath2 = directoryPath.resolve("otherrepo");
-
-        remoteURL = "https://github.com/TheElegitTeam/testrepo.git";
-        ClonedRepoHelper helper2 = new ClonedRepoHelper(repoPath2, credentials);
-        helper2.obtainRepository(remoteURL);
-        assertNotNull(helper2);
-
+        Path repoPath1 = makeTempLocalRepo(directoryPath,"repo1");
+        Path repoPath2 = makeTempLocalRepo(directoryPath,"repo2");
 
         CommitTreeModel.setAddCommitDelay(5);
 
         SessionController.gitStatusCompletedOnce = new CountDownLatch(1);
 
         for (int i=0; i < 3; i++) {
-            addSwapAndRemoveRepos(repoPath, repoPath2);
+            addSwapAndRemoveRepos(repoPath1, repoPath2);
             interact(() -> console.info("Pass completed"));
         }
 
+
+    }
+
+    private Path makeTempLocalRepo(Path directoryPath, String localName) throws Exception {
+        Path remote = directoryPath.resolve("remote");
+        Path local = directoryPath.resolve(localName);
+        Git.init().setDirectory(remote.toFile()).setBare(true).call();
+        Git.cloneRepository().setDirectory(local.toFile()).setURI("file://"+remote).call();
+
+        ExistingRepoHelper helper = new ExistingRepoHelper(local, new ElegitUserInfoTest());
+
+        Path fileLocation = local.resolve("README.md");
+
+        for (int i=0; i < 5; i++) {
+            FileWriter fw = new FileWriter(fileLocation.toString(), true);
+            fw.write("start");
+            fw.close();
+            helper.addFilePathTest(fileLocation);
+            helper.commit("Appended to file");
+        }
+        return local;
 
     }
 
@@ -156,7 +168,7 @@ public class RepositoryMonitor1FXTest extends ApplicationTest {
 
         for (int i=0; i < 3; i++) {
             WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
-                                      () -> dropdown.getValue().toString().equals("otherrepo"));
+                                      () -> dropdown.getValue().toString().equals("repo2"));
             clickOn(dropdown);
 
             // The below awful hack is very likely related to this bug:
@@ -168,13 +180,13 @@ public class RepositoryMonitor1FXTest extends ApplicationTest {
                     clickOn(dropdown);
             });
 
-            clickOn("testrepo");
+            clickOn("repo1");
             WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
                                       () -> !BusyWindow.window.isShowing());
 
 
             WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
-                                      () -> dropdown.getValue().toString().equals("testrepo"));
+                                      () -> dropdown.getValue().toString().equals("repo1"));
             clickOn(dropdown);
 
             // See comment above regarding bug #539.
@@ -183,7 +195,7 @@ public class RepositoryMonitor1FXTest extends ApplicationTest {
                     clickOn(dropdown);
             });
 
-            clickOn("otherrepo");
+            clickOn("repo2");
             WaitForAsyncUtils.waitFor(15, TimeUnit.SECONDS,
                                       () -> !BusyWindow.window.isShowing());
         }
@@ -194,7 +206,7 @@ public class RepositoryMonitor1FXTest extends ApplicationTest {
         interact(() -> assertEquals(2, SessionModel.getSessionModel().getAllRepoHelpers().size()));
 
         WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
-                                  () -> dropdown.getValue().toString().equals("otherrepo"));
+                                  () -> dropdown.getValue().toString().equals("repo2"));
         interact(() -> console.info(dropdown.getItems() + " " + dropdown.getValue()));
         clickOn("#removeRecentReposButton");
 
@@ -212,10 +224,10 @@ public class RepositoryMonitor1FXTest extends ApplicationTest {
 
         assertEquals(0, sessionController.getNotificationPaneController().getNotificationNum());
 
-        assertNotEquals(null,lookup("otherrepo").query());
+        assertNotEquals(null,lookup("repo2").query());
 
         WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
-                                  () -> dropdown.getValue().toString().equals("otherrepo"));
+                                  () -> dropdown.getValue().toString().equals("repo2"));
 
         // Verify that now only one repo remains on the list
         interact(() -> assertEquals(1, dropdown.getItems().size()));

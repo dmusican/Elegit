@@ -202,10 +202,12 @@ public class SshPrivateKeyPasswordCloneFXTest extends ApplicationTest {
 
             WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
                                       () -> lookup("Yes").query() != null);
+            WaitForAsyncUtils.waitForFxEvents();
             clickOn("Yes");
 
             WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
                                       () -> lookup("#sshprompt").query() != null);
+            WaitForAsyncUtils.waitForFxEvents();
 
 
             // Enter passphrase
@@ -214,11 +216,10 @@ public class SshPrivateKeyPasswordCloneFXTest extends ApplicationTest {
                     .write("\n");
 
             // Wait until a node is in the graph, indicating clone is done
-            Callable<Node> callable = () -> {return lookup("#tree-cell").query();};
-
-            //            GuiTest.waitUntil(callable, Matchers.notNullValue(Node.class));
-                        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+            WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
                                       () -> lookup("#tree-cell").query() != null);
+            WaitForAsyncUtils.waitForFxEvents();
+            sleep(100);
 
             assertEquals(0, ExceptionAdapter.getWrappedCount());
 
