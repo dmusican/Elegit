@@ -93,28 +93,9 @@ public class RepositoryMonitor1FXTest extends ApplicationTest {
         initializeLogger();
         Path directoryPath = Files.createTempDirectory("unitTestRepos");
         directoryPath.toFile().deleteOnExit();
-//        Path repoPath = directoryPath.resolve("testrepo");
-//        // Clone from dummy repo:
-//        String remoteURL = "https://github.com/TheElegitTeam/TestRepository.git";
-//
-//        // This repo doesn't check username/password for read-only
-//        UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider("", "");
-//        ClonedRepoHelper helper = new ClonedRepoHelper(repoPath, credentials);
-//        helper.obtainRepository(remoteURL);
-//        assertNotNull(helper);
-//
-//        Path repoPath2 = directoryPath.resolve("otherrepo");
-//
-//        remoteURL = "https://github.com/TheElegitTeam/testrepo.git";
-//        ClonedRepoHelper helper2 = new ClonedRepoHelper(repoPath2, credentials);
-//        helper2.obtainRepository(remoteURL);
-//        assertNotNull(helper2);
-
 
         Path repoPath1 = makeTempLocalRepo(directoryPath,"repo1");
         Path repoPath2 = makeTempLocalRepo(directoryPath,"repo2");
-//        Path repoPath = directoryPath.resolve("repo1").resolve("local");
-//        Path repoPath2 = directoryPath.resolve("repo2").resolve("local");
 
         CommitTreeModel.setAddCommitDelay(5);
 
