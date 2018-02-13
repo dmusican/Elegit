@@ -167,16 +167,13 @@ public class SshPrivateKeyPasswordOpeningCancelFXTest extends ApplicationTest {
 
         startComplete.await();
 
-        // Handle hosts file
-//        waitUntil("Yes", Matchers.is(visible()));
-
         WaitForAsyncUtils.waitForFxEvents();
+
         WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
                                   () -> lookup("Yes").query() != null);
         WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
                                   () -> lookup("Yes").query().isVisible());
-        // Even if visible, may not be quite ready for clicking on. A short sleep seems necessary here.
-        sleep(100);
+        WaitForAsyncUtils.waitForFxEvents();
         clickOn("Yes");
         WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
                                   () -> lookup("Yes").query() == null);
@@ -187,8 +184,7 @@ public class SshPrivateKeyPasswordOpeningCancelFXTest extends ApplicationTest {
                                   () -> lookup("Cancel").query() != null);
         WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
                                   () -> lookup("Cancel").query().isVisible());
-        // Even if visible, may not be quite ready for clicking on. A short sleep seems necessary here.
-        sleep(100);
+        WaitForAsyncUtils.waitForFxEvents();
         clickOn("Cancel");
         sleep(delay);
         WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
@@ -200,8 +196,7 @@ public class SshPrivateKeyPasswordOpeningCancelFXTest extends ApplicationTest {
                                   () -> lookup("Cancel").query() != null);
         WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
                                   () -> lookup("Cancel").query().isVisible());
-        // Even if visible, may not be quite ready for clicking on. A short sleep seems necessary here.
-        sleep(100);
+        WaitForAsyncUtils.waitForFxEvents();
         clickOn("Cancel");
         sleep(delay);
 
