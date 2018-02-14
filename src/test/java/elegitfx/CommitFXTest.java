@@ -1,6 +1,7 @@
 package elegitfx;
 
 import elegit.Main;
+import elegit.controllers.BusyWindow;
 import elegit.controllers.SessionController;
 import elegit.exceptions.CancelledAuthorizationException;
 import elegit.exceptions.MissingRepoException;
@@ -99,69 +100,28 @@ public class CommitFXTest extends ApplicationTest {
 //
         Path remote = directoryPath.resolve("remote1");
         Path local = directoryPath.resolve("local1");
-        RevCommit firstCommit1 = makeTestRepo(remote, local, 5);
+        int numCells = 500;
+        RevCommit firstCommit1 = makeTestRepo(remote, local, numCells);
 
-//        Git.init().setDirectory(remote.toFile()).setBare(true).call();
-//        Git.cloneRepository().setDirectory(local.toFile()).setURI("file://" + remote).call();
-//
-//        ExistingRepoHelper helper = new ExistingRepoHelper(local, new ElegitUserInfoTest());
-//
-//        Path fileLocation = local.resolve("README.md");
-//
-//        FileWriter fw = new FileWriter(fileLocation.toString(), true);
-//        fw.write("start"+random.nextInt()); // need this to make sure each repo comes out with different hashes
-//        fw.close();
-//        helper.addFilePathTest(fileLocation);
-
-
-//        RevCommit firstCommit1 = makeTestRepo(remote1, local1, 5);
-//        console.info(remote1);
-//        console.info(local1);
-//
-//        Path remote2 = directoryPath.resolve("remote2");
-//        Path local2 = directoryPath.resolve("local2");
-//        RevCommit firstCommit2 = makeTestRepo(remote2, local2, 5);
-//        console.info(remote2);
-//        console.info(local2);
-//
         console.info("Loading up repo");
 
         interact(() -> sessionController.handleLoadExistingRepoOption(local));
 
-        clickOn("Commit")
+        WaitForAsyncUtils.waitFor(15, TimeUnit.SECONDS,
+                                  () -> !BusyWindow.window.isShowing());
+
+        clickOn("#mainCommitButton")
                 .clickOn("#commitMessage")
                 .write("a")
-                .clickOn("Commit");
+                .clickOn("#commitViewCommitButton");
 
-        sleep(5000);
-//
-//        // Wait for cell to appear; will time out of it doesn't
-//        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
-//                                  () -> lookup(Matchers.hasToString(firstCommit1.getName())).query() != null);
-//
-//        Set<Cell> cells1 = lookup(Matchers.instanceOf(Cell.class)).queryAll();
-//        console.info("Commits added 1");
-//        cells1.stream().forEach(console::info);
-//        assertEquals(6,cells1.size());
-//
-//
-//        clickOn("#loadNewRepoButton")
-//                .clickOn("#loadExistingRepoOption")
-//                .clickOn("#repoInputDialog")
-//                .write(local2.toString())
-//                .clickOn("#repoInputDialogOK");
-//
-//        // Wait for cell to appear; will time out of it doesn't
-//        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
-//                                  () -> lookup(Matchers.hasToString(firstCommit2.getName())).query() != null);
-//
-//
-//        sleep(3000);
-//
-//        Set<Cell> cells2 = lookup(Matchers.instanceOf(Cell.class)).queryAll();
-//        console.info("Commits added 2");
-//        cells2.stream().forEach(logger::info);
-//        assertEquals(6,cells2.size());
+        Set<Cell> cells = lookup(Matchers.instanceOf(Cell.class)).queryAll();
+        console.info("cells = " + cells.size());
+
+        console.info("waiting");
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+                                  () -> lookup(Matchers.instanceOf(Cell.class)).queryAll().size() == numCells + 1);
+        console.info("done");
     }
 
     private RevCommit makeTestRepo(Path remote, Path local, int numCommits) throws GitAPIException, IOException, CancelledAuthorizationException, MissingRepoException, PushToAheadRemoteError, NoCommitsToPushException {

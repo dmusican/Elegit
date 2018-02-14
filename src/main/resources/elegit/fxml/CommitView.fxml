@@ -45,7 +45,8 @@
                      text="Commit"
                      onAction="#handleCommitButton"
                      fx:id="commitButton"
-                     id="codeButton"
+                     styleClass="codeButton"
+                     id="commitViewCommitButton"
                      arrowRight="true"/>
     </AnchorPane>
 <stylesheets>
