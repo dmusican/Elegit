@@ -1,17 +1,21 @@
 package elegitfx;
 
 import elegit.Main;
+import elegit.controllers.BusyWindow;
 import elegit.controllers.SessionController;
-import elegit.models.*;
+import elegit.exceptions.CancelledAuthorizationException;
+import elegit.exceptions.MissingRepoException;
+import elegit.exceptions.NoCommitsToPushException;
+import elegit.exceptions.PushToAheadRemoteError;
+import elegit.models.ExistingRepoHelper;
 import elegit.sshauthentication.ElegitUserInfoTest;
 import elegit.treefx.Cell;
-import elegit.treefx.CellState;
-import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.PushCommand;
+import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.hamcrest.Matchers;
 import org.junit.After;
@@ -19,8 +23,8 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestName;
-import org.testfx.api.FxAssert;
 import org.testfx.framework.junit.ApplicationTest;
+import org.testfx.util.WaitForAsyncUtils;
 import sharedrules.TestUtilities;
 
 import java.io.FileWriter;
@@ -29,12 +33,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Random;
-import java.util.concurrent.CountDownLatch;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import static junit.framework.TestCase.assertEquals;
-import static org.junit.Assert.assertNotEquals;
 
-public class RepoCreation2FXTest extends ApplicationTest {
+public class CommitFXTest extends ApplicationTest {
 
     static {
         // -----------------------Logging Initialization Start---------------------------
@@ -44,6 +48,7 @@ public class RepoCreation2FXTest extends ApplicationTest {
     }
 
     private static final Logger logger = LogManager.getLogger("consolelogger");
+    private static final Logger console = LogManager.getLogger("briefconsolelogger");
 
     private static final Random random = new Random(90125);
 
@@ -51,17 +56,18 @@ public class RepoCreation2FXTest extends ApplicationTest {
 
     private Path directoryPath;
 
+    private Stage stage;
 
     @Rule
     public TestName testName = new TestName();
 
     @Before
     public void setup() throws Exception {
-        logger.info("Unit test started");
+        console.info("Unit test started");
         directoryPath = Files.createTempDirectory("unitTestRepos");
         directoryPath.toFile().deleteOnExit();
         initializeLogger();
-        logger.info("Test name: " + testName.getMethodName());
+        console.info("Test name: " + testName.getMethodName());
     }
 
 
@@ -75,7 +81,7 @@ public class RepoCreation2FXTest extends ApplicationTest {
 
     @After
     public void tearDown() {
-        logger.info("Tearing down");
+        console.info("Tearing down");
         assertEquals(0, Main.getAssertionCount());
     }
 
@@ -87,78 +93,67 @@ public class RepoCreation2FXTest extends ApplicationTest {
 
 
     @Test
-    public void clickCommitTest() throws Exception {
-        logger.info("Temp directory: " + directoryPath);
-        Path remote = directoryPath.resolve("remote");
-        Path local = directoryPath.resolve("local");
+    public void test() throws Exception {
+
+        Path remote = directoryPath.resolve("remote1");
+        Path local = directoryPath.resolve("local1");
+        int numCells = 500;
+        RevCommit firstCommit1 = makeTestRepo(remote, local, numCells);
+
+        console.info("Loading up repo");
+
+        interact(() -> sessionController.handleLoadExistingRepoOption(local));
+
+        WaitForAsyncUtils.waitFor(15, TimeUnit.SECONDS,
+                                  () -> !BusyWindow.window.isShowing());
+
+        clickOn("#mainCommitButton")
+                .clickOn("#commitMessage")
+                .write("a")
+                .clickOn("#commitViewCommitButton");
+
+        Set<Cell> cells = lookup(Matchers.instanceOf(Cell.class)).queryAll();
+        console.info("cells = " + cells.size());
+
+        console.info("waiting");
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+                                  () -> lookup(Matchers.instanceOf(Cell.class)).queryAll().size() == numCells + 1);
+        console.info("done");
+    }
+
+    private RevCommit makeTestRepo(Path remote, Path local, int numCommits) throws GitAPIException, IOException, CancelledAuthorizationException, MissingRepoException, PushToAheadRemoteError, NoCommitsToPushException {
         Git.init().setDirectory(remote.toFile()).setBare(true).call();
-        Git.cloneRepository().setDirectory(local.toFile()).setURI("file://"+remote).call();
+        Git.cloneRepository().setDirectory(local.toFile()).setURI("file://" + remote).call();
 
         ExistingRepoHelper helper = new ExistingRepoHelper(local, new ElegitUserInfoTest());
 
         Path fileLocation = local.resolve("README.md");
 
         FileWriter fw = new FileWriter(fileLocation.toString(), true);
-        fw.write("start");
+        fw.write("start"+random.nextInt()); // need this to make sure each repo comes out with different hashes
         fw.close();
         helper.addFilePathTest(fileLocation);
         RevCommit firstCommit = helper.commit("Appended to file");
         Cell firstCellAttempt = lookup(firstCommit.getName()).query();
-        logger.info("firstCell = " + firstCellAttempt);
+        console.info("firstCell = " + firstCellAttempt);
 
-        for (int i=0; i < 3; i++) {
+        for (int i = 0; i < numCommits; i++) {
             fw = new FileWriter(fileLocation.toString(), true);
-            fw.write(""+i);
+            fw.write("" + i);
             fw.close();
             helper.addFilePathTest(fileLocation);
-            helper.commit("Appended to file");
+
+            // Commit all but last one, to leave something behind to actually commit in GUI
+            if (i < numCommits - 1) {
+                helper.commit("Appended to file");
+            }
         }
 
         // Just push all untracked local branches
         PushCommand command = helper.prepareToPushAll(untrackedLocalBranches -> untrackedLocalBranches);
         helper.pushAll(command);
 
-        logger.info(remote);
-        logger.info(local);
-
-        SessionController.gitStatusCompletedOnce = new CountDownLatch(1);
-
-        interact(() -> sessionController.handleLoadExistingRepoOption(local));
-        SessionController.gitStatusCompletedOnce.await();
-
-        logger.info("First commit is " + firstCommit.getName());
-        interact( () -> {
-            Cell firstCell = lookup(Matchers.hasToString(firstCommit.getName())).query();
-            assertNotEquals(null, firstCell);
-            FxAssert.verifyThat(firstCell, (Cell cell) -> (cell.isVisible()));
-            assertEquals(CellState.STANDARD, firstCell.getPersistentCellState());
-        });
-
-
-        // Click on first commit
-        clickOn(Matchers.hasToString(firstCommit.getName()));
-
-        // Verify that when you click on it, it turns the appopriate color
-        interact(() -> {
-            Cell firstCell = lookup(Matchers.hasToString(firstCommit.getName())).query();
-            assertEquals(Color.web(CellState.SELECTED.getBackgroundColor()).toString(),
-                         Color.web(firstCell.getFxShapeObject().getFill().toString()).toString());
-            assertEquals(CellState.SELECTED, firstCell.getPersistentCellState());
-        });
-
-        clickOn(Matchers.hasToString(firstCommit.getName()));
-
-        // Verify that when you click on it again, it turns back
-        interact(() -> {
-            Cell firstCell = lookup(Matchers.hasToString(firstCommit.getName())).query();
-            assertEquals(Color.web(CellState.STANDARD.getBackgroundColor()).toString(),
-                         Color.web(firstCell.getFxShapeObject().getFill().toString()).toString());
-            assertEquals(CellState.STANDARD, firstCell.getPersistentCellState());
-        });
-
-
+        return firstCommit;
     }
-
-
 
 }

@@ -24,6 +24,7 @@ import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Optional;
 
 class PasswordSkin extends TextFieldSkin {
@@ -68,7 +69,15 @@ public abstract class RepoHelperBuilder {
     }
 
     private final String defaultFilePickerStartFolder = System.getProperty("user.home");
+    private Path repoPath;
 
+    public RepoHelperBuilder() {
+        repoPath = null;
+    }
+
+    public RepoHelperBuilder(Path repoPath) {
+        this.repoPath = repoPath;
+    }
 
     private static final Logger logger = LogManager.getLogger();
 
@@ -89,7 +98,9 @@ public abstract class RepoHelperBuilder {
 
         // Could change parent window to non-null, but we want to be able
         // to move the file chooser around.
-        if (Main.testMode) {
+        if (repoPath != null) {
+            returnFile = repoPath.toFile();
+        } else if (Main.testMode) {
             returnFile = getFileByTypingPath("Enter repo location:");
         } else {
             returnFile = chooser.showDialog(null);

@@ -186,8 +186,10 @@ public class SessionController {
         CommitTreeController.setSessionController(this);
         menuController.setSessionController(this);
         dropdownController.setSessionController(this);
+        CommitController.setSessionController(this);
         commitInfoController.setSessionController(this);
         ElegitUserInfoGUI.setSessionController(this);
+
 
         // Creates the commit tree model, and points MVC all looking at each other
         commitTreeModel = CommitTreeModel.getCommitTreeModel();
@@ -733,6 +735,14 @@ public class SessionController {
      */
     public void handleLoadExistingRepoOption() {
         handleLoadRepoMenuItem(new ExistingRepoHelperBuilder());
+    }
+
+    /**
+     * Alternative version of loading existing repo where the path is passed in as a parameter,
+     * intended for use when running testing scripts
+     */
+    public void handleLoadExistingRepoOption(Path path) {
+        handleLoadRepoMenuItem(new ExistingRepoHelperBuilder(path));
     }
 
     /**

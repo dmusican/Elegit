@@ -1,5 +1,7 @@
 package elegit.controllers;
 
+import elegit.Main;
+import elegit.exceptions.ExceptionAdapter;
 import elegit.exceptions.MissingRepoException;
 import elegit.gui.AllFilesPanelView;
 import elegit.gui.StagedTreePanelView;
@@ -16,6 +18,7 @@ import javafx.scene.control.TextArea;
 import javafx.scene.layout.GridPane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import net.jcip.annotations.GuardedBy;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -40,10 +43,17 @@ public class CommitController {
     private final RepoHelper repoHelper;
 
     private static final Logger logger = LogManager.getLogger();
+    private static final Logger console = LogManager.getLogger("briefconsolelogger");
 
+    @GuardedBy("this")
+    private static SessionController sessionController;
 
     public CommitController() {
         repoHelper = SessionModel.getSessionModel().getCurrentRepoHelper();
+    }
+
+    public static synchronized void setSessionController(SessionController sessionController) {
+        CommitController.sessionController = sessionController;
     }
 
     /**
@@ -113,19 +123,18 @@ public class CommitController {
      * then closes the window and notifies SessionController its done
      */
     public void handleCommitButton() {
+        Main.assertFxThread();
         try {
             String messageText = commitMessageField.getText();
             closeWindow();
             BusyWindow.show();
             BusyWindow.setLoadingText("Committing...");
             this.repoHelper.commit(messageText);
-        } catch (GitAPIException e) {
-            e.printStackTrace();
-        } catch (MissingRepoException e) {
-            e.printStackTrace();
+            sessionController.gitStatus();
+        } catch (GitAPIException | MissingRepoException e) {
+            throw new ExceptionAdapter(e);
         } finally {
             BusyWindow.hide();
-            // TODO: Need to appropriately register a gitStatus should happen right now
         }
     }
 

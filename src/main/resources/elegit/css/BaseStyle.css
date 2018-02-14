@@ -113,9 +113,11 @@
     .cell-label#current { -fx-text-fill: #FFFFFF; }
 
 
-.button#codeButton {
+.codeButton {
     -fx-font-family: "Lucida Console";
 }
+
+
 
 .button#notificationButton {
     -fx-font-size: 12px;

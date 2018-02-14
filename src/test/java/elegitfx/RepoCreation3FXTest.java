@@ -111,11 +111,7 @@ public class RepoCreation3FXTest extends ApplicationTest {
         console.info(remote2);
         console.info(local2);
 
-        clickOn("#loadNewRepoButton")
-                .clickOn("#loadExistingRepoOption")
-                .clickOn("#repoInputDialog")
-                .write(local1.toString())
-                .clickOn("#repoInputDialogOK");
+        interact(() -> sessionController.handleLoadExistingRepoOption(local1));
 
         // Wait for cell to appear; will time out of it doesn't
         WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
@@ -126,12 +122,8 @@ public class RepoCreation3FXTest extends ApplicationTest {
         cells1.stream().forEach(console::info);
         assertEquals(6,cells1.size());
 
+        interact(() -> sessionController.handleLoadExistingRepoOption(local2));
 
-        clickOn("#loadNewRepoButton")
-                .clickOn("#loadExistingRepoOption")
-                .clickOn("#repoInputDialog")
-                .write(local2.toString())
-                .clickOn("#repoInputDialogOK");
 
         // Wait for cell to appear; will time out of it doesn't
         WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,

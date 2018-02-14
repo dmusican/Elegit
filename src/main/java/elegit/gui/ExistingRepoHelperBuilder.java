@@ -23,6 +23,23 @@ import java.util.List;
 // all methods execute on FX thread anyway. If something comes off, verify thread safety
 public class ExistingRepoHelperBuilder extends RepoHelperBuilder {
 
+
+    /**
+     * Standard constructor
+     */
+    public ExistingRepoHelperBuilder() {
+        super();
+    }
+
+    /**
+     * Specify repoPath in advance; designed only for testing purposes
+     * @param repoPath
+     */
+    public ExistingRepoHelperBuilder(Path repoPath) {
+        super(repoPath);
+        Main.assertFxThread();
+    }
+
     /**
      * Shows a file chooser dialog and makes the ExistingRepoHelper from it.
      *  (The ExistingRepoHelper is generalized into a RepoHelper so that all
