@@ -148,10 +148,14 @@ public class RepositoryMonitor{
                     }
 
                     if (hasFoundNewChanges || !hasFoundMatchingBranch) {
+                        console.info("Possibility 1: " + hasFoundNewChanges + " " + !hasFoundMatchingBranch);
                         return true;
                     }
                 }
             } else {
+                // If the number of heads locally is fewer than those on the remote, there is more on the remote
+                // to bring down.
+                console.info("Possibility 2");
                 return true;
             }
         }catch (IOException e) {

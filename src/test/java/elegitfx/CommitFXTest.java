@@ -8,6 +8,7 @@ import elegit.exceptions.MissingRepoException;
 import elegit.exceptions.NoCommitsToPushException;
 import elegit.exceptions.PushToAheadRemoteError;
 import elegit.models.ExistingRepoHelper;
+import elegit.monitors.RepositoryMonitor;
 import elegit.sshauthentication.ElegitUserInfoTest;
 import elegit.treefx.Cell;
 import javafx.stage.Stage;
@@ -112,8 +113,14 @@ public class CommitFXTest extends ApplicationTest {
 
         clickOn("#mainCommitButton")
                 .clickOn("#commitMessage")
-                .write("a")
-                .clickOn("#commitViewCommitButton");
+                .write("a");
+
+
+
+        // Sometimes TestFX misses the button. That's gotta be a TestFX bug of some sort. This click first on
+        // commitMessage seems to help.
+        clickOn("#commitMessage"); sleep(100);
+        clickOn("#commitViewCommitButton");
 
         Set<Cell> cells = lookup(Matchers.instanceOf(Cell.class)).queryAll();
         console.info("cells = " + cells.size());
@@ -132,7 +139,9 @@ public class CommitFXTest extends ApplicationTest {
 
         clickOn("Yes");
 
-        sleep(15000);
+        // Wait for at least one round of RepositoryMonitor to follow up
+        sleep(Math.max(RepositoryMonitor.LOCAL_CHECK_INTERVAL, RepositoryMonitor.REMOTE_CHECK_INTERVAL));
+
     }
 
     private RevCommit makeTestRepo(Path remote, Path local, int numCommits) throws GitAPIException, IOException, CancelledAuthorizationException, MissingRepoException, PushToAheadRemoteError, NoCommitsToPushException {
