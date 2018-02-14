@@ -125,13 +125,14 @@ public class CommitFXTest extends ApplicationTest {
 //        console.info(local2);
 //
         console.info("Loading up repo");
-//        clickOn("#loadNewRepoButton")
-//                .clickOn("#loadExistingRepoOption")
-//                .clickOn("#repoInputDialog")
-//                .write(local.toString())
-//                .clickOn("#repoInputDialogOK");
-//
+
         interact(() -> sessionController.handleLoadExistingRepoOption(local));
+
+        clickOn("Commit")
+                .clickOn("#commitMessage")
+                .write("a")
+                .clickOn("Commit");
+
         sleep(5000);
 //
 //        // Wait for cell to appear; will time out of it doesn't
@@ -184,7 +185,11 @@ public class CommitFXTest extends ApplicationTest {
             fw.write("" + i);
             fw.close();
             helper.addFilePathTest(fileLocation);
-            helper.commit("Appended to file");
+
+            // Commit all but last one, to leave something behind to actually commit in GUI
+            if (i < numCommits - 1) {
+                helper.commit("Appended to file");
+            }
         }
 
         // Just push all untracked local branches
