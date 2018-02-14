@@ -34,6 +34,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import static junit.framework.TestCase.assertEquals;
@@ -102,10 +103,12 @@ public class CommitFXTest extends ApplicationTest {
 
         console.info("Loading up repo");
 
+        SessionController.gitStatusCompletedOnce = new CountDownLatch(1);
         interact(() -> sessionController.handleLoadExistingRepoOption(local));
 
         WaitForAsyncUtils.waitFor(15, TimeUnit.SECONDS,
                                   () -> !BusyWindow.window.isShowing());
+        SessionController.gitStatusCompletedOnce.await();
 
         clickOn("#mainCommitButton")
                 .clickOn("#commitMessage")
@@ -115,10 +118,21 @@ public class CommitFXTest extends ApplicationTest {
         Set<Cell> cells = lookup(Matchers.instanceOf(Cell.class)).queryAll();
         console.info("cells = " + cells.size());
 
-        console.info("waiting");
         WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
                                   () -> lookup(Matchers.instanceOf(Cell.class)).queryAll().size() == numCells + 1);
-        console.info("done");
+
+
+        // Do the push
+        clickOn("#pushButton");
+
+
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+                                  () -> lookup("Yes").query() != null);
+        sleep(100);
+
+        clickOn("Yes");
+
+        sleep(15000);
     }
 
     private RevCommit makeTestRepo(Path remote, Path local, int numCommits) throws GitAPIException, IOException, CancelledAuthorizationException, MissingRepoException, PushToAheadRemoteError, NoCommitsToPushException {
@@ -148,10 +162,6 @@ public class CommitFXTest extends ApplicationTest {
                 helper.commit("Appended to file");
             }
         }
-
-        // Just push all untracked local branches
-        PushCommand command = helper.prepareToPushAll(untrackedLocalBranches -> untrackedLocalBranches);
-        helper.pushAll(command);
 
         return firstCommit;
     }
