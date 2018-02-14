@@ -33,6 +33,7 @@ import java.util.concurrent.locks.ReentrantLock;
 public class PopUpWindows {
 
     static final Logger logger = LogManager.getLogger();
+    private static final Logger console = LogManager.getLogger("briefconsolelogger");
 
     /**
      * Informs the user that they are about to commit a conflicting file
@@ -421,8 +422,7 @@ public class PopUpWindows {
     public static boolean trackCurrentBranchRemotely(String branchName) {
         Main.assertFxThread();
 
-        final boolean[] result = new boolean[1];
-        result[0] = false;
+        boolean result = false;
 
         Alert alert = new Alert(Alert.AlertType.NONE);
         alert.setTitle("push -u");
@@ -449,20 +449,21 @@ public class PopUpWindows {
         vBox.setSpacing(10);
         vBox.setAlignment(Pos.CENTER);
 
-        ButtonType okButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
         ButtonType trackButton = new ButtonType("Yes", ButtonBar.ButtonData.APPLY);
+        ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
 
         alert.getDialogPane().setContent(vBox);
-        alert.getButtonTypes().addAll(trackButton, okButton);
+        alert.getButtonTypes().addAll(trackButton, cancelButton);
 
         Optional<?> alertResult = alert.showAndWait();
 
         if (alertResult.isPresent()) {
             if (alertResult.get() == trackButton) {
-                result[0] = true;
+                result = true;
             }
         }
 
-        return result[0];
+        console.info("Result from remote track dialog " + result);
+        return result;
     }
 }

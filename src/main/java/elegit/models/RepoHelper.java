@@ -484,6 +484,8 @@ public class RepoHelper {
         if (this.getBranchModel().getCurrentRemoteBranch() == null) {
             if (isTest || PopUpWindows.trackCurrentBranchRemotely(branchToPush.getRefName())) {
                 setUpstreamBranch(branchToPush, remote);
+                console.info("I am updating for some reason.");
+                getBranchModel().updateRemoteBranches();
             } else {
                 throw new NoCommitsToPushException();
             }

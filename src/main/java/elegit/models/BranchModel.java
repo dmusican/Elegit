@@ -38,6 +38,7 @@ public class BranchModel {
     @GuardedBy("this") private final List<RemoteBranchHelper> remoteBranchesTyped = new ArrayList<>();
 
     static final Logger logger = LogManager.getLogger();
+    private static final Logger console = LogManager.getLogger("briefconsolelogger");
 
     /**
      * Constructor. Sets the repo helper and updates the local and remote branches
@@ -83,6 +84,7 @@ public class BranchModel {
      */
     // synchronized for remoteBranchesTyped
     public synchronized void updateRemoteBranches() {
+        console.info("Updating remote branches");
         try {
             List<Ref> getBranchesCall = new Git(this.repoHelper.getRepo())
                     .branchList()
@@ -303,7 +305,9 @@ public class BranchModel {
     public CommitHelper getCurrentRemoteBranchHead() throws IOException {
         String remoteBranch = getCurrentRemoteBranch();
         if (remoteBranch != null) {
-            return getBranchByName(BranchType.REMOTE, remoteBranch).getCommit();
+            BranchHelper currentRemoteBranch = getBranchByName(BranchType.REMOTE, remoteBranch);
+            console.info("Debugging here " + currentRemoteBranch);
+            return currentRemoteBranch.getCommit();
         }
         return null;
     }
@@ -409,6 +413,9 @@ public class BranchModel {
     public BranchHelper getBranchByName(BranchType type, String branchName) {
         List<? extends BranchHelper> branchList = type==BranchType.LOCAL ? this.localBranchesTyped : this.remoteBranchesTyped;
         for (BranchHelper branch: branchList) {
+            console.info("Debug branch " + branch.getRefName());
+            console.info("Looking for " + branchName);
+            console.info("Success? " + branch.getRefName().equals(branchName));
             if (branch.getRefName().equals(branchName))
                 return branch;
         }

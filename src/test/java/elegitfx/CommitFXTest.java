@@ -111,8 +111,12 @@ public class CommitFXTest extends ApplicationTest {
                                   () -> !BusyWindow.window.isShowing());
         SessionController.gitStatusCompletedOnce.await();
 
-        clickOn("#mainCommitButton")
-                .clickOn("#commitMessage")
+        clickOn("#mainCommitButton");
+
+        sleep(1000);
+
+
+        clickOn("#commitMessage")
                 .write("a");
 
 
@@ -137,6 +141,7 @@ public class CommitFXTest extends ApplicationTest {
                                   () -> lookup("Yes").query() != null);
         sleep(100);
 
+        sleep(10000);
         clickOn("Yes");
 
         // Wait for at least one round of RepositoryMonitor to follow up
