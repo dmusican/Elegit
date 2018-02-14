@@ -95,9 +95,6 @@ public class CommitFXTest extends ApplicationTest {
     @Test
     public void test() throws Exception {
 
-//        // Make two repos; swap between them, make sure number of commits is correct in tree
-//        console.info("Temp directory: " + directoryPath);
-//
         Path remote = directoryPath.resolve("remote1");
         Path local = directoryPath.resolve("local1");
         int numCells = 500;

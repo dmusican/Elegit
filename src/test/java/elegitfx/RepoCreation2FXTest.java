@@ -123,12 +123,7 @@ public class RepoCreation2FXTest extends ApplicationTest {
 
         SessionController.gitStatusCompletedOnce = new CountDownLatch(1);
 
-        clickOn("#loadNewRepoButton")
-                .clickOn("#loadExistingRepoOption")
-                .clickOn("#repoInputDialog")
-                .write(local.toString())
-                .clickOn("#repoInputDialogOK");
-
+        interact(() -> sessionController.handleLoadExistingRepoOption(local));
         SessionController.gitStatusCompletedOnce.await();
 
         logger.info("First commit is " + firstCommit.getName());

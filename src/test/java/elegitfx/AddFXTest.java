@@ -94,12 +94,7 @@ public class AddFXTest extends ApplicationTest {
         helper.commit("Appended to file");
 
 
-        // Get repo into Elegit
-        clickOn("#loadNewRepoButton")
-                .clickOn("#loadExistingRepoOption")
-                .clickOn("#repoInputDialog")
-                .write(local.toString())
-                .clickOn("#repoInputDialogOK");
+        interact(() -> sessionController.handleLoadExistingRepoOption(local));
         RepositoryMonitor.unpause();
 
         // Make another modification to the file

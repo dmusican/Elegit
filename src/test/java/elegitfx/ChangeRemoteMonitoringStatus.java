@@ -79,12 +79,7 @@ public class ChangeRemoteMonitoringStatus extends ApplicationTest {
         });
 
 
-        clickOn("#loadNewRepoButton")
-                .clickOn("#loadExistingRepoOption")
-                .clickOn("#repoInputDialog")
-                .write(repoPath.toString())
-                .clickOn("#repoInputDialogOK");
-
+        interact(() -> sessionController.handleLoadExistingRepoOption(repoPath));
         SessionController.gitStatusCompletedOnce.await();
 
         int initNumRemoteChecks = RepositoryMonitor.getNumRemoteChecks();

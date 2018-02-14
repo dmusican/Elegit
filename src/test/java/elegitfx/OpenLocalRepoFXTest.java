@@ -78,13 +78,7 @@ public class OpenLocalRepoFXTest extends ApplicationTest {
         CommitTreeModel.setAddCommitDelay(500);
 
 
-
-        clickOn("#loadNewRepoButton")
-                .clickOn("#loadExistingRepoOption")
-                .clickOn("#repoInputDialog")
-                .write(repoPath.toString())
-                .clickOn("#repoInputDialogOK");
-
+        interact(() -> sessionController.handleLoadExistingRepoOption(repoPath));
         SessionController.gitStatusCompletedOnce.await();
 
         interact(() -> {

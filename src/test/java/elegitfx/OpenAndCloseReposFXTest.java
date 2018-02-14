@@ -131,12 +131,7 @@ public class OpenAndCloseReposFXTest extends ApplicationTest {
     }
 
     private void addSwapAndRemoveRepos(Path repoPath, Path repoPath2) throws InterruptedException, TimeoutException {
-        clickOn("#loadNewRepoButton")
-                .clickOn("#loadExistingRepoOption")
-                .clickOn("#repoInputDialog")
-                .write(repoPath.toString())
-                .clickOn("#repoInputDialogOK");
-
+        interact(() -> sessionController.handleLoadExistingRepoOption(repoPath));
         SessionController.gitStatusCompletedOnce.await();
 
         final ComboBox<RepoHelper> dropdown = lookup("#repoDropdown").query();
@@ -152,11 +147,7 @@ public class OpenAndCloseReposFXTest extends ApplicationTest {
 
         console.info("Loading second repo.");
 
-        clickOn("#loadNewRepoButton")
-                .clickOn("#loadExistingRepoOption")
-                .clickOn("#repoInputDialog")
-                .write(repoPath2.toString())
-                .clickOn("#repoInputDialogOK");
+        interact(() -> sessionController.handleLoadExistingRepoOption(repoPath2));
 
         WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
                                   () -> !BusyWindow.window.isShowing());

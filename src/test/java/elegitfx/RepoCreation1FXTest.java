@@ -136,11 +136,7 @@ public class RepoCreation1FXTest extends ApplicationTest {
         // layout was done
         TreeLayout.cellRenderTimeDelay.set(1000);
 
-        clickOn("#loadNewRepoButton")
-                .clickOn("#loadExistingRepoOption")
-                .clickOn("#repoInputDialog")
-                .write(local.toString())
-                .clickOn("#repoInputDialogOK");
+        interact(() -> sessionController.handleLoadExistingRepoOption(local));
 
         HBox barAndLabel= lookup("#commitTreeProgressBarAndLabel").query();
 
