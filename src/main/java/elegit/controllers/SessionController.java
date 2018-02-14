@@ -1202,7 +1202,11 @@ public class SessionController {
     public enum PushType {BRANCH, ALL}
 
     public void handlePushButton() {
+        console.info("Pausing");
+        RepositoryMonitor.pause();
         pushBranchOrAllSetup(PushType.BRANCH);
+        RepositoryMonitor.unpause();
+        console.info("Unpausing");
     }
 
     public void handlePushAllButton() {

@@ -93,8 +93,10 @@ public class BranchModel {
 
             // Rebuild the remote branches list from scratch.
             this.remoteBranchesTyped.clear();
+            console.info("Number of remote branches found is " + getBranchesCall.size());
             for (Ref ref : getBranchesCall) {
                 // Listing the remote branches also grabs HEAD, which isn't a branch we want
+                console.info("Branch is " + ref.getName());
                 if (!ref.getName().equals("HEAD")) {
                     this.remoteBranchesTyped.add(new RemoteBranchHelper(ref, this.repoHelper));
                 }
