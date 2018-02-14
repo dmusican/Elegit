@@ -186,8 +186,10 @@ public class SessionController {
         CommitTreeController.setSessionController(this);
         menuController.setSessionController(this);
         dropdownController.setSessionController(this);
+        CommitController.setSessionController(this);
         commitInfoController.setSessionController(this);
         ElegitUserInfoGUI.setSessionController(this);
+
 
         // Creates the commit tree model, and points MVC all looking at each other
         commitTreeModel = CommitTreeModel.getCommitTreeModel();
