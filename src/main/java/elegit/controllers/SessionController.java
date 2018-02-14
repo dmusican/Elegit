@@ -736,6 +736,14 @@ public class SessionController {
     }
 
     /**
+     * Alternative version of loading existing repo where the path is passed in as a parameter,
+     * intended for use when running testing scripts
+     */
+    public void handleLoadExistingRepoOption(Path path) {
+        handleLoadRepoMenuItem(new ExistingRepoHelperBuilder(path));
+    }
+
+    /**
      * Called when the "Clone repository" option is clicked
      */
     void handleCloneNewRepoOption() {
