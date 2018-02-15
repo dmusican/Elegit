@@ -266,7 +266,7 @@
                         </ContextMenu>
                     </contextMenu>
                 </ArrowButton>
-                <ArrowButton styleClass="codeButton" fx:id="pushButton" arrowRight="true" onAction="#handlePushButton" text="Push" GridPane.columnIndex="5" GridPane.halignment="LEFT" GridPane.rowIndex="2" GridPane.valignment="TOP">
+                <ArrowButton id="pushButton" styleClass="codeButton" fx:id="pushButton" arrowRight="true" onAction="#handlePushButton" text="Push" GridPane.columnIndex="5" GridPane.halignment="LEFT" GridPane.rowIndex="2" GridPane.valignment="TOP">
                     <GridPane.margin>
                         <Insets left="-10" right="-20" top="20" />
                     </GridPane.margin>

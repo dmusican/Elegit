@@ -152,6 +152,8 @@ public class RepositoryMonitor{
                     }
                 }
             } else {
+                // If the number of heads locally is fewer than those on the remote, there is more on the remote
+                // to bring down.
                 return true;
             }
         }catch (IOException e) {

@@ -86,7 +86,6 @@ public class SessionModel {
      */
     private SessionModel() {
         this.allRepoHelpers = new ArrayList<>();
-        console.info(preferencesNodeClass.toString());
         this.preferences = Preferences.userNodeForPackage(preferencesNodeClass);
         loadRecentRepoHelpersFromStoredPathStrings();
         loadMostRecentRepoHelper();

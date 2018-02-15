@@ -11,7 +11,8 @@
           prefHeight="250" prefWidth="400" xmlns:fx="http://javafx.com/fxml/1"
           xmlns="http://javafx.com/javafx/8"
           fx:controller="elegit.controllers.CommitController"
-          fx:id="root">
+          fx:id="root"
+          id="commitViewWindow">
     <columnConstraints>
         <ColumnConstraints hgrow="SOMETIMES" maxWidth="400" minWidth="10.0" prefWidth="173.0"/>
         <ColumnConstraints hgrow="SOMETIMES" maxWidth="800" minWidth="10.0" prefWidth="227.0"/>
@@ -34,14 +35,14 @@
             </Tab>
         </tabs>
     </TabPane>
-    <AnchorPane prefHeight="275" prefWidth="275.0" GridPane.columnIndex="1" GridPane.rowSpan="2">
+    <AnchorPane GridPane.columnIndex="1" GridPane.rowSpan="2">
         <Label layoutX="20.0" layoutY="10.0" text="Commit Message"/>
         <TextArea layoutX="20.0" layoutY="40.0" prefHeight="125.0" prefWidth="270.0"
                   id="commitMessage"
                   fx:id="commitMessageField"
                   promptText="Commit message..."
                   wrapText="true"/>
-        <ArrowButton layoutX="225.0" layoutY="400.0" prefHeight="50.0" prefWidth="100.0" mnemonicParsing="false"
+        <ArrowButton layoutX="225.0" layoutY="400.0" mnemonicParsing="false"
                      text="Commit"
                      onAction="#handleCommitButton"
                      fx:id="commitButton"

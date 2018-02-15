@@ -2,14 +2,22 @@ package elegitfx;
 
 import elegit.Main;
 import elegit.controllers.BusyWindow;
+import elegit.controllers.CommitController;
 import elegit.controllers.SessionController;
 import elegit.exceptions.CancelledAuthorizationException;
 import elegit.exceptions.MissingRepoException;
 import elegit.exceptions.NoCommitsToPushException;
 import elegit.exceptions.PushToAheadRemoteError;
 import elegit.models.ExistingRepoHelper;
+import elegit.monitors.RepositoryMonitor;
 import elegit.sshauthentication.ElegitUserInfoTest;
 import elegit.treefx.Cell;
+import javafx.application.Platform;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.layout.GridPane;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -34,6 +42,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import static junit.framework.TestCase.assertEquals;
@@ -102,23 +111,48 @@ public class CommitFXTest extends ApplicationTest {
 
         console.info("Loading up repo");
 
+        SessionController.gitStatusCompletedOnce = new CountDownLatch(1);
         interact(() -> sessionController.handleLoadExistingRepoOption(local));
 
         WaitForAsyncUtils.waitFor(15, TimeUnit.SECONDS,
                                   () -> !BusyWindow.window.isShowing());
+        SessionController.gitStatusCompletedOnce.await();
 
-        clickOn("#mainCommitButton")
-                .clickOn("#commitMessage")
+        clickOn("#mainCommitButton");
+
+        WaitForAsyncUtils.waitFor(15, TimeUnit.SECONDS,
+                                  () -> lookup("#commitMessage") != null);
+        WaitForAsyncUtils.waitFor(15, TimeUnit.SECONDS,
+                                  () -> lookup("#commitMessage").query().isVisible());
+
+        // There's some kind of TestFX bug where sometimes it misses the click on the modal window the first time.
+        // At any rate, by doing a click first below, that helps.
+        clickOn("#commitViewWindow");
+
+        clickOn("#commitMessage")
                 .write("a")
                 .clickOn("#commitViewCommitButton");
 
         Set<Cell> cells = lookup(Matchers.instanceOf(Cell.class)).queryAll();
         console.info("cells = " + cells.size());
 
-        console.info("waiting");
         WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
                                   () -> lookup(Matchers.instanceOf(Cell.class)).queryAll().size() == numCells + 1);
-        console.info("done");
+
+
+        // Do the push
+        clickOn("#pushButton");
+
+
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+                                  () -> lookup("Yes").query() != null);
+        sleep(100);
+
+        clickOn("Yes");
+
+        // Wait for at least one round of RepositoryMonitor to follow up
+        sleep(Math.max(RepositoryMonitor.LOCAL_CHECK_INTERVAL, RepositoryMonitor.REMOTE_CHECK_INTERVAL));
+
     }
 
     private RevCommit makeTestRepo(Path remote, Path local, int numCommits) throws GitAPIException, IOException, CancelledAuthorizationException, MissingRepoException, PushToAheadRemoteError, NoCommitsToPushException {
@@ -148,10 +182,6 @@ public class CommitFXTest extends ApplicationTest {
                 helper.commit("Appended to file");
             }
         }
-
-        // Just push all untracked local branches
-        PushCommand command = helper.prepareToPushAll(untrackedLocalBranches -> untrackedLocalBranches);
-        helper.pushAll(command);
 
         return firstCommit;
     }

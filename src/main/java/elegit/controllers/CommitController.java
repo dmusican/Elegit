@@ -92,6 +92,7 @@ public class CommitController {
      * @param pane NotificationPane
      */
     public void showStage(GridPane pane) {
+        Main.assertFxThread();
         stage = new Stage();
         stage.setTitle("Commit");
         stage.setScene(new Scene(pane, 550, 450));

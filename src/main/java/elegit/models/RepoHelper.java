@@ -495,6 +495,7 @@ public class RepoHelper {
     public void pushCurrentBranch(PushCommand push) throws GitAPIException, PushToAheadRemoteError, IOException {
         wrapAuthentication(push);
         Iterable<PushResult> pushResult = push.call();
+        getBranchModel().updateRemoteBranches();
 
         for (PushResult result : pushResult) {
             for (RemoteRefUpdate remoteRefUpdate : result.getRemoteUpdates()) {
@@ -609,6 +610,7 @@ public class RepoHelper {
     public void pushAll(PushCommand push) throws GitAPIException, PushToAheadRemoteError, IOException {
         wrapAuthentication(push);
         Iterable<PushResult> pushResult = push.call();
+        getBranchModel().updateRemoteBranches();
         boolean allPushesWereRejected = true;
         boolean anyPushWasRejected = false;
 

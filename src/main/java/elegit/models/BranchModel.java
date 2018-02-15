@@ -38,6 +38,7 @@ public class BranchModel {
     @GuardedBy("this") private final List<RemoteBranchHelper> remoteBranchesTyped = new ArrayList<>();
 
     static final Logger logger = LogManager.getLogger();
+    private static final Logger console = LogManager.getLogger("briefconsolelogger");
 
     /**
      * Constructor. Sets the repo helper and updates the local and remote branches
@@ -303,7 +304,8 @@ public class BranchModel {
     public CommitHelper getCurrentRemoteBranchHead() throws IOException {
         String remoteBranch = getCurrentRemoteBranch();
         if (remoteBranch != null) {
-            return getBranchByName(BranchType.REMOTE, remoteBranch).getCommit();
+            BranchHelper currentRemoteBranch = getBranchByName(BranchType.REMOTE, remoteBranch);
+            return currentRemoteBranch.getCommit();
         }
         return null;
     }
