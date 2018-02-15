@@ -2,6 +2,7 @@ package elegitfx;
 
 import elegit.Main;
 import elegit.controllers.BusyWindow;
+import elegit.controllers.CommitController;
 import elegit.controllers.SessionController;
 import elegit.exceptions.CancelledAuthorizationException;
 import elegit.exceptions.MissingRepoException;
@@ -11,6 +12,12 @@ import elegit.models.ExistingRepoHelper;
 import elegit.monitors.RepositoryMonitor;
 import elegit.sshauthentication.ElegitUserInfoTest;
 import elegit.treefx.Cell;
+import javafx.application.Platform;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.layout.GridPane;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -111,20 +118,10 @@ public class CommitFXTest extends ApplicationTest {
                                   () -> !BusyWindow.window.isShowing());
         SessionController.gitStatusCompletedOnce.await();
 
-        clickOn("#mainCommitButton");
-
-        sleep(1000);
-
-
-        clickOn("#commitMessage")
-                .write("a");
-
-
-
-        // Sometimes TestFX misses the button. That's gotta be a TestFX bug of some sort. This click first on
-        // commitMessage seems to help.
-        clickOn("#commitMessage"); sleep(100);
-        clickOn("#commitViewCommitButton");
+        clickOn("#mainCommitButton")
+                .clickOn("#commitMessage")
+                .write("a")
+                .clickOn("#commitViewCommitButton");
 
         Set<Cell> cells = lookup(Matchers.instanceOf(Cell.class)).queryAll();
         console.info("cells = " + cells.size());
