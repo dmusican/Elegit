@@ -47,7 +47,7 @@ import java.util.concurrent.TimeUnit;
 
 import static junit.framework.TestCase.assertEquals;
 
-public class CommitFXTest extends ApplicationTest {
+public class CommitAndPushFXTest extends ApplicationTest {
 
     static {
         // -----------------------Logging Initialization Start---------------------------
@@ -73,7 +73,9 @@ public class CommitFXTest extends ApplicationTest {
     @Before
     public void setup() throws Exception {
         console.info("Unit test started");
+        console.info("Directory = " + directoryPath);
         directoryPath = Files.createTempDirectory("unitTestRepos");
+        console.info("Directory = " + directoryPath);
         directoryPath.toFile().deleteOnExit();
         initializeLogger();
         console.info("Test name: " + testName.getMethodName());
@@ -106,8 +108,9 @@ public class CommitFXTest extends ApplicationTest {
 
         Path remote = directoryPath.resolve("remote1");
         Path local = directoryPath.resolve("local1");
+        int numFiles = 1;
         int numCells = 500;
-        RevCommit firstCommit1 = makeTestRepo(remote, local, numCells);
+        RevCommit firstCommit1 = makeTestRepo(remote, local, numFiles, numCells);
 
         console.info("Loading up repo");
 
@@ -140,6 +143,7 @@ public class CommitFXTest extends ApplicationTest {
                                   () -> lookup(Matchers.instanceOf(Cell.class)).queryAll().size() == numCells + 1);
 
 
+
         // Do the push
         clickOn("#pushButton");
 
@@ -155,27 +159,36 @@ public class CommitFXTest extends ApplicationTest {
 
     }
 
-    private RevCommit makeTestRepo(Path remote, Path local, int numCommits) throws GitAPIException, IOException, CancelledAuthorizationException, MissingRepoException, PushToAheadRemoteError, NoCommitsToPushException {
+    private RevCommit makeTestRepo(Path remote, Path local, int numFiles, int numCommits) throws GitAPIException,
+            IOException, CancelledAuthorizationException, MissingRepoException, PushToAheadRemoteError, NoCommitsToPushException {
         Git.init().setDirectory(remote.toFile()).setBare(true).call();
         Git.cloneRepository().setDirectory(local.toFile()).setURI("file://" + remote).call();
 
         ExistingRepoHelper helper = new ExistingRepoHelper(local, new ElegitUserInfoTest());
 
-        Path fileLocation = local.resolve("README.md");
+        for (int fileNum = 0; fileNum < numFiles; fileNum++) {
+            Path thisFileLocation = local.resolve("file" + fileNum);
+            FileWriter fw = new FileWriter(thisFileLocation.toString(), true);
+            fw.write("start"+random.nextInt()); // need this to make sure each repo comes out with different hashes
+            fw.close();
+            helper.addFilePathTest(thisFileLocation);
+        }
 
-        FileWriter fw = new FileWriter(fileLocation.toString(), true);
-        fw.write("start"+random.nextInt()); // need this to make sure each repo comes out with different hashes
-        fw.close();
-        helper.addFilePathTest(fileLocation);
         RevCommit firstCommit = helper.commit("Appended to file");
         Cell firstCellAttempt = lookup(firstCommit.getName()).query();
         console.info("firstCell = " + firstCellAttempt);
 
         for (int i = 0; i < numCommits; i++) {
-            fw = new FileWriter(fileLocation.toString(), true);
-            fw.write("" + i);
-            fw.close();
-            helper.addFilePathTest(fileLocation);
+            if (i % 100 == 0) {
+                console.info("commit num = " + i);
+            }
+            for (int fileNum = 0; fileNum < numFiles; fileNum++) {
+                Path thisFileLocation = local.resolve("file" + fileNum);
+                FileWriter fw = new FileWriter(thisFileLocation.toString(), false);
+                fw.write("" + i);
+                fw.close();
+                helper.addFilePathTest(thisFileLocation);
+            }
 
             // Commit all but last one, to leave something behind to actually commit in GUI
             if (i < numCommits - 1) {
