@@ -106,7 +106,7 @@ public class CommitFXTest extends ApplicationTest {
 
         Path remote = directoryPath.resolve("remote1");
         Path local = directoryPath.resolve("local1");
-        int numCells = 5; //00;
+        int numCells = 500;
         RevCommit firstCommit1 = makeTestRepo(remote, local, numCells);
 
         console.info("Loading up repo");
