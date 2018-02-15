@@ -1263,14 +1263,17 @@ public class SessionController {
     public void pushBranchOrAll(PushType pushType, PushCommand push) {
         GitOperation gitOp = authResponse -> pushBranchOrAllDetails(authResponse, pushType, push);
 
-        Observable
-                .just(1)
-                .doOnNext(unused -> showBusyWindowAndPauseRepoMonitor("Pushing..."))
+        Single
+                .fromCallable(() -> {
+                    showBusyWindowAndPauseRepoMonitor("Pushing...");
+                    return true;
+                })
 
                 // Note that the below is a threaded operation, and so we want to make sure that the following
                 // operations (hiding the window, etc) depend on it.
-                .flatMap(unused -> doGitOperationWhenSubscribed(gitOp).toObservable())
-                .doOnNext(unused -> hideBusyWindowAndResumeRepoMonitor())
+                .flatMap(unused -> doGitOperationWhenSubscribed(gitOp))
+                .doOnSuccess(unused -> hideBusyWindowAndResumeRepoMonitor())
+                .flatMap(unused -> doGitStatusWhenSubscribed())
                 .subscribe(unused -> {}, Throwable::printStackTrace);
     }
 

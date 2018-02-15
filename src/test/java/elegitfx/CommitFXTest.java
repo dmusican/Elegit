@@ -118,8 +118,18 @@ public class CommitFXTest extends ApplicationTest {
                                   () -> !BusyWindow.window.isShowing());
         SessionController.gitStatusCompletedOnce.await();
 
-        clickOn("#mainCommitButton")
-                .clickOn("#commitMessage")
+        clickOn("#mainCommitButton");
+
+        WaitForAsyncUtils.waitFor(15, TimeUnit.SECONDS,
+                                  () -> lookup("#commitMessage") != null);
+        WaitForAsyncUtils.waitFor(15, TimeUnit.SECONDS,
+                                  () -> lookup("#commitMessage").query().isVisible());
+
+        // There's some kind of TestFX bug where sometimes it misses the click on the modal window the first time.
+        // At any rate, by doing a click first below, that helps.
+        clickOn("#commitViewWindow");
+
+        clickOn("#commitMessage")
                 .write("a")
                 .clickOn("#commitViewCommitButton");
 

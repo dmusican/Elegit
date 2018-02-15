@@ -212,7 +212,7 @@ public class Cell extends Pane {
             placeHolder.setOpacity(0.0);
             CommitTreeModel.getCommitTreeModel().getTreeGraph().getCellLayerPane().getChildren().add(placeHolder);
 
-            TranslateTransition t = new TranslateTransition(Duration.millis(3000), this);
+            TranslateTransition t = new TranslateTransition(Duration.millis(2000), this);
             t.setToX(x);
             t.setToY(y+BOX_SHIFT);
             t.setCycleCount(1);
