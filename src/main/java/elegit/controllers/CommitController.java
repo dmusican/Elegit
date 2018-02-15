@@ -7,9 +7,13 @@ import elegit.gui.AllFilesPanelView;
 import elegit.gui.StagedTreePanelView;
 import elegit.models.RepoHelper;
 import elegit.models.SessionModel;
+import io.reactivex.Completable;
 import io.reactivex.Observable;
+import io.reactivex.Scheduler;
+import io.reactivex.Single;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.rxjavafx.schedulers.JavaFxScheduler;
+import io.reactivex.schedulers.Schedulers;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.Scene;
@@ -130,16 +134,15 @@ public class CommitController {
             closeWindow();
             BusyWindow.setLoadingText("Committing...");
             BusyWindow.show();
-            Platform.runLater(() -> {
-                try {
-                    this.repoHelper.commit(messageText);
-                    sessionController.gitStatus();
-                } catch (GitAPIException | MissingRepoException e) {
-                    throw new ExceptionAdapter(e);
-                } finally {
-                    BusyWindow.hide();
-                }
-            });
+            Completable.timer(1, TimeUnit.SECONDS)
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(JavaFxScheduler.platform())
+                    .doOnComplete(() -> {
+                        this.repoHelper.commit(messageText);
+                        sessionController.gitStatus();
+                    })
+                    .doAfterTerminate(BusyWindow::hide)
+                    .subscribe(() -> {}, (t) -> {throw new ExceptionAdapter(t);});
     }
 
     public void closeWindow() { this.stage.close(); }
