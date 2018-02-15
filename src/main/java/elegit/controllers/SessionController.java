@@ -1308,6 +1308,7 @@ public class SessionController {
                 } else {
                     assert false : "PushType enum case not handled";
                 }
+                helper.getBranchModel().updateRemoteBranches();
             } catch (Exception e) {
                 results.add(new Result(ResultStatus.EXCEPTION, ResultOperation.PUSH, e));
             }
