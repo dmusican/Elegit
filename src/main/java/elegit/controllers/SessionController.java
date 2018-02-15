@@ -1202,11 +1202,9 @@ public class SessionController {
     public enum PushType {BRANCH, ALL}
 
     public void handlePushButton() {
-        console.info("Pausing");
         RepositoryMonitor.pause();
         pushBranchOrAllSetup(PushType.BRANCH);
         RepositoryMonitor.unpause();
-        console.info("Unpausing");
     }
 
     public void handlePushAllButton() {
@@ -1308,7 +1306,7 @@ public class SessionController {
                 } else {
                     assert false : "PushType enum case not handled";
                 }
-                helper.getBranchModel().updateRemoteBranches();
+
             } catch (Exception e) {
                 results.add(new Result(ResultStatus.EXCEPTION, ResultOperation.PUSH, e));
             }

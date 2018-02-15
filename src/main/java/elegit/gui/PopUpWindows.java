@@ -463,7 +463,6 @@ public class PopUpWindows {
             }
         }
 
-        console.info("Result from remote track dialog " + result);
         return result;
     }
 }

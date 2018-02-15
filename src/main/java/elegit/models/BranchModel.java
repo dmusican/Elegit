@@ -84,7 +84,6 @@ public class BranchModel {
      */
     // synchronized for remoteBranchesTyped
     public synchronized void updateRemoteBranches() {
-        console.info("Updating remote branches");
         try {
             List<Ref> getBranchesCall = new Git(this.repoHelper.getRepo())
                     .branchList()
@@ -93,10 +92,8 @@ public class BranchModel {
 
             // Rebuild the remote branches list from scratch.
             this.remoteBranchesTyped.clear();
-            console.info("Number of remote branches found is " + getBranchesCall.size());
             for (Ref ref : getBranchesCall) {
                 // Listing the remote branches also grabs HEAD, which isn't a branch we want
-                console.info("Branch is " + ref.getName());
                 if (!ref.getName().equals("HEAD")) {
                     this.remoteBranchesTyped.add(new RemoteBranchHelper(ref, this.repoHelper));
                 }
@@ -308,7 +305,6 @@ public class BranchModel {
         String remoteBranch = getCurrentRemoteBranch();
         if (remoteBranch != null) {
             BranchHelper currentRemoteBranch = getBranchByName(BranchType.REMOTE, remoteBranch);
-            console.info("Debugging here " + currentRemoteBranch);
             return currentRemoteBranch.getCommit();
         }
         return null;
@@ -415,9 +411,6 @@ public class BranchModel {
     public BranchHelper getBranchByName(BranchType type, String branchName) {
         List<? extends BranchHelper> branchList = type==BranchType.LOCAL ? this.localBranchesTyped : this.remoteBranchesTyped;
         for (BranchHelper branch: branchList) {
-            console.info("Debug branch " + branch.getRefName());
-            console.info("Looking for " + branchName);
-            console.info("Success? " + branch.getRefName().equals(branchName));
             if (branch.getRefName().equals(branchName))
                 return branch;
         }
