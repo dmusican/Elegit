@@ -10,6 +10,7 @@ import elegit.models.SessionModel;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.rxjavafx.schedulers.JavaFxScheduler;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -125,18 +126,20 @@ public class CommitController {
      */
     public void handleCommitButton() {
         Main.assertFxThread();
-        try {
             String messageText = commitMessageField.getText();
             closeWindow();
-            BusyWindow.show();
             BusyWindow.setLoadingText("Committing...");
-            this.repoHelper.commit(messageText);
-            sessionController.gitStatus();
-        } catch (GitAPIException | MissingRepoException e) {
-            throw new ExceptionAdapter(e);
-        } finally {
-            BusyWindow.hide();
-        }
+            BusyWindow.show();
+            Platform.runLater(() -> {
+                try {
+                    this.repoHelper.commit(messageText);
+                    sessionController.gitStatus();
+                } catch (GitAPIException | MissingRepoException e) {
+                    throw new ExceptionAdapter(e);
+                } finally {
+                    BusyWindow.hide();
+                }
+            });
     }
 
     public void closeWindow() { this.stage.close(); }
