@@ -115,25 +115,22 @@ public class ResetFXTest extends ApplicationTest {
                                   () -> !BusyWindow.window.isShowing());
         SessionController.gitStatusCompletedOnce.await();
 
+        SessionController.gitStatusCompletedOnce = new CountDownLatch(1);
+
         rightClickOn("#"+firstCommit1.getName())
                 .clickOn("#resetMenuReset")
                 .moveTo("#resetMenuResetItem")
                 .clickOn("#resetMenuAdvanced")
                 .clickOn("#resetMenuHard");
 
+        SessionController.gitStatusCompletedOnce.await();
 
         // Verify that file contents have reverted back to what they should be; do this check in the FX queue
         // to make sure it follows the above
-        interact(() -> {
-            try {
-                Scanner scanner = new Scanner(local.resolve("file0"));
-                TestCase.assertTrue(scanner.next().startsWith("start"));
-                scanner.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+        Scanner scanner = new Scanner(local.resolve("file0"));
+        TestCase.assertTrue(scanner.next().startsWith("start"));
+        scanner.close();
 
-        });
 
         assertEquals(0, Main.getAssertionCount());
     }
