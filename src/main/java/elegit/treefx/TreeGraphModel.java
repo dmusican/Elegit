@@ -307,7 +307,9 @@ public class TreeGraphModel {
     // menus needs to be on the FX thread, but the menus don't have to be created there.
     private synchronized Menu getResetMenu(CommitHelper commit) {
         Menu resetMenu = new Menu("Reset...");
+        resetMenu.setId("resetMenuReset");
         MenuItem resetItem = new MenuItem("Reset to this commit");
+        resetItem.setId("resetMenuResetItem");
         MenuItem helpItem = new MenuItem("Help");
         Menu advancedMenu = getAdvancedResetMenu(commit);
 
@@ -324,7 +326,9 @@ public class TreeGraphModel {
     // menus needs to be on the FX thread, but the menus don't have to be created there.
     private synchronized Menu getAdvancedResetMenu(CommitHelper commit) {
         Menu resetMenu = new Menu("Advanced");
+        resetMenu.setId("resetMenuAdvanced");
         MenuItem hardItem = new MenuItem("reset --hard");
+        hardItem.setId("resetMenuHard");
         MenuItem mixedItem = new MenuItem("reset --mixed");
         MenuItem softItem = new MenuItem("reset --soft");
 
