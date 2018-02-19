@@ -12,6 +12,7 @@ import elegit.monitors.RepositoryMonitor;
 import elegit.sshauthentication.ElegitUserInfoTest;
 import elegit.treefx.Cell;
 import javafx.stage.Stage;
+import junit.framework.TestCase;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jgit.api.Git;
@@ -33,6 +34,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Random;
+import java.util.Scanner;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -119,6 +121,19 @@ public class ResetFXTest extends ApplicationTest {
                 .clickOn("#resetMenuAdvanced")
                 .clickOn("#resetMenuHard");
 
+
+        // Verify that file contents have reverted back to what they should be; do this check in the FX queue
+        // to make sure it follows the above
+        interact(() -> {
+            try {
+                Scanner scanner = new Scanner(local.resolve("file0"));
+                TestCase.assertTrue(scanner.next().startsWith("start"));
+                scanner.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+        });
 
         assertEquals(0, Main.getAssertionCount());
     }

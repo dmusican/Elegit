@@ -1690,41 +1690,26 @@ public class SessionController {
      * @param type the type of reset to perform
      */
     public void handleAdvancedResetButton(CommitHelper commit, ResetCommand.ResetType type) {
-        try {
-            logger.info("Reset button clicked");
+        logger.info("Reset button clicked");
 
-            if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
-
-            showBusyWindow("Resetting...");
-            Thread th = new Thread(new Task<Void>(){
-                @Override
-                protected Void call() {
-                    try{
-                        theModel.getCurrentRepoHelper().reset(commit.getName(), type);
-                        gitStatus();
-                    }catch(InvalidRemoteException e){
-                        showNoRemoteNotification();
-                    } catch (TransportException e) {
-                        showTransportExceptionNotification(e);
-                    } catch(MissingRepoException e){
-                        showMissingRepoNotification();
-                        setButtonsDisabled(true);
-                        refreshRecentReposInDropdown();
-                    } catch(Exception e) {
-                        showGenericErrorNotification(e);
-                        e.printStackTrace();
-                    }finally {
-                        BusyWindow.hide();
-                    }
-                    return null;
-                }
-            });
-            th.setDaemon(true);
-            th.setName("Git reset");
-            th.start();
-        }catch(NoRepoLoadedException e){
+        if(this.theModel.getCurrentRepoHelper() == null) {
             this.showNoRepoLoadedNotification();
             setButtonsDisabled(true);
+        } else {
+            Single
+                    .fromCallable(() -> {
+                        showBusyWindow("Resetting...");
+                        return true;
+                    })
+                    .subscribeOn(JavaFxScheduler.platform())
+                    .observeOn(Schedulers.io())
+                    .map(unused ->  theModel.getCurrentRepoHelper().reset(commit.getName(), type))
+                    .observeOn(JavaFxScheduler.platform())
+                    .map(unused -> doGitStatusWhenSubscribed())
+                    .doAfterTerminate(BusyWindow::hide)
+                    .subscribe((unused) -> {},
+                               (e) -> showSingleResult(notificationPaneController,
+                                                       new Result(ResultOperation.RESET, e)));
         }
     }
 
@@ -1859,7 +1844,7 @@ public class SessionController {
     }
 
     public enum ResultStatus {OK, NOCOMMITS, EXCEPTION, MERGE_FAILED};
-    public enum ResultOperation {FETCH, MERGE, ADD, LOAD, PUSH, CHECK_REMOTE_FOR_CHANGES};
+    public enum ResultOperation {FETCH, MERGE, ADD, LOAD, PUSH, CHECK_REMOTE_FOR_CHANGES, RESET};
 
     public static class Result {
         public final ResultStatus status;

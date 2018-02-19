@@ -880,12 +880,13 @@ public class RepoHelper {
      * @throws MissingRepoException
      * @throws GitAPIException
      */
-    public void reset(String ref, ResetCommand.ResetType mode) throws MissingRepoException, GitAPIException {
+    public boolean reset(String ref, ResetCommand.ResetType mode) throws MissingRepoException, GitAPIException {
         logger.info("Attempting reset");
         if (!exists()) throw new MissingRepoException();
         Git git = new Git(this.getRepo());
         git.reset().setRef(ref).setMode(mode).call();
         git.close();
+        return true;
     }
 
     //******************** STASH SECTION ********************
