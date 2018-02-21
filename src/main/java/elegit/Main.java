@@ -165,6 +165,7 @@ public class Main extends Application {
         if (!Platform.isFxApplicationThread()) {
             System.err.println("Not in FX thread");
             System.err.println(Thread.currentThread());
+            assertionCount.incrementAndGet();
             new Throwable().printStackTrace();
             assert(Platform.isFxApplicationThread());
         }
@@ -175,6 +176,7 @@ public class Main extends Application {
     public static void assertNotFxThread() {
         if (Platform.isFxApplicationThread()) {
             System.err.println(Thread.currentThread());
+            assertionCount.incrementAndGet();
             new Throwable().printStackTrace();
 
         }

@@ -181,6 +181,9 @@ public class SshPrivateKeyPasswordCancelFXTest extends ApplicationTest {
 
             WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
                                       () -> lookup("Cancel").query() != null);
+            WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+                                      () -> lookup("Cancel").query().isVisible());
+            sleep(1000);
 
             // Enter passphrase
             clickOn("Cancel");

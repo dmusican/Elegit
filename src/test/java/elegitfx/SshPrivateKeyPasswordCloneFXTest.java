@@ -217,7 +217,7 @@ public class SshPrivateKeyPasswordCloneFXTest extends ApplicationTest {
 
             // Wait until a node is in the graph, indicating clone is done
             WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
-                                      () -> lookup("#tree-cell").query() != null);
+                                      () -> lookup(".tree-cell").query() != null);
             WaitForAsyncUtils.waitForFxEvents();
             sleep(100);
 

@@ -244,8 +244,8 @@ public class Cell extends Pane {
     private synchronized Shape getBaseView(){
         Shape node = DEFAULT_SHAPE.getNewFxShapeObject();
         setFillType(node, CellState.STANDARD);
-        node.getStyleClass().setAll("cell");
-        node.setId("tree-cell");
+        node.getStyleClass().setAll("tree-cell");
+        node.setId(cellId);
         return node;
     }
 
