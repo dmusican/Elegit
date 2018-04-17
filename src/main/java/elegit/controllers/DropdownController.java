@@ -55,7 +55,7 @@ public class DropdownController {
 
         final int REPO_DROPDOWN_MAX_WIDTH = 147;
         repoDropdownSelector.setMaxWidth(REPO_DROPDOWN_MAX_WIDTH);
-        
+
         Image addRepoImg = new Image(getClass().getResourceAsStream("/elegit/images/add_repository.png"));
         loadNewRepoButton.setGraphic(new ImageView(addRepoImg));
 

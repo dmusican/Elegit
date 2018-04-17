@@ -1,41 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.ContextMenu?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.layout.HBox?>
 
+<!-- Dropdown, open in file manager, plus and minus buttons -->
 
-    <!-- Dropdown, open in file manager, plus and minus buttons -->
-    <HBox spacing="5"
-          xmlns="http://javafx.com/javafx"
-          xmlns:fx="http://javafx.com/fxml"
-          fx:controller="elegit.controllers.DropdownController">
-        <ComboBox id="repoDropdown"
-                  fx:id="repoDropdownSelector"
-                  onAction="#loadSelectedRepo"/>
+<HBox spacing="5" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="elegit.controllers.DropdownController">
 
-        <Button fx:id="openRepoDirButton"
-                id="openRepoDirButton"
-                onAction="#openRepoDirectory"/>
-
-        <Button fx:id="loadNewRepoButton"
-                id="loadNewRepoButton"
-                onAction="#handleLoadNewRepoButton">
+        <Button id="loadNewRepoButton" fx:id="loadNewRepoButton" onAction="#handleLoadNewRepoButton">
             <contextMenu>
                 <ContextMenu fx:id="newRepoOptionsMenu">
                     <items>
-                        <MenuItem fx:id="cloneOption"
-                                  onAction="#handleCloneNewRepoOption"
-                                  text="Clone repository"/>
-                        <MenuItem fx:id="existingOption"
-                                  onAction="#handleLoadExistingRepoOption"
-                                  id="loadExistingRepoOption"
-                                  text="Load existing repository"/>
+                        <MenuItem fx:id="cloneOption" onAction="#handleCloneNewRepoOption" text="Clone repository" />
+                        <MenuItem id="loadExistingRepoOption" fx:id="existingOption" onAction="#handleLoadExistingRepoOption" text="Load existing repository" />
                     </items>
                 </ContextMenu>
             </contextMenu>
         </Button>
-        <Button onAction="#chooseRecentReposToDelete"
-                id="removeRecentReposButton"
-                fx:id="removeRecentReposButton"/>
-    </HBox>
+        <Button id="removeRecentReposButton" fx:id="removeRecentReposButton" onAction="#chooseRecentReposToDelete" />
+        <ComboBox id="repoDropdown" fx:id="repoDropdownSelector" onAction="#loadSelectedRepo" />
 
+        <Button id="openRepoDirButton" fx:id="openRepoDirButton" onAction="#openRepoDirectory" />
+    </HBox>
