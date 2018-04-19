@@ -133,8 +133,8 @@ public class TestUtilities {
         Parent root = fxmlLoader.getRoot();
         Rectangle2D primScreenBounds = Screen.getPrimary().getVisualBounds();
         Scene scene = new Scene(root, 800, 600);
-        stage.setX(0);
-        stage.setY(0);
+        stage.setX(100);
+        stage.setY(100);
         stage.setScene(scene);
         sessionController.setStageForNotifications(stage);
         stage.show();
