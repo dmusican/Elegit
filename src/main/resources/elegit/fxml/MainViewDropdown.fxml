@@ -10,25 +10,28 @@
 
 <!-- Dropdown, open in file manager, plus and minus buttons -->
 
-<HBox spacing="5.0" stylesheets="@../css/BaseStyle.css" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="elegit.controllers.DropdownController">
+<HBox spacing="5.0" stylesheets="@../css/BaseStyle.css" xmlns="http://javafx.com/javafx/8.0.121"
+      xmlns:fx="http://javafx.com/fxml/1" fx:controller="elegit.controllers.DropdownController">
 
-        <Button id="loadNewRepoButton" fx:id="loadNewRepoButton" onAction="#handleLoadNewRepoButton">
-            <contextMenu>
-                <ContextMenu fx:id="newRepoOptionsMenu">
-                    <items>
-                        <MenuItem fx:id="cloneOption" onAction="#handleCloneNewRepoOption" text="Clone repository" />
-                        <MenuItem id="loadExistingRepoOption" fx:id="existingOption" onAction="#handleLoadExistingRepoOption" text="Load existing repository" />
-                    </items>
-                </ContextMenu>
-            </contextMenu>
-        </Button>
-        <Button id="removeRecentReposButton" fx:id="removeRecentReposButton" onAction="#chooseRecentReposToDelete" />
-   <VBox minHeight="-Infinity" minWidth="-Infinity" prefWidth="125.0" spacing="5.0">
-      <children>
-         <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Current Repository:" />
-              <ComboBox id="repoDropdown" fx:id="repoDropdownSelector" minHeight="-Infinity" minWidth="-Infinity" onAction="#loadSelectedRepo" prefHeight="25.0" prefWidth="125.0" promptText="None" />
-      </children>
-   </VBox>
+    <Button id="loadNewRepoButton" fx:id="loadNewRepoButton" onAction="#handleLoadNewRepoButton">
+        <contextMenu>
+            <ContextMenu fx:id="newRepoOptionsMenu">
+                <items>
+                    <MenuItem fx:id="cloneOption" onAction="#handleCloneNewRepoOption" text="Clone repository"/>
+                    <MenuItem id="loadExistingRepoOption" fx:id="existingOption"
+                              onAction="#handleLoadExistingRepoOption" text="Load existing repository"/>
+                </items>
+            </ContextMenu>
+        </contextMenu>
+    </Button>
+    <Button id="removeRecentReposButton" fx:id="removeRecentReposButton" onAction="#chooseRecentReposToDelete"/>
+    <VBox minHeight="-Infinity" minWidth="-Infinity" prefWidth="125.0" spacing="5.0">
+        <children>
+            <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Current Repository:"/>
+            <ComboBox id="repoDropdown" fx:id="repoDropdownSelector" minHeight="-Infinity" minWidth="-Infinity"
+                      onAction="#loadSelectedRepo" prefHeight="25.0" prefWidth="125.0" promptText="None"/>
+        </children>
+    </VBox>
 
-        <Button id="openRepoDirButton" fx:id="openRepoDirButton" onAction="#openRepoDirectory" />
-    </HBox>
+    <Button id="openRepoDirButton" fx:id="openRepoDirButton" onAction="#openRepoDirectory"/>
+</HBox>
