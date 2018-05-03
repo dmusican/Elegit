@@ -12,6 +12,8 @@ import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.geometry.Side;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import net.jcip.annotations.GuardedBy;
@@ -54,15 +56,16 @@ public class DropdownController {
         final int REPO_DROPDOWN_MAX_WIDTH = 147;
         repoDropdownSelector.setMaxWidth(REPO_DROPDOWN_MAX_WIDTH);
 
-        Text plusIcon = GlyphsDude.createIcon(FontAwesomeIcon.PLUS);
-        loadNewRepoButton.setGraphic(plusIcon);
+        Image addRepoImg = new Image(getClass().getResourceAsStream("/elegit/images/add_repository.png"));
+        loadNewRepoButton.setGraphic(new ImageView(addRepoImg));
 
         loadNewRepoButton.setTooltip(new Tooltip(
                 "Load a new repository"
         ));
 
-        Text minusIcon = GlyphsDude.createIcon(FontAwesomeIcon.MINUS);
-        removeRecentReposButton.setGraphic(minusIcon);
+        Image removeRepoImg = new Image(getClass().getResourceAsStream("/elegit/images/remove_repository.png"));
+        removeRecentReposButton.setGraphic(new ImageView(removeRepoImg));
+
 
         removeRecentReposButton.setTooltip(new Tooltip("Clear shortcuts to recently opened repos"));
         Text downloadIcon = GlyphsDude.createIcon(FontAwesomeIcon.CLOUD_DOWNLOAD);
