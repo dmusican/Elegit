@@ -1,5 +1,7 @@
 package elegit.controllers;
 
+import de.jensd.fx.glyphs.GlyphsDude;
+import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import elegit.*;
 import elegit.exceptions.*;
 import elegit.gui.*;
@@ -77,7 +79,7 @@ import java.util.prefs.BackingStoreException;
 
 import static java.util.Optional.of;
 
-/**
+/**s
  * The controller for the entire session.
  */
 public class SessionController {
@@ -99,6 +101,7 @@ public class SessionController {
     @FXML private Tab workingTreePanelTab;
     @FXML private Tab indexPanelTab;
     @FXML private Tab allFilesPanelTab;
+    @FXML private Button openRepoDirButton;
 
     @FXML private TabPane filesTabPane;
 
@@ -482,6 +485,7 @@ public class SessionController {
         pushButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         pushTagsButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         fetchButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
+        openRepoDirButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
 
         // Set minimum sizes for other fields and views
         workingTreePanelView.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
@@ -555,10 +559,14 @@ public class SessionController {
         this.pushButton.setTooltip(new Tooltip(
                 "Update remote repository with local changes,\nright click for advanced options"
         ));
-
         this.mergeButton.setTooltip(new Tooltip(
                 "Merge two commits together"
         ));
+        this.openRepoDirButton.setTooltip(new Tooltip(
+                "Open repository directory"
+        ));
+        Text openExternallyIcon = GlyphsDude.createIcon(FontAwesomeIcon.EXTERNAL_LINK);
+        this.openRepoDirButton.setGraphic(openExternallyIcon);
     }
 
     /**
@@ -707,6 +715,7 @@ public class SessionController {
         currentRemoteTrackingBranchHbox.setVisible(!disable);
         statusTextPane.setVisible(!disable);
         menuController.updateMenuBarEnabledStatus(disable);
+        openRepoDirButton.setDisable(disable);
 
         root.setOnMouseClicked(event -> {
             if (disable) showNoRepoLoadedNotification();
@@ -2359,6 +2368,7 @@ public class SessionController {
     /**
      * Opens the current repo directory (e.g. in Finder or Windows Explorer).
      */
+    @FXML
     void openRepoDirectory(){
         if (Desktop.isDesktopSupported()) {
             try{

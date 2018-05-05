@@ -33,5 +33,4 @@
         </children>
     </VBox>
 
-    <Button id="openRepoDirButton" fx:id="openRepoDirButton" onAction="#openRepoDirectory"/>
 </HBox>
