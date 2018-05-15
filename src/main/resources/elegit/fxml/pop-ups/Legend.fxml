@@ -1,3 +1,5 @@
+<!-- ******************* LEGEND POPUP WINDOW ************************ -->
+
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.shape.Circle?>
 <?import javafx.scene.shape.Polygon?>
@@ -19,8 +21,8 @@
           GridPane.columnIndex="0"
           alignment="CENTER"
           spacing="10">
-        <Text   text="Fill Legend"
-                style="-fx-font-weight: bold; -fx-font-size: 16"/>
+        <Text text="Fill Legend"
+              style="-fx-font-weight: bold; -fx-font-size: 16"/>
     </HBox>
 
     <!-- Solid Fill -->
@@ -32,8 +34,8 @@
         <Rectangle id="helpButton"
                    height="30"
                    width="30"/>
-        <Polygon    id="helpButton"
-                    points="0,0,30,0,15,30"/>
+        <Polygon id="helpButton"
+                 points="0,0,30,0,15,30"/>
         <Circle radius="15.0"
                 id="helpButton"/>
         <Text text="A commit tracked locally but not remotely"/>
@@ -46,10 +48,10 @@
           alignment="CENTER_LEFT"
           spacing="10">
         <Rectangle id="helpButton-remote"
-               height="30"
-               width="30"/>
-        <Polygon    id="helpButton-remote"
-                    points="0,0,30,0,15,30"/>
+                   height="30"
+                   width="30"/>
+        <Polygon id="helpButton-remote"
+                 points="0,0,30,0,15,30"/>
         <Circle radius="15.0"
                 id="helpButton-remote"/>
         <Text text="A commit tracked remotely but not locally"/>
@@ -63,8 +65,8 @@
           spacing="10">
         <StackPane>
             <Rectangle id="helpButton-both"
-                   height="30"
-                   width="30"/>
+                       height="30"
+                       width="30"/>
         </StackPane>
         <StackPane>
             <Circle id="helpButton-both"
@@ -79,10 +81,10 @@
     </HBox>
 
     <!-- Fill Legend and Shape Legend Separator -->
-    <VBox   GridPane.rowSpan="4"
-            GridPane.columnIndex="1"
-            id="separator"
-            prefWidth="2">
+    <VBox GridPane.rowSpan="4"
+          GridPane.columnIndex="1"
+          id="separator"
+          prefWidth="2">
         <GridPane.margin>
             <Insets top="-5" left="15" right="15" bottom="-10"/>
         </GridPane.margin>
@@ -94,8 +96,8 @@
           GridPane.columnIndex="2"
           alignment="CENTER"
           spacing="10">
-        <Text   text="Shape Legend"
-                style="-fx-font-weight: bold; -fx-font-size: 16"/>
+        <Text text="Shape Legend"
+              style="-fx-font-weight: bold; -fx-font-size: 16"/>
     </HBox>
 
     <!-- Square -->
@@ -104,9 +106,9 @@
           GridPane.rowSpan="1"
           alignment="CENTER_LEFT"
           spacing="10">
-        <Rectangle  height="30"
-                    width="30"
-                    style="-fx-fill: lightslategrey"/>
+        <Rectangle height="30"
+                   width="30"
+                   style="-fx-fill: lightslategrey"/>
         <Text text="A commit that is not a branch head"/>
     </HBox>
 
@@ -132,8 +134,8 @@
         <Text text="Either a local branch head that does not have&#10;an associated remote-tracking branch, or vice versa."/>
     </HBox>
 
-<stylesheets>
-    <URL value="@../css/BaseStyle.css"/>
-</stylesheets>
+    <stylesheets>
+        <URL value="@../../css/BaseStyle.css"/>
+    </stylesheets>
 </GridPane>
 

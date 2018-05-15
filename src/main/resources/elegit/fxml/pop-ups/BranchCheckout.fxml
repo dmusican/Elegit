@@ -1,3 +1,5 @@
+<!-- ******************* BRANCH CHECKOUT POPUP WINDOW ************************ -->
+
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
@@ -5,8 +7,8 @@
 <?import java.net.URL?>
 
 <AnchorPane fx:controller="elegit.controllers.BranchCheckoutController"
-                  xmlns:fx="http://javafx.com/fxml"
-                  fx:id="anchorRoot">
+            xmlns:fx="http://javafx.com/fxml"
+            fx:id="anchorRoot">
 
     <GridPane hgap="10"
               vgap="10"
@@ -17,21 +19,21 @@
               AnchorPane.bottomAnchor="20">
 
         <padding>
-            <Insets bottom="10" left="10" right ="10" top="10"/>
+            <Insets bottom="10" left="10" right="10" top="10"/>
         </padding>
 
         <Text GridPane.columnIndex="0"
               GridPane.rowIndex="0"
-              text="Remote branches:" />
+              text="Remote branches:"/>
         <Text GridPane.columnIndex="1"
               GridPane.rowIndex="0"
-              text="Local branches:" />
+              text="Local branches:"/>
 
         <VBox GridPane.columnIndex="0"
               GridPane.rowIndex="1"
               GridPane.rowSpan="2"
               spacing="10"
-              alignment="TOP_CENTER" >
+              alignment="TOP_CENTER">
 
             <ListView fx:id="remoteListView"
                       onMouseClicked="#handleRemoteListViewMouseClick"/>
@@ -51,7 +53,7 @@
                       onMouseClicked="#handleLocalListViewMouseClick"/>
             <Button fx:id="checkoutLocalBranchButton"
                     onAction="#handleCheckoutButton"
-                    text="Checkout local branch" />
+                    text="Checkout local branch"/>
 
         </VBox>
 
@@ -64,9 +66,9 @@
 
     </GridPane>
 
-    <fx:include source="NotificationPane.fxml" fx:id="notificationPane"/>
+    <fx:include source="../NotificationPane.fxml" fx:id="notificationPane"/>
 
     <stylesheets>
-        <URL value="@../css/BaseStyle.css"/>
+        <URL value="@../../css/BaseStyle.css"/>
     </stylesheets>
 </AnchorPane>

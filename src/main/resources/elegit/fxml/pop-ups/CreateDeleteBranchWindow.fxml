@@ -1,3 +1,5 @@
+<!-- ******************* CREATE/DELETE LOCAL/REMOTE BRANCH POPUP WINDOW ************************ -->
+
 <?import javafx.scene.control.*?>
 <?import javafx.scene.text.Text?>
 <?import javafx.scene.layout.*?>
@@ -15,26 +17,26 @@
         <padding>
             <Insets bottom="5"/>
         </padding>
-        <VBox   spacing="5"
-                alignment="CENTER">
-            <TabPane    VBox.vgrow="ALWAYS"
-                        fx:id="tabPane">
+        <VBox spacing="5"
+              alignment="CENTER">
+            <TabPane VBox.vgrow="ALWAYS"
+                     fx:id="tabPane">
                 <padding>
                     <Insets bottom="5"/>
                 </padding>
-                <Tab    text="Create"
-                        closable="false"
-                        fx:id="createTab">
-                    <VBox   spacing="10"
-                            alignment="CENTER">
-                        <TextField  VBox.vgrow="NEVER"
-                                    prefHeight="30"
-                                    fx:id="newBranchTextField"
-                                    promptText="new branch name..."/>
-                        <HBox   spacing="5"
-                                alignment="CENTER">
-                            <CheckBox   fx:id="checkoutCheckBox"/>
-                            <Text   text="checkout new branch once created"/>
+                <Tab text="Create"
+                     closable="false"
+                     fx:id="createTab">
+                    <VBox spacing="10"
+                          alignment="CENTER">
+                        <TextField VBox.vgrow="NEVER"
+                                   prefHeight="30"
+                                   fx:id="newBranchTextField"
+                                   promptText="new branch name..."/>
+                        <HBox spacing="5"
+                              alignment="CENTER">
+                            <CheckBox fx:id="checkoutCheckBox"/>
+                            <Text text="checkout new branch once created"/>
                         </HBox>
                         <AnchorPane>
                             <Button text="Cancel"
@@ -47,19 +49,19 @@
                         </AnchorPane>
                     </VBox>
                 </Tab>
-                <Tab    text="Delete Local"
-                        closable="false"
-                        fx:id="deleteLocalTab">
-                    <VBox   alignment="CENTER">
+                <Tab text="Delete Local"
+                     closable="false"
+                     fx:id="deleteLocalTab">
+                    <VBox alignment="CENTER">
                         <StackPane>
                             <ImageView
                                     fitHeight="137.5"
                                     fitWidth="137.5"
                                     opacity="0.2"
                                     preserveRatio="true">
-                                <Image url="@../images/repository.png"/>
+                                <Image url="@../../images/repository.png"/>
                             </ImageView>
-                            <ComboBox   fx:id="localBranchesDropdown"/>
+                            <ComboBox fx:id="localBranchesDropdown"/>
                         </StackPane>
                         <AnchorPane>
                             <Button text="Delete branch"
@@ -72,19 +74,19 @@
                         </AnchorPane>
                     </VBox>
                 </Tab>
-                <Tab    text="Delete Remote"
-                        closable="false"
-                        fx:id="deleteRemoteTab">
-                    <VBox   alignment="CENTER">
+                <Tab text="Delete Remote"
+                     closable="false"
+                     fx:id="deleteRemoteTab">
+                    <VBox alignment="CENTER">
                         <StackPane>
                             <ImageView
                                     fitHeight="175"
                                     fitWidth="175"
                                     opacity="0.2"
                                     preserveRatio="true">
-                                <Image url="@../images/graycloud.png"/>
+                                <Image url="@../../images/graycloud.png"/>
                             </ImageView>
-                            <ComboBox   fx:id="remoteBranchesDropdown"/>
+                            <ComboBox fx:id="remoteBranchesDropdown"/>
                         </StackPane>
                         <AnchorPane>
                             <Button text="Delete branch"
@@ -102,9 +104,9 @@
     </StackPane>
 
 
-    <fx:include source="NotificationPane.fxml" fx:id="notificationPane"/>
+    <fx:include source="../NotificationPane.fxml" fx:id="notificationPane"/>
 
     <stylesheets>
-        <URL value="@../css/BaseStyle.css"/>
+        <URL value="@../../css/BaseStyle.css"/>
     </stylesheets>
 </AnchorPane>

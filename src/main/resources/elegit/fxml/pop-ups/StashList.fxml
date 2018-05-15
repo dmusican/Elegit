@@ -1,17 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
+<!-- ******************* STASH LIST POPUP WINDOW ************************ -->
+
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import java.net.URL?>
 
 
-    <AnchorPane fx:controller="elegit.controllers.StashListController"
+<AnchorPane fx:controller="elegit.controllers.StashListController"
             xmlns:fx="http://javafx.com/fxml"
             fx:id="anchorRoot"
             prefWidth="350" prefHeight="200">
-    <GridPane   AnchorPane.bottomAnchor="20"
-                AnchorPane.topAnchor="5"
-                AnchorPane.leftAnchor="5"
-                AnchorPane.rightAnchor="5">
+    <GridPane AnchorPane.bottomAnchor="20"
+              AnchorPane.topAnchor="5"
+              AnchorPane.leftAnchor="5"
+              AnchorPane.rightAnchor="5">
         <columnConstraints>
             <ColumnConstraints hgrow="SOMETIMES"/>
             <ColumnConstraints hgrow="SOMETIMES"/>
@@ -24,8 +27,8 @@
             <RowConstraints vgrow="NEVER"/>
         </rowConstraints>
 
-        <ListView   GridPane.columnSpan="5"
-                    fx:id="stashList">
+        <ListView GridPane.columnSpan="5"
+                  fx:id="stashList">
         </ListView>
 
         <Button fx:id="cancelButton"
@@ -64,10 +67,10 @@
                 onAction="#handlePop"/>
     </GridPane>
 
-    <fx:include source="NotificationPane.fxml" fx:id="notificationPane"/>
+    <fx:include source="../NotificationPane.fxml" fx:id="notificationPane"/>
 
     <stylesheets>
-        <URL value="@../css/BaseStyle.css"/>
+        <URL value="@../../css/BaseStyle.css"/>
     </stylesheets>
 </AnchorPane>
 

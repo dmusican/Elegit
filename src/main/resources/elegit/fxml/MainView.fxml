@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<!-- ******************* MAIN VIEW ************************ -->
+
 <?import elegit.gui.AllFilesPanelView?>
 <?import elegit.gui.ArrowButton?>
 <?import elegit.gui.StagedTreePanelView?>

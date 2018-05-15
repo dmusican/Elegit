@@ -1041,7 +1041,7 @@ public class SessionController {
 
             logger.info("Opened checkout files window");
             // Create and display the Stage:
-            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/CheckoutFiles.fxml"));
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/pop-ups/CheckoutFiles.fxml"));
             fxmlLoader.load();
             CheckoutFilesController checkoutFilesController = fxmlLoader.getController();
             checkoutFilesController.setCommitHelper(commitHelper);
@@ -1127,7 +1127,7 @@ public class SessionController {
     private void commitNormal() throws IOException {
         logger.info("Opened commit manager window");
         // Create and display the Stage:
-        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/CommitView.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/pop-ups/CommitView.fxml"));
         fxmlLoader.load();
         CommitController commitController = fxmlLoader.getController();
         GridPane fxmlRoot = fxmlLoader.getRoot();
@@ -1731,7 +1731,7 @@ public class SessionController {
 
             if (this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
 
-            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/StashSave.fxml"));
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/pop-ups/StashSave.fxml"));
             fxmlLoader.load();
             StashSaveController stashSaveController = fxmlLoader.getController();
             //stashSaveController.setSessionController(this);
@@ -1792,7 +1792,7 @@ public class SessionController {
 
             if (this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
 
-            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/StashList.fxml"));
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/pop-ups/StashList.fxml"));
             fxmlLoader.load();
             StashListController stashListController = fxmlLoader.getController();
             stashListController.setSessionController(this);
@@ -2195,7 +2195,7 @@ public class SessionController {
 
             logger.info("Opened create/delete branch window");
             // Create and display the Stage:
-            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/CreateDeleteBranchWindow.fxml"));
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/pop-ups/CreateDeleteBranchWindow.fxml"));
             fxmlLoader.load();
             CreateDeleteBranchWindowController createDeleteBranchController = fxmlLoader.getController();
             createDeleteBranchController.setSessionController(this);
@@ -2248,7 +2248,7 @@ public class SessionController {
 
             logger.info("Opened merge window");
             // Create and display the Stage:
-            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/MergeWindow.fxml"));
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/pop-ups/MergeWindow.fxml"));
             fxmlLoader.load();
             MergeWindowController mergeWindowController = fxmlLoader.getController();
             mergeWindowController.setSessionController(this);
@@ -2369,7 +2369,7 @@ public class SessionController {
      * Opens the current repo directory (e.g. in Finder or Windows Explorer).
      */
     @FXML
-    void openRepoDirectory(){
+    boolean openRepoDirectory(){
         if (Desktop.isDesktopSupported()) {
             try{
                 logger.info("Opening Repo Directory");
@@ -2383,6 +2383,7 @@ public class SessionController {
                     String[] args = {"nautilus",this.theModel.getCurrentRepoHelper().getLocalPath().toFile().toString()};
                     runtime.exec(args);
                 }
+                return true;
             }catch(IOException | IllegalArgumentException e){
                 this.showFailedToOpenLocalNotification();
                 e.printStackTrace();
@@ -2391,6 +2392,7 @@ public class SessionController {
                 setButtonsDisabled(true);
             }
         }
+        return false;
     }
 
 
@@ -2439,7 +2441,7 @@ public class SessionController {
 
             logger.info("Opened branch checkout window");
             // Create and display the Stage:
-            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/BranchCheckout.fxml"));
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/pop-ups/BranchCheckout.fxml"));
             fxmlLoader.load();
             BranchCheckoutController branchCheckoutController = fxmlLoader.getController();
             AnchorPane fxmlRoot = fxmlLoader.getRoot();
@@ -2460,7 +2462,7 @@ public class SessionController {
         try{
             logger.info("Legend clicked");
             // Create and display the Stage:
-            GridPane fxmlRoot = FXMLLoader.load(getClass().getResource("/elegit/fxml/Legend.fxml"));
+            GridPane fxmlRoot = FXMLLoader.load(getClass().getResource("/elegit/fxml/pop-ups/Legend.fxml"));
 
             Stage stage = new Stage();
             stage.setTitle("Legend");
