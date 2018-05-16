@@ -112,21 +112,40 @@ public class OpenRepoDirectoryFXTest extends ApplicationTest {
 
     @Test
     /*
+     * Tests the open directory button before a repo is loaded (i.e. the button is disabled)
+     */
+    public void noRepoLoadedTest() {
+        // Clicks button to open testrepo directory
+        clickOn((Node) (lookup("#openRepoDirButton").query()));
+
+        // Makes sure the method was not called because the button is disabled
+        assertEquals(false, sessionController.getMethodCalled());
+    }
+
+    @Test
+    /*
      * Tests the open directory button on a loaded test repo
      */
     public void openLoadedRepoTest() throws Exception {
+        // Initial setup and tear down instructions
         initializeLogger();
         Path directoryPath = Files.createTempDirectory("unitTestRepos");
         directoryPath.toFile().deleteOnExit();
 
+        // Setup the test repo
         Path repoPath1 = makeTempLocalRepo(directoryPath, "repo1");
-
         CommitTreeModel.setAddCommitDelay(5);
-
         SessionController.gitStatusCompletedOnce = new CountDownLatch(1);
 
+        // Load the repo and click the openRepoDirectory button
         openDirectory(repoPath1);
         interact(() -> console.info("Pass completed"));
+
+        // Makes sure this didn't cause an error
+        assertEquals(0, sessionController.getNotificationPaneController().getNotificationNum());
+
+        // Makes sure the method was called
+        assertEquals(true, sessionController.getMethodCalled());
     }
 
     /*
@@ -138,9 +157,6 @@ public class OpenRepoDirectoryFXTest extends ApplicationTest {
 
         // Clicks button to open testrepo directory
         clickOn((Node) (lookup("#openRepoDirButton").query()));
-
-        // Makes sure this didn't cause an error
-        assertEquals(0, sessionController.getNotificationPaneController().getNotificationNum());
     }
 
     /*

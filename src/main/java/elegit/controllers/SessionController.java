@@ -163,6 +163,9 @@ public class SessionController {
 
     private static AtomicInteger genericExceptionCount = new AtomicInteger(0);  // used for testing
 
+    // Used for testing openReopDirectory method
+    public static final AtomicBoolean methodCalled = new AtomicBoolean(false);
+
     public static final Object globalLock = new Object();
 
 
@@ -2370,6 +2373,7 @@ public class SessionController {
      */
     @FXML
     boolean openRepoDirectory(){
+        methodCalled.set(true);
         if (Desktop.isDesktopSupported()) {
             try{
                 logger.info("Opening Repo Directory");
@@ -2794,6 +2798,8 @@ public class SessionController {
     public static int getGenericExceptionCount() {
         return genericExceptionCount.get();
     }
+
+    public static boolean getMethodCalled() { return methodCalled.get(); }
 
     public void setCommitTreeProgressBar(double value) {
         Main.assertFxThread();
