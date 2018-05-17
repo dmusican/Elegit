@@ -112,18 +112,6 @@ public class OpenRepoDirectoryFXTest extends ApplicationTest {
 
     @Test
     /*
-     * Tests the open directory button before a repo is loaded (i.e. the button is disabled)
-     */
-    public void noRepoLoadedTest() {
-        // Clicks button to open testrepo directory
-        clickOn((Node) (lookup("#openRepoDirButton").query()));
-
-        // Makes sure the method was not called because the button is disabled
-        assertEquals(false, sessionController.getMethodCalled());
-    }
-
-    @Test
-    /*
      * Tests the open directory button on a loaded test repo
      */
     public void openLoadedRepoTest() throws Exception {
