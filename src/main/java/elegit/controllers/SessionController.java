@@ -2380,16 +2380,12 @@ public class SessionController {
                 if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
                 // Use Desktop to open the current directory unless it's Linux
                 if (!SystemUtils.IS_OS_LINUX) {
-                    System.out.println("Before not Linux");
                     Desktop.getDesktop().open(this.theModel.getCurrentRepoHelper().getLocalPath().toFile());
-                    System.out.println("After not Linux");
                 }
                 else {
-                    System.out.println("Before");
                     Runtime runtime = Runtime.getRuntime();
                     String[] args = {"nautilus",this.theModel.getCurrentRepoHelper().getLocalPath().toFile().toString()};
                     runtime.exec(args);
-                    System.out.println("After");
                 }
                 return true;
             }catch(IOException | IllegalArgumentException e){

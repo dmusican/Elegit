@@ -71,7 +71,7 @@ public class OpenRepoDirectoryFXTest extends ApplicationTest {
     private static final Logger logger = LogManager.getLogger();
     private static final Logger console = LogManager.getLogger("briefconsolelogger");
 
-    private static final Random random = new Random(90125);
+    //private static final Random random = new Random(90125);
 
     private SessionController sessionController;
 
@@ -160,7 +160,7 @@ public class OpenRepoDirectoryFXTest extends ApplicationTest {
 
         Path fileLocation = local.resolve("README.md");
 
-        for (int i = 0; i < 5; i++) {
+        for(int i = 0; i < 5; i++) {
             FileWriter fw = new FileWriter(fileLocation.toString(), true);
             fw.write("start");
             fw.close();
