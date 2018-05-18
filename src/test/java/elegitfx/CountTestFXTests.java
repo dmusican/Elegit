@@ -31,8 +31,6 @@ public class CountTestFXTests {
     }
 
     private int countTestCases(Class<?> testFXClass) throws ClassNotFoundException {
-        int count = 0;
-
         testFXClass.getClass();
         Class<?> className = Class.forName(testFXClass.getName());
         Method[] methods = className.getMethods();
