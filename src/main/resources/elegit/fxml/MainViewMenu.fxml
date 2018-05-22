@@ -12,27 +12,56 @@
             useSystemMenuBar="true"
             fx:controller="elegit.controllers.MenuController">
     <menus>
-        <Menu   text="Preferences">
+        <Menu   text="File">
             <items>
-                <CheckMenuItem   text="Enable Logging"
-                            fx:id="loggingToggle"
-                            onAction="#handleLoggingToggle"/>
-                <CheckMenuItem   text="Sort Commits Topologically"
-                            fx:id="commitSortToggle"
-                            onAction="#handleCommitSortToggle"/>
-                <MenuItem   text="Re-enable window resizing"
-                            fx:id="reenableWindowResizing"
-                            onAction="#handleReenableWindowResizing"/>
-                <MenuItem   text="About"
-                            fx:id="about"
-                            onAction="#handleAbout"/>
+                <Menu   text="New Repository">
+                    <items>
+                        <MenuItem text="Clone repository"
+                                  fx:id="cloneOption"
+                                  onAction="#handleCloneNewRepoOption" />
+                        <MenuItem text="Load existing repository"
+                                  id="loadExistingRepoOption"
+                                  fx:id="existingOption"
+                                  onAction="#handleLoadExistingRepoOption" />
+                    </items>
+                </Menu>
+                <Menu   text="Open">
+                    <!--Figure out how to have loaded repos here-->
+
+                    <!--<items>-->
+                        <!--<MenuItem text="Clone repository"-->
+                                  <!--fx:id="cloneOption"-->
+                                  <!--onAction="#loadSelectedRepo" />-->
+                    <!--</items>-->
+                </Menu>
+                <Menu   text="Close">
+                    <!--Figure out how to remove repos here-->
+
+                    <!--<items>-->
+                    <!--<MenuItem text="Remove repository"-->
+                    <!--fx:id="removeOption"-->
+                    <!--onAction="#chooseRecentReposToDelete" />-->
+                    <!--</items>-->
+                </Menu>
             </items>
         </Menu>
         <Menu   text="Edit">
             <items>
-                <MenuItem   text=".gitignore"
+                <MenuItem   text="Copy"/>
+                            <!--fx:id="copy"-->
+                            <!--onAction="handleCopy"-->
+                <MenuItem   text="Paste"/>
+                <MenuItem   text="Edit .gitignore"
                             fx:id="gitIgnoreMenuItem"
                             onAction="#handleGitIgnoreMenuItem"/>
+            </items>
+        </Menu>
+        <Menu   text="View">
+            <items>
+                <CheckMenuItem   text="Sort Commits Topologically"
+                                 fx:id="commitSortToggle"
+                                 onAction="#handleCommitSortToggle"/>
+                <!--Add Linux resizing button-->
             </items>
         </Menu>
         <Menu   text="Repository"
@@ -102,6 +131,23 @@
                     <MenuItem   text="Stash Drop"
                                 onAction="#handleStashDropButton"/>
                 </Menu>
+            </items>
+        </Menu>
+        <Menu   text="Preferences">
+            <items>
+                <CheckMenuItem   text="Enable Logging"
+                                 fx:id="loggingToggle"
+                                 onAction="#handleLoggingToggle"/>
+                <MenuItem   text="Re-enable window resizing"
+                            fx:id="reenableWindowResizing"
+                            onAction="#handleReenableWindowResizing"/>
+            </items>
+        </Menu>
+        <Menu   text="Help">
+            <items>
+                <MenuItem   text="About"
+                            fx:id="about"
+                            onAction="#handleAbout"/>
             </items>
         </Menu>
     </menus>

@@ -2373,6 +2373,7 @@ public class SessionController {
      */
     @FXML
     boolean openRepoDirectory(){
+        // For testing that the method was called.
         methodCalled.set(true);
         if (Desktop.isDesktopSupported()) {
             try{

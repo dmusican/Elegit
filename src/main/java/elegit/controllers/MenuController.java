@@ -204,6 +204,10 @@ public class MenuController {
         sessionController.handleCloneNewRepoOption();
     }
 
+    public synchronized void handleLoadExistingRepoOption() {
+        sessionController.handleLoadExistingRepoOption();
+    }
+
     public synchronized void handleCommitAll() {
         sessionController.handleCommitAll();
     }
