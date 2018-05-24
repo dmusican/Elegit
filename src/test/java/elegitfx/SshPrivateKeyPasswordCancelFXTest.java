@@ -23,6 +23,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestName;
 import org.testfx.framework.junit.ApplicationTest;
+import org.testfx.framework.junit.TestFXRule;
 import org.testfx.util.WaitForAsyncUtils;
 import sharedrules.TestUtilities;
 import sharedrules.TestingLogPathRule;
@@ -68,6 +69,9 @@ public class SshPrivateKeyPasswordCancelFXTest extends ApplicationTest {
     private static final Random random = new Random(90125);
 
     private SessionController sessionController;
+
+    @Rule
+    public TestFXRule testFXRule = new TestFXRule();
 
     @Rule
     public TestName testName = new TestName();

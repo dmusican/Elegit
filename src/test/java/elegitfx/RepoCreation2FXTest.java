@@ -21,6 +21,7 @@ import org.junit.Test;
 import org.junit.rules.TestName;
 import org.testfx.api.FxAssert;
 import org.testfx.framework.junit.ApplicationTest;
+import org.testfx.framework.junit.TestFXRule;
 import sharedrules.TestUtilities;
 
 import java.io.FileWriter;
@@ -51,6 +52,8 @@ public class RepoCreation2FXTest extends ApplicationTest {
 
     private Path directoryPath;
 
+    @Rule
+    public TestFXRule testFXRule = new TestFXRule();
 
     @Rule
     public TestName testName = new TestName();
