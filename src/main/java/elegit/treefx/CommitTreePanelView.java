@@ -86,5 +86,4 @@ public class CommitTreePanelView extends Region{
         sp.prefHeightProperty().bind(this.heightProperty());
         return sp;
     }
-
 }

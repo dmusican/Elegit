@@ -43,9 +43,9 @@ public class Cell extends Pane {
 
     //// Class variables; constants and such
     // Base shapes for different types of cells
-    public static final CellShape DEFAULT_SHAPE = CellShape.SQUARE;
+    public static final CellShape DEFAULT_SHAPE = CellShape.CIRCLE;
     public static final CellShape UNTRACKED_BRANCH_HEAD_SHAPE = CellShape.CIRCLE;
-    public static final CellShape TRACKED_BRANCH_HEAD_SHAPE = CellShape.TRIANGLE_DOWN;
+    public static final CellShape TRACKED_BRANCH_HEAD_SHAPE = CellShape.TRIANGLE_UP;
     private static final String BACKGROUND_COLOR = "#F4F4F4";
 
     // Limits on animation so the app doesn't begin to stutter
@@ -469,10 +469,12 @@ public class Cell extends Pane {
                 break;
             case REMOTE:
                 n.setFill(Color.web(BACKGROUND_COLOR));
-                n.setStroke(baseColor);
+                n.setStrokeWidth(1.5);
+                n.setStroke(Color.GRAY);
                 break;
             case BOTH:
                 n.setFill(baseColor);
+                n.setStrokeWidth(1.5);
                 n.setStroke(Color.GRAY);
                 break;
             default:
