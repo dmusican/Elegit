@@ -24,6 +24,7 @@ import org.junit.Test;
 import org.junit.rules.TestName;
 import org.testfx.api.FxAssert;
 import org.testfx.framework.junit.ApplicationTest;
+import org.testfx.framework.junit.TestFXRule;
 import org.testfx.util.WaitForAsyncUtils;
 import sharedrules.TestUtilities;
 
@@ -55,6 +56,9 @@ public class RepoCreation1FXTest extends ApplicationTest {
     private SessionController sessionController;
 
     private Path directoryPath;
+
+    @Rule
+    public TestFXRule testFXRule = new TestFXRule();
 
     @Rule
     public TestName testName = new TestName();

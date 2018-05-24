@@ -29,6 +29,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestName;
 import org.testfx.framework.junit.ApplicationTest;
+import org.testfx.framework.junit.TestFXRule;
 import org.testfx.util.WaitForAsyncUtils;
 import sharedrules.TestUtilities;
 import sharedrules.TestingLogPathRule;
@@ -71,6 +72,8 @@ public class SshPopupInterruptTest extends ApplicationTest {
 
     private static final Logger logger = LogManager.getLogger("consolelogger");
 
+    @Rule
+    public TestFXRule testFXRule = new TestFXRule();
 
     @Rule
     public TestName testName = new TestName();
