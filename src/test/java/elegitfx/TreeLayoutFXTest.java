@@ -88,10 +88,7 @@ public class TreeLayoutFXTest extends ApplicationTest {
             assertEquals(allCells.get(5).getCellId(),"cell3");
             assertEquals(allCells.get(6).getCellId(),"cell4");
         });
-    }
 
-    @Test
-    public void testTopographicalSorting() throws Exception {
         interact(() -> {
             TreeLayout.topologicalSortListOfCells(allCells);
             for (Cell cell : allCells) {
@@ -107,6 +104,4 @@ public class TreeLayoutFXTest extends ApplicationTest {
             assertEquals(allCells.get(6).getCellId(),"cell4");
         });
     }
-
-
 }
