@@ -333,7 +333,7 @@
     -fx-stroke-type: inside;
     -fx-stroke-line-cap: butt;
     -fx-stroke-width: 2px;
-    -fx-stroke: -fx-button-fill;
+    -fx-stroke: #808080;
     -fx-fill: -fx-background-default;
 }
 

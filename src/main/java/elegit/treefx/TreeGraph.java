@@ -47,7 +47,6 @@ public class TreeGraph{
         cellLayer.setId("cell layer");
         cellLayer.setPadding(new Insets(0,0,Cell.BOX_SIZE+TreeLayout.V_PAD,0));
         cellLayer.boundsInLocalProperty().addListener((observable, oldValue, newValue) -> cellLayer.setMinWidth(newValue.getMaxX()));
-
         scrollPane = new CommitTreeScrollPane(cellLayer);
 
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
@@ -56,7 +55,6 @@ public class TreeGraph{
         scrollPane.NumItemsProperty.bind(m.getNumCellsProperty());
 
     }
-
     /**
      * @return the scroll pane that holds the graph drawing
      */
