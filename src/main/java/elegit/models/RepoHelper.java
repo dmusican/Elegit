@@ -287,6 +287,7 @@ public class RepoHelper {
      */
     public void addFilePaths(ArrayList<Path> filePaths) throws GitAPIException {
         Git git = new Git(this.getRepo());
+        ArrayList<String> fileNames = new ArrayList();
         // git add:
         AddCommand adder = git.add();
         for (Path filePath : filePaths) {
@@ -297,9 +298,11 @@ public class RepoHelper {
                 else
                     pathToAdd = pathToAdd.replaceAll(File.separator, "/");
             }
+            fileNames.add(pathToAdd);
             adder.addFilepattern(pathToAdd);
         }
         adder.call();
+        TranscriptHelper.post("git add "+String.join(" ", fileNames));
         git.close();
     }
 
@@ -311,6 +314,7 @@ public class RepoHelper {
     public void checkoutFile(Path filePath) throws GitAPIException {
         Git git = new Git(this.getRepo());
         git.checkout().addPath(filePath.toString()).call();
+        TranscriptHelper.post("git checkout "+filePath.toString());
         git.close();
     }
 
@@ -321,10 +325,14 @@ public class RepoHelper {
      */
     public void checkoutFiles(List<Path> filePaths) throws GitAPIException {
         Git git = new Git(this.getRepo());
+        ArrayList<String> fileNames = new ArrayList();
         CheckoutCommand checkout = git.checkout();
-        for (Path filePath : filePaths)
+        for (Path filePath : filePaths) {
             checkout.addPath(filePath.toString());
+            fileNames.add(filePath.toString());
+        }
         checkout.call();
+        TranscriptHelper.post("git checkout "+String.join(" ", fileNames));
         git.close();
     }
 
@@ -432,6 +440,7 @@ public class RepoHelper {
         RevCommit commit = git.commit()
                 .setMessage(commitMessage)
                 .call();
+        TranscriptHelper.post("git commit -m \""+commitMessage+"\"");
         git.close();
 
         // Update the local commits
@@ -450,6 +459,7 @@ public class RepoHelper {
 
         Git git = new Git(getRepo());
         git.commit().setMessage(message).setAll(true).call();
+        TranscriptHelper.post("git commit -am \""+message+"\"");
         git.close();
 
         localCommits.set(parseAllLocalCommits());

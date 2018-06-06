@@ -2156,6 +2156,22 @@ public class SessionController {
         }
     }
 
+    /**
+     * Opens the transcript viewer
+     * @todo Add GUI window to display the transcript.
+     */
+    public void handleTranscriptViewMenuItem() {
+                logger.info("Viewing transcript");
+    }
+
+    /**
+     * Clears the transcript file.
+     */
+    public void handleTranscriptClearItem() {
+        logger.info("Clearing transcript");
+        TranscriptHelper.clear();
+    }
+
 
 
     void handleNewBranchButton() {

@@ -184,6 +184,7 @@ public class MenuController {
 
     // "Repository" Dropdown Menu Items (2 layers):
 
+
     public synchronized void handleNewBranchButton() {
         sessionController.handleNewBranchButton();
     }
@@ -258,6 +259,14 @@ public class MenuController {
 
     public synchronized void handleStashDropButton() {
         sessionController.handleStashDropButton();
+    }
+
+    public synchronized void handleTranscriptClearMenuItem() {
+        sessionController.handleTranscriptClearItem();
+    }
+
+    public synchronized void handleTranscriptViewMenuItem() {
+        sessionController.handleTranscriptViewMenuItem();
     }
 
 }
