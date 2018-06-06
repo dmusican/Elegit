@@ -34,5 +34,4 @@
                       onAction="#loadSelectedRepo" prefHeight="25.0" prefWidth="125.0" promptText="None"/>
         </children>
     </VBox>
-
 </HBox>

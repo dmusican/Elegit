@@ -8,6 +8,7 @@ import elegit.treefx.TreeLayout;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.CheckMenuItem;
@@ -22,6 +23,7 @@ import net.jcip.annotations.GuardedBy;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.awt.dnd.DropTargetDragEvent;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
@@ -33,6 +35,8 @@ public class MenuController {
 
     @GuardedBy("this")
     private SessionController sessionController;
+
+    private DropdownController dropdownController = new DropdownController();
 
     @FXML
     private MenuItem gitIgnoreMenuItem;
@@ -263,5 +267,9 @@ public class MenuController {
     public synchronized void handleStashDropButton() {
         sessionController.handleStashDropButton();
     }
+
+    public synchronized void chooseRecentReposToDelete() { System.out.println("Test"); dropdownController.chooseRecentReposToDelete(); }
+
+    public synchronized void loadSelectedRepo() { dropdownController.loadSelectedRepo(); }
 
 }

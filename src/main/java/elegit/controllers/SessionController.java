@@ -2406,6 +2406,7 @@ public class SessionController {
      * @param checkedItems list of selected repos
      */
     void handleRemoveReposButton(List<RepoHelper> checkedItems) {
+        System.out.println("Test 3");
         Main.assertFxThread();
         logger.info("Removed repos");
         this.theModel.removeRepoHelpers(checkedItems);

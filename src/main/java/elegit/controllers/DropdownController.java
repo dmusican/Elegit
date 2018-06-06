@@ -94,12 +94,16 @@ public class DropdownController {
 
     // TODO: Make sure that RepoHelper is threadsafe
     public synchronized void chooseRecentReposToDelete() {
+        System.out.println("Test 2");
+
         logger.info("Remove repos button clicked");
 
         // creates a CheckListView with all the repos in it
         List<RepoHelper> repoHelpers = SessionModel.getSessionModel().getAllRepoHelpers();
         CheckListView<RepoHelper> repoCheckListView = new CheckListView<>(FXCollections.observableArrayList(repoHelpers));
         repoCheckListView.setId("repoCheckList");
+
+        System.out.println("Test 4");
 
         repoCheckListView.getItemBooleanProperty(0).set(true);
         // creates a popover with the list and a button used to remove repo shortcuts
@@ -108,8 +112,12 @@ public class DropdownController {
         PopOver popover = new PopOver(new VBox(repoCheckListView, removeSelectedButton));
         popover.setTitle("Manage Recent Repositories");
 
+        System.out.println("Test 5");
+
         // shows the popover
         popover.show(removeRecentReposButton);
+
+        System.out.println("Test 6");
 
         removeSelectedButton.setOnAction(e -> {
             sessionController.handleRemoveReposButton(repoCheckListView.getCheckModel().getCheckedItems());
