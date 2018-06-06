@@ -1,2 +1,4 @@
 language: java
-script: mvn clean test -B -DskipDisplay=true
+script:
+#- mvn clean test -B -DskipDisplay=true
+- mvn clean compile jfx:build-jar assembly:single
