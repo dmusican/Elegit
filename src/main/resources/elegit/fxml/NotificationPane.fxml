@@ -1,4 +1,5 @@
 <!-- ******************* NOTIFICATION PANE ************************ -->
+
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.shape.Line?>
@@ -19,11 +20,12 @@
     <AnchorPane fx:id="latestNotification"
                 StackPane.alignment="BOTTOM_LEFT"
                 maxHeight="15">
-        <Line AnchorPane.topAnchor="2" AnchorPane.rightAnchor="0" AnchorPane.leftAnchor="0" id="notificationLine" fx:id="separatorLine" />
-        <HBox   fx:id="latestNotificationBox"
-                AnchorPane.leftAnchor="3"
-                AnchorPane.bottomAnchor="0"
-                spacing="5">
+        <Line AnchorPane.topAnchor="2" AnchorPane.rightAnchor="0" AnchorPane.leftAnchor="0" id="notificationLine"
+              fx:id="separatorLine"/>
+        <HBox fx:id="latestNotificationBox"
+              AnchorPane.leftAnchor="3"
+              AnchorPane.bottomAnchor="0"
+              spacing="5">
         </HBox>
         <ImageView AnchorPane.rightAnchor="8"
                    AnchorPane.bottomAnchor="2"
@@ -45,12 +47,15 @@
             </VBox>
         </ScrollPane>
         <AnchorPane fx:id="notificationListUI">
-            <Line AnchorPane.topAnchor="0.0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" id="notificationLine" fx:id="resizeLine" />
-            <Button AnchorPane.leftAnchor="10" AnchorPane.bottomAnchor="5" mnemonicParsing="false" prefHeight="22.0" prefWidth="75.0"
+            <Line AnchorPane.topAnchor="0.0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" id="notificationLine"
+                  fx:id="resizeLine"/>
+            <Button AnchorPane.leftAnchor="10" AnchorPane.bottomAnchor="5" mnemonicParsing="false" prefHeight="22.0"
+                    prefWidth="75.0"
                     id="notificationButton"
                     text="Clear All"
                     onAction="#clearAllNotifications"/>
-            <Button AnchorPane.rightAnchor="10" AnchorPane.bottomAnchor="5" mnemonicParsing="false" prefHeight="22.0" prefWidth="75.0"
+            <Button AnchorPane.rightAnchor="10" AnchorPane.bottomAnchor="5" mnemonicParsing="false" prefHeight="22.0"
+                    prefWidth="75.0"
                     id="notificationButton"
                     text="Minimize"
                     fx:id="minimizeButton"/>

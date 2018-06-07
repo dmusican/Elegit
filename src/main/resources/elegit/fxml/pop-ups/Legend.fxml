@@ -1,3 +1,5 @@
+<!-- ******************* LEGEND POPUP WINDOW ************************ -->
+
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.shape.Circle?>
 <?import javafx.scene.shape.Polygon?>
@@ -19,8 +21,8 @@
           GridPane.columnIndex="0"
           alignment="CENTER"
           spacing="10">
-        <Text   text="Fill Legend"
-                style="-fx-font-weight: bold; -fx-font-size: 16"/>
+        <Text text="Fill Legend"
+              style="-fx-font-weight: bold; -fx-font-size: 16"/>
     </HBox>
 
     <!-- Solid Fill -->
@@ -68,10 +70,10 @@
     </HBox>
 
     <!-- Fill Legend and Shape Legend Separator -->
-    <VBox   GridPane.rowSpan="4"
-            GridPane.columnIndex="1"
-            id="separator"
-            prefWidth="2">
+    <VBox GridPane.rowSpan="4"
+          GridPane.columnIndex="1"
+          id="separator"
+          prefWidth="2">
         <GridPane.margin>
             <Insets top="-5" left="15" right="15" bottom="-10"/>
         </GridPane.margin>
@@ -83,8 +85,8 @@
           GridPane.columnIndex="2"
           alignment="CENTER"
           spacing="10">
-        <Text   text="Shape Legend"
-                style="-fx-font-weight: bold; -fx-font-size: 16"/>
+        <Text text="Shape Legend"
+              style="-fx-font-weight: bold; -fx-font-size: 16"/>
     </HBox>
 
     <!-- Square -->
@@ -112,10 +114,8 @@
         <Text text="A commit that is a branch head"/>
     </HBox>
 
-
-
-<stylesheets>
-    <URL value="@../css/BaseStyle.css"/>
-</stylesheets>
+    <stylesheets>
+        <URL value="@../../css/BaseStyle.css"/>
+    </stylesheets>
 </GridPane>
 

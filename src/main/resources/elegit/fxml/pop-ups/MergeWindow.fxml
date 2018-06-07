@@ -1,0 +1,156 @@
+<!-- ******************* MERGE POPUP WINDOW ************************ -->
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import java.net.URL?>
+<?import javafx.scene.shape.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.text.*?>
+
+<AnchorPane fx:controller="elegit.controllers.MergeWindowController"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:id="anchorRoot"
+            prefHeight="220">
+    <VBox spacing="10"
+          AnchorPane.rightAnchor="5"
+          AnchorPane.leftAnchor="5"
+          AnchorPane.topAnchor="5"
+          AnchorPane.bottomAnchor="20">
+        <padding>
+            <Insets bottom="10"/>
+        </padding>
+
+        <TabPane tabClosingPolicy="UNAVAILABLE" fx:id="mergeTypePane" VBox.vgrow="ALWAYS">
+            <tabs>
+                <Tab text="From Fetch">
+                    <content>
+                        <HBox alignment="CENTER">
+                            <GridPane alignment="CENTER" hgap="3" vgap="5">
+                                <Text id="merge-header-text"
+                                      fx:id="headerText"
+                                      GridPane.rowIndex="1" GridPane.columnIndex="0" GridPane.columnSpan="3"
+                                      GridPane.halignment="LEFT"
+                                      text="Update files from remote repository"/>
+
+                                <Text id="merge-text"
+                                      fx:id="mergeRemoteTrackingText"
+                                      GridPane.rowIndex="2" GridPane.columnIndex="0" GridPane.columnSpan="3"
+                                      GridPane.halignment="LEFT"
+                                      text="Merge remote-tracking branch head"/>
+
+                                <HBox id="branch-merge-box-tracked"
+                                      fx:id="remoteBranchBox"
+                                      GridPane.rowIndex="3" GridPane.columnIndex="0" GridPane.halignment="RIGHT"
+                                      alignment="CENTER">
+                                    <Label id="branch-merge" fx:id="remoteTrackingBranchName"/>
+                                </HBox>
+
+                                <HBox id="branch-merge-box-tracked"
+                                      fx:id="localBranchBox1"
+                                      GridPane.rowIndex="4" GridPane.columnIndex="1" GridPane.halignment="LEFT">
+                                    <Label id="branch-merge" fx:id="localBranchName1"/>
+                                </HBox>
+
+                                <AnchorPane fx:id="arrowPane"
+                                            GridPane.rowIndex="2" GridPane.columnIndex="0" GridPane.rowSpan="3"
+                                            GridPane.halignment="RIGHT">
+                                    <QuadCurve id="merge-arrow"
+                                               AnchorPane.rightAnchor="17" AnchorPane.bottomAnchor="6.0" controlY="12"
+                                               endX="23" endY="12"/>
+                                    <Line id="merge-arrow"
+                                          AnchorPane.rightAnchor="0" AnchorPane.bottomAnchor="7"
+                                          layoutY="10" startX="20" endX="40"/>
+                                    <Polygon id="merge-arrow"
+                                             AnchorPane.bottomAnchor="2" AnchorPane.rightAnchor="-2"
+                                             points="0, 0, 0, 6, 4, 3"/>
+                                </AnchorPane>
+                            </GridPane>
+                        </HBox>
+                    </content>
+                    <graphic>
+                        <ImageView fitHeight="53.5" fitWidth="17.5" pickOnBounds="true" preserveRatio="true">
+                            <image>
+                                <Image url="@../../images/graycloud_small.png"/>
+                            </image>
+                        </ImageView>
+                    </graphic>
+                </Tab>
+                <Tab text="Local Branches"
+                     fx:id="localBranchTab">
+                    <content>
+                        <HBox alignment="CENTER">
+                            <GridPane hgap="3" vgap="3" alignment="CENTER">
+                                <!--<columnConstraints>-->
+                                <!--<ColumnConstraints hgrow="NEVER"/>-->
+                                <!--<ColumnConstraints hgrow="NEVER"/>-->
+                                <!--<ColumnConstraints hgrow="SOMETIMES"/>-->
+                                <!--</columnConstraints>-->
+                                <Text id="merge-header-text"
+                                      fx:id="headerText2"
+                                      GridPane.rowIndex="1" GridPane.columnIndex="0" GridPane.columnSpan="3"
+                                      GridPane.halignment="LEFT"
+                                      text="Update files from a local repository"/>
+                                <Text id="merge-text"
+                                      GridPane.rowIndex="2" GridPane.columnIndex="0" GridPane.columnSpan="3"
+                                      GridPane.halignment="LEFT"
+                                      text="Merge local branch head"/>
+                                <Text id="merge-text" strokeType="OUTSIDE" text="into current branch"
+                                      GridPane.rowIndex="3" GridPane.columnIndex="1" GridPane.columnSpan="2"/>
+                                <AnchorPane GridPane.rowIndex="3" GridPane.columnIndex="0"
+                                            GridPane.rowSpan="2" GridPane.halignment="RIGHT">
+                                    <QuadCurve AnchorPane.rightAnchor="17" AnchorPane.bottomAnchor="6.0"
+                                               controlY="12" endX="23" endY="12"
+                                               id="merge-arrow"/>
+                                    <Line AnchorPane.rightAnchor="0" AnchorPane.bottomAnchor="7"
+                                          layoutY="10"
+                                          id="merge-arrow" startX="20" endX="40"/>
+                                    <Polygon AnchorPane.bottomAnchor="2" AnchorPane.rightAnchor="-2"
+                                             id="merge-arrow" points="0, 0, 0, 6, 4, 3"/>
+                                </AnchorPane>
+                                <HBox GridPane.rowIndex="4" GridPane.columnIndex="1" GridPane.halignment="LEFT"
+                                      id="branch-merge-box-tracked">
+                                    <Label id="branch-merge" fx:id="localBranchName2"/>
+                                </HBox>
+                                <!-- Combo box goes last so that it can be clicked -->
+                                <ComboBox fx:id="branchDropdownSelector"
+                                          GridPane.rowIndex="3" GridPane.columnIndex="0" GridPane.halignment="RIGHT"/>
+                            </GridPane>
+                        </HBox>
+                    </content>
+                    <graphic>
+                        <ImageView fitWidth="13" opacity="0.5" pickOnBounds="true" preserveRatio="true">
+                            <image>
+                                <Image url="@../../images/repository_small.png"/>
+                            </image>
+                        </ImageView>
+                    </graphic>
+                </Tab>
+            </tabs>
+        </TabPane>
+        <!--    TODO: decide whether or not to keep this
+                <Hyperlink  fx:id="trackLink"
+                            alignment="BOTTOM_LEFT"
+                            onAction="#handleTrackDifBranch"
+                            text="locally track another branch..."/>-->
+        <HBox spacing="30"
+              alignment="TOP_CENTER">
+            <Button text="Merge"
+                    onAction="#handleMergeButton"
+                    fx:id="mergeButton"
+                    GridPane.columnIndex="0"
+                    GridPane.rowIndex="5"/>
+            <Button text="Cancel"
+                    onAction="#closeWindow"
+                    GridPane.halignment="RIGHT"
+                    GridPane.rowIndex="5"
+                    GridPane.columnIndex="1"/>
+        </HBox>
+    </VBox>
+
+    <fx:include source="../NotificationPane.fxml" fx:id="notificationPane"/>
+
+    <stylesheets>
+        <URL value="@../../css/BaseStyle.css"/>
+    </stylesheets>
+</AnchorPane>

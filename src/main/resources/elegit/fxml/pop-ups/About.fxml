@@ -3,6 +3,9 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.text.Text?>
 <?import javafx.scene.control.Hyperlink?>
+
+<!-- ******************* ABOUT POPUP WINDOW ************************ -->
+
 <GridPane hgap="10"
           vgap="30"
           alignment="TOP_CENTER"
@@ -18,6 +21,6 @@
     <Hyperlink GridPane.rowIndex="1">http://elegit.org</Hyperlink>
 
     <stylesheets>
-        <URL value="@../css/BaseStyle.css"/>
+        <URL value="@../../css/BaseStyle.css"/>
     </stylesheets>
 </GridPane>

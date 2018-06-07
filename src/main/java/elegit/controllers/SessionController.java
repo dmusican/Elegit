@@ -1,5 +1,7 @@
 package elegit.controllers;
 
+import de.jensd.fx.glyphs.GlyphsDude;
+import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import elegit.*;
 import elegit.exceptions.*;
 import elegit.gui.*;
@@ -77,7 +79,7 @@ import java.util.prefs.BackingStoreException;
 
 import static java.util.Optional.of;
 
-/**
+/**s
  * The controller for the entire session.
  */
 public class SessionController {
@@ -99,6 +101,7 @@ public class SessionController {
     @FXML private Tab workingTreePanelTab;
     @FXML private Tab indexPanelTab;
     @FXML private Tab allFilesPanelTab;
+    @FXML private Button openRepoDirButton;
 
     @FXML private TabPane filesTabPane;
 
@@ -159,6 +162,9 @@ public class SessionController {
     private final AtomicReference<String> commitInfoNameText = new AtomicReference<>();
 
     private static AtomicInteger genericExceptionCount = new AtomicInteger(0);  // used for testing
+
+    // Used for testing openReopDirectory method
+    public static final AtomicBoolean methodCalled = new AtomicBoolean(false);
 
     public static final Object globalLock = new Object();
 
@@ -482,6 +488,7 @@ public class SessionController {
         pushButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         pushTagsButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         fetchButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
+        openRepoDirButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
 
         // Set minimum sizes for other fields and views
         workingTreePanelView.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
@@ -555,10 +562,14 @@ public class SessionController {
         this.pushButton.setTooltip(new Tooltip(
                 "Update remote repository with local changes,\nright click for advanced options"
         ));
-
         this.mergeButton.setTooltip(new Tooltip(
                 "Merge two commits together"
         ));
+        this.openRepoDirButton.setTooltip(new Tooltip(
+                "Open repository directory"
+        ));
+        Text openExternallyIcon = GlyphsDude.createIcon(FontAwesomeIcon.EXTERNAL_LINK);
+        this.openRepoDirButton.setGraphic(openExternallyIcon);
     }
 
     /**
@@ -707,6 +718,7 @@ public class SessionController {
         currentRemoteTrackingBranchHbox.setVisible(!disable);
         statusTextPane.setVisible(!disable);
         menuController.updateMenuBarEnabledStatus(disable);
+        openRepoDirButton.setDisable(disable);
 
         root.setOnMouseClicked(event -> {
             if (disable) showNoRepoLoadedNotification();
@@ -1032,7 +1044,7 @@ public class SessionController {
 
             logger.info("Opened checkout files window");
             // Create and display the Stage:
-            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/CheckoutFiles.fxml"));
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/pop-ups/CheckoutFiles.fxml"));
             fxmlLoader.load();
             CheckoutFilesController checkoutFilesController = fxmlLoader.getController();
             checkoutFilesController.setCommitHelper(commitHelper);
@@ -1118,7 +1130,7 @@ public class SessionController {
     private void commitNormal() throws IOException {
         logger.info("Opened commit manager window");
         // Create and display the Stage:
-        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/CommitView.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/pop-ups/CommitView.fxml"));
         fxmlLoader.load();
         CommitController commitController = fxmlLoader.getController();
         GridPane fxmlRoot = fxmlLoader.getRoot();
@@ -1722,7 +1734,7 @@ public class SessionController {
 
             if (this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
 
-            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/StashSave.fxml"));
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/pop-ups/StashSave.fxml"));
             fxmlLoader.load();
             StashSaveController stashSaveController = fxmlLoader.getController();
             //stashSaveController.setSessionController(this);
@@ -1783,7 +1795,7 @@ public class SessionController {
 
             if (this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
 
-            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/StashList.fxml"));
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/pop-ups/StashList.fxml"));
             fxmlLoader.load();
             StashListController stashListController = fxmlLoader.getController();
             stashListController.setSessionController(this);
@@ -2201,7 +2213,7 @@ public class SessionController {
 
             logger.info("Opened create/delete branch window");
             // Create and display the Stage:
-            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/CreateDeleteBranchWindow.fxml"));
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/pop-ups/CreateDeleteBranchWindow.fxml"));
             fxmlLoader.load();
             CreateDeleteBranchWindowController createDeleteBranchController = fxmlLoader.getController();
             createDeleteBranchController.setSessionController(this);
@@ -2254,7 +2266,7 @@ public class SessionController {
 
             logger.info("Opened merge window");
             // Create and display the Stage:
-            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/MergeWindow.fxml"));
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/pop-ups/MergeWindow.fxml"));
             fxmlLoader.load();
             MergeWindowController mergeWindowController = fxmlLoader.getController();
             mergeWindowController.setSessionController(this);
@@ -2374,7 +2386,9 @@ public class SessionController {
     /**
      * Opens the current repo directory (e.g. in Finder or Windows Explorer).
      */
-    void openRepoDirectory(){
+    @FXML
+    boolean openRepoDirectory(){
+        methodCalled.set(true);
         if (Desktop.isDesktopSupported()) {
             try{
                 logger.info("Opening Repo Directory");
@@ -2388,6 +2402,7 @@ public class SessionController {
                     String[] args = {"nautilus",this.theModel.getCurrentRepoHelper().getLocalPath().toFile().toString()};
                     runtime.exec(args);
                 }
+                return true;
             }catch(IOException | IllegalArgumentException e){
                 this.showFailedToOpenLocalNotification();
                 e.printStackTrace();
@@ -2396,6 +2411,7 @@ public class SessionController {
                 setButtonsDisabled(true);
             }
         }
+        return false;
     }
 
 
@@ -2444,7 +2460,7 @@ public class SessionController {
 
             logger.info("Opened branch checkout window");
             // Create and display the Stage:
-            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/BranchCheckout.fxml"));
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/pop-ups/BranchCheckout.fxml"));
             fxmlLoader.load();
             BranchCheckoutController branchCheckoutController = fxmlLoader.getController();
             AnchorPane fxmlRoot = fxmlLoader.getRoot();
@@ -2465,7 +2481,7 @@ public class SessionController {
         try{
             logger.info("Legend clicked");
             // Create and display the Stage:
-            GridPane fxmlRoot = FXMLLoader.load(getClass().getResource("/elegit/fxml/Legend.fxml"));
+            GridPane fxmlRoot = FXMLLoader.load(getClass().getResource("/elegit/fxml/pop-ups/Legend.fxml"));
 
             Stage stage = new Stage();
             stage.setTitle("Legend");
@@ -2797,6 +2813,8 @@ public class SessionController {
     public static int getGenericExceptionCount() {
         return genericExceptionCount.get();
     }
+
+    public static boolean getMethodCalled() { return methodCalled.get(); }
 
     public void setCommitTreeProgressBar(double value) {
         Main.assertFxThread();
