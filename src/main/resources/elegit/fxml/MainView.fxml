@@ -31,7 +31,7 @@
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
 
-<BorderPane xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/8.0.112" fx:controller="elegit.controllers.SessionController">
+<BorderPane xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="elegit.controllers.SessionController">
 
     <!-- the top section of the border pane -->
     <top>
@@ -104,7 +104,7 @@
                 </HBox>
 
                 <!-- Ribbon content right-->
-                <fx:include fx:id="commandLine" source="MainViewCommandLine.fxml" spacing="5" GridPane.columnIndex="5" GridPane.columnSpan="3" />
+                <fx:include fx:id="commandLine" alignment="CENTER_RIGHT" source="MainViewCommandLine.fxml" spacing="5" GridPane.columnIndex="5" GridPane.columnSpan="3" />
 
                 <!-- Working Directory block -->
                 <StackPane alignment="TOP_CENTER" GridPane.rowIndex="2" GridPane.valignment="TOP">
@@ -175,7 +175,7 @@
                 </VBox>
 
                     <!-- Local Repository block -->
-                <StackPane GridPane.columnIndex="4" GridPane.halignment="CENTER" GridPane.rowIndex="2">
+                <StackPane GridPane.columnIndex="4" GridPane.halignment="CENTER" GridPane.rowIndex="2" GridPane.columnSpan="2">
                     <ImageView fitHeight="137.5" fitWidth="137.5" opacity="0.25" preserveRatio="true">
                         <Image url="@../images/repository.png" />
                     </ImageView>
@@ -188,7 +188,7 @@
                     </VBox>
                 </StackPane>
 
-                <HBox alignment="CENTER" GridPane.columnIndex="4" GridPane.rowIndex="3">
+                <HBox alignment="CENTER" GridPane.columnIndex="4" GridPane.rowIndex="3" GridPane.columnSpan="2">
                     <Text text="Status: " />
                     <StackPane fx:id="statusTextPane">
                         <Text fx:id="branchStatusText" />

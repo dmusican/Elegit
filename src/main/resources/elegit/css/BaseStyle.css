@@ -157,6 +157,11 @@
     -fx-background-color: linear-gradient(from 0px 0px to 10px 0px, repeat, -fx-background-default 0%, -fx-background-default 49%, #777777 51%, #777777 100%);
 }
 
+#command {
+    -fx-font-family: "Courier";
+    -fx-font-size: 18px;
+}
+
 .tree-cell:selected {
   -fx-background-color: #BFBFBF;
 }
@@ -302,7 +307,7 @@
     -fx-fill: -fx-button-fill;
 }
 
-    #helpButton: hover {
+    #helpButton:hover {
         -fx-fill: -fx-button-hover-fill;
     }
 
@@ -316,7 +321,7 @@
     -fx-fill: -fx-button-fill;
 }
 
-    #helpButton-inside: hover {
+    #helpButton-inside:hover {
             -fx-fill: -fx-button-hover-fill;
         }
 
@@ -337,7 +342,7 @@
     -fx-fill: -fx-background-default;
 }
 
-    #helpButton-remote: hover {
+    #helpButton-remote:hover {
         -fx-stroke: -fx-button-hover-fill;
     }
 
