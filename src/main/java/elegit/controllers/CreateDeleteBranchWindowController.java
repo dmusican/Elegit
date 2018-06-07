@@ -418,9 +418,9 @@ public class CreateDeleteBranchWindowController {
             buttonToShowOver = deleteButton2;
             dropdownToReset = remoteBranchesDropdown;
         }
-        System.out.println("here i am " + message);
+        //System.out.println("here i am " + message);
         popOver.show(buttonToShowOver);
-        System.out.println("showed");
+        //System.out.println("showed");
         popOver.detach();
         popOver.setAutoHide(true);
         dropdownToReset.getSelectionModel().clearSelection();

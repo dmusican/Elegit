@@ -2099,7 +2099,6 @@ public class SessionController {
         // TODO: gitStatus was taken out of showing results; may need to go back in here.
         Main.assertFxThread();
         logger.info("Merge from fetch button clicked");
-
         return Observable.just(theModel.getCurrentRepoHelper())
                 .doOnNext(this::mergePreChecks) // skips to onErrorResumeNext when these fail
                 .doOnNext(unused -> showBusyWindowAndPauseRepoMonitor("Merging..."))

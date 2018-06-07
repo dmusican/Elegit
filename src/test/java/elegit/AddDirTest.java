@@ -72,7 +72,7 @@ public class AddDirTest {
         ArrayList<Path> paths = new ArrayList<>();
         paths.add(filePath);
         paths.add(filePathNew);
-        helperAdd.addFilePathsTest(paths, true);
+        helperAdd.addFilePathsTest(paths, false);
         Git git = new Git(helperAdd.getRepo());
 
         // Check that the file was added.
