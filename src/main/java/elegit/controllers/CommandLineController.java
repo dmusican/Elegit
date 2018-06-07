@@ -2,6 +2,7 @@ package elegit.controllers;
 
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
+import elegit.models.TranscriptHelper;
 import javafx.fxml.FXML;
 import javafx.geometry.Side;
 import javafx.scene.control.*;
@@ -53,7 +54,7 @@ public class CommandLineController {
      * Called when the commandLineMenuButton gets pushed, shows a menu of relevant options
      */
     public synchronized void handleCommandLineButton() {
-        commandLineMenu.show(commandLineMenuButton, Side.BOTTOM ,0, 0);
+        commandLineMenu.show(commandLineMenuButton, Side.BOTTOM, 0,0);
     }
 
     public synchronized void handleDisableOption() {
@@ -69,6 +70,6 @@ public class CommandLineController {
     }
 
     public synchronized void handleClearLogOption() {
-
+        TranscriptHelper.clear();
     }
 }
