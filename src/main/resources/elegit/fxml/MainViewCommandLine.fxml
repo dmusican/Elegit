@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ContextMenu?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.text.Text?>
+
+<!-- Elegit actions as terminal commands and a menu button for this feature -->
+
+<HBox spacing="5.0" stylesheets="@../css/BaseStyle.css" xmlns="http://javafx.com/javafx/8.0.112"
+      xmlns:fx="http://javafx.com/fxml/1" fx:controller="elegit.controllers.CommandLineController"
+      alignment="CENTER_LEFT">
+
+    <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Terminal Command:" textAlignment="CENTER"/>
+
+    <ScrollPane fx:id="commands" minWidth="-Infinity" prefHeight="50.0" prefWidth="200.0"
+                stylesheets="@../css/BaseStyle.css"/>
+
+    <Button id="commandLineMenuButton" fx:id="commandLineMenuButton" onAction="#handleCommandLineButton">
+        <contextMenu>
+            <ContextMenu fx:id="commandLineMenu">
+                <items>
+                    <MenuItem id="disableOption" fx:id="disableOption" onAction="#handleDisableOption"
+                              text="Disable terminal commands"/>
+                    <MenuItem id="seeHistoryOption" fx:id="seeHistoryOption" onAction="#handleSeeHistoryOption"
+                              text="See full history"/>
+                    <MenuItem id="exportHistoryOption" fx:id="exportHistoryOption" onAction="#handleExportHistoryOption"
+                              text="Export history to a .txt file"/>
+                    <MenuItem id="clearLogOption" fx:id="clearLogOption" onAction="#handleClearLogOption"
+                              text="Clear command history"/>
+                </items>
+            </ContextMenu>
+        </contextMenu>
+    </Button>
+</HBox>
