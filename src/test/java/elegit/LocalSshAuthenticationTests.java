@@ -60,7 +60,7 @@ public class LocalSshAuthenticationTests {
     @BeforeClass
     public static void setUpClass() {
         // Uncomment for debugging purposes
-//        TestingRemoteAndLocalReposRule.doNotDeleteTempFiles();
+//        TestingRemoteAndLocalReposRule.doNotDeleteTgoempFiles();
     }
 
     @Rule

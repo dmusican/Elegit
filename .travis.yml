@@ -5,8 +5,9 @@ os:
   - osx
 
 script:
-  - mvn clean test -B -DskipDisplay=true
+  - mvn clean test -B -DskipDisplay=true -Dtest=LocalSshAuthenticationTests#testForRepeatAuthentication
   # jfx:native uses javafx-maven-plugin to run all tests and to build native install for particular OS running on
   # jfx:build-jar uses javafx-maven-plugin to also produce executable jars
   # assembly:single creates zips and compressed tarballs that contain all needed files
-  - mvn clean compile jfx:build-jar assembly:single jfx:build-native
+  - mvn clean compile jfx:build-jar assembly:single
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then mvn jfx:build-native; fi
