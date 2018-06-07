@@ -229,6 +229,7 @@ public class LocalSshAuthenticationTests {
         // Set up mock .ssh/config file
         System.setProperty("user.home",directoryPath.resolve("home").toString());
         Path sshDir = directoryPath.resolve("home").resolve(".ssh");
+        System.out.println("SSHDIR IS " + sshDir);
         try {
             Files.createDirectories(sshDir);
 
