@@ -1,23 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ContextMenu?>
 <?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.shape.Rectangle?>
 <?import javafx.scene.text.Text?>
 
 <!-- Elegit actions as terminal commands and a menu button for this feature -->
 
-<?import javafx.scene.shape.Rectangle?>
-<HBox alignment="CENTER_LEFT" spacing="5.0" stylesheets="@../css/BaseStyle.css" xmlns="http://javafx.com/javafx/8.0.112"
+<HBox alignment="CENTER_LEFT" spacing="5.0" stylesheets="@../css/BaseStyle.css" xmlns="http://javafx.com/javafx/8.0.121"
       xmlns:fx="http://javafx.com/fxml/1" fx:controller="elegit.controllers.CommandLineController">
     <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Terminal Command:" textAlignment="CENTER"/>
-    <StackPane prefHeight="50.0" prefWidth="200.0">
-        <Text id="command" fx:id="currentCommand" strokeType="OUTSIDE" strokeWidth="0.0" text="git push" textOrigin="TOP"
-              wrappingWidth="199.99999731779099"/>
+    <StackPane prefHeight="30.0" prefWidth="200.0">
+        <Rectangle arcHeight="10.0" arcWidth="10.0" fill="WHITE" height="30.0" opacity="0.75" stroke="#00000088"
+                   strokeLineCap="BUTT" strokeType="INSIDE" width="200.0"/>
+        <Text id="command" fx:id="currentCommand" strokeType="OUTSIDE" strokeWidth="0.0" text="git push"
+              wrappingWidth="187.99999731779099">
+            <StackPane.margin>
+                <Insets/>
+            </StackPane.margin>
+        </Text>
     </StackPane>
-    <Button id="commandLineMenuButton" fx:id="commandLineMenuButton" onAction="#handleCommandLineButton">
+    <Button id="commandLineMenuButton" fx:id="commandLineMenuButton" onAction="#handleCommandLineMenuButton">
         <contextMenu>
             <ContextMenu fx:id="commandLineMenu">
                 <items>
