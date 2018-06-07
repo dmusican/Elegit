@@ -24,6 +24,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.testfx.framework.junit.ApplicationTest;
+import org.testfx.framework.junit.TestFXRule;
 import org.testfx.util.WaitForAsyncUtils;
 import sharedrules.TestUtilities;
 import sharedrules.TestingRemoteAndLocalReposRule;
@@ -49,14 +50,17 @@ public class AddFXTest extends ApplicationTest {
         System.setProperty("logFolder", s);
     }
 
-    @Rule
-    public final TestingRemoteAndLocalReposRule testingRemoteAndLocalRepos =
-            new TestingRemoteAndLocalReposRule(false);
-
     private static final Logger logger = LogManager.getLogger();
     private static final Logger console = LogManager.getLogger("briefconsolelogger");
 
     private SessionController sessionController;
+
+    @Rule
+    public TestFXRule testFXRule = new TestFXRule();
+
+    @Rule
+    public final TestingRemoteAndLocalReposRule testingRemoteAndLocalRepos =
+            new TestingRemoteAndLocalReposRule(false);
 
     @Override
     public void start(Stage stage) throws Exception {

@@ -31,11 +31,8 @@
           GridPane.rowSpan="1"
           alignment="CENTER_LEFT"
           spacing="10">
-        <Rectangle id="helpButton"
-                   height="30"
-                   width="30"/>
-        <Polygon id="helpButton"
-                 points="0,0,30,0,15,30"/>
+        <Polygon    id="helpButton"
+                    points="0,30,30,30,15,0"/>
         <Circle radius="15.0"
                 id="helpButton"/>
         <Text text="A commit tracked locally but not remotely"/>
@@ -47,11 +44,8 @@
           GridPane.rowSpan="1"
           alignment="CENTER_LEFT"
           spacing="10">
-        <Rectangle id="helpButton-remote"
-                   height="30"
-                   width="30"/>
-        <Polygon id="helpButton-remote"
-                 points="0,0,30,0,15,30"/>
+        <Polygon    id="helpButton-remote"
+                    points="0,30,30,30,15,0"/>
         <Circle radius="15.0"
                 id="helpButton-remote"/>
         <Text text="A commit tracked remotely but not locally"/>
@@ -64,18 +58,13 @@
           alignment="CENTER_LEFT"
           spacing="10">
         <StackPane>
-            <Rectangle id="helpButton-both"
-                       height="30"
-                       width="30"/>
+            <Polygon id="helpButton-both"
+                     points="0,30,30,30,15,0">
+            </Polygon>
         </StackPane>
         <StackPane>
             <Circle id="helpButton-both"
                     radius="15"/>
-        </StackPane>
-        <StackPane>
-            <Polygon id="helpButton-both"
-                     points="0,0,30,0,15,30">
-            </Polygon>
         </StackPane>
         <Text text="A commit tracked locally and remotely"/>
     </HBox>
@@ -106,9 +95,11 @@
           GridPane.rowSpan="1"
           alignment="CENTER_LEFT"
           spacing="10">
-        <Rectangle height="30"
-                   width="30"
-                   style="-fx-fill: lightslategrey"/>
+        <!--<Rectangle  height="30"
+                    width="30"
+                    style="-fx-fill: lightslategrey"/>-->
+        <Circle radius="15.0"
+                style="-fx-fill: lightslategrey"/>
         <Text text="A commit that is not a branch head"/>
     </HBox>
 
@@ -118,20 +109,9 @@
           GridPane.rowSpan="1"
           alignment="CENTER_LEFT"
           spacing="10">
-        <Polygon points="0,0,30,0,15,30"
+        <Polygon points="0,30,30,30,15,0"
                  style="-fx-fill: lightslategrey"/>
-        <Text text="Either a local branch head that has an associated&#10;remote-tracking branch, or vice versa."/>
-    </HBox>
-
-    <!-- Circle -->
-    <HBox GridPane.columnIndex="2"
-          GridPane.rowIndex="3"
-          GridPane.rowSpan="1"
-          alignment="CENTER_LEFT"
-          spacing="10">
-        <Circle radius="15.0"
-                style="-fx-fill: lightslategrey"/>
-        <Text text="Either a local branch head that does not have&#10;an associated remote-tracking branch, or vice versa."/>
+        <Text text="A commit that is a branch head"/>
     </HBox>
 
     <stylesheets>

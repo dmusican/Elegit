@@ -29,6 +29,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestName;
 import org.testfx.framework.junit.ApplicationTest;
+import org.testfx.framework.junit.TestFXRule;
 import org.testfx.service.query.NodeQuery;
 import org.testfx.util.WaitForAsyncUtils;
 import sharedrules.TestUtilities;
@@ -75,6 +76,9 @@ public class SshPrivateKeyPasswordOpeningCancelFXTest extends ApplicationTest {
     private SessionController sessionController;
     private String remoteURL;
     private SshServer sshd;
+
+    @Rule
+    public TestFXRule testFXRule = new TestFXRule();
 
     @Rule
     public TestName testName = new TestName();

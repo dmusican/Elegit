@@ -3,8 +3,10 @@ package elegitfx;
 import elegit.treefx.Cell;
 import elegit.treefx.TreeLayout;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.testfx.framework.junit.ApplicationTest;
+import org.testfx.framework.junit.TestFXRule;
 
 import java.util.ArrayList;
 
@@ -14,6 +16,10 @@ import static org.junit.Assert.assertEquals;
  * Created by dmusicant on 12/6/16.
  */
 public class TreeLayoutFXTest extends ApplicationTest {
+
+    @Rule
+    public TestFXRule testFXRule = new TestFXRule();
+
 
     private static ArrayList<Cell> allCells = new ArrayList<>();
 
@@ -82,10 +88,7 @@ public class TreeLayoutFXTest extends ApplicationTest {
             assertEquals(allCells.get(5).getCellId(),"cell3");
             assertEquals(allCells.get(6).getCellId(),"cell4");
         });
-    }
 
-    @Test
-    public void testTopographicalSorting() throws Exception {
         interact(() -> {
             TreeLayout.topologicalSortListOfCells(allCells);
             for (Cell cell : allCells) {
@@ -101,6 +104,4 @@ public class TreeLayoutFXTest extends ApplicationTest {
             assertEquals(allCells.get(6).getCellId(),"cell4");
         });
     }
-
-
 }

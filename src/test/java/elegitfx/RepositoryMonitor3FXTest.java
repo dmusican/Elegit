@@ -8,8 +8,10 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.testfx.framework.junit.ApplicationTest;
+import org.testfx.framework.junit.TestFXRule;
 import sharedrules.TestUtilities;
 
 import java.nio.file.Path;
@@ -29,6 +31,9 @@ public class RepositoryMonitor3FXTest extends ApplicationTest {
     private static final Logger logger = LogManager.getLogger();
 
     private SessionController sessionController;
+
+    @Rule
+    public TestFXRule testFXRule = new TestFXRule();
 
     @Override
     public void start(Stage stage) throws Exception {

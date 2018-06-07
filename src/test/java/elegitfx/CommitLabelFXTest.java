@@ -14,8 +14,10 @@ import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
 import org.testfx.framework.junit.ApplicationTest;
+import org.testfx.framework.junit.TestFXRule;
 import sharedrules.TestUtilities;
 
 import java.io.File;
@@ -57,6 +59,9 @@ public class CommitLabelFXTest extends ApplicationTest {
     private SessionController sessionController;
 
     private Throwable testFailures;
+
+    @Rule
+    public TestFXRule testFXRule = new TestFXRule();
 
 
     @Override

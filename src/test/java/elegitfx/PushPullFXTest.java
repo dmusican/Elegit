@@ -1,5 +1,6 @@
 package elegitfx;
 
+import org.testfx.framework.junit.TestFXRule;
 import sharedrules.TestingLogPathRule;
 import elegit.models.ClonedRepoHelper;
 import elegit.models.SessionModel;
@@ -35,6 +36,9 @@ public class PushPullFXTest extends ApplicationTest {
 
     @ClassRule
     public static final TestingLogPathRule testingLogPath = new TestingLogPathRule();
+
+    @Rule
+    public TestFXRule testFXRule = new TestFXRule();
 
     @Rule
     public final TestingRemoteAndLocalReposRule testingRemoteAndLocalRepos =
