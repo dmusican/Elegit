@@ -1,4 +1,9 @@
 language: java
+
+os:
+  - linux
+  - osx
+
 script:
-- mvn clean test -B -DskipDisplay=true
-- mvn clean compile jfx:build-jar assembly:single
+  - mvn clean test -B -DskipDisplay=true
+  - mvn clean compile jfx:build-jar assembly:single
