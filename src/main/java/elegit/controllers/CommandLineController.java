@@ -8,8 +8,6 @@ import javafx.fxml.FXMLLoader;
 import javafx.geometry.Side;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.StackPane;
 import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -89,7 +87,7 @@ public class CommandLineController {
         try {
             logger.info("See history clicked");
             // Create and display the Stage:
-            ScrollPane fxmlRoot = FXMLLoader.load(getClass().getResource("/elegit/fxml/CommandLineHistory.fxml"));
+            ScrollPane fxmlRoot = FXMLLoader.load(getClass().getResource("/elegit/fxml/pop-ups/CommandLineHistory.fxml"));
 
             Stage stage = new Stage();
             stage.setTitle("Recent Elegit actions as commands");
