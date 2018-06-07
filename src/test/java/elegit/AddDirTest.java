@@ -50,10 +50,10 @@ public class AddDirTest {
         Path remoteBarFilePath = remote.resolve("foo"+File.separator+"bar.txt");
         String timestamp1 = "initial setup " + (new Date()).toString() + "\n";
         Files.write(remoteBarFilePath, timestamp1.getBytes());
-        ArrayList<Path> paths = new ArrayList<>();
-        paths.add(remoteBarFilePath);
+        //ArrayList<Path> paths = new ArrayList<>();
+        //paths.add(remoteBarFilePath);
         ExistingRepoHelper helperServer = new ExistingRepoHelper(remote, null);
-        helperServer.addFilePathsTest(paths);
+        helperServer.addFilePathTest(remoteBarFilePath);
         helperServer.commit("Initial unit test commit");
 
 
@@ -69,10 +69,10 @@ public class AddDirTest {
         String timestamp = "testInDirAdd " + (new Date()).toString() + "\n";
         Files.write(filePath, timestamp.getBytes(), StandardOpenOption.APPEND);
         Files.write(filePathNew, timestamp.getBytes());
-        paths = new ArrayList<>();
+        ArrayList<Path> paths = new ArrayList<>();
         paths.add(filePath);
         paths.add(filePathNew);
-        helperAdd.addFilePathsTest(paths);
+        helperAdd.addFilePathsTest(paths, true);
         Git git = new Git(helperAdd.getRepo());
 
         // Check that the file was added.

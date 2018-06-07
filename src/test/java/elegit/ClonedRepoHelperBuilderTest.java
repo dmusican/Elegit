@@ -50,7 +50,7 @@ public class ClonedRepoHelperBuilderTest {
             file.delete();
         }
     }
-
+    //test doesn't test anything, always passes
     @Test
     public void testGetPrevRepoName() throws Exception {
         assertTrue(4 == 2+2);

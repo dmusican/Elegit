@@ -95,6 +95,7 @@ public class RepoHelper {
         this.privateKeyFileLocation.set(privateKeyFileLocation);
         this.knownHostsFileLocation = knownHostsFileLocation;
         sshSessionFactory = setupSshSessionFactory();
+        //TranscriptHelper.post("git configing");
     }
 
     public RepoHelper() throws GitAPIException, IOException {
@@ -251,6 +252,7 @@ public class RepoHelper {
         git.add()
                 .addFilepattern(pathToAdd)
                 .call();
+        TranscriptHelper.post("git add "+filePath);
         git.close();
     }
 
@@ -260,8 +262,9 @@ public class RepoHelper {
      * @param filePaths an ArrayList of file paths to add.
      * @throws GitAPIException if the `git add` call fails.
      */
-    public void addFilePathsTest(ArrayList<Path> filePaths) throws GitAPIException {
+    public void addFilePathsTest(ArrayList<Path> filePaths, boolean isSelectAllChecked) throws GitAPIException {
         Git git = new Git(this.getRepo());
+        ArrayList<String> fileNames = new ArrayList();
         // git add:
         AddCommand adder = git.add();
         for (Path filePath : filePaths) {
@@ -273,9 +276,16 @@ public class RepoHelper {
                 else
                     pathToAdd = pathToAdd.replaceAll(File.separator, "/");
             }
+            fileNames.add(pathToAdd);
             adder.addFilepattern(pathToAdd);
         }
         adder.call();
+        if (isSelectAllChecked){
+            TranscriptHelper.post("git add *");
+        }
+        else {
+            TranscriptHelper.post("git add " + String.join(" ", fileNames));
+        }
         git.close();
     }
 
@@ -285,7 +295,7 @@ public class RepoHelper {
      * @param filePaths an ArrayList of file paths to add.
      * @throws GitAPIException if the `git add` call fails.
      */
-    public void addFilePaths(ArrayList<Path> filePaths) throws GitAPIException {
+    public void addFilePaths(ArrayList<Path> filePaths, boolean isSelectAllChecked) throws GitAPIException {
         Git git = new Git(this.getRepo());
         ArrayList<String> fileNames = new ArrayList();
         // git add:
@@ -302,7 +312,12 @@ public class RepoHelper {
             adder.addFilepattern(pathToAdd);
         }
         adder.call();
-        TranscriptHelper.post("git add "+String.join(" ", fileNames));
+        if (isSelectAllChecked){
+            TranscriptHelper.post("git add *");
+        }
+        else {
+            TranscriptHelper.post("git add " + String.join(" ", fileNames));
+        }
         git.close();
     }
 
@@ -514,7 +529,7 @@ public class RepoHelper {
                 }
             }
         }
-
+        TranscriptHelper.post("git push");
         push.getRepository().close();
 
         this.remoteCommits.set(parseAllRemoteCommits());
@@ -637,7 +652,7 @@ public class RepoHelper {
         if (allPushesWereRejected || anyPushWasRejected) {
             throw new PushToAheadRemoteError(allPushesWereRejected);
         }
-
+        TranscriptHelper.post("git push");
         push.getRepository().close();
 
         this.remoteCommits.set(parseAllRemoteCommits());

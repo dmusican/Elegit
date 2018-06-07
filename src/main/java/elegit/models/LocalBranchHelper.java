@@ -69,6 +69,7 @@ public class LocalBranchHelper extends BranchHelper {
     // TODO: This code is in a strange location, should be near other git operations
     public void checkoutBranch() throws GitAPIException, IOException {
         new Git(this.repoHelper.getRepo()).checkout().setName(getRefName()).call();
+        TranscriptHelper.post("git checkout "+this.getRefName());
         this.repoHelper.getBranchModel().refreshCurrentBranch();
     }
 }

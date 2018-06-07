@@ -19,6 +19,7 @@ public class TranscriptHelper {
         } catch (IOException e) {
 
         }
+        System.out.println("Command: " + command);
     }
 
     public static void clear() {

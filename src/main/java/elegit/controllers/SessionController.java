@@ -903,7 +903,7 @@ public class SessionController {
                 }
 
                 if (filePathsToAdd.size() > 0)
-                    theModel.getCurrentRepoHelper().addFilePaths(filePathsToAdd);
+                    theModel.getCurrentRepoHelper().addFilePaths(filePathsToAdd, workingTreePanelView.isSelectAllChecked());
                 if (filePathsToRemove.size() > 0)
                     theModel.getCurrentRepoHelper().removeFilePaths(filePathsToRemove);
             } catch (Exception e) {

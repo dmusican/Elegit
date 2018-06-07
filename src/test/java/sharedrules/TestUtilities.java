@@ -58,10 +58,10 @@ public class TestUtilities {
         // Set up remote repo
         Path remoteFilePath = remoteRepoDirectoryFull.resolve("file.txt");
         Files.write(remoteFilePath, "testSshPassword".getBytes());
-        ArrayList<Path> paths = new ArrayList<>();
-        paths.add(remoteFilePath);
+        //ArrayList<Path> paths = new ArrayList<>();
+        //paths.add(remoteFilePath);
         ExistingRepoHelper helperServer = new ExistingRepoHelper(remoteRepoDirectoryFull, null);
-        helperServer.addFilePathsTest(paths);
+        helperServer.addFilePathTest(remoteFilePath);
         helperServer.commit("Initial unit test commit");
 
         // All of this key set up is gratuitous, but it's the only way that I was able to get sshd to start up.

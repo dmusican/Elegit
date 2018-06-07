@@ -184,6 +184,7 @@ public class BranchCheckoutController {
             selectedBranch.checkoutBranch();
             CommitTreeController.focusCommitInGraph(selectedBranch.getCommit());
             CommitTreeController.setBranchHeads(CommitTreeController.getCommitTreeModel(), theSessionModel.getCurrentRepoHelper());
+            TranscriptHelper.post("git checkout "+selectedBranch);
             return true;
         } catch (JGitInternalException e){
             showJGitInternalError(e);
