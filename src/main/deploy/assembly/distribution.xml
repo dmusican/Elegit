@@ -1,6 +1,6 @@
 <assembly>
 
-    <id>distribution</id>
+    <id>unix</id>
 
     <formats>
         <format>tar.gz</format>
@@ -26,7 +26,7 @@
             <directory>target/jfx/app</directory>
             <outputDirectory>.</outputDirectory>
             <includes>
-                <include>Elegit-jfx.jar</include>
+                <include>*.jar</include>
             </includes>
         </fileSet>
         <fileSet>
