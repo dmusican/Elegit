@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- Commit info window -->
+<!-- ******************* SELECTED COMMIT INFO WINDOW ************************ -->
+
 <?import javafx.scene.text.Text?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.layout.*?>
@@ -14,10 +15,10 @@
     <GridPane.margin>
         <Insets bottom="5"/>
     </GridPane.margin>
-    <HBox   spacing="120"
-            alignment="CENTER">
-        <Text   text="Commit Info:"
-                style="-fx-font-weight: bold;"/>
+    <HBox spacing="120"
+          alignment="CENTER">
+        <Text text="Commit Info:"
+              style="-fx-font-weight: bold;"/>
         <Button fx:id="commitInfoButton"
                 onAction="#handleCommitInfoButton">
             <contextMenu>
