@@ -151,10 +151,10 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
 
         Path remoteFilePath = remoteFull.resolve("file.txt");
         Files.write(remoteFilePath, "hello".getBytes());
-        ArrayList<Path> paths = new ArrayList<>();
-        paths.add(remoteFilePath);
+        //ArrayList<Path> paths = new ArrayList<>();
+        //paths.add(remoteFilePath);
         ExistingRepoHelper helperServer = new ExistingRepoHelper(remoteFull, null);
-        helperServer.addFilePathsTest(paths);
+        helperServer.addFilePathTest(remoteFilePath);
         helperServer.commit("Initial unit test commit");
 
         System.out.println("Location is " + db.getDirectory());
@@ -213,7 +213,7 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
         fw.close();
         ArrayList<Path> paths = new ArrayList<>();
         paths.add(fileLocation.getFileName());
-        helper.addFilePaths(paths);
+        helper.addFilePaths(paths, false);
         helper.commit("Appended to file");
         PushCommand command = helper.prepareToPushAll();
         helper.pushAll(command);
@@ -356,7 +356,7 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
         paths.add(filePath);
         paths.add(readPath);
         // Add both files and check that they are staged.
-        helper.addFilePathsTest(paths);
+        helper.addFilePathsTest(paths, false);
         assertEquals(2,git.status().call().getChanged().size());
         // Reset both the files and check that it worked
         helper.reset(paths);
