@@ -181,6 +181,8 @@ public class BranchCheckoutController {
     private boolean checkoutBranch(LocalBranchHelper selectedBranch, SessionModel theSessionModel) {
         if(selectedBranch == null) return false;
         try {
+            CommandLineController commandLineController = new CommandLineController();
+            commandLineController.updateCommandText("git checkout "+selectedBranch.getRefName());
             selectedBranch.checkoutBranch();
             CommitTreeController.focusCommitInGraph(selectedBranch.getCommit());
             CommitTreeController.setBranchHeads(CommitTreeController.getCommitTreeModel(), theSessionModel.getCurrentRepoHelper());

@@ -323,7 +323,6 @@ public class RepoHelper {
     public void checkoutFile(Path filePath) throws GitAPIException {
         Git git = new Git(this.getRepo());
         git.checkout().addPath(filePath.toString()).call();
-        TranscriptHelper.post("git checkout "+filePath.toString());
         git.close();
     }
 
@@ -962,7 +961,6 @@ public class RepoHelper {
      */
     public void stashApply(String stashRef, boolean force) throws GitAPIException {
         logger.info("Attempting stash apply");
-        TranscriptHelper.post("git stash apply "+stashRef);
         Git git = new Git(this.getRepo());
         git.stashApply().setStashRef(stashRef).ignoreRepositoryState(force).call();
     }
@@ -986,7 +984,6 @@ public class RepoHelper {
      */
     public ObjectId stashDrop(int stashRef) throws GitAPIException {
         logger.info("Attempting stash drop");
-        TranscriptHelper.post("git stash drop "+stashRef);
         Git git = new Git(this.getRepo());
         return git.stashDrop().setStashRef(stashRef).call();
     }

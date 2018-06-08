@@ -202,7 +202,6 @@ public class BranchModel {
         Ref newBranch = git.branchCreate().setName(branchName).call();
         LocalBranchHelper newLocalBranchHelper = new LocalBranchHelper(newBranch, this.repoHelper);
         this.localBranchesTyped.add(newLocalBranchHelper);
-        TranscriptHelper.post("git branch "+branchName);
         git.close();
         return newLocalBranchHelper;
     }
@@ -221,7 +220,6 @@ public class BranchModel {
         Git git = new Git(this.repoHelper.getRepo());
         git.branchDelete().setBranchNames(localBranchToDelete.getRefPathString()).call();
         this.localBranchesTyped.remove(localBranchToDelete);
-        TranscriptHelper.post("git branch -d "+localBranchToDelete);
         git.close();
     }
 
@@ -264,7 +262,6 @@ public class BranchModel {
                 return refUpdate.getStatus();
             }
         }
-        TranscriptHelper.post("git push origin "+branchName);
         return null;
     }
 
@@ -284,7 +281,6 @@ public class BranchModel {
 
         MergeResult mergeResult = merge.call();
 
-        TranscriptHelper.post("git merge "+branchToMergeFrom);
         git.close();
 
         return mergeResult;

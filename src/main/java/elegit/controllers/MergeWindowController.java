@@ -240,6 +240,8 @@ public class MergeWindowController {
         // Get the merge result from the branch merge
         MergeResult mergeResult =
                 SessionModel.getSessionModel().getCurrentRepoHelper().getBranchModel().mergeWithBranch(selectedBranch);
+        CommandLineController commandLineController = new CommandLineController();
+        commandLineController.updateCommandText("git merge "+selectedBranch);
 
         if (mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.CONFLICTING)){
             this.showConflictsNotification();

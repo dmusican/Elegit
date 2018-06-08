@@ -36,6 +36,7 @@ public class StashListController {
 
     private final AtomicReference<SessionController> sessionController = new AtomicReference<>();
     private final RepoHelper repoHelper;
+    private final CommandLineController commandLineController = new CommandLineController();
 
     private static final Logger logger = LogManager.getLogger();
 
@@ -107,7 +108,6 @@ public class StashListController {
     private void refreshList() {
         try {
             this.stashList.setItems(FXCollections.observableArrayList(repoHelper.stashList()));
-            CommandLineController commandLineController = new CommandLineController();
             commandLineController.updateCommandText("git stash list");
         } catch (GitAPIException e) {
             this.notificationPaneController.addNotification("Something went wrong retrieving the stash(es)");
@@ -126,6 +126,7 @@ public class StashListController {
         String stashRef = this.stashList.getSelectionModel().getSelectedItem().getName();
         try {
             repoHelper.stashApply(stashRef, false);
+            commandLineController.updateCommandText("git stash apply "+stashRef);
             // TODO: Fix when have better approach for gitStatus
             //sessionController.gitStatus();
         } catch (WrongRepositoryStateException e) {
@@ -144,6 +145,9 @@ public class StashListController {
         int index = this.stashList.getSelectionModel().getSelectedIndex();
         try {
             repoHelper.stashDrop(index);
+
+            commandLineController.updateCommandText("git stash drop "+index);
+
             refreshList();
         } catch (GitAPIException e) {
             notificationPaneController.addNotification("Something went wrong with the drop. Try committing any uncommitted changes.");
@@ -158,7 +162,6 @@ public class StashListController {
     public void handleClearStash() {
         try {
             repoHelper.stashClear();
-            CommandLineController commandLineController = new CommandLineController();
             commandLineController.updateCommandText("git stash clear");
             refreshList();
         } catch (GitAPIException e) {
@@ -175,6 +178,7 @@ public class StashListController {
         try {
             repoHelper.stashApply(stashRef, false);
             repoHelper.stashDrop(index);
+            commandLineController.updateCommandText("git stash pop "+stashRef);
             refreshList();
             // TODO: Fix when have better approach for gitStatus
             //sessionController.gitStatus();

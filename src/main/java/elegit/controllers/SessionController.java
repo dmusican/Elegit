@@ -999,6 +999,7 @@ public class SessionController {
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
             if(!this.theModel.getCurrentRepoHelper().exists()) throw new MissingRepoException();
             theModel.getCurrentRepoHelper().checkoutFile(filePath);
+            commandLineController.updateCommandText("git checkout "+filePath.toString());
         } catch (NoRepoLoadedException e) {
             showNoRepoLoadedNotification();
         } catch (MissingRepoException e) {
@@ -1470,6 +1471,7 @@ public class SessionController {
         }
         try {
             selectedBranch.checkoutBranch();
+            commandLineController.updateCommandText("git checkout "+selectedBranch.getRefName());
 
             // If the checkout worked, update the branch heads and focus on that commit
             CommitTreeController.setBranchHeads(CommitTreeController.getCommitTreeModel(), theModel.getCurrentRepoHelper());
@@ -1498,6 +1500,7 @@ public class SessionController {
             if (selectedBranch != null) {
                 if (selectedBranch instanceof LocalBranchHelper) {
                     branchModel.deleteLocalBranch((LocalBranchHelper) selectedBranch);
+                    commandLineController.updateCommandText("git branch -d "+selectedBranch);
                     updateUser(selectedBranch.getRefName() + " deleted.");
                 }else {
                     deleteRemoteBranch(selectedBranch, branchModel,
@@ -1578,6 +1581,8 @@ public class SessionController {
                         new UsernamePasswordCredentialsProvider(response.username, response.password));
             }
             RemoteRefUpdate.Status deleteStatus = branchModel.deleteRemoteBranch((RemoteBranchHelper) selectedBranch);
+            RemoteBranchHelper remote = (RemoteBranchHelper) selectedBranch;
+            commandLineController.updateCommandText("git push origin :refs/heads/"+remote.parseBranchName());
             String updateMessage = selectedBranch.getRefName();
             // There are a number of possible cases, see JGit's documentation on RemoteRefUpdate.Status
             // for the full list.
@@ -1793,6 +1798,7 @@ public class SessionController {
             CommitHelper topStash = theModel.getCurrentRepoHelper().stashList().get(0);
             commandLineController.updateCommandText("git stash list");
             this.theModel.getCurrentRepoHelper().stashApply(topStash.getName(), false);
+            commandLineController.updateCommandText("git stash apply "+topStash.getName());
             gitStatus();
         } catch (StashApplyFailureException e) {
             showStashConflictsNotification();
@@ -1835,6 +1841,7 @@ public class SessionController {
         try {
             // TODO: implement droping something besides 0
             this.theModel.getCurrentRepoHelper().stashDrop(0);
+            commandLineController.updateCommandText("git stash drop "+0);
         } catch (GitAPIException e) {
             showGenericErrorNotification(e);
         }
