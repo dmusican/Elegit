@@ -1,21 +1,17 @@
 package elegit.controllers;
 
-import de.jensd.fx.glyphs.GlyphsDude;
-import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
-import elegit.models.TranscriptHelper;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.geometry.Side;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.text.Text;
+import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import net.jcip.annotations.GuardedBy;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.IOException;
+import java.io.*;
 
 public class CommandLineHistoryController {
 
@@ -23,7 +19,7 @@ public class CommandLineHistoryController {
     private SessionController sessionController;
 
     @FXML
-    private Text commandHistory;
+    private TextArea commandHistory;
 
     private static final Logger logger = LogManager.getLogger();
 
@@ -33,12 +29,38 @@ public class CommandLineHistoryController {
 
     //Currently doesn't update with actual history
     public synchronized void handleSeeHistoryOption() {
-        commandHistory.setText("");
+        //commandHistory.clear();
+        String command;
+        //Currently cannot get the file. I'm not sure why it's not showing up in the log folder.
+        File transcript = new File(System.getProperty("logFolder") + "/transcript.log");
+        try {
+            BufferedReader br = new BufferedReader(new FileReader(transcript));
+            while ((command = br.readLine()) != null) {
+                commandHistory.appendText(command);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         showHistory();
     }
 
     public synchronized void handleExportHistoryOption() {
+        FileChooser fileChooser = new FileChooser();
+        Stage stage = new Stage();
+        fileChooser.showSaveDialog(stage);
+        File transcript = new File(System.getProperty("logFolder") + "/transcript.log");
+        //Currently cannot get the file. I'm not sure why it's not showing up in the log folder.
+        saveFile(commandHistory.getText(), transcript);
+    }
 
+    private static void saveFile(String content, File file) {
+        try {
+            FileWriter fileWriter = new FileWriter(file);
+            fileWriter.write(content);
+            fileWriter.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     /**

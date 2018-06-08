@@ -9,12 +9,15 @@ import javafx.geometry.Side;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.text.Text;
+import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import net.jcip.annotations.GuardedBy;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 
 /**
@@ -36,11 +39,12 @@ public class CommandLineController {
 
     private static final Logger logger = LogManager.getLogger();
 
-    public synchronized void setSessionController(CommandLineHistoryController commandLineHistoryController) {
-        this.commandLineHistoryController = commandLineHistoryController;
+    public synchronized void setCommandLineHistoryController() {
+        this.commandLineHistoryController = new CommandLineHistoryController();
     }
 
     public void initialize() {
+        setCommandLineHistoryController();
         commandLineMenuButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         Text barsIcon = GlyphsDude.createIcon(FontAwesomeIcon.BARS);
         this.commandLineMenuButton.setGraphic(barsIcon);
@@ -65,7 +69,7 @@ public class CommandLineController {
     }
 
     public synchronized void handleExportHistoryOption() {
-
+        commandLineHistoryController.handleExportHistoryOption();
     }
 
     public synchronized void handleClearLogOption() {
