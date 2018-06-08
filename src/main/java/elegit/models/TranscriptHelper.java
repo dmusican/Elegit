@@ -2,10 +2,7 @@ package elegit.models;
 
 import elegit.controllers.CommandLineController;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.Writer;
+import java.io.*;
 
 /**
  * Created by gorram on 6/6/18.
@@ -21,6 +18,12 @@ public class TranscriptHelper {
     public static void post(String command) {
         String log_file_path = System.getProperty("logFolder") + "/transcript.log";
 
+        File transcript = new File(log_file_path);
+        System.out.println("Before writing.");
+        System.out.println(transcript.isFile());
+        System.out.println(transcript.canRead());
+        System.out.println(transcript.canWrite());
+
         Writer output;
         try {
             output = new BufferedWriter(new FileWriter(log_file_path, true));
@@ -31,10 +34,16 @@ public class TranscriptHelper {
         }
         System.out.println("Command: " + command);
 
+        System.out.println("After writing.");
+        System.out.println(transcript.isFile());
+        System.out.println(transcript.canRead());
+        System.out.println(transcript.canWrite());
+
         //sendCommand(command);
     }
 
     public static void clear() {
+        System.out.println("Transcript is being cleared.");
         String log_file_path = System.getProperty("logFolder") + "/transcript.log";
 
         try {
