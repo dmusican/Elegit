@@ -2,6 +2,7 @@ package elegit.controllers;
 
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
+import elegit.Main;
 import elegit.models.TranscriptHelper;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -44,6 +45,7 @@ public class CommandLineController {
     }
 
     public void initialize() {
+        //Main.assertFxThread();
         setCommandLineHistoryController();
         commandLineMenuButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         Text barsIcon = GlyphsDude.createIcon(FontAwesomeIcon.BARS);
@@ -78,9 +80,12 @@ public class CommandLineController {
     }
 
     public synchronized void updateCommandText(String command) {
+        //Main.assertFxThread();
         TranscriptHelper.post(command);
-        if (allowUpdates) {
+        //something in currentCommand.setText() is causing an error
+        /*if (allowUpdates) {
+            System.out.println("helo");
             currentCommand.setText(command);
-        }
+        }*/
     }
 }
