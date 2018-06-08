@@ -23,7 +23,7 @@ import java.io.IOException;
 
 public class CommandLineController {
     @GuardedBy("this")
-    private SessionController sessionController;
+    private CommandLineHistoryController commandLineHistoryController;
 
     @FXML
     private Text currentCommand;
@@ -36,8 +36,8 @@ public class CommandLineController {
 
     private static final Logger logger = LogManager.getLogger();
 
-    public synchronized void setSessionController(SessionController sessionController) {
-        this.sessionController = sessionController;
+    public synchronized void setSessionController(CommandLineHistoryController commandLineHistoryController) {
+        this.commandLineHistoryController = commandLineHistoryController;
     }
 
     public void initialize() {
@@ -61,7 +61,7 @@ public class CommandLineController {
 
     //Currently doesn't update with actual history
     public synchronized void handleSeeHistoryOption() {
-        showHistory();
+        commandLineHistoryController.handleSeeHistoryOption();
     }
 
     public synchronized void handleExportHistoryOption() {
@@ -77,27 +77,6 @@ public class CommandLineController {
     public synchronized void updateCommandText(String command) {
         if (allowUpdates) {
             currentCommand.setText(command);
-        }
-    }
-
-    /**
-     * Opens up a terminal like window and displays history
-     */
-    private void showHistory() {
-        try {
-            logger.info("See history clicked");
-            // Create and display the Stage:
-            ScrollPane fxmlRoot = FXMLLoader.load(getClass().getResource("/elegit/fxml/pop-ups/CommandLineHistory.fxml"));
-
-            Stage stage = new Stage();
-            stage.setTitle("Recent Elegit actions as commands");
-            stage.setScene(new Scene(fxmlRoot));
-            stage.initModality(Modality.APPLICATION_MODAL);
-            stage.setOnCloseRequest(event -> logger.info("Closed history"));
-            stage.show();
-        } catch (IOException e) {
-            sessionController.showGenericErrorNotification(e);
-            e.printStackTrace();
         }
     }
 }
