@@ -107,6 +107,8 @@ public class StashListController {
     private void refreshList() {
         try {
             this.stashList.setItems(FXCollections.observableArrayList(repoHelper.stashList()));
+            CommandLineController commandLineController = new CommandLineController();
+            commandLineController.updateCommandText("git stash list");
         } catch (GitAPIException e) {
             this.notificationPaneController.addNotification("Something went wrong retrieving the stash(es)");
         } catch (IOException e) {
@@ -156,6 +158,8 @@ public class StashListController {
     public void handleClearStash() {
         try {
             repoHelper.stashClear();
+            CommandLineController commandLineController = new CommandLineController();
+            commandLineController.updateCommandText("git stash clear");
             refreshList();
         } catch (GitAPIException e) {
             notificationPaneController.addNotification("Something went wrong with the clear. Try committing any uncommitted changes.");

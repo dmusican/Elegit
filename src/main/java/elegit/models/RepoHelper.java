@@ -332,7 +332,7 @@ public class RepoHelper {
      *
      * @param filePaths the files to check out
      */
-    public void checkoutFiles(List<Path> filePaths) throws GitAPIException {
+    public ArrayList<String> checkoutFiles(List<Path> filePaths) throws GitAPIException {
         Git git = new Git(this.getRepo());
         ArrayList<String> fileNames = new ArrayList();
         CheckoutCommand checkout = git.checkout();
@@ -341,8 +341,8 @@ public class RepoHelper {
             fileNames.add(filePath.toString());
         }
         checkout.call();
-        TranscriptHelper.post("git checkout "+String.join(" ", fileNames));
         git.close();
+        return fileNames;
     }
 
     /**
@@ -449,7 +449,6 @@ public class RepoHelper {
         RevCommit commit = git.commit()
                 .setMessage(commitMessage)
                 .call();
-        TranscriptHelper.post("git commit -m \""+commitMessage+"\"");
         git.close();
 
         // Update the local commits
@@ -468,7 +467,6 @@ public class RepoHelper {
 
         Git git = new Git(getRepo());
         git.commit().setMessage(message).setAll(true).call();
-        TranscriptHelper.post("git commit -am \""+message+"\"");
         git.close();
 
         localCommits.set(parseAllLocalCommits());
@@ -523,7 +521,6 @@ public class RepoHelper {
                 }
             }
         }
-        TranscriptHelper.post("git push");
         push.getRepository().close();
 
         this.remoteCommits.set(parseAllRemoteCommits());
@@ -646,7 +643,6 @@ public class RepoHelper {
         if (allPushesWereRejected || anyPushWasRejected) {
             throw new PushToAheadRemoteError(allPushesWereRejected);
         }
-        TranscriptHelper.post("git push -all");
         push.getRepository().close();
 
         this.remoteCommits.set(parseAllRemoteCommits());
@@ -685,7 +681,6 @@ public class RepoHelper {
         if (allPushesWereRejected || anyPushWasRejected) {
             throw new PushToAheadRemoteError(allPushesWereRejected);
         }
-        TranscriptHelper.post("git push --tags");
         git.close();
 
         this.tagModel.get().updateTags();
@@ -703,12 +698,6 @@ public class RepoHelper {
             GitAPIException, MissingRepoException, IOException {
         Main.assertNotFxThread();
         logger.info("Attempting fetch");
-        if(prune){
-            TranscriptHelper.post("git fetch -p");
-        }
-        else {
-            TranscriptHelper.post("git fetch");
-        }
         if (!exists()) throw new MissingRepoException();
         Git git = new Git(this.getRepo());
         StoredConfig config = this.getRepo().getConfig();
@@ -926,7 +915,6 @@ public class RepoHelper {
      */
     public void stashSave(boolean includeUntracked) throws GitAPIException, NoFilesToStashException {
         logger.info("Attempting stash save");
-        TranscriptHelper.post("git stash push");
         Git git = new Git(this.getRepo());
         RevCommit stash = git.stashCreate().setIncludeUntracked(includeUntracked).call();
         if (stash == null) throw new NoFilesToStashException();
@@ -943,7 +931,6 @@ public class RepoHelper {
     public void stashSave(boolean includeUntracked, String wdMessage,
                           String indexMessage) throws GitAPIException, NoFilesToStashException {
         logger.info("Attempting stash save with message");
-        TranscriptHelper.post("git stash push -message "+ wdMessage);
         Git git = new Git(this.getRepo());
         RevCommit stash = git.stashCreate().setIncludeUntracked(includeUntracked).setWorkingDirectoryMessage(wdMessage)
                 .setIndexMessage(indexMessage).call();
@@ -957,7 +944,6 @@ public class RepoHelper {
      */
     public List<CommitHelper> stashList() throws GitAPIException, IOException {
         logger.info("Attempting stash list");
-        TranscriptHelper.post("git stash list");
         Git git = new Git(this.getRepo());
         List<CommitHelper> stashCommitList = new ArrayList<>();
 
@@ -988,7 +974,6 @@ public class RepoHelper {
      */
     public ObjectId stashClear() throws GitAPIException {
         logger.info("Attempting stash drop all");
-        TranscriptHelper.post("git stash clear");
         Git git = new Git(this.getRepo());
         return git.stashDrop().setAll(true).call();
     }

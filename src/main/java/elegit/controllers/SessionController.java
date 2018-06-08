@@ -168,6 +168,7 @@ public class SessionController {
 
     public static final Object globalLock = new Object();
 
+    public static final CommandLineController commandLineController = new CommandLineController();
 
     private static final Logger console = LogManager.getLogger("briefconsolelogger");
 
@@ -917,7 +918,6 @@ public class SessionController {
                 if (filePathsToAdd.size() > 0) {
                     ArrayList<String> fileNames = theModel.getCurrentRepoHelper().addFilePaths(filePathsToAdd);
                     //.fileNames;
-                    CommandLineController commandLineController = new CommandLineController();
                     if (workingTreePanelView.isSelectAllChecked()){
                         //localPath
                         commandLineController.updateCommandText("git add *");
@@ -1026,7 +1026,8 @@ public class SessionController {
             for(RepoFile checkedFile : workingTreePanelView.getCheckedFilesInDirectory()) {
                 filePathsToCheckout.add(checkedFile.getFilePath());
             }
-            theModel.getCurrentRepoHelper().checkoutFiles(filePathsToCheckout);
+            ArrayList<String> fileNames = theModel.getCurrentRepoHelper().checkoutFiles(filePathsToCheckout);
+            commandLineController.updateCommandText("git checkout "+String.join(" ", fileNames));
             gitStatus();
         } catch (NoFilesSelectedToAddException e) {
             this.showNoFilesSelectedForAddNotification();
@@ -1123,6 +1124,7 @@ public class SessionController {
             protected Void call() {
                 try {
                     theModel.getCurrentRepoHelper().commitAll(message);
+                    commandLineController.updateCommandText("git commit -m \""+message+"\"");
                     gitStatus();
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -1326,8 +1328,10 @@ public class SessionController {
                 );
                 if (pushType == PushType.BRANCH) {
                     helper.pushCurrentBranch(push);
+                    commandLineController.updateCommandText("git push");
                 } else if (pushType == PushType.ALL) {
                     helper.pushAll(push);
+                    commandLineController.updateCommandText("git push -all");
                 } else {
                     assert false : "PushType enum case not handled";
                 }
@@ -1411,6 +1415,7 @@ public class SessionController {
                         new UsernamePasswordCredentialsProvider(response.username, response.password));
             }
             results = helper.pushTags();
+            commandLineController.updateCommandText("git push --tags");
             gitStatus();
 
             boolean upToDate = true;
@@ -1766,6 +1771,7 @@ public class SessionController {
             if (this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
 
             this.theModel.getCurrentRepoHelper().stashSave(false);
+            commandLineController.updateCommandText("git stash push");
             gitStatus();
         } catch (GitAPIException e) {
             this.showGenericErrorNotification(e);
@@ -1785,6 +1791,7 @@ public class SessionController {
         logger.info("Stash apply button clicked");
         try {
             CommitHelper topStash = theModel.getCurrentRepoHelper().stashList().get(0);
+            commandLineController.updateCommandText("git stash list");
             this.theModel.getCurrentRepoHelper().stashApply(topStash.getName(), false);
             gitStatus();
         } catch (StashApplyFailureException e) {
@@ -1910,6 +1917,12 @@ public class SessionController {
                         helper.setOwnerAuth(
                                 new UsernamePasswordCredentialsProvider(response.username, response.password))
                 );
+                if(prune){
+                    commandLineController.updateCommandText("git fetch -p");
+                }
+                else {
+                    commandLineController.updateCommandText("git fetch");
+                }
                 if (!helper.fetch(prune)) {
                     results.add(new Result(ResultStatus.NOCOMMITS, ResultOperation.FETCH));
                 }

@@ -70,6 +70,8 @@ public class StashSaveController {
     public void stashSave() {
         try {
             repoHelper.stashSave(includeUntracked.isSelected());
+            CommandLineController commandLineController = new CommandLineController();
+            commandLineController.updateCommandText("git stash push");
             // TODO: Fix this when a better version of gitStatus is done
             //sessionController.gitStatus();
             closeWindow();
@@ -83,6 +85,8 @@ public class StashSaveController {
     public void stashSave(String message) {
         try {
             repoHelper.stashSave(includeUntracked.isSelected(), message,"");
+            CommandLineController commandLineController = new CommandLineController();
+            commandLineController.updateCommandText("git stash push -message "+ message);
             // TODO: Fix this when a better version of gitStatus is done
             //sessionController.gitStatus();
             closeWindow();
