@@ -26,7 +26,8 @@ public class TranscriptHelper {
 
         Writer output;
         try {
-            output = new BufferedWriter(new FileWriter(log_file_path, true));
+            //output = new BufferedWriter(new FileWriter(log_file_path, true));
+            output = new FileWriter(log_file_path, true);
             output.append(command + "\n");
             output.close();
         } catch (IOException e) {

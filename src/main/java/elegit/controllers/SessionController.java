@@ -1125,7 +1125,7 @@ public class SessionController {
             protected Void call() {
                 try {
                     theModel.getCurrentRepoHelper().commitAll(message);
-                    commandLineController.updateCommandText("git commit -m \""+message+"\"");
+                    commandLineController.updateCommandText("git commit -am \""+message+"\"");
                     gitStatus();
                 } catch (Exception e) {
                     e.printStackTrace();
