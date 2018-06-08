@@ -27,7 +27,7 @@ import java.io.IOException;
 
 public class CommandLineController {
     @GuardedBy("this")
-    private CommandLineHistoryController commandLineHistoryController;
+    private SessionController sessionController;
 
     @FXML
     private Text currentCommand;
@@ -40,13 +40,12 @@ public class CommandLineController {
 
     private static final Logger logger = LogManager.getLogger();
 
-    public synchronized void setCommandLineHistoryController() {
-        this.commandLineHistoryController = new CommandLineHistoryController();
+    public synchronized void setSessionController(SessionController sessionController) {
+        this.sessionController = sessionController;
     }
 
     public void initialize() {
         //Main.assertFxThread();
-        setCommandLineHistoryController();
         commandLineMenuButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         Text barsIcon = GlyphsDude.createIcon(FontAwesomeIcon.BARS);
         this.commandLineMenuButton.setGraphic(barsIcon);
@@ -67,11 +66,11 @@ public class CommandLineController {
 
     //Currently doesn't update with actual history
     public synchronized void handleSeeHistoryOption() {
-        commandLineHistoryController.handleSeeHistoryOption();
+//        commandLineHistoryController.handleSeeHistoryOption();
     }
 
     public synchronized void handleExportHistoryOption() {
-        commandLineHistoryController.handleExportHistoryOption();
+//        commandLineHistoryController.handleExportHistoryOption();
     }
 
     public synchronized void handleClearLogOption() {
@@ -83,9 +82,9 @@ public class CommandLineController {
         //Main.assertFxThread();
         TranscriptHelper.post(command);
         //something in currentCommand.setText() is causing an error
-        /*if (allowUpdates) {
+        if (allowUpdates) {
             System.out.println("helo");
             currentCommand.setText(command);
-        }*/
+        }
     }
 }

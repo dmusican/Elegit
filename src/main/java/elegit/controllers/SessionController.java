@@ -143,6 +143,7 @@ public class SessionController {
 
     @FXML private MenuController menuController;
     @FXML private DropdownController dropdownController;
+    @FXML private CommandLineController commandLineController;
 
     // Commit Info Box
     @FXML public CommitInfoController commitInfoController;
@@ -168,8 +169,6 @@ public class SessionController {
 
     public static final Object globalLock = new Object();
 
-    public static final CommandLineController commandLineController = new CommandLineController();
-
     private static final Logger console = LogManager.getLogger("briefconsolelogger");
 
     // Used for testing purposes; look at testing code to see where used
@@ -193,6 +192,7 @@ public class SessionController {
         CommitTreeController.setSessionController(this);
         menuController.setSessionController(this);
         dropdownController.setSessionController(this);
+        commandLineController.setSessionController(this);
         CommitController.setSessionController(this);
         commitInfoController.setSessionController(this);
         ElegitUserInfoGUI.setSessionController(this);
