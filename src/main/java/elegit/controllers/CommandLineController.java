@@ -77,6 +77,7 @@ public class CommandLineController {
 
     //Currently can't work because Model can't send things right now.
     public synchronized void updateCommandText(String command) {
+        TranscriptHelper.post(command);
         if (allowUpdates) {
             currentCommand.setText(command);
         }

@@ -902,8 +902,18 @@ public class SessionController {
                     }
                 }
 
-                if (filePathsToAdd.size() > 0)
-                    theModel.getCurrentRepoHelper().addFilePaths(filePathsToAdd, workingTreePanelView.isSelectAllChecked());
+                if (filePathsToAdd.size() > 0) {
+                    ArrayList<String> fileNames = theModel.getCurrentRepoHelper().addFilePaths(filePathsToAdd);
+                    //.fileNames;
+                    CommandLineController commandLineController = new CommandLineController();
+                    if (workingTreePanelView.isSelectAllChecked()){
+                        //localPath
+                        commandLineController.updateCommandText("git add *");
+                    }
+                    else {
+                        commandLineController.updateCommandText("git add " + String.join(" ", fileNames));
+                    }
+                }
                 if (filePathsToRemove.size() > 0)
                     theModel.getCurrentRepoHelper().removeFilePaths(filePathsToRemove);
             } catch (Exception e) {

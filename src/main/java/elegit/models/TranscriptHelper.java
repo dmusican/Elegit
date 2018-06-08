@@ -12,10 +12,10 @@ import java.io.Writer;
  */
 public class TranscriptHelper {
 
-    private CommandLineController commandLineController;
+    //private CommandLineController commandLineController;
 
     public TranscriptHelper(CommandLineController commandLineController) {
-        this.commandLineController = commandLineController;
+        //this.commandLineController = commandLineController;
     }
 
     public static void post(String command) {
@@ -46,7 +46,7 @@ public class TranscriptHelper {
         }
     }
 
-    private void sendCommand(String command) {
-        this.commandLineController.updateCommandText(command);
-    }
+    //private void sendCommand(String command) {
+     //   this.commandLineController.updateCommandText(command);
+    //}
 }

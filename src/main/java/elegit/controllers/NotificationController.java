@@ -84,11 +84,11 @@ public class NotificationController {
      * @return new PopOver
      */
     private synchronized PopOver updateNotificationBubble(String notification) {
-        Text notifcationText = new Text(notification);
-        notifcationText.setWrappingWidth(230);
-        notifcationText.setStyle("-fx-font-weight: bold");
+        Text notificationText = new Text(notification);
+        notificationText.setWrappingWidth(230);
+        notificationText.setStyle("-fx-font-weight: bold");
 
-        HBox hBox = new HBox(notifcationText);
+        HBox hBox = new HBox(notificationText);
         hBox.setPadding(new Insets(0, 5, 0, 5));
         hBox.setOnMouseClicked(event -> showNotificationList());
 

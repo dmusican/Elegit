@@ -213,7 +213,7 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
         fw.close();
         ArrayList<Path> paths = new ArrayList<>();
         paths.add(fileLocation.getFileName());
-        helper.addFilePaths(paths, false);
+        helper.addFilePaths(paths);
         helper.commit("Appended to file");
         PushCommand command = helper.prepareToPushAll();
         helper.pushAll(command);
