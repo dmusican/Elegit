@@ -32,7 +32,6 @@ public class DropdownController {
     @GuardedBy("this")
     private SessionController sessionController;
 
-    @FXML private Button openRepoDirButton;
     @FXML private Button loadNewRepoButton;
     @FXML private Button removeRecentReposButton;
     @FXML private MenuItem cloneOption;
@@ -48,11 +47,6 @@ public class DropdownController {
     }
 
     public void initialize() {
-        openRepoDirButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
-        Text openExternallyIcon = GlyphsDude.createIcon(FontAwesomeIcon.EXTERNAL_LINK);
-        this.openRepoDirButton.setGraphic(openExternallyIcon);
-        this.openRepoDirButton.setTooltip(new Tooltip("Open repository directory"));
-
         final int REPO_DROPDOWN_MAX_WIDTH = 147;
         repoDropdownSelector.setMaxWidth(REPO_DROPDOWN_MAX_WIDTH);
 
@@ -66,30 +60,21 @@ public class DropdownController {
         Image removeRepoImg = new Image(getClass().getResourceAsStream("/elegit/images/remove_repository.png"));
         removeRecentReposButton.setGraphic(new ImageView(removeRepoImg));
 
-
         removeRecentReposButton.setTooltip(new Tooltip("Clear shortcuts to recently opened repos"));
         Text downloadIcon = GlyphsDude.createIcon(FontAwesomeIcon.CLOUD_DOWNLOAD);
         cloneOption.setGraphic(downloadIcon);
 
         Text folderOpenIcon = GlyphsDude.createIcon(FontAwesomeIcon.FOLDER_OPEN);
         existingOption.setGraphic(folderOpenIcon);
-
-
-
     }
 
     public void setButtonsDisabled(boolean value) {
-        openRepoDirButton.setDisable(value);
         removeRecentReposButton.setDisable(value);
         repoDropdownSelector.setDisable(value);
     }
 
     public synchronized void loadSelectedRepo() {
         sessionController.loadDesignatedRepo(getCurrentRepo());
-    }
-
-    public synchronized void openRepoDirectory() {
-        sessionController.openRepoDirectory();
     }
 
     /**

@@ -5,7 +5,8 @@
 
 <!-- Currently has git push as history everytime. -->
 <ScrollPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0"
-            prefWidth="600.0" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/8.0.121">
+            prefWidth="600.0" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/8.0.121"
+            fx:controller="elegit.controllers.CommandLineHistoryController">
     <content>
         <Text id="command" fx:id="commandHistory" textAlignment="LEFT" strokeType="OUTSIDE" strokeWidth="0.0"
               text="git push"/>

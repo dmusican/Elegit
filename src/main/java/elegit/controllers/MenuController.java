@@ -142,7 +142,7 @@ public class MenuController {
         try {
             logger.info("About clicked");
             // Create and display the Stage:
-            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/About.fxml"));
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/pop-ups/About.fxml"));
             GridPane fxmlRoot = fxmlLoader.load();
             AboutController aboutController = fxmlLoader.getController();
             aboutController.setVersion(getVersion());

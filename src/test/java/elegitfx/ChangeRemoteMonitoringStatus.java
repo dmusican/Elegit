@@ -5,6 +5,7 @@ import elegit.controllers.MenuController;
 import elegit.controllers.SessionController;
 import elegit.models.ClonedRepoHelper;
 import elegit.monitors.RepositoryMonitor;
+import javafx.scene.Node;
 import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

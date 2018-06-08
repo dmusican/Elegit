@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
+<!-- ******************* CHECKOUT FILES POPUP WINDOW ************************ -->
+
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import java.net.URL?>
@@ -9,10 +12,10 @@
             xmlns:fx="http://javafx.com/fxml"
             fx:id="anchorRoot"
             prefWidth="350" prefHeight="200">
-    <GridPane   AnchorPane.bottomAnchor="20"
-                AnchorPane.topAnchor="5"
-                AnchorPane.leftAnchor="5"
-                AnchorPane.rightAnchor="5">
+    <GridPane AnchorPane.bottomAnchor="20"
+              AnchorPane.topAnchor="5"
+              AnchorPane.leftAnchor="5"
+              AnchorPane.rightAnchor="5">
         <columnConstraints>
             <ColumnConstraints hgrow="NEVER"/>
             <ColumnConstraints hgrow="ALWAYS"/>
@@ -22,13 +25,13 @@
             <RowConstraints vgrow="NEVER"/>
         </rowConstraints>
 
-        <VBox   GridPane.valignment="TOP"
-                alignment="TOP_RIGHT"
-                spacing="5">
-            <Label  fx:id="header"
-                    text="Checkout files from "/>
-            <TextField  promptText="Enter filename"
-                        fx:id="fileField"/>
+        <VBox GridPane.valignment="TOP"
+              alignment="TOP_RIGHT"
+              spacing="5">
+            <Label fx:id="header"
+                   text="Checkout files from "/>
+            <TextField promptText="Enter filename"
+                       fx:id="fileField"/>
             <Button text="Add"
                     alignment="CENTER_RIGHT"
                     onAction="#handleAddButton"/>
@@ -41,7 +44,7 @@
                 onAction="#closeWindow"/>
 
         <ScrollPane GridPane.columnIndex="1">
-            <VBox   fx:id="filesToCheckout"/>
+            <VBox fx:id="filesToCheckout"/>
             <GridPane.margin>
                 <Insets left="5"/>
             </GridPane.margin>
@@ -55,10 +58,10 @@
                 onAction="#handleCheckoutButton"/>
     </GridPane>
 
-    <fx:include source="NotificationPane.fxml" fx:id="notificationPane"/>
+    <fx:include source="../NotificationPane.fxml" fx:id="notificationPane"/>
 
     <stylesheets>
-        <URL value="@../css/BaseStyle.css"/>
+        <URL value="@../../css/BaseStyle.css"/>
     </stylesheets>
 </AnchorPane>
 
