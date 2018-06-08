@@ -2878,5 +2878,10 @@ public class SessionController {
         return remoteConnected.isDisabled();
     }
 
+    public CommandLineController getCommandLineController(){
+        //Main.assertFxThread();
+        return commandLineController;
+    }
+
 
 }
