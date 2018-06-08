@@ -133,6 +133,40 @@
     -fx-background-color: -fx-button-select-fill;
 }
 
+.scroll-pane {
+    -fx-background-color:transparent;
+}
+
+.scroll-bar:horizontal, .scroll-bar:vertical{
+    -fx-background-color:transparent;
+    -fx-pref-width: 16.5;
+    -fx-pref-height: 16.5;
+    -fx-padding: 3;
+}
+
+.increment-button, .decrement-button {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.increment-arrow, .decrement-arrow {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.scroll-bar:horizontal .track,
+.scroll-bar:vertical .track{
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-background-radius: 0em;
+}
+
+.scroll-bar:horizontal .thumb,
+.scroll-bar:vertical .thumb {
+    -fx-background-color: gray;
+    -fx-background-radius: 5em;
+}
+
 #notificationLine {
     -fx-background-color: linear-gradient(from 0px 0px to 1200px 0px, -fx-background-default 0%, #555555 2%, #555555 98%, -fx-background-default 100%);;
     -fx-cursor: v_resize;
