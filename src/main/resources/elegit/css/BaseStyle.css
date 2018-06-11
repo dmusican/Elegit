@@ -135,7 +135,11 @@
 
 #commandBar {
     -fx-background-color: white;
-    -fx-border-radius: 10;
+    -fx-background-radius: 8.0;
+    -fx-border-radius: 8.0;
+    -fx-border-color: gray;
+    -fx-border-width: 1.65;
+    -fx-background-insets: 0;
 }
 
 .scroll-bar:horizontal, .scroll-bar:vertical{
@@ -169,9 +173,11 @@
 }
 
 #command {
-    -fx-font-family: "Courier New";
-    -fx-font-size: 18px;
-    -fx-font-weight: bold;
+    -fx-font-family: "Courier New", Courier, "Lucida Sans Typewriter", "Lucida Typewriter", monospace;
+    -fx-font-size: 19px;
+    -fx-font-style: normal;
+    -fx-font-variant: normal;
+    -fx-font-weight: 900;
 }
 
 #notificationLine {

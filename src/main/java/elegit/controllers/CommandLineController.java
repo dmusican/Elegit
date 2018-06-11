@@ -38,6 +38,8 @@ public class CommandLineController {
     private ContextMenu commandLineMenu;
     @FXML
     private MenuItem disableOption;
+    @FXML
+    private ScrollPane commandBar;
 
     private boolean allowUpdates = true;
 
@@ -93,6 +95,11 @@ public class CommandLineController {
         TranscriptHelper.post(command);
         if (allowUpdates) {
             currentCommand.setText(command);
+            int length = (currentCommand.getText().length() + 1) * 15;
+            if (length > 200) {
+                currentCommand.setPrefWidth(length);
+                commandBar.setVvalue(0.50);
+            }
         }
     }
 }
