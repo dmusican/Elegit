@@ -211,7 +211,7 @@ public class CreateDeleteBranchWindowController {
                 try {
                     logger.info("New branch button clicked");
                     newBranch = branchModel.createNewLocalBranch(branchName);
-                    sessionController.getCommandLineController().updateCommandText("git branch "+branchName);
+                    sessionController.updateCommandText("git branch "+branchName);
                     if(checkout) {
                         if(newBranch != null) {
                             checkoutBranch(newBranch);
@@ -262,7 +262,7 @@ public class CreateDeleteBranchWindowController {
         if(selectedBranch == null) return false;
         try {
             //TranscriptHelper.post("git checkout "+this.getRefName());
-            sessionController.getCommandLineController().updateCommandText("git checkout "+selectedBranch.getRefName());
+            sessionController.updateCommandText("git checkout "+selectedBranch.getRefName());
             selectedBranch.checkoutBranch();
             CommitTreeController.focusCommitInGraph(selectedBranch.getCommit());
             CommitTreeController.setBranchHeads(CommitTreeController.getCommitTreeModel(),
@@ -313,7 +313,7 @@ public class CreateDeleteBranchWindowController {
 
                 if (selectedBranch instanceof LocalBranchHelper) {
                     this.branchModel.deleteLocalBranch((LocalBranchHelper) selectedBranch);
-                    sessionController.getCommandLineController().updateCommandText("git branch -d "+selectedBranch);
+                    sessionController.updateCommandText("git branch -d "+selectedBranch);
 
                     updateUser(selectedBranch.getRefName() + " deleted.", BranchModel.BranchType.LOCAL);
                 }else {

@@ -139,7 +139,7 @@ public class CommitController {
                     .observeOn(JavaFxScheduler.platform())
                     .doOnComplete(() -> {
                         this.repoHelper.commit(messageText);
-                        sessionController.getCommandLineController().updateCommandText("git commit -m \""+messageText+"\"");
+                        sessionController.updateCommandText("git commit -m \""+messageText+"\"");
                         sessionController.gitStatus();
                     })
                     .doAfterTerminate(BusyWindow::hide)

@@ -71,7 +71,7 @@ public class StashSaveController {
     public void stashSave() {
         try {
             repoHelper.stashSave(includeUntracked.isSelected());
-            sessionController.getCommandLineController().updateCommandText("git stash push");
+            sessionController.updateCommandText("git stash push");
             // TODO: Fix this when a better version of gitStatus is done
             //sessionController.gitStatus();
             closeWindow();
@@ -85,7 +85,7 @@ public class StashSaveController {
     public void stashSave(String message) {
         try {
             repoHelper.stashSave(includeUntracked.isSelected(), message,"");
-            sessionController.getCommandLineController().updateCommandText("git stash push -message "+ message);
+            sessionController.updateCommandText("git stash push -message "+ message);
             // TODO: Fix this when a better version of gitStatus is done
             //sessionController.gitStatus();
             closeWindow();

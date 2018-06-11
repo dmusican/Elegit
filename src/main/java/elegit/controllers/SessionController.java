@@ -200,9 +200,6 @@ public class SessionController {
         ElegitUserInfoGUI.setSessionController(this);
 
         sessionController=this;
-        System.out.println("making:");
-        commandLineController = new CommandLineController();
-        System.out.println(commandLineController);
         // Creates the commit tree model, and points MVC all looking at each other
         commitTreeModel = CommitTreeModel.getCommitTreeModel();
         commitTreeModel.setView(commitTreePanelView);
@@ -2884,12 +2881,9 @@ public class SessionController {
     }
 
     public CommandLineController getCommandLineController(){
-        if(commandLineController==null){
-            commandLineController = new CommandLineController();
-        }
-        System.out.println(commandLineController);
         return commandLineController;
     }
+
     public static SessionController getSessionController() {
         if (sessionController == null) {
             System.out.println("New SessionController made, are you sure you want that?");
@@ -2898,5 +2892,8 @@ public class SessionController {
         return sessionController;
     }
 
+    public synchronized void updateCommandText(String command) {
+        commandLineController.updateCommandText(command);
+    }
 
 }

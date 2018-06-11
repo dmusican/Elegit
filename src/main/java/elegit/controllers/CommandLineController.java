@@ -48,9 +48,6 @@ public class CommandLineController {
     public synchronized void setSessionController(SessionController sessionController) {
         this.sessionController = sessionController;
     }
-    public CommandLineController(){
-        currentCommand = new TextArea();
-    }
 
     public void initialize() {
         //Main.assertFxThread();
@@ -97,7 +94,6 @@ public class CommandLineController {
     public synchronized void updateCommandText(String command) {
         TranscriptHelper.post(command);
         if (allowUpdates) {
-            //System.out.println("helo: "+currentCommand);
             currentCommand.setText(command);
             int length = (currentCommand.getText().length() + 1) * 15;
             if (length > 200) {
