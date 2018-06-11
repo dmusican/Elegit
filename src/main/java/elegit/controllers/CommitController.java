@@ -139,8 +139,7 @@ public class CommitController {
                     .observeOn(JavaFxScheduler.platform())
                     .doOnComplete(() -> {
                         this.repoHelper.commit(messageText);
-                        CommandLineController commandLineController = new CommandLineController();
-                        commandLineController.updateCommandText("git commit -m \""+messageText+"\"");
+                        sessionController.getCommandLineController().updateCommandText("git commit -m \""+messageText+"\"");
                         sessionController.gitStatus();
                     })
                     .doAfterTerminate(BusyWindow::hide)

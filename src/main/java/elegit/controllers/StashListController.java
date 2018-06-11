@@ -36,11 +36,12 @@ public class StashListController {
 
     private final AtomicReference<SessionController> sessionController = new AtomicReference<>();
     private final RepoHelper repoHelper;
-    private final CommandLineController commandLineController = new CommandLineController();
+    private final CommandLineController commandLineController;
 
     private static final Logger logger = LogManager.getLogger();
 
     public StashListController() {
+        commandLineController = SessionController.getSessionController().getCommandLineController();
         SessionModel sessionModel = SessionModel.getSessionModel();
         repoHelper = sessionModel.getCurrentRepoHelper();
     }
@@ -71,6 +72,7 @@ public class StashListController {
                 };
             }
         });
+        commandLineController.updateCommandText("git stash list");
         refreshList();
         setButtonListeners();
         this.stashList.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
@@ -108,7 +110,6 @@ public class StashListController {
     private void refreshList() {
         try {
             this.stashList.setItems(FXCollections.observableArrayList(repoHelper.stashList()));
-            commandLineController.updateCommandText("git stash list");
         } catch (GitAPIException e) {
             this.notificationPaneController.addNotification("Something went wrong retrieving the stash(es)");
         } catch (IOException e) {
@@ -126,7 +127,7 @@ public class StashListController {
         String stashRef = this.stashList.getSelectionModel().getSelectedItem().getName();
         try {
             repoHelper.stashApply(stashRef, false);
-            commandLineController.updateCommandText("git stash apply "+stashRef);
+            commandLineController.updateCommandText("git stash apply "+this.stashList.getSelectionModel().getSelectedIndex());
             // TODO: Fix when have better approach for gitStatus
             //sessionController.gitStatus();
         } catch (WrongRepositoryStateException e) {
@@ -178,7 +179,7 @@ public class StashListController {
         try {
             repoHelper.stashApply(stashRef, false);
             repoHelper.stashDrop(index);
-            commandLineController.updateCommandText("git stash pop "+stashRef);
+            commandLineController.updateCommandText("git stash pop "+this.stashList.getSelectionModel().getSelectedIndex());
             refreshList();
             // TODO: Fix when have better approach for gitStatus
             //sessionController.gitStatus();

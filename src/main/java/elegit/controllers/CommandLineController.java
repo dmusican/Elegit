@@ -43,6 +43,9 @@ public class CommandLineController {
     public synchronized void setSessionController(SessionController sessionController) {
         this.sessionController = sessionController;
     }
+    public CommandLineController(){
+        currentCommand = new Text();
+    }
 
     public void initialize() {
         //Main.assertFxThread();
@@ -81,9 +84,8 @@ public class CommandLineController {
     public synchronized void updateCommandText(String command) {
         //Main.assertFxThread();
         TranscriptHelper.post(command);
-        //something in currentCommand.setText() is causing an error
         if (allowUpdates) {
-            System.out.println("helo");
+            //System.out.println("helo: "+currentCommand);
             currentCommand.setText(command);
         }
     }

@@ -171,6 +171,8 @@ public class SessionController {
 
     private static final Logger console = LogManager.getLogger("briefconsolelogger");
 
+    private static SessionController sessionController;
+
     // Used for testing purposes; look at testing code to see where used
     public static CountDownLatch gitStatusCompletedOnce = new CountDownLatch(1);
 
@@ -197,7 +199,10 @@ public class SessionController {
         commitInfoController.setSessionController(this);
         ElegitUserInfoGUI.setSessionController(this);
 
-
+        sessionController=this;
+        System.out.println("making:");
+        commandLineController = new CommandLineController();
+        System.out.println(commandLineController);
         // Creates the commit tree model, and points MVC all looking at each other
         commitTreeModel = CommitTreeModel.getCommitTreeModel();
         commitTreeModel.setView(commitTreePanelView);
@@ -2879,8 +2884,18 @@ public class SessionController {
     }
 
     public CommandLineController getCommandLineController(){
-        //Main.assertFxThread();
+        if(commandLineController==null){
+            commandLineController = new CommandLineController();
+        }
+        System.out.println(commandLineController);
         return commandLineController;
+    }
+    public static SessionController getSessionController() {
+        if (sessionController == null) {
+            System.out.println("New SessionController made, are you sure you want that?");
+            sessionController = new SessionController();
+        }
+        return sessionController;
     }
 
 
