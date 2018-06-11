@@ -50,30 +50,33 @@ public class CommandLineController {
     }
 
     public void initialize() {
-        //Main.assertFxThread();
         commandLineMenuButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         Text barsIcon = GlyphsDude.createIcon(FontAwesomeIcon.BARS);
         this.commandLineMenuButton.setGraphic(barsIcon);
         this.commandLineMenuButton.setTooltip(new Tooltip("Command line tool menu"));
         currentCommand.setEditable(false);
+        resetScrollPane();
     }
 
     /**
      * Called when the commandLineMenuButton gets pushed, shows a menu of relevant options
      */
     public synchronized void handleCommandLineMenuButton() {
+        // Allows the menu to stay within the window (opens bottom-left of button) when clicked.
         commandLineMenu.show(commandLineMenuButton, Side.BOTTOM, -162, 3);
     }
 
     public synchronized void handleDisableOption() {
-        if (allowUpdates) {
+        if (allowUpdates) { // Entered when the user wants to disable the tool and allows them to reenable it.
             allowUpdates = false;
             currentCommand.setText("Disabled");
             disableOption.setText("Enable terminal commands");
-        } else {
+            resetScrollPane();
+        } else { // Entered initially and when the user wants to enable the tool (allowing them to disable next).
             allowUpdates = true;
             currentCommand.setText("");
             disableOption.setText("Disable terminal commands");
+            resetScrollPane();
         }
     }
 
@@ -89,17 +92,36 @@ public class CommandLineController {
     public synchronized void handleClearLogOption() {
         TranscriptHelper.clear();
         currentCommand.setText("");
+        resetScrollPane();
     }
 
     public synchronized void updateCommandText(String command) {
         TranscriptHelper.post(command);
         if (allowUpdates) {
             currentCommand.setText(command);
-            int length = (currentCommand.getText().length() + 1) * 15;
-            if (length > 200) {
-                currentCommand.setPrefWidth(length);
-                commandBar.setVvalue(0.50);
-            }
+            setTextAreaWidth();
         }
+    }
+
+    /*
+     * If a command is too long to fit in the visible ScrollPane, allow the text area to get as long as it needs to
+     * and make it so the text appears slightly higher so it is not covered by the scroll bar.
+     */
+    private void setTextAreaWidth() {
+        // Numbers are pretty arbitrary, but seem to adjust relatively well to any give text.
+        int length = (currentCommand.getText().length() + 1) * 12;
+        System.out.println(length);
+        if (length > 244) {
+            currentCommand.setPrefWidth(length);
+            commandBar.setVvalue(0.335);
+        } else {
+            resetScrollPane();
+        }
+    }
+
+    // Makes it so the scroll bar does not appear when text is short and that text appears in the middle.
+    private synchronized void resetScrollPane() {
+        currentCommand.setPrefWidth(244);
+        commandBar.setVvalue(0.125);
     }
 }
