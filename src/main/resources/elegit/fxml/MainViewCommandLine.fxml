@@ -12,9 +12,9 @@
 
 <HBox alignment="CENTER_LEFT" spacing="5.0" stylesheets="@../css/BaseStyle.css" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="elegit.controllers.CommandLineController">
     <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Terminal Command:" textAlignment="CENTER" />
-   <ScrollPane id="commandBar" maxHeight="-Infinity" minHeight="-Infinity" pickOnBounds="false" prefHeight="45.0" prefWidth="200.0" vbarPolicy="NEVER" HBox.hgrow="NEVER">
+   <ScrollPane id="commandBar" fx:id="commandBar" fitToHeight="true" fitToWidth="true" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" pannable="true" prefHeight="45.0" prefWidth="210.0" vbarPolicy="NEVER" HBox.hgrow="NEVER">
       <content>
-         <TextArea id="command" fx:id="currentCommand" blendMode="HARD_LIGHT" mouseTransparent="true" editable="false" maxHeight="-Infinity" minHeight="-Infinity" prefHeight="31.0" prefWidth="500.0" />
+         <TextArea id="command" fx:id="currentCommand" blendMode="HARD_LIGHT" editable="false" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" mouseTransparent="true" prefHeight="45.0" prefWidth="200.0" />
       </content>
    </ScrollPane>
     <Button id="commandLineMenuButton" fx:id="commandLineMenuButton" onAction="#handleCommandLineMenuButton">

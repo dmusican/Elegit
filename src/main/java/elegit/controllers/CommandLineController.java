@@ -38,6 +38,8 @@ public class CommandLineController {
     private ContextMenu commandLineMenu;
     @FXML
     private MenuItem disableOption;
+    @FXML
+    private ScrollPane commandBar;
 
     private boolean allowUpdates = true;
 
@@ -45,9 +47,6 @@ public class CommandLineController {
 
     public synchronized void setSessionController(SessionController sessionController) {
         this.sessionController = sessionController;
-    }
-    public CommandLineController(){
-        currentCommand = new TextArea();
     }
 
     public void initialize() {
@@ -95,8 +94,12 @@ public class CommandLineController {
     public synchronized void updateCommandText(String command) {
         TranscriptHelper.post(command);
         if (allowUpdates) {
-            //System.out.println("helo: "+currentCommand);
             currentCommand.setText(command);
+            int length = (currentCommand.getText().length() + 1) * 15;
+            if (length > 200) {
+                currentCommand.setPrefWidth(length);
+                commandBar.setVvalue(0.50);
+            }
         }
     }
 }
