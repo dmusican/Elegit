@@ -211,11 +211,14 @@ public class CreateDeleteBranchWindowController {
                 try {
                     logger.info("New branch button clicked");
                     newBranch = branchModel.createNewLocalBranch(branchName);
-                    sessionController.getCommandLineController().updateCommandText("git branch "+branchName);
                     if(checkout) {
                         if(newBranch != null) {
+                            sessionController.getCommandLineController().updateCommandText("git checkout "+branchName);
                             checkoutBranch(newBranch);
                         }
+                    }
+                    else{
+                        sessionController.getCommandLineController().updateCommandText("git branch "+branchName);
                     }
                     // TODO: Put gitStatus back in here once have a better way of registering ig
                     //sessionController.gitStatus();
@@ -262,7 +265,6 @@ public class CreateDeleteBranchWindowController {
         if(selectedBranch == null) return false;
         try {
             //TranscriptHelper.post("git checkout "+this.getRefName());
-            sessionController.getCommandLineController().updateCommandText("git checkout "+selectedBranch.getRefName());
             selectedBranch.checkoutBranch();
             CommitTreeController.focusCommitInGraph(selectedBranch.getCommit());
             CommitTreeController.setBranchHeads(CommitTreeController.getCommitTreeModel(),
