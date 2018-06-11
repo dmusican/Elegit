@@ -1006,7 +1006,9 @@ public class SessionController {
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
             if(!this.theModel.getCurrentRepoHelper().exists()) throw new MissingRepoException();
             theModel.getCurrentRepoHelper().checkoutFile(filePath);
-            commandLineController.updateCommandText("git checkout "+filePath.toString());
+            //right click on file
+            commandLineController.updateCommandText("git checkout -- "+filePath.toString());
+            //need to put in command for checlout file here
         } catch (NoRepoLoadedException e) {
             showNoRepoLoadedNotification();
         } catch (MissingRepoException e) {
@@ -1033,9 +1035,8 @@ public class SessionController {
             // Try to add all files, throw exception if there are ones that can't be added
             for(RepoFile checkedFile : workingTreePanelView.getCheckedFilesInDirectory()) {
                 filePathsToCheckout.add(checkedFile.getFilePath());
+                commandLineController.updateCommandText("git checkout -- "+checkedFile.getFilePath().toString());
             }
-            ArrayList<String> fileNames = theModel.getCurrentRepoHelper().checkoutFiles(filePathsToCheckout);
-            commandLineController.updateCommandText("git checkout "+String.join(" ", fileNames));
             gitStatus();
         } catch (NoFilesSelectedToAddException e) {
             this.showNoFilesSelectedForAddNotification();
@@ -1043,8 +1044,6 @@ public class SessionController {
             this.showNoRepoLoadedNotification();
         } catch (MissingRepoException e) {
             this.showMissingRepoNotification();
-        } catch (GitAPIException e) {
-            this.showGenericErrorNotification(e);
         } catch (CancelledDialogException e) {
             // Do nothing
         }
@@ -1589,7 +1588,7 @@ public class SessionController {
             }
             RemoteRefUpdate.Status deleteStatus = branchModel.deleteRemoteBranch((RemoteBranchHelper) selectedBranch);
             RemoteBranchHelper remote = (RemoteBranchHelper) selectedBranch;
-            commandLineController.updateCommandText("git push origin :refs/heads/"+remote.parseBranchName());
+            commandLineController.updateCommandText("git push origin --delete "+remote.parseBranchName());
             String updateMessage = selectedBranch.getRefName();
             // There are a number of possible cases, see JGit's documentation on RemoteRefUpdate.Status
             // for the full list.
@@ -2270,6 +2269,7 @@ public class SessionController {
      */
     void handleCommitNameCopyButton(){
         logger.info("Commit name copied");
+        //needs a command line, possibly git log
         Clipboard clipboard = Clipboard.getSystemClipboard();
         ClipboardContent content = new ClipboardContent();
         content.putString(commitInfoNameText.get());
@@ -2282,6 +2282,8 @@ public class SessionController {
     void handleGoToCommitButton(){
         logger.info("Go to commit button clicked");
         String id = commitInfoNameText.get();
+        //commit.get
+        commandLineController.updateCommandText("git checkout "+id);
         CommitTreeController.focusCommitInGraph(id);
     }
 

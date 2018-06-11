@@ -162,6 +162,7 @@ public class BranchCheckoutController {
     public void trackSelectedBranchLocally() throws GitAPIException, IOException {
         logger.info("Track remote branch locally button clicked");
         RemoteBranchHelper selectedRemoteBranch = this.remoteListView.getSelectionModel().getSelectedItem();
+        sessionController.updateCommandText("git checkout --track "+selectedRemoteBranch.getRefName());
         try {
             if (selectedRemoteBranch != null) {
                 LocalBranchHelper tracker = this.branchModel.trackRemoteBranch(selectedRemoteBranch);
