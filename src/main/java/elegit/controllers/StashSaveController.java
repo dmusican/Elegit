@@ -22,9 +22,11 @@ public class StashSaveController {
     private Stage stage;
     private final RepoHelper repoHelper;
     private static final Logger logger = LogManager.getLogger();
+    private final SessionController sessionController;
 
     public StashSaveController() {
         SessionModel sessionModel = SessionModel.getSessionModel();
+        sessionController=SessionController.getSessionController();
         this.repoHelper = sessionModel.getCurrentRepoHelper();
     }
     /**
@@ -34,7 +36,6 @@ public class StashSaveController {
      */
     public void initialize() {
         logger.info("Started up stash save window");
-
         stashMessage.setOnAction((event -> {
             stashSave(stashMessage.getText());
         }));
@@ -70,8 +71,7 @@ public class StashSaveController {
     public void stashSave() {
         try {
             repoHelper.stashSave(includeUntracked.isSelected());
-            CommandLineController commandLineController = new CommandLineController();
-            commandLineController.updateCommandText("git stash push");
+            sessionController.getCommandLineController().updateCommandText("git stash push");
             // TODO: Fix this when a better version of gitStatus is done
             //sessionController.gitStatus();
             closeWindow();
@@ -85,8 +85,7 @@ public class StashSaveController {
     public void stashSave(String message) {
         try {
             repoHelper.stashSave(includeUntracked.isSelected(), message,"");
-            CommandLineController commandLineController = new CommandLineController();
-            commandLineController.updateCommandText("git stash push -message "+ message);
+            sessionController.getCommandLineController().updateCommandText("git stash push -message "+ message);
             // TODO: Fix this when a better version of gitStatus is done
             //sessionController.gitStatus();
             closeWindow();

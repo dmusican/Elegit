@@ -43,7 +43,7 @@ public class MergeWindowController {
     @FXML private Button mergeButton;
     @FXML private Text mergeRemoteTrackingText;
     @FXML private HBox remoteBranchBox;
-    @FXML private Text intoText1;
+    @FXML private Text intoText1 = new Text(); //not sure if this is the right place for this, but there were errors if intoText1 wasn't initialized
     @FXML private AnchorPane arrowPane;
     @FXML private HBox localBranchBox1;
     @FXML private TabPane mergeTypePane;
@@ -240,8 +240,7 @@ public class MergeWindowController {
         // Get the merge result from the branch merge
         MergeResult mergeResult =
                 SessionModel.getSessionModel().getCurrentRepoHelper().getBranchModel().mergeWithBranch(selectedBranch);
-        CommandLineController commandLineController = new CommandLineController();
-        commandLineController.updateCommandText("git merge "+selectedBranch);
+        sessionController.getCommandLineController().updateCommandText("git merge "+selectedBranch);
 
         if (mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.CONFLICTING)){
             this.showConflictsNotification();

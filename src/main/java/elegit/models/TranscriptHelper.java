@@ -9,7 +9,6 @@ import java.io.*;
  */
 public class TranscriptHelper {
 
-    //private CommandLineController commandLineController;
 
     public TranscriptHelper(CommandLineController commandLineController) {
         //this.commandLineController = commandLineController;
@@ -19,27 +18,18 @@ public class TranscriptHelper {
         String log_file_path = System.getProperty("logFolder") + "/transcript.log";
 
         File transcript = new File(log_file_path);
-        System.out.println("Before writing.");
-        System.out.println(transcript.isFile());
-        System.out.println(transcript.canRead());
-        System.out.println(transcript.canWrite());
 
         Writer output;
         try {
-            output = new BufferedWriter(new FileWriter(log_file_path, true));
+            //output = new BufferedWriter(new FileWriter(log_file_path, true));
+            output = new FileWriter(log_file_path, true);
             output.append(command + "\n");
             output.close();
         } catch (IOException e) {
 
         }
+        //note: will not display all commands for all tests, since they access helpers directly rather than controllers
         System.out.println("Command: " + command);
-
-        System.out.println("After writing.");
-        System.out.println(transcript.isFile());
-        System.out.println(transcript.canRead());
-        System.out.println(transcript.canWrite());
-
-        //sendCommand(command);
     }
 
     public static void clear() {

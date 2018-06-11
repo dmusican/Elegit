@@ -46,6 +46,7 @@ public class BranchCheckoutController {
     private Stage stage;
 
     private final SessionModel sessionModel;
+    private final SessionController sessionController;
     private final RepoHelper repoHelper;
     private final BranchModel branchModel;
     private final CommitTreeModel localCommitTreeModel;
@@ -55,6 +56,7 @@ public class BranchCheckoutController {
 
     public BranchCheckoutController() {
         sessionModel = SessionModel.getSessionModel();
+        sessionController = SessionController.getSessionController();
         repoHelper = sessionModel.getCurrentRepoHelper();
         branchModel = repoHelper.getBranchModel();
         localCommitTreeModel = CommitTreeController.getCommitTreeModel();
@@ -181,8 +183,7 @@ public class BranchCheckoutController {
     private boolean checkoutBranch(LocalBranchHelper selectedBranch, SessionModel theSessionModel) {
         if(selectedBranch == null) return false;
         try {
-            CommandLineController commandLineController = new CommandLineController();
-            commandLineController.updateCommandText("git checkout "+selectedBranch.getRefName());
+            sessionController.getCommandLineController().updateCommandText("git checkout "+selectedBranch.getRefName());
             selectedBranch.checkoutBranch();
             CommitTreeController.focusCommitInGraph(selectedBranch.getCommit());
             CommitTreeController.setBranchHeads(CommitTreeController.getCommitTreeModel(), theSessionModel.getCurrentRepoHelper());
