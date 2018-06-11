@@ -61,6 +61,7 @@ import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
 import java.awt.*;
 import java.io.IOException;
+import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -956,16 +957,20 @@ public class SessionController {
                 protected Void call() {
                     try{
                         ArrayList<Path> filePathsToRemove = new ArrayList<>();
+                        ArrayList<String> fileNames = new ArrayList<>();
                         // Try to remove all files, throw exception if there are ones that can't be added
                         for(RepoFile checkedFile : workingTreePanelView.getCheckedFilesInDirectory()) {
-                            if (checkedFile.canRemove())
+                            if (checkedFile.canRemove()) {
                                 filePathsToRemove.add(checkedFile.getFilePath());
+                                fileNames.add(checkedFile.getFilePath().toString());
+                            }
                             else
                                 throw new UnableToRemoveException(checkedFile.getFilePath().toString());
                         }
 
                         theModel.getCurrentRepoHelper().removeFilePaths(filePathsToRemove);
                         gitStatus();
+                        commandLineController.updateCommandText("git rm " + String.join(" ", fileNames));
 
                     } catch(JGitInternalException e){
                         showJGitInternalError(e);
