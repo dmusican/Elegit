@@ -55,6 +55,7 @@ import org.eclipse.jgit.api.PushCommand;
 import org.eclipse.jgit.api.ResetCommand;
 import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.errors.NoMergeBaseException;
+import org.eclipse.jgit.lib.Config;
 import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.jgit.transport.RemoteRefUpdate;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
@@ -2149,6 +2150,21 @@ public class SessionController {
         // TODO: gitStatus was taken out of showing results; may need to go back in here.
         Main.assertFxThread();
         logger.info("Merge from fetch button clicked");
+
+        Config config = theModel.getCurrentRepoHelper().getRepo().getConfig();
+
+        try {
+            String remote = config.getString("branch", theModel.getCurrentRepoHelper().getRepo().getBranch(), "remote") + "/";
+            String remote_tracking = config.getString("branch", theModel.getCurrentRepoHelper().getRepo().getBranch(), "merge");
+
+            sessionController.updateCommandText("git merge "+remote+remote_tracking);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        //String remote_tracking = config.getString("branch", theModel.getCurrentRepoHelper().getRepo().getBranch(), "merge");
+
+        //sessionController.updateCommandText("git merge "+ );
+
         return Observable.just(theModel.getCurrentRepoHelper())
                 .doOnNext(this::mergePreChecks) // skips to onErrorResumeNext when these fail
                 .doOnNext(unused -> showBusyWindowAndPauseRepoMonitor("Merging..."))
