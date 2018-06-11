@@ -825,6 +825,8 @@ public class SessionController {
                         throw new ExceptionAdapter(t);
                     }
                 });
+        // If a new repository is loaded we don't want to confuse the user with old command line history.
+        commandLineController.handleClearLogOption();
         return true;
 
     }
