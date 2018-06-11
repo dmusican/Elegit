@@ -6,23 +6,17 @@
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.StackPane?>
-<?import javafx.scene.shape.Rectangle?>
 <?import javafx.scene.text.Text?>
 
 <!-- Elegit actions as terminal commands and a menu button for this feature -->
 
 <HBox alignment="CENTER_LEFT" spacing="5.0" stylesheets="@../css/BaseStyle.css" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="elegit.controllers.CommandLineController">
     <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Terminal Command:" textAlignment="CENTER" />
-    <StackPane prefHeight="30.0" prefWidth="200.0">
-        <Rectangle arcHeight="10.0" arcWidth="10.0" fill="WHITE" height="30.0" opacity="0.75" stroke="#00000088" strokeLineCap="BUTT" strokeType="INSIDE" width="250.0" />
-      <ScrollPane minHeight="-Infinity" prefHeight="50.0" prefWidth="200.0">
-         <content>
-            <TextArea id="command" fx:id="currentCommand" minHeight="-Infinity" prefHeight="32.0" prefWidth="500.0" />
-         </content>
-      </ScrollPane>
-        <!--<Text id="command" fx:id="currentCommand" strokeType="OUTSIDE" strokeWidth="0.0" text="git push" wrappingWidth="241.99999731779099" />-->
-    </StackPane>
+   <ScrollPane id="commandBar" maxHeight="-Infinity" minHeight="-Infinity" pickOnBounds="false" prefHeight="45.0" prefWidth="200.0" vbarPolicy="NEVER" HBox.hgrow="NEVER">
+      <content>
+         <TextArea id="command" fx:id="currentCommand" blendMode="HARD_LIGHT" mouseTransparent="true" editable="false" maxHeight="-Infinity" minHeight="-Infinity" prefHeight="31.0" prefWidth="500.0" />
+      </content>
+   </ScrollPane>
     <Button id="commandLineMenuButton" fx:id="commandLineMenuButton" onAction="#handleCommandLineMenuButton">
         <contextMenu>
             <ContextMenu fx:id="commandLineMenu">
