@@ -16,6 +16,7 @@ import javafx.stage.Stage;
 import net.jcip.annotations.GuardedBy;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.junit.FixMethodOrder;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -30,11 +31,13 @@ public class CommandLineController {
     private SessionController sessionController;
 
     @FXML
-    private Text currentCommand;
+    private TextArea currentCommand;
     @FXML
     private Button commandLineMenuButton;
     @FXML
     private ContextMenu commandLineMenu;
+    @FXML
+    private MenuItem disableOption;
 
     private boolean allowUpdates = true;
 
@@ -44,7 +47,7 @@ public class CommandLineController {
         this.sessionController = sessionController;
     }
     public CommandLineController(){
-        currentCommand = new Text();
+        currentCommand = new TextArea();
     }
 
     public void initialize() {
@@ -53,6 +56,7 @@ public class CommandLineController {
         Text barsIcon = GlyphsDude.createIcon(FontAwesomeIcon.BARS);
         this.commandLineMenuButton.setGraphic(barsIcon);
         this.commandLineMenuButton.setTooltip(new Tooltip("Command line tool menu"));
+        currentCommand.setEditable(false);
     }
 
     /**
@@ -63,8 +67,15 @@ public class CommandLineController {
     }
 
     public synchronized void handleDisableOption() {
-        currentCommand.setText("Disabled");
-        allowUpdates = false;
+        if (allowUpdates) {
+            allowUpdates = false;
+            currentCommand.setText("Disabled");
+            disableOption.setText("Enable terminal commands");
+        } else {
+            allowUpdates = true;
+            currentCommand.setText("");
+            disableOption.setText("Disable terminal commands");
+        }
     }
 
     //Currently doesn't update with actual history
@@ -82,7 +93,6 @@ public class CommandLineController {
     }
 
     public synchronized void updateCommandText(String command) {
-        //Main.assertFxThread();
         TranscriptHelper.post(command);
         if (allowUpdates) {
             //System.out.println("helo: "+currentCommand);

@@ -133,6 +133,47 @@
     -fx-background-color: -fx-button-select-fill;
 }
 
+#commandBar {
+    -fx-background-color: white;
+    -fx-border-radius: 10;
+}
+
+.scroll-bar:horizontal, .scroll-bar:vertical{
+    -fx-background-color: transparent;
+    -fx-pref-width: 14;
+    -fx-pref-height: 14;
+    -fx-padding: 2;
+}
+
+.increment-button, .decrement-button {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.increment-arrow, .decrement-arrow {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.scroll-bar:horizontal .track,
+.scroll-bar:vertical .track{
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-background-radius: 0em;
+}
+
+.scroll-bar:horizontal .thumb,
+.scroll-bar:vertical .thumb {
+    -fx-background-color: gray;
+    -fx-background-radius: 5em;
+}
+
+#command {
+    -fx-font-family: "Courier New";
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+}
+
 #notificationLine {
     -fx-background-color: linear-gradient(from 0px 0px to 1200px 0px, -fx-background-default 0%, #555555 2%, #555555 98%, -fx-background-default 100%);;
     -fx-cursor: v_resize;
@@ -155,11 +196,6 @@
 }
 #separator-dashed {
     -fx-background-color: linear-gradient(from 0px 0px to 10px 0px, repeat, -fx-background-default 0%, -fx-background-default 49%, #777777 51%, #777777 100%);
-}
-
-#command {
-    -fx-font-family: "Courier";
-    -fx-font-size: 18px;
 }
 
 .tree-cell:selected {
