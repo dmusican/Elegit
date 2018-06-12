@@ -45,6 +45,7 @@ public class CommandLineController {
         this.commandLineMenuButton.setTooltip(new Tooltip("Command line tool menu"));
         currentCommand.setEditable(false);
         resetScrollPane();
+        commandBar.setFitToHeight(true);
     }
 
     /**
@@ -75,7 +76,7 @@ public class CommandLineController {
     }
 
     public synchronized void handleExportHistoryOption() {
-//        sessionController.handleExportHistoryOption();
+        sessionController.handleExportHistoryOption();
     }
 
     public synchronized void handleClearLogOption() {
