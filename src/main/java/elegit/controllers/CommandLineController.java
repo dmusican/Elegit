@@ -6,6 +6,8 @@ import elegit.models.TranscriptHelper;
 import javafx.fxml.FXML;
 import javafx.geometry.Side;
 import javafx.scene.control.*;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
 import javafx.scene.text.Text;
 import net.jcip.annotations.GuardedBy;
 import org.apache.logging.log4j.LogManager;
@@ -29,6 +31,8 @@ public class CommandLineController {
     private MenuItem disableOption;
     @FXML
     private ScrollPane commandBar;
+    @FXML
+    private ContextMenu commandRightClickMenu;
 
     private boolean allowUpdates = true;
 
@@ -41,18 +45,78 @@ public class CommandLineController {
     public void initialize() {
         commandLineMenuButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         Text barsIcon = GlyphsDude.createIcon(FontAwesomeIcon.BARS);
-        this.commandLineMenuButton.setGraphic(barsIcon);
-        this.commandLineMenuButton.setTooltip(new Tooltip("Command line tool menu"));
+        commandLineMenuButton.setGraphic(barsIcon);
+        commandLineMenuButton.setTooltip(new Tooltip("Command line tool menu"));
         currentCommand.setEditable(false);
         resetScrollPane();
+        commandBar.setVvalue(0.125);
     }
 
     /**
-     * Called when the commandLineMenuButton gets pushed, shows a menu of relevant options
+     * Updates the TextArea with the git command that would have just occurred.
      */
+    public synchronized void updateCommandText(String command) {
+        // Sends it to be added to the log file in case the user wants to see/export the full history
+        TranscriptHelper.post(command);
+        if (allowUpdates) {
+            currentCommand.setText(command);
+            setTextAreaWidth();
+        }
+    }
+
+    /*
+     * If a command is too long to fit in the visible ScrollPane, allow the text area to get as long as it needs to
+     * and make it so the text appears slightly higher so it is not covered by the scroll bar.
+     */
+    private void setTextAreaWidth() {
+        // Numbers are pretty arbitrary, but seem to adjust relatively well to any give text.
+        int length = (currentCommand.getText().length() + 1) * 12;
+        System.out.println(length);
+        if (length > 244) { // If it needs to scroll
+            adjustScrollPane(length);
+        } else {
+            resetScrollPane();
+        }
+    }
+
+    // Resizes the TextArea to be long enough to hold the command and prevents vertical scrolling.
+    private void adjustScrollPane(int length) {
+        currentCommand.setPrefWidth(length);
+        commandBar.setVmax(0.6);
+        commandBar.setVmin(0.1);
+    }
+
+    // Makes it so the scroll bar does not appear when text is short and that text appears in the middle.
+    private synchronized void resetScrollPane() {
+        currentCommand.setPrefWidth(244);
+        commandBar.setVmax(0.5);
+        commandBar.setVmin(0);
+    }
+
     public synchronized void handleCommandLineMenuButton() {
         // Allows the menu to stay within the window (opens bottom-left of button) when clicked.
         commandLineMenu.show(commandLineMenuButton, Side.BOTTOM, -162, 3);
+    }
+
+    /**
+     * Copies the entire command to the clipboard
+     */
+    public synchronized void handleCopyCommandOption() {
+        logger.info("Command copied");
+        Clipboard clipboard = Clipboard.getSystemClipboard();
+        ClipboardContent command = new ClipboardContent();
+        command.putString(currentCommand.getText());
+        clipboard.setContent(command);
+    }
+
+    // Currently doesn't update with actual history
+    public synchronized void handleSeeHistoryOption() {
+        sessionController.handleSeeHistoryOption();
+    }
+
+    // Currently doesn't update with actual history
+    public synchronized void handleExportHistoryOption() {
+        sessionController.handleExportHistoryOption();
     }
 
     public synchronized void handleDisableOption() {
@@ -69,48 +133,22 @@ public class CommandLineController {
         }
     }
 
-    //Currently doesn't update with actual history
-    public synchronized void handleSeeHistoryOption() {
-        sessionController.handleSeeHistoryOption();
-    }
-
-    public synchronized void handleExportHistoryOption() {
-//        sessionController.handleExportHistoryOption();
-    }
-
     public synchronized void handleClearLogOption() {
         TranscriptHelper.clear();
         currentCommand.setText("");
         resetScrollPane();
     }
 
-    public synchronized void updateCommandText(String command) {
-        TranscriptHelper.post(command);
-        if (allowUpdates) {
-            currentCommand.setText(command);
-            setTextAreaWidth();
-        }
+    public synchronized void handleRightClickMenu() {
+        // Show the copy option near where the user clicked.
+        commandRightClickMenu.show(currentCommand.getClip(), Side.BOTTOM, 0, 0);
     }
 
-    /*
-     * If a command is too long to fit in the visible ScrollPane, allow the text area to get as long as it needs to
-     * and make it so the text appears slightly higher so it is not covered by the scroll bar.
+    /**
+     * Copies only the highlighted portion to the clipboard
      */
-    private void setTextAreaWidth() {
-        // Numbers are pretty arbitrary, but seem to adjust relatively well to any give text.
-        int length = (currentCommand.getText().length() + 1) * 12;
-        System.out.println(length);
-        if (length > 244) {
-            currentCommand.setPrefWidth(length);
-            commandBar.setVvalue(0.335);
-        } else {
-            resetScrollPane();
-        }
-    }
-
-    // Makes it so the scroll bar does not appear when text is short and that text appears in the middle.
-    private synchronized void resetScrollPane() {
-        currentCommand.setPrefWidth(244);
-        commandBar.setVvalue(0.125);
+    public synchronized void handleCopyOption() {
+        logger.info("Portion of command copied");
+        currentCommand.copy();
     }
 }

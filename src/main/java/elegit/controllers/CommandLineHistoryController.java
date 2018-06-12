@@ -1,6 +1,7 @@
 package elegit.controllers;
 
 import elegit.Main;
+import elegit.models.SessionModel;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -12,6 +13,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.*;
+import java.nio.file.Path;
 
 /**
  * Created by grenche on 6/7/18.
@@ -20,7 +22,8 @@ import java.io.*;
 public class CommandLineHistoryController {
     private final SessionController sessionController;
 
-    @FXML private TextArea commandHistory;
+    @FXML
+    private TextArea commandHistory;
 
     // This is not threadsafe, since it escapes to other portions of the JavaFX view. Only access from FX thread.
     private Stage stage;
@@ -31,43 +34,26 @@ public class CommandLineHistoryController {
         sessionController = SessionController.getSessionController();
     }
 
-    //Currently doesn't update with actual history, but with the elegit log file
+    // Currently doesn't update with actual history, but with the elegit.log file
     public synchronized void initialize() {
         commandHistory.clear();
         String command;
-        //Currently cannot get the file. I'm not sure why it's not showing up in the log folder.
+        // Currently cannot get the file. I'm not sure why it's not showing up in the log folder.
         File transcript = new File(System.getProperty("logFolder") + "/elegit.log");
+        // NOTE: not sure if we want to display the path here.
+        Path currentPath = SessionModel.getSessionModel().getCurrentRepoHelper().getLocalPath();
         try {
             BufferedReader br = new BufferedReader(new FileReader(transcript));
             while ((command = br.readLine()) != null) {
-                commandHistory.appendText(command + "\n");
+                commandHistory.appendText(currentPath + " " + command + "\n");
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    public synchronized void handleExportHistoryOption() {
-        FileChooser fileChooser = new FileChooser();
-        Stage stage = new Stage();
-        fileChooser.showSaveDialog(stage);
-        File transcript = new File(System.getProperty("logFolder") + "/elegit.log");
-        //Currently cannot get the file. I'm not sure why it's not showing up in the log folder.
-        saveFile(commandHistory.getText(), transcript);
-    }
-
-    private static void saveFile(String content, File file) {
-        try {
-            FileWriter fileWriter = new FileWriter(file);
-            fileWriter.write(content);
-            fileWriter.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
     /**
-     * Opens up a terminal like window and displays history
+     * Opens up a terminal like window and displays command line history
      */
     public void showHistory() {
         Main.assertFxThread();
@@ -87,5 +73,40 @@ public class CommandLineHistoryController {
         }
     }
 
-    public void closeWindow() { this.stage.close(); }
+    public void closeWindow() {
+        this.stage.close();
+    }
+
+    /**
+     * Allows the user to save the Elegit actions they've done as terminal commands in a txt file
+     */
+    public synchronized void handleExportHistoryOption() {
+        FileChooser fileChooser = new FileChooser();
+        // Allow the user to export the commands to a .txt file.
+        FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("TXT files (*.txt)", "*.txt");
+        fileChooser.getExtensionFilters().add(extFilter);
+        Stage stage = new Stage();
+
+        // Open up the save window
+        File file = fileChooser.showSaveDialog(stage);
+
+        if (file != null) {
+            writeToFile(commandHistory.getText(), file);
+        }
+    }
+
+    /**
+     * Helper method for writing the command history to the file to be saved
+     */
+    private void writeToFile(String commands, File file) {
+        try {
+            // Write the commands to this new file
+            FileWriter fileWriter = new FileWriter(file);
+            fileWriter.write(commands);
+            fileWriter.close();
+        } catch (IOException e) {
+            sessionController.showGenericErrorNotification(e);
+            e.printStackTrace();
+        }
+    }
 }

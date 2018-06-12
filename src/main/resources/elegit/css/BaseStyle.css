@@ -180,6 +180,12 @@
     -fx-font-weight: 900;
 }
 
+.text-area {
+    -fx-highlight-fill: rgba(0, 31, 149, 0.61);
+    -fx-highlight-text-fill: #000000;
+    -fx-focus-color: -fx-control-inner-background;
+}
+
 #notificationLine {
     -fx-background-color: linear-gradient(from 0px 0px to 1200px 0px, -fx-background-default 0%, #555555 2%, #555555 98%, -fx-background-default 100%);;
     -fx-cursor: v_resize;

@@ -168,6 +168,5 @@ public class OpenRepoDirectoryFXTest extends ApplicationTest {
             helper.commit("Appended to file");
         }
         return local;
-
     }
 }
