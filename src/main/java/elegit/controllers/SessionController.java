@@ -2509,6 +2509,40 @@ public class SessionController {
     }
 
     /**
+     * Shows recent Elegit actions as terminal commands in a terminal like window
+     */
+    public void handleSeeHistoryOption() {
+        logger.info("Opened command history window");
+        // Create and display the Stage:
+        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/pop-ups/CommandLineHistory.fxml"));
+        try {
+            fxmlLoader.load();
+        } catch (IOException e) {
+            this.showGenericErrorNotification(e);
+            e.printStackTrace();
+        }
+        CommandLineHistoryController commandLineHistoryController = fxmlLoader.getController();
+        commandLineHistoryController.showHistory();
+    }
+
+    /**
+     * NOT FINISHED
+     */
+    public void handleExportHistoryOption() {
+        logger.info("Opened save command history window");
+        // Create and display the Stage:
+        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/pop-ups/CommandLineHistory.fxml"));
+        try {
+            fxmlLoader.load();
+        } catch (IOException e) {
+            this.showGenericErrorNotification(e);
+            e.printStackTrace();
+        }
+        CommandLineHistoryController commandLineHistoryController = fxmlLoader.getController();
+        commandLineHistoryController.handleExportHistoryOption();
+    }
+
+    /**
      * Opens up the help page to inform users about what symbols mean
      */
     public void showLegend() {
@@ -2897,5 +2931,4 @@ public class SessionController {
     public synchronized void updateCommandText(String command) {
         commandLineController.updateCommandText(command);
     }
-
 }
