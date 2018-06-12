@@ -2,25 +2,14 @@ package elegit.controllers;
 
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
-import elegit.Main;
 import elegit.models.TranscriptHelper;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.geometry.Side;
-import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.text.Text;
-import javafx.stage.FileChooser;
-import javafx.stage.Modality;
-import javafx.stage.Stage;
 import net.jcip.annotations.GuardedBy;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.junit.FixMethodOrder;
-
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 
 /**
  * Created by grenche on 6/7/18.
@@ -82,11 +71,11 @@ public class CommandLineController {
 
     //Currently doesn't update with actual history
     public synchronized void handleSeeHistoryOption() {
-//        commandLineHistoryController.handleSeeHistoryOption();
+        sessionController.handleSeeHistoryOption();
     }
 
     public synchronized void handleExportHistoryOption() {
-//        commandLineHistoryController.handleExportHistoryOption();
+//        sessionController.handleExportHistoryOption();
     }
 
     public synchronized void handleClearLogOption() {
