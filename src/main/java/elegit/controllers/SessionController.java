@@ -55,12 +55,14 @@ import org.eclipse.jgit.api.PushCommand;
 import org.eclipse.jgit.api.ResetCommand;
 import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.errors.NoMergeBaseException;
+import org.eclipse.jgit.lib.Config;
 import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.jgit.transport.RemoteRefUpdate;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
 import java.awt.*;
 import java.io.IOException;
+import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -781,7 +783,10 @@ public class SessionController {
                                (e) -> {
                                    showSingleResult(notificationPaneController, new Result(ResultOperation.LOAD, e));
                                });
-
+            //need to find url etc
+            if (builder.getRepoHelperBuilderType().equals("CLONED")){
+                commandLineController.updateCommandText("git clone "+builder.getRemoteURL()+" "+builder.getDestinationPath());
+            }
         } catch (Exception e) {
             showSingleResult(notificationPaneController, new Result(ResultOperation.LOAD, e));
         }
@@ -955,16 +960,20 @@ public class SessionController {
                 protected Void call() {
                     try{
                         ArrayList<Path> filePathsToRemove = new ArrayList<>();
+                        ArrayList<String> fileNames = new ArrayList<>();
                         // Try to remove all files, throw exception if there are ones that can't be added
                         for(RepoFile checkedFile : workingTreePanelView.getCheckedFilesInDirectory()) {
-                            if (checkedFile.canRemove())
+                            if (checkedFile.canRemove()) {
                                 filePathsToRemove.add(checkedFile.getFilePath());
+                                fileNames.add(checkedFile.getFilePath().toString());
+                            }
                             else
                                 throw new UnableToRemoveException(checkedFile.getFilePath().toString());
                         }
 
                         theModel.getCurrentRepoHelper().removeFilePaths(filePathsToRemove);
                         gitStatus();
+                        commandLineController.updateCommandText("git rm " + String.join(" ", fileNames));
 
                     } catch(JGitInternalException e){
                         showJGitInternalError(e);
@@ -1003,7 +1012,9 @@ public class SessionController {
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
             if(!this.theModel.getCurrentRepoHelper().exists()) throw new MissingRepoException();
             theModel.getCurrentRepoHelper().checkoutFile(filePath);
-            commandLineController.updateCommandText("git checkout "+filePath.toString());
+            //right click on file
+            commandLineController.updateCommandText("git checkout -- "+filePath.toString());
+            //need to put in command for checlout file here
         } catch (NoRepoLoadedException e) {
             showNoRepoLoadedNotification();
         } catch (MissingRepoException e) {
@@ -1030,9 +1041,8 @@ public class SessionController {
             // Try to add all files, throw exception if there are ones that can't be added
             for(RepoFile checkedFile : workingTreePanelView.getCheckedFilesInDirectory()) {
                 filePathsToCheckout.add(checkedFile.getFilePath());
+                commandLineController.updateCommandText("git checkout -- "+checkedFile.getFilePath().toString());
             }
-            ArrayList<String> fileNames = theModel.getCurrentRepoHelper().checkoutFiles(filePathsToCheckout);
-            commandLineController.updateCommandText("git checkout "+String.join(" ", fileNames));
             gitStatus();
         } catch (NoFilesSelectedToAddException e) {
             this.showNoFilesSelectedForAddNotification();
@@ -1040,8 +1050,6 @@ public class SessionController {
             this.showNoRepoLoadedNotification();
         } catch (MissingRepoException e) {
             this.showMissingRepoNotification();
-        } catch (GitAPIException e) {
-            this.showGenericErrorNotification(e);
         } catch (CancelledDialogException e) {
             // Do nothing
         }
@@ -1586,7 +1594,7 @@ public class SessionController {
             }
             RemoteRefUpdate.Status deleteStatus = branchModel.deleteRemoteBranch((RemoteBranchHelper) selectedBranch);
             RemoteBranchHelper remote = (RemoteBranchHelper) selectedBranch;
-            commandLineController.updateCommandText("git push origin :refs/heads/"+remote.parseBranchName());
+            commandLineController.updateCommandText("git push origin --delete "+remote.parseBranchName());
             String updateMessage = selectedBranch.getRefName();
             // There are a number of possible cases, see JGit's documentation on RemoteRefUpdate.Status
             // for the full list.
@@ -1618,7 +1626,7 @@ public class SessionController {
             logger.info("Revert button clicked");
 
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
-
+            //commandLineController.updateCommandText("git revert "+commit.getName());
             showBusyWindow("Reverting...");
             Thread th = new Thread(new Task<Void>(){
                 @Override
@@ -1668,7 +1676,7 @@ public class SessionController {
     public void handleRevertButton(CommitHelper commit) {
         try {
             logger.info("Revert button clicked");
-
+            commandLineController.updateCommandText("git revert "+commit.getName());
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
 
             showBusyWindow("Reverting...");
@@ -1727,7 +1735,7 @@ public class SessionController {
      */
     public void handleAdvancedResetButton(CommitHelper commit, ResetCommand.ResetType type) {
         logger.info("Reset button clicked");
-
+        commandLineController.updateCommandText("git reset --"+type.toString().toLowerCase()+" "+commit.getName());
         if(this.theModel.getCurrentRepoHelper() == null) {
             this.showNoRepoLoadedNotification();
             setButtonsDisabled(true);
@@ -2145,6 +2153,21 @@ public class SessionController {
         // TODO: gitStatus was taken out of showing results; may need to go back in here.
         Main.assertFxThread();
         logger.info("Merge from fetch button clicked");
+
+        Config config = theModel.getCurrentRepoHelper().getRepo().getConfig();
+
+        try {
+            String remote = config.getString("branch", theModel.getCurrentRepoHelper().getRepo().getBranch(), "remote") + "/";
+            String remote_tracking = config.getString("branch", theModel.getCurrentRepoHelper().getRepo().getBranch(), "merge");
+
+            sessionController.updateCommandText("git merge "+remote+remote_tracking);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        //String remote_tracking = config.getString("branch", theModel.getCurrentRepoHelper().getRepo().getBranch(), "merge");
+
+        //sessionController.updateCommandText("git merge "+ );
+
         return Observable.just(theModel.getCurrentRepoHelper())
                 .doOnNext(this::mergePreChecks) // skips to onErrorResumeNext when these fail
                 .doOnNext(unused -> showBusyWindowAndPauseRepoMonitor("Merging..."))
@@ -2267,6 +2290,7 @@ public class SessionController {
      */
     void handleCommitNameCopyButton(){
         logger.info("Commit name copied");
+        //needs a command line, possibly git log
         Clipboard clipboard = Clipboard.getSystemClipboard();
         ClipboardContent content = new ClipboardContent();
         content.putString(commitInfoNameText.get());
@@ -2279,6 +2303,8 @@ public class SessionController {
     void handleGoToCommitButton(){
         logger.info("Go to commit button clicked");
         String id = commitInfoNameText.get();
+        //commit.get
+        commandLineController.updateCommandText("git checkout "+id);
         CommitTreeController.focusCommitInGraph(id);
     }
 

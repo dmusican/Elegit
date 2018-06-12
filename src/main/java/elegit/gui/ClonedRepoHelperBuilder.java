@@ -49,7 +49,8 @@ import java.util.Optional;
 // but only because everything here runs on the FX thread.
 public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
 
-    private static String prevRemoteURL, prevDestinationPath, prevRepoName;
+    private static String prevRemoteURL, prevDestinationPath, prevRepoName, remoteURL;
+    private static Path destinationPath;
 
     private static final Logger logger = LogManager.getLogger();
 
@@ -75,8 +76,8 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
         Optional<Pair<String, String>> result = dialog.showAndWait();
         if (result.isPresent()) {
             // Unpack the destination-remote Pair created above:
-            Path destinationPath = Paths.get(result.get().getKey());
-            String remoteURL = result.get().getValue();
+            destinationPath = Paths.get(result.get().getKey());
+            remoteURL = result.get().getValue();
             String additionalPrivateKey = null;
             String knownHostsLocation = null;
 
@@ -317,6 +318,15 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
                                                                    userInfo,
                                                                    additionalPrivateKey,
                                                                    knownHostsLocation));
+    }
+    public String getRemoteURL(){
+        return remoteURL;
+    }
+    public Path getDestinationPath(){
+        return destinationPath;
+    }
+    public String getRepoHelperBuilderType(){
+        return "CLONED";
     }
 
 }

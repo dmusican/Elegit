@@ -210,7 +210,6 @@ public class MergeWindowController {
      */
     private synchronized void mergeFromFetch() {
         Main.assertFxThread();
-
         // Do the merge, and close the window if successful
         sessionController.mergeFromFetchCreateChain(notificationPaneController)
                 .subscribe(results -> {

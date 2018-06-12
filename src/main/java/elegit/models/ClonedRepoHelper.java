@@ -46,7 +46,6 @@ public class ClonedRepoHelper extends RepoHelper {
         File destination = this.getLocalPath().toFile();
         cloneCommand.setDirectory(destination);
         Git cloneCall = cloneCommand.call();
-        TranscriptHelper.post("git clone "+remoteURL); //maybe?? need version w/ optional name change
         cloneCall.close();
         setRepo(cloneCall.getRepository());
         setup();

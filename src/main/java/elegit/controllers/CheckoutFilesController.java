@@ -88,6 +88,7 @@ public class CheckoutFilesController {
                 return;
             }
             // New ArrayList used below so that checkoutFiles cannot modify this list, nor worry about sync errors
+            sessionController.updateCommandText("git checkout "+ commitHelper.getName()+ " "+String.join(" ", fileNames));
             CheckoutResult result = this.repoHelper.checkoutFiles(new ArrayList<>(fileNames), commitHelper.getName());
             switch (result.getStatus()) {
                 case CONFLICTS:
