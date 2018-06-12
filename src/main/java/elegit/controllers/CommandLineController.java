@@ -45,68 +45,11 @@ public class CommandLineController {
     public void initialize() {
         commandLineMenuButton.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
         Text barsIcon = GlyphsDude.createIcon(FontAwesomeIcon.BARS);
-        this.commandLineMenuButton.setGraphic(barsIcon);
-        this.commandLineMenuButton.setTooltip(new Tooltip("Command line tool menu"));
+        commandLineMenuButton.setGraphic(barsIcon);
+        commandLineMenuButton.setTooltip(new Tooltip("Command line tool menu"));
         currentCommand.setEditable(false);
         resetScrollPane();
-    }
-
-    public synchronized void handleCommandLineMenuButton() {
-        // Allows the menu to stay within the window (opens bottom-left of button) when clicked.
-        commandLineMenu.show(commandLineMenuButton, Side.BOTTOM, -162, 3);
-    }
-
-    public synchronized void handleRightClickMenu() {
-        // Show the copy option near where the user clicked.
-        commandRightClickMenu.show(currentCommand.getClip(), Side.BOTTOM, 0,0);
-    }
-
-    public synchronized void handleDisableOption() {
-        if (allowUpdates) { // Entered when the user wants to disable the tool and allows them to reenable it.
-            allowUpdates = false;
-            currentCommand.setText("Disabled");
-            disableOption.setText("Enable terminal commands");
-            resetScrollPane();
-        } else { // Entered initially and when the user wants to enable the tool (allowing them to disable next).
-            allowUpdates = true;
-            currentCommand.setText("");
-            disableOption.setText("Disable terminal commands");
-            resetScrollPane();
-        }
-    }
-
-    // Currently doesn't update with actual history
-    public synchronized void handleSeeHistoryOption() {
-        sessionController.handleSeeHistoryOption();
-    }
-    // Currently doesn't update with actual history
-    public synchronized void handleExportHistoryOption() {
-        sessionController.handleExportHistoryOption();
-    }
-
-    public synchronized void handleClearLogOption() {
-        TranscriptHelper.clear();
-        currentCommand.setText("");
-        resetScrollPane();
-    }
-
-    /**
-     * Copies the entire command to the clipboard
-     */
-    public synchronized void handleCopyCommandOption() {
-        logger.info("Command copied");
-        Clipboard clipboard = Clipboard.getSystemClipboard();
-        ClipboardContent command = new ClipboardContent();
-        command.putString(currentCommand.getText());
-        clipboard.setContent(command);
-    }
-
-    /**
-     * Copies only the highlighted portion to the clipboard
-     */
-    public synchronized void handleCopyOption() {
-        logger.info("Portion of command copied");
-        currentCommand.copy();
+        commandBar.setVvalue(0.125);
     }
 
     /**
@@ -141,7 +84,6 @@ public class CommandLineController {
         currentCommand.setPrefWidth(length);
         commandBar.setVmax(0.6);
         commandBar.setVmin(0.1);
-        commandBar.setVvalue(0.125);
     }
 
     // Makes it so the scroll bar does not appear when text is short and that text appears in the middle.
@@ -149,6 +91,64 @@ public class CommandLineController {
         currentCommand.setPrefWidth(244);
         commandBar.setVmax(0.5);
         commandBar.setVmin(0);
-        commandBar.setVvalue(0.125);
+    }
+
+    public synchronized void handleCommandLineMenuButton() {
+        // Allows the menu to stay within the window (opens bottom-left of button) when clicked.
+        commandLineMenu.show(commandLineMenuButton, Side.BOTTOM, -162, 3);
+    }
+
+    /**
+     * Copies the entire command to the clipboard
+     */
+    public synchronized void handleCopyCommandOption() {
+        logger.info("Command copied");
+        Clipboard clipboard = Clipboard.getSystemClipboard();
+        ClipboardContent command = new ClipboardContent();
+        command.putString(currentCommand.getText());
+        clipboard.setContent(command);
+    }
+
+    // Currently doesn't update with actual history
+    public synchronized void handleSeeHistoryOption() {
+        sessionController.handleSeeHistoryOption();
+    }
+
+    // Currently doesn't update with actual history
+    public synchronized void handleExportHistoryOption() {
+        sessionController.handleExportHistoryOption();
+    }
+
+    public synchronized void handleDisableOption() {
+        if (allowUpdates) { // Entered when the user wants to disable the tool and allows them to reenable it.
+            allowUpdates = false;
+            currentCommand.setText("Disabled");
+            disableOption.setText("Enable terminal commands");
+            resetScrollPane();
+        } else { // Entered initially and when the user wants to enable the tool (allowing them to disable next).
+            allowUpdates = true;
+            currentCommand.setText("");
+            disableOption.setText("Disable terminal commands");
+            resetScrollPane();
+        }
+    }
+
+    public synchronized void handleClearLogOption() {
+        TranscriptHelper.clear();
+        currentCommand.setText("");
+        resetScrollPane();
+    }
+
+    public synchronized void handleRightClickMenu() {
+        // Show the copy option near where the user clicked.
+        commandRightClickMenu.show(currentCommand.getClip(), Side.BOTTOM, 0, 0);
+    }
+
+    /**
+     * Copies only the highlighted portion to the clipboard
+     */
+    public synchronized void handleCopyOption() {
+        logger.info("Portion of command copied");
+        currentCommand.copy();
     }
 }

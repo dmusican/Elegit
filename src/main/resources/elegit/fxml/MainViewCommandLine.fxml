@@ -35,16 +35,16 @@
         <contextMenu>
             <ContextMenu fx:id="commandLineMenu">
                 <items>
-                    <MenuItem id="disableOption" fx:id="disableOption" onAction="#handleDisableOption"
-                              text="Disable terminal commands"/>
+                    <MenuItem id="copyCommandOption" fx:id="copyCommandOption" onAction="#handleCopyCommandOption"
+                              text="Copy current command"/>
                     <MenuItem id="seeHistoryOption" fx:id="seeHistoryOption" onAction="#handleSeeHistoryOption"
                               text="See full history"/>
                     <MenuItem id="exportHistoryOption" fx:id="exportHistoryOption" onAction="#handleExportHistoryOption"
                               text="Export history to a .txt file"/>
+                    <MenuItem id="disableOption" fx:id="disableOption" onAction="#handleDisableOption"
+                              text="Disable terminal commands"/>
                     <MenuItem id="clearLogOption" fx:id="clearLogOption" onAction="#handleClearLogOption"
                               text="Clear command history"/>
-                    <MenuItem id="copyCommandOption" fx:id="copyCommandOption" onAction="#handleCopyCommandOption"
-                              text="Copy current command"/>
                 </items>
             </ContextMenu>
         </contextMenu>
