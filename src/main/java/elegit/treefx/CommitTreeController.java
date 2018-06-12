@@ -1,6 +1,7 @@
     package elegit.treefx;
 
 import elegit.Main;
+import elegit.controllers.CommandLineController;
 import elegit.models.SessionModel;
 import elegit.controllers.SessionController;
 import elegit.models.BranchHelper;
@@ -168,6 +169,10 @@ public class CommitTreeController{
      */
     public static void selectCommit(String id, boolean ancestors, boolean descendants, boolean allGenerations){
         Main.assertFxThread();
+        CommandLineController commandLineController = SessionController.getSessionController().getCommandLineController();
+        if (ancestors && !descendants){
+            commandLineController.updateCommandText("git log --no-walk "+id+"^@");
+        }
         resetSelection();
         selectCommitInGraph(id, ancestors, descendants, allGenerations);
         sessionController.get().selectCommit(id);

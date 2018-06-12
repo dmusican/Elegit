@@ -266,4 +266,10 @@ public abstract class RepoHelperBuilder {
     }
 
     public abstract Single<RepoHelper> getRepoHelperFromDialogsWhenSubscribed();
+
+    public abstract String getRepoHelperBuilderType();
+
+    public abstract String getRemoteURL();
+
+    public abstract Path getDestinationPath();
 }

@@ -783,7 +783,10 @@ public class SessionController {
                                (e) -> {
                                    showSingleResult(notificationPaneController, new Result(ResultOperation.LOAD, e));
                                });
-
+            //need to find url etc
+            if (builder.getRepoHelperBuilderType().equals("CLONED")){
+                commandLineController.updateCommandText("git clone "+builder.getRemoteURL()+" "+builder.getDestinationPath());
+            }
         } catch (Exception e) {
             showSingleResult(notificationPaneController, new Result(ResultOperation.LOAD, e));
         }
@@ -1623,7 +1626,7 @@ public class SessionController {
             logger.info("Revert button clicked");
 
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
-
+            //commandLineController.updateCommandText("git revert "+commit.getName());
             showBusyWindow("Reverting...");
             Thread th = new Thread(new Task<Void>(){
                 @Override
@@ -1673,7 +1676,7 @@ public class SessionController {
     public void handleRevertButton(CommitHelper commit) {
         try {
             logger.info("Revert button clicked");
-
+            commandLineController.updateCommandText("git revert "+commit.getName());
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
 
             showBusyWindow("Reverting...");
@@ -1732,7 +1735,7 @@ public class SessionController {
      */
     public void handleAdvancedResetButton(CommitHelper commit, ResetCommand.ResetType type) {
         logger.info("Reset button clicked");
-
+        commandLineController.updateCommandText("git reset --"+type.toString().toLowerCase()+" "+commit.getName());
         if(this.theModel.getCurrentRepoHelper() == null) {
             this.showNoRepoLoadedNotification();
             setButtonsDisabled(true);
