@@ -10,21 +10,41 @@
 
 <!-- Elegit actions as terminal commands and a menu button for this feature -->
 
-<HBox alignment="CENTER_LEFT" spacing="5.0" stylesheets="@../css/BaseStyle.css" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="elegit.controllers.CommandLineController">
-    <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Terminal Command:" textAlignment="CENTER" />
-   <ScrollPane id="commandBar" fx:id="commandBar" fitToHeight="true" fitToWidth="true" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" pannable="true" prefHeight="42.0" prefWidth="250.0" vbarPolicy="NEVER" HBox.hgrow="NEVER">
-      <content>
-         <TextArea id="command" fx:id="currentCommand" blendMode="HARD_LIGHT" editable="false" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" mouseTransparent="true" prefHeight="42.0" prefWidth="244.0" />
-      </content>
-   </ScrollPane>
+<HBox alignment="CENTER_LEFT" spacing="5.0" stylesheets="@../css/BaseStyle.css" xmlns="http://javafx.com/javafx/8.0.112"
+      xmlns:fx="http://javafx.com/fxml/1" fx:controller="elegit.controllers.CommandLineController">
+    <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Terminal Command:" textAlignment="CENTER"/>
+    <ScrollPane id="commandBar" fx:id="commandBar" fitToHeight="true" fitToWidth="true" maxHeight="-Infinity"
+                maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" pannable="true" prefHeight="42.0"
+                prefWidth="250.0" vbarPolicy="NEVER" HBox.hgrow="NEVER">
+        <content>
+            <TextArea id="command" fx:id="currentCommand" blendMode="HARD_LIGHT" editable="false" maxHeight="-Infinity"
+                      maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity"
+                      prefHeight="42.0" prefWidth="244.0" onContextMenuRequested="#handleRightClickMenu">
+                <contextMenu>
+                    <ContextMenu fx:id="commandRightClickMenu">
+                        <items>
+                            <MenuItem id="copyCommandOption" fx:id="copyCommandRightClickOption"
+                                      text="Copy" onAction="#handleCopyOption"/>
+                        </items>
+                    </ContextMenu>
+                </contextMenu>
+            </TextArea>
+        </content>
+    </ScrollPane>
     <Button id="commandLineMenuButton" fx:id="commandLineMenuButton" onAction="#handleCommandLineMenuButton">
         <contextMenu>
             <ContextMenu fx:id="commandLineMenu">
                 <items>
-                    <MenuItem id="disableOption" fx:id="disableOption" onAction="#handleDisableOption" text="Disable terminal commands" />
-                    <MenuItem id="seeHistoryOption" fx:id="seeHistoryOption" onAction="#handleSeeHistoryOption" text="See full history" />
-                    <MenuItem id="exportHistoryOption" fx:id="exportHistoryOption" onAction="#handleExportHistoryOption" text="Export history to a .txt file" />
-                    <MenuItem id="clearLogOption" fx:id="clearLogOption" onAction="#handleClearLogOption" text="Clear command history" />
+                    <MenuItem id="disableOption" fx:id="disableOption" onAction="#handleDisableOption"
+                              text="Disable terminal commands"/>
+                    <MenuItem id="seeHistoryOption" fx:id="seeHistoryOption" onAction="#handleSeeHistoryOption"
+                              text="See full history"/>
+                    <MenuItem id="exportHistoryOption" fx:id="exportHistoryOption" onAction="#handleExportHistoryOption"
+                              text="Export history to a .txt file"/>
+                    <MenuItem id="clearLogOption" fx:id="clearLogOption" onAction="#handleClearLogOption"
+                              text="Clear command history"/>
+                    <MenuItem id="copyCommandOption" fx:id="copyCommandOption" onAction="#handleCopyCommandOption"
+                              text="Copy current command"/>
                 </items>
             </ContextMenu>
         </contextMenu>
