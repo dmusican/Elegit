@@ -10,10 +10,11 @@ public class TranscriptHelper {
     public static void post(String command) {
         String log_file_path = System.getProperty("logFolder") + "/transcript.log";
 
-        Writer output;
+        BufferedWriter output;
         try {
             output = new BufferedWriter(new FileWriter(log_file_path, true));
-            output.append(command + "\n");
+            output.append(command);
+            output.newLine();
             output.close();
         } catch (IOException e) {
 

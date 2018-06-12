@@ -85,7 +85,7 @@ public class StashSaveController {
     public void stashSave(String message) {
         try {
             repoHelper.stashSave(includeUntracked.isSelected(), message,"");
-            sessionController.updateCommandText("git stash push -message "+ message);
+            sessionController.updateCommandText("git stash push -message \""+ message+"\"");
             // TODO: Fix this when a better version of gitStatus is done
             //sessionController.gitStatus();
             closeWindow();

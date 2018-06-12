@@ -127,7 +127,7 @@ public class StashListController {
         String stashRef = this.stashList.getSelectionModel().getSelectedItem().getName();
         try {
             repoHelper.stashApply(stashRef, false);
-            commandLineController.updateCommandText("git stash apply "+this.stashList.getSelectionModel().getSelectedIndex());
+            commandLineController.updateCommandText("git stash apply stash@{"+this.stashList.getSelectionModel().getSelectedIndex()+"}");
             // TODO: Fix when have better approach for gitStatus
             //sessionController.gitStatus();
         } catch (WrongRepositoryStateException e) {
@@ -147,7 +147,7 @@ public class StashListController {
         try {
             repoHelper.stashDrop(index);
 
-            commandLineController.updateCommandText("git stash drop "+index);
+            commandLineController.updateCommandText("git stash drop stash@{"+index+"}");
 
             refreshList();
         } catch (GitAPIException e) {
@@ -179,7 +179,7 @@ public class StashListController {
         try {
             repoHelper.stashApply(stashRef, false);
             repoHelper.stashDrop(index);
-            commandLineController.updateCommandText("git stash pop "+this.stashList.getSelectionModel().getSelectedIndex());
+            commandLineController.updateCommandText("git stash pop stash@{"+this.stashList.getSelectionModel().getSelectedIndex()+"}");
             refreshList();
             // TODO: Fix when have better approach for gitStatus
             //sessionController.gitStatus();

@@ -1810,7 +1810,7 @@ public class SessionController {
             CommitHelper topStash = theModel.getCurrentRepoHelper().stashList().get(0);
             commandLineController.updateCommandText("git stash list");
             this.theModel.getCurrentRepoHelper().stashApply(topStash.getName(), false);
-            commandLineController.updateCommandText("git stash apply "+topStash.getName());
+            commandLineController.updateCommandText("git stash apply stash@{"+topStash.getName()+"}");
             gitStatus();
         } catch (StashApplyFailureException e) {
             showStashConflictsNotification();
@@ -1853,7 +1853,7 @@ public class SessionController {
         try {
             // TODO: implement droping something besides 0
             this.theModel.getCurrentRepoHelper().stashDrop(0);
-            commandLineController.updateCommandText("git stash drop "+0);
+            commandLineController.updateCommandText("git stash drop stash@{0}");
         } catch (GitAPIException e) {
             showGenericErrorNotification(e);
         }
@@ -1927,7 +1927,7 @@ public class SessionController {
         console.info("Starting it off");
         Main.assertNotFxThread();
         console.info("gitFetch itself is running");
-        synchronized(globalLock) {
+        synchronized (globalLock) {
             List<Result> results = new ArrayList<>();
             try {
                 RepositoryMonitor.resetFoundNewChanges();
@@ -1939,7 +1939,10 @@ public class SessionController {
                 if(prune){
                     commandLineController.updateCommandText("git fetch -p");
                 }
-                else {
+                else if (pull){
+                    commandLineController.updateCommandText("git pull");
+                }
+                else{
                     commandLineController.updateCommandText("git fetch");
                 }
                 if (!helper.fetch(prune)) {
