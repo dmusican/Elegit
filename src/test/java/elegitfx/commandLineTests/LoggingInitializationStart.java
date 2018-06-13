@@ -9,7 +9,6 @@ import java.nio.file.Paths;
 
 /**
  * Created by grenche on 6/13/18.
- * <p>
  * Used to avoid creating and logging in the "${sys:logFolder}", but rather send everything to the "logs" folder
  * Required for tests that don't go through Main (where this is already done immediately in a static block) and use
  * loggers.
@@ -21,12 +20,4 @@ public class LoggingInitializationStart extends ExternalResource {
         String s = logPath.toAbsolutePath().toString();
         System.setProperty("logFolder", s);
     }
-
-    private static final Logger console = LogManager.getLogger("briefconsolelogger");
-
-    private static final Logger logger = LogManager.getLogger("consolelogger");
-
-    public static Logger getConsole() { return console; }
-
-    public static Logger getLogger() { return logger; }
 }

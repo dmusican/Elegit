@@ -1,10 +1,14 @@
 package elegitfx.commandLineTests;
 
 import javafx.stage.Stage;
+import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.*;
+import org.junit.rules.TestName;
 import org.testfx.framework.junit.ApplicationTest;
+import org.testfx.framework.junit.TestFXRule;
 import sharedrules.TestUtilities;
+import sharedrules.TestingLogPathRule;
 import sharedrules.TestingRemoteAndLocalReposRule;
 
 import java.nio.file.Path;
@@ -18,11 +22,21 @@ public class CloneSshFXTest extends ApplicationTest {
     @Rule
     public final CommonRulesAndSetup commonRulesAndSetup = new CommonRulesAndSetup();
 
-    private static Logger logger = CommonRulesAndSetup.getLogger();
+    @ClassRule
+    public static final LoggingInitializationStart loggingInitializationStart = new LoggingInitializationStart();
 
-    private static Logger console = CommonRulesAndSetup.getConsole();
+    @ClassRule public static final TestingLogPathRule testingLogPath = new TestingLogPathRule();
 
-    public Path directoryPath = commonRulesAndSetup.getDirectoryPath();
+    @Rule
+    public TestFXRule testFXRule = new TestFXRule();
+
+    @Rule
+    public TestName testName = new TestName();
+
+    private static final Logger console = LogManager.getLogger("briefconsolelogger");
+    private static final Logger logger = LogManager.getLogger("consolelogger");
+
+    public Path directoryPath;
 
     @Rule
     public final TestingRemoteAndLocalReposRule testingRemoteAndLocalRepos =
