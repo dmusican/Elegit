@@ -4,3 +4,4 @@ build_script:
   # jfx:build-jar uses javafx-maven-plugin to also produce executable jars
   # assembly:single creates zips and compressed tarballs that contain all needed files
   - mvn clean compile jfx:build-jar assembly:single jfx:build-native
+
