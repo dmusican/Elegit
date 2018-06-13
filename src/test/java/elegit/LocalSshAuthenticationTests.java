@@ -62,7 +62,7 @@ public class LocalSshAuthenticationTests {
     @BeforeClass
     public static void setUpClass() {
         // Uncomment for debugging purposes
-//        TestingRemoteAndLocalReposRule.doNotDeleteTgoempFiles();
+//        TestingRemoteAndLocalReposRule.doNotDeleteTempFiles();
     }
 
     @Rule
@@ -81,7 +81,6 @@ public class LocalSshAuthenticationTests {
     public void setUp()  {
         console.info("Unit test started");
         directoryPath = testingRemoteAndLocalRepos.getDirectoryPath();
-        TestingRemoteAndLocalReposRule.doNotDeleteTempFiles();
         sshd = null;
     }
 
@@ -95,7 +94,7 @@ public class LocalSshAuthenticationTests {
     @Test
     public void testSshPrivateKey() throws Exception {
         // Uncomment this to get detail SSH logging info, for debugging
-//        JSch.setLogger(new DetailedSshLogger());
+        // JSch.setLogger(new DetailedSshLogger());
 
         // Set up test SSH server.
         sshd = SshServer.setUpDefaultServer();
@@ -258,7 +257,7 @@ public class LocalSshAuthenticationTests {
         private String passphrase;
         private String privateKeyLocationString;
 
-        public TestSessionFactory(String privateKeyLocationString, String passphrase) {
+        TestSessionFactory(String privateKeyLocationString, String passphrase) {
             this.passphrase = passphrase;
             this.privateKeyLocationString = privateKeyLocationString;
         }
