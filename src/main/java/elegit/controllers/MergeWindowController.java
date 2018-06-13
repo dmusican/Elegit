@@ -43,7 +43,6 @@ public class MergeWindowController {
     @FXML private Button mergeButton;
     @FXML private Text mergeRemoteTrackingText;
     @FXML private HBox remoteBranchBox;
-    @FXML private Text intoText1 = new Text(); //not sure if this is the right place for this, but there were errors if intoText1 wasn't initialized
     @FXML private AnchorPane arrowPane;
     @FXML private HBox localBranchBox1;
     @FXML private TabPane mergeTypePane;
@@ -156,7 +155,6 @@ public class MergeWindowController {
      */
     private void hideRemoteMerge() {
         remoteBranchBox.setVisible(false);
-        intoText1.setVisible(false);
         arrowPane.setVisible(false);
         localBranchBox1.setVisible(false);
     }

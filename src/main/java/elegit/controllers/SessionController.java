@@ -1012,9 +1012,7 @@ public class SessionController {
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
             if(!this.theModel.getCurrentRepoHelper().exists()) throw new MissingRepoException();
             theModel.getCurrentRepoHelper().checkoutFile(filePath);
-            //right click on file
             commandLineController.updateCommandText("git checkout -- "+filePath.toString());
-            //need to put in command for checlout file here
         } catch (NoRepoLoadedException e) {
             showNoRepoLoadedNotification();
         } catch (MissingRepoException e) {
@@ -1383,7 +1381,7 @@ public class SessionController {
     public synchronized void handlePushTagsButton() {
         try {
             logger.info("Push tags button clicked");
-
+            commandLineController.updateCommandText("git push --tags");
             final RepoHelperBuilder.AuthDialogResponse credentialResponse = authenticateAndShowBusy("Pushing tags...");
             Thread th = new Thread(new Task<Void>(){
                 @Override
@@ -1810,7 +1808,7 @@ public class SessionController {
             CommitHelper topStash = theModel.getCurrentRepoHelper().stashList().get(0);
             commandLineController.updateCommandText("git stash list");
             this.theModel.getCurrentRepoHelper().stashApply(topStash.getName(), false);
-            commandLineController.updateCommandText("git stash apply stash@{"+topStash.getName()+"}");
+            commandLineController.updateCommandText("git stash apply");
             gitStatus();
         } catch (StashApplyFailureException e) {
             showStashConflictsNotification();
@@ -1853,7 +1851,7 @@ public class SessionController {
         try {
             // TODO: implement droping something besides 0
             this.theModel.getCurrentRepoHelper().stashDrop(0);
-            commandLineController.updateCommandText("git stash drop stash@{0}");
+            commandLineController.updateCommandText("git stash drop");
         } catch (GitAPIException e) {
             showGenericErrorNotification(e);
         }
@@ -2306,8 +2304,6 @@ public class SessionController {
     void handleGoToCommitButton(){
         logger.info("Go to commit button clicked");
         String id = commitInfoNameText.get();
-        //commit.get
-        commandLineController.updateCommandText("git checkout "+id);
         CommitTreeController.focusCommitInGraph(id);
     }
 
