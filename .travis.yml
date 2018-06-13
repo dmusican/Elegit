@@ -19,6 +19,6 @@ deploy:
   - target/Elegit*SNAPSHOT*.gz
   - target/Elegit*SNAPSHOT*.bz2
   skip_cleanup: true
-  draft: true
+  prerelease: true
   on:
     tags: true
