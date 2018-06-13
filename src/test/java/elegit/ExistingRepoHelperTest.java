@@ -11,7 +11,9 @@ import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.PushCommand;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Test;
+import sharedrules.TestingLogPathRule;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -26,6 +28,10 @@ import static org.junit.Assert.fail;
  * Created by dmusican on 2/24/16.
  */
 public class ExistingRepoHelperTest {
+
+    @ClassRule
+    public static final TestingLogPathRule testingLogPath = new TestingLogPathRule();
+
     Path logPath;
     private Path directoryPath;
 
@@ -36,34 +42,7 @@ public class ExistingRepoHelperTest {
         logger.info("Unit test started");
         directoryPath = Files.createTempDirectory("unitTestRepos");
         directoryPath.toFile().deleteOnExit();
-        initializeLogger();
     }
-
-    @After
-    public void tearDown() throws Exception {
-        removeAllFilesFromDirectory(this.logPath.toFile());
-    }
-
-    // Helper method to avoid annoying traces from logger
-    void initializeLogger() {
-        // Create a temp directory for the files to be placed in
-        try {
-            this.logPath = Files.createTempDirectory("elegitLogs");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        this.logPath.toFile().deleteOnExit();
-        System.setProperty("logFolder", logPath.toString());
-    }
-
-    // Helper tear-down method:
-    void removeAllFilesFromDirectory(File dir) {
-        for (File file: dir.listFiles()) {
-            if (file.isDirectory()) removeAllFilesFromDirectory(file);
-            file.delete();
-        }
-    }
-
 
     @Test
     public void testExistingRepoOpen() throws Exception {

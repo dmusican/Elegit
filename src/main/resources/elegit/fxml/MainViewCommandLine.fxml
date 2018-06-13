@@ -12,7 +12,7 @@
 
 <HBox alignment="CENTER_LEFT" spacing="5.0" stylesheets="@../css/BaseStyle.css" xmlns="http://javafx.com/javafx/8.0.112"
       xmlns:fx="http://javafx.com/fxml/1" fx:controller="elegit.controllers.CommandLineController">
-    <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Terminal Command:" textAlignment="CENTER"/>
+    <Text fx:id="commandLineLabel" strokeType="OUTSIDE" strokeWidth="0.0" text="Terminal Command:" textAlignment="CENTER"/>
     <ScrollPane id="commandBar" fx:id="commandBar" fitToHeight="true" fitToWidth="true" maxHeight="-Infinity"
                 maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" pannable="true" prefHeight="42.0"
                 prefWidth="250.0" vbarPolicy="NEVER" HBox.hgrow="NEVER">
