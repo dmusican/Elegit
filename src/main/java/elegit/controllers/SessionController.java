@@ -2955,7 +2955,6 @@ public class SessionController {
     }
 
     public synchronized void updateCommandText(String command) {
-        console.info("made it here");
         commandLineController.updateCommandText(command);
     }
 }

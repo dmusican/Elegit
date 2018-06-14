@@ -10,7 +10,6 @@ import org.junit.*;
 import org.junit.rules.TestName;
 import org.testfx.framework.junit.ApplicationTest;
 import org.testfx.framework.junit.TestFXRule;
-import org.testfx.robot.Motion;
 import sharedrules.TestUtilities;
 import sharedrules.TestingLogPathRule;
 

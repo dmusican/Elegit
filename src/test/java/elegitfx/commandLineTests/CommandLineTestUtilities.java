@@ -56,7 +56,7 @@ public class CommandLineTestUtilities extends ApplicationTest {
         HBox commandLine = lookup("#commandLine").query();
         List<Node> children = commandLine.getChildren();
 
-        for(int i = 0; i < children.size(); i++) {
+        for (int i = 0; i < children.size(); i++) {
             Node child = children.get(i);
             if (child.getId().equals("commandBar")) {
 
@@ -160,7 +160,7 @@ public class CommandLineTestUtilities extends ApplicationTest {
         Path remote = directoryPath.resolve("remote");
         Path local = directoryPath.resolve("local");
         Git.init().setDirectory(remote.toFile()).setBare(true).call();
-        Git.cloneRepository().setDirectory(local.toFile()).setURI("file://"+remote).call();
+        Git.cloneRepository().setDirectory(local.toFile()).setURI("file://" + remote).call();
 
         ExistingRepoHelper helper = new ExistingRepoHelper(local, new ElegitUserInfoTest());
 
@@ -198,7 +198,6 @@ public class CommandLineTestUtilities extends ApplicationTest {
         interact(() -> sessionController.handleLoadExistingRepoOption(local));
         SessionController.gitStatusCompletedOnce.await();
 
-        console.info("Made it here");
         logger.info("Layout done");
 
         return commit;
@@ -222,6 +221,7 @@ public class CommandLineTestUtilities extends ApplicationTest {
     public String[] getCommitId(RevCommit commit) {
         final String[] id = new String[1];
         interact(() -> id[0] = commit.getName());
+        console.info("Got the commit id: " + id[0]);
         return id;
     }
 }
