@@ -11,7 +11,8 @@ deploy:
    description: Windows snapshot release
    auth_token:
      secure: Xyn+5ovPZs2uO0L6laTGOfFePsKel3c1fiwJIwcLdvYkFW6hctABvBi78TFDpURr
-   artifact: 'target\jfx\native\Elegit'
+   # The name ElegitDeployment refers to an artifact specified in the project settings on AppVeyor
+   artifact: ElegitDeployment
    skip_cleanup: true
    draft: true
    on:
