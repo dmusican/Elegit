@@ -18,7 +18,7 @@ deploy:
   release: snapshot-release-windows-v$(appveyor_build_version)
   description: Windows snapshot release
   auth_token:
-    secure: GleUMEFkNvoKDa8cx++ip4qsXG49rAMrzn7iC/19StGSRAXQyeJ/LN9wJs9x743WKKyW2Y+CVY0kKyA5q8cXyswcbbFsOA4Em/ahzVeih6g=
+    secure: EikutUrJCUhSrlGHdRYQ/qLQ5iihb7HQtVrnKmE4bJpQFd8TTdKBCQvXK9Q2ikLN
   artifact: ElegitRelease
   draft: true
   on:
