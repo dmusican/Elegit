@@ -19,7 +19,7 @@ deploy:
   description: Windows snapshot release
   auth_token:
     secure: EikutUrJCUhSrlGHdRYQ/qLQ5iihb7HQtVrnKmE4bJpQFd8TTdKBCQvXK9Q2ikLN
-  artifact: ElegitRelease
+  artifact: ElegitDeployment
   draft: true
   on:
     APPVEYOR_REPO_TAG: true
