@@ -27,6 +27,7 @@ import org.junit.Assert;
 import org.junit.Rule;
 import org.testfx.api.FxAssert;
 import org.testfx.framework.junit.ApplicationTest;
+import org.testfx.robot.Motion;
 import org.testfx.util.WaitForAsyncUtils;
 import sharedrules.TestUtilities;
 import sharedrules.TestingRemoteAndLocalReposRule;
@@ -210,5 +211,21 @@ public class CommandLineTestUtilities extends ApplicationTest {
         logger.info("Layout done");
 
         return commit;
+    }
+
+    public String[] clickReset(RevCommit commit, String resetType) {
+        // Click on last commit and checkout the README.md file
+        rightClickOn(Matchers.hasToString(commit.getName()))
+                .clickOn("Reset...")
+                // Weird thing where if the menu chain gets too big, it moves in a way that causes the menu to disappear
+                .clickOn("Advanced", Motion.HORIZONTAL_FIRST)
+                .clickOn("reset --" + resetType, Motion.HORIZONTAL_FIRST);
+
+        // Get the name of the commit
+        final String[] id = new String[1];
+        interact(() -> id[0] = commit.getName());
+
+        console.info("Finished clicking reset.");
+        return id;
     }
 }
