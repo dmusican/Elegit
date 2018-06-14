@@ -1,6 +1,6 @@
 language: java
 os:
-#- linux
+- linux
 - osx
 script:
 # - mvn clean test -B -DskipDisplay=true
