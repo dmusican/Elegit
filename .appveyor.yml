@@ -5,12 +5,13 @@ build_script:
   # assembly:single creates zips and compressed tarballs that contain all needed files
   - mvn clean compile jfx:build-jar assembly:single jfx:build-native
 
+after_build:
+- cmd: 7z a Elegit.zip target\jfx\native\Elegit
+
+
 artifacts:
 - path: Elegit.zip
   name: ElegitDeployment
-
-before_deploy:
-- cmd: 7z a Elegit.zip target\jfx\native\Elegit
 
 deploy:
 - provider: GitHub
