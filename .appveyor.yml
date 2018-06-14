@@ -11,10 +11,7 @@ deploy:
    description: Windows snapshot release
    auth_token:
      secure: Xyn+5ovPZs2uO0L6laTGOfFePsKel3c1fiwJIwcLdvYkFW6hctABvBi78TFDpURr
-   artifacts:
-   - path: 'target\jfx\native\*.zip'
-   - name: MyApp
-   - type: zip
+   artifact: 'target\jfx\native\*.zip'
    skip_cleanup: true
    draft: true
    on:
