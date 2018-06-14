@@ -1,20 +1,29 @@
 package elegitfx.commandLineTests;
 
+import elegit.controllers.BusyWindow;
 import elegit.controllers.SessionController;
+import elegit.treefx.Cell;
+import elegit.treefx.CellState;
 import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
+import org.eclipse.jgit.revwalk.RevCommit;
+import org.hamcrest.Matchers;
+import org.junit.*;
 import org.junit.rules.TestName;
+import org.testfx.api.FxAssert;
 import org.testfx.framework.junit.ApplicationTest;
 import org.testfx.framework.junit.TestFXRule;
+import org.testfx.util.WaitForAsyncUtils;
 import sharedrules.TestUtilities;
 import sharedrules.TestingLogPathRule;
 
 import java.nio.file.Path;
+import java.util.concurrent.TimeUnit;
+
+import static junit.framework.TestCase.assertEquals;
+import static junit.framework.TestCase.assertNotNull;
+import static org.junit.Assert.assertNotEquals;
 
 /**
  * Created by grenche on 6/13/18.
@@ -45,6 +54,11 @@ public class CheckoutFileFXTest extends ApplicationTest {
         directoryPath = commonRulesAndSetup.setup(testName);
     }
 
+    @After
+    public void teardown() {
+        commonRulesAndSetup.tearDown();
+    }
+
     @Override
     public void start(Stage stage) throws Exception {
         sessionController = TestUtilities.commonTestFxStart(stage);
@@ -52,7 +66,25 @@ public class CheckoutFileFXTest extends ApplicationTest {
 
     @Test
     public void checkoutFiles() throws Exception {
-        commandLineTestUtilities.setupTestRepo(directoryPath, sessionController);
+        // Set up a test repo and get the last commit
+        RevCommit commit = commandLineTestUtilities.setupTestRepo(directoryPath, sessionController);
         console.info("Set up done.");
+
+        // Click on last commit and checkout the README.md file
+        rightClickOn(Matchers.hasToString(commit.getName()))
+                .clickOn("Checkout files...")
+                .clickOn("#fileField")
+                .write("README.md")
+                .clickOn("#checkoutAddButton")
+                .clickOn("#checkoutFilesButton");
+
+        // Get the name of the commit
+        final String[] id = new String[1];
+        interact(() -> id[0] = commit.getName());
+
+        console.info("Finished checking out file.");
+
+        // Make sure the command line window updated correctly
+        commandLineTestUtilities.checkCommandLineText("git checkout " + id[0] + " README.md");
     }
 }

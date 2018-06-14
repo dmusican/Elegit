@@ -2,7 +2,7 @@ package elegitfx.commandLineTests;
 
 import com.jcraft.jsch.Session;
 import elegit.controllers.SessionController;
-import elegit.exceptions.ExceptionAdapter;
+import elegit.exceptions.*;
 import elegit.models.BranchHelper;
 import elegit.models.BranchModel;
 import elegit.models.ExistingRepoHelper;
@@ -20,6 +20,7 @@ import org.apache.logging.log4j.Logger;
 import org.apache.sshd.server.SshServer;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.PushCommand;
+import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.hamcrest.Matchers;
 import org.junit.Assert;
@@ -31,11 +32,14 @@ import sharedrules.TestUtilities;
 import sharedrules.TestingRemoteAndLocalReposRule;
 
 import java.io.FileWriter;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Random;
 import java.util.Scanner;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import static junit.framework.TestCase.assertEquals;
@@ -49,6 +53,8 @@ public class CommandLineTestUtilities extends ApplicationTest {
 
     private static final Logger logger = LogManager.getLogger("briefconsolelogger");
     private static final Logger console = LogManager.getLogger("briefconsolelogger");
+
+    private static final Random random = new Random(90125);
 
     /**
      * Checks the TextArea to see if its contents are equal to the command that is expected to be there.
@@ -157,7 +163,7 @@ public class CommandLineTestUtilities extends ApplicationTest {
         }
     }
 
-    public void setupTestRepo(Path directoryPath, SessionController sessionController) throws Exception {
+    public RevCommit setupTestRepo(Path directoryPath, SessionController sessionController) throws Exception {
         logger.info("Temp directory: " + directoryPath);
         Path remote = directoryPath.resolve("remote");
         Path local = directoryPath.resolve("local");
@@ -172,18 +178,16 @@ public class CommandLineTestUtilities extends ApplicationTest {
         fw.write("start");
         fw.close();
         helper.addFilePathTest(fileLocation);
-        RevCommit firstCommit = helper.commit("Appended to file");
-        Cell firstCellAttempt = lookup(firstCommit.getName()).query();
-        logger.info("firstCell = " + firstCellAttempt);
+        RevCommit commit = helper.commit("Appended to file");
 
-        for (int i=0; i < 100; i++) {
+        for (int i = 0; i < 4; i++) {
             LocalBranchHelper branchHelper = helper.getBranchModel().createNewLocalBranch("branch" + i);
             branchHelper.checkoutBranch();
             fw = new FileWriter(fileLocation.toString(), true);
-            fw.write(""+i);
+            fw.write("commit number: " + (i + 1));
             fw.close();
             helper.addFilePathTest(fileLocation);
-            helper.commit("Appended to file");
+            commit = helper.commit("Appended to file");
         }
 
         // Just push all untracked local branches
@@ -193,24 +197,18 @@ public class CommandLineTestUtilities extends ApplicationTest {
         logger.info(remote);
         logger.info(local);
 
-        // Checkout a branch in the middle to see if commit jumps properly
-        BranchHelper branchHelper =
-                helper.getBranchModel().getBranchByName(BranchModel.BranchType.LOCAL, "branch50");
-
-        branchHelper.checkoutBranch();
-
         // Used to slow down commit adds. Set to help cause bug we saw where highlight commit was happening before
         // layout was done
         TreeLayout.cellRenderTimeDelay.set(1000);
 
-        interact(() -> sessionController.handleLoadExistingRepoOption(local));
+        SessionController.gitStatusCompletedOnce = new CountDownLatch(1);
 
-        // Verify that first commit is actually added at end of first layout call
-        interact( () -> {
-            Cell firstCell = lookup(Matchers.hasToString(firstCommit.getName())).query();
-            assertNotEquals(null, firstCell);
-            FxAssert.verifyThat(firstCell, (Cell cell) -> (cell.isVisible()));
-        });
+        interact(() -> sessionController.handleLoadExistingRepoOption(local));
+        SessionController.gitStatusCompletedOnce.await();
+
+        console.info("Made it here");
         logger.info("Layout done");
+
+        return commit;
     }
 }

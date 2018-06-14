@@ -194,6 +194,7 @@ public class SessionController {
 
         // Gives other controllers access to this one
         CommitTreeController.setSessionController(this);
+        CheckoutFilesController.setSessionController(this);
         menuController.setSessionController(this);
         dropdownController.setSessionController(this);
         commandLineController.setSessionController(this);
@@ -2954,6 +2955,7 @@ public class SessionController {
     }
 
     public synchronized void updateCommandText(String command) {
+        console.info("made it here");
         commandLineController.updateCommandText(command);
     }
 }
