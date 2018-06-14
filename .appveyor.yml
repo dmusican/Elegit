@@ -5,15 +5,12 @@ build_script:
   # assembly:single creates zips and compressed tarballs that contain all needed files
   - mvn clean compile jfx:build-jar assembly:single jfx:build-native
 
-environment:
-  snapshot_filename: Elegit-snapshot-%APPVEYOR_REPO_COMMIT%.zip
-
 after_build:
-- cmd: 7z a %snapshot_filename% %APPVEYOR_BUILD_FOLDER%\target\jfx\native\Elegit
+- cmd: 7z a Elegit-snapshot-%APPVEYOR_REPO_COMMIT%.zip %APPVEYOR_BUILD_FOLDER%\target\jfx\native\Elegit
 
 
 artifacts:
-- path: %snapshot_filename%
+- path: Elegit-snapshot-%APPVEYOR_REPO_COMMIT%.zip
   name: ElegitDeployment
 
 deploy:
