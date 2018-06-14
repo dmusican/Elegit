@@ -1,6 +1,6 @@
 language: java
 os:
-- linux
+#- linux
 - osx
 script:
 # - mvn clean test -B -DskipDisplay=true
@@ -11,6 +11,7 @@ script:
 - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then mvn jfx:build-native; fi
 deploy:
   provider: releases
+  name: snapshot-release
   api_key:
     secure: 2b50hjdUB1LJp+FlR5cMxA0cOfWSOsjbnyyVOb/ZFjCIqK+WFfLmANsJgVoDUiFx18i5x/Qy2IDpLErr9i5nQk0tkSR9EKyPqbnaX5XpbTiPbirBjQLuhnzSH+rti+AJhigufld0Pl+wTn5k6ppRFaG+k0xCM4SjcTZjzKcB4F/8X43WkAapjsmKu+tIFnPkjmx+7vif6uPm+5NDcTe8Xno0EOARgnJr4XUCm6A+iz6kRcXI2PApHVtyMt71BF/U6H0Vid4t41lTX0vw2zl7Aj+vGCWjVEiUyab+ZSHG6tuznkYLYQi3D9bVhCj2+tMuI6uP+AGlTcILKJsjBmsTw2hnMqJDGPb0wOH7/1FbhX/MIdHpjQssbOkuXoaFvl5TPE17M64KYvQvHv03NdEKOw4YnjYBAM2Iie/45aIsbKIm8/4/Z7kNWNPx7DH8m2LdyZSomKtJ9KRKfLPYrMPeV1XvGDKR0JoR4IL5j3G0XWqOM2VvS//VjQS+QzHnQRFK7ZGRikd7zPCItoGddOYP1Nvx2srj0j2XhhPTcl19gyFomYRKy+ZBlGj4Pa8hG5oHqU8ZfRHIt4u/jyk1oNHz3IQCag9wH6P//ukT6FdO25zIe7LcLrdWLM79mvHccMlni4XqdB8JMHxea3+tSxK2LPTPJ6Uhkb5xR1WB/0JyaEQ=
   file_glob: true
@@ -18,7 +19,8 @@ deploy:
   - target/Elegit*SNAPSHOT*.zip
   - target/Elegit*SNAPSHOT*.gz
   - target/Elegit*SNAPSHOT*.bz2
+  - target/jfx/native/*.pkg
   skip_cleanup: true
-  prerelease: true
+  draft: true
   on:
     tags: true
