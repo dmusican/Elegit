@@ -6,7 +6,7 @@ build_script:
   - mvn clean compile jfx:build-jar assembly:single jfx:build-native
 
 after_build:
-- cmd: 7z a Elegit-%APPVEYOR_REPO_TAG_NAME%-%APPVEYOR_REPO_COMMIT_TIMESTAMP%.zip %APPVEYOR_BUILD_FOLDER%\target\jfx\native\Elegit
+- cmd: 7z a Elegit-%APPVEYOR_REPO_TAG_NAME%-%APPVEYOR_REPO_COMMIT%.zip %APPVEYOR_BUILD_FOLDER%\target\jfx\native\Elegit
 
 
 artifacts:
