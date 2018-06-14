@@ -213,10 +213,15 @@ public class CommandLineTestUtilities extends ApplicationTest {
                 .clickOn("reset --" + resetType, Motion.HORIZONTAL_FIRST);
 
         // Get the name of the commit
-        final String[] id = new String[1];
-        interact(() -> id[0] = commit.getName());
+        final String[] id = getCommitId(commit);
 
         console.info("Finished clicking reset.");
+        return id;
+    }
+
+    public String[] getCommitId(RevCommit commit) {
+        final String[] id = new String[1];
+        interact(() -> id[0] = commit.getName());
         return id;
     }
 }
