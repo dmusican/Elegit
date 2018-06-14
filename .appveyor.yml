@@ -12,8 +12,13 @@ deploy:
    auth_token:
      secure: Xyn+5ovPZs2uO0L6laTGOfFePsKel3c1fiwJIwcLdvYkFW6hctABvBi78TFDpURr
    # The name ElegitDeployment refers to an artifact specified in the project settings on AppVeyor
-   artifact: ElegitDeployment
    skip_cleanup: true
    draft: true
+   after_build:
+    - cmd: 7z a Elegit.zip target\jfx\native\Elegit
+   artifacts:
+    - path: Elegit.zip
+      name: ElegitDeployment
+   artifact: ElegitDeployment
    on:
      APPVEYOR_REPO_TAG: true
