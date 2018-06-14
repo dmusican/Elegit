@@ -5,8 +5,8 @@
 
 <!-- Currently has git push as history every time. -->
 
-<ScrollPane fitToHeight="true" fitToWidth="true" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.112" xmlns:fx="http://javafx.com/fxml/1" fx:controller="elegit.controllers.CommandLineHistoryController">
+<ScrollPane fitToHeight="true" fitToWidth="true" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" stylesheets="@../../css/BaseStyle.css" vvalue="1.0" xmlns="http://javafx.com/javafx/8.0.112" xmlns:fx="http://javafx.com/fxml/1" fx:controller="elegit.controllers.CommandLineHistoryController">
     <content>
-        <TextArea id="command" fx:id="commandHistory" editable="false" mouseTransparent="true" prefHeight="398.0" prefWidth="582.0" text="" wrapText="true" />
+        <TextArea id="command" fx:id="commandHistory" editable="false" mouseTransparent="false" prefHeight="398.0" prefWidth="582.0" text="" wrapText="true" />
     </content>
 </ScrollPane>
