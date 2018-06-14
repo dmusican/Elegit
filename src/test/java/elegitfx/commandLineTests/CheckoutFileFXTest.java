@@ -23,15 +23,12 @@ import java.nio.file.Path;
 public class CheckoutFileFXTest extends ApplicationTest {
     @Rule
     public CommonRulesAndSetup commonRulesAndSetup = new CommonRulesAndSetup();
-
     @ClassRule
     public static final LoggingInitializationStart loggingInitializationStart = new LoggingInitializationStart();
-
-    @ClassRule public static final TestingLogPathRule testingLogPath = new TestingLogPathRule();
-
+    @ClassRule
+    public static final TestingLogPathRule testingLogPath = new TestingLogPathRule();
     @Rule
     public TestFXRule testFXRule = new TestFXRule();
-
     @Rule
     public TestName testName = new TestName();
 

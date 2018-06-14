@@ -39,7 +39,7 @@ public class CommandLineHistoryController {
         commandHistory.clear();
         String command;
         // Currently cannot get the file. I'm not sure why it's not showing up in the log folder.
-        File transcript = new File(System.getProperty("logFolder") + "/elegit.log");
+        File transcript = new File(System.getProperty("logFolder") + "/transcript.log");
         // NOTE: not sure if we want to display the path here.
         Path currentPath = SessionModel.getSessionModel().getCurrentRepoHelper().getLocalPath();
         try {

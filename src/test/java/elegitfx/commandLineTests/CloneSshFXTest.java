@@ -18,18 +18,14 @@ import java.nio.file.Path;
  * Tests the Terminal Command window after cloning a repo via SSH
  */
 public class CloneSshFXTest extends ApplicationTest {
-
     @Rule
     public final CommonRulesAndSetup commonRulesAndSetup = new CommonRulesAndSetup();
-
     @ClassRule
     public static final LoggingInitializationStart loggingInitializationStart = new LoggingInitializationStart();
-
-    @ClassRule public static final TestingLogPathRule testingLogPath = new TestingLogPathRule();
-
+    @ClassRule
+    public static final TestingLogPathRule testingLogPath = new TestingLogPathRule();
     @Rule
     public TestFXRule testFXRule = new TestFXRule();
-
     @Rule
     public TestName testName = new TestName();
 
