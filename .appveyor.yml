@@ -11,7 +11,7 @@ deploy:
    description: Windows snapshot release
    auth_token:
      secure: Xyn+5ovPZs2uO0L6laTGOfFePsKel3c1fiwJIwcLdvYkFW6hctABvBi78TFDpURr
-   artifact: 'target\jfx\native\*'
+   artifact: 'target\jfx\native\Elegit'
    skip_cleanup: true
    draft: true
    on:
