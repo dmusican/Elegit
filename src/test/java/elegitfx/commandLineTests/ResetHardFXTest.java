@@ -5,18 +5,14 @@ import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jgit.revwalk.RevCommit;
-import org.hamcrest.Matchers;
 import org.junit.*;
 import org.junit.rules.TestName;
 import org.testfx.framework.junit.ApplicationTest;
 import org.testfx.framework.junit.TestFXRule;
-import org.testfx.robot.Motion;
 import sharedrules.TestUtilities;
 import sharedrules.TestingLogPathRule;
 
 import java.nio.file.Path;
-
-import static org.junit.Assert.assertNotNull;
 
 /**
  * Created by grenche on 6/14/18.

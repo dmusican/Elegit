@@ -16,7 +16,7 @@ import java.nio.file.Path;
 
 /**
  * Created by grenche on 6/14/18.
- * Tests reset hard by clicking on a commit in the tree
+ * Tests reset soft by clicking on a commit in the tree
  */
 public class ResetSoftFXTest extends ApplicationTest {
     @Rule

@@ -1,15 +1,11 @@
 package elegitfx.commandLineTests;
 
-import com.jcraft.jsch.Session;
 import elegit.controllers.SessionController;
 import elegit.exceptions.*;
-import elegit.models.BranchHelper;
-import elegit.models.BranchModel;
 import elegit.models.ExistingRepoHelper;
 import elegit.models.LocalBranchHelper;
 import elegit.monitors.RepositoryMonitor;
 import elegit.sshauthentication.ElegitUserInfoTest;
-import elegit.treefx.Cell;
 import elegit.treefx.TreeLayout;
 import javafx.scene.Node;
 import javafx.scene.control.ScrollPane;
@@ -20,12 +16,9 @@ import org.apache.logging.log4j.Logger;
 import org.apache.sshd.server.SshServer;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.PushCommand;
-import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.hamcrest.Matchers;
 import org.junit.Assert;
-import org.junit.Rule;
-import org.testfx.api.FxAssert;
 import org.testfx.framework.junit.ApplicationTest;
 import org.testfx.robot.Motion;
 import org.testfx.util.WaitForAsyncUtils;
@@ -33,7 +26,6 @@ import sharedrules.TestUtilities;
 import sharedrules.TestingRemoteAndLocalReposRule;
 
 import java.io.FileWriter;
-import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -44,7 +36,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import static junit.framework.TestCase.assertEquals;
-import static org.junit.Assert.assertNotEquals;
 
 /**
  * Created by grenche on 6/13/18.
