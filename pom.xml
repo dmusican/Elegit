@@ -45,7 +45,7 @@
                     <vendor>The Elegit Team</vendor>
                     <appName>Elegit</appName>
                     <mainClass>elegit.Main</mainClass>
-                    <nativeReleaseVersion>${project.version}</nativeReleaseVersion>
+                    <nativeReleaseVersion>${project.version}-${maven.build.timestamp}</nativeReleaseVersion>
                 </configuration>
             </plugin>
             <plugin>

@@ -31,6 +31,7 @@ deploy:
    file_glob: true
    file:
    - target/jfx/native/*.pkg
+   - target/jfx/native/*.dmg
    skip_cleanup: true
    draft: true
    on:
