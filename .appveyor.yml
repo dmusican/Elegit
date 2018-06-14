@@ -5,20 +5,17 @@ build_script:
   # assembly:single creates zips and compressed tarballs that contain all needed files
   - mvn clean compile jfx:build-jar assembly:single jfx:build-native
 
-deploy:
--  provider: GitHub
-   release: snapshot-release-windows-v$(appveyor_build_version)
-   description: Windows snapshot release
-   auth_token:
-     secure: Xyn+5ovPZs2uO0L6laTGOfFePsKel3c1fiwJIwcLdvYkFW6hctABvBi78TFDpURr
-   # The name ElegitDeployment refers to an artifact specified in the project settings on AppVeyor
-   skip_cleanup: true
-   draft: true
-   after_build:
-    - cmd: 7z a Elegit.zip target\jfx\native\Elegit
-   artifacts:
-    - path: Elegit.zip
-      name: ElegitDeployment
-   artifact: ElegitDeployment
-   on:
-     APPVEYOR_REPO_TAG: true
+#deploy:
+#-  provider: GitHub
+#   release: snapshot-release-windows-v$(appveyor_build_version)
+#   description: Windows snapshot release
+#   auth_token:
+#     secure: Xyn+5ovPZs2uO0L6laTGOfFePsKel3c1fiwJIwcLdvYkFW6hctABvBi78TFDpURr
+#   # The name ElegitDeployment refers to an artifact specified in the project settings on AppVeyor
+#   skip_cleanup: true
+#   draft: true
+#   after_build:
+#    - cmd: 7z a Elegit.zip target\jfx\native\Elegit
+#   artifact: ElegitDeployment
+#   on:
+#     APPVEYOR_REPO_TAG: true
