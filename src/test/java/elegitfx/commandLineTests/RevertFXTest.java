@@ -47,7 +47,7 @@ public class RevertFXTest extends ApplicationTest {
 
     @After
     public void teardown() {
-        // Should be commented back in when the threading bug with revert if fixec
+        // Should be commented back in when the threading bug with revert is fixed
 //        commonRulesAndSetup.tearDown();
     }
 
