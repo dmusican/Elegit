@@ -15,15 +15,12 @@ import sharedrules.TestingLogPathRule;
 
 import java.nio.file.Path;
 
-import static junit.framework.TestCase.assertEquals;
-import static junit.framework.TestCase.assertNotNull;
-import static org.junit.Assert.assertNotEquals;
-
 /**
- * Created by grenche on 6/13/18.
- * Tests the Terminal Command window after checkingout a file by right clicking a commit in the tree
+ * Created by grenche on 6/14/18.
+ * Test revert by clicking on a commit in the tree
+ * NOTE: There is still a bug in revert
  */
-public class CheckoutFileFXTest extends ApplicationTest {
+public class RevertFXTest extends ApplicationTest {
     @Rule
     public CommonRulesAndSetup commonRulesAndSetup = new CommonRulesAndSetup();
     @ClassRule
@@ -50,7 +47,8 @@ public class CheckoutFileFXTest extends ApplicationTest {
 
     @After
     public void teardown() {
-        commonRulesAndSetup.tearDown();
+        // Should be commented back in when the threading bug with revert is fixed
+//        commonRulesAndSetup.tearDown();
     }
 
     @Override
@@ -59,26 +57,22 @@ public class CheckoutFileFXTest extends ApplicationTest {
     }
 
     @Test
-    public void checkoutFiles() throws Exception {
+    public void revertTest() throws Exception {
         // Set up a test repo and get the last commit
         RevCommit commit = commandLineTestUtilities.setupTestRepo(directoryPath, sessionController);
         console.info("Set up done.");
 
-        // Click on last commit and checkout the README.md file
-        rightClickOn(Matchers.hasToString(commit.getName()))
-                .clickOn("Checkout files...")
-                .clickOn("#fileField")
-                .write("README.md")
-                .clickOn("#checkoutAddButton")
-                .clickOn("#checkoutFilesButton");
+        RevCommit prevCommit = commit.getParent(0);
+
+        rightClickOn(Matchers.hasToString(prevCommit.getName()))
+                .clickOn("Revert...")
+                .clickOn("Revert this commit");
 
         // Get the name of the commit
-        final String[] id = new String[1];
-        interact(() -> id[0] = commit.getName());
+        final String[] id = commandLineTestUtilities.getCommitId(prevCommit);
 
-        console.info("Finished checking out file.");
+        console.info("Finished clicking revert.");
 
-        // Make sure the command line window updated correctly
-        commandLineTestUtilities.checkCommandLineText("git checkout " + id[0] + " README.md");
+        commandLineTestUtilities.checkCommandLineText("git revert " + id[0]);
     }
 }

@@ -17,6 +17,7 @@ import java.nio.file.Path;
 
 /**
  * Created by grenche on 6/7/18.
+ * Allows the user to see and export their "terminal command history"
  */
 
 public class CommandLineHistoryController {
@@ -40,12 +41,11 @@ public class CommandLineHistoryController {
         String command;
         // Currently cannot get the file. I'm not sure why it's not showing up in the log folder.
         File transcript = new File(System.getProperty("logFolder") + "/transcript.log");
-        // NOTE: not sure if we want to display the path here.
-        Path currentPath = SessionModel.getSessionModel().getCurrentRepoHelper().getLocalPath();
+
         try {
             BufferedReader br = new BufferedReader(new FileReader(transcript));
             while ((command = br.readLine()) != null) {
-                commandHistory.appendText(currentPath + " " + command + "\n");
+                commandHistory.appendText(command + "\n");
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -56,20 +56,24 @@ public class CommandLineHistoryController {
      * Opens up a terminal like window and displays command line history
      */
     public void showHistory() {
-        Main.assertFxThread();
-        try {
-            logger.info("See history clicked");
-            // Create and display the Stage:
-            ScrollPane fxmlRoot = FXMLLoader.load(getClass().getResource("/elegit/fxml/pop-ups/CommandLineHistory.fxml"));
-            stage = new Stage();
-            stage.setTitle("Recent Elegit actions as commands");
-            stage.setScene(new Scene(fxmlRoot));
-            stage.initModality(Modality.APPLICATION_MODAL);
-            stage.setOnCloseRequest(event -> logger.info("Closed history"));
-            stage.show();
-        } catch (IOException e) {
-            sessionController.showGenericErrorNotification(e);
-            e.printStackTrace();
+        if (commandHistory.getText().equals("")) { // Don't show the popup if they haven't made any commands yet
+            sessionController.showNoCommandLineHistoryNotification();
+        } else {
+            Main.assertFxThread();
+            try {
+                logger.info("See history clicked");
+                // Create and display the Stage:
+                ScrollPane fxmlRoot = FXMLLoader.load(getClass().getResource("/elegit/fxml/pop-ups/CommandLineHistory.fxml"));
+                stage = new Stage();
+                stage.setTitle("Recent Elegit actions as commands");
+                stage.setScene(new Scene(fxmlRoot));
+                stage.initModality(Modality.APPLICATION_MODAL);
+                stage.setOnCloseRequest(event -> logger.info("Closed history"));
+                stage.show();
+            } catch (IOException e) {
+                sessionController.showGenericErrorNotification(e);
+                e.printStackTrace();
+            }
         }
     }
 
@@ -81,17 +85,21 @@ public class CommandLineHistoryController {
      * Allows the user to save the Elegit actions they've done as terminal commands in a txt file
      */
     public synchronized void handleExportHistoryOption() {
-        FileChooser fileChooser = new FileChooser();
-        // Allow the user to export the commands to a .txt file.
-        FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("TXT files (*.txt)", "*.txt");
-        fileChooser.getExtensionFilters().add(extFilter);
-        Stage stage = new Stage();
+        if (commandHistory.getText().equals("")) { // Don't let them save a file if they haven't made any commands yet
+            sessionController.showNoCommandLineHistoryNotification();
+        } else {
+            FileChooser fileChooser = new FileChooser();
+            // Allow the user to export the commands to a .txt file.
+            FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("TXT files (*.txt)", "*.txt");
+            fileChooser.getExtensionFilters().add(extFilter);
+            Stage stage = new Stage();
 
-        // Open up the save window
-        File file = fileChooser.showSaveDialog(stage);
+            // Open up the save window
+            File file = fileChooser.showSaveDialog(stage);
 
-        if (file != null) {
-            writeToFile(commandHistory.getText(), file);
+            if (file != null) {
+                writeToFile(commandHistory.getText(), file);
+            }
         }
     }
 

@@ -194,6 +194,7 @@ public class SessionController {
 
         // Gives other controllers access to this one
         CommitTreeController.setSessionController(this);
+        CheckoutFilesController.setSessionController(this);
         menuController.setSessionController(this);
         dropdownController.setSessionController(this);
         commandLineController.setSessionController(this);
@@ -2870,6 +2871,20 @@ public class SessionController {
         Platform.runLater(() -> {
             logger.warn("No files to stash warning");
             notificationPaneController.addNotification("There are no files to stash.");
+        });
+    }
+
+    public void showNoCommandLineHistoryNotification() {
+        Platform.runLater(() -> {
+            logger.warn("No command line history.");
+            notificationPaneController.addNotification("You haven't done any Elegit actions that translate to terminal commands.");
+        });
+    }
+
+    public void showNoCommandToCopyNotification() {
+        Platform.runLater(() -> {
+            logger.warn("Command line tool disabled.");
+            notificationPaneController.addNotification("You have this tool disabled. Please enable it to copy a command.");
         });
     }
 

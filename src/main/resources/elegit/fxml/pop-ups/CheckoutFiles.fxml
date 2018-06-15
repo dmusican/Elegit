@@ -33,6 +33,7 @@
             <TextField promptText="Enter filename"
                        fx:id="fileField"/>
             <Button text="Add"
+                    fx:id="checkoutAddButton"
                     alignment="CENTER_RIGHT"
                     onAction="#handleAddButton"/>
         </VBox>
@@ -50,7 +51,7 @@
             </GridPane.margin>
         </ScrollPane>
 
-        <Button fx:id="checkoutButton"
+        <Button fx:id="checkoutFilesButton"
                 GridPane.rowIndex="1"
                 GridPane.columnIndex="1"
                 GridPane.halignment="RIGHT"

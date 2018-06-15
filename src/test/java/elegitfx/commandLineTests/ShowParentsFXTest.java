@@ -15,15 +15,11 @@ import sharedrules.TestingLogPathRule;
 
 import java.nio.file.Path;
 
-import static junit.framework.TestCase.assertEquals;
-import static junit.framework.TestCase.assertNotNull;
-import static org.junit.Assert.assertNotEquals;
-
 /**
- * Created by grenche on 6/13/18.
- * Tests the Terminal Command window after checkingout a file by right clicking a commit in the tree
+ * Created by grenche on 6/14/18.
+ * Tests the show parents option when right clicking on a commit in the tree
  */
-public class CheckoutFileFXTest extends ApplicationTest {
+public class ShowParentsFXTest extends ApplicationTest {
     @Rule
     public CommonRulesAndSetup commonRulesAndSetup = new CommonRulesAndSetup();
     @ClassRule
@@ -59,26 +55,23 @@ public class CheckoutFileFXTest extends ApplicationTest {
     }
 
     @Test
-    public void checkoutFiles() throws Exception {
+    public void showParentsTest() throws Exception {
         // Set up a test repo and get the last commit
         RevCommit commit = commandLineTestUtilities.setupTestRepo(directoryPath, sessionController);
         console.info("Set up done.");
 
-        // Click on last commit and checkout the README.md file
+        // Click on last commit and ask to see it's parents
         rightClickOn(Matchers.hasToString(commit.getName()))
-                .clickOn("Checkout files...")
-                .clickOn("#fileField")
-                .write("README.md")
-                .clickOn("#checkoutAddButton")
-                .clickOn("#checkoutFilesButton");
+                .clickOn("Show Relatives")
+                .clickOn("Parents");
 
         // Get the name of the commit
         final String[] id = new String[1];
         interact(() -> id[0] = commit.getName());
 
-        console.info("Finished checking out file.");
+        console.info("Finished asking to see parent.");
 
         // Make sure the command line window updated correctly
-        commandLineTestUtilities.checkCommandLineText("git checkout " + id[0] + " README.md");
+        commandLineTestUtilities.checkCommandLineText("git log --no-walk " + id[0] + "^@");
     }
 }

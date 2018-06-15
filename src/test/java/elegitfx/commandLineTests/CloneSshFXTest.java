@@ -41,8 +41,14 @@ public class CloneSshFXTest extends ApplicationTest {
     public final CommandLineTestUtilities commandLineTestUtilities = new CommandLineTestUtilities();
 
     @Before
-    public void setup() {
+    public void setup() throws Exception {
+        commonRulesAndSetup.setup(testName);
         directoryPath = testingRemoteAndLocalRepos.getDirectoryPath();
+    }
+
+    @After
+    public void teardown() {
+        commonRulesAndSetup.tearDown();
     }
 
     @Override

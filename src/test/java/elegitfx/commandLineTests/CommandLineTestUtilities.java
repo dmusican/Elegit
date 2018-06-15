@@ -1,16 +1,12 @@
 package elegitfx.commandLineTests;
 
-import com.jcraft.jsch.Session;
 import elegit.controllers.SessionController;
 import elegit.exceptions.ExceptionAdapter;
 import elegit.gui.WorkingTreePanelView;
-import elegit.models.BranchHelper;
-import elegit.models.BranchModel;
 import elegit.models.ExistingRepoHelper;
 import elegit.models.LocalBranchHelper;
 import elegit.monitors.RepositoryMonitor;
 import elegit.sshauthentication.ElegitUserInfoTest;
-import elegit.treefx.Cell;
 import elegit.treefx.TreeLayout;
 import javafx.scene.Node;
 import javafx.scene.control.ScrollPane;
@@ -24,9 +20,8 @@ import org.eclipse.jgit.api.PushCommand;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.hamcrest.Matchers;
 import org.junit.Assert;
-import org.junit.Rule;
-import org.testfx.api.FxAssert;
 import org.testfx.framework.junit.ApplicationTest;
+import org.testfx.robot.Motion;
 import org.testfx.util.WaitForAsyncUtils;
 import sharedrules.TestUtilities;
 import sharedrules.TestingRemoteAndLocalReposRule;
@@ -37,11 +32,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.Scanner;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import static junit.framework.TestCase.assertEquals;
-import static org.junit.Assert.assertNotEquals;
 
 /**
  * Created by grenche on 6/13/18.
@@ -52,6 +48,8 @@ public class CommandLineTestUtilities extends ApplicationTest {
     private static final Logger logger = LogManager.getLogger("briefconsolelogger");
     private static final Logger console = LogManager.getLogger("briefconsolelogger");
 
+    private static final Random random = new Random(90125);
+
     /**
      * Checks the TextArea to see if its contents are equal to the command that is expected to be there.
      * Currently super ugly hack because the TextArea is not in MainView, so need to go through HBox and ScrollPane.
@@ -60,7 +58,7 @@ public class CommandLineTestUtilities extends ApplicationTest {
         HBox commandLine = lookup("#commandLine").query();
         List<Node> children = commandLine.getChildren();
 
-        for(int i = 0; i < children.size(); i++) {
+        for (int i = 0; i < children.size(); i++) {
             Node child = children.get(i);
             if (child.getId().equals("commandBar")) {
 
@@ -159,12 +157,12 @@ public class CommandLineTestUtilities extends ApplicationTest {
         }
     }
 
-    public void setupTestRepo(Path directoryPath, SessionController sessionController) throws Exception {
+    public RevCommit setupTestRepo(Path directoryPath, SessionController sessionController) throws Exception {
         logger.info("Temp directory: " + directoryPath);
         Path remote = directoryPath.resolve("remote");
         Path local = directoryPath.resolve("local");
         Git.init().setDirectory(remote.toFile()).setBare(true).call();
-        Git.cloneRepository().setDirectory(local.toFile()).setURI("file://"+remote).call();
+        Git.cloneRepository().setDirectory(local.toFile()).setURI("file://" + remote).call();
 
         ExistingRepoHelper helper = new ExistingRepoHelper(local, new ElegitUserInfoTest());
 
@@ -174,18 +172,16 @@ public class CommandLineTestUtilities extends ApplicationTest {
         fw.write("start");
         fw.close();
         helper.addFilePathTest(fileLocation);
-        RevCommit firstCommit = helper.commit("Appended to file");
-        Cell firstCellAttempt = lookup(firstCommit.getName()).query();
-        logger.info("firstCell = " + firstCellAttempt);
+        RevCommit commit = helper.commit("Appended to file");
 
-        for (int i=0; i < 100; i++) {
+        for (int i = 0; i < 4; i++) {
             LocalBranchHelper branchHelper = helper.getBranchModel().createNewLocalBranch("branch" + i);
             branchHelper.checkoutBranch();
             fw = new FileWriter(fileLocation.toString(), true);
-            fw.write(""+i);
+            fw.write("commit number: " + (i + 1));
             fw.close();
             helper.addFilePathTest(fileLocation);
-            helper.commit("Appended to file");
+            commit = helper.commit("Appended to file");
         }
 
         // Just push all untracked local branches
@@ -195,25 +191,40 @@ public class CommandLineTestUtilities extends ApplicationTest {
         logger.info(remote);
         logger.info(local);
 
-        // Checkout a branch in the middle to see if commit jumps properly
-        BranchHelper branchHelper =
-                helper.getBranchModel().getBranchByName(BranchModel.BranchType.LOCAL, "branch50");
-
-        branchHelper.checkoutBranch();
-
         // Used to slow down commit adds. Set to help cause bug we saw where highlight commit was happening before
         // layout was done
         TreeLayout.cellRenderTimeDelay.set(1000);
 
-        interact(() -> sessionController.handleLoadExistingRepoOption(local));
+        SessionController.gitStatusCompletedOnce = new CountDownLatch(1);
 
-        // Verify that first commit is actually added at end of first layout call
-        interact( () -> {
-            Cell firstCell = lookup(Matchers.hasToString(firstCommit.getName())).query();
-            assertNotEquals(null, firstCell);
-            FxAssert.verifyThat(firstCell, (Cell cell) -> (cell.isVisible()));
-        });
+        interact(() -> sessionController.handleLoadExistingRepoOption(local));
+        SessionController.gitStatusCompletedOnce.await();
+
         logger.info("Layout done");
+
+        return commit;
+    }
+
+    public String[] clickReset(RevCommit commit, String resetType) {
+        // Click on last commit and checkout the README.md file
+        rightClickOn(Matchers.hasToString(commit.getName()))
+                .clickOn("Reset...")
+                // Weird thing where if the menu chain gets too big, it moves in a way that causes the menu to disappear
+                .clickOn("Advanced", Motion.HORIZONTAL_FIRST)
+                .clickOn("reset --" + resetType, Motion.HORIZONTAL_FIRST);
+
+        // Get the name of the commit
+        final String[] id = getCommitId(commit);
+
+        console.info("Finished clicking reset.");
+        return id;
+    }
+
+    public String[] getCommitId(RevCommit commit) {
+        final String[] id = new String[1];
+        interact(() -> id[0] = commit.getName());
+        console.info("Got the commit id: " + id[0]);
+        return id;
     }
 
     public void addFile(Path filePath, Path directory, SessionController sessionController) throws Exception {
