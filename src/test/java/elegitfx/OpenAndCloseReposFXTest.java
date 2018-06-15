@@ -163,8 +163,12 @@ public class OpenAndCloseReposFXTest extends ApplicationTest {
         interact(() -> assertEquals(2, SessionModel.getSessionModel().getAllRepoHelpers().size()));
 
         for (int i=0; i < 3; i++) {
+            // We were having timeout issues which is why the countDownLatch is needed. Makes the test SUPER slow
+            SessionController.gitStatusCompletedOnce = new CountDownLatch(1);
             WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
                                       () -> dropdown.getValue().toString().equals("repo2"));
+            SessionController.gitStatusCompletedOnce.await();
+
             clickOn(dropdown);
 
             // The below awful hack is very likely related to this bug:
@@ -180,9 +184,12 @@ public class OpenAndCloseReposFXTest extends ApplicationTest {
             WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
                                       () -> !BusyWindow.window.isShowing());
 
-
+            // We were having timeout issues which is why the countDownLatch is needed. Makes the test SUPER slow
+            SessionController.gitStatusCompletedOnce = new CountDownLatch(1);
             WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
                                       () -> dropdown.getValue().toString().equals("repo1"));
+            SessionController.gitStatusCompletedOnce.await();
+
             clickOn(dropdown);
 
             // See comment above regarding bug #539.
