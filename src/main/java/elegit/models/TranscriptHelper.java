@@ -19,9 +19,7 @@ public class TranscriptHelper {
         } catch (IOException e) {
 
         }
-        //note: will not display all commands for all tests, since they access helpers directly rather than controllers
-        System.out.println("Command: " + command);
-    }
+}
 
     public static void clear() {
         System.out.println("Transcript is being cleared.");
