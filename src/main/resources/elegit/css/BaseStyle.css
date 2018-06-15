@@ -302,7 +302,7 @@
     -fx-fill: -fx-button-fill;
 }
 
-    #helpButton: hover {
+    #helpButton:hover {
         -fx-fill: -fx-button-hover-fill;
     }
 
@@ -316,7 +316,7 @@
     -fx-fill: -fx-button-fill;
 }
 
-    #helpButton-inside: hover {
+    #helpButton-inside:hover {
             -fx-fill: -fx-button-hover-fill;
         }
 
@@ -337,7 +337,7 @@
     -fx-fill: -fx-background-default;
 }
 
-    #helpButton-remote: hover {
+    #helpButton-remote:hover {
         -fx-stroke: -fx-button-hover-fill;
     }
 
