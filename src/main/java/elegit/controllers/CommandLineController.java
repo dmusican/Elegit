@@ -102,19 +102,19 @@ public class CommandLineController {
      * Copies the entire command to the clipboard
      */
     public synchronized void handleCopyCommandOption() {
-        logger.info("Command copied");
-        Clipboard clipboard = Clipboard.getSystemClipboard();
-        ClipboardContent command = new ClipboardContent();
-        command.putString(currentCommand.getText());
-        clipboard.setContent(command);
+        if (allowUpdates) { // Only copy the command if the terminal window is updating with commands
+            logger.info("Command copied");
+            Clipboard clipboard = Clipboard.getSystemClipboard();
+            ClipboardContent command = new ClipboardContent();
+            command.putString(currentCommand.getText());
+            clipboard.setContent(command);
+        } else {
+            sessionController.showNoCommandToCopyNotification();
+        }
     }
 
-    // Currently doesn't update with actual history
-    public synchronized void handleSeeHistoryOption() {
-        sessionController.handleSeeHistoryOption();
-    }
+    public synchronized void handleSeeHistoryOption() { sessionController.handleSeeHistoryOption(); }
 
-    // Currently doesn't update with actual history
     public synchronized void handleExportHistoryOption() {
         sessionController.handleExportHistoryOption();
     }
@@ -135,8 +135,10 @@ public class CommandLineController {
 
     public synchronized void handleClearLogOption() {
         TranscriptHelper.clear();
-        currentCommand.setText("");
-        resetScrollPane();
+        if (allowUpdates) {
+            currentCommand.setText("");
+            resetScrollPane();
+        }
     }
 
     public synchronized void handleRightClickMenu() {

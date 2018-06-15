@@ -2868,6 +2868,20 @@ public class SessionController {
         });
     }
 
+    public void showNoCommandLineHistoryNotification() {
+        Platform.runLater(() -> {
+            logger.warn("No command line history.");
+            notificationPaneController.addNotification("You haven't done any Elegit actions that translate to terminal commands.");
+        });
+    }
+
+    public void showNoCommandToCopyNotification() {
+        Platform.runLater(() -> {
+            logger.warn("Command line tool disabled.");
+            notificationPaneController.addNotification("You have this tool disabled. Please enable it to copy a command.");
+        });
+    }
+
     // END: ERROR NOTIFICATIONS ^^^
 
     /**
