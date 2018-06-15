@@ -51,6 +51,7 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
 
     private static String prevRemoteURL, prevDestinationPath, prevRepoName, remoteURL;
     private static Path destinationPath;
+    private static RepoHelperBuilder.AuthDialogResponse response;
 
     private static final Logger logger = LogManager.getLogger();
 
@@ -88,7 +89,7 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
                 knownHostsLocation = getFileByTypingPath("Enter known hosts location:").toString();
             }
 
-            RepoHelperBuilder.AuthDialogResponse response = RepoHelperBuilder.getAuthCredentialFromDialog();
+            response = RepoHelperBuilder.getAuthCredentialFromDialog();
 
             return cloneRepositoryWithChecksWhenSubscribed
                     (
@@ -318,6 +319,10 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
                                                                    userInfo,
                                                                    additionalPrivateKey,
                                                                    knownHostsLocation));
+    }
+    @Override
+    public AuthMethod getAuthType(){
+        return response.protocol;
     }
     public String getRemoteURL(){
         return remoteURL;

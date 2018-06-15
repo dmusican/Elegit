@@ -70,6 +70,7 @@ public abstract class RepoHelperBuilder {
 
     private final String defaultFilePickerStartFolder = System.getProperty("user.home");
     private Path repoPath;
+    private static AuthMethod protocolEnum;
 
     public RepoHelperBuilder() {
         repoPath = null;
@@ -236,7 +237,7 @@ public abstract class RepoHelperBuilder {
         // If the username hasn't been set yet, then update the username.
         dialog.setResultConverter(dialogButton -> {
             if (dialogButton == loginButtonType) {
-                AuthMethod protocolEnum = AuthMethod.getEnumFromString(protocol.getValue());
+                protocolEnum = AuthMethod.getEnumFromString(protocol.getValue());
                 return new AuthDialogResponse(protocolEnum, username.getText(), password.getText(),
                                               remember.isSelected());
             }
@@ -265,6 +266,9 @@ public abstract class RepoHelperBuilder {
         return result.get();
     }
 
+    public AuthMethod getAuthType(){
+        return protocolEnum;
+    }
     public abstract Single<RepoHelper> getRepoHelperFromDialogsWhenSubscribed();
 
     public abstract String getRepoHelperBuilderType();

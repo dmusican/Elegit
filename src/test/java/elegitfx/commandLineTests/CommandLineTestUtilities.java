@@ -3,6 +3,7 @@ package elegitfx.commandLineTests;
 import com.jcraft.jsch.Session;
 import elegit.controllers.SessionController;
 import elegit.exceptions.ExceptionAdapter;
+import elegit.gui.WorkingTreePanelView;
 import elegit.models.BranchHelper;
 import elegit.models.BranchModel;
 import elegit.models.ExistingRepoHelper;
@@ -34,6 +35,7 @@ import java.io.FileWriter;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
@@ -213,4 +215,48 @@ public class CommandLineTestUtilities extends ApplicationTest {
         });
         logger.info("Layout done");
     }
+
+    public void addFile(Path filePath, Path directory, SessionController sessionController) throws Exception {
+        ArrayList<Path> filePaths = new ArrayList<>();
+        filePaths.add(filePath);
+        addFile(filePaths, directory, sessionController);
+    }
+    //need to click box
+    public void addFile(ArrayList<Path> filePaths, Path directory, SessionController sessionController) throws Exception{
+        ExistingRepoHelper helper = new ExistingRepoHelper(directory, new ElegitUserInfoTest());
+        for(Path filePath : filePaths){
+            FileWriter fw = new FileWriter(filePath.toString(), true);
+            fw.write("start");
+            fw.close();
+        }
+        helper.addFilePathsTest(filePaths, false);
+        helper.commit("made initial file");
+        interact(() -> sessionController.handleLoadExistingRepoOption(directory));
+        RepositoryMonitor.unpause();
+        String fileName="";
+        for(Path filePath : filePaths) {
+            FileWriter fw = new FileWriter(filePath.toString(), true);
+            fw.write("update");
+            fw.close();
+            fileName = filePath.getFileName().toString();
+        }
+        final String lookUpFile = fileName;
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+                () -> lookup(lookUpFile).queryAll().size() == 2);
+        // When looking up the file, it registers multiple nodes since it is nested inside a tree. Pick the
+        // checkbox of interest.
+        WorkingTreePanelView workingTree = lookup("#workingTreePanelView").query();
+
+        logger.info("Before clicking add");
+        interact(() -> {
+            workingTree.setAllFilesSelected(true);
+        });
+        clickOn("Add");
+
+        // Wait for file to also be added to index pane
+        logger.info("When add seems to be done");
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+                () -> lookup(lookUpFile).queryAll().size() == 3);
+    }
+
 }

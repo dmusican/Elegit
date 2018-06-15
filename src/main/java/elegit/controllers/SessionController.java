@@ -785,7 +785,13 @@ public class SessionController {
                                });
             //need to find url etc
             if (builder.getRepoHelperBuilderType().equals("CLONED")){
-                commandLineController.updateCommandText("git clone "+builder.getRemoteURL()+" "+builder.getDestinationPath());
+                //check auth type
+                if (builder.getAuthType() == AuthMethod.SSH) {
+                    commandLineController.updateCommandText("git clone ssh://"+builder.getRemoteURL() + " " + builder.getDestinationPath());
+                }
+                else {
+                    commandLineController.updateCommandText("git clone " + builder.getRemoteURL() + " " + builder.getDestinationPath());
+                }
             }
         } catch (Exception e) {
             showSingleResult(notificationPaneController, new Result(ResultOperation.LOAD, e));
