@@ -17,7 +17,7 @@ public class TranscriptHelper {
             output.newLine();
             output.close();
         } catch (IOException e) {
-
+            System.out.println(e);
         }
 }
 
@@ -30,7 +30,7 @@ public class TranscriptHelper {
             writer.flush();
             writer.close();
         } catch (IOException e) {
-
+            System.out.println(e);
         }
     }
 }
