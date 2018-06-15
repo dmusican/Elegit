@@ -5,3 +5,21 @@ build_script:
   # assembly:single creates zips and compressed tarballs that contain all needed files
   - mvn clean compile jfx:build-jar assembly:single jfx:build-native
 
+after_build:
+- cmd: 7z a Elegit-snapshot-%APPVEYOR_REPO_COMMIT%.zip %APPVEYOR_BUILD_FOLDER%\target\jfx\native\Elegit
+
+
+artifacts:
+- path: Elegit-snapshot-%APPVEYOR_REPO_COMMIT%.zip
+  name: ElegitDeployment
+
+deploy:
+- provider: GitHub
+  release: snapshot-release-windows-v$(appveyor_build_version)
+  description: Windows snapshot release
+  auth_token:
+    secure: EikutUrJCUhSrlGHdRYQ/qLQ5iihb7HQtVrnKmE4bJpQFd8TTdKBCQvXK9Q2ikLN
+  artifact: ElegitDeployment
+  draft: true
+  on:
+    APPVEYOR_REPO_TAG: true

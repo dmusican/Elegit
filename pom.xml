@@ -45,7 +45,11 @@
                     <vendor>The Elegit Team</vendor>
                     <appName>Elegit</appName>
                     <mainClass>elegit.Main</mainClass>
-                    <nativeReleaseVersion>${project.version}</nativeReleaseVersion>
+                    <nativeReleaseVersion>${project.version}-${maven.build.timestamp}</nativeReleaseVersion>
+                    <!-- https://github.com/javafx-maven-plugin/javafx-maven-plugin/issues/316#issuecomment-375686971 -->
+                    <bundleArguments>
+                        <mac.dmg.simple>true</mac.dmg.simple>
+                    </bundleArguments>
                 </configuration>
             </plugin>
             <plugin>
