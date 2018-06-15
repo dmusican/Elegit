@@ -1,11 +1,16 @@
 package elegit.models;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.io.*;
 
 /**
  * Created by gorram on 6/6/18.
  */
 public class TranscriptHelper {
+    private static final Logger logger = LogManager.getLogger();
+
 
     public static void post(String command) {
         String log_file_path = System.getProperty("logFolder") + "/transcript.log";
@@ -17,7 +22,7 @@ public class TranscriptHelper {
             output.newLine();
             output.close();
         } catch (IOException e) {
-            System.out.println(e);
+            logger.info(e);
         }
 }
 
@@ -30,7 +35,7 @@ public class TranscriptHelper {
             writer.flush();
             writer.close();
         } catch (IOException e) {
-            System.out.println(e);
+            logger.info(e);
         }
     }
 }
