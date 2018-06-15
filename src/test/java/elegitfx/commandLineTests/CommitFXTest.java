@@ -1,10 +1,12 @@
 package elegitfx.commandLineTests;
 
+import elegit.controllers.BusyWindow;
 import elegit.controllers.CommitController;
 import elegit.controllers.SessionController;
 import elegit.models.ExistingRepoHelper;
 import elegit.monitors.RepositoryMonitor;
 import elegit.sshauthentication.ElegitUserInfoTest;
+import elegit.treefx.TreeGraph;
 import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -82,7 +84,9 @@ public class CommitFXTest extends ApplicationTest {
         clickOn(area).write("testing");
         clickOn(node.lookup("#commitViewCommitButton"));
         //this should really have something that checks if the new commit has shown up, but just waiting a second seems to work
-        sleep(1000);
+        //sleep(1500);
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+                () -> lookup("commitTest.txt").queryAll().size() != 3);
         commandLineTestUtilities.checkCommandLineText("git commit -m\"testing\"");
 
 
