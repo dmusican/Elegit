@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-java -jar Elegit-jfx.jar
+java -jar ./Elegit-*-jfx.jar
