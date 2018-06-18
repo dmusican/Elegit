@@ -384,8 +384,8 @@
             linear-gradient(rgb(255, 167, 169) 0%, #ff4f4d 20%, #e24b49 80%, #d34a48 100%),
             linear-gradient(rgb(255, 130, 133), #f54d4b);
     -fx-border-color: darkslategrey;
-    -fx-border-radius: 5, 5, 5;
-    -fx-background-radius: 5, 5, 5;
+    -fx-border-radius: 5, 5, 4;
+    -fx-background-radius: 5, 5, 4;
 }
 
 #rejectButton:hover {

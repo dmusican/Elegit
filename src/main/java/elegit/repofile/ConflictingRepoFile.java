@@ -48,7 +48,8 @@ public class ConflictingRepoFile extends RepoFile {
                 "This file caused a merge conflict.\nEdit the file to fix the conflict.");
         MenuItem resolveMerge = new MenuItem("Resolve conflict...");
         addToContextMenu(resolveMerge);
-        resolveMerge.setOnAction(event -> controller.handleOpenConflictManagementTool(this.getFilePath().toString()));
+        resolveMerge.setOnAction(event -> controller.handleOpenConflictManagementTool(this.getRepo().
+                getLocalPath().toString() + "/" + this.getFilePath().toString()));
     }
 
     public ConflictingRepoFile(String filePathString, RepoHelper repo) {
@@ -61,7 +62,8 @@ public class ConflictingRepoFile extends RepoFile {
         resultType = PopUpWindows.showCommittingConflictingFileAlert();
         switch (resultType) {
             case "tool":
-                controller.handleOpenConflictManagementTool(this.getFilePath().toString());
+                controller.handleOpenConflictManagementTool(this.getRepo().getLocalPath().toString() + "/" +
+                        this.getFilePath().toString());
                 break;
             case "editor":
                 Desktop desktop = Desktop.getDesktop();

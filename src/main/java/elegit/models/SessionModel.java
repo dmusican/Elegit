@@ -329,7 +329,7 @@ public class SessionModel {
      * @return a set of conflicting filenames in the working directory.
      * @throws GitAPIException
      */
-    private Set<String> getConflictingFiles(Status status) throws GitAPIException {
+    public Set<String> getConflictingFiles(Status status) throws GitAPIException {
         if (status == null) {
             status = new Git(this.getCurrentRepo()).status().call();
         }

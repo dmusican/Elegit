@@ -2,9 +2,14 @@ package elegit.controllers;
 
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
+import elegit.Main;
+import elegit.models.SessionModel;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.AnchorPane;
@@ -14,11 +19,13 @@ import javafx.stage.Stage;
 import net.jcip.annotations.GuardedBy;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.eclipse.jgit.api.errors.GitAPIException;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Set;
 
 /**
  * Created by grenche on 6/18/18.
@@ -30,11 +37,11 @@ public class ConflictManagementToolController {
     @FXML
     private AnchorPane anchorRoot;
     @FXML
-    private TextArea leftDocLabel;
+    private TextArea leftDoc;
     @FXML
-    private TextArea middleDocLabel;
+    private TextArea middleDoc;
     @FXML
-    private TextArea rightDocLabel;
+    private TextArea rightDoc;
     @FXML
     private Button rightAccept;
     @FXML
@@ -44,11 +51,17 @@ public class ConflictManagementToolController {
     @FXML
     private Button leftReject;
     @FXML
+    private ComboBox<String> conflictingFilesDropdown;
+    @FXML
     private Button upToggle;
     @FXML
     private Button downToggle;
     @FXML
-    private NotificationController notificationPaneController;
+    private Button applyChanges;
+    @FXML
+    private Button abortMerge;
+
+    private boolean fileSelected = false;
 
     private static final Logger console = LogManager.getLogger("briefconsolelogger");
 
@@ -58,6 +71,11 @@ public class ConflictManagementToolController {
 
     public void initialize() {
         initButtons();
+        initDropdown();
+        // Disable everything except the dropdown if the user has not specified a file to solve merge conflicts for yet
+        if (!fileSelected) {
+            setButtonsDisabled(true);
+        }
     }
 
     /**
@@ -91,6 +109,29 @@ public class ConflictManagementToolController {
         downToggle.setTooltip(new Tooltip("Go to next change."));
     }
 
+    private void initDropdown() {
+        try {
+            // Get the names of all the conflicting files and put them in the dropdown
+            Set<String> conflictingFiles = SessionModel.getSessionModel().getConflictingFiles(null);
+            for(String item : conflictingFiles) {
+                conflictingFilesDropdown.getItems().add(item);
+            }
+        } catch (GitAPIException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void setButtonsDisabled(boolean disabled) {
+        rightAccept.setDisable(disabled);
+        rightReject.setDisable(disabled);
+        leftAccept.setDisable(disabled);
+        leftReject.setDisable(disabled);
+        upToggle.setDisable(disabled);
+        downToggle.setDisable(disabled);
+        applyChanges.setDisable(disabled);
+        abortMerge.setDisable(!disabled);
+    }
+
     /**
      * Shows the tool.
      */
@@ -103,6 +144,17 @@ public class ConflictManagementToolController {
         stage.initModality(Modality.APPLICATION_MODAL);
         stage.setOnCloseRequest(event -> console.info("Closed conflict management tool"));
         stage.show();
+    }
+
+    @FXML
+    private void setFileToEdit() {
+        Main.assertFxThread();
+        // Show file in dropdown
+        EventHandler<ActionEvent> fileSelected = conflictingFilesDropdown.getOnAction();
+        conflictingFilesDropdown.setOnAction(fileSelected);
+
+        // Show files in ScrollPanes
+//        setFile(filePath);
     }
 
     private ArrayList<ArrayList> parseConflicts(String path){
@@ -147,5 +199,19 @@ public class ConflictManagementToolController {
 
     public void setFile(String filePath){
         ArrayList<ArrayList> results = parseConflicts(filePath);
+        ArrayList leftLines = results.get(0);
+        ArrayList middleLines = results.get(1);
+        ArrayList rightLines = results.get(2);
+
+        setLines(leftLines, leftDoc);
+        setLines(middleLines, middleDoc);
+        setLines(rightLines, rightDoc);
+    }
+
+    private void setLines(ArrayList lines, TextArea doc) {
+        for (int i = 0; i < lines.size(); i++) {
+            String line = (String) lines.get(i);
+            doc.appendText(line + "\n");
+        }
     }
 }
