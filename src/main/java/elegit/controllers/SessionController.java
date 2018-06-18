@@ -901,6 +901,11 @@ public class SessionController {
                 // Try to add all files, throw exception if there are ones that can't be added
                 if (workingTreePanelView.isSelectAllChecked()) {
                     filePathsToAdd.add(Paths.get("."));
+                    for(RepoFile file: workingTreePanelView.getFilesToDisplay()){
+                        if(!file.canAdd()){
+                            filePathsToAdd.remove(file.getFilePath());
+                        }
+                    }
                 } else {
                     for (RepoFile checkedFile : workingTreePanelView.getCheckedFilesInDirectory()) {
                         if (checkedFile.canAdd()) {
