@@ -160,7 +160,7 @@ public class CommandLineTestUtilities extends ApplicationTest {
                     testingRemoteAndLocalRepos.getLocalBrief().toString();
 
             WaitForAsyncUtils.waitForFxEvents();
-            sleep(100);
+            sleep(1000);
 
             return paths;
         }
