@@ -53,6 +53,7 @@ public class RepoFile implements Comparable<RepoFile> {
     private final Button diffButton;
     private final PopOver diffPopover;
     private final ContextMenu contextMenu;
+    private Object value;
 
     protected static final Logger logger = LogManager.getLogger();
 
@@ -223,4 +224,11 @@ public class RepoFile implements Comparable<RepoFile> {
         Main.assertFxThread();
         return this.toString().compareToIgnoreCase(other.toString());
     }
+/*
+    public void setConflicts(Object value){
+        this.value=value;
+    }
+
+    public Object getConflicts(){return value;}*/
+
 }

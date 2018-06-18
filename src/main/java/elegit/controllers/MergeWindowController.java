@@ -6,7 +6,10 @@ import elegit.models.LocalBranchHelper;
 import elegit.models.RepoHelper;
 import elegit.models.SessionModel;
 import elegit.monitors.ConflictingFileWatcher;
+import elegit.repofile.ConflictingRepoFile;
+import elegit.repofile.RepoFile;
 import elegit.treefx.CellLabel;
+import elegit.models.BranchHelper;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
@@ -27,8 +30,11 @@ import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.lib.BranchTrackingStatus;
 import org.eclipse.jgit.lib.Repository;
+import org.omg.CORBA.Object;
 
 import java.io.IOException;
+import java.util.Set;
+import java.util.Map;
 
 /**
  * Controller for the merge window
@@ -43,7 +49,7 @@ public class MergeWindowController {
     @FXML private Button mergeButton;
     @FXML private Text mergeRemoteTrackingText;
     @FXML private HBox remoteBranchBox;
-    @FXML private Text intoText1;
+    //@FXML private Text intoText1;
     @FXML private AnchorPane arrowPane;
     @FXML private HBox localBranchBox1;
     @FXML private TabPane mergeTypePane;
@@ -53,6 +59,8 @@ public class MergeWindowController {
 
     private static final int REMOTE_PANE=0;
     private static final int LOCAL_PANE=1;
+
+    private static LocalBranchHelper selectedBranch;
 
     private Stage stage;
 
@@ -156,7 +164,7 @@ public class MergeWindowController {
      */
     private void hideRemoteMerge() {
         remoteBranchBox.setVisible(false);
-        intoText1.setVisible(false);
+        //intoText1.setVisible(false);
         arrowPane.setVisible(false);
         localBranchBox1.setVisible(false);
     }
@@ -235,7 +243,7 @@ public class MergeWindowController {
     private void localBranchMerge() throws GitAPIException, IOException {
         logger.info("Merging selected branch with current");
         // Get the branch to merge with
-        LocalBranchHelper selectedBranch = this.branchDropdownSelector.getSelectionModel().getSelectedItem();
+        selectedBranch = this.branchDropdownSelector.getSelectionModel().getSelectedItem();
 
         // Get the merge result from the branch merge
         MergeResult mergeResult =
@@ -243,9 +251,31 @@ public class MergeWindowController {
 
         if (mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.CONFLICTING)){
             this.showConflictsNotification();
+            //System.out.println("getConflicts");
+            //System.out.println(mergeResult.getConflicts());
+            //System.out.println("get failingpaths");
+            //System.out.println(mergeResult.getFailingPaths());
             // TODO: Call gitStatus once I've got it better threaded
             //this.sessionController.gitStatus();
+            /*Map conflicts = mergeResult.getConflicts();
+            for (java.lang.Object file : conflicts.keySet()){
+
+            }*/
             ConflictingFileWatcher.watchConflictingFiles(SessionModel.getSessionModel().getCurrentRepoHelper());
+            /*Set<String> newConflictingFiles = (new Git(SessionModel.getSessionModel().getCurrentRepoHelper().getRepo()).status().call()).getConflicting();
+            SessionModel sessionModel = SessionModel.getSessionModel();
+            for(RepoFile file : sessionModel.getAllRepoFiles()){
+                java.lang.Object value = conflicts.get(file.getFilePath());
+                if (value!=null){
+                    file.setConflicts(value);
+                }
+            }*/
+            /*for(String file : newConflictingFiles){
+
+            }
+            for(String file : newConflictingFiles){
+
+            }*/
 
         } else if (mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.ALREADY_UP_TO_DATE)) {
             this.showUpToDateNotification();
@@ -275,6 +305,12 @@ public class MergeWindowController {
         //sessionController.gitStatus();
     }
 
+    public BranchHelper getCurrentBranch(){
+        return SessionModel.getSessionModel().getCurrentRepoHelper().getBranchModel().getCurrentBranch();
+    }
+    public BranchHelper getSelectedBranch(){
+        return selectedBranch;
+    }
     /**
      * Setter method for sessionController, needed for merge operations
      * @param sessionController the sessionController that made this window

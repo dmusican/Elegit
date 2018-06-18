@@ -12,10 +12,10 @@ import org.apache.logging.log4j.Logger;
 import org.eclipse.jgit.api.errors.GitAPIException;
 
 import java.awt.*;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 
 /**
  * A subclass of the RepoFile class that holds a reference to
@@ -33,6 +33,7 @@ import java.nio.file.Paths;
 public class ConflictingRepoFile extends RepoFile {
 
     private String resultType;
+    private Object conflicts;
 
     static final Logger logger = LogManager.getLogger();
 
@@ -77,4 +78,49 @@ public class ConflictingRepoFile extends RepoFile {
     @Override public boolean canRemove() {
         return true;
     }
+
+
+    public ArrayList<ArrayList> parseConflicts(String path){
+        //File local = new
+        ArrayList<String> left = new ArrayList<>();
+        ArrayList<String> center = new ArrayList<>();
+        ArrayList<String> right = new ArrayList<>();
+        try {
+            BufferedReader reader = new BufferedReader(new FileReader(path));
+            String line = reader.readLine();
+            while(line!=null){
+                if(line.contains("<<<<<<<")){
+                    line = reader.readLine();
+                    while(!line.contains("=======")){
+                        left.add(line);
+                        line = reader.readLine();
+                    }
+                    line = reader.readLine();
+                    while(!line.contains(">>>>>>>")){
+                        right.add(line);
+                        line = reader.readLine();
+                    }
+                    line = reader.readLine();
+                }
+                else{
+                    left.add(line);
+                    center.add(line);
+                    right.add(line);
+                    line = reader.readLine();
+                }
+            }
+
+        }
+        catch (IOException e){
+            logger.info(e);
+        }
+        ArrayList<ArrayList> list = new ArrayList<>();
+        list.add(left);
+        list.add(center);
+        list.add(right);
+        return list;
+    }
+    //@Override public void setConflict(Object value){
+    //    conflicts = value;
+    //}
 }
