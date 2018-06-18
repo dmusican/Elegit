@@ -7,6 +7,7 @@ import elegit.models.ClonedRepoHelper;
 import elegit.models.ExistingRepoHelper;
 import elegit.models.RepoHelper;
 import elegit.models.SessionModel;
+import elegit.monitors.RepositoryMonitor;
 import elegit.sshauthentication.ElegitUserInfoTest;
 import elegit.treefx.CommitTreeModel;
 import javafx.scene.Node;
@@ -138,6 +139,7 @@ public class OpenAndCloseReposFXTest extends ApplicationTest {
     private void addSwapAndRemoveRepos(Path repoPath, Path repoPath2) throws InterruptedException, TimeoutException {
         interact(() -> sessionController.handleLoadExistingRepoOption(repoPath));
         SessionController.gitStatusCompletedOnce.await();
+        RepositoryMonitor.pause();
 
         final ComboBox<RepoHelper> dropdown = lookup("#repoDropdown").query();
 
@@ -163,11 +165,10 @@ public class OpenAndCloseReposFXTest extends ApplicationTest {
         interact(() -> assertEquals(2, SessionModel.getSessionModel().getAllRepoHelpers().size()));
 
         for (int i=0; i < 3; i++) {
-            // We were having timeout issues which is why the countDownLatch is needed. Makes the test SUPER slow
-            SessionController.gitStatusCompletedOnce = new CountDownLatch(1);
             WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
                                       () -> dropdown.getValue().toString().equals("repo2"));
-            SessionController.gitStatusCompletedOnce.await();
+            WaitForAsyncUtils.waitForFxEvents();
+            sleep(100);
 
             clickOn(dropdown);
 
@@ -185,10 +186,10 @@ public class OpenAndCloseReposFXTest extends ApplicationTest {
                                       () -> !BusyWindow.window.isShowing());
 
             // We were having timeout issues which is why the countDownLatch is needed. Makes the test SUPER slow
-            SessionController.gitStatusCompletedOnce = new CountDownLatch(1);
             WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
                                       () -> dropdown.getValue().toString().equals("repo1"));
-            SessionController.gitStatusCompletedOnce.await();
+            WaitForAsyncUtils.waitForFxEvents();
+            sleep(100);
 
             clickOn(dropdown);
 
