@@ -37,6 +37,7 @@ import java.util.Scanner;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import static java.io.File.separator;
 import static junit.framework.TestCase.assertEquals;
 
 /**
@@ -71,7 +72,7 @@ public class CommandLineTestUtilities extends ApplicationTest {
         }
     }
 
-    public void cloneRepoUsingButtons(TestingRemoteAndLocalReposRule testingRemoteAndLocalRepos, Path directoryPath) throws Exception {
+    public String cloneRepoUsingButtons(TestingRemoteAndLocalReposRule testingRemoteAndLocalRepos, Path directoryPath) throws Exception {
         /***** Same/Similar code to cloning a repo in SshCloneFXTest *****/
 
         // Set up remote repo
@@ -154,6 +155,11 @@ public class CommandLineTestUtilities extends ApplicationTest {
             sshd.stop();
 
             /***** End of copied code *****/
+
+            String paths = remoteURL + " " + testingRemoteAndLocalRepos.getDirectoryPath().toString() + separator +
+                    testingRemoteAndLocalRepos.getLocalBrief().toString();
+
+            return paths;
         }
     }
 
