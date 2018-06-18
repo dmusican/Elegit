@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<!-- ******************* CONFLICT MANAGEMENT POPUP WINDOW ************************ -->
+
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ComboBox?>
@@ -12,116 +14,130 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.text.Text?>
 
-<AnchorPane fx:id="anchorRoot" prefHeight="220" xmlns="http://javafx.com/javafx/8.0.112"
-            xmlns:fx="http://javafx.com/fxml/1" fx:controller="elegit.controllers.ConflictManagementToolController">
-    <GridPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0"
-              prefWidth="800.0" stylesheets="@../../css/BaseStyle.css" xmlns="http://javafx.com/javafx/8.0.112"
-              xmlns:fx="http://javafx.com/fxml/1">
+<AnchorPane fx:id="anchorRoot" prefHeight="220" xmlns="http://javafx.com/javafx/8.0.112" xmlns:fx="http://javafx.com/fxml/1" fx:controller="elegit.controllers.ConflictManagementToolController">
+    <GridPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="800.0" stylesheets="@../../css/BaseStyle.css" xmlns="http://javafx.com/javafx/8.0.112" xmlns:fx="http://javafx.com/fxml/1">
         <columnConstraints>
-            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0"/>
-            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0"/>
-            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0"/>
+            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
         </columnConstraints>
         <rowConstraints>
-            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
-            <RowConstraints maxHeight="468.0" minHeight="10.0" prefHeight="468.0" vgrow="SOMETIMES"/>
-            <RowConstraints maxHeight="120.0" minHeight="4.0" prefHeight="36.0" vgrow="SOMETIMES"/>
-            <RowConstraints maxHeight="72.0" minHeight="10.0" prefHeight="37.0" vgrow="SOMETIMES"/>
+            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+            <RowConstraints maxHeight="468.0" minHeight="10.0" prefHeight="468.0" vgrow="SOMETIMES" />
+            <RowConstraints maxHeight="120.0" minHeight="4.0" prefHeight="36.0" vgrow="SOMETIMES" />
+            <RowConstraints maxHeight="72.0" minHeight="10.0" prefHeight="37.0" vgrow="SOMETIMES" />
         </rowConstraints>
         <children>
-            <TextArea id="docType" fx:id="leftDocLabel" editable="false" prefHeight="200.0" prefWidth="200.0"
-                      text="&lt;branch-name&gt; (Local)" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
-            <TextArea id="docType" fx:id="middleDocLabel" editable="false" prefHeight="200.0" prefWidth="200.0"
-                      text="Result" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
-            <TextArea id="docType" fx:id="rightDocLabel" editable="false" prefHeight="200.0" prefWidth="200.0"
-                      text="&lt;branch-name&gt; (Local/Remote)" GridPane.columnIndex="2" GridPane.rowIndex="0"/>
+
+            <!--Labels for the ScrollPanes/Document branch-->
+            <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0">
+                <children>
+                    <Text fx:id="leftDocLabel" strokeType="OUTSIDE" strokeWidth="0.0" />
+                </children>
+            </HBox>
+            <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" GridPane.columnIndex="1">
+                <children>
+                    <Text fx:id="middleDocLabel" strokeType="OUTSIDE" strokeWidth="0.0" />
+                </children>
+            </HBox>
+            <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" GridPane.columnIndex="2">
+                <children>
+                    <Text fx:id="rightDocLabel" strokeType="OUTSIDE" strokeWidth="0.0" />
+                </children>
+            </HBox>
+
+            <!--ScrollPanes where the three versions of the document go-->
             <ScrollPane fitToHeight="true" fitToWidth="true" prefHeight="200.0" prefWidth="200.0" GridPane.rowIndex="1">
                 <content>
-                    <TextArea id="document" fx:id="leftDoc" prefHeight="200.0" prefWidth="200.0"/>
+                    <TextArea id="document" fx:id="leftDoc" editable="false" prefHeight="200.0" prefWidth="200.0" />
                 </content>
             </ScrollPane>
-            <ScrollPane fitToHeight="true" fitToWidth="true" prefHeight="200.0" prefWidth="200.0"
-                        GridPane.columnIndex="1" GridPane.rowIndex="1">
+            <ScrollPane fitToHeight="true" fitToWidth="true" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="1">
                 <content>
-                    <TextArea id="document" fx:id="middleDoc" prefHeight="200.0" prefWidth="200.0"/>
+                    <TextArea id="document" fx:id="middleDoc" prefHeight="200.0" prefWidth="200.0" />
                 </content>
             </ScrollPane>
-            <ScrollPane fitToHeight="true" fitToWidth="true" prefHeight="200.0" prefWidth="200.0"
-                        GridPane.columnIndex="2" GridPane.rowIndex="1">
+            <ScrollPane fitToHeight="true" fitToWidth="true" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="2" GridPane.rowIndex="1">
                 <content>
-                    <TextArea id="document" fx:id="rightDoc" prefHeight="200.0" prefWidth="200.0"/>
+                    <TextArea id="document" fx:id="rightDoc" editable="false" prefHeight="200.0" prefWidth="200.0" />
                 </content>
             </ScrollPane>
+
+            <!--Accept/Reject changes for left document-->
             <HBox alignment="CENTER_RIGHT" prefHeight="200.0" prefWidth="200.0" GridPane.rowIndex="2">
                 <children>
                     <Button id="rejectButton" fx:id="leftReject" alignment="BOTTOM_LEFT">
                         <HBox.margin>
-                            <Insets right="1.5"/>
+                            <Insets right="1.5" />
                         </HBox.margin>
                     </Button>
                     <Button id="acceptButton" fx:id="leftAccept" alignment="BOTTOM_RIGHT">
                         <HBox.margin>
-                            <Insets left="1.5" right="3.0"/>
+                            <Insets left="1.5" right="3.0" />
                         </HBox.margin>
                     </Button>
                 </children>
             </HBox>
-            <HBox alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0" GridPane.columnIndex="2"
-                  GridPane.rowIndex="2">
+
+            <!--Accept/Reject changes for right document-->
+            <HBox alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0" GridPane.columnIndex="2" GridPane.rowIndex="2">
                 <children>
                     <Button id="acceptButton" fx:id="rightAccept" alignment="BOTTOM_RIGHT">
                         <HBox.margin>
-                            <Insets left="3.0" right="1.5"/>
+                            <Insets left="3.0" right="1.5" />
                         </HBox.margin>
                     </Button>
                     <Button id="rejectButton" fx:id="rightReject" alignment="BOTTOM_LEFT">
                         <HBox.margin>
-                            <Insets left="1.5"/>
+                            <Insets left="1.5" />
                         </HBox.margin>
                     </Button>
                 </children>
             </HBox>
-            <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" GridPane.columnIndex="1"
-                  GridPane.rowIndex="3">
+
+            <!--Buttons for toggling between changes-->
+            <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="3">
                 <children>
                     <Button id="toggle" fx:id="upToggle">
                         <HBox.margin>
-                            <Insets right="1.5" top="3.0"/>
+                            <Insets right="1.5" top="3.0" />
                         </HBox.margin>
                     </Button>
                     <Button id="toggle" fx:id="downToggle">
                         <HBox.margin>
-                            <Insets left="1.5" top="3.0"/>
+                            <Insets left="1.5" top="3.0" />
                         </HBox.margin>
                     </Button>
                 </children>
             </HBox>
-            <HBox alignment="CENTER_RIGHT" prefHeight="100.0" prefWidth="200.0" GridPane.columnIndex="2"
-                  GridPane.rowIndex="3">
+
+            <!--Buttons for applying changes and aborting the merge-->
+            <HBox alignment="CENTER_RIGHT" prefHeight="100.0" prefWidth="200.0" GridPane.columnIndex="2" GridPane.rowIndex="3">
                 <children>
                     <Button fx:id="abortMerge" text="Abort">
                         <HBox.margin>
-                            <Insets right="1.5" top="3.0"/>
+                            <Insets right="1.5" top="3.0" />
                         </HBox.margin>
                     </Button>
                     <Button fx:id="applyChanges" text="Apply">
                         <HBox.margin>
-                            <Insets left="1.5" right="10.0" top="3.0"/>
+                            <Insets left="1.5" right="10.0" top="3.0" />
                         </HBox.margin>
                     </Button>
                 </children>
             </HBox>
+
+            <!--The dropdown and label for switching between conflicting files-->
             <HBox alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0" GridPane.rowIndex="3">
                 <children>
                     <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Current File:">
                         <HBox.margin>
-                            <Insets left="10.0" right="1.5"/>
+                            <Insets left="10.0" right="1.5" />
                         </HBox.margin>
                     </Text>
-                    <ComboBox fx:id="conflictingFilesDropdown" onAction="#setFileToEdit" prefWidth="150.0"
-                              promptText="None">
+                    <ComboBox fx:id="conflictingFilesDropdown" onAction="#setFileToEdit" prefWidth="150.0" promptText="None">
                         <HBox.margin>
-                            <Insets left="1.5"/>
+                            <Insets left="1.5" />
                         </HBox.margin>
                     </ComboBox>
                 </children>

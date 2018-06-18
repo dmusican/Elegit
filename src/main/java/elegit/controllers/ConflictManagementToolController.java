@@ -3,6 +3,7 @@ package elegit.controllers;
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import elegit.Main;
+import elegit.models.RepoHelper;
 import elegit.models.SessionModel;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -24,8 +25,10 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Set;
+import java.io.File;
 
 /**
  * Created by grenche on 6/18/18.
@@ -36,6 +39,12 @@ public class ConflictManagementToolController {
     private SessionController sessionController;
     @FXML
     private AnchorPane anchorRoot;
+    @FXML
+    private Text leftDocLabel;
+    @FXML
+    private Text middleDocLabel;
+    @FXML
+    private Text rightDocLabel;
     @FXML
     private TextArea leftDoc;
     @FXML
@@ -62,6 +71,8 @@ public class ConflictManagementToolController {
     private Button abortMerge;
 
     private boolean fileSelected = false;
+
+    private String selectedFileDirectory;
 
     private static final Logger console = LogManager.getLogger("briefconsolelogger");
 
@@ -113,12 +124,21 @@ public class ConflictManagementToolController {
         try {
             // Get the names of all the conflicting files and put them in the dropdown
             Set<String> conflictingFiles = SessionModel.getSessionModel().getConflictingFiles(null);
+
             for(String item : conflictingFiles) {
                 conflictingFilesDropdown.getItems().add(item);
             }
+
+            conflictingFilesDropdown.setPromptText("None");
         } catch (GitAPIException e) {
             e.printStackTrace();
         }
+    }
+
+    private void initLabels() {
+        leftDocLabel.setText("Left");
+        middleDocLabel.setText("Result");
+        rightDoc.setText("Right");
     }
 
     private void setButtonsDisabled(boolean disabled) {
@@ -129,7 +149,6 @@ public class ConflictManagementToolController {
         upToggle.setDisable(disabled);
         downToggle.setDisable(disabled);
         applyChanges.setDisable(disabled);
-        abortMerge.setDisable(!disabled);
     }
 
     /**
@@ -150,11 +169,22 @@ public class ConflictManagementToolController {
     private void setFileToEdit() {
         Main.assertFxThread();
         // Show file in dropdown
-        EventHandler<ActionEvent> fileSelected = conflictingFilesDropdown.getOnAction();
-        conflictingFilesDropdown.setOnAction(fileSelected);
+        EventHandler<ActionEvent> handler = conflictingFilesDropdown.getOnAction();
+        conflictingFilesDropdown.setOnAction(handler);
+
+        // Get the path of the selected file
+        Path directory = (new File(SessionModel.getSessionModel().getCurrentRepoHelper().getRepo().getDirectory()
+                .getParent())).toPath();
+        String filePathWithoutFileName = directory.toString();
+
+        // Get the name of the file
+        String fileName = conflictingFilesDropdown.getValue();
 
         // Show files in ScrollPanes
-//        setFile(filePath);
+        setFile(filePathWithoutFileName, fileName);
+
+        // Allow the user to click buttons
+        setButtonsDisabled(false);
     }
 
     private ArrayList<ArrayList> parseConflicts(String path){
@@ -197,8 +227,11 @@ public class ConflictManagementToolController {
         return list;
     }
 
-    public void setFile(String filePath){
-        ArrayList<ArrayList> results = parseConflicts(filePath);
+    public void setFile(String filePathWithoutFileName, String fileName){
+        fileSelected = true;
+        conflictingFilesDropdown.setPromptText(fileName);
+
+        ArrayList<ArrayList> results = parseConflicts(filePathWithoutFileName + File.separator + fileName);
         ArrayList leftLines = results.get(0);
         ArrayList middleLines = results.get(1);
         ArrayList rightLines = results.get(2);
