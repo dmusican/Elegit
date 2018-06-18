@@ -2267,6 +2267,25 @@ public class SessionController {
     }
 
     /**
+     * Shows the conflict management tool
+     */
+    public void handleOpenConflictManagementTool() {
+        try {
+            logger.info("Conflict Management Tool opened.");
+            // Create and display the Stage:
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/pop-ups/ConflictManagementTool.fxml"));
+            fxmlLoader.load();
+            ConflictManagementToolController conflictManagementToolController = fxmlLoader.getController();
+            conflictManagementToolController.setSessionController(this);
+            AnchorPane fxmlRoot = fxmlLoader.getRoot();
+            conflictManagementToolController.showStage(fxmlRoot);
+        } catch (IOException e) {
+            this.showGenericErrorNotification(e);
+            e.printStackTrace();
+        }
+    }
+
+    /**
      * Updates the trees, changed files, and branch information. Equivalent
      * to 'git status'
      */

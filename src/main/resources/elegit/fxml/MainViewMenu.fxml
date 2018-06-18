@@ -104,5 +104,15 @@
                 </Menu>
             </items>
         </Menu>
+        <Menu text="Tools"
+              fx:id="toolsMenu">
+            <items>
+                <Menu text="Conflict management">
+                    <MenuItem text="Open Tool"
+                              fx:id="openConflictManagementOption"
+                              onAction="#handleOpenConflictManagementTool"/>
+                </Menu>
+            </items>
+        </Menu>
     </menus>
 </MenuBar>
