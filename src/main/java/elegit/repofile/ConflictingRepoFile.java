@@ -3,6 +3,7 @@ package elegit.repofile;
 import elegit.Main;
 import elegit.controllers.ConflictManagementToolController;
 import elegit.controllers.SessionController;
+import elegit.gui.GitIgnoreEditor;
 import elegit.gui.PopUpWindows;
 import elegit.models.RepoHelper;
 import elegit.treefx.CommitTreeController;
@@ -36,15 +37,18 @@ import java.util.ArrayList;
 public class ConflictingRepoFile extends RepoFile {
 
     private String resultType;
+    private SessionController controller;
 
     static final Logger logger = LogManager.getLogger();
 
     public ConflictingRepoFile(Path filePath, RepoHelper repo) {
         super(filePath, repo);
+        controller = CommitTreeController.getSessionController();
         setTextIdTooltip("CONFLICTING","conflictingDiffButton",
                 "This file caused a merge conflict.\nEdit the file to fix the conflict.");
         MenuItem resolveMerge = new MenuItem("Resolve conflict...");
         addToContextMenu(resolveMerge);
+        resolveMerge.setOnAction(event -> controller.handleOpenConflictManagementTool(this.getFilePath().toString()));
     }
 
     public ConflictingRepoFile(String filePathString, RepoHelper repo) {
@@ -57,21 +61,7 @@ public class ConflictingRepoFile extends RepoFile {
         resultType = PopUpWindows.showCommittingConflictingFileAlert();
         switch (resultType) {
             case "resolve":
-                //Desktop desktop = Desktop.getDesktop();
-
-                //File workingDirectory = this.getRepo().getRepo().getWorkTree();
-                //File unrelativized = new File(workingDirectory, this.getFilePath().toString());
-
-                //ConflictManagementToolController conflictManager = new ConflictManagementToolController();
-                //conflictManager.showStage();
-                //SessionController
-                SessionController controller = CommitTreeController.getSessionController();
                 controller.handleOpenConflictManagementTool(this.getFilePath().toString());
-                // Desktop.open can't be run on the FX thread, apparently. I tried it and it hung;
-                // I found some SO postings that confirmed that
-                /*Observable.just(unrelativized)
-                        .subscribeOn(Schedulers.io())
-                        .subscribe(desktop::open, Throwable::printStackTrace);*/
                 break;
             case "add":
                 return true;

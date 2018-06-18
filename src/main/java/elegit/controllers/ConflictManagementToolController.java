@@ -105,8 +105,7 @@ public class ConflictManagementToolController {
         stage.show();
     }
 
-    public ArrayList<ArrayList> parseConflicts(String path){
-        //File local = new
+    private ArrayList<ArrayList> parseConflicts(String path){
         ArrayList<String> left = new ArrayList<>();
         ArrayList<String> center = new ArrayList<>();
         ArrayList<String> right = new ArrayList<>();

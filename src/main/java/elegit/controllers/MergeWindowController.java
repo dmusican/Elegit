@@ -251,31 +251,9 @@ public class MergeWindowController {
 
         if (mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.CONFLICTING)){
             this.showConflictsNotification();
-            //System.out.println("getConflicts");
-            //System.out.println(mergeResult.getConflicts());
-            //System.out.println("get failingpaths");
-            //System.out.println(mergeResult.getFailingPaths());
             // TODO: Call gitStatus once I've got it better threaded
-            //this.sessionController.gitStatus();
-            /*Map conflicts = mergeResult.getConflicts();
-            for (java.lang.Object file : conflicts.keySet()){
-
-            }*/
+            this.sessionController.gitStatus();
             ConflictingFileWatcher.watchConflictingFiles(SessionModel.getSessionModel().getCurrentRepoHelper());
-            /*Set<String> newConflictingFiles = (new Git(SessionModel.getSessionModel().getCurrentRepoHelper().getRepo()).status().call()).getConflicting();
-            SessionModel sessionModel = SessionModel.getSessionModel();
-            for(RepoFile file : sessionModel.getAllRepoFiles()){
-                java.lang.Object value = conflicts.get(file.getFilePath());
-                if (value!=null){
-                    file.setConflicts(value);
-                }
-            }*/
-            /*for(String file : newConflictingFiles){
-
-            }
-            for(String file : newConflictingFiles){
-
-            }*/
 
         } else if (mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.ALREADY_UP_TO_DATE)) {
             this.showUpToDateNotification();

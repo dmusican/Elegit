@@ -224,11 +224,5 @@ public class RepoFile implements Comparable<RepoFile> {
         Main.assertFxThread();
         return this.toString().compareToIgnoreCase(other.toString());
     }
-/*
-    public void setConflicts(Object value){
-        this.value=value;
-    }
-
-    public Object getConflicts(){return value;}*/
 
 }
