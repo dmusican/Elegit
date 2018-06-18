@@ -159,6 +159,9 @@ public class CommandLineTestUtilities extends ApplicationTest {
             String paths = remoteURL + " " + testingRemoteAndLocalRepos.getDirectoryPath().toString() + separator +
                     testingRemoteAndLocalRepos.getLocalBrief().toString();
 
+            WaitForAsyncUtils.waitForFxEvents();
+            sleep(100);
+
             return paths;
         }
     }

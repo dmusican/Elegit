@@ -60,7 +60,7 @@ public class CloneSshFXTest extends ApplicationTest {
     public void sshCloneTest() throws Exception {
         // Clones a test repo via clicking the ribbon button
         String paths = commandLineTestUtilities.cloneRepoUsingButtons(testingRemoteAndLocalRepos, directoryPath);
-        
+
         // Checks that the text in the command line box is what is expected.
         commandLineTestUtilities.checkCommandLineText("git clone " + paths);
 
