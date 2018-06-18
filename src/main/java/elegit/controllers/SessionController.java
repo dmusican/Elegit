@@ -2267,6 +2267,7 @@ public class SessionController {
     }
 
     public void handleOpenConflictManagementTool(){
+        //make window to request file
         handleOpenConflictManagementTool("");
     }
 

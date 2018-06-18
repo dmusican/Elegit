@@ -45,12 +45,13 @@ public class PopUpWindows {
 
         Alert alert = new Alert(Alert.AlertType.WARNING);
 
-        ButtonType resolveButton = new ButtonType("Open Editor");
+        ButtonType resolveToolButton = new ButtonType("Open Tool");
+        ButtonType resolveEditorButton = new ButtonType("Open Editor");
         ButtonType addButton = new ButtonType("Add");
         ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
         ButtonType helpButton = new ButtonType("Help", ButtonBar.ButtonData.HELP);
 
-        alert.getButtonTypes().setAll(helpButton, resolveButton, addButton, cancelButton);
+        alert.getButtonTypes().setAll(helpButton, resolveToolButton, resolveEditorButton, addButton, cancelButton);
 
         alert.setResizable(true);
         alert.getDialogPane().setPrefSize(450, 200);
@@ -67,9 +68,12 @@ public class PopUpWindows {
 
         Optional<ButtonType> result = alert.showAndWait();
 
-        if (result.orElse(null) == resolveButton) {
-            logger.info("Chose to resolve conflicts");
-            resultType = "resolve";
+        if (result.orElse(null) == resolveEditorButton) {
+            logger.info("Chose to resolve conflicts via the editor");
+            resultType = "editor";
+        } else if (result.orElse(null) == resolveToolButton) {
+            logger.info("Chose to resolve conflicts via the tool");
+            resultType = "tool";
         } else if (result.orElse(null) == addButton) {
             logger.info("Chose to add file");
             resultType = "add";

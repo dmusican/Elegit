@@ -60,8 +60,20 @@ public class ConflictingRepoFile extends RepoFile {
         logger.warn("Notification about conflicting file");
         resultType = PopUpWindows.showCommittingConflictingFileAlert();
         switch (resultType) {
-            case "resolve":
+            case "tool":
                 controller.handleOpenConflictManagementTool(this.getFilePath().toString());
+                break;
+            case "editor":
+                Desktop desktop = Desktop.getDesktop();
+
+                File workingDirectory = this.getRepo().getRepo().getWorkTree();
+                File unrelativized = new File(workingDirectory, this.getFilePath().toString());
+
+                // Desktop.open can't be run on the FX thread, apparently. I tried it and it hung;
+                // I found some SO postings that confirmed that
+                Observable.just(unrelativized)
+                        .subscribeOn(Schedulers.io())
+                        .subscribe(desktop::open, Throwable::printStackTrace);
                 break;
             case "add":
                 return true;
