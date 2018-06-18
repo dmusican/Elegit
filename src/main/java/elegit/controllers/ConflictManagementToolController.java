@@ -15,6 +15,11 @@ import net.jcip.annotations.GuardedBy;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
+
 /**
  * Created by grenche on 6/18/18.
  * Controller for the conflict management tool.
@@ -98,5 +103,50 @@ public class ConflictManagementToolController {
         stage.initModality(Modality.APPLICATION_MODAL);
         stage.setOnCloseRequest(event -> console.info("Closed conflict management tool"));
         stage.show();
+    }
+
+    public ArrayList<ArrayList> parseConflicts(String path){
+        //File local = new
+        ArrayList<String> left = new ArrayList<>();
+        ArrayList<String> center = new ArrayList<>();
+        ArrayList<String> right = new ArrayList<>();
+        try {
+            BufferedReader reader = new BufferedReader(new FileReader(path));
+            String line = reader.readLine();
+            while(line!=null){
+                if(line.contains("<<<<<<<")){
+                    line = reader.readLine();
+                    while(!line.contains("=======")){
+                        left.add(line);
+                        line = reader.readLine();
+                    }
+                    line = reader.readLine();
+                    while(!line.contains(">>>>>>>")){
+                        right.add(line);
+                        line = reader.readLine();
+                    }
+                    line = reader.readLine();
+                }
+                else{
+                    left.add(line);
+                    center.add(line);
+                    right.add(line);
+                    line = reader.readLine();
+                }
+            }
+
+        }
+        catch (IOException e){
+            console.info(e);
+        }
+        ArrayList<ArrayList> list = new ArrayList<>();
+        list.add(left);
+        list.add(center);
+        list.add(right);
+        return list;
+    }
+
+    public void setFile(String filePath){
+        ArrayList<ArrayList> results = parseConflicts(filePath);
     }
 }

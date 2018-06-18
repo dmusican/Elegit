@@ -1,8 +1,11 @@
 package elegit.repofile;
 
 import elegit.Main;
+import elegit.controllers.ConflictManagementToolController;
+import elegit.controllers.SessionController;
 import elegit.gui.PopUpWindows;
 import elegit.models.RepoHelper;
+import elegit.treefx.CommitTreeController;
 import io.reactivex.Observable;
 import io.reactivex.schedulers.Schedulers;
 import javafx.scene.control.MenuItem;
@@ -33,7 +36,6 @@ import java.util.ArrayList;
 public class ConflictingRepoFile extends RepoFile {
 
     private String resultType;
-    private Object conflicts;
 
     static final Logger logger = LogManager.getLogger();
 
@@ -55,16 +57,21 @@ public class ConflictingRepoFile extends RepoFile {
         resultType = PopUpWindows.showCommittingConflictingFileAlert();
         switch (resultType) {
             case "resolve":
-                Desktop desktop = Desktop.getDesktop();
+                //Desktop desktop = Desktop.getDesktop();
 
-                File workingDirectory = this.getRepo().getRepo().getWorkTree();
-                File unrelativized = new File(workingDirectory, this.getFilePath().toString());
+                //File workingDirectory = this.getRepo().getRepo().getWorkTree();
+                //File unrelativized = new File(workingDirectory, this.getFilePath().toString());
 
+                //ConflictManagementToolController conflictManager = new ConflictManagementToolController();
+                //conflictManager.showStage();
+                //SessionController
+                SessionController controller = CommitTreeController.getSessionController();
+                controller.handleOpenConflictManagementTool(this.getFilePath().toString());
                 // Desktop.open can't be run on the FX thread, apparently. I tried it and it hung;
                 // I found some SO postings that confirmed that
-                Observable.just(unrelativized)
+                /*Observable.just(unrelativized)
                         .subscribeOn(Schedulers.io())
-                        .subscribe(desktop::open, Throwable::printStackTrace);
+                        .subscribe(desktop::open, Throwable::printStackTrace);*/
                 break;
             case "add":
                 return true;
@@ -80,47 +87,4 @@ public class ConflictingRepoFile extends RepoFile {
     }
 
 
-    public ArrayList<ArrayList> parseConflicts(String path){
-        //File local = new
-        ArrayList<String> left = new ArrayList<>();
-        ArrayList<String> center = new ArrayList<>();
-        ArrayList<String> right = new ArrayList<>();
-        try {
-            BufferedReader reader = new BufferedReader(new FileReader(path));
-            String line = reader.readLine();
-            while(line!=null){
-                if(line.contains("<<<<<<<")){
-                    line = reader.readLine();
-                    while(!line.contains("=======")){
-                        left.add(line);
-                        line = reader.readLine();
-                    }
-                    line = reader.readLine();
-                    while(!line.contains(">>>>>>>")){
-                        right.add(line);
-                        line = reader.readLine();
-                    }
-                    line = reader.readLine();
-                }
-                else{
-                    left.add(line);
-                    center.add(line);
-                    right.add(line);
-                    line = reader.readLine();
-                }
-            }
-
-        }
-        catch (IOException e){
-            logger.info(e);
-        }
-        ArrayList<ArrayList> list = new ArrayList<>();
-        list.add(left);
-        list.add(center);
-        list.add(right);
-        return list;
-    }
-    //@Override public void setConflict(Object value){
-    //    conflicts = value;
-    //}
 }

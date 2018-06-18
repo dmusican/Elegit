@@ -2266,10 +2266,14 @@ public class SessionController {
         }
     }
 
+    public void handleOpenConflictManagementTool(){
+        handleOpenConflictManagementTool("");
+    }
+
     /**
      * Shows the conflict management tool
      */
-    public void handleOpenConflictManagementTool() {
+    public void handleOpenConflictManagementTool(String filePath) {
         try {
             logger.info("Conflict Management Tool opened.");
             // Create and display the Stage:
@@ -2277,6 +2281,7 @@ public class SessionController {
             fxmlLoader.load();
             ConflictManagementToolController conflictManagementToolController = fxmlLoader.getController();
             conflictManagementToolController.setSessionController(this);
+            conflictManagementToolController.setFile(filePath);
             AnchorPane fxmlRoot = fxmlLoader.getRoot();
             conflictManagementToolController.showStage(fxmlRoot);
         } catch (IOException e) {
