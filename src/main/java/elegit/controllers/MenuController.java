@@ -260,4 +260,5 @@ public class MenuController {
         sessionController.handleStashDropButton();
     }
 
+    public synchronized void handleOpenConflictManagementTool() { sessionController.handleOpenConflictManagementTool(); }
 }
