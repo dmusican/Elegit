@@ -200,6 +200,7 @@ public class MergeWindowController {
             showJGitInternalError(e);
         } catch (GitAPIException | IOException e) {
             showGenericErrorNotification();
+            e.printStackTrace();
         }
     }
 

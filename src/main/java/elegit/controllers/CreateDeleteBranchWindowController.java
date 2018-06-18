@@ -160,6 +160,7 @@ public class CreateDeleteBranchWindowController {
                             } catch(IOException e) {
                                 // This shouldn't happen
                                 setGraphic(null);
+                                e.printStackTrace();
                             }
                         }
                     }
@@ -275,6 +276,7 @@ public class CreateDeleteBranchWindowController {
             showCheckoutConflictsNotification(e.getConflictingPaths());
         } catch (GitAPIException | IOException e) {
             showGenericErrorNotification();
+            e.printStackTrace();
         }
         return false;
     }

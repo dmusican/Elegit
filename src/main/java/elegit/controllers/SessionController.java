@@ -406,6 +406,7 @@ public class SessionController {
             remoteBranchFull = repoHelper.getBranchModel().getCurrentRemoteBranch();
         } catch (IOException e) {
             this.showGenericErrorNotification(e);
+            e.printStackTrace();
         }
         if (remoteBranch==null) {
             remoteBranch = "N/A";
@@ -432,6 +433,7 @@ public class SessionController {
             behind = repoHelper.getBehindCount();
         } catch (IOException e) {
             this.showGenericErrorNotification(e);
+            e.printStackTrace();
         }
         String statusText="Up to date.";
         if (ahead >0) {
@@ -1285,6 +1287,7 @@ public class SessionController {
             this.showNoCommitsToPushNotification();
         } catch (IOException e) {
             this.showGenericErrorNotification(e);
+            e.printStackTrace();
         } catch (PushToAheadRemoteError pushToAheadRemoteError) {
             pushToAheadRemoteError.printStackTrace();
         } catch (MissingRepoException e) {
@@ -1501,6 +1504,7 @@ public class SessionController {
             showCheckoutConflictsNotification(e.getConflictingPaths());
         } catch (GitAPIException | IOException e) {
             showGenericErrorNotification(e);
+            e.printStackTrace();
         }
         return false;
     }
@@ -1823,6 +1827,7 @@ public class SessionController {
             showGenericErrorNotification(e);
         } catch (IOException e) {
             showGenericErrorNotification(e);
+            e.printStackTrace();
         }
     }
 
@@ -2423,6 +2428,7 @@ public class SessionController {
             }
         }catch(URISyntaxException | IOException e){
             this.showGenericErrorNotification(e);
+            e.printStackTrace();
         }catch(MissingRepoException e){
             this.showMissingRepoNotification();
             this.setButtonsDisabled(true);

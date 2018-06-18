@@ -197,10 +197,12 @@ public class OpenAndCloseReposFXTest extends ApplicationTest {
                 if (!dropdown.isShowing())
                     clickOn(dropdown);
             });
-
+            console.info("clicking 2 now");
             clickOn("repo2");
+            console.info("clicked 2");
             WaitForAsyncUtils.waitFor(15, TimeUnit.SECONDS,
                                       () -> !BusyWindow.window.isShowing());
+            console.info("finished a loop");
         }
 
 

@@ -124,7 +124,6 @@ public class CommitAndPushFXTest extends ApplicationTest {
         WaitForAsyncUtils.waitFor(15, TimeUnit.SECONDS,
                                   () -> !BusyWindow.window.isShowing());
         SessionController.gitStatusCompletedOnce.await();
-
         clickOn("#mainCommitButton");
 
         WaitForAsyncUtils.waitFor(15, TimeUnit.SECONDS,

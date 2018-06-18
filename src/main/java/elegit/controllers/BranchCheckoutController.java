@@ -194,6 +194,7 @@ public class BranchCheckoutController {
         } catch (CheckoutConflictException e){
             showCheckoutConflictsNotification(e.getConflictingPaths());
         } catch (GitAPIException | IOException e) {
+            e.printStackTrace();
             showGenericErrorNotification();
         }
         return false;

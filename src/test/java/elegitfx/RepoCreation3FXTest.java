@@ -118,7 +118,7 @@ public class RepoCreation3FXTest extends ApplicationTest {
         interact(() -> sessionController.handleLoadExistingRepoOption(local1));
 
         // Wait for cell to appear; will time out of it doesn't
-        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+        WaitForAsyncUtils.waitFor(30, TimeUnit.SECONDS,
                                   () -> lookup(Matchers.hasToString(firstCommit1.getName())).query() != null);
 
         Set<Cell> cells1 = lookup(Matchers.instanceOf(Cell.class)).queryAll();

@@ -114,6 +114,7 @@ public class StashListController {
             this.notificationPaneController.addNotification("Something went wrong retrieving the stash(es)");
         } catch (IOException e) {
             this.notificationPaneController.addNotification("Something went wrong.");
+            e.printStackTrace();
         }
     }
 

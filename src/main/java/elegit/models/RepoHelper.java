@@ -726,6 +726,7 @@ public class RepoHelper {
             this.remoteCommits.set(parseAllRemoteCommits());
         } catch (IOException e) {
             // This shouldn't occur once we have the repo up and running.
+            e.printStackTrace();
         }
 
         this.getBranchModel().updateRemoteBranches();
@@ -772,6 +773,7 @@ public class RepoHelper {
             this.localCommits.set(parseAllLocalCommits());
         } catch (IOException e) {
             // This shouldn't occur once we have the repo up and running.
+            e.printStackTrace();
         }
 
         MergeResult.MergeStatus status = result.getMergeStatus();
