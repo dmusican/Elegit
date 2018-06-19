@@ -273,7 +273,9 @@ public class TreeGraphModel {
     // menus needs to be on the FX thread, but the menus don't have to be created there.
     private synchronized Menu getRevertMenu(CommitHelper commit) {
         Menu revertMenu = new Menu("Revert...");
+        revertMenu.setId("revertMenuRevert");
         MenuItem revertItem = new MenuItem("Revert this commit");
+        revertItem.setId("revertMenuRevertCommit");
         MenuItem revertMultipleItem = new MenuItem("Revert multiple commits...");
         MenuItem helpItem = new MenuItem("Help");
 
