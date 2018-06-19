@@ -120,7 +120,7 @@ public class RepoCreation3FXTest extends ApplicationTest {
         // Wait for cell to appear; will time out of it doesn't
         WaitForAsyncUtils.waitFor(30, TimeUnit.SECONDS,
                                   () -> lookup(Matchers.hasToString(firstCommit1.getName())).query() != null);
-
+        sleep(100);
         Set<Cell> cells1 = lookup(Matchers.instanceOf(Cell.class)).queryAll();
         console.info("Commits added 1");
         cells1.stream().forEach(console::info);

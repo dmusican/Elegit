@@ -252,9 +252,9 @@ public class CommandLineTestUtilities extends ApplicationTest {
             fileName = filePath.getFileName().toString();
         }
         final String lookUpFile = fileName;
-        System.out.println(fileName);
         WaitForAsyncUtils.waitFor(20, TimeUnit.SECONDS,
                 () -> lookup(lookUpFile).queryAll().size() == 2);
+        sleep(100);
         // When looking up the file, it registers multiple nodes since it is nested inside a tree. Pick the
         // checkbox of interest.
         WorkingTreePanelView workingTree = lookup("#workingTreePanelView").query();
