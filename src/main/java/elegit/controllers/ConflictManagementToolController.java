@@ -1,18 +1,18 @@
 package elegit.controllers;
 
+import de.jensd.fx.glyphs.GlyphIcons;
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import elegit.Main;
+import elegit.models.ConflictManagementModel;
 import elegit.models.RepoHelper;
 import elegit.models.SessionModel;
+import javafx.beans.binding.Bindings;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.Tooltip;
+import javafx.scene.control.*;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.text.Text;
 import javafx.stage.Modality;
@@ -78,8 +78,6 @@ public class ConflictManagementToolController {
 
     private boolean fileSelected = false;
 
-    private String selectedFileDirectory;
-
     private static final Logger console = LogManager.getLogger("briefconsolelogger");
 
     synchronized void setSessionController(SessionController sessionController) {
@@ -89,6 +87,7 @@ public class ConflictManagementToolController {
     public void initialize() {
         initButtons();
         initDropdown();
+        initTextAreas();
         // Disable everything except the dropdown if the user has not specified a file to solve merge conflicts for yet
         if (!fileSelected) {
             setButtonsDisabled(true);
@@ -100,34 +99,24 @@ public class ConflictManagementToolController {
      */
     private void initButtons() {
         console.info("Initializing buttons.");
-
         // Accept change buttons
-        Text checkRight = GlyphsDude.createIcon(FontAwesomeIcon.CHECK);
-        checkRight.setId("checkIcon");
-        rightAccept.setGraphic(checkRight);
-        Text checkLeft = GlyphsDude.createIcon(FontAwesomeIcon.CHECK);
-        leftAccept.setGraphic(checkLeft);
-        checkLeft.setId("checkIcon");
-        rightAccept.setTooltip(new Tooltip("Integrate the highlighted commit."));
-        leftAccept.setTooltip(new Tooltip("Integrate the highlighted commit."));
+        initButton(FontAwesomeIcon.CHECK, "checkIcon", rightAccept, "Integrate the highlighted commit.");
+        initButton(FontAwesomeIcon.CHECK, "checkIcon", leftAccept, "Integrate the highlighted commit.");
 
         // Reject change buttons
-        Text xRight = GlyphsDude.createIcon(FontAwesomeIcon.TIMES);
-        xRight.setId("xIcon");
-        rightReject.setGraphic(xRight);
-        Text xLeft = GlyphsDude.createIcon(FontAwesomeIcon.TIMES);
-        xLeft.setId("xIcon");
-        leftReject.setGraphic(xLeft);
-        rightReject.setTooltip(new Tooltip("Ignore the highlighted commit."));
-        leftReject.setTooltip(new Tooltip("Ignore the highlighted commit."));
+        initButton(FontAwesomeIcon.TIMES, "xIcon", rightReject, "Ignore the highlighted commit.");
+        initButton(FontAwesomeIcon.TIMES, "xIcon", leftReject, "Ignore the highlighted commit.");
 
-        // Toggle between changes buttons
-        Text arrowUp = GlyphsDude.createIcon(FontAwesomeIcon.ARROW_UP);
-        upToggle.setGraphic(arrowUp);
-        Text arrowDown = GlyphsDude.createIcon(FontAwesomeIcon.ARROW_DOWN);
-        downToggle.setGraphic(arrowDown);
-        upToggle.setTooltip(new Tooltip("Go to previous change."));
-        downToggle.setTooltip(new Tooltip("Go to next change."));
+        // Toggle change buttons
+        initButton(FontAwesomeIcon.ARROW_UP, "arrowIcon", upToggle, "Go to previous change.");
+        initButton(FontAwesomeIcon.ARROW_DOWN, "arrowIcon", downToggle, "Go to next change.");
+    }
+
+    private void initButton(GlyphIcons glyphIcon, String id, Button button, String toolTip) {
+        Text icon = GlyphsDude.createIcon(glyphIcon);
+        icon.setId(id);
+        button.setGraphic(icon);
+        button.setTooltip(new Tooltip(toolTip));
     }
 
     private void initDropdown() {
@@ -144,10 +133,16 @@ public class ConflictManagementToolController {
         }
     }
 
-    private void initLabels() {
-        leftDocLabel.setText("Left");
-        middleDocLabel.setText("Result");
-        rightDoc.setText("Right");
+    private void initTextAreas() {
+        // Bind hvalues
+        rightDoc.scrollLeftProperty().bindBidirectional(leftDoc.scrollLeftProperty());
+        leftDoc.scrollLeftProperty().bindBidirectional(middleDoc.scrollLeftProperty());
+        middleDoc.scrollLeftProperty().bindBidirectional(rightDoc.scrollLeftProperty());
+
+        // Bind vvalues
+        rightDoc.scrollTopProperty().bindBidirectional(leftDoc.scrollTopProperty());
+        middleDoc.scrollTopProperty().bindBidirectional(rightDoc.scrollTopProperty());
+        leftDoc.scrollTopProperty().bindBidirectional(middleDoc.scrollTopProperty());
     }
 
     private void setButtonsDisabled(boolean disabled) {
@@ -177,76 +172,51 @@ public class ConflictManagementToolController {
     @FXML
     private void setFileToEdit() {
         Main.assertFxThread();
-        // Show file in dropdown
-        EventHandler<ActionEvent> handler = conflictingFilesDropdown.getOnAction();
-        conflictingFilesDropdown.setOnAction(handler);
-
-        // Get the path of the selected file
-        Path directory = (new File(SessionModel.getSessionModel().getCurrentRepoHelper().getRepo().getDirectory()
-                .getParent())).toPath();
-        String filePathWithoutFileName = directory.toString();
-
-        // Get the name of the file
-        String fileName = conflictingFilesDropdown.getValue();
+        setDropdownValueToFileName();
 
         // TODO: save the state of each file
 
+        clearTextAreas();
+        updateTextAreasWithNewFile();
+        setLabels();
+        setButtonsDisabled(false);
+    }
+
+    private void setDropdownValueToFileName() {
+        // Show file in dropdown
+        EventHandler<ActionEvent> handler = conflictingFilesDropdown.getOnAction();
+        conflictingFilesDropdown.setOnAction(handler);
+    }
+
+    private void clearTextAreas() {
         // Clear the documents before loading new ones
         leftDoc.clear();
         middleDoc.clear();
         rightDoc.clear();
-
-        // Show files in ScrollPanes
-        setFile(filePathWithoutFileName, fileName);
-
-        // Allow the user to click buttons
-        setButtonsDisabled(false);
     }
 
-    private ArrayList<ArrayList> parseConflicts(String path){
-        ArrayList<String> left = new ArrayList<>();
-        ArrayList<String> center = new ArrayList<>();
-        ArrayList<String> right = new ArrayList<>();
-        try {
-            BufferedReader reader = new BufferedReader(new FileReader(path));
-            String line = reader.readLine();
-            while(line!=null){
-                if(line.contains("<<<<<<<")){
-                    line = reader.readLine();
-                    while(!line.contains("=======")){
-                        left.add(line);
-                        line = reader.readLine();
-                    }
-                    line = reader.readLine();
-                    while(!line.contains(">>>>>>>")){
-                        right.add(line);
-                        line = reader.readLine();
-                    }
-                    line = reader.readLine();
-                }
-                else{
-                    left.add(line);
-                    center.add(line);
-                    right.add(line);
-                    line = reader.readLine();
-                }
-            }
-        }
-        catch (IOException e){
-            console.info(e);
-        }
-        ArrayList<ArrayList> list = new ArrayList<>();
-        list.add(left);
-        list.add(center);
-        list.add(right);
-        return list;
+    private void updateTextAreasWithNewFile() {
+        // Get the path of the selected file and the name of the file
+        Path directory = (new File(SessionModel.getSessionModel().getCurrentRepoHelper().getRepo().getDirectory()
+                .getParent())).toPath();
+        String filePathWithoutFileName = directory.toString();
+        String fileName = conflictingFilesDropdown.getValue();
+
+        // Show files in TextAreas
+        setFile(filePathWithoutFileName, fileName);
+    }
+
+    private void setLabels() {
+        leftDocLabel.setText("Left");
+        middleDocLabel.setText("Result");
+        rightDocLabel.setText("Right");
     }
 
     public void setFile(String filePathWithoutFileName, String fileName){
         fileSelected = true;
         conflictingFilesDropdown.setPromptText(fileName);
 
-        ArrayList<ArrayList> results = parseConflicts(filePathWithoutFileName + File.separator + fileName);
+        ArrayList<ArrayList> results = ConflictManagementModel.parseConflicts(filePathWithoutFileName + File.separator + fileName);
         ArrayList leftLines = results.get(0);
         ArrayList middleLines = results.get(1);
         ArrayList rightLines = results.get(2);
