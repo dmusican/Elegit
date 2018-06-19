@@ -32,7 +32,6 @@ public class ExistingRepoHelperTest {
     @ClassRule
     public static final TestingLogPathRule testingLogPath = new TestingLogPathRule();
 
-    Path logPath;
     private Path directoryPath;
 
     private static final Logger logger = LogManager.getLogger("consolelogger");

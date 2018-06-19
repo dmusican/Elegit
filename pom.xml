@@ -6,7 +6,7 @@
 
     <groupId>elegit</groupId>
     <artifactId>Elegit</artifactId>
-    <version>1.1.2</version>
+    <version>1.2-SNAPSHOT</version>
 
     <packaging>jar</packaging>
 
@@ -14,6 +14,7 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.build.timestamp.format>yyMMddHHmmss</maven.build.timestamp.format>
     </properties>
 
     <repositories>
@@ -34,7 +35,7 @@
 
 
     <build>
-        <finalName>${project.artifactId}-${project.version}</finalName>
+        <finalName>${project.artifactId}-${project.version}-${maven.build.timestamp}</finalName>
         <plugins>
             <plugin>
                 <groupId>com.zenjava</groupId>
@@ -44,7 +45,11 @@
                     <vendor>The Elegit Team</vendor>
                     <appName>Elegit</appName>
                     <mainClass>elegit.Main</mainClass>
-                    <nativeReleaseVersion>${project.version}</nativeReleaseVersion>
+                    <nativeReleaseVersion>${project.version}-${maven.build.timestamp}</nativeReleaseVersion>
+                    <!-- https://github.com/javafx-maven-plugin/javafx-maven-plugin/issues/316#issuecomment-375686971 -->
+                    <bundleArguments>
+                        <mac.dmg.simple>true</mac.dmg.simple>
+                    </bundleArguments>
                 </configuration>
             </plugin>
             <plugin>

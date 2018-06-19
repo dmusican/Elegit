@@ -1,5 +1,13 @@
 #IntelliJ Build Instructions
 
+First, note that we now have automatic building working on Travis CI and AppVeyor, so the below instructions
+are likely unnecessary. If you tag any release with any tag, Travis CI and AppVeyor will create a new downloadable
+release on GitHub releases. For snapshot releases, I've been using the tag "snapshot". In order to generate
+a new snapshot release, I've been deleting that tag from the remote and local, and then using it again.
+
+That all said, if you want to build locally...
+
+
 For Windows and for Mac:
 
 1. Open IntelliJ and make sure master is checked out and up to date (change the release version in pom.xml if needed).

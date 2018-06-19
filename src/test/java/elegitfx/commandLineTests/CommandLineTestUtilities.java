@@ -37,6 +37,7 @@ import java.util.Scanner;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import static java.io.File.separator;
 import static junit.framework.TestCase.assertEquals;
 
 /**
@@ -55,6 +56,7 @@ public class CommandLineTestUtilities extends ApplicationTest {
      * Currently super ugly hack because the TextArea is not in MainView, so need to go through HBox and ScrollPane.
      */
     public void checkCommandLineText(String command) {
+        interact(() -> {
         HBox commandLine = lookup("#commandLine").query();
         List<Node> children = commandLine.getChildren();
 
@@ -68,10 +70,10 @@ public class CommandLineTestUtilities extends ApplicationTest {
                 console.info("Checking the text...");
                 assertEquals(command, currentCommand.getText());
             }
-        }
+        }});
     }
 
-    public void cloneRepoUsingButtons(TestingRemoteAndLocalReposRule testingRemoteAndLocalRepos, Path directoryPath) throws Exception {
+    public String cloneRepoUsingButtons(TestingRemoteAndLocalReposRule testingRemoteAndLocalRepos, Path directoryPath) throws Exception {
         /***** Same/Similar code to cloning a repo in SshCloneFXTest *****/
 
         // Set up remote repo
@@ -154,6 +156,14 @@ public class CommandLineTestUtilities extends ApplicationTest {
             sshd.stop();
 
             /***** End of copied code *****/
+
+            String paths = remoteURL + " " + testingRemoteAndLocalRepos.getDirectoryPath().toString() + separator +
+                    testingRemoteAndLocalRepos.getLocalBrief().toString();
+
+            WaitForAsyncUtils.waitForFxEvents();
+            sleep(1000);
+
+            return paths;
         }
     }
 

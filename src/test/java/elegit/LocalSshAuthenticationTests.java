@@ -35,6 +35,7 @@ import org.eclipse.jgit.transport.SshTransport;
 import org.eclipse.jgit.transport.TransportGitSsh;
 import org.eclipse.jgit.transport.TransportProtocol;
 import org.eclipse.jgit.transport.URIish;
+import org.eclipse.jgit.util.FS;
 import org.junit.*;
 import sharedrules.TestUtilities;
 import sharedrules.TestingLogPathRule;
@@ -46,6 +47,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Scanner;
 
@@ -92,7 +94,7 @@ public class LocalSshAuthenticationTests {
     @Test
     public void testSshPrivateKey() throws Exception {
         // Uncomment this to get detail SSH logging info, for debugging
-//        JSch.setLogger(new DetailedSshLogger());
+        // JSch.setLogger(new DetailedSshLogger());
 
         // Set up test SSH server.
         sshd = SshServer.setUpDefaultServer();
@@ -203,7 +205,7 @@ public class LocalSshAuthenticationTests {
 
     @Test
     public void testForRepeatAuthentication() throws Exception {
-//        JSch.setLogger(new DetailedSshLogger());
+        //JSch.setLogger(new DetailedSshLogger());
         // Get local SSH server running
         sshd = SshServer.setUpDefaultServer();
         String remoteURL = TestUtilities.setUpTestSshServer(sshd,
@@ -218,8 +220,9 @@ public class LocalSshAuthenticationTests {
         String privateKeyFileLocation = "/rsa_key1";
 
         // Set up Git command
+        String privateKeyLocationString = Paths.get(getClass().getResource(privateKeyFileLocation).toURI()).toFile().toString();
+        SshSessionFactory sshSessionFactory = new TestSessionFactory(privateKeyLocationString, passphrase);
         TransportCommand command = Git.lsRemoteRepository().setRemote(remoteURL);
-        SshSessionFactory sshSessionFactory = new TestSessionFactory(passphrase);
         command.setTransportConfigCallback(
                 transport -> {
                     SshTransport sshTransport = (SshTransport) transport;
@@ -235,7 +238,6 @@ public class LocalSshAuthenticationTests {
             FileWriter fw = new FileWriter(sshDir.resolve("config").toString(), true);
             fw.write("Host localhost\n");
             fw.write("  HostName localhost\n");
-            fw.write("  IdentityFile " + getClass().getResource(privateKeyFileLocation).getFile());
             fw.close();
         } catch (IOException e) {
             throw new ExceptionAdapter(e);
@@ -253,9 +255,18 @@ public class LocalSshAuthenticationTests {
     private class TestSessionFactory extends JschConfigSessionFactory {
 
         private String passphrase;
+        private String privateKeyLocationString;
 
-        public TestSessionFactory(String passphrase) {
+        TestSessionFactory(String privateKeyLocationString, String passphrase) {
             this.passphrase = passphrase;
+            this.privateKeyLocationString = privateKeyLocationString;
+        }
+
+        @Override
+        protected JSch createDefaultJSch( FS fs ) throws JSchException {
+            JSch defaultJSch = super.createDefaultJSch( fs );
+            defaultJSch.addIdentity(privateKeyLocationString);
+            return defaultJSch;
         }
 
         @Override

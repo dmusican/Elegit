@@ -132,7 +132,7 @@ public class TestUtilities {
         SessionController sessionController = fxmlLoader.getController();
         Parent root = fxmlLoader.getRoot();
         Rectangle2D primScreenBounds = Screen.getPrimary().getVisualBounds();
-        Scene scene = new Scene(root, 1000, 600);
+        Scene scene = new Scene(root, 1100, 600);
         stage.setX(100);
         stage.setY(100);
         stage.setScene(scene);

@@ -16,12 +16,14 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.testfx.framework.junit.ApplicationTest;
 import org.testfx.framework.junit.TestFXRule;
+import org.testfx.util.WaitForAsyncUtils;
 import sharedrules.TestUtilities;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.concurrent.TimeUnit;
 
 import static junit.framework.TestCase.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -91,6 +93,11 @@ public class ChangeRemoteMonitoringStatus extends ApplicationTest {
         int initNumRemoteChecks = RepositoryMonitor.getNumRemoteChecks();
         Thread.sleep(RepositoryMonitor.REMOTE_CHECK_INTERVAL);
         assertTrue(initNumRemoteChecks < RepositoryMonitor.getNumRemoteChecks());
+
+        WaitForAsyncUtils.waitFor(15, TimeUnit.SECONDS,
+                                  () -> lookup("#remoteConnected") != null);
+        WaitForAsyncUtils.waitFor(15, TimeUnit.SECONDS,
+                                  () -> lookup("#remoteConnected").query().isVisible());
 
         clickOn("#remoteConnected");
 
