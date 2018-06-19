@@ -108,7 +108,6 @@ public class RevertFXTest extends ApplicationTest {
 
         rightClickOn("#"+firstCommit1.getName())
                 .clickOn("#revertMenuRevert")
-//                .moveTo("#resetMenuResetItem")
                 .clickOn("#revertMenuRevertCommit");
 
         SessionController.gitStatusCompletedOnce.await();
