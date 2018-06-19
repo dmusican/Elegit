@@ -13,6 +13,8 @@ import net.jcip.annotations.GuardedBy;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 /**
  * Created by grenche on 6/7/18.
  */
@@ -35,6 +37,9 @@ public class CommandLineController {
     private ContextMenu commandRightClickMenu;
 
     private boolean allowUpdates = true;
+
+    // Used for testing that the updateCommandText method has run before checking the text in currentCommand
+    public static final AtomicBoolean methodCalled = new AtomicBoolean(false);
 
     private static final Logger logger = LogManager.getLogger();
 
@@ -62,6 +67,8 @@ public class CommandLineController {
             currentCommand.setText(command);
             setTextAreaWidth();
         }
+        // The text in currentCommand can now be tested
+        methodCalled.set(true);
     }
 
     /*
@@ -152,5 +159,13 @@ public class CommandLineController {
     public synchronized void handleCopyOption() {
         logger.info("Portion of command copied");
         currentCommand.copy();
+    }
+
+    public static boolean getMethodCalled() {
+        return methodCalled.get();
+    }
+
+    public static void setMethodCalled(boolean value) {
+        methodCalled.set(value);
     }
 }

@@ -2460,6 +2460,7 @@ public class SessionController {
      */
     @FXML
     boolean openRepoDirectory(){
+        // Updated for testing purposes
         methodCalled.set(true);
         if (Desktop.isDesktopSupported()) {
             try{
@@ -2550,6 +2551,7 @@ public class SessionController {
      * Shows recent Elegit actions as terminal commands in a terminal like window
      */
     public void handleSeeHistoryOption() {
+        Main.assertFxThread();
         logger.info("Opened command history window");
         // Create and display the Stage:
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/pop-ups/CommandLineHistory.fxml"));
@@ -2567,6 +2569,7 @@ public class SessionController {
      * NOT FINISHED
      */
     public void handleExportHistoryOption() {
+        Main.assertFxThread();
         logger.info("Opened save command history window");
         // Create and display the Stage:
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/pop-ups/CommandLineHistory.fxml"));
