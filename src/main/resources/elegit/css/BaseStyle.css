@@ -361,19 +361,28 @@
 }
 
 #acceptButton {
-    -fx-background-color:
-            #ecebe9,
-            rgba(0, 0, 0, 0.05),
-            linear-gradient(#28d181, #279c51),
-            linear-gradient(#2af99e 0%, #2ae68d 20%, #29bf6b 80%, #26ae62 100%),
-            linear-gradient(#2aee97, #26bc6f);
-    -fx-border-color: darkslategrey;
-    -fx-border-radius: 5, 5, 5;
-    -fx-background-radius: 5, 5, 5;
+    -fx-text-fill: #26bc6f;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+
+
+
+
+    /*-fx-background-color:*/
+            /*#ecebe9,*/
+            /*rgba(0, 0, 0, 0.05),*/
+            /*linear-gradient(#28d181, #279c51),*/
+            /*linear-gradient(#2af99e 0%, #2ae68d 20%, #29bf6b 80%, #26ae62 100%),*/
+            /*linear-gradient(#2aee97, #26bc6f);*/
+    /*-fx-border-color: darkslategrey;*/
+    /*-fx-border-radius: 5, 5, 5;*/
+    /*-fx-background-radius: 5, 5, 5;*/
 }
 
 #acceptButton:hover {
-    -fx-fill: -fx-button-hover-fill;
+    -fx-background-color: #ecebe9;
+    -fx-border-radius: 5, 5, 5;
+    -fx-background-radius: 5, 5, 5;
 }
 
 #rejectButton {

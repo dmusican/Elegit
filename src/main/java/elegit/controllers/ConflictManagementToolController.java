@@ -52,6 +52,12 @@ public class ConflictManagementToolController {
     @FXML
     private TextArea rightDoc;
     @FXML
+    private TextArea leftLineNumbers;
+    @FXML
+    private TextArea middleLineNumbers;
+    @FXML
+    private TextArea rightLineNumbers;
+    @FXML
     private Button rightAccept;
     @FXML
     private Button rightReject;
@@ -124,12 +130,11 @@ public class ConflictManagementToolController {
         try {
             // Get the names of all the conflicting files and put them in the dropdown
             Set<String> conflictingFiles = SessionModel.getSessionModel().getConflictingFiles(null);
-
-            for(String item : conflictingFiles) {
-                conflictingFilesDropdown.getItems().add(item);
+            for(String file : conflictingFiles) {
+                conflictingFilesDropdown.getItems().add(file);
             }
-
             conflictingFilesDropdown.setPromptText("None");
+
         } catch (GitAPIException e) {
             e.printStackTrace();
         }
@@ -180,6 +185,13 @@ public class ConflictManagementToolController {
         // Get the name of the file
         String fileName = conflictingFilesDropdown.getValue();
 
+        // TODO: save the state of each file
+
+        // Clear the documents before loading new ones
+        leftDoc.clear();
+        middleDoc.clear();
+        rightDoc.clear();
+
         // Show files in ScrollPanes
         setFile(filePathWithoutFileName, fileName);
 
@@ -215,7 +227,6 @@ public class ConflictManagementToolController {
                     line = reader.readLine();
                 }
             }
-
         }
         catch (IOException e){
             console.info(e);
@@ -236,15 +247,21 @@ public class ConflictManagementToolController {
         ArrayList middleLines = results.get(1);
         ArrayList rightLines = results.get(2);
 
-        setLines(leftLines, leftDoc);
-        setLines(middleLines, middleDoc);
-        setLines(rightLines, rightDoc);
+        setLines(leftLines, leftDoc, leftLineNumbers);
+        setLines(middleLines, middleDoc, middleLineNumbers);
+        setLines(rightLines, rightDoc, rightLineNumbers);
+
+        // Allow the user to click buttons
+        setButtonsDisabled(false);
     }
 
-    private void setLines(ArrayList lines, TextArea doc) {
+    private void setLines(ArrayList lines, TextArea doc, TextArea lineNumbers) {
         for (int i = 0; i < lines.size(); i++) {
             String line = (String) lines.get(i);
+            // update the document
             doc.appendText(line + "\n");
+            // update the line number
+            lineNumbers.appendText((i + 1) + "\n");
         }
     }
 }
