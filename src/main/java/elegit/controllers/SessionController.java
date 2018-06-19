@@ -795,6 +795,10 @@ public class SessionController {
                 else {
                     commandLineController.updateCommandText("git clone " + builder.getRemoteURL() + " " + builder.getDestinationPath());
                 }
+            } else {
+                // If a new repository is loaded we don't want to confuse the user with old command line history.
+                // And, there is not an equivalent git command.
+                commandLineController.handleClearLogOption();
             }
         } catch (Exception e) {
             showSingleResult(notificationPaneController, new Result(ResultOperation.LOAD, e));
@@ -839,8 +843,6 @@ public class SessionController {
                         throw new ExceptionAdapter(t);
                     }
                 });
-        // If a new repository is loaded we don't want to confuse the user with old command line history.
-        commandLineController.handleClearLogOption();
         return true;
 
     }

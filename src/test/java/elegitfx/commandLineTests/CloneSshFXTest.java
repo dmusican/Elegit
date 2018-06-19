@@ -70,7 +70,9 @@ public class CloneSshFXTest extends ApplicationTest {
         String paths = commandLineTestUtilities.cloneRepoUsingButtons(testingRemoteAndLocalRepos, directoryPath);
 
         // Make sure the text has been updated before checking it
-        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS, () -> CommandLineController.getMethodCalled());
+        WaitForAsyncUtils.waitFor(30, TimeUnit.SECONDS, () -> CommandLineController.getMethodCalled());
+
+        console.info("Update text was called: " + CommandLineController.getMethodCalled());
 
         // Checks that the text in the command line box is what is expected.
         commandLineTestUtilities.checkCommandLineText("git clone " + paths);
