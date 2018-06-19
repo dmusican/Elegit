@@ -103,16 +103,20 @@ public class ConflictManagementToolController {
 
         // Accept change buttons
         Text checkRight = GlyphsDude.createIcon(FontAwesomeIcon.CHECK);
+        checkRight.setId("checkIcon");
         rightAccept.setGraphic(checkRight);
         Text checkLeft = GlyphsDude.createIcon(FontAwesomeIcon.CHECK);
         leftAccept.setGraphic(checkLeft);
+        checkLeft.setId("checkIcon");
         rightAccept.setTooltip(new Tooltip("Integrate the highlighted commit."));
         leftAccept.setTooltip(new Tooltip("Integrate the highlighted commit."));
 
         // Reject change buttons
         Text xRight = GlyphsDude.createIcon(FontAwesomeIcon.TIMES);
+        xRight.setId("xIcon");
         rightReject.setGraphic(xRight);
         Text xLeft = GlyphsDude.createIcon(FontAwesomeIcon.TIMES);
+        xLeft.setId("xIcon");
         leftReject.setGraphic(xLeft);
         rightReject.setTooltip(new Tooltip("Ignore the highlighted commit."));
         leftReject.setTooltip(new Tooltip("Ignore the highlighted commit."));

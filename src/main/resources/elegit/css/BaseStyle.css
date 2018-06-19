@@ -360,43 +360,12 @@
     -fx-cell-color-emphasize: radial-gradient(center 50% 50%, radius 75%, #ff6e79, #e62613);
 }
 
-#acceptButton {
-    -fx-text-fill: #26bc6f;
-    -fx-background-color: transparent;
-    -fx-border-color: transparent;
-
-
-
-
-    /*-fx-background-color:*/
-            /*#ecebe9,*/
-            /*rgba(0, 0, 0, 0.05),*/
-            /*linear-gradient(#28d181, #279c51),*/
-            /*linear-gradient(#2af99e 0%, #2ae68d 20%, #29bf6b 80%, #26ae62 100%),*/
-            /*linear-gradient(#2aee97, #26bc6f);*/
-    /*-fx-border-color: darkslategrey;*/
-    /*-fx-border-radius: 5, 5, 5;*/
-    /*-fx-background-radius: 5, 5, 5;*/
+#checkIcon {
+    -fx-fill: #26bc6f;
+    -fx-stroke: #22874a;
 }
 
-#acceptButton:hover {
-    -fx-background-color: #ecebe9;
-    -fx-border-radius: 5, 5, 5;
-    -fx-background-radius: 5, 5, 5;
-}
-
-#rejectButton {
-    -fx-background-color:
-            #ecebe9,
-            rgba(0,0,0,0.05),
-            linear-gradient(rgb(255, 128, 130), #cf4240),
-            linear-gradient(rgb(255, 167, 169) 0%, #ff4f4d 20%, #e24b49 80%, #d34a48 100%),
-            linear-gradient(rgb(255, 130, 133), #f54d4b);
-    -fx-border-color: darkslategrey;
-    -fx-border-radius: 5, 5, 4;
-    -fx-background-radius: 5, 5, 4;
-}
-
-#rejectButton:hover {
-    box-shadow: inset 0 0 100px 100px rgba(255, 255, 255, 0.3);
+#xIcon {
+    -fx-fill: #e24b49;
+    -fx-stroke: #a63d3b;
 }
