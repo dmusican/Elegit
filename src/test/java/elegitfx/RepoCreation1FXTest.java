@@ -148,9 +148,9 @@ public class RepoCreation1FXTest extends ApplicationTest {
         // waits for the layout to start and stop; then below that, verifies that the first commit is in there
 //        GuiTest.waitUntil(barAndLabel, (HBox box) -> (box.isVisible()));
 //        GuiTest.waitUntil(barAndLabel, (HBox box) -> !(box.isVisible()));
-        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+        WaitForAsyncUtils.waitFor(30, TimeUnit.SECONDS,
                                   () -> barAndLabel.isVisible());
-        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+        WaitForAsyncUtils.waitFor(30, TimeUnit.SECONDS,
                                   () -> !barAndLabel.isVisible());
 
         // Verify that first commit is actually added at end of first layout call

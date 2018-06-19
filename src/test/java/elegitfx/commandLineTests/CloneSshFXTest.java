@@ -1,5 +1,7 @@
 package elegitfx.commandLineTests;
 
+import elegit.controllers.CommandLineController;
+import elegit.controllers.SessionController;
 import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -7,11 +9,15 @@ import org.junit.*;
 import org.junit.rules.TestName;
 import org.testfx.framework.junit.ApplicationTest;
 import org.testfx.framework.junit.TestFXRule;
+import org.testfx.util.WaitForAsyncUtils;
 import sharedrules.TestUtilities;
 import sharedrules.TestingLogPathRule;
 import sharedrules.TestingRemoteAndLocalReposRule;
 
 import java.nio.file.Path;
+import java.util.concurrent.TimeUnit;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * Created by grenche on 6/13/18.
@@ -53,13 +59,20 @@ public class CloneSshFXTest extends ApplicationTest {
 
     @Override
     public void start(Stage stage) throws Exception {
-        TestUtilities.commonTestFxStart(stage);
+        SessionController sessionController = TestUtilities.commonTestFxStart(stage);
     }
 
     @Test
     public void sshCloneTest() throws Exception {
+        CommandLineController.setMethodCalled(false);
+
         // Clones a test repo via clicking the ribbon button
         String paths = commandLineTestUtilities.cloneRepoUsingButtons(testingRemoteAndLocalRepos, directoryPath);
+
+        // Make sure the text has been updated before checking it
+        WaitForAsyncUtils.waitFor(30, TimeUnit.SECONDS, () -> CommandLineController.getMethodCalled());
+
+        console.info("Update text was called: " + CommandLineController.getMethodCalled());
 
         // Checks that the text in the command line box is what is expected.
         commandLineTestUtilities.checkCommandLineText("git clone " + paths);

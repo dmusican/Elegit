@@ -56,10 +56,10 @@ public class CommandLineHistoryController {
      * Opens up a terminal like window and displays command line history
      */
     public void showHistory() {
+        Main.assertFxThread();
         if (commandHistory.getText().equals("")) { // Don't show the popup if they haven't made any commands yet
             sessionController.showNoCommandLineHistoryNotification();
         } else {
-            Main.assertFxThread();
             try {
                 logger.info("See history clicked");
                 // Create and display the Stage:
@@ -85,6 +85,7 @@ public class CommandLineHistoryController {
      * Allows the user to save the Elegit actions they've done as terminal commands in a txt file
      */
     public synchronized void handleExportHistoryOption() {
+        Main.assertFxThread();
         if (commandHistory.getText().equals("")) { // Don't let them save a file if they haven't made any commands yet
             sessionController.showNoCommandLineHistoryNotification();
         } else {

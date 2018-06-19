@@ -788,11 +788,12 @@ public class SessionController {
                                });
             //need to find url etc
 
-            //builder.getAuthType();
-            System.out.println("outside of if statement");
+            builder.getAuthType();
+            builder.getRepoHelperBuilderType();
+            /*System.out.println("outside of if statement");
             if(builder.getRepoHelperBuilderType().equals("CLONED")){
                 System.out.println("hello world");
-            }
+            }*/
             /*if (builder.getRepoHelperBuilderType().equals("CLONED")){
                 //check auth type
                 System.out.println("in if statement");
@@ -802,7 +803,10 @@ public class SessionController {
                 else {
                     commandLineController.updateCommandText("git clone " + builder.getRemoteURL() + " " + builder.getDestinationPath());
                 }
-                System.out.println("end of if");
+            } else {
+                // If a new repository is loaded we don't want to confuse the user with old command line history.
+                // And, there is not an equivalent git command.
+                commandLineController.handleClearLogOption();
             }*/
         } catch (Exception e) {
             showSingleResult(notificationPaneController, new Result(ResultOperation.LOAD, e));
@@ -847,8 +851,6 @@ public class SessionController {
                         throw new ExceptionAdapter(t);
                     }
                 });
-        // If a new repository is loaded we don't want to confuse the user with old command line history.
-        commandLineController.handleClearLogOption();
         return true;
 
     }
@@ -2468,6 +2470,7 @@ public class SessionController {
      */
     @FXML
     boolean openRepoDirectory(){
+        // Updated for testing purposes
         methodCalled.set(true);
         if (Desktop.isDesktopSupported()) {
             try{
@@ -2558,6 +2561,7 @@ public class SessionController {
      * Shows recent Elegit actions as terminal commands in a terminal like window
      */
     public void handleSeeHistoryOption() {
+        Main.assertFxThread();
         logger.info("Opened command history window");
         // Create and display the Stage:
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/pop-ups/CommandLineHistory.fxml"));
@@ -2575,6 +2579,7 @@ public class SessionController {
      * NOT FINISHED
      */
     public void handleExportHistoryOption() {
+        Main.assertFxThread();
         logger.info("Opened save command history window");
         // Create and display the Stage:
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/pop-ups/CommandLineHistory.fxml"));
