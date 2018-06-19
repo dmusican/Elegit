@@ -1650,7 +1650,7 @@ public class SessionController {
         } else {
             Single
                     .fromCallable(() -> {
-                        showBusyWindow("Resetting...");
+                        showBusyWindow("Reverting...");
                         return true;
                     })
                     .subscribeOn(JavaFxScheduler.platform())

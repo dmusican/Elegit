@@ -34,6 +34,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.Random;
 import java.util.Scanner;
 import java.util.Set;
@@ -107,7 +108,8 @@ public class ResetFXTest extends ApplicationTest {
         Path local = directoryPath.resolve("local1");
         int numFiles = 1;
         int numCells = 2;
-        RevCommit firstCommit1 = makeTestRepo(remote, local, numFiles, numCells);
+        List<RevCommit> allCommits = makeTestRepo(remote, local, numFiles, numCells, true);
+        RevCommit firstCommit1 = allCommits.get(0);
 
         console.info("Loading up repo");
 
@@ -132,6 +134,7 @@ public class ResetFXTest extends ApplicationTest {
         // to make sure it follows the above
         Scanner scanner = new Scanner(local.resolve("file0"));
         TestCase.assertTrue(scanner.next().startsWith("start"));
+        TestCase.assertTrue(!scanner.hasNext());
         scanner.close();
 
 

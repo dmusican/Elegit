@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.Scanner;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -58,8 +59,9 @@ public class RevertFXTest extends ApplicationTest {
         console.info("Unit test started");
         console.info("Directory = " + directoryPath);
         directoryPath = Files.createTempDirectory("unitTestRepos");
+        console.info(directoryPath);
         console.info("Directory = " + directoryPath);
-        directoryPath.toFile().deleteOnExit();
+//        directoryPath.toFile().deleteOnExit();
         initializeLogger();
         console.info("Test name: " + testName.getMethodName());
     }
@@ -92,8 +94,9 @@ public class RevertFXTest extends ApplicationTest {
         Path remote = directoryPath.resolve("remote1");
         Path local = directoryPath.resolve("local1");
         int numFiles = 1;
-        int numCells = 2;
-        RevCommit firstCommit1 = makeTestRepo(remote, local, numFiles, numCells);
+        int numCells = 1;
+        List<RevCommit> allCommits = makeTestRepo(remote, local, numFiles, numCells, false);
+        RevCommit firstCommit1 = allCommits.get(1);
 
         console.info("Loading up repo");
 
@@ -112,10 +115,12 @@ public class RevertFXTest extends ApplicationTest {
 
         SessionController.gitStatusCompletedOnce.await();
 
+
         // Verify that file contents have reverted back to what they should be; do this check in the FX queue
         // to make sure it follows the above
         Scanner scanner = new Scanner(local.resolve("file0"));
         TestCase.assertTrue(scanner.next().startsWith("start"));
+        TestCase.assertTrue(!scanner.hasNext());
         scanner.close();
 
 

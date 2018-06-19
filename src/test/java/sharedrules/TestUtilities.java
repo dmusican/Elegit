@@ -41,6 +41,7 @@ import java.security.KeyPair;
 import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Random;
 import java.util.Scanner;
 import java.util.prefs.BackingStoreException;
@@ -164,7 +165,8 @@ public class TestUtilities {
         return Preferences.userNodeForPackage(TestUtilities.class);
     }
 
-    public static RevCommit makeTestRepo(Path remote, Path local, int numFiles, int numCommits) throws GitAPIException,
+    public static List<RevCommit> makeTestRepo(Path remote, Path local, int numFiles, int numCommits,
+                                               boolean lastCommitUndone) throws GitAPIException,
             IOException, CancelledAuthorizationException, MissingRepoException, PushToAheadRemoteError, NoCommitsToPushException {
         Git.init().setDirectory(remote.toFile()).setBare(true).call();
         Git.cloneRepository().setDirectory(local.toFile()).setURI("file://" + remote).call();
@@ -182,7 +184,9 @@ public class TestUtilities {
             helper.addFilePathTest(thisFileLocation);
         }
 
+        ArrayList<RevCommit> commitsMade = new ArrayList<>();
         RevCommit firstCommit = helper.commit("Appended to file");
+        commitsMade.add(firstCommit);
 
         for (int i = 0; i < numCommits; i++) {
             if (i % 100 == 0) {
@@ -190,19 +194,20 @@ public class TestUtilities {
             }
             for (int fileNum = 0; fileNum < numFiles; fileNum++) {
                 Path thisFileLocation = local.resolve("file" + fileNum);
-                FileWriter fw = new FileWriter(thisFileLocation.toString(), false);
+                FileWriter fw = new FileWriter(thisFileLocation.toString(), true);
                 fw.write("" + i);
                 fw.close();
                 helper.addFilePathTest(thisFileLocation);
             }
 
-            // Commit all but last one, to leave something behind to actually commit in GUI
-            if (i < numCommits - 1) {
-                helper.commit("Appended to file");
+            // Commit all but last one (if specified), to leave something behind to actually commit in GUI
+            if (i < numCommits - 1 || (i == numCommits-1 && !lastCommitUndone)) {
+                RevCommit commit = helper.commit("Appended to file");
+                commitsMade.add(commit);
             }
         }
 
-        return firstCommit;
+        return commitsMade;
     }
 
 }
