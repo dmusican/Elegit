@@ -56,6 +56,7 @@ public class CommandLineTestUtilities extends ApplicationTest {
      * Currently super ugly hack because the TextArea is not in MainView, so need to go through HBox and ScrollPane.
      */
     public void checkCommandLineText(String command) {
+        interact(() -> {
         HBox commandLine = lookup("#commandLine").query();
         List<Node> children = commandLine.getChildren();
 
@@ -69,7 +70,7 @@ public class CommandLineTestUtilities extends ApplicationTest {
                 console.info("Checking the text...");
                 assertEquals(command, currentCommand.getText());
             }
-        }
+        }});
     }
 
     public String cloneRepoUsingButtons(TestingRemoteAndLocalReposRule testingRemoteAndLocalRepos, Path directoryPath) throws Exception {
