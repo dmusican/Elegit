@@ -41,6 +41,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import static junit.framework.TestCase.assertEquals;
+import static sharedrules.TestUtilities.makeTestRepo;
 
 public class ResetFXTest extends ApplicationTest {
 
@@ -53,8 +54,6 @@ public class ResetFXTest extends ApplicationTest {
 
     private static final Logger logger = LogManager.getLogger("consolelogger");
     private static final Logger console = LogManager.getLogger("briefconsolelogger");
-
-    private static final Random random = new Random(90125);
 
     private SessionController sessionController;
 
@@ -139,44 +138,5 @@ public class ResetFXTest extends ApplicationTest {
         assertEquals(0, Main.getAssertionCount());
     }
 
-    private RevCommit makeTestRepo(Path remote, Path local, int numFiles, int numCommits) throws GitAPIException,
-            IOException, CancelledAuthorizationException, MissingRepoException, PushToAheadRemoteError, NoCommitsToPushException {
-        Git.init().setDirectory(remote.toFile()).setBare(true).call();
-        Git.cloneRepository().setDirectory(local.toFile()).setURI("file://" + remote).call();
-
-        ExistingRepoHelper helper = new ExistingRepoHelper(local, new ElegitUserInfoTest());
-
-        for (int fileNum = 0; fileNum < numFiles; fileNum++) {
-            Path thisFileLocation = local.resolve("file" + fileNum);
-            FileWriter fw = new FileWriter(thisFileLocation.toString(), true);
-            fw.write("start"+random.nextInt()); // need this to make sure each repo comes out with different hashes
-            fw.close();
-            helper.addFilePathTest(thisFileLocation);
-        }
-
-        RevCommit firstCommit = helper.commit("Appended to file");
-        Cell firstCellAttempt = lookup(firstCommit.getName()).query();
-        console.info("firstCell = " + firstCellAttempt);
-
-        for (int i = 0; i < numCommits; i++) {
-            if (i % 100 == 0) {
-                console.info("commit num = " + i);
-            }
-            for (int fileNum = 0; fileNum < numFiles; fileNum++) {
-                Path thisFileLocation = local.resolve("file" + fileNum);
-                FileWriter fw = new FileWriter(thisFileLocation.toString(), false);
-                fw.write("" + i);
-                fw.close();
-                helper.addFilePathTest(thisFileLocation);
-            }
-
-            // Commit all but last one, to leave something behind to actually commit in GUI
-            if (i < numCommits - 1) {
-                helper.commit("Appended to file");
-            }
-        }
-
-        return firstCommit;
-    }
 
 }
