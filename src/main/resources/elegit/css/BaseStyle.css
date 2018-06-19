@@ -360,6 +360,7 @@
     -fx-cell-color-emphasize: radial-gradient(center 50% 50%, radius 75%, #ff6e79, #e62613);
 }
 
+/* Conflict Management buttons */
 #checkIcon {
     -fx-fill: #26bc6f;
     -fx-stroke: #22874a;
@@ -368,4 +369,15 @@
 #xIcon {
     -fx-fill: #e24b49;
     -fx-stroke: #a63d3b;
+}
+
+/* Conflict Management documents */
+#document {
+    -fx-font-family: Courier;
+    -fx-font-size: 13px;
+}
+
+#lineNumber {
+    -fx-font-family: Courier;
+    -fx-font-size: 13px;
 }

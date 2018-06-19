@@ -216,14 +216,12 @@ public class ConflictManagementToolController {
         fileSelected = true;
         conflictingFilesDropdown.setPromptText(fileName);
 
-        ArrayList<ArrayList> results = ConflictManagementModel.parseConflicts(filePathWithoutFileName + File.separator + fileName);
-        ArrayList leftLines = results.get(0);
-        ArrayList middleLines = results.get(1);
-        ArrayList rightLines = results.get(2);
+        ArrayList<ArrayList> results = ConflictManagementModel.parseConflicts(filePathWithoutFileName +
+                File.separator + fileName);
 
-        setLines(leftLines, leftDoc, leftLineNumbers);
-        setLines(middleLines, middleDoc, middleLineNumbers);
-        setLines(rightLines, rightDoc, rightLineNumbers);
+        setLines(results.get(0), leftDoc, leftLineNumbers);
+        setLines(results.get(1), middleDoc, middleLineNumbers);
+        setLines(results.get(2), rightDoc, rightLineNumbers);
 
         // Allow the user to click buttons
         setButtonsDisabled(false);

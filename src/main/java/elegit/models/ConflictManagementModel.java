@@ -19,8 +19,9 @@ public class ConflictManagementModel {
         logger.info("Parsing the file.");
 
         ArrayList<String> left = new ArrayList<>();
-        ArrayList<String> center = new ArrayList<>();
+        ArrayList<String> middle = new ArrayList<>();
         ArrayList<String> right = new ArrayList<>();
+
         try {
             BufferedReader reader = new BufferedReader(new FileReader(path));
             String line = reader.readLine();
@@ -40,7 +41,7 @@ public class ConflictManagementModel {
                 }
                 else{
                     left.add(line);
-                    center.add(line);
+                    middle.add(line);
                     right.add(line);
                     line = reader.readLine();
                 }
@@ -52,7 +53,7 @@ public class ConflictManagementModel {
         }
         ArrayList<ArrayList> list = new ArrayList<>();
         list.add(left);
-        list.add(center);
+        list.add(middle);
         list.add(right);
         return list;
     }
