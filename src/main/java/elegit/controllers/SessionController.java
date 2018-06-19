@@ -787,15 +787,23 @@ public class SessionController {
                                    showSingleResult(notificationPaneController, new Result(ResultOperation.LOAD, e));
                                });
             //need to find url etc
-            if (builder.getRepoHelperBuilderType().equals("CLONED")){
+
+            //builder.getAuthType();
+            System.out.println("outside of if statement");
+            if(builder.getRepoHelperBuilderType().equals("CLONED")){
+                System.out.println("hello world");
+            }
+            /*if (builder.getRepoHelperBuilderType().equals("CLONED")){
                 //check auth type
+                System.out.println("in if statement");
                 if (builder.getAuthType() == AuthMethod.SSH) {
                     commandLineController.updateCommandText("git clone ssh://"+builder.getRemoteURL() + " " + builder.getDestinationPath());
                 }
                 else {
                     commandLineController.updateCommandText("git clone " + builder.getRemoteURL() + " " + builder.getDestinationPath());
                 }
-            }
+                System.out.println("end of if");
+            }*/
         } catch (Exception e) {
             showSingleResult(notificationPaneController, new Result(ResultOperation.LOAD, e));
         }
