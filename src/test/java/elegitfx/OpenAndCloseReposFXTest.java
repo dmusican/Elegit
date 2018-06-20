@@ -7,6 +7,7 @@ import elegit.models.ClonedRepoHelper;
 import elegit.models.ExistingRepoHelper;
 import elegit.models.RepoHelper;
 import elegit.models.SessionModel;
+import elegit.monitors.RepositoryMonitor;
 import elegit.sshauthentication.ElegitUserInfoTest;
 import elegit.treefx.CommitTreeModel;
 import javafx.scene.Node;
@@ -138,6 +139,7 @@ public class OpenAndCloseReposFXTest extends ApplicationTest {
     private void addSwapAndRemoveRepos(Path repoPath, Path repoPath2) throws InterruptedException, TimeoutException {
         interact(() -> sessionController.handleLoadExistingRepoOption(repoPath));
         SessionController.gitStatusCompletedOnce.await();
+        RepositoryMonitor.pause();
 
         final ComboBox<RepoHelper> dropdown = lookup("#repoDropdown").query();
 
@@ -165,6 +167,9 @@ public class OpenAndCloseReposFXTest extends ApplicationTest {
         for (int i=0; i < 3; i++) {
             WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
                                       () -> dropdown.getValue().toString().equals("repo2"));
+            WaitForAsyncUtils.waitForFxEvents();
+            sleep(100);
+
             clickOn(dropdown);
 
             // The below awful hack is very likely related to this bug:
@@ -180,9 +185,12 @@ public class OpenAndCloseReposFXTest extends ApplicationTest {
             WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
                                       () -> !BusyWindow.window.isShowing());
 
-
+            // We were having timeout issues which is why the countDownLatch is needed. Makes the test SUPER slow
             WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
                                       () -> dropdown.getValue().toString().equals("repo1"));
+            WaitForAsyncUtils.waitForFxEvents();
+            sleep(100);
+
             clickOn(dropdown);
 
             // See comment above regarding bug #539.
