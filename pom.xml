@@ -68,10 +68,14 @@
                 <configuration>
                     <argLine>-Djava.awt.headless=true -Dtestfx.robot=glass -Dtestfx.headless=true -Dprism.order=sw -Dprism.text=t2k -Dtestfx.setup.timeout=20000</argLine>
                     <!-- https://github.com/TestFX/TestFX/issues/132 -->
+                    <forkCount>2</forkCount>
                     <reuseForks>false</reuseForks>
                     <additionalClasspathElements>
                         <additionalClasspathElement>${java.home}/lib/ext/jfxrt.jar</additionalClasspathElement>
                     </additionalClasspathElements>
+                    <!--<excludes>-->
+                        <!--<exclude>**/elegit</exclude>-->
+                    <!--</excludes>-->
                 </configuration>
             </plugin>
         </plugins>

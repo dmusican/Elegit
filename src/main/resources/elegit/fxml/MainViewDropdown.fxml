@@ -12,7 +12,7 @@
 
 <!-- Dropdown, open in file manager, plus and minus buttons -->
 
-<HBox spacing="5.0" stylesheets="@../css/BaseStyle.css" xmlns="http://javafx.com/javafx/8.0.121"
+<HBox spacing="5.0" stylesheets="@../css/BaseStyle.css" xmlns="http://javafx.com/javafx"
       xmlns:fx="http://javafx.com/fxml/1" fx:controller="elegit.controllers.DropdownController">
 
     <Button id="loadNewRepoButton" fx:id="loadNewRepoButton" onAction="#handleLoadNewRepoButton">

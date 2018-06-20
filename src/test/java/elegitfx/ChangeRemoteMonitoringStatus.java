@@ -40,6 +40,8 @@ public class ChangeRemoteMonitoringStatus extends ApplicationTest {
     private SessionController sessionController;
     private MenuController menuController;
 
+    private static final Logger console = LogManager.getLogger("briefconsolelogger");
+
     @Rule
     public TestFXRule testFXRule = new TestFXRule();
 
@@ -65,6 +67,7 @@ public class ChangeRemoteMonitoringStatus extends ApplicationTest {
 
     @Test
     public void changeRemoteMonitoringStatusTest() throws Exception {
+        console.info("Test starting");
         initializeLogger();
         Path directoryPath = Files.createTempDirectory("unitTestRepos");
         directoryPath.toFile().deleteOnExit();
@@ -82,10 +85,14 @@ public class ChangeRemoteMonitoringStatus extends ApplicationTest {
             assertEquals(false, sessionController.getRemoteConnectedStatus());
             assertEquals(true, sessionController.getRemoteConnectedDisabledStatus());
         });
+        console.info("Double interact assert done");
 
 
         interact(() -> sessionController.handleLoadExistingRepoOption(repoPath));
+        console.info("load repo done");
         SessionController.gitStatusCompletedOnce.await();
+
+        console.info("gitStatus complete");
 
         int initNumRemoteChecks = RepositoryMonitor.getNumRemoteChecks();
         Thread.sleep(RepositoryMonitor.REMOTE_CHECK_INTERVAL);
@@ -96,6 +103,7 @@ public class ChangeRemoteMonitoringStatus extends ApplicationTest {
         initNumRemoteChecks = RepositoryMonitor.getNumRemoteChecks();
         Thread.sleep(RepositoryMonitor.REMOTE_CHECK_INTERVAL);
         assertEquals(initNumRemoteChecks, RepositoryMonitor.getNumRemoteChecks());
+        console.info("Test done");
 
 
     }
