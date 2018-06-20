@@ -386,7 +386,7 @@
     -fx-font-size: 12px;
 }
 
-/* Hack for disabling scroll bars in the line numbers section of the Conflict Management tool */
+/* Hack for making the scroll bars in the line numbers section of the Conflict Management tool invisible */
 #lineNumbers .scroll-bar {
     -fx-opacity: 0;
 }
