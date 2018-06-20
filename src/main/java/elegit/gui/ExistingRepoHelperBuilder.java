@@ -103,13 +103,6 @@ public class ExistingRepoHelperBuilder extends RepoHelperBuilder {
         private String additionalPrivateKey;
         private String knownHostsLocation;
     }
-    public String getRepoHelperBuilderType(){
-        return "EXISTING";
-    }
-    public String getRemoteURL(){
-        return "";
-    }
-    public Path getDestinationPath(){
-        return directoryPath;
-    }
+    @Override
+    public String getCommandLineText(){return "";}
 }

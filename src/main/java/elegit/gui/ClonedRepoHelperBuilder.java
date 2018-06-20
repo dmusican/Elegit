@@ -320,18 +320,16 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
                                                                    additionalPrivateKey,
                                                                    knownHostsLocation));
     }
+
     @Override
-    public AuthMethod getAuthType(){
-        return response.protocol;
+    public String getCommandLineText(){
+        if (response.protocol == AuthMethod.SSH) {
+            return "git clone ssh://"+remoteURL + " " + destinationPath;
+        }
+        else {
+            return "git clone " + remoteURL + " " + destinationPath;
+        }
     }
-    public String getRemoteURL(){
-        return remoteURL;
-    }
-    public Path getDestinationPath(){
-        return destinationPath;
-    }
-    public String getRepoHelperBuilderType(){
-        return "CLONED";
-    }
+
 
 }

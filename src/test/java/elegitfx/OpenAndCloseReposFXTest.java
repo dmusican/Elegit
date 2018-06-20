@@ -165,11 +165,12 @@ public class OpenAndCloseReposFXTest extends ApplicationTest {
         interact(() -> assertEquals(2, SessionModel.getSessionModel().getAllRepoHelpers().size()));
 
         for (int i=0; i < 3; i++) {
+            System.out.println("start loop");
             WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
                                       () -> dropdown.getValue().toString().equals("repo2"));
             WaitForAsyncUtils.waitForFxEvents();
             sleep(100);
-
+            System.out.println("clicking dropdown before 1");
             clickOn(dropdown);
 
             // The below awful hack is very likely related to this bug:
@@ -181,16 +182,16 @@ public class OpenAndCloseReposFXTest extends ApplicationTest {
                     clickOn(dropdown);
             });
 
+            System.out.println("clicking 1");
             clickOn("repo1");
             WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
                                       () -> !BusyWindow.window.isShowing());
 
-            // We were having timeout issues which is why the countDownLatch is needed. Makes the test SUPER slow
             WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
                                       () -> dropdown.getValue().toString().equals("repo1"));
             WaitForAsyncUtils.waitForFxEvents();
             sleep(100);
-
+            System.out.println("clicking dropdown before 2");
             clickOn(dropdown);
 
             // See comment above regarding bug #539.
@@ -198,6 +199,7 @@ public class OpenAndCloseReposFXTest extends ApplicationTest {
                 if (!dropdown.isShowing())
                     clickOn(dropdown);
             });
+            System.out.println("clicking 2");
             clickOn("repo2");
             WaitForAsyncUtils.waitFor(15, TimeUnit.SECONDS,
                                       () -> !BusyWindow.window.isShowing());

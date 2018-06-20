@@ -266,14 +266,8 @@ public abstract class RepoHelperBuilder {
         return result.get();
     }
 
-    public AuthMethod getAuthType(){
-        return protocolEnum;
-    }
     public abstract Single<RepoHelper> getRepoHelperFromDialogsWhenSubscribed();
 
-    public abstract String getRepoHelperBuilderType();
+    public abstract String getCommandLineText();
 
-    public abstract String getRemoteURL();
-
-    public abstract Path getDestinationPath();
 }
