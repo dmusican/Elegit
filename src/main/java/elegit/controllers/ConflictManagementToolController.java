@@ -4,6 +4,7 @@ import de.jensd.fx.glyphs.GlyphIcons;
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import elegit.Main;
+import elegit.exceptions.ExceptionAdapter;
 import elegit.models.ConflictManagementModel;
 import elegit.models.RepoHelper;
 import elegit.models.SessionModel;
@@ -26,6 +27,8 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -79,6 +82,8 @@ public class ConflictManagementToolController {
     private Button abortMerge;
     @FXML
     private NotificationController notificationPaneController;
+    @FXML
+    private Stage stage;
 
     private boolean fileSelected = false;
 
@@ -173,7 +178,7 @@ public class ConflictManagementToolController {
      */
     void showStage(AnchorPane pane) {
         anchorRoot = pane;
-        Stage stage = new Stage();
+        stage = new Stage();
         stage.setTitle("Conflict Management Tool");
         stage.setScene(new Scene(anchorRoot));
         stage.setResizable(false);
@@ -182,6 +187,50 @@ public class ConflictManagementToolController {
         stage.show();
         notificationPaneController.setAnchor(stage);
     }
+
+
+    @FXML
+    private void acceptAllChanges(){
+        //add in a check to see if conflicts remain
+        try {
+            BufferedWriter writer;
+            for (String fileName : conflictingFilesDropdown.getItems()) {
+                Path directory = (new File(SessionModel.getSessionModel().getCurrentRepoHelper().getRepo().getDirectory()
+                        .getParent())).toPath();
+                String filePathWithoutFileName = directory.toString();
+                //String fileName = conflictingFilesDropdown.getPromptText();
+                writer = new BufferedWriter(new FileWriter(filePathWithoutFileName + File.separator + fileName));
+                //how to get appropriate middleDoc?
+                writer.write(middleDoc.getText());
+                writer.flush();
+                writer.close();
+            }
+            stage.close();
+        }
+        catch (IOException e) {
+            throw new ExceptionAdapter(e);
+        }
+    }
+
+    @FXML
+    private void acceptChanges(){
+        //add in a check to see if conflicts remain
+        try {
+            Path directory = (new File(SessionModel.getSessionModel().getCurrentRepoHelper().getRepo().getDirectory()
+                    .getParent())).toPath();
+            String filePathWithoutFileName = directory.toString();
+            String fileName = conflictingFilesDropdown.getPromptText();
+            //System.out.println(filePathWithoutFileName + File.separator + fileName);
+            BufferedWriter writer = new BufferedWriter(new FileWriter(filePathWithoutFileName + File.separator + fileName));
+            writer.write(middleDoc.getText());
+            writer.flush();
+            writer.close();
+            stage.close();
+        } catch (IOException e){
+            throw new ExceptionAdapter(e);
+        }
+    }
+
 
     @FXML
     private void setFileToEdit() {
@@ -253,7 +302,7 @@ public class ConflictManagementToolController {
     }
 
     private void showAllConflictsHandledNotification() {
-        console.info("All conflicts where handled.");
+        console.info("All conflicts were handled.");
         notificationPaneController.addNotification("All conflicts were handled. Click apply to use them.");
     }
 

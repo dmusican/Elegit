@@ -1,6 +1,7 @@
 package elegit.repofile;
 
 import elegit.Main;
+import elegit.exceptions.ExceptionAdapter;
 import elegit.gui.PopUpWindows;
 import elegit.models.RepoHelper;
 import javafx.application.Platform;
@@ -46,7 +47,7 @@ public class ConflictingThenModifiedRepoFile extends RepoFile {
         Main.assertFxThread();
         ReentrantLock lock = new ReentrantLock();
         Condition finishedAlert = lock.newCondition();
-
+        System.out.println("trying to add");
         Platform.runLater(() -> {
             logger.warn("Notification about conflicting the modified file");
             lock.lock();
@@ -57,15 +58,22 @@ public class ConflictingThenModifiedRepoFile extends RepoFile {
                 lock.unlock();
             }
         });
-
+        System.out.println("still trying");
         lock.lock();
         try{
+            System.out.println("in try");
             finishedAlert.await();
+            System.out.println("about to if");
             if(resultType.equals("add")){
+                System.out.println("in if");
                 return true;
             }
         }catch(InterruptedException ignored){
-        }finally{
+            System.out.println("exception");
+            throw new ExceptionAdapter(ignored);
+        }
+        finally{
+            System.out.println("finally");
             lock.unlock();
         }
         return false;
