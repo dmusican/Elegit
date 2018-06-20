@@ -5,9 +5,13 @@ import elegit.controllers.BusyWindow;
 import elegit.controllers.SessionController;
 import elegit.exceptions.CancelledAuthorizationException;
 import elegit.exceptions.MissingRepoException;
+import elegit.exceptions.NoCommitsToPushException;
+import elegit.exceptions.PushToAheadRemoteError;
 import elegit.models.ExistingRepoHelper;
 import elegit.models.SessionModel;
 import elegit.monitors.RepositoryMonitor;
+import elegit.sshauthentication.ElegitUserInfoTest;
+import elegit.treefx.Cell;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Parent;
@@ -23,8 +27,11 @@ import org.apache.sshd.common.util.security.SecurityUtils;
 import org.apache.sshd.git.pack.GitPackCommandFactory;
 import org.apache.sshd.server.SshServer;
 import org.apache.sshd.server.auth.pubkey.KeySetPublickeyAuthenticator;
+import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.revwalk.RevCommit;
 
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -34,6 +41,8 @@ import java.security.KeyPair;
 import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
+import java.util.Random;
 import java.util.Scanner;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
@@ -155,4 +164,50 @@ public class TestUtilities {
     public static Preferences getPreferences() {
         return Preferences.userNodeForPackage(TestUtilities.class);
     }
+
+    public static List<RevCommit> makeTestRepo(Path remote, Path local, int numFiles, int numCommits,
+                                               boolean lastCommitUndone) throws GitAPIException,
+            IOException, CancelledAuthorizationException, MissingRepoException, PushToAheadRemoteError, NoCommitsToPushException {
+        Git.init().setDirectory(remote.toFile()).setBare(true).call();
+        Git.cloneRepository().setDirectory(local.toFile()).setURI("file://" + remote).call();
+
+        ExistingRepoHelper helper = new ExistingRepoHelper(local, new ElegitUserInfoTest());
+
+        final Random random = new Random(90125);
+
+
+        for (int fileNum = 0; fileNum < numFiles; fileNum++) {
+            Path thisFileLocation = local.resolve("file" + fileNum);
+            FileWriter fw = new FileWriter(thisFileLocation.toString(), true);
+            fw.write("start"+random.nextInt()); // need this to make sure each repo comes out with different hashes
+            fw.close();
+            helper.addFilePathTest(thisFileLocation);
+        }
+
+        ArrayList<RevCommit> commitsMade = new ArrayList<>();
+        RevCommit firstCommit = helper.commit("Appended to file");
+        commitsMade.add(firstCommit);
+
+        for (int i = 0; i < numCommits; i++) {
+            if (i % 100 == 0) {
+                console.info("commit num = " + i);
+            }
+            for (int fileNum = 0; fileNum < numFiles; fileNum++) {
+                Path thisFileLocation = local.resolve("file" + fileNum);
+                FileWriter fw = new FileWriter(thisFileLocation.toString(), true);
+                fw.write("" + i);
+                fw.close();
+                helper.addFilePathTest(thisFileLocation);
+            }
+
+            // Commit all but last one (if specified), to leave something behind to actually commit in GUI
+            if (i < numCommits - 1 || (i == numCommits-1 && !lastCommitUndone)) {
+                RevCommit commit = helper.commit("Appended to file");
+                commitsMade.add(commit);
+            }
+        }
+
+        return commitsMade;
+    }
+
 }

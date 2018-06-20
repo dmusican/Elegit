@@ -1647,50 +1647,29 @@ public class SessionController {
      * @param commit: the commit to revert
      */
     public void handleRevertButton(CommitHelper commit) {
-        try {
-            logger.info("Revert button clicked");
+        logger.info("Revert button clicked");
 
-            if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
-
-            showBusyWindow("Reverting...");
-            Thread th = new Thread(new Task<Void>(){
-                @Override
-                protected Void call() {
-                    try{
-                        theModel.getCurrentRepoHelper().revert(commit);
-                        gitStatus();
-                    } catch(MultipleParentsNotAllowedException e) {
-                        if(commit.numParents() > 1) {
-                            showCantRevertMultipleParentsNotification();
-                        }
-                        if (commit.numParents() == 0) {
-                            showCantRevertZeroParentsNotification();
-                        }
-                    } catch(InvalidRemoteException e){
-                        showNoRemoteNotification();
-                    } catch (TransportException e) {
-                        showTransportExceptionNotification(e);
-                    } catch(MissingRepoException e){
-                        showMissingRepoNotification();
-                        setButtonsDisabled(true);
-                        refreshRecentReposInDropdown();
-                    } catch(Exception e) {
-                        showGenericErrorNotification(e);
-                        e.printStackTrace();
-                    }finally {
-                        BusyWindow.hide();
-                    }
-                    return null;
-                }
-            });
-            th.setDaemon(true);
-            th.setName("Git revert");
-            th.start();
-        }catch(NoRepoLoadedException e){
+        if (this.theModel.getCurrentRepoHelper() == null) {
             this.showNoRepoLoadedNotification();
             setButtonsDisabled(true);
+        } else {
+            Single
+                    .fromCallable(() -> {
+                        showBusyWindow("Reverting...");
+                        return true;
+                    })
+                    .subscribeOn(JavaFxScheduler.platform())
+                    .observeOn(Schedulers.io())
+                    .map(unused -> theModel.getCurrentRepoHelper().revert(commit))
+                    .observeOn(JavaFxScheduler.platform())
+                    .map(unused -> doGitStatusWhenSubscribed())
+                    .doAfterTerminate(BusyWindow::hide)
+                    .subscribe((unused) -> {
+                               },
+                               (e) -> showSingleResult(notificationPaneController,
+                                                       new Result(ResultOperation.REVERT, e)));
         }
-    }
+    };
 
     /**
      * Resets the tree to a given commit with default settings
@@ -1861,7 +1840,7 @@ public class SessionController {
     }
 
     public enum ResultStatus {OK, NOCOMMITS, EXCEPTION, MERGE_FAILED};
-    public enum ResultOperation {FETCH, MERGE, ADD, LOAD, PUSH, CHECK_REMOTE_FOR_CHANGES, RESET};
+    public enum ResultOperation {FETCH, MERGE, ADD, LOAD, PUSH, CHECK_REMOTE_FOR_CHANGES, RESET, REVERT};
 
     public static class Result {
         public final ResultStatus status;
@@ -2047,6 +2026,10 @@ public class SessionController {
             } else if (result.exception instanceof IllegalArgumentException) {
                 showNotification(nc,"Invalid repo warning.",
                         "Make sure the directory you selected contains an existing (non-bare) Git repository.");
+
+            } else if (result.exception instanceof MultipleParentsNotAllowedException) {
+                showNotification(nc,"Only one parent allowed warning.",
+                                 "You are only allowed to have one parent for this operation.");
 
             } else {
 
@@ -2273,13 +2256,13 @@ public class SessionController {
 
     public void handleOpenConflictManagementTool(){
         //make window to request file
-        handleOpenConflictManagementTool("");
+        handleOpenConflictManagementTool("", "");
     }
 
     /**
      * Shows the conflict management tool
      */
-    public void handleOpenConflictManagementTool(String filePath) {
+    public void handleOpenConflictManagementTool(String filePathWithoutName, String fileName) {
         try {
             logger.info("Conflict Management Tool opened.");
             // Create and display the Stage:
@@ -2287,7 +2270,12 @@ public class SessionController {
             fxmlLoader.load();
             ConflictManagementToolController conflictManagementToolController = fxmlLoader.getController();
             conflictManagementToolController.setSessionController(this);
-            conflictManagementToolController.setFile(filePath);
+
+            // Only set the file if the user called the tool from a specific file
+            if (!filePathWithoutName.equals("") || !fileName.equals("")) {
+                conflictManagementToolController.setFile(filePathWithoutName, fileName);
+            }
+
             AnchorPane fxmlRoot = fxmlLoader.getRoot();
             conflictManagementToolController.showStage(fxmlRoot);
         } catch (IOException e) {

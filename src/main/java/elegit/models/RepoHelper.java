@@ -817,7 +817,7 @@ public class RepoHelper {
      * @throws MissingRepoException
      * @throws GitAPIException
      */
-    public void revert(CommitHelper helper) throws MissingRepoException, GitAPIException {
+    public boolean revert(CommitHelper helper) throws MissingRepoException, GitAPIException {
         logger.info("Attempting revert");
         if (!exists()) throw new MissingRepoException();
         Git git = new Git(this.getRepo());
@@ -831,7 +831,7 @@ public class RepoHelper {
         } catch (IOException e) {
             throw new ExceptionAdapter(e);
         }
-
+        return true;
 
     }
 

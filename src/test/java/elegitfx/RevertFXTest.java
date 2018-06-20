@@ -3,22 +3,11 @@ package elegitfx;
 import elegit.Main;
 import elegit.controllers.BusyWindow;
 import elegit.controllers.SessionController;
-import elegit.exceptions.CancelledAuthorizationException;
-import elegit.exceptions.MissingRepoException;
-import elegit.exceptions.NoCommitsToPushException;
-import elegit.exceptions.PushToAheadRemoteError;
-import elegit.models.ExistingRepoHelper;
-import elegit.monitors.RepositoryMonitor;
-import elegit.sshauthentication.ElegitUserInfoTest;
-import elegit.treefx.Cell;
 import javafx.stage.Stage;
 import junit.framework.TestCase;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.revwalk.RevCommit;
-import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -29,22 +18,19 @@ import org.testfx.framework.junit.TestFXRule;
 import org.testfx.util.WaitForAsyncUtils;
 import sharedrules.TestUtilities;
 
-import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.Random;
 import java.util.Scanner;
-import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import static junit.framework.TestCase.assertEquals;
 import static sharedrules.TestUtilities.makeTestRepo;
 
-public class ResetFXTest extends ApplicationTest {
+public class RevertFXTest extends ApplicationTest {
 
     static {
         // -----------------------Logging Initialization Start---------------------------
@@ -73,8 +59,9 @@ public class ResetFXTest extends ApplicationTest {
         console.info("Unit test started");
         console.info("Directory = " + directoryPath);
         directoryPath = Files.createTempDirectory("unitTestRepos");
+        console.info(directoryPath);
         console.info("Directory = " + directoryPath);
-        directoryPath.toFile().deleteOnExit();
+//        directoryPath.toFile().deleteOnExit();
         initializeLogger();
         console.info("Test name: " + testName.getMethodName());
     }
@@ -107,9 +94,9 @@ public class ResetFXTest extends ApplicationTest {
         Path remote = directoryPath.resolve("remote1");
         Path local = directoryPath.resolve("local1");
         int numFiles = 1;
-        int numCells = 2;
-        List<RevCommit> allCommits = makeTestRepo(remote, local, numFiles, numCells, true);
-        RevCommit firstCommit1 = allCommits.get(0);
+        int numCells = 1;
+        List<RevCommit> allCommits = makeTestRepo(remote, local, numFiles, numCells, false);
+        RevCommit firstCommit1 = allCommits.get(1);
 
         console.info("Loading up repo");
 
@@ -123,12 +110,11 @@ public class ResetFXTest extends ApplicationTest {
         SessionController.gitStatusCompletedOnce = new CountDownLatch(1);
 
         rightClickOn("#"+firstCommit1.getName())
-                .clickOn("#resetMenuReset")
-                .moveTo("#resetMenuResetItem")
-                .clickOn("#resetMenuAdvanced")
-                .clickOn("#resetMenuHard");
+                .clickOn("#revertMenuRevert")
+                .clickOn("#revertMenuRevertCommit");
 
         SessionController.gitStatusCompletedOnce.await();
+
 
         // Verify that file contents have reverted back to what they should be; do this check in the FX queue
         // to make sure it follows the above
