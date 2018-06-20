@@ -395,7 +395,6 @@
     -fx-font-size: 12px;
 }
 
-/* Hack for making the scroll bars in the line numbers section of the Conflict Management tool invisible */
-#lineNumbers .scroll-bar {
-    -fx-opacity: 0;
+.lineno {
+    -fx-background-color: #f1f1f1;
 }

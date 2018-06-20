@@ -22,6 +22,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.fxmisc.richtext.CodeArea;
+import org.fxmisc.richtext.LineNumberFactory;
 import org.fxmisc.richtext.StyledTextArea;
 
 import java.nio.file.Path;
@@ -50,12 +51,6 @@ public class ConflictManagementToolController {
     private CodeArea middleDoc;
     @FXML
     private CodeArea rightDoc;
-    @FXML
-    private TextArea leftLineNumbers;
-    @FXML
-    private TextArea middleLineNumbers;
-    @FXML
-    private TextArea rightLineNumbers;
     @FXML
     private Button rightAccept;
     @FXML
@@ -147,20 +142,33 @@ public class ConflictManagementToolController {
     }
 
     private void initTextAreas() {
+        // Add line numbers to each CodeArea
+        addLineNumbers(rightDoc);
+        addLineNumbers(middleDoc);
+        addLineNumbers(leftDoc);
+
         // Bind xvalues
-        rightDoc.estimatedScrollXProperty().bindBidirectional(middleDoc.estimatedScrollXProperty());
-        middleDoc.estimatedScrollXProperty().bindBidirectional(leftDoc.estimatedScrollXProperty());
-        leftDoc.estimatedScrollXProperty().bindBidirectional(rightDoc.estimatedScrollXProperty());
+        bindHorizontalScroll(rightDoc, middleDoc);
+        bindHorizontalScroll(middleDoc, leftDoc);
+        bindHorizontalScroll(leftDoc, rightDoc);
+
 
         // Bind yvalues
-        rightDoc.estimatedScrollYProperty().bindBidirectional(middleDoc.estimatedScrollYProperty());
-        middleDoc.estimatedScrollYProperty().bindBidirectional(leftDoc.estimatedScrollYProperty());
-        leftDoc.estimatedScrollYProperty().bindBidirectional(rightDoc.estimatedScrollYProperty());
+        bindVerticalScroll(rightDoc, middleDoc);
+        bindVerticalScroll(middleDoc, leftDoc);
+        bindVerticalScroll(leftDoc, rightDoc);
+    }
 
-        // Bind line numbers to their TextArea
-        BidirectionalBinding.bindNumber(rightDoc.estimatedScrollYProperty(), rightLineNumbers.scrollTopProperty());
-        BidirectionalBinding.bindNumber(middleDoc.estimatedScrollYProperty(), middleLineNumbers.scrollTopProperty());
-        BidirectionalBinding.bindNumber(leftDoc.estimatedScrollYProperty(), leftLineNumbers.scrollTopProperty());
+    private void addLineNumbers(CodeArea doc) {
+        doc.setParagraphGraphicFactory(LineNumberFactory.get(doc));
+    }
+
+    private void bindHorizontalScroll(CodeArea doc1, CodeArea doc2) {
+        doc1.estimatedScrollXProperty().bindBidirectional(doc2.estimatedScrollXProperty());
+    }
+
+    private void bindVerticalScroll(CodeArea doc1, CodeArea doc2) {
+        doc1.estimatedScrollYProperty().bindBidirectional(doc2.estimatedScrollYProperty());
     }
 
     private void setButtonsDisabled(boolean disabled) {
@@ -238,22 +246,20 @@ public class ConflictManagementToolController {
         ArrayList<ArrayList> results = ConflictManagementModel.parseConflicts(filePathWithoutFileName +
                 File.separator + fileName);
 
-        setLines(results.get(0), leftDoc, leftLineNumbers);
-        setLines(results.get(1), middleDoc, middleLineNumbers);
-        setLines(results.get(2), rightDoc, rightLineNumbers);
+        setLines(results.get(0), leftDoc);
+        setLines(results.get(1), middleDoc);
+        setLines(results.get(2), rightDoc);
 
         // Allow the user to click buttons
         setButtonsDisabled(false);
     }
 
-    private void setLines(ArrayList lines, CodeArea doc, TextArea lineNumbers) {
+    private void setLines(ArrayList lines, CodeArea doc) {
         for (int i = 0; i < lines.size(); i++) {
             ConflictLine conflict = (ConflictLine) lines.get(i);
             String line = conflict.getLine();
             // update the document
-            doc.appendText(line + "\n");
-            // update the line number
-            lineNumbers.appendText((i + 1) + "\n");
+            doc.appendText(" " + line + "\n");
         }
     }
 
