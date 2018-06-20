@@ -778,7 +778,6 @@ public class SessionController {
      * @param builder the builder to use to create a new repository
      */
     private synchronized void handleLoadRepoMenuItem(RepoHelperBuilder builder) {
-        System.out.println("started outer load function");
         Main.assertFxThread();
         try {
             builder.getRepoHelperFromDialogsWhenSubscribed()
@@ -792,14 +791,13 @@ public class SessionController {
         } catch (Exception e) {
             showSingleResult(notificationPaneController, new Result(ResultOperation.LOAD, e));
         }
-        System.out.println("finished outer load function");
     }
 
     public boolean loadDesignatedRepo(RepoHelper repoHelper) {
-        System.out.println("started loading");
+        System.err.println("started loading");
         Main.assertFxThread();
         GitOperation gitOp = authResponse -> loadRepo(authResponse, repoHelper);
-        System.out.println("gitop: "+gitOp);
+        System.err.println("gitop: "+gitOp);
         if (repoHelper == null)
             throw new RuntimeException();
         if (theModel.getCurrentRepoHelper() != null && repoHelper.getLocalPath().equals(theModel.getCurrentRepoHelper().getLocalPath())) {
@@ -808,7 +806,7 @@ public class SessionController {
         }
         TreeLayout.stopMovingCells();
         showBusyWindowAndPauseRepoMonitor("Loading repository...");
-        System.out.println("starting doGit");
+        System.err.println("starting doGit");
         doGitOperationWhenSubscribed(gitOp)
                 .flatMap((result) -> {
                     if (result.equals("success")) {
@@ -836,7 +834,7 @@ public class SessionController {
                         throw new ExceptionAdapter(t);
                     }
                 });
-        System.out.println("done loading");
+        System.err.println("done loading");
         return true;
 
     }
