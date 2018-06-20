@@ -149,6 +149,10 @@
     -fx-padding: 2;
 }
 
+.corner {
+    -fx-background-color: transparent;
+}
+
 .increment-button, .decrement-button {
     -fx-background-color: transparent;
     -fx-border-color: transparent;

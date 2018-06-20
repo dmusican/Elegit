@@ -78,7 +78,6 @@ public class CommandLineController {
     private void setTextAreaWidth() {
         // Numbers are pretty arbitrary, but seem to adjust relatively well to any give text.
         int length = (currentCommand.getText().length() + 1) * 12;
-        System.out.println(length);
         if (length > 244) { // If it needs to scroll
             adjustScrollPane(length);
         } else {
