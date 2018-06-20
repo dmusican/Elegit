@@ -381,3 +381,7 @@
     -fx-font-family: Courier;
     -fx-font-size: 13px;
 }
+
+.tooltip {
+    -fx-font-size: 12px;
+}

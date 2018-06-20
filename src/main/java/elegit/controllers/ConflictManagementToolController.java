@@ -115,8 +115,8 @@ public class ConflictManagementToolController {
         initButton(FontAwesomeIcon.ARROW_DOWN, "arrowIcon", downToggle, "Go to next change.");
 
         // Apply and abort buttons
-        applyChanges.setTooltip(new Tooltip("Use the \"result\" document with the changes you've made."));
-        abortMerge.setTooltip(new Tooltip("Ignore all changes made and return to previous state."));
+        applyChanges.setTooltip(new Tooltip("Use the \"result\" document with \n the changes you've made."));
+        abortMerge.setTooltip(new Tooltip("Ignore all changes made and \n return to previous state."));
     }
 
     private void initButton(GlyphIcons glyphIcon, String id, Button button, String toolTip) {
