@@ -171,6 +171,7 @@ public class SshPrivateKeyPasswordExistingFXTest extends ApplicationTest {
                                          new ElegitUserInfoTest(null, passphrase),
                                          getClass().getResource(privateKeyFileLocation).getFile(),
                                          directoryPath.resolve("testing_known_hosts").toString());
+            interact(() -> helper.setRemoteStatusChecking(false));
             helper.obtainRepository(remoteURL);
             console.info("Repo cloned");
 
@@ -210,11 +211,14 @@ public class SshPrivateKeyPasswordExistingFXTest extends ApplicationTest {
 
             WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
                                       () -> lookup("#sshprompt").query() != null);
+            WaitForAsyncUtils.waitForFxEvents();
+
             // Enter passphrase
             clickOn("#sshprompt")
                     .write(passphrase)
                     .write("\n");
 
+            interact(() -> helper.setRemoteStatusChecking(true));
             // Wait a while, to make sure that RepositoryMonitor has kicked in and is happy
             Thread.sleep(Math.max(RepositoryMonitor.REMOTE_CHECK_INTERVAL, RepositoryMonitor.LOCAL_CHECK_INTERVAL));
 

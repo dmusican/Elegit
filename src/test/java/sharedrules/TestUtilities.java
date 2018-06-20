@@ -34,6 +34,7 @@ import org.eclipse.jgit.revwalk.RevCommit;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.ServerSocket;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.GeneralSecurityException;
@@ -91,7 +92,10 @@ public class TestUtilities {
         sshd.setKeyPairProvider(hostKeyProvider);
 
         // Need to use a non-standard port, as there may be an ssh server already running on this machine
-        sshd.setPort(2222);
+        // Setting a port to 0 automatically picks an unused port. This is undocumented, but apparently works just
+        // like new ServerSocket(0), which is documented
+        sshd.setPort(0);
+
 
         // Set up a fall-back password authenticator to help in diagnosing failed test
         sshd.setPasswordAuthenticator(
@@ -121,7 +125,7 @@ public class TestUtilities {
         Files.createFile(knownHostsFileLocation);
 
         // Clone the bare repo, using the SSH connection, to the local.
-        return "ssh://localhost:2222/"+remoteRepoDirectoryBrief;
+        return "ssh://localhost:" +  sshd.getPort() + "/"+remoteRepoDirectoryBrief;
     }
 
 
