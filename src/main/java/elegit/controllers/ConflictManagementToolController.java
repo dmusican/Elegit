@@ -61,9 +61,13 @@ public class ConflictManagementToolController {
     @FXML
     private Button rightReject;
     @FXML
+    private Button rightUndo;
+    @FXML
     private Button leftAccept;
     @FXML
     private Button leftReject;
+    @FXML
+    private Button leftUndo;
     @FXML
     private ComboBox<String> conflictingFilesDropdown;
     @FXML
@@ -108,6 +112,10 @@ public class ConflictManagementToolController {
         initButton(FontAwesomeIcon.TIMES, "xIcon", rightReject, "Ignore the highlighted commit.");
         initButton(FontAwesomeIcon.TIMES, "xIcon", leftReject, "Ignore the highlighted commit.");
 
+        // Undo change buttons
+        initButton(FontAwesomeIcon.UNDO, "undoIcon", rightUndo, "Undo previous choice.");
+        initButton(FontAwesomeIcon.UNDO, "undoIcon", leftUndo, "Undo previous choice.");
+
         // Toggle change buttons
         initButton(FontAwesomeIcon.ARROW_UP, "arrowIcon", upToggle, "Go to previous change.");
         initButton(FontAwesomeIcon.ARROW_DOWN, "arrowIcon", downToggle, "Go to next change.");
@@ -143,7 +151,7 @@ public class ConflictManagementToolController {
         rightDoc.estimatedScrollXProperty().bindBidirectional(middleDoc.estimatedScrollXProperty());
         middleDoc.estimatedScrollXProperty().bindBidirectional(leftDoc.estimatedScrollXProperty());
         leftDoc.estimatedScrollXProperty().bindBidirectional(rightDoc.estimatedScrollXProperty());
-        
+
         // Bind yvalues
         rightDoc.estimatedScrollYProperty().bindBidirectional(middleDoc.estimatedScrollYProperty());
         middleDoc.estimatedScrollYProperty().bindBidirectional(leftDoc.estimatedScrollYProperty());
@@ -249,9 +257,9 @@ public class ConflictManagementToolController {
         }
     }
 
-    private void setHighlight(ConflictLine line) {
-        if (line.isConflicting()) {
-
+    private void setHighlight(ConflictLine conflictLine) {
+        if (conflictLine.isConflicting()) {
+            // Still trying to figure this out
         }
     }
 

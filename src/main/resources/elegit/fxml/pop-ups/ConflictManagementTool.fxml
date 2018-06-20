@@ -5,7 +5,6 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ComboBox?>
-<?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.layout.AnchorPane?>
@@ -14,9 +13,9 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.text.Text?>
+<?import org.fxmisc.flowless.VirtualizedScrollPane?>
 <?import org.fxmisc.richtext.CodeArea?>
 
-<?import org.fxmisc.flowless.VirtualizedScrollPane?>
 <AnchorPane fx:id="anchorRoot" prefHeight="220" stylesheets="@../../css/BaseStyle.css" xmlns="http://javafx.com/javafx/8.0.112" xmlns:fx="http://javafx.com/fxml/1" fx:controller="elegit.controllers.ConflictManagementToolController">
     <GridPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="700.0" prefWidth="1200.0" stylesheets="@../../css/BaseStyle.css" xmlns="http://javafx.com/javafx/8.0.112" xmlns:fx="http://javafx.com/fxml/1">
         <columnConstraints>
@@ -53,54 +52,50 @@
             <!--HBoxes where the three versions of the document go with line numbers to the left-->
             <HBox prefHeight="564.0" prefWidth="400.0" GridPane.columnIndex="0" GridPane.rowIndex="1">
                 <children>
-                    <Separator orientation="VERTICAL" prefHeight="200.0"/>
-                    <TextArea id="lineNumbers" fx:id="leftLineNumbers" editable="false" prefHeight="565.0"
-                              prefWidth="40.0"/>
+                    <Separator orientation="VERTICAL" prefHeight="200.0" />
+                    <TextArea id="lineNumbers" fx:id="leftLineNumbers" editable="false" prefHeight="565.0" prefWidth="40.0" />
                     <VirtualizedScrollPane>
                         <content>
-                            <CodeArea id="document" fx:id="leftDoc" editable="false" focusTraversable="true"
-                                      prefHeight="566.0"
-                                      prefWidth="345.0"/>
+                            <CodeArea id="document" fx:id="leftDoc" editable="false" focusTraversable="true" prefHeight="566.0" prefWidth="345.0" />
                         </content>
                     </VirtualizedScrollPane>
-                    <Separator orientation="VERTICAL" prefHeight="200.0"/>
+                    <Separator orientation="VERTICAL" prefHeight="200.0" />
                 </children>
             </HBox>
             <HBox prefHeight="100.0" prefWidth="400.0" GridPane.columnIndex="1" GridPane.rowIndex="1">
                 <children>
-                    <TextArea id="lineNumbers" fx:id="middleLineNumbers" editable="false" prefHeight="565.0"
-                              prefWidth="40.0"/>
+                    <TextArea id="lineNumbers" fx:id="middleLineNumbers" editable="false" prefHeight="565.0" prefWidth="40.0" />
                     <VirtualizedScrollPane>
                         <content>
-                            <CodeArea id="document" fx:id="middleDoc" editable="true" focusTraversable="true"
-                                      prefHeight="565.0"
-                                      prefWidth="360.0"/>
+                            <CodeArea id="document" fx:id="middleDoc" editable="true" focusTraversable="true" prefHeight="565.0" prefWidth="360.0" />
                         </content>
                     </VirtualizedScrollPane>
-                    <Separator orientation="VERTICAL" prefHeight="200.0"/>
+                    <Separator orientation="VERTICAL" prefHeight="200.0" />
                 </children>
             </HBox>
             <HBox prefHeight="100.0" prefWidth="400.0" GridPane.columnIndex="2" GridPane.rowIndex="1">
                 <children>
-                    <TextArea id="lineNumbers" fx:id="rightLineNumbers" editable="false" prefHeight="565.0"
-                              prefWidth="40.0"/>
+                    <TextArea id="lineNumbers" fx:id="rightLineNumbers" editable="false" prefHeight="565.0" prefWidth="40.0" />
                     <VirtualizedScrollPane>
                         <content>
-                            <CodeArea id="document" fx:id="rightDoc" editable="false" focusTraversable="true"
-                                      prefHeight="565.0"
-                                      prefWidth="360.0"/>
+                            <CodeArea id="document" fx:id="rightDoc" editable="false" focusTraversable="true" prefHeight="565.0" prefWidth="360.0" />
                         </content>
                     </VirtualizedScrollPane>
-                    <Separator orientation="VERTICAL" prefHeight="200.0"/>
+                    <Separator orientation="VERTICAL" prefHeight="200.0" />
                 </children>
             </HBox>
 
-            <!--Accept/Reject changes for left document-->
+            <!--Accept/Reject/Undo changes for left document-->
             <HBox alignment="CENTER_RIGHT" prefHeight="40.0" prefWidth="410.0" GridPane.rowIndex="2">
                 <children>
-                    <Button id="rejectButton" fx:id="leftReject" alignment="CENTER" contentDisplay="CENTER" graphicTextGap="3.0">
+                    <Button id="undoButton" fx:id="leftUndo" alignment="CENTER" contentDisplay="CENTER" graphicTextGap="3.0">
                         <HBox.margin>
                             <Insets right="1.5" />
+                        </HBox.margin>
+                    </Button>
+                    <Button id="rejectButton" fx:id="leftReject" alignment="CENTER" contentDisplay="CENTER" graphicTextGap="3.0">
+                        <HBox.margin>
+                            <Insets left="1.5" right="1.5" />
                         </HBox.margin>
                     </Button>
                     <Button id="acceptButton" fx:id="leftAccept" alignment="CENTER" contentDisplay="CENTER" graphicTextGap="3.0">
@@ -111,7 +106,7 @@
                 </children>
             </HBox>
 
-            <!--Accept/Reject changes for right document-->
+            <!--Accept/Reject/Undo changes for right document-->
             <HBox alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0" GridPane.columnIndex="2" GridPane.rowIndex="2">
                 <children>
                     <Button id="acceptButton" fx:id="rightAccept" alignment="CENTER" contentDisplay="CENTER" graphicTextGap="2.0">
@@ -120,6 +115,11 @@
                         </HBox.margin>
                     </Button>
                     <Button id="rejectButton" fx:id="rightReject" alignment="CENTER" contentDisplay="CENTER" graphicTextGap="2.0">
+                        <HBox.margin>
+                            <Insets left="1.5" right="1.5" />
+                        </HBox.margin>
+                    </Button>
+                    <Button id="undoButton" fx:id="rightUndo" alignment="CENTER" contentDisplay="CENTER" graphicTextGap="2.0">
                         <HBox.margin>
                             <Insets left="1.5" />
                         </HBox.margin>

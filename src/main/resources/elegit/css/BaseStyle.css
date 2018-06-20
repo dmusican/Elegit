@@ -371,10 +371,19 @@
     -fx-stroke: #a63d3b;
 }
 
+#undoIcon {
+    -fx-fill: #a962e2;
+    -fx-stroke: #8a56bb;
+}
+
 /* Conflict Management documents */
 #document {
     -fx-font-family: Courier;
     -fx-font-size: 13px;
+}
+
+#document .keyword {
+    -rtfx-background-color: #26bc6f;
 }
 
 #lineNumbers {
