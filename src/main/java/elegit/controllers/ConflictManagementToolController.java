@@ -151,6 +151,11 @@ public class ConflictManagementToolController {
         rightDoc.scrollTopProperty().bindBidirectional(leftDoc.scrollTopProperty());
         middleDoc.scrollTopProperty().bindBidirectional(rightDoc.scrollTopProperty());
         leftDoc.scrollTopProperty().bindBidirectional(middleDoc.scrollTopProperty());
+
+        // Bind line numbers to their TextArea
+        rightDoc.scrollTopProperty().bindBidirectional(rightLineNumbers.scrollTopProperty());
+        leftDoc.scrollTopProperty().bindBidirectional(leftLineNumbers.scrollTopProperty());
+        middleDoc.scrollTopProperty().bindBidirectional(middleLineNumbers.scrollTopProperty());
     }
 
     private void setButtonsDisabled(boolean disabled) {

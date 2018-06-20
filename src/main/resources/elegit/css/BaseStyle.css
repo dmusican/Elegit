@@ -377,11 +377,18 @@
     -fx-font-size: 13px;
 }
 
-#lineNumber {
+#lineNumbers {
     -fx-font-family: Courier;
     -fx-font-size: 13px;
 }
 
 .tooltip {
     -fx-font-size: 12px;
+}
+
+/* Hack for disabling scroll bars in the line numbers section of the Conflict Management tool */
+#lineNumbers .scroll-bar {
+    -fx-vbar-policy: always;
+    -fx-hbar-policy: always;
+    -fx-opacity: 0;
 }

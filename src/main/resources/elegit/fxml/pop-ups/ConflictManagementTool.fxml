@@ -5,6 +5,7 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
@@ -49,20 +50,24 @@
             <!--HBoxes where the three versions of the document go with line numbers to the left-->
             <HBox prefHeight="100.0" prefWidth="400.0" GridPane.rowIndex="1">
                 <children>
+               <Separator orientation="VERTICAL" prefHeight="200.0" />
                     <TextArea id="lineNumbers" fx:id="leftLineNumbers" editable="false" prefHeight="565.0" prefWidth="40.0" />
                     <TextArea id="document" fx:id="leftDoc" editable="false" prefHeight="565.0" prefWidth="360.0" />
+               <Separator orientation="VERTICAL" prefHeight="200.0" />
                 </children>
             </HBox>
             <HBox prefHeight="100.0" prefWidth="400.0" GridPane.columnIndex="1" GridPane.rowIndex="1">
                 <children>
                     <TextArea id="lineNumbers" fx:id="middleLineNumbers" editable="false" prefHeight="565.0" prefWidth="40.0" />
                     <TextArea id="document" fx:id="middleDoc" editable="true" prefHeight="565.0" prefWidth="360.0" />
+               <Separator orientation="VERTICAL" prefHeight="200.0" />
                 </children>
             </HBox>
             <HBox prefHeight="100.0" prefWidth="400.0" GridPane.columnIndex="2" GridPane.rowIndex="1">
                 <children>
                     <TextArea id="lineNumbers" fx:id="rightLineNumbers" editable="false" prefHeight="565.0" prefWidth="40.0" />
                     <TextArea id="document" fx:id="rightDoc" editable="false" prefHeight="565.0" prefWidth="360.0" />
+               <Separator orientation="VERTICAL" prefHeight="200.0" />
                 </children>
             </HBox>
 
