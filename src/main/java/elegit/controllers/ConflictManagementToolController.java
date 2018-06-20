@@ -1,21 +1,19 @@
 package elegit.controllers;
 
+import com.sun.javafx.binding.BidirectionalBinding;
 import de.jensd.fx.glyphs.GlyphIcons;
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import elegit.Main;
 import elegit.models.ConflictManagementModel;
-import elegit.models.RepoHelper;
 import elegit.models.SessionModel;
 import elegit.models.ConflictLine;
-import javafx.beans.binding.Bindings;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.StackPane;
 import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -23,10 +21,9 @@ import net.jcip.annotations.GuardedBy;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.fxmisc.richtext.CodeArea;
+import org.fxmisc.richtext.StyledTextArea;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Set;
@@ -48,11 +45,11 @@ public class ConflictManagementToolController {
     @FXML
     private Text rightDocLabel;
     @FXML
-    private TextArea leftDoc;
+    private CodeArea leftDoc;
     @FXML
-    private TextArea middleDoc;
+    private CodeArea middleDoc;
     @FXML
-    private TextArea rightDoc;
+    private CodeArea rightDoc;
     @FXML
     private TextArea leftLineNumbers;
     @FXML
@@ -142,20 +139,20 @@ public class ConflictManagementToolController {
     }
 
     private void initTextAreas() {
-        // Bind hvalues
-        rightDoc.scrollLeftProperty().bindBidirectional(leftDoc.scrollLeftProperty());
-        leftDoc.scrollLeftProperty().bindBidirectional(middleDoc.scrollLeftProperty());
-        middleDoc.scrollLeftProperty().bindBidirectional(rightDoc.scrollLeftProperty());
-
-        // Bind vvalues
-        rightDoc.scrollTopProperty().bindBidirectional(leftDoc.scrollTopProperty());
-        middleDoc.scrollTopProperty().bindBidirectional(rightDoc.scrollTopProperty());
-        leftDoc.scrollTopProperty().bindBidirectional(middleDoc.scrollTopProperty());
+        // Bind xvalues
+        rightDoc.estimatedScrollXProperty().bindBidirectional(middleDoc.estimatedScrollXProperty());
+        middleDoc.estimatedScrollXProperty().bindBidirectional(leftDoc.estimatedScrollXProperty());
+        leftDoc.estimatedScrollXProperty().bindBidirectional(rightDoc.estimatedScrollXProperty());
+        
+        // Bind yvalues
+        rightDoc.estimatedScrollYProperty().bindBidirectional(middleDoc.estimatedScrollYProperty());
+        middleDoc.estimatedScrollYProperty().bindBidirectional(leftDoc.estimatedScrollYProperty());
+        leftDoc.estimatedScrollYProperty().bindBidirectional(rightDoc.estimatedScrollYProperty());
 
         // Bind line numbers to their TextArea
-        rightDoc.scrollTopProperty().bindBidirectional(rightLineNumbers.scrollTopProperty());
-        leftDoc.scrollTopProperty().bindBidirectional(leftLineNumbers.scrollTopProperty());
-        middleDoc.scrollTopProperty().bindBidirectional(middleLineNumbers.scrollTopProperty());
+        BidirectionalBinding.bindNumber(rightDoc.estimatedScrollYProperty(), rightLineNumbers.scrollTopProperty());
+        BidirectionalBinding.bindNumber(middleDoc.estimatedScrollYProperty(), middleLineNumbers.scrollTopProperty());
+        BidirectionalBinding.bindNumber(leftDoc.estimatedScrollYProperty(), leftLineNumbers.scrollTopProperty());
     }
 
     private void setButtonsDisabled(boolean disabled) {
@@ -241,7 +238,7 @@ public class ConflictManagementToolController {
         setButtonsDisabled(false);
     }
 
-    private void setLines(ArrayList lines, TextArea doc, TextArea lineNumbers) {
+    private void setLines(ArrayList lines, CodeArea doc, TextArea lineNumbers) {
         for (int i = 0; i < lines.size(); i++) {
             ConflictLine conflict = (ConflictLine) lines.get(i);
             String line = conflict.getLine();
@@ -249,6 +246,12 @@ public class ConflictManagementToolController {
             doc.appendText(line + "\n");
             // update the line number
             lineNumbers.appendText((i + 1) + "\n");
+        }
+    }
+
+    private void setHighlight(ConflictLine line) {
+        if (line.isConflicting()) {
+
         }
     }
 

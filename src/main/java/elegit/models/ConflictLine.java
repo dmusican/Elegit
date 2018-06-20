@@ -2,26 +2,32 @@ package elegit.models;
 
 /**
  * Created by gorram on 6/20/18.
+ * Line object that stores the line and a boolean that determines whether or not it is conflicting
  */
 public class ConflictLine {
     private String line;
+    // true when conflicting, false otherwise
     private boolean status;
 
-    public ConflictLine(String line, boolean status){
-        this.line=line;
-        this.status=status;
+    public ConflictLine(String line, boolean status) {
+        this.line = line;
+        this.status = status;
     }
-    public ConflictLine(String line){
-        this.line=line;
-        this.status=false;
+
+    public ConflictLine(String line) {
+        this.line = line;
+        this.status = false;
     }
-    public String getLine(){
+
+    public String getLine() {
         return line;
     }
-    public boolean isConflicting(){
+
+    public boolean isConflicting() {
         return status;
     }
-    public void setConflictStatus(boolean newStatus){
-        status=newStatus;
+
+    public void setConflictStatus(boolean newStatus) {
+        status = newStatus;
     }
 }
