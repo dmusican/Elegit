@@ -8,6 +8,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 
+
+
 /**
  * Created by grenche on 6/19/18.
  * Model for the conflict management tool. Parses the documents.
@@ -18,9 +20,9 @@ public class ConflictManagementModel {
     public static ArrayList<ArrayList> parseConflicts(String path){
         logger.info("Parsing the file.");
 
-        ArrayList<String> left = new ArrayList<>();
-        ArrayList<String> middle = new ArrayList<>();
-        ArrayList<String> right = new ArrayList<>();
+        ArrayList<ConflictLine> left = new ArrayList<>();
+        ArrayList<ConflictLine> middle = new ArrayList<>();
+        ArrayList<ConflictLine> right = new ArrayList<>();
 
         try {
             BufferedReader reader = new BufferedReader(new FileReader(path));
@@ -29,20 +31,20 @@ public class ConflictManagementModel {
                 if(line.contains("<<<<<<<")){
                     line = reader.readLine();
                     while(!line.contains("=======")){
-                        left.add(line);
+                        left.add(new ConflictLine(line, true));
                         line = reader.readLine();
                     }
                     line = reader.readLine();
                     while(!line.contains(">>>>>>>")){
-                        right.add(line);
+                        right.add(new ConflictLine(line, true));
                         line = reader.readLine();
                     }
                     line = reader.readLine();
                 }
                 else{
-                    left.add(line);
-                    middle.add(line);
-                    right.add(line);
+                    left.add(new ConflictLine(line, false));
+                    middle.add(new ConflictLine(line, false));
+                    right.add(new ConflictLine(line, false));
                     line = reader.readLine();
                 }
             }

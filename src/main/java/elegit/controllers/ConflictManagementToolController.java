@@ -7,6 +7,7 @@ import elegit.Main;
 import elegit.models.ConflictManagementModel;
 import elegit.models.RepoHelper;
 import elegit.models.SessionModel;
+import elegit.models.ConflictLine;
 import javafx.beans.binding.Bindings;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -237,7 +238,8 @@ public class ConflictManagementToolController {
 
     private void setLines(ArrayList lines, TextArea doc, TextArea lineNumbers) {
         for (int i = 0; i < lines.size(); i++) {
-            String line = (String) lines.get(i);
+            ConflictLine conflict = (ConflictLine) lines.get(i);
+            String line = conflict.getLine();
             // update the document
             doc.appendText(line + "\n");
             // update the line number
