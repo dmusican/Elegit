@@ -17,8 +17,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Created by grenche on 6/7/18.
+ * Controls the GUI portion of the terminal command tool and send the information to the model to be used in other ways
  */
-
 public class CommandLineController {
     @GuardedBy("this")
     private SessionController sessionController;
