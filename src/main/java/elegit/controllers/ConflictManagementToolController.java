@@ -14,6 +14,7 @@ import javafx.fxml.FXML;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -75,6 +76,8 @@ public class ConflictManagementToolController {
     private Button applyChanges;
     @FXML
     private Button abortMerge;
+    @FXML
+    private NotificationController notificationPaneController;
 
     private boolean fileSelected = false;
 
@@ -110,6 +113,10 @@ public class ConflictManagementToolController {
         // Toggle change buttons
         initButton(FontAwesomeIcon.ARROW_UP, "arrowIcon", upToggle, "Go to previous change.");
         initButton(FontAwesomeIcon.ARROW_DOWN, "arrowIcon", downToggle, "Go to next change.");
+
+        // Apply and abort buttons
+        applyChanges.setTooltip(new Tooltip("Use the \"result\" document with the changes you've made."));
+        abortMerge.setTooltip(new Tooltip("Ignore all changes made and return to previous state."));
     }
 
     private void initButton(GlyphIcons glyphIcon, String id, Button button, String toolTip) {
@@ -123,7 +130,7 @@ public class ConflictManagementToolController {
         try {
             // Get the names of all the conflicting files and put them in the dropdown
             Set<String> conflictingFiles = SessionModel.getSessionModel().getConflictingFiles(null);
-            for(String file : conflictingFiles) {
+            for (String file : conflictingFiles) {
                 conflictingFilesDropdown.getItems().add(file);
             }
             conflictingFilesDropdown.setPromptText("None");
@@ -167,6 +174,7 @@ public class ConflictManagementToolController {
         stage.initModality(Modality.APPLICATION_MODAL);
         stage.setOnCloseRequest(event -> console.info("Closed conflict management tool"));
         stage.show();
+        notificationPaneController.setAnchor(stage);
     }
 
     @FXML
@@ -212,7 +220,7 @@ public class ConflictManagementToolController {
         rightDocLabel.setText("Right");
     }
 
-    public void setFile(String filePathWithoutFileName, String fileName){
+    public void setFile(String filePathWithoutFileName, String fileName) {
         fileSelected = true;
         conflictingFilesDropdown.setPromptText(fileName);
 
@@ -235,5 +243,16 @@ public class ConflictManagementToolController {
             // update the line number
             lineNumbers.appendText((i + 1) + "\n");
         }
+    }
+
+    private void showAllConflictsHandledNotification() {
+        console.info("All conflicts where handled.");
+        notificationPaneController.addNotification("All conflicts were handled. Click apply to use them.");
+    }
+
+    // TODO: add a button or something that allows them to continue
+    private void showNotAllConflictHandledNotification() {
+        console.info("Apply clicked before finishing merge.");
+        notificationPaneController.addNotification("Not all conflicts have been handled. Are you sure you want to continue?");
     }
 }
