@@ -19,6 +19,7 @@ import net.jcip.annotations.GuardedBy;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Repository;
@@ -64,6 +65,7 @@ public class SessionModel {
     private final Preferences preferences;
     private static Class<?> preferencesNodeClass = SessionModel.class;
     private final PublishSubject<RepoHelper> openedRepos = PublishSubject.create();
+    private static MergeResult mergeResult;
 
     @GuardedBy("this") private final List<RepoHelper> allRepoHelpers;
     private final AtomicReference<RepoHelper> currentRepoHelper = new AtomicReference<>();
@@ -524,6 +526,13 @@ public class SessionModel {
 
         Collections.sort(allFiles);
         return Collections.unmodifiableList(allFiles);
+    }
+
+    public void addMergeResult(MergeResult result){
+        mergeResult=result;
+    }
+    public MergeResult getMergeResult(){
+        return mergeResult;
     }
 
     /**

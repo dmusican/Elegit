@@ -252,7 +252,7 @@ public class MergeWindowController {
         // Get the merge result from the branch merge
         MergeResult mergeResult =
                 SessionModel.getSessionModel().getCurrentRepoHelper().getBranchModel().mergeWithBranch(selectedBranch);
-
+        sessionModel.addMergeResult(mergeResult);
         if (mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.CONFLICTING)){
             this.showConflictsNotification();
             // TODO: Call gitStatus once I've got it better threaded

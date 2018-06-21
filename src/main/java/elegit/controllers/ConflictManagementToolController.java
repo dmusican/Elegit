@@ -7,6 +7,7 @@ import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import elegit.Main;
 import elegit.exceptions.ExceptionAdapter;
 import elegit.models.ConflictManagementModel;
+import elegit.models.RepoHelper;
 import elegit.models.SessionModel;
 import elegit.models.ConflictLine;
 import javafx.event.ActionEvent;
@@ -21,7 +22,16 @@ import javafx.stage.Stage;
 import net.jcip.annotations.GuardedBy;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.lib.ObjectId;
+import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.lib.ObjectLoader;
+import org.eclipse.jgit.revwalk.RevWalk;
+import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.revwalk.RevTree;
+import org.eclipse.jgit.treewalk.TreeWalk;
+import org.eclipse.jgit.treewalk.filter.PathFilter;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
 import org.fxmisc.richtext.StyledTextArea;
@@ -90,11 +100,14 @@ public class ConflictManagementToolController {
 
     private HashMap<String, CodeArea> files = new HashMap<>();
 
+    private MergeResult mergeResult;
+
     synchronized void setSessionController(SessionController sessionController) {
         this.sessionController = sessionController;
     }
 
     public void initialize() {
+        mergeResult=SessionModel.getSessionModel().getMergeResult();
         initButtons();
         initDropdown();
         initTextAreas();
@@ -330,11 +343,50 @@ public class ConflictManagementToolController {
         CodeArea middle = setLines(results.get(1), middleDoc);
         setLines(results.get(2), rightDoc);
         files.put(fileName, middle);
-
+        getParentFiles(fileName);
         // Allow the user to click buttons
         setButtonsDisabled(false);
     }
 
+    private void getParentFiles(String fileName){
+        try {
+            ObjectId[] parents = mergeResult.getMergedCommits();
+            Repository repository = SessionModel.getSessionModel().getCurrentRepoHelper().getRepo();
+            RevWalk revWalk = new RevWalk(repository);
+            RevTree tree0 = revWalk.parseCommit(parents[0]).getTree();
+            RevTree tree1 = revWalk.parseCommit(parents[1]).getTree();
+            TreeWalk treeWalk0 = new TreeWalk(repository);
+            treeWalk0.addTree(tree0);
+            treeWalk0.setRecursive(true);
+            treeWalk0.setFilter(PathFilter.create(fileName));
+            if (!treeWalk0.next()) {
+                throw new IllegalStateException("Did not find expected file");
+            }
+            ObjectId objectId0 = treeWalk0.getObjectId(0);
+
+            TreeWalk treeWalk1 = new TreeWalk(repository);
+            treeWalk1.addTree(tree1);
+            treeWalk1.setRecursive(true);
+            treeWalk1.setFilter(PathFilter.create(fileName));
+            if (!treeWalk1.next()) {
+                throw new IllegalStateException("Did not find expected file");
+            }
+
+            ObjectId objectId1 = treeWalk1.getObjectId(0);
+
+            ObjectLoader loader0 = repository.open(objectId0);
+            ObjectLoader loader1 = repository.open(objectId1);
+
+            // and then one can the loader to read the file
+            System.out.println(loader0.getBytes().toString());
+            //loader0.copyTo(System.out);
+            //loader1.copyTo(System.out);
+        } catch (IOException e){
+            throw new ExceptionAdapter(e);
+        }
+
+
+    }
     private CodeArea setLines(ArrayList lines, CodeArea doc) {
         for (int i = 0; i < lines.size(); i++) {
             ConflictLine conflict = (ConflictLine) lines.get(i);
