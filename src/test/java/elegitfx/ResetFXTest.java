@@ -15,6 +15,7 @@ import javafx.stage.Stage;
 import junit.framework.TestCase;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.ThreadContext;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.revwalk.RevCommit;
@@ -38,6 +39,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.Scanner;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -70,6 +72,7 @@ public class ResetFXTest extends ApplicationTest {
 
     @Before
     public void setup() throws Exception {
+        Random random = new Random();
         console.info("Unit test started");
         console.info("Directory = " + directoryPath);
         directoryPath = Files.createTempDirectory("unitTestRepos");
@@ -112,7 +115,6 @@ public class ResetFXTest extends ApplicationTest {
         RevCommit firstCommit1 = allCommits.get(0);
 
         console.info("Loading up repo");
-
         SessionController.gitStatusCompletedOnce = new CountDownLatch(1);
         interact(() -> sessionController.handleLoadExistingRepoOption(local));
 

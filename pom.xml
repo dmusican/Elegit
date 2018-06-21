@@ -71,6 +71,9 @@
                     <additionalClasspathElements>
                         <additionalClasspathElement>${java.home}/lib/ext/jfxrt.jar</additionalClasspathElement>
                     </additionalClasspathElements>
+                    <includes>
+                        <include>elegitfx/ResetFXTest</include>
+                    </includes>
                     <!--<excludes>-->
                         <!--<exclude>**/elegit</exclude>-->
                     <!--</excludes>-->
@@ -109,6 +112,15 @@
         </profile>
     </profiles>
 
+    <reporting>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-report-plugin</artifactId>
+                <version>2.22.0</version>
+            </plugin>
+        </plugins>
+    </reporting>
     <dependencies>
 
         <dependency>

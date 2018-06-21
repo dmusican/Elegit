@@ -17,6 +17,7 @@ import javafx.scene.control.cell.CheckBoxTreeCell;
 import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.ThreadContext;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.junit.After;
@@ -35,6 +36,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import static junit.framework.TestCase.assertEquals;
