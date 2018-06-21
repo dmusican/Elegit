@@ -23,6 +23,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.fxmisc.richtext.CodeArea;
+import org.fxmisc.richtext.LineNumberFactory;
 import org.fxmisc.richtext.StyledTextArea;
 
 import java.io.BufferedReader;
@@ -59,19 +60,17 @@ public class ConflictManagementToolController {
     @FXML
     private CodeArea rightDoc;
     @FXML
-    private TextArea leftLineNumbers;
-    @FXML
-    private TextArea middleLineNumbers;
-    @FXML
-    private TextArea rightLineNumbers;
-    @FXML
     private Button rightAccept;
     @FXML
     private Button rightReject;
     @FXML
+    private Button rightUndo;
+    @FXML
     private Button leftAccept;
     @FXML
     private Button leftReject;
+    @FXML
+    private Button leftUndo;
     @FXML
     private ComboBox<String> conflictingFilesDropdown;
     @FXML
@@ -120,6 +119,10 @@ public class ConflictManagementToolController {
         initButton(FontAwesomeIcon.TIMES, "xIcon", rightReject, "Ignore the highlighted commit.");
         initButton(FontAwesomeIcon.TIMES, "xIcon", leftReject, "Ignore the highlighted commit.");
 
+        // Undo change buttons
+        initButton(FontAwesomeIcon.UNDO, "undoIcon", rightUndo, "Undo previous choice.");
+        initButton(FontAwesomeIcon.UNDO, "undoIcon", leftUndo, "Undo previous choice.");
+
         // Toggle change buttons
         initButton(FontAwesomeIcon.ARROW_UP, "arrowIcon", upToggle, "Go to previous change.");
         initButton(FontAwesomeIcon.ARROW_DOWN, "arrowIcon", downToggle, "Go to next change.");
@@ -151,20 +154,33 @@ public class ConflictManagementToolController {
     }
 
     private void initTextAreas() {
+        // Add line numbers to each CodeArea
+        addLineNumbers(rightDoc);
+        addLineNumbers(middleDoc);
+        addLineNumbers(leftDoc);
+
         // Bind xvalues
-        rightDoc.estimatedScrollXProperty().bindBidirectional(middleDoc.estimatedScrollXProperty());
-        middleDoc.estimatedScrollXProperty().bindBidirectional(leftDoc.estimatedScrollXProperty());
-        leftDoc.estimatedScrollXProperty().bindBidirectional(rightDoc.estimatedScrollXProperty());
+        bindHorizontalScroll(rightDoc, middleDoc);
+        bindHorizontalScroll(middleDoc, leftDoc);
+        bindHorizontalScroll(leftDoc, rightDoc);
+
 
         // Bind yvalues
-        rightDoc.estimatedScrollYProperty().bindBidirectional(middleDoc.estimatedScrollYProperty());
-        middleDoc.estimatedScrollYProperty().bindBidirectional(leftDoc.estimatedScrollYProperty());
-        leftDoc.estimatedScrollYProperty().bindBidirectional(rightDoc.estimatedScrollYProperty());
+        bindVerticalScroll(rightDoc, middleDoc);
+        bindVerticalScroll(middleDoc, leftDoc);
+        bindVerticalScroll(leftDoc, rightDoc);
+    }
 
-        // Bind line numbers to their TextArea
-        BidirectionalBinding.bindNumber(rightDoc.estimatedScrollYProperty(), rightLineNumbers.scrollTopProperty());
-        BidirectionalBinding.bindNumber(middleDoc.estimatedScrollYProperty(), middleLineNumbers.scrollTopProperty());
-        BidirectionalBinding.bindNumber(leftDoc.estimatedScrollYProperty(), leftLineNumbers.scrollTopProperty());
+    private void addLineNumbers(CodeArea doc) {
+        doc.setParagraphGraphicFactory(LineNumberFactory.get(doc));
+    }
+
+    private void bindHorizontalScroll(CodeArea doc1, CodeArea doc2) {
+        doc1.estimatedScrollXProperty().bindBidirectional(doc2.estimatedScrollXProperty());
+    }
+
+    private void bindVerticalScroll(CodeArea doc1, CodeArea doc2) {
+        doc1.estimatedScrollYProperty().bindBidirectional(doc2.estimatedScrollYProperty());
     }
 
     private void setButtonsDisabled(boolean disabled) {
@@ -192,8 +208,8 @@ public class ConflictManagementToolController {
         notificationPaneController.setAnchor(stage);
     }
 
-
-    @FXML
+    //this code should be saved for when we implement saving changes made when switching between conflicting files
+    /*@FXML
     private void acceptAllChanges(){
         //add in a check to see if conflicts remain
         files.put(conflictingFilesDropdown.getPromptText(), middleDoc);
@@ -216,6 +232,11 @@ public class ConflictManagementToolController {
         catch (IOException e) {
             throw new ExceptionAdapter(e);
         }
+    }*/
+
+    @FXML
+    private void abort(){
+        stage.close();
     }
 
     @FXML
@@ -287,30 +308,28 @@ public class ConflictManagementToolController {
         ArrayList<ArrayList> results = ConflictManagementModel.parseConflicts(filePathWithoutFileName +
                 File.separator + fileName);
 
-        setLines(results.get(0), leftDoc, leftLineNumbers);
-        CodeArea middle = setLines(results.get(1), middleDoc, middleLineNumbers);
-        setLines(results.get(2), rightDoc, rightLineNumbers);
+        setLines(results.get(0), leftDoc);
+        CodeArea middle = setLines(results.get(1), middleDoc);
+        setLines(results.get(2), rightDoc);
         files.put(fileName, middle);
+
         // Allow the user to click buttons
         setButtonsDisabled(false);
     }
 
-    private CodeArea setLines(ArrayList lines, CodeArea doc, TextArea lineNumbers) {
+    private CodeArea setLines(ArrayList lines, CodeArea doc) {
         for (int i = 0; i < lines.size(); i++) {
             ConflictLine conflict = (ConflictLine) lines.get(i);
             String line = conflict.getLine();
             // update the document
-            doc.appendText(line + "\n");
-            // update the line number
-            lineNumbers.appendText((i + 1) + "\n");
+            doc.appendText(" " + line + "\n");
         }
         return doc;
     }
 
-
-    private void setHighlight(ConflictLine line) {
-        if (line.isConflicting()) {
-
+    private void setHighlight(ConflictLine conflictLine) {
+        if (conflictLine.isConflicting()) {
+            // Still trying to figure this out
         }
     }
 
