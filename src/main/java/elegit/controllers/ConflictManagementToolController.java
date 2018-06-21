@@ -208,7 +208,7 @@ public class ConflictManagementToolController {
 
     //this code should be saved for when we implement saving changes made when switching between conflicting files
     /*@FXML
-    private void acceptAllChanges(){
+    private void handleApplyAllChanges(){
         //add in a check to see if conflicts remain
         files.put(conflictingFilesDropdown.getPromptText(), middleDoc);
         try {
@@ -233,12 +233,12 @@ public class ConflictManagementToolController {
     }*/
 
     @FXML
-    private void abort(){
+    private void handleAbort(){
         stage.close();
     }
 
     @FXML
-    private void acceptChanges(){
+    private void handleApplyChanges(){
         //add in a check to see if conflicts remain
         try {
             Path directory = (new File(SessionModel.getSessionModel().getCurrentRepoHelper().getRepo().getDirectory()
@@ -255,6 +255,25 @@ public class ConflictManagementToolController {
         }
     }
 
+    @FXML
+    private void handleToggleChangeUp() {
+    }
+
+    @FXML
+    private void handleToggleChangeDown() {
+    }
+
+    @FXML
+    private void handleAcceptChange() {
+    }
+
+    @FXML
+    private void handleRejectChange() {
+    }
+
+    @FXML
+    private synchronized void handleUndoChange() {
+    }
 
     @FXML
     private void setFileToEdit() {
@@ -321,9 +340,9 @@ public class ConflictManagementToolController {
             ConflictLine conflict = (ConflictLine) lines.get(i);
             String line = conflict.getLine();
             int startIndex = doc.getCaretPosition();
-            // update the document
             doc.appendText(line + "\n");
-            int endIndex = doc.getCaretPosition();
+            int endIndex = doc.getLength();
+
             setCSSSelector(conflict, doc, startIndex, endIndex);
         }
         return doc;
