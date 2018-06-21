@@ -398,3 +398,7 @@
 .lineno {
     -fx-background-color: #f1f1f1;
 }
+
+.code-area .conflict {
+    -rtfx-background-color: rgba(255, 0, 0, 0.34);
+}
