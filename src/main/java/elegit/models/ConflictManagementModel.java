@@ -16,8 +16,10 @@ import java.util.ArrayList;
  */
 public class ConflictManagementModel {
     private static final Logger logger = LogManager.getLogger();
+    private static String baseBranch;
+    private static String mergedBranch;
 
-    public static ArrayList<ArrayList> parseConflicts(String path){
+    public ArrayList<ArrayList> parseConflicts(String path){
         logger.info("Parsing the file.");
 
         ArrayList<ConflictLine> left = new ArrayList<>();
@@ -41,6 +43,12 @@ public class ConflictManagementModel {
                     }
                     line = reader.readLine();
                 }
+                else if(line.contains("<<===<<")){
+                    baseBranch = reader.readLine();
+                    mergedBranch = reader.readLine();
+                    line = reader.readLine();
+                    line = reader.readLine();
+                }
                 else{
                     left.add(new ConflictLine(line, false));
                     middle.add(new ConflictLine(line, false));
@@ -58,5 +66,11 @@ public class ConflictManagementModel {
         list.add(middle);
         list.add(right);
         return list;
+    }
+    public String getBaseBranch(){
+        return baseBranch;
+    }
+    public String getMergedBranch(){
+        return mergedBranch;
     }
 }

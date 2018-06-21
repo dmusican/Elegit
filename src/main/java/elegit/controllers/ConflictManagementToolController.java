@@ -304,10 +304,11 @@ public class ConflictManagementToolController {
     public void setFile(String filePathWithoutFileName, String fileName) {
         fileSelected = true;
         conflictingFilesDropdown.setPromptText(fileName);
-
-        ArrayList<ArrayList> results = ConflictManagementModel.parseConflicts(filePathWithoutFileName +
+        ConflictManagementModel conflictManagementModel = new ConflictManagementModel();
+        ArrayList<ArrayList> results = conflictManagementModel.parseConflicts(filePathWithoutFileName +
                 File.separator + fileName);
-
+        leftDocLabel.setText(conflictManagementModel.getBaseBranch());
+        rightDocLabel.setText(conflictManagementModel.getMergedBranch());
         setLines(results.get(0), leftDoc);
         CodeArea middle = setLines(results.get(1), middleDoc);
         setLines(results.get(2), rightDoc);

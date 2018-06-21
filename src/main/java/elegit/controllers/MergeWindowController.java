@@ -1,6 +1,8 @@
 package elegit.controllers;
 
 import elegit.*;
+import elegit.exceptions.ExceptionAdapter;
+import elegit.gui.WorkingTreePanelView;
 import elegit.models.BranchModel;
 import elegit.models.LocalBranchHelper;
 import elegit.models.RepoHelper;
@@ -32,6 +34,8 @@ import org.eclipse.jgit.lib.BranchTrackingStatus;
 import org.eclipse.jgit.lib.Repository;
 import org.omg.CORBA.Object;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Set;
 import java.util.Map;
@@ -244,7 +248,7 @@ public class MergeWindowController {
         logger.info("Merging selected branch with current");
         // Get the branch to merge with
         selectedBranch = this.branchDropdownSelector.getSelectionModel().getSelectedItem();
-
+        SessionModel sessionModel = SessionModel.getSessionModel();
         // Get the merge result from the branch merge
         MergeResult mergeResult =
                 SessionModel.getSessionModel().getCurrentRepoHelper().getBranchModel().mergeWithBranch(selectedBranch);
@@ -253,13 +257,27 @@ public class MergeWindowController {
             this.showConflictsNotification();
             // TODO: Call gitStatus once I've got it better threaded
             this.sessionController.gitStatus();
-            ConflictingFileWatcher.watchConflictingFiles(SessionModel.getSessionModel().getCurrentRepoHelper());
+            RepoHelper repoHelper = sessionModel.getCurrentRepoHelper();
+            ConflictingFileWatcher.watchConflictingFiles(repoHelper);
+            String current = sessionModel.getCurrentRepoHelper().getBranchModel().getCurrentBranch().getRefName();
+            for (String file : sessionModel.getConflictingFiles(new Git(repoHelper.getRepo()).status().call())){
+                try {
+                    String directory = repoHelper.getRepo().getDirectory().getParent();
+                    String path = directory + File.separator + file;
+                    FileWriter writer = new FileWriter(path, true);
+                    writer.write("<<===<<\n"+current+"\n"+selectedBranch+"\n"+">>===>>\n");
+                    writer.close();
+                } catch (IOException e) {
+                    throw new ExceptionAdapter(e);
+                }
+            }
+
 
         } else if (mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.ALREADY_UP_TO_DATE)) {
             this.showUpToDateNotification();
 
         } else if (mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.FAILED)) {
-            if (!SessionModel.getSessionModel().modifiedAndStagedFilesAreSame()) {
+            if (!sessionModel.modifiedAndStagedFilesAreSame()) {
                 this.showChangedFilesNotification();
             } else {
                 this.showFailedMergeNotification();
