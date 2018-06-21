@@ -73,6 +73,7 @@ public class ResetFXTest extends ApplicationTest {
     @Before
     public void setup() throws Exception {
         Random random = new Random();
+        ThreadContext.put("id", ""+Math.abs(random.nextLong()));
         console.info("Unit test started");
         console.info("Directory = " + directoryPath);
         directoryPath = Files.createTempDirectory("unitTestRepos");
@@ -141,6 +142,7 @@ public class ResetFXTest extends ApplicationTest {
 
 
         assertEquals(0, Main.getAssertionCount());
+        throw new RuntimeException();
     }
 
 
