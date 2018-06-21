@@ -50,6 +50,7 @@ public class ConflictManagementModel {
                     }
                     right.add(rightConflict);
                     line = reader.readLine();
+                    middle.add(new ConflictLine(true));
                     noConflict = new ConflictLine(false);
                 }
                 else if(line.contains("<<===<<")){
