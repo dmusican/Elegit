@@ -1,20 +1,24 @@
 package elegit.controllers;
 
-import com.sun.javafx.binding.BidirectionalBinding;
 import de.jensd.fx.glyphs.GlyphIcons;
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import elegit.Main;
 import elegit.exceptions.ExceptionAdapter;
+import elegit.gui.ConflictLineSection;
 import elegit.models.ConflictManagementModel;
 import elegit.models.SessionModel;
 import elegit.models.ConflictLine;
+import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -24,17 +28,14 @@ import org.apache.logging.log4j.Logger;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
-import org.fxmisc.richtext.StyledTextArea;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.nio.file.Path;
 import java.util.*;
 import java.io.File;
+import java.util.function.IntFunction;
 
 /**
  * Created by grenche on 6/18/18.
@@ -86,6 +87,8 @@ public class ConflictManagementToolController {
 
     private boolean fileSelected = false;
 
+    private IntFunction<Node> numberFactory;
+
     private static final Logger console = LogManager.getLogger("briefconsolelogger");
 
     private HashMap<String, CodeArea> files = new HashMap<>();
@@ -97,7 +100,7 @@ public class ConflictManagementToolController {
     public void initialize() {
         initButtons();
         initDropdown();
-        initTextAreas();
+        initCodeAreas();
         // Disable everything except the dropdown if the user has not specified a file to solve merge conflicts for yet
         if (!fileSelected) {
             setButtonsDisabled(true);
@@ -151,7 +154,7 @@ public class ConflictManagementToolController {
         }
     }
 
-    private void initTextAreas() {
+    private void initCodeAreas() {
         // Add line numbers to each CodeArea
         addLineNumbers(rightDoc);
         addLineNumbers(middleDoc);
@@ -170,7 +173,8 @@ public class ConflictManagementToolController {
     }
 
     private void addLineNumbers(CodeArea doc) {
-        doc.setParagraphGraphicFactory(LineNumberFactory.get(doc));
+        numberFactory = LineNumberFactory.get(doc);
+//        doc.setParagraphGraphicFactory(LineNumberFactory.get(doc));
     }
 
     private void bindHorizontalScroll(CodeArea doc1, CodeArea doc2) {
@@ -233,12 +237,12 @@ public class ConflictManagementToolController {
     }*/
 
     @FXML
-    private void handleAbort(){
+    private void handleAbort() {
         stage.close();
     }
 
     @FXML
-    private void handleApplyChanges(){
+    private void handleApplyChanges() {
         //add in a check to see if conflicts remain
         try {
             Path directory = (new File(SessionModel.getSessionModel().getCurrentRepoHelper().getRepo().getDirectory()
@@ -250,7 +254,7 @@ public class ConflictManagementToolController {
             writer.flush();
             writer.close();
             stage.close();
-        } catch (IOException e){
+        } catch (IOException e) {
             throw new ExceptionAdapter(e);
         }
     }
@@ -335,25 +339,41 @@ public class ConflictManagementToolController {
         setButtonsDisabled(false);
     }
 
-    private CodeArea setLines(ArrayList lines, CodeArea doc) {
-        for (int i = 0; i < lines.size(); i++) {
-            ConflictLine conflict = (ConflictLine) lines.get(i);
+    private CodeArea setLines(ArrayList<ConflictLine> lines, CodeArea doc) {
+        for (ConflictLine conflict : lines) {
             ArrayList<String> conflictLines = conflict.getLines();
+            if (conflict.isConflicting()) {
+                setConflictLineDividers(doc, doc.currentParagraphProperty(), conflictLines.size());
+            }
             for (String line : conflictLines) {
+
                 int startIndex = doc.getCaretPosition();
                 // update the document
                 doc.appendText(line + "\n");
                 int endIndex = doc.getLength();
-                setCSSSelector(conflict, doc, startIndex, endIndex);
+                if (conflict.isConflicting()) {
+                    setCSSSelector(doc, startIndex, endIndex);
+                }
             }
         }
         return doc;
     }
 
-    private void setCSSSelector(ConflictLine conflictLine, CodeArea doc, int startIndex, int endIndex) {
-        if (conflictLine.isConflicting()) {
-            doc.setStyle(startIndex, endIndex, Collections.singleton("conflict"));
-        }
+    private void setCSSSelector(CodeArea doc, int startIndex, int endIndex) {
+        doc.setStyle(startIndex, endIndex, Collections.singleton("conflict"));
+    }
+
+    private void setConflictLineDividers(CodeArea doc, ObservableValue<Integer> lineNumber, int height) {
+        // Get the number of lines somehow
+        IntFunction<Node> conflictLineSection = new ConflictLineSection(lineNumber, height);
+        IntFunction<Node> graphicFactory = line -> {
+            HBox hbox = new HBox(
+                    numberFactory.apply(line),
+                    conflictLineSection.apply(line));
+            hbox.setAlignment(Pos.CENTER_LEFT);
+            return hbox;
+        };
+        doc.setParagraphGraphicFactory(graphicFactory);
     }
 
     private void showAllConflictsHandledNotification() {
