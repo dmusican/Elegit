@@ -142,17 +142,17 @@
             <!--Buttons for applying changes and aborting the merge-->
             <HBox alignment="CENTER_RIGHT" prefHeight="100.0" prefWidth="200.0" GridPane.columnIndex="2" GridPane.rowIndex="3">
                 <children>
-                    <Button fx:id="abortMerge" text="Abort" onAction="#abort">
+                    <Button fx:id="abortMerge" text="Abort" onAction="#handleAbort">
                         <HBox.margin>
                             <Insets right="1.5" top="3.0" />
                         </HBox.margin>
                     </Button>
-                    <Button fx:id="applyChanges" text="Apply" onAction="#acceptChanges">
+                    <Button fx:id="applyChanges" text="Apply" onAction="#handleApplyChanges">
                         <HBox.margin>
                             <Insets left="1.5" right="10.0" top="3.0" />
                         </HBox.margin>
                     </Button>
-                    <!--<Button fx:id="applyAllChanges" text="Apply All" onAction="#acceptAllChanges">
+                    <!--<Button fx:id="applyAllChanges" text="Apply All" onAction="#handleApplyAllChanges">
                         <HBox.margin>
                             <Insets right="1.5" top="3.0" />
                         </HBox.margin>

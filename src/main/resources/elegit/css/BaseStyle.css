@@ -360,6 +360,10 @@
     -fx-cell-color-emphasize: radial-gradient(center 50% 50%, radius 75%, #ff6e79, #e62613);
 }
 
+.tooltip {
+    -fx-font-size: 12px;
+}
+
 /* Conflict Management buttons */
 #checkIcon {
     -fx-fill: #26bc6f;
@@ -380,19 +384,7 @@
 #document {
     -fx-font-family: Courier;
     -fx-font-size: 13px;
-}
-
-#document .keyword {
-    -rtfx-background-color: #26bc6f;
-}
-
-#lineNumbers {
-    -fx-font-family: Courier;
-    -fx-font-size: 13px;
-}
-
-.tooltip {
-    -fx-font-size: 12px;
+    -fx-border-color: #afafaf;
 }
 
 .lineno {
@@ -401,4 +393,5 @@
 
 .code-area .conflict {
     -rtfx-background-color: rgba(255, 0, 0, 0.34);
+    -fx-fill: darkred;
 }
