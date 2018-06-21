@@ -39,7 +39,6 @@ public class ConflictManagementModel {
                     ConflictLine leftConflict = new ConflictLine(true);
                     while(!line.contains("=======")){
                         leftConflict.addLine(line);
-                        //left.add(new ConflictLine(line, true));
                         line = reader.readLine();
                     }
                     left.add(leftConflict);
@@ -61,12 +60,12 @@ public class ConflictManagementModel {
                 }
                 else{
                     noConflict.addLine(line);
-                    //left.add(new ConflictLine(line, false));
-                    //middle.add(new ConflictLine(line, false));
-                    //right.add(new ConflictLine(line, false));
                     line = reader.readLine();
                 }
             }
+            left.add(noConflict);
+            middle.add(noConflict);
+            right.add(noConflict);
         }
         catch (IOException e){
             logger.info(e);
