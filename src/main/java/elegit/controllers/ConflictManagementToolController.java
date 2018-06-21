@@ -31,12 +31,10 @@ import java.io.FileReader;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Set;
+import java.util.*;
 import java.io.File;
-import java.util.Map;
 
 /**
  * Created by grenche on 6/18/18.
@@ -321,15 +319,18 @@ public class ConflictManagementToolController {
         for (int i = 0; i < lines.size(); i++) {
             ConflictLine conflict = (ConflictLine) lines.get(i);
             String line = conflict.getLine();
+            int startIndex = doc.getCaretPosition();
             // update the document
-            doc.appendText(" " + line + "\n");
+            doc.appendText(line + "\n");
+            int endIndex = doc.getCaretPosition();
+            setCSSSelector(conflict, doc, startIndex, endIndex);
         }
         return doc;
     }
 
-    private void setHighlight(ConflictLine conflictLine) {
+    private void setCSSSelector(ConflictLine conflictLine, CodeArea doc, int startIndex, int endIndex) {
         if (conflictLine.isConflicting()) {
-            // Still trying to figure this out
+            doc.setStyle(startIndex, endIndex, Collections.singleton("conflict"));
         }
     }
 
