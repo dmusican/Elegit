@@ -25,34 +25,45 @@ public class ConflictManagementModel {
         ArrayList<ConflictLine> left = new ArrayList<>();
         ArrayList<ConflictLine> middle = new ArrayList<>();
         ArrayList<ConflictLine> right = new ArrayList<>();
-
+        ConflictLine noConflict = new ConflictLine(false);
         try {
             BufferedReader reader = new BufferedReader(new FileReader(path));
+
             String line = reader.readLine();
             while(line!=null){
                 if(line.contains("<<<<<<<")){
+                    left.add(noConflict);
+                    middle.add(noConflict);
+                    right.add(noConflict);
                     line = reader.readLine();
+                    ConflictLine leftConflict = new ConflictLine(true);
                     while(!line.contains("=======")){
-                        left.add(new ConflictLine(line, true));
+                        leftConflict.addLine(line);
+                        //left.add(new ConflictLine(line, true));
                         line = reader.readLine();
                     }
+                    left.add(leftConflict);
                     line = reader.readLine();
+                    ConflictLine rightConflict = new ConflictLine(true);
                     while(!line.contains(">>>>>>>")){
-                        right.add(new ConflictLine(line, true));
+                        rightConflict.addLine(line);
                         line = reader.readLine();
                     }
+                    right.add(rightConflict);
                     line = reader.readLine();
+                    noConflict = new ConflictLine(false);
                 }
                 else if(line.contains("<<===<<")){
                     baseBranch = reader.readLine();
                     mergedBranch = reader.readLine();
-                    line = reader.readLine();
+                    reader.readLine();
                     line = reader.readLine();
                 }
                 else{
-                    left.add(new ConflictLine(line, false));
-                    middle.add(new ConflictLine(line, false));
-                    right.add(new ConflictLine(line, false));
+                    noConflict.addLine(line);
+                    //left.add(new ConflictLine(line, false));
+                    //middle.add(new ConflictLine(line, false));
+                    //right.add(new ConflictLine(line, false));
                     line = reader.readLine();
                 }
             }

@@ -319,12 +319,14 @@ public class ConflictManagementToolController {
     private CodeArea setLines(ArrayList lines, CodeArea doc) {
         for (int i = 0; i < lines.size(); i++) {
             ConflictLine conflict = (ConflictLine) lines.get(i);
-            String line = conflict.getLine();
-            int startIndex = doc.getCaretPosition();
-            // update the document
-            doc.appendText(line + "\n");
-            int endIndex = doc.getCaretPosition();
-            setCSSSelector(conflict, doc, startIndex, endIndex);
+            ArrayList<String> conflictLines = conflict.getLines();
+            for (String line : conflictLines) {
+                int startIndex = doc.getCaretPosition();
+                // update the document
+                doc.appendText(line + "\n");
+                int endIndex = doc.getCaretPosition();
+                setCSSSelector(conflict, doc, startIndex, endIndex);
+            }
         }
         return doc;
     }
