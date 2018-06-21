@@ -256,11 +256,11 @@ public class ConflictManagementToolController {
     }
 
     @FXML
-    private void handleToggleChangeUp() {
+    private void handleToggleUp() {
     }
 
     @FXML
-    private void handleToggleChangeDown() {
+    private void handleToggleDown() {
     }
 
     @FXML
@@ -284,7 +284,6 @@ public class ConflictManagementToolController {
 
         clearTextAreas();
         updateTextAreasWithNewFile();
-        setLabels();
         setButtonsDisabled(false);
     }
 
@@ -312,10 +311,10 @@ public class ConflictManagementToolController {
         setFile(filePathWithoutFileName, fileName);
     }
 
-    private void setLabels() {
-        leftDocLabel.setText("Left");
+    private void setLabels(ConflictManagementModel conflictManagementModel) {
+        leftDocLabel.setText(conflictManagementModel.getBaseBranch());
         middleDocLabel.setText("Result");
-        rightDocLabel.setText("Right");
+        rightDocLabel.setText(conflictManagementModel.getMergedBranch());
     }
 
     public void setFile(String filePathWithoutFileName, String fileName) {
@@ -324,8 +323,9 @@ public class ConflictManagementToolController {
         ConflictManagementModel conflictManagementModel = new ConflictManagementModel();
         ArrayList<ArrayList> results = conflictManagementModel.parseConflicts(filePathWithoutFileName +
                 File.separator + fileName);
-        leftDocLabel.setText(conflictManagementModel.getBaseBranch());
-        rightDocLabel.setText(conflictManagementModel.getMergedBranch());
+
+        setLabels(conflictManagementModel);
+
         setLines(results.get(0), leftDoc);
         CodeArea middle = setLines(results.get(1), middleDoc);
         setLines(results.get(2), rightDoc);

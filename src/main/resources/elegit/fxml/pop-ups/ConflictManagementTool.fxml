@@ -84,17 +84,17 @@
             <!--Accept/Reject/Undo changes for left document-->
             <HBox alignment="CENTER_RIGHT" prefHeight="40.0" prefWidth="410.0" GridPane.rowIndex="2">
                 <children>
-                    <Button id="undoButton" fx:id="leftUndo" alignment="CENTER" contentDisplay="CENTER" graphicTextGap="3.0">
+                    <Button id="undoButton" fx:id="leftUndo" onAction="#handleUndoChange" alignment="CENTER" contentDisplay="CENTER" graphicTextGap="3.0">
                         <HBox.margin>
                             <Insets right="1.5" />
                         </HBox.margin>
                     </Button>
-                    <Button id="rejectButton" fx:id="leftReject" alignment="CENTER" contentDisplay="CENTER" graphicTextGap="3.0">
+                    <Button id="rejectButton" fx:id="leftReject" onAction="#handleRejectChange" alignment="CENTER" contentDisplay="CENTER" graphicTextGap="3.0">
                         <HBox.margin>
                             <Insets left="1.5" right="1.5" />
                         </HBox.margin>
                     </Button>
-                    <Button id="acceptButton" fx:id="leftAccept" alignment="CENTER" contentDisplay="CENTER" graphicTextGap="3.0">
+                    <Button id="acceptButton" fx:id="leftAccept" onAction="#handleAcceptChange" alignment="CENTER" contentDisplay="CENTER" graphicTextGap="3.0">
                         <HBox.margin>
                             <Insets left="1.5" right="3.0" />
                         </HBox.margin>
@@ -105,17 +105,17 @@
             <!--Accept/Reject/Undo changes for right document-->
             <HBox alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0" GridPane.columnIndex="2" GridPane.rowIndex="2">
                 <children>
-                    <Button id="acceptButton" fx:id="rightAccept" alignment="CENTER" contentDisplay="CENTER" graphicTextGap="2.0">
+                    <Button id="acceptButton" fx:id="rightAccept" onAction="#handleAcceptChange" alignment="CENTER" contentDisplay="CENTER" graphicTextGap="2.0">
                         <HBox.margin>
                             <Insets left="3.0" right="1.5" />
                         </HBox.margin>
                     </Button>
-                    <Button id="rejectButton" fx:id="rightReject" alignment="CENTER" contentDisplay="CENTER" graphicTextGap="2.0">
+                    <Button id="rejectButton" fx:id="rightReject" onAction="#handleRejectChange" alignment="CENTER" contentDisplay="CENTER" graphicTextGap="2.0">
                         <HBox.margin>
                             <Insets left="1.5" right="1.5" />
                         </HBox.margin>
                     </Button>
-                    <Button id="undoButton" fx:id="rightUndo" alignment="CENTER" contentDisplay="CENTER" graphicTextGap="2.0">
+                    <Button id="undoButton" fx:id="rightUndo" onAction="#handleUndoChange" alignment="CENTER" contentDisplay="CENTER" graphicTextGap="2.0">
                         <HBox.margin>
                             <Insets left="1.5" />
                         </HBox.margin>
@@ -126,12 +126,12 @@
             <!--Buttons for toggling between changes-->
             <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="3">
                 <children>
-                    <Button id="toggle" fx:id="upToggle" alignment="CENTER" contentDisplay="CENTER" graphicTextGap="3.0">
+                    <Button id="toggle" fx:id="upToggle" onAction="#handleToggleUp" alignment="CENTER" contentDisplay="CENTER" graphicTextGap="3.0">
                         <HBox.margin>
                             <Insets right="1.5" top="3.0" />
                         </HBox.margin>
                     </Button>
-                    <Button id="toggle" fx:id="downToggle" alignment="CENTER" contentDisplay="CENTER" graphicTextGap="3.0">
+                    <Button id="toggle" fx:id="downToggle" onAction="#handleToggleDown" alignment="CENTER" contentDisplay="CENTER" graphicTextGap="3.0">
                         <HBox.margin>
                             <Insets left="1.5" top="3.0" />
                         </HBox.margin>
