@@ -1,17 +1,15 @@
 package elegit.controllers;
 
-import com.sun.javafx.binding.BidirectionalBinding;
 import de.jensd.fx.glyphs.GlyphIcons;
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import elegit.Main;
 import elegit.exceptions.ExceptionAdapter;
-import elegit.gui.ConflictLineSection;
+import elegit.gui.ConflictLinePointer;
 import elegit.models.ConflictManagementModel;
 import elegit.models.RepoHelper;
 import elegit.models.SessionModel;
 import elegit.models.ConflictLine;
-import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -96,11 +94,17 @@ public class ConflictManagementToolController {
     @FXML
     private Stage stage;
 
-    private ArrayList<ConflictLine> leftConflictLines;
+    private ArrayList<ConflictLine> leftAllConflictLines;
 
-    private ArrayList<ConflictLine> middleConflictLines;
+    private ArrayList<ConflictLine> middleAllConflictLines;
 
-    private ArrayList<ConflictLine> rightConflictLines;
+    private ArrayList<ConflictLine> rightAllConflictLines;
+
+    private ArrayList<ConflictLine> leftConflictLines = new ArrayList<>();
+
+    private ArrayList<ConflictLine> middleConflictLines = new ArrayList<>();
+
+    private ArrayList<ConflictLine> rightConflictLines = new ArrayList<>();
 
     private ArrayList<Integer> leftConflictingLineNumbers = new ArrayList<>();
 
@@ -109,8 +113,6 @@ public class ConflictManagementToolController {
     private ArrayList<Integer> rightConflictingLineNumbers = new ArrayList<>();
 
     private boolean fileSelected = false;
-
-    private IntFunction<Node> numberFactory;
 
     private static final Logger console = LogManager.getLogger("briefconsolelogger");
 
@@ -182,10 +184,10 @@ public class ConflictManagementToolController {
     }
 
     private void initCodeAreas() {
-        // Add line numbers to each CodeArea
-        addLineNumbers(rightDoc);
-        addLineNumbers(middleDoc);
-        addLineNumbers(leftDoc);
+        // Add line numbers and pointers to each CodeArea
+        addLineNumbersAndPointers(rightDoc);
+        addLineNumbersAndPointers(middleDoc);
+        addLineNumbersAndPointers(leftDoc);
 
         // Bind xvalues
         bindHorizontalScroll(rightDoc, middleDoc);
@@ -199,9 +201,17 @@ public class ConflictManagementToolController {
         bindVerticalScroll(leftDoc, rightDoc);
     }
 
-    private void addLineNumbers(CodeArea doc) {
-        numberFactory = LineNumberFactory.get(doc);
-//        doc.setParagraphGraphicFactory(LineNumberFactory.get(doc));
+    private void addLineNumbersAndPointers(CodeArea doc) {
+        IntFunction<Node> numberFactory = LineNumberFactory.get(doc);
+        IntFunction<Node> conflictLinePointer = new ConflictLinePointer(doc.currentParagraphProperty());
+        IntFunction<Node> graphicFactory = line -> {
+            HBox hbox = new HBox(
+                    numberFactory.apply(line),
+                    conflictLinePointer.apply(line));
+            hbox.setAlignment(Pos.CENTER_LEFT);
+            return hbox;
+        };
+        doc.setParagraphGraphicFactory(graphicFactory);
     }
 
     private void bindHorizontalScroll(CodeArea doc1, CodeArea doc2) {
@@ -343,7 +353,26 @@ public class ConflictManagementToolController {
     }
 
     @FXML
-    private void handleAcceptChange() {
+    private void handleAcceptLeftChange() {
+        int currentLine = leftDoc.getCurrentParagraph();
+
+        int conflictLineIndex;
+        for (int i =0; i < leftConflictingLineNumbers.size(); i++) {
+            int lineNumber = leftConflictingLineNumbers.get(i);
+            if (lineNumber == currentLine) {
+                conflictLineIndex = i;
+                for (String line : leftConflictLines.get(conflictLineIndex).getLines()) {
+                    middleDoc.insertText(middleDoc.getCurrentParagraph(), 0, line + "\n");
+                }
+                return;
+            }
+        }
+        // TODO: update line numbers in middle doc!!!!
+
+    }
+
+    @FXML
+    private void handleAcceptRightChange() {
     }
 
     @FXML
@@ -405,16 +434,17 @@ public class ConflictManagementToolController {
 
         setLabels(conflictManagementModel);
 
-        leftConflictLines = results.get(0);
-        middleConflictLines = results.get(1);
-        rightConflictLines = results.get(2);
-        getConflictingLineNumbers(leftConflictLines, leftConflictingLineNumbers);
-        getConflictingLineNumbers(middleConflictLines, middleConflictingLineNumbers);
-        getConflictingLineNumbers(rightConflictLines, rightConflictingLineNumbers);
+        leftAllConflictLines = results.get(0);
+        middleAllConflictLines = results.get(1);
+        rightAllConflictLines = results.get(2);
 
-        setLines(leftConflictLines, leftDoc);
-        CodeArea middle = setLines(middleConflictLines, middleDoc);
-        setLines(rightConflictLines, rightDoc);
+        getActualConflictingLines(leftAllConflictLines, leftConflictLines, leftConflictingLineNumbers);
+        getActualConflictingLines(middleAllConflictLines, middleConflictLines, middleConflictingLineNumbers);
+        getActualConflictingLines(rightAllConflictLines, rightConflictLines, rightConflictingLineNumbers);
+
+        setLines(leftAllConflictLines, leftDoc);
+        CodeArea middle = setLines(middleAllConflictLines, middleDoc);
+        setLines(rightAllConflictLines, rightDoc);
         files.put(fileName, middle);
         //getParentFiles(fileName);
         // Allow the user to click buttons
@@ -446,9 +476,8 @@ public class ConflictManagementToolController {
         } catch (IOException e){
             throw new ExceptionAdapter(e);
         }
-
-
     }
+
     private ArrayList<String> getMergedParentFiles(String fileName){
         try {
             Repository repository = SessionModel.getSessionModel().getCurrentRepoHelper().getRepo();
@@ -473,33 +502,31 @@ public class ConflictManagementToolController {
 
 
     }
-    private void getConflictingLineNumbers(ArrayList<ConflictLine> doc, ArrayList<Integer> conflictingLineNumbers) {
-        int lineNumber = -1;
-        for (ConflictLine conflictLine : doc) {
-            lineNumber += conflictLine.getLines().size();
-            if (conflictLine.isConflicting()) {
-                conflictingLineNumbers.add(lineNumber);
+        private void getActualConflictingLines(ArrayList<ConflictLine> allConflictLines, ArrayList<ConflictLine> conflictLines, ArrayList<Integer> conflictingLineNumbers) {
+            int lineNumber = 0;
+            for (ConflictLine conflictLine : allConflictLines) {
+                if (conflictLine.isConflicting()) {
+                    conflictingLineNumbers.add(lineNumber);
+                    conflictLines.add(conflictLine);
+                }
+                // Increment the number after add so that the arrow points to the beginning of the block.
+                lineNumber += conflictLine.getLines().size();
             }
         }
-    }
 
     private void setInitialPositions(CodeArea doc, ArrayList<Integer> conflictingLineNumbers) {
         doc.moveTo(conflictingLineNumbers.get(0), 0);
         doc.requestFollowCaret();
     }
-    private CodeArea setLines(ArrayList lines, CodeArea doc) {
-        for (int i = 0; i < lines.size(); i++) {
-            ConflictLine conflict = (ConflictLine) lines.get(i);
-            ArrayList<String> conflictLines = conflict.getLines();
-            if (conflict.isConflicting()) {
-                setConflictLineDividers(doc, doc.currentParagraphProperty(), conflictLines.size());
-            }
-            for (String line : conflictLines) {
 
+    private CodeArea setLines(ArrayList<ConflictLine> lines, CodeArea doc) {
+        for (ConflictLine conflict : lines) {
+            ArrayList<String> conflictLines = conflict.getLines();
+            for (String line : conflictLines) {
                 int startIndex = doc.getCaretPosition();
-                // update the document
                 doc.appendText(line + "\n");
                 int endIndex = doc.getLength();
+
                 if (conflict.isConflicting()) {
                     setCSSSelector(doc, startIndex, endIndex);
                 }
@@ -510,19 +537,6 @@ public class ConflictManagementToolController {
 
     private void setCSSSelector(CodeArea doc, int startIndex, int endIndex) {
         doc.setStyle(startIndex, endIndex, Collections.singleton("conflict"));
-    }
-
-    private void setConflictLineDividers(CodeArea doc, ObservableValue<Integer> lineNumber, int height) {
-        // Get the number of lines somehow
-        IntFunction<Node> conflictLineSection = new ConflictLineSection(lineNumber, height);
-        IntFunction<Node> graphicFactory = line -> {
-            HBox hbox = new HBox(
-                    numberFactory.apply(line),
-                    conflictLineSection.apply(line));
-            hbox.setAlignment(Pos.CENTER_LEFT);
-            return hbox;
-        };
-        doc.setParagraphGraphicFactory(graphicFactory);
     }
 
     private void showAllConflictsHandledNotification() {

@@ -110,7 +110,7 @@
                             <Insets left="1.5" right="1.5" />
                         </HBox.margin>
                     </Button>
-                    <Button id="acceptButton" fx:id="leftAccept" onAction="#handleAcceptChange" alignment="CENTER" contentDisplay="CENTER" graphicTextGap="3.0">
+                    <Button id="acceptButton" fx:id="leftAccept" onAction="#handleAcceptLeftChange" alignment="CENTER" contentDisplay="CENTER" graphicTextGap="3.0">
                         <HBox.margin>
                             <Insets left="1.5" right="3.0" />
                         </HBox.margin>
@@ -121,7 +121,7 @@
             <!--Accept/Reject/Undo changes for right document-->
             <HBox alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0" GridPane.columnIndex="2" GridPane.rowIndex="2">
                 <children>
-                    <Button id="acceptButton" fx:id="rightAccept" onAction="#handleAcceptChange" alignment="CENTER" contentDisplay="CENTER" graphicTextGap="2.0">
+                    <Button id="acceptButton" fx:id="rightAccept" onAction="#handleAcceptRightChange" alignment="CENTER" contentDisplay="CENTER" graphicTextGap="2.0">
                         <HBox.margin>
                             <Insets left="3.0" right="1.5" />
                         </HBox.margin>
