@@ -15,15 +15,20 @@ public class ConflictLine {
         this.lines = lines;
         this.conflict = conflict;
         this.modified = false;
+        this.changed=false;
     }
 
     public ConflictLine(ArrayList<String> lines) {
         this.lines = lines;
         this.conflict = false;
+        this.modified = false;
+        this.changed=false;
     }
     public ConflictLine(boolean conflict) {
         this.lines = new ArrayList<>();
         this.conflict = conflict;
+        this.modified = false;
+        this.changed=false;
     }
 
     public void addLine(String line){
@@ -33,9 +38,6 @@ public class ConflictLine {
         return lines;
     }
 
-    //public void changeLine(String changedLine) {
-    //    this.line=changedLine;
-    //}
 
     public boolean isConflicting() {
         return conflict;
