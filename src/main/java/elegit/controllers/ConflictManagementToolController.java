@@ -124,7 +124,6 @@ public class ConflictManagementToolController {
         this.sessionController = sessionController;
     }
 
-    //----- INITIALIZATION -----
     public void initialize() {
         mergeResult=SessionModel.getSessionModel().getMergeResult();
         System.out.println(mergeResult.get("baseBranch")+"    "+mergeResult.get("mergedBranch"));
@@ -354,7 +353,26 @@ public class ConflictManagementToolController {
     }
 
     @FXML
-    private void handleAcceptChange() {
+    private void handleAcceptLeftChange() {
+        int currentLine = leftDoc.getCurrentParagraph();
+
+        int conflictLineIndex;
+        for (int i =0; i < leftConflictingLineNumbers.size(); i++) {
+            int lineNumber = leftConflictingLineNumbers.get(i);
+            if (lineNumber == currentLine) {
+                conflictLineIndex = i;
+                for (String line : leftConflictLines.get(conflictLineIndex).getLines()) {
+                    middleDoc.insertText(middleDoc.getCurrentParagraph(), 0, line + "\n");
+                }
+                return;
+            }
+        }
+        // TODO: update line numbers in middle doc!!!!
+
+    }
+
+    @FXML
+    private void handleAcceptRightChange() {
     }
 
     @FXML
