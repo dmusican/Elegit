@@ -391,7 +391,7 @@
     -fx-background-color: #f1f1f1;
 }
 
-.conflict-line {
+.conflict-pointer {
     -fx-stroke: red;
     -fx-fill: red;
 }
