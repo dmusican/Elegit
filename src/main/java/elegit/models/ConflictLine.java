@@ -9,6 +9,7 @@ public class ConflictLine {
     // true when conflicting, false otherwise
     private boolean conflict;
     private boolean modified;
+    private boolean changed;
 
     public ConflictLine(ArrayList<String> lines, boolean conflict) {
         this.lines = lines;
@@ -50,5 +51,13 @@ public class ConflictLine {
 
     public void setModifiedStatus(boolean newStatus) {
         modified = newStatus;
+    }
+
+    public boolean isChanged() {
+        return changed;
+    }
+
+    public void setChangedStatus(boolean newStatus) {
+        changed = newStatus;
     }
 }

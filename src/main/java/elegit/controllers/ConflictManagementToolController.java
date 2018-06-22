@@ -401,7 +401,7 @@ public class ConflictManagementToolController {
         conflictingFilesDropdown.setPromptText(fileName);
         ConflictManagementModel conflictManagementModel = new ConflictManagementModel();
         ArrayList<ArrayList> results = conflictManagementModel.parseConflicts(filePathWithoutFileName +
-                File.separator + fileName);
+                File.separator + fileName, getBaseParentFiles(fileName), getMergedParentFiles(fileName));
 
         setLabels(conflictManagementModel);
 
@@ -416,7 +416,7 @@ public class ConflictManagementToolController {
         CodeArea middle = setLines(middleConflictLines, middleDoc);
         setLines(rightConflictLines, rightDoc);
         files.put(fileName, middle);
-        getParentFiles(fileName);
+        //getParentFiles(fileName);
         // Allow the user to click buttons
         setButtonsDisabled(false);
         // Move the caret and doc to the first conflict
@@ -425,19 +425,14 @@ public class ConflictManagementToolController {
         setInitialPositions(rightDoc, rightConflictingLineNumbers);
     }
 
-    private void getParentFiles(String fileName){
+    private ArrayList<String> getBaseParentFiles(String fileName){
         try {
-            //ObjectId[] parents = mergeResult.getMergedCommits();
             Repository repository = SessionModel.getSessionModel().getCurrentRepoHelper().getRepo();
             RevWalk revWalk = new RevWalk(repository);
             System.out.println(mergeResult.get("baseParent"));
-            System.out.println(mergeResult.get("mergedParent"));
             ObjectId baseParent = ObjectId.fromString(mergeResult.get("baseParent").substring(7,47));
-            ObjectId mergedParent = ObjectId.fromString(mergeResult.get("mergedParent").substring(7,47));
             System.out.println(baseParent);
-            System.out.println(mergedParent);
             RevTree baseTree = revWalk.parseCommit(baseParent).getTree();
-            RevTree mergedTree = revWalk.parseCommit(mergedParent).getTree();
             TreeWalk baseTreeWalk = new TreeWalk(repository);
             baseTreeWalk.addTree(baseTree);
             baseTreeWalk.setRecursive(true);
@@ -447,6 +442,24 @@ public class ConflictManagementToolController {
             }
             ObjectId baseObjectId = baseTreeWalk.getObjectId(0);
 
+            ObjectLoader baseLoader = repository.open(baseObjectId);
+            String baseString = new String(baseLoader.getBytes());
+            System.out.println(baseString);
+            return new  ArrayList<String>(Arrays.asList(baseString.split("\n")));
+        } catch (IOException e){
+            throw new ExceptionAdapter(e);
+        }
+
+
+    }
+    private ArrayList<String> getMergedParentFiles(String fileName){
+        try {
+            Repository repository = SessionModel.getSessionModel().getCurrentRepoHelper().getRepo();
+            RevWalk revWalk = new RevWalk(repository);
+            System.out.println(mergeResult.get("mergedParent"));
+            ObjectId mergedParent = ObjectId.fromString(mergeResult.get("mergedParent").substring(7,47));
+            System.out.println(mergedParent);
+            RevTree mergedTree = revWalk.parseCommit(mergedParent).getTree();
             TreeWalk mergedTreeWalk = new TreeWalk(repository);
             mergedTreeWalk.addTree(mergedTree);
             mergedTreeWalk.setRecursive(true);
@@ -456,13 +469,10 @@ public class ConflictManagementToolController {
             }
             ObjectId mergedObjectId = mergedTreeWalk.getObjectId(0);
 
-            ObjectLoader baseLoader = repository.open(baseObjectId);
             ObjectLoader mergedLoader = repository.open(mergedObjectId);
-            //System.out.println(loader0.getBytes().toString());
-            String baseString = baseLoader.openStream().toString();
-            String mergedString = mergedLoader.openStream().toString();
-            System.out.println(baseString);
+            String mergedString = new String(mergedLoader.getBytes());
             System.out.println(mergedString);
+            return new  ArrayList<String>(Arrays.asList(mergedString.split("\n")));
         } catch (IOException e){
             throw new ExceptionAdapter(e);
         }
