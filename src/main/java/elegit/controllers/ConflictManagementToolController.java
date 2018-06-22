@@ -6,16 +6,21 @@ import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import elegit.Main;
 import elegit.exceptions.ExceptionAdapter;
+import elegit.gui.ConflictLineSection;
 import elegit.models.ConflictManagementModel;
 import elegit.models.RepoHelper;
 import elegit.models.SessionModel;
 import elegit.models.ConflictLine;
+import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -34,17 +39,14 @@ import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
-import org.fxmisc.richtext.StyledTextArea;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.nio.file.Path;
 import java.util.*;
 import java.io.File;
+import java.util.function.IntFunction;
 
 /**
  * Created by grenche on 6/18/18.
@@ -94,7 +96,21 @@ public class ConflictManagementToolController {
     @FXML
     private Stage stage;
 
+    private ArrayList<ConflictLine> leftConflictLines;
+
+    private ArrayList<ConflictLine> middleConflictLines;
+
+    private ArrayList<ConflictLine> rightConflictLines;
+
+    private ArrayList<Integer> leftConflictingLineNumbers = new ArrayList<>();
+
+    private ArrayList<Integer> middleConflictingLineNumbers = new ArrayList<>();
+
+    private ArrayList<Integer> rightConflictingLineNumbers = new ArrayList<>();
+
     private boolean fileSelected = false;
+
+    private IntFunction<Node> numberFactory;
 
     private static final Logger console = LogManager.getLogger("briefconsolelogger");
 
@@ -111,7 +127,7 @@ public class ConflictManagementToolController {
         System.out.println(mergeResult.get("baseBranch")+"    "+mergeResult.get("mergedBranch"));
         initButtons();
         initDropdown();
-        initTextAreas();
+        initCodeAreas();
         // Disable everything except the dropdown if the user has not specified a file to solve merge conflicts for yet
         if (!fileSelected) {
             setButtonsDisabled(true);
@@ -165,7 +181,7 @@ public class ConflictManagementToolController {
         }
     }
 
-    private void initTextAreas() {
+    private void initCodeAreas() {
         // Add line numbers to each CodeArea
         addLineNumbers(rightDoc);
         addLineNumbers(middleDoc);
@@ -184,7 +200,8 @@ public class ConflictManagementToolController {
     }
 
     private void addLineNumbers(CodeArea doc) {
-        doc.setParagraphGraphicFactory(LineNumberFactory.get(doc));
+        numberFactory = LineNumberFactory.get(doc);
+//        doc.setParagraphGraphicFactory(LineNumberFactory.get(doc));
     }
 
     private void bindHorizontalScroll(CodeArea doc1, CodeArea doc2) {
@@ -247,12 +264,12 @@ public class ConflictManagementToolController {
     }*/
 
     @FXML
-    private void handleAbort(){
+    private void handleAbort() {
         stage.close();
     }
 
     @FXML
-    private void handleApplyChanges(){
+    private void handleApplyChanges() {
         //add in a check to see if conflicts remain
         try {
             Path directory = (new File(SessionModel.getSessionModel().getCurrentRepoHelper().getRepo().getDirectory()
@@ -264,17 +281,65 @@ public class ConflictManagementToolController {
             writer.flush();
             writer.close();
             stage.close();
-        } catch (IOException e){
+        } catch (IOException e) {
             throw new ExceptionAdapter(e);
         }
     }
 
     @FXML
     private void handleToggleUp() {
+        int currentLine = middleDoc.getCurrentParagraph();
+        if (currentLine <= middleConflictingLineNumbers.get(0)) { // Go to the last conflict if at or above the first one
+            moveDocCaretsToLastConflict();
+
+        } else if (middleConflictingLineNumbers.size() == 1) { // Go to the only conflict
+            moveDocCaretsToFirstConflict();
+
+        } else { // Go to the previous conflict
+            findConflictToGoTo(currentLine, 1);
+        }
     }
 
     @FXML
     private void handleToggleDown() {
+        int currentLine = middleDoc.getCurrentParagraph();
+        if (currentLine >= middleConflictingLineNumbers.get(leftConflictingLineNumbers.size() - 1)) { // Go to the first conflict if at or above the last one
+            moveDocCaretsToFirstConflict();
+
+        } else if (middleConflictingLineNumbers.size() == 1) { // Go to the only conflict
+            moveDocCaretsToFirstConflict();
+
+        } else { // Go to the previous conflict
+            findConflictToGoTo(currentLine, -1);
+        }
+    }
+
+    private void moveDocCaretsToLastConflict() {
+        moveDocCarets(leftDoc, leftConflictingLineNumbers.get(leftConflictingLineNumbers.size() - 1));
+        moveDocCarets(middleDoc, middleConflictingLineNumbers.get(middleConflictingLineNumbers.size() - 1));
+        moveDocCarets(rightDoc, rightConflictingLineNumbers.get(rightConflictingLineNumbers.size() - 1));
+    }
+
+    private void moveDocCaretsToFirstConflict() {
+        moveDocCarets(leftDoc, leftConflictingLineNumbers.get(0));
+        moveDocCarets(middleDoc, middleConflictingLineNumbers.get(0));
+        moveDocCarets(rightDoc, rightConflictingLineNumbers.get(0));
+    }
+
+    private void findConflictToGoTo(int currentLine, int direction) {
+        for (int i = 0; i < middleConflictingLineNumbers.size(); i++) {
+            if (currentLine <= middleConflictingLineNumbers.get(i)) {
+                moveDocCarets(leftDoc, leftConflictingLineNumbers.get(i - direction));
+                moveDocCarets(middleDoc, middleConflictingLineNumbers.get(i - direction));
+                moveDocCarets(rightDoc, rightConflictingLineNumbers.get(i - direction));
+                return;
+            }
+        }
+    }
+
+    private void moveDocCarets(CodeArea doc, int lineNumber) {
+        doc.moveTo(lineNumber, 0);
+        doc.requestFollowCaret();
     }
 
     @FXML
@@ -340,13 +405,24 @@ public class ConflictManagementToolController {
 
         setLabels(conflictManagementModel);
 
-        setLines(results.get(0), leftDoc);
-        CodeArea middle = setLines(results.get(1), middleDoc);
-        setLines(results.get(2), rightDoc);
+        leftConflictLines = results.get(0);
+        middleConflictLines = results.get(1);
+        rightConflictLines = results.get(2);
+        getConflictingLineNumbers(leftConflictLines, leftConflictingLineNumbers);
+        getConflictingLineNumbers(middleConflictLines, middleConflictingLineNumbers);
+        getConflictingLineNumbers(rightConflictLines, rightConflictingLineNumbers);
+
+        setLines(leftConflictLines, leftDoc);
+        CodeArea middle = setLines(middleConflictLines, middleDoc);
+        setLines(rightConflictLines, rightDoc);
         files.put(fileName, middle);
         getParentFiles(fileName);
         // Allow the user to click buttons
         setButtonsDisabled(false);
+        // Move the caret and doc to the first conflict
+        setInitialPositions(leftDoc, leftConflictingLineNumbers);
+        setInitialPositions(middleDoc, middleConflictingLineNumbers);
+        setInitialPositions(rightDoc, rightConflictingLineNumbers);
     }
 
     private void getParentFiles(String fileName){
@@ -393,25 +469,56 @@ public class ConflictManagementToolController {
 
 
     }
+    private void getConflictingLineNumbers(ArrayList<ConflictLine> doc, ArrayList<Integer> conflictingLineNumbers) {
+        int lineNumber = -1;
+        for (ConflictLine conflictLine : doc) {
+            lineNumber += conflictLine.getLines().size();
+            if (conflictLine.isConflicting()) {
+                conflictingLineNumbers.add(lineNumber);
+            }
+        }
+    }
+
+    private void setInitialPositions(CodeArea doc, ArrayList<Integer> conflictingLineNumbers) {
+        doc.moveTo(conflictingLineNumbers.get(0), 0);
+        doc.requestFollowCaret();
+    }
     private CodeArea setLines(ArrayList lines, CodeArea doc) {
         for (int i = 0; i < lines.size(); i++) {
             ConflictLine conflict = (ConflictLine) lines.get(i);
             ArrayList<String> conflictLines = conflict.getLines();
+            if (conflict.isConflicting()) {
+                setConflictLineDividers(doc, doc.currentParagraphProperty(), conflictLines.size());
+            }
             for (String line : conflictLines) {
+
                 int startIndex = doc.getCaretPosition();
                 // update the document
                 doc.appendText(line + "\n");
                 int endIndex = doc.getLength();
-                setCSSSelector(conflict, doc, startIndex, endIndex);
+                if (conflict.isConflicting()) {
+                    setCSSSelector(doc, startIndex, endIndex);
+                }
             }
         }
         return doc;
     }
 
-    private void setCSSSelector(ConflictLine conflictLine, CodeArea doc, int startIndex, int endIndex) {
-        if (conflictLine.isConflicting()) {
-            doc.setStyle(startIndex, endIndex, Collections.singleton("conflict"));
-        }
+    private void setCSSSelector(CodeArea doc, int startIndex, int endIndex) {
+        doc.setStyle(startIndex, endIndex, Collections.singleton("conflict"));
+    }
+
+    private void setConflictLineDividers(CodeArea doc, ObservableValue<Integer> lineNumber, int height) {
+        // Get the number of lines somehow
+        IntFunction<Node> conflictLineSection = new ConflictLineSection(lineNumber, height);
+        IntFunction<Node> graphicFactory = line -> {
+            HBox hbox = new HBox(
+                    numberFactory.apply(line),
+                    conflictLineSection.apply(line));
+            hbox.setAlignment(Pos.CENTER_LEFT);
+            return hbox;
+        };
+        doc.setParagraphGraphicFactory(graphicFactory);
     }
 
     private void showAllConflictsHandledNotification() {
