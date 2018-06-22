@@ -908,16 +908,12 @@ public class SessionController {
                     }
                 } else {
                     for (RepoFile checkedFile : workingTreePanelView.getCheckedFilesInDirectory()) {
-                        System.out.println("calling canadd");
                         if (checkedFile.canAdd()) {
-                            System.out.println("could add");
                             filePathsToAdd.add(checkedFile.getFilePath());
                         } else if (checkedFile instanceof MissingRepoFile) {
-                            System.out.println("couldn't add (missing)");
                             // JGit does not support adding missing files, instead remove them
                             filePathsToRemove.add(checkedFile.getFilePath());
                         } else {
-                            System.out.println("couldn't add");
                             throw new UnableToAddException(checkedFile.getFilePath().toString());
                         }
                     }

@@ -38,7 +38,8 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Set;
-import java.util.Map;
+import java.util.HashMap;
+import java.util.ArrayList;
 
 /**
  * Controller for the merge window
@@ -252,15 +253,23 @@ public class MergeWindowController {
         // Get the merge result from the branch merge
         MergeResult mergeResult =
                 SessionModel.getSessionModel().getCurrentRepoHelper().getBranchModel().mergeWithBranch(selectedBranch);
-        sessionModel.addMergeResult(mergeResult);
+        //sessionModel.addMergeResult(mergeResult);
+        String current = sessionModel.getCurrentRepoHelper().getBranchModel().getCurrentBranch().getRefName();
+        HashMap<String, String> results = new HashMap<>();
+        results.put("mergedBranch", selectedBranch.getRefName());
+        results.put("baseBranch", current);
+        //ObjectId[] parents = mergeResult.getMergedCommits();
+        results.put("baseParent", mergeResult.getMergedCommits()[0].toString());
+        results.put("mergedParent", mergeResult.getMergedCommits()[1].toString());
+        sessionModel.addMergeResult(results);
         if (mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.CONFLICTING)){
             this.showConflictsNotification();
             // TODO: Call gitStatus once I've got it better threaded
             this.sessionController.gitStatus();
             RepoHelper repoHelper = sessionModel.getCurrentRepoHelper();
             ConflictingFileWatcher.watchConflictingFiles(repoHelper);
-            String current = sessionModel.getCurrentRepoHelper().getBranchModel().getCurrentBranch().getRefName();
-            for (String file : sessionModel.getConflictingFiles(new Git(repoHelper.getRepo()).status().call())){
+            //String current = sessionModel.getCurrentRepoHelper().getBranchModel().getCurrentBranch().getRefName();
+            /*for (String file : sessionModel.getConflictingFiles(new Git(repoHelper.getRepo()).status().call())){
                 try {
                     String directory = repoHelper.getRepo().getDirectory().getParent();
                     String path = directory + File.separator + file;
@@ -270,7 +279,7 @@ public class MergeWindowController {
                 } catch (IOException e) {
                     throw new ExceptionAdapter(e);
                 }
-            }
+            }*/
 
 
         } else if (mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.ALREADY_UP_TO_DATE)) {

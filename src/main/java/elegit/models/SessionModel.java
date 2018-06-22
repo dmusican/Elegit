@@ -1,6 +1,7 @@
 package elegit.models;
 
 import elegit.Main;
+import elegit.exceptions.ExceptionAdapter;
 import elegit.monitors.ConflictingFileWatcher;
 import elegit.repofile.*;
 import elegit.sshauthentication.ElegitUserInfoGUI;
@@ -46,6 +47,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 import java.util.stream.Stream;
+import java.util.HashMap;
 
 /**
  * The singleton SessionModel stores all the Repos (contained in RepoHelper objects)
@@ -65,7 +67,7 @@ public class SessionModel {
     private final Preferences preferences;
     private static Class<?> preferencesNodeClass = SessionModel.class;
     private final PublishSubject<RepoHelper> openedRepos = PublishSubject.create();
-    private static MergeResult mergeResult;
+    private static final String MERGE_RESULT = "RESULT";
 
     @GuardedBy("this") private final List<RepoHelper> allRepoHelpers;
     private final AtomicReference<RepoHelper> currentRepoHelper = new AtomicReference<>();
@@ -528,11 +530,19 @@ public class SessionModel {
         return Collections.unmodifiableList(allFiles);
     }
 
-    public void addMergeResult(MergeResult result){
-        mergeResult=result;
+    public void addMergeResult(HashMap<String, String> results){
+        try {
+            PrefObj.putObject(this.preferences, MERGE_RESULT, results);
+        } catch(Exception e){
+            throw new ExceptionAdapter(e);
+        }
     }
-    public MergeResult getMergeResult(){
-        return mergeResult;
+    public HashMap<String, String> getMergeResult(){
+        try {
+            return (HashMap<String, String>) PrefObj.getObject(this.preferences, MERGE_RESULT);
+        } catch (Exception e){
+            throw new ExceptionAdapter(e);
+        }
     }
 
     /**

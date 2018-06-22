@@ -100,7 +100,7 @@ public class ConflictManagementToolController {
 
     private HashMap<String, CodeArea> files = new HashMap<>();
 
-    private MergeResult mergeResult;
+    private HashMap<String, String> mergeResult;
 
     synchronized void setSessionController(SessionController sessionController) {
         this.sessionController = sessionController;
@@ -108,6 +108,7 @@ public class ConflictManagementToolController {
 
     public void initialize() {
         mergeResult=SessionModel.getSessionModel().getMergeResult();
+        System.out.println(mergeResult.get("baseBranch")+"    "+mergeResult.get("mergedBranch"));
         initButtons();
         initDropdown();
         initTextAreas();
@@ -325,9 +326,9 @@ public class ConflictManagementToolController {
     }
 
     private void setLabels(ConflictManagementModel conflictManagementModel) {
-        leftDocLabel.setText(conflictManagementModel.getBaseBranch());
+        leftDocLabel.setText(mergeResult.get("baseBranch"));
         middleDocLabel.setText("Result");
-        rightDocLabel.setText(conflictManagementModel.getMergedBranch());
+        rightDocLabel.setText(mergeResult.get("mergedBranch"));
     }
 
     public void setFile(String filePathWithoutFileName, String fileName) {
@@ -350,37 +351,42 @@ public class ConflictManagementToolController {
 
     private void getParentFiles(String fileName){
         try {
-            ObjectId[] parents = mergeResult.getMergedCommits();
+            //ObjectId[] parents = mergeResult.getMergedCommits();
             Repository repository = SessionModel.getSessionModel().getCurrentRepoHelper().getRepo();
             RevWalk revWalk = new RevWalk(repository);
-            RevTree tree0 = revWalk.parseCommit(parents[0]).getTree();
-            RevTree tree1 = revWalk.parseCommit(parents[1]).getTree();
-            TreeWalk treeWalk0 = new TreeWalk(repository);
-            treeWalk0.addTree(tree0);
-            treeWalk0.setRecursive(true);
-            treeWalk0.setFilter(PathFilter.create(fileName));
-            if (!treeWalk0.next()) {
+            System.out.println(mergeResult.get("baseParent"));
+            System.out.println(mergeResult.get("mergedParent"));
+            ObjectId baseParent = ObjectId.fromString(mergeResult.get("baseParent").substring(7,47));
+            ObjectId mergedParent = ObjectId.fromString(mergeResult.get("mergedParent").substring(7,47));
+            System.out.println(baseParent);
+            System.out.println(mergedParent);
+            RevTree baseTree = revWalk.parseCommit(baseParent).getTree();
+            RevTree mergedTree = revWalk.parseCommit(mergedParent).getTree();
+            TreeWalk baseTreeWalk = new TreeWalk(repository);
+            baseTreeWalk.addTree(baseTree);
+            baseTreeWalk.setRecursive(true);
+            baseTreeWalk.setFilter(PathFilter.create(fileName));
+            if (!baseTreeWalk.next()) {
                 throw new IllegalStateException("Did not find expected file");
             }
-            ObjectId objectId0 = treeWalk0.getObjectId(0);
+            ObjectId baseObjectId = baseTreeWalk.getObjectId(0);
 
-            TreeWalk treeWalk1 = new TreeWalk(repository);
-            treeWalk1.addTree(tree1);
-            treeWalk1.setRecursive(true);
-            treeWalk1.setFilter(PathFilter.create(fileName));
-            if (!treeWalk1.next()) {
+            TreeWalk mergedTreeWalk = new TreeWalk(repository);
+            mergedTreeWalk.addTree(mergedTree);
+            mergedTreeWalk.setRecursive(true);
+            mergedTreeWalk.setFilter(PathFilter.create(fileName));
+            if (!mergedTreeWalk.next()) {
                 throw new IllegalStateException("Did not find expected file");
             }
+            ObjectId mergedObjectId = mergedTreeWalk.getObjectId(0);
 
-            ObjectId objectId1 = treeWalk1.getObjectId(0);
-
-            ObjectLoader loader0 = repository.open(objectId0);
-            ObjectLoader loader1 = repository.open(objectId1);
-
-            // and then one can the loader to read the file
-            System.out.println(loader0.getBytes().toString());
-            //loader0.copyTo(System.out);
-            //loader1.copyTo(System.out);
+            ObjectLoader baseLoader = repository.open(baseObjectId);
+            ObjectLoader mergedLoader = repository.open(mergedObjectId);
+            //System.out.println(loader0.getBytes().toString());
+            String baseString = baseLoader.openStream().toString();
+            String mergedString = mergedLoader.openStream().toString();
+            System.out.println(baseString);
+            System.out.println(mergedString);
         } catch (IOException e){
             throw new ExceptionAdapter(e);
         }
