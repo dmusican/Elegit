@@ -10,7 +10,7 @@ import org.reactfx.value.Val;
 
 /**
  * Created by grenche on 6/21/18.
- * Created a line that will be above an belowa ny chunk of code that is conflicting
+ * Created a line that will be above an below any chunk of code that is conflicting
  */
 public class ConflictLineSection implements IntFunction<Node> {
     private final ObservableValue<Integer> conflictingLine;
@@ -23,7 +23,12 @@ public class ConflictLineSection implements IntFunction<Node> {
 
     @Override
     public Node apply(int lineNumber) {
-        Rectangle rectangle = new Rectangle(0, lineNumber, 4, height * 15);
+        Rectangle rectangle;
+        if (height == 0) {
+            rectangle = new Rectangle(0, lineNumber, 5, height + 13);
+        } else {
+            rectangle = new Rectangle(0, lineNumber, 5, height * 13);
+        }
         rectangle.getStyleClass().add("conflict-line");
 
         Val<Boolean> visible = Val.map(
