@@ -280,7 +280,12 @@ public class ConflictManagementToolController {
 
     @FXML
     private void handleApplyChanges() {
-        //add in a check to see if conflicts remain
+        if (conflictsLeftToHandle != 0) {
+            showNotAllConflictHandledNotification();
+            // TODO: allow them to override somehow
+            return;
+        }
+        
         try {
             Path directory = (new File(SessionModel.getSessionModel().getCurrentRepoHelper().getRepo().getDirectory()
                     .getParent())).toPath();
