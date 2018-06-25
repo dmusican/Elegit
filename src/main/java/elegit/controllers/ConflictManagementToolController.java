@@ -32,12 +32,16 @@ import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
+import org.fxmisc.richtext.CharacterHit;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
+import org.fxmisc.richtext.NavigationActions;
 
+import java.awt.event.MouseEvent;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.nio.file.Path;
 import java.util.*;
 import java.io.File;
@@ -378,7 +382,6 @@ public class ConflictManagementToolController {
         handleChange(rightDoc, rightConflictingLineNumbers, rightConflictLines, false);
     }
 
-
     private void handleChange(CodeArea doc, ArrayList<Integer> conflictingLineNumbers,
                               ArrayList<ConflictLine> conflictLines, boolean accepting) {
         int currentLine = doc.getCurrentParagraph();
@@ -535,6 +538,10 @@ public class ConflictManagementToolController {
         setInitialPositions(leftDoc, leftConflictingLineNumbers);
         setInitialPositions(middleDoc, middleConflictingLineNumbers);
         setInitialPositions(rightDoc, rightConflictingLineNumbers);
+
+        bindMouseMovementToConflict(leftDoc, leftConflictingLineNumbers, leftConflictLines);
+//        bindMouseMovementToConflict(middleDoc, middleConflictingLineNumbers, middleConflictLines);
+        bindMouseMovementToConflict(rightDoc, rightConflictingLineNumbers, rightConflictLines);
     }
     private ArrayList<String> getParentFiles(ObjectId parent, String fileName){
         try{
@@ -585,6 +592,29 @@ public class ConflictManagementToolController {
     private void setInitialPositions(CodeArea doc, ArrayList<Integer> conflictingLineNumbers) {
         doc.moveTo(conflictingLineNumbers.get(0), 0);
         doc.requestFollowCaret();
+    }
+
+    // TODO: this is not done, but has some good ideas I think.
+    private void bindMouseMovementToConflict(CodeArea doc, ArrayList<Integer> conflictingLineNumbers, ArrayList<ConflictLine> conflictLines) {
+        middleDoc.setOnMouseClicked(e -> {
+            int currentLine = middleDoc.getCurrentParagraph();
+
+            for (int conflictLineIndex = 0; conflictLineIndex < middleConflictingLineNumbers.size(); conflictLineIndex++) {
+                int lineNumber = middleConflictingLineNumbers.get(conflictLineIndex);
+
+                if ((currentLine == lineNumber || currentLine == lineNumber - 1) && middleConflictLines.get(conflictLineIndex).isConflicting()) {
+                    console.info("the click was registered as in between a conflict.");
+                    leftDoc.moveTo(leftConflictingLineNumbers.get(conflictLineIndex), 0);
+                    middleDoc.moveTo(middleConflictingLineNumbers.get(conflictLineIndex), 0);
+                    rightDoc.moveTo(rightConflictingLineNumbers.get(conflictLineIndex), 0);
+                    return;
+                    // move other docs there
+                } else {
+                    console.info("the click was registered as NOT in between a conflict.");
+                    // disable accept and reject and undo
+                }
+            }
+        });
     }
 
     private CodeArea setLines(ArrayList<ConflictLine> lines, CodeArea doc) {
