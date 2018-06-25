@@ -9,7 +9,6 @@ import elegit.gui.ConflictLinePointer;
 import elegit.models.ConflictManagementModel;
 import elegit.models.SessionModel;
 import elegit.models.ConflictLine;
-import javafx.beans.value.ObservableNumberValue;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -114,11 +113,11 @@ public class ConflictManagementToolController {
 
     private int conflictsLeftToHandle;
 
-    private static final Logger console = LogManager.getLogger("briefconsolelogger");
-
     private HashMap<String, CodeArea> files = new HashMap<>();
 
     private HashMap<String, String> mergeResult;
+
+    private static final Logger console = LogManager.getLogger("briefconsolelogger");
 
     synchronized void setSessionController(SessionController sessionController) {
         this.sessionController = sessionController;
@@ -142,16 +141,16 @@ public class ConflictManagementToolController {
     private void initButtons() {
         console.info("Initializing buttons.");
         // Accept change buttons
-        initButton(FontAwesomeIcon.CHECK, "checkIcon", rightAccept, "Integrate the highlighted commit.");
         initButton(FontAwesomeIcon.CHECK, "checkIcon", leftAccept, "Integrate the highlighted commit.");
+        initButton(FontAwesomeIcon.CHECK, "checkIcon", rightAccept, "Integrate the highlighted commit.");
 
         // Reject change buttons
-        initButton(FontAwesomeIcon.TIMES, "xIcon", rightReject, "Ignore the highlighted commit.");
         initButton(FontAwesomeIcon.TIMES, "xIcon", leftReject, "Ignore the highlighted commit.");
+        initButton(FontAwesomeIcon.TIMES, "xIcon", rightReject, "Ignore the highlighted commit.");
 
         // Undo change buttons
-        initButton(FontAwesomeIcon.UNDO, "undoIcon", rightUndo, "Undo previous choice.");
         initButton(FontAwesomeIcon.UNDO, "undoIcon", leftUndo, "Undo previous choice.");
+        initButton(FontAwesomeIcon.UNDO, "undoIcon", rightUndo, "Undo previous choice.");
 
         // Toggle change buttons
         initButton(FontAwesomeIcon.ARROW_UP, "arrowIcon", upToggle, "Go to previous change.");
@@ -185,20 +184,20 @@ public class ConflictManagementToolController {
 
     private void initCodeAreas() {
         // Add line numbers and pointers to each CodeArea
-        addLineNumbersAndPointers(rightDoc);
-        addLineNumbersAndPointers(middleDoc);
         addLineNumbersAndPointers(leftDoc);
+        addLineNumbersAndPointers(middleDoc);
+        addLineNumbersAndPointers(rightDoc);
 
         // Bind xvalues
-        bindHorizontalScroll(rightDoc, middleDoc);
-        bindHorizontalScroll(middleDoc, leftDoc);
         bindHorizontalScroll(leftDoc, rightDoc);
+        bindHorizontalScroll(middleDoc, leftDoc);
+        bindHorizontalScroll(rightDoc, middleDoc);
 
 
         // Bind yvalues
-        bindVerticalScroll(rightDoc, middleDoc);
-        bindVerticalScroll(middleDoc, leftDoc);
         bindVerticalScroll(leftDoc, rightDoc);
+        bindVerticalScroll(middleDoc, leftDoc);
+        bindVerticalScroll(rightDoc, middleDoc);
     }
 
     private void addLineNumbersAndPointers(CodeArea doc) {
@@ -223,10 +222,12 @@ public class ConflictManagementToolController {
     }
 
     private void setButtonsDisabled(boolean disabled) {
-        rightAccept.setDisable(disabled);
-        rightReject.setDisable(disabled);
         leftAccept.setDisable(disabled);
         leftReject.setDisable(disabled);
+        leftUndo.setDisable(disabled);
+        rightAccept.setDisable(disabled);
+        rightReject.setDisable(disabled);
+        rightUndo.setDisable(disabled);
         upToggle.setDisable(disabled);
         downToggle.setDisable(disabled);
         applyChanges.setDisable(disabled);
@@ -285,7 +286,7 @@ public class ConflictManagementToolController {
             // TODO: allow them to override somehow
             return;
         }
-        
+
         try {
             Path directory = (new File(SessionModel.getSessionModel().getCurrentRepoHelper().getRepo().getDirectory()
                     .getParent())).toPath();
@@ -368,28 +369,28 @@ public class ConflictManagementToolController {
     }
 
     @FXML
-    private void handleRejectRightChange() {
-        handleChange(rightDoc, rightConflictingLineNumbers, rightConflictLines, false);
-    }
-
-    @FXML
     private void handleRejectLeftChange() {
         handleChange(leftDoc, leftConflictingLineNumbers, leftConflictLines, false);
     }
 
+    @FXML
+    private void handleRejectRightChange() {
+        handleChange(rightDoc, rightConflictingLineNumbers, rightConflictLines, false);
+    }
+
+
     private void handleChange(CodeArea doc, ArrayList<Integer> conflictingLineNumbers,
                               ArrayList<ConflictLine> conflictLines, boolean accepting) {
         int currentLine = doc.getCurrentParagraph();
-        int conflictLineIndex;
 
-        for (conflictLineIndex = 0; conflictLineIndex < conflictingLineNumbers.size(); conflictLineIndex++) {
+        for (int conflictLineIndex = 0; conflictLineIndex < conflictingLineNumbers.size(); conflictLineIndex++) {
             int lineNumber = conflictingLineNumbers.get(conflictLineIndex);
 
             if (lineNumber == currentLine && conflictLines.get(conflictLineIndex).isConflicting()) {
                 if (accepting) {
-                    applyChangeToMiddleDoc(conflictLines, conflictLineIndex);
+                    updateMiddleDoc(conflictLines, conflictLineIndex);
                 }
-                updateSideDoc(doc, conflictLineIndex, conflictingLineNumbers, conflictLines.get(conflictLineIndex).getLines().size());
+                updateSideDoc(doc, conflictingLineNumbers.get(conflictLineIndex), conflictLines.get(conflictLineIndex).getLines().size());
                 updateConflictLines(conflictLines, conflictLineIndex);
 
                 handleConflictsLeftToHandle();
@@ -400,13 +401,14 @@ public class ConflictManagementToolController {
                 return;
             }
         }
-        showAcceptOrRejectWarning(accepting);
+        showAcceptOrRejectWarning(accepting); // Not a conflict
     }
 
-    private void applyChangeToMiddleDoc(ArrayList<ConflictLine> conflictLines, int conflictLineIndex) {
+    private void updateMiddleDoc(ArrayList<ConflictLine> conflictLines, int conflictLineIndex) {
         for (String line : conflictLines.get(conflictLineIndex).getLines()) {
             updateCurrentLine(line);
         }
+
         updateMiddleLineNumbers(conflictLines.get(conflictLineIndex).getLines().size(), conflictLineIndex);
         // TODO: update conflict lines as well
         middleDoc.moveTo(middleConflictingLineNumbers.get(conflictLineIndex), 0);
@@ -425,12 +427,12 @@ public class ConflictManagementToolController {
         }
     }
 
-    private void updateSideDoc(CodeArea doc, int conflictLineIndex, ArrayList<Integer> conflictingLineNumbers, int numLines) {
+    private void updateSideDoc(CodeArea doc, int startOfConflict, int numLines) {
         int startIndex = doc.getCaretPosition();
-        doc.moveTo(conflictingLineNumbers.get(conflictLineIndex) + numLines, 0);
+        doc.moveTo(startOfConflict + numLines, 0);
         int endIndex = doc.getCaretPosition();
         setCSSSelector(doc, startIndex, endIndex, "handled-conflict");
-        doc.moveTo(conflictingLineNumbers.get(conflictLineIndex), 0);
+        doc.moveTo(startOfConflict, 0);
     }
 
     // TODO: figure out what flags to change
