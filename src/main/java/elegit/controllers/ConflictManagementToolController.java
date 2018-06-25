@@ -391,9 +391,9 @@ public class ConflictManagementToolController {
                     updateMiddleDoc(conflictLines, conflictLineIndex);
                 }
                 updateSideDoc(doc, conflictingLineNumbers.get(conflictLineIndex), conflictLines.get(conflictLineIndex).getLines().size());
-                updateConflictLines(conflictLines, conflictLineIndex);
+                updateConflictLineStatus(conflictLines, conflictLineIndex);
 
-                handleConflictsLeftToHandle();
+                updateAndCheckConflictsLeftToHandle();
                 return;
 
             } else if (lineNumber == currentLine)  { // Already handled this conflict
@@ -407,10 +407,10 @@ public class ConflictManagementToolController {
     private void updateMiddleDoc(ArrayList<ConflictLine> conflictLines, int conflictLineIndex) {
         for (String line : conflictLines.get(conflictLineIndex).getLines()) {
             updateCurrentLine(line);
+            middleConflictLines.get(conflictLineIndex).addLine(line);
         }
 
-        updateMiddleLineNumbers(conflictLines.get(conflictLineIndex).getLines().size(), conflictLineIndex);
-        // TODO: update conflict lines as well
+        updateMiddleConflictingLineNumbers(conflictLines.get(conflictLineIndex).getLines().size(), conflictLineIndex);
         middleDoc.moveTo(middleConflictingLineNumbers.get(conflictLineIndex), 0);
     }
 
@@ -421,7 +421,7 @@ public class ConflictManagementToolController {
         setCSSSelector(middleDoc, startIndex, endIndex, "handled-conflict");
     }
 
-    private void updateMiddleLineNumbers(int numLines, int conflictLineIndex) {
+    private void updateMiddleConflictingLineNumbers(int numLines, int conflictLineIndex) {
         for (int i = conflictLineIndex + 1; i < middleConflictingLineNumbers.size(); i++) {
             middleConflictingLineNumbers.set(i, middleConflictingLineNumbers.get(i) + numLines);
         }
@@ -436,14 +436,14 @@ public class ConflictManagementToolController {
     }
 
     // TODO: figure out what flags to change
-    private void updateConflictLines(ArrayList<ConflictLine> conflictLines, int conflictLineIndex) {
+    private void updateConflictLineStatus(ArrayList<ConflictLine> conflictLines, int conflictLineIndex) {
 //        middleConflictLines.get(conflictLineIndex).setChangedStatus(true);
         middleConflictLines.get(conflictLineIndex).setConflictStatus(false);
 //        conflictLines.get(conflictLineIndex).setChangedStatus(true);
         conflictLines.get(conflictLineIndex).setConflictStatus(false);
     }
 
-    private void handleConflictsLeftToHandle() {
+    private void updateAndCheckConflictsLeftToHandle() {
         conflictsLeftToHandle--;
         if (conflictsLeftToHandle == 0) {
             showAllConflictsHandledNotification();
