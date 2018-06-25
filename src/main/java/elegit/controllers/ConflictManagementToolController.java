@@ -7,7 +7,6 @@ import elegit.Main;
 import elegit.exceptions.ExceptionAdapter;
 import elegit.gui.ConflictLinePointer;
 import elegit.models.ConflictManagementModel;
-import elegit.models.RepoHelper;
 import elegit.models.SessionModel;
 import elegit.models.ConflictLine;
 import javafx.event.ActionEvent;
@@ -25,13 +24,11 @@ import javafx.stage.Stage;
 import net.jcip.annotations.GuardedBy;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.lib.ObjectLoader;
 import org.eclipse.jgit.revwalk.RevWalk;
-import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
@@ -354,47 +351,55 @@ public class ConflictManagementToolController {
 
     @FXML
     private void handleAcceptLeftChange() {
-        handleAcceptChange(leftDoc, leftConflictingLineNumbers, leftConflictLines);
+        handleChange(leftDoc, leftConflictingLineNumbers, leftConflictLines, true);
     }
 
     @FXML
     private void handleAcceptRightChange() {
-        handleAcceptChange(rightDoc, rightConflictingLineNumbers, rightConflictLines);
+        handleChange(rightDoc, rightConflictingLineNumbers, rightConflictLines, true);
     }
 
-    private void handleAcceptChange(CodeArea doc, ArrayList<Integer> conflictingLineNumbers,
-                                    ArrayList<ConflictLine> conflictLines) {
+    @FXML
+    private void handleRejectRightChange() {
+        handleChange(rightDoc, rightConflictingLineNumbers, rightConflictLines, false);
+    }
+
+    @FXML
+    private void handleRejectLeftChange() {
+        handleChange(leftDoc, leftConflictingLineNumbers, leftConflictLines, false);
+    }
+
+    private void handleChange(CodeArea doc, ArrayList<Integer> conflictingLineNumbers,
+                              ArrayList<ConflictLine> conflictLines, boolean accepting) {
         int currentLine = doc.getCurrentParagraph();
         int conflictLineIndex;
 
         for (conflictLineIndex = 0; conflictLineIndex < conflictingLineNumbers.size(); conflictLineIndex++) {
             int lineNumber = conflictingLineNumbers.get(conflictLineIndex);
 
-            console.info("line number: " + lineNumber + " currentLine: " + currentLine);
             if (lineNumber == currentLine && conflictLines.get(conflictLineIndex).isConflicting()) {
-                int numLines = updateMiddleDoc(conflictLines, conflictLineIndex);
-                updateSideDoc(doc, conflictLineIndex, conflictingLineNumbers, numLines);
+                if (accepting) {
+                    applyChangeToMiddleDoc(conflictLines, conflictLineIndex);
+                }
+                updateSideDoc(doc, conflictLineIndex, conflictingLineNumbers, conflictLines.get(conflictLineIndex).getLines().size());
                 updateConflictLines(conflictLines, conflictLineIndex);
                 return;
 
             } else if (lineNumber == currentLine)  { // Already handled this conflict
-                showAttemptingToAcceptANonConflictNotification();
+                showAcceptOrRejectWarning(accepting);
                 return;
             }
         }
-        showAttemptingToAcceptANonConflictNotification();
+        showAcceptOrRejectWarning(accepting);
     }
 
-    private int updateMiddleDoc(ArrayList<ConflictLine> conflictLines, int conflictLineIndex) {
-        int numLines = 0;
+    private void applyChangeToMiddleDoc(ArrayList<ConflictLine> conflictLines, int conflictLineIndex) {
         for (String line : conflictLines.get(conflictLineIndex).getLines()) {
             updateCurrentLine(line);
-            numLines++;
         }
-        updateMiddleLineNumbers(numLines, conflictLineIndex);
+        updateMiddleLineNumbers(conflictLines.get(conflictLineIndex).getLines().size(), conflictLineIndex);
         // TODO: update conflict lines as well
         middleDoc.moveTo(middleConflictingLineNumbers.get(conflictLineIndex), 0);
-        return numLines;
     }
 
     private void updateCurrentLine(String line) {
@@ -426,8 +431,12 @@ public class ConflictManagementToolController {
         conflictLines.get(conflictLineIndex).setConflictStatus(false);
     }
 
-    @FXML
-    private void handleRejectChange() {
+    private void showAcceptOrRejectWarning(boolean accepting) {
+        if (accepting) {
+            showAttemptingToAcceptANonConflictNotification();
+        } else {
+            showAttemptingToRejectANonConflictNotification();
+        }
     }
 
     @FXML
@@ -603,7 +612,13 @@ public class ConflictManagementToolController {
 
     private void showAttemptingToAcceptANonConflictNotification() {
         console.info("Accept conflict clicked when there is not a conflict to add (either not a conflict or already handled).");
-        notificationPaneController.addNotification("You are either trying to integrate something that is not"
+        notificationPaneController.addNotification("You are either trying to integrate something that is not "
+                + "conflicting \n or you already handled. Click the undo button if you made a mistake");
+    }
+
+    private void showAttemptingToRejectANonConflictNotification() {
+        console.info("Reject conflict clicked when there is not a conflict to reject (either not a conflict or already handled).");
+        notificationPaneController.addNotification("You are either trying to ignore something that is not "
                 + "conflicting \n or you already handled. Click the undo button if you made a mistake");
     }
 }

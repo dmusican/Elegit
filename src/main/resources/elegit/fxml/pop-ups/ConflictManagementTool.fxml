@@ -105,7 +105,7 @@
                             <Insets right="1.5" />
                         </HBox.margin>
                     </Button>
-                    <Button id="rejectButton" fx:id="leftReject" onAction="#handleRejectChange" alignment="CENTER" contentDisplay="CENTER" graphicTextGap="3.0">
+                    <Button id="rejectButton" fx:id="leftReject" onAction="#handleRejectLeftChange" alignment="CENTER" contentDisplay="CENTER" graphicTextGap="3.0">
                         <HBox.margin>
                             <Insets left="1.5" right="1.5" />
                         </HBox.margin>
@@ -126,7 +126,7 @@
                             <Insets left="3.0" right="1.5" />
                         </HBox.margin>
                     </Button>
-                    <Button id="rejectButton" fx:id="rightReject" onAction="#handleRejectChange" alignment="CENTER" contentDisplay="CENTER" graphicTextGap="2.0">
+                    <Button id="rejectButton" fx:id="rightReject" onAction="#handleRejectRightChange" alignment="CENTER" contentDisplay="CENTER" graphicTextGap="2.0">
                         <HBox.margin>
                             <Insets left="1.5" right="1.5" />
                         </HBox.margin>
