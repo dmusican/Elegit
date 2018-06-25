@@ -9,6 +9,7 @@ import elegit.gui.ConflictLinePointer;
 import elegit.models.ConflictManagementModel;
 import elegit.models.SessionModel;
 import elegit.models.ConflictLine;
+import javafx.beans.value.ObservableNumberValue;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -110,6 +111,8 @@ public class ConflictManagementToolController {
     private ArrayList<Integer> rightConflictingLineNumbers = new ArrayList<>();
 
     private boolean fileSelected = false;
+
+    private int conflictsLeftToHandle;
 
     private static final Logger console = LogManager.getLogger("briefconsolelogger");
 
@@ -383,6 +386,8 @@ public class ConflictManagementToolController {
                 }
                 updateSideDoc(doc, conflictLineIndex, conflictingLineNumbers, conflictLines.get(conflictLineIndex).getLines().size());
                 updateConflictLines(conflictLines, conflictLineIndex);
+
+                handleConflictsLeftToHandle();
                 return;
 
             } else if (lineNumber == currentLine)  { // Already handled this conflict
@@ -429,6 +434,13 @@ public class ConflictManagementToolController {
         middleConflictLines.get(conflictLineIndex).setConflictStatus(false);
 //        conflictLines.get(conflictLineIndex).setChangedStatus(true);
         conflictLines.get(conflictLineIndex).setConflictStatus(false);
+    }
+
+    private void handleConflictsLeftToHandle() {
+        conflictsLeftToHandle--;
+        if (conflictsLeftToHandle == 0) {
+            showAllConflictsHandledNotification();
+        }
     }
 
     private void showAcceptOrRejectWarning(boolean accepting) {
@@ -502,6 +514,9 @@ public class ConflictManagementToolController {
         getActualConflictingLines(middleAllConflictLines, middleConflictLines, middleConflictingLineNumbers);
         getActualConflictingLines(rightAllConflictLines, rightConflictLines, rightConflictingLineNumbers);
 
+        // This means that the user is required to accept or reject conflicts on both sides before applying. Could be handled differently
+        conflictsLeftToHandle = leftConflictLines.size() + rightConflictLines.size();
+
         setLines(leftAllConflictLines, leftDoc);
         CodeArea middle = setLines(middleAllConflictLines, middleDoc);
         setLines(rightAllConflictLines, rightDoc);
@@ -562,17 +577,18 @@ public class ConflictManagementToolController {
 
 
     }
-        private void getActualConflictingLines(ArrayList<ConflictLine> allConflictLines, ArrayList<ConflictLine> conflictLines, ArrayList<Integer> conflictingLineNumbers) {
-            int lineNumber = 0;
-            for (ConflictLine conflictLine : allConflictLines) {
-                if (conflictLine.isConflicting()) {
-                    conflictingLineNumbers.add(lineNumber);
-                    conflictLines.add(conflictLine);
-                }
-                // Increment the number after add so that the arrow points to the beginning of the block.
-                lineNumber += conflictLine.getLines().size();
+
+    private void getActualConflictingLines(ArrayList<ConflictLine> allConflictLines, ArrayList<ConflictLine> conflictLines, ArrayList<Integer> conflictingLineNumbers) {
+        int lineNumber = 0;
+        for (ConflictLine conflictLine : allConflictLines) {
+            if (conflictLine.isConflicting()) {
+                conflictingLineNumbers.add(lineNumber);
+                conflictLines.add(conflictLine);
             }
+            // Increment the number after add so that the arrow points to the beginning of the block.
+            lineNumber += conflictLine.getLines().size();
         }
+    }
 
     private void setInitialPositions(CodeArea doc, ArrayList<Integer> conflictingLineNumbers) {
         doc.moveTo(conflictingLineNumbers.get(0), 0);
