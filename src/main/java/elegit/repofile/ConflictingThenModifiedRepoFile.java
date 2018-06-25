@@ -45,36 +45,10 @@ public class ConflictingThenModifiedRepoFile extends RepoFile {
 
     @Override public boolean canAdd() throws GitAPIException {
         Main.assertFxThread();
-        ReentrantLock lock = new ReentrantLock();
-        Condition finishedAlert = lock.newCondition();
-        System.out.println("trying to add");
-        Platform.runLater(() -> {
-            logger.warn("Notification about conflicting the modified file");
-            lock.lock();
-            try{
-                resultType = PopUpWindows.showAddingingConflictingThenModifiedFileAlert();
-                finishedAlert.signal();
-            }finally{
-                lock.unlock();
-            }
-        });
-        System.out.println("still trying");
-        lock.lock();
-        try{
-            System.out.println("in try");
-            finishedAlert.await();
-            System.out.println("about to if");
-            if(resultType.equals("add")){
-                System.out.println("in if");
-                return true;
-            }
-        }catch(InterruptedException ignored){
-            System.out.println("exception");
-            throw new ExceptionAdapter(ignored);
-        }
-        finally{
-            System.out.println("finally");
-            lock.unlock();
+        resultType = PopUpWindows.showAddingingConflictingThenModifiedFileAlert();
+        if(resultType.equals("add")){
+            System.out.println("in if");
+            return true;
         }
         return false;
     }

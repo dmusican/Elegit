@@ -42,12 +42,14 @@ public class ConflictManagementModel {
                     leftConflict= new ConflictLine(true);
                     middleConflict= new ConflictLine(true);
                     rightConflict= new ConflictLine(true);
+                    //left side of the conflict
                     while(!line.contains("=======")){
                         leftCounter++;
                         leftConflict.addLine(line);
                         line = reader.readLine();
                     }
                     line=reader.readLine();
+                    //right side of the conflict
                     while(!line.contains(">>>>>>>")){
                         rightCounter++;
                         rightConflict.addLine(line);
@@ -63,6 +65,7 @@ public class ConflictManagementModel {
                 } else if (changed(line, base.get(leftCounter), merged.get(rightCounter) )){
                     //line is part of a changed segment
                     if(!middleConflict.isChanged()) {
+                        //if this is the first line of the change, switch to a new ConflictLine
                         left.add(leftConflict);
                         middle.add(middleConflict);
                         right.add(rightConflict);
@@ -74,6 +77,7 @@ public class ConflictManagementModel {
                         rightConflict.setChangedStatus(true);
                     }
                     middleConflict.addLine(line);
+                    //detect whether the change comes from left or right
                     if(line.equals(base.get(leftCounter))){
                         leftConflict.addLine(line);
                         leftCounter++;

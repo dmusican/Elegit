@@ -536,53 +536,38 @@ public class ConflictManagementToolController {
         setInitialPositions(middleDoc, middleConflictingLineNumbers);
         setInitialPositions(rightDoc, rightConflictingLineNumbers);
     }
-
-    private ArrayList<String> getBaseParentFiles(String fileName){
-        try {
+    private ArrayList<String> getParentFiles(ObjectId parent, String fileName){
+        try{
             Repository repository = SessionModel.getSessionModel().getCurrentRepoHelper().getRepo();
             RevWalk revWalk = new RevWalk(repository);
-            ObjectId baseParent = ObjectId.fromString(mergeResult.get("baseParent").substring(7,47));
-            RevTree baseTree = revWalk.parseCommit(baseParent).getTree();
-            TreeWalk baseTreeWalk = new TreeWalk(repository);
-            baseTreeWalk.addTree(baseTree);
-            baseTreeWalk.setRecursive(true);
-            baseTreeWalk.setFilter(PathFilter.create(fileName));
-            if (!baseTreeWalk.next()) {
+            RevTree revTree = revWalk.parseCommit(parent).getTree();
+            TreeWalk treeWalk = new TreeWalk(repository);
+            treeWalk.addTree(revTree);
+            treeWalk.setRecursive(true);
+            treeWalk.setFilter(PathFilter.create(fileName));
+            if (!treeWalk.next()) {
                 throw new IllegalStateException("Did not find expected file");
             }
-            ObjectId baseObjectId = baseTreeWalk.getObjectId(0);
+            ObjectId objectId = treeWalk.getObjectId(0);
 
-            ObjectLoader baseLoader = repository.open(baseObjectId);
-            String baseString = new String(baseLoader.getBytes());
-            return new  ArrayList<String>(Arrays.asList(baseString.split("\n")));
+            ObjectLoader loader = repository.open(objectId);
+            String string = new String(loader.getBytes());
+            return new  ArrayList<>(Arrays.asList(string.split("\n")));
         } catch (IOException e){
             throw new ExceptionAdapter(e);
         }
     }
 
+    private ArrayList<String> getBaseParentFiles(String fileName){
+        ObjectId baseParent = ObjectId.fromString(mergeResult.get("baseParent").substring(7,47));
+        //System.out.println(mergeResult.get("baseParent"));
+        //System.out.println(baseParent);
+        return getParentFiles(baseParent, fileName);
+    }
+
     private ArrayList<String> getMergedParentFiles(String fileName){
-        try {
-            Repository repository = SessionModel.getSessionModel().getCurrentRepoHelper().getRepo();
-            RevWalk revWalk = new RevWalk(repository);
-            ObjectId mergedParent = ObjectId.fromString(mergeResult.get("mergedParent").substring(7,47));
-            RevTree mergedTree = revWalk.parseCommit(mergedParent).getTree();
-            TreeWalk mergedTreeWalk = new TreeWalk(repository);
-            mergedTreeWalk.addTree(mergedTree);
-            mergedTreeWalk.setRecursive(true);
-            mergedTreeWalk.setFilter(PathFilter.create(fileName));
-            if (!mergedTreeWalk.next()) {
-                throw new IllegalStateException("Did not find expected file");
-            }
-            ObjectId mergedObjectId = mergedTreeWalk.getObjectId(0);
-
-            ObjectLoader mergedLoader = repository.open(mergedObjectId);
-            String mergedString = new String(mergedLoader.getBytes());
-            return new  ArrayList<>(Arrays.asList(mergedString.split("\n")));
-        } catch (IOException e){
-            throw new ExceptionAdapter(e);
-        }
-
-
+        ObjectId mergedParent = ObjectId.fromString(mergeResult.get("mergedParent").substring(7,47));
+        return getParentFiles(mergedParent, fileName);
     }
 
     private void getActualConflictingLines(ArrayList<ConflictLine> allConflictLines, ArrayList<ConflictLine> conflictLines, ArrayList<Integer> conflictingLineNumbers) {
