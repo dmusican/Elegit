@@ -398,5 +398,10 @@
 
 .styled-text-area .conflict {
     -rtfx-background-color: rgba(255, 0, 0, 0.34);
-    -fx-fill: darkred;
+    -fx-fill: #5b0000;
+}
+
+.styled-text-area . handled-conflict {
+    -rtfx-background-color: rgba(80, 13, 255, 0.34);
+    -fx-fill: #3f0b7e;
 }

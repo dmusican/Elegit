@@ -354,25 +354,76 @@ public class ConflictManagementToolController {
 
     @FXML
     private void handleAcceptLeftChange() {
-        int currentLine = leftDoc.getCurrentParagraph();
-
-        int conflictLineIndex;
-        for (int i =0; i < leftConflictingLineNumbers.size(); i++) {
-            int lineNumber = leftConflictingLineNumbers.get(i);
-            if (lineNumber == currentLine) {
-                conflictLineIndex = i;
-                for (String line : leftConflictLines.get(conflictLineIndex).getLines()) {
-                    middleDoc.insertText(middleDoc.getCurrentParagraph(), 0, line + "\n");
-                }
-                return;
-            }
-        }
-        // TODO: update line numbers in middle doc!!!!
-
+        handleAcceptChange(leftDoc, leftConflictingLineNumbers, leftConflictLines);
     }
 
     @FXML
     private void handleAcceptRightChange() {
+        handleAcceptChange(rightDoc, rightConflictingLineNumbers, rightConflictLines);
+    }
+
+    private void handleAcceptChange(CodeArea doc, ArrayList<Integer> conflictingLineNumbers,
+                                    ArrayList<ConflictLine> conflictLines) {
+        int currentLine = doc.getCurrentParagraph();
+        int conflictLineIndex;
+
+        for (conflictLineIndex = 0; conflictLineIndex < conflictingLineNumbers.size(); conflictLineIndex++) {
+            int lineNumber = conflictingLineNumbers.get(conflictLineIndex);
+
+            console.info("line number: " + lineNumber + " currentLine: " + currentLine);
+            if (lineNumber == currentLine && conflictLines.get(conflictLineIndex).isConflicting()) {
+                int numLines = updateMiddleDoc(conflictLines, conflictLineIndex);
+                updateSideDoc(doc, conflictLineIndex, conflictingLineNumbers, numLines);
+                updateConflictLines(conflictLines, conflictLineIndex);
+                return;
+
+            } else if (lineNumber == currentLine)  { // Already handled this conflict
+                showAttemptingToAcceptANonConflictNotification();
+                return;
+            }
+        }
+        showAttemptingToAcceptANonConflictNotification();
+    }
+
+    private int updateMiddleDoc(ArrayList<ConflictLine> conflictLines, int conflictLineIndex) {
+        int numLines = 0;
+        for (String line : conflictLines.get(conflictLineIndex).getLines()) {
+            updateCurrentLine(line);
+            numLines++;
+        }
+        updateMiddleLineNumbers(numLines, conflictLineIndex);
+        // TODO: update conflict lines as well
+        middleDoc.moveTo(middleConflictingLineNumbers.get(conflictLineIndex), 0);
+        return numLines;
+    }
+
+    private void updateCurrentLine(String line) {
+        int startIndex = middleDoc.getCaretPosition();
+        middleDoc.insertText(middleDoc.getCurrentParagraph(), 0, line + "\n");
+        int endIndex = middleDoc.getCaretPosition();
+        setCSSSelector(middleDoc, startIndex, endIndex, "handled-conflict");
+    }
+
+    private void updateMiddleLineNumbers(int numLines, int conflictLineIndex) {
+        for (int i = conflictLineIndex + 1; i < middleConflictingLineNumbers.size(); i++) {
+            middleConflictingLineNumbers.set(i, middleConflictingLineNumbers.get(i) + numLines);
+        }
+    }
+
+    private void updateSideDoc(CodeArea doc, int conflictLineIndex, ArrayList<Integer> conflictingLineNumbers, int numLines) {
+        int startIndex = doc.getCaretPosition();
+        doc.moveTo(conflictingLineNumbers.get(conflictLineIndex) + numLines, 0);
+        int endIndex = doc.getCaretPosition();
+        setCSSSelector(doc, startIndex, endIndex, "handled-conflict");
+        doc.moveTo(conflictingLineNumbers.get(conflictLineIndex), 0);
+    }
+
+    // TODO: figure out what flags to change
+    private void updateConflictLines(ArrayList<ConflictLine> conflictLines, int conflictLineIndex) {
+//        middleConflictLines.get(conflictLineIndex).setChangedStatus(true);
+        middleConflictLines.get(conflictLineIndex).setConflictStatus(false);
+//        conflictLines.get(conflictLineIndex).setChangedStatus(true);
+        conflictLines.get(conflictLineIndex).setConflictStatus(false);
     }
 
     @FXML
@@ -528,15 +579,15 @@ public class ConflictManagementToolController {
                 int endIndex = doc.getLength();
 
                 if (conflict.isConflicting()) {
-                    setCSSSelector(doc, startIndex, endIndex);
+                    setCSSSelector(doc, startIndex, endIndex, "conflict");
                 }
             }
         }
         return doc;
     }
 
-    private void setCSSSelector(CodeArea doc, int startIndex, int endIndex) {
-        doc.setStyle(startIndex, endIndex, Collections.singleton("conflict"));
+    private void setCSSSelector(CodeArea doc, int startIndex, int endIndex, String selector) {
+        doc.setStyle(startIndex, endIndex, Collections.singleton(selector));
     }
 
     private void showAllConflictsHandledNotification() {
@@ -548,5 +599,11 @@ public class ConflictManagementToolController {
     private void showNotAllConflictHandledNotification() {
         console.info("Apply clicked before finishing merge.");
         notificationPaneController.addNotification("Not all conflicts have been handled. Are you sure you want to continue?");
+    }
+
+    private void showAttemptingToAcceptANonConflictNotification() {
+        console.info("Accept conflict clicked when there is not a conflict to add (either not a conflict or already handled).");
+        notificationPaneController.addNotification("You are either trying to integrate something that is not"
+                + "conflicting \n or you already handled. Click the undo button if you made a mistake");
     }
 }
