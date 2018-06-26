@@ -308,6 +308,8 @@ public class ConflictManagementToolController {
 
     @FXML
     private void handleToggleUp() {
+        setModifyingButtonsDisabled(false);
+
         int currentLine = middleDoc.getCurrentParagraph();
         if (currentLine <= middleConflictingLineNumbers.get(0)) { // Go to the last conflict if at or above the first one
             moveDocCaretsToLastConflict();
@@ -316,12 +318,14 @@ public class ConflictManagementToolController {
             moveDocCaretsToFirstConflict();
 
         } else { // Go to the previous conflict
-            findConflictToGoTo(currentLine, 1);
+            findConflictToGoTo(currentLine, true);
         }
     }
 
     @FXML
     private void handleToggleDown() {
+        setModifyingButtonsDisabled(false);
+
         int currentLine = middleDoc.getCurrentParagraph();
         if (currentLine >= middleConflictingLineNumbers.get(leftConflictingLineNumbers.size() - 1)) { // Go to the first conflict if at or above the last one
             moveDocCaretsToFirstConflict();
@@ -330,7 +334,7 @@ public class ConflictManagementToolController {
             moveDocCaretsToFirstConflict();
 
         } else { // Go to the previous conflict
-            findConflictToGoTo(currentLine, -1);
+            findConflictToGoTo(currentLine, false);
         }
     }
 
@@ -346,15 +350,29 @@ public class ConflictManagementToolController {
         moveDocCarets(rightDoc, rightConflictingLineNumbers.get(0));
     }
 
-    private void findConflictToGoTo(int currentLine, int direction) {
+    private void findConflictToGoTo(int currentLine, boolean up) {
         for (int i = 0; i < middleConflictingLineNumbers.size(); i++) {
-            if (currentLine <= middleConflictingLineNumbers.get(i)) {
-                moveDocCarets(leftDoc, leftConflictingLineNumbers.get(i - direction));
-                moveDocCarets(middleDoc, middleConflictingLineNumbers.get(i - direction));
-                moveDocCarets(rightDoc, rightConflictingLineNumbers.get(i - direction));
-                return;
+            if (up) { // Toggling up
+                if (currentLine <= middleConflictingLineNumbers.get(i)) {
+                    moveDocCaretsGivenDirection(i, -1);
+                    return;
+                }
+            } else { // Toggling down
+                if (currentLine == middleConflictingLineNumbers.get(i)) {
+                    moveDocCaretsGivenDirection(i, 1);
+                    return;
+                } else if (currentLine < middleConflictingLineNumbers.get(i)) {
+                    moveDocCaretsGivenDirection(i, 0);
+                    return;
+                }
             }
         }
+    }
+
+    private void moveDocCaretsGivenDirection(int i, int direction) {
+        moveDocCarets(leftDoc, leftConflictingLineNumbers.get(i + direction));
+        moveDocCarets(middleDoc, middleConflictingLineNumbers.get(i + direction));
+        moveDocCarets(rightDoc, rightConflictingLineNumbers.get(i + direction));
     }
 
     private void moveDocCarets(CodeArea doc, int lineNumber) {
@@ -540,9 +558,10 @@ public class ConflictManagementToolController {
         setInitialPositions(rightDoc, rightConflictingLineNumbers);
 
         bindMouseMovementToConflict(leftDoc, leftConflictingLineNumbers, leftConflictLines);
-//        bindMouseMovementToConflict(middleDoc, middleConflictingLineNumbers, middleConflictLines);
+        bindMouseMovementToConflict(middleDoc, middleConflictingLineNumbers, middleConflictLines);
         bindMouseMovementToConflict(rightDoc, rightConflictingLineNumbers, rightConflictLines);
     }
+    
     private ArrayList<String> getParentFiles(ObjectId parent, String fileName){
         try{
             Repository repository = SessionModel.getSessionModel().getCurrentRepoHelper().getRepo();
@@ -594,27 +613,37 @@ public class ConflictManagementToolController {
         doc.requestFollowCaret();
     }
 
-    // TODO: this is not done, but has some good ideas I think.
     private void bindMouseMovementToConflict(CodeArea doc, ArrayList<Integer> conflictingLineNumbers, ArrayList<ConflictLine> conflictLines) {
-        middleDoc.setOnMouseClicked(e -> {
-            int currentLine = middleDoc.getCurrentParagraph();
+        doc.setOnMouseClicked(e -> {
+            int currentLine = doc.getCurrentParagraph();
 
-            for (int conflictLineIndex = 0; conflictLineIndex < middleConflictingLineNumbers.size(); conflictLineIndex++) {
-                int lineNumber = middleConflictingLineNumbers.get(conflictLineIndex);
+            for (int conflictLineIndex = 0; conflictLineIndex < conflictingLineNumbers.size(); conflictLineIndex++) {
+                int lineNumber = conflictingLineNumbers.get(conflictLineIndex);
 
-                if ((currentLine == lineNumber || currentLine == lineNumber - 1) && middleConflictLines.get(conflictLineIndex).isConflicting()) {
-                    console.info("the click was registered as in between a conflict.");
-                    leftDoc.moveTo(leftConflictingLineNumbers.get(conflictLineIndex), 0);
-                    middleDoc.moveTo(middleConflictingLineNumbers.get(conflictLineIndex), 0);
-                    rightDoc.moveTo(rightConflictingLineNumbers.get(conflictLineIndex), 0);
+                // If the user clicks withing a line of a conflict on any of the documents, move all the docs there and all them to click buttons
+                if ((currentLine == lineNumber || currentLine == lineNumber - 1) && conflictLines.get(conflictLineIndex).isConflicting()) {
+                    moveDocCarets(leftDoc, leftConflictingLineNumbers.get(conflictLineIndex));
+                    moveDocCarets(middleDoc, middleConflictingLineNumbers.get(conflictLineIndex));
+                    moveDocCarets(rightDoc, rightConflictingLineNumbers.get(conflictLineIndex));
+
+                    setModifyingButtonsDisabled(false);
                     return;
-                    // move other docs there
-                } else {
-                    console.info("the click was registered as NOT in between a conflict.");
-                    // disable accept and reject and undo
+                } else if (currentLine < lineNumber) { // If they didn't click close enough don't let them use the buttons
+                    setModifyingButtonsDisabled(true);
+                    return;
                 }
             }
         });
+    }
+
+    private void setModifyingButtonsDisabled(boolean disabled) {
+        leftUndo.setDisable(disabled);
+        leftReject.setDisable(disabled);
+        leftAccept.setDisable(disabled);
+
+        rightUndo.setDisable(disabled);
+        rightReject.setDisable(disabled);
+        rightAccept.setDisable(disabled);
     }
 
     private CodeArea setLines(ArrayList<ConflictLine> lines, CodeArea doc) {
