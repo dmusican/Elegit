@@ -32,16 +32,12 @@ import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
-import org.fxmisc.richtext.CharacterHit;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
-import org.fxmisc.richtext.NavigationActions;
 
-import java.awt.event.MouseEvent;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.nio.file.Path;
 import java.util.*;
 import java.io.File;
@@ -415,12 +411,12 @@ public class ConflictManagementToolController {
         for (int conflictLineIndex = 0; conflictLineIndex < conflictingLineNumbers.size(); conflictLineIndex++) {
             int lineNumber = conflictingLineNumbers.get(conflictLineIndex);
 
-            if (lineNumber == currentLine && conflictLines.get(conflictLineIndex).isConflicting()) {
+            if (lineNumber == currentLine && !conflictLines.get(conflictLineIndex).isHandled()) {
                 if (accepting) {
                     updateMiddleDoc(conflictLines, conflictLineIndex);
                 }
-                updateSideDoc(doc, conflictingLineNumbers.get(conflictLineIndex), conflictLines.get(conflictLineIndex).getLines().size());
-                updateConflictLineStatus(conflictLines, conflictLineIndex);
+                updateSideDocCSS(doc, conflictingLineNumbers.get(conflictLineIndex), conflictLines.get(conflictLineIndex).getLines().size(), "handled-conflict");
+                updateConflictLineStatus(conflictLines, conflictLineIndex, true, false);
 
                 updateAndCheckConflictsLeftToHandle();
                 return;
@@ -440,7 +436,7 @@ public class ConflictManagementToolController {
         }
 
         updateMiddleConflictingLineNumbers(conflictLines.get(conflictLineIndex).getLines().size(), conflictLineIndex);
-        middleDoc.moveTo(middleConflictingLineNumbers.get(conflictLineIndex), 0);
+        updateMiddleDocCurrentLine(conflictLineIndex);
     }
 
     private void updateCurrentLine(String line) {
@@ -456,20 +452,23 @@ public class ConflictManagementToolController {
         }
     }
 
-    private void updateSideDoc(CodeArea doc, int startOfConflict, int numLines) {
+    private void updateMiddleDocCurrentLine(int conflictLineIndex) {
+        middleDoc.moveTo(middleConflictingLineNumbers.get(conflictLineIndex), 0);
+    }
+
+    private void updateSideDocCSS(CodeArea doc, int startOfConflict, int numLines, String selector) {
         int startIndex = doc.getCaretPosition();
         doc.moveTo(startOfConflict + numLines, 0);
         int endIndex = doc.getCaretPosition();
-        setCSSSelector(doc, startIndex, endIndex, "handled-conflict");
+        setCSSSelector(doc, startIndex, endIndex, selector);
         doc.moveTo(startOfConflict, 0);
     }
 
-    // TODO: figure out what flags to change
-    private void updateConflictLineStatus(ArrayList<ConflictLine> conflictLines, int conflictLineIndex) {
-//        middleConflictLines.get(conflictLineIndex).setChangedStatus(true);
-        middleConflictLines.get(conflictLineIndex).setConflictStatus(false);
-//        conflictLines.get(conflictLineIndex).setChangedStatus(true);
-        conflictLines.get(conflictLineIndex).setConflictStatus(false);
+    private void updateConflictLineStatus(ArrayList<ConflictLine> conflictLines, int conflictLineIndex, boolean handled, boolean conflicting) {
+        middleConflictLines.get(conflictLineIndex).setHandledStatus(handled);
+        middleConflictLines.get(conflictLineIndex).setConflictStatus(conflicting);
+        conflictLines.get(conflictLineIndex).setHandledStatus(handled);
+        conflictLines.get(conflictLineIndex).setConflictStatus(conflicting);
     }
 
     private void updateAndCheckConflictsLeftToHandle() {
@@ -488,16 +487,71 @@ public class ConflictManagementToolController {
     }
 
     @FXML
-    private synchronized void handleUndoLeftChange() {
+    private void handleUndoLeftChange() {
         logger.info("Modification undone from left document.");
+        handleUndoChange(leftDoc, leftConflictLines, leftConflictingLineNumbers);
     }
 
     @FXML
-    private synchronized void handleUndoRightChange() {
+    private void handleUndoRightChange() {
         logger.info("Modification undone from right document.");
+        handleUndoChange(rightDoc, rightConflictLines, rightConflictingLineNumbers);
     }
 
-    private synchronized void handleUndoChange() {
+    private void handleUndoChange(CodeArea doc, ArrayList<ConflictLine> conflictLines, ArrayList<Integer> conflictingLineNumbers) {
+        int currentLine = doc.getCurrentParagraph();
+
+        // Find the conflictLineIndex
+        for (int conflictLineIndex = 0; conflictLineIndex < conflictingLineNumbers.size(); conflictLineIndex++) {
+            int lineNumber = conflictingLineNumbers.get(conflictLineIndex);
+
+            if (lineNumber == currentLine && conflictLines.get(conflictLineIndex).isHandled()) { // Found the index and line number and it has been handled
+                // Find the actual string in the ConflictLine for the middleDoc
+                for (int i = 0; i < middleConflictLines.get(conflictLineIndex).getLines().size(); i++) {
+                    String line = middleConflictLines.get(conflictLineIndex).getLines().get(i);
+
+                    if (line.equals(conflictLines.get(conflictLineIndex).getLines().get(0))) { // Found the first line in the middle ConflictLine
+                        // Remove the text from the conflict line
+                        for (int j = 0; j < conflictLines.get(conflictLineIndex).getLines().size(); j++) {
+                            middleConflictLines.get(conflictLineIndex).getLines().remove(i);
+                        }
+                        // Remove the text from the CodeArea
+                        removeChangeFromMiddleDoc(conflictLines, conflictLineIndex, i);
+
+                        // Update everything else
+                        updateMiddleConflictingLineNumbers(-(conflictLines.get(conflictLineIndex).getLines().size()), conflictLineIndex);
+                        updateMiddleDocCurrentLine(conflictLineIndex);
+                        updateConflictLineStatus(conflictLines, conflictLineIndex, false, true);
+                        updateSideDocCSS(doc, conflictingLineNumbers.get(conflictLineIndex), conflictLines.get(conflictLineIndex).getLines().size(), "conflict");
+                        return;
+                    }
+                }
+
+                // If it gets here, the modification must have been reject because the text is not in the ConflictLine
+                // Only update the css and ConflictLine status
+                updateSideDocCSS(doc, conflictingLineNumbers.get(conflictLineIndex), conflictLines.get(conflictLineIndex).getLines().size(), "conflict");
+                updateConflictLineStatus(conflictLines, conflictLineIndex, false, true);
+                return;
+
+            } else if(lineNumber == currentLine) { // They clicked undo, but it was not yet handled
+                showNoModificationToUndo();
+                return;
+            }
+        }
+    }
+
+    private void removeChangeFromMiddleDoc(ArrayList<ConflictLine> conflictLines, int conflictLineIndex, int i) {
+        int startOfConflict = middleDoc.getCurrentParagraph();
+        int numLinesToRemove = conflictLines.get(conflictLineIndex).getLines().size();
+        int numLinesAbove;
+
+        if (i == 0) { // Was added first, meaning the second changed added (if there) is above it in CodeArea
+            numLinesAbove = middleConflictLines.get(conflictLineIndex).getLines().size();
+        } else {
+            numLinesAbove = 0;
+        }
+        middleDoc.selectRange(startOfConflict + numLinesAbove, 0, startOfConflict + numLinesAbove + numLinesToRemove, 0);
+        middleDoc.deleteText(middleDoc.getSelection());
     }
 
     @FXML
@@ -705,5 +759,11 @@ public class ConflictManagementToolController {
         logger.info("Reject conflict clicked when there is not a conflict to reject (either not a conflict or already handled).");
         notificationPaneController.addNotification("You are either trying to ignore something that is not "
                 + "conflicting \n or you already handled. Click the undo button if you made a mistake");
+    }
+
+    private void showNoModificationToUndo() {
+        logger.info("Undo clicked when there was not previous modification made.");
+        notificationPaneController.addNotification("Neither accept nor reject was clicked for this change \n"
+                + "in this document, so there is nothing to undo.");
     }
 }
