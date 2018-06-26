@@ -186,9 +186,11 @@ public class OpenAndCloseReposFXTest extends ApplicationTest {
             clickOn("repo1");
             WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
                                       () -> !BusyWindow.window.isShowing());
+            System.err.println("before wait dropdown.");
 
             WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
                                       () -> dropdown.getValue().toString().equals("repo1"));
+            System.err.println("before wait for fx events.");
             WaitForAsyncUtils.waitForFxEvents();
             sleep(100);
             System.err.println("clicking dropdown before 2");

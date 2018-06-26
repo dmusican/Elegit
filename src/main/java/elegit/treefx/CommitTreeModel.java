@@ -99,6 +99,7 @@ public class CommitTreeModel{
      * and then adds all commits tracked by this model to the tree
      */
     public synchronized Single<Boolean> initializeModelForNewRepoWhenSubscribed(){
+        System.err.println("The issue is in initializeModelForNewRepoWhenSubscribed().");
         Main.assertFxThread();
 
         CommitTreeController.resetSelection();
@@ -108,7 +109,9 @@ public class CommitTreeModel{
             try {
                 RepoHelper currentRepoHelper = SessionModel.getSessionModel().getCurrentRepoHelper();
                 currentRepoHelper.updateModel();
+                System.err.println("The issue is in the giant method.");
                 UpdateModel updates = this.getChanges();
+                System.err.println("The issue is in the giant method.");
                 if (updates.hasChanges()) {
                     Set<CommitHelper> commitsToRemove = updates.getCommitsToRemove();
                     this.removeCommitsFromTree(commitsToRemove);
@@ -132,6 +135,7 @@ public class CommitTreeModel{
     }
 
     public synchronized Single<Boolean> updateModelForChangesWithinRepoWhenSubscribed() throws GitAPIException, IOException {
+        System.err.println("the issue is in updateModelForChangesWithingRepoWhenSubscribed().");
         Main.assertFxThread();
         Single<Boolean> result = Single.just(true);
         // Handles rare edge case with the RepositoryMonitor and removing repos
@@ -301,12 +305,14 @@ public class CommitTreeModel{
      * @return true if commits where added, else false
      */
     private synchronized Single<Boolean> addCommitsToTreeWhenSubscribed(Set<CommitHelper> commits){
+        System.out.println("The issue is in addCommitsToTreeWhenSubscribed().");
         if(commits.size() == 0)
             return Single.just(true);
         //return false;
 
         List<CommitHelper> cellsWithNewTypes = new ArrayList<>();
 
+        System.out.println("The issue has to do with the return.");
         return Observable.fromIterable(commits)
                 .subscribeOn(Schedulers.io())
                 .map(curCommitHelper -> addCommitToTree(curCommitHelper, treeGraph.treeGraphModel))
@@ -320,6 +326,7 @@ public class CommitTreeModel{
                     for (CommitHelper commit : cellsWithNewTypes) {
                         treeGraph.treeGraphModel.setCellType(commit);
                     }
+                    System.err.println("The issue is after the for loop.");
 
                 })
                 .reduce(false, (a,b) -> a&&b);
@@ -370,6 +377,7 @@ public class CommitTreeModel{
     // Does not need to be on FX thread; look carefully through it, all effort is local or calls other threadsafe code
     // BE VERY CAREFUL about modifying this
     private synchronized List<CommitHelper> addCommitToTree(CommitHelper commitHelper, TreeGraphModel graphModel) {
+        System.out.println("The issue is in addCommitToTree.");
         ArrayDeque<CommitHelper> traversalStack = new ArrayDeque<>();
 
         ArrayDeque<CommitHelper> queue = new ArrayDeque<>();

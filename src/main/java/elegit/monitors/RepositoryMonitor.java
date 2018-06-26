@@ -36,8 +36,8 @@ import java.util.concurrent.atomic.AtomicReference;
 public class RepositoryMonitor{
 
     // How long to pause between checks
-    public static final long REMOTE_CHECK_INTERVAL = 6000;
-    public static final long LOCAL_CHECK_INTERVAL = 5000;
+    public static final long REMOTE_CHECK_INTERVAL = 200;
+    public static final long LOCAL_CHECK_INTERVAL = 200;
 
     // Whether there are new remote changes
     public static final BooleanProperty hasFoundNewRemoteChanges = new SimpleBooleanProperty(false);

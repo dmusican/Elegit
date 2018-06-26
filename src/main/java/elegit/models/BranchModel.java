@@ -147,6 +147,7 @@ public class BranchModel {
                 } catch (IOException e) {
                     logger.error("IOException getting local branches");
                     logger.debug(e.getStackTrace());
+                    System.err.println("The issue is in refreshHeadIdsType().");
                     e.printStackTrace();
                 }
             }

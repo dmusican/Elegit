@@ -284,6 +284,7 @@ public class SessionController {
     // Repeat trying to fetch. First time: no authentication window. On repeated attempts,
     // authentication window is shown. Effort ends when authentication window is cancelled.
     private Single<String> doGitOperationWhenSubscribed(GitOperation gitOp) {
+        System.err.println("The issue is in doGitOperationWhenSubscribed.");
         Main.assertFxThread();
         AtomicBoolean httpAuth = new AtomicBoolean(false);
         return Single.fromCallable(() -> authenticateReactive(httpAuth.get()))
@@ -584,6 +585,7 @@ public class SessionController {
      * Initializes each panel of the view
      */
     public synchronized Single<Boolean> initPanelViewsWhenSubscribed() {
+        System.err.println("The issue is in initPanelViewWhenSubscribed().");
         Main.assertFxThread();
         try {
             workingTreePanelView.drawDirectoryView();
@@ -594,6 +596,7 @@ public class SessionController {
                     .flatMap(unused -> resetRemoteConnectedCheckboxWhenSubscribed())
                     .flatMap(unused -> commitTreeModel.initializeModelForNewRepoWhenSubscribed());
         } catch (GitAPIException | IOException e) {
+            System.err.println("For some reason this is the issue.");
             showGenericErrorNotification(e);
             console.info("Exception thrown: " + e);
         }
@@ -636,6 +639,7 @@ public class SessionController {
                 browserText.setText(remoteURL.getHost());
             } catch (MalformedURLException e) {
                 browserText.setText(URLString);
+                System.err.println("The issue is in setBrowserURL().");
             }
         }
         Tooltip URLTooltip = new Tooltip(URLString);
@@ -745,6 +749,7 @@ public class SessionController {
         if (this.theModel.getCurrentRepoHelper() == null && this.theModel.getAllRepoHelpers().size() >= 0) {
             // (There's no repo for buttons to interact with, but there are repos in the menu bar)
             setButtonsDisabled(true);
+            System.err.println("The issue is in updateUIEnabledStatus().");
         } else {
             setButtonsDisabled(false);
         }
@@ -810,6 +815,7 @@ public class SessionController {
         doGitOperationWhenSubscribed(gitOp)
                 .flatMap((result) -> {
                     if (result.equals("success")) {
+                        System.err.println("The issue is before the return");
                         return initPanelViewsWhenSubscribed()
                         .map(unused -> doGitStatusWhenSubscribed())
                         .doAfterTerminate(() -> {
@@ -819,9 +825,12 @@ public class SessionController {
 
                             Main.assertAndLog(Highlighter.cellStatesEmpty(),
                                     "Cell states not cleared");  // Verify that things got cleared up as they should
+                            System.err.println("The issue is after the return");
 
                         });
+
                     } else {
+                        System.err.println("The issue is in the else in load designated repo.");
                         return doGitStatusWhenSubscribed()
                                 .doOnSuccess(unused -> hideBusyWindowAndResumeRepoMonitor());
                     }
@@ -830,7 +839,9 @@ public class SessionController {
                 .subscribe(unused -> {}, (t) -> {
                     if (t instanceof TransportException) {
                         showTransportExceptionNotification((TransportException)t);
+                        System.err.println("The issue is in the transportException.");
                     } else {
+                        System.err.println("THE ISSUE IS HERE");
                         throw new ExceptionAdapter(t);
                     }
                 });
@@ -2379,12 +2390,19 @@ public class SessionController {
         }
 
     public Single<Boolean> doGitStatusWhenSubscribed() throws GitAPIException, IOException {
+        System.err.println("The issue is in doGitStatusWhenSubscribed. line 2388");
         theModel.getCurrentRepoHelper().getBranchModel().updateAllBranches();
+        System.err.println("The issue is in doGitStatusWhenSubscribed. line 390");
         workingTreePanelView.drawDirectoryView();
+        System.err.println("The issue is in doGitStatusWhenSubscribed. line 2392");
         allFilesPanelView.drawDirectoryView();
+        System.err.println("The issue is in doGitStatusWhenSubscribed. line 2394");
         indexPanelView.drawDirectoryView();
+        System.err.println("The issue is in doGitStatusWhenSubscribed. line 2396");
         this.theModel.getCurrentRepoHelper().getTagModel().updateTags();
+        System.err.println("The issue is in doGitStatusWhenSubscribed. line 2398");
         updateStatusText();
+        System.err.println("The issue is in doGitStatusWhenSubscribed. line 2400");
         return commitTreeModel.updateModelForChangesWithinRepoWhenSubscribed();
     }
 
@@ -2702,6 +2720,7 @@ public class SessionController {
     }
 
     private void showTransportExceptionNotification(TransportException e) {
+        System.err.println("The issue is in the transport error.");
         Platform.runLater(() -> {
             showTransportExceptionNotification(notificationPaneController, e);
         });
