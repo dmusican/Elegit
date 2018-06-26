@@ -1,5 +1,9 @@
 package elegit.models;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 /**
  * Created by gorram on 6/20/18.
  * Line object that stores the line and a boolean that determines whether or not it is conflicting
@@ -7,59 +11,59 @@ import java.util.ArrayList;
 public class ConflictLine {
     private ArrayList<String> lines;
     // true when conflicting, false otherwise
-    private boolean conflict;
-    private boolean modified;
-    private boolean changed;
+    private AtomicBoolean conflict = new AtomicBoolean();
+    private AtomicBoolean modified = new AtomicBoolean();
+    private AtomicBoolean changed = new AtomicBoolean();
 
     public ConflictLine(ArrayList<String> lines, boolean conflict) {
         this.lines = lines;
-        this.conflict = conflict;
-        this.modified = false;
-        this.changed=false;
+        this.conflict.set(conflict);
+        this.modified.set(false);
+        this.changed.set(false);
     }
 
     public ConflictLine(ArrayList<String> lines) {
         this.lines = lines;
-        this.conflict = false;
-        this.modified = false;
-        this.changed=false;
+        this.conflict.set(false);// = false;
+        this.modified.set(false);
+        this.changed.set(false);
     }
     public ConflictLine(boolean conflict) {
         this.lines = new ArrayList<>();
-        this.conflict = conflict;
-        this.modified = false;
-        this.changed=false;
+        this.conflict.set(conflict);
+        this.modified.set(false);
+        this.changed.set(false);
     }
 
     public void addLine(String line){
         lines.add(line);
     }
-    public ArrayList<String> getLines() {
-        return lines;
+    public List<String> getLines() {
+        return Collections.unmodifiableList(lines); //lines;
     }
 
 
     public boolean isConflicting() {
-        return conflict;
+        return conflict.get();
     }
 
     public void setConflictStatus(boolean newStatus) {
-        conflict = newStatus;
+        conflict.set(newStatus);
     }
 
     public boolean isModified() {
-        return modified;
+        return modified.get();
     }
 
     public void setModifiedStatus(boolean newStatus) {
-        modified = newStatus;
+        modified.set(newStatus);
     }
 
     public boolean isChanged() {
-        return changed;
+        return changed.get();
     }
 
     public void setChangedStatus(boolean newStatus) {
-        changed = newStatus;
+        changed.set(newStatus);
     }
 }

@@ -587,10 +587,8 @@ public class ConflictManagementToolController {
         fileSelected = true;
         conflictingFilesDropdown.setPromptText(fileName);
         ConflictManagementModel conflictManagementModel = new ConflictManagementModel();
-        ArrayList<String> base = getBaseParentFiles(fileName);
-        System.out.println(base);
         ArrayList<ArrayList> results = conflictManagementModel.parseConflicts(fileName,
-                filePathWithoutFileName, mergeResult.get("baseParent"), mergeResult.get("mergedParent"));
+                filePathWithoutFileName, getBaseParentFiles(fileName), getMergedParentFiles(fileName));
 
         setLabels(conflictManagementModel);
 
@@ -625,7 +623,6 @@ public class ConflictManagementToolController {
         Main.assertFxThread();
         try{
             Repository repository = SessionModel.getSessionModel().getCurrentRepoHelper().getRepo();
-            System.out.println(repository);
             RevWalk revWalk = new RevWalk(repository);
             RevTree revTree = revWalk.parseCommit(parent).getTree();
             TreeWalk treeWalk = new TreeWalk(repository);
@@ -648,8 +645,6 @@ public class ConflictManagementToolController {
     private ArrayList<String> getBaseParentFiles(String fileName){
         Main.assertFxThread();
         ObjectId baseParent = ObjectId.fromString(mergeResult.get("baseParent").substring(7,47));
-        System.out.println(mergeResult.get("baseParent"));
-        System.out.println(baseParent);
         return getParentFiles(baseParent, fileName);
     }
 
@@ -716,7 +711,7 @@ public class ConflictManagementToolController {
     private CodeArea setLines(ArrayList<ConflictLine> lines, CodeArea doc) {
         Main.assertFxThread();
         for (ConflictLine conflict : lines) {
-            ArrayList<String> conflictLines = conflict.getLines();
+            List<String> conflictLines = conflict.getLines();
             for (String line : conflictLines) {
                 int startIndex = doc.getCaretPosition();
                 doc.appendText(line + "\n");

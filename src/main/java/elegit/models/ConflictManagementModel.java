@@ -29,10 +29,9 @@ import java.util.HashMap;
 public class ConflictManagementModel {
     private static final Logger logger = LogManager.getLogger();
 
-    public ArrayList<ArrayList> parseConflicts(String fileName, String filePathWithoutFileName, String baseParent, String mergedParent){
+    public ArrayList<ArrayList> parseConflicts(String fileName, String filePathWithoutFileName, ArrayList<String> base, ArrayList<String> merged){
+        Main.assertFxThread();
         String path = filePathWithoutFileName + File.separator + fileName;
-        ArrayList<String> base = getBaseParentFiles(fileName, baseParent);
-        ArrayList<String> merged = getMergedParentFiles(fileName, mergedParent);
         ArrayList<ConflictLine> left = new ArrayList<>();
         ArrayList<ConflictLine> middle = new ArrayList<>();
         ArrayList<ConflictLine> right = new ArrayList<>();
@@ -122,46 +121,6 @@ public class ConflictManagementModel {
         list.add(middle);
         list.add(right);
         return list;
-    }
-
-    private ArrayList<String> getParentFiles(ObjectId parent, String fileName){
-        Main.assertFxThread();
-        try{
-            Repository repository = SessionModel.getSessionModel().getCurrentRepoHelper().getRepo();
-            System.out.println(repository);
-            RevWalk revWalk = new RevWalk(repository);
-            RevTree revTree = revWalk.parseCommit(parent).getTree();
-            TreeWalk treeWalk = new TreeWalk(repository);
-            treeWalk.addTree(revTree);
-            treeWalk.setRecursive(true);
-            treeWalk.setFilter(PathFilter.create(fileName));
-            System.out.println(treeWalk.next());
-            if (!treeWalk.next()) {
-                throw new IllegalStateException("Did not find expected file");
-            }
-            ObjectId objectId = treeWalk.getObjectId(0);
-
-            ObjectLoader loader = repository.open(objectId);
-            String string = new String(loader.getBytes());
-            revWalk.dispose();
-            return new  ArrayList<>(Arrays.asList(string.split("\n")));
-        } catch (IOException e){
-            throw new ExceptionAdapter(e);
-        }
-    }
-
-    private ArrayList<String> getBaseParentFiles(String fileName, String base){
-        Main.assertFxThread();
-        ObjectId baseParent = ObjectId.fromString(base.substring(7,47));
-        System.out.println(base);
-        System.out.println(baseParent);
-        return getParentFiles(baseParent, fileName);
-    }
-
-    private ArrayList<String> getMergedParentFiles(String fileName, String merged){
-        Main.assertFxThread();
-        ObjectId mergedParent = ObjectId.fromString(merged.substring(7,47));
-        return getParentFiles(mergedParent, fileName);
     }
 
     private boolean changed(String line, String base, String merged){

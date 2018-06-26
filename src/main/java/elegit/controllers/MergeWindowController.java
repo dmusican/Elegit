@@ -268,20 +268,6 @@ public class MergeWindowController {
             this.sessionController.gitStatus();
             RepoHelper repoHelper = sessionModel.getCurrentRepoHelper();
             ConflictingFileWatcher.watchConflictingFiles(repoHelper);
-            //String current = sessionModel.getCurrentRepoHelper().getBranchModel().getCurrentBranch().getRefName();
-            /*for (String file : sessionModel.getConflictingFiles(new Git(repoHelper.getRepo()).status().call())){
-                try {
-                    String directory = repoHelper.getRepo().getDirectory().getParent();
-                    String path = directory + File.separator + file;
-                    FileWriter writer = new FileWriter(path, true);
-                    writer.write("<<===<<\n"+current+"\n"+selectedBranch+"\n"+">>===>>\n");
-                    writer.close();
-                } catch (IOException e) {
-                    throw new ExceptionAdapter(e);
-                }
-            }*/
-
-
         } else if (mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.ALREADY_UP_TO_DATE)) {
             this.showUpToDateNotification();
 
