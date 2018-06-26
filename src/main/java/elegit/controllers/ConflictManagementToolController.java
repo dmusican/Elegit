@@ -121,6 +121,8 @@ public class ConflictManagementToolController {
 
     private HashMap<String, String> mergeResult;
 
+    private static final Logger logger = LogManager.getLogger();
+
     private static final Logger console = LogManager.getLogger("briefconsolelogger");
 
     synchronized void setSessionController(SessionController sessionController) {
@@ -143,7 +145,6 @@ public class ConflictManagementToolController {
      * Add graphics and tool tips for all of the buttons in the tool.
      */
     private void initButtons() {
-        console.info("Initializing buttons.");
         // Accept change buttons
         initButton(FontAwesomeIcon.CHECK, "checkIcon", leftAccept, "Integrate the highlighted commit.");
         initButton(FontAwesomeIcon.CHECK, "checkIcon", rightAccept, "Integrate the highlighted commit.");
@@ -247,7 +248,7 @@ public class ConflictManagementToolController {
         stage.setScene(new Scene(anchorRoot));
         stage.setResizable(false);
         stage.initModality(Modality.APPLICATION_MODAL);
-        stage.setOnCloseRequest(event -> console.info("Closed conflict management tool"));
+        stage.setOnCloseRequest(event -> logger.info("Closed conflict management tool"));
         stage.show();
         notificationPaneController.setAnchor(stage);
     }
@@ -280,11 +281,13 @@ public class ConflictManagementToolController {
 
     @FXML
     private void handleAbort() {
+        logger.info("Conflict management session aborted.");
         stage.close();
     }
 
     @FXML
     private void handleApplyChanges() {
+        logger.info("Changes made with the conflict management tool applied.");
         if (conflictsLeftToHandle != 0) {
             showNotAllConflictHandledNotification();
             // TODO: allow them to override somehow
@@ -308,6 +311,7 @@ public class ConflictManagementToolController {
 
     @FXML
     private void handleToggleUp() {
+        logger.info("Toggled up.");
         setModifyingButtonsDisabled(false);
 
         int currentLine = middleDoc.getCurrentParagraph();
@@ -324,6 +328,7 @@ public class ConflictManagementToolController {
 
     @FXML
     private void handleToggleDown() {
+        logger.info("Toggle down.");
         setModifyingButtonsDisabled(false);
 
         int currentLine = middleDoc.getCurrentParagraph();
@@ -382,21 +387,25 @@ public class ConflictManagementToolController {
 
     @FXML
     private void handleAcceptLeftChange() {
+        logger.info("Change on left document accepted.");
         handleChange(leftDoc, leftConflictingLineNumbers, leftConflictLines, true);
     }
 
     @FXML
     private void handleAcceptRightChange() {
+        logger.info("Change on right document accepted.");
         handleChange(rightDoc, rightConflictingLineNumbers, rightConflictLines, true);
     }
 
     @FXML
     private void handleRejectLeftChange() {
+        logger.info("Change on left document rejected.");
         handleChange(leftDoc, leftConflictingLineNumbers, leftConflictLines, false);
     }
 
     @FXML
     private void handleRejectRightChange() {
+        logger.info("Change on right document rejected.");
         handleChange(rightDoc, rightConflictingLineNumbers, rightConflictLines, false);
     }
 
@@ -480,11 +489,21 @@ public class ConflictManagementToolController {
     }
 
     @FXML
+    private synchronized void handleUndoLeftChange() {
+        logger.info("Modification undone from left document.");
+    }
+
+    @FXML
+    private synchronized void handleUndoRightChange() {
+        logger.info("Modification undone from right document.");
+    }
+
     private synchronized void handleUndoChange() {
     }
 
     @FXML
     private void setFileToEdit() {
+        logger.info("New file selected to edit in conflict management tool.");
         Main.assertFxThread();
         setDropdownValueToFileName();
 
@@ -561,7 +580,7 @@ public class ConflictManagementToolController {
         bindMouseMovementToConflict(middleDoc, middleConflictingLineNumbers, middleConflictLines);
         bindMouseMovementToConflict(rightDoc, rightConflictingLineNumbers, rightConflictLines);
     }
-    
+
     private ArrayList<String> getParentFiles(ObjectId parent, String fileName){
         try{
             Repository repository = SessionModel.getSessionModel().getCurrentRepoHelper().getRepo();
@@ -667,24 +686,24 @@ public class ConflictManagementToolController {
     }
 
     private void showAllConflictsHandledNotification() {
-        console.info("All conflicts were handled.");
+        logger.info("All conflicts were handled.");
         notificationPaneController.addNotification("All conflicts were handled. Click apply to use them.");
     }
 
     // TODO: add a button or something that allows them to continue
     private void showNotAllConflictHandledNotification() {
-        console.info("Apply clicked before finishing merge.");
+        logger.info("Apply clicked before finishing merge.");
         notificationPaneController.addNotification("Not all conflicts have been handled. Are you sure you want to continue?");
     }
 
     private void showAttemptingToAcceptANonConflictNotification() {
-        console.info("Accept conflict clicked when there is not a conflict to add (either not a conflict or already handled).");
+        logger.info("Accept conflict clicked when there is not a conflict to add (either not a conflict or already handled).");
         notificationPaneController.addNotification("You are either trying to integrate something that is not "
                 + "conflicting \n or you already handled. Click the undo button if you made a mistake");
     }
 
     private void showAttemptingToRejectANonConflictNotification() {
-        console.info("Reject conflict clicked when there is not a conflict to reject (either not a conflict or already handled).");
+        logger.info("Reject conflict clicked when there is not a conflict to reject (either not a conflict or already handled).");
         notificationPaneController.addNotification("You are either trying to ignore something that is not "
                 + "conflicting \n or you already handled. Click the undo button if you made a mistake");
     }

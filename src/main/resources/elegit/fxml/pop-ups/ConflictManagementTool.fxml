@@ -100,7 +100,7 @@
             <!--Accept/Reject/Undo changes for left document-->
             <HBox alignment="CENTER_RIGHT" prefHeight="40.0" prefWidth="410.0" GridPane.rowIndex="2">
                 <children>
-                    <Button id="undoButton" fx:id="leftUndo" onAction="#handleUndoChange" alignment="CENTER" contentDisplay="CENTER" graphicTextGap="3.0">
+                    <Button id="undoButton" fx:id="leftUndo" onAction="#handleUndoLeftChange" alignment="CENTER" contentDisplay="CENTER" graphicTextGap="3.0">
                         <HBox.margin>
                             <Insets right="1.5" />
                         </HBox.margin>
@@ -131,7 +131,7 @@
                             <Insets left="1.5" right="1.5" />
                         </HBox.margin>
                     </Button>
-                    <Button id="undoButton" fx:id="rightUndo" onAction="#handleUndoChange" alignment="CENTER" contentDisplay="CENTER" graphicTextGap="2.0">
+                    <Button id="undoButton" fx:id="rightUndo" onAction="#handleUndoRightChange" alignment="CENTER" contentDisplay="CENTER" graphicTextGap="2.0">
                         <HBox.margin>
                             <Insets left="1.5" />
                         </HBox.margin>
