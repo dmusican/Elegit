@@ -125,7 +125,6 @@ public class ConflictManagementToolController {
 
     public void initialize() {
         mergeResult=SessionModel.getSessionModel().getMergeResult();
-        System.out.println(mergeResult.get("baseBranch")+"    "+mergeResult.get("mergedBranch"));
         initButtons();
         initDropdown();
         initCodeAreas();

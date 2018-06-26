@@ -93,6 +93,7 @@ public class SessionModel {
         this.preferences = Preferences.userNodeForPackage(preferencesNodeClass);
         loadRecentRepoHelpersFromStoredPathStrings();
         loadMostRecentRepoHelper();
+        loadMergeResults();
     }
 
 
@@ -107,6 +108,15 @@ public class SessionModel {
         return preferencesNodeClass;
     }
 
+    private void loadMergeResults(){
+        try {
+            if(PrefObj.getObject(this.preferences, MERGE_RESULT)==null) {
+                PrefObj.putObject(this.preferences, MERGE_RESULT, new HashMap<String, HashMap<String, String>>());
+            }
+        } catch (Exception e) {
+            throw new ExceptionAdapter(e);
+        }
+    }
 
     /**
      * Loads all recently loaded repositories (stored with the Java Preferences API)
@@ -532,14 +542,20 @@ public class SessionModel {
 
     public void addMergeResult(HashMap<String, String> results){
         try {
-            PrefObj.putObject(this.preferences, MERGE_RESULT, results);
+            Repository repo = getCurrentRepo();
+            HashMap<String, HashMap<String, String>> mergeResults =
+                    (HashMap<String, HashMap<String, String>>) PrefObj.getObject(this.preferences, MERGE_RESULT);
+            mergeResults.put(repo.toString(), results);
+            PrefObj.putObject(this.preferences, MERGE_RESULT, mergeResults);
         } catch(Exception e){
             throw new ExceptionAdapter(e);
         }
     }
     public HashMap<String, String> getMergeResult(){
         try {
-            return (HashMap<String, String>) PrefObj.getObject(this.preferences, MERGE_RESULT);
+            HashMap<String, HashMap<String, String>> mergeResults =
+                    (HashMap<String, HashMap<String, String>>) PrefObj.getObject(this.preferences, MERGE_RESULT);
+            return mergeResults.get(getCurrentRepo().toString());
         } catch (Exception e){
             throw new ExceptionAdapter(e);
         }
