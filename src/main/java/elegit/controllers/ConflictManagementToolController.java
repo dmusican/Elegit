@@ -9,6 +9,7 @@ import elegit.gui.ConflictLinePointer;
 import elegit.models.ConflictManagementModel;
 import elegit.models.SessionModel;
 import elegit.models.ConflictLine;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -32,6 +33,7 @@ import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
+import org.fxmisc.richtext.Caret;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
 
@@ -402,6 +404,16 @@ public class ConflictManagementToolController {
         Main.assertFxThread();
         doc.moveTo(lineNumber, 0);
         doc.requestFollowCaret();
+
+        // Silly hack I got from Issue #389 for RichTextFX (which scrollYBy() was supposed to fix, but doesn't seem to)
+        // TODO: not a universal or ideal solution, but might be the beginning to one.
+        new Timer().schedule(new TimerTask() {
+            public void run() {
+                Platform.runLater(() -> {
+                    doc.scrollYBy(100);
+                });
+            }
+        }, 100);
     }
 
     @FXML
@@ -499,11 +511,13 @@ public class ConflictManagementToolController {
     }
 
     private void updateConflictLineStatus(ArrayList<ConflictLine> conflictLines, int conflictLineIndex, boolean handled, boolean conflicting) {
+        Main.assertFxThread();
         conflictLines.get(conflictLineIndex).setHandledStatus(handled);
         conflictLines.get(conflictLineIndex).setConflictStatus(conflicting);
     }
 
     private void updateAndCheckConflictsLeftToHandle(int conflictLineIndex) {
+        Main.assertFxThread();
         if (!middleConflictLines.get(conflictLineIndex).isHandled()) {
             conflictsLeftToHandle--;
             if (conflictsLeftToHandle == 0) {
@@ -536,6 +550,7 @@ public class ConflictManagementToolController {
     }
 
     private void handleUndoChange(CodeArea doc, ArrayList<ConflictLine> conflictLines, ArrayList<Integer> conflictingLineNumbers) {
+        Main.assertFxThread();
         int currentLine = doc.getCurrentParagraph();
 
         // Find the conflictLineIndex
@@ -580,6 +595,7 @@ public class ConflictManagementToolController {
     }
 
     private void updateConflictLineStatusIfNeeded(ArrayList<ConflictLine> conflictLines, int conflictLineIndex) {
+        Main.assertFxThread();
         // If they were both handled before the undo, we want to keep the middle as handled
         if (leftConflictLines.get(conflictLineIndex).isHandled() && rightConflictLines.get(conflictLineIndex).isHandled()) {
             updateConflictLineStatus(conflictLines, conflictLineIndex, false, true);
@@ -590,12 +606,14 @@ public class ConflictManagementToolController {
     }
 
     private void updateConflictsLeftToHandleIfNeeded(int conflictLineIndex) {
+        Main.assertFxThread();
         if (!middleConflictLines.get(conflictLineIndex).isHandled()) {
             conflictsLeftToHandle++;
         }
     }
 
     private void removeChangeFromMiddleDoc(ArrayList<ConflictLine> conflictLines, int conflictLineIndex, int i) {
+        Main.assertFxThread();
         int startOfConflict = middleDoc.getCurrentParagraph();
         int numLinesToRemove = conflictLines.get(conflictLineIndex).getLines().size();
         int numLinesAbove;
@@ -717,15 +735,15 @@ public class ConflictManagementToolController {
         }
     }
 
-    private ArrayList<String> getBaseParentFiles(String fileName){
+    private ArrayList<String> getBaseParentFiles(String fileName) {
         Main.assertFxThread();
-        ObjectId baseParent = ObjectId.fromString(mergeResult.get("baseParent").substring(7,47));
+        ObjectId baseParent = ObjectId.fromString(mergeResult.get("baseParent").substring(7, 47));
         return getParentFiles(baseParent, fileName);
     }
 
-    private ArrayList<String> getMergedParentFiles(String fileName){
+    private ArrayList<String> getMergedParentFiles(String fileName) {
         Main.assertFxThread();
-        ObjectId mergedParent = ObjectId.fromString(mergeResult.get("mergedParent").substring(7,47));
+        ObjectId mergedParent = ObjectId.fromString(mergeResult.get("mergedParent").substring(7, 47));
         return getParentFiles(mergedParent, fileName);
     }
 
@@ -744,8 +762,7 @@ public class ConflictManagementToolController {
 
     private void setInitialPositions(CodeArea doc, ArrayList<Integer> conflictingLineNumbers) {
         Main.assertFxThread();
-        doc.moveTo(conflictingLineNumbers.get(0), 0);
-        doc.requestFollowCaret();
+        moveDocCarets(doc, conflictingLineNumbers.get(0));
     }
 
     private void bindMouseMovementToConflict(CodeArea doc, ArrayList<Integer> conflictingLineNumbers, ArrayList<ConflictLine> conflictLines) {
