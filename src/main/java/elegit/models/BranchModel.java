@@ -281,6 +281,15 @@ public class BranchModel {
 
         MergeResult mergeResult = merge.call();
 
+        String current = getCurrentBranch().getRefName();
+        HashMap<String, String> results = new HashMap<>();
+        results.put("mergedBranch", branchToMergeFrom.getRefName());
+        results.put("baseBranch", current);
+        //ObjectId[] parents = mergeResult.getMergedCommits();
+        results.put("baseParent", mergeResult.getMergedCommits()[0].toString());
+        results.put("mergedParent", mergeResult.getMergedCommits()[1].toString());
+        SessionModel.getSessionModel().addMergeResult(results);
+
         git.close();
 
         return mergeResult;

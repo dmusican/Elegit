@@ -3,9 +3,8 @@ package elegitfx;
 import elegit.controllers.BusyWindow;
 import elegit.controllers.SessionController;
 import elegit.exceptions.ExceptionAdapter;
-import elegit.models.BranchModel;
-import elegit.models.ExistingRepoHelper;
-import elegit.models.LocalBranchHelper;
+import elegit.models.*;
+import elegit.monitors.RepositoryMonitor;
 import elegit.sshauthentication.ElegitUserInfoTest;
 import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
@@ -20,7 +19,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.TimeUnit;
 
-import elegit.models.BranchHelper;
 import org.eclipse.jgit.api.MergeCommand;
 import org.eclipse.jgit.api.MergeResult;
 import org.testfx.framework.junit.TestFXRule;
@@ -47,6 +45,7 @@ public class ConflictResolutionFXTest extends ApplicationTest{
             //Git.cloneRepository().setDirectory(local.toFile()).setURI("file://"+remote).call();
 
             ExistingRepoHelper helper = new ExistingRepoHelper(local, new ElegitUserInfoTest());
+            SessionModel.getSessionModel().openRepoFromHelper(helper);
             Path fileLocation = local.resolve("test.txt");
 
             FileWriter fw = new FileWriter(fileLocation.toString(), true);
@@ -68,6 +67,8 @@ public class ConflictResolutionFXTest extends ApplicationTest{
             helper.addFilePathTest(fileLocation);
             helper.commit("Appended to file");
             baseBranch.checkoutBranch();
+            System.out.println(SessionModel.getSessionModel().getCurrentRepoHelper());
+            System.out.println(SessionModel.getSessionModel().getCurrentRepoHelper().getRepo());
             MergeResult mergeResult = helper.getBranchModel().mergeWithBranch(mergeBranch);
             //System.out.println(mergeResult.getMergeStatus());
             assert(mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.CONFLICTING));
@@ -89,19 +90,23 @@ public class ConflictResolutionFXTest extends ApplicationTest{
         sessionController = TestUtilities.commonTestFxStart(stage);
     }
 
-    @Test
-    public void testResolveConflicts(){
-        try {
-            Path local = createConflictingLocalRepo();
-            interact(() -> sessionController.handleLoadExistingRepoOption(local));
-            WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
-                    () -> lookup("test.txt").queryAll().size() == 2);
-            //WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
-            //        () -> !);
-            rightClickOn("test.txt").clickOn("Resolve conflict...");
-            //clickOn();
-        } catch (Exception e){
-            throw new ExceptionAdapter(e);
-        }
+    //@Test
+    //TODO: finish this test etc.
+    public void testResolveConflicts() throws Exception{
+        SessionModel sessionModel = SessionModel.getSessionModel();
+        Path local = createConflictingLocalRepo();
+        System.out.println(local);
+        System.out.println(SessionModel.getSessionModel().getCurrentRepoHelper());
+        interact(() -> sessionController.handleLoadExistingRepoOption(local));
+        //WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+         //       () -> lookup("test.txt").queryAll().size() == 2);
+        interact(() -> sessionController.handleOpenConflictManagementTool(local.toString(),"test.txt"));
+        sleep(2000);
+
+
+        /*RepositoryMonitor.unpause();
+        rightClickOn("test.txt");
+        sleep(500);
+        moveTo("#contextId").clickOn("#resolveConflicts");*/
     }
 }

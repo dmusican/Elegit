@@ -254,14 +254,14 @@ public class MergeWindowController {
         MergeResult mergeResult =
                 SessionModel.getSessionModel().getCurrentRepoHelper().getBranchModel().mergeWithBranch(selectedBranch);
         //sessionModel.addMergeResult(mergeResult);
-        String current = sessionModel.getCurrentRepoHelper().getBranchModel().getCurrentBranch().getRefName();
-        HashMap<String, String> results = new HashMap<>();
-        results.put("mergedBranch", selectedBranch.getRefName());
-        results.put("baseBranch", current);
-        //ObjectId[] parents = mergeResult.getMergedCommits();
-        results.put("baseParent", mergeResult.getMergedCommits()[0].toString());
-        results.put("mergedParent", mergeResult.getMergedCommits()[1].toString());
-        sessionModel.addMergeResult(results);
+//        String current = sessionModel.getCurrentRepoHelper().getBranchModel().getCurrentBranch().getRefName();
+//        HashMap<String, String> results = new HashMap<>();
+//        results.put("mergedBranch", selectedBranch.getRefName());
+//        results.put("baseBranch", current);
+//        //ObjectId[] parents = mergeResult.getMergedCommits();
+//        results.put("baseParent", mergeResult.getMergedCommits()[0].toString());
+//        results.put("mergedParent", mergeResult.getMergedCommits()[1].toString());
+//        sessionModel.addMergeResult(results);
         if (mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.CONFLICTING)){
             this.showConflictsNotification();
             // TODO: Call gitStatus once I've got it better threaded

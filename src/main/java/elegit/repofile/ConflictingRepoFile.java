@@ -47,6 +47,7 @@ public class ConflictingRepoFile extends RepoFile {
         setTextIdTooltip("CONFLICTING","conflictingDiffButton",
                 "This file caused a merge conflict.\nEdit the file to fix the conflict.");
         MenuItem resolveMerge = new MenuItem("Resolve conflict...");
+        resolveMerge.setId("resolveConflicts");
         addToContextMenu(resolveMerge);
 
         // Open conflict management tool

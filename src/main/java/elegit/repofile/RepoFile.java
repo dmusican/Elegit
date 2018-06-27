@@ -75,6 +75,7 @@ public class RepoFile implements Comparable<RepoFile> {
         }
 
         this.contextMenu = new ContextMenu();
+        this.contextMenu.setId("contextId");
 
         MenuItem addToIgnoreItem = new MenuItem("Add to .gitignore...");
         addToIgnoreItem.setOnAction(event -> GitIgnoreEditor.show(this.repo, this.filePath));
