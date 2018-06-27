@@ -165,12 +165,10 @@ public class OpenAndCloseReposFXTest extends ApplicationTest {
         interact(() -> assertEquals(2, SessionModel.getSessionModel().getAllRepoHelpers().size()));
 
         for (int i=0; i < 3; i++) {
-            System.err.println("start loop");
             WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
                                       () -> dropdown.getValue().toString().equals("repo2"));
             WaitForAsyncUtils.waitForFxEvents();
             sleep(100);
-            System.err.println("clicking dropdown before 1");
             clickOn(dropdown);
 
             // The below awful hack is very likely related to this bug:
@@ -182,18 +180,14 @@ public class OpenAndCloseReposFXTest extends ApplicationTest {
                     clickOn(dropdown);
             });
 
-            System.err.println("clicking 1");
             clickOn("repo1");
             WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
                                       () -> !BusyWindow.window.isShowing());
-            System.err.println("before wait dropdown.");
 
             WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
                                       () -> dropdown.getValue().toString().equals("repo1"));
-            System.err.println("before wait for fx events.");
             WaitForAsyncUtils.waitForFxEvents();
             sleep(100);
-            System.err.println("clicking dropdown before 2");
             clickOn(dropdown);
 
             // See comment above regarding bug #539.
@@ -201,7 +195,6 @@ public class OpenAndCloseReposFXTest extends ApplicationTest {
                 if (!dropdown.isShowing())
                     clickOn(dropdown);
             });
-            System.err.println("clicking 2");
             clickOn("repo2");
             WaitForAsyncUtils.waitFor(15, TimeUnit.SECONDS,
                                       () -> !BusyWindow.window.isShowing());

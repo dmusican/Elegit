@@ -68,7 +68,6 @@ public abstract class FileStructurePanelView extends Region{
             this.init();
         }
         List<RepoFile> filesToShow = this.getFilesToDisplay();
-        System.err.println("The issue is in drawDirectoryView and likely getFilesToDisplay.");
         this.addTreeItemsToRoot(filesToShow, this.treeRoot);
     }
 

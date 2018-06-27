@@ -1440,14 +1440,20 @@ public class RepoHelper {
      * @return a list of remotre references
      * @throws GitAPIException
      */
-    public Collection<Ref> getRefsFromRemote(boolean includeTags) throws GitAPIException {
+    public Collection<Ref> getRefsFromRemote(boolean includeTags)  {
         LsRemoteCommand command = new Git(getRepo()).lsRemote().setHeads(true);
         if (includeTags) {
             command = command.setTags(includeTags);
         }
         wrapAuthentication(command);
 
-        return Collections.unmodifiableCollection(command.call());
+        try {
+            return Collections.unmodifiableCollection(command.call());
+        } catch (GitAPIException e) {
+            console.info("The issue is in getRefsFromRemote catch.");
+            e.printStackTrace();
+        }
+        return null;
     }
 
     public List<RefHelper> getRefsForCommit(CommitHelper helper) {
