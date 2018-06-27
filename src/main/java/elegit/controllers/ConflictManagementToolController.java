@@ -12,6 +12,7 @@ import elegit.models.ConflictLine;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.geometry.Bounds;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -126,7 +127,7 @@ public class ConflictManagementToolController {
     }
 
     public void initialize() {
-        mergeResult=SessionModel.getSessionModel().getMergeResult();
+        mergeResult = SessionModel.getSessionModel().getMergeResult();
         initButtons();
         initDropdown();
         initCodeAreas();
@@ -214,11 +215,15 @@ public class ConflictManagementToolController {
     }
 
     private void bindHorizontalScroll(CodeArea doc1, CodeArea doc2) {
-        doc1.estimatedScrollXProperty().bindBidirectional(doc2.estimatedScrollXProperty());
+//        doc1.estimatedScrollXProperty().values().feedTo(doc2.estimatedScrollXProperty());
+//        doc2.estimatedScrollXProperty().values().feedTo(doc1.estimatedScrollXProperty());
+//        doc1.estimatedScrollXProperty().bindBidirectional(doc2.estimatedScrollXProperty());
     }
 
     private void bindVerticalScroll(CodeArea doc1, CodeArea doc2) {
-        doc1.estimatedScrollYProperty().bindBidirectional(doc2.estimatedScrollYProperty());
+//        doc1.estimatedScrollYProperty().values().feedTo(doc2.estimatedScrollYProperty());
+//        doc2.estimatedScrollYProperty().values().feedTo(doc1.estimatedScrollYProperty());
+//        doc1.estimatedScrollYProperty().bindBidirectional(doc2.estimatedScrollYProperty());
     }
 
     private void setButtonsDisabled(boolean disabled) {
@@ -421,7 +426,7 @@ public class ConflictManagementToolController {
                 updateAndCheckConflictsLeftToHandle();
                 return;
 
-            } else if (lineNumber == currentLine)  { // Already handled this conflict
+            } else if (lineNumber == currentLine) { // Already handled this conflict
                 showAcceptOrRejectWarning(accepting);
                 return;
             }
@@ -533,7 +538,7 @@ public class ConflictManagementToolController {
                 updateConflictLineStatus(conflictLines, conflictLineIndex, false, true);
                 return;
 
-            } else if(lineNumber == currentLine) { // They clicked undo, but it was not yet handled
+            } else if (lineNumber == currentLine) { // They clicked undo, but it was not yet handled
                 showNoModificationToUndo();
                 return;
             }
@@ -634,8 +639,8 @@ public class ConflictManagementToolController {
         bindMouseMovementToConflict(rightDoc, rightConflictingLineNumbers, rightConflictLines);
     }
 
-    private ArrayList<String> getParentFiles(ObjectId parent, String fileName){
-        try{
+    private ArrayList<String> getParentFiles(ObjectId parent, String fileName) {
+        try {
             Repository repository = SessionModel.getSessionModel().getCurrentRepoHelper().getRepo();
             RevWalk revWalk = new RevWalk(repository);
             RevTree revTree = revWalk.parseCommit(parent).getTree();
@@ -650,21 +655,21 @@ public class ConflictManagementToolController {
 
             ObjectLoader loader = repository.open(objectId);
             String string = new String(loader.getBytes());
-            return new  ArrayList<>(Arrays.asList(string.split("\n")));
-        } catch (IOException e){
+            return new ArrayList<>(Arrays.asList(string.split("\n")));
+        } catch (IOException e) {
             throw new ExceptionAdapter(e);
         }
     }
 
-    private ArrayList<String> getBaseParentFiles(String fileName){
-        ObjectId baseParent = ObjectId.fromString(mergeResult.get("baseParent").substring(7,47));
+    private ArrayList<String> getBaseParentFiles(String fileName) {
+        ObjectId baseParent = ObjectId.fromString(mergeResult.get("baseParent").substring(7, 47));
         //System.out.println(mergeResult.get("baseParent"));
         //System.out.println(baseParent);
         return getParentFiles(baseParent, fileName);
     }
 
-    private ArrayList<String> getMergedParentFiles(String fileName){
-        ObjectId mergedParent = ObjectId.fromString(mergeResult.get("mergedParent").substring(7,47));
+    private ArrayList<String> getMergedParentFiles(String fileName) {
+        ObjectId mergedParent = ObjectId.fromString(mergeResult.get("mergedParent").substring(7, 47));
         return getParentFiles(mergedParent, fileName);
     }
 
@@ -724,10 +729,12 @@ public class ConflictManagementToolController {
             for (String line : conflictLines) {
                 int startIndex = doc.getCaretPosition();
                 doc.appendText(line + "\n");
-                int endIndex = doc.getLength();
+                int endIndex = doc.getCaretPosition();
 
                 if (conflict.isConflicting()) {
                     setCSSSelector(doc, startIndex, endIndex, "conflict");
+                } else if (conflict.isChanged()) {
+                    setCSSSelector(doc, startIndex, endIndex, "changed");
                 }
             }
         }
