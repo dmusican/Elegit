@@ -39,7 +39,7 @@ public class ConflictLine {
         lines.add(line);
     }
     public List<String> getLines() {
-        return Collections.unmodifiableList(lines); //lines;
+        return lines;
     }
 
 

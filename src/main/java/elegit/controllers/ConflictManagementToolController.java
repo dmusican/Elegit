@@ -12,7 +12,6 @@ import elegit.models.ConflictLine;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
-import javafx.geometry.Bounds;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -301,7 +300,7 @@ public class ConflictManagementToolController {
     private void handleApplyChanges() {
         Main.assertFxThread();
         logger.info("Changes made with the conflict management tool applied.");
-        if (conflictsLeftToHandle != 0) {
+        if (conflictsLeftToHandle > 0) {
             showNotAllConflictHandledNotification();
             // TODO: allow them to override somehow
             return;
@@ -446,9 +445,9 @@ public class ConflictManagementToolController {
                     updateMiddleDoc(conflictLines, conflictLineIndex);
                 }
                 updateSideDocCSS(doc, conflictingLineNumbers.get(conflictLineIndex), conflictLines.get(conflictLineIndex).getLines().size(), "handled-conflict");
+                updateAndCheckConflictsLeftToHandle(conflictLineIndex);
                 updateConflictLineStatus(conflictLines, conflictLineIndex, true, false);
-
-                updateAndCheckConflictsLeftToHandle();
+                updateConflictLineStatus(middleConflictLines, conflictLineIndex, true, false);
                 return;
 
             } else if (lineNumber == currentLine) { // Already handled this conflict
@@ -500,18 +499,16 @@ public class ConflictManagementToolController {
     }
 
     private void updateConflictLineStatus(ArrayList<ConflictLine> conflictLines, int conflictLineIndex, boolean handled, boolean conflicting) {
-        Main.assertFxThread();
-        middleConflictLines.get(conflictLineIndex).setHandledStatus(handled);
-        middleConflictLines.get(conflictLineIndex).setConflictStatus(conflicting);
         conflictLines.get(conflictLineIndex).setHandledStatus(handled);
         conflictLines.get(conflictLineIndex).setConflictStatus(conflicting);
     }
 
-    private void updateAndCheckConflictsLeftToHandle() {
-        Main.assertFxThread();
-        conflictsLeftToHandle--;
-        if (conflictsLeftToHandle == 0) {
-            showAllConflictsHandledNotification();
+    private void updateAndCheckConflictsLeftToHandle(int conflictLineIndex) {
+        if (!middleConflictLines.get(conflictLineIndex).isHandled()) {
+            conflictsLeftToHandle--;
+            if (conflictsLeftToHandle == 0) {
+                showAllConflictsHandledNotification();
+            }
         }
     }
 
@@ -561,8 +558,9 @@ public class ConflictManagementToolController {
                         // Update everything else
                         updateMiddleConflictingLineNumbers(-(conflictLines.get(conflictLineIndex).getLines().size()), conflictLineIndex);
                         updateMiddleDocCurrentLine(conflictLineIndex);
-                        updateConflictLineStatus(conflictLines, conflictLineIndex, false, true);
+                        updateConflictLineStatusIfNeeded(conflictLines, conflictLineIndex);
                         updateSideDocCSS(doc, conflictingLineNumbers.get(conflictLineIndex), conflictLines.get(conflictLineIndex).getLines().size(), "conflict");
+                        updateConflictsLeftToHandleIfNeeded(conflictLineIndex);
                         return;
                     }
                 }
@@ -570,13 +568,30 @@ public class ConflictManagementToolController {
                 // If it gets here, the modification must have been reject because the text is not in the ConflictLine
                 // Only update the css and ConflictLine status
                 updateSideDocCSS(doc, conflictingLineNumbers.get(conflictLineIndex), conflictLines.get(conflictLineIndex).getLines().size(), "conflict");
-                updateConflictLineStatus(conflictLines, conflictLineIndex, false, true);
+                updateConflictLineStatusIfNeeded(conflictLines, conflictLineIndex);
+                updateConflictsLeftToHandleIfNeeded(conflictLineIndex);
                 return;
 
             } else if (lineNumber == currentLine) { // They clicked undo, but it was not yet handled
                 showNoModificationToUndo();
                 return;
             }
+        }
+    }
+
+    private void updateConflictLineStatusIfNeeded(ArrayList<ConflictLine> conflictLines, int conflictLineIndex) {
+        // If they were both handled before the undo, we want to keep the middle as handled
+        if (leftConflictLines.get(conflictLineIndex).isHandled() && rightConflictLines.get(conflictLineIndex).isHandled()) {
+            updateConflictLineStatus(conflictLines, conflictLineIndex, false, true);
+        } else {
+            updateConflictLineStatus(conflictLines, conflictLineIndex, false, true);
+            updateConflictLineStatus(middleConflictLines, conflictLineIndex, false, true);
+        }
+    }
+
+    private void updateConflictsLeftToHandleIfNeeded(int conflictLineIndex) {
+        if (!middleConflictLines.get(conflictLineIndex).isHandled()) {
+            conflictsLeftToHandle++;
         }
     }
 
@@ -660,8 +675,8 @@ public class ConflictManagementToolController {
         getActualConflictingLines(middleAllConflictLines, middleConflictLines, middleConflictingLineNumbers);
         getActualConflictingLines(rightAllConflictLines, rightConflictLines, rightConflictingLineNumbers);
 
-        // This means that the user is required to accept or reject conflicts on both sides before applying. Could be handled differently
-        conflictsLeftToHandle = leftConflictLines.size() + rightConflictLines.size();
+        // once every conflict in the middle doc has been handled the user will get a notification to apply
+        conflictsLeftToHandle = middleConflictLines.size();
 
         setLines(leftAllConflictLines, leftDoc);
         CodeArea middle = setLines(middleAllConflictLines, middleDoc);
@@ -809,19 +824,19 @@ public class ConflictManagementToolController {
         Main.assertFxThread();
         logger.info("Accept conflict clicked when there is not a conflict to add (either not a conflict or already handled).");
         notificationPaneController.addNotification("You are either trying to integrate something that is not "
-                + "conflicting \n or you already handled. Click the undo button if you made a mistake");
+                + "conflicting or you already handled. Click the undo button if you made a mistake");
     }
 
     private void showAttemptingToRejectANonConflictNotification() {
         Main.assertFxThread();
         logger.info("Reject conflict clicked when there is not a conflict to reject (either not a conflict or already handled).");
         notificationPaneController.addNotification("You are either trying to ignore something that is not "
-                + "conflicting \n or you already handled. Click the undo button if you made a mistake");
+                + "conflicting or you already handled. Click the undo button if you made a mistake");
     }
 
     private void showNoModificationToUndo() {
         logger.info("Undo clicked when there was not previous modification made.");
-        notificationPaneController.addNotification("Neither accept nor reject was clicked for this change \n"
+        notificationPaneController.addNotification("Neither accept nor reject was clicked for this change "
                 + "in this document, so there is nothing to undo.");
     }
 }
