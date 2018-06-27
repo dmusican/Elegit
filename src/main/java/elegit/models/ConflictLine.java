@@ -12,26 +12,26 @@ public class ConflictLine {
     private ArrayList<String> lines;
     // true when conflicting, false otherwise
     private AtomicBoolean conflict = new AtomicBoolean();
-    private AtomicBoolean modified = new AtomicBoolean();
+    private AtomicBoolean handled = new AtomicBoolean();
     private AtomicBoolean changed = new AtomicBoolean();
 
     public ConflictLine(ArrayList<String> lines, boolean conflict) {
         this.lines = lines;
         this.conflict.set(conflict);
-        this.modified.set(false);
+        this.handled.set(false);
         this.changed.set(false);
     }
 
     public ConflictLine(ArrayList<String> lines) {
         this.lines = lines;
         this.conflict.set(false);// = false;
-        this.modified.set(false);
+        this.handled.set(false);
         this.changed.set(false);
     }
     public ConflictLine(boolean conflict) {
         this.lines = new ArrayList<>();
         this.conflict.set(conflict);
-        this.modified.set(false);
+        this.handled.set(false);
         this.changed.set(false);
     }
 
@@ -51,12 +51,12 @@ public class ConflictLine {
         conflict.set(newStatus);
     }
 
-    public boolean isModified() {
-        return modified.get();
+    public boolean isHandled() {
+        return handled.get();
     }
 
-    public void setModifiedStatus(boolean newStatus) {
-        modified.set(newStatus);
+    public void setHandledStatus(boolean newStatus) {
+        handled.set(newStatus);
     }
 
     public boolean isChanged() {

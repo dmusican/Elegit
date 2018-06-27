@@ -401,6 +401,11 @@
     -fx-fill: #5b0000;
 }
 
+.styled-text-area .changed {
+    -rtfx-background-color: rgba(0, 255, 25, 0.34);
+    -fx-fill: #00750b;
+}
+
 .styled-text-area . handled-conflict {
     -rtfx-background-color: rgba(80, 13, 255, 0.34);
     -fx-fill: #3f0b7e;

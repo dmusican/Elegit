@@ -53,46 +53,34 @@
             <HBox prefHeight="564.0" prefWidth="400.0" GridPane.columnIndex="0" GridPane.rowIndex="1">
                 <children>
                     <Separator orientation="VERTICAL" prefHeight="200.0"/>
-                    <StackPane>
-                        <children>
-                            <VirtualizedScrollPane>
-                                <content>
-                                    <CodeArea id="document" fx:id="leftDoc" editable="false" focusTraversable="true"
-                                              prefHeight="566.0" prefWidth="442.0"/>
-                                </content>
-                            </VirtualizedScrollPane>
-                        </children>
-                    </StackPane>
+                    <VirtualizedScrollPane>
+                        <content>
+                            <CodeArea id="document" fx:id="leftDoc" editable="false" focusTraversable="true"
+                                      prefHeight="566.0" prefWidth="442.0"/>
+                        </content>
+                    </VirtualizedScrollPane>
                     <Separator orientation="VERTICAL" prefHeight="200.0"/>
                 </children>
             </HBox>
             <HBox prefHeight="100.0" prefWidth="400.0" GridPane.columnIndex="1" GridPane.rowIndex="1">
                 <children>
-                    <StackPane>
-                        <children>
-                            <VirtualizedScrollPane>
-                                <content>
-                                    <CodeArea id="document" fx:id="middleDoc" editable="true" focusTraversable="true"
-                                              prefHeight="566.0" prefWidth="444.0"/>
-                                </content>
-                            </VirtualizedScrollPane>
-                        </children>
-                    </StackPane>
+                    <VirtualizedScrollPane>
+                        <content>
+                            <CodeArea id="document" fx:id="middleDoc" editable="false" focusTraversable="true"
+                                      prefHeight="566.0" prefWidth="444.0"/>
+                        </content>
+                    </VirtualizedScrollPane>
                     <Separator orientation="VERTICAL" prefHeight="200.0"/>
                 </children>
             </HBox>
             <HBox prefHeight="100.0" prefWidth="400.0" GridPane.columnIndex="2" GridPane.rowIndex="1">
                 <children>
-                    <StackPane>
-                        <children>
-                            <VirtualizedScrollPane>
-                                <content>
-                                    <CodeArea id="document" fx:id="rightDoc" editable="false" focusTraversable="true"
-                                              prefHeight="566.0" prefWidth="454.0"/>
-                                </content>
-                            </VirtualizedScrollPane>
-                        </children>
-                    </StackPane>
+                    <VirtualizedScrollPane>
+                        <content>
+                            <CodeArea id="document" fx:id="rightDoc" editable="false" focusTraversable="true"
+                                      prefHeight="566.0" prefWidth="454.0"/>
+                        </content>
+                    </VirtualizedScrollPane>
                     <Separator orientation="VERTICAL" prefHeight="200.0"/>
                 </children>
             </HBox>

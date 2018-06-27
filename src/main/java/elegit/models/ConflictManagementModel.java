@@ -102,6 +102,14 @@ public class ConflictManagementModel {
                     line = reader.readLine();
                 } else {
                     //line is the same across both originals
+                    if (middleConflict.isChanged()){
+                        left.add(leftConflict);
+                        middle.add(middleConflict);
+                        right.add(rightConflict);
+                        leftConflict = new ConflictLine(false);
+                        middleConflict = new ConflictLine(false);
+                        rightConflict = new ConflictLine(false);
+                    }
                     middleConflict.addLine(line);
                     leftConflict.addLine(line);
                     rightConflict.addLine(line);
