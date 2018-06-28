@@ -15,6 +15,7 @@ import javafx.concurrent.WorkerStateEvent;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.geometry.Bounds;
 import javafx.geometry.Pos;
 import javafx.geometry.Side;
 import javafx.scene.Node;
@@ -39,6 +40,7 @@ import org.eclipse.jgit.treewalk.filter.PathFilter;
 import org.fxmisc.richtext.Caret;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
+import org.fxmisc.richtext.model.Paragraph;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -127,6 +129,8 @@ public class ConflictManagementToolController {
     private int conflictsLeftToHandle;
 
     private AtomicBoolean autoSwitchConflicts = new AtomicBoolean(true);
+
+    private AtomicBoolean applyWarningGiven = new AtomicBoolean(false);
 
     private HashMap<String, CodeArea> files = new HashMap<>();
 
@@ -238,15 +242,11 @@ public class ConflictManagementToolController {
 
     private void bindHorizontalScroll(CodeArea doc1, CodeArea doc2) {
         Main.assertFxThread();
-//        doc1.estimatedScrollXProperty().values().feedTo(doc2.estimatedScrollXProperty());
-//        doc2.estimatedScrollXProperty().values().feedTo(doc1.estimatedScrollXProperty());
 //        doc1.estimatedScrollXProperty().bindBidirectional(doc2.estimatedScrollXProperty());
     }
 
     private void bindVerticalScroll(CodeArea doc1, CodeArea doc2) {
         Main.assertFxThread();
-//        doc1.estimatedScrollYProperty().values().feedTo(doc2.estimatedScrollYProperty());
-//        doc2.estimatedScrollYProperty().values().feedTo(doc1.estimatedScrollYProperty());
 //        doc1.estimatedScrollYProperty().bindBidirectional(doc2.estimatedScrollYProperty());
     }
 
@@ -316,25 +316,31 @@ public class ConflictManagementToolController {
     @FXML
     private void handleApplyChanges() {
         Main.assertFxThread();
-        logger.info("Changes made with the conflict management tool applied.");
-        if (conflictsLeftToHandle > 0) {
-            showNotAllConflictHandledNotification();
-            // TODO: allow them to override somehow
-            return;
-        }
+        logger.info("Apply button clicked.");
+        if (applyWarningGiven.get() || conflictsLeftToHandle <= 0) { // They've already seen the warning or have handled everything
+            try {
+                Path directory = (new File(SessionModel.getSessionModel().getCurrentRepoHelper().getRepo().getDirectory()
+                        .getParent())).toPath();
+                String filePathWithoutFileName = directory.toString();
+                String fileName = conflictingFilesDropdown.getPromptText();
+                BufferedWriter writer = new BufferedWriter(new FileWriter(filePathWithoutFileName + File.separator + fileName));
+                writer.write(middleDoc.getText());
+                writer.flush();
+                writer.close();
+                stage.close();
+            } catch (IOException e) {
+                throw new ExceptionAdapter(e);
+            }
 
-        try {
-            Path directory = (new File(SessionModel.getSessionModel().getCurrentRepoHelper().getRepo().getDirectory()
-                    .getParent())).toPath();
-            String filePathWithoutFileName = directory.toString();
-            String fileName = conflictingFilesDropdown.getPromptText();
-            BufferedWriter writer = new BufferedWriter(new FileWriter(filePathWithoutFileName + File.separator + fileName));
-            writer.write(middleDoc.getText());
-            writer.flush();
-            writer.close();
-            stage.close();
-        } catch (IOException e) {
-            throw new ExceptionAdapter(e);
+        } else if (!applyWarningGiven.get() && conflictsLeftToHandle > 0) { // They haven't handled everything and haven't see the warning
+            applyWarningGiven.set(true);
+            showNotAllConflictHandledNotification();
+
+        } else { // Not sure
+            // not sure when this would happen
+            console.info("Weird thing happened with the apply button.");
+            console.info("applyWarningGiven.get(): " + applyWarningGiven.get());
+            console.info("conflictsLeftToHandle: " + conflictsLeftToHandle);
         }
     }
 
@@ -437,35 +443,22 @@ public class ConflictManagementToolController {
     private void moveDocCarets(CodeArea doc, int lineNumber) {
         Main.assertFxThread();
         doc.moveTo(lineNumber, 0);
+//        doc.requestFollowCaret();
         doc.showParagraphAtTop(lineNumber);
-
-
-
-//        int firstVisIndex = doc.firstVisibleParToAllParIndex();
-//        if (doc.allParToVisibleParIndex(lineNumber).isPresent()) {
-//        int visIndex = doc.allParToVisibleParIndex(lineNumber).get();
-//        int lastVisIndex = doc.lastVisibleParToAllParIndex();
+//        doc.getParagraphBoundsOnScreen(lineNumber).get().
 //
-//        console.info("firstVisIndex: " + firstVisIndex);
-//        console.info("visIndex: " + visIndex);
-//        console.info("lastVisIndex: " + lastVisIndex);
+//        int numLinesVisible = doc.getVisibleParagraphs().size();
 //
-//        double diffFromFirst = visIndex - firstVisIndex;
-//        double diffFromLast = visIndex - lastVisIndex;
+//        int visibleIndex = getVisibleIndex(doc, lineNumber);
 //
-//        console.info("diffFromFirst: " + diffFromFirst);
-//        console.info("diffFromLast: " + diffFromLast);
+//        double deltaY = ((numLinesVisible/2) - visibleIndex) * 10;
 //
-//
-//        double deltaY = diffFromFirst + diffFromLast;
-//
+//        console.info("numLinesVisible: " + numLinesVisible);
+//        console.info("visibleIndex: " + visibleIndex);
 //        console.info("deltaY: " + deltaY);
 //
-//        doc.scrollYBy(deltaY);
-
-
-        // Silly hack I got from Issue #389 for RichTextFX (which scrollYBy() was supposed to fix, but doesn't seem to)
-        // TODO: not a universal or ideal solution, but might be the beginning to one.
+//        // Silly hack I got from Issue #389 for RichTextFX (which scrollYBy() was supposed to fix, but doesn't seem to)
+//        // TODO: not a universal or ideal solution, but might be the beginning to one.
 //        new Timer().schedule(new TimerTask() {
 //            public void run() {
 //                Platform.runLater(() -> {
@@ -473,6 +466,18 @@ public class ConflictManagementToolController {
 //                });
 //            }
 //        }, 100);
+    }
+
+    private int getVisibleIndex(CodeArea doc, int lineNumber) {
+        Paragraph p = doc.getParagraphs().get(lineNumber);
+
+        for(int index = 0; index < doc.getVisibleParagraphs().size(); ++index) {
+            if(doc.getVisibleParagraphs().get(index).equals(p)) {
+                console.info("index: " + index);
+                return index;
+            }
+        }
+        return -1;
     }
 
     @FXML
@@ -506,6 +511,9 @@ public class ConflictManagementToolController {
     private void handleChange(CodeArea doc, ArrayList<Integer> conflictingLineNumbers,
                               ArrayList<ConflictLine> conflictLines, boolean accepting) {
         Main.assertFxThread();
+        // If they start editing after getting the apply warning, we should still give it if they click apply early later on.
+        applyWarningGiven.set(false);
+
         int currentLine = doc.getCurrentParagraph();
 
         for (int conflictLineIndex = 0; conflictLineIndex < conflictingLineNumbers.size(); conflictLineIndex++) {
@@ -639,6 +647,9 @@ public class ConflictManagementToolController {
 
     private void handleUndoChange(CodeArea doc, ArrayList<ConflictLine> conflictLines, ArrayList<Integer> conflictingLineNumbers) {
         Main.assertFxThread();
+        // If they start editing after getting the apply warning, we should still give it if they click apply early later on.
+        applyWarningGiven.set(false);
+
         int currentLine = doc.getCurrentParagraph();
 
         // Find the conflictLineIndex
