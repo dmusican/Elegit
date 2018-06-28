@@ -9,13 +9,11 @@ import elegit.gui.ConflictLinePointer;
 import elegit.models.ConflictManagementModel;
 import elegit.models.SessionModel;
 import elegit.models.ConflictLine;
-import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.concurrent.WorkerStateEvent;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
-import javafx.geometry.Bounds;
 import javafx.geometry.Pos;
 import javafx.geometry.Side;
 import javafx.scene.Node;
@@ -37,7 +35,6 @@ import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
-import org.fxmisc.richtext.Caret;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
 import org.fxmisc.richtext.model.Paragraph;
@@ -46,7 +43,6 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.sql.Time;
 import java.util.*;
 import java.io.File;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -245,11 +241,17 @@ public class ConflictManagementToolController {
     private void bindHorizontalScroll(CodeArea doc1, CodeArea doc2) {
         Main.assertFxThread();
 //        doc1.estimatedScrollXProperty().bindBidirectional(doc2.estimatedScrollXProperty());
+        doc1.setOnScroll(event -> {
+            doc1.estimatedScrollXProperty().bindBidirectional(doc2.estimatedScrollXProperty());
+        });
     }
 
     private void bindVerticalScroll(CodeArea doc1, CodeArea doc2) {
         Main.assertFxThread();
 //        doc1.estimatedScrollYProperty().bindBidirectional(doc2.estimatedScrollYProperty());
+        doc1.setOnScroll(event -> {
+            doc1.estimatedScrollYProperty().bindBidirectional(doc2.estimatedScrollYProperty());
+        });
     }
 
     private void setButtonsDisabled(boolean disabled) {
@@ -318,13 +320,7 @@ public class ConflictManagementToolController {
     }
 
     private int getNumberOfConflicts(ArrayList<ConflictLine> conflictLines){
-        int conflictsNumber=0;
-        for(ConflictLine line : conflictLines){
-            if(line.isConflicting()){
-                conflictsNumber++;
-            }
-        }
-        return conflictsNumber;
+        return conflictLines.size();
     }
 
     @FXML
@@ -552,8 +548,7 @@ public class ConflictManagementToolController {
                 }
                 updateSideDocCSS(doc, conflictingLineNumbers.get(conflictLineIndex), conflictLines.get(conflictLineIndex).getLines().size(), "handled-conflict");
                 updateAndCheckConflictsLeftToHandle(conflictLineIndex);
-                updateConflictLineStatus(conflictLines, conflictLineIndex, true, false);
-                updateConflictLineStatus(middleConflictLines, conflictLineIndex, true, false);
+                updateConflictLineStatus(conflictLines, conflictLineIndex, true);
                 if (autoSwitchConflicts.get()) {
                     switchConflictLineOnBothSidesHandled(conflictLineIndex);
                 }
@@ -605,21 +600,6 @@ public class ConflictManagementToolController {
         int endIndex = doc.getCaretPosition();
         setCSSSelector(doc, startIndex, endIndex, selector);
         doc.moveTo(startOfConflict, 0);
-    }
-
-    private void updateConflictLineStatus(ArrayList<ConflictLine> conflictLines, int conflictLineIndex, boolean handled, boolean conflicting) {
-        Main.assertFxThread();
-        //TODO: eva here just had the two conflictLine statuses
-        //conflictLines.get(conflictLineIndex).setHandledStatus(handled);
-        //conflictLines.get(conflictLineIndex).setConflictStatus(conflicting);
-        //might want to check some more situations with undo to make sure conflicting status is proper
-        middleConflictLines.get(conflictLineIndex).setHandledStatus(handled);
-        conflictLines.get(conflictLineIndex).setHandledStatus(handled);
-        if(leftConflictLines.get(conflictLineIndex).isHandled() && rightConflictLines.get(conflictLineIndex).isHandled()){
-            leftConflictLines.get(conflictLineIndex).setConflictStatus(conflicting);
-            middleConflictLines.get(conflictLineIndex).setConflictStatus(conflicting);
-            rightConflictLines.get(conflictLineIndex).setConflictStatus(conflicting);
-        }
     }
 
     private void updateAndCheckConflictsLeftToHandle(int conflictLineIndex) {
@@ -708,7 +688,7 @@ public class ConflictManagementToolController {
                         // Update everything else
                         updateMiddleConflictingLineNumbers(-(conflictLines.get(conflictLineIndex).getLines().size()), conflictLineIndex);
                         updateMiddleDocCurrentLine(conflictLineIndex);
-                        updateConflictLineStatusIfNeeded(conflictLines, conflictLineIndex);
+                        updateConflictLineStatus(conflictLines, conflictLineIndex, false);
                         updateSideDocCSS(doc, conflictingLineNumbers.get(conflictLineIndex), conflictLines.get(conflictLineIndex).getLines().size(), "conflict");
                         updateConflictsLeftToHandleIfNeeded(conflictLineIndex);
                         return;
@@ -718,7 +698,7 @@ public class ConflictManagementToolController {
                 // If it gets here, the modification must have been reject because the text is not in the ConflictLine
                 // Only update the css and ConflictLine status
                 updateSideDocCSS(doc, conflictingLineNumbers.get(conflictLineIndex), conflictLines.get(conflictLineIndex).getLines().size(), "conflict");
-                updateConflictLineStatusIfNeeded(conflictLines, conflictLineIndex);
+                updateConflictLineStatus(conflictLines, conflictLineIndex, false);
                 updateConflictsLeftToHandleIfNeeded(conflictLineIndex);
                 return;
 
@@ -729,14 +709,13 @@ public class ConflictManagementToolController {
         }
     }
 
-    private void updateConflictLineStatusIfNeeded(ArrayList<ConflictLine> conflictLines, int conflictLineIndex) {
+    private void updateConflictLineStatus(ArrayList<ConflictLine> conflictLines, int conflictLineIndex, boolean handled) {
         Main.assertFxThread();
-        // If they were both handled before the undo, we want to keep the middle as handled
-        if (leftConflictLines.get(conflictLineIndex).isHandled() && rightConflictLines.get(conflictLineIndex).isHandled()) {
-            updateConflictLineStatus(conflictLines, conflictLineIndex, false, true);
+        conflictLines.get(conflictLineIndex).setHandledStatus(handled);
+        if (leftConflictLines.get(conflictLineIndex).isHandled() || rightConflictLines.get(conflictLineIndex).isHandled()) {
+            middleConflictLines.get(conflictLineIndex).setHandledStatus(true);
         } else {
-            updateConflictLineStatus(conflictLines, conflictLineIndex, false, true);
-            updateConflictLineStatus(middleConflictLines, conflictLineIndex, false, true);
+            middleConflictLines.get(conflictLineIndex).setHandledStatus(false);
         }
     }
 
@@ -931,7 +910,7 @@ public class ConflictManagementToolController {
             for (int conflictLineIndex = 0; conflictLineIndex < conflictingLineNumbers.size(); conflictLineIndex++) {
                 int lineNumber = conflictingLineNumbers.get(conflictLineIndex);
 
-                // If the user clicks withing a line of a conflict on any of the documents, move all the docs there and all them to click buttons
+                // If the user clicks within a line of a conflict on any of the documents, move all the docs there and allow them to click buttons
                 if ((currentLine == lineNumber || currentLine == lineNumber - 1) && conflictLines.get(conflictLineIndex).isConflicting()) {
                     moveDocCarets(leftDoc, leftConflictingLineNumbers.get(conflictLineIndex));
                     moveDocCarets(middleDoc, middleConflictingLineNumbers.get(conflictLineIndex));
