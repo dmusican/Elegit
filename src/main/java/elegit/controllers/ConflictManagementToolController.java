@@ -9,11 +9,15 @@ import elegit.gui.ConflictLinePointer;
 import elegit.models.ConflictManagementModel;
 import elegit.models.SessionModel;
 import elegit.models.ConflictLine;
+import javafx.application.Platform;
+import javafx.concurrent.Task;
+import javafx.concurrent.WorkerStateEvent;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.geometry.Bounds;
 import javafx.geometry.Pos;
+import javafx.geometry.Side;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -33,15 +37,19 @@ import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
+import org.fxmisc.richtext.Caret;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
+import org.fxmisc.richtext.model.Paragraph;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.sql.Time;
 import java.util.*;
 import java.io.File;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.IntFunction;
 
 /**
@@ -88,6 +96,12 @@ public class ConflictManagementToolController {
     @FXML
     private Button abortMerge;
     @FXML
+    private Button conflictManagementToolMenuButton;
+    @FXML
+    private ContextMenu conflictManagementToolMenu;
+    @FXML
+    private MenuItem disableAutoSwitchOption;
+    @FXML
     private NotificationController notificationPaneController;
     @FXML
     private Stage stage;
@@ -113,6 +127,10 @@ public class ConflictManagementToolController {
     private boolean fileSelected = false;
 
     private int conflictsLeftToHandle;
+
+    private AtomicBoolean autoSwitchConflicts = new AtomicBoolean(true);
+
+    private AtomicBoolean applyWarningGiven = new AtomicBoolean(false);
 
     private HashMap<String, CodeArea> files = new HashMap<>();
 
@@ -162,9 +180,10 @@ public class ConflictManagementToolController {
         initButton(FontAwesomeIcon.ARROW_UP, "arrowIcon", upToggle, "Go to previous change.");
         initButton(FontAwesomeIcon.ARROW_DOWN, "arrowIcon", downToggle, "Go to next change.");
 
-        // Apply and abort buttons
-        applyChanges.setTooltip(new Tooltip("Use the \"result\" document with \n the changes you've made."));
+        // Menu, abort, and apply buttons
+        initButton(FontAwesomeIcon.BARS, "menuIcon", conflictManagementToolMenuButton, "Menu for the conflict management tool.");
         abortMerge.setTooltip(new Tooltip("Ignore all changes made and \n return to previous state."));
+        applyChanges.setTooltip(new Tooltip("Use the \"result\" document with \n the changes you've made."));
     }
 
     private void initButton(GlyphIcons glyphIcon, String id, Button button, String toolTip) {
@@ -225,15 +244,11 @@ public class ConflictManagementToolController {
 
     private void bindHorizontalScroll(CodeArea doc1, CodeArea doc2) {
         Main.assertFxThread();
-//        doc1.estimatedScrollXProperty().values().feedTo(doc2.estimatedScrollXProperty());
-//        doc2.estimatedScrollXProperty().values().feedTo(doc1.estimatedScrollXProperty());
 //        doc1.estimatedScrollXProperty().bindBidirectional(doc2.estimatedScrollXProperty());
     }
 
     private void bindVerticalScroll(CodeArea doc1, CodeArea doc2) {
         Main.assertFxThread();
-//        doc1.estimatedScrollYProperty().values().feedTo(doc2.estimatedScrollYProperty());
-//        doc2.estimatedScrollYProperty().values().feedTo(doc1.estimatedScrollYProperty());
 //        doc1.estimatedScrollYProperty().bindBidirectional(doc2.estimatedScrollYProperty());
     }
 
@@ -248,6 +263,7 @@ public class ConflictManagementToolController {
         upToggle.setDisable(disabled);
         downToggle.setDisable(disabled);
         applyChanges.setDisable(disabled);
+        conflictManagementToolMenuButton.setDisable(disabled);
     }
 
     /**
@@ -314,33 +330,56 @@ public class ConflictManagementToolController {
     @FXML
     private void handleApplyChanges() {
         Main.assertFxThread();
-        //maybe set this to just switch files unless there are no others
-        logger.info("Changes made with the conflict management tool applied.");
-        if (conflictsLeftToHandle != 0) {
-            showNotAllConflictHandledNotification();
-            // TODO: allow them to override somehow
-            return;
-        }
-
-        try {
-            Path directory = (new File(SessionModel.getSessionModel().getCurrentRepoHelper().getRepo().getDirectory()
-                    .getParent())).toPath();
-            String filePathWithoutFileName = directory.toString();
-            String fileName = conflictingFilesDropdown.getPromptText();
-            BufferedWriter writer = new BufferedWriter(new FileWriter(filePathWithoutFileName + File.separator + fileName));
-            writer.write(middleDoc.getText());
-            writer.flush();
-            writer.close();
-            if (conflictingFilesDropdown.getItems().size()==1){
-                stage.close();
-            } else {
-                conflictingFilesDropdown.getItems().remove(fileName);
-                //conflictingFilesDropdown.setPromptText(conflictingFilesDropdown.getItems().get(0));
-                setFileToEdit(conflictingFilesDropdown.getItems().get(0));
+        logger.info("Apply button clicked.");
+        if (applyWarningGiven.get() || conflictsLeftToHandle <= 0) { // They've already seen the warning or have handled everything
+            try {
+                Path directory = (new File(SessionModel.getSessionModel().getCurrentRepoHelper().getRepo().getDirectory()
+                        .getParent())).toPath();
+                String filePathWithoutFileName = directory.toString();
+                String fileName = conflictingFilesDropdown.getPromptText();
+                BufferedWriter writer = new BufferedWriter(new FileWriter(filePathWithoutFileName + File.separator + fileName));
+                writer.write(middleDoc.getText());
+                writer.flush();
+                writer.close();
+                if (conflictingFilesDropdown.getItems().size()==1){
+                    stage.close();
+                } else {
+                    conflictingFilesDropdown.getItems().remove(fileName);
+                    //conflictingFilesDropdown.setPromptText(conflictingFilesDropdown.getItems().get(0));
+                    setFileToEdit(conflictingFilesDropdown.getItems().get(0));
+                }
+            } catch (IOException e) {
+                throw new ExceptionAdapter(e);
             }
-            //stage.close();
-        } catch (IOException e) {
-            throw new ExceptionAdapter(e);
+
+        } else if (!applyWarningGiven.get() && conflictsLeftToHandle > 0) { // They haven't handled everything and haven't see the warning
+            applyWarningGiven.set(true);
+            showNotAllConflictHandledNotification();
+
+        } else { // Not sure
+            // not sure when this would happen
+            console.info("Weird thing happened with the apply button.");
+            console.info("applyWarningGiven.get(): " + applyWarningGiven.get());
+            console.info("conflictsLeftToHandle: " + conflictsLeftToHandle);
+        }
+    }
+
+    @FXML
+    private void handleOpenConflictManagementMenu() {
+        Main.assertFxThread();
+        logger.info("Conflict management menu opened.");
+        conflictManagementToolMenu.show(conflictManagementToolMenuButton, Side.BOTTOM, -260, 3);
+    }
+
+    @FXML
+    private void handleDisableAutoSwitchOption() {
+        Main.assertFxThread();
+        if (autoSwitchConflicts.get()) {
+            disableAutoSwitchOption.setText("Enable auto-switching between conflicts");
+            autoSwitchConflicts.set(false);
+        } else {
+            disableAutoSwitchOption.setText("Disable auto-switching between conflicts");
+            autoSwitchConflicts.set(true);
         }
     }
 
@@ -431,7 +470,41 @@ public class ConflictManagementToolController {
     private void moveDocCarets(CodeArea doc, int lineNumber) {
         Main.assertFxThread();
         doc.moveTo(lineNumber, 0);
-        doc.requestFollowCaret();
+//        doc.requestFollowCaret();
+        doc.showParagraphAtTop(lineNumber);
+//        doc.getParagraphBoundsOnScreen(lineNumber).get().
+//
+//        int numLinesVisible = doc.getVisibleParagraphs().size();
+//
+//        int visibleIndex = getVisibleIndex(doc, lineNumber);
+//
+//        double deltaY = ((numLinesVisible/2) - visibleIndex) * 10;
+//
+//        console.info("numLinesVisible: " + numLinesVisible);
+//        console.info("visibleIndex: " + visibleIndex);
+//        console.info("deltaY: " + deltaY);
+//
+//        // Silly hack I got from Issue #389 for RichTextFX (which scrollYBy() was supposed to fix, but doesn't seem to)
+//        // TODO: not a universal or ideal solution, but might be the beginning to one.
+//        new Timer().schedule(new TimerTask() {
+//            public void run() {
+//                Platform.runLater(() -> {
+//                    doc.scrollYBy(deltaY);
+//                });
+//            }
+//        }, 100);
+    }
+
+    private int getVisibleIndex(CodeArea doc, int lineNumber) {
+        Paragraph p = doc.getParagraphs().get(lineNumber);
+
+        for(int index = 0; index < doc.getVisibleParagraphs().size(); ++index) {
+            if(doc.getVisibleParagraphs().get(index).equals(p)) {
+                console.info("index: " + index);
+                return index;
+            }
+        }
+        return -1;
     }
 
     @FXML
@@ -465,6 +538,9 @@ public class ConflictManagementToolController {
     private void handleChange(CodeArea doc, ArrayList<Integer> conflictingLineNumbers,
                               ArrayList<ConflictLine> conflictLines, boolean accepting) {
         Main.assertFxThread();
+        // If they start editing after getting the apply warning, we should still give it if they click apply early later on.
+        applyWarningGiven.set(false);
+
         int currentLine = doc.getCurrentParagraph();
 
         for (int conflictLineIndex = 0; conflictLineIndex < conflictingLineNumbers.size(); conflictLineIndex++) {
@@ -475,9 +551,12 @@ public class ConflictManagementToolController {
                     updateMiddleDoc(conflictLines, conflictLineIndex);
                 }
                 updateSideDocCSS(doc, conflictingLineNumbers.get(conflictLineIndex), conflictLines.get(conflictLineIndex).getLines().size(), "handled-conflict");
+                updateAndCheckConflictsLeftToHandle(conflictLineIndex);
                 updateConflictLineStatus(conflictLines, conflictLineIndex, true, false);
-
-                updateAndCheckConflictsLeftToHandle();
+                updateConflictLineStatus(middleConflictLines, conflictLineIndex, true, false);
+                if (autoSwitchConflicts.get()) {
+                    switchConflictLineOnBothSidesHandled(conflictLineIndex);
+                }
                 return;
 
             } else if (lineNumber == currentLine) { // Already handled this conflict
@@ -530,6 +609,9 @@ public class ConflictManagementToolController {
 
     private void updateConflictLineStatus(ArrayList<ConflictLine> conflictLines, int conflictLineIndex, boolean handled, boolean conflicting) {
         Main.assertFxThread();
+        //TODO: eva here just had the two conflictLine statuses
+        //conflictLines.get(conflictLineIndex).setHandledStatus(handled);
+        //conflictLines.get(conflictLineIndex).setConflictStatus(conflicting);
         //might want to check some more situations with undo to make sure conflicting status is proper
         middleConflictLines.get(conflictLineIndex).setHandledStatus(handled);
         conflictLines.get(conflictLineIndex).setHandledStatus(handled);
@@ -540,11 +622,39 @@ public class ConflictManagementToolController {
         }
     }
 
-    private void updateAndCheckConflictsLeftToHandle() {
+    private void updateAndCheckConflictsLeftToHandle(int conflictLineIndex) {
         Main.assertFxThread();
-        conflictsLeftToHandle--;
-        if (conflictsLeftToHandle == 0) {
-            showAllConflictsHandledNotification();
+        if (!middleConflictLines.get(conflictLineIndex).isHandled()) {
+            conflictsLeftToHandle--;
+            if (conflictsLeftToHandle == 0) {
+                showAllConflictsHandledNotification();
+            }
+        }
+    }
+
+    private void switchConflictLineOnBothSidesHandled(int conflictLineIndex) {
+        Main.assertFxThread();
+        if (leftConflictLines.get(conflictLineIndex).isHandled() && rightConflictLines.get(conflictLineIndex).isHandled()) {
+            // The key part in this is the Thread.sleep() and the handleToggleDown(). The rest is so the highlighting, etc. will still happen.
+            Task<Void> sleeper = new Task<Void>() {
+                @Override
+                protected Void call() throws Exception {
+                    try {
+                        Thread.sleep(100);
+                    } catch (InterruptedException e) {
+                        console.info("Something went wrong with the sleep timer for auto switching between conflicts.");
+                        throw new ExceptionAdapter(e);
+                    }
+                    return null;
+                }
+            };
+            sleeper.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
+                @Override
+                public void handle(WorkerStateEvent event) {
+                    handleToggleDown();
+                }
+            });
+            new Thread(sleeper).start();
         }
     }
 
@@ -572,6 +682,10 @@ public class ConflictManagementToolController {
     }
 
     private void handleUndoChange(CodeArea doc, ArrayList<ConflictLine> conflictLines, ArrayList<Integer> conflictingLineNumbers) {
+        Main.assertFxThread();
+        // If they start editing after getting the apply warning, we should still give it if they click apply early later on.
+        applyWarningGiven.set(false);
+
         int currentLine = doc.getCurrentParagraph();
 
         // Find the conflictLineIndex
@@ -594,8 +708,9 @@ public class ConflictManagementToolController {
                         // Update everything else
                         updateMiddleConflictingLineNumbers(-(conflictLines.get(conflictLineIndex).getLines().size()), conflictLineIndex);
                         updateMiddleDocCurrentLine(conflictLineIndex);
-                        updateConflictLineStatus(conflictLines, conflictLineIndex, false, true);
+                        updateConflictLineStatusIfNeeded(conflictLines, conflictLineIndex);
                         updateSideDocCSS(doc, conflictingLineNumbers.get(conflictLineIndex), conflictLines.get(conflictLineIndex).getLines().size(), "conflict");
+                        updateConflictsLeftToHandleIfNeeded(conflictLineIndex);
                         return;
                     }
                 }
@@ -603,7 +718,8 @@ public class ConflictManagementToolController {
                 // If it gets here, the modification must have been reject because the text is not in the ConflictLine
                 // Only update the css and ConflictLine status
                 updateSideDocCSS(doc, conflictingLineNumbers.get(conflictLineIndex), conflictLines.get(conflictLineIndex).getLines().size(), "conflict");
-                updateConflictLineStatus(conflictLines, conflictLineIndex, false, true);
+                updateConflictLineStatusIfNeeded(conflictLines, conflictLineIndex);
+                updateConflictsLeftToHandleIfNeeded(conflictLineIndex);
                 return;
 
             } else if (lineNumber == currentLine) { // They clicked undo, but it was not yet handled
@@ -613,7 +729,26 @@ public class ConflictManagementToolController {
         }
     }
 
+    private void updateConflictLineStatusIfNeeded(ArrayList<ConflictLine> conflictLines, int conflictLineIndex) {
+        Main.assertFxThread();
+        // If they were both handled before the undo, we want to keep the middle as handled
+        if (leftConflictLines.get(conflictLineIndex).isHandled() && rightConflictLines.get(conflictLineIndex).isHandled()) {
+            updateConflictLineStatus(conflictLines, conflictLineIndex, false, true);
+        } else {
+            updateConflictLineStatus(conflictLines, conflictLineIndex, false, true);
+            updateConflictLineStatus(middleConflictLines, conflictLineIndex, false, true);
+        }
+    }
+
+    private void updateConflictsLeftToHandleIfNeeded(int conflictLineIndex) {
+        Main.assertFxThread();
+        if (!middleConflictLines.get(conflictLineIndex).isHandled()) {
+            conflictsLeftToHandle++;
+        }
+    }
+
     private void removeChangeFromMiddleDoc(ArrayList<ConflictLine> conflictLines, int conflictLineIndex, int i) {
+        Main.assertFxThread();
         int startOfConflict = middleDoc.getCurrentParagraph();
         int numLinesToRemove = conflictLines.get(conflictLineIndex).getLines().size();
         int numLinesAbove;
@@ -711,10 +846,8 @@ public class ConflictManagementToolController {
         getActualConflictingLines(middleAllConflictLines, middleConflictLines, middleConflictingLineNumbers);
         getActualConflictingLines(rightAllConflictLines, rightConflictLines, rightConflictingLineNumbers);
 
-        //System.out.println(fileName+" "+leftConflictLines+" "+middleConflictingLineNumbers+" "+rightConflictLines);
-
-        // This means that the user is required to accept or reject conflicts on both sides before applying. Could be handled differently
-        conflictsLeftToHandle = leftConflictLines.size() + rightConflictLines.size();
+        // once every conflict in the middle doc has been handled the user will get a notification to apply
+        conflictsLeftToHandle = middleConflictLines.size();
 
         setLines(leftAllConflictLines, leftDoc);
         CodeArea middle = setLines(middleAllConflictLines, middleDoc);
@@ -756,15 +889,15 @@ public class ConflictManagementToolController {
         }
     }
 
-    private ArrayList<String> getBaseParentFiles(String fileName){
+    private ArrayList<String> getBaseParentFiles(String fileName) {
         Main.assertFxThread();
-        ObjectId baseParent = ObjectId.fromString(mergeResult.get("baseParent").substring(7,47));
+        ObjectId baseParent = ObjectId.fromString(mergeResult.get("baseParent").substring(7, 47));
         return getParentFiles(baseParent, fileName);
     }
 
-    private ArrayList<String> getMergedParentFiles(String fileName){
+    private ArrayList<String> getMergedParentFiles(String fileName) {
         Main.assertFxThread();
-        ObjectId mergedParent = ObjectId.fromString(mergeResult.get("mergedParent").substring(7,47));
+        ObjectId mergedParent = ObjectId.fromString(mergeResult.get("mergedParent").substring(7, 47));
         return getParentFiles(mergedParent, fileName);
     }
 
@@ -786,8 +919,7 @@ public class ConflictManagementToolController {
     private void setInitialPositions(CodeArea doc, ArrayList<Integer> conflictingLineNumbers) {
         Main.assertFxThread();
         if(conflictingLineNumbers.size()!=0) {
-            doc.moveTo(conflictingLineNumbers.get(0), 0);
-            doc.requestFollowCaret();
+            moveDocCarets(doc, conflictingLineNumbers.get(0));
         }
     }
 
@@ -869,19 +1001,19 @@ public class ConflictManagementToolController {
         Main.assertFxThread();
         logger.info("Accept conflict clicked when there is not a conflict to add (either not a conflict or already handled).");
         notificationPaneController.addNotification("You are either trying to integrate something that is not "
-                + "conflicting \n or you already handled. Click the undo button if you made a mistake");
+                + "conflicting or you already handled. Click the undo button if you made a mistake");
     }
 
     private void showAttemptingToRejectANonConflictNotification() {
         Main.assertFxThread();
         logger.info("Reject conflict clicked when there is not a conflict to reject (either not a conflict or already handled).");
         notificationPaneController.addNotification("You are either trying to ignore something that is not "
-                + "conflicting \n or you already handled. Click the undo button if you made a mistake");
+                + "conflicting or you already handled. Click the undo button if you made a mistake");
     }
 
     private void showNoModificationToUndo() {
         logger.info("Undo clicked when there was not previous modification made.");
-        notificationPaneController.addNotification("Neither accept nor reject was clicked for this change \n"
+        notificationPaneController.addNotification("Neither accept nor reject was clicked for this change "
                 + "in this document, so there is nothing to undo.");
     }
 }
