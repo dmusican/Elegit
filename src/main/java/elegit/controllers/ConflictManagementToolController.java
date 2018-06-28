@@ -274,10 +274,8 @@ public class ConflictManagementToolController {
         Path directory = (new File(SessionModel.getSessionModel().getCurrentRepoHelper().getRepo().getDirectory()
                 .getParent())).toPath();
         String filePathWithoutFileName = directory.toString();
-        System.out.println(savedParsedFiles.keySet());
         for (String file : savedParsedFiles.keySet()){
             ArrayList<ConflictLine> middle = savedParsedFiles.get(file).get(1);
-            //String fileName = conflictingFilesDropdown.getPromptText();
             try {
                 BufferedWriter writer = new BufferedWriter(new FileWriter(filePathWithoutFileName + File.separator + file));
                 for (ConflictLine conflictLine : middle) {
@@ -290,29 +288,7 @@ public class ConflictManagementToolController {
             } catch (Exception e) {
                 throw new ExceptionAdapter(e);
             }
-            //applyChanges(middle, file);
-
         }
-        /*files.put(conflictingFilesDropdown.getPromptText(), middleDoc);
-        try {
-            BufferedWriter writer;
-            for (String fileName : conflictingFilesDropdown.getItems()) {
-                Path directory = (new File(SessionModel.getSessionModel().getCurrentRepoHelper().getRepo().getDirectory()
-                        .getParent())).toPath();
-                String filePathWithoutFileName = directory.toString();
-                writer = new BufferedWriter(new FileWriter(filePathWithoutFileName + File.separator + fileName));
-                CodeArea value = files.get(fileName);
-                if(value!=null){
-                    writer.write(value.getText());
-                }
-                writer.flush();
-                writer.close();
-            }
-            stage.close();
-        }
-        catch (IOException e) {
-            throw new ExceptionAdapter(e);
-        }*/
         stage.close();
     }
 
@@ -527,11 +503,14 @@ public class ConflictManagementToolController {
 
     private void updateConflictLineStatus(ArrayList<ConflictLine> conflictLines, int conflictLineIndex, boolean handled, boolean conflicting) {
         Main.assertFxThread();
-        //TODO: only make non-conflicting if both sides are resolved
+        //might want to check some more situations with undo to make sure conflicting status is proper
         middleConflictLines.get(conflictLineIndex).setHandledStatus(handled);
-        middleConflictLines.get(conflictLineIndex).setConflictStatus(conflicting);
         conflictLines.get(conflictLineIndex).setHandledStatus(handled);
-        conflictLines.get(conflictLineIndex).setConflictStatus(conflicting);
+        if(leftConflictLines.get(conflictLineIndex).isHandled() && rightConflictLines.get(conflictLineIndex).isHandled()){
+            leftConflictLines.get(conflictLineIndex).setConflictStatus(conflicting);
+            middleConflictLines.get(conflictLineIndex).setConflictStatus(conflicting);
+            rightConflictLines.get(conflictLineIndex).setConflictStatus(conflicting);
+        }
     }
 
     private void updateAndCheckConflictsLeftToHandle() {
@@ -634,7 +613,6 @@ public class ConflictManagementToolController {
         Main.assertFxThread();
         logger.info("New file selected to edit in conflict management tool.");
         Main.assertFxThread();
-        System.out.println(conflictingFilesDropdown.getPromptText());
         saveParsedFiles();
 
         setDropdownValueToFileName();
