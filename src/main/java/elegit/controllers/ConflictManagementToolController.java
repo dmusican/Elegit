@@ -10,10 +10,13 @@ import elegit.models.ConflictManagementModel;
 import elegit.models.SessionModel;
 import elegit.models.ConflictLine;
 import javafx.application.Platform;
+import javafx.concurrent.Task;
+import javafx.concurrent.WorkerStateEvent;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
+import javafx.geometry.Side;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -41,8 +44,10 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.sql.Time;
 import java.util.*;
 import java.io.File;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.IntFunction;
 
 /**
@@ -89,6 +94,12 @@ public class ConflictManagementToolController {
     @FXML
     private Button abortMerge;
     @FXML
+    private Button conflictManagementToolMenuButton;
+    @FXML
+    private ContextMenu conflictManagementToolMenu;
+    @FXML
+    private MenuItem disableAutoSwitchOption;
+    @FXML
     private NotificationController notificationPaneController;
     @FXML
     private Stage stage;
@@ -114,6 +125,8 @@ public class ConflictManagementToolController {
     private boolean fileSelected = false;
 
     private int conflictsLeftToHandle;
+
+    private AtomicBoolean autoSwitchConflicts = new AtomicBoolean(true);
 
     private HashMap<String, CodeArea> files = new HashMap<>();
 
@@ -161,9 +174,10 @@ public class ConflictManagementToolController {
         initButton(FontAwesomeIcon.ARROW_UP, "arrowIcon", upToggle, "Go to previous change.");
         initButton(FontAwesomeIcon.ARROW_DOWN, "arrowIcon", downToggle, "Go to next change.");
 
-        // Apply and abort buttons
-        applyChanges.setTooltip(new Tooltip("Use the \"result\" document with \n the changes you've made."));
+        // Menu, abort, and apply buttons
+        initButton(FontAwesomeIcon.BARS, "menuIcon", conflictManagementToolMenuButton, "Menu for the conflict management tool.");
         abortMerge.setTooltip(new Tooltip("Ignore all changes made and \n return to previous state."));
+        applyChanges.setTooltip(new Tooltip("Use the \"result\" document with \n the changes you've made."));
     }
 
     private void initButton(GlyphIcons glyphIcon, String id, Button button, String toolTip) {
@@ -247,6 +261,7 @@ public class ConflictManagementToolController {
         upToggle.setDisable(disabled);
         downToggle.setDisable(disabled);
         applyChanges.setDisable(disabled);
+        conflictManagementToolMenuButton.setDisable(disabled);
     }
 
     /**
@@ -320,6 +335,25 @@ public class ConflictManagementToolController {
             stage.close();
         } catch (IOException e) {
             throw new ExceptionAdapter(e);
+        }
+    }
+
+    @FXML
+    private void handleOpenConflictManagementMenu() {
+        Main.assertFxThread();
+        logger.info("Conflict management menu opened.");
+        conflictManagementToolMenu.show(conflictManagementToolMenuButton, Side.BOTTOM, -260, 3);
+    }
+
+    @FXML
+    private void handleDisableAutoSwitchOption() {
+        Main.assertFxThread();
+        if (autoSwitchConflicts.get()) {
+            disableAutoSwitchOption.setText("Enable auto-switching between conflicts");
+            autoSwitchConflicts.set(false);
+        } else {
+            disableAutoSwitchOption.setText("Disable auto-switching between conflicts");
+            autoSwitchConflicts.set(true);
         }
     }
 
@@ -403,17 +437,42 @@ public class ConflictManagementToolController {
     private void moveDocCarets(CodeArea doc, int lineNumber) {
         Main.assertFxThread();
         doc.moveTo(lineNumber, 0);
-        doc.requestFollowCaret();
+        doc.showParagraphAtTop(lineNumber);
+
+
+
+//        int firstVisIndex = doc.firstVisibleParToAllParIndex();
+//        if (doc.allParToVisibleParIndex(lineNumber).isPresent()) {
+//        int visIndex = doc.allParToVisibleParIndex(lineNumber).get();
+//        int lastVisIndex = doc.lastVisibleParToAllParIndex();
+//
+//        console.info("firstVisIndex: " + firstVisIndex);
+//        console.info("visIndex: " + visIndex);
+//        console.info("lastVisIndex: " + lastVisIndex);
+//
+//        double diffFromFirst = visIndex - firstVisIndex;
+//        double diffFromLast = visIndex - lastVisIndex;
+//
+//        console.info("diffFromFirst: " + diffFromFirst);
+//        console.info("diffFromLast: " + diffFromLast);
+//
+//
+//        double deltaY = diffFromFirst + diffFromLast;
+//
+//        console.info("deltaY: " + deltaY);
+//
+//        doc.scrollYBy(deltaY);
+
 
         // Silly hack I got from Issue #389 for RichTextFX (which scrollYBy() was supposed to fix, but doesn't seem to)
         // TODO: not a universal or ideal solution, but might be the beginning to one.
-        new Timer().schedule(new TimerTask() {
-            public void run() {
-                Platform.runLater(() -> {
-                    doc.scrollYBy(100);
-                });
-            }
-        }, 100);
+//        new Timer().schedule(new TimerTask() {
+//            public void run() {
+//                Platform.runLater(() -> {
+//                    doc.scrollYBy(deltaY);
+//                });
+//            }
+//        }, 100);
     }
 
     @FXML
@@ -460,6 +519,9 @@ public class ConflictManagementToolController {
                 updateAndCheckConflictsLeftToHandle(conflictLineIndex);
                 updateConflictLineStatus(conflictLines, conflictLineIndex, true, false);
                 updateConflictLineStatus(middleConflictLines, conflictLineIndex, true, false);
+                if (autoSwitchConflicts.get()) {
+                    switchConflictLineOnBothSidesHandled(conflictLineIndex);
+                }
                 return;
 
             } else if (lineNumber == currentLine) { // Already handled this conflict
@@ -523,6 +585,32 @@ public class ConflictManagementToolController {
             if (conflictsLeftToHandle == 0) {
                 showAllConflictsHandledNotification();
             }
+        }
+    }
+
+    private void switchConflictLineOnBothSidesHandled(int conflictLineIndex) {
+        Main.assertFxThread();
+        if (leftConflictLines.get(conflictLineIndex).isHandled() && rightConflictLines.get(conflictLineIndex).isHandled()) {
+            // The key part in this is the Thread.sleep() and the handleToggleDown(). The rest is so the highlighting, etc. will still happen.
+            Task<Void> sleeper = new Task<Void>() {
+                @Override
+                protected Void call() throws Exception {
+                    try {
+                        Thread.sleep(100);
+                    } catch (InterruptedException e) {
+                        console.info("Something went wrong with the sleep timer for auto switching between conflicts.");
+                        throw new ExceptionAdapter(e);
+                    }
+                    return null;
+                }
+            };
+            sleeper.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
+                @Override
+                public void handle(WorkerStateEvent event) {
+                    handleToggleDown();
+                }
+            });
+            new Thread(sleeper).start();
         }
     }
 
