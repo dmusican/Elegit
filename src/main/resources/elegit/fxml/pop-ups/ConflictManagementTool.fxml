@@ -156,11 +156,11 @@
                             <Insets left="1.5" right="10.0" top="3.0" />
                         </HBox.margin>
                     </Button>
-                    <!--<Button fx:id="applyAllChanges" text="Apply All" onAction="#handleApplyAllChanges">
+                    <Button fx:id="applyAllChanges" text="Apply All" onAction="#handleApplyAllChanges">
                         <HBox.margin>
                             <Insets right="1.5" top="3.0" />
                         </HBox.margin>
-                    </Button>-->
+                    </Button>
                 </children>
             </HBox>
 

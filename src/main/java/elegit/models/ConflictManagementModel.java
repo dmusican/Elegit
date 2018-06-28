@@ -24,7 +24,6 @@ import java.util.HashMap;
 /**
  * Created by grenche on 6/19/18.
  * Model for the conflict management tool. Parses the documents.
- * Code in getParentFiles adapted from the jgit-cookbook
  */
 public class ConflictManagementModel {
     private static final Logger logger = LogManager.getLogger();

@@ -116,6 +116,8 @@ public class ConflictManagementToolController {
 
     private HashMap<String, CodeArea> files = new HashMap<>();
 
+    private HashMap<String, ArrayList<ArrayList>> savedParsedFiles = new HashMap<>();
+
     private HashMap<String, String> mergeResult;
 
     private static final Logger logger = LogManager.getLogger();
@@ -265,10 +267,33 @@ public class ConflictManagementToolController {
     }
 
     //this code should be saved for when we implement saving changes made when switching between conflicting files
-    /*@FXML
+    @FXML
     private void handleApplyAllChanges(){
         //add in a check to see if conflicts remain
-        files.put(conflictingFilesDropdown.getPromptText(), middleDoc);
+        saveParsedFiles();
+        Path directory = (new File(SessionModel.getSessionModel().getCurrentRepoHelper().getRepo().getDirectory()
+                .getParent())).toPath();
+        String filePathWithoutFileName = directory.toString();
+        System.out.println(savedParsedFiles.keySet());
+        for (String file : savedParsedFiles.keySet()){
+            ArrayList<ConflictLine> middle = savedParsedFiles.get(file).get(1);
+            //String fileName = conflictingFilesDropdown.getPromptText();
+            try {
+                BufferedWriter writer = new BufferedWriter(new FileWriter(filePathWithoutFileName + File.separator + file));
+                for (ConflictLine conflictLine : middle) {
+                    for(String line : conflictLine.getLines()){
+                        writer.write(line+"\n");
+                    }
+                }
+                writer.flush();
+                writer.close();
+            } catch (Exception e) {
+                throw new ExceptionAdapter(e);
+            }
+            //applyChanges(middle, file);
+
+        }
+        /*files.put(conflictingFilesDropdown.getPromptText(), middleDoc);
         try {
             BufferedWriter writer;
             for (String fileName : conflictingFilesDropdown.getItems()) {
@@ -287,13 +312,7 @@ public class ConflictManagementToolController {
         }
         catch (IOException e) {
             throw new ExceptionAdapter(e);
-        }
-    }*/
-
-    @FXML
-    private void handleAbort() {
-        Main.assertFxThread();
-        logger.info("Conflict management session aborted.");
+        }*/
         stage.close();
     }
 
@@ -320,6 +339,13 @@ public class ConflictManagementToolController {
         } catch (IOException e) {
             throw new ExceptionAdapter(e);
         }
+    }
+
+    @FXML
+    private void handleAbort() {
+        Main.assertFxThread();
+        logger.info("Conflict management session aborted.");
+        stage.close();
     }
 
     @FXML
@@ -501,6 +527,7 @@ public class ConflictManagementToolController {
 
     private void updateConflictLineStatus(ArrayList<ConflictLine> conflictLines, int conflictLineIndex, boolean handled, boolean conflicting) {
         Main.assertFxThread();
+        //TODO: only make non-conflicting if both sides are resolved
         middleConflictLines.get(conflictLineIndex).setHandledStatus(handled);
         middleConflictLines.get(conflictLineIndex).setConflictStatus(conflicting);
         conflictLines.get(conflictLineIndex).setHandledStatus(handled);
@@ -594,11 +621,22 @@ public class ConflictManagementToolController {
         middleDoc.deleteText(middleDoc.getSelection());
     }
 
+    private void saveParsedFiles(){
+        ArrayList<ArrayList> parsed = new ArrayList<>();
+        parsed.add(leftAllConflictLines);
+        parsed.add(middleAllConflictLines);
+        parsed.add(rightAllConflictLines);
+        savedParsedFiles.put(conflictingFilesDropdown.getPromptText(), parsed);
+    }
+
     @FXML
     private void setFileToEdit() {
         Main.assertFxThread();
         logger.info("New file selected to edit in conflict management tool.");
         Main.assertFxThread();
+        System.out.println(conflictingFilesDropdown.getPromptText());
+        saveParsedFiles();
+
         setDropdownValueToFileName();
 
         // TODO: save the state of each file
@@ -647,11 +685,12 @@ public class ConflictManagementToolController {
         fileSelected = true;
         conflictingFilesDropdown.setPromptText(fileName);
         ConflictManagementModel conflictManagementModel = new ConflictManagementModel();
-        ArrayList<ArrayList> results = conflictManagementModel.parseConflicts(fileName,
-                filePathWithoutFileName, getBaseParentFiles(fileName), getMergedParentFiles(fileName));
-
         setLabels(conflictManagementModel);
-
+        ArrayList<ArrayList> results = savedParsedFiles.get(fileName);
+        if (results==null) {
+            results = conflictManagementModel.parseConflicts(fileName, filePathWithoutFileName,
+                    getBaseParentFiles(fileName), getMergedParentFiles(fileName));
+        }
         leftAllConflictLines = results.get(0);
         middleAllConflictLines = results.get(1);
         rightAllConflictLines = results.get(2);
@@ -659,6 +698,8 @@ public class ConflictManagementToolController {
         getActualConflictingLines(leftAllConflictLines, leftConflictLines, leftConflictingLineNumbers);
         getActualConflictingLines(middleAllConflictLines, middleConflictLines, middleConflictingLineNumbers);
         getActualConflictingLines(rightAllConflictLines, rightConflictLines, rightConflictingLineNumbers);
+
+        //System.out.println(fileName+" "+leftConflictLines+" "+middleConflictingLineNumbers+" "+rightConflictLines);
 
         // This means that the user is required to accept or reject conflicts on both sides before applying. Could be handled differently
         conflictsLeftToHandle = leftConflictLines.size() + rightConflictLines.size();
@@ -679,6 +720,7 @@ public class ConflictManagementToolController {
         bindMouseMovementToConflict(rightDoc, rightConflictingLineNumbers, rightConflictLines);
     }
 
+    //Code in getParentFiles adapted from the jgit-cookbook
     private ArrayList<String> getParentFiles(ObjectId parent, String fileName) {
         Main.assertFxThread();
         try {
@@ -717,6 +759,8 @@ public class ConflictManagementToolController {
     private void getActualConflictingLines(ArrayList<ConflictLine> allConflictLines, ArrayList<ConflictLine> conflictLines, ArrayList<Integer> conflictingLineNumbers) {
         Main.assertFxThread();
         int lineNumber = 0;
+        conflictingLineNumbers.clear();
+        conflictLines.clear();
         for (ConflictLine conflictLine : allConflictLines) {
             if (conflictLine.isConflicting()) {
                 conflictingLineNumbers.add(lineNumber);
@@ -777,7 +821,9 @@ public class ConflictManagementToolController {
                 doc.appendText(line + "\n");
                 int endIndex = doc.getCaretPosition();
 
-                if (conflict.isConflicting()) {
+                if (conflict.isHandled()) {
+                    setCSSSelector(doc, startIndex, endIndex, "handled-conflict");
+                } else if (conflict.isConflicting()) {
                     setCSSSelector(doc, startIndex, endIndex, "conflict");
                 } else if (conflict.isChanged()) {
                     setCSSSelector(doc, startIndex, endIndex, "changed");
