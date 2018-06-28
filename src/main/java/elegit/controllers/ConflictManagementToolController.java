@@ -269,11 +269,20 @@ public class ConflictManagementToolController {
     //this code should be saved for when we implement saving changes made when switching between conflicting files
     @FXML
     private void handleApplyAllChanges(){
+        Main.assertFxThread();
         //add in a check to see if conflicts remain
         saveParsedFiles();
         Path directory = (new File(SessionModel.getSessionModel().getCurrentRepoHelper().getRepo().getDirectory()
                 .getParent())).toPath();
         String filePathWithoutFileName = directory.toString();
+        //need a way to remember number of conflicts left between files
+        for (String file : savedParsedFiles.keySet()){
+            if (getNumberOfConflicts(savedParsedFiles.get(file).get(1)) != 0){
+                showNotAllConflictHandledNotification();
+                setFileToEdit(file);
+                return;
+            }
+        }
         for (String file : savedParsedFiles.keySet()){
             ArrayList<ConflictLine> middle = savedParsedFiles.get(file).get(1);
             try {
@@ -292,9 +301,20 @@ public class ConflictManagementToolController {
         stage.close();
     }
 
+    private int getNumberOfConflicts(ArrayList<ConflictLine> conflictLines){
+        int conflictsNumber=0;
+        for(ConflictLine line : conflictLines){
+            if(line.isConflicting()){
+                conflictsNumber++;
+            }
+        }
+        return conflictsNumber;
+    }
+
     @FXML
     private void handleApplyChanges() {
         Main.assertFxThread();
+        //maybe set this to just switch files unless there are no others
         logger.info("Changes made with the conflict management tool applied.");
         if (conflictsLeftToHandle != 0) {
             showNotAllConflictHandledNotification();
@@ -311,7 +331,14 @@ public class ConflictManagementToolController {
             writer.write(middleDoc.getText());
             writer.flush();
             writer.close();
-            stage.close();
+            if (conflictingFilesDropdown.getItems().size()==1){
+                stage.close();
+            } else {
+                conflictingFilesDropdown.getItems().remove(fileName);
+                //conflictingFilesDropdown.setPromptText(conflictingFilesDropdown.getItems().get(0));
+                setFileToEdit(conflictingFilesDropdown.getItems().get(0));
+            }
+            //stage.close();
         } catch (IOException e) {
             throw new ExceptionAdapter(e);
         }
@@ -608,6 +635,13 @@ public class ConflictManagementToolController {
         savedParsedFiles.put(conflictingFilesDropdown.getPromptText(), parsed);
     }
 
+    private void setFileToEdit(String fileName){
+        //conflictingFilesDropdown.
+        conflictingFilesDropdown.setValue(fileName);
+        setFileToEdit();
+    }
+
+
     @FXML
     private void setFileToEdit() {
         Main.assertFxThread();
@@ -751,8 +785,10 @@ public class ConflictManagementToolController {
 
     private void setInitialPositions(CodeArea doc, ArrayList<Integer> conflictingLineNumbers) {
         Main.assertFxThread();
-        doc.moveTo(conflictingLineNumbers.get(0), 0);
-        doc.requestFollowCaret();
+        if(conflictingLineNumbers.size()!=0) {
+            doc.moveTo(conflictingLineNumbers.get(0), 0);
+            doc.requestFollowCaret();
+        }
     }
 
     private void bindMouseMovementToConflict(CodeArea doc, ArrayList<Integer> conflictingLineNumbers, ArrayList<ConflictLine> conflictLines) {
