@@ -612,6 +612,16 @@ public class ConflictManagementToolController {
         }
     }
 
+    private void updateConflictLineStatus(ArrayList<ConflictLine> conflictLines, int conflictLineIndex, boolean handled) {
+        Main.assertFxThread();
+        conflictLines.get(conflictLineIndex).setHandledStatus(handled);
+        if (leftConflictLines.get(conflictLineIndex).isHandled() || rightConflictLines.get(conflictLineIndex).isHandled()) {
+            middleConflictLines.get(conflictLineIndex).setHandledStatus(true);
+        } else {
+            middleConflictLines.get(conflictLineIndex).setHandledStatus(false);
+        }
+    }
+
     private void switchConflictLineOnBothSidesHandled(int conflictLineIndex) {
         Main.assertFxThread();
         if (leftConflictLines.get(conflictLineIndex).isHandled() && rightConflictLines.get(conflictLineIndex).isHandled()) {
@@ -706,16 +716,6 @@ public class ConflictManagementToolController {
                 showNoModificationToUndo();
                 return;
             }
-        }
-    }
-
-    private void updateConflictLineStatus(ArrayList<ConflictLine> conflictLines, int conflictLineIndex, boolean handled) {
-        Main.assertFxThread();
-        conflictLines.get(conflictLineIndex).setHandledStatus(handled);
-        if (leftConflictLines.get(conflictLineIndex).isHandled() || rightConflictLines.get(conflictLineIndex).isHandled()) {
-            middleConflictLines.get(conflictLineIndex).setHandledStatus(true);
-        } else {
-            middleConflictLines.get(conflictLineIndex).setHandledStatus(false);
         }
     }
 
