@@ -78,6 +78,8 @@ public class RepoHelper {
 
     private final AtomicReference<String> privateKeyFileLocation = new AtomicReference<>();
 
+    private static final Object globalLock = new Object();
+
     /**
      * Creates a RepoHelper object for holding a Repository and interacting with it
      * through JGit.
@@ -1441,24 +1443,22 @@ public class RepoHelper {
      * @return a list of remotre references
      * @throws GitAPIException
      */
-    public Collection<Ref> getRefsFromRemote(boolean includeTags)  {
-        RepositoryMonitor.pause();
-        LsRemoteCommand command = new Git(getRepo()).lsRemote().setHeads(true);
-        if (includeTags) {
-            command = command.setTags(includeTags);
-        }
-        wrapAuthentication(command);
+    public Collection<Ref> getRefsFromRemote(boolean includeTags) {
+        synchronized (globalLock) {
+            LsRemoteCommand command = new Git(getRepo()).lsRemote().setHeads(true);
+            if (includeTags) {
+                command = command.setTags(includeTags);
+            }
+            wrapAuthentication(command);
+            try {
+                return Collections.unmodifiableCollection(command.call());
 
-        try {
-            Collection<Ref> thing = Collections.unmodifiableCollection(command.call());
-            RepositoryMonitor.unpause();
-            return thing;
-        } catch (GitAPIException e) {
-            console.info("The issue is in getRefsFromRemote catch.");
-            e.printStackTrace();
-            RepositoryMonitor.unpause();
+            } catch (GitAPIException e) {
+                console.info("The issue is in getRefsFromRemote catch.");
+                e.printStackTrace();
+            }
+            return null;
         }
-        return null;
     }
 
     public List<RefHelper> getRefsForCommit(CommitHelper helper) {
