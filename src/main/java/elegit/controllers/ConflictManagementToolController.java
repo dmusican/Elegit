@@ -46,6 +46,7 @@ import java.nio.file.Path;
 import java.util.*;
 import java.io.File;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.IntFunction;
 
 /**
@@ -120,9 +121,9 @@ public class ConflictManagementToolController {
 
     private ArrayList<Integer> rightConflictingLineNumbers = new ArrayList<>();
 
-    private boolean fileSelected = false;
+    private AtomicInteger conflictsLeftToHandle = new AtomicInteger(Integer.MAX_VALUE);
 
-    private int conflictsLeftToHandle;
+    private AtomicBoolean fileSelected = new AtomicBoolean(false);
 
     private AtomicBoolean autoSwitchConflicts = new AtomicBoolean(true);
 
@@ -148,7 +149,7 @@ public class ConflictManagementToolController {
         initDropdown();
         initCodeAreas();
         // Disable everything except the dropdown if the user has not specified a file to solve merge conflicts for yet
-        if (!fileSelected) {
+        if (!fileSelected.get()) {
             setButtonsDisabled(true);
         }
     }
@@ -199,7 +200,7 @@ public class ConflictManagementToolController {
             conflictingFilesDropdown.setPromptText("None");
 
         } catch (GitAPIException e) {
-            e.printStackTrace();
+            throw new ExceptionAdapter(e);
         }
     }
 
@@ -239,17 +240,11 @@ public class ConflictManagementToolController {
     private void bindHorizontalScroll(CodeArea doc1, CodeArea doc2) {
         Main.assertFxThread();
 //        doc1.estimatedScrollXProperty().bindBidirectional(doc2.estimatedScrollXProperty());
-        doc1.setOnScroll(event -> {
-            doc1.estimatedScrollXProperty().bindBidirectional(doc2.estimatedScrollXProperty());
-        });
     }
 
     private void bindVerticalScroll(CodeArea doc1, CodeArea doc2) {
         Main.assertFxThread();
 //        doc1.estimatedScrollYProperty().bindBidirectional(doc2.estimatedScrollYProperty());
-        doc1.setOnScroll(event -> {
-            doc1.estimatedScrollYProperty().bindBidirectional(doc2.estimatedScrollYProperty());
-        });
     }
 
     private void setButtonsDisabled(boolean disabled) {
@@ -329,7 +324,7 @@ public class ConflictManagementToolController {
     private void handleApplyChanges() {
         Main.assertFxThread();
         logger.info("Apply button clicked.");
-        if (applyWarningGiven.get() || conflictsLeftToHandle <= 0) { // They've already seen the warning or have handled everything
+        if (applyWarningGiven.get() || conflictsLeftToHandle.get() <= 0) { // They've already seen the warning or have handled everything
             try {
                 Path directory = (new File(SessionModel.getSessionModel().getCurrentRepoHelper().getRepo().getDirectory()
                         .getParent())).toPath();
@@ -350,7 +345,7 @@ public class ConflictManagementToolController {
                 throw new ExceptionAdapter(e);
             }
 
-        } else if (!applyWarningGiven.get() && conflictsLeftToHandle > 0) { // They haven't handled everything and haven't see the warning
+        } else if (!applyWarningGiven.get() && conflictsLeftToHandle.get() > 0) { // They haven't handled everything and haven't see the warning
             applyWarningGiven.set(true);
             showNotAllConflictHandledNotification();
 
@@ -358,7 +353,7 @@ public class ConflictManagementToolController {
             // not sure when this would happen
             console.info("Weird thing happened with the apply button.");
             console.info("applyWarningGiven.get(): " + applyWarningGiven.get());
-            console.info("conflictsLeftToHandle: " + conflictsLeftToHandle);
+            console.info("conflictsLeftToHandle: " + conflictsLeftToHandle.get());
         }
     }
 
@@ -373,9 +368,11 @@ public class ConflictManagementToolController {
     private void handleDisableAutoSwitchOption() {
         Main.assertFxThread();
         if (autoSwitchConflicts.get()) {
+            logger.info("Auto-switch between conflicts disabled.");
             disableAutoSwitchOption.setText("Enable auto-switching between conflicts");
             autoSwitchConflicts.set(false);
         } else {
+            logger.info("Auto-switch between conflicts enabled.");
             disableAutoSwitchOption.setText("Disable auto-switching between conflicts");
             autoSwitchConflicts.set(true);
         }
@@ -409,7 +406,7 @@ public class ConflictManagementToolController {
     @FXML
     private void handleToggleDown() {
         Main.assertFxThread();
-        logger.info("Toggle down.");
+        logger.info("Toggled down.");
         setModifyingButtonsDisabled(false);
 
         int currentLine = middleDoc.getCurrentParagraph();
@@ -551,9 +548,7 @@ public class ConflictManagementToolController {
                 updateSideDocCSS(doc, conflictingLineNumbers.get(conflictLineIndex), conflictLines.get(conflictLineIndex).getLines().size(), "handled-conflict");
                 updateAndCheckConflictsLeftToHandle(conflictLineIndex);
                 updateConflictLineStatus(conflictLines, conflictLineIndex, true);
-                if (autoSwitchConflicts.get()) {
-                    switchConflictLineOnBothSidesHandled(conflictLineIndex);
-                }
+                switchConflictLineOnBothSidesHandled(conflictLineIndex);
                 return;
 
             } else if (lineNumber == currentLine) { // Already handled this conflict
@@ -572,7 +567,7 @@ public class ConflictManagementToolController {
         }
 
         updateMiddleConflictingLineNumbers(conflictLines.get(conflictLineIndex).getLines().size(), conflictLineIndex);
-        updateMiddleDocCurrentLine(conflictLineIndex);
+        updateMiddleDocCaretPosition(conflictLineIndex);
     }
 
     private void updateCurrentLine(String line) {
@@ -590,7 +585,7 @@ public class ConflictManagementToolController {
         }
     }
 
-    private void updateMiddleDocCurrentLine(int conflictLineIndex) {
+    private void updateMiddleDocCaretPosition(int conflictLineIndex) {
         Main.assertFxThread();
         middleDoc.moveTo(middleConflictingLineNumbers.get(conflictLineIndex), 0);
     }
@@ -607,8 +602,8 @@ public class ConflictManagementToolController {
     private void updateAndCheckConflictsLeftToHandle(int conflictLineIndex) {
         Main.assertFxThread();
         if (!middleConflictLines.get(conflictLineIndex).isHandled()) {
-            conflictsLeftToHandle--;
-            if (conflictsLeftToHandle == 0) {
+            conflictsLeftToHandle.decrementAndGet();
+            if (conflictsLeftToHandle.get() == 0) {
                 showAllConflictsHandledNotification();
             }
         }
@@ -626,27 +621,29 @@ public class ConflictManagementToolController {
 
     private void switchConflictLineOnBothSidesHandled(int conflictLineIndex) {
         Main.assertFxThread();
-        if (leftConflictLines.get(conflictLineIndex).isHandled() && rightConflictLines.get(conflictLineIndex).isHandled()) {
-            // The key part in this is the Thread.sleep() and the handleToggleDown(). The rest is so the highlighting, etc. will still happen.
-            Task<Void> sleeper = new Task<Void>() {
-                @Override
-                protected Void call() throws Exception {
-                    try {
-                        Thread.sleep(100);
-                    } catch (InterruptedException e) {
-                        console.info("Something went wrong with the sleep timer for auto switching between conflicts.");
-                        throw new ExceptionAdapter(e);
+        if (autoSwitchConflicts.get()) {
+            if (leftConflictLines.get(conflictLineIndex).isHandled() && rightConflictLines.get(conflictLineIndex).isHandled()) {
+                // The key part in this is the Thread.sleep() and the handleToggleDown(). The rest is so the highlighting, etc. will still happen.
+                Task<Void> sleeper = new Task<Void>() {
+                    @Override
+                    protected Void call() throws Exception {
+                        try {
+                            Thread.sleep(100);
+                        } catch (InterruptedException e) {
+                            console.info("Something went wrong with the sleep timer for auto switching between conflicts.");
+                            throw new ExceptionAdapter(e);
+                        }
+                        return null;
                     }
-                    return null;
-                }
-            };
-            sleeper.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
-                @Override
-                public void handle(WorkerStateEvent event) {
-                    handleToggleDown();
-                }
-            });
-            new Thread(sleeper).start();
+                };
+                sleeper.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
+                    @Override
+                    public void handle(WorkerStateEvent event) {
+                        handleToggleDown();
+                    }
+                });
+                new Thread(sleeper).start();
+            }
         }
     }
 
@@ -699,7 +696,7 @@ public class ConflictManagementToolController {
 
                         // Update everything else
                         updateMiddleConflictingLineNumbers(-(conflictLines.get(conflictLineIndex).getLines().size()), conflictLineIndex);
-                        updateMiddleDocCurrentLine(conflictLineIndex);
+                        updateMiddleDocCaretPosition(conflictLineIndex);
                         updateConflictLineStatus(conflictLines, conflictLineIndex, false);
                         updateSideDocCSS(doc, conflictingLineNumbers.get(conflictLineIndex), conflictLines.get(conflictLineIndex).getLines().size(), "conflict");
                         updateConflictsLeftToHandleIfNeeded(conflictLineIndex);
@@ -724,7 +721,7 @@ public class ConflictManagementToolController {
     private void updateConflictsLeftToHandleIfNeeded(int conflictLineIndex) {
         Main.assertFxThread();
         if (!middleConflictLines.get(conflictLineIndex).isHandled()) {
-            conflictsLeftToHandle++;
+            conflictsLeftToHandle.incrementAndGet();
         }
     }
 
@@ -756,7 +753,6 @@ public class ConflictManagementToolController {
         conflictingFilesDropdown.setValue(fileName);
         setFileToEdit();
     }
-
 
     @FXML
     private void setFileToEdit() {
@@ -801,16 +797,9 @@ public class ConflictManagementToolController {
         setFile(filePathWithoutFileName, fileName);
     }
 
-    private void setLabels(ConflictManagementModel conflictManagementModel) {
-        Main.assertFxThread();
-        leftDocLabel.setText(mergeResult.get("baseBranch"));
-        middleDocLabel.setText("Result");
-        rightDocLabel.setText(mergeResult.get("mergedBranch"));
-    }
-
     public void setFile(String filePathWithoutFileName, String fileName) {
         Main.assertFxThread();
-        fileSelected = true;
+        fileSelected.set(true);
         conflictingFilesDropdown.setPromptText(fileName);
         ConflictManagementModel conflictManagementModel = new ConflictManagementModel();
         setLabels(conflictManagementModel);
@@ -828,13 +817,14 @@ public class ConflictManagementToolController {
         getActualConflictingLines(rightAllConflictLines, rightConflictLines, rightConflictingLineNumbers);
 
         // once every conflict in the middle doc has been handled the user will get a notification to apply
-        conflictsLeftToHandle = middleConflictLines.size();
+        conflictsLeftToHandle.set(middleConflictLines.size());
 
         setLines(leftAllConflictLines, leftDoc);
         setLines(middleAllConflictLines, middleDoc);
         setLines(rightAllConflictLines, rightDoc);
         // Allow the user to click buttons
         setButtonsDisabled(false);
+
         // Move the caret and doc to the first conflict
         setInitialPositions(leftDoc, leftConflictingLineNumbers);
         setInitialPositions(middleDoc, middleConflictingLineNumbers);
@@ -843,6 +833,25 @@ public class ConflictManagementToolController {
         bindMouseMovementToConflict(leftDoc, leftConflictingLineNumbers, leftConflictLines);
         bindMouseMovementToConflict(middleDoc, middleConflictingLineNumbers, middleConflictLines);
         bindMouseMovementToConflict(rightDoc, rightConflictingLineNumbers, rightConflictLines);
+    }
+
+    private void setLabels(ConflictManagementModel conflictManagementModel) {
+        Main.assertFxThread();
+        leftDocLabel.setText(mergeResult.get("baseBranch"));
+        middleDocLabel.setText("Result");
+        rightDocLabel.setText(mergeResult.get("mergedBranch"));
+    }
+
+    private ArrayList<String> getBaseParentFiles(String fileName) {
+        Main.assertFxThread();
+        ObjectId baseParent = ObjectId.fromString(mergeResult.get("baseParent").substring(7, 47));
+        return getParentFiles(baseParent, fileName);
+    }
+
+    private ArrayList<String> getMergedParentFiles(String fileName) {
+        Main.assertFxThread();
+        ObjectId mergedParent = ObjectId.fromString(mergeResult.get("mergedParent").substring(7, 47));
+        return getParentFiles(mergedParent, fileName);
     }
 
     //Code in getParentFiles adapted from the jgit-cookbook
@@ -869,18 +878,6 @@ public class ConflictManagementToolController {
         }
     }
 
-    private ArrayList<String> getBaseParentFiles(String fileName) {
-        Main.assertFxThread();
-        ObjectId baseParent = ObjectId.fromString(mergeResult.get("baseParent").substring(7, 47));
-        return getParentFiles(baseParent, fileName);
-    }
-
-    private ArrayList<String> getMergedParentFiles(String fileName) {
-        Main.assertFxThread();
-        ObjectId mergedParent = ObjectId.fromString(mergeResult.get("mergedParent").substring(7, 47));
-        return getParentFiles(mergedParent, fileName);
-    }
-
     private void getActualConflictingLines(ArrayList<ConflictLine> allConflictLines, ArrayList<ConflictLine> conflictLines, ArrayList<Integer> conflictingLineNumbers) {
         Main.assertFxThread();
         int lineNumber = 0;
@@ -894,6 +891,32 @@ public class ConflictManagementToolController {
             // Increment the number after add so that the arrow points to the beginning of the block.
             lineNumber += conflictLine.getLines().size();
         }
+    }
+
+    private CodeArea setLines(ArrayList<ConflictLine> lines, CodeArea doc) {
+        Main.assertFxThread();
+        for (ConflictLine conflict : lines) {
+            List<String> conflictLines = conflict.getLines();
+            for (String line : conflictLines) {
+                int startIndex = doc.getCaretPosition();
+                doc.appendText(line + "\n");
+                int endIndex = doc.getCaretPosition();
+
+                if (conflict.isHandled()) {
+                    setCSSSelector(doc, startIndex, endIndex, "handled-conflict");
+                } else if (conflict.isConflicting()) {
+                    setCSSSelector(doc, startIndex, endIndex, "conflict");
+                } else if (conflict.isChanged()) {
+                    setCSSSelector(doc, startIndex, endIndex, "changed");
+                }
+            }
+        }
+        return doc;
+    }
+
+    private void setCSSSelector(CodeArea doc, int startIndex, int endIndex, String selector) {
+        Main.assertFxThread();
+        doc.setStyle(startIndex, endIndex, Collections.singleton(selector));
     }
 
     private void setInitialPositions(CodeArea doc, ArrayList<Integer> conflictingLineNumbers) {
@@ -938,39 +961,12 @@ public class ConflictManagementToolController {
         rightAccept.setDisable(disabled);
     }
 
-    private CodeArea setLines(ArrayList<ConflictLine> lines, CodeArea doc) {
-        Main.assertFxThread();
-        for (ConflictLine conflict : lines) {
-            List<String> conflictLines = conflict.getLines();
-            for (String line : conflictLines) {
-                int startIndex = doc.getCaretPosition();
-                doc.appendText(line + "\n");
-                int endIndex = doc.getCaretPosition();
-
-                if (conflict.isHandled()) {
-                    setCSSSelector(doc, startIndex, endIndex, "handled-conflict");
-                } else if (conflict.isConflicting()) {
-                    setCSSSelector(doc, startIndex, endIndex, "conflict");
-                } else if (conflict.isChanged()) {
-                    setCSSSelector(doc, startIndex, endIndex, "changed");
-                }
-            }
-        }
-        return doc;
-    }
-
-    private void setCSSSelector(CodeArea doc, int startIndex, int endIndex, String selector) {
-        Main.assertFxThread();
-        doc.setStyle(startIndex, endIndex, Collections.singleton(selector));
-    }
-
     private void showAllConflictsHandledNotification() {
         Main.assertFxThread();
         logger.info("All conflicts were handled.");
         notificationPaneController.addNotification("All conflicts were handled. Click apply to use them.");
     }
 
-    // TODO: add a button or something that allows them to continue
     private void showNotAllConflictHandledNotification() {
         Main.assertFxThread();
         logger.info("Apply clicked before finishing merge.");
