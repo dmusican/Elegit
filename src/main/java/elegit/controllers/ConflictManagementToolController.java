@@ -128,8 +128,6 @@ public class ConflictManagementToolController {
 
     private AtomicBoolean applyWarningGiven = new AtomicBoolean(false);
 
-    private HashMap<String, CodeArea> files = new HashMap<>();
-
     private HashMap<String, ArrayList<ArrayList>> savedParsedFiles = new HashMap<>();
 
     private HashMap<String, String> mergeResult;
@@ -284,18 +282,16 @@ public class ConflictManagementToolController {
         notificationPaneController.setAnchor(stage);
     }
 
-    //this code should be saved for when we implement saving changes made when switching between conflicting files
     @FXML
     private void handleApplyAllChanges(){
         Main.assertFxThread();
-        //add in a check to see if conflicts remain
         saveParsedFiles();
         Path directory = (new File(SessionModel.getSessionModel().getCurrentRepoHelper().getRepo().getDirectory()
                 .getParent())).toPath();
         String filePathWithoutFileName = directory.toString();
-        //need a way to remember number of conflicts left between files
-        for (String file : savedParsedFiles.keySet()){
-            if (getNumberOfConflicts(savedParsedFiles.get(file).get(1)) != 0){
+        for(String file: conflictingFilesDropdown.getItems()){
+            ArrayList<ArrayList> results = savedParsedFiles.get(file);
+            if (results == null || getNumberOfConflicts(results.get(1)) != 0) {
                 showNotAllConflictHandledNotification();
                 setFileToEdit(file);
                 return;
@@ -320,7 +316,13 @@ public class ConflictManagementToolController {
     }
 
     private int getNumberOfConflicts(ArrayList<ConflictLine> conflictLines){
-        return conflictLines.size();
+        int conflictsNumber=0;
+        for(ConflictLine line : conflictLines){
+            if(line.isConflicting() && !line.isHandled()){
+                conflictsNumber++;
+            }
+        }
+        return conflictsNumber;
     }
 
     @FXML
@@ -829,9 +831,8 @@ public class ConflictManagementToolController {
         conflictsLeftToHandle = middleConflictLines.size();
 
         setLines(leftAllConflictLines, leftDoc);
-        CodeArea middle = setLines(middleAllConflictLines, middleDoc);
+        setLines(middleAllConflictLines, middleDoc);
         setLines(rightAllConflictLines, rightDoc);
-        files.put(fileName, middle);
         // Allow the user to click buttons
         setButtonsDisabled(false);
         // Move the caret and doc to the first conflict
