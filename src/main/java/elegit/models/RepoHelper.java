@@ -5,6 +5,7 @@ import elegit.Main;
 import elegit.gui.PopUpWindows;
 import elegit.gui.SimpleProgressMonitor;
 import elegit.exceptions.*;
+import elegit.monitors.RepositoryMonitor;
 import elegit.treefx.Cell;
 import io.reactivex.Completable;
 import io.reactivex.Single;
@@ -1441,6 +1442,7 @@ public class RepoHelper {
      * @throws GitAPIException
      */
     public Collection<Ref> getRefsFromRemote(boolean includeTags)  {
+        RepositoryMonitor.pause();
         LsRemoteCommand command = new Git(getRepo()).lsRemote().setHeads(true);
         if (includeTags) {
             command = command.setTags(includeTags);
@@ -1448,10 +1450,13 @@ public class RepoHelper {
         wrapAuthentication(command);
 
         try {
-            return Collections.unmodifiableCollection(command.call());
+            Collection<Ref> thing = Collections.unmodifiableCollection(command.call());
+            RepositoryMonitor.unpause();
+            return thing;
         } catch (GitAPIException e) {
             console.info("The issue is in getRefsFromRemote catch.");
             e.printStackTrace();
+            RepositoryMonitor.unpause();
         }
         return null;
     }
