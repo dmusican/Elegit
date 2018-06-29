@@ -9,6 +9,7 @@ import elegit.gui.ConflictLinePointer;
 import elegit.models.ConflictManagementModel;
 import elegit.models.SessionModel;
 import elegit.models.ConflictLine;
+import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.concurrent.WorkerStateEvent;
 import javafx.event.ActionEvent;
@@ -463,41 +464,22 @@ public class ConflictManagementToolController {
     private void moveDocCarets(CodeArea doc, int lineNumber) {
         Main.assertFxThread();
         doc.moveTo(lineNumber, 0);
-//        doc.requestFollowCaret();
         doc.showParagraphAtTop(lineNumber);
-//        doc.getParagraphBoundsOnScreen(lineNumber).get().
-//
-//        int numLinesVisible = doc.getVisibleParagraphs().size();
-//
-//        int visibleIndex = getVisibleIndex(doc, lineNumber);
-//
-//        double deltaY = ((numLinesVisible/2) - visibleIndex) * 10;
-//
-//        console.info("numLinesVisible: " + numLinesVisible);
-//        console.info("visibleIndex: " + visibleIndex);
-//        console.info("deltaY: " + deltaY);
-//
-//        // Silly hack I got from Issue #389 for RichTextFX (which scrollYBy() was supposed to fix, but doesn't seem to)
-//        // TODO: not a universal or ideal solution, but might be the beginning to one.
-//        new Timer().schedule(new TimerTask() {
-//            public void run() {
-//                Platform.runLater(() -> {
-//                    doc.scrollYBy(deltaY);
-//                });
-//            }
-//        }, 100);
-    }
 
-    private int getVisibleIndex(CodeArea doc, int lineNumber) {
-        Paragraph p = doc.getParagraphs().get(lineNumber);
+        new Timer().schedule(new TimerTask() {
+            public void run() {
+                Platform.runLater(() -> {
+                    double lineHeightInViewport = doc.getVisibleParagraphBoundsOnScreen(doc.allParToVisibleParIndex(lineNumber).get()).getHeight();
+                    double deltaY = (doc.getViewportHeight()/2) - 50;
 
-        for(int index = 0; index < doc.getVisibleParagraphs().size(); ++index) {
-            if(doc.getVisibleParagraphs().get(index).equals(p)) {
-                console.info("index: " + index);
-                return index;
+                    if (lineHeightInViewport > 16) {
+                        deltaY = -deltaY;
+                    }
+
+                    doc.scrollYBy(deltaY);
+                });
             }
-        }
-        return -1;
+        }, 100);
     }
 
     @FXML
@@ -921,7 +903,7 @@ public class ConflictManagementToolController {
 
     private void setInitialPositions(CodeArea doc, ArrayList<Integer> conflictingLineNumbers) {
         Main.assertFxThread();
-        if(conflictingLineNumbers.size()!=0) {
+        if(conflictingLineNumbers.size()!= 0) {
             moveDocCarets(doc, conflictingLineNumbers.get(0));
         }
     }
