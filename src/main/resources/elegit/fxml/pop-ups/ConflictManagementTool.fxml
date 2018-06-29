@@ -54,13 +54,13 @@
             <!--HBoxes where the three versions of the document go with line numbers to the left-->
             <HBox prefHeight="564.0" prefWidth="400.0" GridPane.columnIndex="0" GridPane.rowIndex="1">
                 <children>
-                    <Separator orientation="VERTICAL" prefHeight="200.0" />
+                    <Separator id="conflictManagementSeparator" orientation="VERTICAL" prefHeight="200.0" />
                     <VirtualizedScrollPane>
                         <content>
                             <CodeArea id="document" fx:id="leftDoc" editable="false" focusTraversable="true" prefHeight="566.0" prefWidth="442.0" />
                         </content>
                     </VirtualizedScrollPane>
-                    <Separator orientation="VERTICAL" prefHeight="200.0" />
+                    <Separator id="conflictManagementSeparator" orientation="VERTICAL" prefHeight="200.0" />
                 </children>
             </HBox>
             <HBox prefHeight="100.0" prefWidth="400.0" GridPane.columnIndex="1" GridPane.rowIndex="1">
@@ -70,7 +70,7 @@
                             <CodeArea id="document" fx:id="middleDoc" editable="false" focusTraversable="true" prefHeight="566.0" prefWidth="444.0" />
                         </content>
                     </VirtualizedScrollPane>
-                    <Separator orientation="VERTICAL" prefHeight="200.0" />
+                    <Separator id="conflictManagementSeparator" orientation="VERTICAL" prefHeight="200.0" />
                 </children>
             </HBox>
             <HBox prefHeight="100.0" prefWidth="400.0" GridPane.columnIndex="2" GridPane.rowIndex="1">
@@ -147,12 +147,12 @@
                 <children>
                     <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Current File:">
                         <HBox.margin>
-                            <Insets left="10.0" right="1.5" bottom="10.0"/>
+                            <Insets bottom="10.0" left="10.0" right="1.5" />
                         </HBox.margin>
                     </Text>
                     <ComboBox fx:id="conflictingFilesDropdown" onAction="#setFileToEdit" prefWidth="150.0" promptText="None">
                         <HBox.margin>
-                            <Insets left="1.5" bottom="10.0"/>
+                            <Insets bottom="10.0" left="1.5" />
                         </HBox.margin>
                     </ComboBox>
                 </children>
@@ -170,22 +170,22 @@
                             </ContextMenu>
                         </contextMenu>
                         <HBox.margin>
-                            <Insets right="1.5" top="3.0" bottom="10.0" />
+                            <Insets bottom="10.0" right="1.5" top="3.0" />
                         </HBox.margin>
                     </Button>
                     <Button fx:id="abortMerge" onAction="#handleAbort" text="Abort">
                         <HBox.margin>
-                            <Insets left="1.5" right="1.5" top="3.0" bottom="10.0" />
+                            <Insets bottom="10.0" left="1.5" right="1.5" top="3.0" />
                         </HBox.margin>
                     </Button>
                     <Button fx:id="applyChanges" onAction="#handleApplyChanges" text="Apply">
                         <HBox.margin>
-                            <Insets left="1.5" right="1.5" top="3.0" bottom="10.0" />
+                            <Insets bottom="10.0" left="1.5" right="1.5" top="3.0" />
                         </HBox.margin>
                     </Button>
                     <Button fx:id="applyAllChanges" onAction="#handleApplyAllChanges" text="Apply All">
                         <HBox.margin>
-                            <Insets left="1.5" right="10.0" top="3.0" bottom="10.0" />
+                            <Insets bottom="10.0" left="1.5" right="10.0" top="3.0" />
                         </HBox.margin>
                     </Button>
                 </children>
