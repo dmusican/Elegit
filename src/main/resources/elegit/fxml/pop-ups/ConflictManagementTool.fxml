@@ -5,6 +5,8 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.ContextMenu?>
+<?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
@@ -15,8 +17,6 @@
 <?import org.fxmisc.flowless.VirtualizedScrollPane?>
 <?import org.fxmisc.richtext.CodeArea?>
 
-<?import javafx.scene.control.ContextMenu?>
-<?import javafx.scene.control.MenuItem?>
 <AnchorPane fx:id="anchorRoot" prefHeight="220" stylesheets="@../../css/BaseStyle.css" xmlns="http://javafx.com/javafx/8.0.112" xmlns:fx="http://javafx.com/fxml/1" fx:controller="elegit.controllers.ConflictManagementToolController">
     <GridPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="700.0" prefWidth="1200.0" stylesheets="@../../css/BaseStyle.css" xmlns="http://javafx.com/javafx/8.0.112" xmlns:fx="http://javafx.com/fxml/1">
         <columnConstraints>
@@ -26,10 +26,11 @@
         </columnConstraints>
         <rowConstraints>
             <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-            <RowConstraints maxHeight="567.0" minHeight="10.0" prefHeight="567.0" vgrow="SOMETIMES" />
-            <RowConstraints maxHeight="120.0" minHeight="4.0" prefHeight="44.0" vgrow="SOMETIMES" />
-            <RowConstraints maxHeight="72.0" minHeight="0.0" prefHeight="0.0" vgrow="SOMETIMES" />
-            <RowConstraints maxHeight="77.0" minHeight="0.0" prefHeight="62.0" vgrow="SOMETIMES" />
+            <RowConstraints maxHeight="579.0" minHeight="10.0" prefHeight="578.0" vgrow="SOMETIMES" />
+            <RowConstraints maxHeight="120.0" minHeight="4.0" prefHeight="35.0" vgrow="SOMETIMES" />
+            <RowConstraints maxHeight="72.0" minHeight="0.0" prefHeight="49.0" vgrow="SOMETIMES" />
+            <RowConstraints maxHeight="15.0" minHeight="15.0" prefHeight="15.0" vgrow="NEVER" />
+
         </rowConstraints>
         <children>
 
@@ -88,17 +89,33 @@
                 <children>
                     <Button id="undoButton" fx:id="leftUndo" alignment="CENTER" contentDisplay="CENTER" graphicTextGap="3.0" onAction="#handleUndoLeftChange">
                         <HBox.margin>
-                            <Insets right="1.5" />
+                            <Insets right="1.5" top="10.0" />
                         </HBox.margin>
                     </Button>
                     <Button id="rejectButton" fx:id="leftReject" alignment="CENTER" contentDisplay="CENTER" graphicTextGap="3.0" onAction="#handleRejectLeftChange">
                         <HBox.margin>
-                            <Insets left="1.5" right="1.5" />
+                            <Insets left="1.5" right="1.5" top="10.0" />
                         </HBox.margin>
                     </Button>
                     <Button id="acceptButton" fx:id="leftAccept" alignment="CENTER" contentDisplay="CENTER" graphicTextGap="3.0" onAction="#handleAcceptLeftChange">
                         <HBox.margin>
-                            <Insets left="1.5" right="3.0" />
+                            <Insets left="1.5" right="3.0" top="10.0" />
+                        </HBox.margin>
+                    </Button>
+                </children>
+            </HBox>
+
+            <!--Buttons for toggling between changes-->
+            <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="2">
+                <children>
+                    <Button id="toggle" fx:id="upToggle" alignment="CENTER" contentDisplay="CENTER" graphicTextGap="3.0" onAction="#handleToggleUp">
+                        <HBox.margin>
+                            <Insets right="1.5" top="10.0" />
+                        </HBox.margin>
+                    </Button>
+                    <Button id="toggle" fx:id="downToggle" alignment="CENTER" contentDisplay="CENTER" graphicTextGap="3.0" onAction="#handleToggleDown">
+                        <HBox.margin>
+                            <Insets left="1.5" top="10.0" />
                         </HBox.margin>
                     </Button>
                 </children>
@@ -109,68 +126,17 @@
                 <children>
                     <Button id="acceptButton" fx:id="rightAccept" alignment="CENTER" contentDisplay="CENTER" graphicTextGap="2.0" onAction="#handleAcceptRightChange">
                         <HBox.margin>
-                            <Insets left="3.0" right="1.5" />
+                            <Insets left="3.0" right="1.5" top="10.0" />
                         </HBox.margin>
                     </Button>
                     <Button id="rejectButton" fx:id="rightReject" alignment="CENTER" contentDisplay="CENTER" graphicTextGap="2.0" onAction="#handleRejectRightChange">
                         <HBox.margin>
-                            <Insets left="1.5" right="1.5" />
+                            <Insets left="1.5" right="1.5" top="10.0" />
                         </HBox.margin>
                     </Button>
                     <Button id="undoButton" fx:id="rightUndo" alignment="CENTER" contentDisplay="CENTER" graphicTextGap="2.0" onAction="#handleUndoRightChange">
                         <HBox.margin>
-                            <Insets left="1.5" />
-                        </HBox.margin>
-                    </Button>
-                </children>
-            </HBox>
-
-            <!--Buttons for toggling between changes-->
-            <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="3">
-                <children>
-                    <Button id="toggle" fx:id="upToggle" alignment="CENTER" contentDisplay="CENTER" graphicTextGap="3.0" onAction="#handleToggleUp">
-                        <HBox.margin>
-                            <Insets right="1.5" top="3.0" />
-                        </HBox.margin>
-                    </Button>
-                    <Button id="toggle" fx:id="downToggle" alignment="CENTER" contentDisplay="CENTER" graphicTextGap="3.0" onAction="#handleToggleDown">
-                        <HBox.margin>
-                            <Insets left="1.5" top="3.0" />
-                        </HBox.margin>
-                    </Button>
-                </children>
-            </HBox>
-
-            <!--Buttons for applying changes and aborting the merge-->
-            <HBox alignment="CENTER_RIGHT" prefHeight="100.0" prefWidth="200.0" GridPane.columnIndex="2" GridPane.rowIndex="3">
-                <children>
-                    <Button fx:id="conflictManagementToolMenuButton" onAction="#handleOpenConflictManagementMenu" text="">
-                        <contextMenu>
-                            <ContextMenu fx:id="conflictManagementToolMenu">
-                                <items>
-                                    <MenuItem id="disableAutoSwitchOption" fx:id="disableAutoSwitchOption"
-                                              onAction="#handleDisableAutoSwitchOption"
-                                              text="Disable auto-switching between conflicts"/>
-                                </items>
-                            </ContextMenu>
-                        </contextMenu>
-                        <HBox.margin>
-                            <Insets right="1.5" top="3.0"/>
-                        </HBox.margin>
-               </Button>
-                    <Button fx:id="abortMerge" onAction="#handleAbort" text="Abort">
-                        <HBox.margin>
-                            <Insets left="1.5" right="1.5" top="3.0" />
-                        </HBox.margin>
-                    </Button>
-                    <Button fx:id="applyChanges" onAction="#handleApplyChanges" text="Apply">
-                        <HBox.margin>
-                            <Insets left="1.5" right="10.0" top="3.0" />
-                        </HBox.margin>
-                    </Button>
-                    <Button fx:id="applyAllChanges" text="Apply All" onAction="#handleApplyAllChanges">
-                        <HBox.margin>
-                            <Insets right="1.5" top="3.0" />
+                            <Insets left="1.5" top="10.0" />
                         </HBox.margin>
                     </Button>
                 </children>
@@ -181,19 +147,52 @@
                 <children>
                     <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Current File:">
                         <HBox.margin>
-                            <Insets left="10.0" right="1.5" />
+                            <Insets left="10.0" right="1.5" bottom="10.0"/>
                         </HBox.margin>
                     </Text>
                     <ComboBox fx:id="conflictingFilesDropdown" onAction="#setFileToEdit" prefWidth="150.0" promptText="None">
                         <HBox.margin>
-                            <Insets left="1.5" />
+                            <Insets left="1.5" bottom="10.0"/>
                         </HBox.margin>
                     </ComboBox>
                 </children>
             </HBox>
 
-            <!--Notification pane-->
-            <fx:include fx:id="notificationPane" source="../NotificationPane.fxml" GridPane.columnIndex="0" GridPane.columnSpan="3" GridPane.rowIndex="4" />
+            <!--Buttons for applying changes and aborting the merge-->
+            <HBox alignment="CENTER_RIGHT" prefHeight="100.0" prefWidth="200.0" GridPane.columnIndex="2" GridPane.rowIndex="3">
+                <children>
+                    <Button fx:id="conflictManagementToolMenuButton" onAction="#handleOpenConflictManagementMenu" text="">
+                        <contextMenu>
+                            <ContextMenu fx:id="conflictManagementToolMenu">
+                                <items>
+                                    <MenuItem id="disableAutoSwitchOption" fx:id="disableAutoSwitchOption" onAction="#handleDisableAutoSwitchOption" text="Disable auto-switching between conflicts" />
+                                </items>
+                            </ContextMenu>
+                        </contextMenu>
+                        <HBox.margin>
+                            <Insets right="1.5" top="3.0" bottom="10.0" />
+                        </HBox.margin>
+                    </Button>
+                    <Button fx:id="abortMerge" onAction="#handleAbort" text="Abort">
+                        <HBox.margin>
+                            <Insets left="1.5" right="1.5" top="3.0" bottom="10.0" />
+                        </HBox.margin>
+                    </Button>
+                    <Button fx:id="applyChanges" onAction="#handleApplyChanges" text="Apply">
+                        <HBox.margin>
+                            <Insets left="1.5" right="1.5" top="3.0" bottom="10.0" />
+                        </HBox.margin>
+                    </Button>
+                    <Button fx:id="applyAllChanges" onAction="#handleApplyAllChanges" text="Apply All">
+                        <HBox.margin>
+                            <Insets left="1.5" right="10.0" top="3.0" bottom="10.0" />
+                        </HBox.margin>
+                    </Button>
+                </children>
+            </HBox>
         </children>
     </GridPane>
+    
+    <!--Notification pane-->
+    <fx:include fx:id="notificationPane" source="../NotificationPane.fxml" />
 </AnchorPane>
