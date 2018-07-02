@@ -900,12 +900,14 @@ public class SessionController {
 
                 // Try to add all files, throw exception if there are ones that can't be added
                 if (workingTreePanelView.isSelectAllChecked()) {
-                    filePathsToAdd.add(Paths.get("."));
-                    for(RepoFile file: workingTreePanelView.getFilesToDisplay()){
-                        if(!file.canAdd()){
-                            filePathsToAdd.remove(file.getFilePath());
+                    //filePathsToAdd.add(Paths.get("."));
+                    for(RepoFile file : workingTreePanelView.getFilesToDisplay()){
+                        System.out.println(file);
+                        if(file.canAdd()){
+                            filePathsToAdd.add(file.getFilePath());
                         }
                     }
+                    PopUpWindows.setConflictingAlertsShowing(false);
                 } else {
                     for (RepoFile checkedFile : workingTreePanelView.getCheckedFilesInDirectory()) {
                         if (checkedFile.canAdd()) {
@@ -917,8 +919,8 @@ public class SessionController {
                             throw new UnableToAddException(checkedFile.getFilePath().toString());
                         }
                     }
+                    PopUpWindows.setConflictingAlertsShowing(false);
                 }
-
                 if (filePathsToAdd.size() > 0)
                     theModel.getCurrentRepoHelper().addFilePaths(filePathsToAdd);
                 if (filePathsToRemove.size() > 0)
@@ -1990,8 +1992,8 @@ public class SessionController {
 
             } else if (result.exception instanceof UnableToAddException) {
                 showNotification(nc, "Cannot add file notification",
-                        "Cannot add " + ((UnableToAddException) result.exception).getFilename() +
-                                ". It might already be added (staged).");
+                        "Cannot add " + ((UnableToAddException) result.exception).getFilename());
+                                //+ ". It might already be added (staged).");
 
             } else if (result.exception instanceof NoFilesSelectedToAddException) {
                 showNotification(nc, "No files selected for add warning",

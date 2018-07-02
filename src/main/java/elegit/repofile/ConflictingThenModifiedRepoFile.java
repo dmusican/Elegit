@@ -1,17 +1,13 @@
 package elegit.repofile;
 
 import elegit.Main;
-import elegit.exceptions.ExceptionAdapter;
 import elegit.gui.PopUpWindows;
 import elegit.models.RepoHelper;
-import javafx.application.Platform;
 import net.jcip.annotations.ThreadSafe;
 import org.eclipse.jgit.api.errors.GitAPIException;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * A subclass of the RepoFile class that holds a reference to
@@ -45,9 +41,12 @@ public class ConflictingThenModifiedRepoFile extends RepoFile {
 
     @Override public boolean canAdd() throws GitAPIException {
         Main.assertFxThread();
-        resultType = PopUpWindows.showAddingingConflictingThenModifiedFileAlert();
-        if(resultType.equals("add")){
-            System.out.println("in if");
+        if(!PopUpWindows.getAddingConflictingThenModifiedFileAlertShowing()) {
+            resultType = PopUpWindows.showAddingConflictingThenModifiedFileAlert();
+        } else {
+            resultType = PopUpWindows.getResultType();
+        }
+        if (resultType.equals("add")) {
             return true;
         }
         return false;

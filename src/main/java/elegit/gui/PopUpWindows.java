@@ -3,7 +3,6 @@ package elegit.gui;
 import elegit.Main;
 import elegit.models.LocalBranchHelper;
 import elegit.models.RemoteBranchHelper;
-import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
@@ -20,8 +19,6 @@ import org.apache.logging.log4j.Logger;
 import org.controlsfx.control.CheckListView;
 
 import java.util.*;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Class that initializes a given pop up window. Essentially both a view and controller for pop up windows.
@@ -34,15 +31,36 @@ public class PopUpWindows {
 
     static final Logger logger = LogManager.getLogger();
     private static final Logger console = LogManager.getLogger("briefconsolelogger");
+    private static boolean isComittingConflictingFileAlertShowing = false;
+    private static boolean isAddingConflictingThenModifiedFileAlertShowing = false;
+    private static String resultType;
 
+    public static boolean getAddingConflictingThenModifiedFileAlertShowing(){
+        return isAddingConflictingThenModifiedFileAlertShowing;
+    }
+    public static boolean getComittingConflictingFileAlertShowing(){
+        return isComittingConflictingFileAlertShowing;
+    }
+    public static void setAddingConflictingThenModifiedFileAlertShowing(boolean status){
+        isAddingConflictingThenModifiedFileAlertShowing = status;
+    }
+    public static void setComittingConflictingFileAlertShowing(boolean status){
+        isComittingConflictingFileAlertShowing = status;
+    }
+    public static String getResultType(){
+        return resultType;
+    }
+    public static void setConflictingAlertsShowing(boolean status){
+        setComittingConflictingFileAlertShowing(status);
+        setAddingConflictingThenModifiedFileAlertShowing(status);
+    }
     /**
      * Informs the user that they are about to commit a conflicting file
      *
      * @return String user's response to the dialog
      */
     public static String showCommittingConflictingFileAlert() {
-        String resultType;
-
+        isComittingConflictingFileAlertShowing = true;
         Alert alert = new Alert(Alert.AlertType.WARNING);
 
         ButtonType resolveToolButton = new ButtonType("Open Tool");
@@ -85,7 +103,6 @@ public class PopUpWindows {
             logger.info("Cancelled dialog");
             resultType = "cancel";
         }
-
         return resultType;
     }
 
@@ -196,8 +213,8 @@ public class PopUpWindows {
      *
      * @return String result from user input
      */
-    public static String showAddingingConflictingThenModifiedFileAlert() {
-        String resultType;
+    public static String showAddingConflictingThenModifiedFileAlert() {
+        isAddingConflictingThenModifiedFileAlertShowing = true;
 
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
 

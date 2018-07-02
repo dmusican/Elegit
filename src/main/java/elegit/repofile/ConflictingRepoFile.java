@@ -62,7 +62,11 @@ public class ConflictingRepoFile extends RepoFile {
     @Override public boolean canAdd() throws GitAPIException, IOException{
         Main.assertFxThread();
         logger.warn("Notification about conflicting file");
-        resultType = PopUpWindows.showCommittingConflictingFileAlert();
+        if(!PopUpWindows.getComittingConflictingFileAlertShowing()) {
+            resultType = PopUpWindows.showCommittingConflictingFileAlert();
+        } else {
+            resultType = PopUpWindows.getResultType();
+        }
         switch (resultType) {
             case "tool":
                 // Open conflict management tool
@@ -86,6 +90,8 @@ public class ConflictingRepoFile extends RepoFile {
             case "help":
                 PopUpWindows.showConflictingHelpAlert();
                 break;
+            case "cancel":
+                return false;
         }
         return false;
     }
