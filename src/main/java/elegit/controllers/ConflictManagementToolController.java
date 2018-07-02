@@ -473,11 +473,12 @@ public class ConflictManagementToolController {
         int lineInViewport = doc.allParToVisibleParIndex(lineNumber).get();
         int totalLinesInViewport = doc.allParToVisibleParIndex(doc.lastVisibleParToAllParIndex()).get();
 
-        double deltaY = (doc.getViewportHeight()/2) - 50;
+        // Negative numbers scroll up
+        double deltaY = -((doc.getViewportHeight()/2) - 50);
 
         // If the conflict is at the bottom of the document (i.e. showParagraphAtTop() doesn't change its position),
         // we don't want to scroll up because it'll get cut off
-        if (totalLinesInViewport / 2 > lineInViewport) {
+        if (totalLinesInViewport / 2 < lineInViewport) {
             deltaY = -deltaY;
         }
 
