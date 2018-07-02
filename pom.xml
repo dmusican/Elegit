@@ -129,8 +129,8 @@
             </plugin>
         </plugins>
     </reporting>
-    <dependencies>
 
+    <dependencies>
         <dependency>
             <groupId>de.jensd</groupId>
             <artifactId>fontawesomefx</artifactId>
