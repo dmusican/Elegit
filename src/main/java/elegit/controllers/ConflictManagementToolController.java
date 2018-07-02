@@ -10,6 +10,7 @@ import elegit.models.ConflictManagementModel;
 import elegit.models.SessionModel;
 import elegit.models.ConflictLine;
 import javafx.collections.ObservableList;
+import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.concurrent.WorkerStateEvent;
 import javafx.event.ActionEvent;
@@ -240,11 +241,12 @@ public class ConflictManagementToolController {
 
     private void bindHorizontalScroll(CodeArea doc1, CodeArea doc2) {
         Main.assertFxThread();
-//        doc1.estimatedScrollXProperty().bindBidirectional(doc2.estimatedScrollXProperty());
+        doc1.estimatedScrollXProperty().bindBidirectional(doc2.estimatedScrollXProperty());
     }
 
     private void bindVerticalScroll(CodeArea doc1, CodeArea doc2) {
         Main.assertFxThread();
+        // TODO: once bug #535 is resolved, hopefully this can be added back in. Currently acts very weirdly with toggle buttons
 //        doc1.estimatedScrollYProperty().bindBidirectional(doc2.estimatedScrollYProperty());
     }
 
@@ -471,41 +473,23 @@ public class ConflictManagementToolController {
     private void moveDocCarets(CodeArea doc, int lineNumber) {
         Main.assertFxThread();
         doc.moveTo(lineNumber, 0);
-//        doc.requestFollowCaret();
         doc.showParagraphAtTop(lineNumber);
-//        doc.getParagraphBoundsOnScreen(lineNumber).get().
-//
-//        int numLinesVisible = doc.getVisibleParagraphs().size();
-//
-//        int visibleIndex = getVisibleIndex(doc, lineNumber);
-//
-//        double deltaY = ((numLinesVisible/2) - visibleIndex) * 10;
-//
-//        console.info("numLinesVisible: " + numLinesVisible);
-//        console.info("visibleIndex: " + visibleIndex);
-//        console.info("deltaY: " + deltaY);
-//
-//        // Silly hack I got from Issue #389 for RichTextFX (which scrollYBy() was supposed to fix, but doesn't seem to)
-//        // TODO: not a universal or ideal solution, but might be the beginning to one.
-//        new Timer().schedule(new TimerTask() {
-//            public void run() {
-//                Platform.runLater(() -> {
-//                    doc.scrollYBy(deltaY);
-//                });
-//            }
-//        }, 100);
-    }
+        // Needed because of bug #389 in RichTextFX - see github thread for more information
+        doc.layout();
 
-    private int getVisibleIndex(CodeArea doc, int lineNumber) {
-        Paragraph p = doc.getParagraphs().get(lineNumber);
+        int lineInViewport = doc.allParToVisibleParIndex(lineNumber).get();
+        int totalLinesInViewport = doc.allParToVisibleParIndex(doc.lastVisibleParToAllParIndex()).get();
 
-        for(int index = 0; index < doc.getVisibleParagraphs().size(); ++index) {
-            if(doc.getVisibleParagraphs().get(index).equals(p)) {
-                console.info("index: " + index);
-                return index;
-            }
+        // Negative numbers scroll up
+        double deltaY = -((doc.getViewportHeight()/2) - 50);
+
+        // If the conflict is at the bottom of the document (i.e. showParagraphAtTop() doesn't change its position),
+        // we don't want to scroll up because it'll get cut off
+        if (totalLinesInViewport / 2 < lineInViewport) {
+            deltaY = -deltaY;
         }
-        return -1;
+
+        doc.scrollYBy(deltaY);
     }
 
     @FXML
@@ -831,14 +815,14 @@ public class ConflictManagementToolController {
         // Allow the user to click buttons
         setButtonsDisabled(false);
 
+        bindMouseMovementToConflict(leftDoc, leftConflictingLineNumbers, leftConflictLines);
+        bindMouseMovementToConflict(middleDoc, middleConflictingLineNumbers, middleConflictLines);
+        bindMouseMovementToConflict(rightDoc, rightConflictingLineNumbers, rightConflictLines);
+
         // Move the caret and doc to the first conflict
         setInitialPositions(leftDoc, leftConflictingLineNumbers);
         setInitialPositions(middleDoc, middleConflictingLineNumbers);
         setInitialPositions(rightDoc, rightConflictingLineNumbers);
-
-        bindMouseMovementToConflict(leftDoc, leftConflictingLineNumbers, leftConflictLines);
-        bindMouseMovementToConflict(middleDoc, middleConflictingLineNumbers, middleConflictLines);
-        bindMouseMovementToConflict(rightDoc, rightConflictingLineNumbers, rightConflictLines);
     }
 
     private void setLabels(ConflictManagementModel conflictManagementModel) {
@@ -927,8 +911,16 @@ public class ConflictManagementToolController {
 
     private void setInitialPositions(CodeArea doc, ArrayList<Integer> conflictingLineNumbers) {
         Main.assertFxThread();
-        if(conflictingLineNumbers.size()!=0) {
-            moveDocCarets(doc, conflictingLineNumbers.get(0));
+        if(conflictingLineNumbers.size()!= 0) {
+            // Need the delay because otherwise the codeAreas aren't done loading
+            // TODO: find a cleaner work around
+            new Timer().schedule(new TimerTask() {
+                public void run() {
+                    Platform.runLater(() -> {
+                        moveDocCarets(doc, conflictingLineNumbers.get(0));
+                    });
+                }
+            }, 100);
         }
     }
 
