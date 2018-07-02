@@ -147,7 +147,7 @@ public class BranchModel {
                 } catch (IOException e) {
                     logger.error("IOException getting local branches");
                     logger.debug(e.getStackTrace());
-                    e.printStackTrace();
+                    throw new ExceptionAdapter(e);
                 }
             }
     }
@@ -492,6 +492,10 @@ public class BranchModel {
 
         for(BranchHelper branch : branches){
             CommitHelper head = branch.getCommit();
+            // If head is null, it will cause a NullPointerException to be thrown from containsKey
+            // below. Better to test it here and get more information.
+            assert head != null : "Head should not be null, branch is "
+                    + branch.getRefName() + " " + branch.getRefPathString();
             if(heads.containsKey(head)){
                 heads.get(head).add(branch);
             }else{
