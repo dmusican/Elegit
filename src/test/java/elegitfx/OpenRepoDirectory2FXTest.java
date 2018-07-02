@@ -117,6 +117,7 @@ public class OpenRepoDirectory2FXTest extends ApplicationTest {
     public void noRepoLoadedTest() {
         // Clicks button to open a nonexistent directory
         clickOn((Node) (lookup("#openRepoDirButton").query()));
+        WaitForAsyncUtils.waitForFxEvents();
 
         // Makes sure the method was not called because the button is disabled
         assertEquals(false, sessionController.getMethodCalled());

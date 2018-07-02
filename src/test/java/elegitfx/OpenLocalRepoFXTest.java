@@ -15,6 +15,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.testfx.framework.junit.ApplicationTest;
 import org.testfx.framework.junit.TestFXRule;
+import org.testfx.util.WaitForAsyncUtils;
 import sharedrules.TestUtilities;
 
 import java.io.IOException;
@@ -74,6 +75,7 @@ public class OpenLocalRepoFXTest extends ApplicationTest {
         assertNotNull(helper);
 
         TestUtilities.startComplete.await();
+        WaitForAsyncUtils.waitForFxEvents();
 
 
         interact(() -> {
