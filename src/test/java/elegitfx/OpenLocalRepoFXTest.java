@@ -5,7 +5,6 @@ import elegit.controllers.SessionController;
 import elegit.models.ClonedRepoHelper;
 import elegit.monitors.RepositoryMonitor;
 import elegit.treefx.CommitTreeModel;
-import javafx.scene.control.ScrollPane;
 import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -74,10 +73,12 @@ public class OpenLocalRepoFXTest extends ApplicationTest {
         helper.obtainRepository(remoteURL);
         assertNotNull(helper);
 
+        TestUtilities.startComplete.await();
+
+
         interact(() -> {
-            ScrollPane sp = sessionController.getCommitTreeModel().getTreeGraph().getScrollPane();
-            // Test that scroll pane has no content yet
-            assertTrue(sp.getScene() == null);
+            // Test no content yet
+            assert(sessionController.getCommitTreeModel().getCommitsInModel().size() == 0);
         });
 
         CommitTreeModel.setAddCommitDelay(500);
@@ -87,11 +88,9 @@ public class OpenLocalRepoFXTest extends ApplicationTest {
         SessionController.gitStatusCompletedOnce.await();
 
         interact(() -> {
-            ScrollPane sp = sessionController.getCommitTreeModel().getTreeGraph().getScrollPane();
-            // Test that scroll pane now has content in it
-            assertTrue(sp.getScene() != null);
+            // Test that scroll pane has content now
+            assert(sessionController.getCommitTreeModel().getCommitsInModel().size() > 0);
         });
-
 
 
         assertEquals(0,sessionController.getNotificationPaneController().getNotificationNum());

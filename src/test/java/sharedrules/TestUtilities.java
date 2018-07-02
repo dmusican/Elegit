@@ -45,6 +45,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Random;
 import java.util.Scanner;
+import java.util.concurrent.CountDownLatch;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
@@ -54,6 +55,7 @@ public class TestUtilities {
 
     private static final Logger console = LogManager.getLogger("briefconsolelogger");
     private static final String testPassword = "a_test_password";
+    public static final CountDownLatch startComplete = new CountDownLatch(1);
 
     public static String setUpTestSshServer(SshServer sshd,
                                             Path serverDirectory,
@@ -155,6 +157,7 @@ public class TestUtilities {
         // TODO: Remove this pause and keep test working; no good reason for it to be necessary
         RepositoryMonitor.pause();
 
+        startComplete.countDown();
         return sessionController;
     }
 

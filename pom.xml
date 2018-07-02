@@ -72,7 +72,7 @@
                         <additionalClasspathElement>${java.home}/lib/ext/jfxrt.jar</additionalClasspathElement>
                     </additionalClasspathElements>
                     <!--<includes>-->
-                        <!--<include>elegitfx/ResetFXTest</include>-->
+                        <!--<include>elegitfx/OpenLocalRepoFXTest</include>-->
                     <!--</includes>-->
                     <!--<excludes>-->
                         <!--<exclude>**/elegit</exclude>-->
