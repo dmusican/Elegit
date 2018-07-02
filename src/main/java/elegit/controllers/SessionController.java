@@ -882,7 +882,8 @@ public class SessionController {
         if(!this.theModel.getCurrentRepoHelper().exists()) throw new MissingRepoException();
 
         if(!workingTreePanelView.isAnyFileSelected()) throw new NoFilesSelectedToAddException();
-        if(workingTreePanelView.isAnyFileStagedSelected()) throw new StagedFileCheckedException();
+        //having this error thrown means that one staged file being selected blocks all other files from being added
+        //if(workingTreePanelView.isAnyFileStagedSelected()) throw new StagedFileCheckedException();
     }
 
     /**
@@ -897,6 +898,7 @@ public class SessionController {
             try {
                 ArrayList<Path> filePathsToAdd = new ArrayList<>();
                 ArrayList<Path> filePathsToRemove = new ArrayList<>();
+                PopUpWindows.setConflictingAlertsShowing(false);
 
                 // Try to add all files, throw exception if there are ones that can't be added
                 if (workingTreePanelView.isSelectAllChecked()) {
@@ -916,7 +918,8 @@ public class SessionController {
                             // JGit does not support adding missing files, instead remove them
                             filePathsToRemove.add(checkedFile.getFilePath());
                         } else {
-                            throw new UnableToAddException(checkedFile.getFilePath().toString());
+                            //putting this in means that any addable files dont get added
+                            //throw new UnableToAddException(checkedFile.getFilePath().toString());
                         }
                     }
                     PopUpWindows.setConflictingAlertsShowing(false);

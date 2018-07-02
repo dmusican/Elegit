@@ -41,11 +41,13 @@ public class ConflictingThenModifiedRepoFile extends RepoFile {
 
     @Override public boolean canAdd() throws GitAPIException {
         Main.assertFxThread();
+        System.out.println(PopUpWindows.getAddingConflictingThenModifiedFileAlertShowing());
         if(!PopUpWindows.getAddingConflictingThenModifiedFileAlertShowing()) {
             resultType = PopUpWindows.showAddingConflictingThenModifiedFileAlert();
         } else {
             resultType = PopUpWindows.getResultType();
         }
+        System.out.println(resultType);
         if (resultType.equals("add")) {
             return true;
         }

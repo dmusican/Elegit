@@ -9,6 +9,7 @@ import elegit.gui.ConflictLinePointer;
 import elegit.models.ConflictManagementModel;
 import elegit.models.SessionModel;
 import elegit.models.ConflictLine;
+import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.concurrent.WorkerStateEvent;
 import javafx.event.ActionEvent;
@@ -338,7 +339,6 @@ public class ConflictManagementToolController {
                     stage.close();
                 } else {
                     conflictingFilesDropdown.getItems().remove(fileName);
-                    //conflictingFilesDropdown.setPromptText(conflictingFilesDropdown.getItems().get(0));
                     setFileToEdit(conflictingFilesDropdown.getItems().get(0));
                 }
             } catch (IOException e) {
@@ -382,7 +382,13 @@ public class ConflictManagementToolController {
     private void handleAbort() {
         Main.assertFxThread();
         logger.info("Conflict management session aborted.");
-        stage.close();
+        String fileName = conflictingFilesDropdown.getPromptText();
+        if (conflictingFilesDropdown.getItems().size()>1){
+            conflictingFilesDropdown.getItems().remove(fileName);
+            setFileToEdit(conflictingFilesDropdown.getItems().get(0));
+        } else {
+            stage.close();
+        }
     }
 
     @FXML
