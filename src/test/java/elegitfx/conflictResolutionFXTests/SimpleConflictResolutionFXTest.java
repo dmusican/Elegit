@@ -38,7 +38,7 @@ import static junit.framework.TestCase.assertEquals;
  * Created by gorram on 6/26/18.
  * Test some basic operation with a file with only one conflict.
  */
-public class ConflictResolutionFXTest extends ApplicationTest{
+public class SimpleConflictResolutionFXTest extends ApplicationTest{
     static {
         // -----------------------Logging Initialization Start---------------------------
         Path logPath = Paths.get("logs");
@@ -135,8 +135,6 @@ public class ConflictResolutionFXTest extends ApplicationTest{
         try {
             Path local = testingRemoteAndLocalRepos.getLocalFull();
             Git.init().setDirectory(local.toFile()).setBare(false).call();
-            //Git.init().setDirectory(remote.toFile()).setBare(true).call();
-            //Git.cloneRepository().setDirectory(local.toFile()).setURI("file://"+remote).call();
 
             ExistingRepoHelper helper = new ExistingRepoHelper(local, new ElegitUserInfoTest());
             SessionModel.getSessionModel().openRepoFromHelper(helper);
@@ -166,7 +164,6 @@ public class ConflictResolutionFXTest extends ApplicationTest{
             System.out.println(SessionModel.getSessionModel().getCurrentRepoHelper());
             System.out.println(SessionModel.getSessionModel().getCurrentRepoHelper().getRepo());
             MergeResult mergeResult = helper.getBranchModel().mergeWithBranch(mergeBranch);
-            //System.out.println(mergeResult.getMergeStatus());
             assert (mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.CONFLICTING));
             return local;
         } catch (Exception e) {
