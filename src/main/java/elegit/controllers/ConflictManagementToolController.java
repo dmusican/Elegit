@@ -240,11 +240,12 @@ public class ConflictManagementToolController {
 
     private void bindHorizontalScroll(CodeArea doc1, CodeArea doc2) {
         Main.assertFxThread();
-//        doc1.estimatedScrollXProperty().bindBidirectional(doc2.estimatedScrollXProperty());
+        doc1.estimatedScrollXProperty().bindBidirectional(doc2.estimatedScrollXProperty());
     }
 
     private void bindVerticalScroll(CodeArea doc1, CodeArea doc2) {
         Main.assertFxThread();
+        // TODO: once bug #535 is resolved, hopefully this can be added back in. Currently acts very weirdly with toggle buttons
 //        doc1.estimatedScrollYProperty().bindBidirectional(doc2.estimatedScrollYProperty());
     }
 
