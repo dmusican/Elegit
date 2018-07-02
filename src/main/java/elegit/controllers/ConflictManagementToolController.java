@@ -39,7 +39,6 @@ import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
-import org.fxmisc.richtext.model.Paragraph;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -90,6 +89,8 @@ public class ConflictManagementToolController {
     private Button upToggle;
     @FXML
     private Button downToggle;
+    @FXML
+    private Button applyAllChanges;
     @FXML
     private Button applyChanges;
     @FXML
@@ -261,6 +262,7 @@ public class ConflictManagementToolController {
         upToggle.setDisable(disabled);
         downToggle.setDisable(disabled);
         applyChanges.setDisable(disabled);
+        applyAllChanges.setDisable(disabled);
         conflictManagementToolMenuButton.setDisable(disabled);
     }
 
@@ -281,13 +283,14 @@ public class ConflictManagementToolController {
     }
 
     @FXML
-    private void handleApplyAllChanges(){
+    private void handleApplyAllChanges() {
         Main.assertFxThread();
+        // TODO: add a check for if they have changes left
         saveParsedFiles();
         Path directory = (new File(SessionModel.getSessionModel().getCurrentRepoHelper().getRepo().getDirectory()
                 .getParent())).toPath();
         String filePathWithoutFileName = directory.toString();
-        for(String file: conflictingFilesDropdown.getItems()){
+        for (String file : conflictingFilesDropdown.getItems()) {
             ArrayList<ArrayList> results = savedParsedFiles.get(file);
             if (results == null || getNumberOfConflicts(results.get(1)) != 0) {
                 showNotAllConflictHandledNotification();
@@ -295,13 +298,13 @@ public class ConflictManagementToolController {
                 return;
             }
         }
-        for (String file : savedParsedFiles.keySet()){
+        for (String file : savedParsedFiles.keySet()) {
             ArrayList<ConflictLine> middle = savedParsedFiles.get(file).get(1);
             try {
                 BufferedWriter writer = new BufferedWriter(new FileWriter(filePathWithoutFileName + File.separator + file));
                 for (ConflictLine conflictLine : middle) {
-                    for(String line : conflictLine.getLines()){
-                        writer.write(line+"\n");
+                    for (String line : conflictLine.getLines()) {
+                        writer.write(line + "\n");
                     }
                 }
                 writer.flush();
@@ -313,10 +316,10 @@ public class ConflictManagementToolController {
         stage.close();
     }
 
-    private int getNumberOfConflicts(ArrayList<ConflictLine> conflictLines){
-        int conflictsNumber=0;
-        for(ConflictLine line : conflictLines){
-            if(line.isConflicting() && !line.isHandled()){
+    private int getNumberOfConflicts(ArrayList<ConflictLine> conflictLines) {
+        int conflictsNumber = 0;
+        for (ConflictLine line : conflictLines) {
+            if (line.isConflicting() && !line.isHandled()) {
                 conflictsNumber++;
             }
         }
@@ -337,7 +340,7 @@ public class ConflictManagementToolController {
                 writer.write(middleDoc.getText());
                 writer.flush();
                 writer.close();
-                if (conflictingFilesDropdown.getItems().size()==1){
+                if (conflictingFilesDropdown.getItems().size() == 1) {
                     stage.close();
                 } else {
                     conflictingFilesDropdown.getItems().remove(fileName);
@@ -477,19 +480,24 @@ public class ConflictManagementToolController {
         // Needed because of bug #389 in RichTextFX - see github thread for more information
         doc.layout();
 
-        int lineInViewport = doc.allParToVisibleParIndex(lineNumber).get();
-        int totalLinesInViewport = doc.allParToVisibleParIndex(doc.lastVisibleParToAllParIndex()).get();
+        // This check really shouldn't be necessary, but sometimes (especially in tests and at start up) this is called
+        // before the list of visible paragraphs are complete, so .get() throws an exception. In this case conflict just
+        // shows up at the top.
+        if (doc.allParToVisibleParIndex(lineNumber).isPresent() && doc.allParToVisibleParIndex(doc.lastVisibleParToAllParIndex()).isPresent()) {
+            int lineInViewport = doc.allParToVisibleParIndex(lineNumber).get();
+            int totalLinesInViewport = doc.allParToVisibleParIndex(doc.lastVisibleParToAllParIndex()).get();
 
-        // Negative numbers scroll up
-        double deltaY = -((doc.getViewportHeight()/2) - 50);
+            // Negative numbers scroll up
+            double deltaY = -((doc.getViewportHeight() / 2) - 50);
 
-        // If the conflict is at the bottom of the document (i.e. showParagraphAtTop() doesn't change its position),
-        // we don't want to scroll up because it'll get cut off
-        if (totalLinesInViewport / 2 < lineInViewport) {
-            deltaY = -deltaY;
+            // If the conflict is at the bottom of the document (i.e. showParagraphAtTop() doesn't change its position),
+            // we don't want to scroll up because it'll get cut off
+            if (totalLinesInViewport / 2 < lineInViewport) {
+                deltaY = -deltaY;
+            }
+
+            doc.scrollYBy(deltaY);
         }
-
-        doc.scrollYBy(deltaY);
     }
 
     @FXML
@@ -730,7 +738,7 @@ public class ConflictManagementToolController {
         middleDoc.deleteText(middleDoc.getSelection());
     }
 
-    private void saveParsedFiles(){
+    private void saveParsedFiles() {
         ArrayList<ArrayList> parsed = new ArrayList<>();
         parsed.add(leftAllConflictLines);
         parsed.add(middleAllConflictLines);
@@ -738,7 +746,7 @@ public class ConflictManagementToolController {
         savedParsedFiles.put(conflictingFilesDropdown.getPromptText(), parsed);
     }
 
-    private void setFileToEdit(String fileName){
+    private void setFileToEdit(String fileName) {
         //conflictingFilesDropdown.
         conflictingFilesDropdown.setValue(fileName);
         setFileToEdit();
@@ -794,7 +802,7 @@ public class ConflictManagementToolController {
         ConflictManagementModel conflictManagementModel = new ConflictManagementModel();
         setLabels(conflictManagementModel);
         ArrayList<ArrayList> results = savedParsedFiles.get(fileName);
-        if (results==null) {
+        if (results == null) {
             results = conflictManagementModel.parseConflicts(fileName, filePathWithoutFileName,
                     getBaseParentFiles(fileName), getMergedParentFiles(fileName));
         }
@@ -911,9 +919,10 @@ public class ConflictManagementToolController {
 
     private void setInitialPositions(CodeArea doc, ArrayList<Integer> conflictingLineNumbers) {
         Main.assertFxThread();
-        if(conflictingLineNumbers.size()!= 0) {
+        if (conflictingLineNumbers.size() != 0) {
+
             // Need the delay because otherwise the codeAreas aren't done loading
-            // TODO: find a cleaner work around
+            // TODO: find a cleaner work around that works more consistently
             new Timer().schedule(new TimerTask() {
                 public void run() {
                     Platform.runLater(() -> {
