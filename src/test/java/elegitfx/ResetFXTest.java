@@ -142,7 +142,6 @@ public class ResetFXTest extends ApplicationTest {
 
 
         assertEquals(0, Main.getAssertionCount());
-        throw new RuntimeException();
     }
 
 

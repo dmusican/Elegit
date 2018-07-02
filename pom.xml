@@ -71,9 +71,9 @@
                     <additionalClasspathElements>
                         <additionalClasspathElement>${java.home}/lib/ext/jfxrt.jar</additionalClasspathElement>
                     </additionalClasspathElements>
-                    <includes>
-                        <include>elegitfx/ResetFXTest</include>
-                    </includes>
+                    <!--<includes>-->
+                        <!--<include>elegitfx/ResetFXTest</include>-->
+                    <!--</includes>-->
                     <!--<excludes>-->
                         <!--<exclude>**/elegit</exclude>-->
                     <!--</excludes>-->
