@@ -1,38 +1,26 @@
 package elegitfx.conflictResolutionFXTests;
 
 import elegit.Main;
-import elegit.controllers.BusyWindow;
 import elegit.controllers.SessionController;
-import elegit.exceptions.ExceptionAdapter;
 import elegit.models.*;
-import elegit.monitors.RepositoryMonitor;
-import elegit.sshauthentication.ElegitUserInfoTest;
 import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.revwalk.RevCommit;
 import org.fxmisc.richtext.CodeArea;
 import org.junit.*;
 
-import java.io.FileWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.concurrent.TimeUnit;
 
-import org.eclipse.jgit.api.MergeCommand;
-import org.eclipse.jgit.api.MergeResult;
 import org.junit.rules.TestName;
 import org.testfx.framework.junit.TestFXRule;
-import org.testfx.util.WaitForAsyncUtils;
 import org.testfx.framework.junit.ApplicationTest;
 import sharedrules.TestUtilities;
 import sharedrules.TestingLogPathRule;
 import sharedrules.TestingRemoteAndLocalReposRule;
 
 import static junit.framework.TestCase.assertEquals;
-
 
 /**
  * Created by gorram on 6/26/18.
@@ -90,7 +78,7 @@ public class SimpleConflictResolutionFXTest extends ApplicationTest{
     @Test
     public void testResolveConflicts() throws Exception{
         SessionModel sessionModel = SessionModel.getSessionModel();
-        Path local = createConflictingLocalRepo();
+        Path local = conflictResolutionUtilities.createSimpleConflictingLocalRepo(testingRemoteAndLocalRepos);
         System.out.println(local);
         System.out.println(SessionModel.getSessionModel().getCurrentRepoHelper());
         interact(() -> sessionController.handleLoadExistingRepoOption(local));
@@ -129,45 +117,5 @@ public class SimpleConflictResolutionFXTest extends ApplicationTest{
         interact(() -> assertEquals(middleDoc.getText(middleDoc.getCurrentParagraph()), ""));
         clickOn("#rightReject");
         interact(() -> assertEquals(middleDoc.getText(middleDoc.getCurrentParagraph()), ""));
-    }
-
-    private Path createConflictingLocalRepo() {
-        try {
-            Path local = testingRemoteAndLocalRepos.getLocalFull();
-            Git.init().setDirectory(local.toFile()).setBare(false).call();
-
-            ExistingRepoHelper helper = new ExistingRepoHelper(local, new ElegitUserInfoTest());
-            SessionModel.getSessionModel().openRepoFromHelper(helper);
-            Path fileLocation = local.resolve("test.txt");
-
-            FileWriter fw = new FileWriter(fileLocation.toString(), true);
-            for (int i = 0; i < 100; i++) {
-                fw.write("This is a line that was added at the beginning \n");
-            }
-            fw.close();
-            helper.addFilePathTest(fileLocation);
-            helper.commit("Appended to file");
-            BranchHelper baseBranch = helper.getBranchModel().getCurrentBranch();
-            LocalBranchHelper mergeBranch = helper.getBranchModel().createNewLocalBranch("mergeBranch");
-            fw = new FileWriter(fileLocation.toString(), true);
-            fw.write("added in master");
-            fw.close();
-            helper.addFilePathTest(fileLocation);
-            helper.commit("Appended to file");
-            mergeBranch.checkoutBranch();
-            fw = new FileWriter(fileLocation.toString(), true);
-            fw.write("added in mergeBranch");
-            fw.close();
-            helper.addFilePathTest(fileLocation);
-            helper.commit("Appended to file");
-            baseBranch.checkoutBranch();
-            System.out.println(SessionModel.getSessionModel().getCurrentRepoHelper());
-            System.out.println(SessionModel.getSessionModel().getCurrentRepoHelper().getRepo());
-            MergeResult mergeResult = helper.getBranchModel().mergeWithBranch(mergeBranch);
-            assert (mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.CONFLICTING));
-            return local;
-        } catch (Exception e) {
-            throw new ExceptionAdapter(e);
-        }
     }
 }
