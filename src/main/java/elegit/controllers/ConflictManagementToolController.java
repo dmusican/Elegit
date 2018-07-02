@@ -467,21 +467,21 @@ public class ConflictManagementToolController {
         Main.assertFxThread();
         doc.moveTo(lineNumber, 0);
         doc.showParagraphAtTop(lineNumber);
+        // Needed because of bug #389 in RichTextFX - see github thread for more information
+        doc.layout();
 
-        new Timer().schedule(new TimerTask() {
-            public void run() {
-                Platform.runLater(() -> {
-                    double lineHeightInViewport = doc.getVisibleParagraphBoundsOnScreen(doc.allParToVisibleParIndex(lineNumber).get()).getHeight();
-                    double deltaY = (doc.getViewportHeight()/2) - 50;
+        int lineInViewport = doc.allParToVisibleParIndex(lineNumber).get();
+        int totalLinesInViewport = doc.allParToVisibleParIndex(doc.lastVisibleParToAllParIndex()).get();
 
-                    if (lineHeightInViewport > 16) {
-                        deltaY = -deltaY;
-                    }
+        double deltaY = (doc.getViewportHeight()/2) - 50;
 
-                    doc.scrollYBy(deltaY);
-                });
-            }
-        }, 100);
+        // If the conflict is at the bottom of the document (i.e. showParagraphAtTop() doesn't change its position),
+        // we don't want to scroll up because it'll get cut off
+        if (totalLinesInViewport / 2 > lineInViewport) {
+            deltaY = -deltaY;
+        }
+
+        doc.scrollYBy(deltaY);
     }
 
     @FXML
@@ -807,14 +807,14 @@ public class ConflictManagementToolController {
         // Allow the user to click buttons
         setButtonsDisabled(false);
 
+        bindMouseMovementToConflict(leftDoc, leftConflictingLineNumbers, leftConflictLines);
+        bindMouseMovementToConflict(middleDoc, middleConflictingLineNumbers, middleConflictLines);
+        bindMouseMovementToConflict(rightDoc, rightConflictingLineNumbers, rightConflictLines);
+
         // Move the caret and doc to the first conflict
         setInitialPositions(leftDoc, leftConflictingLineNumbers);
         setInitialPositions(middleDoc, middleConflictingLineNumbers);
         setInitialPositions(rightDoc, rightConflictingLineNumbers);
-
-        bindMouseMovementToConflict(leftDoc, leftConflictingLineNumbers, leftConflictLines);
-        bindMouseMovementToConflict(middleDoc, middleConflictingLineNumbers, middleConflictLines);
-        bindMouseMovementToConflict(rightDoc, rightConflictingLineNumbers, rightConflictLines);
     }
 
     private void setLabels(ConflictManagementModel conflictManagementModel) {
@@ -904,7 +904,15 @@ public class ConflictManagementToolController {
     private void setInitialPositions(CodeArea doc, ArrayList<Integer> conflictingLineNumbers) {
         Main.assertFxThread();
         if(conflictingLineNumbers.size()!= 0) {
-            moveDocCarets(doc, conflictingLineNumbers.get(0));
+            // Need the delay because otherwise the codeAreas aren't done loading
+            // TODO: find a cleaner work around
+            new Timer().schedule(new TimerTask() {
+                public void run() {
+                    Platform.runLater(() -> {
+                        moveDocCarets(doc, conflictingLineNumbers.get(0));
+                    });
+                }
+            }, 100);
         }
     }
 
