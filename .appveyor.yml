@@ -1,15 +1,15 @@
 build_script:
   - mvn clean test -B -DskipDisplay=true
+
+after_build:
   - mvn surefire-report:report-only
   - cinst pandoc
   - pandoc --columns 120 -t plain c:\projects\elegit\target\site\surefire-report.html
   # jfx:native uses javafx-maven-plugin to run all tests and to build native install for particular OS running on
   # jfx:build-jar uses javafx-maven-plugin to also produce executable jars
   # assembly:single creates zips and compressed tarballs that contain all needed files
-  - mvn clean compile jfx:build-jar assembly:single jfx:build-native
-
-after_build:
-- cmd: 7z a Elegit-snapshot-%APPVEYOR_REPO_COMMIT%.zip %APPVEYOR_BUILD_FOLDER%\target\jfx\native\Elegit
+  - mvn jfx:build-jar assembly:single jfx:build-native
+  - cmd: 7z a Elegit-snapshot-%APPVEYOR_REPO_COMMIT%.zip %APPVEYOR_BUILD_FOLDER%\target\jfx\native\Elegit
 
 
 artifacts:
