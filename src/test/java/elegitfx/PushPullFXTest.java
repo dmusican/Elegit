@@ -85,7 +85,7 @@ public class PushPullFXTest extends ApplicationTest {
 
         // The RepositoryMonitor posts updates to hasFoundNewRemoteChanges to the FX thread, so need to run
         // this separately to be able to observe changes
-        assertFalse(RepositoryMonitor.hasFoundNewRemoteChanges.get());
+        interact( () -> assertFalse(RepositoryMonitor.hasFoundNewRemoteChanges.get()));
 
         // Update the file, then commit and push
         Path readmePath = repoPathPush.resolve("README.md");
@@ -99,7 +99,7 @@ public class PushPullFXTest extends ApplicationTest {
 
         // Verify that RepositoryMonitor can see the changes relative to the original
         Thread.sleep(REMOTE_CHECK_INTERVAL);
-        assertTrue(RepositoryMonitor.hasFoundNewRemoteChanges.get());
+        interact( () -> assertTrue(RepositoryMonitor.hasFoundNewRemoteChanges.get()));
 
         // Add a tag named for the current timestamp
         ObjectId headId = helperPush.getBranchModel().getCurrentBranch().getHeadId();
