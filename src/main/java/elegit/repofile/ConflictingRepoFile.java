@@ -1,9 +1,7 @@
 package elegit.repofile;
 
 import elegit.Main;
-import elegit.controllers.ConflictManagementToolController;
 import elegit.controllers.SessionController;
-import elegit.gui.GitIgnoreEditor;
 import elegit.gui.PopUpWindows;
 import elegit.models.RepoHelper;
 import elegit.treefx.CommitTreeController;
@@ -19,7 +17,6 @@ import java.awt.*;
 import java.io.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 
 /**
  * A subclass of the RepoFile class that holds a reference to
@@ -64,7 +61,7 @@ public class ConflictingRepoFile extends RepoFile {
         logger.warn("Notification about conflicting file");
         System.out.println(PopUpWindows.getComittingConflictingFileAlertShowing());
         if(!PopUpWindows.getComittingConflictingFileAlertShowing()) {
-            resultType = PopUpWindows.showCommittingConflictingFileAlert();
+            resultType = PopUpWindows.showAddingConflictingFileAlert();
         } else {
             resultType = PopUpWindows.getResultType();
         }
