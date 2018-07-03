@@ -96,12 +96,15 @@ public class OpenAndCloseReposFXTest extends ApplicationTest {
 
     @Test
     public void test() throws Exception {
+        TestUtilities.startComplete.await();
         initializeLogger();
         Path directoryPath = Files.createTempDirectory("unitTestRepos");
         directoryPath.toFile().deleteOnExit();
 
+        console.info("Setting up initial repos");
         Path repoPath1 = makeTempLocalRepo(directoryPath,"repo1");
         Path repoPath2 = makeTempLocalRepo(directoryPath,"repo2");
+        console.info("Done setting up initial repos");
 
         CommitTreeModel.setAddCommitDelay(5);
 
