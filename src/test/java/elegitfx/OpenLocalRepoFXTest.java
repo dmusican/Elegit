@@ -82,7 +82,7 @@ public class OpenLocalRepoFXTest extends ApplicationTest {
 
         interact(() -> {
             // Test no content yet
-            assert(sessionController.getCommitTreeModel().getCommitsInModel().size() == 0);
+            assertEquals(0,sessionController.getCommitTreeModel().getCommitsInModel().size());
         });
 
         CommitTreeModel.setAddCommitDelay(500);
@@ -93,7 +93,7 @@ public class OpenLocalRepoFXTest extends ApplicationTest {
 
         interact(() -> {
             // Test that scroll pane has content now
-            assert(sessionController.getCommitTreeModel().getCommitsInModel().size() > 0);
+            assertTrue(sessionController.getCommitTreeModel().getCommitsInModel().size() > 0);
         });
 
 
