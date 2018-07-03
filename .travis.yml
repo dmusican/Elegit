@@ -4,6 +4,8 @@ os:
 - osx
 script:
 - mvn clean test -B -DskipDisplay=true
+
+after_failure:
 - mvn surefire-report:report-only
 - if [ $TRAVIS_OS_NAME = linux ]; then sudo apt-get install -y pandoc; else brew install pandoc; fi
 - if [ $TRAVIS_OS_NAME = linux ]; then
@@ -11,6 +13,8 @@ script:
   else
      pandoc --columns 120 -t plain /Users/travis/build/dmusican/Elegit/target/site/surefire-report.html;
   fi
+
+after_success:
 # jfx:native uses javafx-maven-plugin to run all tests and to build native install for particular OS running on
 # jfx:build-jar uses javafx-maven-plugin to also produce executable jars
 # assembly:single creates zips and compressed tarballs that contain all needed files
