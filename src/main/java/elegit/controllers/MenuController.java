@@ -113,59 +113,6 @@ public class MenuController {
         this.sessionController = sessionController;
     }
 
-    // "Preferences" Dropdown Menu Items:
-
-    public synchronized void handleLoggingToggle() {
-        LoggingModel.toggleLogging();
-    }
-
-    public synchronized void handleCommitSortToggle() {
-        sessionController.handleCommitSortToggle();
-    }
-
-    private String getVersion() {
-        String path = "/version.prop";
-        InputStream stream = getClass().getResourceAsStream(path);
-        if (stream == null)
-            return "UNKNOWN";
-        Properties props = new Properties();
-        try {
-            props.load(stream);
-            stream.close();
-            return (String) props.get("version");
-        } catch (IOException e) {
-            return "UNKNOWN";
-        }
-    }
-
-    public synchronized void handleAbout() {
-        try {
-            logger.info("About clicked");
-            // Create and display the Stage:
-            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/pop-ups/About.fxml"));
-            GridPane fxmlRoot = fxmlLoader.load();
-            AboutController aboutController = fxmlLoader.getController();
-            aboutController.setVersion(getVersion());
-
-            Stage stage = new Stage();
-            javafx.scene.image.Image img = new javafx.scene.image.Image(getClass().getResourceAsStream("/elegit/images/elegit_icon.png"));
-            stage.getIcons().add(img);
-            stage.setTitle("About");
-            stage.setScene(new Scene(fxmlRoot));
-            stage.initModality(Modality.APPLICATION_MODAL);
-            stage.setOnCloseRequest(event -> logger.info("Closed about"));
-            stage.show();
-        } catch (IOException e) {
-            sessionController.showGenericErrorNotification(e);
-            e.printStackTrace();
-        }
-    }
-
-    public void handleReenableWindowResizing() {
-        Main.hidePrimaryStage();
-        Main.showPrimaryStage();
-    }
-
     /**
      * Helper method for disabling the menu bar
      */
@@ -174,12 +121,38 @@ public class MenuController {
         gitIgnoreMenuItem.setDisable(disable);
     }
 
+    // "File" Dropdown Menu Items:
 
-    // "Edit" Dropdown Menu Item:
+    public synchronized void handleCloneNewRepoOption() {
+        sessionController.handleCloneNewRepoOption();
+    }
+
+    public synchronized void handleLoadExistingRepoOption() { sessionController.handleLoadExistingRepoOption(); }
+
+    // TODO: load designated repo (refreshRecentReposInDropdown() in session controller for this)
+
+    // TODO: remove designated repo (use List<RepoHelper> repoHelpers = SessionModel.getSessionModel().getAllRepoHelpers(); for this)
+
+    // "Edit" Dropdown Menu Items:
+
+    // TODO: copy
+
+    // TODO: paste
 
     // TODO: Make sure GitIgnoreEditor is threadsafe
     public void handleGitIgnoreMenuItem() {
         GitIgnoreEditor.show(SessionModel.getSessionModel().getCurrentRepoHelper(), null);
+    }
+
+    // "View" Dropdown Menu Items:
+
+    public synchronized void handleCommitSortToggle() {
+        sessionController.handleCommitSortToggle();
+    }
+
+    public void handleReenableWindowResizing() {
+        Main.hidePrimaryStage();
+        Main.showPrimaryStage();
     }
 
     // "Repository" Dropdown Menu Items (2 layers):
@@ -198,10 +171,6 @@ public class MenuController {
 
     public synchronized void showBranchCheckout() {
         sessionController.showBranchCheckout();
-    }
-
-    public synchronized void handleCloneNewRepoOption() {
-        sessionController.handleCloneNewRepoOption();
     }
 
     public synchronized void handleCommitAll() {
@@ -260,4 +229,49 @@ public class MenuController {
         sessionController.handleStashDropButton();
     }
 
+    // "Preferences" Dropdown Menu Items:
+
+    public synchronized void handleLoggingToggle() {
+        LoggingModel.toggleLogging();
+    }
+
+    // "Help" Dropdown Menu Items:
+
+    public synchronized void handleAbout() {
+        try {
+            logger.info("About clicked");
+            // Create and display the Stage:
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/pop-ups/About.fxml"));
+            GridPane fxmlRoot = fxmlLoader.load();
+            AboutController aboutController = fxmlLoader.getController();
+            aboutController.setVersion(getVersion());
+
+            Stage stage = new Stage();
+            javafx.scene.image.Image img = new javafx.scene.image.Image(getClass().getResourceAsStream("/elegit/images/elegit_icon.png"));
+            stage.getIcons().add(img);
+            stage.setTitle("About");
+            stage.setScene(new Scene(fxmlRoot));
+            stage.initModality(Modality.APPLICATION_MODAL);
+            stage.setOnCloseRequest(event -> logger.info("Closed about"));
+            stage.show();
+        } catch (IOException e) {
+            sessionController.showGenericErrorNotification(e);
+            e.printStackTrace();
+        }
+    }
+
+    private String getVersion() {
+        String path = "/version.prop";
+        InputStream stream = getClass().getResourceAsStream(path);
+        if (stream == null)
+            return "UNKNOWN";
+        Properties props = new Properties();
+        try {
+            props.load(stream);
+            stream.close();
+            return (String) props.get("version");
+        } catch (IOException e) {
+            return "UNKNOWN";
+        }
+    }
 }

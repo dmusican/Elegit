@@ -17,23 +17,23 @@
                 <Menu text="New Repository">
                     <items>
                         <MenuItem fx:id="cloneOption" onAction="#handleCloneNewRepoOption" text="Clone repository"/>
-                        <!--<MenuItem id="loadExistingRepoOption" fx:id="existingOption"-->
-                                  <!--onAction="#handleLoadExistingRepoOption" text="Load existing repository"/>-->
+                        <MenuItem id="loadExistingRepoOption" fx:id="existingOption"
+                                  onAction="#handleLoadExistingRepoOption" text="Load existing repository"/>
                     </items>
                 </Menu>
                 <Menu text="Open">
-                    <!--<items>-->
-                        <!--&lt;!&ndash;Still doesn't work quite right&ndash;&gt;-->
-                        <!--&lt;!&ndash;<MenuItem id="loadSelectedRepoOption" fx:id="loadSelectedRepoOption"&ndash;&gt;-->
-                                  <!--&lt;!&ndash;onAction="#loadSelectedRepo" text="Load repository"/>&ndash;&gt;-->
-                    <!--</items>-->
+                    <items>
+                        <!--Still doesn't work quite right-->
+                        <!--<MenuItem id="loadSelectedRepoOption" fx:id="loadSelectedRepoOption"-->
+                                  <!--onAction="#loadSelectedRepo" text="Load repository"/>-->
+                    </items>
                 </Menu>
                 <Menu text="Close">
-                    <!--<items>-->
-                        <!--&lt;!&ndash;Still doesn't work quite right&ndash;&gt;-->
-                        <!--&lt;!&ndash;<MenuItem id="removeRecentReposOption" fx:id="removeRecentReposOption"&ndash;&gt;-->
-                                  <!--&lt;!&ndash;onAction="#chooseRecentReposToDelete" text="Remove repository"/>&ndash;&gt;-->
-                    <!--</items>-->
+                    <items>
+                        <!--Still doesn't work quite right-->
+                        <!--<MenuItem id="removeRecentReposOption" fx:id="removeRecentReposOption"-->
+                                  <!--onAction="#chooseRecentReposToDelete" text="Remove repository"/>-->
+                    </items>
                 </Menu>
             </items>
         </Menu>
