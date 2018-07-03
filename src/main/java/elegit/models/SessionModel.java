@@ -545,9 +545,11 @@ public class SessionModel {
             Repository repo = getCurrentRepo();
             HashMap<String, HashMap<String, String>> mergeResults =
                     (HashMap<String, HashMap<String, String>>) PrefObj.getObject(this.preferences, MERGE_RESULT);
-            mergeResults.put(repo.toString(), results);
+            String path = repo.getDirectory()+File.separator+repo.toString();
+            mergeResults.put(path, results);
             PrefObj.putObject(this.preferences, MERGE_RESULT, mergeResults);
         } catch(Exception e){
+            e.printStackTrace();
             throw new ExceptionAdapter(e);
         }
     }
@@ -555,8 +557,10 @@ public class SessionModel {
         try {
             HashMap<String, HashMap<String, String>> mergeResults =
                     (HashMap<String, HashMap<String, String>>) PrefObj.getObject(this.preferences, MERGE_RESULT);
-            return mergeResults.get(getCurrentRepo().toString());
+            String path = getCurrentRepo().getDirectory()+File.separator+getCurrentRepo().toString();
+            return mergeResults.get(path);
         } catch (Exception e){
+            e.printStackTrace();
             throw new ExceptionAdapter(e);
         }
     }

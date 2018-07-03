@@ -33,6 +33,7 @@ public class PopUpWindows {
     private static final Logger console = LogManager.getLogger("briefconsolelogger");
     private static boolean isAddingConflictingFileAlertShowing = false;
     private static boolean isAddingConflictingThenModifiedFileAlertShowing = false;
+    private static boolean isConflictingHelpAlertShowing = false;
     private static String resultType;
 
     public static boolean getAddingConflictingThenModifiedFileAlertShowing(){
@@ -53,6 +54,10 @@ public class PopUpWindows {
     public static void setConflictingAlertsShowing(boolean status){
         setComittingConflictingFileAlertShowing(status);
         setAddingConflictingThenModifiedFileAlertShowing(status);
+        isConflictingHelpAlertShowing = status;
+    }
+    public static boolean getConflictingHelpAlertShowing(){
+        return isConflictingHelpAlertShowing;
     }
 
     /**
@@ -136,7 +141,11 @@ public class PopUpWindows {
      * Shows a window with instructions on how to fix a conflict
      */
     public static void showConflictingHelpAlert() {
+<<<<<<< HEAD
         logger.info("Help window for handling conflicts with an editor opened.");
+=======
+        isConflictingHelpAlertShowing = true;
+>>>>>>> refs/remotes/origin/conflictResolution
         Alert window = new Alert(Alert.AlertType.INFORMATION);
         window.setResizable(true);
         window.getDialogPane().setPrefSize(550, 350);

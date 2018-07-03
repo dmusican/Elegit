@@ -4,6 +4,7 @@ import elegit.Main;
 import elegit.controllers.SessionController;
 import elegit.gui.PopUpWindows;
 import elegit.models.RepoHelper;
+import elegit.models.SessionModel;
 import elegit.treefx.CommitTreeController;
 import io.reactivex.Observable;
 import io.reactivex.schedulers.Schedulers;
@@ -59,13 +60,11 @@ public class ConflictingRepoFile extends RepoFile {
     @Override public boolean canAdd() throws GitAPIException, IOException{
         Main.assertFxThread();
         logger.warn("Notification about conflicting file");
-        System.out.println(PopUpWindows.getComittingConflictingFileAlertShowing());
         if(!PopUpWindows.getComittingConflictingFileAlertShowing()) {
             resultType = PopUpWindows.showAddingConflictingFileAlert();
         } else {
             resultType = PopUpWindows.getResultType();
         }
-        System.out.println(resultType);
         switch (resultType) {
             case "tool":
                 // Open conflict management tool
@@ -87,7 +86,9 @@ public class ConflictingRepoFile extends RepoFile {
             case "add":
                 return true;
             case "help":
-                PopUpWindows.showConflictingHelpAlert();
+                if(!PopUpWindows.getConflictingHelpAlertShowing()) {
+                    PopUpWindows.showConflictingHelpAlert();
+                }
                 break;
             case "cancel":
                 return false;
