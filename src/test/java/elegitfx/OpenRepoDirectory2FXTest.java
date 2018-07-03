@@ -114,7 +114,8 @@ public class OpenRepoDirectory2FXTest extends ApplicationTest {
     /*
      * Tests the open directory button before a repo is loaded (i.e. the button is disabled)
      */
-    public void noRepoLoadedTest() {
+    public void noRepoLoadedTest() throws InterruptedException {
+        TestUtilities.startComplete.await();
         // Clicks button to open a nonexistent directory
         clickOn((Node) (lookup("#openRepoDirButton").query()));
         WaitForAsyncUtils.waitForFxEvents();

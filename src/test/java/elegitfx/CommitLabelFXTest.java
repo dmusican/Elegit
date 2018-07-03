@@ -18,6 +18,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.testfx.framework.junit.ApplicationTest;
 import org.testfx.framework.junit.TestFXRule;
+import org.testfx.util.WaitForAsyncUtils;
 import sharedrules.TestUtilities;
 
 import java.io.File;
@@ -87,6 +88,8 @@ public class CommitLabelFXTest extends ApplicationTest {
 
         // Load this repo in Elegit, and initialize
         SessionModel.getSessionModel().openRepoFromHelper(helper);
+
+        startComplete.countDown();
     }
 
     // Helper tear-down method:
@@ -120,6 +123,8 @@ public class CommitLabelFXTest extends ApplicationTest {
 
         });
 
+        // Helps avoid random TestFX shutdown errors
+        WaitForAsyncUtils.waitForFxEvents();
     }
 
 

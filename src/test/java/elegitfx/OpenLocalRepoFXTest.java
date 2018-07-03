@@ -61,6 +61,7 @@ public class OpenLocalRepoFXTest extends ApplicationTest {
 
     @Test
     public void openLocalRepoTest() throws Exception {
+        TestUtilities.startComplete.await();
         initializeLogger();
         Path directoryPath = Files.createTempDirectory("unitTestRepos");
         directoryPath.toFile().deleteOnExit();
