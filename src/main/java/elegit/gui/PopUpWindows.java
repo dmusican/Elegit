@@ -141,11 +141,8 @@ public class PopUpWindows {
      * Shows a window with instructions on how to fix a conflict
      */
     public static void showConflictingHelpAlert() {
-<<<<<<< HEAD
         logger.info("Help window for handling conflicts with an editor opened.");
-=======
         isConflictingHelpAlertShowing = true;
->>>>>>> refs/remotes/origin/conflictResolution
         Alert window = new Alert(Alert.AlertType.INFORMATION);
         window.setResizable(true);
         window.getDialogPane().setPrefSize(550, 350);
