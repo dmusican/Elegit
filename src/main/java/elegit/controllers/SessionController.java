@@ -143,6 +143,7 @@ public class SessionController {
 
     @FXML private MenuController menuController;
     @FXML private DropdownController dropdownController;
+    @FXML private ConflictManagementToolController conflictManagementToolController;
 
     // Commit Info Box
     @FXML public CommitInfoController commitInfoController;
@@ -2273,7 +2274,7 @@ public class SessionController {
             // Create and display the Stage:
             FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/pop-ups/ConflictManagementTool.fxml"));
             fxmlLoader.load();
-            ConflictManagementToolController conflictManagementToolController = fxmlLoader.getController();
+            conflictManagementToolController = fxmlLoader.getController();
             conflictManagementToolController.setSessionController(this);
 
             // Only set the file if the user called the tool from a specific file
@@ -2817,6 +2818,8 @@ public class SessionController {
     public NotificationController getNotificationPaneController() {
         return notificationPaneController;
     }
+
+    public ConflictManagementToolController getConflictManagementToolController() { return conflictManagementToolController; }
 
     public static int getGenericExceptionCount() {
         return genericExceptionCount.get();
