@@ -1,4 +1,4 @@
-package elegitfx.conflictResolutionFXTests;
+package elegitfx.conflictManagementFXTests;
 
 import elegit.Main;
 import elegit.controllers.SessionController;
@@ -26,7 +26,7 @@ import static junit.framework.TestCase.assertEquals;
  * Created by gorram on 6/26/18.
  * Test some basic operation with a file with only one conflict.
  */
-public class SimpleConflictResolutionFXTest extends ApplicationTest{
+public class SimpleConflictManagementFXTest extends ApplicationTest{
     static {
         // -----------------------Logging Initialization Start---------------------------
         Path logPath = Paths.get("logs");
@@ -41,7 +41,7 @@ public class SimpleConflictResolutionFXTest extends ApplicationTest{
 
     private Path directoryPath;
 
-    private final ConflictResolutionUtilities conflictResolutionUtilities = new ConflictResolutionUtilities();
+    private final ConflictManagementUtilities conflictManagementUtilities = new ConflictManagementUtilities();
 
     @ClassRule
     public static final TestingLogPathRule testingLogPath = new TestingLogPathRule();
@@ -78,7 +78,7 @@ public class SimpleConflictResolutionFXTest extends ApplicationTest{
     @Test
     public void testResolveConflicts() throws Exception{
         SessionModel sessionModel = SessionModel.getSessionModel();
-        Path local = conflictResolutionUtilities.createSimpleConflictingLocalRepo(testingRemoteAndLocalRepos);
+        Path local = conflictManagementUtilities.createSimpleConflictingLocalRepo(testingRemoteAndLocalRepos);
         System.out.println(local);
         System.out.println(SessionModel.getSessionModel().getCurrentRepoHelper());
         interact(() -> sessionController.handleLoadExistingRepoOption(local));

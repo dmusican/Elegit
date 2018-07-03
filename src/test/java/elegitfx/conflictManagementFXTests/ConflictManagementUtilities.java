@@ -1,4 +1,4 @@
-package elegitfx.conflictResolutionFXTests;
+package elegitfx.conflictManagementFXTests;
 
 import elegit.exceptions.ExceptionAdapter;
 import elegit.exceptions.MissingRepoException;
@@ -12,12 +12,8 @@ import org.apache.logging.log4j.Logger;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.junit.Rule;
-import org.testfx.framework.junit.TestFXRule;
 import sharedrules.TestingRemoteAndLocalReposRule;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -27,7 +23,7 @@ import java.nio.file.Path;
  * Methods that are commonly used in testing the conflict management tool go here
  * (e.g. setting up a repo with conflicting files)
  */
-public class ConflictResolutionUtilities {
+public class ConflictManagementUtilities {
 
     private static final Logger console = LogManager.getLogger("briefconsolelogger");
 
@@ -72,7 +68,7 @@ public class ConflictResolutionUtilities {
         }
     }
 
-    public Path createMultipleConflicts(TestingRemoteAndLocalReposRule testingRemoteAndLocalRepos) {
+    public Path createMultipleConflicts(TestingRemoteAndLocalReposRule testingRemoteAndLocalRepos, boolean containsNonConflictingChanges) {
         try {
             Path local = testingRemoteAndLocalRepos.getLocalFull();
             Git.init().setDirectory(local.toFile()).setBare(false).call();
@@ -91,11 +87,11 @@ public class ConflictResolutionUtilities {
             BranchHelper baseBranch = helper.getBranchModel().getCurrentBranch();
             LocalBranchHelper mergeBranch = helper.getBranchModel().createNewLocalBranch("mergeBranch");
 
-            makeChangesToFile(fw, local, helper, fileLocation, "added in master\n");
+            makeChangesToFile(fw, local, helper, fileLocation, "added in master\n", containsNonConflictingChanges);
 
             mergeBranch.checkoutBranch();
 
-            makeChangesToFile(fw, local, helper, fileLocation, "added in mergeBranch\n");
+            makeChangesToFile(fw, local, helper, fileLocation, "added in mergeBranch\n", containsNonConflictingChanges);
 
             baseBranch.checkoutBranch();
             System.out.println(SessionModel.getSessionModel().getCurrentRepoHelper());
@@ -108,11 +104,17 @@ public class ConflictResolutionUtilities {
         }
     }
 
-    private void makeChangesToFile(FileWriter fw, Path local, ExistingRepoHelper helper, Path fileLocation, String change) throws IOException, GitAPIException, MissingRepoException {
+    private void makeChangesToFile(FileWriter fw, Path local, ExistingRepoHelper helper, Path fileLocation, String change, boolean notConflictingChanges) throws IOException, GitAPIException, MissingRepoException {
         fileLocation.toFile().delete();
 
         fw = new FileWriter(fileLocation.toString(), true);
 
+        if (notConflictingChanges) {
+            if (change.equals("added in master\n")) {
+                fw.write("This is a line that was added in master, but not conflicting\n" +
+                        "But it has two lines so that should make the line numbers different\n");
+            }
+        }
         for (int i = 0; i < 25; i++) {
             fw.write("This is a line that was added at the beginning\n");
         }

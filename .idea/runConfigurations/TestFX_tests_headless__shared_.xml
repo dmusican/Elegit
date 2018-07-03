@@ -2,7 +2,7 @@
   <configuration default="false" name="TestFX tests headless (shared)" type="JUnit" factoryName="JUnit">
     <extension name="coverage" enabled="false" merge="false" sample_coverage="true" runner="idea">
       <pattern>
-        <option name="PATTERN" value="elegitfx.conflictResolutionFXTests.*" />
+        <option name="PATTERN" value="elegitfx.*" />
         <option name="ENABLED" value="true" />
       </pattern>
     </extension>
