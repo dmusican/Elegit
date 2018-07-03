@@ -54,6 +54,8 @@ import static org.junit.Assert.assertNotEquals;
 
 public class SshPrivateKeyPasswordOpeningCancelFXTest extends ApplicationTest {
 
+    public static final int timeoutDelay = 20;
+
     @ClassRule
     public static final TestingLogPathRule testingLogPath = new TestingLogPathRule();
 
@@ -173,34 +175,34 @@ public class SshPrivateKeyPasswordOpeningCancelFXTest extends ApplicationTest {
 
         WaitForAsyncUtils.waitForFxEvents();
 
-        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+        WaitForAsyncUtils.waitFor(timeoutDelay, TimeUnit.SECONDS,
                                   () -> lookup("Yes").query() != null);
-        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+        WaitForAsyncUtils.waitFor(timeoutDelay, TimeUnit.SECONDS,
                                   () -> lookup("Yes").query().isVisible());
         WaitForAsyncUtils.waitForFxEvents();
         sleep(100);  // Additional catchup; seems to be necessary
         clickOn("Yes");
-        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+        WaitForAsyncUtils.waitFor(timeoutDelay, TimeUnit.SECONDS,
                                   () -> lookup("Yes").query() == null);
         sleep(delay);
 
         // Wait for ssh prompt, then click cancel
-        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+        WaitForAsyncUtils.waitFor(timeoutDelay, TimeUnit.SECONDS,
                                   () -> lookup("Cancel").query() != null);
-        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+        WaitForAsyncUtils.waitFor(timeoutDelay, TimeUnit.SECONDS,
                                   () -> lookup("Cancel").query().isVisible());
         WaitForAsyncUtils.waitForFxEvents();
         sleep(100);  // Additional catchup; seems to be necessary
         clickOn("Cancel");
         sleep(delay);
-        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+        WaitForAsyncUtils.waitFor(timeoutDelay, TimeUnit.SECONDS,
                                   () -> lookup("Cancel").query() == null);
 
         // Test that trying to fetch after cancelling works gracefully, then try cancelling again
         clickOn("Fetch");
-        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+        WaitForAsyncUtils.waitFor(timeoutDelay, TimeUnit.SECONDS,
                                   () -> lookup("Cancel").query() != null);
-        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+        WaitForAsyncUtils.waitFor(timeoutDelay, TimeUnit.SECONDS,
                                   () -> lookup("Cancel").query().isVisible());
         WaitForAsyncUtils.waitForFxEvents();
         sleep(100);  // Additional catchup; seems to be necessary
@@ -209,9 +211,9 @@ public class SshPrivateKeyPasswordOpeningCancelFXTest extends ApplicationTest {
 
 
         // HTTP cancel. Should someday get rid of this, but for now, gets rid of error messages to acknowledge it.
-        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+        WaitForAsyncUtils.waitFor(timeoutDelay, TimeUnit.SECONDS,
                                   () -> lookup("Cancel").query() != null);
-        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+        WaitForAsyncUtils.waitFor(timeoutDelay, TimeUnit.SECONDS,
                                   () -> lookup("Cancel").query().isVisible());
         WaitForAsyncUtils.waitForFxEvents();
         sleep(100);  // Additional catchup; seems to be necessary

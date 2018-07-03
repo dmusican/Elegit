@@ -44,6 +44,8 @@ import static org.junit.Assert.assertTrue;
 
 public class OpenAndCloseReposFXTest extends ApplicationTest {
 
+    public static final int timeoutDelay = 20;
+
     static {
         // -----------------------Logging Initialization Start---------------------------
         Path logPath = Paths.get("logs");
@@ -146,7 +148,7 @@ public class OpenAndCloseReposFXTest extends ApplicationTest {
 
         final ComboBox<RepoHelper> dropdown = lookup("#repoDropdown").query();
 
-        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+        WaitForAsyncUtils.waitFor(timeoutDelay, TimeUnit.SECONDS,
                                   () -> !BusyWindow.window.isShowing());
 
 
@@ -159,7 +161,7 @@ public class OpenAndCloseReposFXTest extends ApplicationTest {
 
         interact(() -> sessionController.handleLoadExistingRepoOption(repoPath2));
 
-        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+        WaitForAsyncUtils.waitFor(timeoutDelay, TimeUnit.SECONDS,
                                   () -> !BusyWindow.window.isShowing());
 
         // Now that both repos have been added, the dropdown should contain both of them.
@@ -168,7 +170,7 @@ public class OpenAndCloseReposFXTest extends ApplicationTest {
         interact(() -> assertEquals(2, SessionModel.getSessionModel().getAllRepoHelpers().size()));
 
         for (int i=0; i < 3; i++) {
-            WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+            WaitForAsyncUtils.waitFor(timeoutDelay, TimeUnit.SECONDS,
                                       () -> dropdown.getValue().toString().equals("repo2"));
             WaitForAsyncUtils.waitForFxEvents();
             sleep(100);
@@ -185,11 +187,11 @@ public class OpenAndCloseReposFXTest extends ApplicationTest {
             });
 
             clickOn("repo1");
-            WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+            WaitForAsyncUtils.waitFor(timeoutDelay, TimeUnit.SECONDS,
                                       () -> !BusyWindow.window.isShowing());
 
             // We were having timeout issues which is why the countDownLatch is needed. Makes the test SUPER slow
-            WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+            WaitForAsyncUtils.waitFor(timeoutDelay, TimeUnit.SECONDS,
                                       () -> dropdown.getValue().toString().equals("repo1"));
             WaitForAsyncUtils.waitForFxEvents();
             sleep(100);
@@ -203,7 +205,7 @@ public class OpenAndCloseReposFXTest extends ApplicationTest {
             });
 
             clickOn("repo2");
-            WaitForAsyncUtils.waitFor(15, TimeUnit.SECONDS,
+            WaitForAsyncUtils.waitFor(timeoutDelay, TimeUnit.SECONDS,
                                       () -> !BusyWindow.window.isShowing());
         }
 
@@ -212,7 +214,7 @@ public class OpenAndCloseReposFXTest extends ApplicationTest {
         interact(() -> assertEquals(2, dropdown.getItems().size()));
         interact(() -> assertEquals(2, SessionModel.getSessionModel().getAllRepoHelpers().size()));
 
-        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+        WaitForAsyncUtils.waitFor(timeoutDelay, TimeUnit.SECONDS,
                                   () -> dropdown.getValue().toString().equals("repo2"));
         interact(() -> console.info(dropdown.getItems() + " " + dropdown.getValue()));
         clickOn("#removeRecentReposButton");
@@ -233,7 +235,7 @@ public class OpenAndCloseReposFXTest extends ApplicationTest {
 
         assertNotEquals(null,lookup("repo2").query());
 
-        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+        WaitForAsyncUtils.waitFor(timeoutDelay, TimeUnit.SECONDS,
                                   () -> dropdown.getValue().toString().equals("repo2"));
 
         // Verify that now only one repo remains on the list
