@@ -106,7 +106,6 @@ public class OpenLocalRepoFXTest extends ApplicationTest {
         System.out.println("Number of remote checks = " + numRemoteChecks);
         assertTrue(numLocalChecks > 0 && numLocalChecks < 5);
         assertTrue(numRemoteChecks > 0 && numRemoteChecks < 5);
-        throw new RuntimeException();
     }
 
     // Helper method to avoid annoying traces from logger
