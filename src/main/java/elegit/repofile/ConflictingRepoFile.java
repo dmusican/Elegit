@@ -6,6 +6,7 @@ import elegit.controllers.SessionController;
 import elegit.gui.GitIgnoreEditor;
 import elegit.gui.PopUpWindows;
 import elegit.models.RepoHelper;
+import elegit.models.SessionModel;
 import elegit.treefx.CommitTreeController;
 import io.reactivex.Observable;
 import io.reactivex.schedulers.Schedulers;
@@ -19,7 +20,6 @@ import java.awt.*;
 import java.io.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 
 /**
  * A subclass of the RepoFile class that holds a reference to
@@ -62,13 +62,11 @@ public class ConflictingRepoFile extends RepoFile {
     @Override public boolean canAdd() throws GitAPIException, IOException{
         Main.assertFxThread();
         logger.warn("Notification about conflicting file");
-        System.out.println(PopUpWindows.getComittingConflictingFileAlertShowing());
         if(!PopUpWindows.getComittingConflictingFileAlertShowing()) {
             resultType = PopUpWindows.showCommittingConflictingFileAlert();
         } else {
             resultType = PopUpWindows.getResultType();
         }
-        System.out.println(resultType);
         switch (resultType) {
             case "tool":
                 // Open conflict management tool
@@ -90,7 +88,9 @@ public class ConflictingRepoFile extends RepoFile {
             case "add":
                 return true;
             case "help":
-                PopUpWindows.showConflictingHelpAlert();
+                if(!PopUpWindows.getConflictingHelpAlertShowing()) {
+                    PopUpWindows.showConflictingHelpAlert();
+                }
                 break;
             case "cancel":
                 return false;
