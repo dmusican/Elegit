@@ -2,11 +2,6 @@ package elegitfx.conflictResolutionFXTests;
 
 import elegit.Main;
 import elegit.controllers.SessionController;
-import elegit.models.SessionModel;
-import javafx.collections.ObservableList;
-import javafx.scene.control.Button;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.MenuItem;
 import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -20,8 +15,6 @@ import sharedrules.TestUtilities;
 import sharedrules.TestingLogPathRule;
 import sharedrules.TestingRemoteAndLocalReposRule;
 
-import javax.xml.soap.Node;
-import javax.xml.soap.Text;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -30,7 +23,8 @@ import static junit.framework.TestCase.assertEquals;
 
 /**
  * Created by grenche on 7/2/18.
- * Tests the conflict management tool when there are multiple conflicts
+ * Tests the conflict management tool when there are multiple conflicts. This test specifically tests how the middle
+ * CodeArea changes when the accept, reject, undo, abort, toggle, and disable auto switch buttons are clicked.
  */
 public class MultipleConflictsResolutionTestFX extends ApplicationTest {
     static {
@@ -82,8 +76,8 @@ public class MultipleConflictsResolutionTestFX extends ApplicationTest {
     }
 
     @Test
-    public void testResolveConflicts() throws Exception{
-        Path local = conflictResolutionUtilities.createMultipleConflicts(testingRemoteAndLocalRepos);
+    public void testResolveMultipleConflicts() throws Exception{
+        Path local = conflictResolutionUtilities.createMultipleConflicts(testingRemoteAndLocalRepos, false);
         interact(() -> sessionController.handleLoadExistingRepoOption(local));
         interact(() -> sessionController.handleOpenConflictManagementTool(local.toString(),"test.txt"));
 
@@ -135,6 +129,24 @@ public class MultipleConflictsResolutionTestFX extends ApplicationTest {
         // Should have moved to the last conflict after toggling up from the first one
         interact(() -> assertEquals(101, middleDoc.getCurrentParagraph()));
 
+        clickOn("#abortMerge");
 
+        interact(() -> sessionController.handleOpenConflictManagementTool(local.toString(),"test.txt"));
+
+        // Otherwise, testFX remembers the state of the other CodeArea before abort.
+        CodeArea middleDoc2 = lookup("#middleDoc").query();
+
+        interact(() -> assertEquals(25, middleDoc2.getCurrentParagraph()));
+        interact(() -> assertEquals("This is a line that was added at the beginning", middleDoc2.getText(middleDoc2.getCurrentParagraph())));
+
+        clickOn("#downToggle");
+        interact(() -> assertEquals(50, middleDoc2.getCurrentParagraph()));
+        clickOn("#downToggle");
+        interact(() -> assertEquals(75, middleDoc2.getCurrentParagraph()));
+        clickOn("#downToggle");
+        interact(() -> assertEquals(100, middleDoc2.getCurrentParagraph()));
+        clickOn("#downToggle");
+        // Should go back to the first conflict if you toggle down from the last conflict.
+        interact(() -> assertEquals(25, middleDoc2.getCurrentParagraph()));
     }
 }

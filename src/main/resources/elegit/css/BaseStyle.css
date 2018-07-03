@@ -446,7 +446,7 @@
     -fx-fill: #5b0000;
 }
 
-.document .changed {
+.document .changed-conflict {
     -rtfx-background-color: rgba(0, 255, 25, 0.34);
     -fx-fill: #00750b;
 }

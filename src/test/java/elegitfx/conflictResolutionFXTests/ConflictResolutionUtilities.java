@@ -72,7 +72,7 @@ public class ConflictResolutionUtilities {
         }
     }
 
-    public Path createMultipleConflicts(TestingRemoteAndLocalReposRule testingRemoteAndLocalRepos) {
+    public Path createMultipleConflicts(TestingRemoteAndLocalReposRule testingRemoteAndLocalRepos, boolean containsNonConflictingChanges) {
         try {
             Path local = testingRemoteAndLocalRepos.getLocalFull();
             Git.init().setDirectory(local.toFile()).setBare(false).call();
@@ -91,11 +91,11 @@ public class ConflictResolutionUtilities {
             BranchHelper baseBranch = helper.getBranchModel().getCurrentBranch();
             LocalBranchHelper mergeBranch = helper.getBranchModel().createNewLocalBranch("mergeBranch");
 
-            makeChangesToFile(fw, local, helper, fileLocation, "added in master\n");
+            makeChangesToFile(fw, local, helper, fileLocation, "added in master\n", containsNonConflictingChanges);
 
             mergeBranch.checkoutBranch();
 
-            makeChangesToFile(fw, local, helper, fileLocation, "added in mergeBranch\n");
+            makeChangesToFile(fw, local, helper, fileLocation, "added in mergeBranch\n", containsNonConflictingChanges);
 
             baseBranch.checkoutBranch();
             System.out.println(SessionModel.getSessionModel().getCurrentRepoHelper());
@@ -108,11 +108,16 @@ public class ConflictResolutionUtilities {
         }
     }
 
-    private void makeChangesToFile(FileWriter fw, Path local, ExistingRepoHelper helper, Path fileLocation, String change) throws IOException, GitAPIException, MissingRepoException {
+    private void makeChangesToFile(FileWriter fw, Path local, ExistingRepoHelper helper, Path fileLocation, String change, boolean notConflictingChanges) throws IOException, GitAPIException, MissingRepoException {
         fileLocation.toFile().delete();
 
         fw = new FileWriter(fileLocation.toString(), true);
 
+        if (notConflictingChanges) {
+            if (change.equals("added in master\n")) {
+                fw.write("This is a line that was added in master, but not conflicting\n");
+            }
+        }
         for (int i = 0; i < 25; i++) {
             fw.write("This is a line that was added at the beginning\n");
         }

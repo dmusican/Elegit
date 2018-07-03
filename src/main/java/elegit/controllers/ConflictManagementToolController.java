@@ -905,7 +905,7 @@ public class ConflictManagementToolController {
                 } else if (conflict.isConflicting()) {
                     setCSSSelector(doc, startIndex, endIndex, "conflict");
                 } else if (conflict.isChanged()) {
-                    setCSSSelector(doc, startIndex, endIndex, "changed");
+                    setCSSSelector(doc, startIndex, endIndex, "changed-conflict");
                 }
             }
         }
