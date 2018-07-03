@@ -28,6 +28,7 @@ import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 
 import static junit.framework.TestCase.assertEquals;
 import static org.junit.Assert.assertNotEquals;
@@ -63,6 +64,8 @@ public class CommitLabelFXTest extends ApplicationTest {
     @Rule
     public TestFXRule testFXRule = new TestFXRule();
 
+    public static final CountDownLatch startComplete = new CountDownLatch(1);
+
 
     @Override
     public void start(Stage stage) throws Exception {
@@ -97,7 +100,10 @@ public class CommitLabelFXTest extends ApplicationTest {
     @Test
     // Dummy test to get something to run. This test really all happens in start, so just need to have a test
     // to get it going.
-    public void test1() {
+    public void test1() throws InterruptedException{
+
+        // Make sure that start is complete before jumping in here
+        startComplete.await();
 
         interact( () -> {
             commitTreeModel.initializeModelForNewRepoWhenSubscribed()
