@@ -145,9 +145,9 @@ public class PopUpWindows {
         isConflictingHelpAlertShowing = true;
         Alert window = new Alert(Alert.AlertType.INFORMATION);
         window.setResizable(true);
-        window.getDialogPane().setPrefSize(550, 350);
+        window.getDialogPane().setPrefSize(550, 375);
         window.setTitle("How to fix conflicting files with an editor");
-        window.setHeaderText("How to fix conflicting files");
+        window.setHeaderText("How to fix conflicting files with an editor");
         window.setContentText("1. First, open up the file that is marked as conflicting.\n" +
                 "2. In the file, you should see something like this:\n\n" +
                 "\t<<<<<< <branch_name>\n" +
