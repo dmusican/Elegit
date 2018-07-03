@@ -400,6 +400,11 @@
     -fx-background-radius: 5em;
 }
 
+.corner {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
 /* Conflict Management buttons */
 #checkIcon {
     -fx-fill: #26bc6f;
