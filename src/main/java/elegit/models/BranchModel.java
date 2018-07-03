@@ -54,6 +54,7 @@ public class BranchModel {
      * Updates local and remote branches in the model
      */
     public void updateAllBranches() {
+        console.info("Updating all branches");
         this.updateLocalBranches();
         this.updateRemoteBranches();
         this.refreshHeadIds();
@@ -139,8 +140,10 @@ public class BranchModel {
      */
     // synchronized for localBranchesTyped and remoteBranchesTyped
     public synchronized void refreshHeadIdsType(BranchType type) {
-        List<? extends BranchHelper> listToRefresh = (type == BranchType.LOCAL) ? this.localBranchesTyped : this.remoteBranchesTyped;
-        for (BranchHelper branch : listToRefresh)
+        List<? extends BranchHelper> listToRefresh =
+                (type == BranchType.LOCAL) ? this.localBranchesTyped : this.remoteBranchesTyped;
+        for (BranchHelper branch : listToRefresh) {
+            console.info("Refreshing branch " + branch.getRefName() + " " + branch.getRefPathString());
             if (branch.getCommit() == null) {
                 try {
                     branch.getHeadId();
@@ -150,6 +153,7 @@ public class BranchModel {
                     throw new ExceptionAdapter(e);
                 }
             }
+        }
     }
 
     /**
@@ -485,7 +489,7 @@ public class BranchModel {
      */
     public Map<CommitHelper, List<BranchHelper>> getAllBranchHeads(){
         Map<CommitHelper, List<BranchHelper>> heads = new ConcurrentHashMap<>();
-
+        console.info("Getting all branch heads");
         this.refreshHeadIds();
 
         Set<BranchHelper> branches = this.getAllBranches();

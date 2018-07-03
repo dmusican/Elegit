@@ -368,13 +368,11 @@ public class SessionController {
 
         RepoHelper repoHelper = theModel.getCurrentRepoHelper();
 
-        console.info("Before remote status");
         if (repoHelper == null || !repoHelper.getRemoteStatusChecking()) {
             branchStatusText.setText("");
             needToFetch.setText("");
             return;
         }
-        console.info("After remote status");
 
         boolean update = RepositoryMonitor.hasFoundNewRemoteChanges.get();
         String fetchText = update ? "New changes to fetch" : "Up to date";
