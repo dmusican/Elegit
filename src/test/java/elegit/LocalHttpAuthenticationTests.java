@@ -129,15 +129,22 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
 	@Override
 	@Before
 	public void setUp() throws Exception {
-		super.setUp();
+        System.err.println("Starting the setUp");
+        System.err.println("Helper setup: "+SessionModel.getSessionModel().getCurrentRepoHelper());
+        super.setUp();
 
-		jGitTestRepo = jGitTestingRepositoryRule.getJgitTestRepo();
+        System.err.println("Helper setup: "+SessionModel.getSessionModel().getCurrentRepoHelper());
+        jGitTestRepo = jGitTestingRepositoryRule.getJgitTestRepo();
 		remoteURI = jGitTestingRepositoryRule.getRemoteURI();
 		authURI = jGitTestingRepositoryRule.getAuthURI();
+        System.err.println("Helper setup: "+SessionModel.getSessionModel().getCurrentRepoHelper());
+
 
         // Set up secondary remote repo
         Path remoteFull = testingRemoteAndLocalRepos.getRemoteFull();
         System.out.println("remote full is " + remoteFull);
+
+        System.err.println("Helper setup: "+SessionModel.getSessionModel().getCurrentRepoHelper());
 
         Repository db = new FileRepository(remoteFull.toString());
 
@@ -148,6 +155,7 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
         ExistingRepoHelper helperServer = new ExistingRepoHelper(remoteFull, null);
         helperServer.addFilePathsTest(paths);
         helperServer.commit("Initial unit test commit");
+        System.err.println("Helper setup: "+SessionModel.getSessionModel().getCurrentRepoHelper());
 
         System.out.println("Location is " + db.getDirectory());
     }

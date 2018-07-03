@@ -50,6 +50,7 @@
 package sharedrules;
 
 import elegit.TestRepositoryResolver;
+import elegit.models.SessionModel;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jgit.http.server.GitServlet;
@@ -72,6 +73,7 @@ public class JGitTestingRepositoryRule extends HttpTestCase implements TestRule 
 
     @Override
     public Statement apply(final Statement base, final Description description) {
+        System.err.println("Helper JGITrepo: "+ SessionModel.getSessionModel().getCurrentRepoHelper());
         return new Statement() {
             @Override
             public void evaluate() throws Throwable {
