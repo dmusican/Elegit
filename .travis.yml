@@ -13,7 +13,7 @@ script:
 
 after_failure:
 - mvn surefire-report:report-only
-- if [ $TRAVIS_OS_NAME = "osx" ]; brew install pandoc; fi
+- if [ $TRAVIS_OS_NAME = "osx" ]; then brew install pandoc; fi
 - if [ $TRAVIS_OS_NAME = linux ]; then
      pandoc --columns 120 -t plain /home/travis/build/dmusican/Elegit/target/site/surefire-report.html;
   else

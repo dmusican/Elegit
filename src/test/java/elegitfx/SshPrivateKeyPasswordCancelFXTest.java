@@ -150,11 +150,13 @@ public class SshPrivateKeyPasswordCancelFXTest extends ApplicationTest {
             console.info("Repo cloned");
 
             // Make sure initial status is correct
-            Text branchStatusText = lookup("#branchStatusText").query();
-            assertEquals("",branchStatusText.getText());
+            interact(() -> {
+                Text branchStatusText = lookup("#branchStatusText").query();
+                assertEquals("",branchStatusText.getText());
 
-            Text needToFetch = lookup("#needToFetch").query();
-            assertEquals("",needToFetch.getText());
+                Text needToFetch = lookup("#needToFetch").query();
+                assertEquals("",needToFetch.getText());
+            });
 
             // Open as an existing repo
             clickOn("#loadNewRepoButton")
@@ -175,8 +177,10 @@ public class SshPrivateKeyPasswordCancelFXTest extends ApplicationTest {
 
 
             // Since remote checking should still be off, make sure status is empty
-            branchStatusText = lookup("#branchStatusText").query();
-            assertEquals("",branchStatusText.getText());
+            interact(() -> {
+                Text branchStatusText = lookup("#branchStatusText").query();
+                assertEquals("", branchStatusText.getText());
+            });
 
             // Make sure no errors occurred
             assertNotEquals(null, RepositoryMonitor.getSessionController());
