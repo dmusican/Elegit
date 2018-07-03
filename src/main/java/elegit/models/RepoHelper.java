@@ -763,18 +763,6 @@ public class RepoHelper {
 
         MergeResult.MergeStatus status = result.getMergeStatus();
         if (status == MergeResult.MergeStatus.CONFLICTING) {
-            try {
-                HashMap<String, String> results = new HashMap<>();
-                String remote = config.getString("branch", this.getRepo().getBranch(), "remote") + "/";
-                String remote_tracking = config.getString("branch", this.getRepo().getBranch(), "merge");
-                results.put("baseBranch", this.getRepo().getBranch());
-                results.put("mergedBranch", remote + this.getRepo().shortenRefName(remote_tracking));
-                results.put("baseParent", result.getMergedCommits()[0].toString());
-                results.put("mergedParent", result.getMergedCommits()[1].toString());
-                SessionModel.getSessionModel().addMergeResult(results);
-            } catch (Exception e){
-                throw new ExceptionAdapter(e);
-            }
             throw new ConflictingFilesException(Collections.unmodifiableMap(result.getConflicts()));
         }
         //return result.getMergeStatus().isSuccessful();

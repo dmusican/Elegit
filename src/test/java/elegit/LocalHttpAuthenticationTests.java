@@ -54,15 +54,7 @@ import elegit.exceptions.MissingRepoException;
 import elegit.exceptions.NoTrackingException;
 import elegit.gui.ClonedRepoHelperBuilder;
 import elegit.gui.RepoHelperBuilder;
-import elegit.models.AuthMethod;
-import elegit.models.BranchHelper;
-import elegit.models.BranchModel;
-import elegit.models.ClonedRepoHelper;
-import elegit.models.CommitHelper;
-import elegit.models.ExistingRepoHelper;
-import elegit.models.LocalBranchHelper;
-import elegit.models.RemoteBranchHelper;
-import elegit.models.RepoHelper;
+import elegit.models.*;
 import elegit.sshauthentication.ElegitUserInfoTest;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -900,6 +892,7 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
         UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider("agitter",
                                                                                                   "letmein");
 
+        System.err.println("Helper test: "+SessionModel.getSessionModel().getCurrentRepoHelper());
         Path directoryPath = testingRemoteAndLocalRepos.getDirectoryPath();
 
         // Repo that will commit to make a fast forward commit
@@ -908,9 +901,13 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
         assertNotNull(helperFast);
         helperFast.obtainRepository(authURI.toString());
 
+        System.err.println("Helper test: "+SessionModel.getSessionModel().getCurrentRepoHelper());
+
         // Create the branch 'fast_branch'
         helperFast.getBranchModel().createNewLocalBranch("fast_branch");
 
+
+        System.err.println("Helper test: "+SessionModel.getSessionModel().getCurrentRepoHelper());
 
         LocalBranchHelper fastBranch = (LocalBranchHelper) helperFast
                 .getBranchModel().getBranchByName(BranchModel.BranchType.LOCAL, "fast_branch");
@@ -919,29 +916,41 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
         PushCommand command = helperFast.prepareToPushAll(untrackedLocalBranches -> untrackedLocalBranches);
         helperFast.pushAll(command);
 
+        System.err.println("Helper test: "+SessionModel.getSessionModel().getCurrentRepoHelper());
+
 
         // Track fast_branch and check it out
         fastBranch.checkoutBranch();
         helperFast.updateModel();
+        System.err.println("Helper test: "+SessionModel.getSessionModel().getCurrentRepoHelper());
+
 
         // Update the file in fast_branch
         Path filePath = repoPathFast.resolve("modify.txt");
         String timestamp = (new Date()).toString() + "\n";
         Files.write(filePath, timestamp.getBytes(), StandardOpenOption.APPEND);
         helperFast.addFilePathTest(filePath);
+        System.err.println("Helper test: "+SessionModel.getSessionModel().getCurrentRepoHelper());
+
 
         // Commit changes in fast_branch and push
         helperFast.commit("added a character");
         command = helperFast.prepareToPushAll();
         helperFast.pushAll(command);
+        System.err.println("Helper test: "+SessionModel.getSessionModel().getCurrentRepoHelper());
+
 
         //Checkout master
         LocalBranchHelper master_helper = (LocalBranchHelper) helperFast
                 .getBranchModel().getBranchByName(BranchModel.BranchType.LOCAL, "master");
         master_helper.checkoutBranch();
+        System.err.println("Helper test: "+SessionModel.getSessionModel().getCurrentRepoHelper());
+
 
         // Merge fast_forward into master
         helperFast.getBranchModel().mergeWithBranch(fastBranch);
+        System.err.println("Helper test: "+SessionModel.getSessionModel().getCurrentRepoHelper());
+
 
         // Check that Elegit recognizes there are unpushed commits
         assertEquals(true, helperFast.getAheadCount()>0);
