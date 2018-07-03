@@ -549,6 +549,7 @@ public class SessionModel {
             mergeResults.put(path, results);
             PrefObj.putObject(this.preferences, MERGE_RESULT, mergeResults);
         } catch(Exception e){
+            e.printStackTrace();
             throw new ExceptionAdapter(e);
         }
     }
@@ -559,6 +560,7 @@ public class SessionModel {
             String path = getCurrentRepo().getDirectory()+File.separator+getCurrentRepo().toString();
             return mergeResults.get(path);
         } catch (Exception e){
+            e.printStackTrace();
             throw new ExceptionAdapter(e);
         }
     }
