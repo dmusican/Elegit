@@ -423,7 +423,7 @@
     -fx-border-width: 1;
 }
 
-#document {
+.document {
     -fx-font-family: Courier;
     -fx-font-size: 13px;
     -fx-border-width: 1;
@@ -441,21 +441,21 @@
     -fx-fill: red;
 }
 
-#document .conflict {
+.document .conflict {
     -rtfx-background-color: rgba(255, 0, 0, 0.34);
     -fx-fill: #5b0000;
 }
 
-#document .changed {
+.document .changed {
     -rtfx-background-color: rgba(0, 255, 25, 0.34);
     -fx-fill: #00750b;
 }
 
-#document .handled-conflict {
+.document .handled-conflict {
     -rtfx-background-color: rgba(80, 13, 255, 0.34);
     -fx-fill: #3f0b7e;
 }
 
-#conflictManagementSeparator {
+.conflictManagementSeparator {
     -fx-background-color: transparent;
 }

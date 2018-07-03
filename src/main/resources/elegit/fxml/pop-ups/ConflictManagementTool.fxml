@@ -54,50 +54,50 @@
             <!--HBoxes where the three versions of the document go with line numbers to the left-->
             <HBox prefHeight="564.0" prefWidth="400.0" GridPane.columnIndex="0" GridPane.rowIndex="1">
                 <children>
-                    <Separator id="conflictManagementSeparator" orientation="VERTICAL" prefHeight="200.0" />
+                    <Separator styleClass="conflictManagementSeparator" orientation="VERTICAL" prefHeight="200.0" />
                     <VirtualizedScrollPane>
                         <content>
-                            <CodeArea id="document" fx:id="leftDoc" editable="false" focusTraversable="true" prefHeight="566.0" prefWidth="442.0" />
+                            <CodeArea styleClass="document" id="leftDoc" fx:id="leftDoc" editable="false" focusTraversable="true" prefHeight="566.0" prefWidth="442.0" />
                         </content>
                     </VirtualizedScrollPane>
-                    <Separator id="conflictManagementSeparator" orientation="VERTICAL" prefHeight="200.0" />
+                    <Separator styleClass="conflictManagementSeparator" orientation="VERTICAL" prefHeight="200.0" />
                 </children>
             </HBox>
             <HBox prefHeight="100.0" prefWidth="400.0" GridPane.columnIndex="1" GridPane.rowIndex="1">
                 <children>
                     <VirtualizedScrollPane>
                         <content>
-                            <CodeArea id="document" fx:id="middleDoc" editable="false" focusTraversable="true" prefHeight="566.0" prefWidth="444.0" />
+                            <CodeArea styleClass="document" id="middleDoc" fx:id="middleDoc" editable="false" focusTraversable="true" prefHeight="566.0" prefWidth="444.0" />
                         </content>
                     </VirtualizedScrollPane>
-                    <Separator id="conflictManagementSeparator" orientation="VERTICAL" prefHeight="200.0" />
+                    <Separator styleClass="conflictManagementSeparator" orientation="VERTICAL" prefHeight="200.0" />
                 </children>
             </HBox>
             <HBox prefHeight="100.0" prefWidth="400.0" GridPane.columnIndex="2" GridPane.rowIndex="1">
                 <children>
                     <VirtualizedScrollPane>
                         <content>
-                            <CodeArea id="document" fx:id="rightDoc" editable="false" focusTraversable="true" prefHeight="566.0" prefWidth="454.0" />
+                            <CodeArea styleClass="document" id="rightDoc" fx:id="rightDoc" editable="false" focusTraversable="true" prefHeight="566.0" prefWidth="454.0" />
                         </content>
                     </VirtualizedScrollPane>
-                    <Separator orientation="VERTICAL" prefHeight="200.0" />
+                    <Separator styleClass="conflictManagementSeparator"  orientation="VERTICAL" prefHeight="200.0" />
                 </children>
             </HBox>
 
             <!--Accept/Reject/Undo changes for left document-->
             <HBox alignment="CENTER_RIGHT" prefHeight="40.0" prefWidth="410.0" GridPane.rowIndex="2">
                 <children>
-                    <Button id="undoButton" fx:id="leftUndo" alignment="CENTER" contentDisplay="CENTER" graphicTextGap="3.0" onAction="#handleUndoLeftChange">
+                    <Button id="leftUndo" fx:id="leftUndo" alignment="CENTER" contentDisplay="CENTER" graphicTextGap="3.0" onAction="#handleUndoLeftChange">
                         <HBox.margin>
                             <Insets right="1.5" top="10.0" />
                         </HBox.margin>
                     </Button>
-                    <Button id="rejectButton" fx:id="leftReject" alignment="CENTER" contentDisplay="CENTER" graphicTextGap="3.0" onAction="#handleRejectLeftChange">
+                    <Button id="leftReject" fx:id="leftReject" alignment="CENTER" contentDisplay="CENTER" graphicTextGap="3.0" onAction="#handleRejectLeftChange">
                         <HBox.margin>
                             <Insets left="1.5" right="1.5" top="10.0" />
                         </HBox.margin>
                     </Button>
-                    <Button id="acceptButton" fx:id="leftAccept" alignment="CENTER" contentDisplay="CENTER" graphicTextGap="3.0" onAction="#handleAcceptLeftChange">
+                    <Button id="leftAccept" fx:id="leftAccept" alignment="CENTER" contentDisplay="CENTER" graphicTextGap="3.0" onAction="#handleAcceptLeftChange">
                         <HBox.margin>
                             <Insets left="1.5" right="3.0" top="10.0" />
                         </HBox.margin>
@@ -108,12 +108,12 @@
             <!--Buttons for toggling between changes-->
             <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="2">
                 <children>
-                    <Button id="toggle" fx:id="upToggle" alignment="CENTER" contentDisplay="CENTER" graphicTextGap="3.0" onAction="#handleToggleUp">
+                    <Button id="upToggle" fx:id="upToggle" alignment="CENTER" contentDisplay="CENTER" graphicTextGap="3.0" onAction="#handleToggleUp">
                         <HBox.margin>
                             <Insets right="1.5" top="10.0" />
                         </HBox.margin>
                     </Button>
-                    <Button id="toggle" fx:id="downToggle" alignment="CENTER" contentDisplay="CENTER" graphicTextGap="3.0" onAction="#handleToggleDown">
+                    <Button id="downToggle" fx:id="downToggle" alignment="CENTER" contentDisplay="CENTER" graphicTextGap="3.0" onAction="#handleToggleDown">
                         <HBox.margin>
                             <Insets left="1.5" top="10.0" />
                         </HBox.margin>
@@ -124,17 +124,17 @@
             <!--Accept/Reject/Undo changes for right document-->
             <HBox alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0" GridPane.columnIndex="2" GridPane.rowIndex="2">
                 <children>
-                    <Button id="acceptButton" fx:id="rightAccept" alignment="CENTER" contentDisplay="CENTER" graphicTextGap="2.0" onAction="#handleAcceptRightChange">
+                    <Button id="rightAccept" fx:id="rightAccept" alignment="CENTER" contentDisplay="CENTER" graphicTextGap="2.0" onAction="#handleAcceptRightChange">
                         <HBox.margin>
                             <Insets left="3.0" right="1.5" top="10.0" />
                         </HBox.margin>
                     </Button>
-                    <Button id="rejectButton" fx:id="rightReject" alignment="CENTER" contentDisplay="CENTER" graphicTextGap="2.0" onAction="#handleRejectRightChange">
+                    <Button id="rightReject" fx:id="rightReject" alignment="CENTER" contentDisplay="CENTER" graphicTextGap="2.0" onAction="#handleRejectRightChange">
                         <HBox.margin>
                             <Insets left="1.5" right="1.5" top="10.0" />
                         </HBox.margin>
                     </Button>
-                    <Button id="undoButton" fx:id="rightUndo" alignment="CENTER" contentDisplay="CENTER" graphicTextGap="2.0" onAction="#handleUndoRightChange">
+                    <Button id="rightUndo" fx:id="rightUndo" alignment="CENTER" contentDisplay="CENTER" graphicTextGap="2.0" onAction="#handleUndoRightChange">
                         <HBox.margin>
                             <Insets left="1.5" top="10.0" />
                         </HBox.margin>
