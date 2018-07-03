@@ -283,6 +283,8 @@ public class SessionModel {
      * @return the current JGit repository associated with the current RepoHelper
      */
     private Repository getCurrentRepo() {
+        System.err.println("Helper: "+this.getCurrentRepoHelper());
+        System.err.println("Repo: "+this.getCurrentRepoHelper().getRepo());
         return this.getCurrentRepoHelper().getRepo();
     }
 
@@ -553,13 +555,14 @@ public class SessionModel {
             throw new ExceptionAdapter(e);
         }
     }
+
     public HashMap<String, String> getMergeResult(){
         try {
             HashMap<String, HashMap<String, String>> mergeResults =
                     (HashMap<String, HashMap<String, String>>) PrefObj.getObject(this.preferences, MERGE_RESULT);
             String path = getCurrentRepo().getDirectory()+File.separator+getCurrentRepo().toString();
             return mergeResults.get(path);
-        } catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             throw new ExceptionAdapter(e);
         }
