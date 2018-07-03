@@ -12,96 +12,97 @@
             useSystemMenuBar="true"
             fx:controller="elegit.controllers.MenuController">
     <menus>
-        <Menu   text="Preferences">
+        <Menu text="File">
             <items>
-                <CheckMenuItem   text="Enable Logging"
-                            fx:id="loggingToggle"
-                            onAction="#handleLoggingToggle"/>
-                <CheckMenuItem   text="Sort Commits Topologically"
-                            fx:id="commitSortToggle"
-                            onAction="#handleCommitSortToggle"/>
-                <MenuItem   text="Re-enable window resizing"
-                            fx:id="reenableWindowResizing"
-                            onAction="#handleReenableWindowResizing"/>
-                <MenuItem   text="About"
-                            fx:id="about"
-                            onAction="#handleAbout"/>
+                <Menu text="New Repository">
+                    <items>
+                        <MenuItem fx:id="cloneOption" onAction="#handleCloneNewRepoOption" text="Clone repository"/>
+                        <!--<MenuItem id="loadExistingRepoOption" fx:id="existingOption"-->
+                                  <!--onAction="#handleLoadExistingRepoOption" text="Load existing repository"/>-->
+                    </items>
+                </Menu>
+                <Menu text="Open">
+                    <!--<items>-->
+                        <!--&lt;!&ndash;Still doesn't work quite right&ndash;&gt;-->
+                        <!--&lt;!&ndash;<MenuItem id="loadSelectedRepoOption" fx:id="loadSelectedRepoOption"&ndash;&gt;-->
+                                  <!--&lt;!&ndash;onAction="#loadSelectedRepo" text="Load repository"/>&ndash;&gt;-->
+                    <!--</items>-->
+                </Menu>
+                <Menu text="Close">
+                    <!--<items>-->
+                        <!--&lt;!&ndash;Still doesn't work quite right&ndash;&gt;-->
+                        <!--&lt;!&ndash;<MenuItem id="removeRecentReposOption" fx:id="removeRecentReposOption"&ndash;&gt;-->
+                                  <!--&lt;!&ndash;onAction="#chooseRecentReposToDelete" text="Remove repository"/>&ndash;&gt;-->
+                    <!--</items>-->
+                </Menu>
             </items>
         </Menu>
-        <Menu   text="Edit">
+        <Menu text="Edit">
             <items>
-                <MenuItem   text=".gitignore"
-                            fx:id="gitIgnoreMenuItem"
-                            onAction="#handleGitIgnoreMenuItem"/>
+                <!--Eventually handle copy-->
+                <MenuItem disable="true" text="Copy"/>
+                <!--Eventually handle paste-->
+                <MenuItem disable="true" text="Paste"/>
+                <MenuItem fx:id="gitIgnoreMenuItem" onAction="#handleGitIgnoreMenuItem" text="Edit .gitignore"/>
             </items>
         </Menu>
-        <Menu   text="Repository"
-                fx:id="repoMenu">
+        <Menu text="View">
             <items>
-                <Menu   text="Branch">
-                    <MenuItem   text="Create Branch"
-                                fx:id="createBranchMenuItem"
-                                onAction="#handleNewBranchButton"/>
-                    <MenuItem   text="Delete Local Branch"
-                                onAction="#handleDeleteLocalBranchButton"/>
-                    <MenuItem   text="Delete Remote Branch"
-                                onAction="#handleDeleteRemoteBranchButton"/>
+                <CheckMenuItem fx:id="commitSortToggle" onAction="#handleCommitSortToggle"
+                               text="Sort Commits Topologically"/>
+                <MenuItem fx:id="reenableWindowResizing" onAction="#handleReenableWindowResizing"
+                          text="Re-enable window resizing"/>
+            </items>
+        </Menu>
+        <Menu fx:id="repoMenu" text="Repository">
+            <items>
+                <Menu text="Branch">
+                    <MenuItem fx:id="createBranchMenuItem" onAction="#handleNewBranchButton" text="Create Branch"/>
+                    <MenuItem onAction="#handleDeleteLocalBranchButton" text="Delete Local Branch"/>
+                    <MenuItem onAction="#handleDeleteRemoteBranchButton" text="Delete Remote Branch"/>
                 </Menu>
-               <Menu   text="Checkout">
-                    <MenuItem   text="Checkout Branch"
-                                onAction="#showBranchCheckout"/>
+                <Menu text="Checkout">
+                    <MenuItem onAction="#showBranchCheckout" text="Checkout Branch"/>
                 </Menu>
-                <Menu   text="Clone">
-                    <MenuItem   text="Clone"
-                                fx:id="cloneMenuItem"
-                                onAction="#handleCloneNewRepoOption"/>
+                <Menu text="Clone">
+                    <MenuItem fx:id="cloneMenuItem" onAction="#handleCloneNewRepoOption" text="Clone"/>
                 </Menu>
-                <Menu   text="Commit">
-                    <MenuItem   text="Commit"
-                                fx:id="commitNormalMenuItem"
-                                onAction="#handleCommitNormal"/>
-                    <MenuItem   text="Commit -a"
-                                onAction="#handleCommitAll"/>
+                <Menu text="Commit">
+                    <MenuItem fx:id="commitNormalMenuItem" onAction="#handleCommitNormal" text="Commit"/>
+                    <MenuItem onAction="#handleCommitAll" text="Commit -a"/>
                 </Menu>
-                <Menu   text="Fetch">
-                    <MenuItem   text="Fetch"
-                                fx:id="normalFetchMenuItem"
-                                onAction="#handleFetchButton"/>
-                    <MenuItem   text="Fetch -p"
-                                onAction="#handlePruneFetchButton"/>
+                <Menu text="Fetch">
+                    <MenuItem fx:id="normalFetchMenuItem" onAction="#handleFetchButton" text="Fetch"/>
+                    <MenuItem onAction="#handlePruneFetchButton" text="Fetch -p"/>
                 </Menu>
-                <Menu   text="Merge">
-                    <MenuItem   text="Merge From Fetch"
-                                onAction="#mergeFromFetch"/>
-                    <MenuItem   text="Merge Local Branches"
-                                onAction="#handleBranchMergeButton"/>
+                <Menu text="Merge">
+                    <MenuItem onAction="#mergeFromFetch" text="Merge From Fetch"/>
+                    <MenuItem onAction="#handleBranchMergeButton" text="Merge Local Branches"/>
                 </Menu>
-                <Menu   text="Pull">
-                    <MenuItem   text="Pull"
-                                fx:id="pullMenuItem"
-                                onAction="#handlePullButton"/>
+                <Menu text="Pull">
+                    <MenuItem fx:id="pullMenuItem" onAction="#handlePullButton" text="Pull"/>
                 </Menu>
-                <Menu   text="Push">
-                    <MenuItem   text="Push Current Branch"
-                                fx:id="pushMenuItem"
-                                onAction="#handlePushButton"/>
-                    <MenuItem   text="Push All Branches"
-                                onAction="#handlePushAllButton"/>
-                    <MenuItem   text="Push Tags"
-                                onAction="#handlePushTagsButton"/>
+                <Menu text="Push">
+                    <MenuItem fx:id="pushMenuItem" onAction="#handlePushButton" text="Push Current Branch"/>
+                    <MenuItem onAction="#handlePushAllButton" text="Push All Branches"/>
+                    <MenuItem onAction="#handlePushTagsButton" text="Push Tags"/>
                 </Menu>
-                <Menu   text="Stash">
-                    <MenuItem   text="Stash Changes"
-                                fx:id="stashMenuItem1"
-                                onAction="#handleStashSaveButton"/>
-                    <MenuItem   text="Stash Apply"
-                                onAction="#handleStashApplyButton"/>
-                    <MenuItem   text="Stash List"
-                                fx:id="stashMenuItem2"
-                                onAction="#handleStashListButton"/>
-                    <MenuItem   text="Stash Drop"
-                                onAction="#handleStashDropButton"/>
+                <Menu text="Stash">
+                    <MenuItem fx:id="stashMenuItem1" onAction="#handleStashSaveButton" text="Stash Changes"/>
+                    <MenuItem onAction="#handleStashApplyButton" text="Stash Apply"/>
+                    <MenuItem fx:id="stashMenuItem2" onAction="#handleStashListButton" text="Stash List"/>
+                    <MenuItem onAction="#handleStashDropButton" text="Stash Drop"/>
                 </Menu>
+            </items>
+        </Menu>
+        <Menu text="Preferences">
+            <items>
+                <CheckMenuItem fx:id="loggingToggle" onAction="#handleLoggingToggle" text="Enable Logging"/>
+            </items>
+        </Menu>
+        <Menu text="Help">
+            <items>
+                <MenuItem fx:id="about" onAction="#handleAbout" text="About"/>
             </items>
         </Menu>
     </menus>
