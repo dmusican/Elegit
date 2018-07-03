@@ -247,7 +247,7 @@ public class ConflictManagementToolController {
 
     private void bindVerticalScroll(CodeArea doc1, CodeArea doc2) {
         Main.assertFxThread();
-        // TODO: once bug #535 is resolved, hopefully this can be added back in. Currently acts very weirdly with toggle buttons
+        // TODO: once bug #535 in RichTextFX is resolved, hopefully this can be added back in. Currently acts very weirdly with toggle buttons
 //        doc1.estimatedScrollYProperty().bindBidirectional(doc2.estimatedScrollYProperty());
     }
 
@@ -966,6 +966,10 @@ public class ConflictManagementToolController {
         rightUndo.setDisable(disabled);
         rightReject.setDisable(disabled);
         rightAccept.setDisable(disabled);
+    }
+
+    public NotificationController getNotificationPaneController() {
+        return notificationPaneController;
     }
 
     private void showAllConflictsHandledNotification() {

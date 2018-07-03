@@ -58,9 +58,9 @@ public class ConflictManagementUtilities {
             helper.addFilePathTest(fileLocation);
             helper.commit("Appended something else in mergeBranch");
             baseBranch.checkoutBranch();
-            System.out.println(SessionModel.getSessionModel().getCurrentRepoHelper());
-            System.out.println(SessionModel.getSessionModel().getCurrentRepoHelper().getRepo());
             MergeResult mergeResult = helper.getBranchModel().mergeWithBranch(mergeBranch);
+
+            console.info("Merge status: " + mergeResult.getMergeStatus());
             assert(mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.CONFLICTING));
             return local;
         } catch (Exception e){
@@ -94,9 +94,9 @@ public class ConflictManagementUtilities {
             makeChangesToFile(fw, local, helper, fileLocation, "added in mergeBranch\n", containsNonConflictingChanges);
 
             baseBranch.checkoutBranch();
-            System.out.println(SessionModel.getSessionModel().getCurrentRepoHelper());
-            System.out.println(SessionModel.getSessionModel().getCurrentRepoHelper().getRepo());
             MergeResult mergeResult = helper.getBranchModel().mergeWithBranch(mergeBranch);
+
+            console.info("Merge status: " + mergeResult.getMergeStatus());
             assert(mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.CONFLICTING));
             return local;
         } catch (Exception e){
