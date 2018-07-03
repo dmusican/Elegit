@@ -1,4 +1,4 @@
-package elegitfx.conflictResolutionFXTests;
+package elegitfx.conflictManagementFXTests;
 
 import elegit.Main;
 import elegit.controllers.SessionController;
@@ -26,7 +26,7 @@ import static junit.framework.TestCase.assertEquals;
  * Tests the conflict management tool when there are multiple conflicts. This test specifically tests how the middle
  * CodeArea changes when the accept, reject, undo, abort, toggle, and disable auto switch buttons are clicked.
  */
-public class MultipleConflictsResolutionTestFX extends ApplicationTest {
+public class MultipleConflictsManagementTestFX extends ApplicationTest {
     static {
         // -----------------------Logging Initialization Start---------------------------
         Path logPath = Paths.get("logs");
@@ -41,7 +41,7 @@ public class MultipleConflictsResolutionTestFX extends ApplicationTest {
 
     private Path directoryPath;
 
-    private final ConflictResolutionUtilities conflictResolutionUtilities = new ConflictResolutionUtilities();
+    private final ConflictManagementUtilities conflictManagementUtilities = new ConflictManagementUtilities();
 
     @ClassRule
     public static final TestingLogPathRule testingLogPath = new TestingLogPathRule();
@@ -77,7 +77,7 @@ public class MultipleConflictsResolutionTestFX extends ApplicationTest {
 
     @Test
     public void testResolveMultipleConflicts() throws Exception{
-        Path local = conflictResolutionUtilities.createMultipleConflicts(testingRemoteAndLocalRepos, false);
+        Path local = conflictManagementUtilities.createMultipleConflicts(testingRemoteAndLocalRepos, false);
         interact(() -> sessionController.handleLoadExistingRepoOption(local));
         interact(() -> sessionController.handleOpenConflictManagementTool(local.toString(),"test.txt"));
 

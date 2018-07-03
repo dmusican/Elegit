@@ -1,4 +1,4 @@
-package elegitfx.conflictResolutionFXTests;
+package elegitfx.conflictManagementFXTests;
 
 import elegit.Main;
 import elegit.controllers.SessionController;
@@ -25,7 +25,7 @@ import static junit.framework.TestCase.assertEquals;
  * Created by grenche on 7/3/18.
  * Tests to make sure the color of the conflicts is changing correctly is all three documents.
  */
-public class HighlightColorConflictResolutionTestFX extends ApplicationTest{
+public class HighlightColorConflictManagementTestFX extends ApplicationTest{
     static {
         // -----------------------Logging Initialization Start---------------------------
         Path logPath = Paths.get("logs");
@@ -40,7 +40,7 @@ public class HighlightColorConflictResolutionTestFX extends ApplicationTest{
 
     private Path directoryPath;
 
-    private final ConflictResolutionUtilities conflictResolutionUtilities = new ConflictResolutionUtilities();
+    private final ConflictManagementUtilities conflictManagementUtilities = new ConflictManagementUtilities();
 
     @ClassRule
     public static final TestingLogPathRule testingLogPath = new TestingLogPathRule();
@@ -76,7 +76,7 @@ public class HighlightColorConflictResolutionTestFX extends ApplicationTest{
 
     @Test
     public void testConflictHighlighting() throws Exception {
-        Path local = conflictResolutionUtilities.createMultipleConflicts(testingRemoteAndLocalRepos, true);
+        Path local = conflictManagementUtilities.createMultipleConflicts(testingRemoteAndLocalRepos, true);
         interact(() -> sessionController.handleLoadExistingRepoOption(local));
         interact(() -> sessionController.handleOpenConflictManagementTool(local.toString(), "test.txt"));
 
@@ -134,7 +134,11 @@ public class HighlightColorConflictResolutionTestFX extends ApplicationTest{
         // Check that the added non conflicting line is green
         interact(() -> leftDoc.moveTo(0,0));
         interact(() -> leftDoc.requestFollowCaret());
+        interact(() -> middleDoc.moveTo(0,0));
+        interact(() -> middleDoc.requestFollowCaret());
 
         interact(() -> assertEquals("changed-conflict", leftDoc.getStyleAtPosition(leftDoc.getCurrentParagraph(), 0).toArray()[0]));
+        interact(() -> assertEquals("changed-conflict", middleDoc.getStyleAtPosition(middleDoc.getCurrentParagraph(), 0).toArray()[0]));
+
     }
 }
