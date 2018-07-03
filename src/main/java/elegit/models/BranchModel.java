@@ -393,7 +393,7 @@ public class BranchModel {
      * @return a list of all remote branches and local branches
      */
     // Synchronized for localBranchesTyped
-    public Set<BranchHelper> getAllBranches() {
+    public synchronized Set<BranchHelper> getAllBranches() {
         Set<BranchHelper> tmp = ConcurrentHashMap.newKeySet();
         tmp.addAll(this.remoteBranchesTyped);
         tmp.addAll(this.localBranchesTyped);
@@ -408,7 +408,7 @@ public class BranchModel {
      * @return
      */
     // Synchronized for localBranchesTyped and remoteBranchesTyped
-    public BranchHelper getBranchByName(BranchType type, String branchName) {
+    public synchronized BranchHelper getBranchByName(BranchType type, String branchName) {
         List<? extends BranchHelper> branchList = type==BranchType.LOCAL ? this.localBranchesTyped : this.remoteBranchesTyped;
         for (BranchHelper branch: branchList) {
             if (branch.getRefName().equals(branchName))
