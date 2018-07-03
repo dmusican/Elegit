@@ -2,12 +2,18 @@ language: java
 os:
 - linux
 - osx
+
+addons:
+  apt:
+    packages:
+    - pandoc
+
 script:
 - mvn clean test -B -DskipDisplay=true
 
 after_failure:
 - mvn surefire-report:report-only
-- if [ $TRAVIS_OS_NAME = linux ]; then sudo apt-get install -y pandoc; else brew install pandoc; fi
+- if [ $TRAVIS_OS_NAME = "osx" ]; brew install pandoc; fi
 - if [ $TRAVIS_OS_NAME = linux ]; then
      pandoc --columns 120 -t plain /home/travis/build/dmusican/Elegit/target/site/surefire-report.html;
   else
