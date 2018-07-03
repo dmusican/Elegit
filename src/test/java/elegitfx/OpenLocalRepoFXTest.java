@@ -54,6 +54,7 @@ public class OpenLocalRepoFXTest extends ApplicationTest {
 
     @After
     public void tearDown() {
+        TestUtilities.commonShutDown();
         assertEquals(0,Main.getAssertionCount());
     }
 

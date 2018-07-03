@@ -87,6 +87,7 @@ public class RepoCreation3FXTest extends ApplicationTest {
     @After
     public void tearDown() {
         console.info("Tearing down");
+        TestUtilities.commonShutDown();
         assertEquals(0, Main.getAssertionCount());
     }
 

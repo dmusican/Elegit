@@ -1,5 +1,6 @@
 package elegitfx;
 
+import elegit.Main;
 import elegit.controllers.SessionController;
 import elegit.models.ClonedRepoHelper;
 import elegit.models.CommitHelper;
@@ -13,6 +14,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -66,6 +68,12 @@ public class CommitLabelFXTest extends ApplicationTest {
     public TestFXRule testFXRule = new TestFXRule();
 
     public static final CountDownLatch startComplete = new CountDownLatch(1);
+
+    @After
+    public void tearDown() {
+        TestUtilities.commonShutDown();
+    }
+
 
 
     @Override

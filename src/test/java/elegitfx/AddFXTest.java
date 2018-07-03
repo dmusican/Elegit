@@ -76,10 +76,9 @@ public class AddFXTest extends ApplicationTest {
 
     @After
     public void tearDown() {
+        TestUtilities.commonShutDown();
         assertEquals(0,Main.getAssertionCount());
     }
-
-
 
     @Test
     // This test will spit some errors about not connecting to a remore, but that's correct.

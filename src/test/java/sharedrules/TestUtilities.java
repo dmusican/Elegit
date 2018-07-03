@@ -4,6 +4,7 @@ import elegit.Main;
 import elegit.controllers.BusyWindow;
 import elegit.controllers.SessionController;
 import elegit.exceptions.CancelledAuthorizationException;
+import elegit.exceptions.ExceptionAdapter;
 import elegit.exceptions.MissingRepoException;
 import elegit.exceptions.NoCommitsToPushException;
 import elegit.exceptions.PushToAheadRemoteError;
@@ -11,7 +12,6 @@ import elegit.models.ExistingRepoHelper;
 import elegit.models.SessionModel;
 import elegit.monitors.RepositoryMonitor;
 import elegit.sshauthentication.ElegitUserInfoTest;
-import elegit.treefx.Cell;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Parent;
@@ -31,10 +31,10 @@ import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.revwalk.RevCommit;
 
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.ServerSocket;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.GeneralSecurityException;
@@ -56,6 +56,8 @@ public class TestUtilities {
     private static final Logger console = LogManager.getLogger("briefconsolelogger");
     private static final String testPassword = "a_test_password";
     public static final CountDownLatch startComplete = new CountDownLatch(1);
+
+    private static Path tempPrefsPath;
 
     public static String setUpTestSshServer(SshServer sshd,
                                             Path serverDirectory,
@@ -130,8 +132,6 @@ public class TestUtilities {
         return "ssh://localhost:" +  sshd.getPort() + "/"+remoteRepoDirectoryBrief;
     }
 
-
-
     public static SessionController commonTestFxStart(Stage stage) throws Exception {
         initializePreferences();
 
@@ -163,10 +163,33 @@ public class TestUtilities {
 
     public static void initializePreferences() throws BackingStoreException {
         Main.testMode = true;
+
+        try {
+            tempPrefsPath = Files.createTempDirectory("tempPrefs");
+            tempPrefsPath.toFile().deleteOnExit();
+        } catch (IOException e) {
+            throw new ExceptionAdapter(e);
+        }
+
+        System.setProperty("java.util.prefs.userRoot", tempPrefsPath.toString());
         Preferences prefs = Preferences.userNodeForPackage(TestUtilities.class);
         prefs.removeNode();
         SessionModel.setPreferencesNodeClass(TestUtilities.class);
     }
+
+    // Helper tear-down method:
+    private static void removeAllFilesFromDirectory(File dir) {
+        for (File file : dir.listFiles()) {
+            if (file.isDirectory()) removeAllFilesFromDirectory(file);
+            file.delete();
+        }
+    }
+
+
+    public static void commonShutDown() {
+        removeAllFilesFromDirectory(tempPrefsPath.toFile());
+    }
+
 
     public static Preferences getPreferences() {
         return Preferences.userNodeForPackage(TestUtilities.class);

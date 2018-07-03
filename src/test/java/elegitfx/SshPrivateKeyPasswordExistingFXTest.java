@@ -7,33 +7,15 @@ import elegit.controllers.SessionController;
 import elegit.exceptions.ExceptionAdapter;
 import elegit.models.ClonedRepoHelper;
 import elegit.models.ExistingRepoHelper;
-import elegit.models.SessionModel;
 import elegit.monitors.RepositoryMonitor;
-import elegit.sshauthentication.DetailedSshLogger;
-import elegit.sshauthentication.ElegitUserInfoGUI;
 import elegit.sshauthentication.ElegitUserInfoTest;
-import javafx.fxml.FXMLLoader;
-import javafx.geometry.Rectangle2D;
-import javafx.scene.Node;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.text.Text;
-import javafx.stage.Screen;
 import javafx.stage.Stage;
 import junit.framework.TestCase;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.sshd.common.config.keys.FilePasswordProvider;
-import org.apache.sshd.common.keyprovider.KeyPairProvider;
-import org.apache.sshd.common.keyprovider.MappedKeyPairProvider;
-import org.apache.sshd.common.util.security.SecurityUtils;
-import org.apache.sshd.git.pack.GitPackCommandFactory;
 import org.apache.sshd.server.SshServer;
-import org.apache.sshd.server.auth.password.PasswordAuthenticator;
-import org.apache.sshd.server.auth.pubkey.KeySetPublickeyAuthenticator;
-import org.apache.sshd.server.session.ServerSession;
 import org.eclipse.jgit.revwalk.RevCommit;
-import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -87,8 +69,6 @@ public class SshPrivateKeyPasswordExistingFXTest extends ApplicationTest {
 
     private static final Logger logger = LogManager.getLogger("consolelogger");
 
-    private static final Random random = new Random(90125);
-
     private SessionController sessionController;
 
     @Rule
@@ -123,6 +103,7 @@ public class SshPrivateKeyPasswordExistingFXTest extends ApplicationTest {
     @After
     public void tearDown() {
         logger.info("Tearing down");
+        TestUtilities.commonShutDown();
         TestCase.assertEquals(0, Main.getAssertionCount());
     }
 

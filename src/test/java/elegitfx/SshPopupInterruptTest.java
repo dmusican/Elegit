@@ -96,6 +96,7 @@ public class SshPopupInterruptTest extends ApplicationTest {
     @After
     public void tearDown() {
         logger.info("Tearing down");
+        TestUtilities.commonShutDown();
         TestCase.assertEquals(0, Main.getAssertionCount());
     }
 
