@@ -1,9 +1,7 @@
 package elegit.repofile;
 
 import elegit.Main;
-import elegit.controllers.ConflictManagementToolController;
 import elegit.controllers.SessionController;
-import elegit.gui.GitIgnoreEditor;
 import elegit.gui.PopUpWindows;
 import elegit.models.RepoHelper;
 import elegit.models.SessionModel;
@@ -63,7 +61,7 @@ public class ConflictingRepoFile extends RepoFile {
         Main.assertFxThread();
         logger.warn("Notification about conflicting file");
         if(!PopUpWindows.getComittingConflictingFileAlertShowing()) {
-            resultType = PopUpWindows.showCommittingConflictingFileAlert();
+            resultType = PopUpWindows.showAddingConflictingFileAlert();
         } else {
             resultType = PopUpWindows.getResultType();
         }
