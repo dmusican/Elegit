@@ -133,6 +133,7 @@ public class TestUtilities {
     }
 
     public static SessionController commonTestFxStart(Stage stage) throws Exception {
+        Main.assertFxThread();
         initializePreferences();
 
         return startupFxApp(stage);
@@ -140,6 +141,7 @@ public class TestUtilities {
     }
 
     public static SessionController startupFxApp(Stage stage) throws IOException {
+        Main.assertFxThread();
         BusyWindow.setParentWindow(stage);
 
         FXMLLoader fxmlLoader = new FXMLLoader(TestUtilities.class.getResource("/elegit/fxml/MainView.fxml"));
@@ -162,6 +164,7 @@ public class TestUtilities {
     }
 
     public static void initializePreferences() throws BackingStoreException {
+        Main.assertFxThread();
         Main.testMode = true;
 
         try {

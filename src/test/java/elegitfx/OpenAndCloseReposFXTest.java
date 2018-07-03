@@ -100,6 +100,8 @@ public class OpenAndCloseReposFXTest extends ApplicationTest {
     @Test
     public void test() throws Exception {
         TestUtilities.startComplete.await();
+        WaitForAsyncUtils.waitFor(20, TimeUnit.SECONDS,
+                                  () -> !BusyWindow.window.isShowing());
         initializeLogger();
         Path directoryPath = Files.createTempDirectory("unitTestRepos");
         directoryPath.toFile().deleteOnExit();

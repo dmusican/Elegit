@@ -1,6 +1,7 @@
 package elegitfx;
 
 import elegit.Main;
+import elegit.controllers.BusyWindow;
 import elegit.controllers.SessionController;
 import elegit.models.ClonedRepoHelper;
 import elegit.monitors.RepositoryMonitor;
@@ -22,6 +23,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.concurrent.TimeUnit;
 
 import static junit.framework.TestCase.assertEquals;
 import static org.junit.Assert.*;
@@ -63,6 +65,10 @@ public class OpenLocalRepoFXTest extends ApplicationTest {
     @Test
     public void openLocalRepoTest() throws Exception {
         TestUtilities.startComplete.await();
+        WaitForAsyncUtils.waitFor(20, TimeUnit.SECONDS,
+                                  () -> !BusyWindow.window.isShowing());
+        WaitForAsyncUtils.waitForFxEvents();
+
         initializeLogger();
         Path directoryPath = Files.createTempDirectory("unitTestRepos");
         directoryPath.toFile().deleteOnExit();
@@ -76,17 +82,12 @@ public class OpenLocalRepoFXTest extends ApplicationTest {
         helper.obtainRepository(remoteURL);
         assertNotNull(helper);
 
-        TestUtilities.startComplete.await();
-        WaitForAsyncUtils.waitForFxEvents();
-
-
         interact(() -> {
             // Test no content yet
             assertEquals(0,sessionController.getCommitTreeModel().getCommitsInModel().size());
         });
 
         CommitTreeModel.setAddCommitDelay(500);
-
 
         interact(() -> sessionController.handleLoadExistingRepoOption(repoPath));
         SessionController.gitStatusCompletedOnce.await();
