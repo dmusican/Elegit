@@ -166,13 +166,12 @@ public class TestUtilities {
     public static void initializePreferences() throws BackingStoreException {
         Main.assertFxThread();
         Main.testMode = true;
-        Preferences.userNodeForPackage(TestUtilities.class).removeNode();
-        Main.preferences = Preferences.userNodeForPackage(TestUtilities.class);
+        Main.preferences = Preferences.userNodeForPackage(TestUtilities.class).node("test" + (new Random().nextLong()));
     }
 
     public static void commonShutDown() {
         try {
-            Preferences.userNodeForPackage(TestUtilities.class).removeNode();
+            Main.preferences.removeNode();
         } catch (BackingStoreException e) {
             throw new ExceptionAdapter(e);
         }
