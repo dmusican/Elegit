@@ -166,36 +166,16 @@ public class TestUtilities {
     public static void initializePreferences() throws BackingStoreException {
         Main.assertFxThread();
         Main.testMode = true;
-
-        try {
-            tempPrefsPath = Files.createTempDirectory("tempPrefs");
-            tempPrefsPath.toFile().deleteOnExit();
-        } catch (IOException e) {
-            throw new ExceptionAdapter(e);
-        }
-
-        System.setProperty("java.util.prefs.userRoot", tempPrefsPath.toString());
-        Preferences prefs = Preferences.userNodeForPackage(TestUtilities.class);
-        prefs.removeNode();
-        SessionModel.setPreferencesNodeClass(TestUtilities.class);
+        Preferences.userNodeForPackage(TestUtilities.class).removeNode();
+        Main.preferences = Preferences.userNodeForPackage(TestUtilities.class);
     }
-
-    // Helper tear-down method:
-    private static void removeAllFilesFromDirectory(File dir) {
-        for (File file : dir.listFiles()) {
-            if (file.isDirectory()) removeAllFilesFromDirectory(file);
-            file.delete();
-        }
-    }
-
 
     public static void commonShutDown() {
-        removeAllFilesFromDirectory(tempPrefsPath.toFile());
-    }
-
-
-    public static Preferences getPreferences() {
-        return Preferences.userNodeForPackage(TestUtilities.class);
+        try {
+            Preferences.userNodeForPackage(TestUtilities.class).removeNode();
+        } catch (BackingStoreException e) {
+            throw new ExceptionAdapter(e);
+        }
     }
 
     public static List<RevCommit> makeTestRepo(Path remote, Path local, int numFiles, int numCommits,

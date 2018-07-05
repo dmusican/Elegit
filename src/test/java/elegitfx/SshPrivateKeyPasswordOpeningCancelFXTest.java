@@ -112,6 +112,8 @@ public class SshPrivateKeyPasswordOpeningCancelFXTest extends ApplicationTest {
     @Override
     public void start(Stage stage) throws Exception {
 
+        TestUtilities.initializePreferences();
+
         directoryPath = Files.createTempDirectory("unitTestRepos");
         directoryPath.toFile().deleteOnExit();
         directoryPath = testingRemoteAndLocalRepos.getDirectoryPath();
@@ -142,16 +144,11 @@ public class SshPrivateKeyPasswordOpeningCancelFXTest extends ApplicationTest {
                                      directoryPath.resolve("testing_known_hosts").toString());
         helper.obtainRepository(remoteURL);
 
-        TestUtilities.initializePreferences();
-
-        Preferences preferences = TestUtilities.getPreferences();
-
-        console.info("preferences = " + preferences);
         console.info(SessionModel.getPreferencesNodeClass().toString());
-        PrefObj.putObject(preferences, LAST_OPENED_REPO_PATH_KEY, local.toString());
+        PrefObj.putObject(Main.preferences, LAST_OPENED_REPO_PATH_KEY, local.toString());
         ArrayList<String> recentRepos = new ArrayList<>();
         recentRepos.add(local.toString());
-        PrefObj.putObject(preferences, SessionModel.RECENT_REPOS_LIST_KEY, recentRepos);
+        PrefObj.putObject(Main.preferences, SessionModel.RECENT_REPOS_LIST_KEY, recentRepos);
 
         sessionController = TestUtilities.startupFxApp(stage);
 
