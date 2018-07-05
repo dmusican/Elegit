@@ -4,14 +4,13 @@ import elegit.Main;
 import elegit.controllers.BusyWindow;
 import elegit.controllers.SessionController;
 import elegit.exceptions.CancelledAuthorizationException;
+import elegit.exceptions.ExceptionAdapter;
 import elegit.exceptions.MissingRepoException;
 import elegit.exceptions.NoCommitsToPushException;
 import elegit.exceptions.PushToAheadRemoteError;
 import elegit.models.ExistingRepoHelper;
-import elegit.models.SessionModel;
 import elegit.monitors.RepositoryMonitor;
 import elegit.sshauthentication.ElegitUserInfoTest;
-import elegit.treefx.Cell;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Parent;
@@ -30,6 +29,7 @@ import org.apache.sshd.server.auth.pubkey.KeySetPublickeyAuthenticator;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.revwalk.RevCommit;
+import org.testfx.util.WaitForAsyncUtils;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -44,6 +44,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Random;
 import java.util.Scanner;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
@@ -53,6 +56,9 @@ public class TestUtilities {
 
     private static final Logger console = LogManager.getLogger("briefconsolelogger");
     private static final String testPassword = "a_test_password";
+    public static final CountDownLatch startComplete = new CountDownLatch(1);
+
+    private static Path tempPrefsPath;
 
     public static String setUpTestSshServer(SshServer sshd,
                                             Path serverDirectory,
@@ -91,7 +97,10 @@ public class TestUtilities {
         sshd.setKeyPairProvider(hostKeyProvider);
 
         // Need to use a non-standard port, as there may be an ssh server already running on this machine
-        sshd.setPort(2222);
+        // Setting a port to 0 automatically picks an unused port. This is undocumented, but apparently works just
+        // like new ServerSocket(0), which is documented
+        sshd.setPort(0);
+
 
         // Set up a fall-back password authenticator to help in diagnosing failed test
         sshd.setPasswordAuthenticator(
@@ -121,19 +130,19 @@ public class TestUtilities {
         Files.createFile(knownHostsFileLocation);
 
         // Clone the bare repo, using the SSH connection, to the local.
-        return "ssh://localhost:2222/"+remoteRepoDirectoryBrief;
+        return "ssh://localhost:" +  sshd.getPort() + "/"+remoteRepoDirectoryBrief;
     }
 
-
-
     public static SessionController commonTestFxStart(Stage stage) throws Exception {
-        initializePreferences();
+        Main.assertFxThread();
+        setupTestEnvironment();
 
         return startupFxApp(stage);
 
     }
 
     public static SessionController startupFxApp(Stage stage) throws IOException {
+        Main.assertFxThread();
         BusyWindow.setParentWindow(stage);
 
         FXMLLoader fxmlLoader = new FXMLLoader(TestUtilities.class.getResource("/elegit/fxml/MainView.fxml"));
@@ -151,19 +160,37 @@ public class TestUtilities {
         // TODO: Remove this pause and keep test working; no good reason for it to be necessary
         RepositoryMonitor.pause();
 
+        startComplete.countDown();
         return sessionController;
     }
 
-    public static void initializePreferences() throws BackingStoreException {
+    public static void setupTestEnvironment() {
         Main.testMode = true;
-        Preferences prefs = Preferences.userNodeForPackage(TestUtilities.class);
-        prefs.removeNode();
-        SessionModel.setPreferencesNodeClass(TestUtilities.class);
+        Main.preferences = Preferences.userNodeForPackage(TestUtilities.class).node("test" + (new Random().nextLong()));
     }
 
-    public static Preferences getPreferences() {
-        return Preferences.userNodeForPackage(TestUtilities.class);
+    public static void cleanupTestEnvironment() {
+        try {
+            Main.preferences.removeNode();
+        } catch (BackingStoreException e) {
+            throw new ExceptionAdapter(e);
+        }
     }
+
+    public static void commonStartupOffFXThread() {
+        try {
+            startComplete.await();
+            WaitForAsyncUtils.waitFor(20, TimeUnit.SECONDS,
+                                      () -> !BusyWindow.window.isShowing());
+            WaitForAsyncUtils.waitForFxEvents();
+        } catch (InterruptedException e) {
+            throw new ExceptionAdapter(e);
+        } catch (TimeoutException e) {
+            throw new ExceptionAdapter(e);
+        }
+
+    }
+
 
     public static List<RevCommit> makeTestRepo(Path remote, Path local, int numFiles, int numCommits,
                                                boolean lastCommitUndone) throws GitAPIException,

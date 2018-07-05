@@ -7,6 +7,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import sharedrules.TestUtilities;
 
 import java.io.File;
 import java.io.IOException;
@@ -26,6 +27,7 @@ public class SessionModelTest {
 
     @Before
     public void setUp() throws Exception {
+        TestUtilities.setupTestEnvironment();
         initializeLogger();
         this.directoryPath = Files.createTempDirectory("unitTestRepos");
         directoryPath.toFile().deleteOnExit();
@@ -34,6 +36,7 @@ public class SessionModelTest {
     @After
     public void tearDown() throws Exception {
         removeAllFilesFromDirectory(this.logPath.toFile());
+        TestUtilities.cleanupTestEnvironment();
     }
 
     // Helper method to avoid annoying traces from logger

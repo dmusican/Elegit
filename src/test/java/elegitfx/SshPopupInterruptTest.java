@@ -2,26 +2,13 @@ package elegitfx;
 
 import elegit.Main;
 import elegit.controllers.SessionController;
-import elegit.controllers.SshPromptController;
 import elegit.exceptions.CancelledDialogException;
-import elegit.exceptions.ExceptionAdapter;
-import elegit.models.ClonedRepoHelper;
-import elegit.models.ExistingRepoHelper;
-import elegit.monitors.RepositoryMonitor;
 import elegit.sshauthentication.ElegitUserInfoGUI;
-import elegit.sshauthentication.ElegitUserInfoTest;
-import io.reactivex.Completable;
-import io.reactivex.schedulers.Schedulers;
 import javafx.scene.control.PasswordField;
-import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import junit.framework.TestCase;
-import junit.framework.TestFailure;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.sshd.server.SshServer;
-import org.eclipse.jgit.revwalk.RevCommit;
-import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -36,13 +23,9 @@ import sharedrules.TestingLogPathRule;
 import sharedrules.TestingRemoteAndLocalReposRule;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Random;
-import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
@@ -96,6 +79,7 @@ public class SshPopupInterruptTest extends ApplicationTest {
     @After
     public void tearDown() {
         logger.info("Tearing down");
+        TestUtilities.cleanupTestEnvironment();
         TestCase.assertEquals(0, Main.getAssertionCount());
     }
 
@@ -111,6 +95,7 @@ public class SshPopupInterruptTest extends ApplicationTest {
      */
     @Test
     public void test() throws Exception {
+        TestUtilities.commonStartupOffFXThread();
 
 
         ElegitUserInfoGUI userInfo = new ElegitUserInfoGUI();

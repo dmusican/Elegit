@@ -3,10 +3,10 @@ package elegitfx;
 import elegit.Main;
 import elegit.controllers.BusyWindow;
 import elegit.controllers.SessionController;
-import elegit.models.ClonedRepoHelper;
 import elegit.models.ExistingRepoHelper;
 import elegit.models.RepoHelper;
 import elegit.models.SessionModel;
+import elegit.monitors.RepositoryMonitor;
 import elegit.sshauthentication.ElegitUserInfoTest;
 import elegit.treefx.CommitTreeModel;
 import javafx.scene.Node;
@@ -16,8 +16,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.controlsfx.control.CheckListView;
 import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -42,6 +40,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 public class OpenAndCloseReposFXTest extends ApplicationTest {
+
+    public static final int timeoutDelay = 20;
 
     static {
         // -----------------------Logging Initialization Start---------------------------
@@ -76,6 +76,7 @@ public class OpenAndCloseReposFXTest extends ApplicationTest {
     @After
     public void tearDown() {
         console.info("Tearing down");
+        TestUtilities.cleanupTestEnvironment();
         assertEquals(0,Main.getAssertionCount());
     }
 
@@ -95,12 +96,19 @@ public class OpenAndCloseReposFXTest extends ApplicationTest {
 
     @Test
     public void test() throws Exception {
+        TestUtilities.commonStartupOffFXThread();
+
+        TestUtilities.startComplete.await();
+        WaitForAsyncUtils.waitFor(20, TimeUnit.SECONDS,
+                                  () -> !BusyWindow.window.isShowing());
         initializeLogger();
         Path directoryPath = Files.createTempDirectory("unitTestRepos");
         directoryPath.toFile().deleteOnExit();
 
+        console.info("Setting up initial repos");
         Path repoPath1 = makeTempLocalRepo(directoryPath,"repo1");
         Path repoPath2 = makeTempLocalRepo(directoryPath,"repo2");
+        console.info("Done setting up initial repos");
 
         CommitTreeModel.setAddCommitDelay(5);
 
@@ -138,10 +146,11 @@ public class OpenAndCloseReposFXTest extends ApplicationTest {
     private void addSwapAndRemoveRepos(Path repoPath, Path repoPath2) throws InterruptedException, TimeoutException {
         interact(() -> sessionController.handleLoadExistingRepoOption(repoPath));
         SessionController.gitStatusCompletedOnce.await();
+        RepositoryMonitor.pause();
 
         final ComboBox<RepoHelper> dropdown = lookup("#repoDropdown").query();
 
-        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+        WaitForAsyncUtils.waitFor(timeoutDelay, TimeUnit.SECONDS,
                                   () -> !BusyWindow.window.isShowing());
 
 
@@ -154,7 +163,7 @@ public class OpenAndCloseReposFXTest extends ApplicationTest {
 
         interact(() -> sessionController.handleLoadExistingRepoOption(repoPath2));
 
-        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+        WaitForAsyncUtils.waitFor(timeoutDelay, TimeUnit.SECONDS,
                                   () -> !BusyWindow.window.isShowing());
 
         // Now that both repos have been added, the dropdown should contain both of them.
@@ -163,8 +172,11 @@ public class OpenAndCloseReposFXTest extends ApplicationTest {
         interact(() -> assertEquals(2, SessionModel.getSessionModel().getAllRepoHelpers().size()));
 
         for (int i=0; i < 3; i++) {
-            WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+            WaitForAsyncUtils.waitFor(timeoutDelay, TimeUnit.SECONDS,
                                       () -> dropdown.getValue().toString().equals("repo2"));
+            WaitForAsyncUtils.waitForFxEvents();
+            sleep(100);
+
             clickOn(dropdown);
 
             // The below awful hack is very likely related to this bug:
@@ -177,12 +189,15 @@ public class OpenAndCloseReposFXTest extends ApplicationTest {
             });
 
             clickOn("repo1");
-            WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+            WaitForAsyncUtils.waitFor(timeoutDelay, TimeUnit.SECONDS,
                                       () -> !BusyWindow.window.isShowing());
 
-
-            WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+            // We were having timeout issues which is why the countDownLatch is needed. Makes the test SUPER slow
+            WaitForAsyncUtils.waitFor(timeoutDelay, TimeUnit.SECONDS,
                                       () -> dropdown.getValue().toString().equals("repo1"));
+            WaitForAsyncUtils.waitForFxEvents();
+            sleep(100);
+
             clickOn(dropdown);
 
             // See comment above regarding bug #539.
@@ -192,7 +207,7 @@ public class OpenAndCloseReposFXTest extends ApplicationTest {
             });
 
             clickOn("repo2");
-            WaitForAsyncUtils.waitFor(15, TimeUnit.SECONDS,
+            WaitForAsyncUtils.waitFor(timeoutDelay, TimeUnit.SECONDS,
                                       () -> !BusyWindow.window.isShowing());
         }
 
@@ -201,7 +216,7 @@ public class OpenAndCloseReposFXTest extends ApplicationTest {
         interact(() -> assertEquals(2, dropdown.getItems().size()));
         interact(() -> assertEquals(2, SessionModel.getSessionModel().getAllRepoHelpers().size()));
 
-        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+        WaitForAsyncUtils.waitFor(timeoutDelay, TimeUnit.SECONDS,
                                   () -> dropdown.getValue().toString().equals("repo2"));
         interact(() -> console.info(dropdown.getItems() + " " + dropdown.getValue()));
         clickOn("#removeRecentReposButton");
@@ -222,7 +237,7 @@ public class OpenAndCloseReposFXTest extends ApplicationTest {
 
         assertNotEquals(null,lookup("repo2").query());
 
-        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+        WaitForAsyncUtils.waitFor(timeoutDelay, TimeUnit.SECONDS,
                                   () -> dropdown.getValue().toString().equals("repo2"));
 
         // Verify that now only one repo remains on the list

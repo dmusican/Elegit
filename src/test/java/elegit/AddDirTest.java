@@ -5,10 +5,12 @@ import elegit.models.ExistingRepoHelper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jgit.api.Git;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
+import sharedrules.TestUtilities;
 import sharedrules.TestingLogPathRule;
 import sharedrules.TestingRemoteAndLocalReposRule;
 
@@ -37,6 +39,12 @@ public class AddDirTest {
     @Before
     public void setUp() throws Exception {
         console.info("Unit test started");
+        TestUtilities.setupTestEnvironment();
+    }
+
+    @After
+    public void tearDown() {
+        TestUtilities.cleanupTestEnvironment();
     }
 
 

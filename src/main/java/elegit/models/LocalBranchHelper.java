@@ -14,11 +14,11 @@ import java.util.Arrays;
  */
 @ThreadSafe
 public class LocalBranchHelper extends BranchHelper {
-    public LocalBranchHelper(String refPathString, RepoHelper repo) throws IOException {
+    public LocalBranchHelper(String refPathString, RepoHelper repo) {
         super(refPathString, repo);
     }
 
-    public LocalBranchHelper(Ref branchRef, RepoHelper repo) throws IOException {
+    public LocalBranchHelper(Ref branchRef, RepoHelper repo) {
         this(branchRef.getName(),  repo);
     }
 

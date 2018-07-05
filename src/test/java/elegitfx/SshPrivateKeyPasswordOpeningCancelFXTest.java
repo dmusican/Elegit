@@ -1,27 +1,18 @@
 package elegitfx;
 
 import elegit.Main;
-import elegit.controllers.BusyWindow;
 import elegit.controllers.SessionController;
-import elegit.controllers.SshPromptController;
 import elegit.exceptions.ExceptionAdapter;
 import elegit.models.ClonedRepoHelper;
-import elegit.models.ExistingRepoHelper;
 import elegit.models.PrefObj;
 import elegit.models.SessionModel;
 import elegit.monitors.RepositoryMonitor;
 import elegit.sshauthentication.ElegitUserInfoTest;
-import javafx.scene.Node;
-import javafx.scene.control.Dialog;
-import javafx.scene.control.PasswordField;
-import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import junit.framework.TestCase;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.sshd.server.SshServer;
-import org.eclipse.jgit.revwalk.RevCommit;
-import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -30,7 +21,6 @@ import org.junit.Test;
 import org.junit.rules.TestName;
 import org.testfx.framework.junit.ApplicationTest;
 import org.testfx.framework.junit.TestFXRule;
-import org.testfx.service.query.NodeQuery;
 import org.testfx.util.WaitForAsyncUtils;
 import sharedrules.TestUtilities;
 import sharedrules.TestingLogPathRule;
@@ -42,17 +32,17 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Random;
 import java.util.Scanner;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.prefs.Preferences;
 
 import static elegit.models.SessionModel.LAST_OPENED_REPO_PATH_KEY;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 
 public class SshPrivateKeyPasswordOpeningCancelFXTest extends ApplicationTest {
+
+    public static final int timeoutDelay = 30;
 
     @ClassRule
     public static final TestingLogPathRule testingLogPath = new TestingLogPathRule();
@@ -110,6 +100,8 @@ public class SshPrivateKeyPasswordOpeningCancelFXTest extends ApplicationTest {
     @Override
     public void start(Stage stage) throws Exception {
 
+        TestUtilities.setupTestEnvironment();
+
         directoryPath = Files.createTempDirectory("unitTestRepos");
         directoryPath.toFile().deleteOnExit();
         directoryPath = testingRemoteAndLocalRepos.getDirectoryPath();
@@ -140,16 +132,11 @@ public class SshPrivateKeyPasswordOpeningCancelFXTest extends ApplicationTest {
                                      directoryPath.resolve("testing_known_hosts").toString());
         helper.obtainRepository(remoteURL);
 
-        TestUtilities.initializePreferences();
-
-        Preferences preferences = TestUtilities.getPreferences();
-
-        console.info("preferences = " + preferences);
         console.info(SessionModel.getPreferencesNodeClass().toString());
-        PrefObj.putObject(preferences, LAST_OPENED_REPO_PATH_KEY, local.toString());
+        PrefObj.putObject(Main.preferences, LAST_OPENED_REPO_PATH_KEY, local.toString());
         ArrayList<String> recentRepos = new ArrayList<>();
         recentRepos.add(local.toString());
-        PrefObj.putObject(preferences, SessionModel.RECENT_REPOS_LIST_KEY, recentRepos);
+        PrefObj.putObject(Main.preferences, SessionModel.RECENT_REPOS_LIST_KEY, recentRepos);
 
         sessionController = TestUtilities.startupFxApp(stage);
 
@@ -173,34 +160,34 @@ public class SshPrivateKeyPasswordOpeningCancelFXTest extends ApplicationTest {
 
         WaitForAsyncUtils.waitForFxEvents();
 
-        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+        WaitForAsyncUtils.waitFor(timeoutDelay, TimeUnit.SECONDS,
                                   () -> lookup("Yes").query() != null);
-        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+        WaitForAsyncUtils.waitFor(timeoutDelay, TimeUnit.SECONDS,
                                   () -> lookup("Yes").query().isVisible());
         WaitForAsyncUtils.waitForFxEvents();
         sleep(100);  // Additional catchup; seems to be necessary
         clickOn("Yes");
-        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+        WaitForAsyncUtils.waitFor(timeoutDelay, TimeUnit.SECONDS,
                                   () -> lookup("Yes").query() == null);
         sleep(delay);
 
         // Wait for ssh prompt, then click cancel
-        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+        WaitForAsyncUtils.waitFor(timeoutDelay, TimeUnit.SECONDS,
                                   () -> lookup("Cancel").query() != null);
-        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+        WaitForAsyncUtils.waitFor(timeoutDelay, TimeUnit.SECONDS,
                                   () -> lookup("Cancel").query().isVisible());
         WaitForAsyncUtils.waitForFxEvents();
         sleep(100);  // Additional catchup; seems to be necessary
         clickOn("Cancel");
         sleep(delay);
-        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+        WaitForAsyncUtils.waitFor(timeoutDelay, TimeUnit.SECONDS,
                                   () -> lookup("Cancel").query() == null);
 
         // Test that trying to fetch after cancelling works gracefully, then try cancelling again
         clickOn("Fetch");
-        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+        WaitForAsyncUtils.waitFor(timeoutDelay, TimeUnit.SECONDS,
                                   () -> lookup("Cancel").query() != null);
-        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+        WaitForAsyncUtils.waitFor(timeoutDelay, TimeUnit.SECONDS,
                                   () -> lookup("Cancel").query().isVisible());
         WaitForAsyncUtils.waitForFxEvents();
         sleep(100);  // Additional catchup; seems to be necessary
@@ -209,9 +196,9 @@ public class SshPrivateKeyPasswordOpeningCancelFXTest extends ApplicationTest {
 
 
         // HTTP cancel. Should someday get rid of this, but for now, gets rid of error messages to acknowledge it.
-        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+        WaitForAsyncUtils.waitFor(timeoutDelay, TimeUnit.SECONDS,
                                   () -> lookup("Cancel").query() != null);
-        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+        WaitForAsyncUtils.waitFor(timeoutDelay, TimeUnit.SECONDS,
                                   () -> lookup("Cancel").query().isVisible());
         WaitForAsyncUtils.waitForFxEvents();
         sleep(100);  // Additional catchup; seems to be necessary

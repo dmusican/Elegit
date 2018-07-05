@@ -21,7 +21,6 @@ import javax.imageio.ImageIO;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Scanner;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -44,8 +43,6 @@ public class Main extends Application {
         logger = LogManager.getLogger();
     }
 
-    public static ExecutorService backgroundExec = Executors.newCachedThreadPool();
-
     // boolean used to stop the service that moves cells in TreeLayout.
     // TODO: This is likely misplaced, but I can't really do much with it until I fix TreeLayout
     public final static AtomicBoolean isAppClosed = new AtomicBoolean();
@@ -57,6 +54,9 @@ public class Main extends Application {
     public static SessionController sessionController;
 
     public static Stage primaryStage;
+
+    // Location in Java API preferences hierarchy, to be used throughout code
+    public static Preferences preferences = Preferences.userNodeForPackage(Main.class);
 
     // Set to true when unit testing for occasional differences in code
     public static boolean testMode = false;
@@ -145,13 +145,12 @@ public class Main extends Application {
     }
 
     private static void clearPreferences() {
-        Preferences prefs = Preferences.userNodeForPackage(Main.class);
         try {
-            System.out.print("Are you sure you want to clear all prefs (yes/no)?");
+            System.out.print("Are you sure you want to clear all preferences (yes/no)?");
             Scanner inp = new Scanner(System.in);
             String response = inp.next();
             if (response.equals("yes")) {
-                prefs.removeNode();
+                preferences.removeNode();
                 System.out.println("Preferences cleared.");
             }
         } catch (BackingStoreException e) {
