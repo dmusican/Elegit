@@ -30,7 +30,6 @@ public class TestingRemoteAndLocalReposRule extends ExternalResource {
 
     @Override
     protected void before() throws Exception {
-        System.err.println("Helper remoteAndLocal: "+ SessionModel.getSessionModel().getCurrentRepoHelper());
 
         directoryPath = Files.createTempDirectory("unitTestRepos");
         if (deleteTempFiles) {

@@ -283,8 +283,6 @@ public class SessionModel {
      * @return the current JGit repository associated with the current RepoHelper
      */
     private Repository getCurrentRepo() {
-        System.err.println("Helper: "+this.getCurrentRepoHelper());
-        System.err.println("Repo: "+this.getCurrentRepoHelper().getRepo());
         return this.getCurrentRepoHelper().getRepo();
     }
 
@@ -550,6 +548,9 @@ public class SessionModel {
             String path = repo.getDirectory()+File.separator+repo.toString();
             mergeResults.put(path, results);
             PrefObj.putObject(this.preferences, MERGE_RESULT, mergeResults);
+        } catch (NullPointerException e){
+            //should only be thrown in non-fx testing
+            console.info("No current repo set");
         } catch(Exception e){
             e.printStackTrace();
             throw new ExceptionAdapter(e);
@@ -560,8 +561,12 @@ public class SessionModel {
         try {
             HashMap<String, HashMap<String, String>> mergeResults =
                     (HashMap<String, HashMap<String, String>>) PrefObj.getObject(this.preferences, MERGE_RESULT);
+            RepoHelper current = getCurrentRepoHelper();
             String path = getCurrentRepo().getDirectory()+File.separator+getCurrentRepo().toString();
             return mergeResults.get(path);
+        } catch (NullPointerException e) {
+            console.info("No current repo set");
+            throw new ExceptionAdapter(e);
         } catch (Exception e) {
             e.printStackTrace();
             throw new ExceptionAdapter(e);

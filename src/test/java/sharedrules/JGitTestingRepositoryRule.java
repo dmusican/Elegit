@@ -73,7 +73,6 @@ public class JGitTestingRepositoryRule extends HttpTestCase implements TestRule 
 
     @Override
     public Statement apply(final Statement base, final Description description) {
-        System.err.println("Helper JGITrepo: "+ SessionModel.getSessionModel().getCurrentRepoHelper());
         return new Statement() {
             @Override
             public void evaluate() throws Throwable {

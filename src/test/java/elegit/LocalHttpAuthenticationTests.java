@@ -129,22 +129,17 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
 	@Override
 	@Before
 	public void setUp() throws Exception {
-        System.err.println("Starting the setUp");
-        System.err.println("Helper setup: "+SessionModel.getSessionModel().getCurrentRepoHelper());
         super.setUp();
 
-        System.err.println("Helper setup: "+SessionModel.getSessionModel().getCurrentRepoHelper());
         jGitTestRepo = jGitTestingRepositoryRule.getJgitTestRepo();
 		remoteURI = jGitTestingRepositoryRule.getRemoteURI();
 		authURI = jGitTestingRepositoryRule.getAuthURI();
-        System.err.println("Helper setup: "+SessionModel.getSessionModel().getCurrentRepoHelper());
 
 
         // Set up secondary remote repo
         Path remoteFull = testingRemoteAndLocalRepos.getRemoteFull();
         System.out.println("remote full is " + remoteFull);
 
-        System.err.println("Helper setup: "+SessionModel.getSessionModel().getCurrentRepoHelper());
 
         Repository db = new FileRepository(remoteFull.toString());
 
@@ -155,7 +150,6 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
         ExistingRepoHelper helperServer = new ExistingRepoHelper(remoteFull, null);
         helperServer.addFilePathsTest(paths);
         helperServer.commit("Initial unit test commit");
-        System.err.println("Helper setup: "+SessionModel.getSessionModel().getCurrentRepoHelper());
 
         System.out.println("Location is " + db.getDirectory());
     }
@@ -900,7 +894,6 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
         UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider("agitter",
                                                                                                   "letmein");
 
-        System.err.println("Helper test: "+SessionModel.getSessionModel().getCurrentRepoHelper());
         Path directoryPath = testingRemoteAndLocalRepos.getDirectoryPath();
 
         // Repo that will commit to make a fast forward commit
@@ -909,13 +902,11 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
         assertNotNull(helperFast);
         helperFast.obtainRepository(authURI.toString());
 
-        System.err.println("Helper test: "+SessionModel.getSessionModel().getCurrentRepoHelper());
 
         // Create the branch 'fast_branch'
         helperFast.getBranchModel().createNewLocalBranch("fast_branch");
 
 
-        System.err.println("Helper test: "+SessionModel.getSessionModel().getCurrentRepoHelper());
 
         LocalBranchHelper fastBranch = (LocalBranchHelper) helperFast
                 .getBranchModel().getBranchByName(BranchModel.BranchType.LOCAL, "fast_branch");
@@ -924,13 +915,11 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
         PushCommand command = helperFast.prepareToPushAll(untrackedLocalBranches -> untrackedLocalBranches);
         helperFast.pushAll(command);
 
-        System.err.println("Helper test: "+SessionModel.getSessionModel().getCurrentRepoHelper());
 
 
         // Track fast_branch and check it out
         fastBranch.checkoutBranch();
         helperFast.updateModel();
-        System.err.println("Helper test: "+SessionModel.getSessionModel().getCurrentRepoHelper());
 
 
         // Update the file in fast_branch
@@ -938,26 +927,22 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
         String timestamp = (new Date()).toString() + "\n";
         Files.write(filePath, timestamp.getBytes(), StandardOpenOption.APPEND);
         helperFast.addFilePathTest(filePath);
-        System.err.println("Helper test: "+SessionModel.getSessionModel().getCurrentRepoHelper());
 
 
         // Commit changes in fast_branch and push
         helperFast.commit("added a character");
         command = helperFast.prepareToPushAll();
         helperFast.pushAll(command);
-        System.err.println("Helper test: "+SessionModel.getSessionModel().getCurrentRepoHelper());
 
 
         //Checkout master
         LocalBranchHelper master_helper = (LocalBranchHelper) helperFast
                 .getBranchModel().getBranchByName(BranchModel.BranchType.LOCAL, "master");
         master_helper.checkoutBranch();
-        System.err.println("Helper test: "+SessionModel.getSessionModel().getCurrentRepoHelper());
 
 
         // Merge fast_forward into master
         helperFast.getBranchModel().mergeWithBranch(fastBranch);
-        System.err.println("Helper test: "+SessionModel.getSessionModel().getCurrentRepoHelper());
 
 
         // Check that Elegit recognizes there are unpushed commits
