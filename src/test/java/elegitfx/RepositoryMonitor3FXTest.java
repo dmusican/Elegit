@@ -53,6 +53,8 @@ public class RepositoryMonitor3FXTest extends ApplicationTest {
 
     @Test
     public void repoMonitorOnNoRepoOpenTest() throws Exception {
+        TestUtilities.commonStartupOffFXThread();
+
         RepositoryMonitor.unpause();
         sleep(Math.max(RepositoryMonitor.REMOTE_CHECK_INTERVAL,
                 RepositoryMonitor.LOCAL_CHECK_INTERVAL)+1000);

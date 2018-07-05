@@ -91,6 +91,7 @@ public class RevertFXTest extends ApplicationTest {
 
     @Test
     public void test() throws Exception {
+        TestUtilities.commonStartupOffFXThread();
 
         Path remote = directoryPath.resolve("remote1");
         Path local = directoryPath.resolve("local1");

@@ -56,11 +56,6 @@ public class PushPullFXTest extends ApplicationTest {
     @Override
     public void start(Stage stage) throws Exception {
         TestUtilities.commonTestFxStart(stage);
-
-        if (!Main.initializationComplete.get()) {
-            BusyWindow.show();
-        }
-
     }
 
     @After
@@ -74,6 +69,8 @@ public class PushPullFXTest extends ApplicationTest {
     // in the FX thread (which is right), but there's a lot of code here in this test not run in the FX thread
     // that probably should be. Fix it if this test starts causing trouble. In the meantime... it's a test.
     public void testPushPullBothCloned() throws Exception {
+        TestUtilities.commonStartupOffFXThread();
+
         UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider("agitter",
                                                                                                   "letmein");
 

@@ -30,6 +30,7 @@ import org.apache.sshd.server.auth.pubkey.KeySetPublickeyAuthenticator;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.revwalk.RevCommit;
+import org.testfx.util.WaitForAsyncUtils;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -46,6 +47,8 @@ import java.util.List;
 import java.util.Random;
 import java.util.Scanner;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
@@ -167,6 +170,20 @@ public class TestUtilities {
         Main.assertFxThread();
         Main.testMode = true;
         Main.preferences = Preferences.userNodeForPackage(TestUtilities.class).node("test" + (new Random().nextLong()));
+    }
+
+    public static void commonStartupOffFXThread() {
+        try {
+            startComplete.await();
+            WaitForAsyncUtils.waitFor(20, TimeUnit.SECONDS,
+                                      () -> !BusyWindow.window.isShowing());
+            WaitForAsyncUtils.waitForFxEvents();
+        } catch (InterruptedException e) {
+            throw new ExceptionAdapter(e);
+        } catch (TimeoutException e) {
+            throw new ExceptionAdapter(e);
+        }
+
     }
 
     public static void commonShutDown() {

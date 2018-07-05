@@ -148,6 +148,7 @@ public class SshPrivateKeyPasswordCloneFXTest extends ApplicationTest {
 
     @Test
     public void testSshPrivateKey() throws Exception {
+        TestUtilities.commonStartupOffFXThread();
 
         // Set up remote repo
         Path remote = testingRemoteAndLocalRepos.getRemoteFull();

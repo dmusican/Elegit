@@ -68,6 +68,8 @@ public class ChangeRemoteMonitoringStatus extends ApplicationTest {
 
     @Test
     public void changeRemoteMonitoringStatusTest() throws Exception {
+        TestUtilities.commonStartupOffFXThread();
+
         console.info("Test starting");
         initializeLogger();
         Path directoryPath = Files.createTempDirectory("unitTestRepos");

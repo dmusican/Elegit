@@ -99,6 +99,8 @@ public class OpenAndCloseReposFXTest extends ApplicationTest {
 
     @Test
     public void test() throws Exception {
+        TestUtilities.commonStartupOffFXThread();
+
         TestUtilities.startComplete.await();
         WaitForAsyncUtils.waitFor(20, TimeUnit.SECONDS,
                                   () -> !BusyWindow.window.isShowing());

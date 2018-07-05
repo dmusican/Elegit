@@ -112,6 +112,7 @@ public class SshPopupInterruptTest extends ApplicationTest {
      */
     @Test
     public void test() throws Exception {
+        TestUtilities.commonStartupOffFXThread();
 
 
         ElegitUserInfoGUI userInfo = new ElegitUserInfoGUI();

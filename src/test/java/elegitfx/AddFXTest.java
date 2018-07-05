@@ -84,6 +84,7 @@ public class AddFXTest extends ApplicationTest {
     // This test will spit some errors about not connecting to a remore, but that's correct.
     // In order to test add, a remote is not necessary.
     public void test() throws Exception {
+        TestUtilities.commonStartupOffFXThread();
 
         Path local = testingRemoteAndLocalRepos.getLocalFull();
         Git.init().setDirectory(local.toFile()).setBare(false).call();

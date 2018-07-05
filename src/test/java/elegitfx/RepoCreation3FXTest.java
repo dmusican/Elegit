@@ -100,6 +100,7 @@ public class RepoCreation3FXTest extends ApplicationTest {
 
     @Test
     public void countOfCommitsInTreeTest() throws Exception {
+        TestUtilities.commonStartupOffFXThread();
 
         // Make two repos; swap between them, make sure number of commits is correct in tree
         console.info("Temp directory: " + directoryPath);

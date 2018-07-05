@@ -110,6 +110,7 @@ public class SshPrivateKeyPasswordCancelFXTest extends ApplicationTest {
 
     @Test
     public void test() throws Exception {
+        TestUtilities.commonStartupOffFXThread();
 
         // Set up remote repo
         Path remote = testingRemoteAndLocalRepos.getRemoteFull();

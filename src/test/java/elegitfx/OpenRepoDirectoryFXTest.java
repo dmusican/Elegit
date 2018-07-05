@@ -116,6 +116,8 @@ public class OpenRepoDirectoryFXTest extends ApplicationTest {
      * Tests the open directory button on a loaded test repo
      */
     public void openLoadedRepoTest() throws Exception {
+        TestUtilities.commonStartupOffFXThread();
+
         // Initial setup and tear down instructions
         initializeLogger();
         Path directoryPath = Files.createTempDirectory("unitTestRepos");

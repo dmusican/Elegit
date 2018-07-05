@@ -97,6 +97,8 @@ public class RepoCreation1FXTest extends ApplicationTest {
 
     @Test
     public void highlightCommitTest() throws Exception {
+        TestUtilities.commonStartupOffFXThread();
+
         logger.info("Temp directory: " + directoryPath);
         Path remote = directoryPath.resolve("remote");
         Path local = directoryPath.resolve("local");
