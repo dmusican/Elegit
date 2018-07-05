@@ -1,27 +1,18 @@
 package elegitfx;
 
 import elegit.Main;
-import elegit.controllers.BusyWindow;
 import elegit.controllers.SessionController;
-import elegit.controllers.SshPromptController;
 import elegit.exceptions.ExceptionAdapter;
 import elegit.models.ClonedRepoHelper;
-import elegit.models.ExistingRepoHelper;
 import elegit.models.PrefObj;
 import elegit.models.SessionModel;
 import elegit.monitors.RepositoryMonitor;
 import elegit.sshauthentication.ElegitUserInfoTest;
-import javafx.scene.Node;
-import javafx.scene.control.Dialog;
-import javafx.scene.control.PasswordField;
-import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import junit.framework.TestCase;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.sshd.server.SshServer;
-import org.eclipse.jgit.revwalk.RevCommit;
-import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -30,7 +21,6 @@ import org.junit.Test;
 import org.junit.rules.TestName;
 import org.testfx.framework.junit.ApplicationTest;
 import org.testfx.framework.junit.TestFXRule;
-import org.testfx.service.query.NodeQuery;
 import org.testfx.util.WaitForAsyncUtils;
 import sharedrules.TestUtilities;
 import sharedrules.TestingLogPathRule;
@@ -42,11 +32,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Random;
 import java.util.Scanner;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.prefs.Preferences;
 
 import static elegit.models.SessionModel.LAST_OPENED_REPO_PATH_KEY;
 import static org.junit.Assert.assertEquals;
@@ -112,7 +100,7 @@ public class SshPrivateKeyPasswordOpeningCancelFXTest extends ApplicationTest {
     @Override
     public void start(Stage stage) throws Exception {
 
-        TestUtilities.initializePreferences();
+        TestUtilities.setupTestEnvironment();
 
         directoryPath = Files.createTempDirectory("unitTestRepos");
         directoryPath.toFile().deleteOnExit();

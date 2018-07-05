@@ -1,25 +1,15 @@
 package elegitfx;
 
 import elegit.Main;
-import elegit.controllers.BusyWindow;
 import elegit.controllers.SessionController;
 import elegit.gui.WorkingTreePanelView;
-import elegit.models.ClonedRepoHelper;
 import elegit.models.ExistingRepoHelper;
 import elegit.monitors.RepositoryMonitor;
 import elegit.sshauthentication.ElegitUserInfoTest;
-import elegit.treefx.CommitTreeModel;
-import javafx.scene.Node;
-import javafx.scene.control.CheckBoxTreeItem;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.TreeItem;
-import javafx.scene.control.cell.CheckBoxTreeCell;
 import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.ThreadContext;
 import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -35,8 +25,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Set;
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import static junit.framework.TestCase.assertEquals;
@@ -76,7 +64,7 @@ public class AddFXTest extends ApplicationTest {
 
     @After
     public void tearDown() {
-        TestUtilities.commonShutDown();
+        TestUtilities.cleanupTestEnvironment();
         assertEquals(0,Main.getAssertionCount());
     }
 

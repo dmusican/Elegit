@@ -2,7 +2,6 @@ package elegitfx;
 
 import elegit.Main;
 import elegit.controllers.BusyWindow;
-import elegit.controllers.CommitController;
 import elegit.controllers.SessionController;
 import elegit.exceptions.CancelledAuthorizationException;
 import elegit.exceptions.MissingRepoException;
@@ -12,17 +11,10 @@ import elegit.models.ExistingRepoHelper;
 import elegit.monitors.RepositoryMonitor;
 import elegit.sshauthentication.ElegitUserInfoTest;
 import elegit.treefx.Cell;
-import javafx.application.Platform;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Scene;
-import javafx.scene.control.Alert;
-import javafx.scene.layout.GridPane;
-import javafx.stage.Modality;
 import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.PushCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.hamcrest.Matchers;
@@ -97,7 +89,7 @@ public class CommitAndPushFXTest extends ApplicationTest {
     @After
     public void tearDown() {
         console.info("Tearing down");
-        TestUtilities.commonShutDown();
+        TestUtilities.cleanupTestEnvironment();
         assertEquals(0, Main.getAssertionCount());
     }
 

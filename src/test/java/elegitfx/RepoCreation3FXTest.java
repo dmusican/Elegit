@@ -34,7 +34,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Random;
 import java.util.Set;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import static junit.framework.TestCase.assertEquals;
@@ -87,7 +86,7 @@ public class RepoCreation3FXTest extends ApplicationTest {
     @After
     public void tearDown() {
         console.info("Tearing down");
-        TestUtilities.commonShutDown();
+        TestUtilities.cleanupTestEnvironment();
         assertEquals(0, Main.getAssertionCount());
     }
 

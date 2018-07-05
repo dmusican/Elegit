@@ -1,10 +1,10 @@
 package elegitfx;
 
 import elegit.Main;
-import elegit.controllers.BusyWindow;
 import javafx.stage.Stage;
 import org.junit.After;
 import org.testfx.framework.junit.TestFXRule;
+import org.testfx.util.WaitForAsyncUtils;
 import sharedrules.TestUtilities;
 import sharedrules.TestingLogPathRule;
 import elegit.models.ClonedRepoHelper;
@@ -27,6 +27,7 @@ import java.nio.file.StandardOpenOption;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
 import static elegit.monitors.RepositoryMonitor.REMOTE_CHECK_INTERVAL;
 import static junit.framework.TestCase.assertEquals;
@@ -60,7 +61,7 @@ public class PushPullFXTest extends ApplicationTest {
 
     @After
     public void tearDown() {
-        TestUtilities.commonShutDown();
+        TestUtilities.cleanupTestEnvironment();
         assertEquals(0,Main.getAssertionCount());
     }
 
@@ -117,8 +118,10 @@ public class PushPullFXTest extends ApplicationTest {
         helperPush.pushAll(command);
 
         // Verify that RepositoryMonitor can see the changes relative to the original
-        Thread.sleep(REMOTE_CHECK_INTERVAL);
-        interact( () -> assertTrue(RepositoryMonitor.hasFoundNewRemoteChanges.get()));
+        // If system is overloaded, the monitor may not trigger right on time, so wait
+        // an extra while (hence the *3).
+        WaitForAsyncUtils.waitFor(REMOTE_CHECK_INTERVAL*3, TimeUnit.SECONDS,
+                                  () -> RepositoryMonitor.hasFoundNewRemoteChanges.get());
 
         // Add a tag named for the current timestamp
         ObjectId headId = helperPush.getBranchModel().getCurrentBranch().getHeadId();

@@ -1,9 +1,6 @@
 package elegitfx;
 
-import elegit.Main;
-import elegit.controllers.BusyWindow;
 import elegit.controllers.SessionController;
-import elegit.exceptions.ExceptionAdapter;
 import elegit.models.ClonedRepoHelper;
 import elegit.models.CommitHelper;
 import elegit.models.SessionModel;
@@ -18,7 +15,6 @@ import javafx.stage.Stage;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.testfx.framework.junit.ApplicationTest;
@@ -35,8 +31,6 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import static junit.framework.TestCase.assertEquals;
 import static org.junit.Assert.assertNotEquals;
@@ -76,7 +70,7 @@ public class CommitLabelFXTest extends ApplicationTest {
 
     @After
     public void tearDown() {
-        TestUtilities.commonShutDown();
+        TestUtilities.cleanupTestEnvironment();
     }
 
 

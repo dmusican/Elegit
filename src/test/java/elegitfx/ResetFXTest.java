@@ -3,23 +3,12 @@ package elegitfx;
 import elegit.Main;
 import elegit.controllers.BusyWindow;
 import elegit.controllers.SessionController;
-import elegit.exceptions.CancelledAuthorizationException;
-import elegit.exceptions.MissingRepoException;
-import elegit.exceptions.NoCommitsToPushException;
-import elegit.exceptions.PushToAheadRemoteError;
-import elegit.models.ExistingRepoHelper;
-import elegit.monitors.RepositoryMonitor;
-import elegit.sshauthentication.ElegitUserInfoTest;
-import elegit.treefx.Cell;
 import javafx.stage.Stage;
 import junit.framework.TestCase;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.ThreadContext;
-import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.revwalk.RevCommit;
-import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -30,7 +19,6 @@ import org.testfx.framework.junit.TestFXRule;
 import org.testfx.util.WaitForAsyncUtils;
 import sharedrules.TestUtilities;
 
-import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -38,8 +26,6 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Random;
 import java.util.Scanner;
-import java.util.Set;
-import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -95,7 +81,7 @@ public class ResetFXTest extends ApplicationTest {
     @After
     public void tearDown() {
         console.info("Tearing down");
-        TestUtilities.commonShutDown();
+        TestUtilities.cleanupTestEnvironment();
         assertEquals(0, Main.getAssertionCount());
     }
 

@@ -9,7 +9,6 @@ import elegit.exceptions.MissingRepoException;
 import elegit.exceptions.NoCommitsToPushException;
 import elegit.exceptions.PushToAheadRemoteError;
 import elegit.models.ExistingRepoHelper;
-import elegit.models.SessionModel;
 import elegit.monitors.RepositoryMonitor;
 import elegit.sshauthentication.ElegitUserInfoTest;
 import javafx.fxml.FXMLLoader;
@@ -32,7 +31,6 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.testfx.util.WaitForAsyncUtils;
 
-import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -137,7 +135,7 @@ public class TestUtilities {
 
     public static SessionController commonTestFxStart(Stage stage) throws Exception {
         Main.assertFxThread();
-        initializePreferences();
+        setupTestEnvironment();
 
         return startupFxApp(stage);
 
@@ -166,10 +164,17 @@ public class TestUtilities {
         return sessionController;
     }
 
-    public static void initializePreferences() throws BackingStoreException {
-        Main.assertFxThread();
+    public static void setupTestEnvironment() {
         Main.testMode = true;
         Main.preferences = Preferences.userNodeForPackage(TestUtilities.class).node("test" + (new Random().nextLong()));
+    }
+
+    public static void cleanupTestEnvironment() {
+        try {
+            Main.preferences.removeNode();
+        } catch (BackingStoreException e) {
+            throw new ExceptionAdapter(e);
+        }
     }
 
     public static void commonStartupOffFXThread() {
@@ -186,13 +191,6 @@ public class TestUtilities {
 
     }
 
-    public static void commonShutDown() {
-        try {
-            Main.preferences.removeNode();
-        } catch (BackingStoreException e) {
-            throw new ExceptionAdapter(e);
-        }
-    }
 
     public static List<RevCommit> makeTestRepo(Path remote, Path local, int numFiles, int numCommits,
                                                boolean lastCommitUndone) throws GitAPIException,

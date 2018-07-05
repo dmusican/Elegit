@@ -60,7 +60,7 @@ public class ChangeRemoteMonitoringStatus extends ApplicationTest {
     @After
     public void tearDown() {
         System.out.println("Tearing down");
-        TestUtilities.commonShutDown();
+        TestUtilities.cleanupTestEnvironment();
         assertEquals(0,Main.getAssertionCount());
     }
 
