@@ -1,6 +1,11 @@
 package elegitfx;
 
+import elegit.Main;
+import elegit.controllers.BusyWindow;
+import javafx.stage.Stage;
+import org.junit.After;
 import org.testfx.framework.junit.TestFXRule;
+import sharedrules.TestUtilities;
 import sharedrules.TestingLogPathRule;
 import elegit.models.ClonedRepoHelper;
 import elegit.models.SessionModel;
@@ -24,6 +29,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
 import static elegit.monitors.RepositoryMonitor.REMOTE_CHECK_INTERVAL;
+import static junit.framework.TestCase.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -46,6 +52,22 @@ public class PushPullFXTest extends ApplicationTest {
 
     @Rule
     public final JGitTestingRepositoryRule jGitTestingRepositoryRule = new JGitTestingRepositoryRule();
+
+    @Override
+    public void start(Stage stage) throws Exception {
+        TestUtilities.commonTestFxStart(stage);
+
+        if (!Main.initializationComplete.get()) {
+            BusyWindow.show();
+        }
+
+    }
+
+    @After
+    public void tearDown() {
+        TestUtilities.commonShutDown();
+        assertEquals(0,Main.getAssertionCount());
+    }
 
     @Test
     // This test has some thread safety issues that should probably be fixed; the RepositoryMonitor is started

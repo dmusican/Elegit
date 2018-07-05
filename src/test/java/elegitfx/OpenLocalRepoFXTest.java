@@ -65,8 +65,6 @@ public class OpenLocalRepoFXTest extends ApplicationTest {
     @Test
     public void openLocalRepoTest() throws Exception {
         TestUtilities.startComplete.await();
-        WaitForAsyncUtils.waitFor(20, TimeUnit.SECONDS,
-                                  () -> !BusyWindow.window.isShowing());
         WaitForAsyncUtils.waitForFxEvents();
 
         initializeLogger();
