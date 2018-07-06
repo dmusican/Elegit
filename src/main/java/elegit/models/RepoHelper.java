@@ -100,7 +100,7 @@ public class RepoHelper {
         sshSessionFactory = setupSshSessionFactory();
     }
 
-    public RepoHelper() throws GitAPIException, IOException {
+    public RepoHelper()  {
         this(null, null, null, null, null);
     }
 

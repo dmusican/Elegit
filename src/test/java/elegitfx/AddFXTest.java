@@ -117,18 +117,4 @@ public class AddFXTest extends ApplicationTest {
 
     }
 
-    // Helper method to avoid annoying traces from logger
-    private void initializeLogger() {
-        // Create a temp directory for the files to be placed in
-        Path logPath = null;
-        try {
-            logPath = Files.createTempDirectory("elegitLogs");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        logPath.toFile().deleteOnExit();
-        System.setProperty("logFolder", logPath.toString());
-    }
-
-
 }
