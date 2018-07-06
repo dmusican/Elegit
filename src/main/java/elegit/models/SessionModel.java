@@ -61,7 +61,6 @@ public class SessionModel {
     private static final Logger logger = LogManager.getLogger();
     private static final Logger console = LogManager.getLogger("briefconsolelogger");
     @GuardedBy("this") private static SessionModel sessionModel;
-    private final Preferences preferences;
     private static Class<?> preferencesNodeClass = SessionModel.class;
     private final PublishSubject<RepoHelper> openedRepos = PublishSubject.create();
 
@@ -86,7 +85,6 @@ public class SessionModel {
      */
     private SessionModel() {
         this.allRepoHelpers = new ArrayList<>();
-        this.preferences = Preferences.userNodeForPackage(preferencesNodeClass);
         loadRecentRepoHelpersFromStoredPathStrings();
         loadMostRecentRepoHelper();
     }
@@ -112,7 +110,8 @@ public class SessionModel {
     public synchronized void loadRecentRepoHelpersFromStoredPathStrings() {
         try{
             @SuppressWarnings("unchecked")
-            ArrayList<String> storedRepoPathStrings = (ArrayList<String>) PrefObj.getObject(this.preferences, RECENT_REPOS_LIST_KEY);
+            ArrayList<String> storedRepoPathStrings = (ArrayList<String>) PrefObj.getObject(Main.preferences,
+                                                                                            RECENT_REPOS_LIST_KEY);
             if (storedRepoPathStrings != null) {
                 for (String pathString : storedRepoPathStrings) {
                     Path path = Paths.get(pathString);
@@ -148,7 +147,7 @@ public class SessionModel {
     public void loadMostRecentRepoHelper() {
         try{
             String lastOpenedRepoPathString = (String) PrefObj.getObject(
-                    preferences, LAST_OPENED_REPO_PATH_KEY
+                    Main.preferences, LAST_OPENED_REPO_PATH_KEY
             );
             if (lastOpenedRepoPathString != null) {
                 Path path = Paths.get(lastOpenedRepoPathString);
@@ -546,7 +545,7 @@ public class SessionModel {
         }
 
         // Store the list object using IBM's PrefObj helper class:
-        PrefObj.putObject(this.preferences, RECENT_REPOS_LIST_KEY, repoPathStrings);
+        PrefObj.putObject(Main.preferences, RECENT_REPOS_LIST_KEY, repoPathStrings);
     }
 
     /**
@@ -560,7 +559,7 @@ public class SessionModel {
     private void saveMostRecentRepoPathString() throws BackingStoreException, IOException, ClassNotFoundException {
         String pathString = this.getCurrentRepoHelper().getLocalPath().toString();
 
-        PrefObj.putObject(this.preferences, LAST_OPENED_REPO_PATH_KEY, pathString);
+        PrefObj.putObject(Main.preferences, LAST_OPENED_REPO_PATH_KEY, pathString);
     }
 
     /**
@@ -572,18 +571,18 @@ public class SessionModel {
      * @throws ClassNotFoundException
      */
     private void clearStoredPreferences() throws BackingStoreException, IOException, ClassNotFoundException {
-        PrefObj.putObject(this.preferences, RECENT_REPOS_LIST_KEY, null);
-        PrefObj.putObject(this.preferences, LAST_OPENED_REPO_PATH_KEY, null);
-        PrefObj.putObject(this.preferences, LAST_UUID_KEY, null);
+        PrefObj.putObject(Main.preferences, RECENT_REPOS_LIST_KEY, null);
+        PrefObj.putObject(Main.preferences, LAST_OPENED_REPO_PATH_KEY, null);
+        PrefObj.putObject(Main.preferences, LAST_UUID_KEY, null);
     }
 
     public void setAuthPref(String pathname, AuthMethod authTechnique) {
-        Preferences authPrefs = preferences.node("authentication");
+        Preferences authPrefs = Main.preferences.node("authentication");
         authPrefs.putInt(hashPathname(pathname), authTechnique.getEnumValue());
     }
 
     public AuthMethod getAuthPref(String pathname)  {
-        Preferences authPrefs = preferences.node("authentication");
+        Preferences authPrefs = Main.preferences.node("authentication");
         int enumValue = authPrefs.getInt(hashPathname(pathname), -1);
         if (enumValue == -1)
             throw new NoSuchElementException("AuthPref not present");
@@ -592,12 +591,12 @@ public class SessionModel {
     }
 
     public void removeAuthPref(String pathname) {
-        Preferences authPrefs = preferences.node("authentication");
+        Preferences authPrefs = Main.preferences.node("authentication");
         authPrefs.remove(hashPathname(pathname));
     }
 
     public List<String> listAuthPaths() {
-        Preferences authPrefs = preferences.node("authentication");
+        Preferences authPrefs = Main.preferences.node("authentication");
         try {
             return Collections.unmodifiableList(Arrays.asList(authPrefs.keys()));
         } catch (BackingStoreException e) {

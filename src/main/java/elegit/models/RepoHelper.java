@@ -835,7 +835,7 @@ public class RepoHelper {
      * @throws MissingRepoException
      * @throws GitAPIException
      */
-    public void revert(CommitHelper helper) throws MissingRepoException, GitAPIException {
+    public boolean revert(CommitHelper helper) throws MissingRepoException, GitAPIException {
         logger.info("Attempting revert");
         if (!exists()) throw new MissingRepoException();
         Git git = new Git(this.getRepo());
@@ -849,7 +849,7 @@ public class RepoHelper {
         } catch (IOException e) {
             throw new ExceptionAdapter(e);
         }
-
+        return true;
 
     }
 
@@ -1073,9 +1073,10 @@ public class RepoHelper {
      *
      * @param idOrRefString either an ID or reference string corresponding
      *                      to an object in this repository
-     * @return the commit associated with the parameter
+     * @return the commit associated with the parameter, null if there is no commit associated with that parameter.
      */
     public CommitHelper getCommit(String idOrRefString) {
+        assert idOrRefString != null: "Tried to lookup null commit id/ref string.";
         if (commitIdMap.containsKey(idOrRefString)) {
             return commitIdMap.get(idOrRefString);
         } else {

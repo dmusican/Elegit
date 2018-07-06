@@ -7,7 +7,6 @@ import javafx.stage.Stage;
 import junit.framework.TestCase;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.ThreadContext;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.junit.After;
 import org.junit.Before;
@@ -24,7 +23,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.Random;
 import java.util.Scanner;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -32,7 +30,7 @@ import java.util.concurrent.TimeUnit;
 import static junit.framework.TestCase.assertEquals;
 import static sharedrules.TestUtilities.makeTestRepo;
 
-public class ResetFXTest extends ApplicationTest {
+public class RevertFXTest extends ApplicationTest {
 
     static {
         // -----------------------Logging Initialization Start---------------------------
@@ -58,13 +56,12 @@ public class ResetFXTest extends ApplicationTest {
 
     @Before
     public void setup() throws Exception {
-        Random random = new Random();
-        ThreadContext.put("id", ""+Math.abs(random.nextLong()));
         console.info("Unit test started");
         console.info("Directory = " + directoryPath);
         directoryPath = Files.createTempDirectory("unitTestRepos");
+        console.info(directoryPath);
         console.info("Directory = " + directoryPath);
-        directoryPath.toFile().deleteOnExit();
+//        directoryPath.toFile().deleteOnExit();
         initializeLogger();
         console.info("Test name: " + testName.getMethodName());
     }
@@ -99,11 +96,12 @@ public class ResetFXTest extends ApplicationTest {
         Path remote = directoryPath.resolve("remote1");
         Path local = directoryPath.resolve("local1");
         int numFiles = 1;
-        int numCells = 2;
-        List<RevCommit> allCommits = makeTestRepo(remote, local, numFiles, numCells, true);
-        RevCommit firstCommit1 = allCommits.get(0);
+        int numCells = 1;
+        List<RevCommit> allCommits = makeTestRepo(remote, local, numFiles, numCells, false);
+        RevCommit firstCommit1 = allCommits.get(1);
 
         console.info("Loading up repo");
+
         SessionController.gitStatusCompletedOnce = new CountDownLatch(1);
         interact(() -> sessionController.handleLoadExistingRepoOption(local));
 
@@ -114,12 +112,11 @@ public class ResetFXTest extends ApplicationTest {
         SessionController.gitStatusCompletedOnce = new CountDownLatch(1);
 
         rightClickOn("#"+firstCommit1.getName())
-                .clickOn("#resetMenuReset")
-                .moveTo("#resetMenuResetItem")
-                .clickOn("#resetMenuAdvanced")
-                .clickOn("#resetMenuHard");
+                .clickOn("#revertMenuRevert")
+                .clickOn("#revertMenuRevertCommit");
 
         SessionController.gitStatusCompletedOnce.await();
+
 
         // Verify that file contents have reverted back to what they should be; do this check in the FX queue
         // to make sure it follows the above

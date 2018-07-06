@@ -1,5 +1,6 @@
 package elegit.models;
 
+import elegit.Main;
 import javafx.beans.property.*;
 import org.apache.http.HttpEntity;
 import net.jcip.annotations.GuardedBy;
@@ -24,11 +25,9 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.UUID;
 import java.util.prefs.BackingStoreException;
-import java.util.prefs.Preferences;
 
 public class LoggingModel {
 
-    private static final Preferences preferences = Preferences.userNodeForPackage(LoggingModel.class);
     private static final String LOGGING_LEVEL_KEY="LOGGING_LEVEL";
     private static final String LAST_UUID_KEY="LAST_UUID";
     private static final Logger logger = LogManager.getLogger();
@@ -60,14 +59,14 @@ public class LoggingModel {
      * upload of files.
      */
     private static void setLastUUID(String uuid) throws BackingStoreException, ClassNotFoundException, IOException {
-        PrefObj.putObject(preferences, LAST_UUID_KEY, uuid);
+        PrefObj.putObject(Main.preferences, LAST_UUID_KEY, uuid);
     }
 
     /**
      * To upload a file to the server, we need to find the last uuid
      */
     private static String getLastUUID() throws BackingStoreException, ClassNotFoundException, IOException {
-        return (String) PrefObj.getObject(preferences, LAST_UUID_KEY);
+        return (String) PrefObj.getObject(Main.preferences, LAST_UUID_KEY);
     }
 
 
@@ -88,7 +87,7 @@ public class LoggingModel {
 
     public static Level getLoggingLevel() {
         try {
-            return (Level) PrefObj.getObject(preferences, LOGGING_LEVEL_KEY);
+            return (Level) PrefObj.getObject(Main.preferences, LOGGING_LEVEL_KEY);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -102,7 +101,7 @@ public class LoggingModel {
 
     private static void setLoggingLevelPref(Level level) {
         try {
-            PrefObj.putObject(preferences, LOGGING_LEVEL_KEY, level);
+            PrefObj.putObject(Main.preferences, LOGGING_LEVEL_KEY, level);
         } catch (Exception e) {
             e.printStackTrace();
         }

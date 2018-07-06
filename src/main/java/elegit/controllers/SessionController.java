@@ -1673,48 +1673,28 @@ public class SessionController {
      * @param commit: the commit to revert
      */
     public void handleRevertButton(CommitHelper commit) {
-        try {
-            logger.info("Revert button clicked");
-            commandLineController.updateCommandText("git revert "+commit.getName());
-            if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
+        logger.info("Revert button clicked");
+        commandLineController.updateCommandText("git revert "+commit.getName());
 
-            showBusyWindow("Reverting...");
-            Thread th = new Thread(new Task<Void>(){
-                @Override
-                protected Void call() {
-                    try{
-                        theModel.getCurrentRepoHelper().revert(commit);
-                        gitStatus();
-                    } catch(MultipleParentsNotAllowedException e) {
-                        if(commit.numParents() > 1) {
-                            showCantRevertMultipleParentsNotification();
-                        }
-                        if (commit.numParents() == 0) {
-                            showCantRevertZeroParentsNotification();
-                        }
-                    } catch(InvalidRemoteException e){
-                        showNoRemoteNotification();
-                    } catch (TransportException e) {
-                        showTransportExceptionNotification(e);
-                    } catch(MissingRepoException e){
-                        showMissingRepoNotification();
-                        setButtonsDisabled(true);
-                        refreshRecentReposInDropdown();
-                    } catch(Exception e) {
-                        showGenericErrorNotification(e);
-                        e.printStackTrace();
-                    }finally {
-                        BusyWindow.hide();
-                    }
-                    return null;
-                }
-            });
-            th.setDaemon(true);
-            th.setName("Git revert");
-            th.start();
-        }catch(NoRepoLoadedException e){
+        if (this.theModel.getCurrentRepoHelper() == null) {
             this.showNoRepoLoadedNotification();
             setButtonsDisabled(true);
+        } else {
+            Single
+                    .fromCallable(() -> {
+                        showBusyWindow("Reverting...");
+                        return true;
+                    })
+                    .subscribeOn(JavaFxScheduler.platform())
+                    .observeOn(Schedulers.io())
+                    .map(unused -> theModel.getCurrentRepoHelper().revert(commit))
+                    .observeOn(JavaFxScheduler.platform())
+                    .map(unused -> doGitStatusWhenSubscribed())
+                    .doAfterTerminate(BusyWindow::hide)
+                    .subscribe((unused) -> {
+                               },
+                               (e) -> showSingleResult(notificationPaneController,
+                                                       new Result(ResultOperation.REVERT, e)));
         }
     }
 
@@ -1892,7 +1872,7 @@ public class SessionController {
     }
 
     public enum ResultStatus {OK, NOCOMMITS, EXCEPTION, MERGE_FAILED};
-    public enum ResultOperation {FETCH, MERGE, ADD, LOAD, PUSH, CHECK_REMOTE_FOR_CHANGES, RESET};
+    public enum ResultOperation {FETCH, MERGE, ADD, LOAD, PUSH, CHECK_REMOTE_FOR_CHANGES, RESET, REVERT};
 
     public static class Result {
         public final ResultStatus status;
@@ -2087,6 +2067,10 @@ public class SessionController {
             } else if (result.exception instanceof IllegalArgumentException) {
                 showNotification(nc,"Invalid repo warning.",
                         "Make sure the directory you selected contains an existing (non-bare) Git repository.");
+
+            } else if (result.exception instanceof MultipleParentsNotAllowedException) {
+                showNotification(nc,"Only one parent allowed warning.",
+                                 "You are only allowed to have one parent for this operation.");
 
             } else {
 

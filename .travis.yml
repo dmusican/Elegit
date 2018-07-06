@@ -2,13 +2,32 @@ language: java
 os:
 - linux
 - osx
+
+addons:
+  apt:
+    packages:
+    - pandoc
+
 script:
 - mvn clean test -B -DskipDisplay=true
+
+after_failure:
+- mvn surefire-report:report-only
+- if [ $TRAVIS_OS_NAME = "osx" ]; then brew install pandoc; fi
+- if [ $TRAVIS_OS_NAME = linux ]; then
+     pandoc --columns 120 -t plain /home/travis/build/dmusican/Elegit/target/site/surefire-report.html;
+  else
+     pandoc --columns 120 -t plain /Users/travis/build/dmusican/Elegit/target/site/surefire-report.html;
+  fi
+
+after_success:
 # jfx:native uses javafx-maven-plugin to run all tests and to build native install for particular OS running on
 # jfx:build-jar uses javafx-maven-plugin to also produce executable jars
 # assembly:single creates zips and compressed tarballs that contain all needed files
-- mvn clean compile jfx:build-jar assembly:single
+- mvn jfx:build-jar assembly:single
 - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then mvn jfx:build-native; fi
+
+
 deploy:
 -  provider: releases
    name: snapshot-release-linux

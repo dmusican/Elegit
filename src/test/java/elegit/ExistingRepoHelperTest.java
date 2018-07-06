@@ -13,6 +13,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
+import sharedrules.TestUtilities;
 import sharedrules.TestingLogPathRule;
 
 import java.io.File;
@@ -38,9 +39,15 @@ public class ExistingRepoHelperTest {
 
     @Before
     public void setUp() throws Exception {
+        TestUtilities.setupTestEnvironment();
         logger.info("Unit test started");
         directoryPath = Files.createTempDirectory("unitTestRepos");
         directoryPath.toFile().deleteOnExit();
+    }
+
+    @After
+    public void tearDown()  {
+        TestUtilities.cleanupTestEnvironment();
     }
 
     @Test

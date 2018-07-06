@@ -80,6 +80,7 @@ public class LocalSshAuthenticationTests {
     @Before
     public void setUp()  {
         console.info("Unit test started");
+        TestUtilities.setupTestEnvironment();
         directoryPath = testingRemoteAndLocalRepos.getDirectoryPath();
         sshd = null;
     }
@@ -89,6 +90,7 @@ public class LocalSshAuthenticationTests {
         if (sshd != null) {
             sshd.stop();
         }
+        TestUtilities.cleanupTestEnvironment();
     }
 
     @Test

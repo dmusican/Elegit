@@ -86,11 +86,13 @@ import org.eclipse.jgit.transport.HttpTransport;
 import org.eclipse.jgit.transport.URIish;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.eclipse.jgit.transport.http.apache.HttpClientConnectionFactory;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import sharedrules.JGitTestingRepositoryRule;
+import sharedrules.TestUtilities;
 import sharedrules.TestingLogPathRule;
 import sharedrules.TestingRemoteAndLocalReposRule;
 
@@ -142,6 +144,8 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
 	public void setUp() throws Exception {
 		super.setUp();
 
+		TestUtilities.setupTestEnvironment();
+
 		jGitTestRepo = jGitTestingRepositoryRule.getJgitTestRepo();
 		remoteURI = jGitTestingRepositoryRule.getRemoteURI();
 		authURI = jGitTestingRepositoryRule.getAuthURI();
@@ -163,20 +167,13 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
         System.out.println("Location is " + db.getDirectory());
     }
 
-	private ServletContextHandler addNormalContext(GitServlet gs, TestRepository<Repository> src, String srcName) {
-		ServletContextHandler app = server.addContext("/git");
-		gs.setRepositoryResolver(new TestRepositoryResolver(src, srcName));
-		app.addServlet(new ServletHolder(gs), "/*");
-		return app;
-	}
+    @Override
+    @After
+    public void tearDown() throws Exception {
+        super.tearDown();
+        TestUtilities.cleanupTestEnvironment();
+    }
 
-
-	private ServletContextHandler addAuthContext(GitServlet gs,
-                                                 String contextPath, String... methods) {
-		ServletContextHandler auth = server.addContext('/' + contextPath);
-		auth.addServlet(new ServletHolder(gs), "/*");
-		return server.authBasic(auth, methods);
-	}
 
     @Test
     public void testCloneHttpNoPassword() throws Exception {
