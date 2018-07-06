@@ -1,7 +1,9 @@
 package elegit.models;
 
 import elegit.Main;
+import elegit.controllers.SessionController;
 import elegit.exceptions.ExceptionAdapter;
+import elegit.exceptions.NoRepoLoadedException;
 import elegit.monitors.ConflictingFileWatcher;
 import elegit.repofile.*;
 import elegit.sshauthentication.ElegitUserInfoGUI;
@@ -550,24 +552,21 @@ public class SessionModel {
             PrefObj.putObject(this.preferences, MERGE_RESULT, mergeResults);
         } catch (NullPointerException e){
             //should only be thrown in non-fx testing
+            //showNoRepoLoadedNotification();
             console.info("No current repo set");
-        } catch(Exception e){
+        } catch(IOException | BackingStoreException | ClassNotFoundException e){
             e.printStackTrace();
             throw new ExceptionAdapter(e);
         }
     }
 
-    public HashMap<String, String> getMergeResult(){
+    public HashMap<String, String> getMergeResult() throws NullPointerException{
         try {
             HashMap<String, HashMap<String, String>> mergeResults =
                     (HashMap<String, HashMap<String, String>>) PrefObj.getObject(this.preferences, MERGE_RESULT);
-            RepoHelper current = getCurrentRepoHelper();
             String path = getCurrentRepo().getDirectory()+File.separator+getCurrentRepo().toString();
             return mergeResults.get(path);
-        } catch (NullPointerException e) {
-            console.info("No current repo set");
-            throw new ExceptionAdapter(e);
-        } catch (Exception e) {
+        } catch (IOException | BackingStoreException | ClassNotFoundException e) {
             e.printStackTrace();
             throw new ExceptionAdapter(e);
         }

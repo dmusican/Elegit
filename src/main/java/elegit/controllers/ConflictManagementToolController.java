@@ -147,7 +147,14 @@ public class ConflictManagementToolController {
 
     public void initialize() {
         Main.assertFxThread();
-        mergeResult = SessionModel.getSessionModel().getMergeResult();
+        try {
+            mergeResult = SessionModel.getSessionModel().getMergeResult();
+        } catch (NullPointerException e){
+            //this should never happen
+            sessionController.showNoRepoLoadedNotification();
+            console.info("No current repo set");
+            e.printStackTrace();
+        }
         initButtons();
         initDropdown();
         initCodeAreas();
@@ -290,30 +297,38 @@ public class ConflictManagementToolController {
         Path directory = (new File(SessionModel.getSessionModel().getCurrentRepoHelper().getRepo().getDirectory()
                 .getParent())).toPath();
         String filePathWithoutFileName = directory.toString();
-        for (String file : conflictingFilesDropdown.getItems()) {
+        String fileName = "";
+        boolean unfinished = false;
+        Iterator<String> files = conflictingFilesDropdown.getItems().iterator();
+        while(files.hasNext()){
+            String file = files.next();
             ArrayList<ArrayList> results = savedParsedFiles.get(file);
-            if (results == null || getNumberOfConflicts(results.get(1)) != 0) {
-                showNotAllConflictHandledNotification();
-                setFileToEdit(file);
-                return;
-            }
-        }
-        for (String file : savedParsedFiles.keySet()) {
-            ArrayList<ConflictLine> middle = savedParsedFiles.get(file).get(1);
-            try {
-                BufferedWriter writer = new BufferedWriter(new FileWriter(filePathWithoutFileName + File.separator + file));
-                for (ConflictLine conflictLine : middle) {
-                    for (String line : conflictLine.getLines()) {
-                        writer.write(line + "\n");
+            if (results == null || getNumberOfConflicts(results.get(1)) != 0){
+                fileName = file;
+                unfinished = true;
+            } else {
+                ArrayList<ConflictLine> middle = results.get(1);
+                try {
+                    BufferedWriter writer = new BufferedWriter(new FileWriter(filePathWithoutFileName + File.separator + file));
+                    for (ConflictLine conflictLine : middle) {
+                        for (String line : conflictLine.getLines()) {
+                            writer.write(line + "\n");
+                        }
                     }
+                    writer.flush();
+                    writer.close();
+                    files.remove();
+                } catch (Exception e) {
+                    throw new ExceptionAdapter(e);
                 }
-                writer.flush();
-                writer.close();
-            } catch (Exception e) {
-                throw new ExceptionAdapter(e);
             }
         }
-        stage.close();
+        if (unfinished) {
+            setFileToEdit(fileName);
+            showNotAllConflictHandledNotification();
+        } else {
+            stage.close();
+        }
     }
 
     private int getNumberOfConflicts(ArrayList<ConflictLine> conflictLines) {
@@ -330,7 +345,7 @@ public class ConflictManagementToolController {
     private void handleApplyChanges() {
         Main.assertFxThread();
         logger.info("Apply button clicked.");
-        if (applyWarningGiven.get() || conflictsLeftToHandle.get() <= 0) { // They've already seen the warning or have handled everything
+        if (applyWarningGiven.get() || getNumberOfConflicts(middleAllConflictLines) == 0) { //conflictsLeftToHandle.get() <= 0) { // They've already seen the warning or have handled everything
             try {
                 Path directory = (new File(SessionModel.getSessionModel().getCurrentRepoHelper().getRepo().getDirectory()
                         .getParent())).toPath();
@@ -806,6 +821,9 @@ public class ConflictManagementToolController {
             results = conflictManagementModel.parseConflicts(fileName, filePathWithoutFileName,
                     getBaseParentFiles(fileName), getMergedParentFiles(fileName));
         }
+        ObjectId baseParent = ObjectId.fromString(mergeResult.get("baseParent").substring(7, 47));
+        ObjectId mergedParent = ObjectId.fromString(mergeResult.get("mergedParent").substring(7, 47));
+        conflictManagementModel.secondaryParse(baseParent, mergedParent, fileName, filePathWithoutFileName);
         leftAllConflictLines = results.get(0);
         middleAllConflictLines = results.get(1);
         rightAllConflictLines = results.get(2);
