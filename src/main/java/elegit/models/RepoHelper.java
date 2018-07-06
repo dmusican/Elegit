@@ -261,10 +261,7 @@ public class RepoHelper {
      * @throws GitAPIException if the `git add` call fails.
      */
     public void addFilePathsTest(ArrayList<Path> filePaths, boolean isSelectAllChecked) throws GitAPIException {
-        Git git = new Git(this.getRepo());
         ArrayList<String> fileNames = new ArrayList();
-        // git add:
-        AddCommand adder = git.add();
         for (Path filePath : filePaths) {
             Path localizedFilePath = this.localPath.relativize(filePath);
             String pathToAdd = localizedFilePath.toString();
@@ -275,16 +272,14 @@ public class RepoHelper {
                     pathToAdd = pathToAdd.replaceAll(File.separator, "/");
             }
             fileNames.add(pathToAdd);
-            adder.addFilepattern(pathToAdd);
         }
-        adder.call();
+        ThreadsafeGitManager.get(this.getRepo()).addFilePathTest(fileNames);
         if (isSelectAllChecked){
             TranscriptHelper.post("git add *");
         }
         else {
             TranscriptHelper.post("git add " + String.join(" ", fileNames));
         }
-        git.close();
     }
 
     /**
@@ -294,10 +289,7 @@ public class RepoHelper {
      * @throws GitAPIException if the `git add` call fails.
      */
     public ArrayList<String> addFilePaths(ArrayList<Path> filePaths) throws GitAPIException {
-        Git git = new Git(this.getRepo());
         ArrayList<String> fileNames = new ArrayList();
-        // git add:
-        AddCommand adder = git.add();
         for (Path filePath : filePaths) {
             String pathToAdd = filePath.toString();
             if (!File.separator.equals("/")) {
@@ -307,10 +299,8 @@ public class RepoHelper {
                     pathToAdd = pathToAdd.replaceAll(File.separator, "/");
             }
             fileNames.add(pathToAdd);
-            adder.addFilepattern(pathToAdd);
         }
-        adder.call();
-        git.close();
+        ThreadsafeGitManager.get(this.getRepo()).addFilePathTest(fileNames);
         return fileNames;
     }
 
@@ -320,27 +310,7 @@ public class RepoHelper {
      * @param filePath the file to check out
      */
     public void checkoutFile(Path filePath) throws GitAPIException {
-        Git git = new Git(this.getRepo());
-        git.checkout().addPath(filePath.toString()).call();
-        git.close();
-    }
-
-    /**
-     * Checks out files from the index
-     *
-     * @param filePaths the files to check out
-     */
-    public ArrayList<String> checkoutFiles(List<Path> filePaths) throws GitAPIException {
-        Git git = new Git(this.getRepo());
-        ArrayList<String> fileNames = new ArrayList();
-        CheckoutCommand checkout = git.checkout();
-        for (Path filePath : filePaths) {
-            checkout.addPath(filePath.toString());
-            fileNames.add(filePath.toString());
-        }
-        checkout.call();
-        git.close();
-        return fileNames;
+        ThreadsafeGitManager.get(this.getRepo()).checkoutFile(filePath);
     }
 
     /**
@@ -351,12 +321,7 @@ public class RepoHelper {
      * @return the result of the checkout
      */
     public CheckoutResult checkoutFiles(List<String> filePaths, String startPoint) throws GitAPIException {
-        Git git = new Git(this.getRepo());
-        CheckoutCommand checkout = git.checkout().setStartPoint(startPoint);
-        for (String filePath : filePaths)
-            checkout.addPath(filePath);
-        checkout.call();
-        return checkout.getResult();
+        return ThreadsafeGitManager.get(this.getRepo()).checkoutFiles(filePaths, startPoint);
     }
 
     /**

@@ -1,12 +1,17 @@
 package elegit.models;
 
 import elegit.exceptions.ExceptionAdapter;
+import org.eclipse.jgit.api.AddCommand;
+import org.eclipse.jgit.api.CheckoutCommand;
+import org.eclipse.jgit.api.CheckoutResult;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.GitCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Repository;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -41,6 +46,7 @@ public class ThreadsafeGitManager {
     /**
      * Factory method. It returns the existing object if one exists for the given repo. If one does not exist,
      * it constructs it first
+     *
      * @param repo
      * @return the appropriate ThreadsafeGitManager object
      */
@@ -63,21 +69,78 @@ public class ThreadsafeGitManager {
      * Git add command, for a specified path. It would seem that one might be able to get away with a read lock
      * here, since add shouldn't be changing the working directory. This is poorly documented, however, and it
      * isn't a chance worth taking, so go with a write lock.
+     *
      * @param filePath
      * @throws GitAPIException
      */
     public void addFilePathTest(String filePath) throws GitAPIException {
+        ArrayList<String> filePaths = new ArrayList<>();
+        filePaths.add(filePath);
+        addFilePathTest(filePaths);
+    }
+
+    /**
+     * Git add command, for a specified collection of paths. It would seem that one might be able to get away with a
+     * read lock here, since add shouldn't be changing the working directory. This is poorly documented, however, and it
+     * isn't a chance worth taking, so go with a write lock.
+     *
+     * @param filePaths
+     * @throws GitAPIException
+     */
+    public void addFilePathTest(ArrayList<String> filePaths) throws GitAPIException {
         Git git = new Git(repo);
-        GitCommand addCommand = git.add().addFilepattern(filePath);
+        AddCommand addCommand = git.add();
+        for (String filePath : filePaths) {
+            addCommand.addFilepattern(filePath);
+        }
         repoLock.writeLock().lock();
         try {
             addCommand.call();
         } finally {
             repoLock.writeLock().unlock();
+            git.close();
         }
-        git.close();
     }
 
 
+    /**
+     * Git checkout file command.
+     *
+     * @param filePath
+     * @throws GitAPIException
+     */
+    public void checkoutFile(Path filePath) throws GitAPIException {
+        Git git = new Git(repo);
+        GitCommand checkoutCommand = git.checkout().addPath(filePath.toString());
+        repoLock.writeLock().lock();
+        try {
+            checkoutCommand.call();
+        } finally {
+            repoLock.writeLock().unlock();
+            git.close();
+        }
+    }
 
+    /**
+     * Git checkout multiple files, given a starting point commit to pull the files from.
+     *
+     * @param filePaths
+     * @throws GitAPIException
+     * @return the result of the checkout
+     */
+    public CheckoutResult checkoutFiles(List<String> filePaths, String startPoint) throws GitAPIException {
+        Git git = new Git(repo);
+        CheckoutCommand checkoutCommand = git.checkout().setStartPoint(startPoint);
+        for (String filePath : filePaths) {
+            checkoutCommand.addPath(filePath);
+        }
+        repoLock.writeLock().lock();
+        try {
+            checkoutCommand.call();
+            return checkoutCommand.getResult();
+        } finally {
+            repoLock.writeLock().unlock();
+            git.close();
+        }
+    }
 }
