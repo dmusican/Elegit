@@ -51,6 +51,7 @@ public class NotificationController {
     private Stage anchor;
 
     private static final Logger logger = LogManager.getLogger(SessionController.class);
+    private static final Logger console = LogManager.getLogger("briefconsolelogger");
 
     /**
      * Initializes the environment and sets up event handlers. Called
@@ -177,6 +178,7 @@ public class NotificationController {
         vBox.getChildren().add(0,line);
 
         setNotificationNum();
+        console.info("Notification being added: " + notification);
     }
 
     /**

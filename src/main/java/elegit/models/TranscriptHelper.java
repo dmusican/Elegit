@@ -10,6 +10,7 @@ import java.io.*;
  */
 public class TranscriptHelper {
     private static final Logger logger = LogManager.getLogger();
+    private static final Logger console = LogManager.getLogger("briefconsolelogger");
 
 
     public static void post(String command) {
@@ -27,7 +28,7 @@ public class TranscriptHelper {
 }
 
     public static void clear() {
-        System.out.println("Transcript is being cleared.");
+        console.info("Transcript is being cleared.");
         String log_file_path = System.getProperty("logFolder") + "/transcript.log";
 
         try {
