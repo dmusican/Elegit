@@ -103,8 +103,8 @@ public class OpenLocalRepoFXTest extends ApplicationTest {
         System.out.println("Number of local checks = " + numLocalChecks);
         int numRemoteChecks = RepositoryMonitor.getNumRemoteChecks();
         System.out.println("Number of remote checks = " + numRemoteChecks);
-        assertTrue(numLocalChecks > 0 && numLocalChecks < 5);
-        assertTrue(numRemoteChecks > 0 && numRemoteChecks < 5);
+        assertTrue(numLocalChecks > 0 && numLocalChecks < 20);
+        assertTrue(numRemoteChecks > 0 && numRemoteChecks < 20);
     }
 
     // Helper method to avoid annoying traces from logger
