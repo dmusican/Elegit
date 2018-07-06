@@ -1,5 +1,6 @@
 package elegit.models;
 
+import elegit.exceptions.ExceptionAdapter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -23,7 +24,7 @@ public class TranscriptHelper {
             output.newLine();
             output.close();
         } catch (IOException e) {
-            logger.info(e);
+            throw new ExceptionAdapter(e);
         }
 }
 
@@ -36,7 +37,7 @@ public class TranscriptHelper {
             writer.flush();
             writer.close();
         } catch (IOException e) {
-            logger.info(e);
+            throw new ExceptionAdapter(e);
         }
     }
 }

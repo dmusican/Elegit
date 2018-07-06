@@ -119,6 +119,11 @@ public class LoggingModel {
     // Since this deletes a local file, which has a fixed name, this is synchronized to ensure
     // it doesn't get run more than once simultaneously
     private synchronized static String submitData(String uuid) {
+        // If logging is not enabled, do not upload anything, even if the log file has something in it
+        if (!loggingStatus.get()) {
+            return null;
+        }
+
         logger.info("Submit data called");
         String logPath = Paths.get("logs").toString();
 
