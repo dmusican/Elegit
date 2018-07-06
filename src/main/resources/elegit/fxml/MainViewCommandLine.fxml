@@ -10,7 +10,7 @@
 
 <!-- Elegit actions as terminal commands and a menu button for this feature -->
 
-<HBox alignment="CENTER_LEFT" spacing="5.0" stylesheets="@../css/BaseStyle.css" xmlns="http://javafx.com/javafx/8.0.112"
+<HBox alignment="CENTER_LEFT" spacing="5.0" stylesheets="@../css/BaseStyle.css" xmlns="http://javafx.com"
       xmlns:fx="http://javafx.com/fxml/1" fx:controller="elegit.controllers.CommandLineController">
     <Text fx:id="commandLineLabel" strokeType="OUTSIDE" strokeWidth="0.0" text="Terminal Command:" textAlignment="CENTER"/>
     <ScrollPane id="commandBar" fx:id="commandBar" fitToHeight="true" fitToWidth="true" maxHeight="-Infinity"
