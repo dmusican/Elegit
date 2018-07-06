@@ -105,12 +105,12 @@ public class RepoHelper {
     }
 
     public RepoHelper(Path directoryPath, UserInfo userInfo)
-            throws GitAPIException, IOException, CancelledAuthorizationException {
+            throws CancelledAuthorizationException {
         this(directoryPath, null, userInfo, null, null);
     }
 
     public RepoHelper(Path directoryPath, UsernamePasswordCredentialsProvider ownerAuth)
-            throws GitAPIException, IOException, CancelledAuthorizationException {
+            throws CancelledAuthorizationException {
         this(directoryPath, null, null, null, null);
         setOwnerAuth(ownerAuth);
     }
@@ -457,7 +457,7 @@ public class RepoHelper {
         try {
             this.localCommits.set(parseAllLocalCommits());
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new ExceptionAdapter(e);
         }
 
         return commit;
@@ -482,7 +482,7 @@ public class RepoHelper {
      * @throws PushToAheadRemoteError
      */
     public PushCommand prepareToPushCurrentBranch(boolean isTest) throws MissingRepoException, GitAPIException,
-            PushToAheadRemoteError, IOException, NoCommitsToPushException {
+            IOException, NoCommitsToPushException {
         BranchHelper branchToPush = this.getBranchModel().getCurrentBranch();
         logger.info("attempting to push current branch");
         if (!exists()) throw new MissingRepoException();
@@ -577,7 +577,7 @@ public class RepoHelper {
                     untrackedBranchesQueryView)
 
             throws
-            GitAPIException, MissingRepoException, PushToAheadRemoteError, IOException, NoCommitsToPushException {
+            GitAPIException, MissingRepoException, IOException, NoCommitsToPushException {
 
         logger.info("Attempting push");
         if (!exists()) throw new MissingRepoException();
@@ -729,7 +729,7 @@ public class RepoHelper {
             this.remoteCommits.set(parseAllRemoteCommits());
         } catch (IOException e) {
             // This shouldn't occur once we have the repo up and running.
-            e.printStackTrace();
+            throw new ExceptionAdapter(e);
         }
 
         this.getBranchModel().updateRemoteBranches();
@@ -776,7 +776,7 @@ public class RepoHelper {
             this.localCommits.set(parseAllLocalCommits());
         } catch (IOException e) {
             // This shouldn't occur once we have the repo up and running.
-            e.printStackTrace();
+            throw new ExceptionAdapter(e);
         }
 
         MergeResult.MergeStatus status = result.getMergeStatus();
@@ -1213,7 +1213,7 @@ public class RepoHelper {
      * @return a list of raw local commits
      * @throws IOException
      */
-    private PlotCommitList<PlotLane> parseAllRawLocalCommits() throws IOException, GitAPIException {
+    private PlotCommitList<PlotLane> parseAllRawLocalCommits() throws IOException {
         Set<ObjectId> allStarts = ConcurrentHashMap.newKeySet();
         ObjectId gitObjectId = getRepo().resolve("HEAD");
         if (gitObjectId != null) {
@@ -1237,7 +1237,7 @@ public class RepoHelper {
      * @return a list of raw remote commits
      * @throws IOException
      */
-    private PlotCommitList<PlotLane> parseAllRawRemoteCommits() throws IOException, GitAPIException {
+    private PlotCommitList<PlotLane> parseAllRawRemoteCommits() throws IOException {
         Set<ObjectId> allStarts = new HashSet<>();
         List<RemoteBranchHelper> branches = this.getBranchModel().getRemoteBranchesTyped();
         for (BranchHelper branch : branches) {

@@ -50,12 +50,12 @@ public class DiffHelper {
     private final Repository repo;
     private final String pathFilter;
 
-    public DiffHelper(Path relativeFilePath, RepoHelper repo) throws IOException {
+    public DiffHelper(Path relativeFilePath, RepoHelper repo) {
         this.repo = repo.getRepo();
         this.pathFilter = relativeFilePath.toString();
     }
 
-    private String getDiffString() throws GitAPIException, IOException {
+    private String getDiffString() throws IOException {
         ObjectId head = this.repo.resolve("HEAD");
         if(head == null) return "";
 
@@ -76,7 +76,7 @@ public class DiffHelper {
         return diffOutputStream.toString();
     }
 
-    private List<Text> getColoredDiffList() throws GitAPIException, IOException {
+    private List<Text> getColoredDiffList() throws IOException {
         String diffText = this.getDiffString();
 
         ArrayList<Text> coloredDiffList = new ArrayList<>();
@@ -102,7 +102,7 @@ public class DiffHelper {
         return Collections.unmodifiableList(coloredDiffList);
     }
 
-    public ScrollPane getDiffScrollPane() throws GitAPIException, IOException {
+    public ScrollPane getDiffScrollPane() throws IOException {
         ScrollPane scrollPane = new ScrollPane();
 
         VBox verticalListOfColoredDiffs = new VBox();

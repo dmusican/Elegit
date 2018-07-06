@@ -1,6 +1,7 @@
 package elegit.models;
 
 import elegit.Main;
+import elegit.exceptions.ExceptionAdapter;
 import javafx.beans.property.*;
 import org.apache.http.HttpEntity;
 import net.jcip.annotations.GuardedBy;
@@ -46,10 +47,11 @@ public class LoggingModel {
             String lastUUID = getLastUUID();
             setLastUUID(submitData(lastUUID));
         } catch (BackingStoreException | ClassNotFoundException | IOException e) {
-            e.printStackTrace();
+            throw new ExceptionAdapter(e);
         } catch (Exception e) {
             try { setLastUUID(""); }
             catch (Exception f) { // This shouldn't happen
+                throw new ExceptionAdapter(f);
             }
         }
     }
@@ -150,7 +152,7 @@ public class LoggingModel {
             try {
                 logFile = Files.copy(logFile.toPath(), logFile.toPath().resolveSibling(uuid+".log")).toFile();
             } catch (IOException e) {
-                e.printStackTrace();
+                throw new ExceptionAdapter(e);
             }
 
             logger.info("Attempting to upload log: {}",logFile.getName());

@@ -1,6 +1,7 @@
 package elegit.controllers;
 
 import elegit.Main;
+import elegit.exceptions.ExceptionAdapter;
 import elegit.models.SessionModel;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -48,7 +49,7 @@ public class CommandLineHistoryController {
                 commandHistory.appendText(command + "\n");
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new ExceptionAdapter(e);
         }
     }
 

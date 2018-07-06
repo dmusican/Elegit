@@ -91,7 +91,7 @@ public class ConflictingFileWatcher {
              * @param directoryToWatch Path
              * @throws IOException
              */
-            private void watch(Path directoryToWatch, String fileToWatch) throws IOException {
+            private void watch(Path directoryToWatch, String fileToWatch)  {
 
                 Observable.fromCallable(() -> {
                     // creates a WatchService

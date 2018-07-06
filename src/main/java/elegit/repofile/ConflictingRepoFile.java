@@ -48,7 +48,7 @@ public class ConflictingRepoFile extends RepoFile {
         this(Paths.get(filePathString), repo);
     }
 
-    @Override public boolean canAdd() throws GitAPIException, IOException{
+    @Override public boolean canAdd() {
         Main.assertFxThread();
         logger.warn("Notification about conflicting file");
         resultType = PopUpWindows.showCommittingConflictingFileAlert();

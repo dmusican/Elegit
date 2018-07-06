@@ -178,7 +178,7 @@ public class BranchModel {
      * @throws IOException
      */
     // Synchronized for localBranchesTyped
-    private synchronized LocalBranchHelper createLocalTrackingBranchForRemote(RemoteBranchHelper remoteBranchHelper) throws GitAPIException, IOException {
+    private synchronized LocalBranchHelper createLocalTrackingBranchForRemote(RemoteBranchHelper remoteBranchHelper) throws GitAPIException {
         String localBranchName=this.repoHelper.getRepo().shortenRemoteBranchName(remoteBranchHelper.getRefPathString());
         Ref trackingBranchRef = new Git(this.repoHelper.getRepo()).branchCreate().
                 setName(localBranchName).
@@ -199,7 +199,7 @@ public class BranchModel {
      * @throws IOException
      */
     // Synchronized for localBranchesTyped
-    public synchronized LocalBranchHelper createNewLocalBranch(String branchName) throws GitAPIException, IOException {
+    public synchronized LocalBranchHelper createNewLocalBranch(String branchName) throws GitAPIException {
         Git git = new Git(this.repoHelper.getRepo());
         Ref newBranch = git.branchCreate().setName(branchName).call();
         LocalBranchHelper newLocalBranchHelper = new LocalBranchHelper(newBranch, this.repoHelper);
@@ -247,7 +247,7 @@ public class BranchModel {
      * @throws GitAPIException
      */
     public synchronized RemoteRefUpdate.Status deleteRemoteBranch(RemoteBranchHelper branchHelper) throws
-            GitAPIException, IOException {
+            GitAPIException {
         PushCommand pushCommand = new Git(this.repoHelper.getRepo()).push();
         // We're deleting the branch on a remote, so there it shows up as refs/heads/<branchname>
         // instead of what it shows up on local: refs/<remote>/<branchname>, so we manually enter
@@ -478,7 +478,7 @@ public class BranchModel {
             }
         } catch (IOException e) {
             // Shouldn't happen here, session controller would catch this first
-            e.printStackTrace();
+            throw new ExceptionAdapter(e);
         }
         return false;
     }

@@ -2,6 +2,7 @@ package elegitfx;
 
 import elegit.Main;
 import elegit.controllers.SessionController;
+import elegit.exceptions.ExceptionAdapter;
 import elegit.models.ClonedRepoHelper;
 import elegit.monitors.RepositoryMonitor;
 import elegit.treefx.CommitTreeModel;
@@ -113,7 +114,7 @@ public class OpenLocalRepoFXTest extends ApplicationTest {
         try {
             logPath = Files.createTempDirectory("elegitLogs");
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new ExceptionAdapter(e);
         }
         logPath.toFile().deleteOnExit();
         System.setProperty("logFolder", logPath.toString());

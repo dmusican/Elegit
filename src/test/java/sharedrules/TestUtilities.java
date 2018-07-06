@@ -194,7 +194,7 @@ public class TestUtilities {
 
     public static List<RevCommit> makeTestRepo(Path remote, Path local, int numFiles, int numCommits,
                                                boolean lastCommitUndone) throws GitAPIException,
-            IOException, CancelledAuthorizationException, MissingRepoException, PushToAheadRemoteError, NoCommitsToPushException {
+            IOException, CancelledAuthorizationException, MissingRepoException {
         Git.init().setDirectory(remote.toFile()).setBare(true).call();
         Git.cloneRepository().setDirectory(local.toFile()).setURI("file://" + remote).call();
 

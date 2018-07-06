@@ -1609,7 +1609,7 @@ public class SessionController {
             updateFn.accept(updateMessage);
         } catch (TransportException e) {
             throw e;
-        } catch (GitAPIException | IOException e) {
+        } catch (GitAPIException e) {
             logger.warn("IO error");
             this.showGenericErrorNotification(e);
         }
@@ -2149,11 +2149,9 @@ public class SessionController {
 
             sessionController.updateCommandText("git merge "+remote+remote_tracking);
         } catch (IOException e) {
+            this.showGenericErrorNotification(e);
             e.printStackTrace();
         }
-        //String remote_tracking = config.getString("branch", theModel.getCurrentRepoHelper().getRepo().getBranch(), "merge");
-
-        //sessionController.updateCommandText("git merge "+ );
 
         return Observable.just(theModel.getCurrentRepoHelper())
                 .doOnNext(this::mergePreChecks) // skips to onErrorResumeNext when these fail

@@ -485,7 +485,7 @@ public class CommitTreeModel{
                     SessionModel.getSessionModel().getCurrentRepoHelper().getTagModel().deleteTag(tagHelper.getRefName());
                     updateModelForChangesWithinRepoWhenSubscribed().subscribe();
                 } catch (GitAPIException | MissingRepoException | IOException e) {
-                    e.printStackTrace();
+                    throw new ExceptionAdapter(e);
                 }
             }
         });
@@ -537,7 +537,7 @@ public class CommitTreeModel{
      * Updates the corresponding view if possible
      */
     // TODO: This happens off FX thread when called from somewhere (gitStatus?) but happens on the thread when called from SessionController.handleCommitSortToggle. Fix.
-    public synchronized void updateView() throws IOException{
+    public synchronized void updateView() {
         Main.assertFxThread();
         if(SessionModel.getSessionModel().getCurrentRepoHelper() != null){
             CommitTreeController.update(this);

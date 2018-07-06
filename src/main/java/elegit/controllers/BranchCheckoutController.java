@@ -193,7 +193,7 @@ public class BranchCheckoutController {
             showJGitInternalError(e);
         } catch (CheckoutConflictException e){
             showCheckoutConflictsNotification(e.getConflictingPaths());
-        } catch (GitAPIException | IOException e) {
+        } catch (GitAPIException e) {
             e.printStackTrace();
             showGenericErrorNotification();
         }

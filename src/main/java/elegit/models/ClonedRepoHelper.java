@@ -28,7 +28,7 @@ public class ClonedRepoHelper extends RepoHelper {
 
     public ClonedRepoHelper(Path directoryPath, String sshPassword, UserInfo userInfo,
                             String privateKeyFileLocation, String knownHostsFileLocation)
-            throws GitAPIException, IOException, CancelledAuthorizationException {
+            throws CancelledAuthorizationException {
         super(directoryPath, sshPassword, userInfo, privateKeyFileLocation, knownHostsFileLocation);
     }
 

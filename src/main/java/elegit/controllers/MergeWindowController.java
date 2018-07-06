@@ -187,7 +187,7 @@ public class MergeWindowController {
      * Handler for merge button. Will merge selected local branch into the current
      * branch if in the local tab, otherwise it will merge from fetch.
      */
-    public void handleMergeButton() throws GitAPIException, IOException {
+    public void handleMergeButton()  {
         try {
             if (mergeTypePane.getSelectionModel().isSelected(LOCAL_PANE)) {
                 if (!branchDropdownSelector.getSelectionModel().isEmpty()) localBranchMerge();

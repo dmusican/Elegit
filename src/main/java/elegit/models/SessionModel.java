@@ -1,6 +1,7 @@
 package elegit.models;
 
 import elegit.Main;
+import elegit.exceptions.ExceptionAdapter;
 import elegit.monitors.ConflictingFileWatcher;
 import elegit.repofile.*;
 import elegit.sshauthentication.ElegitUserInfoGUI;
@@ -134,7 +135,7 @@ public class SessionModel {
         } catch(IOException | ClassNotFoundException | BackingStoreException e){
             logger.error("Some sort of exception loading recent repo helpers");
             logger.debug(e.getStackTrace());
-            e.printStackTrace();
+            throw new ExceptionAdapter(e);
         }
     }
 
@@ -181,7 +182,7 @@ public class SessionModel {
         }catch(IOException | BackingStoreException | ClassNotFoundException e){
             logger.error("Some sort of error loading most recent repo helper");
             logger.debug(e.getStackTrace());
-            e.printStackTrace();
+            throw new ExceptionAdapter(e);
         }
     }
 

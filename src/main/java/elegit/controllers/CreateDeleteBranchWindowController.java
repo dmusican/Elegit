@@ -1,5 +1,6 @@
 package elegit.controllers;
 
+import elegit.exceptions.ExceptionAdapter;
 import elegit.gui.PopUpWindows;
 import elegit.models.*;
 import elegit.treefx.CommitTreeController;
@@ -159,8 +160,7 @@ public class CreateDeleteBranchWindowController {
                                 setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
                             } catch(IOException e) {
                                 // This shouldn't happen
-                                setGraphic(null);
-                                e.printStackTrace();
+                                throw new ExceptionAdapter(e);
                             }
                         }
                     }
@@ -241,11 +241,6 @@ public class CreateDeleteBranchWindowController {
                     logger.debug(e1.getStackTrace());
                     showGenericGitErrorNotification();
                     e1.printStackTrace();
-                } catch (IOException e1) {
-                    logger.warn("Unspecified IOException");
-                    logger.debug(e1.getStackTrace());
-                    showGenericErrorNotification();
-                    e1.printStackTrace();
                 }finally {
                     refreshBranchesDropDown();
                 }
@@ -274,7 +269,7 @@ public class CreateDeleteBranchWindowController {
             showJGitInternalError(e);
         } catch (CheckoutConflictException e){
             showCheckoutConflictsNotification(e.getConflictingPaths());
-        } catch (GitAPIException | IOException e) {
+        } catch (GitAPIException e) {
             showGenericErrorNotification();
             e.printStackTrace();
         }

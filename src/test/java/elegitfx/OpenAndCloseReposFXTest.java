@@ -3,6 +3,7 @@ package elegitfx;
 import elegit.Main;
 import elegit.controllers.BusyWindow;
 import elegit.controllers.SessionController;
+import elegit.exceptions.ExceptionAdapter;
 import elegit.models.ExistingRepoHelper;
 import elegit.models.RepoHelper;
 import elegit.models.SessionModel;
@@ -87,7 +88,7 @@ public class OpenAndCloseReposFXTest extends ApplicationTest {
         try {
             logPath = Files.createTempDirectory("elegitLogs");
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new ExceptionAdapter(e);
         }
         logPath.toFile().deleteOnExit();
         System.setProperty("logFolder", logPath.toString());

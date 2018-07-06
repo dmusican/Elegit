@@ -67,7 +67,7 @@ public class LocalBranchHelper extends BranchHelper {
      */
     // TODO: Make sure all Git operations are threadsafe
     // TODO: This code is in a strange location, should be near other git operations
-    public void checkoutBranch() throws GitAPIException, IOException {
+    public void checkoutBranch() throws GitAPIException {
         new Git(this.repoHelper.getRepo()).checkout().setName(getRefName()).call();
         this.repoHelper.getBranchModel().refreshCurrentBranch();
     }

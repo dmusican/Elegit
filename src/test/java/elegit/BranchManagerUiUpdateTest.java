@@ -1,5 +1,6 @@
 package elegit;
 
+import elegit.exceptions.ExceptionAdapter;
 import elegit.models.BranchModel;
 import elegit.models.ClonedRepoHelper;
 import org.eclipse.jgit.api.CreateBranchCommand;
@@ -54,7 +55,7 @@ public class BranchManagerUiUpdateTest {
         try {
             this.logPath = Files.createTempDirectory("elegitLogs");
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new ExceptionAdapter(e);
         }
         this.logPath.toFile().deleteOnExit();
         System.setProperty("logFolder", logPath.toString());
@@ -64,7 +65,7 @@ public class BranchManagerUiUpdateTest {
         try {
             directoryPath = Files.createTempDirectory("branchManagerUiUpdateTest");
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new ExceptionAdapter(e);
         }
         directoryPath.toFile().deleteOnExit();
 

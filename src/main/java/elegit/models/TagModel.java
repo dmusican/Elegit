@@ -88,7 +88,7 @@ public class TagModel {
      * @throws GitAPIException if the 'git tag' call fails.
      */
     public void tag(String tagName, String commitName) throws GitAPIException, MissingRepoException,
-            IOException, TagNameExistsException, InvalidTagNameException {
+            TagNameExistsException, InvalidTagNameException {
         logger.info("Attempting tag");
         if (!repoHelper.exists()) throw new MissingRepoException();
         Git git = new Git(this.repoHelper.getRepo());
