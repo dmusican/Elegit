@@ -241,7 +241,6 @@ public class RepoHelper {
      * @throws GitAPIException if the `git add` call fails.
      */
     public void addFilePathTest(Path filePath) throws GitAPIException {
-        Git git = new Git(this.getRepo());
         // git add:
         Path relativizedFilePath = this.localPath.relativize(filePath);
         String pathToAdd = relativizedFilePath.toString();
@@ -251,11 +250,8 @@ public class RepoHelper {
             else
                 pathToAdd = pathToAdd.replaceAll(File.separator, "/");
         }
-        git.add()
-                .addFilepattern(pathToAdd)
-                .call();
+        ThreadsafeGitManager.get(this.getRepo()).addFilePathTest(pathToAdd);
         TranscriptHelper.post("git add "+filePath);
-        git.close();
     }
 
     /**
