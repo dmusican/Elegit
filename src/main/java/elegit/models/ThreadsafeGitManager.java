@@ -1,17 +1,24 @@
 package elegit.models;
 
 import elegit.exceptions.ExceptionAdapter;
+import elegit.exceptions.MissingRepoException;
 import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.CheckoutCommand;
 import org.eclipse.jgit.api.CheckoutResult;
+import org.eclipse.jgit.api.CommitCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.GitCommand;
+import org.eclipse.jgit.api.RmCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.lib.Config;
 import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.revwalk.RevCommit;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -143,4 +150,76 @@ public class ThreadsafeGitManager {
             git.close();
         }
     }
+
+    /**
+     * Git rm command, for a specified collection of paths.
+     *
+     * @param filePaths
+     * @throws GitAPIException
+     */
+    public void removeFilePaths(ArrayList<Path> filePaths) throws GitAPIException {
+        Git git = new Git(repo);
+        RmCommand removeCommand = git.rm();
+        for (Path filePath : filePaths) {
+            removeCommand.addFilepattern(filePath.toString());
+        }
+        repoLock.writeLock().lock();
+        try {
+            removeCommand.call();
+        } finally {
+            repoLock.writeLock().unlock();
+            git.close();
+        }
+    }
+
+    /**
+     * Commits changes to the repository. It would seem that one might be able to get away with a read lock
+     * here, since add shouldn't be changing the working directory. This is poorly documented, however, and it
+     * isn't a chance worth taking, so go with a write lock.
+     *
+     * @param commitMessage the message for the commit.
+     * @return RevCommit the commit object
+     * @throws GitAPIException if the `git commit` call fails.
+     */
+    public RevCommit commit(String commitMessage) throws GitAPIException, MissingRepoException {
+
+        Git git = new Git(repo);
+        CommitCommand commitCommand = git.commit().setMessage(commitMessage);
+        repoLock.writeLock().lock();
+        try {
+            RevCommit commit = commitCommand.call();
+            return commit;
+        } finally {
+            repoLock.writeLock().lock();
+            git.close();
+        }
+    }
+
+
+
+
+    //////////////////////////////////////////////////////////////////////////////////////////////////
+
+    /**
+     * Gets a list of all remotes associated with this repository. The URLs
+     * correspond to the output seen by running 'git remote -v'
+     *
+     * @return a list of the remote URLs associated with this repository
+     */
+    public List<String> getLinkedRemoteRepoURLs() {
+        repoLock.readLock().lock();
+        try {
+            Config storedConfig = repo.getConfig();
+            Set<String> remotes = storedConfig.getSubsections("remote");
+            ArrayList<String> urls = new ArrayList<>(remotes.size());
+            for (String remote : remotes) {
+                urls.add(storedConfig.getString("remote", remote, "url"));
+            }
+            return Collections.unmodifiableList(urls);
+        } finally {
+            repoLock.readLock().unlock();
+        }
+    }
+
+
 }

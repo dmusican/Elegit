@@ -331,14 +331,7 @@ public class RepoHelper {
      * @throws GitAPIException if the `git rm` call fails.
      */
     public void removeFilePaths(ArrayList<Path> filePaths) throws GitAPIException {
-        Git git = new Git(this.getRepo());
-        // git rm:
-        RmCommand remover = git.rm();
-        for (Path filePath : filePaths) {
-            remover.addFilepattern(filePath.toString());
-        }
-        remover.call();
-        git.close();
+        ThreadsafeGitManager.get(this.getRepo()).removeFilePaths(filePaths);
     }
 
     /**
@@ -348,13 +341,7 @@ public class RepoHelper {
      * @return a list of the remote URLs associated with this repository
      */
     public List<String> getLinkedRemoteRepoURLs() {
-        Config storedConfig = this.getRepo().getConfig();
-        Set<String> remotes = storedConfig.getSubsections("remote");
-        ArrayList<String> urls = new ArrayList<>(remotes.size());
-        for (String remote : remotes) {
-            urls.add(storedConfig.getString("remote", remote, "url"));
-        }
-        return Collections.unmodifiableList(urls);
+        return ThreadsafeGitManager.get(this.getRepo()).getLinkedRemoteRepoURLs();
     }
 
     /**
@@ -407,12 +394,7 @@ public class RepoHelper {
         logger.info("Attempting commit");
         if (!exists()) throw new MissingRepoException();
 
-        Git git = new Git(this.getRepo());
-        // git commit:
-        RevCommit commit = git.commit()
-                .setMessage(commitMessage)
-                .call();
-        git.close();
+        RevCommit commit = ThreadsafeGitManager.get(this.getRepo()).commit(commitMessage);
 
         // Update the local commits
         try {
