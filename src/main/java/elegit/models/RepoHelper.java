@@ -5,12 +5,7 @@ import elegit.Main;
 import elegit.gui.PopUpWindows;
 import elegit.gui.SimpleProgressMonitor;
 import elegit.exceptions.*;
-import elegit.monitors.RepositoryMonitor;
 import elegit.treefx.Cell;
-import io.reactivex.Completable;
-import io.reactivex.Single;
-import io.reactivex.rxjavafx.schedulers.JavaFxScheduler;
-import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import net.jcip.annotations.ThreadSafe;
@@ -53,6 +48,7 @@ public class RepoHelper {
 
     private final String password;
     private final AtomicReference<Repository> repo = new AtomicReference<>();
+    private final AtomicReference<ThreadsafeGitManager> threadsafeGitManager = new AtomicReference<>();
     private final Path localPath;
     private final UserInfo userInfo;
     private final SshSessionFactory sshSessionFactory;
@@ -250,7 +246,7 @@ public class RepoHelper {
             else
                 pathToAdd = pathToAdd.replaceAll(File.separator, "/");
         }
-        ThreadsafeGitManager.get(this.getRepo()).addFilePathTest(pathToAdd);
+        threadsafeGitManager.get().addFilePathTest(pathToAdd);
         TranscriptHelper.post("git add "+filePath);
     }
 
@@ -273,7 +269,7 @@ public class RepoHelper {
             }
             fileNames.add(pathToAdd);
         }
-        ThreadsafeGitManager.get(this.getRepo()).addFilePathTest(fileNames);
+        threadsafeGitManager.get().addFilePathTest(fileNames);
         if (isSelectAllChecked){
             TranscriptHelper.post("git add *");
         }
@@ -300,7 +296,7 @@ public class RepoHelper {
             }
             fileNames.add(pathToAdd);
         }
-        ThreadsafeGitManager.get(this.getRepo()).addFilePathTest(fileNames);
+        threadsafeGitManager.get().addFilePathTest(fileNames);
         return fileNames;
     }
 
@@ -310,7 +306,7 @@ public class RepoHelper {
      * @param filePath the file to check out
      */
     public void checkoutFile(Path filePath) throws GitAPIException {
-        ThreadsafeGitManager.get(this.getRepo()).checkoutFile(filePath);
+        threadsafeGitManager.get().checkoutFile(filePath);
     }
 
     /**
@@ -321,7 +317,7 @@ public class RepoHelper {
      * @return the result of the checkout
      */
     public CheckoutResult checkoutFiles(List<String> filePaths, String startPoint) throws GitAPIException {
-        return ThreadsafeGitManager.get(this.getRepo()).checkoutFiles(filePaths, startPoint);
+        return threadsafeGitManager.get().checkoutFiles(filePaths, startPoint);
     }
 
     /**
@@ -331,7 +327,7 @@ public class RepoHelper {
      * @throws GitAPIException if the `git rm` call fails.
      */
     public void removeFilePaths(ArrayList<Path> filePaths) throws GitAPIException {
-        ThreadsafeGitManager.get(this.getRepo()).removeFilePaths(filePaths);
+        threadsafeGitManager.get().removeFilePaths(filePaths);
     }
 
     /**
@@ -341,7 +337,7 @@ public class RepoHelper {
      * @return a list of the remote URLs associated with this repository
      */
     public List<String> getLinkedRemoteRepoURLs() {
-        return ThreadsafeGitManager.get(this.getRepo()).getLinkedRemoteRepoURLs();
+        return threadsafeGitManager.get().getLinkedRemoteRepoURLs();
     }
 
     /**
@@ -394,7 +390,7 @@ public class RepoHelper {
         logger.info("Attempting commit");
         if (!exists()) throw new MissingRepoException();
 
-        RevCommit commit = ThreadsafeGitManager.get(this.getRepo()).commit(commitMessage);
+        RevCommit commit = threadsafeGitManager.get().commit(commitMessage);
 
         // Update the local commits
         try {
@@ -949,6 +945,11 @@ public class RepoHelper {
         boolean nullAsExpected = this.repo.compareAndSet(null, repo);
         if (!nullAsExpected) {
             throw new IllegalStateException("repo variable in RepoHelper should not have been set a second time");
+        }
+        nullAsExpected = this.threadsafeGitManager.compareAndSet(null, ThreadsafeGitManager.get(repo));
+        if (!nullAsExpected) {
+            throw new IllegalStateException("threadsafeGitManage variable in RepoHelper should not have been set a " +
+                                                    "second time");
         }
     }
 
