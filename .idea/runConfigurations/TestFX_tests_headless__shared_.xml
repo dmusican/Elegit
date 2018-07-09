@@ -1,7 +1,6 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="TestFX tests headless (shared)" type="JUnit" factoryName="JUnit">
-    <module name="Elegit" />
-    <extension name="coverage">
+    <extension name="coverage" enabled="false" merge="false" runner="idea">
       <pattern>
         <option name="PATTERN" value="elegitfx.*" />
         <option name="ENABLED" value="true" />
@@ -16,12 +15,14 @@
     <option name="VM_PARAMETERS" value="-ea -Djava.awt.headless=true -Dtestfx.robot=glass -Dtestfx.headless=true -Dprism.order=sw -Dprism.text=t2k -Dtestfx.setup.timeout=20000" />
     <option name="PARAMETERS" value="" />
     <option name="WORKING_DIRECTORY" value="file://$MODULE_DIR$" />
+    <option name="ENV_VARIABLES" />
     <option name="PASS_PARENT_ENVS" value="true" />
     <option name="TEST_SEARCH_SCOPE">
       <value defaultName="singleModule" />
     </option>
-    <patterns />
+    <envs />
     <fork_mode value="method" />
+    <patterns />
     <method />
   </configuration>
 </component>
