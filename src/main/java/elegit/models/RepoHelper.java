@@ -411,10 +411,7 @@ public class RepoHelper {
     public void commitAll(String message) throws MissingRepoException, GitAPIException, IOException {
         if (!exists()) throw new MissingRepoException();
 
-
-        Git git = new Git(getRepo());
-        git.commit().setMessage(message).setAll(true).call();
-        git.close();
+        threadsafeGitManager.get().commitAll(message);
 
         localCommits.set(parseAllLocalCommits());
     }
@@ -757,12 +754,8 @@ public class RepoHelper {
     void revert(List<AnyObjectId> commits) throws MissingRepoException, GitAPIException {
         logger.info("Attempting reverts");
         if (!exists()) throw new MissingRepoException();
-        Git git = new Git(this.getRepo());
-        RevertCommand revertCommand = git.revert();
-        for (AnyObjectId commit : commits)
-            revertCommand.include(commit);
-        revertCommand.call();
-        git.close();
+
+        threadsafeGitManager.get().revert(commits);
 
         // Update the local commits
         try {
@@ -783,10 +776,8 @@ public class RepoHelper {
     public boolean revert(CommitHelper helper) throws MissingRepoException, GitAPIException {
         logger.info("Attempting revert");
         if (!exists()) throw new MissingRepoException();
-        Git git = new Git(this.getRepo());
-        // git revert:
-        git.revert().include(helper.getObjectId()).call();
-        git.close();
+
+        threadsafeGitManager.get().revert(helper);
 
         // Update the local commits
         try {
@@ -813,9 +804,7 @@ public class RepoHelper {
     public void reset(Path path) throws MissingRepoException, GitAPIException {
         logger.info("Attempting reset file");
         if (!exists()) throw new MissingRepoException();
-        Git git = new Git(this.getRepo());
-        git.reset().addPath(this.localPath.relativize(path).toString()).call();
-        git.close();
+        threadsafeGitManager.get().reset(this.localPath, path);
     }
 
     /**
@@ -828,11 +817,7 @@ public class RepoHelper {
     public void reset(List<Path> paths) throws MissingRepoException, GitAPIException {
         logger.info("Attempting reset files");
         if (!exists()) throw new MissingRepoException();
-        Git git = new Git(this.getRepo());
-        ResetCommand resetCommand = git.reset();
-        paths.forEach(path -> resetCommand.addPath(this.localPath.relativize(path).toString()));
-        resetCommand.call();
-        git.close();
+        threadsafeGitManager.get().reset(this.localPath, paths);
     }
 
     /**
@@ -846,9 +831,7 @@ public class RepoHelper {
     public boolean reset(String ref, ResetCommand.ResetType mode) throws MissingRepoException, GitAPIException {
         logger.info("Attempting reset");
         if (!exists()) throw new MissingRepoException();
-        Git git = new Git(this.getRepo());
-        git.reset().setRef(ref).setMode(mode).call();
-        git.close();
+        threadsafeGitManager.get().reset(ref, mode);
         return true;
     }
 
@@ -864,8 +847,7 @@ public class RepoHelper {
      */
     public void stashSave(boolean includeUntracked) throws GitAPIException, NoFilesToStashException {
         logger.info("Attempting stash save");
-        Git git = new Git(this.getRepo());
-        RevCommit stash = git.stashCreate().setIncludeUntracked(includeUntracked).call();
+        RevCommit stash = threadsafeGitManager.get().stashSave(includeUntracked);
         if (stash == null) throw new NoFilesToStashException();
     }
 
@@ -880,9 +862,7 @@ public class RepoHelper {
     public void stashSave(boolean includeUntracked, String wdMessage,
                           String indexMessage) throws GitAPIException, NoFilesToStashException {
         logger.info("Attempting stash save with message");
-        Git git = new Git(this.getRepo());
-        RevCommit stash = git.stashCreate().setIncludeUntracked(includeUntracked).setWorkingDirectoryMessage(wdMessage)
-                .setIndexMessage(indexMessage).call();
+        RevCommit stash = threadsafeGitManager.get().stashSave(includeUntracked, wdMessage, indexMessage);
         if (stash == null) throw new NoFilesToStashException();
     }
 
@@ -893,12 +873,7 @@ public class RepoHelper {
      */
     public List<CommitHelper> stashList() throws GitAPIException, IOException {
         logger.info("Attempting stash list");
-        Git git = new Git(this.getRepo());
-        List<CommitHelper> stashCommitList = new ArrayList<>();
-
-        for (RevCommit commit : git.stashList().call()) {
-            stashCommitList.add(new CommitHelper(commit));
-        }
+        List<CommitHelper> stashCommitList = threadsafeGitManager.get().stashList();
         return Collections.unmodifiableList(stashCommitList);
     }
 
@@ -911,8 +886,7 @@ public class RepoHelper {
      */
     public void stashApply(String stashRef, boolean force) throws GitAPIException {
         logger.info("Attempting stash apply");
-        Git git = new Git(this.getRepo());
-        git.stashApply().setStashRef(stashRef).ignoreRepositoryState(force).call();
+        threadsafeGitManager.get().stashApply(stashRef, force);
     }
 
     /**
@@ -922,8 +896,7 @@ public class RepoHelper {
      */
     public ObjectId stashClear() throws GitAPIException {
         logger.info("Attempting stash drop all");
-        Git git = new Git(this.getRepo());
-        return git.stashDrop().setAll(true).call();
+        return threadsafeGitManager.get().stashClear();
     }
 
     /**
@@ -934,8 +907,7 @@ public class RepoHelper {
      */
     public ObjectId stashDrop(int stashRef) throws GitAPIException {
         logger.info("Attempting stash drop");
-        Git git = new Git(this.getRepo());
-        return git.stashDrop().setStashRef(stashRef).call();
+        return threadsafeGitManager.get().stashClear(stashRef);
     }
 
 

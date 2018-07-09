@@ -2,21 +2,11 @@ package elegit.models;
 
 import elegit.exceptions.ExceptionAdapter;
 import elegit.exceptions.MissingRepoException;
-import org.eclipse.jgit.api.AddCommand;
-import org.eclipse.jgit.api.CheckoutCommand;
-import org.eclipse.jgit.api.CheckoutResult;
-import org.eclipse.jgit.api.CommitCommand;
-import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.GitCommand;
-import org.eclipse.jgit.api.RmCommand;
+import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.dircache.DirCache;
 import org.eclipse.jgit.ignore.IgnoreNode;
-import org.eclipse.jgit.lib.BranchTrackingStatus;
-import org.eclipse.jgit.lib.Config;
-import org.eclipse.jgit.lib.Constants;
-import org.eclipse.jgit.lib.Ref;
-import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.treewalk.TreeWalk;
@@ -227,8 +217,104 @@ public class ThreadsafeGitManager {
         }
     }
 
+    /**
+     * Commits all changes that have been modified or delete (new files are not impacted) to the repository. See
+     * comment above about whether this should be a read or write lock.
+     *
+     * @param commitMessage the message for the commit.
+     * @return RevCommit the commit object
+     * @throws GitAPIException if the `git commit -all` call fails.
+     */
+    public RevCommit commitAll(String commitMessage) throws GitAPIException {
+        try (Git git = new Git(repo)) {
+            CommitCommand commitCommand = git.commit().setMessage(commitMessage).setAll(true);
+            return writeLock(commitCommand::call);
+        }
+    }
 
+    public void revert(List<AnyObjectId> commits) throws GitAPIException {
+        try (Git git = new Git(repo)) {
+            RevertCommand revertCommand = git.revert();
+            for (AnyObjectId commit : commits)
+                revertCommand.include(commit);
+            writeLock(revertCommand::call);
+        }
+    }
 
+    public void revert(CommitHelper helper) throws GitAPIException {
+        try (Git git = new Git(repo)) {
+            RevertCommand revertCommand = git.revert().include(helper.getObjectId());
+            writeLock(revertCommand::call);
+        }
+    }
+
+    public void reset(Path localPath, Path path) throws GitAPIException {
+        try (Git git = new Git(repo)) {
+            ResetCommand resetCommand = git.reset().addPath(localPath.relativize(path).toString());
+            writeLock(resetCommand::call);
+        }
+    }
+
+    public void reset(Path localPath, List<Path> paths) throws GitAPIException {
+        try (Git git = new Git(repo)) {
+            ResetCommand resetCommand = git.reset();
+            paths.forEach(path -> resetCommand.addPath(localPath.relativize(path).toString()));
+            writeLock(resetCommand::call);
+        }
+    }
+
+    public void reset(String ref, ResetCommand.ResetType mode) throws GitAPIException {
+        try (Git git = new Git(repo)) {
+            ResetCommand resetCommand = git.reset().setRef(ref).setMode(mode);
+            writeLock(resetCommand::call);
+        }
+    }
+
+    public RevCommit stashSave(boolean includeUntracked) throws GitAPIException {
+        try (Git git = new Git(repo)) {
+            StashCreateCommand stashCreateCommand = git.stashCreate().setIncludeUntracked(includeUntracked);
+            return writeLock(stashCreateCommand::call);
+        }
+    }
+
+    public RevCommit stashSave(boolean includeUntracked, String wdMessage,
+                               String indexMessage) throws GitAPIException {
+        try (Git git = new Git(repo)) {
+            StashCreateCommand stashCreateCommand = git.stashCreate().setIncludeUntracked(includeUntracked)
+                    .setWorkingDirectoryMessage(wdMessage).setIndexMessage(indexMessage);
+            return writeLock(stashCreateCommand::call);
+        }
+    }
+
+    public List<CommitHelper> stashList() throws GitAPIException, IOException {
+        try (Git git = new Git(repo)) {
+            List<CommitHelper> stashCommitList = new ArrayList<>();
+
+            for (RevCommit commit : writeLock(git.stashList()::call)) {
+                stashCommitList.add(new CommitHelper(commit));
+            }
+            return stashCommitList;
+        }
+    }
+
+    public void stashApply(String stashRef, boolean force) throws GitAPIException {
+        try (Git git = new Git(repo)) {
+            StashApplyCommand stashApplyCommand = git.stashApply().setStashRef(stashRef).ignoreRepositoryState(force);
+            writeLock(stashApplyCommand::call);
+        }
+    }
+
+    public ObjectId stashClear() throws GitAPIException {
+        try (Git git = new Git(repo)) {
+            return writeLock(git.stashDrop().setAll(true)::call);
+        }
+    }
+
+    public ObjectId stashClear(int stashRef) throws GitAPIException {
+        try (Git git = new Git(repo)) {
+            return writeLock(git.stashDrop().setStashRef(stashRef)::call);
+        }
+    }
 
     //////////////////////////////////////////////////////////////////////////////////////////////////
 
