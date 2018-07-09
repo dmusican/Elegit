@@ -5,7 +5,6 @@ import elegit.controllers.BusyWindow;
 import elegit.controllers.SessionController;
 import elegit.models.RepoHelper;
 import javafx.collections.ObservableList;
-import javafx.scene.Node;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
@@ -35,6 +34,8 @@ import static sharedrules.TestUtilities.makeTestRepo;
 /**
  * Created by grenche on 7/9/18.
  * Tests some of the menu options that don't just call SessionController methods.
+ * NOTE: currently doesn't test if clicking the menu items for the different repos actually does what it's supposed to
+ * because I can't get testFX to click on them (by ids or strings), but tests that the sub menus update correctly
  */
 public class MenusFXTest extends ApplicationTest {
     static {
@@ -97,11 +98,11 @@ public class MenusFXTest extends ApplicationTest {
 
         Path remote1 = directoryPath.resolve("remote1");
         Path local1 = directoryPath.resolve("local1");
-        List<RevCommit> allCommits1 = makeTestRepo(remote1, local1, 1, 2, true);
+        makeTestRepo(remote1, local1, 1, 2, true);
 
         Path remote2 = directoryPath.resolve("remote2");
         Path local2 = directoryPath.resolve("local2");
-        List<RevCommit> allCommits2 = makeTestRepo(remote2, local2, 1, 2, true);
+        makeTestRepo(remote2, local2, 1, 2, true);
 
         console.info("Loading up repo1");
         SessionController.gitStatusCompletedOnce = new CountDownLatch(1);
@@ -123,14 +124,34 @@ public class MenusFXTest extends ApplicationTest {
 
         interact(() -> assertEquals("local2", dropdown.getValue().toString()));
 
-        // TODO: for some reason testfx won't click any of the menus
-
+        // TODO: for some reason testfx won't click any of the menu items
+        // This is what I want to do, but instead I have to get it manually
 //        moveTo("File")
 //                .moveTo("Open")
 //                .clickOn("local1");
-//
-//        interact(() -> assertEquals("local1", dropdown.getValue().toString()));
-//
-//        interact(() -> assertEquals(2, dropdown.getItems().size()));
+
+        final MenuBar menuBar = lookup("#menuBar").query();
+        final ObservableList<Menu> children = menuBar.getMenus();
+        final Menu file = children.get(0);
+        final Menu open = (Menu) file.getItems().get(1);
+        final Menu close = (Menu) file.getItems().get(2);
+
+        interact(() -> assertEquals("local1", open.getItems().get(0).getText()));
+        interact(() -> assertEquals("local2", open.getItems().get(1).getText()));
+        interact(() -> assertEquals(2, open.getItems().size()));
+
+        interact(() -> assertEquals("local1", close.getItems().get(0).getText()));
+        interact(() -> assertEquals("local2", close.getItems().get(1).getText()));
+        interact(() -> assertEquals(2, close.getItems().size()));
+
+        // local1 is initially selected
+        clickOn("#removeRecentReposButton")
+                .clickOn("#reposDeleteRemoveSelectedButton");
+
+        interact(() -> assertEquals("local2", open.getItems().get(0).getText()));
+        interact(() -> assertEquals(1, open.getItems().size()));
+
+        interact(() -> assertEquals("local2", close.getItems().get(0).getText()));
+        interact(() -> assertEquals(1, close.getItems().size()));
     }
 }

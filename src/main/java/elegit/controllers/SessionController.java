@@ -2388,7 +2388,7 @@ public class SessionController {
      * removes selected repo shortcuts
      * @param checkedItems list of selected repos
      */
-    void handleRemoveReposButton(List<RepoHelper> checkedItems) {
+    public void handleRemoveReposButton(List<RepoHelper> checkedItems) {
         Main.assertFxThread();
         logger.info("Removed repos");
         this.theModel.removeRepoHelpers(checkedItems);
