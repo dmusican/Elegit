@@ -853,6 +853,8 @@ public class SessionController {
         Main.assertFxThread();
         synchronized (this) {
             RepoHelper repoHelper = this.theModel.getCurrentRepoHelper();
+            console.info("repoHelper in handleRemoveReposButton: " + repoHelper);
+
             List<RepoHelper> repoHelpers = this.theModel.getAllRepoHelpers();
             ObservableList<RepoHelper> obsRepoHelpers = FXCollections.observableArrayList(repoHelpers);
             ObservableList<RepoHelper> immutableRepoHelpers = FXCollections.unmodifiableObservableList(obsRepoHelpers);
@@ -2399,6 +2401,10 @@ public class SessionController {
             RepoHelper newCurrentRepo = this.theModel.getAllRepoHelpers()
                     .get(newIndex);
 
+            console.info("newCurrentRepo in handleRemoveReposButton: " + newCurrentRepo);
+            // TODO: there is a timing issue here in that the current repo hasn't been updated by the time
+            // TODO: refreshRecentReposInDropdownAndMenu() is called, so the exception in DropdownController is being
+            // TODO: thrown.
             loadDesignatedRepo(newCurrentRepo);
             this.refreshRecentReposInDropdownAndMenu();
 

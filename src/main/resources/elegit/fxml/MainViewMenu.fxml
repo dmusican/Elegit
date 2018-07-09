@@ -21,14 +21,8 @@
                                   onAction="#handleLoadExistingRepoOption" text="Load existing repository"/>
                     </items>
                 </Menu>
-                <Menu text="Open" id="loadSelectedRepoMenuItem" fx:id="loadSelectedRepoMenuItem" />
-                <Menu text="Close">
-                    <items>
-                        <!--Still doesn't work quite right-->
-                        <!--<MenuItem id="removeRecentReposOption" fx:id="removeRecentReposOption"-->
-                                  <!--onAction="#chooseRecentReposToDelete" text="Remove repository"/>-->
-                    </items>
-                </Menu>
+                <Menu text="Open" id="loadSelectedRepoOption" fx:id="loadSelectedRepoOption"/>
+                <Menu text="Close" id="removeRecentReposOption" fx:id="removeRecentReposOption" />
             </items>
         </Menu>
         <Menu text="Edit">

@@ -28,6 +28,8 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 /**
@@ -47,7 +49,9 @@ public class MenuController {
     @FXML
     private MenuItem cloneMenuItem;
     @FXML
-    private Menu loadSelectedRepoMenuItem;
+    private Menu loadSelectedRepoOption;
+    @FXML
+    private Menu removeRecentReposOption;
     @FXML
     private MenuItem createBranchMenuItem;
     @FXML
@@ -137,25 +141,40 @@ public class MenuController {
 
     public synchronized void handleLoadExistingRepoOption() { sessionController.handleLoadExistingRepoOption(); }
 
-    // Very similar to the method in DropdownController. Adds a menu item for each repository, so the user can open them
-    // from the menus as well as from the dropdown
+    /**
+     * Very similar to the method in DropdownController. Adds a menu item for each repository, so the user can open
+     * or close them from the menus as well as from the dropdown section
+     */
     public void setAllReposWithoutInvokingAction(ObservableList<RepoHelper> repoHelpers) {
         Main.assertFxThread();
-        // This way there are duplicates of each repo each time they are refreshed
-        loadSelectedRepoMenuItem.getItems().clear();
-        EventHandler<ActionEvent> handler = loadSelectedRepoMenuItem.getOnAction();
-        loadSelectedRepoMenuItem.setOnAction(null);
+        // This way there are not duplicates of each repo created every time they are refreshed
+        loadSelectedRepoOption.getItems().clear();
+        removeRecentReposOption.getItems().clear();
         for (RepoHelper repoHelper : repoHelpers) {
-            MenuItem repoHelperMenuItem = new MenuItem(repoHelper.toString());
-            repoHelperMenuItem.setOnAction(e -> loadSelectedRepo(repoHelper));
-            loadSelectedRepoMenuItem.getItems().add(repoHelperMenuItem);
+            MenuItem loadMenuItem = new MenuItem(repoHelper.toString());
+            loadMenuItem.setOnAction(e -> loadSelectedRepo(repoHelper));
+            loadSelectedRepoOption.getItems().add(loadMenuItem);
+
+            MenuItem removeMenuItem = new MenuItem(repoHelper.toString());
+            removeMenuItem.setOnAction(e -> chooseRecentRepoToDelete(repoHelper));
+            removeRecentReposOption.getItems().add(removeMenuItem);
         }
-        loadSelectedRepoMenuItem.setOnAction(handler);
     }
 
     private synchronized void loadSelectedRepo(RepoHelper repoHelper) { sessionController.loadDesignatedRepo(repoHelper); }
-    
-    // TODO: remove designated repo (use List<RepoHelper> repoHelpers = SessionModel.getSessionModel().getAllRepoHelpers(); for this)
+
+    /**
+     * Similar to the method in DropdownController, but only allows the user to remove one repo at a time and doesn't
+     * open a pop up window, but a normal sub menu with the loaded repositories (refer to
+     * setReposWithoutInvokingAction() for that part specifically).
+     */
+    private synchronized void chooseRecentRepoToDelete(RepoHelper repoHelper) {
+        // Have to turn it into a list, so the SessionController method can be called and no repeated code is
+        // necessary
+        List<RepoHelper> listOfOneRepo = new ArrayList<>(1);
+        listOfOneRepo.add(repoHelper);
+        sessionController.handleRemoveReposButton(listOfOneRepo);
+    }
 
     //----- "Edit" Dropdown Menu Items: -----
 
