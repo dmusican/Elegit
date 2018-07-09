@@ -10,19 +10,20 @@
 <MenuBar    xmlns:fx="http://javafx.com/fxml"
             GridPane.rowIndex="0"
             useSystemMenuBar="true"
-            fx:controller="elegit.controllers.MenuController">
+            fx:controller="elegit.controllers.MenuController"
+            id="menuBar">
     <menus>
         <Menu text="File">
             <items>
                 <Menu text="New Repository">
                     <items>
-                        <MenuItem fx:id="cloneOption" onAction="#handleCloneNewRepoOption" text="Clone repository"/>
-                        <MenuItem fx:id="existingOption" onAction="#handleLoadExistingRepoOption"
+                        <MenuItem fx:id="cloneMenuOption" onAction="#handleCloneNewRepoOption" text="Clone repository"/>
+                        <MenuItem fx:id="existingMenuOption" onAction="#handleLoadExistingRepoOption"
                                   text="Load existing repository"/>
                     </items>
                 </Menu>
-                <Menu text="Open" fx:id="loadSelectedRepoOption"/>
-                <Menu text="Close" fx:id="removeRecentReposOption" />
+                <Menu text="Open" id="loadSelectedRepoMenuOption" fx:id="loadSelectedRepoMenuOption"/>
+                <Menu text="Close" fx:id="removeRecentReposMenuOption" />
             </items>
         </Menu>
         <Menu text="Edit">

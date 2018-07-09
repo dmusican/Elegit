@@ -47,9 +47,9 @@ public class MenuController {
     @FXML
     private MenuItem cloneMenuItem;
     @FXML
-    private Menu loadSelectedRepoOption;
+    private Menu loadSelectedRepoMenuOption;
     @FXML
-    private Menu removeRecentReposOption;
+    private Menu removeRecentReposMenuOption;
     @FXML
     private MenuItem createBranchMenuItem;
     @FXML
@@ -146,21 +146,23 @@ public class MenuController {
     public void setAllReposWithoutInvokingAction(ObservableList<RepoHelper> repoHelpers) {
         Main.assertFxThread();
         // This way there are not duplicates of each repo created every time they are refreshed
-        loadSelectedRepoOption.getItems().clear();
-        removeRecentReposOption.getItems().clear();
+        loadSelectedRepoMenuOption.getItems().clear();
+        removeRecentReposMenuOption.getItems().clear();
 
         for (RepoHelper repoHelper : repoHelpers) {
             MenuItem loadMenuItem = new MenuItem(repoHelper.toString());
             loadMenuItem.setOnAction(e -> loadSelectedRepo(repoHelper));
-            loadSelectedRepoOption.getItems().add(loadMenuItem);
+            loadSelectedRepoMenuOption.getItems().add(loadMenuItem);
 
             MenuItem removeMenuItem = new MenuItem(repoHelper.toString());
             removeMenuItem.setOnAction(e -> chooseRecentRepoToDelete(repoHelper));
-            removeRecentReposOption.getItems().add(removeMenuItem);
+            removeRecentReposMenuOption.getItems().add(removeMenuItem);
         }
     }
 
-    private synchronized void loadSelectedRepo(RepoHelper repoHelper) { sessionController.loadDesignatedRepo(repoHelper); }
+    private synchronized void loadSelectedRepo(RepoHelper repoHelper) {
+        sessionController.loadDesignatedRepo(repoHelper);
+    }
 
     /**
      * Similar to the method in DropdownController, but only allows the user to remove one repo at a time and doesn't
