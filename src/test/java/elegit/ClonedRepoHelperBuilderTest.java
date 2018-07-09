@@ -6,6 +6,7 @@ import org.eclipse.jgit.api.LsRemoteCommand;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import sharedrules.TestUtilities;
 
 import java.io.File;
 import java.io.IOException;
@@ -22,13 +23,15 @@ public class ClonedRepoHelperBuilderTest {
     Path logPath;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
+        TestUtilities.setupTestEnvironment();
         initializeLogger();
     }
 
     @After
-    public void tearDown() throws Exception {
+    public void tearDown()  {
         removeAllFilesFromDirectory(this.logPath.toFile());
+        TestUtilities.cleanupTestEnvironment();
     }
 
     // Helper method to avoid annoying traces from logger

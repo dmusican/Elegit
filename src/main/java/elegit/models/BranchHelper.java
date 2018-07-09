@@ -28,6 +28,9 @@ public abstract class BranchHelper extends RefHelper {
     /**
      * Creates a new BranchHelper for the given reference and repository.
      * Pulls the head from the given repository.
+     *
+     * Note that the commit itself may not exist yet if the current branch doesn't have any commits. A classic case
+     * of this is master for a new repo that doesn't have any commits yet.
      * @param refPathString the full string representation of this branch
      * @param repoHelper the repository this branch is in
      */

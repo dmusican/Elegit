@@ -11,6 +11,7 @@ import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import sharedrules.TestUtilities;
 
 import java.io.File;
 import java.io.IOException;
@@ -36,7 +37,8 @@ public class BranchManagerUiUpdateTest {
     private ClonedRepoHelper helper;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
+        TestUtilities.setupTestEnvironment();
         initializeLogger();
         cloneTestRepo();
     }
@@ -44,6 +46,7 @@ public class BranchManagerUiUpdateTest {
     @After
     public void tearDown() throws Exception {
         removeAllFilesFromDirectory(directoryPath.toFile());
+        TestUtilities.cleanupTestEnvironment();
     }
 
     void initializeLogger() {

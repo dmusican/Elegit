@@ -79,6 +79,7 @@ public class RepoCreation2FXTest extends ApplicationTest {
     @After
     public void tearDown() {
         logger.info("Tearing down");
+        TestUtilities.cleanupTestEnvironment();
         assertEquals(0, Main.getAssertionCount());
     }
 
@@ -91,6 +92,8 @@ public class RepoCreation2FXTest extends ApplicationTest {
 
     @Test
     public void clickCommitTest() throws Exception {
+        TestUtilities.commonStartupOffFXThread();
+
         logger.info("Temp directory: " + directoryPath);
         Path remote = directoryPath.resolve("remote");
         Path local = directoryPath.resolve("local");

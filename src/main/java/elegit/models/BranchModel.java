@@ -53,7 +53,7 @@ public class BranchModel {
     /**
      * Updates local and remote branches in the model
      */
-    public void updateAllBranches() {
+    public synchronized void updateAllBranches() {
         this.updateLocalBranches();
         this.updateRemoteBranches();
         this.refreshHeadIds();
@@ -128,7 +128,7 @@ public class BranchModel {
     /**
      * Refreshes all the head ids for all local and remote branches
      */
-    public void refreshHeadIds() {
+    public synchronized void refreshHeadIds() {
         refreshHeadIdsType(BranchType.LOCAL);
         refreshHeadIdsType(BranchType.REMOTE);
     }
@@ -139,17 +139,19 @@ public class BranchModel {
      */
     // synchronized for localBranchesTyped and remoteBranchesTyped
     public synchronized void refreshHeadIdsType(BranchType type) {
-        List<? extends BranchHelper> listToRefresh = (type == BranchType.LOCAL) ? this.localBranchesTyped : this.remoteBranchesTyped;
-        for (BranchHelper branch : listToRefresh)
+        List<? extends BranchHelper> listToRefresh =
+                (type == BranchType.LOCAL) ? this.localBranchesTyped : this.remoteBranchesTyped;
+        for (BranchHelper branch : listToRefresh) {
             if (branch.getCommit() == null) {
                 try {
                     branch.getHeadId();
                 } catch (IOException e) {
                     logger.error("IOException getting local branches");
                     logger.debug(e.getStackTrace());
-                    e.printStackTrace();
+                    throw new ExceptionAdapter(e);
                 }
             }
+        }
     }
 
     /**
@@ -245,7 +247,8 @@ public class BranchModel {
      * @return the status of the push to remote to delete
      * @throws GitAPIException
      */
-    public RemoteRefUpdate.Status deleteRemoteBranch(RemoteBranchHelper branchHelper) throws GitAPIException, IOException {
+    public synchronized RemoteRefUpdate.Status deleteRemoteBranch(RemoteBranchHelper branchHelper) throws
+            GitAPIException, IOException {
         PushCommand pushCommand = new Git(this.repoHelper.getRepo()).push();
         // We're deleting the branch on a remote, so there it shows up as refs/heads/<branchname>
         // instead of what it shows up on local: refs/<remote>/<branchname>, so we manually enter
@@ -273,7 +276,8 @@ public class BranchModel {
      * @throws GitAPIException
      * @throws IOException
      */
-    public MergeResult mergeWithBranch(BranchHelper branchToMergeFrom) throws GitAPIException, IOException {
+    public synchronized MergeResult mergeWithBranch(BranchHelper branchToMergeFrom) throws GitAPIException,
+            IOException {
         Git git = new Git(this.repoHelper.getRepo());
 
         MergeCommand merge = git.merge();
@@ -301,7 +305,7 @@ public class BranchModel {
      * @return the head of the current remote branch (if one exists)
      * @throws IOException
      */
-    public CommitHelper getCurrentRemoteBranchHead() throws IOException {
+    public synchronized CommitHelper getCurrentRemoteBranchHead() throws IOException {
         String remoteBranch = getCurrentRemoteBranch();
         if (remoteBranch != null) {
             BranchHelper currentRemoteBranch = getBranchByName(BranchType.REMOTE, remoteBranch);
@@ -349,7 +353,7 @@ public class BranchModel {
      * @return the list of branches, either all local or remote
      */
     // Synchronized for localBranchesTyped and remoteBranchesTyped
-    public List<? extends BranchHelper> getBranchListTyped(BranchType type) {
+    public synchronized List<? extends BranchHelper> getBranchListTyped(BranchType type) {
         return Collections.unmodifiableList(new ArrayList<>(
                 (type==BranchType.LOCAL) ? this.localBranchesTyped : this.remoteBranchesTyped
         ));
@@ -360,7 +364,7 @@ public class BranchModel {
      * @return list of local branches with type LocalBranchHelper
      */
     // Synchronized for localBranchesTyped
-    public List<LocalBranchHelper> getLocalBranchesTyped() {
+    public synchronized List<LocalBranchHelper> getLocalBranchesTyped() {
         return Collections.unmodifiableList(new ArrayList<>(this.localBranchesTyped));
     }
 
@@ -369,7 +373,7 @@ public class BranchModel {
      * @return list of remote branches with type RemoteBranchHelper
      */
     // Synchronized for remoteBranchesTyped
-    public List<RemoteBranchHelper> getRemoteBranchesTyped() {
+    public synchronized List<RemoteBranchHelper> getRemoteBranchesTyped() {
         return Collections.unmodifiableList(new ArrayList<>(this.remoteBranchesTyped));
     }
 
@@ -379,7 +383,7 @@ public class BranchModel {
      * @return the list of branches in the 'type' list, but with type BranchHelper
      */
     // Synchronized for localBranchesTyped and remoteBranchesTyped
-    public List<BranchHelper> getBranchListUntyped(BranchType type){
+    public synchronized List<BranchHelper> getBranchListUntyped(BranchType type){
         List<? extends BranchHelper> typed = (type==BranchType.LOCAL) ? this.localBranchesTyped : this.remoteBranchesTyped;
         List<BranchHelper> untyped = new ArrayList<>();
         for (BranchHelper branch : typed)
@@ -393,7 +397,7 @@ public class BranchModel {
      * @return a list of all remote branches and local branches
      */
     // Synchronized for localBranchesTyped
-    public Set<BranchHelper> getAllBranches() {
+    public synchronized Set<BranchHelper> getAllBranches() {
         Set<BranchHelper> tmp = ConcurrentHashMap.newKeySet();
         tmp.addAll(this.remoteBranchesTyped);
         tmp.addAll(this.localBranchesTyped);
@@ -408,7 +412,7 @@ public class BranchModel {
      * @return
      */
     // Synchronized for localBranchesTyped and remoteBranchesTyped
-    public BranchHelper getBranchByName(BranchType type, String branchName) {
+    public synchronized BranchHelper getBranchByName(BranchType type, String branchName) {
         List<? extends BranchHelper> branchList = type==BranchType.LOCAL ? this.localBranchesTyped : this.remoteBranchesTyped;
         for (BranchHelper branch: branchList) {
             if (branch.getRefName().equals(branchName))
@@ -483,15 +487,18 @@ public class BranchModel {
      * Updates the heads of all local and remote branches, then returns a map of them
      * @return
      */
-    public Map<CommitHelper, List<BranchHelper>> getAllBranchHeads(){
+    public synchronized Map<CommitHelper, List<BranchHelper>> getAllBranchHeads() {
         Map<CommitHelper, List<BranchHelper>> heads = new ConcurrentHashMap<>();
-
         this.refreshHeadIds();
 
         Set<BranchHelper> branches = this.getAllBranches();
 
         for(BranchHelper branch : branches){
             CommitHelper head = branch.getCommit();
+            // If head is null, it will cause a NullPointerException to be thrown from containsKey
+            // below. Better to test it here and get more information.
+            assert head != null : "Head should not be null, branch is "
+                    + branch.getRefName() + " " + branch.getRefPathString();
             if(heads.containsKey(head)){
                 heads.get(head).add(branch);
             }else{
@@ -511,7 +518,7 @@ public class BranchModel {
      * @param commit the commit helper to look at
      * @return a list of names of branches that have the given commit helper as their head
      */
-    public List<String> getBranchesWithHead(CommitHelper commit) {
+    public synchronized List<String> getBranchesWithHead(CommitHelper commit) {
         List<BranchHelper> branches = getAllBranchHeads().get(commit);
         List<String> branchLabels = new LinkedList<>();
         if(branches != null) {
@@ -525,7 +532,7 @@ public class BranchModel {
     /**
      * @return a list of the current branches, useful for the ref labels
      */
-    public Set<String> getCurrentAbbrevBranches() {
+    public synchronized Set<String> getCurrentAbbrevBranches() {
         HashSet<String> branches = new HashSet<>();
         for (BranchHelper branch : getAllBranches()) {
             if (isBranchCurrent(branch))

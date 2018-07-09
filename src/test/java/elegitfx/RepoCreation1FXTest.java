@@ -42,6 +42,7 @@ import static org.junit.Assert.fail;
 
 public class RepoCreation1FXTest extends ApplicationTest {
 
+    public final int timeoutDelay = 20;
     static {
         // -----------------------Logging Initialization Start---------------------------
         Path logPath = Paths.get("logs");
@@ -84,6 +85,7 @@ public class RepoCreation1FXTest extends ApplicationTest {
     @After
     public void tearDown() {
         logger.info("Tearing down");
+        TestUtilities.cleanupTestEnvironment();
         assertEquals(0, Main.getAssertionCount());
     }
 
@@ -95,6 +97,8 @@ public class RepoCreation1FXTest extends ApplicationTest {
 
     @Test
     public void highlightCommitTest() throws Exception {
+        TestUtilities.commonStartupOffFXThread();
+
         logger.info("Temp directory: " + directoryPath);
         Path remote = directoryPath.resolve("remote");
         Path local = directoryPath.resolve("local");
@@ -148,9 +152,9 @@ public class RepoCreation1FXTest extends ApplicationTest {
         // waits for the layout to start and stop; then below that, verifies that the first commit is in there
 //        GuiTest.waitUntil(barAndLabel, (HBox box) -> (box.isVisible()));
 //        GuiTest.waitUntil(barAndLabel, (HBox box) -> !(box.isVisible()));
-        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+        WaitForAsyncUtils.waitFor(timeoutDelay, TimeUnit.SECONDS,
                                   () -> barAndLabel.isVisible());
-        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+        WaitForAsyncUtils.waitFor(timeoutDelay, TimeUnit.SECONDS,
                                   () -> !barAndLabel.isVisible());
 
         // Verify that first commit is actually added at end of first layout call

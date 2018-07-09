@@ -1055,9 +1055,10 @@ public class RepoHelper {
      *
      * @param idOrRefString either an ID or reference string corresponding
      *                      to an object in this repository
-     * @return the commit associated with the parameter
+     * @return the commit associated with the parameter, null if there is no commit associated with that parameter.
      */
     public CommitHelper getCommit(String idOrRefString) {
+        assert idOrRefString != null: "Tried to lookup null commit id/ref string.";
         if (commitIdMap.containsKey(idOrRefString)) {
             return commitIdMap.get(idOrRefString);
         } else {

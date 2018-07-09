@@ -13,11 +13,13 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.testfx.framework.junit.ApplicationTest;
 import org.testfx.framework.junit.TestFXRule;
+import org.testfx.util.WaitForAsyncUtils;
 import sharedrules.TestUtilities;
 
 import java.io.File;
@@ -28,6 +30,7 @@ import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 
 import static junit.framework.TestCase.assertEquals;
 import static org.junit.Assert.assertNotEquals;
@@ -63,6 +66,14 @@ public class CommitLabelFXTest extends ApplicationTest {
     @Rule
     public TestFXRule testFXRule = new TestFXRule();
 
+    public static final CountDownLatch startComplete = new CountDownLatch(1);
+
+    @After
+    public void tearDown() {
+        TestUtilities.cleanupTestEnvironment();
+    }
+
+
 
     @Override
     public void start(Stage stage) throws Exception {
@@ -84,6 +95,8 @@ public class CommitLabelFXTest extends ApplicationTest {
 
         // Load this repo in Elegit, and initialize
         SessionModel.getSessionModel().openRepoFromHelper(helper);
+
+        startComplete.countDown();
     }
 
     // Helper tear-down method:
@@ -98,6 +111,7 @@ public class CommitLabelFXTest extends ApplicationTest {
     // Dummy test to get something to run. This test really all happens in start, so just need to have a test
     // to get it going.
     public void test1() {
+        TestUtilities.commonStartupOffFXThread();
 
         interact( () -> {
             commitTreeModel.initializeModelForNewRepoWhenSubscribed()
@@ -114,6 +128,8 @@ public class CommitLabelFXTest extends ApplicationTest {
 
         });
 
+        // Helps avoid random TestFX shutdown errors
+        WaitForAsyncUtils.waitForFxEvents();
     }
 
 
