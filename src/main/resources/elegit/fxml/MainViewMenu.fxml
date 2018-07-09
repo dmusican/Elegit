@@ -21,13 +21,7 @@
                                   onAction="#handleLoadExistingRepoOption" text="Load existing repository"/>
                     </items>
                 </Menu>
-                <Menu text="Open">
-                    <items>
-                        <!--Still doesn't work quite right-->
-                        <!--<MenuItem id="loadSelectedRepoOption" fx:id="loadSelectedRepoOption"-->
-                                  <!--onAction="#loadSelectedRepo" text="Load repository"/>-->
-                    </items>
-                </Menu>
+                <Menu text="Open" id="loadSelectedRepoMenuItem" fx:id="loadSelectedRepoMenuItem" />
                 <Menu text="Close">
                     <items>
                         <!--Still doesn't work quite right-->

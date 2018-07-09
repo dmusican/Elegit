@@ -3,8 +3,12 @@ package elegit.controllers;
 import elegit.Main;
 import elegit.gui.GitIgnoreEditor;
 import elegit.models.LoggingModel;
+import elegit.models.RepoHelper;
 import elegit.models.SessionModel;
 import elegit.treefx.TreeLayout;
+import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -28,6 +32,8 @@ import java.util.Properties;
 
 /**
  * Created by dmusicant on 4/8/17.
+ * Has all the functionality for the menus. Most are from SessionController, but some options needed to be modified,
+ * so they are here.
  */
 public class MenuController {
 
@@ -40,6 +46,8 @@ public class MenuController {
     private Menu repoMenu;
     @FXML
     private MenuItem cloneMenuItem;
+    @FXML
+    private Menu loadSelectedRepoMenuItem;
     @FXML
     private MenuItem createBranchMenuItem;
     @FXML
@@ -121,7 +129,7 @@ public class MenuController {
         gitIgnoreMenuItem.setDisable(disable);
     }
 
-    // "File" Dropdown Menu Items:
+    //----- "File" Dropdown Menu Items: -----
 
     public synchronized void handleCloneNewRepoOption() {
         sessionController.handleCloneNewRepoOption();
@@ -129,11 +137,27 @@ public class MenuController {
 
     public synchronized void handleLoadExistingRepoOption() { sessionController.handleLoadExistingRepoOption(); }
 
-    // TODO: load designated repo (refreshRecentReposInDropdown() in session controller for this)
+    // Very similar to the method in DropdownController. Adds a menu item for each repository, so the user can open them
+    // from the menus as well as from the dropdown
+    public void setAllReposWithoutInvokingAction(ObservableList<RepoHelper> repoHelpers) {
+        Main.assertFxThread();
+        // This way there are duplicates of each repo each time they are refreshed
+        loadSelectedRepoMenuItem.getItems().clear();
+        EventHandler<ActionEvent> handler = loadSelectedRepoMenuItem.getOnAction();
+        loadSelectedRepoMenuItem.setOnAction(null);
+        for (RepoHelper repoHelper : repoHelpers) {
+            MenuItem repoHelperMenuItem = new MenuItem(repoHelper.toString());
+            repoHelperMenuItem.setOnAction(e -> loadSelectedRepo(repoHelper));
+            loadSelectedRepoMenuItem.getItems().add(repoHelperMenuItem);
+        }
+        loadSelectedRepoMenuItem.setOnAction(handler);
+    }
 
+    private synchronized void loadSelectedRepo(RepoHelper repoHelper) { sessionController.loadDesignatedRepo(repoHelper); }
+    
     // TODO: remove designated repo (use List<RepoHelper> repoHelpers = SessionModel.getSessionModel().getAllRepoHelpers(); for this)
 
-    // "Edit" Dropdown Menu Items:
+    //----- "Edit" Dropdown Menu Items: -----
 
     // TODO: copy
 
@@ -144,7 +168,7 @@ public class MenuController {
         GitIgnoreEditor.show(SessionModel.getSessionModel().getCurrentRepoHelper(), null);
     }
 
-    // "View" Dropdown Menu Items:
+    //----- "View" Dropdown Menu Items: -----
 
     public synchronized void handleCommitSortToggle() {
         sessionController.handleCommitSortToggle();
@@ -155,7 +179,7 @@ public class MenuController {
         Main.showPrimaryStage();
     }
 
-    // "Repository" Dropdown Menu Items (2 layers):
+    //----- "Repository" Dropdown Menu Items (2 layers): -----
 
     public synchronized void handleNewBranchButton() {
         sessionController.handleNewBranchButton();
@@ -229,13 +253,13 @@ public class MenuController {
         sessionController.handleStashDropButton();
     }
 
-    // "Preferences" Dropdown Menu Items:
+    //----- "Preferences" Dropdown Menu Items: -----
 
     public synchronized void handleLoggingToggle() {
         LoggingModel.toggleLogging();
     }
 
-    // "Help" Dropdown Menu Items:
+    //----- "Help" Dropdown Menu Items: -----
 
     public synchronized void handleAbout() {
         try {
