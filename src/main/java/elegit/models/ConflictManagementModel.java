@@ -31,16 +31,22 @@ import java.util.List;
  */
 public class ConflictManagementModel {
     private static final Logger logger = LogManager.getLogger();
+    private ArrayList<ConflictLine> left;
+    private ArrayList<ConflictLine> middle;
+    private ArrayList<ConflictLine> right;
+    private ConflictLine leftConflict;
+    private ConflictLine middleConflict;
+    private ConflictLine rightConflict;
 
     public ArrayList<ArrayList> parseConflicts(String fileName, String filePathWithoutFileName, ArrayList<String> base, ArrayList<String> merged){
         Main.assertFxThread();
         String path = filePathWithoutFileName + File.separator + fileName;
-        ArrayList<ConflictLine> left = new ArrayList<>();
-        ArrayList<ConflictLine> middle = new ArrayList<>();
-        ArrayList<ConflictLine> right = new ArrayList<>();
-        ConflictLine leftConflict = new ConflictLine(false);
-        ConflictLine middleConflict = new ConflictLine(false);
-        ConflictLine rightConflict = new ConflictLine(false);
+        left = new ArrayList<>();
+        middle = new ArrayList<>();
+        right = new ArrayList<>();
+        leftConflict = new ConflictLine(false);
+        middleConflict = new ConflictLine(false);
+        rightConflict = new ConflictLine(false);
         try {
             BufferedReader reader = new BufferedReader(new FileReader(path));
 
@@ -51,13 +57,8 @@ public class ConflictManagementModel {
                 //System.out.println(" "+leftCounter+ " "+ rightCounter+" "+line+" "+base.get(leftCounter)+" "+merged.get(rightCounter));
                 if(line.contains("<<<<<<<")) {
                     //line is the start of a conflict
-                    left.add(leftConflict);
-                    middle.add(middleConflict);
-                    right.add(rightConflict);
                     line = reader.readLine();
-                    leftConflict= new ConflictLine(true);
-                    middleConflict= new ConflictLine(true);
-                    rightConflict= new ConflictLine(true);
+                    addAndMakeNewConflictLines(true, false);
                     //left side of the conflict
                     while(!line.contains("=======")){
                         leftCounter++;
@@ -71,26 +72,13 @@ public class ConflictManagementModel {
                         rightConflict.addLine(line);
                         line = reader.readLine();
                     }
-                    left.add(leftConflict);
-                    middle.add(middleConflict);
-                    right.add(rightConflict);
-                    leftConflict= new ConflictLine(false);
-                    middleConflict= new ConflictLine(false);
-                    rightConflict= new ConflictLine(false);
+                    addAndMakeNewConflictLines(false, false);
                     line = reader.readLine();
                 } else if (changed(line, base, leftCounter, merged, rightCounter)){
                     //line is part of a changed segment
                     if(!middleConflict.isChanged()) {
                         //if this is the first line of the change, switch to a new ConflictLine
-                        left.add(leftConflict);
-                        middle.add(middleConflict);
-                        right.add(rightConflict);
-                        leftConflict = new ConflictLine(false);
-                        middleConflict = new ConflictLine(false);
-                        rightConflict = new ConflictLine(false);
-                        leftConflict.setChangedStatus(true);
-                        middleConflict.setChangedStatus(true);
-                        rightConflict.setChangedStatus(true);
+                        addAndMakeNewConflictLines(false, true);
                     }
                     middleConflict.addLine(line);
                     //detect whether the change comes from left or right
@@ -108,12 +96,7 @@ public class ConflictManagementModel {
                 } else {
                     //line is the same across both originals
                     if (middleConflict.isChanged()){
-                        left.add(leftConflict);
-                        middle.add(middleConflict);
-                        right.add(rightConflict);
-                        leftConflict = new ConflictLine(false);
-                        middleConflict = new ConflictLine(false);
-                        rightConflict = new ConflictLine(false);
+                        addAndMakeNewConflictLines(false, false);
                     }
                     middleConflict.addLine(line);
                     leftConflict.addLine(line);
@@ -137,6 +120,7 @@ public class ConflictManagementModel {
         return list;
     }
     private CanonicalTreeParser getTreeId(ObjectId commitId, Repository repository){
+        Main.assertFxThread();
         try {
             RevWalk revWalk = new RevWalk(repository);
             RevTree revTree = revWalk.parseCommit(commitId).getTree();
@@ -149,7 +133,22 @@ public class ConflictManagementModel {
         }
     }
 
+    private void addAndMakeNewConflictLines(boolean conflicting, boolean changed){
+        Main.assertFxThread();
+        left.add(leftConflict);
+        middle.add(middleConflict);
+        right.add(rightConflict);
+        leftConflict = new ConflictLine(conflicting);
+        middleConflict = new ConflictLine(conflicting);
+        rightConflict = new ConflictLine(conflicting);
+        leftConflict.setChangedStatus(changed);
+        middleConflict.setChangedStatus(changed);
+        rightConflict.setChangedStatus(changed);
+    }
+
+
     private ArrayList<String> makeDiff(ObjectId baseId, ObjectId mergedId, String fileName){
+        Main.assertFxThread();
         try {
             Repository repository = SessionModel.getSessionModel().getCurrentRepoHelper().getRepo();
             CanonicalTreeParser baseTree = getTreeId(baseId, repository);
@@ -174,18 +173,32 @@ public class ConflictManagementModel {
         }
     }
 
-    public void secondaryParse(ObjectId baseId, ObjectId mergedId, String fileName, String filePathWithoutFileName){
+    private void switchFromChangedToConflictIfNecessary(boolean changed, String line){
+        Main.assertFxThread();
+        if(changed){
+            middleConflict = new ConflictLine(true);
+            leftConflict.setChangedStatus(false);
+            middleConflict.setChangedStatus(false);
+            rightConflict.setChangedStatus(false);
+            leftConflict.setConflictStatus(true);
+            rightConflict.setConflictStatus(true);
+        } else {
+            middleConflict.addLine(line);
+        }
+    }
+
+    public ArrayList<ArrayList> parseConflictsFromParents(ObjectId baseId, ObjectId mergedId, String fileName, String filePathWithoutFileName){
+        Main.assertFxThread();
         ArrayList<String> original = makeDiff(baseId, mergedId, fileName);
         String path = filePathWithoutFileName + File.separator + fileName;
-        System.out.println(original);
         try {
             BufferedReader reader = new BufferedReader(new FileReader(path));
-            ArrayList<ConflictLine> left = new ArrayList<>();
-            ArrayList<ConflictLine> middle = new ArrayList<>();
-            ArrayList<ConflictLine> right = new ArrayList<>();
-            ConflictLine leftConflict = new ConflictLine(false);
-            ConflictLine middleConflict = new ConflictLine(false);
-            ConflictLine rightConflict = new ConflictLine(false);
+            left = new ArrayList<>();
+            middle = new ArrayList<>();
+            right = new ArrayList<>();
+            leftConflict = new ConflictLine(false);
+            middleConflict = new ConflictLine(false);
+            rightConflict = new ConflictLine(false);
             //String line = reader.readLine();
             boolean leftChanged = false;
             boolean rightChanged = false;
@@ -197,60 +210,25 @@ public class ConflictManagementModel {
                 if (initial == '+') {
                     rightChanged = true;
                     if (!middleConflict.isChanged() && !middleConflict.isConflicting()) {
-                        left.add(leftConflict);
-                        middle.add(middleConflict);
-                        right.add(rightConflict);
-                        leftConflict = new ConflictLine(false);
-                        middleConflict = new ConflictLine(false);
-                        rightConflict = new ConflictLine(false);
-                        leftConflict.setChangedStatus(true);
-                        middleConflict.setChangedStatus(true);
-                        rightConflict.setChangedStatus(true);
+                        addAndMakeNewConflictLines(false, true);
+
                     }
-                    if(leftChanged){
-                        leftConflict.setChangedStatus(false);
-                        middleConflict.setChangedStatus(false);
-                        rightConflict.setChangedStatus(false);
-                        leftConflict.setConflictStatus(true);
-                        middleConflict.setConflictStatus(true);
-                        rightConflict.setConflictStatus(true);
-                    }
-                    middleConflict.addLine(line);
+                    switchFromChangedToConflictIfNecessary(leftChanged, line);
                     rightConflict.addLine(line);
                 } else if (initial == '-') {
                     leftChanged = true;
                     if (!middleConflict.isChanged() && !middleConflict.isConflicting()) {
-                        left.add(leftConflict);
-                        middle.add(middleConflict);
-                        right.add(rightConflict);
-                        leftConflict = new ConflictLine(false);
-                        middleConflict = new ConflictLine(false);
-                        rightConflict = new ConflictLine(false);
-                        leftConflict.setChangedStatus(true);
-                        middleConflict.setChangedStatus(true);
-                        rightConflict.setChangedStatus(true);
+                        addAndMakeNewConflictLines(false, true);
                     }
-                    if(rightChanged){
-                        leftConflict.setChangedStatus(false);
-                        middleConflict.setChangedStatus(false);
-                        rightConflict.setChangedStatus(false);
-                        leftConflict.setConflictStatus(true);
-                        middleConflict.setConflictStatus(true);
-                        rightConflict.setConflictStatus(true);
-                    }
-                    middleConflict.addLine(line);
+                    switchFromChangedToConflictIfNecessary(rightChanged, line);
+
                     leftConflict.addLine(line);
 
                 } else if (initial != '\\') {
                     leftChanged = false;
                     rightChanged = false;
                     if (middleConflict.isChanged() || middleConflict.isConflicting()) {
-                        left.add(leftConflict);
-                        middle.add(middleConflict);
-                        right.add(rightConflict);
-                        leftConflict = new ConflictLine(false);
-                        middleConflict = new ConflictLine(false);
-                        rightConflict = new ConflictLine(false);
+                        addAndMakeNewConflictLines(false, false);
                     }
                     leftConflict.addLine(line);
                     middleConflict.addLine(line);
@@ -262,29 +240,11 @@ public class ConflictManagementModel {
             left.add(leftConflict);
             middle.add(middleConflict);
             right.add(rightConflict);
-            for (ConflictLine conflictLine : left){
-                System.out.println(conflictLine.isChanged()+" "+conflictLine.isConflicting());
-                for(String line : conflictLine.getLines()){
-                    System.out.println(line);
-                }
-            }
-            for (ConflictLine conflictLine : middle){
-                System.out.println(conflictLine.isChanged()+" "+conflictLine.isConflicting());
-                for(String line : conflictLine.getLines()){
-                    System.out.println(line);
-                }
-            }
-            for (ConflictLine conflictLine : right){
-                System.out.println(conflictLine.isChanged()+" "+conflictLine.isConflicting());
-                for(String line : conflictLine.getLines()){
-                    System.out.println(line);
-                }
-            }
             ArrayList<ArrayList> list = new ArrayList<>();
             list.add(left);
             list.add(middle);
             list.add(right);
-            //return list;
+            return list;
         } catch (IOException e){
             throw new ExceptionAdapter(e);
         }
@@ -292,6 +252,7 @@ public class ConflictManagementModel {
 
     }
     private boolean changed(String line, ArrayList<String> base, int leftCounter, ArrayList<String> merged, int rightCounter){
+        Main.assertFxThread();
         if ((base.size() >leftCounter) && (merged.size()>rightCounter)) {
             return (!line.equals(base.get(leftCounter)) || !line.equals(merged.get(rightCounter)));
         }

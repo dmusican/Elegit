@@ -820,10 +820,11 @@ public class ConflictManagementToolController {
         if (results == null) {
             results = conflictManagementModel.parseConflicts(fileName, filePathWithoutFileName,
                     getBaseParentFiles(fileName), getMergedParentFiles(fileName));
+            ObjectId baseParent = ObjectId.fromString(mergeResult.get("baseParent").substring(7, 47));
+            ObjectId mergedParent = ObjectId.fromString(mergeResult.get("mergedParent").substring(7, 47));
+            //results = conflictManagementModel.parseConflictsFromParents(baseParent, mergedParent, fileName, filePathWithoutFileName);
+
         }
-        ObjectId baseParent = ObjectId.fromString(mergeResult.get("baseParent").substring(7, 47));
-        ObjectId mergedParent = ObjectId.fromString(mergeResult.get("mergedParent").substring(7, 47));
-        conflictManagementModel.secondaryParse(baseParent, mergedParent, fileName, filePathWithoutFileName);
         leftAllConflictLines = results.get(0);
         middleAllConflictLines = results.get(1);
         rightAllConflictLines = results.get(2);
