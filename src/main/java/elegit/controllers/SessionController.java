@@ -853,8 +853,6 @@ public class SessionController {
         Main.assertFxThread();
         synchronized (this) {
             RepoHelper repoHelper = this.theModel.getCurrentRepoHelper();
-            console.info("repoHelper in handleRemoveReposButton: " + repoHelper);
-
             List<RepoHelper> repoHelpers = this.theModel.getAllRepoHelpers();
             ObservableList<RepoHelper> obsRepoHelpers = FXCollections.observableArrayList(repoHelpers);
             ObservableList<RepoHelper> immutableRepoHelpers = FXCollections.unmodifiableObservableList(obsRepoHelpers);
@@ -2401,12 +2399,9 @@ public class SessionController {
             RepoHelper newCurrentRepo = this.theModel.getAllRepoHelpers()
                     .get(newIndex);
 
-            console.info("newCurrentRepo in handleRemoveReposButton: " + newCurrentRepo);
-            // TODO: there is a timing issue here in that the current repo hasn't been updated by the time
-            // TODO: refreshRecentReposInDropdownAndMenu() is called, so the exception in DropdownController is being
-            // TODO: thrown.
             loadDesignatedRepo(newCurrentRepo);
-            this.refreshRecentReposInDropdownAndMenu();
+            // Originally this.refreshRecentReposInDropdownAndMenu() was called after this, but loadDesignatedRepo()
+            // calls it and due to the multithreading going on, calling it again was causing errors.
 
         } else if (this.theModel.getAllRepoHelpers().isEmpty()) {
             // If there are no repos, reset everything
@@ -2416,11 +2411,11 @@ public class SessionController {
             allFilesPanelView.resetFileStructurePanelView();
             RepositoryMonitor.pause();
             initialize();
+        } else { // This is the case that any repos removed where not the current repo
+            // In this case refreshing the dropdown is necessary because loadDesignatedRepo() isn't called.
+            // Ideally this would be handled differently and in a way that is more related to the actual removal.
+            this.refreshRecentReposInDropdownAndMenu();
         }
-
-        // The repos have been removed, so no 'else' case above is necessary
-
-        this.refreshRecentReposInDropdownAndMenu();
     }
 
     /**
