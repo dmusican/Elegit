@@ -7,8 +7,6 @@ import elegit.models.RepoHelper;
 import elegit.models.SessionModel;
 import elegit.treefx.TreeLayout;
 import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -150,6 +148,7 @@ public class MenuController {
         // This way there are not duplicates of each repo created every time they are refreshed
         loadSelectedRepoOption.getItems().clear();
         removeRecentReposOption.getItems().clear();
+
         for (RepoHelper repoHelper : repoHelpers) {
             MenuItem loadMenuItem = new MenuItem(repoHelper.toString());
             loadMenuItem.setOnAction(e -> loadSelectedRepo(repoHelper));
@@ -169,8 +168,7 @@ public class MenuController {
      * setReposWithoutInvokingAction() for that part specifically).
      */
     private synchronized void chooseRecentRepoToDelete(RepoHelper repoHelper) {
-        // Have to turn it into a list, so the SessionController method can be called and no repeated code is
-        // necessary
+        // Have to turn it into a list, so the SessionController method can be called and no repeated code is necessary
         List<RepoHelper> listOfOneRepo = new ArrayList<>(1);
         listOfOneRepo.add(repoHelper);
         sessionController.handleRemoveReposButton(listOfOneRepo);

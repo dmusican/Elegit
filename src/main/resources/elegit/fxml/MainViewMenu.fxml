@@ -17,12 +17,12 @@
                 <Menu text="New Repository">
                     <items>
                         <MenuItem fx:id="cloneOption" onAction="#handleCloneNewRepoOption" text="Clone repository"/>
-                        <MenuItem id="loadExistingRepoOption" fx:id="existingOption"
-                                  onAction="#handleLoadExistingRepoOption" text="Load existing repository"/>
+                        <MenuItem fx:id="existingOption" onAction="#handleLoadExistingRepoOption"
+                                  text="Load existing repository"/>
                     </items>
                 </Menu>
-                <Menu text="Open" id="loadSelectedRepoOption" fx:id="loadSelectedRepoOption"/>
-                <Menu text="Close" id="removeRecentReposOption" fx:id="removeRecentReposOption" />
+                <Menu text="Open" fx:id="loadSelectedRepoOption"/>
+                <Menu text="Close" fx:id="removeRecentReposOption" />
             </items>
         </Menu>
         <Menu text="Edit">
