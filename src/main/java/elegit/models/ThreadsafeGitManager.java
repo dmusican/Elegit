@@ -10,9 +10,12 @@ import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.GitCommand;
 import org.eclipse.jgit.api.RmCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.dircache.DirCache;
 import org.eclipse.jgit.ignore.IgnoreNode;
+import org.eclipse.jgit.lib.BranchTrackingStatus;
 import org.eclipse.jgit.lib.Config;
 import org.eclipse.jgit.lib.Constants;
+import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevWalk;
@@ -29,9 +32,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.Stack;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * Manage JGit calls in a threadsafe manner, since JGit does not do this on its own. This class
@@ -60,6 +67,11 @@ public class ThreadsafeGitManager {
         this.repo = repo;
     }
 
+
+    private interface JGitOperation<T> {
+        T call() throws GitAPIException;
+    }
+
     /**
      * Factory method. It returns the existing object if one exists for the given repo. If one does not exist,
      * it constructs it first
@@ -79,6 +91,38 @@ public class ThreadsafeGitManager {
             ThreadsafeGitManager tsGitManager = new ThreadsafeGitManager(repo);
             tsGitManagers.put(dotGitDirectory, tsGitManager);
             return tsGitManager;
+        }
+    }
+
+    /**
+     * Functional interfaces for read lock, to allow using it via lambda expressions elsewhere.
+     * @param jGitOperation The operation to be called
+     * @param <T> The type of the Git operation
+     * @return The result of the Git operation
+     * @throws GitAPIException
+     */
+    public <T> T readLock(JGitOperation<T> jGitOperation) throws GitAPIException {
+        repoLock.readLock().lock();
+        try {
+            return jGitOperation.call();
+        } finally {
+            repoLock.readLock().unlock();
+        }
+    }
+
+    /**
+     * Functional interfaces for write lock, to allow using it via lambda expressions elsewhere.
+     * @param jGitOperation The operation to be called
+     * @param <T> The type of the Git operation
+     * @return The result of the Git operation
+     * @throws GitAPIException
+     */
+    public <T> T writeLock(JGitOperation<T> jGitOperation) throws GitAPIException {
+        repoLock.readLock().lock();
+        try {
+            return jGitOperation.call();
+        } finally {
+            repoLock.readLock().unlock();
         }
     }
 
@@ -104,18 +148,13 @@ public class ThreadsafeGitManager {
      * @param filePaths
      * @throws GitAPIException
      */
-    public void addFilePathTest(ArrayList<String> filePaths) throws GitAPIException {
-        Git git = new Git(repo);
-        AddCommand addCommand = git.add();
-        for (String filePath : filePaths) {
-            addCommand.addFilepattern(filePath);
-        }
-        repoLock.writeLock().lock();
-        try {
-            addCommand.call();
-        } finally {
-            repoLock.writeLock().unlock();
-            git.close();
+    public DirCache addFilePathTest(ArrayList<String> filePaths) throws GitAPIException {
+        try (Git git = new Git(repo)) {
+            AddCommand addCommand = git.add();
+            for (String filePath : filePaths) {
+                addCommand.addFilepattern(filePath);
+            }
+            return writeLock(addCommand::call);
         }
     }
 
@@ -126,15 +165,13 @@ public class ThreadsafeGitManager {
      * @param filePath
      * @throws GitAPIException
      */
-    public void checkoutFile(Path filePath) throws GitAPIException {
-        Git git = new Git(repo);
-        GitCommand checkoutCommand = git.checkout().addPath(filePath.toString());
-        repoLock.writeLock().lock();
-        try {
-            checkoutCommand.call();
-        } finally {
-            repoLock.writeLock().unlock();
-            git.close();
+    public CheckoutResult checkoutFile(Path filePath) throws GitAPIException {
+        try (Git git = new Git(repo)) {
+            CheckoutCommand checkoutCommand = git.checkout().addPath(filePath.toString());
+            return writeLock(() -> {
+                checkoutCommand.call();
+                return checkoutCommand.getResult();
+            });
         }
     }
 
@@ -146,18 +183,15 @@ public class ThreadsafeGitManager {
      * @return the result of the checkout
      */
     public CheckoutResult checkoutFiles(List<String> filePaths, String startPoint) throws GitAPIException {
-        Git git = new Git(repo);
-        CheckoutCommand checkoutCommand = git.checkout().setStartPoint(startPoint);
-        for (String filePath : filePaths) {
-            checkoutCommand.addPath(filePath);
-        }
-        repoLock.writeLock().lock();
-        try {
-            checkoutCommand.call();
-            return checkoutCommand.getResult();
-        } finally {
-            repoLock.writeLock().unlock();
-            git.close();
+        try (Git git = new Git(repo)) {
+            CheckoutCommand checkoutCommand = git.checkout().setStartPoint(startPoint);
+            for (String filePath : filePaths) {
+                checkoutCommand.addPath(filePath);
+            }
+            return writeLock(() -> {
+                checkoutCommand.call();
+                return checkoutCommand.getResult();
+            });
         }
     }
 
@@ -167,18 +201,13 @@ public class ThreadsafeGitManager {
      * @param filePaths
      * @throws GitAPIException
      */
-    public void removeFilePaths(ArrayList<Path> filePaths) throws GitAPIException {
-        Git git = new Git(repo);
-        RmCommand removeCommand = git.rm();
-        for (Path filePath : filePaths) {
-            removeCommand.addFilepattern(filePath.toString());
-        }
-        repoLock.writeLock().lock();
-        try {
-            removeCommand.call();
-        } finally {
-            repoLock.writeLock().unlock();
-            git.close();
+    public DirCache removeFilePaths(ArrayList<Path> filePaths) throws GitAPIException {
+        try (Git git = new Git(repo)) {
+            RmCommand removeCommand = git.rm();
+            for (Path filePath : filePaths) {
+                removeCommand.addFilepattern(filePath.toString());
+            }
+            return writeLock(removeCommand::call);
         }
     }
 
@@ -192,16 +221,9 @@ public class ThreadsafeGitManager {
      * @throws GitAPIException if the `git commit` call fails.
      */
     public RevCommit commit(String commitMessage) throws GitAPIException, MissingRepoException {
-
-        Git git = new Git(repo);
-        CommitCommand commitCommand = git.commit().setMessage(commitMessage);
-        repoLock.writeLock().lock();
-        try {
-            RevCommit commit = commitCommand.call();
-            return commit;
-        } finally {
-            repoLock.writeLock().lock();
-            git.close();
+        try (Git git = new Git(repo)) {
+            CommitCommand commitCommand = git.commit().setMessage(commitMessage);
+            return writeLock(commitCommand::call);
         }
     }
 
@@ -216,9 +238,8 @@ public class ThreadsafeGitManager {
      *
      * @return a list of the remote URLs associated with this repository
      */
-    public List<String> getLinkedRemoteRepoURLs() {
-        repoLock.readLock().lock();
-        try {
+    public List<String> getLinkedRemoteRepoURLs() throws GitAPIException {
+        return readLock(() -> {
             Config storedConfig = repo.getConfig();
             Set<String> remotes = storedConfig.getSubsections("remote");
             ArrayList<String> urls = new ArrayList<>(remotes.size());
@@ -226,9 +247,8 @@ public class ThreadsafeGitManager {
                 urls.add(storedConfig.getString("remote", remote, "url"));
             }
             return Collections.unmodifiableList(urls);
-        } finally {
-            repoLock.readLock().unlock();
-        }
+        });
     }
 
 }
+

@@ -336,8 +336,12 @@ public class RepoHelper {
      *
      * @return a list of the remote URLs associated with this repository
      */
-    public List<String> getLinkedRemoteRepoURLs() {
-        return threadsafeGitManager.get().getLinkedRemoteRepoURLs();
+    public List<String> getLinkedRemoteRepoURLs()  {
+        try {
+            return threadsafeGitManager.get().getLinkedRemoteRepoURLs();
+        } catch (GitAPIException e) {
+            throw new ExceptionAdapter(e);
+        }
     }
 
     /**
@@ -351,8 +355,9 @@ public class RepoHelper {
      * @return the number of commits that local has that haven't been pushed
      */
     public int getAheadCount() throws IOException {
-        if (this.getBranchModel().getCurrentBranch().getStatus() != null)
-            return this.getBranchModel().getCurrentBranch().getStatus().getAheadCount();
+        BranchTrackingStatus status = this.getBranchModel().getCurrentBranch().getStatus();
+        if (status != null)
+            return status.getAheadCount();
         else return -1;
     }
 
@@ -374,8 +379,9 @@ public class RepoHelper {
      * @throws IOException
      */
     public int getBehindCount() throws IOException {
-        if (this.getBranchModel().getCurrentBranch().getStatus() != null)
-            return this.getBranchModel().getCurrentBranch().getStatus().getBehindCount();
+        BranchTrackingStatus status = this.getBranchModel().getCurrentBranch().getStatus();
+        if (status != null)
+            return status.getBehindCount();
         else return -1;
     }
 
