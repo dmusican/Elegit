@@ -3,6 +3,8 @@ package elegit.repofile;
 import elegit.Main;
 import elegit.gui.PopUpWindows;
 import elegit.models.RepoHelper;
+import elegit.treefx.CommitTreeController;
+import javafx.scene.control.MenuItem;
 import net.jcip.annotations.ThreadSafe;
 import org.eclipse.jgit.api.errors.GitAPIException;
 
@@ -32,6 +34,13 @@ public class ConflictingThenModifiedRepoFile extends RepoFile {
         Main.assertFxThread();
         setTextIdTooltip("CONFLICTING\nMODIFIED","conflictingThenModifiedDiffButton",
         "This file was conflicting, but was recently modified.\nCommit if the changes are finalized.");
+        MenuItem resolveMerge = new MenuItem("Resolve conflict...");
+        resolveMerge.setId("resolveConflicts");
+        addToContextMenu(resolveMerge);
+
+        // Open conflict management tool
+        resolveMerge.setOnAction(event -> CommitTreeController.getSessionController().handleOpenConflictManagementTool(
+                this.getRepo().getLocalPath().toString(), this.getFilePath().toString()));
     }
 
     public ConflictingThenModifiedRepoFile(String filePathString, RepoHelper repo) {

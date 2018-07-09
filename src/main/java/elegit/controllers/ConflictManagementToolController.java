@@ -427,6 +427,9 @@ public class ConflictManagementToolController {
         } else { // Go to the previous conflict
             findConflictToGoTo(currentLine, true);
         }
+        //System.err.println(leftDoc.getStyleAtPosition(leftDoc.getCurrentParagraph(), 0).toArray()[0]+"  "
+        //        +middleDoc.getStyleAtPosition(middleDoc.getCurrentParagraph(), 0).toArray()[0]+"  "
+        //        +rightDoc.getStyleAtPosition(rightDoc.getCurrentParagraph(), 0).toArray()[0]);
     }
 
     @FXML
@@ -445,6 +448,9 @@ public class ConflictManagementToolController {
         } else { // Go to the previous conflict
             findConflictToGoTo(currentLine, false);
         }
+        //System.err.println(leftDoc.getStyleAtPosition(leftDoc.getCurrentParagraph())+"  "
+        //        +middleDoc.getStyleAtPosition(middleDoc.getCurrentParagraph())+"  "
+        //        +rightDoc.getStyleAtPosition(rightDoc.getCurrentParagraph()));
     }
 
     private void moveDocCaretsToLastConflict() {
@@ -818,11 +824,11 @@ public class ConflictManagementToolController {
         setLabels(conflictManagementModel);
         ArrayList<ArrayList> results = savedParsedFiles.get(fileName);
         if (results == null) {
-            results = conflictManagementModel.parseConflicts(fileName, filePathWithoutFileName,
-                    getBaseParentFiles(fileName), getMergedParentFiles(fileName));
+            //results = conflictManagementModel.parseConflicts(fileName, filePathWithoutFileName,
+            //        getBaseParentFiles(fileName), getMergedParentFiles(fileName));
             ObjectId baseParent = ObjectId.fromString(mergeResult.get("baseParent").substring(7, 47));
             ObjectId mergedParent = ObjectId.fromString(mergeResult.get("mergedParent").substring(7, 47));
-            //results = conflictManagementModel.parseConflictsFromParents(baseParent, mergedParent, fileName, filePathWithoutFileName);
+            results = conflictManagementModel.parseConflictsFromParents(baseParent, mergedParent, fileName, filePathWithoutFileName);
 
         }
         leftAllConflictLines = results.get(0);

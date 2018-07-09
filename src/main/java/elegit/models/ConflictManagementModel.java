@@ -156,7 +156,9 @@ public class ConflictManagementModel {
             Git git = new Git(repository);
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
+            //need to find the max size possible for a file in order to set the # of context lines
             git.diff()
+                    .setContextLines(1000)
                     .setOldTree(baseTree)
                     .setNewTree(mergedTree)
                     .setOutputStream(outputStream)
@@ -191,66 +193,106 @@ public class ConflictManagementModel {
         Main.assertFxThread();
         ArrayList<String> original = makeDiff(baseId, mergedId, fileName);
         String path = filePathWithoutFileName + File.separator + fileName;
+        left = new ArrayList<>();
+        middle = new ArrayList<>();
+        right = new ArrayList<>();
+        leftConflict = new ConflictLine(false);
+        middleConflict = new ConflictLine(false);
+        rightConflict = new ConflictLine(false);
+        boolean leftChanged = false;
+        boolean rightChanged = false;
+        for (int i = 5 ; i < original.size(); i++) {
+            String line = original.get(i);
+            Character initial = line.charAt(0);
+            line = line.substring(1);
+            //- = left, +=right
+            if (initial == '+') {
+                rightChanged = true;
+                if (!middleConflict.isChanged() && !middleConflict.isConflicting()) {
+                    addAndMakeNewConflictLines(false, true);
+                }
+                switchFromChangedToConflictIfNecessary(leftChanged, line);
+                rightConflict.addLine(line);
+            } else if (initial == '-') {
+                leftChanged = true;
+                if (!middleConflict.isChanged() && !middleConflict.isConflicting()) {
+                    addAndMakeNewConflictLines(false, true);
+                }
+                switchFromChangedToConflictIfNecessary(rightChanged, line);
+
+                leftConflict.addLine(line);
+
+            } else if (initial != '\\') {
+                leftChanged = false;
+                rightChanged = false;
+                if (middleConflict.isChanged() || middleConflict.isConflicting()) {
+                    addAndMakeNewConflictLines(false, false);
+                }
+                leftConflict.addLine(line);
+                middleConflict.addLine(line);
+                rightConflict.addLine(line);
+
+            }
+        }
+        left.add(leftConflict);
+        middle.add(middleConflict);
+        right.add(rightConflict);
+        compareOriginalToModifiedVersion(path);
+        ArrayList<ArrayList> list = new ArrayList<>();
+        list.add(left);
+        list.add(middle);
+        list.add(right);
+        return list;
+    }
+
+    private void compareOriginalToModifiedVersion(String path){
+        Main.assertFxThread();
         try {
             BufferedReader reader = new BufferedReader(new FileReader(path));
-            left = new ArrayList<>();
-            middle = new ArrayList<>();
-            right = new ArrayList<>();
-            leftConflict = new ConflictLine(false);
-            middleConflict = new ConflictLine(false);
-            rightConflict = new ConflictLine(false);
-            //String line = reader.readLine();
-            boolean leftChanged = false;
-            boolean rightChanged = false;
-            for(int i = 5 ; i < original.size(); i++){
-                String line = original.get(i);
-                Character initial = line.charAt(0);
-                line = line.substring(1);
-                //- = left, +=right
-                if (initial == '+') {
-                    rightChanged = true;
-                    if (!middleConflict.isChanged() && !middleConflict.isConflicting()) {
-                        addAndMakeNewConflictLines(false, true);
-
+            String readLine = reader.readLine();
+            int conflictLineCounter = 0;
+            //System.out.println(left.size()+"  "+middle.size()+"  "+right.size());
+            for (ConflictLine center : middle) {
+                //System.out.println(center.isConflicting());
+                if (!center.isConflicting()) {
+                    for (String line : center.getLines()) {
+                        //line should always match readLine
+                        readLine = reader.readLine();
                     }
-                    switchFromChangedToConflictIfNecessary(leftChanged, line);
-                    rightConflict.addLine(line);
-                } else if (initial == '-') {
-                    leftChanged = true;
-                    if (!middleConflict.isChanged() && !middleConflict.isConflicting()) {
-                        addAndMakeNewConflictLines(false, true);
+                } else {
+                    leftConflict = left.get(conflictLineCounter);
+                    rightConflict = right.get(conflictLineCounter);
+                    //System.out.println(leftConflict+"  "+center+"  "+rightConflict);
+                    //System.out.println(leftConflict.getLines()+"  "+center.getLines()+"  "+rightConflict.getLines());
+                    if(readLine!=null) {
+                        if (readLine.equals(leftConflict.getLines().get(0))) {
+                            center.setConflictStatus(false);
+                            center.setHandledStatus(true);
+                            leftConflict.setConflictStatus(false);
+                            leftConflict.setHandledStatus(true);
+                            for (String line : leftConflict.getLines()) {
+                                readLine = reader.readLine();
+                            }
+                        } else if (readLine.equals(rightConflict.getLines().get(0))) {
+                            center.setConflictStatus(false);
+                            center.setHandledStatus(true);
+                            leftConflict.setConflictStatus(false);
+                            leftConflict.setHandledStatus(true);
+                            for (String line : rightConflict.getLines()) {
+                                readLine = reader.readLine();
+                            }
+                        }
                     }
-                    switchFromChangedToConflictIfNecessary(rightChanged, line);
-
-                    leftConflict.addLine(line);
-
-                } else if (initial != '\\') {
-                    leftChanged = false;
-                    rightChanged = false;
-                    if (middleConflict.isChanged() || middleConflict.isConflicting()) {
-                        addAndMakeNewConflictLines(false, false);
-                    }
-                    leftConflict.addLine(line);
-                    middleConflict.addLine(line);
-                    rightConflict.addLine(line);
 
                 }
-                //System.out.println(line.substring(1));
+                conflictLineCounter++;
             }
-            left.add(leftConflict);
-            middle.add(middleConflict);
-            right.add(rightConflict);
-            ArrayList<ArrayList> list = new ArrayList<>();
-            list.add(left);
-            list.add(middle);
-            list.add(right);
-            return list;
-        } catch (IOException e){
+        } catch (Exception e) {
+            //e.printStackTrace();
             throw new ExceptionAdapter(e);
         }
-
-
     }
+
     private boolean changed(String line, ArrayList<String> base, int leftCounter, ArrayList<String> merged, int rightCounter){
         Main.assertFxThread();
         if ((base.size() >leftCounter) && (merged.size()>rightCounter)) {
