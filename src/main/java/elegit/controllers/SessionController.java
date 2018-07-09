@@ -2476,7 +2476,8 @@ public class SessionController {
                     .get(newIndex);
 
             loadDesignatedRepo(newCurrentRepo);
-            this.refreshRecentReposInDropdown();
+            // Originally this.refreshRecentReposInDropdown() was called after this, but loadDesignatedRepo() calls it
+            // and due to the multithreading going on, calling it again was causing errors.
 
         } else if (this.theModel.getAllRepoHelpers().isEmpty()) {
             // If there are no repos, reset everything
@@ -2486,11 +2487,11 @@ public class SessionController {
             allFilesPanelView.resetFileStructurePanelView();
             RepositoryMonitor.pause();
             initialize();
+        } else { // This is the case that any repos removed where not the current repo
+            // In this case refreshing the dropdown is necessary because loadDesignatedRepo() isn't called.
+            // Ideally this would be handled differently and in a way that is more related to the actual removal.
+            this.refreshRecentReposInDropdown();
         }
-
-        // The repos have been removed, so no 'else' case above is necessary
-
-        this.refreshRecentReposInDropdown();
     }
 
     /**

@@ -68,8 +68,8 @@ public class ThreadsafeGitManager {
     }
 
 
-    private interface JGitOperation<T> {
-        T call() throws GitAPIException;
+    private interface JGitOperation<T, E extends Throwable> {
+        T call() throws E;
     }
 
     /**
@@ -101,7 +101,7 @@ public class ThreadsafeGitManager {
      * @return The result of the Git operation
      * @throws GitAPIException
      */
-    public <T> T readLock(JGitOperation<T> jGitOperation) throws GitAPIException {
+    public <T, E extends Throwable> T readLock(JGitOperation<T, E> jGitOperation) throws E {
         repoLock.readLock().lock();
         try {
             return jGitOperation.call();
@@ -117,12 +117,12 @@ public class ThreadsafeGitManager {
      * @return The result of the Git operation
      * @throws GitAPIException
      */
-    public <T> T writeLock(JGitOperation<T> jGitOperation) throws GitAPIException {
-        repoLock.readLock().lock();
+    public <T, E extends Throwable> T writeLock(JGitOperation<T, E> jGitOperation) throws E {
+        repoLock.writeLock().lock();
         try {
             return jGitOperation.call();
         } finally {
-            repoLock.readLock().unlock();
+            repoLock.writeLock().unlock();
         }
     }
 
