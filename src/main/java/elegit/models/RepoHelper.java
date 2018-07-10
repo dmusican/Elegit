@@ -435,12 +435,8 @@ public class RepoHelper {
         if (remote.equals("cancel"))
             throw new InvalidRemoteException("No remote selected.");
 
-        Git git = new Git(this.getRepo());
-        PushCommand push = git.push().setRemote(remote).add(branchToPush.getRefPathString());
-
-        // TODO: Make this a real progress monitor
-        ProgressMonitor progress = new SimpleProgressMonitor();
-        push.setProgressMonitor(progress);
+        String branchToPushRefPathString = branchToPush.getRefPathString();
+        PushCommand push = threadsafeGitManager.get().prepareToPushCurrentBranch(remote, branchToPushRefPathString);
 
         if (this.getBranchModel().getCurrentRemoteBranch() == null) {
             if (isTest || PopUpWindows.trackCurrentBranchRemotely(branchToPush.getRefName())) {
@@ -554,8 +550,7 @@ public class RepoHelper {
             }
         }
 
-        ProgressMonitor progress = new SimpleProgressMonitor();
-        push.setProgressMonitor(progress);
+        push = threadsafeGitManager.get().prepareToPushAll(push);
 
         return push;
     }
@@ -597,10 +592,10 @@ public class RepoHelper {
         Git git = new Git(this.getRepo());
         PushCommand push = git.push();
         wrapAuthentication(push);
-        ProgressMonitor progress = new SimpleProgressMonitor();
-        push.setProgressMonitor(progress);
 
-        Iterable<PushResult> pushResult = push.setPushTags().call();
+        Iterable<PushResult> pushResult = threadsafeGitManager.get().pushTags(push);
+        git.close();
+
         boolean allPushesWereRejected = true;
         boolean anyPushWasRejected = false;
 
@@ -618,7 +613,6 @@ public class RepoHelper {
         if (allPushesWereRejected || anyPushWasRejected) {
             throw new PushToAheadRemoteError(allPushesWereRejected);
         }
-        git.close();
 
         this.tagModel.get().updateTags();
 
@@ -648,16 +642,7 @@ public class RepoHelper {
 
         wrapAuthentication(fetch);
 
-        // The JGit docs say that if setCheckFetchedObjects
-        //  is set to true, objects received will be checked for validity.
-        //  Not sure what that means, but sounds good so I'm doing it...
-        fetch.setCheckFetchedObjects(true);
-
-        // ProgressMonitor progress = new TextProgressMonitor(new PrintWriter(System.out));
-        ProgressMonitor progress = new SimpleProgressMonitor();
-        fetch.setProgressMonitor(progress);
-
-        FetchResult result = fetch.call();
+        FetchResult result = threadsafeGitManager.get().fetch(fetch);
         git.close();
 
         try {

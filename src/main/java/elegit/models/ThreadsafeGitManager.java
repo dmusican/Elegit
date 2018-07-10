@@ -1,10 +1,12 @@
 package elegit.models;
 
+import elegit.gui.SimpleProgressMonitor;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.dircache.DirCache;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.transport.FetchResult;
 import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.jgit.transport.RemoteRefUpdate;
 
@@ -399,6 +401,52 @@ public class ThreadsafeGitManager {
         return readLock(command::call);
     }
 
+    // TODO: figure out if this locking is correct
+    public PushCommand prepareToPushCurrentBranch(String remote, String branchToPushRefPathString) {
+        try (Git git = new Git(repo)) {
+            PushCommand push = git.push().setRemote(remote).add(branchToPushRefPathString);
+
+            writeLock(() -> {
+                // TODO: Make this a real progress monitor
+                ProgressMonitor progress = new SimpleProgressMonitor();
+                return push.setProgressMonitor(progress);
+            });
+
+            return push;
+        }
+    }
+
+    public PushCommand prepareToPushAll(PushCommand push) {
+        return writeLock(() -> {
+            ProgressMonitor progress = new SimpleProgressMonitor();
+            return push.setProgressMonitor(progress);
+        });
+    }
+
+    public Iterable<PushResult> pushTags(PushCommand push) throws GitAPIException {
+        return writeLock(() -> {
+            ProgressMonitor progress = new SimpleProgressMonitor();
+            push.setProgressMonitor(progress);
+
+            return push.setPushTags().call();
+        });
+    }
+
+    public FetchResult fetch(FetchCommand fetch) throws GitAPIException {
+        // The JGit docs say that if setCheckFetchedObjects
+        //  is set to true, objects received will be checked for validity.
+        //  Not sure what that means, but sounds good so I'm doing it...
+        fetch.setCheckFetchedObjects(true);
+
+        return writeLock(() -> {
+            // ProgressMonitor progress = new TextProgressMonitor(new PrintWriter(System.out));
+            ProgressMonitor progress = new SimpleProgressMonitor();
+            fetch.setProgressMonitor(progress);
+
+            return fetch.call();
+        });
+    }
+
     //////////////////////////////////////////////////////////////////////////////////////////////////
 
     /**
@@ -595,6 +643,24 @@ public class ThreadsafeGitManager {
             return readLock(git.branchList()
                     .setListMode(ListBranchCommand.ListMode.REMOTE)::
                     call);
+        }
+    }
+
+    //////////////////////////////////////////////////////////////////////////////////////////////////
+
+    public Ref getTag(String tagName, RevCommit commit) throws GitAPIException {
+        try (Git git = new Git(repo)) {
+            return writeLock(git.tag().setName(tagName).setObjectId(commit).setAnnotated(false)::call);
+        }
+    }
+
+    /**
+     *
+     * @throws GitAPIException if `git tag -d` fails.
+     */
+    public void deleteTag(String tagToRemoveRefName) throws GitAPIException {
+        try (Git git = new Git(repo)) {
+            git.tagDelete().setTags(tagToRemoveRefName).call();
         }
     }
 }
