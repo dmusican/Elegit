@@ -5,13 +5,12 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.dircache.DirCache;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.transport.PushResult;
+import org.eclipse.jgit.transport.RemoteRefUpdate;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -396,6 +395,10 @@ public class ThreadsafeGitManager {
         }
     }
 
+    public Collection<Ref> getRefsFromRemote(LsRemoteCommand command) throws GitAPIException {
+        return readLock(command::call);
+    }
+
     //////////////////////////////////////////////////////////////////////////////////////////////////
 
     /**
@@ -547,6 +550,15 @@ public class ThreadsafeGitManager {
         try (Git git = new Git(repo)) {
             writeLock(git.branchDelete().setForce(true).setBranchNames(branchName)::call);
         }
+    }
+
+    public RemoteRefUpdate.Status deleteRemoteBranch(PushCommand pushCommand) throws GitAPIException {
+        for (PushResult result : writeLock(pushCommand::call)) {
+            for (RemoteRefUpdate refUpdate : result.getRemoteUpdates()) {
+                return refUpdate.getStatus();
+            }
+        }
+        return null;
     }
 
     /**

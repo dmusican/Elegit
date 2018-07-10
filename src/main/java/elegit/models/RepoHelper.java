@@ -1362,15 +1362,13 @@ public class RepoHelper {
      * @throws GitAPIException
      */
     public Collection<Ref> getRefsFromRemote(boolean includeTags) throws GitAPIException {
-        synchronized (globalLock) {
-            LsRemoteCommand command = new Git(getRepo()).lsRemote().setHeads(true);
-            if (includeTags) {
-                command = command.setTags(includeTags);
-            }
-            wrapAuthentication(command);
-            Collection<Ref> remoteRefs = command.call();
-            return Collections.unmodifiableCollection(remoteRefs);
+        LsRemoteCommand command = new Git(getRepo()).lsRemote().setHeads(true);
+        if (includeTags) {
+            command = command.setTags(includeTags);
         }
+        wrapAuthentication(command);
+        Collection<Ref> remoteRefs = threadsafeGitManager.get().getRefsFromRemote(command);
+        return Collections.unmodifiableCollection(remoteRefs);
     }
 
     public List<RefHelper> getRefsForCommit(CommitHelper helper) {

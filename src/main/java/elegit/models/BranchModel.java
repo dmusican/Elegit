@@ -254,13 +254,7 @@ public class BranchModel {
         // Update the remote branches in case it worked
         updateRemoteBranches();
 
-        boolean succeeded=false;
-        for (PushResult result : pushCommand.call()) {
-            for (RemoteRefUpdate refUpdate : result.getRemoteUpdates()) {
-                return refUpdate.getStatus();
-            }
-        }
-        return null;
+        return threadsafeGitManager.get().deleteRemoteBranch(pushCommand);
     }
 
     /**
