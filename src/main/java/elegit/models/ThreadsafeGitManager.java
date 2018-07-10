@@ -3,12 +3,14 @@ package elegit.models;
 import elegit.gui.SimpleProgressMonitor;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.api.errors.TransportException;
 import org.eclipse.jgit.dircache.DirCache;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.transport.FetchResult;
 import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.jgit.transport.RemoteRefUpdate;
+import org.eclipse.jgit.api.TransportCommand;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -660,7 +662,7 @@ public class ThreadsafeGitManager {
      */
     public void deleteTag(String tagToRemoveRefName) throws GitAPIException {
         try (Git git = new Git(repo)) {
-            git.tagDelete().setTags(tagToRemoveRefName).call();
+            writeLock(git.tagDelete().setTags(tagToRemoveRefName)::call);
         }
     }
 
@@ -670,5 +672,13 @@ public class ThreadsafeGitManager {
         try (Git git = new Git(repo)) {
             writeLock(git.checkout().setName(refName)::call);
         }
+    }
+
+    //////////////////////////////////////////////////////////////////////////////////////////////////
+
+    public void getLsRemoteRepository(TransportCommand command) throws GitAPIException {
+        writeLock(() -> {
+            return command.call();
+        });
     }
 }

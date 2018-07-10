@@ -7,6 +7,7 @@ import elegit.Main;
 import elegit.models.AuthMethod;
 import elegit.models.ClonedRepoHelper;
 import elegit.models.RepoHelper;
+import elegit.models.ThreadsafeGitManager;
 import elegit.sshauthentication.ElegitUserInfoGUI;
 import io.reactivex.Single;
 import io.reactivex.rxjavafx.schedulers.JavaFxScheduler;
@@ -37,6 +38,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  *
@@ -270,7 +272,8 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
         repoHelper.setOwnerAuth(credentials);
         repoHelper.wrapAuthentication(command);
         try {
-            command.call();
+            AtomicReference<ThreadsafeGitManager> threadsafeGitManager = repoHelper.getThreadsafeGitManager();
+            threadsafeGitManager.get().getLsRemoteRepository(command);
         } catch (TransportException e) {
             // If the URL doesn't have a repo, a Transport Exception is thrown when this command is called.
             //  We want the SessionController to report an InvalidRemoteException, though, because
