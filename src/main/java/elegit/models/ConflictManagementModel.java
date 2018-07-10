@@ -264,20 +264,20 @@ public class ConflictManagementModel {
                     rightConflict = right.get(conflictLineCounter);
                     //System.out.println(leftConflict+"  "+center+"  "+rightConflict);
                     //System.out.println(leftConflict.getLines()+"  "+center.getLines()+"  "+rightConflict.getLines());
+                    //note: this code only works if the user hasn't manually made changes (not via the tool)
+                    //a more complex parsing system comparing line to readLine would be needed for that.
                     if(readLine!=null) {
                         if (readLine.equals(leftConflict.getLines().get(0))) {
-                            center.setConflictStatus(false);
                             center.setHandledStatus(true);
-                            leftConflict.setConflictStatus(false);
+                            center.setLines(leftConflict.getLines());
                             leftConflict.setHandledStatus(true);
                             for (String line : leftConflict.getLines()) {
                                 readLine = reader.readLine();
                             }
                         } else if (readLine.equals(rightConflict.getLines().get(0))) {
-                            center.setConflictStatus(false);
                             center.setHandledStatus(true);
-                            leftConflict.setConflictStatus(false);
-                            leftConflict.setHandledStatus(true);
+                            center.setLines(rightConflict.getLines());
+                            rightConflict.setHandledStatus(true);
                             for (String line : rightConflict.getLines()) {
                                 readLine = reader.readLine();
                             }

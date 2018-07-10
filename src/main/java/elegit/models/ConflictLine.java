@@ -38,10 +38,12 @@ public class ConflictLine {
     public void addLine(String line){
         lines.add(line);
     }
-    public List<String> getLines() {
+    public ArrayList<String> getLines() {
         return lines;
     }
-
+    public void setLines(ArrayList<String> newLines) {
+        lines = newLines;
+    }
 
     public boolean isConflicting() {
         return conflict.get();
