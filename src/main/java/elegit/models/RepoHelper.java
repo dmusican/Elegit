@@ -477,13 +477,7 @@ public class RepoHelper {
      * @param remote String
      */
     private void setUpstreamBranch(BranchHelper branch, String remote) throws IOException {
-        Git git = new Git(this.getRepo());
-        StoredConfig config = git.getRepository().getConfig();
-        String branchName = branch.getRefName();
-        config.setString(ConfigConstants.CONFIG_BRANCH_SECTION, branchName, ConfigConstants.CONFIG_KEY_REMOTE, remote);
-        config.setString(ConfigConstants.CONFIG_BRANCH_SECTION, branchName, ConfigConstants.CONFIG_KEY_MERGE,
-                         Constants.R_HEADS + branchName);
-        config.save();
+        threadsafeGitManager.get().setUpstreamBranch(branch, remote);
     }
 
     /**
@@ -492,9 +486,7 @@ public class RepoHelper {
      * @return String remote
      */
     private String getRemote() {
-        Git git = new Git(this.getRepo());
-        StoredConfig config = git.getRepository().getConfig();
-        Set<String> remotes = config.getSubsections("remote");
+        Set<String> remotes = threadsafeGitManager.get().getRemote();
         if (remotes.size() == 1) {
             return (String) remotes.toArray()[0];
         }

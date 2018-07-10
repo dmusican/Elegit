@@ -232,6 +232,26 @@ public class ThreadsafeGitManager {
         }
     }
 
+    // TODO: figure out if this needs locking and why locking save() won't work
+    public void setUpstreamBranch(BranchHelper branch, String remote) throws IOException {
+        try (Git git = new Git(repo)) {
+            StoredConfig config = git.getRepository().getConfig();
+            String branchName = branch.getRefName();
+            config.setString(ConfigConstants.CONFIG_BRANCH_SECTION, branchName, ConfigConstants.CONFIG_KEY_REMOTE, remote);
+            config.setString(ConfigConstants.CONFIG_BRANCH_SECTION, branchName, ConfigConstants.CONFIG_KEY_MERGE,
+                    Constants.R_HEADS + branchName);
+            config.save();
+        }
+    }
+
+    // TODO: figure out if this needs locking
+    public Set<String> getRemote() {
+        try (Git git = new Git(repo)) {
+            StoredConfig config = git.getRepository().getConfig();
+            return config.getSubsections("remote");
+        }
+    }
+
     /**
      * Reverts all of the commits listed.
      *
@@ -347,7 +367,7 @@ public class ThreadsafeGitManager {
         try (Git git = new Git(repo)) {
             List<CommitHelper> stashCommitList = new ArrayList<>();
 
-            for (RevCommit commit : writeLock(git.stashList()::call)) {
+            for (RevCommit commit : readLock(git.stashList()::call)) {
                 stashCommitList.add(new CommitHelper(commit));
             }
             return stashCommitList;
@@ -413,5 +433,80 @@ public class ThreadsafeGitManager {
         });
     }
 
-}
+    //////////////////////////////////////////////////////////////////////////////////////////////////
 
+    /**
+     * Gets the status of the repository
+     *
+     * @return the status of the repository
+     * @throws GitAPIException if the `git status` calls fail.
+     */
+    public Status getStatus() throws GitAPIException {
+        try (Git git = new Git(repo)) {
+            return readLock(git.status()::call);
+        }
+    }
+
+    /**
+     * Returns the set of untracked files that Git reports.
+     *
+     * @return a set of untracked filenames in the working directory.
+     */
+    public Set<String> getUntracked(Status status) {
+        return readLock(status::getUntracked);
+    }
+
+    /**
+     * Returns the set of ignored files that Git reports.
+     *
+     * @return a set of ignored filenames in the working directory.
+     */
+    public Set<String> getIgnoredNotInIndex(Status status) {
+        return readLock(status::getIgnoredNotInIndex);
+    }
+
+    /**
+     * Returns the set of conflicting files that Git reports.
+     *
+     * @return a set of conflicting filenames in the working directory.
+     */
+    public Set<String> getConflicting(Status status) {
+        return readLock(status::getConflicting);
+    }
+
+    /**
+     * Returns the set of missing files that Git reports.
+     *
+     * @return a set of missing filenames in the working directory.
+     */
+    public Set<String> getMissing(Status status) {
+        return readLock(status::getMissing);
+    }
+
+    /**
+     * Returns the set of modified files that Git reports. Modified files differ between the disk and the index
+     *
+     * @return a set of modified filenames in the working directory.
+     */
+    public Set<String> getModified(Status status) {
+        return readLock(status::getModified);
+    }
+
+    /**
+     * Returns the set of changed files that Git reports.
+     *
+     * @return a set of modified filenames in the working directory.
+     */
+    public Set<String> getChanged(Status status) {
+        return readLock(status::getChanged);
+    }
+
+    /**
+     * Returns the set of added files that Git reports.
+     *
+     * @return a set of modified filenames in the working directory.
+     */
+    public Set<String> getAdded(Status status) {
+        return readLock(status::getAdded);
+    }
+}
