@@ -477,7 +477,8 @@ public class RepoHelper {
      * @param remote String
      */
     private void setUpstreamBranch(BranchHelper branch, String remote) throws IOException {
-        threadsafeGitManager.get().setUpstreamBranch(branch, remote);
+        String branchName = branch.getRefName();
+        threadsafeGitManager.get().setUpstreamBranch(branchName, remote);
     }
 
     /**
@@ -769,7 +770,8 @@ public class RepoHelper {
         logger.info("Attempting revert");
         if (!exists()) throw new MissingRepoException();
 
-        threadsafeGitManager.get().revert(helper);
+        ObjectId objectId = helper.getObjectId();
+        threadsafeGitManager.get().revert(objectId);
 
         // Update the local commits
         try {
@@ -796,7 +798,8 @@ public class RepoHelper {
     public void reset(Path path) throws MissingRepoException, GitAPIException {
         logger.info("Attempting reset file");
         if (!exists()) throw new MissingRepoException();
-        threadsafeGitManager.get().reset(this.localPath, path);
+        String relativePathName = localPath.relativize(path).toString();
+        threadsafeGitManager.get().reset(relativePathName);
     }
 
     /**

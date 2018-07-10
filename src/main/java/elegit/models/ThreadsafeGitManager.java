@@ -1,34 +1,19 @@
 package elegit.models;
 
-import elegit.exceptions.ExceptionAdapter;
-import elegit.exceptions.MissingRepoException;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.dircache.DirCache;
-import org.eclipse.jgit.ignore.IgnoreNode;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.revwalk.RevCommit;
-import org.eclipse.jgit.revwalk.RevWalk;
-import org.eclipse.jgit.treewalk.TreeWalk;
 
-import java.io.BufferedInputStream;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.Stack;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.function.Function;
-import java.util.function.Supplier;
 
 /**
  * Manage JGit calls in a threadsafe manner, since JGit does not do this on its own. This class
@@ -233,10 +218,9 @@ public class ThreadsafeGitManager {
     }
 
     // TODO: figure out if this needs locking and why locking save() won't work
-    public void setUpstreamBranch(BranchHelper branch, String remote) throws IOException {
+    public void setUpstreamBranch(String branchName, String remote) throws IOException {
         try (Git git = new Git(repo)) {
             StoredConfig config = git.getRepository().getConfig();
-            String branchName = branch.getRefName();
             config.setString(ConfigConstants.CONFIG_BRANCH_SECTION, branchName, ConfigConstants.CONFIG_KEY_REMOTE, remote);
             config.setString(ConfigConstants.CONFIG_BRANCH_SECTION, branchName, ConfigConstants.CONFIG_KEY_MERGE,
                     Constants.R_HEADS + branchName);
@@ -271,12 +255,12 @@ public class ThreadsafeGitManager {
      * Reverts the changes that happened in the given commit, stores changes in working directory if conflicting,
      * otherwise, makes a new commit
      *
-     * @param helper the commit to revert changes for
+     * @param objectId the objectId for the commit to revert changes for
      * @throws GitAPIException if the `git revert` fails.
      */
-    public void revert(CommitHelper helper) throws GitAPIException {
+    public void revert(ObjectId objectId) throws GitAPIException {
         try (Git git = new Git(repo)) {
-            RevertCommand revertCommand = git.revert().include(helper.getObjectId());
+            RevertCommand revertCommand = git.revert().include(objectId);
             writeLock(revertCommand::call);
         }
     }
@@ -284,13 +268,12 @@ public class ThreadsafeGitManager {
     /**
      * Resets the given file to the version in HEAD
      *
-     * @param localPath the local path of the repository
-     * @param path the path of the file to reset
+     * @param relativePathName the relative path between the local path and the path for the file to reset, as a string
      * @throws GitAPIException if the `git reset` fails.
      */
-    public void reset(Path localPath, Path path) throws GitAPIException {
+    public void reset(String relativePathName) throws GitAPIException {
         try (Git git = new Git(repo)) {
-            ResetCommand resetCommand = git.reset().addPath(localPath.relativize(path).toString());
+            ResetCommand resetCommand = git.reset().addPath(relativePathName);
             writeLock(resetCommand::call);
         }
     }
@@ -516,16 +499,16 @@ public class ThreadsafeGitManager {
      * Creates a local branch tracking a remote branch.
      *
      * @param localBranchName the name of the local branch.
-     * @param remoteBranchHelper the remote branch to be tracked.
+     * @param branchRefPathName the name of the remote branch to be tracked.
      * @return the reference to the new branch
      * @throws GitAPIException if the `git branch --track` fails.
      */
-    public Ref getTrackingBranchRef(String localBranchName, RemoteBranchHelper remoteBranchHelper) throws GitAPIException {
+    public Ref getTrackingBranchRef(String localBranchName, String branchRefPathName) throws GitAPIException {
         try (Git git = new Git(repo)) {
             return writeLock(git.branchCreate().
                         setName(localBranchName).
                         setUpstreamMode(CreateBranchCommand.SetupUpstreamMode.TRACK).
-                        setStartPoint(remoteBranchHelper.getRefPathString())::
+                        setStartPoint(branchRefPathName)::
                         call);
         }
     }
@@ -546,38 +529,38 @@ public class ThreadsafeGitManager {
     /**
      * Deletes a local branch.
      *
-     * @param localBranchToDelete the branch helper of the branch to delete
+     * @param branchName the name of the branch to delete
      * @throws GitAPIException if the `git branch -d` fails.
      */
-    public void deleteBranch(LocalBranchHelper localBranchToDelete) throws GitAPIException {
+    public void deleteBranch(String branchName) throws GitAPIException {
         try (Git git = new Git(repo)) {
-            writeLock(git.branchDelete().setBranchNames(localBranchToDelete.getRefPathString())::call);
+            writeLock(git.branchDelete().setBranchNames(branchName)::call);
         }
     }
 
     /**
      * Force deletes a branch, even if it is not merged in
      *
-     * @param branchToDelete the branch helper of the branch to delete
+     * @param branchName the name of the branch to delete
      */
-    public void forceDeleteBranch(LocalBranchHelper branchToDelete) throws GitAPIException {
+    public void forceDeleteBranch(String branchName) throws GitAPIException {
         try (Git git = new Git(repo)) {
-            writeLock(git.branchDelete().setForce(true).setBranchNames(branchToDelete.getRefPathString())::call);
+            writeLock(git.branchDelete().setForce(true).setBranchNames(branchName)::call);
         }
     }
 
     /**
      * Merges the current branch with the selected branch
      *
-     * @param branchToMergeFrom the branch to merge into the current branch
+     * @param branchToMergeFromRefPathString the ref path of the branch to merge into the current branch as a string
      * @return merge result, used in determining the notification in BranchCheckoutController
      * @throws GitAPIException if the `git merge` fails.
      * @throws IOException
      */
-    public MergeResult mergeWithBranch(BranchHelper branchToMergeFrom) throws IOException, GitAPIException {
+    public MergeResult mergeWithBranch(String branchToMergeFromRefPathString) throws IOException, GitAPIException {
         try (Git git = new Git(repo)) {
             MergeCommand merge = git.merge();
-            merge.include(repo.resolve(branchToMergeFrom.getRefPathString()));
+            merge.include(repo.resolve(branchToMergeFromRefPathString));
 
             return writeLock(merge::call);
         }

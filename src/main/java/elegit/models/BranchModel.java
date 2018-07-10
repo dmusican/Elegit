@@ -182,7 +182,8 @@ public class BranchModel {
     // Synchronized for localBranchesTyped
     private synchronized LocalBranchHelper createLocalTrackingBranchForRemote(RemoteBranchHelper remoteBranchHelper) throws GitAPIException {
         String localBranchName = this.repoHelper.getRepo().shortenRemoteBranchName(remoteBranchHelper.getRefPathString());
-        Ref trackingBranchRef = threadsafeGitManager.get().getTrackingBranchRef(localBranchName, remoteBranchHelper);
+        String branchRefPathName = remoteBranchHelper.getRefPathString();
+        Ref trackingBranchRef = threadsafeGitManager.get().getTrackingBranchRef(localBranchName, branchRefPathName);
         LocalBranchHelper newHelper = new LocalBranchHelper(trackingBranchRef, this.repoHelper);
         this.localBranchesTyped.add(newHelper);
         return newHelper;
@@ -215,7 +216,8 @@ public class BranchModel {
     // Synchronized for localBranchesTyped
     public synchronized void deleteLocalBranch(LocalBranchHelper localBranchToDelete)
             throws GitAPIException {
-        threadsafeGitManager.get().deleteBranch(localBranchToDelete);
+        String branchName = localBranchToDelete.getRefPathString();
+        threadsafeGitManager.get().deleteBranch(branchName);
         this.localBranchesTyped.remove(localBranchToDelete);
     }
 
@@ -227,7 +229,8 @@ public class BranchModel {
      */
     // Synchronized for localBranchesTyped
     public synchronized void forceDeleteLocalBranch(LocalBranchHelper branchToDelete) throws CannotDeleteCurrentBranchException, GitAPIException {
-        threadsafeGitManager.get().forceDeleteBranch(branchToDelete);
+        String branchName = branchToDelete.getRefPathString();
+        threadsafeGitManager.get().forceDeleteBranch(branchName);
         this.localBranchesTyped.remove(branchToDelete);
     }
 
@@ -270,7 +273,8 @@ public class BranchModel {
      */
     public synchronized MergeResult mergeWithBranch(BranchHelper branchToMergeFrom) throws GitAPIException,
             IOException {
-        return threadsafeGitManager.get().mergeWithBranch(branchToMergeFrom);
+        String branchToMergeFromRefPathString = branchToMergeFrom.getRefPathString();
+        return threadsafeGitManager.get().mergeWithBranch(branchToMergeFromRefPathString);
     }
 
     // ************************* GETTERS AND SETTERS **************************
