@@ -89,7 +89,7 @@ public class ThreadsafeGitManager {
      * @param jGitOperation The operation to be called
      * @param <T> The type of the Git operation
      * @return The result of the Git operation
-     * @throws GitAPIException
+     * @throws E
      */
     public <T, E extends Throwable> T readLock(JGitOperation<T, E> jGitOperation) throws E {
         repoLock.readLock().lock();
@@ -105,7 +105,7 @@ public class ThreadsafeGitManager {
      * @param jGitOperation The operation to be called
      * @param <T> The type of the Git operation
      * @return The result of the Git operation
-     * @throws GitAPIException
+     * @throws E
      */
     public <T, E extends Throwable> T writeLock(JGitOperation<T, E> jGitOperation) throws E {
         repoLock.writeLock().lock();
@@ -232,6 +232,12 @@ public class ThreadsafeGitManager {
         }
     }
 
+    /**
+     * Reverts all of the commits listed.
+     *
+     * @param commits list of commits to revert
+     * @throws GitAPIException if the `git revert` fails.
+     */
     public void revert(List<AnyObjectId> commits) throws GitAPIException {
         try (Git git = new Git(repo)) {
             RevertCommand revertCommand = git.revert();
@@ -241,6 +247,13 @@ public class ThreadsafeGitManager {
         }
     }
 
+    /**
+     * Reverts the changes that happened in the given commit, stores changes in working directory if conflicting,
+     * otherwise, makes a new commit
+     *
+     * @param helper the commit to revert changes for
+     * @throws GitAPIException if the `git revert` fails.
+     */
     public void revert(CommitHelper helper) throws GitAPIException {
         try (Git git = new Git(repo)) {
             RevertCommand revertCommand = git.revert().include(helper.getObjectId());
@@ -248,6 +261,13 @@ public class ThreadsafeGitManager {
         }
     }
 
+    /**
+     * Resets the given file to the version in HEAD
+     *
+     * @param localPath the local path of the repository
+     * @param path the path of the file to reset
+     * @throws GitAPIException if the `git reset` fails.
+     */
     public void reset(Path localPath, Path path) throws GitAPIException {
         try (Git git = new Git(repo)) {
             ResetCommand resetCommand = git.reset().addPath(localPath.relativize(path).toString());
@@ -255,6 +275,13 @@ public class ThreadsafeGitManager {
         }
     }
 
+    /**
+     * Resets the given files to the version in HEAD
+     *
+     * @param localPath the local path of the repository
+     * @param paths a list of the paths of the files to reset
+     * @throws GitAPIException if the `git reset` fails.
+     */
     public void reset(Path localPath, List<Path> paths) throws GitAPIException {
         try (Git git = new Git(repo)) {
             ResetCommand resetCommand = git.reset();
@@ -263,6 +290,13 @@ public class ThreadsafeGitManager {
         }
     }
 
+    /**
+     * Resets to the given commit with the given mode
+     *
+     * @param ref  the ref (commit id or branch label) to reset to
+     * @param mode the mode of reset to use (hard, mixed, soft, merge, or keep)
+     * @throws GitAPIException if the `git reset --hard/soft/etc.` fails.
+     */
     public void reset(String ref, ResetCommand.ResetType mode) throws GitAPIException {
         try (Git git = new Git(repo)) {
             ResetCommand resetCommand = git.reset().setRef(ref).setMode(mode);
@@ -270,6 +304,13 @@ public class ThreadsafeGitManager {
         }
     }
 
+    /**
+     * Stashes the current working directory and index changes with the default message (the branch name)
+     *
+     * @param includeUntracked whether or not to include untracked files
+     * @return RevCommit the commit object
+     * @throws GitAPIException if the `git stash save` fails.
+     */
     public RevCommit stashSave(boolean includeUntracked) throws GitAPIException {
         try (Git git = new Git(repo)) {
             StashCreateCommand stashCreateCommand = git.stashCreate().setIncludeUntracked(includeUntracked);
@@ -277,6 +318,15 @@ public class ThreadsafeGitManager {
         }
     }
 
+    /**
+     * Stashes the current working directory changes with the given message
+     *
+     * @param includeUntracked whether or not to include untracked files
+     * @param wdMessage        the message used when committing working directory changes
+     * @param indexMessage     the messaged used when committing the index changes
+     * @return RevCommit the commit object
+     * @throws GitAPIException if the `git stash save` fails.
+     */
     public RevCommit stashSave(boolean includeUntracked, String wdMessage,
                                String indexMessage) throws GitAPIException {
         try (Git git = new Git(repo)) {
@@ -286,6 +336,13 @@ public class ThreadsafeGitManager {
         }
     }
 
+    /**
+     * Returns a list of the stashed commits
+     *
+     * @return stashCommitList a list of stashed commits
+     * @throws GitAPIException if the `git stash list` fails.
+     * @throws IOException if commit is not a fully parsed commit CommitHelper will fail and throw errors.
+     */
     public List<CommitHelper> stashList() throws GitAPIException, IOException {
         try (Git git = new Git(repo)) {
             List<CommitHelper> stashCommitList = new ArrayList<>();
@@ -297,6 +354,13 @@ public class ThreadsafeGitManager {
         }
     }
 
+    /**
+     * Applies the given stash to the repository, by default restores the index and untracked files.
+     *
+     * @param stashRef the string that corresponds to the stash to apply
+     * @param force    whether or not to force apply
+     * @throws GitAPIException if the `git stash apply (-f)` fails.
+     */
     public void stashApply(String stashRef, boolean force) throws GitAPIException {
         try (Git git = new Git(repo)) {
             StashApplyCommand stashApplyCommand = git.stashApply().setStashRef(stashRef).ignoreRepositoryState(force);
@@ -304,12 +368,25 @@ public class ThreadsafeGitManager {
         }
     }
 
+    /**
+     * Deletes all the stashed commits
+     *
+     * @return the value of the stash reference after the drop occurs
+     * @throws GitAPIException if the `git stash clear` fails.
+     */
     public ObjectId stashClear() throws GitAPIException {
         try (Git git = new Git(repo)) {
             return writeLock(git.stashDrop().setAll(true)::call);
         }
     }
 
+    /**
+     * Deletes a single stashed reference
+     *
+     * @param stashRef the stash reference int to drop (0-based)
+     * @return the value of the value of the stashed reference
+     * @throws GitAPIException
+     */
     public ObjectId stashClear(int stashRef) throws GitAPIException {
         try (Git git = new Git(repo)) {
             return writeLock(git.stashDrop().setStashRef(stashRef)::call);
