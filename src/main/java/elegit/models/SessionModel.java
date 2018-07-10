@@ -204,6 +204,8 @@ public class SessionModel {
         this.saveMostRecentRepoPathString();
 
         openedRepos.onNext(this.currentRepoHelper.get());
+
+        threadsafeGitManager.set(getCurrentRepoHelper().getThreadsafeGitManager().get());
     }
 
     public synchronized void subscribeToOpenedRepos(Consumer<RepoHelper> consumer) {

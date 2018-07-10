@@ -210,7 +210,7 @@ public class ThreadsafeGitManager {
      * @return RevCommit the commit object
      * @throws GitAPIException if the `git commit` call fails.
      */
-    public RevCommit commit(String commitMessage) throws GitAPIException, MissingRepoException {
+    public RevCommit commit(String commitMessage) throws GitAPIException {
         try (Git git = new Git(repo)) {
             CommitCommand commitCommand = git.commit().setMessage(commitMessage);
             return writeLock(commitCommand::call);
@@ -436,7 +436,7 @@ public class ThreadsafeGitManager {
     //////////////////////////////////////////////////////////////////////////////////////////////////
 
     /**
-     * Gets the status of the repository
+     * Gets the status of the repository.
      *
      * @return the status of the repository
      * @throws GitAPIException if the `git status` calls fail.
@@ -508,5 +508,98 @@ public class ThreadsafeGitManager {
      */
     public Set<String> getAdded(Status status) {
         return readLock(status::getAdded);
+    }
+
+    //////////////////////////////////////////////////////////////////////////////////////////////////
+
+    /**
+     * Creates a local branch tracking a remote branch.
+     *
+     * @param localBranchName the name of the local branch.
+     * @param remoteBranchHelper the remote branch to be tracked.
+     * @return the reference to the new branch
+     * @throws GitAPIException if the `git branch --track` fails.
+     */
+    public Ref getTrackingBranchRef(String localBranchName, RemoteBranchHelper remoteBranchHelper) throws GitAPIException {
+        try (Git git = new Git(repo)) {
+            return writeLock(git.branchCreate().
+                        setName(localBranchName).
+                        setUpstreamMode(CreateBranchCommand.SetupUpstreamMode.TRACK).
+                        setStartPoint(remoteBranchHelper.getRefPathString())::
+                        call);
+        }
+    }
+
+    /**
+     * Creates a new local branch.
+     *
+     * @param branchName the name of the new branch
+     * @return the reference to the new branch
+     * @throws GitAPIException if the `git branch` fails.
+     */
+    public Ref getNewBranch(String branchName) throws GitAPIException {
+        try (Git git = new Git(repo)) {
+            return writeLock(git.branchCreate().setName(branchName)::call);
+        }
+    }
+
+    /**
+     * Deletes a local branch.
+     *
+     * @param localBranchToDelete the branch helper of the branch to delete
+     * @throws GitAPIException if the `git branch -d` fails.
+     */
+    public void deleteBranch(LocalBranchHelper localBranchToDelete) throws GitAPIException {
+        try (Git git = new Git(repo)) {
+            writeLock(git.branchDelete().setBranchNames(localBranchToDelete.getRefPathString())::call);
+        }
+    }
+
+    /**
+     * Force deletes a branch, even if it is not merged in
+     *
+     * @param branchToDelete the branch helper of the branch to delete
+     */
+    public void forceDeleteBranch(LocalBranchHelper branchToDelete) throws GitAPIException {
+        try (Git git = new Git(repo)) {
+            writeLock(git.branchDelete().setForce(true).setBranchNames(branchToDelete.getRefPathString())::call);
+        }
+    }
+
+    /**
+     * Merges the current branch with the selected branch
+     *
+     * @param branchToMergeFrom the branch to merge into the current branch
+     * @return merge result, used in determining the notification in BranchCheckoutController
+     * @throws GitAPIException if the `git merge` fails.
+     * @throws IOException
+     */
+    public MergeResult mergeWithBranch(BranchHelper branchToMergeFrom) throws IOException, GitAPIException {
+        try (Git git = new Git(repo)) {
+            MergeCommand merge = git.merge();
+            merge.include(repo.resolve(branchToMergeFrom.getRefPathString()));
+
+            return writeLock(merge::call);
+        }
+    }
+
+    /**
+     * Gets a list of all local branches
+     */
+    public List<Ref> getLocalBranches() throws GitAPIException {
+        try (Git git = new Git(repo)) {
+           return readLock(git.branchList()::call);
+        }
+    }
+
+    /**
+     * Gets a list of all remote branches
+     */
+    public List<Ref> getRemoteBranches() throws GitAPIException {
+        try (Git git = new Git(repo)) {
+            return readLock(git.branchList()
+                    .setListMode(ListBranchCommand.ListMode.REMOTE)::
+                    call);
+        }
     }
 }

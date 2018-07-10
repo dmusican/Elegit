@@ -1484,4 +1484,8 @@ public class RepoHelper {
     public void bindit(BooleanProperty binding) {
         this.remoteStatusChecking.bindBidirectional(binding);
     }
+
+    public AtomicReference<ThreadsafeGitManager> getThreadsafeGitManager() {
+        return threadsafeGitManager;
+    }
 }
