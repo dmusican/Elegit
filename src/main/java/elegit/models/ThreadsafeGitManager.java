@@ -663,4 +663,12 @@ public class ThreadsafeGitManager {
             git.tagDelete().setTags(tagToRemoveRefName).call();
         }
     }
+
+    //////////////////////////////////////////////////////////////////////////////////////////////////
+
+    public void checkoutBranch(String refName) throws GitAPIException {
+        try (Git git = new Git(repo)) {
+            writeLock(git.checkout().setName(refName)::call);
+        }
+    }
 }
