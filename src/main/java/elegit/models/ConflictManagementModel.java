@@ -269,14 +269,18 @@ public class ConflictManagementModel {
                     if(readLine!=null) {
                         if (readLine.equals(leftConflict.getLines().get(0))) {
                             center.setHandledStatus(true);
-                            center.setLines(leftConflict.getLines());
+                            ArrayList<String> middleLines = new ArrayList<>();
+                            middleLines.addAll(leftConflict.getLines());
+                            center.setLines(middleLines);
                             leftConflict.setHandledStatus(true);
                             for (String line : leftConflict.getLines()) {
                                 readLine = reader.readLine();
                             }
                         } else if (readLine.equals(rightConflict.getLines().get(0))) {
                             center.setHandledStatus(true);
-                            center.setLines(rightConflict.getLines());
+                            ArrayList<String> middleLines = new ArrayList<>();
+                            middleLines.addAll(rightConflict.getLines());
+                            center.setLines(middleLines);
                             rightConflict.setHandledStatus(true);
                             for (String line : rightConflict.getLines()) {
                                 readLine = reader.readLine();

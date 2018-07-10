@@ -688,7 +688,7 @@ public class ConflictManagementToolController {
     }
 
     private void handleUndoChange(CodeArea doc, ArrayList<ConflictLine> conflictLines, ArrayList<Integer> conflictingLineNumbers) {
-        System.out.println("trying to undo");
+
         Main.assertFxThread();
         // If they start editing after getting the apply warning, we should still give it if they click apply early later on.
         applyWarningGiven.set(false);
@@ -700,19 +700,17 @@ public class ConflictManagementToolController {
             int lineNumber = conflictingLineNumbers.get(conflictLineIndex);
 
             if (lineNumber == currentLine && conflictLines.get(conflictLineIndex).isHandled()) { // Found the index and line number and it has been handled
-                System.out.println("found line");
                 // Find the actual string in the ConflictLine for the middleDoc
                 for (int i = 0; i < middleConflictLines.get(conflictLineIndex).getLines().size(); i++) {
                     String line = middleConflictLines.get(conflictLineIndex).getLines().get(i);
 
                     if (line.equals(conflictLines.get(conflictLineIndex).getLines().get(0))) { // Found the first line in the middle ConflictLine
-                        System.out.println("found first line");
+
                         // Remove the text from the conflict line
                         for (int j = 0; j < conflictLines.get(conflictLineIndex).getLines().size(); j++) {
                             middleConflictLines.get(conflictLineIndex).getLines().remove(i);
                         }
                         // Remove the text from the CodeArea
-                        System.out.println("removing from CodeArea");
                         removeChangeFromMiddleDoc(conflictLines, conflictLineIndex, i);
 
                         // Update everything else
@@ -747,7 +745,6 @@ public class ConflictManagementToolController {
     }
 
     private void removeChangeFromMiddleDoc(ArrayList<ConflictLine> conflictLines, int conflictLineIndex, int i) {
-        System.out.println("removing from middledoc");
         Main.assertFxThread();
         int startOfConflict = middleDoc.getCurrentParagraph();
         int numLinesToRemove = conflictLines.get(conflictLineIndex).getLines().size();
@@ -848,13 +845,7 @@ public class ConflictManagementToolController {
         setLines(leftAllConflictLines, leftDoc);
         setLines(middleAllConflictLines, middleDoc);
         setLines(rightAllConflictLines, rightDoc);
-        for(int i = 0; i < middleAllConflictLines.size(); i++) {
-            ConflictLine left = leftAllConflictLines.get(i);
-            ConflictLine middle = middleAllConflictLines.get(i);
-            ConflictLine right = rightAllConflictLines.get(i);
-            System.out.println(left.isConflicting()+", "+left.isHandled()+"   "+middle.isConflicting()+", "+middle.isHandled()+"   "+right.isConflicting()+", "+right.isHandled()+"   ");
-        }
-        System.out.println();
+
         // Allow the user to click buttons
         setButtonsDisabled(false);
 
