@@ -24,7 +24,10 @@ public class TranscriptHelper {
             output.newLine();
             output.close();
         } catch (IOException e) {
-            throw new ExceptionAdapter(e);
+            console.info("The issue is in post.");
+            console.info("e: " + e);
+
+//            throw new ExceptionAdapter(e);
         }
 }
 
@@ -37,7 +40,10 @@ public class TranscriptHelper {
             writer.flush();
             writer.close();
         } catch (IOException e) {
-            throw new ExceptionAdapter(e);
+            console.info("The issue is in clear.");
+            console.info("e: " + e);
+
+//            throw new ExceptionAdapter(e);
         }
     }
 }
