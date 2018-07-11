@@ -272,8 +272,7 @@ public class ClonedRepoHelperBuilder extends RepoHelperBuilder {
         repoHelper.setOwnerAuth(credentials);
         repoHelper.wrapAuthentication(command);
         try {
-            AtomicReference<ThreadsafeGitManager> threadsafeGitManager = repoHelper.getThreadsafeGitManager();
-            threadsafeGitManager.get().getLsRemoteRepository(command);
+            command.call();
         } catch (TransportException e) {
             // If the URL doesn't have a repo, a Transport Exception is thrown when this command is called.
             //  We want the SessionController to report an InvalidRemoteException, though, because

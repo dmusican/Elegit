@@ -673,12 +673,4 @@ public class ThreadsafeGitManager {
             writeLock(git.checkout().setName(refName)::call);
         }
     }
-
-    //////////////////////////////////////////////////////////////////////////////////////////////////
-
-    public void getLsRemoteRepository(TransportCommand command) throws GitAPIException {
-        writeLock(() -> {
-            return command.call();
-        });
-    }
 }

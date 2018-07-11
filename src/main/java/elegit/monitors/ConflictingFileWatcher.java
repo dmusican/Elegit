@@ -65,7 +65,7 @@ public class ConflictingFileWatcher {
                 // gets the conflicting files
                 AtomicReference<ThreadsafeGitManager> threadsafeGitManager = currentRepo.getThreadsafeGitManager();
                 // TODO: make sure the status being null is accurate
-                Set<String> newConflictingFiles = threadsafeGitManager.get().getConflicting(null);
+                Set<String> newConflictingFiles = threadsafeGitManager.get().getConflicting(threadsafeGitManager.get().getStatus());
                 for (String newFile : newConflictingFiles) {
                     if (!conflictingFiles.contains(newFile)) {
                         conflictingFiles.add(newFile);
