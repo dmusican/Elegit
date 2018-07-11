@@ -1,17 +1,27 @@
 package elegit.models;
 
+import elegit.exceptions.MissingRepoException;
 import elegit.gui.SimpleProgressMonitor;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.TransportException;
+import org.eclipse.jgit.diff.DiffFormatter;
 import org.eclipse.jgit.dircache.DirCache;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.revwalk.RevTree;
+import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.transport.FetchResult;
 import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.jgit.transport.RemoteRefUpdate;
 import org.eclipse.jgit.api.TransportCommand;
+import org.eclipse.jgit.treewalk.AbstractTreeIterator;
+import org.eclipse.jgit.treewalk.CanonicalTreeParser;
+import org.eclipse.jgit.treewalk.FileTreeIterator;
+import org.eclipse.jgit.treewalk.filter.PathFilter;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.*;
@@ -220,6 +230,13 @@ public class ThreadsafeGitManager {
         }
     }
 
+    /**
+     * Helper method for push that sets the upstream branch
+     *
+     * @param branchName the name of the local branch that needs an upstream branch
+     * @param remote parameter value
+     * @throws IOException if the config could not be written in the save() call
+     */
     // TODO: figure out if this needs locking and why locking save() won't work
     public void setUpstreamBranch(String branchName, String remote) throws IOException {
         try (Git git = new Git(repo)) {
@@ -231,6 +248,11 @@ public class ThreadsafeGitManager {
         }
     }
 
+    /**
+     * Helper method that returns either the only remote, or the remote chosen by the user
+     *
+     * @return the set of all subsections of remote section within this configuration and its base configuration
+     */
     // TODO: figure out if this needs locking
     public Set<String> getRemote() {
         try (Git git = new Git(repo)) {
@@ -399,10 +421,24 @@ public class ThreadsafeGitManager {
         }
     }
 
+    /**
+     * Gets a list of references (branch heads and tags) from the remote repository without fetching any changes.
+     * Equivalent to 'git ls-remote -h -t' if includeTags is true, or 'git ls-remote --heads' if false
+     *
+     * @return a list of remote references
+     * @throws GitAPIException if the `git ls-remote -h -t` or `git ls-remote --heads` fails
+     */
     public Collection<Ref> getRefsFromRemote(LsRemoteCommand command) throws GitAPIException {
         return readLock(command::call);
     }
 
+    /**
+     * Prepares to push the current branch.
+     *
+     * @param remote the remote name
+     * @param branchToPushRefPathString the reference name of the branch
+     * @return the push command to be called
+     */
     // TODO: figure out if this locking is correct
     public PushCommand prepareToPushCurrentBranch(String remote, String branchToPushRefPathString) {
         try (Git git = new Git(repo)) {
@@ -418,6 +454,12 @@ public class ThreadsafeGitManager {
         }
     }
 
+    /**
+     * Prepares to push all.
+     *
+     * @param push the push command
+     * @return the push command with a progress monitor
+     */
     public PushCommand prepareToPushAll(PushCommand push) {
         return writeLock(() -> {
             ProgressMonitor progress = new SimpleProgressMonitor();
@@ -425,6 +467,12 @@ public class ThreadsafeGitManager {
         });
     }
 
+    /**
+     *  Pushes all tags in /refs/tags/.
+     *
+     * @return The results of the push call.
+     * @throws GitAPIException if the `git push --tags` call fails.
+     */
     public Iterable<PushResult> pushTags(PushCommand push) throws GitAPIException {
         return writeLock(() -> {
             ProgressMonitor progress = new SimpleProgressMonitor();
@@ -434,6 +482,13 @@ public class ThreadsafeGitManager {
         });
     }
 
+    /**
+     * Fetches changes into FETCH_HEAD (`git -fetch`).
+     *
+     * @param fetch the prepared fetch command.
+     * @return the result of the fetch call.
+     * @throws GitAPIException if the `git fetch` fails.
+     */
     public FetchResult fetch(FetchCommand fetch) throws GitAPIException {
         // The JGit docs say that if setCheckFetchedObjects
         //  is set to true, objects received will be checked for validity.
@@ -520,7 +575,7 @@ public class ThreadsafeGitManager {
     }
 
     /**
-     * Returns the set of modified files that Git reports. Modified files differ between the disk and the index
+     * Returns the set of modified files that Git reports. Modified files differ between the disk and the index.
      *
      * @return a set of modified filenames in the working directory.
      */
@@ -553,7 +608,7 @@ public class ThreadsafeGitManager {
      *
      * @param localBranchName the name of the local branch.
      * @param branchRefPathName the name of the remote branch to be tracked.
-     * @return the reference to the new branch
+     * @return the reference to the new branch.
      * @throws GitAPIException if the `git branch --track` fails.
      */
     public Ref getTrackingBranchRef(String localBranchName, String branchRefPathName) throws GitAPIException {
@@ -569,8 +624,8 @@ public class ThreadsafeGitManager {
     /**
      * Creates a new local branch.
      *
-     * @param branchName the name of the new branch
-     * @return the reference to the new branch
+     * @param branchName the name of the new branch.
+     * @return the reference to the new branch.
      * @throws GitAPIException if the `git branch` fails.
      */
     public Ref getNewBranch(String branchName) throws GitAPIException {
@@ -582,7 +637,7 @@ public class ThreadsafeGitManager {
     /**
      * Deletes a local branch.
      *
-     * @param branchName the name of the branch to delete
+     * @param branchName the name of the branch to delete.
      * @throws GitAPIException if the `git branch -d` fails.
      */
     public void deleteBranch(String branchName) throws GitAPIException {
@@ -592,9 +647,9 @@ public class ThreadsafeGitManager {
     }
 
     /**
-     * Force deletes a branch, even if it is not merged in
+     * Force deletes a branch, even if it is not merged in.
      *
-     * @param branchName the name of the branch to delete
+     * @param branchName the name of the branch to delete.
      */
     public void forceDeleteBranch(String branchName) throws GitAPIException {
         try (Git git = new Git(repo)) {
@@ -602,6 +657,13 @@ public class ThreadsafeGitManager {
         }
     }
 
+    /**
+     * Deletes a remote branch. Essentially a 'git push <remote> :<remote branch name>'
+     *
+     * @param pushCommand the prepared push command.
+     * @return the status of the push to remote to delete.
+     * @throws GitAPIException if the `git push` fails.
+     */
     public RemoteRefUpdate.Status deleteRemoteBranch(PushCommand pushCommand) throws GitAPIException {
         for (PushResult result : writeLock(pushCommand::call)) {
             for (RemoteRefUpdate refUpdate : result.getRemoteUpdates()) {
@@ -612,10 +674,10 @@ public class ThreadsafeGitManager {
     }
 
     /**
-     * Merges the current branch with the selected branch
+     * Merges the current branch with the selected branch.
      *
      * @param branchToMergeFromRefPathString the ref path of the branch to merge into the current branch as a string
-     * @return merge result, used in determining the notification in BranchCheckoutController
+     * @return merge result, used in determining the notification in BranchCheckoutController.
      * @throws GitAPIException if the `git merge` fails.
      * @throws IOException
      */
@@ -629,7 +691,7 @@ public class ThreadsafeGitManager {
     }
 
     /**
-     * Gets a list of all local branches
+     * Gets a list of all local branches.
      */
     public List<Ref> getLocalBranches() throws GitAPIException {
         try (Git git = new Git(repo)) {
@@ -638,7 +700,7 @@ public class ThreadsafeGitManager {
     }
 
     /**
-     * Gets a list of all remote branches
+     * Gets a list of all remote branches.
      */
     public List<Ref> getRemoteBranches() throws GitAPIException {
         try (Git git = new Git(repo)) {
@@ -650,6 +712,14 @@ public class ThreadsafeGitManager {
 
     //////////////////////////////////////////////////////////////////////////////////////////////////
 
+    /**
+     * Tags a commit.
+     *
+     * @param tagName the name of the tag.
+     * @param commit the commit to be tagged.
+     * @return the ref for the tagged commit.
+     * @throws GitAPIException if the `git tag` call fails.
+     */
     public Ref getTag(String tagName, RevCommit commit) throws GitAPIException {
         try (Git git = new Git(repo)) {
             return writeLock(git.tag().setName(tagName).setObjectId(commit).setAnnotated(false)::call);
@@ -657,7 +727,9 @@ public class ThreadsafeGitManager {
     }
 
     /**
+     * Deletes a tag.
      *
+     * @param tagToRemoveRefName the name of the ref to delete.
      * @throws GitAPIException if `git tag -d` fails.
      */
     public void deleteTag(String tagToRemoveRefName) throws GitAPIException {
@@ -668,9 +740,71 @@ public class ThreadsafeGitManager {
 
     //////////////////////////////////////////////////////////////////////////////////////////////////
 
+    /**
+     * Checks out the branch.
+     *
+     * @param refName the name of the branch.
+     * @throws GitAPIException if the `git checkout` fails.
+     */
     public void checkoutBranch(String refName) throws GitAPIException {
         try (Git git = new Git(repo)) {
             writeLock(git.checkout().setName(refName)::call);
+        }
+    }
+
+    //////////////////////////////////////////////////////////////////////////////////////////////////
+
+    /**
+     * Gets the objectId for the revision string "HEAD"
+     *
+     * @return the objectId for "HEAD".
+     * @throws IOException "on serious errors".
+     */
+    public ObjectId getHeadId() throws IOException {
+        return repo.resolve("HEAD");
+    }
+
+    /**
+     * Gets the differences between two iterators.
+     *
+     * @param diffOutputStream the output stream.
+     * @param pathFilter A tree filter that only includes entries if they match the given path.
+     * @param commitTreeIterator walks a Git tree in Git sort order.
+     * @param workTreeIterator walks the working tree.
+     * @throws IOException if the trees cannot be read, file contents cannot be read, or the patch cannot be output.
+     */
+    public void getDiff(ByteArrayOutputStream diffOutputStream, PathFilter pathFilter,
+                        AbstractTreeIterator commitTreeIterator, FileTreeIterator workTreeIterator) throws IOException {
+        try (DiffFormatter formatter = new DiffFormatter(diffOutputStream)) {
+            formatter.setRepository(this.repo);
+            formatter.setPathFilter(pathFilter);
+
+            // Scan gets difference between the two iterators.
+            formatter.format(commitTreeIterator, workTreeIterator);
+        }
+    }
+
+    /**
+     * Starting at the commit, this builds the tree than will be parsed.
+     *
+     * @param repository the repository the commit is in.
+     * @param objectId the objectId for the commit.
+     * @return the AbstractTreeIterator.
+     * @throws IOException if something can not be read.
+     */
+    public AbstractTreeIterator prepareTreeParser(Repository repository, String objectId) throws IOException {
+        // from the commit we can build the tree which allows us to construct the TreeParser
+        try (RevWalk walk = new RevWalk(repository)){
+            RevCommit commit = walk.parseCommit(ObjectId.fromString(objectId));
+            RevTree tree = walk.parseTree(commit.getTree().getId());
+
+            CanonicalTreeParser oldTreeParser = new CanonicalTreeParser();
+            try (ObjectReader oldReader = repository.newObjectReader()){
+                oldTreeParser.reset(oldReader, tree.getId());
+            }
+
+            walk.dispose();
+            return oldTreeParser;
         }
     }
 }

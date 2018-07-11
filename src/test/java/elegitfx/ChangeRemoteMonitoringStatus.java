@@ -101,8 +101,9 @@ public class ChangeRemoteMonitoringStatus extends ApplicationTest {
 
         console.info("gitStatus complete");
 
+        // TODO: figure out a clear way to do this now that things are being locked.
         int initNumRemoteChecks = RepositoryMonitor.getNumRemoteChecks();
-        Thread.sleep(RepositoryMonitor.REMOTE_CHECK_INTERVAL);
+        Thread.sleep(RepositoryMonitor.REMOTE_CHECK_INTERVAL * 2);
         assertTrue(initNumRemoteChecks < RepositoryMonitor.getNumRemoteChecks());
 
         WaitForAsyncUtils.waitFor(15, TimeUnit.SECONDS,
