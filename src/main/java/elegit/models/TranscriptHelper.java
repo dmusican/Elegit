@@ -16,36 +16,29 @@ public class TranscriptHelper {
     private static final Logger logger = LogManager.getLogger();
     private static final Logger console = LogManager.getLogger("briefconsolelogger");
 
-    private static final Object globalLock = new Object();
+    public synchronized static void post(String command) {
+        String log_file_path = System.getProperty("logFolder") + "/transcript.log";
 
-    public static void post(String command) {
-        synchronized (globalLock) {
-            String log_file_path = System.getProperty("logFolder") + "/transcript.log";
-
-            BufferedWriter output;
-            try {
-                output = new BufferedWriter(new FileWriter(log_file_path, true));
-                output.append(command);
-                output.newLine();
-                output.close();
-            } catch (IOException e) {
-                throw new ExceptionAdapter(e);
-            }
+        BufferedWriter output;
+        try {
+            output = new BufferedWriter(new FileWriter(log_file_path, true));
+            output.append(command);
+            output.newLine();
+            output.close();
+        } catch (IOException e) {
+            throw new ExceptionAdapter(e);
         }
     }
 
-    public static void clear() {
-        synchronized (globalLock) {
-            console.info("Transcript is being cleared.");
-            String log_file_path = System.getProperty("logFolder") + "/transcript.log";
+    public synchronized static void clear() {
+        String log_file_path = System.getProperty("logFolder") + "/transcript.log";
 
-            try {
-                FileWriter writer = new FileWriter(log_file_path, false);
-                writer.flush();
-                writer.close();
-            } catch (IOException e) {
-                throw new ExceptionAdapter(e);
-            }
+        try {
+            FileWriter writer = new FileWriter(log_file_path, false);
+            writer.flush();
+            writer.close();
+        } catch (IOException e) {
+            throw new ExceptionAdapter(e);
         }
     }
 }
