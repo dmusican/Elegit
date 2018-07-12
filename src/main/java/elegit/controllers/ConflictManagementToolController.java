@@ -169,12 +169,12 @@ public class ConflictManagementToolController {
     private void initButtons() {
         Main.assertFxThread();
         // Accept change buttons
-        initButton(FontAwesomeIcon.CHECK, "checkIcon", leftAccept, "Integrate the highlighted commit.");
-        initButton(FontAwesomeIcon.CHECK, "checkIcon", rightAccept, "Integrate the highlighted commit.");
+        initButton(FontAwesomeIcon.CHECK, "checkIcon", leftAccept, "Integrate the selected commit.");
+        initButton(FontAwesomeIcon.CHECK, "checkIcon", rightAccept, "Integrate the selected commit.");
 
         // Reject change buttons
-        initButton(FontAwesomeIcon.TIMES, "xIcon", leftReject, "Ignore the highlighted commit.");
-        initButton(FontAwesomeIcon.TIMES, "xIcon", rightReject, "Ignore the highlighted commit.");
+        initButton(FontAwesomeIcon.TIMES, "xIcon", leftReject, "Ignore the selected commit.");
+        initButton(FontAwesomeIcon.TIMES, "xIcon", rightReject, "Ignore the selected commit.");
 
         // Undo change buttons
         initButton(FontAwesomeIcon.UNDO, "undoIcon", leftUndo, "Undo previous choice.");
@@ -657,7 +657,9 @@ public class ConflictManagementToolController {
                 sleeper.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
                     @Override
                     public void handle(WorkerStateEvent event) {
-                        handleToggleDown();
+                        if (conflictsLeftToHandle.get() > 0) {
+                            handleToggleDown();
+                        }
                     }
                 });
                 new Thread(sleeper).start();
