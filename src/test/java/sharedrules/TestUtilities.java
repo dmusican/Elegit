@@ -171,7 +171,12 @@ public class TestUtilities {
 
     public static void cleanupTestEnvironment() {
         try {
+            WaitForAsyncUtils.waitFor(20, TimeUnit.SECONDS,
+                    () -> !BusyWindow.window.isShowing());
+            WaitForAsyncUtils.waitForFxEvents();
             Main.preferences.removeNode();
+        } catch (TimeoutException e) {
+            throw new ExceptionAdapter(e);
         } catch (BackingStoreException e) {
             throw new ExceptionAdapter(e);
         }
