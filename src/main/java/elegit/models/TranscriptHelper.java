@@ -1,5 +1,6 @@
 package elegit.models;
 
+import elegit.Main;
 import elegit.exceptions.ExceptionAdapter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -17,6 +18,7 @@ public class TranscriptHelper {
 
 
     public static void post(String command) {
+        Main.assertFxThread();
         String log_file_path = System.getProperty("logFolder") + "/transcript.log";
 
         BufferedWriter output;
@@ -31,6 +33,7 @@ public class TranscriptHelper {
 }
 
     public static void clear() {
+        Main.assertFxThread();
         console.info("Transcript is being cleared.");
         String log_file_path = System.getProperty("logFolder") + "/transcript.log";
 
