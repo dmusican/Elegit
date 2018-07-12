@@ -12,6 +12,11 @@
             <PatternLayout pattern="%d{MM-dd-yyyy HH:mm:ss.SSS};%t;%-5level;%c{1}.%M;%msg%n"/>
             <TimeBasedTriggeringPolicy />
         </RollingFile>
+        <RollingFile name="TranscriptLog" filename="${sys:logFolder}/transcript.log"
+                     filePattern="logs/transcript-%d{MM-dd-yyyy}.log" append="false">
+            <PatternLayout pattern="%msg%n"/>
+            <TimeBasedTriggeringPolicy />
+        </RollingFile>
     </Appenders>
     <Loggers>
         <root level="INFO">
@@ -22,6 +27,9 @@
         </logger>
         <logger level="info" name="briefconsolelogger">
             <appender-ref ref="BriefConsole" />
+        </logger>
+        <logger level="info" name="transcriptlog">
+            <appender-ref ref="TranscriptLog" />
         </logger>
     </Loggers>
 </Configuration>

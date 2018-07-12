@@ -36,11 +36,9 @@ public class CommandLineHistoryController {
         sessionController = SessionController.getSessionController();
     }
 
-    // Currently doesn't update with actual history, but with the elegit.log file
     public synchronized void initialize() {
         commandHistory.clear();
         String command;
-        // Currently cannot get the file. I'm not sure why it's not showing up in the log folder.
         File transcript = new File(System.getProperty("logFolder") + "/transcript.log");
 
         try {

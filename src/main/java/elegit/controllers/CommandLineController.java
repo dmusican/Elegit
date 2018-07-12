@@ -44,6 +44,8 @@ public class CommandLineController {
 
     private static final Logger logger = LogManager.getLogger();
 
+    private static final Logger transcript = LogManager.getLogger("transcriptlog");
+
     public synchronized void setSessionController(SessionController sessionController) {
         this.sessionController = sessionController;
     }
@@ -63,7 +65,8 @@ public class CommandLineController {
      */
     public synchronized void updateCommandText(String command) {
         // Sends it to be added to the log file in case the user wants to see/export the full history
-        TranscriptHelper.post(command);
+        transcript.info(command);
+//        TranscriptHelper.post(command);
         if (allowUpdates) {
             currentCommand.setText(command);
             setTextAreaWidth();
