@@ -50,7 +50,7 @@ public class OpenSSHConfig {
 
             System.out.println("Generated configurations:");
             System.out.println(config);
-//            TranscriptHelper.post("git config --global user.email "+ user+"@"+host);
+            TranscriptHelper.post("git config --global user.email "+ user+"@"+host);
             ConfigRepository configRepository =
                     com.jcraft.jsch.OpenSSHConfig.parse(config);
             //com.jcraft.jsch.OpenSSHConfig.parseFile("~/.ssh/config");

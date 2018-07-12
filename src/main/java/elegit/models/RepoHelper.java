@@ -247,7 +247,7 @@ public class RepoHelper {
                 pathToAdd = pathToAdd.replaceAll(File.separator, "/");
         }
         threadsafeGitManager.get().addFilePathTest(pathToAdd);
-//        TranscriptHelper.post("git add "+filePath);
+        TranscriptHelper.post("git add "+filePath);
     }
 
     /**
@@ -271,10 +271,10 @@ public class RepoHelper {
         }
         threadsafeGitManager.get().addFilePathTest(fileNames);
         if (isSelectAllChecked){
-//            TranscriptHelper.post("git add *");
+            TranscriptHelper.post("git add *");
         }
         else {
-//            TranscriptHelper.post("git add " + String.join(" ", fileNames));
+            TranscriptHelper.post("git add " + String.join(" ", fileNames));
         }
     }
 
