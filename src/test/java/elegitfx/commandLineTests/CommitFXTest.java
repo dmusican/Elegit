@@ -84,9 +84,9 @@ public class CommitFXTest extends ApplicationTest {
         clickOn(area).write("testing");
         clickOn(node.lookup("#commitViewCommitButton"));
         //this should really have something that checks if the new commit has shown up, but just waiting a second seems to work
-        //sleep(1500);
         WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
                 () -> lookup("commitTest.txt").queryAll().size() != 3);
+        sleep(1500);
         commandLineTestUtilities.checkCommandLineText("git commit -m\"testing\"");
 
 

@@ -8,6 +8,8 @@ import java.io.*;
 
 /**
  * Created by gorram on 6/6/18.
+ * Given a terminal as a command, this class posts it to a log so the user can export their history of terminal
+ * commands or simply view it. It also clears the log.
  */
 public class TranscriptHelper {
     private static final Logger logger = LogManager.getLogger();
