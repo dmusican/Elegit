@@ -51,6 +51,7 @@ import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.controlsfx.control.PopOver;
+import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.api.PushCommand;
 import org.eclipse.jgit.api.ResetCommand;
 import org.eclipse.jgit.api.errors.*;
@@ -67,7 +68,6 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -1845,7 +1845,7 @@ public class SessionController {
         handleFetchButton(false, true);
     }
 
-    public enum ResultStatus {OK, NOCOMMITS, EXCEPTION, MERGE_FAILED};
+    public enum ResultStatus {OK, NOCOMMITS, EXCEPTION, MERGE_FAILED, CONFLICTING};
     public enum ResultOperation {FETCH, MERGE, ADD, LOAD, PUSH, CHECK_REMOTE_FOR_CHANGES, RESET, REVERT};
 
     public static class Result {
@@ -1894,7 +1894,7 @@ public class SessionController {
                     results.add(new Result(ResultStatus.NOCOMMITS, ResultOperation.FETCH));
                 }
                 if (pull) {
-                    mergeOperation(helper);
+                    mergeOperationFromFetch(helper);
                 }
             } catch (Exception e) {
                 results.add(new Result(ResultStatus.EXCEPTION, ResultOperation.FETCH, e));
@@ -2111,7 +2111,7 @@ public class SessionController {
                 .doOnNext(unused -> showBusyWindowAndPauseRepoMonitor("Merging..."))
 
                 .observeOn(Schedulers.io())
-                .map(this::mergeOperation)
+                .map(this::mergeOperationFromFetch)
 
                 .observeOn(JavaFxScheduler.platform())
 
@@ -2134,13 +2134,17 @@ public class SessionController {
         if (repoHelper.getBehindCount() < 1) throw new NoCommitsToMergeException();
     }
 
-    private List<Result> mergeOperation(RepoHelper repoHelper) {
+    private List<Result> mergeOperationFromFetch(RepoHelper repoHelper) {
         synchronized (globalLock) {
             Main.assertNotFxThread();
 
             ArrayList<Result> results = new ArrayList<>();
             try {
-                if (!repoHelper.mergeFromFetch().isSuccessful()) {
+                MergeResult.MergeStatus status = repoHelper.mergeFromFetch();
+                if (status == MergeResult.MergeStatus.CONFLICTING){
+                    results.add(new Result(ResultStatus.CONFLICTING, ResultOperation.MERGE));
+                } else if (!repoHelper.mergeFromFetch().isSuccessful()) {
+                    //reconsider whether to do this, or just show the notification in mergewindow used for locals
                     results.add(new Result(ResultStatus.MERGE_FAILED, ResultOperation.MERGE));
                 }
             } catch (Exception e) {

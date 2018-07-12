@@ -547,8 +547,7 @@ public class SessionModel {
             Repository repo = getCurrentRepo();
             HashMap<String, HashMap<String, String>> mergeResults =
                     (HashMap<String, HashMap<String, String>>) PrefObj.getObject(this.preferences, MERGE_RESULT);
-            String path = repo.getDirectory()+File.separator+repo.toString();
-            mergeResults.put(path, results);
+            mergeResults.put(repo.getDirectory().toString(), results);
             PrefObj.putObject(this.preferences, MERGE_RESULT, mergeResults);
         } catch (NullPointerException e){
             //should only be thrown in non-fx testing
@@ -564,8 +563,7 @@ public class SessionModel {
         try {
             HashMap<String, HashMap<String, String>> mergeResults =
                     (HashMap<String, HashMap<String, String>>) PrefObj.getObject(this.preferences, MERGE_RESULT);
-            String path = getCurrentRepo().getDirectory()+File.separator+getCurrentRepo().toString();
-            return mergeResults.get(path);
+            return mergeResults.get(getCurrentRepo().getDirectory().toString());
         } catch (IOException | BackingStoreException | ClassNotFoundException e) {
             e.printStackTrace();
             throw new ExceptionAdapter(e);

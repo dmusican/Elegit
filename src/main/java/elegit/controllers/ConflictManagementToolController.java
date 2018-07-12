@@ -9,7 +9,6 @@ import elegit.gui.ConflictLinePointer;
 import elegit.models.ConflictManagementModel;
 import elegit.models.SessionModel;
 import elegit.models.ConflictLine;
-import javafx.collections.ObservableList;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.concurrent.WorkerStateEvent;
@@ -502,7 +501,9 @@ public class ConflictManagementToolController {
         // This check really shouldn't be necessary, but sometimes (especially in tests and at start up) this is called
         // before the list of visible paragraphs are complete, so .get() throws an exception. In this case conflict just
         // shows up at the top.
-        if (doc.allParToVisibleParIndex(lineNumber).isPresent() && doc.allParToVisibleParIndex(doc.lastVisibleParToAllParIndex()).isPresent()) {
+        //previously this used doc.lastVisibleParToAllParIndex() instead of size - 1, but that had bugs, and we don't have any non-visible paragraphs
+        if (doc.allParToVisibleParIndex(lineNumber).isPresent() && doc.allParToVisibleParIndex(doc.getVisibleParagraphs().size() - 1).isPresent()) {
+            //System.err.println("inside");
             int lineInViewport = doc.allParToVisibleParIndex(lineNumber).get();
             int totalLinesInViewport = doc.allParToVisibleParIndex(doc.lastVisibleParToAllParIndex()).get();
 
@@ -708,7 +709,7 @@ public class ConflictManagementToolController {
 
                         // Remove the text from the conflict line
                         for (int j = 0; j < conflictLines.get(conflictLineIndex).getLines().size(); j++) {
-                            middleConflictLines.get(conflictLineIndex).getLines().remove(i);
+                            middleConflictLines.get(conflictLineIndex).removeLine(i);
                         }
                         // Remove the text from the CodeArea
                         removeChangeFromMiddleDoc(conflictLines, conflictLineIndex, i);

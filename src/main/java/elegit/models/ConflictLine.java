@@ -1,4 +1,6 @@
 package elegit.models;
+import elegit.Main;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -10,7 +12,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class ConflictLine {
     private ArrayList<String> lines;
-    // true when conflicting, false otherwise
     private AtomicBoolean conflict = new AtomicBoolean();
     private AtomicBoolean handled = new AtomicBoolean();
     private AtomicBoolean changed = new AtomicBoolean();
@@ -24,7 +25,7 @@ public class ConflictLine {
 
     public ConflictLine(ArrayList<String> lines) {
         this.lines = lines;
-        this.conflict.set(false);// = false;
+        this.conflict.set(false);
         this.handled.set(false);
         this.changed.set(false);
     }
@@ -34,12 +35,18 @@ public class ConflictLine {
         this.handled.set(false);
         this.changed.set(false);
     }
+    public void removeLine(String line){
+        lines.remove(line);
+    }
+    public void removeLine(int i){
+        lines.remove(i);
+    }
 
     public void addLine(String line){
         lines.add(line);
     }
-    public ArrayList<String> getLines() {
-        return lines;
+    public List<String> getLines() {
+        return Collections.unmodifiableList(lines);
     }
     public void setLines(ArrayList<String> newLines) {
         lines = newLines;

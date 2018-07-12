@@ -762,9 +762,9 @@ public class RepoHelper {
         }
 
         MergeResult.MergeStatus status = result.getMergeStatus();
-        if (status == MergeResult.MergeStatus.CONFLICTING) {
-            throw new ConflictingFilesException(Collections.unmodifiableMap(result.getConflicts()));
-        }
+        //if (status == MergeResult.MergeStatus.CONFLICTING) {
+            //throw new ConflictingFilesException(Collections.unmodifiableMap(result.getConflicts()));
+        //}
         //return result.getMergeStatus().isSuccessful();
         return status;
     }

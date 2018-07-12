@@ -224,13 +224,18 @@ public class MergeWindowController {
     private synchronized void mergeFromFetch() {
         Main.assertFxThread();
 
+        System.out.println("in mergeFromFetch");
         // Do the merge, and close the window if successful
         sessionController.mergeFromFetchCreateChain(notificationPaneController)
                 .subscribe(results -> {
                     boolean success = true;
                     for (SessionController.Result result : results) {
+                        if(result.status == SessionController.ResultStatus.CONFLICTING){
+                            this.showConflictsNotification();
+                        }
                         if (result.status == SessionController.ResultStatus.MERGE_FAILED ||
-                                result.status == SessionController.ResultStatus.EXCEPTION)
+                                result.status == SessionController.ResultStatus.EXCEPTION ||
+                                result.status == SessionController.ResultStatus.CONFLICTING)
                             success = false;
                     }
                     if (success) {
