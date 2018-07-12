@@ -63,7 +63,6 @@ public class CommandLineController {
      */
     public synchronized void updateCommandText(String command) {
         // Sends it to be added to the log file in case the user wants to see/export the full history
-        Main.assertFxThread();
         TranscriptHelper.post(command);
         if (allowUpdates) {
             currentCommand.setText(command);

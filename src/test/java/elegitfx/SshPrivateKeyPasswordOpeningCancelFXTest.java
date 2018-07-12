@@ -42,7 +42,7 @@ import static org.junit.Assert.assertNotEquals;
 
 public class SshPrivateKeyPasswordOpeningCancelFXTest extends ApplicationTest {
 
-    public static final int timeoutDelay = 30;
+    public static final int timeoutDelay = 45;
 
     @ClassRule
     public static final TestingLogPathRule testingLogPath = new TestingLogPathRule();
