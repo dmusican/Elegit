@@ -110,8 +110,8 @@ public class SessionModel {
 
     private void loadMergeResults(){
         try {
-            if(PrefObj.getObject(this.preferences, MERGE_RESULT)==null) {
-                PrefObj.putObject(this.preferences, MERGE_RESULT, new HashMap<String, HashMap<String, String>>());
+            if(PrefObj.getObject(Main.preferences, MERGE_RESULT)==null) {
+                PrefObj.putObject(Main.preferences, MERGE_RESULT, new HashMap<String, HashMap<String, String>>());
             }
         } catch (Exception e) {
             throw new ExceptionAdapter(e);
@@ -545,9 +545,9 @@ public class SessionModel {
         try {
             Repository repo = getCurrentRepo();
             HashMap<String, HashMap<String, String>> mergeResults =
-                    (HashMap<String, HashMap<String, String>>) PrefObj.getObject(this.preferences, MERGE_RESULT);
+                    (HashMap<String, HashMap<String, String>>) PrefObj.getObject(Main.preferences, MERGE_RESULT);
             mergeResults.put(repo.getDirectory().toString(), results);
-            PrefObj.putObject(this.preferences, MERGE_RESULT, mergeResults);
+            PrefObj.putObject(Main.preferences, MERGE_RESULT, mergeResults);
         } catch (NullPointerException e){
             //should only be thrown in non-fx testing
             //showNoRepoLoadedNotification();
@@ -561,7 +561,7 @@ public class SessionModel {
     public HashMap<String, String> getMergeResult() throws NullPointerException{
         try {
             HashMap<String, HashMap<String, String>> mergeResults =
-                    (HashMap<String, HashMap<String, String>>) PrefObj.getObject(this.preferences, MERGE_RESULT);
+                    (HashMap<String, HashMap<String, String>>) PrefObj.getObject(Main.preferences, MERGE_RESULT);
             return mergeResults.get(getCurrentRepo().getDirectory().toString());
         } catch (IOException | BackingStoreException | ClassNotFoundException e) {
             e.printStackTrace();
