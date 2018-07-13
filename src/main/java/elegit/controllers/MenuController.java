@@ -3,8 +3,10 @@ package elegit.controllers;
 import elegit.Main;
 import elegit.gui.GitIgnoreEditor;
 import elegit.models.LoggingModel;
+import elegit.models.RepoHelper;
 import elegit.models.SessionModel;
 import elegit.treefx.TreeLayout;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -24,10 +26,14 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 /**
  * Created by dmusicant on 4/8/17.
+ * Has all the functionality for the menus. Most are from SessionController, but some options needed to be modified,
+ * so they are here.
  */
 public class MenuController {
 
@@ -40,6 +46,10 @@ public class MenuController {
     private Menu repoMenu;
     @FXML
     private MenuItem cloneMenuItem;
+    @FXML
+    private Menu loadSelectedRepoMenuOption;
+    @FXML
+    private Menu removeRecentReposMenuOption;
     @FXML
     private MenuItem createBranchMenuItem;
     @FXML
@@ -113,59 +123,6 @@ public class MenuController {
         this.sessionController = sessionController;
     }
 
-    // "Preferences" Dropdown Menu Items:
-
-    public synchronized void handleLoggingToggle() {
-        LoggingModel.toggleLogging();
-    }
-
-    public synchronized void handleCommitSortToggle() {
-        sessionController.handleCommitSortToggle();
-    }
-
-    private String getVersion() {
-        String path = "/version.prop";
-        InputStream stream = getClass().getResourceAsStream(path);
-        if (stream == null)
-            return "UNKNOWN";
-        Properties props = new Properties();
-        try {
-            props.load(stream);
-            stream.close();
-            return (String) props.get("version");
-        } catch (IOException e) {
-            return "UNKNOWN";
-        }
-    }
-
-    public synchronized void handleAbout() {
-        try {
-            logger.info("About clicked");
-            // Create and display the Stage:
-            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/pop-ups/About.fxml"));
-            GridPane fxmlRoot = fxmlLoader.load();
-            AboutController aboutController = fxmlLoader.getController();
-            aboutController.setVersion(getVersion());
-
-            Stage stage = new Stage();
-            javafx.scene.image.Image img = new javafx.scene.image.Image(getClass().getResourceAsStream("/elegit/images/elegit_icon.png"));
-            stage.getIcons().add(img);
-            stage.setTitle("About");
-            stage.setScene(new Scene(fxmlRoot));
-            stage.initModality(Modality.APPLICATION_MODAL);
-            stage.setOnCloseRequest(event -> logger.info("Closed about"));
-            stage.show();
-        } catch (IOException e) {
-            sessionController.showGenericErrorNotification(e);
-            e.printStackTrace();
-        }
-    }
-
-    public void handleReenableWindowResizing() {
-        Main.hidePrimaryStage();
-        Main.showPrimaryStage();
-    }
-
     /**
      * Helper method for disabling the menu bar
      */
@@ -174,15 +131,74 @@ public class MenuController {
         gitIgnoreMenuItem.setDisable(disable);
     }
 
+    //----- "File" Dropdown Menu Items: -----
 
-    // "Edit" Dropdown Menu Item:
+    public synchronized void handleCloneNewRepoOption() {
+        sessionController.handleCloneNewRepoOption();
+    }
+
+    public synchronized void handleLoadExistingRepoOption() { sessionController.handleLoadExistingRepoOption(); }
+
+    /**
+     * Very similar to the method in DropdownController. Adds a menu item for each repository, so the user can open
+     * or close them from the menus as well as from the dropdown section
+     */
+    public void setAllReposWithoutInvokingAction(ObservableList<RepoHelper> repoHelpers) {
+        Main.assertFxThread();
+        // This way there are not duplicates of each repo created every time they are refreshed
+        loadSelectedRepoMenuOption.getItems().clear();
+        removeRecentReposMenuOption.getItems().clear();
+
+        for (RepoHelper repoHelper : repoHelpers) {
+            MenuItem loadMenuItem = new MenuItem(repoHelper.toString());
+            loadMenuItem.setOnAction(e -> loadSelectedRepo(repoHelper));
+            loadSelectedRepoMenuOption.getItems().add(loadMenuItem);
+
+            MenuItem removeMenuItem = new MenuItem(repoHelper.toString());
+            removeMenuItem.setOnAction(e -> chooseRecentRepoToDelete(repoHelper));
+            removeRecentReposMenuOption.getItems().add(removeMenuItem);
+        }
+    }
+
+    private synchronized void loadSelectedRepo(RepoHelper repoHelper) {
+        sessionController.loadDesignatedRepo(repoHelper);
+    }
+
+    /**
+     * Similar to the method in DropdownController, but only allows the user to remove one repo at a time and doesn't
+     * open a pop up window, but a normal sub menu with the loaded repositories (refer to
+     * setReposWithoutInvokingAction() for that part specifically).
+     */
+    private synchronized void chooseRecentRepoToDelete(RepoHelper repoHelper) {
+        // Have to turn it into a list, so the SessionController method can be called and no repeated code is necessary
+        List<RepoHelper> listOfOneRepo = new ArrayList<>(1);
+        listOfOneRepo.add(repoHelper);
+        sessionController.handleRemoveReposButton(listOfOneRepo);
+    }
+
+    //----- "Edit" Dropdown Menu Items: -----
+
+    // TODO: copy
+
+    // TODO: paste
 
     // TODO: Make sure GitIgnoreEditor is threadsafe
     public void handleGitIgnoreMenuItem() {
         GitIgnoreEditor.show(SessionModel.getSessionModel().getCurrentRepoHelper(), null);
     }
 
-    // "Repository" Dropdown Menu Items (2 layers):
+    //----- "View" Dropdown Menu Items: -----
+
+    public synchronized void handleCommitSortToggle() {
+        sessionController.handleCommitSortToggle();
+    }
+
+    public void handleReenableWindowResizing() {
+        Main.hidePrimaryStage();
+        Main.showPrimaryStage();
+    }
+
+    //----- "Repository" Dropdown Menu Items (2 layers): -----
 
     public synchronized void handleNewBranchButton() {
         sessionController.handleNewBranchButton();
@@ -198,10 +214,6 @@ public class MenuController {
 
     public synchronized void showBranchCheckout() {
         sessionController.showBranchCheckout();
-    }
-
-    public synchronized void handleCloneNewRepoOption() {
-        sessionController.handleCloneNewRepoOption();
     }
 
     public synchronized void handleCommitAll() {
@@ -260,4 +272,49 @@ public class MenuController {
         sessionController.handleStashDropButton();
     }
 
+    //----- "Preferences" Dropdown Menu Items: -----
+
+    public synchronized void handleLoggingToggle() {
+        LoggingModel.toggleLogging();
+    }
+
+    //----- "Help" Dropdown Menu Items: -----
+
+    public synchronized void handleAbout() {
+        try {
+            logger.info("About clicked");
+            // Create and display the Stage:
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/elegit/fxml/pop-ups/About.fxml"));
+            GridPane fxmlRoot = fxmlLoader.load();
+            AboutController aboutController = fxmlLoader.getController();
+            aboutController.setVersion(getVersion());
+
+            Stage stage = new Stage();
+            javafx.scene.image.Image img = new javafx.scene.image.Image(getClass().getResourceAsStream("/elegit/images/elegit_icon.png"));
+            stage.getIcons().add(img);
+            stage.setTitle("About");
+            stage.setScene(new Scene(fxmlRoot));
+            stage.initModality(Modality.APPLICATION_MODAL);
+            stage.setOnCloseRequest(event -> logger.info("Closed about"));
+            stage.show();
+        } catch (IOException e) {
+            sessionController.showGenericErrorNotification(e);
+            e.printStackTrace();
+        }
+    }
+
+    private String getVersion() {
+        String path = "/version.prop";
+        InputStream stream = getClass().getResourceAsStream(path);
+        if (stream == null)
+            return "UNKNOWN";
+        Properties props = new Properties();
+        try {
+            props.load(stream);
+            stream.close();
+            return (String) props.get("version");
+        } catch (IOException e) {
+            return "UNKNOWN";
+        }
+    }
 }

@@ -213,7 +213,7 @@ public class SessionController {
         this.initPanelViewsWhenSubscribed()
                 .doAfterTerminate(() -> {
                     this.updateUIEnabledStatus();
-                    this.refreshRecentReposInDropdown();
+                    this.refreshRecentReposInDropdownAndMenu();
                     this.initRepositoryMonitor();
 
                     this.initStatusText();
@@ -608,7 +608,7 @@ public class SessionController {
         if (!currentRepoHelper.exists()) {
             showMissingRepoNotification();
             setButtonsDisabled(true);
-            refreshRecentReposInDropdown();
+            refreshRecentReposInDropdownAndMenu();
             return;
         }
 
@@ -801,7 +801,7 @@ public class SessionController {
                         return initPanelViewsWhenSubscribed()
                         .map(unused -> doGitStatusWhenSubscribed())
                         .doAfterTerminate(() -> {
-                            refreshRecentReposInDropdown();
+                            refreshRecentReposInDropdownAndMenu();
                             updateUIEnabledStatus();
                             hideBusyWindowAndResumeRepoMonitor();
 
@@ -846,10 +846,10 @@ public class SessionController {
 
 
     /**
-     * Adds all the model's RepoHelpers to the dropdown
+     * Adds all the model's RepoHelpers to the dropdown and the menu option to do the same thing as the dropdown
      */
     @FXML
-    private void refreshRecentReposInDropdown() {
+    private void refreshRecentReposInDropdownAndMenu() {
         Main.assertFxThread();
         synchronized (this) {
             RepoHelper repoHelper = this.theModel.getCurrentRepoHelper();
@@ -857,6 +857,7 @@ public class SessionController {
             ObservableList<RepoHelper> obsRepoHelpers = FXCollections.observableArrayList(repoHelpers);
             ObservableList<RepoHelper> immutableRepoHelpers = FXCollections.unmodifiableObservableList(obsRepoHelpers);
             dropdownController.setCurrentRepoWithoutInvokingAction(repoHelper, FXCollections.observableArrayList(immutableRepoHelpers));
+            menuController.setAllReposWithoutInvokingAction(FXCollections.observableArrayList(immutableRepoHelpers));
         }
     }
 
@@ -1091,7 +1092,7 @@ public class SessionController {
         } catch(MissingRepoException e){
             this.showMissingRepoNotification();
             setButtonsDisabled(true);
-            refreshRecentReposInDropdown();
+            refreshRecentReposInDropdownAndMenu();
         } catch(NoFilesStagedForCommitException e){
             this.showNoFilesStagedForCommitNotification();
         } catch(IOException e){
@@ -1171,7 +1172,7 @@ public class SessionController {
                     } catch (MissingRepoException e) {
                         showMissingRepoNotification();
                         setButtonsDisabled(true);
-                        refreshRecentReposInDropdown();
+                        refreshRecentReposInDropdownAndMenu();
                     } catch (InvalidTagNameException e) {
                         showInvalidTagNameNotification(tagName);
                     }catch (TransportException e) {
@@ -1203,7 +1204,7 @@ public class SessionController {
         } catch(MissingRepoException e){
             this.showMissingRepoNotification();
             setButtonsDisabled(true);
-            refreshRecentReposInDropdown();
+            refreshRecentReposInDropdownAndMenu();
         } catch(NoTagNameException e){
             this.showNoTagNameNotification();
         } catch(TagNameExistsException e) {
@@ -1260,7 +1261,7 @@ public class SessionController {
         } catch (MissingRepoException e) {
             showMissingRepoNotification();
             setButtonsDisabled(true);
-            refreshRecentReposInDropdown();
+            refreshRecentReposInDropdownAndMenu();
         } catch (GitAPIException e) {
             showGenericErrorNotification(e);
             e.printStackTrace();
@@ -1425,7 +1426,7 @@ public class SessionController {
         } catch(MissingRepoException e) {
             showMissingRepoNotification();
             setButtonsDisabled(true);
-            refreshRecentReposInDropdown();
+            refreshRecentReposInDropdownAndMenu();
         } catch (TransportException e) {
             throw e;
 
@@ -1618,7 +1619,7 @@ public class SessionController {
                     } catch(MissingRepoException e){
                         showMissingRepoNotification();
                         setButtonsDisabled(true);
-                        refreshRecentReposInDropdown();
+                        refreshRecentReposInDropdownAndMenu();
                     } catch(Exception e) {
                         showGenericErrorNotification(e);
                         e.printStackTrace();
@@ -1928,7 +1929,7 @@ public class SessionController {
                 if (result.operation != ResultOperation.LOAD) {
                     setButtonsDisabled(true);
                 }
-                refreshRecentReposInDropdown();
+                refreshRecentReposInDropdownAndMenu();
 
             } else if (result.exception instanceof TransportException) {
                 showNotification(nc,
@@ -1949,7 +1950,7 @@ public class SessionController {
                         "You need to load a repository before you can perform operations on it. " +
                                 "Click on the plus sign in the upper left corner!");
                 setButtonsDisabled(true);
-                refreshRecentReposInDropdown();
+                refreshRecentReposInDropdownAndMenu();
 
             } else if (result.exception instanceof NoCommitsToMergeException) {
                 showNotification(nc, "No commits to merge warning",
@@ -2328,7 +2329,7 @@ public class SessionController {
         }catch(MissingRepoException e){
             this.showMissingRepoNotification();
             this.setButtonsDisabled(true);
-            this.refreshRecentReposInDropdown();
+            this.refreshRecentReposInDropdownAndMenu();
         }catch(NoRepoLoadedException e){
             this.showNoRepoLoadedNotification();
             this.setButtonsDisabled(true);
@@ -2387,7 +2388,7 @@ public class SessionController {
      * removes selected repo shortcuts
      * @param checkedItems list of selected repos
      */
-    void handleRemoveReposButton(List<RepoHelper> checkedItems) {
+    public void handleRemoveReposButton(List<RepoHelper> checkedItems) {
         Main.assertFxThread();
         logger.info("Removed repos");
         this.theModel.removeRepoHelpers(checkedItems);
@@ -2399,7 +2400,8 @@ public class SessionController {
                     .get(newIndex);
 
             loadDesignatedRepo(newCurrentRepo);
-            this.refreshRecentReposInDropdown();
+            // Originally this.refreshRecentReposInDropdownAndMenu() was called after this, but loadDesignatedRepo()
+            // calls it and due to the multithreading going on, calling it again was causing errors.
 
         } else if (this.theModel.getAllRepoHelpers().isEmpty()) {
             // If there are no repos, reset everything
@@ -2409,11 +2411,11 @@ public class SessionController {
             allFilesPanelView.resetFileStructurePanelView();
             RepositoryMonitor.pause();
             initialize();
+        } else { // This is the case that any repos removed where not the current repo
+            // In this case refreshing the dropdown is necessary because loadDesignatedRepo() isn't called.
+            // Ideally this would be handled differently and in a way that is more related to the actual removal.
+            this.refreshRecentReposInDropdownAndMenu();
         }
-
-        // The repos have been removed, so no 'else' case above is necessary
-
-        this.refreshRecentReposInDropdown();
     }
 
     /**
