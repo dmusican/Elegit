@@ -5,7 +5,6 @@ import elegit.controllers.SessionController;
 import elegit.models.ClonedRepoHelper;
 import elegit.monitors.RepositoryMonitor;
 import elegit.treefx.CommitTreeModel;
-import javafx.scene.control.ScrollPane;
 import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -54,6 +53,7 @@ public class OpenLocalRepoFXTest extends ApplicationTest {
 
     @After
     public void tearDown() {
+        TestUtilities.cleanupTestEnvironment();
         assertEquals(0,Main.getAssertionCount());
     }
 
@@ -61,6 +61,9 @@ public class OpenLocalRepoFXTest extends ApplicationTest {
 
     @Test
     public void openLocalRepoTest() throws Exception {
+        TestUtilities.commonStartupOffFXThread();
+
+
         initializeLogger();
         Path directoryPath = Files.createTempDirectory("unitTestRepos");
         directoryPath.toFile().deleteOnExit();
@@ -75,23 +78,19 @@ public class OpenLocalRepoFXTest extends ApplicationTest {
         assertNotNull(helper);
 
         interact(() -> {
-            ScrollPane sp = sessionController.getCommitTreeModel().getTreeGraph().getScrollPane();
-            // Test that scroll pane has no content yet
-            assertTrue(sp.getScene() == null);
+            // Test no content yet
+            assertEquals(0,sessionController.getCommitTreeModel().getCommitsInModel().size());
         });
 
         CommitTreeModel.setAddCommitDelay(500);
-
 
         interact(() -> sessionController.handleLoadExistingRepoOption(repoPath));
         SessionController.gitStatusCompletedOnce.await();
 
         interact(() -> {
-            ScrollPane sp = sessionController.getCommitTreeModel().getTreeGraph().getScrollPane();
-            // Test that scroll pane now has content in it
-            assertTrue(sp.getScene() != null);
+            // Test that scroll pane has content now
+            assertTrue(sessionController.getCommitTreeModel().getCommitsInModel().size() > 0);
         });
-
 
 
         assertEquals(0,sessionController.getNotificationPaneController().getNotificationNum());
@@ -105,7 +104,6 @@ public class OpenLocalRepoFXTest extends ApplicationTest {
         System.out.println("Number of remote checks = " + numRemoteChecks);
         assertTrue(numLocalChecks > 0 && numLocalChecks < 5);
         assertTrue(numRemoteChecks > 0 && numRemoteChecks < 5);
-
     }
 
     // Helper method to avoid annoying traces from logger

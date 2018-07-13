@@ -1,39 +1,19 @@
 package elegitfx;
 
-import com.jcraft.jsch.JSch;
 import elegit.Main;
-import elegit.controllers.BusyWindow;
 import elegit.controllers.SessionController;
 import elegit.exceptions.ExceptionAdapter;
 import elegit.models.ClonedRepoHelper;
 import elegit.models.ExistingRepoHelper;
-import elegit.models.SessionModel;
 import elegit.monitors.RepositoryMonitor;
-import elegit.sshauthentication.DetailedSshLogger;
-import elegit.sshauthentication.ElegitUserInfoGUI;
 import elegit.sshauthentication.ElegitUserInfoTest;
-import javafx.fxml.FXMLLoader;
-import javafx.geometry.Rectangle2D;
-import javafx.scene.Node;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.text.Text;
-import javafx.stage.Screen;
 import javafx.stage.Stage;
 import junit.framework.TestCase;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.sshd.common.config.keys.FilePasswordProvider;
-import org.apache.sshd.common.keyprovider.KeyPairProvider;
-import org.apache.sshd.common.keyprovider.MappedKeyPairProvider;
-import org.apache.sshd.common.util.security.SecurityUtils;
-import org.apache.sshd.git.pack.GitPackCommandFactory;
 import org.apache.sshd.server.SshServer;
-import org.apache.sshd.server.auth.password.PasswordAuthenticator;
-import org.apache.sshd.server.auth.pubkey.KeySetPublickeyAuthenticator;
-import org.apache.sshd.server.session.ServerSession;
 import org.eclipse.jgit.revwalk.RevCommit;
-import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -52,14 +32,8 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.KeyPair;
-import java.security.PublicKey;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Hashtable;
-import java.util.Random;
 import java.util.Scanner;
-import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
@@ -86,8 +60,6 @@ public class SshPrivateKeyPasswordExistingFXTest extends ApplicationTest {
     }
 
     private static final Logger logger = LogManager.getLogger("consolelogger");
-
-    private static final Random random = new Random(90125);
 
     private SessionController sessionController;
 
@@ -123,6 +95,7 @@ public class SshPrivateKeyPasswordExistingFXTest extends ApplicationTest {
     @After
     public void tearDown() {
         logger.info("Tearing down");
+        TestUtilities.cleanupTestEnvironment();
         TestCase.assertEquals(0, Main.getAssertionCount());
     }
 
@@ -134,6 +107,7 @@ public class SshPrivateKeyPasswordExistingFXTest extends ApplicationTest {
 
     @Test
     public void testSshPrivateKey() throws Exception {
+        TestUtilities.commonStartupOffFXThread();
 
         // Set up remote repo
         Path remote = testingRemoteAndLocalRepos.getRemoteFull();
@@ -171,15 +145,18 @@ public class SshPrivateKeyPasswordExistingFXTest extends ApplicationTest {
                                          new ElegitUserInfoTest(null, passphrase),
                                          getClass().getResource(privateKeyFileLocation).getFile(),
                                          directoryPath.resolve("testing_known_hosts").toString());
+            interact(() -> helper.setRemoteStatusChecking(false));
             helper.obtainRepository(remoteURL);
             console.info("Repo cloned");
 
             // Make sure initial status is correct
-            Text branchStatusText = lookup("#branchStatusText").query();
-            assertEquals("",branchStatusText.getText());
+            interact(() -> {
+                Text branchStatusText = lookup("#branchStatusText").query();
+                assertEquals("",branchStatusText.getText());
 
-            Text needToFetch = lookup("#needToFetch").query();
-            assertEquals("",needToFetch.getText());
+                Text needToFetch = lookup("#needToFetch").query();
+                assertEquals("",needToFetch.getText());
+            });
 
             // Open as an existing repo
             clickOn("#loadNewRepoButton")
@@ -200,8 +177,10 @@ public class SshPrivateKeyPasswordExistingFXTest extends ApplicationTest {
 
 
             // Since remote checking should still be off, make sure status is empty
-            branchStatusText = lookup("#branchStatusText").query();
-            assertEquals("",branchStatusText.getText());
+            interact(() -> {
+                Text branchStatusText = lookup("#branchStatusText").query();
+                assertEquals("",branchStatusText.getText());
+            });
 
             // Make sure no errors occurred
             assertNotEquals(null, RepositoryMonitor.getSessionController());
@@ -210,11 +189,14 @@ public class SshPrivateKeyPasswordExistingFXTest extends ApplicationTest {
 
             WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
                                       () -> lookup("#sshprompt").query() != null);
+            WaitForAsyncUtils.waitForFxEvents();
+
             // Enter passphrase
             clickOn("#sshprompt")
                     .write(passphrase)
                     .write("\n");
 
+            interact(() -> helper.setRemoteStatusChecking(true));
             // Wait a while, to make sure that RepositoryMonitor has kicked in and is happy
             Thread.sleep(Math.max(RepositoryMonitor.REMOTE_CHECK_INTERVAL, RepositoryMonitor.LOCAL_CHECK_INTERVAL));
 

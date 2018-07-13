@@ -54,7 +54,15 @@ import elegit.exceptions.MissingRepoException;
 import elegit.exceptions.NoTrackingException;
 import elegit.gui.ClonedRepoHelperBuilder;
 import elegit.gui.RepoHelperBuilder;
-import elegit.models.*;
+import elegit.models.AuthMethod;
+import elegit.models.BranchHelper;
+import elegit.models.BranchModel;
+import elegit.models.ClonedRepoHelper;
+import elegit.models.CommitHelper;
+import elegit.models.ExistingRepoHelper;
+import elegit.models.LocalBranchHelper;
+import elegit.models.RemoteBranchHelper;
+import elegit.models.RepoHelper;
 import elegit.sshauthentication.ElegitUserInfoTest;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -75,11 +83,13 @@ import org.eclipse.jgit.transport.HttpTransport;
 import org.eclipse.jgit.transport.URIish;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.eclipse.jgit.transport.http.apache.HttpClientConnectionFactory;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import sharedrules.JGitTestingRepositoryRule;
+import sharedrules.TestUtilities;
 import sharedrules.TestingLogPathRule;
 import sharedrules.TestingRemoteAndLocalReposRule;
 
@@ -129,17 +139,17 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
 	@Override
 	@Before
 	public void setUp() throws Exception {
-        super.setUp();
+		super.setUp();
 
-        jGitTestRepo = jGitTestingRepositoryRule.getJgitTestRepo();
+		TestUtilities.setupTestEnvironment();
+
+		jGitTestRepo = jGitTestingRepositoryRule.getJgitTestRepo();
 		remoteURI = jGitTestingRepositoryRule.getRemoteURI();
 		authURI = jGitTestingRepositoryRule.getAuthURI();
-
 
         // Set up secondary remote repo
         Path remoteFull = testingRemoteAndLocalRepos.getRemoteFull();
         System.out.println("remote full is " + remoteFull);
-
 
         Repository db = new FileRepository(remoteFull.toString());
 
@@ -154,20 +164,13 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
         System.out.println("Location is " + db.getDirectory());
     }
 
-	private ServletContextHandler addNormalContext(GitServlet gs, TestRepository<Repository> src, String srcName) {
-		ServletContextHandler app = server.addContext("/git");
-		gs.setRepositoryResolver(new TestRepositoryResolver(src, srcName));
-		app.addServlet(new ServletHolder(gs), "/*");
-		return app;
-	}
+    @Override
+    @After
+    public void tearDown() throws Exception {
+        super.tearDown();
+        TestUtilities.cleanupTestEnvironment();
+    }
 
-
-	private ServletContextHandler addAuthContext(GitServlet gs,
-                                                 String contextPath, String... methods) {
-		ServletContextHandler auth = server.addContext('/' + contextPath);
-		auth.addServlet(new ServletHolder(gs), "/*");
-		return server.authBasic(auth, methods);
-	}
 
     @Test
     public void testCloneHttpNoPassword() throws Exception {
@@ -902,10 +905,8 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
         assertNotNull(helperFast);
         helperFast.obtainRepository(authURI.toString());
 
-
         // Create the branch 'fast_branch'
         helperFast.getBranchModel().createNewLocalBranch("fast_branch");
-
 
 
         LocalBranchHelper fastBranch = (LocalBranchHelper) helperFast
@@ -916,11 +917,9 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
         helperFast.pushAll(command);
 
 
-
         // Track fast_branch and check it out
         fastBranch.checkoutBranch();
         helperFast.updateModel();
-
 
         // Update the file in fast_branch
         Path filePath = repoPathFast.resolve("modify.txt");
@@ -928,22 +927,18 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
         Files.write(filePath, timestamp.getBytes(), StandardOpenOption.APPEND);
         helperFast.addFilePathTest(filePath);
 
-
         // Commit changes in fast_branch and push
         helperFast.commit("added a character");
         command = helperFast.prepareToPushAll();
         helperFast.pushAll(command);
-
 
         //Checkout master
         LocalBranchHelper master_helper = (LocalBranchHelper) helperFast
                 .getBranchModel().getBranchByName(BranchModel.BranchType.LOCAL, "master");
         master_helper.checkoutBranch();
 
-
         // Merge fast_forward into master
         helperFast.getBranchModel().mergeWithBranch(fastBranch);
-
 
         // Check that Elegit recognizes there are unpushed commits
         assertEquals(true, helperFast.getAheadCount()>0);

@@ -47,11 +47,14 @@ public class RepositoryMonitor3FXTest extends ApplicationTest {
 
     @After
     public void tearDown() {
+        TestUtilities.cleanupTestEnvironment();
         assertEquals(0,Main.getAssertionCount());
     }
 
     @Test
     public void repoMonitorOnNoRepoOpenTest() throws Exception {
+        TestUtilities.commonStartupOffFXThread();
+
         RepositoryMonitor.unpause();
         sleep(Math.max(RepositoryMonitor.REMOTE_CHECK_INTERVAL,
                 RepositoryMonitor.LOCAL_CHECK_INTERVAL)+1000);

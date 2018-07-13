@@ -15,7 +15,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.sshd.server.SshServer;
 import org.eclipse.jgit.revwalk.RevCommit;
-import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -98,6 +97,7 @@ public class SshPrivateKeyPasswordCancelFXTest extends ApplicationTest {
     @After
     public void tearDown() {
         logger.info("Tearing down");
+        TestUtilities.cleanupTestEnvironment();
         TestCase.assertEquals(0, Main.getAssertionCount());
     }
 
@@ -109,6 +109,7 @@ public class SshPrivateKeyPasswordCancelFXTest extends ApplicationTest {
 
     @Test
     public void test() throws Exception {
+        TestUtilities.commonStartupOffFXThread();
 
         // Set up remote repo
         Path remote = testingRemoteAndLocalRepos.getRemoteFull();
@@ -150,11 +151,13 @@ public class SshPrivateKeyPasswordCancelFXTest extends ApplicationTest {
             console.info("Repo cloned");
 
             // Make sure initial status is correct
-            Text branchStatusText = lookup("#branchStatusText").query();
-            assertEquals("",branchStatusText.getText());
+            interact(() -> {
+                Text branchStatusText = lookup("#branchStatusText").query();
+                assertEquals("",branchStatusText.getText());
 
-            Text needToFetch = lookup("#needToFetch").query();
-            assertEquals("",needToFetch.getText());
+                Text needToFetch = lookup("#needToFetch").query();
+                assertEquals("",needToFetch.getText());
+            });
 
             // Open as an existing repo
             clickOn("#loadNewRepoButton")
@@ -175,8 +178,10 @@ public class SshPrivateKeyPasswordCancelFXTest extends ApplicationTest {
 
 
             // Since remote checking should still be off, make sure status is empty
-            branchStatusText = lookup("#branchStatusText").query();
-            assertEquals("",branchStatusText.getText());
+            interact(() -> {
+                Text branchStatusText = lookup("#branchStatusText").query();
+                assertEquals("", branchStatusText.getText());
+            });
 
             // Make sure no errors occurred
             assertNotEquals(null, RepositoryMonitor.getSessionController());

@@ -1,6 +1,11 @@
 package elegitfx;
 
+import elegit.Main;
+import javafx.stage.Stage;
+import org.junit.After;
 import org.testfx.framework.junit.TestFXRule;
+import org.testfx.util.WaitForAsyncUtils;
+import sharedrules.TestUtilities;
 import sharedrules.TestingLogPathRule;
 import elegit.models.ClonedRepoHelper;
 import elegit.models.SessionModel;
@@ -22,8 +27,10 @@ import java.nio.file.StandardOpenOption;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
 import static elegit.monitors.RepositoryMonitor.REMOTE_CHECK_INTERVAL;
+import static junit.framework.TestCase.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -47,11 +54,24 @@ public class PushPullFXTest extends ApplicationTest {
     @Rule
     public final JGitTestingRepositoryRule jGitTestingRepositoryRule = new JGitTestingRepositoryRule();
 
+    @Override
+    public void start(Stage stage) throws Exception {
+        TestUtilities.commonTestFxStart(stage);
+    }
+
+    @After
+    public void tearDown() {
+        TestUtilities.cleanupTestEnvironment();
+        assertEquals(0,Main.getAssertionCount());
+    }
+
     @Test
     // This test has some thread safety issues that should probably be fixed; the RepositoryMonitor is started
     // in the FX thread (which is right), but there's a lot of code here in this test not run in the FX thread
     // that probably should be. Fix it if this test starts causing trouble. In the meantime... it's a test.
     public void testPushPullBothCloned() throws Exception {
+        TestUtilities.commonStartupOffFXThread();
+
         UsernamePasswordCredentialsProvider credentials = new UsernamePasswordCredentialsProvider("agitter",
                                                                                                   "letmein");
 
@@ -85,7 +105,7 @@ public class PushPullFXTest extends ApplicationTest {
 
         // The RepositoryMonitor posts updates to hasFoundNewRemoteChanges to the FX thread, so need to run
         // this separately to be able to observe changes
-        assertFalse(RepositoryMonitor.hasFoundNewRemoteChanges.get());
+        interact( () -> assertFalse(RepositoryMonitor.hasFoundNewRemoteChanges.get()));
 
         // Update the file, then commit and push
         Path readmePath = repoPathPush.resolve("README.md");
@@ -98,8 +118,10 @@ public class PushPullFXTest extends ApplicationTest {
         helperPush.pushAll(command);
 
         // Verify that RepositoryMonitor can see the changes relative to the original
-        Thread.sleep(REMOTE_CHECK_INTERVAL);
-        assertTrue(RepositoryMonitor.hasFoundNewRemoteChanges.get());
+        // If system is overloaded, the monitor may not trigger right on time, so wait
+        // an extra while (hence the *3).
+        WaitForAsyncUtils.waitFor(REMOTE_CHECK_INTERVAL*3, TimeUnit.SECONDS,
+                                  () -> RepositoryMonitor.hasFoundNewRemoteChanges.get());
 
         // Add a tag named for the current timestamp
         ObjectId headId = helperPush.getBranchModel().getCurrentBranch().getHeadId();
