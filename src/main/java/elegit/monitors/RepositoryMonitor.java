@@ -96,6 +96,7 @@ public class RepositoryMonitor{
 
         remoteTimer = Observable
                 .interval(0, REMOTE_CHECK_INTERVAL, TimeUnit.MILLISECONDS, Schedulers.io())
+                .doOnDispose(() -> System.err.println("Thread shutting down. Pipe closed errors may appear."))
                 .doOnNext(i -> {
                     if (remoteHasNewChanges(repo))
                         setFoundNewChanges();
