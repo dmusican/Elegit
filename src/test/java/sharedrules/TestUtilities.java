@@ -171,13 +171,20 @@ public class TestUtilities {
 
     public static void cleanupTestEnvironment() {
         try {
+            Main.preferences.removeNode();
+        } catch (BackingStoreException e) {
+            throw new ExceptionAdapter(e);
+        }
+    }
+
+    public static void cleanupTestFXEnvironment() {
+        try {
             WaitForAsyncUtils.waitFor(20, TimeUnit.SECONDS,
                     () -> !BusyWindow.window.isShowing());
             WaitForAsyncUtils.waitForFxEvents();
-            Main.preferences.removeNode();
+
+            cleanupTestEnvironment();
         } catch (TimeoutException e) {
-            throw new ExceptionAdapter(e);
-        } catch (BackingStoreException e) {
             throw new ExceptionAdapter(e);
         }
     }

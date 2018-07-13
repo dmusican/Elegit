@@ -79,7 +79,7 @@ public class RepoCreation2FXTest extends ApplicationTest {
     @After
     public void tearDown() {
         logger.info("Tearing down");
-        TestUtilities.cleanupTestEnvironment();
+        TestUtilities.cleanupTestFXEnvironment();
         assertEquals(0, Main.getAssertionCount());
     }
 

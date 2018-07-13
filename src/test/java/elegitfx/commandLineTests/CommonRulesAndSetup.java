@@ -8,6 +8,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.rules.ExternalResource;
 import org.junit.rules.TestName;
+import sharedrules.TestUtilities;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -37,6 +38,7 @@ public class CommonRulesAndSetup extends ExternalResource {
     @After
     public void tearDown() {
         logger.info("Tearing down");
+        TestUtilities.cleanupTestFXEnvironment();
         TestCase.assertEquals(0, Main.getAssertionCount());
     }
 }

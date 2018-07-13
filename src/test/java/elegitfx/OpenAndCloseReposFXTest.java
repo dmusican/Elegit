@@ -77,7 +77,7 @@ public class OpenAndCloseReposFXTest extends ApplicationTest {
     @After
     public void tearDown() {
         console.info("Tearing down");
-        TestUtilities.cleanupTestEnvironment();
+        TestUtilities.cleanupTestFXEnvironment();
         assertEquals(0,Main.getAssertionCount());
     }
 

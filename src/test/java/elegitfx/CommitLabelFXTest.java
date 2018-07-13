@@ -70,7 +70,7 @@ public class CommitLabelFXTest extends ApplicationTest {
 
     @After
     public void tearDown() {
-        TestUtilities.cleanupTestEnvironment();
+        TestUtilities.cleanupTestFXEnvironment();
     }
 
 
