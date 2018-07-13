@@ -1,5 +1,6 @@
 package elegit.controllers;
 
+import elegit.Main;
 import elegit.models.CommitHelper;
 import elegit.models.RepoHelper;
 import elegit.models.SessionModel;
@@ -52,6 +53,7 @@ public class StashListController {
      * Sets up views and buttons
      */
     public void initialize() {
+        Main.assertFxThread();
         logger.info("Started up stash list window");
 
         this.stashList.setCellFactory(new Callback<ListView<CommitHelper>, ListCell<CommitHelper>>() {
@@ -125,6 +127,7 @@ public class StashListController {
      * Handles applying a selected stash to the repository
      */
     public void handleApply() {
+        Main.assertFxThread();
         String stashRef = this.stashList.getSelectionModel().getSelectedItem().getName();
         try {
             repoHelper.stashApply(stashRef, false);
@@ -144,6 +147,7 @@ public class StashListController {
      * Drops the selected stash
      */
     public void handleDrop() {
+        Main.assertFxThread();
         int index = this.stashList.getSelectionModel().getSelectedIndex();
         try {
             repoHelper.stashDrop(index);
@@ -162,6 +166,7 @@ public class StashListController {
      * Should this have a warning message?
      */
     public void handleClearStash() {
+        Main.assertFxThread();
         try {
             repoHelper.stashClear();
             commandLineController.updateCommandText("git stash clear");
@@ -175,6 +180,7 @@ public class StashListController {
      * Pops off the selected stash (applies and drops it)
      */
     public void handlePop() {
+        Main.assertFxThread();
         String stashRef = this.stashList.getSelectionModel().getSelectedItem().getName();
         int index = this.stashList.getSelectionModel().getSelectedIndex();
         try {

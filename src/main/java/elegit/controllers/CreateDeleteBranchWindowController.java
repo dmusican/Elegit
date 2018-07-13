@@ -1,5 +1,6 @@
 package elegit.controllers;
 
+import elegit.Main;
 import elegit.exceptions.ExceptionAdapter;
 import elegit.gui.PopUpWindows;
 import elegit.models.*;
@@ -205,6 +206,9 @@ public class CreateDeleteBranchWindowController {
      * @param checkout boolean
      */
     private void createNewBranch(String branchName, boolean checkout) {
+        Main.assertFxThread();
+        updateCommandTextFromCheckout(branchName, checkout);
+
         Thread th = new Thread(new Task<Void>() {
             @Override
             protected Void call() {
@@ -252,6 +256,14 @@ public class CreateDeleteBranchWindowController {
         th.start();
     }
 
+    private void updateCommandTextFromCheckout(String branchName, boolean checkout) {
+        if (checkout) {
+            sessionController.updateCommandText("git checkout -b " + branchName);
+        } else {
+            sessionController.updateCommandText("git branch " + branchName);
+        }
+    }
+
     /**
      * Checks out the selected local branch
      * @param selectedBranch the local branch to check out
@@ -291,6 +303,7 @@ public class CreateDeleteBranchWindowController {
      * Deletes the selected local branch
      */
     public void handleDeleteLocalBranch() {
+        Main.assertFxThread();
         logger.info("Delete remote branches button clicked");
         BranchHelper selectedBranch = localBranchesDropdown.getSelectionModel().getSelectedItem();
 
@@ -304,6 +317,7 @@ public class CreateDeleteBranchWindowController {
      * @param selectedBranch the branch selected to delete
      */
     public synchronized void deleteBranch(BranchHelper selectedBranch) {
+        Main.assertFxThread();
         boolean authorizationSucceeded = true;
         try {
             if (selectedBranch != null) {

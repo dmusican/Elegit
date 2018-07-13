@@ -2,6 +2,7 @@ package elegitfx.commandLineTests;
 
 import elegit.controllers.SessionController;
 import elegit.exceptions.ExceptionAdapter;
+import elegit.exceptions.MissingRepoException;
 import elegit.gui.WorkingTreePanelView;
 import elegit.models.ExistingRepoHelper;
 import elegit.models.LocalBranchHelper;
@@ -17,6 +18,7 @@ import org.apache.logging.log4j.Logger;
 import org.apache.sshd.server.SshServer;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.PushCommand;
+import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.hamcrest.Matchers;
 import org.junit.Assert;
@@ -27,6 +29,7 @@ import sharedrules.TestUtilities;
 import sharedrules.TestingRemoteAndLocalReposRule;
 
 import java.io.FileWriter;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -213,6 +216,19 @@ public class CommandLineTestUtilities extends ApplicationTest {
         logger.info("Layout done");
 
         return commit;
+    }
+
+    public void addChangeToFile(Path directoryPath) throws IOException, GitAPIException, MissingRepoException {
+        Path local = directoryPath.resolve("local");
+        Path fileLocation = local.resolve("README.md");
+
+        ExistingRepoHelper helper = new ExistingRepoHelper(local, new ElegitUserInfoTest());
+
+        FileWriter fw = new FileWriter(fileLocation.toString(), true);
+        fw.write("new thing.");
+        fw.close();
+
+        helper.addFilePathTest(fileLocation);
     }
 
     public String[] clickReset(RevCommit commit, String resetType) {

@@ -35,6 +35,7 @@ public class CommandLineHistoryController {
     }
 
     public synchronized void initialize() {
+        Main.assertFxThread();
         commandHistory.clear();
         List<String> transcriptList = sessionController.getTranscript();
         for (String command : transcriptList) {
@@ -45,7 +46,7 @@ public class CommandLineHistoryController {
     /**
      * Opens up a terminal like window and displays command line history
      */
-    public void showHistory() {
+    public synchronized void showHistory() {
         Main.assertFxThread();
         if (commandHistory.getText().equals("")) { // Don't show the popup if they haven't made any commands yet
             sessionController.showNoCommandLineHistoryNotification();
@@ -67,7 +68,8 @@ public class CommandLineHistoryController {
         }
     }
 
-    public void closeWindow() {
+    public synchronized void closeWindow() {
+        Main.assertFxThread();
         this.stage.close();
     }
 
@@ -97,7 +99,8 @@ public class CommandLineHistoryController {
     /**
      * Helper method for writing the command history to the file to be saved
      */
-    private void writeToFile(String commands, File file) {
+    private synchronized void writeToFile(String commands, File file) {
+        Main.assertFxThread();
         try {
             // Write the commands to this new file
             FileWriter fileWriter = new FileWriter(file);

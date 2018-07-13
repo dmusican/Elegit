@@ -153,6 +153,7 @@ public class CommitLabelFXTest extends ApplicationTest {
         return sessionController.doGitStatusWhenSubscribed()
                 .doOnSuccess((unused) -> {
 
+                    WaitForAsyncUtils.waitForFxEvents();
                     sleep(1000);
 
                     // Get the information about the new commit
@@ -184,6 +185,7 @@ public class CommitLabelFXTest extends ApplicationTest {
                     // Get the information about this new commit
                     String oldHeadID = headIDForTesting;
 
+                    WaitForAsyncUtils.waitForFxEvents();
                     sleep(1000);
 
                     CommitHelper newHead = this.helper.getCommit("master");

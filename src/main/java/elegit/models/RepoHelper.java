@@ -1477,15 +1477,15 @@ public class RepoHelper {
         return threadsafeGitManager;
     }
 
-    public void addCommandToTranscript(String command) {
+    public synchronized void addCommandToTranscript(String command) {
         transcriptList.add(command);
     }
 
-    public void clearTranscript() {
+    public synchronized void clearTranscript() {
         transcriptList.clear();
     }
 
-    public List<String> getTranscript() {
-        return transcriptList;
+    public synchronized List<String> getTranscript() {
+        return Collections.unmodifiableList(transcriptList);
     }
 }
