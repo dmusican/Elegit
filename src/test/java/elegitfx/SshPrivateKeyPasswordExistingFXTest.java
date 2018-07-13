@@ -191,10 +191,14 @@ public class SshPrivateKeyPasswordExistingFXTest extends ApplicationTest {
                                       () -> lookup("#sshprompt").query() != null);
             WaitForAsyncUtils.waitForFxEvents();
 
+            RepositoryMonitor.pause();
+
             // Enter passphrase
             clickOn("#sshprompt")
                     .write(passphrase)
                     .write("\n");
+
+            RepositoryMonitor.unpause();
 
             interact(() -> helper.setRemoteStatusChecking(true));
             // Wait a while, to make sure that RepositoryMonitor has kicked in and is happy
