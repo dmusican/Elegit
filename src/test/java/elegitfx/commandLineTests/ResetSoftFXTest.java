@@ -1,6 +1,7 @@
 package elegitfx.commandLineTests;
 
 import elegit.controllers.SessionController;
+import elegit.monitors.RepositoryMonitor;
 import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -63,5 +64,7 @@ public class ResetSoftFXTest extends ApplicationTest {
         RevCommit prevCommit = commit.getParent(0);
         final String[] mixedId = commandLineTestUtilities.clickReset(prevCommit, "soft");
         commandLineTestUtilities.checkCommandLineText("git reset --soft " + mixedId[0]);
+
+        RepositoryMonitor.pause();
     }
 }

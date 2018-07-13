@@ -154,6 +154,8 @@ public class CommitAndPushFXTest extends ApplicationTest {
         // Wait for at least one round of RepositoryMonitor to follow up
         sleep(Math.max(RepositoryMonitor.LOCAL_CHECK_INTERVAL, RepositoryMonitor.REMOTE_CHECK_INTERVAL));
 
+        RepositoryMonitor.pause();
+
     }
 
     private RevCommit makeTestRepo(Path remote, Path local, int numFiles, int numCommits) throws GitAPIException,

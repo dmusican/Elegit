@@ -7,6 +7,7 @@ import elegit.exceptions.MissingRepoException;
 import elegit.exceptions.NoCommitsToPushException;
 import elegit.exceptions.PushToAheadRemoteError;
 import elegit.models.*;
+import elegit.monitors.RepositoryMonitor;
 import elegit.sshauthentication.ElegitUserInfoTest;
 import elegit.treefx.Cell;
 import javafx.stage.Stage;
@@ -141,6 +142,8 @@ public class RepoCreation3FXTest extends ApplicationTest {
         console.info("Commits added 2");
         cells2.stream().forEach(logger::info);
         assertEquals(6,cells2.size());
+
+        RepositoryMonitor.pause();
     }
 
     private RevCommit makeTestRepo(Path remote, Path local, int numCommits) throws GitAPIException, IOException, CancelledAuthorizationException, MissingRepoException, PushToAheadRemoteError, NoCommitsToPushException {

@@ -3,6 +3,7 @@ package elegitfx;
 import elegit.Main;
 import elegit.controllers.SessionController;
 import elegit.models.ExistingRepoHelper;
+import elegit.monitors.RepositoryMonitor;
 import elegit.sshauthentication.ElegitUserInfoTest;
 import elegit.treefx.CommitTreeModel;
 import javafx.scene.Node;
@@ -106,6 +107,8 @@ public class OpenRepoDirectoryFXTest extends ApplicationTest {
 
         // Makes sure the method was called
         assertEquals(true, sessionController.getMethodCalled());
+
+        RepositoryMonitor.pause();
     }
 
     /*
