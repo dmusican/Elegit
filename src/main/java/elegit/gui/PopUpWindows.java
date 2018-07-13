@@ -92,13 +92,13 @@ public class PopUpWindows {
         isAddingConflictingFileAlertShowing = true;
         Alert alert = new Alert(Alert.AlertType.WARNING);
 
-        ButtonType resolveToolButton = new ButtonType("Open Tool");
-        ButtonType resolveEditorButton = new ButtonType("Open Editor");
+        ButtonType resolveToolButton = new ButtonType("Open Tool", ButtonBar.ButtonData.YES);
+        ButtonType resolveEditorButton = new ButtonType("Open Editor", ButtonBar.ButtonData.HELP);
         ButtonType addButton = new ButtonType("Add");
-        ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+        ButtonType cancelButton = new ButtonType("Cancel");
         ButtonType helpButton = new ButtonType("Editor Help", ButtonBar.ButtonData.HELP);
 
-        alert.getButtonTypes().setAll(helpButton, resolveToolButton, resolveEditorButton, addButton, cancelButton);
+        alert.getButtonTypes().setAll(helpButton, resolveEditorButton, resolveToolButton, addButton, cancelButton);
 
         alert.setResizable(true);
         alert.getDialogPane().setPrefSize(575, 200);
@@ -135,6 +135,34 @@ public class PopUpWindows {
             resultType = "cancel";
         }
         return resultType;
+    }
+
+    /**
+     * Informs the user that they are about to commit a conflicting file
+     *
+     * @return String user's response to the dialog
+     */
+    public static void showCommittingWithUnmergedFilesAlert() {
+        Alert alert = new Alert(Alert.AlertType.WARNING);
+
+        ButtonType okayButton = new ButtonType("Okay", ButtonBar.ButtonData.CANCEL_CLOSE);
+
+        alert.getButtonTypes().setAll(okayButton);
+
+        alert.setResizable(true);
+        alert.getDialogPane().setPrefSize(350, 150);
+
+        alert.setTitle("Warning: Unmerged Files");
+        alert.setHeaderText("You still have conflicting files in your Working Tree!");
+        alert.setContentText("You should resolve these conflicts and add the files.");
+
+        ImageView img = new ImageView(new javafx.scene.image.Image("/elegit/images/conflict.png"));
+        img.setFitHeight(40);
+        img.setFitWidth(80);
+        img.setPreserveRatio(true);
+        alert.setGraphic(img);
+
+        alert.showAndWait();
     }
 
     /**

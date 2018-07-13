@@ -112,7 +112,7 @@
             </activation>
             <properties>
                 <!-- https://github.com/TestFX/TestFX/issues/132 -->
-                <argLine>-Dtest=elegitfx/OpenAndCloseReposFXTest -Djava.awt.headless=true -Dtestfx.robot=glass -Dtestfx.headless=true -Dprism.order=sw -Dprism.text=t2k -Dtestfx.setup.timeout=40000</argLine>
+                <argLine>-Djava.awt.headless=true -Dtestfx.robot=glass -Dtestfx.headless=true -Dprism.order=sw -Dprism.text=t2k -Dtestfx.setup.timeout=40000</argLine>
             </properties>
         </profile>
     </profiles>

@@ -4,6 +4,7 @@ import elegit.Main;
 import elegit.exceptions.ExceptionAdapter;
 import elegit.exceptions.MissingRepoException;
 import elegit.gui.AllFilesPanelView;
+import elegit.gui.PopUpWindows;
 import elegit.gui.StagedTreePanelView;
 import elegit.models.RepoHelper;
 import elegit.models.SessionModel;
@@ -142,7 +143,8 @@ public class CommitController {
                         sessionController.gitStatus();
                     })
                     .doAfterTerminate(BusyWindow::hide)
-                    .subscribe(() -> {}, (t) -> {throw new ExceptionAdapter(t);});
+                    .subscribe(() -> {}, (t) -> {
+                        PopUpWindows.showCommittingWithUnmergedFilesAlert();});
     }
 
     public void closeWindow() { this.stage.close(); }

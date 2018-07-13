@@ -188,6 +188,7 @@ public class ConflictManagementToolController {
         initButton(FontAwesomeIcon.BARS, "menuIcon", conflictManagementToolMenuButton, "Menu for the conflict management tool.");
         abortMerge.setTooltip(new Tooltip("Ignore all changes made and \n return to previous state."));
         applyChanges.setTooltip(new Tooltip("Use the \"result\" document with \n the changes you've made."));
+        applyAllChanges.setTooltip(new Tooltip("Use the \"result\" documents with \n your changes for all conflicting files"));
     }
 
     private void initButton(GlyphIcons glyphIcon, String id, Button button, String toolTip) {
