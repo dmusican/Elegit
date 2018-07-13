@@ -158,15 +158,11 @@ public class SshPrivateKeyPasswordExistingFXTest extends ApplicationTest {
                 assertEquals("",needToFetch.getText());
             });
 
-            RepositoryMonitor.pause();
-
             // Open as an existing repo
             clickOn("#loadNewRepoButton")
                     .clickOn("#loadExistingRepoOption")
                     .clickOn("#repoInputDialog")
                     .write(local.toString() + "\n");
-
-            RepositoryMonitor.unpause();
 
             // Enter in private key location
             clickOn("#repoInputDialog")
@@ -194,14 +190,10 @@ public class SshPrivateKeyPasswordExistingFXTest extends ApplicationTest {
                                       () -> lookup("#sshprompt").query() != null);
             WaitForAsyncUtils.waitForFxEvents();
 
-            RepositoryMonitor.pause();
-
             // Enter passphrase
             clickOn("#sshprompt")
                     .write(passphrase)
                     .write("\n");
-
-            RepositoryMonitor.unpause();
 
             interact(() -> helper.setRemoteStatusChecking(true));
             // Wait a while, to make sure that RepositoryMonitor has kicked in and is happy
@@ -212,6 +204,12 @@ public class SshPrivateKeyPasswordExistingFXTest extends ApplicationTest {
 
             // Stop repository monitor, so it doesn't keep trying to work after sshd shuts down
             RepositoryMonitor.pause();
+
+            // TODO: fix this better.
+            // We suspect there is still a thread running when RepositoryMonitor.pause() is called, so that's why we
+            // sleep first (make sure it finishes)
+            sleep(10, TimeUnit.SECONDS);
+
             sshd.stop();
         }
     }

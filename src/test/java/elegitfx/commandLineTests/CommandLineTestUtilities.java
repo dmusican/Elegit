@@ -155,6 +155,10 @@ public class CommandLineTestUtilities extends ApplicationTest {
 
             Assert.assertEquals(0, ExceptionAdapter.getWrappedCount());
 
+            // See SshPrivatekeyPasswordExistingFXTest for why this is needed.
+            RepositoryMonitor.pause();
+            sleep(10, TimeUnit.SECONDS);
+
             // Shut down test SSH server
             sshd.stop();
 
