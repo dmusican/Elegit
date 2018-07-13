@@ -429,7 +429,7 @@ public class ThreadsafeGitManager {
      * @throws GitAPIException if the `git ls-remote -h -t` or `git ls-remote --heads` fails
      */
     public Collection<Ref> getRefsFromRemote(LsRemoteCommand command) throws GitAPIException {
-        return readLock(command::call);
+        return writeLock(command::call);
     }
 
     /**
