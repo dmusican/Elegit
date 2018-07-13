@@ -2209,24 +2209,6 @@ public class SessionController {
         }
     }
 
-    /**
-     * Opens the transcript viewer
-     * @todo Add GUI window to display the transcript.
-     */
-    public void handleTranscriptViewMenuItem() {
-                logger.info("Viewing transcript");
-    }
-
-    /**
-     * Clears the transcript file.
-     */
-    public void handleTranscriptClearItem() {
-        logger.info("Clearing transcript");
-        TranscriptHelper.clear();
-    }
-
-
-
     void handleNewBranchButton() {
         handleCreateOrDeleteBranchButton("create");
     }
@@ -2958,5 +2940,24 @@ public class SessionController {
 
     public synchronized void updateCommandText(String command) {
         commandLineController.updateCommandText(command);
+    }
+
+    public void addCommandToTranscript(String command) {
+        if (theModel.getCurrentRepoHelper() != null) {
+            theModel.getCurrentRepoHelper().addCommandToTranscript(command);
+        }
+    }
+
+    public void clearTranscript() {
+        if (theModel.getCurrentRepoHelper() != null) {
+            theModel.getCurrentRepoHelper().clearTranscript();
+        }
+    }
+
+    public List<String> getTranscript() {
+        if (theModel.getCurrentRepoHelper() != null) {
+            return theModel.getCurrentRepoHelper().getTranscript();
+        }
+        return new ArrayList<>();
     }
 }

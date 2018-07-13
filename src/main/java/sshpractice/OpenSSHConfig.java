@@ -11,7 +11,6 @@ package sshpractice;
  *
  */
 import com.jcraft.jsch.*;
-import elegit.models.TranscriptHelper;
 
 import java.awt.*;
 import org.apache.logging.log4j.LogManager;
@@ -54,7 +53,10 @@ public class OpenSSHConfig {
 
             System.out.println("Generated configurations:");
             System.out.println(config);
-            transcript.info("git config --global user.email "+ user+"@"+host);
+
+            // TODO: add this command to the transcript somehow
+//            "git config --global user.email "+ user + "@" + host
+
             ConfigRepository configRepository =
                     com.jcraft.jsch.OpenSSHConfig.parse(config);
             //com.jcraft.jsch.OpenSSHConfig.parseFile("~/.ssh/config");

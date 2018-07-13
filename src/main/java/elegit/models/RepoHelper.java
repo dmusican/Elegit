@@ -66,7 +66,6 @@ public class RepoHelper {
 
     private static final Logger logger = LogManager.getLogger();
     private static final Logger console = LogManager.getLogger("briefconsolelogger");
-    private static final Logger transcript = LogManager.getLogger("transcriptlogger");
 
     // This is a JavaFX property, so this is thread safe in that it will only be changed in the FX thread.
     // This is critical to do because it will be bound to a JavaFX object.
@@ -74,6 +73,8 @@ public class RepoHelper {
     private final BooleanProperty remoteStatusChecking = new SimpleBooleanProperty(false);
 
     private final AtomicReference<String> privateKeyFileLocation = new AtomicReference<>();
+
+    private final List<String> transcriptList = Collections.synchronizedList(new ArrayList<String>());
 
     private static final Object globalLock = new Object();
 
@@ -248,7 +249,7 @@ public class RepoHelper {
                 pathToAdd = pathToAdd.replaceAll(File.separator, "/");
         }
         threadsafeGitManager.get().addFilePathTest(pathToAdd);
-        transcript.info("git add "+filePath);
+        addCommandToTranscript("git add " + filePath);
     }
 
     /**
@@ -272,10 +273,10 @@ public class RepoHelper {
         }
         threadsafeGitManager.get().addFilePathTest(fileNames);
         if (isSelectAllChecked){
-            transcript.info("git add *");
+            addCommandToTranscript("git add *");
         }
         else {
-            transcript.info("git add " + String.join(" ", fileNames));
+            addCommandToTranscript("git add " + String.join(" ", fileNames));
         }
     }
 
@@ -1474,5 +1475,17 @@ public class RepoHelper {
 
     public AtomicReference<ThreadsafeGitManager> getThreadsafeGitManager() {
         return threadsafeGitManager;
+    }
+
+    public void addCommandToTranscript(String command) {
+        transcriptList.add(command);
+    }
+
+    public void clearTranscript() {
+        transcriptList.clear();
+    }
+
+    public List<String> getTranscript() {
+        return transcriptList;
     }
 }

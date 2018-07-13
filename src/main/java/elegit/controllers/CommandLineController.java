@@ -2,8 +2,6 @@ package elegit.controllers;
 
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
-import elegit.Main;
-import elegit.models.TranscriptHelper;
 import javafx.fxml.FXML;
 import javafx.geometry.Side;
 import javafx.scene.control.*;
@@ -44,8 +42,6 @@ public class CommandLineController {
 
     private static final Logger logger = LogManager.getLogger();
 
-    private static final Logger transcript = LogManager.getLogger("transcriptlog");
-
     public synchronized void setSessionController(SessionController sessionController) {
         this.sessionController = sessionController;
     }
@@ -65,8 +61,7 @@ public class CommandLineController {
      */
     public synchronized void updateCommandText(String command) {
         // Sends it to be added to the log file in case the user wants to see/export the full history
-        transcript.info(command);
-//        TranscriptHelper.post(command);
+        sessionController.addCommandToTranscript(command);
         if (allowUpdates) {
             currentCommand.setText(command);
             setTextAreaWidth();
@@ -144,7 +139,7 @@ public class CommandLineController {
     }
 
     public synchronized void handleClearLogOption() {
-        TranscriptHelper.clear();
+        sessionController.clearTranscript();
         if (allowUpdates) {
             currentCommand.setText("");
             resetScrollPane();

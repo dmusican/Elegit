@@ -1,8 +1,6 @@
 package elegit.controllers;
 
 import elegit.Main;
-import elegit.exceptions.ExceptionAdapter;
-import elegit.models.SessionModel;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -14,7 +12,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.*;
-import java.nio.file.Path;
+import java.util.List;
 
 /**
  * Created by grenche on 6/7/18.
@@ -38,16 +36,9 @@ public class CommandLineHistoryController {
 
     public synchronized void initialize() {
         commandHistory.clear();
-        String command;
-        File transcript = new File(System.getProperty("logFolder") + "/transcript.log");
-
-        try {
-            BufferedReader br = new BufferedReader(new FileReader(transcript));
-            while ((command = br.readLine()) != null) {
-                commandHistory.appendText(command + "\n");
-            }
-        } catch (IOException e) {
-            throw new ExceptionAdapter(e);
+        List<String> transcriptList = sessionController.getTranscript();
+        for (String command : transcriptList) {
+            commandHistory.appendText(command + "\n");
         }
     }
 

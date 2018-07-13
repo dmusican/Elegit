@@ -2,7 +2,6 @@ package elegit;
 
 import elegit.controllers.BusyWindow;
 import elegit.controllers.SessionController;
-import elegit.models.TranscriptHelper;
 import elegit.monitors.RepositoryMonitor;
 import io.reactivex.disposables.CompositeDisposable;
 import javafx.application.Application;
@@ -142,8 +141,6 @@ public class Main extends Application {
         if (!Main.initializationComplete.get()) {
             BusyWindow.show();
         }
-        // Ensures that the user does not see old command line history when they start up Elegit
-        TranscriptHelper.clear();
     }
 
     private static void clearPreferences() {
