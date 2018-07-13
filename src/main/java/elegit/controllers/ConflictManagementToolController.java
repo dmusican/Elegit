@@ -816,7 +816,9 @@ public class ConflictManagementToolController {
         String fileName = conflictingFilesDropdown.getValue();
 
         // Show files in TextAreas
-        setFile(filePathWithoutFileName, fileName);
+        if(fileName!=null) {
+            setFile(filePathWithoutFileName, fileName);
+        }
     }
 
     public void setFile(String filePathWithoutFileName, String fileName) {
@@ -828,7 +830,7 @@ public class ConflictManagementToolController {
         ArrayList<ArrayList> results = savedParsedFiles.get(fileName);
         if (results == null) {
             //results = conflictManagementModel.parseConflicts(fileName, filePathWithoutFileName,
-             //       getBaseParentFiles(fileName), getMergedParentFiles(fileName));
+            //        getBaseParentFiles(fileName), getMergedParentFiles(fileName));
             ObjectId baseParent = ObjectId.fromString(mergeResult.get("baseParent").substring(7, 47));
             ObjectId mergedParent = ObjectId.fromString(mergeResult.get("mergedParent").substring(7, 47));
             results = conflictManagementModel.parseConflictsFromParents(baseParent, mergedParent, fileName, filePathWithoutFileName);

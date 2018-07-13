@@ -105,7 +105,7 @@ public class PopUpWindows {
 
         alert.setTitle("Warning: conflicting file");
         alert.setHeaderText("You're adding a conflicting file");
-        alert.setContentText("You can open Elegit's conflict management tool, open an editor to resolve the conflicts "
+        alert.setContentText("You can open Elegit's conflict management tool, open a basic text editor to resolve the conflicts "
                 + "manually, or add the changes anyways (this option will contain \"<<<<<<<\", \"=======\", and " +
                 "\">>>>>>>\" in the resulting file). What do you want to do?");
 
