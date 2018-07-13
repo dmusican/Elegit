@@ -158,12 +158,15 @@ public class SshPrivateKeyPasswordExistingFXTest extends ApplicationTest {
                 assertEquals("",needToFetch.getText());
             });
 
+            RepositoryMonitor.pause();
+
             // Open as an existing repo
             clickOn("#loadNewRepoButton")
                     .clickOn("#loadExistingRepoOption")
                     .clickOn("#repoInputDialog")
                     .write(local.toString() + "\n");
 
+            RepositoryMonitor.unpause();
 
             // Enter in private key location
             clickOn("#repoInputDialog")
