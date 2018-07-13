@@ -97,7 +97,7 @@ public class SshPrivateKeyPasswordCancelFXTest extends ApplicationTest {
     @After
     public void tearDown() {
         logger.info("Tearing down");
-        TestUtilities.cleanupTestEnvironment();
+        TestUtilities.cleanupTestFXEnvironment();
         TestCase.assertEquals(0, Main.getAssertionCount());
     }
 
@@ -115,10 +115,10 @@ public class SshPrivateKeyPasswordCancelFXTest extends ApplicationTest {
         Path remote = testingRemoteAndLocalRepos.getRemoteFull();
         Path remoteFilePath = remote.resolve("file.txt");
         Files.write(remoteFilePath, "testSshPassword".getBytes());
-        ArrayList<Path> paths = new ArrayList<>();
-        paths.add(remoteFilePath);
+        //ArrayList<Path> paths = new ArrayList<>();
+        //paths.add(remoteFilePath);
         ExistingRepoHelper helperServer = new ExistingRepoHelper(remote, null);
-        helperServer.addFilePathsTest(paths);
+        helperServer.addFilePathTest(remoteFilePath);
         RevCommit firstCommit = helperServer.commit("Initial unit test commit");
         console.info("firstCommit name = " + firstCommit.getName());
 

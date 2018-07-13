@@ -2,6 +2,7 @@ package elegit.repofile;
 
 import elegit.*;
 import elegit.controllers.SessionController;
+import elegit.exceptions.ExceptionAdapter;
 import elegit.models.RepoHelper;
 import elegit.treefx.CommitTreeController;
 import elegit.gui.GitIgnoreEditor;
@@ -100,11 +101,7 @@ public class RepoFile implements Comparable<RepoFile> {
                 } catch (IOException e1) {
                     logger.error("IOException in creating repo file");
                     logger.debug(e1.getStackTrace());
-                    e1.printStackTrace();
-                } catch (GitAPIException e1) {
-                    logger.error("GitAPIException in creating repo file");
-                    logger.debug(e1.getStackTrace());
-                    e1.printStackTrace();
+                    throw new ExceptionAdapter(e1);
                 }
             });
         }
@@ -134,7 +131,7 @@ public class RepoFile implements Comparable<RepoFile> {
      *
      * @return whether or not this file can be added (staged)
      */
-    public boolean canAdd() throws GitAPIException, IOException {
+    public boolean canAdd() throws GitAPIException {
         return false;
     }
 
@@ -189,7 +186,7 @@ public class RepoFile implements Comparable<RepoFile> {
         return depth;
     }
 
-    public void showDiffPopover(Node owner) throws IOException, GitAPIException {
+    public void showDiffPopover(Node owner) throws IOException {
         Main.assertFxThread();
             contextMenu.hide();
 

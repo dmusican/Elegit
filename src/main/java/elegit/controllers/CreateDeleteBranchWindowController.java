@@ -1,5 +1,6 @@
 package elegit.controllers;
 
+import elegit.exceptions.ExceptionAdapter;
 import elegit.gui.PopUpWindows;
 import elegit.models.*;
 import elegit.treefx.CommitTreeController;
@@ -57,6 +58,7 @@ public class CreateDeleteBranchWindowController {
     private final RepoHelper repoHelper;
     private final BranchModel branchModel;
     private final CommitTreeModel localCommitTreeModel;
+
 
     @GuardedBy("this")
     private SessionController sessionController;
@@ -158,7 +160,7 @@ public class CreateDeleteBranchWindowController {
                                 setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
                             } catch(IOException e) {
                                 // This shouldn't happen
-                                setGraphic(null);
+                                throw new ExceptionAdapter(e);
                             }
                         }
                     }
@@ -212,8 +214,12 @@ public class CreateDeleteBranchWindowController {
                     newBranch = branchModel.createNewLocalBranch(branchName);
                     if(checkout) {
                         if(newBranch != null) {
+                            sessionController.updateCommandText("git checkout -b "+branchName);
                             checkoutBranch(newBranch);
                         }
+                    }
+                    else{
+                        sessionController.updateCommandText("git branch "+branchName);
                     }
                     // TODO: Put gitStatus back in here once have a better way of registering ig
                     //sessionController.gitStatus();
@@ -234,11 +240,6 @@ public class CreateDeleteBranchWindowController {
                     logger.warn("Git error");
                     logger.debug(e1.getStackTrace());
                     showGenericGitErrorNotification();
-                    e1.printStackTrace();
-                } catch (IOException e1) {
-                    logger.warn("Unspecified IOException");
-                    logger.debug(e1.getStackTrace());
-                    showGenericErrorNotification();
                     e1.printStackTrace();
                 }finally {
                     refreshBranchesDropDown();
@@ -268,8 +269,9 @@ public class CreateDeleteBranchWindowController {
             showJGitInternalError(e);
         } catch (CheckoutConflictException e){
             showCheckoutConflictsNotification(e.getConflictingPaths());
-        } catch (GitAPIException | IOException e) {
+        } catch (GitAPIException e) {
             showGenericErrorNotification();
+            e.printStackTrace();
         }
         return false;
     }
@@ -309,6 +311,8 @@ public class CreateDeleteBranchWindowController {
 
                 if (selectedBranch instanceof LocalBranchHelper) {
                     this.branchModel.deleteLocalBranch((LocalBranchHelper) selectedBranch);
+                    sessionController.updateCommandText("git branch -d "+selectedBranch);
+
                     updateUser(selectedBranch.getRefName() + " deleted.", BranchModel.BranchType.LOCAL);
                 }else {
                     sessionController.deleteRemoteBranch(selectedBranch, branchModel,
@@ -418,9 +422,9 @@ public class CreateDeleteBranchWindowController {
             buttonToShowOver = deleteButton2;
             dropdownToReset = remoteBranchesDropdown;
         }
-        System.out.println("here i am " + message);
+        //System.out.println("here i am " + message);
         popOver.show(buttonToShowOver);
-        System.out.println("showed");
+        //System.out.println("showed");
         popOver.detach();
         popOver.setAutoHide(true);
         dropdownToReset.getSelectionModel().clearSelection();

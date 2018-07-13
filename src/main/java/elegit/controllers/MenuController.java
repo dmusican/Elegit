@@ -179,10 +179,15 @@ public class MenuController {
 
     // TODO: Make sure GitIgnoreEditor is threadsafe
     public void handleGitIgnoreMenuItem() {
+        //for macs
+        sessionController.updateCommandText("touch .gitignore");
+        //for PCs
+        //sessionController.updateCommandText("C:\\> \"c:\\program files (x86)\\git\\bin\\touch.exe\" .gitignore");
         GitIgnoreEditor.show(SessionModel.getSessionModel().getCurrentRepoHelper(), null);
     }
 
     // "Repository" Dropdown Menu Items (2 layers):
+
 
     public synchronized void handleNewBranchButton() {
         sessionController.handleNewBranchButton();
@@ -259,5 +264,4 @@ public class MenuController {
     public synchronized void handleStashDropButton() {
         sessionController.handleStashDropButton();
     }
-
 }

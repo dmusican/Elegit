@@ -50,6 +50,7 @@
 package elegit;
 
 import elegit.exceptions.ConflictingFilesException;
+import elegit.exceptions.ExceptionAdapter;
 import elegit.exceptions.MissingRepoException;
 import elegit.exceptions.NoTrackingException;
 import elegit.gui.ClonedRepoHelperBuilder;
@@ -64,6 +65,8 @@ import elegit.models.LocalBranchHelper;
 import elegit.models.RemoteBranchHelper;
 import elegit.models.RepoHelper;
 import elegit.sshauthentication.ElegitUserInfoTest;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jgit.api.Git;
@@ -155,10 +158,10 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
 
         Path remoteFilePath = remoteFull.resolve("file.txt");
         Files.write(remoteFilePath, "hello".getBytes());
-        ArrayList<Path> paths = new ArrayList<>();
-        paths.add(remoteFilePath);
+        //ArrayList<Path> paths = new ArrayList<>();
+        //paths.add(remoteFilePath);
         ExistingRepoHelper helperServer = new ExistingRepoHelper(remoteFull, null);
-        helperServer.addFilePathsTest(paths);
+        helperServer.addFilePathTest(remoteFilePath);
         helperServer.commit("Initial unit test commit");
 
         System.out.println("Location is " + db.getDirectory());
@@ -353,7 +356,7 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
         paths.add(filePath);
         paths.add(readPath);
         // Add both files and check that they are staged.
-        helper.addFilePathsTest(paths);
+        helper.addFilePathsTest(paths, false);
         assertEquals(2,git.status().call().getChanged().size());
         // Reset both the files and check that it worked
         helper.reset(paths);
@@ -784,7 +787,9 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
         boolean is_fast_forward = true;
         try {
             is_fast_forward = helperFetch.mergeFromFetch() == MergeResult.MergeStatus.FAST_FORWARD;
-        } catch (IOException | GitAPIException | MissingRepoException e) { }
+        } catch (IOException | GitAPIException | MissingRepoException e) {
+            throw new ExceptionAdapter(e);
+        }
         catch (ConflictingFilesException e) {
             is_fast_forward = false;
         }
@@ -845,10 +850,14 @@ public class LocalHttpAuthenticationTests extends HttpTestCase {
         boolean local_branch_is_tracked = false;
         try {
             helperFetch.mergeFromFetch();
-        } catch (IOException | GitAPIException | MissingRepoException | ConflictingFilesException e) { }
+        } catch (IOException | GitAPIException | MissingRepoException | ConflictingFilesException e) {
+            throw new ExceptionAdapter(e);
+        }
         catch (NoTrackingException e) {
             local_branch_is_tracked = true;
-        } catch (Exception e) { }
+        } catch (Exception e) {
+            throw new ExceptionAdapter(e);
+        }
 
         // Check that new_branch was fast-forwarded instead of merged with master
         assert(local_branch_is_tracked);

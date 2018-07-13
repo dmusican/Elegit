@@ -141,7 +141,6 @@ public class Main extends Application {
         if (!Main.initializationComplete.get()) {
             BusyWindow.show();
         }
-
     }
 
     private static void clearPreferences() {

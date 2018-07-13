@@ -74,6 +74,8 @@ public class DropdownController {
     }
 
     public synchronized void loadSelectedRepo() {
+        // When switching between repos, the command text should be nothing.
+        sessionController.updateCommandText("");
         sessionController.loadDesignatedRepo(getCurrentRepo());
     }
 

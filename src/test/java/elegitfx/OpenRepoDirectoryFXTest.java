@@ -76,7 +76,7 @@ public class OpenRepoDirectoryFXTest extends ApplicationTest {
 
     @After
     public void tearDown() {
-        TestUtilities.cleanupTestEnvironment();
+        TestUtilities.cleanupTestFXEnvironment();
         assertEquals(0, Main.getAssertionCount());
     }
 
@@ -140,6 +140,5 @@ public class OpenRepoDirectoryFXTest extends ApplicationTest {
             helper.commit("Appended to file");
         }
         return local;
-
     }
 }

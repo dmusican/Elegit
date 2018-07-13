@@ -20,8 +20,7 @@ import org.eclipse.jgit.api.CheckoutResult;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static elegit.Main.sessionController;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Controller class for the checkout files window
@@ -43,6 +42,8 @@ public class CheckoutFilesController {
     @GuardedBy("this") private CommitHelper commitHelper;
 
     private static final Logger logger = LogManager.getLogger();
+
+    public static final AtomicReference<SessionController> sessionController = new AtomicReference<>();
 
 
 
@@ -87,6 +88,7 @@ public class CheckoutFilesController {
                 notificationPaneController.addNotification("You need to add some files first");
                 return;
             }
+            sessionController.get().updateCommandText("git checkout "+ commitHelper.getName()+ " "+String.join(" ", fileNames));
             // New ArrayList used below so that checkoutFiles cannot modify this list, nor worry about sync errors
             CheckoutResult result = this.repoHelper.checkoutFiles(new ArrayList<>(fileNames), commitHelper.getName());
             switch (result.getStatus()) {
@@ -106,7 +108,7 @@ public class CheckoutFilesController {
                 // was entered, for now just call git status and close
                 // TODO: figure out if anything actually changed
                 case OK:
-                    sessionController.gitStatus();
+                    sessionController.get().gitStatus();
                     closeWindow();
                     break;
             }
@@ -148,5 +150,10 @@ public class CheckoutFilesController {
     synchronized void setCommitHelper(CommitHelper commitHelper) {
         this.commitHelper = commitHelper;
         header.setText(header.getText()+commitHelper.getName().substring(0,8));
+    }
+
+    public static void setSessionController(SessionController sc) {
+        Main.assertFxThread();
+        sessionController.set(sc);
     }
 }

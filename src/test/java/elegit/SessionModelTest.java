@@ -1,5 +1,6 @@
 package elegit;
 
+import elegit.exceptions.ExceptionAdapter;
 import elegit.models.AuthMethod;
 import elegit.models.SessionModel;
 import org.junit.After;
@@ -45,7 +46,7 @@ public class SessionModelTest {
         try {
             this.logPath = Files.createTempDirectory("elegitLogs");
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new ExceptionAdapter(e);
         }
         this.logPath.toFile().deleteOnExit();
         System.setProperty("logFolder", logPath.toString());

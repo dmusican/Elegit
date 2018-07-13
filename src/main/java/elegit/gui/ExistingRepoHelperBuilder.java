@@ -22,7 +22,7 @@ import java.util.List;
 @ThreadSafe
 // all methods execute on FX thread anyway. If something comes off, verify thread safety
 public class ExistingRepoHelperBuilder extends RepoHelperBuilder {
-
+    private static Path directoryPath;
 
     /**
      * Standard constructor
@@ -57,7 +57,7 @@ public class ExistingRepoHelperBuilder extends RepoHelperBuilder {
             throw new NoRepoSelectedException();
         }
 
-        Path directoryPath = existingRepoDirectoryFile.toPath();
+        directoryPath = existingRepoDirectoryFile.toPath();
 
         try {
 
@@ -103,4 +103,6 @@ public class ExistingRepoHelperBuilder extends RepoHelperBuilder {
         private String additionalPrivateKey;
         private String knownHostsLocation;
     }
+    @Override
+    public String getCommandLineText(){return "";}
 }

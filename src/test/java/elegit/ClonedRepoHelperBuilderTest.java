@@ -1,5 +1,6 @@
 package elegit;
 
+import elegit.exceptions.ExceptionAdapter;
 import elegit.gui.ClonedRepoHelperBuilder;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.LsRemoteCommand;
@@ -40,7 +41,7 @@ public class ClonedRepoHelperBuilderTest {
         try {
             this.logPath = Files.createTempDirectory("elegitLogs");
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new ExceptionAdapter(e);
         }
         this.logPath.toFile().deleteOnExit();
         System.setProperty("logFolder", logPath.toString());
@@ -53,7 +54,7 @@ public class ClonedRepoHelperBuilderTest {
             file.delete();
         }
     }
-
+    //test doesn't test anything, always passes
     @Test
     public void testGetPrevRepoName() throws Exception {
         assertTrue(4 == 2+2);

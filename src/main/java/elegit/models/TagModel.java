@@ -3,6 +3,7 @@ package elegit.models;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -18,6 +19,7 @@ import org.eclipse.jgit.api.errors.InvalidTagNameException;
 import org.eclipse.jgit.lib.ObjectLoader;
 import org.eclipse.jgit.lib.ObjectReader;
 import org.eclipse.jgit.lib.Ref;
+import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevTag;
 
 /**
@@ -28,6 +30,8 @@ public class TagModel {
     private final RepoHelper repoHelper;
     private final Map<String, TagHelper> tagIdMap;
 
+    private final AtomicReference<ThreadsafeGitManager> threadsafeGitManager;
+
     static final Logger logger = LogManager.getLogger();
 
     /**
@@ -37,6 +41,7 @@ public class TagModel {
      */
     public TagModel(RepoHelper repoHelper) {
         this.repoHelper = repoHelper;
+        this.threadsafeGitManager = repoHelper.getThreadsafeGitManager();
         tagIdMap = new ConcurrentHashMap<>();
         getAllLocalTags();
     }
@@ -88,17 +93,17 @@ public class TagModel {
      * @throws GitAPIException if the 'git tag' call fails.
      */
     public void tag(String tagName, String commitName) throws GitAPIException, MissingRepoException,
-            IOException, TagNameExistsException, InvalidTagNameException {
+            TagNameExistsException, InvalidTagNameException {
         logger.info("Attempting tag");
         if (!repoHelper.exists()) throw new MissingRepoException();
-        Git git = new Git(this.repoHelper.getRepo());
         // This creates a lightweight tag
         // TODO: add support for annotated tags?
         CommitHelper c = repoHelper.getCommit(commitName);
         if (c.hasTag(tagName))
             throw new TagNameExistsException();
-        Ref r = git.tag().setName(tagName).setObjectId(c.getCommit()).setAnnotated(false).call();
-        git.close();
+
+        RevCommit commit = c.getCommit();
+        Ref r = threadsafeGitManager.get().getTag(tagName, commit);
         TagHelper t = makeTagHelper(r, tagName);
     }
 
@@ -168,10 +173,8 @@ public class TagModel {
 
         if (!repoHelper.exists()) throw new MissingRepoException();
         // should this Git instance be class-level?
-        Git git = new Git(this.repoHelper.getRepo());
-        // git tag -d
-        git.tagDelete().setTags(tagToRemove.getRefName()).call();
-        git.close();
+        String tagToRemoveRefName = tagToRemove.getRefName();
+        threadsafeGitManager.get().deleteTag(tagToRemoveRefName);
 
         tagToRemove.getCommit().removeTag(tagName);
         this.tagIdMap.remove(tagName);

@@ -95,7 +95,7 @@ public class SshPrivateKeyPasswordExistingFXTest extends ApplicationTest {
     @After
     public void tearDown() {
         logger.info("Tearing down");
-        TestUtilities.cleanupTestEnvironment();
+        TestUtilities.cleanupTestFXEnvironment();
         TestCase.assertEquals(0, Main.getAssertionCount());
     }
 
@@ -113,10 +113,10 @@ public class SshPrivateKeyPasswordExistingFXTest extends ApplicationTest {
         Path remote = testingRemoteAndLocalRepos.getRemoteFull();
         Path remoteFilePath = remote.resolve("file.txt");
         Files.write(remoteFilePath, "testSshPassword".getBytes());
-        ArrayList<Path> paths = new ArrayList<>();
-        paths.add(remoteFilePath);
+        //ArrayList<Path> paths = new ArrayList<>();
+        //paths.add(remoteFilePath);
         ExistingRepoHelper helperServer = new ExistingRepoHelper(remote, null);
-        helperServer.addFilePathsTest(paths);
+        helperServer.addFilePathTest(remoteFilePath);
         RevCommit firstCommit = helperServer.commit("Initial unit test commit");
         console.info("firstCommit name = " + firstCommit.getName());
 
@@ -191,10 +191,14 @@ public class SshPrivateKeyPasswordExistingFXTest extends ApplicationTest {
                                       () -> lookup("#sshprompt").query() != null);
             WaitForAsyncUtils.waitForFxEvents();
 
+            RepositoryMonitor.pause();
+
             // Enter passphrase
             clickOn("#sshprompt")
                     .write(passphrase)
                     .write("\n");
+
+            RepositoryMonitor.unpause();
 
             interact(() -> helper.setRemoteStatusChecking(true));
             // Wait a while, to make sure that RepositoryMonitor has kicked in and is happy
