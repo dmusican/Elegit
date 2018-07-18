@@ -5,10 +5,12 @@ import elegit.models.AuthMethod;
 import elegit.models.SessionModel;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import sharedrules.TestUtilities;
+import sharedrules.TestingLogPathRule;
 
 import java.io.File;
 import java.io.IOException;
@@ -22,6 +24,9 @@ import static org.junit.Assert.*;
  * Created by dmusican on 2/13/16.
  */
 public class SessionModelTest {
+
+    @ClassRule
+    public static final TestingLogPathRule testingLogPath = new TestingLogPathRule();
 
     private Path directoryPath;
     Path logPath;

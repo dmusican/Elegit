@@ -6,8 +6,10 @@ import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.LsRemoteCommand;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Test;
 import sharedrules.TestUtilities;
+import sharedrules.TestingLogPathRule;
 
 import java.io.File;
 import java.io.IOException;
@@ -20,6 +22,9 @@ import static org.junit.Assert.*;
  * Created by dmusican on 2/13/16.
  */
 public class ClonedRepoHelperBuilderTest {
+
+    @ClassRule
+    public static final TestingLogPathRule testingLogPath = new TestingLogPathRule();
 
     Path logPath;
 

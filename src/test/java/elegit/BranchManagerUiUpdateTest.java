@@ -11,8 +11,10 @@ import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Test;
 import sharedrules.TestUtilities;
+import sharedrules.TestingLogPathRule;
 
 import java.io.File;
 import java.io.IOException;
@@ -27,6 +29,9 @@ import static org.junit.Assert.*;
  * @author shangd
  */
 public class BranchManagerUiUpdateTest {
+
+    @ClassRule
+    public static final TestingLogPathRule testingLogPath = new TestingLogPathRule();
 
     private static final String REMOTE_URL = "https://github.com/TheElegitTeam/BranchManagerUiUpdateTestRepo";
     private static final String BRANCH_NAME = "random";
