@@ -16,6 +16,7 @@ import sharedrules.TestUtilities;
 import sharedrules.TestingLogPathRule;
 
 import java.nio.file.Path;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * Created by grenche on 7/13/18.
@@ -63,16 +64,13 @@ public class RemoveFXTest extends ApplicationTest {
         commandLineTestUtilities.addChangeToFile(directoryPath);
         console.info("Set up done.");
 
-        sleep(1000);
+        SessionController.gitStatusCompletedOnce = new CountDownLatch(1);
+        SessionController.gitStatusCompletedOnce.await();
 
         WorkingTreePanelView workingTree = lookup("#workingTreePanelView").query();
         interact(workingTree::checkSelectAll);
 
-        sleep(1000);
-
         clickOn("#removeButton");
-
-        sleep(1000);
 
         commandLineTestUtilities.checkCommandLineText("git rm README.md");
     }
