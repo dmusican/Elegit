@@ -1,5 +1,6 @@
 package elegit.controllers;
 
+import elegit.Main;
 import elegit.models.CommitHelper;
 import elegit.models.RepoHelper;
 import elegit.models.SessionModel;
@@ -36,10 +37,12 @@ public class StashListController {
 
     private final AtomicReference<SessionController> sessionController = new AtomicReference<>();
     private final RepoHelper repoHelper;
+    private final CommandLineController commandLineController;
 
     private static final Logger logger = LogManager.getLogger();
 
     public StashListController() {
+        commandLineController = SessionController.getSessionController().getCommandLineController();
         SessionModel sessionModel = SessionModel.getSessionModel();
         repoHelper = sessionModel.getCurrentRepoHelper();
     }
@@ -50,6 +53,7 @@ public class StashListController {
      * Sets up views and buttons
      */
     public void initialize() {
+        Main.assertFxThread();
         logger.info("Started up stash list window");
 
         this.stashList.setCellFactory(new Callback<ListView<CommitHelper>, ListCell<CommitHelper>>() {
@@ -70,6 +74,7 @@ public class StashListController {
                 };
             }
         });
+        commandLineController.updateCommandText("git stash list");
         refreshList();
         setButtonListeners();
         this.stashList.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
@@ -111,6 +116,7 @@ public class StashListController {
             this.notificationPaneController.addNotification("Something went wrong retrieving the stash(es)");
         } catch (IOException e) {
             this.notificationPaneController.addNotification("Something went wrong.");
+            e.printStackTrace();
         }
     }
 
@@ -121,9 +127,11 @@ public class StashListController {
      * Handles applying a selected stash to the repository
      */
     public void handleApply() {
+        Main.assertFxThread();
         String stashRef = this.stashList.getSelectionModel().getSelectedItem().getName();
         try {
             repoHelper.stashApply(stashRef, false);
+            commandLineController.updateCommandText("git stash apply stash@{"+this.stashList.getSelectionModel().getSelectedIndex()+"}");
             // TODO: Fix when have better approach for gitStatus
             //sessionController.gitStatus();
         } catch (WrongRepositoryStateException e) {
@@ -139,9 +147,13 @@ public class StashListController {
      * Drops the selected stash
      */
     public void handleDrop() {
+        Main.assertFxThread();
         int index = this.stashList.getSelectionModel().getSelectedIndex();
         try {
             repoHelper.stashDrop(index);
+
+            commandLineController.updateCommandText("git stash drop stash@{"+index+"}");
+
             refreshList();
         } catch (GitAPIException e) {
             notificationPaneController.addNotification("Something went wrong with the drop. Try committing any uncommitted changes.");
@@ -154,8 +166,10 @@ public class StashListController {
      * Should this have a warning message?
      */
     public void handleClearStash() {
+        Main.assertFxThread();
         try {
             repoHelper.stashClear();
+            commandLineController.updateCommandText("git stash clear");
             refreshList();
         } catch (GitAPIException e) {
             notificationPaneController.addNotification("Something went wrong with the clear. Try committing any uncommitted changes.");
@@ -166,11 +180,13 @@ public class StashListController {
      * Pops off the selected stash (applies and drops it)
      */
     public void handlePop() {
+        Main.assertFxThread();
         String stashRef = this.stashList.getSelectionModel().getSelectedItem().getName();
         int index = this.stashList.getSelectionModel().getSelectedIndex();
         try {
             repoHelper.stashApply(stashRef, false);
             repoHelper.stashDrop(index);
+            commandLineController.updateCommandText("git stash pop stash@{"+this.stashList.getSelectionModel().getSelectedIndex()+"}");
             refreshList();
             // TODO: Fix when have better approach for gitStatus
             //sessionController.gitStatus();

@@ -133,6 +133,63 @@
     -fx-background-color: -fx-button-select-fill;
 }
 
+#commandBar {
+    -fx-background-color: white;
+    -fx-background-radius: 8.0;
+    -fx-border-radius: 8.0;
+    -fx-border-color: gray;
+    -fx-border-width: 1.65;
+    -fx-background-insets: 0;
+}
+
+.scroll-bar:horizontal, .scroll-bar:vertical{
+    -fx-background-color: transparent;
+    -fx-pref-width: 14;
+    -fx-pref-height: 14;
+    -fx-padding: 2;
+}
+
+.corner {
+    -fx-background-color: transparent;
+}
+
+.increment-button, .decrement-button {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.increment-arrow, .decrement-arrow {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.scroll-bar:horizontal .track,
+.scroll-bar:vertical .track{
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-background-radius: 0em;
+}
+
+.scroll-bar:horizontal .thumb,
+.scroll-bar:vertical .thumb {
+    -fx-background-color: gray;
+    -fx-background-radius: 5em;
+}
+
+#command {
+    -fx-font-family: "Courier New", Courier, "Lucida Sans Typewriter", "Lucida Typewriter", monospace;
+    -fx-font-size: 19px;
+    -fx-font-style: normal;
+    -fx-font-variant: normal;
+    -fx-font-weight: 900;
+}
+
+.text-area {
+    -fx-highlight-fill: rgba(0, 31, 149, 0.61);
+    -fx-highlight-text-fill: #000000;
+    -fx-focus-color: -fx-control-inner-background;
+}
+
 #notificationLine {
     -fx-background-color: linear-gradient(from 0px 0px to 1200px 0px, -fx-background-default 0%, #555555 2%, #555555 98%, -fx-background-default 100%);;
     -fx-cursor: v_resize;
@@ -302,7 +359,7 @@
     -fx-fill: -fx-button-fill;
 }
 
-    #helpButton: hover {
+    #helpButton:hover {
         -fx-fill: -fx-button-hover-fill;
     }
 
@@ -316,7 +373,7 @@
     -fx-fill: -fx-button-fill;
 }
 
-    #helpButton-inside: hover {
+    #helpButton-inside:hover {
             -fx-fill: -fx-button-hover-fill;
         }
 
@@ -337,7 +394,7 @@
     -fx-fill: -fx-background-default;
 }
 
-    #helpButton-remote: hover {
+    #helpButton-remote:hover {
         -fx-stroke: -fx-button-hover-fill;
     }
 

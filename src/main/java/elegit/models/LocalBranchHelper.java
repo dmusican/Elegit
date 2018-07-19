@@ -7,6 +7,7 @@ import org.eclipse.jgit.lib.Ref;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * An implementation of the abstract BranchHelper that holds
@@ -67,8 +68,11 @@ public class LocalBranchHelper extends BranchHelper {
      */
     // TODO: Make sure all Git operations are threadsafe
     // TODO: This code is in a strange location, should be near other git operations
-    public void checkoutBranch() throws GitAPIException, IOException {
-        new Git(this.repoHelper.getRepo()).checkout().setName(getRefName()).call();
+    public void checkoutBranch() throws GitAPIException {
+        AtomicReference<ThreadsafeGitManager> threadsafeGitManager = repoHelper.getThreadsafeGitManager();
+        String refName = getRefName();
+        threadsafeGitManager.get().checkoutBranch(refName);
+
         this.repoHelper.getBranchModel().refreshCurrentBranch();
     }
 }

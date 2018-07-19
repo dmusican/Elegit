@@ -1,6 +1,7 @@
 package elegit.gui;
 
 import elegit.Main;
+import elegit.exceptions.ExceptionAdapter;
 import elegit.models.RepoHelper;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
@@ -107,12 +108,16 @@ public class GitIgnoreEditor {
                     bw.write(line);
                     bw.newLine();
                 }
-            } catch (IOException ignored) {}
+            } catch (IOException ignored) {
+                    throw new ExceptionAdapter(ignored);
+            }
         }
 
         try{
             PopUpWindows.showTrackingIgnoredFilesWarning(repoHelper.getTrackedIgnoredFiles());
-        }catch (IOException ignored) {}
+        }catch (IOException ignored) {
+            throw new ExceptionAdapter(ignored);
+        }
 
         window.close();
     }
@@ -125,7 +130,9 @@ public class GitIgnoreEditor {
         String returnText = addedPath.length() > 0 ? "\n" + addedPath + "\n" : "";
         try {
             returnText = new String(Files.readAllBytes(gitIgnoreFile)) + returnText;
-        } catch (IOException ignored){}
+        } catch (IOException ignored){
+            throw new ExceptionAdapter(ignored);
+        }
 
         return returnText;
     }

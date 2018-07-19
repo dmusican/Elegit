@@ -3,8 +3,10 @@ package elegitfx;
 import elegit.Main;
 import elegit.controllers.MenuController;
 import elegit.controllers.SessionController;
+import elegit.exceptions.ExceptionAdapter;
 import elegit.models.ClonedRepoHelper;
 import elegit.monitors.RepositoryMonitor;
+import javafx.scene.Node;
 import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -15,12 +17,14 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.testfx.framework.junit.ApplicationTest;
 import org.testfx.framework.junit.TestFXRule;
+import org.testfx.util.WaitForAsyncUtils;
 import sharedrules.TestUtilities;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.concurrent.TimeUnit;
 
 import static junit.framework.TestCase.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -60,7 +64,7 @@ public class ChangeRemoteMonitoringStatus extends ApplicationTest {
     @After
     public void tearDown() {
         System.out.println("Tearing down");
-        TestUtilities.cleanupTestEnvironment();
+        TestUtilities.cleanupTestFXEnvironment();
         assertEquals(0,Main.getAssertionCount());
     }
 
@@ -97,9 +101,15 @@ public class ChangeRemoteMonitoringStatus extends ApplicationTest {
 
         console.info("gitStatus complete");
 
+        // TODO: figure out a clear way to do this now that things are being locked.
         int initNumRemoteChecks = RepositoryMonitor.getNumRemoteChecks();
-        Thread.sleep(RepositoryMonitor.REMOTE_CHECK_INTERVAL);
+        Thread.sleep(RepositoryMonitor.REMOTE_CHECK_INTERVAL * 2);
         assertTrue(initNumRemoteChecks < RepositoryMonitor.getNumRemoteChecks());
+
+        WaitForAsyncUtils.waitFor(15, TimeUnit.SECONDS,
+                                  () -> lookup("#remoteConnected") != null);
+        WaitForAsyncUtils.waitFor(15, TimeUnit.SECONDS,
+                                  () -> lookup("#remoteConnected").query().isVisible());
 
         clickOn("#remoteConnected");
 
@@ -118,7 +128,7 @@ public class ChangeRemoteMonitoringStatus extends ApplicationTest {
         try {
             logPath = Files.createTempDirectory("elegitLogs");
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new ExceptionAdapter(e);
         }
         logPath.toFile().deleteOnExit();
         System.setProperty("logFolder", logPath.toString());

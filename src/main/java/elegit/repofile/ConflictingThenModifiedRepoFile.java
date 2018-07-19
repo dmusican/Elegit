@@ -5,7 +5,6 @@ import elegit.gui.PopUpWindows;
 import elegit.models.RepoHelper;
 import javafx.application.Platform;
 import net.jcip.annotations.ThreadSafe;
-import org.eclipse.jgit.api.errors.GitAPIException;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -42,7 +41,7 @@ public class ConflictingThenModifiedRepoFile extends RepoFile {
         Main.assertFxThread();
     }
 
-    @Override public boolean canAdd() throws GitAPIException {
+    @Override public boolean canAdd() {
         Main.assertFxThread();
         ReentrantLock lock = new ReentrantLock();
         Condition finishedAlert = lock.newCondition();

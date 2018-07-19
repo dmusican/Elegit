@@ -2,6 +2,7 @@ package elegitfx;
 
 import elegit.Main;
 import elegit.controllers.SessionController;
+import elegit.exceptions.ExceptionAdapter;
 import elegit.models.ClonedRepoHelper;
 import elegit.monitors.RepositoryMonitor;
 import elegit.treefx.CommitTreeModel;
@@ -53,7 +54,7 @@ public class OpenLocalRepoFXTest extends ApplicationTest {
 
     @After
     public void tearDown() {
-        TestUtilities.cleanupTestEnvironment();
+        TestUtilities.cleanupTestFXEnvironment();
         assertEquals(0,Main.getAssertionCount());
     }
 
@@ -102,8 +103,8 @@ public class OpenLocalRepoFXTest extends ApplicationTest {
         System.out.println("Number of local checks = " + numLocalChecks);
         int numRemoteChecks = RepositoryMonitor.getNumRemoteChecks();
         System.out.println("Number of remote checks = " + numRemoteChecks);
-        assertTrue(numLocalChecks > 0 && numLocalChecks < 5);
-        assertTrue(numRemoteChecks > 0 && numRemoteChecks < 5);
+        assertTrue(numLocalChecks > 0 && numLocalChecks < 30);
+        assertTrue(numRemoteChecks > 0 && numRemoteChecks < 30);
     }
 
     // Helper method to avoid annoying traces from logger
@@ -113,7 +114,7 @@ public class OpenLocalRepoFXTest extends ApplicationTest {
         try {
             logPath = Files.createTempDirectory("elegitLogs");
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new ExceptionAdapter(e);
         }
         logPath.toFile().deleteOnExit();
         System.setProperty("logFolder", logPath.toString());

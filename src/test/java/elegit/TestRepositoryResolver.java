@@ -47,6 +47,8 @@ import org.eclipse.jgit.junit.TestRepository;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.transport.resolver.RepositoryResolver;
 import org.eclipse.jgit.transport.resolver.ServiceNotEnabledException;
+import org.junit.ClassRule;
+import sharedrules.TestingLogPathRule;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -54,8 +56,10 @@ import javax.servlet.http.HttpServletRequest;
 public final class TestRepositoryResolver
 		implements RepositoryResolver<HttpServletRequest> {
 
-	private final TestRepository<Repository> repo;
+	@ClassRule
+	public static final TestingLogPathRule testingLogPath = new TestingLogPathRule();
 
+	private final TestRepository<Repository> repo;
 	private final String repoName;
 
 	/**

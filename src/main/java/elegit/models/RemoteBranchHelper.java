@@ -52,7 +52,7 @@ public class RemoteBranchHelper extends BranchHelper {
 
     @Override
     // TODO: This code is in a strange location, should be near other git operations
-    public void checkoutBranch() throws GitAPIException, IOException {
+    public void checkoutBranch() {
          // Don't check out remote branches!
     }
 }

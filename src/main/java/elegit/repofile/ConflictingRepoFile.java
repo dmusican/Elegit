@@ -9,7 +9,6 @@ import javafx.scene.control.MenuItem;
 import net.jcip.annotations.ThreadSafe;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.eclipse.jgit.api.errors.GitAPIException;
 
 import java.awt.*;
 import java.io.File;
@@ -48,7 +47,7 @@ public class ConflictingRepoFile extends RepoFile {
         this(Paths.get(filePathString), repo);
     }
 
-    @Override public boolean canAdd() throws GitAPIException, IOException{
+    @Override public boolean canAdd() {
         Main.assertFxThread();
         logger.warn("Notification about conflicting file");
         resultType = PopUpWindows.showCommittingConflictingFileAlert();

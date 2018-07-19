@@ -1,5 +1,7 @@
 package elegit.controllers;
 
+import elegit.Main;
+import elegit.exceptions.ExceptionAdapter;
 import elegit.gui.PopUpWindows;
 import elegit.models.*;
 import elegit.treefx.CommitTreeController;
@@ -57,6 +59,7 @@ public class CreateDeleteBranchWindowController {
     private final RepoHelper repoHelper;
     private final BranchModel branchModel;
     private final CommitTreeModel localCommitTreeModel;
+
 
     @GuardedBy("this")
     private SessionController sessionController;
@@ -158,7 +161,7 @@ public class CreateDeleteBranchWindowController {
                                 setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
                             } catch(IOException e) {
                                 // This shouldn't happen
-                                setGraphic(null);
+                                throw new ExceptionAdapter(e);
                             }
                         }
                     }
@@ -203,6 +206,9 @@ public class CreateDeleteBranchWindowController {
      * @param checkout boolean
      */
     private void createNewBranch(String branchName, boolean checkout) {
+        Main.assertFxThread();
+        updateCommandTextFromCheckout(branchName, checkout);
+
         Thread th = new Thread(new Task<Void>() {
             @Override
             protected Void call() {
@@ -212,8 +218,12 @@ public class CreateDeleteBranchWindowController {
                     newBranch = branchModel.createNewLocalBranch(branchName);
                     if(checkout) {
                         if(newBranch != null) {
+                            sessionController.updateCommandText("git checkout -b "+branchName);
                             checkoutBranch(newBranch);
                         }
+                    }
+                    else{
+                        sessionController.updateCommandText("git branch "+branchName);
                     }
                     // TODO: Put gitStatus back in here once have a better way of registering ig
                     //sessionController.gitStatus();
@@ -235,11 +245,6 @@ public class CreateDeleteBranchWindowController {
                     logger.debug(e1.getStackTrace());
                     showGenericGitErrorNotification();
                     e1.printStackTrace();
-                } catch (IOException e1) {
-                    logger.warn("Unspecified IOException");
-                    logger.debug(e1.getStackTrace());
-                    showGenericErrorNotification();
-                    e1.printStackTrace();
                 }finally {
                     refreshBranchesDropDown();
                 }
@@ -249,6 +254,14 @@ public class CreateDeleteBranchWindowController {
         th.setDaemon(true);
         th.setName("createNewBranch");
         th.start();
+    }
+
+    private void updateCommandTextFromCheckout(String branchName, boolean checkout) {
+        if (checkout) {
+            sessionController.updateCommandText("git checkout -b " + branchName);
+        } else {
+            sessionController.updateCommandText("git branch " + branchName);
+        }
     }
 
     /**
@@ -268,8 +281,9 @@ public class CreateDeleteBranchWindowController {
             showJGitInternalError(e);
         } catch (CheckoutConflictException e){
             showCheckoutConflictsNotification(e.getConflictingPaths());
-        } catch (GitAPIException | IOException e) {
+        } catch (GitAPIException e) {
             showGenericErrorNotification();
+            e.printStackTrace();
         }
         return false;
     }
@@ -289,6 +303,7 @@ public class CreateDeleteBranchWindowController {
      * Deletes the selected local branch
      */
     public void handleDeleteLocalBranch() {
+        Main.assertFxThread();
         logger.info("Delete remote branches button clicked");
         BranchHelper selectedBranch = localBranchesDropdown.getSelectionModel().getSelectedItem();
 
@@ -302,6 +317,7 @@ public class CreateDeleteBranchWindowController {
      * @param selectedBranch the branch selected to delete
      */
     public synchronized void deleteBranch(BranchHelper selectedBranch) {
+        Main.assertFxThread();
         boolean authorizationSucceeded = true;
         try {
             if (selectedBranch != null) {
@@ -309,6 +325,8 @@ public class CreateDeleteBranchWindowController {
 
                 if (selectedBranch instanceof LocalBranchHelper) {
                     this.branchModel.deleteLocalBranch((LocalBranchHelper) selectedBranch);
+                    sessionController.updateCommandText("git branch -d "+selectedBranch);
+
                     updateUser(selectedBranch.getRefName() + " deleted.", BranchModel.BranchType.LOCAL);
                 }else {
                     sessionController.deleteRemoteBranch(selectedBranch, branchModel,
@@ -418,9 +436,9 @@ public class CreateDeleteBranchWindowController {
             buttonToShowOver = deleteButton2;
             dropdownToReset = remoteBranchesDropdown;
         }
-        System.out.println("here i am " + message);
+        //System.out.println("here i am " + message);
         popOver.show(buttonToShowOver);
-        System.out.println("showed");
+        //System.out.println("showed");
         popOver.detach();
         popOver.setAutoHide(true);
         dropdownToReset.getSelectionModel().clearSelection();
