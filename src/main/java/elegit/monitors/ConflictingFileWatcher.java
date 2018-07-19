@@ -1,6 +1,7 @@
 package elegit.monitors;
 
 import elegit.models.RepoHelper;
+import elegit.models.ThreadsafeGitManager;
 import io.reactivex.Observable;
 import io.reactivex.schedulers.Schedulers;
 import javafx.concurrent.Task;
@@ -16,6 +17,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Class used to watch a conflictingRepoFile to see if it's been modified
@@ -61,7 +63,8 @@ public class ConflictingFileWatcher {
             @Override
             public Boolean call() throws IOException, GitAPIException {
                 // gets the conflicting files
-                Set<String> newConflictingFiles = (new Git(currentRepo.getRepo()).status().call()).getConflicting();
+                AtomicReference<ThreadsafeGitManager> threadsafeGitManager = currentRepo.getThreadsafeGitManager();
+                Set<String> newConflictingFiles = threadsafeGitManager.get().getConflicting(threadsafeGitManager.get().getStatus());
                 for (String newFile : newConflictingFiles) {
                     if (!conflictingFiles.contains(newFile)) {
                         conflictingFiles.add(newFile);

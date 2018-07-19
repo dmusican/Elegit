@@ -5,12 +5,7 @@ import elegit.Main;
 import elegit.gui.PopUpWindows;
 import elegit.gui.SimpleProgressMonitor;
 import elegit.exceptions.*;
-import elegit.monitors.RepositoryMonitor;
 import elegit.treefx.Cell;
-import io.reactivex.Completable;
-import io.reactivex.Single;
-import io.reactivex.rxjavafx.schedulers.JavaFxScheduler;
-import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import net.jcip.annotations.ThreadSafe;
@@ -53,6 +48,7 @@ public class RepoHelper {
 
     private final String password;
     private final AtomicReference<Repository> repo = new AtomicReference<>();
+    private final AtomicReference<ThreadsafeGitManager> threadsafeGitManager = new AtomicReference<>();
     private final Path localPath;
     private final UserInfo userInfo;
     private final SshSessionFactory sshSessionFactory;
@@ -77,6 +73,8 @@ public class RepoHelper {
     private final BooleanProperty remoteStatusChecking = new SimpleBooleanProperty(false);
 
     private final AtomicReference<String> privateKeyFileLocation = new AtomicReference<>();
+
+    private final List<String> transcriptList = Collections.synchronizedList(new ArrayList<String>());
 
     private static final Object globalLock = new Object();
 
@@ -241,7 +239,6 @@ public class RepoHelper {
      * @throws GitAPIException if the `git add` call fails.
      */
     public void addFilePathTest(Path filePath) throws GitAPIException {
-        Git git = new Git(this.getRepo());
         // git add:
         Path relativizedFilePath = this.localPath.relativize(filePath);
         String pathToAdd = relativizedFilePath.toString();
@@ -251,11 +248,8 @@ public class RepoHelper {
             else
                 pathToAdd = pathToAdd.replaceAll(File.separator, "/");
         }
-        git.add()
-                .addFilepattern(pathToAdd)
-                .call();
-        TranscriptHelper.post("git add "+filePath);
-        git.close();
+        threadsafeGitManager.get().addFilePathTest(pathToAdd);
+        addCommandToTranscript("git add " + filePath);
     }
 
     /**
@@ -265,10 +259,7 @@ public class RepoHelper {
      * @throws GitAPIException if the `git add` call fails.
      */
     public void addFilePathsTest(ArrayList<Path> filePaths, boolean isSelectAllChecked) throws GitAPIException {
-        Git git = new Git(this.getRepo());
         ArrayList<String> fileNames = new ArrayList();
-        // git add:
-        AddCommand adder = git.add();
         for (Path filePath : filePaths) {
             Path localizedFilePath = this.localPath.relativize(filePath);
             String pathToAdd = localizedFilePath.toString();
@@ -279,16 +270,14 @@ public class RepoHelper {
                     pathToAdd = pathToAdd.replaceAll(File.separator, "/");
             }
             fileNames.add(pathToAdd);
-            adder.addFilepattern(pathToAdd);
         }
-        adder.call();
+        threadsafeGitManager.get().addFilePathTest(fileNames);
         if (isSelectAllChecked){
-            TranscriptHelper.post("git add *");
+            addCommandToTranscript("git add *");
         }
         else {
-            TranscriptHelper.post("git add " + String.join(" ", fileNames));
+            addCommandToTranscript("git add " + String.join(" ", fileNames));
         }
-        git.close();
     }
 
     /**
@@ -298,10 +287,7 @@ public class RepoHelper {
      * @throws GitAPIException if the `git add` call fails.
      */
     public ArrayList<String> addFilePaths(ArrayList<Path> filePaths) throws GitAPIException {
-        Git git = new Git(this.getRepo());
         ArrayList<String> fileNames = new ArrayList();
-        // git add:
-        AddCommand adder = git.add();
         for (Path filePath : filePaths) {
             String pathToAdd = filePath.toString();
             if (!File.separator.equals("/")) {
@@ -311,10 +297,8 @@ public class RepoHelper {
                     pathToAdd = pathToAdd.replaceAll(File.separator, "/");
             }
             fileNames.add(pathToAdd);
-            adder.addFilepattern(pathToAdd);
         }
-        adder.call();
-        git.close();
+        threadsafeGitManager.get().addFilePathTest(fileNames);
         return fileNames;
     }
 
@@ -324,27 +308,7 @@ public class RepoHelper {
      * @param filePath the file to check out
      */
     public void checkoutFile(Path filePath) throws GitAPIException {
-        Git git = new Git(this.getRepo());
-        git.checkout().addPath(filePath.toString()).call();
-        git.close();
-    }
-
-    /**
-     * Checks out files from the index
-     *
-     * @param filePaths the files to check out
-     */
-    public ArrayList<String> checkoutFiles(List<Path> filePaths) throws GitAPIException {
-        Git git = new Git(this.getRepo());
-        ArrayList<String> fileNames = new ArrayList();
-        CheckoutCommand checkout = git.checkout();
-        for (Path filePath : filePaths) {
-            checkout.addPath(filePath.toString());
-            fileNames.add(filePath.toString());
-        }
-        checkout.call();
-        git.close();
-        return fileNames;
+        threadsafeGitManager.get().checkoutFile(filePath);
     }
 
     /**
@@ -355,12 +319,7 @@ public class RepoHelper {
      * @return the result of the checkout
      */
     public CheckoutResult checkoutFiles(List<String> filePaths, String startPoint) throws GitAPIException {
-        Git git = new Git(this.getRepo());
-        CheckoutCommand checkout = git.checkout().setStartPoint(startPoint);
-        for (String filePath : filePaths)
-            checkout.addPath(filePath);
-        checkout.call();
-        return checkout.getResult();
+        return threadsafeGitManager.get().checkoutFiles(filePaths, startPoint);
     }
 
     /**
@@ -370,14 +329,7 @@ public class RepoHelper {
      * @throws GitAPIException if the `git rm` call fails.
      */
     public void removeFilePaths(ArrayList<Path> filePaths) throws GitAPIException {
-        Git git = new Git(this.getRepo());
-        // git rm:
-        RmCommand remover = git.rm();
-        for (Path filePath : filePaths) {
-            remover.addFilepattern(filePath.toString());
-        }
-        remover.call();
-        git.close();
+        threadsafeGitManager.get().removeFilePaths(filePaths);
     }
 
     /**
@@ -386,14 +338,12 @@ public class RepoHelper {
      *
      * @return a list of the remote URLs associated with this repository
      */
-    public List<String> getLinkedRemoteRepoURLs() {
-        Config storedConfig = this.getRepo().getConfig();
-        Set<String> remotes = storedConfig.getSubsections("remote");
-        ArrayList<String> urls = new ArrayList<>(remotes.size());
-        for (String remote : remotes) {
-            urls.add(storedConfig.getString("remote", remote, "url"));
+    public List<String> getLinkedRemoteRepoURLs()  {
+        try {
+            return threadsafeGitManager.get().getLinkedRemoteRepoURLs();
+        } catch (GitAPIException e) {
+            throw new ExceptionAdapter(e);
         }
-        return Collections.unmodifiableList(urls);
     }
 
     /**
@@ -407,8 +357,9 @@ public class RepoHelper {
      * @return the number of commits that local has that haven't been pushed
      */
     public int getAheadCount() throws IOException {
-        if (this.getBranchModel().getCurrentBranch().getStatus() != null)
-            return this.getBranchModel().getCurrentBranch().getStatus().getAheadCount();
+        BranchTrackingStatus status = this.getBranchModel().getCurrentBranch().getStatus();
+        if (status != null)
+            return status.getAheadCount();
         else return -1;
     }
 
@@ -430,8 +381,9 @@ public class RepoHelper {
      * @throws IOException
      */
     public int getBehindCount() throws IOException {
-        if (this.getBranchModel().getCurrentBranch().getStatus() != null)
-            return this.getBranchModel().getCurrentBranch().getStatus().getBehindCount();
+        BranchTrackingStatus status = this.getBranchModel().getCurrentBranch().getStatus();
+        if (status != null)
+            return status.getBehindCount();
         else return -1;
     }
 
@@ -446,12 +398,7 @@ public class RepoHelper {
         logger.info("Attempting commit");
         if (!exists()) throw new MissingRepoException();
 
-        Git git = new Git(this.getRepo());
-        // git commit:
-        RevCommit commit = git.commit()
-                .setMessage(commitMessage)
-                .call();
-        git.close();
+        RevCommit commit = threadsafeGitManager.get().commit(commitMessage);
 
         // Update the local commits
         try {
@@ -466,10 +413,7 @@ public class RepoHelper {
     public void commitAll(String message) throws MissingRepoException, GitAPIException, IOException {
         if (!exists()) throw new MissingRepoException();
 
-
-        Git git = new Git(getRepo());
-        git.commit().setMessage(message).setAll(true).call();
-        git.close();
+        threadsafeGitManager.get().commitAll(message);
 
         localCommits.set(parseAllLocalCommits());
     }
@@ -493,12 +437,8 @@ public class RepoHelper {
         if (remote.equals("cancel"))
             throw new InvalidRemoteException("No remote selected.");
 
-        Git git = new Git(this.getRepo());
-        PushCommand push = git.push().setRemote(remote).add(branchToPush.getRefPathString());
-
-        // TODO: Make this a real progress monitor
-        ProgressMonitor progress = new SimpleProgressMonitor();
-        push.setProgressMonitor(progress);
+        String branchToPushRefPathString = branchToPush.getRefPathString();
+        PushCommand push = threadsafeGitManager.get().prepareToPushCurrentBranch(remote, branchToPushRefPathString);
 
         if (this.getBranchModel().getCurrentRemoteBranch() == null) {
             if (isTest || PopUpWindows.trackCurrentBranchRemotely(branchToPush.getRefName())) {
@@ -535,13 +475,8 @@ public class RepoHelper {
      * @param remote String
      */
     private void setUpstreamBranch(BranchHelper branch, String remote) throws IOException {
-        Git git = new Git(this.getRepo());
-        StoredConfig config = git.getRepository().getConfig();
         String branchName = branch.getRefName();
-        config.setString(ConfigConstants.CONFIG_BRANCH_SECTION, branchName, ConfigConstants.CONFIG_KEY_REMOTE, remote);
-        config.setString(ConfigConstants.CONFIG_BRANCH_SECTION, branchName, ConfigConstants.CONFIG_KEY_MERGE,
-                         Constants.R_HEADS + branchName);
-        config.save();
+        threadsafeGitManager.get().setUpstreamBranch(branchName, remote);
     }
 
     /**
@@ -550,9 +485,7 @@ public class RepoHelper {
      * @return String remote
      */
     private String getRemote() {
-        Git git = new Git(this.getRepo());
-        StoredConfig config = git.getRepository().getConfig();
-        Set<String> remotes = config.getSubsections("remote");
+        Set<String> remotes = threadsafeGitManager.get().getRemote();
         if (remotes.size() == 1) {
             return (String) remotes.toArray()[0];
         }
@@ -619,8 +552,7 @@ public class RepoHelper {
             }
         }
 
-        ProgressMonitor progress = new SimpleProgressMonitor();
-        push.setProgressMonitor(progress);
+        push = threadsafeGitManager.get().prepareToPushAll(push);
 
         return push;
     }
@@ -662,10 +594,10 @@ public class RepoHelper {
         Git git = new Git(this.getRepo());
         PushCommand push = git.push();
         wrapAuthentication(push);
-        ProgressMonitor progress = new SimpleProgressMonitor();
-        push.setProgressMonitor(progress);
 
-        Iterable<PushResult> pushResult = push.setPushTags().call();
+        Iterable<PushResult> pushResult = threadsafeGitManager.get().pushTags(push);
+        git.close();
+
         boolean allPushesWereRejected = true;
         boolean anyPushWasRejected = false;
 
@@ -683,7 +615,6 @@ public class RepoHelper {
         if (allPushesWereRejected || anyPushWasRejected) {
             throw new PushToAheadRemoteError(allPushesWereRejected);
         }
-        git.close();
 
         this.tagModel.get().updateTags();
 
@@ -713,16 +644,7 @@ public class RepoHelper {
 
         wrapAuthentication(fetch);
 
-        // The JGit docs say that if setCheckFetchedObjects
-        //  is set to true, objects received will be checked for validity.
-        //  Not sure what that means, but sounds good so I'm doing it...
-        fetch.setCheckFetchedObjects(true);
-
-        // ProgressMonitor progress = new TextProgressMonitor(new PrintWriter(System.out));
-        ProgressMonitor progress = new SimpleProgressMonitor();
-        fetch.setProgressMonitor(progress);
-
-        FetchResult result = fetch.call();
+        FetchResult result = threadsafeGitManager.get().fetch(fetch);
         git.close();
 
         try {
@@ -812,12 +734,8 @@ public class RepoHelper {
     void revert(List<AnyObjectId> commits) throws MissingRepoException, GitAPIException {
         logger.info("Attempting reverts");
         if (!exists()) throw new MissingRepoException();
-        Git git = new Git(this.getRepo());
-        RevertCommand revertCommand = git.revert();
-        for (AnyObjectId commit : commits)
-            revertCommand.include(commit);
-        revertCommand.call();
-        git.close();
+
+        threadsafeGitManager.get().revert(commits);
 
         // Update the local commits
         try {
@@ -838,10 +756,9 @@ public class RepoHelper {
     public boolean revert(CommitHelper helper) throws MissingRepoException, GitAPIException {
         logger.info("Attempting revert");
         if (!exists()) throw new MissingRepoException();
-        Git git = new Git(this.getRepo());
-        // git revert:
-        git.revert().include(helper.getObjectId()).call();
-        git.close();
+
+        ObjectId objectId = helper.getObjectId();
+        threadsafeGitManager.get().revert(objectId);
 
         // Update the local commits
         try {
@@ -868,9 +785,8 @@ public class RepoHelper {
     public void reset(Path path) throws MissingRepoException, GitAPIException {
         logger.info("Attempting reset file");
         if (!exists()) throw new MissingRepoException();
-        Git git = new Git(this.getRepo());
-        git.reset().addPath(this.localPath.relativize(path).toString()).call();
-        git.close();
+        String relativePathName = localPath.relativize(path).toString();
+        threadsafeGitManager.get().reset(relativePathName);
     }
 
     /**
@@ -883,11 +799,7 @@ public class RepoHelper {
     public void reset(List<Path> paths) throws MissingRepoException, GitAPIException {
         logger.info("Attempting reset files");
         if (!exists()) throw new MissingRepoException();
-        Git git = new Git(this.getRepo());
-        ResetCommand resetCommand = git.reset();
-        paths.forEach(path -> resetCommand.addPath(this.localPath.relativize(path).toString()));
-        resetCommand.call();
-        git.close();
+        threadsafeGitManager.get().reset(this.localPath, paths);
     }
 
     /**
@@ -901,9 +813,7 @@ public class RepoHelper {
     public boolean reset(String ref, ResetCommand.ResetType mode) throws MissingRepoException, GitAPIException {
         logger.info("Attempting reset");
         if (!exists()) throw new MissingRepoException();
-        Git git = new Git(this.getRepo());
-        git.reset().setRef(ref).setMode(mode).call();
-        git.close();
+        threadsafeGitManager.get().reset(ref, mode);
         return true;
     }
 
@@ -919,8 +829,7 @@ public class RepoHelper {
      */
     public void stashSave(boolean includeUntracked) throws GitAPIException, NoFilesToStashException {
         logger.info("Attempting stash save");
-        Git git = new Git(this.getRepo());
-        RevCommit stash = git.stashCreate().setIncludeUntracked(includeUntracked).call();
+        RevCommit stash = threadsafeGitManager.get().stashSave(includeUntracked);
         if (stash == null) throw new NoFilesToStashException();
     }
 
@@ -935,9 +844,7 @@ public class RepoHelper {
     public void stashSave(boolean includeUntracked, String wdMessage,
                           String indexMessage) throws GitAPIException, NoFilesToStashException {
         logger.info("Attempting stash save with message");
-        Git git = new Git(this.getRepo());
-        RevCommit stash = git.stashCreate().setIncludeUntracked(includeUntracked).setWorkingDirectoryMessage(wdMessage)
-                .setIndexMessage(indexMessage).call();
+        RevCommit stash = threadsafeGitManager.get().stashSave(includeUntracked, wdMessage, indexMessage);
         if (stash == null) throw new NoFilesToStashException();
     }
 
@@ -948,12 +855,7 @@ public class RepoHelper {
      */
     public List<CommitHelper> stashList() throws GitAPIException, IOException {
         logger.info("Attempting stash list");
-        Git git = new Git(this.getRepo());
-        List<CommitHelper> stashCommitList = new ArrayList<>();
-
-        for (RevCommit commit : git.stashList().call()) {
-            stashCommitList.add(new CommitHelper(commit));
-        }
+        List<CommitHelper> stashCommitList = threadsafeGitManager.get().stashList();
         return Collections.unmodifiableList(stashCommitList);
     }
 
@@ -966,8 +868,7 @@ public class RepoHelper {
      */
     public void stashApply(String stashRef, boolean force) throws GitAPIException {
         logger.info("Attempting stash apply");
-        Git git = new Git(this.getRepo());
-        git.stashApply().setStashRef(stashRef).ignoreRepositoryState(force).call();
+        threadsafeGitManager.get().stashApply(stashRef, force);
     }
 
     /**
@@ -977,8 +878,7 @@ public class RepoHelper {
      */
     public ObjectId stashClear() throws GitAPIException {
         logger.info("Attempting stash drop all");
-        Git git = new Git(this.getRepo());
-        return git.stashDrop().setAll(true).call();
+        return threadsafeGitManager.get().stashClear();
     }
 
     /**
@@ -989,8 +889,7 @@ public class RepoHelper {
      */
     public ObjectId stashDrop(int stashRef) throws GitAPIException {
         logger.info("Attempting stash drop");
-        Git git = new Git(this.getRepo());
-        return git.stashDrop().setStashRef(stashRef).call();
+        return threadsafeGitManager.get().stashClear(stashRef);
     }
 
 
@@ -1006,6 +905,11 @@ public class RepoHelper {
         boolean nullAsExpected = this.repo.compareAndSet(null, repo);
         if (!nullAsExpected) {
             throw new IllegalStateException("repo variable in RepoHelper should not have been set a second time");
+        }
+        nullAsExpected = this.threadsafeGitManager.compareAndSet(null, ThreadsafeGitManager.get(repo));
+        if (!nullAsExpected) {
+            throw new IllegalStateException("threadsafeGitManage variable in RepoHelper should not have been set a " +
+                                                    "second time");
         }
     }
 
@@ -1445,15 +1349,13 @@ public class RepoHelper {
      * @throws GitAPIException
      */
     public Collection<Ref> getRefsFromRemote(boolean includeTags) throws GitAPIException {
-        synchronized (globalLock) {
-            LsRemoteCommand command = new Git(getRepo()).lsRemote().setHeads(true);
-            if (includeTags) {
-                command = command.setTags(includeTags);
-            }
-            wrapAuthentication(command);
-            Collection<Ref> remoteRefs = command.call();
-            return Collections.unmodifiableCollection(remoteRefs);
+        LsRemoteCommand command = new Git(getRepo()).lsRemote().setHeads(true);
+        if (includeTags) {
+            command = command.setTags(includeTags);
         }
+        wrapAuthentication(command);
+        Collection<Ref> remoteRefs = threadsafeGitManager.get().getRefsFromRemote(command);
+        return Collections.unmodifiableCollection(remoteRefs);
     }
 
     public List<RefHelper> getRefsForCommit(CommitHelper helper) {
@@ -1569,5 +1471,21 @@ public class RepoHelper {
 
     public void bindit(BooleanProperty binding) {
         this.remoteStatusChecking.bindBidirectional(binding);
+    }
+
+    public AtomicReference<ThreadsafeGitManager> getThreadsafeGitManager() {
+        return threadsafeGitManager;
+    }
+
+    public synchronized void addCommandToTranscript(String command) {
+        transcriptList.add(command);
+    }
+
+    public synchronized void clearTranscript() {
+        transcriptList.clear();
+    }
+
+    public synchronized List<String> getTranscript() {
+        return Collections.unmodifiableList(transcriptList);
     }
 }

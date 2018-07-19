@@ -7,6 +7,7 @@ import elegit.Main;
 import elegit.models.AuthMethod;
 import elegit.models.ClonedRepoHelper;
 import elegit.models.RepoHelper;
+import elegit.models.ThreadsafeGitManager;
 import elegit.sshauthentication.ElegitUserInfoGUI;
 import io.reactivex.Single;
 import io.reactivex.rxjavafx.schedulers.JavaFxScheduler;

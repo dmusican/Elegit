@@ -97,7 +97,7 @@ public class SshPrivateKeyPasswordCancelFXTest extends ApplicationTest {
     @After
     public void tearDown() {
         logger.info("Tearing down");
-        TestUtilities.cleanupTestEnvironment();
+        TestUtilities.cleanupTestFXEnvironment();
         TestCase.assertEquals(0, Main.getAssertionCount());
     }
 

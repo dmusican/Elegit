@@ -16,6 +16,7 @@ import org.eclipse.jgit.transport.RemoteRefUpdate;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 /**
@@ -37,16 +38,20 @@ public class BranchModel {
     @GuardedBy("this") private final List<LocalBranchHelper> localBranchesTyped = new ArrayList<>();
     @GuardedBy("this") private final List<RemoteBranchHelper> remoteBranchesTyped = new ArrayList<>();
 
+    private final AtomicReference<ThreadsafeGitManager> threadsafeGitManager;
+
     static final Logger logger = LogManager.getLogger();
     private static final Logger console = LogManager.getLogger("briefconsolelogger");
 
     /**
-     * Constructor. Sets the repo helper and updates the local and remote branches
+     * Constructor. Sets the repo helper, updates the local and remote branches, and gets the threadsafeGitManager from
+     * repoHelper.
      *
-     * @param repoHelper the repohelper to get branches for
+     * @param repoHelper the repoHelper to get branches for
      */
     public BranchModel(RepoHelper repoHelper) {
         this.repoHelper = repoHelper;
+        this.threadsafeGitManager = repoHelper.getThreadsafeGitManager();
         this.updateAllBranches();
     }
 
@@ -67,7 +72,7 @@ public class BranchModel {
     // synchronized for localBranchesTyped
     public synchronized void updateLocalBranches() {
         try {
-            List<Ref> getBranchesCall = new Git(this.repoHelper.getRepo()).branchList().call();
+            List<Ref> getBranchesCall = threadsafeGitManager.get().getLocalBranches();
 
             this.localBranchesTyped.clear();
             for (Ref ref : getBranchesCall) {
@@ -85,10 +90,7 @@ public class BranchModel {
     // synchronized for remoteBranchesTyped
     public synchronized void updateRemoteBranches() {
         try {
-            List<Ref> getBranchesCall = new Git(this.repoHelper.getRepo())
-                    .branchList()
-                    .setListMode(ListBranchCommand.ListMode.REMOTE)
-                    .call();
+            List<Ref> getBranchesCall = threadsafeGitManager.get().getRemoteBranches();
 
             // Rebuild the remote branches list from scratch.
             this.remoteBranchesTyped.clear();
@@ -179,12 +181,9 @@ public class BranchModel {
      */
     // Synchronized for localBranchesTyped
     private synchronized LocalBranchHelper createLocalTrackingBranchForRemote(RemoteBranchHelper remoteBranchHelper) throws GitAPIException {
-        String localBranchName=this.repoHelper.getRepo().shortenRemoteBranchName(remoteBranchHelper.getRefPathString());
-        Ref trackingBranchRef = new Git(this.repoHelper.getRepo()).branchCreate().
-                setName(localBranchName).
-                setUpstreamMode(CreateBranchCommand.SetupUpstreamMode.TRACK).
-                setStartPoint(remoteBranchHelper.getRefPathString()).
-                call();
+        String localBranchName = this.repoHelper.getRepo().shortenRemoteBranchName(remoteBranchHelper.getRefPathString());
+        String branchRefPathName = remoteBranchHelper.getRefPathString();
+        Ref trackingBranchRef = threadsafeGitManager.get().getTrackingBranchRef(localBranchName, branchRefPathName);
         LocalBranchHelper newHelper = new LocalBranchHelper(trackingBranchRef, this.repoHelper);
         this.localBranchesTyped.add(newHelper);
         return newHelper;
@@ -200,11 +199,9 @@ public class BranchModel {
      */
     // Synchronized for localBranchesTyped
     public synchronized LocalBranchHelper createNewLocalBranch(String branchName) throws GitAPIException {
-        Git git = new Git(this.repoHelper.getRepo());
-        Ref newBranch = git.branchCreate().setName(branchName).call();
+        Ref newBranch = threadsafeGitManager.get().getNewBranch(branchName);
         LocalBranchHelper newLocalBranchHelper = new LocalBranchHelper(newBranch, this.repoHelper);
         this.localBranchesTyped.add(newLocalBranchHelper);
-        git.close();
         return newLocalBranchHelper;
     }
 
@@ -219,10 +216,9 @@ public class BranchModel {
     // Synchronized for localBranchesTyped
     public synchronized void deleteLocalBranch(LocalBranchHelper localBranchToDelete)
             throws GitAPIException {
-        Git git = new Git(this.repoHelper.getRepo());
-        git.branchDelete().setBranchNames(localBranchToDelete.getRefPathString()).call();
+        String branchName = localBranchToDelete.getRefPathString();
+        threadsafeGitManager.get().deleteBranch(branchName);
         this.localBranchesTyped.remove(localBranchToDelete);
-        git.close();
     }
 
 
@@ -233,10 +229,9 @@ public class BranchModel {
      */
     // Synchronized for localBranchesTyped
     public synchronized void forceDeleteLocalBranch(LocalBranchHelper branchToDelete) throws CannotDeleteCurrentBranchException, GitAPIException {
-        Git git = new Git(this.repoHelper.getRepo());
-        git.branchDelete().setForce(true).setBranchNames(branchToDelete.getRefPathString()).call();
+        String branchName = branchToDelete.getRefPathString();
+        threadsafeGitManager.get().forceDeleteBranch(branchName);
         this.localBranchesTyped.remove(branchToDelete);
-        git.close();
     }
 
     /**
@@ -259,13 +254,7 @@ public class BranchModel {
         // Update the remote branches in case it worked
         updateRemoteBranches();
 
-        boolean succeeded=false;
-        for (PushResult result : pushCommand.call()) {
-            for (RemoteRefUpdate refUpdate : result.getRemoteUpdates()) {
-                return refUpdate.getStatus();
-            }
-        }
-        return null;
+        return threadsafeGitManager.get().deleteRemoteBranch(pushCommand);
     }
 
     /**
@@ -278,16 +267,8 @@ public class BranchModel {
      */
     public synchronized MergeResult mergeWithBranch(BranchHelper branchToMergeFrom) throws GitAPIException,
             IOException {
-        Git git = new Git(this.repoHelper.getRepo());
-
-        MergeCommand merge = git.merge();
-        merge.include(this.repoHelper.getRepo().resolve(branchToMergeFrom.getRefPathString()));
-
-        MergeResult mergeResult = merge.call();
-
-        git.close();
-
-        return mergeResult;
+        String branchToMergeFromRefPathString = branchToMergeFrom.getRefPathString();
+        return threadsafeGitManager.get().mergeWithBranch(branchToMergeFromRefPathString);
     }
 
     // ************************* GETTERS AND SETTERS **************************

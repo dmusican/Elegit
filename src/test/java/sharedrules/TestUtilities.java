@@ -177,6 +177,18 @@ public class TestUtilities {
         }
     }
 
+    public static void cleanupTestFXEnvironment() {
+        try {
+            WaitForAsyncUtils.waitFor(20, TimeUnit.SECONDS,
+                    () -> !BusyWindow.window.isShowing());
+            WaitForAsyncUtils.waitForFxEvents();
+
+            cleanupTestEnvironment();
+        } catch (TimeoutException e) {
+            throw new ExceptionAdapter(e);
+        }
+    }
+
     public static void commonStartupOffFXThread() {
         try {
             startComplete.await();

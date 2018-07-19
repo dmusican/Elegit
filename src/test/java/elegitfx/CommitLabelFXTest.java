@@ -70,7 +70,7 @@ public class CommitLabelFXTest extends ApplicationTest {
 
     @After
     public void tearDown() {
-        TestUtilities.cleanupTestEnvironment();
+        TestUtilities.cleanupTestFXEnvironment();
     }
 
 
@@ -181,6 +181,10 @@ public class CommitLabelFXTest extends ApplicationTest {
 
                     // Get the information about this new commit
                     String oldHeadID = headIDForTesting;
+
+                    WaitForAsyncUtils.waitForFxEvents();
+                    sleep(1000);
+
                     CommitHelper newHead = this.helper.getCommit("master");
                     assertNotNull(newHead);
                     String newHeadID = newHead.getName();

@@ -64,7 +64,7 @@ public class AddFXTest extends ApplicationTest {
 
     @After
     public void tearDown() {
-        TestUtilities.cleanupTestEnvironment();
+        TestUtilities.cleanupTestFXEnvironment();
         assertEquals(0,Main.getAssertionCount());
     }
 
@@ -83,6 +83,7 @@ public class AddFXTest extends ApplicationTest {
 
         Path fileLocation = local.resolve("README.md");
 
+        console.info("1");
         FileWriter fw = new FileWriter(fileLocation.toString(), true);
         fw.write("start");
         fw.close();
@@ -90,6 +91,7 @@ public class AddFXTest extends ApplicationTest {
         helper.commit("Appended to file");
 
 
+        console.info("2");
         interact(() -> sessionController.handleLoadExistingRepoOption(local));
         RepositoryMonitor.unpause();
 

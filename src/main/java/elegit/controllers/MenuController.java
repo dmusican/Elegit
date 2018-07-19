@@ -277,14 +277,6 @@ public class MenuController {
         sessionController.handleStashDropButton();
     }
 
-    public synchronized void handleTranscriptClearMenuItem() {
-        sessionController.handleTranscriptClearItem();
-    }
-
-    public synchronized void handleTranscriptViewMenuItem() {
-        sessionController.handleTranscriptViewMenuItem();
-    }
-
     //----- "Preferences" Dropdown Menu Items: -----
 
     public synchronized void handleLoggingToggle() {

@@ -1,8 +1,6 @@
 package elegit.controllers;
 
 import elegit.Main;
-import elegit.exceptions.ExceptionAdapter;
-import elegit.models.SessionModel;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -14,7 +12,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.*;
-import java.nio.file.Path;
+import java.util.List;
 
 /**
  * Created by grenche on 6/7/18.
@@ -36,27 +34,19 @@ public class CommandLineHistoryController {
         sessionController = SessionController.getSessionController();
     }
 
-    // Currently doesn't update with actual history, but with the elegit.log file
     public synchronized void initialize() {
+        Main.assertFxThread();
         commandHistory.clear();
-        String command;
-        // Currently cannot get the file. I'm not sure why it's not showing up in the log folder.
-        File transcript = new File(System.getProperty("logFolder") + "/transcript.log");
-
-        try {
-            BufferedReader br = new BufferedReader(new FileReader(transcript));
-            while ((command = br.readLine()) != null) {
-                commandHistory.appendText(command + "\n");
-            }
-        } catch (IOException e) {
-            throw new ExceptionAdapter(e);
+        List<String> transcriptList = sessionController.getTranscript();
+        for (String command : transcriptList) {
+            commandHistory.appendText(command + "\n");
         }
     }
 
     /**
      * Opens up a terminal like window and displays command line history
      */
-    public void showHistory() {
+    public synchronized void showHistory() {
         Main.assertFxThread();
         if (commandHistory.getText().equals("")) { // Don't show the popup if they haven't made any commands yet
             sessionController.showNoCommandLineHistoryNotification();
@@ -78,7 +68,8 @@ public class CommandLineHistoryController {
         }
     }
 
-    public void closeWindow() {
+    public synchronized void closeWindow() {
+        Main.assertFxThread();
         this.stage.close();
     }
 
@@ -108,7 +99,8 @@ public class CommandLineHistoryController {
     /**
      * Helper method for writing the command history to the file to be saved
      */
-    private void writeToFile(String commands, File file) {
+    private synchronized void writeToFile(String commands, File file) {
+        Main.assertFxThread();
         try {
             // Write the commands to this new file
             FileWriter fileWriter = new FileWriter(file);

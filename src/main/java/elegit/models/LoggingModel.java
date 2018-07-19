@@ -36,7 +36,6 @@ public class LoggingModel {
 
     private static final String submitUrl = "http://elegit.mathcs.carleton.edu/logging/upload.php";
     private static final String LOG_FILE_NAME = "elegit.log";
-    private static final String TRANSCRIPT_FILE_NAME = "transcript.log";
 
     public synchronized static void bindLogging(ReadOnlyBooleanProperty status) {
         loggingStatus.bind(status);
@@ -141,7 +140,7 @@ public class LoggingModel {
         if (logsToUpload==null)
             logsToUpload = new File[0];
         for (File logFile: logsToUpload) {
-            if (!logFile.isFile() || logFile.getName().equals(LOG_FILE_NAME) || logFile.getName().equals(TRANSCRIPT_FILE_NAME)) {
+            if (!logFile.isFile() || logFile.getName().equals(LOG_FILE_NAME)) {
                 if (logsToUpload.length == 1) {
                     logger.info("No new logs to upload today");
                     break;
@@ -201,7 +200,7 @@ public class LoggingModel {
         if (logsToDelete == null)
             logsToDelete = new File[0];
         for (File file: logsToDelete) {
-            if (!file.getName().equals(LOG_FILE_NAME) && !file.getName().equals(TRANSCRIPT_FILE_NAME))
+            if (!file.getName().equals(LOG_FILE_NAME))
                 if (!file.delete()) {
                     logger.error("Failed to delete a file in the log directory.");
                 }

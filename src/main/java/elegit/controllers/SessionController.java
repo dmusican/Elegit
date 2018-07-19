@@ -273,12 +273,25 @@ public class SessionController {
         Observable
                 .just(1)
                 .doOnNext(unused -> showBusyWindowAndPauseRepoMonitor(displayString))
+                .doOnNext(unused -> updateCommandTextForFetch(prune, pull))
 
                 // Note that the below is a threaded operation, and so we want to make sure that the following
                 // operations (hiding the window, etc) depend on it.
                 .flatMap(unused -> doGitOperationWhenSubscribed(gitOp).toObservable())
                 .doOnNext(unused -> hideBusyWindowAndResumeRepoMonitor())
                 .subscribe(unused -> {}, t -> {throw new ExceptionAdapter(t);});
+    }
+
+    private void updateCommandTextForFetch(boolean prune, boolean pull) {
+        if(prune){
+            commandLineController.updateCommandText("git fetch -p");
+        }
+        else if (pull){
+            commandLineController.updateCommandText("git pull");
+        }
+        else{
+            commandLineController.updateCommandText("git fetch");
+        }
     }
 
     // Repeat trying to fetch. First time: no authentication window. On repeated attempts,
@@ -901,7 +914,7 @@ public class SessionController {
      */
     private List<Result> addOperation() {
         synchronized (globalLock) {
-            //Main.assertFxThread();
+            Main.assertFxThread();
 
             ArrayList<Result> results = new ArrayList<>();
             try {
@@ -955,9 +968,11 @@ public class SessionController {
             if(!workingTreePanelView.isAnyFileSelected()) throw new NoFilesSelectedToRemoveException();
 
             showBusyWindow("Removing...");
-            Thread th = new Thread(new Task<Void>(){
-                @Override
-                protected Void call() {
+
+            // TODO: this needs to be threaded differently because it calls multiple methods that need to be in the FX thread
+//            Thread th = new Thread(new Task<Void>(){
+//                @Override
+//                protected Void call() {
                     try{
                         ArrayList<Path> filePathsToRemove = new ArrayList<>();
                         ArrayList<String> fileNames = new ArrayList<>();
@@ -984,12 +999,12 @@ public class SessionController {
                     } finally {
                         BusyWindow.hide();
                     }
-                    return null;
-                }
-            });
-            th.setDaemon(true);
-            th.setName("Git rm");
-            th.start();
+//                    return null;
+//                }
+//            });
+//            th.setDaemon(true);
+//            th.setName("Git rm");
+//            th.start();
         } catch (NoFilesSelectedToRemoveException e) {
             this.showNoFilesSelectedForRemoveNotification();
         } catch (NoRepoLoadedException e) {
@@ -1006,6 +1021,7 @@ public class SessionController {
      * @param filePath the path of the file to checkout from the index
      */
     public void handleCheckoutButton(Path filePath) {
+        Main.assertFxThread();
         try {
             logger.info("Checkout file button clicked");
             if (! PopUpWindows.showCheckoutAlert()) throw new CancelledDialogException();
@@ -1028,6 +1044,7 @@ public class SessionController {
      * Handler for the checkout button
      */
     public void handleCheckoutButton() {
+        Main.assertFxThread();
         try {
             logger.info("Checkout button clicked");
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
@@ -1095,6 +1112,7 @@ public class SessionController {
      * Commits all files that have been staged with the message
      */
     public void handleCommitButton(CommitType type) {
+        Main.assertFxThread();
         try {
             logger.info("Commit button clicked");
             if(this.theModel.getCurrentRepoHelper() == null) throw new NoRepoLoadedException();
@@ -1125,17 +1143,18 @@ public class SessionController {
     }
 
     private void commitAll() {
+        Main.assertFxThread();
         String message = PopUpWindows.getCommitMessage();
         if(message.equals("cancel")) return;
 
         showBusyWindow("Committing all...");
+        commandLineController.updateCommandText("git commit -am \""+message+"\"");
 
         Thread th = new Thread(new Task<Void>() {
             @Override
             protected Void call() {
                 try {
                     theModel.getCurrentRepoHelper().commitAll(message);
-                    commandLineController.updateCommandText("git commit -am \""+message+"\"");
                     gitStatus();
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -1297,11 +1316,13 @@ public class SessionController {
      * This is recursively re-called if authentication fails.
      */
     public void pushBranchOrAll(PushType pushType, PushCommand push) {
+        Main.assertFxThread();
         GitOperation gitOp = authResponse -> pushBranchOrAllDetails(authResponse, pushType, push);
 
         Single
                 .fromCallable(() -> {
                     showBusyWindowAndPauseRepoMonitor("Pushing...");
+                    updateCommandTextForPush(pushType);
                     return true;
                 })
 
@@ -1311,6 +1332,15 @@ public class SessionController {
                 .doOnSuccess(unused -> hideBusyWindowAndResumeRepoMonitor())
                 .flatMap(unused -> doGitStatusWhenSubscribed())
                 .subscribe(unused -> {}, Throwable::printStackTrace);
+    }
+
+    private void updateCommandTextForPush(PushType pushType) {
+        Main.assertFxThread();
+        if (pushType == PushType.BRANCH) {
+            commandLineController.updateCommandText("git push");
+        } else if (pushType == PushType.ALL) {
+            commandLineController.updateCommandText("git push -all");
+        }
     }
 
 
@@ -1329,6 +1359,7 @@ public class SessionController {
 
     private List<Result> pushBranchOrAllDetails(Optional<RepoHelperBuilder.AuthDialogResponse> responseOptional, PushType pushType,
                                         PushCommand push) {
+        Main.assertNotFxThread();
         synchronized (globalLock) {
             List<Result> results = new ArrayList<>();
             try {
@@ -1340,10 +1371,8 @@ public class SessionController {
                 );
                 if (pushType == PushType.BRANCH) {
                     helper.pushCurrentBranch(push);
-                    commandLineController.updateCommandText("git push");
                 } else if (pushType == PushType.ALL) {
                     helper.pushAll(push);
-                    commandLineController.updateCommandText("git push -all");
                 } else {
                     assert false : "PushType enum case not handled";
                 }
@@ -1380,6 +1409,7 @@ public class SessionController {
      * Performs a `git push --tags`
      */
     public synchronized void handlePushTagsButton() {
+        Main.assertFxThread();
         try {
             logger.info("Push tags button clicked");
             commandLineController.updateCommandText("git push --tags");
@@ -1427,7 +1457,6 @@ public class SessionController {
                         new UsernamePasswordCredentialsProvider(response.username, response.password));
             }
             results = helper.pushTags();
-            commandLineController.updateCommandText("git push --tags");
             gitStatus();
 
             boolean upToDate = true;
@@ -1469,6 +1498,7 @@ public class SessionController {
      * @return true if the checkout successfully happens, false if there is an error
      */
     public boolean checkoutBranch(BranchHelper selectedBranch) {
+        Main.assertFxThread();
         if(selectedBranch == null) return false;
         // Track the branch if it is a remote branch that we're not yet tracking
         if (selectedBranch instanceof RemoteBranchHelper) {
@@ -1506,6 +1536,7 @@ public class SessionController {
      * @param selectedBranch the branch selected to delete
      */
     public synchronized void deleteBranch(BranchHelper selectedBranch) {
+        Main.assertFxThread();
         BranchModel branchModel = theModel.getCurrentRepoHelper().getBranchModel();
         boolean authorizationSucceeded = true;
         try {
@@ -1553,6 +1584,8 @@ public class SessionController {
             final RepoHelperBuilder.AuthDialogResponse credentialResponse = askUserForCredentials();
 
             showBusyWindow("Deleting remote branch...");
+            RemoteBranchHelper remote = (RemoteBranchHelper) selectedBranch;
+            commandLineController.updateCommandText("git push origin --delete " + remote.parseBranchName());
 
             Thread th = new Thread(new Task<Void>() {
                 @Override
@@ -1593,8 +1626,6 @@ public class SessionController {
                         new UsernamePasswordCredentialsProvider(response.username, response.password));
             }
             RemoteRefUpdate.Status deleteStatus = branchModel.deleteRemoteBranch((RemoteBranchHelper) selectedBranch);
-            RemoteBranchHelper remote = (RemoteBranchHelper) selectedBranch;
-            commandLineController.updateCommandText("git push origin --delete "+remote.parseBranchName());
             String updateMessage = selectedBranch.getRefName();
             // There are a number of possible cases, see JGit's documentation on RemoteRefUpdate.Status
             // for the full list.
@@ -1674,6 +1705,7 @@ public class SessionController {
      * @param commit: the commit to revert
      */
     public void handleRevertButton(CommitHelper commit) {
+        Main.assertFxThread();
         logger.info("Revert button clicked");
         commandLineController.updateCommandText("git revert "+commit.getName());
 
@@ -1705,6 +1737,7 @@ public class SessionController {
      * @param commit the commit to reset to
      */
     public void handleResetButton(CommitHelper commit) {
+        Main.assertFxThread();
         handleAdvancedResetButton(commit, ResetCommand.ResetType.MIXED);
     }
 
@@ -1714,8 +1747,9 @@ public class SessionController {
      * @param type the type of reset to perform
      */
     public void handleAdvancedResetButton(CommitHelper commit, ResetCommand.ResetType type) {
+        Main.assertFxThread();
         logger.info("Reset button clicked");
-        commandLineController.updateCommandText("git reset --"+type.toString().toLowerCase()+" "+commit.getName());
+
         if(this.theModel.getCurrentRepoHelper() == null) {
             this.showNoRepoLoadedNotification();
             setButtonsDisabled(true);
@@ -1723,6 +1757,7 @@ public class SessionController {
             Single
                     .fromCallable(() -> {
                         showBusyWindow("Resetting...");
+                        commandLineController.updateCommandText("git reset --"+type.toString().toLowerCase()+" "+commit.getName());
                         return true;
                     })
                     .subscribeOn(JavaFxScheduler.platform())
@@ -1762,6 +1797,7 @@ public class SessionController {
     }
 
     public void quickStashSave() {
+        Main.assertFxThread();
         try {
             logger.info("Quick stash save button clicked");
 
@@ -1784,6 +1820,7 @@ public class SessionController {
      * Applies the most recent stash
      */
     void handleStashApplyButton() {
+        Main.assertFxThread();
         // TODO: make it clearer which stash this applies
         logger.info("Stash apply button clicked");
         try {
@@ -1830,6 +1867,7 @@ public class SessionController {
      * Drops the most recent stash
      */
     public void handleStashDropButton() {
+        Main.assertFxThread();
         logger.info("Stash drop button clicked");
         try {
             // TODO: implement droping something besides 0
@@ -1917,15 +1955,6 @@ public class SessionController {
                         helper.setOwnerAuth(
                                 new UsernamePasswordCredentialsProvider(response.username, response.password))
                 );
-                if(prune){
-                    commandLineController.updateCommandText("git fetch -p");
-                }
-                else if (pull){
-                    commandLineController.updateCommandText("git pull");
-                }
-                else{
-                    commandLineController.updateCommandText("git fetch");
-                }
                 if (!helper.fetch(prune)) {
                     results.add(new Result(ResultStatus.NOCOMMITS, ResultOperation.FETCH));
                 }
@@ -2209,24 +2238,6 @@ public class SessionController {
             showGenericErrorNotification(e);
         }
     }
-
-    /**
-     * Opens the transcript viewer
-     * @todo Add GUI window to display the transcript.
-     */
-    public void handleTranscriptViewMenuItem() {
-                logger.info("Viewing transcript");
-    }
-
-    /**
-     * Clears the transcript file.
-     */
-    public void handleTranscriptClearItem() {
-        logger.info("Clearing transcript");
-        TranscriptHelper.clear();
-    }
-
-
 
     void handleNewBranchButton() {
         handleCreateOrDeleteBranchButton("create");
@@ -2958,6 +2969,26 @@ public class SessionController {
     }
 
     public synchronized void updateCommandText(String command) {
+        Main.assertFxThread();
         commandLineController.updateCommandText(command);
+    }
+
+    public synchronized void addCommandToTranscript(String command) {
+        if (theModel.getCurrentRepoHelper() != null) {
+            theModel.getCurrentRepoHelper().addCommandToTranscript(command);
+        }
+    }
+
+    public synchronized void clearTranscript() {
+        if (theModel.getCurrentRepoHelper() != null) {
+            theModel.getCurrentRepoHelper().clearTranscript();
+        }
+    }
+
+    public synchronized List<String> getTranscript() {
+        if (theModel.getCurrentRepoHelper() != null) {
+            return theModel.getCurrentRepoHelper().getTranscript();
+        }
+        return new ArrayList<>();
     }
 }

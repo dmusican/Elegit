@@ -95,7 +95,7 @@ public class SshPrivateKeyPasswordExistingFXTest extends ApplicationTest {
     @After
     public void tearDown() {
         logger.info("Tearing down");
-        TestUtilities.cleanupTestEnvironment();
+        TestUtilities.cleanupTestFXEnvironment();
         TestCase.assertEquals(0, Main.getAssertionCount());
     }
 
@@ -164,7 +164,6 @@ public class SshPrivateKeyPasswordExistingFXTest extends ApplicationTest {
                     .clickOn("#repoInputDialog")
                     .write(local.toString() + "\n");
 
-
             // Enter in private key location
             clickOn("#repoInputDialog")
                     .write(getClass().getResource(privateKeyFileLocation).getFile())
@@ -205,6 +204,12 @@ public class SshPrivateKeyPasswordExistingFXTest extends ApplicationTest {
 
             // Stop repository monitor, so it doesn't keep trying to work after sshd shuts down
             RepositoryMonitor.pause();
+
+            // TODO: fix this better.
+            // We suspect there is still a thread running when RepositoryMonitor.pause() is called, so that's why we
+            // sleep first (make sure it finishes)
+            sleep(10, TimeUnit.SECONDS);
+
             sshd.stop();
         }
     }
